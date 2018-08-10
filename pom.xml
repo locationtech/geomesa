@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
- 
+
     <name>GeoMesa</name>
     <description>A distributed spatio-temporal database built on a number of cloud data storage systems</description>
     <url>http://www.geomesa.org/</url>
@@ -82,8 +82,8 @@
         <json4s.version>3.5.4</json4s.version>
         <scalatra.version>2.6.3</scalatra.version>
         <kryo.version>3.0.3</kryo.version>
-        <arrow.version>0.6.0</arrow.version>
-        <netty.version>4.0.41.Final</netty.version>
+        <arrow.version>0.10.0</arrow.version>
+        <netty.version>4.1.17.Final</netty.version>
 
         <!-- environment-dependent versions -->
         <!-- These are compiled and pass CQs and should be compatible with recommended versions -->
@@ -96,9 +96,9 @@
         <hbase.guava.version>12.0.1</hbase.guava.version>
         <cassandra.version>3.0.0</cassandra.version>
         <cassandra.guava.version>18.0</cassandra.guava.version>
-        <kafka.version>1.0.1</kafka.version> <!-- also supports: 0.10.2.1, 0.9.0.1 -->
-        <zkclient.version>0.10</zkclient.version> <!-- corresponding versions: 0.10, 0.7 -->
-        <kafka.jopt.version>5.0.4</kafka.jopt.version> <!-- corresponding versions: 4.9, 3.2 -->
+        <kafka.version>2.0.0</kafka.version> <!-- also supports: 1.1.1, 1.0.2, 0.10.2.1, 0.9.0.1 -->
+        <zkclient.version>0.10</zkclient.version> <!-- corresponding versions: 0.10, 0.10, 0.10, 0.7 -->
+        <kafka.jopt.version>5.0.4</kafka.jopt.version> <!-- corresponding versions: 5.0.4, 5.0.4, 4.9, 3.2 -->
 
         <!-- Recommended installation versions -->
         <!-- These take into account bugfixes and should be used in documentation -->
@@ -117,8 +117,8 @@
 
         <!-- logging properties - we expect logging jars to be provided -->
         <!-- 1.7.x is for hadoop 2 and accumulo 1.5.x -->
-        <slf4j.version>1.7.21</slf4j.version>
-        <scalalogging.version>3.1.0</scalalogging.version>
+        <slf4j.version>1.7.25</slf4j.version>
+        <scalalogging.version>3.8.0</scalalogging.version>
         <log4j.version>1.2.17</log4j.version>
 
         <specs2.version>4.3.2</specs2.version>
@@ -2197,14 +2197,6 @@
                         <groupId>org.slf4j</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
-                     <exclusion>
-                         <groupId>io.netty</groupId>
-                         <artifactId>netty-codec</artifactId>
-                     </exclusion>
-                     <exclusion>
-                         <groupId>io.netty</groupId>
-                         <artifactId>netty-transport</artifactId>
-                     </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -2217,14 +2209,6 @@
                     <exclusion>
                         <groupId>org.slf4j</groupId>
                         <artifactId>*</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty-codec</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty-transport</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

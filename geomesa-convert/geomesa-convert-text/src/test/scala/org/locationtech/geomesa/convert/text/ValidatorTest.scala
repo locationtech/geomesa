@@ -113,7 +113,7 @@ class ValidatorTest extends Specification {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
     "raise errors on bad dates" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
-        """ { options.parse-mode = "batch", options.error-mode = raise-errors, options.validators = ["z-index"] } """))
+        """ { options.parse-mode = "batch", options.error-mode = raise-errors, options.validators = ["index"] } """))
       val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
 
@@ -129,7 +129,7 @@ class ValidatorTest extends Specification {
 
     "skip records with bad dates" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
-        """ { options.parse-mode = "batch", options.error-mode = skip-bad-records, options.validators = ["z-index"] } """))
+        """ { options.parse-mode = "batch", options.error-mode = skip-bad-records, options.validators = ["index"] } """))
       val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
 
@@ -141,7 +141,7 @@ class ValidatorTest extends Specification {
 
     "raise errors on bad geo" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
-        """ { options.parse-mode = "batch", options.error-mode = raise-errors, options.validators = ["z-index"] } """))
+        """ { options.parse-mode = "batch", options.error-mode = raise-errors, options.validators = ["index"] } """))
       val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
 
@@ -153,7 +153,7 @@ class ValidatorTest extends Specification {
 
     "skip records with bad geo" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
-        """ { options.parse-mode = "batch", options.error-mode = skip-bad-records, options.validators = ["z-index"] } """))
+        """ { options.parse-mode = "batch", options.error-mode = skip-bad-records, options.validators = ["index"] } """))
       val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
 
@@ -165,7 +165,7 @@ class ValidatorTest extends Specification {
 
     "skip bad geo records in batch mode" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
-        """ { options.parse-mode = "batch", options.error-mode = skip-bad-records, options.validators = ["z-index"] } """))
+        """ { options.parse-mode = "batch", options.error-mode = skip-bad-records, options.validators = ["index"] } """))
       val converter = SimpleFeatureConverter(sft, conf)
       converter must not(beNull)
 

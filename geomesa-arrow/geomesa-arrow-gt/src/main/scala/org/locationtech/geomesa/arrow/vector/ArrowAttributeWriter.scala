@@ -14,11 +14,10 @@ import java.util.Date
 import com.vividsolutions.jts.geom._
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector._
-import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, NullableMapVector}
+import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, StructVector}
 import org.apache.arrow.vector.types.Types.MinorType
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding, FieldType}
 import org.locationtech.geomesa.arrow.TypeBindings
-import org.locationtech.geomesa.arrow.vector.GeometryVector.GeometryWriter
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding.Encoding
@@ -47,7 +46,7 @@ trait ArrowAttributeWriter {
     *
     * @param count number of features written (or null)
     */
-  def setValueCount(count: Int): Unit = vector.getMutator.setValueCount(count)
+  def setValueCount(count: Int): Unit = vector.setValueCount(count)
 
   /**
     * Handle to the underlying field vector being written to
@@ -71,7 +70,7 @@ object ArrowAttributeWriter {
     * @return feature ID writer
     */
   def id(sft: SimpleFeatureType,
-         vector: Option[NullableMapVector],
+         vector: Option[StructVector],
          encoding: SimpleFeatureEncoding)
         (implicit allocator: BufferAllocator): ArrowAttributeWriter = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -83,7 +82,7 @@ object ArrowAttributeWriter {
       case None => ArrowNoopWriter
 
       case Some(Encoding.Min) =>
-        val child = toVector[NullableIntVector](FieldType.nullable(MinorType.INT.getType))
+        val child = toVector[IntVector](FieldType.nullable(MinorType.INT.getType))
         if (sft.isUuid) {
           new ArrowFeatureIdMinimalUuidWriter(child)
         } else {
@@ -95,7 +94,7 @@ object ArrowAttributeWriter {
         new ArrowFeatureIdUuidWriter(child)
 
       case Some(Encoding.Max) =>
-        val child = toVector[NullableVarCharVector](FieldType.nullable(MinorType.VARCHAR.getType))
+        val child = toVector[VarCharVector](FieldType.nullable(MinorType.VARCHAR.getType))
         new ArrowFeatureIdStringWriter(child)
     }
   }
@@ -112,7 +111,7 @@ object ArrowAttributeWriter {
     * @return attribute writers
     */
   def apply(sft: SimpleFeatureType,
-            vector: Option[NullableMapVector],
+            vector: Option[StructVector],
             dictionaries: Map[String, ArrowDictionary],
             encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min)
            (implicit allocator: BufferAllocator): Seq[ArrowAttributeWriter] = {
@@ -135,7 +134,7 @@ object ArrowAttributeWriter {
     */
   def apply(sft: SimpleFeatureType,
             descriptor: AttributeDescriptor,
-            vector: Option[NullableMapVector],
+            vector: Option[StructVector],
             dictionary: Option[ArrowDictionary],
             encoding: SimpleFeatureEncoding)
            (implicit allocator: BufferAllocator): ArrowAttributeWriter = {
@@ -159,7 +158,7 @@ object ArrowAttributeWriter {
     */
   def apply(name: String,
             bindings: Seq[ObjectType],
-            vector: Option[NullableMapVector],
+            vector: Option[StructVector],
             dictionary: Option[ArrowDictionary],
             metadata: Map[String, String],
             encoding: SimpleFeatureEncoding)
@@ -193,8 +192,8 @@ object ArrowAttributeWriter {
 
           case ObjectType.DATE =>
             encoding.date match {
-              case Encoding.Min => new ArrowDateSecondsWriter(toVector(MinorType.INT.getType, null, metadata))
-              case Encoding.Max => new ArrowDateMillisWriter(toVector(MinorType.BIGINT.getType, null, metadata))
+              case Encoding.Min => new ArrowDateSecondsWriter(toVector[IntVector](MinorType.INT.getType, null, metadata))
+              case Encoding.Max => new ArrowDateMillisWriter(toVector[BigIntVector](MinorType.BIGINT.getType, null, metadata))
             }
 
           case ObjectType.STRING =>
@@ -219,7 +218,7 @@ object ArrowAttributeWriter {
             new ArrowListWriter(toVector(MinorType.LIST.getType, null, metadata), bindings(1), encoding)
 
           case ObjectType.MAP =>
-            new ArrowMapWriter(toVector(MinorType.MAP.getType, null, metadata), bindings(1), bindings(2), encoding)
+            new ArrowMapWriter(toVector(MinorType.STRUCT.getType, null, metadata), bindings(1), bindings(2), encoding)
 
           case ObjectType.BYTES =>
             new ArrowBytesWriter(toVector(MinorType.VARBINARY.getType, null, metadata))
@@ -237,13 +236,13 @@ object ArrowAttributeWriter {
         val dictionaryEncoding = dict.encoding
         val dictionaryType = TypeBindings(bindings, encoding)
         if (dictionaryEncoding.getIndexType.getBitWidth == 8) {
-          val vector = toVector[NullableTinyIntVector](MinorType.TINYINT.getType, dictionaryEncoding, metadata)
+          val vector = toVector[TinyIntVector](MinorType.TINYINT.getType, dictionaryEncoding, metadata)
           new ArrowDictionaryByteWriter(vector, dict, dictionaryType)
         } else if (dictionaryEncoding.getIndexType.getBitWidth == 16) {
-          val vector = toVector[NullableSmallIntVector](MinorType.SMALLINT.getType, dictionaryEncoding, metadata)
+          val vector = toVector[SmallIntVector](MinorType.SMALLINT.getType, dictionaryEncoding, metadata)
           new ArrowDictionaryShortWriter(vector, dict, dictionaryType)
         } else {
-          val vector = toVector[NullableIntVector](MinorType.INT.getType, dictionaryEncoding, metadata)
+          val vector = toVector[IntVector](MinorType.INT.getType, dictionaryEncoding, metadata)
           new ArrowDictionaryIntWriter(vector, dict, dictionaryType)
         }
     }
@@ -252,40 +251,31 @@ object ArrowAttributeWriter {
   /**
     * Converts a value into a dictionary byte and writes it
     */
-  class ArrowDictionaryByteWriter(override val vector: NullableTinyIntVector,
+  class ArrowDictionaryByteWriter(override val vector: TinyIntVector,
                                   val dictionary: ArrowDictionary,
                                   val dictionaryType: TypeBindings) extends ArrowAttributeWriter {
-
-    private val mutator = vector.getMutator
-
     // note: nulls get encoded in the dictionary
-    override def apply(i: Int, value: AnyRef): Unit = mutator.setSafe(i, dictionary.index(value).toByte)
+    override def apply(i: Int, value: AnyRef): Unit = vector.setSafe(i, dictionary.index(value).toByte)
   }
 
   /**
     * Converts a value into a dictionary short and writes it
     */
-  class ArrowDictionaryShortWriter(override val vector: NullableSmallIntVector,
+  class ArrowDictionaryShortWriter(override val vector: SmallIntVector,
                                    val dictionary: ArrowDictionary,
                                    val dictionaryType: TypeBindings) extends ArrowAttributeWriter {
-
-    private val mutator = vector.getMutator
-
     // note: nulls get encoded in the dictionary
-    override def apply(i: Int, value: AnyRef): Unit = mutator.setSafe(i, dictionary.index(value).toShort)
+    override def apply(i: Int, value: AnyRef): Unit = vector.setSafe(i, dictionary.index(value).toShort)
   }
 
   /**
     * Converts a value into a dictionary int and writes it
     */
-  class ArrowDictionaryIntWriter(override val vector: NullableIntVector,
+  class ArrowDictionaryIntWriter(override val vector: IntVector,
                                  val dictionary: ArrowDictionary,
                                  val dictionaryType: TypeBindings) extends ArrowAttributeWriter {
-
-    private val mutator = vector.getMutator
-
     // note: nulls get encoded in the dictionary
-    override def apply(i: Int, value: AnyRef): Unit = mutator.setSafe(i, dictionary.index(value))
+    override def apply(i: Int, value: AnyRef): Unit = vector.setSafe(i, dictionary.index(value))
   }
 
   /**
@@ -295,49 +285,43 @@ object ArrowAttributeWriter {
                             binding: ObjectType,
                             metadata: Map[String, String],
                             encoding: Encoding) extends ArrowAttributeWriter {
-    private val (_vector: FieldVector, delegate: GeometryWriter[Geometry]) = {
+    private val delegate: GeometryVector[Geometry, FieldVector] = {
       if (binding == ObjectType.POINT) {
         val vector = toVector.apply[FixedSizeListVector](AbstractPointVector.createFieldType(metadata))
-        val delegate = encoding match {
-          case Encoding.Min => new PointFloatVector(vector).getWriter
-          case Encoding.Max => new PointVector(vector).getWriter
+        encoding match {
+          case Encoding.Min => new PointFloatVector(vector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+          case Encoding.Max => new PointVector(vector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
         }
-        (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
       } else if (binding == ObjectType.LINESTRING) {
         val vector = toVector.apply[ListVector](AbstractLineStringVector.createFieldType(metadata))
-        val delegate = encoding match {
-          case Encoding.Min => new LineStringFloatVector(vector).getWriter
-          case Encoding.Max => new LineStringVector(vector).getWriter
+        encoding match {
+          case Encoding.Min => new LineStringFloatVector(vector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+          case Encoding.Max => new LineStringVector(vector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
         }
-        (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
       } else if (binding == ObjectType.POLYGON) {
         val vector = toVector.apply[ListVector](AbstractPolygonVector.createFieldType(metadata))
-        val delegate = encoding match {
-          case Encoding.Min => new PolygonFloatVector(vector).getWriter
-          case Encoding.Max => new PolygonVector(vector).getWriter
+        encoding match {
+          case Encoding.Min => new PolygonFloatVector(vector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+          case Encoding.Max => new PolygonVector(vector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
         }
-        (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
       } else if (binding == ObjectType.MULTILINESTRING) {
         val vector = toVector.apply[ListVector](AbstractMultiLineStringVector.createFieldType(metadata))
-        val delegate = encoding match {
-          case Encoding.Min => new MultiLineStringFloatVector(vector).getWriter
-          case Encoding.Max => new MultiLineStringVector(vector).getWriter
+        encoding match {
+          case Encoding.Min => new MultiLineStringFloatVector(vector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+          case Encoding.Max => new MultiLineStringVector(vector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
         }
-        (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
       } else if (binding == ObjectType.MULTIPOLYGON) {
         val vector = toVector.apply[ListVector](AbstractMultiPolygonVector.createFieldType(metadata))
-        val delegate = encoding match {
-          case Encoding.Min => new MultiPolygonFloatVector(vector).getWriter
-          case Encoding.Max => new MultiPolygonVector(vector).getWriter
+        encoding match {
+          case Encoding.Min => new MultiPolygonFloatVector(vector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+          case Encoding.Max => new MultiPolygonVector(vector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
         }
-        (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
       } else if (binding == ObjectType.MULTIPOINT) {
         val vector = toVector.apply[ListVector](AbstractMultiPointVector.createFieldType(metadata))
-        val delegate = encoding match {
-          case Encoding.Min => new MultiPointFloatVector(vector).getWriter
-          case Encoding.Max => new MultiPointVector(vector).getWriter
+        encoding match {
+          case Encoding.Min => new MultiPointFloatVector(vector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
+          case Encoding.Max => new MultiPointVector(vector).asInstanceOf[GeometryVector[Geometry, FieldVector]]
         }
-        (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
       } else if (binding == ObjectType.GEOMETRY_COLLECTION) {
         throw new NotImplementedError(s"Geometry type $binding is not supported")
       } else {
@@ -345,7 +329,7 @@ object ArrowAttributeWriter {
       }
     }
 
-    override def vector: FieldVector = _vector
+    override def vector: FieldVector = delegate.getVector
     // note: delegate handles nulls
     override def apply(i: Int, value: AnyRef): Unit = delegate.set(i, value.asInstanceOf[Geometry])
 
@@ -360,153 +344,122 @@ object ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit = {}
   }
 
-  class ArrowFeatureIdMinimalUuidWriter(override val vector: NullableIntVector) extends ArrowAttributeWriter {
-    private val mutator = vector.getMutator
+  class ArrowFeatureIdMinimalUuidWriter(override val vector: IntVector) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit = {
       import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
       val (msb, lsb) = value.asInstanceOf[SimpleFeature].getUuid
-      mutator.setSafe(i, ProxyIdFunction.proxyId(msb, lsb))
+      vector.setSafe(i, ProxyIdFunction.proxyId(msb, lsb))
     }
   }
 
-  class ArrowFeatureIdMinimalStringWriter(override val vector: NullableIntVector) extends ArrowAttributeWriter {
-    private val mutator = vector.getMutator
+  class ArrowFeatureIdMinimalStringWriter(override val vector: IntVector) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit =
-      mutator.setSafe(i, ProxyIdFunction.proxyId(value.asInstanceOf[SimpleFeature].getID))
+      vector.setSafe(i, ProxyIdFunction.proxyId(value.asInstanceOf[SimpleFeature].getID))
   }
 
   class ArrowFeatureIdUuidWriter(override val vector: FixedSizeListVector) extends ArrowAttributeWriter {
-    private val mutator = vector.getMutator
-    private val bitsMutator =
-      vector.addOrGetVector(FieldType.nullable(new ArrowType.Int(64, true)))
-        .getVector.asInstanceOf[NullableBigIntVector].getMutator
+    private val bits =
+      vector.addOrGetVector(FieldType.nullable(new ArrowType.Int(64, true))).getVector.asInstanceOf[BigIntVector]
 
     override def apply(i: Int, value: AnyRef): Unit = {
       import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
       val (msb, lsb) = value.asInstanceOf[SimpleFeature].getUuid
-      mutator.setNotNull(i)
-      bitsMutator.setSafe(i * 2, msb)
-      bitsMutator.setSafe(i * 2 + 1, lsb)
+      vector.setNotNull(i)
+      bits.setSafe(i * 2, msb)
+      bits.setSafe(i * 2 + 1, lsb)
     }
   }
 
-  class ArrowFeatureIdStringWriter(override val vector: NullableVarCharVector) extends ArrowAttributeWriter {
-    private val mutator = vector.getMutator
+  class ArrowFeatureIdStringWriter(override val vector: VarCharVector) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit = {
       val bytes = value.asInstanceOf[SimpleFeature].getID.getBytes(StandardCharsets.UTF_8)
-      mutator.setSafe(i, bytes, 0, bytes.length)
+      vector.setSafe(i, bytes, 0, bytes.length)
     }
   }
 
-  class ArrowStringWriter(override val vector: NullableVarCharVector) extends ArrowAttributeWriter {
-
-    private val mutator = vector.getMutator
-
-    override def apply(i: Int, value: AnyRef): Unit =
-      if (value == null) {
-        mutator.setNull(i) // note: calls .setSafe internally
-      } else {
-        val bytes = value.toString.getBytes(StandardCharsets.UTF_8)
-        mutator.setSafe(i, bytes, 0, bytes.length)
-      }
-  }
-
-  class ArrowIntWriter(override val vector: NullableIntVector) extends ArrowAttributeWriter {
-
-    private val mutator = vector.getMutator
-
+  class ArrowStringWriter(override val vector: VarCharVector) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit = {
       if (value == null) {
-        mutator.setNull(i) // note: calls .setSafe internally
+        vector.setNull(i) // note: calls .setSafe internally
       } else {
-        mutator.setSafe(i, value.asInstanceOf[Int])
+        val bytes = value.toString.getBytes(StandardCharsets.UTF_8)
+        vector.setSafe(i, bytes, 0, bytes.length)
+      }
+    }
+  }
+
+  class ArrowIntWriter(override val vector: IntVector) extends ArrowAttributeWriter {
+    override def apply(i: Int, value: AnyRef): Unit = {
+      if (value == null) {
+        vector.setNull(i) // note: calls .setSafe internally
+      } else {
+        vector.setSafe(i, value.asInstanceOf[Int])
       }
     }
 
   }
 
-  class ArrowLongWriter(override val vector: NullableBigIntVector) extends ArrowAttributeWriter {
-
-    private val mutator = vector.getMutator
-
+  class ArrowLongWriter(override val vector: BigIntVector) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit =
       if (value == null) {
-        mutator.setNull(i) // note: calls .setSafe internally
+        vector.setNull(i) // note: calls .setSafe internally
       } else {
-        mutator.setSafe(i, value.asInstanceOf[Long])
+        vector.setSafe(i, value.asInstanceOf[Long])
       }
   }
 
-  class ArrowFloatWriter(override val vector: NullableFloat4Vector) extends ArrowAttributeWriter {
-
-    private val mutator = vector.getMutator
-
+  class ArrowFloatWriter(override val vector: Float4Vector) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit =
       if (value == null) {
-        mutator.setNull(i) // note: calls .setSafe internally
+        vector.setNull(i) // note: calls .setSafe internally
       } else {
-        mutator.setSafe(i, value.asInstanceOf[Float])
+        vector.setSafe(i, value.asInstanceOf[Float])
       }
   }
 
-  class ArrowDoubleWriter(override val vector: NullableFloat8Vector) extends ArrowAttributeWriter {
-
-    private val mutator = vector.getMutator
-
+  class ArrowDoubleWriter(override val vector: Float8Vector) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit =
       if (value == null) {
-        mutator.setNull(i) // note: calls .setSafe internally
+        vector.setNull(i) // note: calls .setSafe internally
       } else {
-        mutator.setSafe(i, value.asInstanceOf[Double])
+        vector.setSafe(i, value.asInstanceOf[Double])
       }
   }
 
-  class ArrowBooleanWriter(override val vector: NullableBitVector) extends ArrowAttributeWriter {
-
-    private val mutator = vector.getMutator
-
+  class ArrowBooleanWriter(override val vector: BitVector) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit =
       if (value == null) {
-        mutator.setNull(i) // note: calls .setSafe internally
+        vector.setNull(i) // note: calls .setSafe internally
       } else {
-        mutator.setSafe(i, if (value.asInstanceOf[Boolean]) { 1 } else { 0 })
+        vector.setSafe(i, if (value.asInstanceOf[Boolean]) { 1 } else { 0 })
       }
   }
 
-  class ArrowDateMillisWriter(override val vector: NullableBigIntVector) extends ArrowAttributeWriter {
-
-    private val mutator = vector.getMutator
-
+  class ArrowDateMillisWriter(override val vector: BigIntVector) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit =
       if (value == null) {
-        mutator.setNull(i) // note: calls .setSafe internally
+        vector.setNull(i) // note: calls .setSafe internally
       } else {
-        mutator.setSafe(i, value.asInstanceOf[Date].getTime)
+        vector.setSafe(i, value.asInstanceOf[Date].getTime)
       }
   }
 
-  class ArrowDateSecondsWriter(override val vector: NullableIntVector) extends ArrowAttributeWriter {
-
-    private val mutator = vector.getMutator
-
+  class ArrowDateSecondsWriter(override val vector: IntVector) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit =
       if (value == null) {
-        mutator.setNull(i) // note: calls .setSafe internally
+        vector.setNull(i) // note: calls .setSafe internally
       } else {
-        mutator.setSafe(i, (value.asInstanceOf[Date].getTime / 1000L).toInt)
+        vector.setSafe(i, (value.asInstanceOf[Date].getTime / 1000L).toInt)
       }
   }
 
-  class ArrowBytesWriter(override val vector: NullableVarBinaryVector) extends ArrowAttributeWriter {
-
-    private val mutator = vector.getMutator
-
+  class ArrowBytesWriter(override val vector: VarBinaryVector) extends ArrowAttributeWriter {
     override def apply(i: Int, value: AnyRef): Unit =
       if (value == null) {
-        mutator.setNull(i) // note: calls .setSafe internally
+        vector.setNull(i) // note: calls .setSafe internally
       } else {
         val bytes = value.asInstanceOf[Array[Byte]]
-        mutator.setSafe(i, bytes, 0, bytes.length)
+        vector.setSafe(i, bytes, 0, bytes.length)
       }
   }
 
@@ -516,10 +469,10 @@ object ArrowAttributeWriter {
                        (implicit allocator: BufferAllocator) extends ArrowAttributeWriter {
     private val subWriter = ArrowAttributeWriter(Seq(binding), new ToListChildVector(vector), None, Map.empty[String, String], encoding)
     override def apply(i: Int, value: AnyRef): Unit = {
-      val start = vector.getMutator.startNewValue(i)
+      val start = vector.startNewValue(i)
       // note: null gets converted to empty list
       if (value == null) {
-        vector.getMutator.endValue(i, 0)
+        vector.endValue(i, 0)
       } else {
         val list = value.asInstanceOf[java.util.List[AnyRef]]
         var offset = 0
@@ -527,12 +480,12 @@ object ArrowAttributeWriter {
           subWriter.apply(start + offset, list.get(offset))
           offset += 1
         }
-        vector.getMutator.endValue(i, offset)
+        vector.endValue(i, offset)
       }
     }
   }
 
-  class ArrowMapWriter(override val vector: NullableMapVector,
+  class ArrowMapWriter(override val vector: StructVector,
                        keyBinding: ObjectType,
                        valueBinding: ObjectType,
                        encoding: SimpleFeatureEncoding)
@@ -543,9 +496,9 @@ object ArrowAttributeWriter {
     private val valueWriter = new ArrowListWriter(valueVector, valueBinding, encoding)
     override def apply(i: Int, value: AnyRef): Unit = {
       if (value == null) {
-        vector.getMutator.setNull(i)
+        vector.setNull(i)
       } else {
-        vector.getMutator.setIndexDefined(i)
+        vector.setIndexDefined(i)
         val map = value.asInstanceOf[java.util.Map[AnyRef, AnyRef]]
         val keys = new java.util.ArrayList[AnyRef](map.size())
         val values = new java.util.ArrayList[AnyRef](map.size())
@@ -568,7 +521,7 @@ object ArrowAttributeWriter {
     def apply[T <: FieldVector](fieldType: FieldType): T
   }
 
-  private class ToMapChildVector(val name: String, val container: NullableMapVector) extends ToVector {
+  private class ToMapChildVector(val name: String, val container: StructVector) extends ToVector {
     override def apply[T <: FieldVector](fieldType: FieldType): T = {
       var child = container.getChild(name)
       if (child == null) {

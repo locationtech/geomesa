@@ -28,6 +28,8 @@ orc
 paranamer
 parboiled
 parquet
+pureconfig
+pureconfig-macros
 Saxon-HE
 scala
 scalap

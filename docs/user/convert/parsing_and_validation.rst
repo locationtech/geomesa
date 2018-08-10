@@ -14,25 +14,74 @@ At their core, converters transform input streams into SimpleFeatures. Validator
 of those SimpleFeatures before they are written to GeoMesa. For example, you may want to validate that there is a
 geometry field and that the geometry is valid.
 
-There are currently three validators available for use with GeoMesa converters:
+There are three validators provided for use with GeoMesa converters:
 
-* ``has-geo`` - Ensure that the SimpleFeature has a geometry and it is non-null
-* ``has-dtg`` - Ensure that the SimpleFeature has a date and it is non-null
-* ``z-index`` - Ensure the Geometry and Date are within the space/time bounds of GeoMesa Z-Index implementations
-  (i.e. Z2, Z3, XZ2, XZ3)
+* ``has-geo`` - Ensure that the SimpleFeature has a non-null geometry
+* ``has-dtg`` - Ensure that the SimpleFeature has a non-null date
+* ``index`` - Ensure that the SimpleFeature has a geometry and date that are within the space/time bounds of
+  the relevant GeoMesa Z-Index implementations (i.e. Z2, Z3, XZ2, XZ3)
 
-By default the ``has-geo`` and ``has-dtg`` validators are enabled. To enable other validators add this to the options
-block of your typesafe converter config:
+Additional validators may be loaded through Java SPI by by implementing
+``org.locationtech.geomesa.convert.SimpleFeatureValidator$ValidatorFactory`` and including a special service
+descriptor file. See below for additional information.
 
-::
+By default the ``index`` validator is enabled. This is suitable for most use cases, as it will choose the appropriate
+validator based on the SimpleFeatureType. To enable other validators, specify them in the options block of your
+typesafe converter config::
 
     geomesa.converters.myconverter {
       options {
-        validators = ["has-dtg", "has-geo", "z-index"]
+        validators = [ "has-dtg", "has-geo" ]
       }
     }
 
 Validation can be disabled by setting it to an empty array.
+
+Custom Validators
+^^^^^^^^^^^^^^^^^
+
+Custom validators may be loaded through Java SPI by by implementing
+``org.locationtech.geomesa.convert.SimpleFeatureValidator$ValidatorFactory``, shown below. Note that validators
+must be registered through a special service descriptor file.
+
+.. code-block:: scala
+
+  trait ValidatorFactory {
+    def name: String
+    def validator(sft: SimpleFeatureType, config: Option[String]): Validator
+  }
+
+When specifying validators in a converter config, the ``name`` of the factory must match the ``validators`` string.
+Any additional arguments may be specified in parentheses, which will be passed to the ``validator`` method.
+For example::
+
+    geomesa.converters.myconverter {
+      options {
+        validators = [ "my-custom-validator(optionA,optionB)" ]
+      }
+    }
+
+.. code-block:: scala
+
+  class MyCustomValidator extends ValidatorFactory {
+
+    override val name: String = "my-custom-validator"
+
+    override def validator(sft: SimpleFeatureType, config: Option[String]): Validator = {
+      if (config.exists(_.contains("optionA"))) {
+        // handle option a
+      } else {
+        // handle other options
+      }
+    }
+  }
+
+See the GeoMesa
+`unit tests <https://github.com/locationtech/geomesa/blob/master/geomesa-convert/geomesa-convert-common/src/test/scala/org/locationtech/geomesa/convert/SimpleFeatureValidatorTest.scala>`__
+for a sample implementation.
+
+For more details on implementing a service provider, see the
+`Oracle Javadoc <http://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html>`__.
 
 Error Mode
 ~~~~~~~~~~
@@ -97,14 +146,14 @@ Transactional Considerations
 
 Most of the datastores that GeoMesa works with (Accumulo, HBase, etc) do not provide transactions. Therefore, streaming
 data in and out of a converter and into an ingest pipeline is not transactional. To mimic transactions you can use
-a batch parse mode with ``raise-errors`` error mode and likely with the ``z-index`` validator. Note that this may
+a batch parse mode with ``raise-errors`` error mode and with the ``index`` validator. Note that this may
 increase your memory requirements and hurt performance:
 
 ::
 
     geomesa.converters.myconverter {
       options {
-        validators = [ "z-index" ]
+        validators = [ "index" ]
         parse-mode = "batch"
         error-mode = "raise-errors"
       }
@@ -117,7 +166,7 @@ incremental parse mode:
 
     geomesa.converters.myconverter {
       options {
-        validators = [ "z-index" ]
+        validators = [ "index" ]
         parse-mode = "incremental"
         error-mode = "raise-errors"
       }

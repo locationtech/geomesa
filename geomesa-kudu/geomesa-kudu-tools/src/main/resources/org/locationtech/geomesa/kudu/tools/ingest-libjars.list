@@ -25,6 +25,8 @@ minlog
 netty
 paranamer
 parboiled
+pureconfig
+pureconfig-macros
 Saxon-HE
 scala
 scalap
