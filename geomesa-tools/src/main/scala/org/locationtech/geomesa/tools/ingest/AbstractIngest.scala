@@ -199,7 +199,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     futures.foreach(_.get)
 
     Command.user.info(s"Local ingestion complete in ${TextTools.getTime(start)}")
-    if (files.size == 1) {
+    if (files.lengthCompare(1) == 0) {
       Command.user.info(getStatInfo(written.get, failed.get, input = s" for file: ${files.head.path}."))
     } else {
       Command.user.info(getStatInfo(written.get, failed.get))
