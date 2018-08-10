@@ -133,9 +133,9 @@ object SimpleFeatureValidator extends LazyLogging {
   }
 
   /**
-    * Validator based on the indices used by the feature type. Currently only the z2 and z3 indices have
-    * input requirements. In addition, features that validate against the z3 index will also validate against
-    * the z2 index
+    * Validator based on the indices used by the feature type. Currently only the x/z2 and x/z3 indices have
+    * input requirements. In addition, features that validate against the x/z3 index will also validate against
+    * the x/z2 index
     */
   object IndexValidator extends ValidatorFactory {
     override val name: String = "index"
