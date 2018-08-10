@@ -183,7 +183,7 @@ object SimpleFeatureValidator extends LazyLogging {
     * @param error error message
     */
   private class NullValidator(i: Int, error: String) extends Validator {
-    override def validate(sf: SimpleFeature): String = if (sf.getAttribute(i) == null) { error } else { null}
+    override def validate(sf: SimpleFeature): String = if (sf.getAttribute(i) == null) { error } else { null }
   }
 
   /**
