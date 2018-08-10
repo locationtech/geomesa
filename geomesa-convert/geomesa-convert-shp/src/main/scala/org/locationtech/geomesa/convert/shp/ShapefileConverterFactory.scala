@@ -76,7 +76,7 @@ object ShapefileConverterFactory extends LazyLogging {
       }
 
       val shpConfig = BasicConfig(TypeToProcess, Some(Column(0)), Map.empty, Map.empty)
-      val options = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode.Default,
+      val options = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(),
         StandardCharsets.UTF_8, verbose = true)
 
       val config = BasicConfigConvert.to(shpConfig)

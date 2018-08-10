@@ -25,7 +25,7 @@ class ValidatorTest extends Specification {
 
   sequential
 
-  val baseConf = ConfigFactory.parseString(
+  def baseConf = ConfigFactory.parseString(
     """
       | {
       |   type         = "delimited-text",
@@ -93,6 +93,22 @@ class ValidatorTest extends Specification {
         """20160101,Point(2 2)
           |"",Point(2 2)""".stripMargin)).toList should throwA[IOException]
     }
+
+//    "throw exception with parse mode raise-errors (configured from SystemProperty) in incremental mode" >> {
+////      val conf = baseConf.withFallback(ConfigFactory.parseString(
+////        """ { options.error-mode = raise-errors } """))
+//      System.setProperty("converter.error.mode", "raise-errors")
+//
+//      val converter = SimpleFeatureConverter(sft, baseConf)
+//      converter must not(beNull)
+//
+//      converter.process(is(
+//        """20160101,Point(2 2)
+//          |"20160102",Point(2 2)""".stripMargin)).toList.size mustEqual 2
+//      converter.process(is(
+//        """20160101,Point(2 2)
+//          |"",Point(2 2)""".stripMargin)).toList should throwA[IOException]
+//    }
 
     "throw exception with parse mode raise-errors in batch mode" >> {
       val conf = baseConf.withFallback(ConfigFactory.parseString(
