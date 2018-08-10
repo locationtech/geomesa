@@ -204,7 +204,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     } else {
       Command.user.info(getStatInfo(written.get, failed.get))
     }
-   }
+  }
 
   protected def runDistributed(): Unit = {
     beforeRunTasks()
