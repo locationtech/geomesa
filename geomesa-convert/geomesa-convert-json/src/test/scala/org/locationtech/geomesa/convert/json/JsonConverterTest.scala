@@ -489,7 +489,7 @@ class JsonConverterTest extends Specification {
             |        id: 2,
             |        number: 456,
             |        color: "blue",
-                     "geometry": "Point ( 101 102)"
+                     "geometry": "Point (101 89)"
             |      }
             |    ]
             | }
@@ -511,7 +511,7 @@ class JsonConverterTest extends Specification {
           """.stripMargin)
 
         val pt1 = new Point(new Coordinate(55, 56), new PrecisionModel(PrecisionModel.FIXED), 4326)
-        val pt2 = new Point(new Coordinate(101, 102), new PrecisionModel(PrecisionModel.FIXED), 4326)
+        val pt2 = new Point(new Coordinate(101, 89), new PrecisionModel(PrecisionModel.FIXED), 4326)
 
         val converter = SimpleFeatureConverter(sft, parserConf)
         val features = converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))).toList
@@ -540,7 +540,7 @@ class JsonConverterTest extends Specification {
             |        id: 2,
             |        number: 456,
             |        color: "blue",
-                     "geometry": "LineString ( 101 102, 200 200)"
+                     "geometry": "LineString ( 101 89, 102 88)"
             |      }
             |    ]
             | }
@@ -561,9 +561,6 @@ class JsonConverterTest extends Specification {
             | }
           """.stripMargin)
 
-        val pt1 = new Point(new Coordinate(55, 56), new PrecisionModel(PrecisionModel.FIXED), 4326)
-        val pt2 = new Point(new Coordinate(101, 102), new PrecisionModel(PrecisionModel.FIXED), 4326)
-
         val converter = SimpleFeatureConverter(sft, parserConf)
         val features = converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))).toList
         features must haveLength(2)
@@ -571,7 +568,7 @@ class JsonConverterTest extends Specification {
         features(0).getDefaultGeometry mustEqual WKTUtils.read("LineString (55 56, 56 57)")
 
         features(1).getDefaultGeometry must beAnInstanceOf[LineString]
-        features(1).getDefaultGeometry mustEqual WKTUtils.read("LineString ( 101 102, 200 200)")
+        features(1).getDefaultGeometry mustEqual WKTUtils.read("LineString (101 89, 102 88)")
       }
 
       "parse points" >> {
@@ -589,7 +586,7 @@ class JsonConverterTest extends Specification {
                 |        id: 2,
                 |        number: 456,
                 |        color: "blue",
-                         "geometry": "Point ( 101 102)"
+                         "geometry": "Point ( 101 89)"
                 |      }
                 |    ]
                 | }
@@ -611,7 +608,7 @@ class JsonConverterTest extends Specification {
           """.stripMargin)
 
         val pt1 = new Point(new Coordinate(55, 56), new PrecisionModel(PrecisionModel.FIXED), 4326)
-        val pt2 = new Point(new Coordinate(101, 102), new PrecisionModel(PrecisionModel.FIXED), 4326)
+        val pt2 = new Point(new Coordinate(101, 89), new PrecisionModel(PrecisionModel.FIXED), 4326)
 
         val converter = SimpleFeatureConverter(sft, parserConf)
         val features = converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))).toList
