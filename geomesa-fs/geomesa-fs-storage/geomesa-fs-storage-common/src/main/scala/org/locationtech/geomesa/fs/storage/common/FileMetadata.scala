@@ -25,9 +25,7 @@ import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureType
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.simple.SimpleFeatureType
-
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
+import pureconfig.ConfigWriter
 
 /**
   * FileMetadata implementation. Persists to disk after any change - prefer bulk operations when possible.
@@ -145,16 +143,9 @@ class FileMetadata private (fc: FileContext,
       FileMetadata.save(this)
     }
   }
-
-  var internalCount = data.map(_.getLong("count")).getOrElse(0L)
-  var bounds: Envelope = data.map { config =>
-    if (config.hasPath("bounds")) {
-    val doubles = config.getDoubleList("bounds")
-      new ReferencedEnvelope(doubles(0), doubles(1), doubles(2), doubles(3), CRS_EPSG_4326)
-    } else {
-      new Envelope()
-    }
-  }.getOrElse(new Envelope())
+  val countData = data.map(pureconfig.loadConfigOrThrow[FeatureMetaData])
+  var internalCount: Long = countData.map(_.count).getOrElse(0L)
+  var bounds: Envelope = countData.map(_.getEnvelope).getOrElse(new Envelope())
 
   override def getFeatureCount: Long = internalCount
   override def incrementFeatureCount(count: Long): Unit = {
@@ -176,6 +167,16 @@ class FileMetadata private (fc: FileContext,
     */
   override def persist(): Unit = {
     FileMetadata.save(this)
+  }
+}
+
+case class FeatureMetaData(count: Long, doubles: List[Double]) {
+  def getEnvelope: Envelope = {
+    if (doubles.length == 4) {
+      new ReferencedEnvelope(doubles(0), doubles(1), doubles(2), doubles(3), CRS_EPSG_4326)
+    } else {
+      new Envelope()
+    }
   }
 }
 
@@ -301,13 +302,14 @@ object FileMetadata extends MethodProfiling with LazyLogging {
     val file = filePath(metadata.getRoot)
 
     val config = profile {
-      var dataConfig: Config = ConfigFactory.empty()
-        .withValue("count", ConfigValueFactory.fromAnyRef(metadata.getFeatureCount))
-
-      if (metadata.getEnvelope != ReferencedEnvelope.EVERYTHING) {
-        dataConfig = dataConfig.withValue("bounds", ConfigValueFactory.fromIterable(
-          Seq[Double](metadata.getEnvelope.getMinX, metadata.getEnvelope.getMaxX,
-            metadata.getEnvelope.getMinY, metadata.getEnvelope.getMaxY).asJava))
+      val dataConfig: ConfigValue = {
+        val doubles = if (metadata.getEnvelope != ReferencedEnvelope.EVERYTHING) {
+          List[Double](metadata.getEnvelope.getMinX, metadata.getEnvelope.getMaxX,
+            metadata.getEnvelope.getMinY, metadata.getEnvelope.getMaxY)
+        } else {
+          List[Double](0)
+        }
+        ConfigWriter[FeatureMetaData].to(FeatureMetaData(metadata.getFeatureCount, doubles))
       }
 
       val sft = metadata.getSchema
@@ -317,7 +319,7 @@ object FileMetadata extends MethodProfiling with LazyLogging {
         .withValue("encoding", ConfigValueFactory.fromAnyRef(metadata.getEncoding))
         .withValue("partitionScheme", PartitionScheme.toConfig(metadata.getPartitionScheme).root())
         .withValue("partitions", ConfigValueFactory.fromMap(metadata.getPartitionFiles))
-        .withValue("data", dataConfig.root())
+        .withValue("data", dataConfig)
         .root
         .render(options)
     } ((_, time) => logger.debug(s"Created config for persistence in ${time}ms"))
