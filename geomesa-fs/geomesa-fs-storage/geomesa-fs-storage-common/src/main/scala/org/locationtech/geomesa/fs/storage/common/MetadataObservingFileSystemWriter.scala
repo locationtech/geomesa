@@ -18,7 +18,8 @@ trait MetadataObservingFileSystemWriter extends FileSystemWriter {
   private var count: Long= 0l
   private var bounds: Envelope = _
 
-  override def write(feature: SimpleFeature): Unit = {
+  abstract override def write(feature: SimpleFeature): Unit = {
+    super.write(feature)
     // Update internal count/bounds/etc
     count += 1
     if (bounds == null) {
@@ -29,25 +30,26 @@ trait MetadataObservingFileSystemWriter extends FileSystemWriter {
         bounds
       }
     }
-    writeInternal(feature)
+//    writeInternal(feature)
   }
 
-  /**
-    * Implementing classes use this method to write SimpleFeatures to disk
-    * @param feature SimpleFeature to write
-    */
-  def writeInternal(feature: SimpleFeature): Unit
+//  /**
+//    * Implementing classes use this method to write SimpleFeatures to disk
+//    * @param feature SimpleFeature to write
+//    */
+//  def writeInternal(feature: SimpleFeature): Unit
 
   /**
     * Implementing classes use this method to handle cleaning up writers, etc.
     */
-  def closeInternal(): Unit
+  //def closeInternal(): Unit
 
-  override def close(): Unit = {
+  abstract override def close(): Unit = {
+    super.close()
     // Finalize metadata
     metadata.incrementFeatureCount(count)
     metadata.expandBounds(bounds)
     metadata.persist()
-    closeInternal()
+//    closeInternal()
   }
 }

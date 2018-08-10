@@ -41,9 +41,9 @@ class ParquetFileSystemStorage(conf: Configuration, fileMetadata: FileMetadata)
 
       private val writer = SimpleFeatureParquetWriter.builder(file, sftConf).build()
 
-      override def writeInternal(f: SimpleFeature): Unit = writer.write(f)
+      override def write(f: SimpleFeature): Unit = writer.write(f)
       override def flush(): Unit = {}
-      override def closeInternal(): Unit = CloseQuietly(writer)
+      override def close(): Unit = CloseQuietly(writer)
     }
   }
 
