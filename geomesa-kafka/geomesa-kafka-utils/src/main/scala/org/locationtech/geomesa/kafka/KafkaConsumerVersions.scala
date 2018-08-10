@@ -14,7 +14,7 @@ import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener}
 import org.apache.kafka.common.TopicPartition
 
 /**
-  * Reflection wrapper for KafkaConsumer methods between kafka versions 0.9 and 0.10
+  * Reflection wrapper for KafkaConsumer methods between kafka versions 0.9, 0.10, 1.0, 1.1, and 2.0
   */
 object KafkaConsumerVersions {
 
@@ -31,37 +31,11 @@ object KafkaConsumerVersions {
   def subscribe(consumer: Consumer[_, _], topic: String, listener: ConsumerRebalanceListener): Unit =
     _subscribeWithListener(consumer, topic, listener)
 
-  def beginningOffsets(consumer: Consumer[_, _], topic: String, partitions: Seq[Int]): Map[Int, Long] = {
-    import scala.collection.JavaConverters._
-    val topicAndPartitions = new java.util.ArrayList[TopicPartition](partitions.length)
-    partitions.foreach(p => topicAndPartitions.add(new TopicPartition(topic, p)))
-    // note: this method doesn't exist in 0.9, so evaluate it every time instead of caching it,
-    // which would break this class
-    val method = methods.find(_.getName == "beginningOffsets").getOrElse {
-      throw new NoSuchMethodException(s"Couldn't find Consumer.beginningOffsets method")
-    }
-    val offsets = method.invoke(consumer, topicAndPartitions).asInstanceOf[java.util.Map[TopicPartition, Long]]
-    val result = Map.newBuilder[Int, Long]
-    result.sizeHint(offsets.size())
-    offsets.asScala.foreach { case (tp, o) => result += (tp.partition -> o) }
-    result.result()
-  }
+  def beginningOffsets(consumer: Consumer[_, _], topic: String, partitions: Seq[Int]): Map[Int, Long] =
+    _beginningOffsets(consumer, topic, partitions)
 
-  def endOffsets(consumer: Consumer[_, _], topic: String, partitions: Seq[Int]): Map[Int, Long] = {
-    import scala.collection.JavaConverters._
-    val topicAndPartitions = new java.util.ArrayList[TopicPartition](partitions.length)
-    partitions.foreach(p => topicAndPartitions.add(new TopicPartition(topic, p)))
-    // note: this method doesn't exist in 0.9, so evaluate it every time instead of caching it,
-    // which would break this class
-    val method = methods.find(_.getName == "endOffsets").getOrElse {
-      throw new NoSuchMethodException(s"Couldn't find Consumer.endOffsets method")
-    }
-    val offsets = method.invoke(consumer, topicAndPartitions).asInstanceOf[java.util.Map[TopicPartition, Long]]
-    val result = Map.newBuilder[Int, Long]
-    result.sizeHint(offsets.size())
-    offsets.asScala.foreach { case (tp, o) => result += (tp.partition -> o) }
-    result.result()
-  }
+  def endOffsets(consumer: Consumer[_, _], topic: String, partitions: Seq[Int]): Map[Int, Long] =
+    _endOffsets(consumer, topic, partitions)
 
   private val _seekToBeginning: (Consumer[_, _], TopicPartition) => Unit = consumerTopicInvocation("seekToBeginning")
 
@@ -79,19 +53,52 @@ object KafkaConsumerVersions {
 
   private val _subscribeWithListener: (Consumer[_, _], String, ConsumerRebalanceListener) => Unit = {
     val method = methods.find(m => m.getName == "subscribe" && m.getParameterCount == 2 &&
-        m.getParameterTypes.apply(0).isAssignableFrom(classOf[java.util.List[_]])).getOrElse {
+        m.getParameterTypes.apply(0).isAssignableFrom(classOf[java.util.List[_]]) &&
+        m.getParameterTypes.apply(1).isAssignableFrom(classOf[ConsumerRebalanceListener])).getOrElse {
       throw new NoSuchMethodException(s"Couldn't find Consumer.subscribe method")
     }
     (consumer, topic, listener) => method.invoke(consumer, Collections.singletonList(topic), listener)
   }
 
-  private def consumerTopicInvocation(name: String): (Consumer[_, _], TopicPartition) => Unit = {
-    val method = methods.find(_.getName == name).getOrElse {
-      throw new NoSuchMethodException(s"Couldn't find Consumer.$name method")
+  private val _beginningOffsets: (Consumer[_, _], String, Seq[Int]) => Map[Int, Long] = {
+    import scala.collection.JavaConverters._
+    // note: this method doesn't exist in 0.9, so may be null
+    val method = methods.find(m => m.getName == "beginningOffsets" && m.getParameterCount == 1).orNull
+    (consumer, topic, partitions) => {
+      if (method == null) {
+        throw new NoSuchMethodException(s"Couldn't find Consumer.beginningOffsets method")
+      }
+      val topicAndPartitions = new java.util.ArrayList[TopicPartition](partitions.length)
+      partitions.foreach(p => topicAndPartitions.add(new TopicPartition(topic, p)))
+      val offsets = method.invoke(consumer, topicAndPartitions).asInstanceOf[java.util.Map[TopicPartition, Long]]
+      val result = Map.newBuilder[Int, Long]
+      result.sizeHint(offsets.size())
+      offsets.asScala.foreach { case (tp, o) => result += (tp.partition -> o) }
+      result.result()
     }
-    val parameterTypes = method.getParameterTypes
-    if (parameterTypes.length != 1) {
-      throw new NoSuchMethodException(s"Couldn't find Consumer.$name method with correct parameters")
+  }
+
+  private val _endOffsets: (Consumer[_, _], String, Seq[Int]) => Map[Int, Long] = {
+    import scala.collection.JavaConverters._
+    // note: this method doesn't exist in 0.9, so may be null
+    val method = methods.find(m => m.getName == "endOffsets" && m.getParameterCount == 1).orNull
+    (consumer, topic, partitions) => {
+      if (method == null) {
+        throw new NoSuchMethodException(s"Couldn't find Consumer.endOffsets method")
+      }
+      val topicAndPartitions = new java.util.ArrayList[TopicPartition](partitions.length)
+      partitions.foreach(p => topicAndPartitions.add(new TopicPartition(topic, p)))
+      val offsets = method.invoke(consumer, topicAndPartitions).asInstanceOf[java.util.Map[TopicPartition, Long]]
+      val result = Map.newBuilder[Int, Long]
+      result.sizeHint(offsets.size())
+      offsets.asScala.foreach { case (tp, o) => result += (tp.partition -> o) }
+      result.result()
+    }
+  }
+
+  private def consumerTopicInvocation(name: String): (Consumer[_, _], TopicPartition) => Unit = {
+    val method = methods.find(m => m.getName == name && m.getParameterCount == 1).getOrElse {
+      throw new NoSuchMethodException(s"Couldn't find Consumer.$name method")
     }
     val binding = method.getParameterTypes.apply(0)
 
