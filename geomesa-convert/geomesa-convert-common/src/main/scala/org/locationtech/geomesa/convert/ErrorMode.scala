@@ -8,9 +8,19 @@
 
 package org.locationtech.geomesa.convert
 
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+
 object ErrorMode extends Enumeration {
   type ErrorMode = Value
   val SkipBadRecords: ErrorMode = Value("skip-bad-records")
   val RaiseErrors   : ErrorMode = Value("raise-errors")
   val Default       : ErrorMode = SkipBadRecords
+
+  def apply(): ErrorMode = {
+    val errorMode = SystemProperty("converter.error.mode", SkipBadRecords.toString)
+    ErrorMode.values.find(_.toString.equalsIgnoreCase(errorMode.get)) match {
+      case Some(v)=> v.asInstanceOf[ErrorMode]
+      case None => SkipBadRecords
+    }
+  }
 }
