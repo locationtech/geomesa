@@ -33,7 +33,7 @@ class OrcFileSystemStorage(conf: Configuration, metadata: FileMetadata)
   override protected def extension: String = OrcFileSystemStorage.FileExtension
 
   override protected def createWriter(sft: SimpleFeatureType, file: Path): FileSystemWriter =
-    new OrcFileSystemWriter(sft, conf, file)
+    new OrcFileSystemWriter(sft, conf, file, metadata)
 
   override protected def createReader(sft: SimpleFeatureType,
                                       filter: Option[Filter],
