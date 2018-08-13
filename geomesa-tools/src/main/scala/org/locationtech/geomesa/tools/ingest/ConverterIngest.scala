@@ -23,7 +23,7 @@ import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat}
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
-import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
+import org.locationtech.geomesa.tools.ingest.AbstractIngest.{LocalIngestConverter, StatusCallback}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -96,7 +96,7 @@ class LocalIngestConverterImpl(sft: SimpleFeatureType,
   protected val ec: EvaluationContext =
     converter.createEvaluationContext(EvaluationContext.inputFileParam(path), counter = new LocalIngestCounter)
 
-  override def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature]) = (sft, converter.process(is, ec))
+  override def convert(is: InputStream): Iterator[SimpleFeature] = converter.process(is, ec)
   override def close(): Unit = converters.returnObject(converter)
 }
 
