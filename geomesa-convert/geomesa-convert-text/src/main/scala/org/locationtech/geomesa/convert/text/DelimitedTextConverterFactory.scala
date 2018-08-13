@@ -82,7 +82,7 @@ class DelimitedTextConverterFactory
           }
 
           val options = DelimitedTextOptions(None, None, None, None, SimpleFeatureValidator.default,
-            ParseMode.Default, ErrorMode.Default, StandardCharsets.UTF_8, verbose = true)
+            ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8, verbose = true)
 
           val config = configConvert.to(converterConfig)
               .withFallback(fieldConvert.to(fields))

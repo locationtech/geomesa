@@ -172,7 +172,7 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
 
         val converterConfig = AvroConfig(typeToProcess, SchemaEmbedded, Some(id), Map.empty, userData)
 
-        val options = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode.Default,
+        val options = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(),
           StandardCharsets.UTF_8, verbose = true)
 
         val config = configConvert.to(converterConfig)

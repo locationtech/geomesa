@@ -8,9 +8,41 @@
 
 package org.locationtech.geomesa.convert
 
-object ErrorMode extends Enumeration {
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+
+object ErrorMode extends Enumeration with Modes {
   type ErrorMode = Value
   val SkipBadRecords: ErrorMode = Value("skip-bad-records")
   val RaiseErrors   : ErrorMode = Value("raise-errors")
-  val Default       : ErrorMode = SkipBadRecords
+  def Default       : ErrorMode = apply()
+
+  def apply(): ErrorMode = apply("converter.error.mode", SkipBadRecords)
 }
+
+object ParseMode extends Enumeration {
+  type ParseMode = Value
+  val Incremental: ParseMode = Value("incremental")
+  val Batch      : ParseMode = Value("batch")
+  val Default    : ParseMode = Incremental
+}
+
+
+object LineMode extends Enumeration {
+  type LineMode = Value
+  val Single : LineMode = Value("single")
+  val Multi  : LineMode = Value("multi")
+  val Default: LineMode = Single
+}
+
+trait Modes {
+  this: Enumeration =>
+
+  def apply[T](propertyName: String, defaultValue: T): T = {
+    val string = SystemProperty(propertyName, defaultValue.toString)
+    this.values.find(_.toString.equalsIgnoreCase(string.get)) match {
+      case Some(v)=> v.asInstanceOf[T]
+      case None => defaultValue
+    }
+  }
+}
+

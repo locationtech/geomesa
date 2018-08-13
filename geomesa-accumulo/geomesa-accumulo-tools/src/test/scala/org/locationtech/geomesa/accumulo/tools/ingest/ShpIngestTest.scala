@@ -42,6 +42,11 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
     ScalaSimpleFeature.create(schema, "2", "POINT(2.0 2.5)", 2, "2012-01-01T00:00:00.000Z")
   )
 
+  val featuresWithNulls = features ++ Seq(
+    ScalaSimpleFeature.create(schema, "3", "POINT(3.0 1.5)", 3, null),
+    ScalaSimpleFeature.create(schema, "4", "POINT(4.0 2.5)", 4, "2013-01-01T00:00:00.000Z")
+  )
+
   val baseArgs = Array[String]("ingest", "--zookeepers", "zoo", "--mock", "--instance", "mycloud", "--user", "myuser",
     "--password", "mypassword", "--catalog", "testshpingestcatalog", "--force")
 
@@ -49,6 +54,7 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
   var shpFile: File = _
   var shpFileToReproject: File = _
   var shpFileToReproject2: File = _
+  var shpFileWithNullDates: File = _
 
   "ShpIngest" should {
 
@@ -139,6 +145,79 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
           beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
       }
     }
+
+    "skip records with null dates by default" in {
+      val args = baseArgs :+ shpFileWithNullDates.getAbsolutePath
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
+      command.execute()
+
+      val fs = command.withDataStore(_.getFeatureSource("shpingestNullDates"))
+
+      SelfClosingIterator(fs.getFeatures.features).toList must haveLength(3)
+
+      val bounds = fs.getBounds
+      bounds.getMinX mustEqual 1.0
+      bounds.getMaxX mustEqual 4.0
+      bounds.getMinY mustEqual 1.5
+      bounds.getMaxY mustEqual 2.5
+
+      command.withDataStore { ds =>
+        ds.stats.getAttributeBounds[Date](ds.getSchema(schema.getTypeName), "dtg").map(_.tuple) must
+          beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
+      }
+    }
+
+    // In this test, the third record has a null date.  Raising an error stops the ingest.
+    "index null dates via override" in {
+      System.setProperty("converter.error.mode", "raise-errors")
+      val args = baseArgs ++ Array("--feature-name", "nullDates2", shpFileWithNullDates.getAbsolutePath)
+      //val args = baseArgs :+ shpFileWithNullDates.getAbsolutePath
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
+      command.execute()
+      System.clearProperty("converter.error.mode")
+
+      val fs = command.withDataStore(_.getFeatureSource("nullDates2"))
+
+      SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
+
+      val bounds = fs.getBounds
+      bounds.getMinX mustEqual 1.0
+      bounds.getMaxX mustEqual 2.0
+      bounds.getMinY mustEqual 1.5
+      bounds.getMaxY mustEqual 2.5
+
+      command.withDataStore { ds =>
+        ds.stats.getAttributeBounds[Date](ds.getSchema("nullDates2"), "dtg").map(_.tuple) must
+          beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
+      }
+    }
+
+    // In this test, the third record has a null date.  The system property turns off the error check.
+    "index null dates via override" in {
+      System.setProperty("converter.validators", "has-geo")
+      val args = baseArgs ++ Array("--feature-name", "nullDates3", shpFileWithNullDates.getAbsolutePath)
+      //val args = baseArgs :+ shpFileWithNullDates.getAbsolutePath
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
+      command.execute()
+
+      val fs = command.withDataStore(_.getFeatureSource("nullDates3"))
+
+      SelfClosingIterator(fs.getFeatures.features).toList must haveLength(4)
+
+      val bounds = fs.getBounds
+      bounds.getMinX mustEqual 1.0
+      bounds.getMaxX mustEqual 4.0
+      bounds.getMinY mustEqual 1.5
+      bounds.getMaxY mustEqual 2.5
+
+      command.withDataStore { ds =>
+        ds.stats.getAttributeBounds[Date](ds.getSchema("nullDates3"), "dtg").map(_.tuple) must
+          beSome((features.head.getAttribute("dtg"), featuresWithNulls.last.getAttribute("dtg"), 3L))
+      }
+    }
   }
 
   override def beforeAll(): Unit = {
@@ -146,10 +225,14 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
     shpFile = new File(dir.toFile, "shpingest.shp")
     shpFileToReproject = new File(dir.toFile, "shpingest32631.shp")
     shpFileToReproject2 = new File(dir.toFile, "shpingest4269.shp")
+    shpFileWithNullDates = new File(dir.toFile, "shpingestNullDates.shp")
 
-    val shpStore = new ShapefileDataStoreFactory().createNewDataStore(Map("url" -> shpFile.toURI.toURL))
-    val shpStoreToReproject: DataStore = new ShapefileDataStoreFactory().createNewDataStore(Map("url" -> shpFileToReproject.toURI.toURL))
-    val shpStoreToReproject2: DataStore = new ShapefileDataStoreFactory().createNewDataStore(Map("url" -> shpFileToReproject2.toURI.toURL))
+    val dsf = new ShapefileDataStoreFactory
+
+    val shpStore = dsf.createNewDataStore(Map("url" -> shpFile.toURI.toURL))
+    val shpStoreToReproject: DataStore = dsf.createNewDataStore(Map("url" -> shpFileToReproject.toURI.toURL))
+    val shpStoreToReproject2: DataStore = dsf.createNewDataStore(Map("url" -> shpFileToReproject2.toURI.toURL))
+    val shpStoreWithNullDates = dsf.createNewDataStore(Map("url" -> shpFileWithNullDates.toURI.toURL))
 
     try {
       shpStore.createSchema(schema)
@@ -190,11 +273,23 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
         }
       }
 
+      shpStoreWithNullDates.createSchema(schema)
+      WithClose(shpStoreWithNullDates.getFeatureWriterAppend("shpingestNullDates", Transaction.AUTO_COMMIT)) { writer =>
+        featuresWithNulls.foreach { feature =>
+          val toWrite = writer.next()
+          toWrite.setAttributes(feature.getAttributes)
+          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+          toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
+          writer.write()
+        }
+      }
+
 
     } finally {
       shpStore.dispose()
       shpStoreToReproject.dispose()
       shpStoreToReproject2.dispose()
+      shpStoreWithNullDates.dispose()
     }
   }
 

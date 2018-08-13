@@ -14,6 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.utils.geotools.wholeWorldEnvelope
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait SimpleFeatureValidator {
@@ -39,7 +40,11 @@ object SimpleFeatureValidator extends LazyLogging {
   import scala.collection.JavaConverters._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  def default: SimpleFeatureValidator = apply(Seq(IndexValidator.name))
+  def default: SimpleFeatureValidator = {
+    val defaultConverterString = SystemProperty("converter.validators", IndexValidator.name).get
+    println(s" USING CONVERTER VALIDATOR: $defaultConverterString")
+    apply(defaultConverterString.split(","))
+  }
 
   def apply(names: Seq[String]): SimpleFeatureValidator = {
     val validators = names.map {
