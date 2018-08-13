@@ -49,7 +49,7 @@ class ConverterIngest(sft: SimpleFeatureType,
                       libjarsFile: String,
                       libjarsPaths: Iterator[() => Seq[File]],
                       numLocalThreads: Int,
-                      maxSplitSize: Int)
+                      maxSplitSize: Option[Int] = None)
     extends AbstractIngest(dsParams, sft.getTypeName, inputs, mode, libjarsFile, libjarsPaths, numLocalThreads) {
 
   override def beforeRunTasks(): Unit = {
@@ -164,7 +164,7 @@ class ConverterCombineIngestJob(dsParams: Map[String, String],
                                 sft: SimpleFeatureType,
                                 converterConfig: Config,
                                 paths: Seq[String],
-                                maxSplitSize: Int,
+                                maxSplitSize: Option[Int],
                                 libjarsFile: String,
                                 libjarsPaths: Iterator[() => Seq[File]])
   extends AbstractConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths) {
@@ -172,6 +172,6 @@ class ConverterCombineIngestJob(dsParams: Map[String, String],
 
   override def configureJob(job: Job): Unit = {
     super.configureJob(job)
-    FileInputFormat.setMaxInputSplitSize(job, maxSplitSize.toLong)
+    maxSplitSize.foreach(s => FileInputFormat.setMaxInputSplitSize(job, s.toLong))
   }
 }

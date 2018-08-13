@@ -34,7 +34,7 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
   override protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config, ingestFiles: Seq[String]): Runnable = {
 
     new ConverterIngest(sft, connection, converterConfig, ingestFiles, Option(params.mode),
-      libjarsFile, libjarsPaths, params.threads, params.maxSplitSize) {
+      libjarsFile, libjarsPaths, params.threads, Option(params.maxSplitSize)) {
 
       override def run(): Unit = {
         super.run()
@@ -66,7 +66,7 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
                                         inputs: Seq[String],
                                         maxSplitSize: Int,
                                         index: String): ConverterCombineIngestJob = {
-    new ConverterCombineIngestJob(dsParams, sft, converterConfig, inputs, params.maxSplitSize, libjarsFile, libjarsPaths) {
+    new ConverterCombineIngestJob(dsParams, sft, converterConfig, inputs, Option(params.maxSplitSize), libjarsFile, libjarsPaths) {
       override def configureJob(job: Job): Unit = {
         super.configureJob(job)
         HBaseIndexFileMapper.configure(job, connection, sft.getTypeName, index, new Path(params.outputPath))
