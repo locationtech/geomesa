@@ -12,6 +12,7 @@ import java.util.Date
 
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.curve.BinnedTime
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait SimpleFeatureValidator {
@@ -23,7 +24,13 @@ trait SimpleFeatureValidator {
 
 object SimpleFeatureValidator {
 
-  val default: SimpleFeatureValidator = apply(Seq(HasDtgValidator.name, HasGeoValidator.name))
+  def default: SimpleFeatureValidator = {
+    val defaultConverterString = SystemProperty("converter.validators", ZIndexValidator.name).get
+    println(s" USING CONVERTER VALIDATOR: $defaultConverterString")
+    apply(defaultConverterString.split(","))
+
+    //apply(Seq(HasDtgValidator.name, HasGeoValidator.name))
+  }
 
   def apply(names: Seq[String]): SimpleFeatureValidator = {
     val validators = names.map {
