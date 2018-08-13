@@ -27,6 +27,7 @@ import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
 import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.conf.SchemaProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
@@ -119,25 +120,27 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   override protected def createQueryPlanner(): AccumuloQueryPlannerType = new AccumuloQueryPlanner(this)
 
   override protected def loadIteratorVersions: Set[String] = {
-    val tables = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean])
-    val ops = connector.tableOperations()
-    val versions = getTypeNames.par.map(getSchema).flatMap { sft =>
-      manager.indices(sft).par.flatMap { index =>
-        try {
-          val table = index.getTableName(sft.getTypeName, this)
-          if (tables.add(table) && ops.exists(table)) {
-            WithClose(connector.createScanner(table, new Authorizations())) { scanner =>
-              ProjectVersionIterator.scanProjectVersion(scanner)
+    if (SchemaProperties.SkipDistributedVersion.toBoolean.contains(true)) { Set.empty } else {
+      val tables = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean])
+      val ops = connector.tableOperations()
+      val versions = getTypeNames.par.map(getSchema).flatMap { sft =>
+        manager.indices(sft).par.flatMap { index =>
+          try {
+            val table = index.getTableName(sft.getTypeName, this)
+            if (tables.add(table) && ops.exists(table)) {
+              WithClose(connector.createScanner(table, new Authorizations())) { scanner =>
+                ProjectVersionIterator.scanProjectVersion(scanner)
+              }
+            } else {
+              Seq.empty
             }
-          } else {
-            Seq.empty
+          } catch {
+            case NonFatal(_) => Seq.empty
           }
-        } catch {
-          case NonFatal(_) => Seq.empty
         }
       }
+      versions.seq.toSet
     }
-    versions.seq.toSet
   }
 
   @throws(classOf[IllegalArgumentException])
