@@ -14,8 +14,8 @@ import java.util.Collections
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigObject, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
-import org.locationtech.geomesa.convert.ParseMode.ParseMode
+import org.locationtech.geomesa.convert.Modes.ErrorMode
+import org.locationtech.geomesa.convert.Modes.ParseMode
 import org.locationtech.geomesa.convert.SimpleFeatureValidator.{HasDtgValidator, HasGeoValidator}
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}

@@ -14,8 +14,8 @@ import java.nio.charset.Charset
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
-import org.locationtech.geomesa.convert.ParseMode.ParseMode
+import org.locationtech.geomesa.convert.Modes.ErrorMode
+import org.locationtech.geomesa.convert.Modes.ParseMode
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.features.ScalaSimpleFeature

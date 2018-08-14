@@ -15,8 +15,8 @@ import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, QuoteMode}
 import org.geotools.factory.GeoTools
 import org.geotools.util.Converters
-import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
-import org.locationtech.geomesa.convert.ParseMode.ParseMode
+import org.locationtech.geomesa.convert.Modes.ErrorMode
+import org.locationtech.geomesa.convert.Modes.ParseMode
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter.{DelimitedTextConfig, DelimitedTextOptions}
 import org.locationtech.geomesa.convert.{EvaluationContext, SimpleFeatureValidator}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
