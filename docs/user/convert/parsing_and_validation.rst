@@ -174,3 +174,18 @@ incremental parse mode:
 
 If you are using a framework such as the GeoMesa Nifi processor, then the file will still be routed to an error
 relationship but you may experience partially ingested data. See :doc:`/user/nifi` for more info.
+
+Managing Parsing and Validation Configuration with System Properties
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For inferred converters, one can manage the parsing, line, and validation modes via system property or
+``geomesa-site.xml``.  For each of the modes in the table below, the corresponding property name is given.
+
+============== ========================================
+Mode           System Property
+============== ========================================
+Error Mode     ``geomesa.converter.error.mode.default``
+Parse Mode     ``geomesa.converter.parse.mode.default``
+Line Mode      ``geomesa.converter.line.mode.default``
+Validator Mode ``geomesa.converter.validators``
+============== ========================================

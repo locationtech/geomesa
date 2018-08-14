@@ -40,7 +40,7 @@ object SimpleFeatureValidator extends LazyLogging {
   import scala.collection.JavaConverters._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  val property = SystemProperty("converter.validators", IndexValidator.name)
+  val property = SystemProperty("geomesa.converter.validators", IndexValidator.name)
 
   def default: SimpleFeatureValidator = apply(property.get.split(","))
 
