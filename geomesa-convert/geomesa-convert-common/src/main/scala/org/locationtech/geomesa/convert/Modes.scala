@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.convert
 
+import org.locationtech.geomesa.convert.Modes.ParseMode.Incremental
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 trait Modes {
@@ -42,19 +43,27 @@ object Modes {
       SystemProperty("geomesa.converter.error.mode.default", defaultValue.toString)
   }
 
-  object ParseMode extends Enumeration {
-    type ParseMode = Value
+  object ParseMode extends Enumeration with Modes {
+    type Mode = Modes.ParseMode
     val Incremental: ParseMode = Value("incremental")
     val Batch      : ParseMode = Value("batch")
-    val Default    : ParseMode = Incremental
+    def Default    : ParseMode = apply()
+
+    override protected val defaultValue: ParseMode = Incremental
+    override val systemProperty: SystemProperty =
+      SystemProperty("geomesa.converter.parse.mode.default", defaultValue.toString)
   }
 
 
-  object LineMode extends Enumeration {
-    type LineMode = Value
+  object LineMode extends Enumeration with Modes {
+    type Mode = Modes.LineMode
     val Single : LineMode = Value("single")
     val Multi  : LineMode = Value("multi")
-    val Default: LineMode = Single
+    def Default: LineMode = apply()
+
+    override protected val defaultValue: LineMode = Single
+    override val systemProperty: SystemProperty =
+      SystemProperty("geomesa.converter.line.mode.default", defaultValue.toString)
   }
 
 }

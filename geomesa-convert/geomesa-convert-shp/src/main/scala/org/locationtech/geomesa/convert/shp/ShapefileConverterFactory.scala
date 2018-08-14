@@ -14,7 +14,8 @@ import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.shapefile.ShapefileDataStore
 import org.geotools.referencing.CRS
-import org.locationtech.geomesa.convert.{ErrorMode, ParseMode, SimpleFeatureValidator}
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
+import org.locationtech.geomesa.convert.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
 import org.locationtech.geomesa.convert2.AbstractConverterFactory._

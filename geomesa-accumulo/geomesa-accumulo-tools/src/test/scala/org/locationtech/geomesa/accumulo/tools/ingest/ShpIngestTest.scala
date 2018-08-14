@@ -19,6 +19,7 @@ import org.geotools.factory.Hints
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.tools.AccumuloRunner
+import org.locationtech.geomesa.convert.{Modes, SimpleFeatureValidator}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -170,9 +171,9 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
 
     // In this test, the third record has a null date.  Raising an error stops the ingest.
     "index null dates via override" in {
-      System.setProperty("converter.error.mode", "raise-errors")
+      Modes.ErrorMode.systemProperty.threadLocalValue.set("raise-errors")
+
       val args = baseArgs ++ Array("--feature-name", "nullDates2", shpFileWithNullDates.getAbsolutePath)
-      //val args = baseArgs :+ shpFileWithNullDates.getAbsolutePath
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
       command.execute()
@@ -188,17 +189,20 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       bounds.getMinY mustEqual 1.5
       bounds.getMaxY mustEqual 2.5
 
-      command.withDataStore { ds =>
-        ds.stats.getAttributeBounds[Date](ds.getSchema("nullDates2"), "dtg").map(_.tuple) must
-          beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
+      try {
+        command.withDataStore { ds =>
+          ds.stats.getAttributeBounds[Date](ds.getSchema("nullDates2"), "dtg").map(_.tuple) must
+            beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
+        }
+      } finally {
+        Modes.ErrorMode.systemProperty.threadLocalValue.remove()
       }
     }
 
     // In this test, the third record has a null date.  The system property turns off the error check.
     "index null dates via override" in {
-      System.setProperty("converter.validators", "has-geo")
+      SimpleFeatureValidator.property.threadLocalValue.set("has-geo")
       val args = baseArgs ++ Array("--feature-name", "nullDates3", shpFileWithNullDates.getAbsolutePath)
-      //val args = baseArgs :+ shpFileWithNullDates.getAbsolutePath
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
       command.execute()
@@ -213,9 +217,31 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       bounds.getMinY mustEqual 1.5
       bounds.getMaxY mustEqual 2.5
 
-      command.withDataStore { ds =>
-        ds.stats.getAttributeBounds[Date](ds.getSchema("nullDates3"), "dtg").map(_.tuple) must
-          beSome((features.head.getAttribute("dtg"), featuresWithNulls.last.getAttribute("dtg"), 3L))
+      try {
+        command.withDataStore { ds =>
+          ds.stats.getAttributeBounds[Date](ds.getSchema("nullDates3"), "dtg").map(_.tuple) must
+            beSome((features.head.getAttribute("dtg"), featuresWithNulls.last.getAttribute("dtg"), 3L))
+        }
+      } finally {
+        SimpleFeatureValidator.property.threadLocalValue.remove()
+      }
+    }
+
+    "index no data with null dates with batch parse mode and raise-errors via override" in {
+      Modes.ErrorMode.systemProperty.threadLocalValue.set("raise-errors")
+      Modes.ParseMode.systemProperty.threadLocalValue.set("batch")
+
+      val args = baseArgs ++ Array("--feature-name", "nullDates4", shpFileWithNullDates.getAbsolutePath)
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
+      command.execute()
+
+      try {
+        val fs = command.withDataStore(_.getFeatureSource("nullDates4"))
+        SelfClosingIterator(fs.getFeatures.features).toList must haveLength(0)
+      } finally {
+        Modes.ErrorMode.systemProperty.threadLocalValue.remove()
+        Modes.ParseMode.systemProperty.threadLocalValue.remove()
       }
     }
   }
