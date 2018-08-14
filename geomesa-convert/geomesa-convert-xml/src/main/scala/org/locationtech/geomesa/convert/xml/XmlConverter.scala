@@ -22,9 +22,9 @@ import javax.xml.validation.SchemaFactory
 import javax.xml.xpath.{XPath, XPathConstants, XPathExpression, XPathFactory}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.BOMInputStream
-import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
-import org.locationtech.geomesa.convert.LineMode.LineMode
-import org.locationtech.geomesa.convert.ParseMode.ParseMode
+import org.locationtech.geomesa.convert.Modes.ErrorMode
+import org.locationtech.geomesa.convert.Modes.LineMode
+import org.locationtech.geomesa.convert.Modes.ParseMode
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert.xml.XmlConverter.{XmlConfig, XmlField, XmlOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression

@@ -18,7 +18,8 @@ import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.json.GeoJsonParsing.GeoJsonFeature
 import org.locationtech.geomesa.convert.json.JsonConverter.{JsonField, _}
 import org.locationtech.geomesa.convert.json.JsonConverterFactory.{JsonConfigConvert, JsonFieldConvert}
-import org.locationtech.geomesa.convert.{ErrorMode, ParseMode, SimpleFeatureValidator}
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
+import org.locationtech.geomesa.convert.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert}
 import org.locationtech.geomesa.convert2.TypeInference.{IdentityTransform, InferredType}
@@ -124,7 +125,7 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
 
         val jsonConfig = JsonConfig(typeToProcess, featurePath, idField, Map.empty, Map.empty)
         val fieldConfig = fields :+ geomField
-        val options = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode.Default,
+        val options = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(),
           StandardCharsets.UTF_8, verbose = true)
 
         val config = configConvert.to(jsonConfig)

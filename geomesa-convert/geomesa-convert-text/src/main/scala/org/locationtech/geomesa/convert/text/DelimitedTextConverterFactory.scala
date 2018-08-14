@@ -13,8 +13,8 @@ import java.nio.charset.{Charset, StandardCharsets}
 
 import com.typesafe.config.Config
 import org.apache.commons.io.IOUtils
-import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
-import org.locationtech.geomesa.convert.ParseMode.ParseMode
+import org.locationtech.geomesa.convert.Modes.ErrorMode
+import org.locationtech.geomesa.convert.Modes.ParseMode
 import org.locationtech.geomesa.convert.SimpleFeatureConverters.SimpleFeatureConverterWrapper
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter._
@@ -82,7 +82,7 @@ class DelimitedTextConverterFactory
           }
 
           val options = DelimitedTextOptions(None, None, None, None, SimpleFeatureValidator.default,
-            ParseMode.Default, ErrorMode.Default, StandardCharsets.UTF_8, verbose = true)
+            ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8, verbose = true)
 
           val config = configConvert.to(converterConfig)
               .withFallback(fieldConvert.to(fields))

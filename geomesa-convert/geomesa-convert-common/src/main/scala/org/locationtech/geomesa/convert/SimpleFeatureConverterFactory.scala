@@ -15,8 +15,8 @@ import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
-import org.locationtech.geomesa.convert.ParseMode.ParseMode
+import org.locationtech.geomesa.convert.Modes.ErrorMode
+import org.locationtech.geomesa.convert.Modes.ParseMode
 import org.locationtech.geomesa.convert.Transformers._
 import org.locationtech.geomesa.convert.ValidationMode.ValidationMode
 import org.locationtech.geomesa.convert2.transforms.Expression
@@ -75,7 +75,7 @@ object StandardOption extends Enumeration {
   }
 }
 
-@deprecated("Replaced with org.locationtech.geomesa.convert.ErrorMode")
+@deprecated("Replaced with org.locationtech.geomesa.convert.Modes.ErrorMode")
 object ValidationMode extends Enumeration {
   type ValidationMode = Value
   val SkipBadRecords = Value(ErrorMode.SkipBadRecords.toString)
