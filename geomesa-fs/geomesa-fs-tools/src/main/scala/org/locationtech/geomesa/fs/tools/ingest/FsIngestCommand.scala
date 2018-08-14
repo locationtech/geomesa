@@ -41,12 +41,12 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
     () => ClassPathUtils.getJarsFromClasspath(classOf[FileSystemDataStore])
   )
 
-  override protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config): Runnable = {
+  override protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config, ingestFiles: Seq[String]): Runnable = {
     FsCreateSchemaCommand.setOptions(sft, params)
     new FileSystemConverterIngest(sft,
         connection,
         converterConfig,
-        params.files,
+        ingestFiles,
         Option(params.mode),
         params.encoding,
         libjarsFile,

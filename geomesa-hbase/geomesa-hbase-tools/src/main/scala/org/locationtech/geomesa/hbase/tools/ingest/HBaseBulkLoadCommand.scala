@@ -57,7 +57,7 @@ object HBaseBulkLoadCommand {
     @Parameter(names = Array("--input"), description = "Path to HFiles to be loaded", required = true)
     var input: String = _
 
-    @Parameter(names = Array("--validate"), description = "Validate HFiles before loading")
+    @Parameter(names = Array("--validate"), description = "Validate HFiles before loading", arity = 1)
     var validate: Boolean = true
   }
 }
