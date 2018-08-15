@@ -108,8 +108,8 @@ Distributed Runtime Version Checks
 ----------------------------------
 
 To prevent unexpected bugs due to JAR version mismatches, GeoMesa will now throw an exception if it detects
-incompatible versions on the distributed classpath. This behavior may be disbled by setting the system property
-``geomesa.distributed.version.check=false``.
+incompatible versions on the distributed classpath. This behavior may be disbled by setting the system properties
+``geomesa.distributed.version.check=false`` and/or ``geomesa.distributed.version.skip=true``.
 
 Shapefile Ingestion
 -------------------
