@@ -41,6 +41,8 @@ class CqlTransformFilter(delegate: DelegateFilter, serialized: Array[Byte])
     extends org.apache.hadoop.hbase.filter.Filter {
 
   /**
+    * From the Filter javadocs:
+    *
     * A filter can expect the following call sequence:
     *
     * <ul>
@@ -156,8 +158,8 @@ object CqlTransformFilter extends StrictLogging {
         ByteArrays.writeInt(cqlBytes.length, array, offset)
         offset += 4
         System.arraycopy(cqlBytes, 0, array, offset, cqlBytes.length)
-        offset += cqlBytes.length
-        ByteArrays.writeInt(0, array, offset)
+        // write out a zero to indicate that there aren't any transforms
+        ByteArrays.writeInt(0, array, offset + cqlBytes.length)
 
         array
 
@@ -181,8 +183,7 @@ object CqlTransformFilter extends StrictLogging {
         System.arraycopy(tdefsBytes, 0, array, offset, tdefsBytes.length)
         offset += tdefsBytes.length
         ByteArrays.writeInt(tsftBytes.length, array, offset)
-        offset += 4
-        System.arraycopy(tsftBytes, 0, array, offset, tsftBytes.length)
+        System.arraycopy(tsftBytes, 0, array, offset + 4, tsftBytes.length)
 
         array
     }
@@ -228,8 +229,7 @@ object CqlTransformFilter extends StrictLogging {
         offset += tdefsLength
 
         val tsftLength = ByteArrays.readInt(bytes, offset)
-        offset += 4
-        val tsft = IteratorCache.sft(new String(bytes, offset, tsftLength))
+        val tsft = IteratorCache.sft(new String(bytes, offset + 4, tsftLength))
 
         feature.setTransforms(tdefs, tsft)
 
