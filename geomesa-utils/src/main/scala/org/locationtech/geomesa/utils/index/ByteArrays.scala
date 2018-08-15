@@ -40,6 +40,20 @@ object ByteArrays {
   }
 
   /**
+    * Writes the int as 4 bytes in the provided array, starting at offset
+    *
+    * @param int int to write
+    * @param bytes byte array to write to, must have length at least `offset` + 8
+    * @param offset offset to start writing
+    */
+  def writeInt(int: Int, bytes: Array[Byte], offset: Int = 0): Unit = {
+    bytes(offset    ) = ((int >> 24) & 0xff).asInstanceOf[Byte]
+    bytes(offset + 1) = ((int >> 16) & 0xff).asInstanceOf[Byte]
+    bytes(offset + 2) = ((int >> 8)  & 0xff).asInstanceOf[Byte]
+    bytes(offset + 3) =  (int        & 0xff).asInstanceOf[Byte]
+  }
+
+  /**
     * Writes the long as 8 bytes in the provided array, starting at offset
     *
     * @param long long to write
@@ -66,6 +80,20 @@ object ByteArrays {
     */
   def readShort(bytes: Array[Byte], offset: Int = 0): Short =
     (((bytes(offset) & 0xff) << 8) | (bytes(offset + 1) & 0xff)).toShort
+
+  /**
+    * Reads 4 bytes from the provided array as an int, starting at offset
+    *
+    * @param bytes array to read from
+    * @param offset offset to start reading
+    * @return
+    */
+  def readInt(bytes: Array[Byte], offset: Int = 0): Int = {
+    ((bytes(offset    ) & 0xff) << 24) |
+    ((bytes(offset + 1) & 0xff) << 16) |
+    ((bytes(offset + 2) & 0xff) <<  8) |
+     (bytes(offset + 3) & 0xff)
+  }
 
   /**
     * Reads 8 bytes from the provided array as a long, starting at offset

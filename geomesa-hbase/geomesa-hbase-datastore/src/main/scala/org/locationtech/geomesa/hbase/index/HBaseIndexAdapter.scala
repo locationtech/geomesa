@@ -19,14 +19,12 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.hbase.coprocessor.aggregators._
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseFeature, HBaseQueryPlan}
-import org.locationtech.geomesa.hbase.filters.JSimpleFeatureFilter
+import org.locationtech.geomesa.hbase.filters.CqlTransformFilter
 import org.locationtech.geomesa.hbase.index.HBaseIndexAdapter.ScanConfig
-import org.locationtech.geomesa.hbase.{HBaseFeatureIndexType, HBaseFilterStrategyType, HBaseQueryPlanType}
+import org.locationtech.geomesa.hbase.{HBaseFeatureIndexType, HBaseFilterStrategyType, HBaseQueryPlanType, HBaseSystemProperties}
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -92,7 +90,7 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
       // everything is done client side
       ScanConfig(ranges, colFamily, Seq.empty, None, resultsToFeatures(schema, ecql, transform))
     } else {
-      val (tdefs, returnSchema) = transform.getOrElse(("", schema))
+      val returnSchema = transform.map(_._2).getOrElse(schema)
 
       // TODO not actually used for coprocessors
       val toFeatures = resultsToFeatures(schema, returnSchema)
@@ -118,9 +116,7 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
       val filters = if (coprocessorConfig.isDefined || (ecql.isEmpty && transform.isEmpty)) {
         Seq.empty
       } else {
-        val encodedSft = SimpleFeatureTypes.encodeType(returnSchema)
-        val filter = new JSimpleFeatureFilter(schema, ecql.getOrElse(Filter.INCLUDE), tdefs, encodedSft)
-        Seq((JSimpleFeatureFilter.Priority, filter))
+        Seq((CqlTransformFilter.Priority, CqlTransformFilter(schema, ecql, transform)))
       }
 
       ScanConfig(ranges, colFamily, filters, coprocessorConfig, toFeatures)
@@ -137,7 +133,7 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
                                       table: TableName,
                                       hbaseFilters: Seq[(Int, HFilter)],
                                       coprocessor: Option[CoprocessorConfig],
-                                      toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan
+                                      toFeatures: Iterator[Result] => Iterator[SimpleFeature]): HBaseQueryPlan
 
   /**
     * Turns hbase results into simple features
@@ -167,16 +163,17 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
 }
 
 object HBaseIndexAdapter extends LazyLogging {
+
   case class ScanConfig(ranges: Seq[Scan],
                         colFamily: Array[Byte],
                         filters: Seq[(Int, HFilter)],
                         coprocessor: Option[CoprocessorConfig],
                         entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
 
-  val durability: Durability = SystemProperty("geomesa.hbase.wal.durability").option match {
+  val durability: Durability = HBaseSystemProperties.WalDurability.option match {
     case Some(value) =>
       Durability.values.find(_.toString.equalsIgnoreCase(value)).getOrElse{
-        logger.error(s"Invalid HBase WAL Durability setting: ${value}. Falling back to default Durability.")
+        logger.error(s"Invalid HBase WAL durability setting: $value. Falling back to default durability")
         Durability.USE_DEFAULT
       }
     case None => Durability.USE_DEFAULT
