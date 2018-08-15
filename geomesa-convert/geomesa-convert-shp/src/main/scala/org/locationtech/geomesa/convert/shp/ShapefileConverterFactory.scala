@@ -13,7 +13,8 @@ import java.nio.charset.StandardCharsets
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.shapefile.ShapefileDataStore
-import org.locationtech.geomesa.convert.{ErrorMode, ParseMode, SimpleFeatureValidator}
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
+import org.locationtech.geomesa.convert.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
 import org.locationtech.geomesa.convert2.AbstractConverterFactory._
@@ -73,7 +74,7 @@ object ShapefileConverterFactory extends LazyLogging {
       }
 
       val shpConfig = BasicConfig(TypeToProcess, Some(Column(0)), Map.empty, Map.empty)
-      val options = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode.Default,
+      val options = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(),
         StandardCharsets.UTF_8, verbose = true)
 
       val config = BasicConfigConvert.to(shpConfig)

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.hbase.index
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{Filter => HFilter}
@@ -24,13 +25,15 @@ import org.locationtech.geomesa.hbase.{HBaseFeatureIndexType, HBaseFilterStrateg
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexAdapter}
 import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 trait HBaseIndexAdapter extends HBaseFeatureIndexType
-    with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Scan, ScanConfig] with ClientSideFiltering[Result] {
+    with IndexAdapter[HBaseDataStore, HBaseFeature, Mutation, Scan, ScanConfig]
+    with ClientSideFiltering[Result] with LazyLogging {
 
   override def rowAndValue(result: Result): RowAndValue = {
     val cell = result.rawCells()(0)
@@ -42,7 +45,7 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
     val put = new Put(row)
     feature.values.foreach(v => put.addImmutable(v.cf, v.cq, v.value))
     feature.visibility.foreach(put.setCellVisibility)
-    put
+    put.setDurability(HBaseIndexAdapter.durability)
   }
 
   override protected def createDelete(row: Array[Byte], feature: HBaseFeature): Mutation = {
@@ -163,10 +166,19 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
   }
 }
 
-object HBaseIndexAdapter {
+object HBaseIndexAdapter extends LazyLogging {
   case class ScanConfig(ranges: Seq[Scan],
                         colFamily: Array[Byte],
                         filters: Seq[(Int, HFilter)],
                         coprocessor: Option[CoprocessorConfig],
                         entriesToFeatures: Iterator[Result] => Iterator[SimpleFeature])
+
+  val durability: Durability = SystemProperty("geomesa.hbase.wal.durability").option match {
+    case Some(value) =>
+      Durability.values.find(_.toString.equalsIgnoreCase(value)).getOrElse{
+        logger.error(s"Invalid HBase WAL Durability setting: ${value}. Falling back to default Durability.")
+        Durability.USE_DEFAULT
+      }
+    case None => Durability.USE_DEFAULT
+  }
 }

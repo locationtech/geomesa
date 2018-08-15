@@ -15,14 +15,17 @@ import java.util.concurrent.ConcurrentHashMap
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
+import com.vividsolutions.jts.geom.Envelope
 import org.apache.hadoop.fs.Options.{CreateOpts, Rename}
 import org.apache.hadoop.fs._
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.simple.SimpleFeatureType
+import pureconfig.ConfigWriter
 
 /**
   * FileMetadata implementation. Persists to disk after any change - prefer bulk operations when possible.
@@ -38,7 +41,8 @@ class FileMetadata private (fc: FileContext,
                             root: Path,
                             sft: SimpleFeatureType,
                             scheme: PartitionScheme,
-                            encoding: String)
+                            encoding: String,
+                            data: Option[Config])
     extends org.locationtech.geomesa.fs.storage.api.FileMetadata {
 
   import scala.collection.JavaConverters._
@@ -139,6 +143,41 @@ class FileMetadata private (fc: FileContext,
       FileMetadata.save(this)
     }
   }
+  val countData = data.map(pureconfig.loadConfigOrThrow[FeatureMetaData])
+  var internalCount: Long = countData.map(_.count).getOrElse(0L)
+  var bounds: Envelope = countData.map(_.getEnvelope).getOrElse(new Envelope())
+
+  override def getFeatureCount: Long = internalCount
+  override def incrementFeatureCount(count: Long): Unit = {
+    internalCount += count
+  }
+
+  override def getEnvelope: ReferencedEnvelope =
+    if (bounds.isNull) {
+      ReferencedEnvelope.EVERYTHING
+    } else {
+      new ReferencedEnvelope(bounds, CRS_EPSG_4326)
+    }
+  override def expandBounds(envelope: Envelope): Unit = {
+      bounds.expandToInclude(envelope)
+  }
+
+  /**
+    * Call to write updated metadata to disk.
+    */
+  override def persist(): Unit = {
+    FileMetadata.save(this)
+  }
+}
+
+case class FeatureMetaData(count: Long, doubles: List[Double]) {
+  def getEnvelope: Envelope = {
+    if (doubles.length == 4) {
+      new ReferencedEnvelope(doubles(0), doubles(1), doubles(2), doubles(3), CRS_EPSG_4326)
+    } else {
+      new Envelope()
+    }
+  }
 }
 
 object FileMetadata extends MethodProfiling with LazyLogging {
@@ -180,7 +219,7 @@ object FileMetadata extends MethodProfiling with LazyLogging {
     if (PathCache.exists(fc, file)) {
       throw new IllegalArgumentException(s"Metadata file already exists at path '$file'")
     }
-    val metadata = new FileMetadata(fc, root, sft, scheme, encoding)
+    val metadata = new FileMetadata(fc, root, sft, scheme, encoding, None)
     cache.put((fc, file), metadata)
     save(metadata)
     metadata
@@ -228,12 +267,14 @@ object FileMetadata extends MethodProfiling with LazyLogging {
       // Load encoding
       val encoding = config.getString("encoding")
 
+      val data: Config = config.getConfig("data")
+
       // Load partition scheme - note we currently have to reload the SFT user data manually
       // which is why we have to add the partition scheme back to the SFT
       val scheme = PartitionScheme(sft, config.getConfig("partitionScheme"))
       PartitionScheme.addToSft(sft, scheme)
 
-      val metadata = new FileMetadata(fc, file.getParent, sft, scheme, encoding)
+      val metadata = new FileMetadata(fc, file.getParent, sft, scheme, encoding, Some(data))
 
       // Load Partitions
       profile {
@@ -261,6 +302,16 @@ object FileMetadata extends MethodProfiling with LazyLogging {
     val file = filePath(metadata.getRoot)
 
     val config = profile {
+      val dataConfig: ConfigValue = {
+        val doubles = if (metadata.getEnvelope != ReferencedEnvelope.EVERYTHING) {
+          List[Double](metadata.getEnvelope.getMinX, metadata.getEnvelope.getMaxX,
+            metadata.getEnvelope.getMinY, metadata.getEnvelope.getMaxY)
+        } else {
+          List[Double](0)
+        }
+        ConfigWriter[FeatureMetaData].to(FeatureMetaData(metadata.getFeatureCount, doubles))
+      }
+
       val sft = metadata.getSchema
       val sftConfig = SimpleFeatureTypes.toConfig(sft, includePrefix = false, includeUserData = true).root()
       ConfigFactory.empty()
@@ -268,6 +319,7 @@ object FileMetadata extends MethodProfiling with LazyLogging {
         .withValue("encoding", ConfigValueFactory.fromAnyRef(metadata.getEncoding))
         .withValue("partitionScheme", PartitionScheme.toConfig(metadata.getPartitionScheme).root())
         .withValue("partitions", ConfigValueFactory.fromMap(metadata.getPartitionFiles))
+        .withValue("data", dataConfig)
         .root
         .render(options)
     } ((_, time) => logger.debug(s"Created config for persistence in ${time}ms"))

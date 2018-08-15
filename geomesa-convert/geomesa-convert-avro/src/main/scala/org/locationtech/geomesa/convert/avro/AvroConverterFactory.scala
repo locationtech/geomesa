@@ -17,7 +17,8 @@ import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.locationtech.geomesa.convert.avro.AvroConverter._
 import org.locationtech.geomesa.convert.avro.AvroConverterFactory.AvroConfigConvert
-import org.locationtech.geomesa.convert.{ErrorMode, ParseMode, SimpleFeatureValidator}
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
+import org.locationtech.geomesa.convert.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert}
 import org.locationtech.geomesa.convert2.TypeInference.{FunctionTransform, InferredType}
@@ -172,7 +173,7 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
 
         val converterConfig = AvroConfig(typeToProcess, SchemaEmbedded, Some(id), Map.empty, userData)
 
-        val options = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode.Default,
+        val options = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(),
           StandardCharsets.UTF_8, verbose = true)
 
         val config = configConvert.to(converterConfig)

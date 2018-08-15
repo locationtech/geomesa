@@ -14,8 +14,8 @@ import java.nio.charset.Charset
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
-import org.locationtech.geomesa.convert.ParseMode.ParseMode
+import org.locationtech.geomesa.convert.Modes.ErrorMode
+import org.locationtech.geomesa.convert.Modes.ParseMode
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -98,7 +98,6 @@ abstract class AbstractConverter[C <: ConverterConfig, F <: Field, O <: Converte
     */
   private def convert(rawValues: Array[Any], ec: EvaluationContext): Iterator[SimpleFeature] = {
     val sf = new ScalaSimpleFeature(targetSft, "")
-    var error: Throwable = null
     var i = 0
 
     try {
@@ -120,28 +119,31 @@ abstract class AbstractConverter[C <: ConverterConfig, F <: Field, O <: Converte
       }
       config.userData.foreach { case (k, v) => sf.getUserData.put(k, v.eval(rawValues)(ec).asInstanceOf[AnyRef]) }
     } catch {
-      case NonFatal(e) => error = e
-    }
-
-    if (error == null && options.validators.validate(sf)) {
-      ec.counter.incSuccess()
-      Iterator.single(sf)
-    } else {
-      ec.counter.incFailure()
-      val msg = if (error == null) {
-        s"Invalid SimpleFeature on line ${ec.counter.getLineCount}: ${options.validators.lastError}"
-      } else {
+      case NonFatal(e) =>
+        ec.counter.incFailure()
         val values = if (!options.verbose) { "" } else {
           // head is the whole record
           s" using values:\n${rawValues.headOption.orNull}\n[${rawValues.drop(1).mkString(", ")}]"
         }
         val field = if (i < requiredFieldsCount) { s" '${requiredFields(i).name}'" } else { "" }
-        s"Failed to evaluate field$field on line ${ec.counter.getLineCount}$values"
-      }
+        val msg = s"Failed to evaluate field$field on line ${ec.counter.getLineCount}$values"
+        options.errorMode match {
+          case ErrorMode.RaiseErrors => throw new IOException(msg, e)
+          case ErrorMode.SkipBadRecords => if (options.verbose) { logger.debug(msg, e) } else { logger.debug(msg) }
+        }
+        return Iterator.empty
+    }
+
+    val error = options.validators.validate(sf)
+    if (error == null) {
+      ec.counter.incSuccess()
+      Iterator.single(sf)
+    } else {
+      ec.counter.incFailure()
+      val msg = s"Invalid SimpleFeature on line ${ec.counter.getLineCount}: $error"
       options.errorMode match {
-        case ErrorMode.SkipBadRecords if error == null || !options.verbose => logger.debug(msg)
-        case ErrorMode.SkipBadRecords => logger.debug(msg, error)
-        case ErrorMode.RaiseErrors => throw new IOException(msg, error)
+        case ErrorMode.SkipBadRecords => logger.debug(msg)
+        case ErrorMode.RaiseErrors => throw new IOException(msg)
       }
       Iterator.empty
     }

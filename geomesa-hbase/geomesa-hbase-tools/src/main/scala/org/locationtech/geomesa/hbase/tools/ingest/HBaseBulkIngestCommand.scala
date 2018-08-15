@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.hbase.tools.ingest
 
+import java.util.{List => jList}
+
 import com.beust.jcommander.Parameters
 import com.typesafe.config.Config
 import org.apache.hadoop.fs.Path
@@ -16,22 +18,23 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.jobs.HBaseIndexFileMapper
 import org.locationtech.geomesa.hbase.tools.ingest.HBaseBulkIngestCommand.HBaseBulkIngestParams
 import org.locationtech.geomesa.hbase.tools.ingest.HBaseIngestCommand.HBaseIngestParams
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
-import org.locationtech.geomesa.tools.ingest.{ConverterIngest, ConverterIngestJob}
+import org.locationtech.geomesa.tools.ingest.{ConverterCombineIngestJob, ConverterIngest, ConverterIngestJob}
 import org.locationtech.geomesa.tools.{Command, OutputPathParam, RequiredIndexParam}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
+
 
 class HBaseBulkIngestCommand extends HBaseIngestCommand {
 
   override val name = "bulk-ingest"
   override val params = new HBaseBulkIngestParams()
 
-  override protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config): Runnable = {
-    import scala.collection.JavaConverters._
+  override protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config, ingestFiles: Seq[String]): Runnable = {
 
-    new ConverterIngest(sft, connection, converterConfig, params.files.asScala, Option(params.mode),
-      libjarsFile, libjarsPaths, params.threads) {
+    new ConverterIngest(sft, connection, converterConfig, ingestFiles, Option(params.mode),
+      libjarsFile, libjarsPaths, params.threads, Option(params.maxSplitSize)) {
 
       override def run(): Unit = {
         super.run()
@@ -41,13 +44,14 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
 
       override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
         // validate index param now that we have a datastore and the sft has been created
-        val index = params.loadRequiredIndex(ds.asInstanceOf[HBaseDataStore], IndexMode.Write).identifier
-        val job = new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths) {
-          override def configureJob(job: Job): Unit = {
-            super.configureJob(job)
-            HBaseIndexFileMapper.configure(job, connection, sft.getTypeName, index, new Path(params.outputPath))
-          }
+        val index: String = params.loadRequiredIndex(ds.asInstanceOf[HBaseDataStore], IndexMode.Write).identifier
+
+        val job = if(params.mode == RunModes.DistributedCombine) {
+          converterCombineIngestJob(dsParams, sft, converterConfig, inputs, params.maxSplitSize, index)
+        } else {
+          converterIngestJob(dsParams, sft, converterConfig, inputs, index)
         }
+
         job.run(statusCallback)
       }
 
@@ -55,6 +59,34 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
         throw new NotImplementedError("Bulk ingest not implemented for local mode")
     }
   }
+
+  private def converterCombineIngestJob(dsParams: Map[String, String],
+                                        sft: SimpleFeatureType,
+                                        converterConfig: Config,
+                                        inputs: Seq[String],
+                                        maxSplitSize: Int,
+                                        index: String): ConverterCombineIngestJob = {
+    new ConverterCombineIngestJob(dsParams, sft, converterConfig, inputs, Option(params.maxSplitSize), libjarsFile, libjarsPaths) {
+      override def configureJob(job: Job): Unit = {
+        super.configureJob(job)
+        HBaseIndexFileMapper.configure(job, connection, sft.getTypeName, index, new Path(params.outputPath))
+      }
+    }
+  }
+
+  private def converterIngestJob(dsParams: Map[String, String],
+                                 sft: SimpleFeatureType,
+                                 converterConfig: Config,
+                                 inputs: Seq[String],
+                                 index: String): ConverterIngestJob = {
+    new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths) {
+      override def configureJob(job: Job): Unit = {
+        super.configureJob(job)
+        HBaseIndexFileMapper.configure(job, connection, sft.getTypeName, index, new Path(params.outputPath))
+      }
+    }
+  }
+
 }
 
 object HBaseBulkIngestCommand {

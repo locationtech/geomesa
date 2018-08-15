@@ -193,12 +193,21 @@ your GeoServer ``WEB-INF/lib`` directory:
 
 .. tabs::
 
+    .. tab:: Kafka 2.0.0
+
+        * kafka-clients-2.0.0.jar
+        * kafka_2.11-2.0.0.jar
+        * zkclient-0.10.jar
+        * zookeeper-3.4.10.jar
+        * metrics-core-2.2.0.jar
+        * jopt-simple-5.0.4.jar
+
     .. tab:: Kafka 1.0.1
 
         * kafka-clients-1.0.1.jar
         * kafka_2.11-1.0.1.jar
         * zkclient-0.10.jar
-        * zookeeper-3.4.6.jar
+        * zookeeper-3.4.10.jar
         * metrics-core-2.2.0.jar
         * jopt-simple-5.0.4.jar
 
@@ -207,7 +216,7 @@ your GeoServer ``WEB-INF/lib`` directory:
         * kafka-clients-0.10.2.1.jar
         * kafka-2.11-0.10.2.1.jar
         * zkclient-0.10.jar
-        * zookeeper-3.4.6.jar
+        * zookeeper-3.4.10.jar
         * metrics-core-2.2.0.jar
 
     .. tab:: Kafka 0.9
@@ -215,7 +224,7 @@ your GeoServer ``WEB-INF/lib`` directory:
         * kafka-clients-0.9.0.1.jar
         * kafka_2.11-0.9.0.1.jar
         * zkclient-0.7.jar
-        * zookeeper-3.4.6.jar
+        * zookeeper-3.4.10.jar
         * metrics-core-2.2.0.jar
 
 There is a script in the ``geomesa-kafka_2.11-$VERSION/bin`` directory

@@ -17,12 +17,13 @@ import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.FileUtils
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.PartitionScheme
 import org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
@@ -57,10 +58,12 @@ class FileSystemDataStoreTest extends Specification {
     "create a DS" >> {
       foreach(formats) { case (format, sft, features) =>
         val dir = dirs(format)
-        val ds = DataStoreFinder.getDataStore(Map(
+        val dsParams = Map(
           "fs.path" -> dir.getPath,
           "fs.encoding" -> format,
-          "fs.config" -> "parquet.compression=gzip"))
+          "fs.config" -> "parquet.compression=gzip")
+
+        val ds = DataStoreFinder.getDataStore(dsParams)
 
         ds.createSchema(sft)
 
@@ -93,8 +96,18 @@ class FileSystemDataStoreTest extends Specification {
         val fs = ds.getFeatureSource(format)
         fs must not(beNull)
 
+        // This shows that the FeatureSource doing the writing has an up-to-date view of the metadata
+        fs.getCount(Query.ALL) must beEqualTo(10)
+        fs.getBounds must equalTo(new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
+
         val results = SelfClosingIterator(fs.getFeatures(new Query(format)).features()).toList
         results must containTheSameElementsAs(features)
+
+        // This shows that a new FeatureSource has a correct view of the metadata on disk
+        val ds2 =  DataStoreFinder.getDataStore(dsParams)
+        val fs2 = ds2.getFeatureSource(format)
+        fs2.getCount(Query.ALL) must beEqualTo(10)
+        fs2.getBounds must equalTo(new ReferencedEnvelope(10.0, 10.0, 10.0, 10.9, CRS_EPSG_4326))
       }
     }
 

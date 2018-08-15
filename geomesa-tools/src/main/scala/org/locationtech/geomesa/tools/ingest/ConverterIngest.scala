@@ -20,10 +20,11 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.geotools.data.DataUtilities.compare
 import org.locationtech.geomesa.convert.{DefaultCounter, EvaluationContext}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat}
+import org.locationtech.geomesa.jobs.mapreduce.{ConverterCombineInputFormat, ConverterInputFormat, GeoMesaOutputFormat}
 import org.locationtech.geomesa.tools.Command
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
-import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
+import org.locationtech.geomesa.tools.ingest.AbstractIngest.{LocalIngestConverter, StatusCallback}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -47,7 +48,8 @@ class ConverterIngest(sft: SimpleFeatureType,
                       mode: Option[RunMode],
                       libjarsFile: String,
                       libjarsPaths: Iterator[() => Seq[File]],
-                      numLocalThreads: Int)
+                      numLocalThreads: Int,
+                      maxSplitSize: Option[Integer] = None)
     extends AbstractIngest(dsParams, sft.getTypeName, inputs, mode, libjarsFile, libjarsPaths, numLocalThreads) {
 
   override def beforeRunTasks(): Unit = {
@@ -77,7 +79,12 @@ class ConverterIngest(sft: SimpleFeatureType,
     new LocalIngestConverterImpl(sft, path, converters, failures)
 
   override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
-    new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths).run(statusCallback)
+    // Check conf if we should run against small files and use Combine* classes accordingly
+    if (mode.contains(RunModes.DistributedCombine)) {
+      new ConverterCombineIngestJob(dsParams, sft, converterConfig, inputs, maxSplitSize, libjarsFile, libjarsPaths).run(statusCallback)
+    } else {
+      new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths).run(statusCallback)
+    }
   }
 }
 
@@ -96,31 +103,23 @@ class LocalIngestConverterImpl(sft: SimpleFeatureType,
   protected val ec: EvaluationContext =
     converter.createEvaluationContext(EvaluationContext.inputFileParam(path), counter = new LocalIngestCounter)
 
-  override def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature]) = (sft, converter.process(is, ec))
+  override def convert(is: InputStream): Iterator[SimpleFeature] = converter.process(is, ec)
   override def close(): Unit = converters.returnObject(converter)
 }
 
-/**
- * Distributed job that uses converters to process input files
- *
- * @param sft simple feature type
- * @param converterConfig converter definition
- */
-class ConverterIngestJob(dsParams: Map[String, String],
-                         sft: SimpleFeatureType,
-                         converterConfig: Config,
-                         paths: Seq[String],
-                         libjarsFile: String,
-                         libjarsPaths: Iterator[() => Seq[File]])
-    extends AbstractIngestJob(dsParams, sft.getTypeName, paths, libjarsFile, libjarsPaths) {
+abstract class AbstractConverterIngestJob(dsParams: Map[String, String],
+                                          sft: SimpleFeatureType,
+                                          converterConfig: Config,
+                                          paths: Seq[String],
+                                          libjarsFile: String,
+                                          libjarsPaths: Iterator[() => Seq[File]])
+  extends AbstractIngestJob(dsParams, sft.getTypeName, paths, libjarsFile, libjarsPaths) {
 
   import ConverterInputFormat.{Counters => ConvertCounters}
   import GeoMesaOutputFormat.{Counters => OutCounters}
 
   val failCounters =
     Seq((ConvertCounters.Group, ConvertCounters.Failed), (OutCounters.Group, OutCounters.Failed))
-
-  override val inputFormatClass: Class[_ <: FileInputFormat[_, SimpleFeature]] = classOf[ConverterInputFormat]
 
   override def configureJob(job: Job): Unit = {
     super.configureJob(job)
@@ -133,4 +132,46 @@ class ConverterIngestJob(dsParams: Map[String, String],
 
   override def failed(job: Job): Long =
     failCounters.map(c => job.getCounters.findCounter(c._1, c._2).getValue).sum
+}
+
+/**
+  * Distributed job that uses converters to process input files
+  *
+  * @param sft simple feature type
+  * @param converterConfig converter definition
+  */
+class ConverterIngestJob(dsParams: Map[String, String],
+                         sft: SimpleFeatureType,
+                         converterConfig: Config,
+                         paths: Seq[String],
+                         libjarsFile: String,
+                         libjarsPaths: Iterator[() => Seq[File]])
+  extends AbstractConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths) {
+
+  override val inputFormatClass: Class[ConverterInputFormat] = classOf[ConverterInputFormat]
+}
+
+/**
+ * Distributed job that uses converters to process input files in batches. This
+ * allows multiple files to be processed by one mapper. Batch size is controlled
+ * by the 'maxSplitSize' and should be scaled with mapper memory.
+ *
+ * @param sft simple feature type
+ * @param converterConfig converter definition
+ * @param maxSplitSize size in bytes for each map split 
+ */
+class ConverterCombineIngestJob(dsParams: Map[String, String],
+                                sft: SimpleFeatureType,
+                                converterConfig: Config,
+                                paths: Seq[String],
+                                maxSplitSize: Option[Integer],
+                                libjarsFile: String,
+                                libjarsPaths: Iterator[() => Seq[File]])
+  extends AbstractConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths) {
+  override val inputFormatClass: Class[ConverterCombineInputFormat] = classOf[ConverterCombineInputFormat]
+
+  override def configureJob(job: Job): Unit = {
+    super.configureJob(job)
+    maxSplitSize.foreach(s => FileInputFormat.setMaxInputSplitSize(job, s.toLong))
+  }
 }
