@@ -114,7 +114,7 @@ object GeometryUtils extends LazyLogging {
     * @return seq of (xmin, ymin, xmax, ymax)
     */
   def bounds(geometry: Geometry, maxBounds: Int, maxBitResolution: Int): Seq[(Double, Double, Double, Double)] = {
-    if (GeometryUtils.isRectangular(geometry)) {
+    if (maxBounds < 2 || GeometryUtils.isRectangular(geometry)) {
       return Seq(bounds(geometry))
     }
 

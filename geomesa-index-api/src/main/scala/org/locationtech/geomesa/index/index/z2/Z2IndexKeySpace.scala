@@ -64,7 +64,12 @@ trait Z2IndexKeySpace extends IndexKeySpace[Z2IndexValues, Long] {
       return Z2IndexValues(sfc, geometries, Seq.empty)
     }
 
-    val xy = geometries.values.flatMap(GeometryUtils.bounds(_, 10, 20))
+    // compute our ranges based on the coarse bounds for our query
+    val xy = {
+      val multiplier = QueryProperties.PolygonDecompMultiplier.toInt.get
+      val bits = QueryProperties.PolygonDecompBits.toInt.get
+      geometries.values.flatMap(GeometryUtils.bounds(_, multiplier, bits))
+    }
 
     Z2IndexValues(sfc, geometries, xy)
   }

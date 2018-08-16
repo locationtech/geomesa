@@ -56,10 +56,14 @@ trait XZ2IndexKeySpace extends IndexKeySpace[XZ2IndexValues, Long] {
 
     explain(s"Geometries: $geometries")
 
-    // compute our ranges based on the coarse bounds for our query
-
     val sfc = XZ2SFC(sft.getXZPrecision)
-    val xy = geometries.values.flatMap(GeometryUtils.bounds(_, 10, 20))
+
+    // compute our ranges based on the coarse bounds for our query
+    val xy = {
+      val multiplier = QueryProperties.PolygonDecompMultiplier.toInt.get
+      val bits = QueryProperties.PolygonDecompBits.toInt.get
+      geometries.values.flatMap(GeometryUtils.bounds(_, multiplier, bits))
+    }
 
     XZ2IndexValues(sfc, geometries, xy)
   }

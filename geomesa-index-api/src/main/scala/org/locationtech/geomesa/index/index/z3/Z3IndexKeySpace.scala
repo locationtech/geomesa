@@ -95,8 +95,12 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
     val minTime = z3.time.min.toLong
     val maxTime = z3.time.max.toLong
 
-    // compute our accumulo ranges based on the coarse bounds for our query
-    val xy = geometries.values.flatMap(GeometryUtils.bounds(_, 10, 20))
+    // compute our ranges based on the coarse bounds for our query
+    val xy = {
+      val multiplier = QueryProperties.PolygonDecompMultiplier.toInt.get
+      val bits = QueryProperties.PolygonDecompBits.toInt.get
+      geometries.values.flatMap(GeometryUtils.bounds(_, multiplier, bits))
+    }
 
     // calculate map of weeks to time intervals in that week
     val timesByBin = scala.collection.mutable.Map.empty[Short, Seq[(Long, Long)]].withDefaultValue(Seq.empty)
