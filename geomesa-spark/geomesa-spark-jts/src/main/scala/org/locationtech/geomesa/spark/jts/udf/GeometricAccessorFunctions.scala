@@ -16,11 +16,11 @@ import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 
 object GeometricAccessorFunctions {
   val ST_Boundary: Geometry => Geometry = nullableUDF(geom => geom.getBoundary)
-  val ST_CoordDim: Geometry => Int = nullableUDF(geom => {
+  val ST_CoordDim: Geometry => Integer = nullableUDF(geom => {
     val coord = geom.getCoordinate
     if (coord.z.isNaN) 2 else 3
   })
-  val ST_Dimension: Geometry => Int = nullableUDF(geom => geom.getDimension)
+  val ST_Dimension: Geometry => Integer = nullableUDF(geom => geom.getDimension)
   val ST_Envelope: Geometry => Geometry = nullableUDF(geom => geom.getEnvelope)
   val ST_ExteriorRing: Geometry => LineString = {
     case geom: Polygon => geom.getExteriorRing
@@ -53,8 +53,8 @@ object GeometricAccessorFunctions {
   })
   val ST_IsSimple: Geometry => jl.Boolean = nullableUDF(geom => geom.isSimple)
   val ST_IsValid: Geometry => jl.Boolean = nullableUDF(geom => geom.isValid)
-  val ST_NumGeometries: Geometry => Int = nullableUDF(geom => geom.getNumGeometries)
-  val ST_NumPoints: Geometry => Int = nullableUDF(geom => geom.getNumPoints)
+  val ST_NumGeometries: Geometry => Integer = nullableUDF(geom => geom.getNumGeometries)
+  val ST_NumPoints: Geometry => Integer = nullableUDF(geom => geom.getNumPoints)
   val ST_PointN: (Geometry, Int) => Point = nullableUDF((geom, n) => {
     geom match {
       case geom: LineString =>

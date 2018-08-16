@@ -248,10 +248,10 @@ org.apache.hadoop:hadoop-yarn-api	2.6.4	provided
 org.apache.hadoop:hadoop-yarn-common	2.6.4	provided
 org.apache.kafka:kafka_2.11	2.0.0	provided
 org.apache.kafka:kafka-clients	2.0.0	provided
-org.apache.spark:spark-catalyst_2.11	2.2.0	provided
-org.apache.spark:spark-core_2.11	2.2.0	provided
-org.apache.spark:spark-sql_2.11	2.2.0	provided
-org.apache.spark:spark-yarn_2.11	2.2.0	provided
+org.apache.spark:spark-catalyst_2.11	2.3.1	provided
+org.apache.spark:spark-core_2.11	2.3.1	provided
+org.apache.spark:spark-sql_2.11	2.3.1	provided
+org.apache.spark:spark-yarn_2.11	2.3.1	provided
 org.scala-lang:scala-compiler	2.11.7	provided
 org.springframework.security:spring-security-core	4.0.4.RELEASE	provided
 org.springframework.security:spring-security-web	4.0.4.RELEASE	provided
