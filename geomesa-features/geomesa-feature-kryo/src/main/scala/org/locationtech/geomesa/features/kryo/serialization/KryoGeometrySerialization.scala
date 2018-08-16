@@ -9,8 +9,6 @@
 package org.locationtech.geomesa.features.kryo.serialization
 
 import com.esotericsoftware.kryo.io.{Input, Output}
-import org.locationtech.geomesa.features.serialization.GeometrySerialization
+import org.locationtech.geomesa.features.serialization.TwkbSerialization
 
-object KryoGeometrySerialization extends GeometrySerialization[Output, Input]
-
-
+object KryoGeometrySerialization extends TwkbSerialization[Output, Input]

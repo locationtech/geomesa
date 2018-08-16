@@ -18,6 +18,7 @@ import org.apache.commons.codec.binary.Base64
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractImmutableSimpleFeature
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.{ImmutableFeatureId, SimpleFeatureTypes}
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
@@ -104,27 +105,32 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
     "correctly serialize and deserialize different geometries" in {
       val spec = "a:LineString,b:Polygon,c:MultiPoint,d:MultiLineString,e:MultiPolygon," +
         "f:GeometryCollection,dtg:Date,*geom:Point:srid=4326"
-      val sft = SimpleFeatureTypes.createType("testType", spec)
-      val sf = new ScalaSimpleFeature(sft, "fakeid")
+      val sftWkb = SimpleFeatureTypes.createType("testTypeWkb", spec)
+      // use a different name to avoid cached serializers
+      val sftTwkb = SimpleFeatureTypes.createType("testTypeTwkb", spec)
+      sftTwkb.getAttributeDescriptors.foreach(_.getUserData.put(AttributeOptions.OPT_PRECISION, "6"))
 
+      val sf = new ScalaSimpleFeature(sftWkb, "fakeid")
       sf.setAttribute("a", "LINESTRING(0 2, 2 0, 8 6)")
       sf.setAttribute("b", "POLYGON((20 10, 30 0, 40 10, 30 20, 20 10))")
       sf.setAttribute("c", "MULTIPOINT(0 0, 2 2)")
       sf.setAttribute("d", "MULTILINESTRING((0 2, 2 0, 8 6),(0 2, 2 0, 8 6))")
       sf.setAttribute("e", "MULTIPOLYGON(((-1 0, 0 1, 1 0, 0 -1, -1 0)), ((-2 6, 1 6, 1 3, -2 3, -2 6)), " +
-        "((-1 5, 2 5, 2 2, -1 2, -1 5)))")
+          "((-1 5, 2 5, 2 2, -1 2, -1 5)))")
       sf.setAttribute("f", "MULTIPOINT(0 0, 2 2)")
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(55.0 49.0)")
 
-      forall(options) { opts =>
-        val serializer = KryoFeatureSerializer(sft, opts)
-        val serialized = serializer.serialize(sf)
-        val deserialized = serializer.deserialize(serialized)
+      forall(Seq(sftWkb, sftTwkb)) { sft =>
+        forall(options) { opts =>
+          val serializer = KryoFeatureSerializer(sft, opts)
+          val serialized = serializer.serialize(sf)
+          val deserialized = serializer.deserialize(serialized)
 
-        deserialized must not(beNull)
-        deserialized.getType mustEqual sf.getType
-        deserialized.getAttributes mustEqual sf.getAttributes
+          deserialized must not(beNull)
+          deserialized.getType mustEqual sft
+          deserialized.getAttributes mustEqual sf.getAttributes
+        }
       }
     }
 
@@ -139,7 +145,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       sf.setAttribute("c", "MULTIPOINT(0 0 0, 2 2 2)")
       sf.setAttribute("d", "MULTILINESTRING((0 2 0, 2 0 1, 8 6 2),(0 2 0, 2 0 0, 8 6 0))")
       sf.setAttribute("e", "MULTIPOLYGON(((-1 0 0, 0 1 0, 1 0 0, 0 -1 0, -1 0 0)), ((-2 6 2, 1 6 3, 1 3 3, -2 3 3, -2 6 2)), " +
-          "((-1 5, 2 5, 2 2, -1 2, -1 5)))")
+          "((-1 5 0, 2 5 0, 2 2 0, -1 2 0, -1 5 0)))")
       sf.setAttribute("f", "MULTIPOINT(0 0 2, 2 2 0)")
       sf.setAttribute("geom", "POINT(55.0 49.0 37.0)")
 
