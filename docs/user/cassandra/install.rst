@@ -116,6 +116,12 @@ Run ``geomesa-cassandra`` without arguments to confirm that the tools work.
 Installing GeoMesa Cassandra in GeoServer
 -----------------------------------------
 
+.. warning::
+
+   GeoServer 2.13.0 and 2.13.1 are not recommended due to two serious bugs:
+     * GeoMesa WPS processes are not triggered correctly, and will run slowly or not at all
+     * GeoMesa count optimizations are bypassed, potentially resulting in large duplicate scans for WFS queries
+
 The GeoMesa Cassandra distribution includes a GeoServer plugin for including
 Cassandra data stores in GeoServer. The plugin files are in the
 ``dist/gs-plugins/geomesa-cassandra-gs-plugin_2.11-$VERSION-install.tar.gz`` archive within the

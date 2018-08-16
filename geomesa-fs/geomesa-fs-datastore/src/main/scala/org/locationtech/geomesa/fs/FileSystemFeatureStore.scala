@@ -23,6 +23,7 @@ import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemWri
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.IncludeFilter
 
 import scala.concurrent.duration.Duration
 
@@ -88,9 +89,15 @@ class FileSystemFeatureStore(storage: FileSystemStorage,
     }
   }
 
-  override def getBoundsInternal(query: Query): ReferencedEnvelope = ReferencedEnvelope.EVERYTHING
+  override def getBoundsInternal(query: Query): ReferencedEnvelope = storage.getMetadata.getEnvelope
   override def buildFeatureType(): SimpleFeatureType = sft
-  override def getCountInternal(query: Query): Int = -1
+  override def getCountInternal(query: Query): Int = {
+    if (query == Query.ALL || query.getFilter.isInstanceOf[IncludeFilter]) {
+      storage.getMetadata.getFeatureCount.toInt
+    } else {
+      -1L
+    }.toInt
+  }
 
   override def getReaderInternal(original: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     val query = new Query(original)
@@ -103,6 +110,7 @@ class FileSystemFeatureStore(storage: FileSystemStorage,
     val transformSft = query.getHints.getTransformSchema.getOrElse(sft)
 
     val iter = new FileSystemFeatureIterator(storage, query, readThreads)
+    // note: DelegateSimpleFeatureIterator will close the iterator by checking that it implements Closeable
     new DelegateSimpleFeatureReader(transformSft, new DelegateSimpleFeatureIterator(iter))
   }
 

@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.hbase.index
 
 import java.util.Locale
+import java.util.regex.Pattern
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
@@ -24,14 +25,17 @@ import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index.legacy._
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.index.ClientSideFiltering
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.util.control.NonFatal
+
 object HBaseFeatureIndex extends HBaseIndexManagerType {
+
+  private val DistributedJarNamePattern = Pattern.compile("^geomesa-hbase-distributed-runtime.*\\.jar$")
 
   // note: keep in priority order for running full table scans
   override val AllIndices: Seq[HBaseFeatureIndex] =
@@ -57,27 +61,18 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
   protected val dataBlockEncoding: Option[DataBlockEncoding] = Some(DataBlockEncoding.FAST_DIFF)
 
   override def configure(sft: SimpleFeatureType, ds: HBaseDataStore): Unit = {
+    import HBaseFeatureIndex.DistributedJarNamePattern
+    import HBaseSystemProperties.CoprocessorPath
+
     super.configure(sft, ds)
 
     val name = TableName.valueOf(getTableName(sft.getTypeName, ds))
-    val admin = ds.connection.getAdmin
-    val coprocessorUrl = ds.config.coprocessorUrl.orElse {
-      GeoMesaSystemProperties.SystemProperty("geomesa.hbase.coprocessor.path", null).option.map(new Path(_))
-    }
 
-    def addCoprocessor(clazz: Class[_ <: Coprocessor], desc: HTableDescriptor): Unit = {
-      val name = clazz.getCanonicalName
-      if (!desc.getCoprocessors.contains(name)) {
-        // TODO: Warn if the path given is different from paths registered in other coprocessors
-        // if so, other tables would need updating
-        HBaseVersions.addCoprocessor(desc, name, coprocessorUrl)
-      }
-    }
-
-    try {
+    WithClose(ds.connection.getAdmin) { admin =>
       if (!admin.tableExists(name)) {
         logger.debug(s"Creating table $name")
 
+        val conf = admin.getConfiguration
         val compression = sft.userData[String](Configs.COMPRESSION_ENABLED).filter(_.toBoolean).map { _ =>
           // note: all compression types in HBase are case-sensitive and lower-cased
           val compressionType = sft.userData[String](Configs.COMPRESSION_TYPE).getOrElse("gz").toLowerCase(Locale.US)
@@ -94,17 +89,38 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
         }
 
         if (ds.config.remoteFilter) {
-          import CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY
+          lazy val coprocessorUrl = ds.config.coprocessorUrl.orElse(CoprocessorPath.option.map(new Path(_))).orElse {
+            try {
+              // the jar should be under hbase.dynamic.jars.dir to enable filters, so look there
+              val dir = new Path(conf.get("hbase.dynamic.jars.dir"))
+              WithClose(dir.getFileSystem(conf)) { fs =>
+                fs.listStatus(dir).collectFirst {
+                  case s if DistributedJarNamePattern.matcher(s.getPath.getName).matches() => s.getPath
+                }
+              }
+            } catch {
+              case NonFatal(e) => logger.warn("Error checking dynamic jar path:", e); None
+            }
+          }
+
+          def addCoprocessor(clazz: Class[_ <: Coprocessor], desc: HTableDescriptor): Unit = {
+            val name = clazz.getCanonicalName
+            if (!desc.getCoprocessors.contains(name)) {
+              logger.debug(s"Using coprocessor path ${coprocessorUrl.orNull}")
+              // TODO: Warn if the path given is different from paths registered in other coprocessors
+              // if so, other tables would need updating
+              HBaseVersions.addCoprocessor(desc, name, coprocessorUrl)
+            }
+          }
+
           // if the coprocessors are installed site-wide don't register them in the table descriptor
-          val installed = Option(admin.getConfiguration.get(USER_REGION_COPROCESSOR_CONF_KEY))
+          val installed = Option(conf.get(CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY))
           val names = installed.map(_.split(":").toSet).getOrElse(Set.empty[String])
           AllCoprocessors.foreach(c => if (!names.contains(c.getCanonicalName)) { addCoprocessor(c, descriptor) })
         }
 
         admin.createTable(descriptor, getSplits(sft).toArray)
       }
-    } finally {
-      admin.close()
     }
   }
 

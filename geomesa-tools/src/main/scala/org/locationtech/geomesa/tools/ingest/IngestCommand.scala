@@ -15,16 +15,20 @@ import com.typesafe.config.{Config, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FilenameUtils
 import org.geotools.data.DataStore
+import org.locationtech.geomesa.convert.shp.ShapefileConverterFactory
 import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats, Prompt}
 import org.locationtech.geomesa.utils.geotools.{ConfigSftParsing, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
+import java.util.{List => jList}
 
 import scala.util.Try
 import scala.util.control.NonFatal
+import scala.io.Source
 
 trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with InteractiveCommand with LazyLogging {
 
@@ -37,89 +41,110 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
   def libjarsPaths: Iterator[() => Seq[File]]
 
   override def execute(): Unit = {
-    import DataFormats._
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
-    ensureSameFs(PathUtils.RemotePrefixes)
-
-    if (params.fmt == Shp) {
-      createShpIngest().run()
+    val ingestFiles: Seq[String] = if (params.srcList) {
+      params.files.flatMap(Source.fromFile(_).getLines().toList)
     } else {
-      // try to load the sft, first check for an existing schema, then load from the params/environment
-      var sft: SimpleFeatureType =
-        Option(params.featureName).flatMap(n => Try(withDataStore(_.getSchema(n))).filter(_ != null).toOption)
-          .orElse(Option(params.spec).flatMap(s => Option(CLArgResolver.getSft(s, params.featureName))))
-          .orNull
+      params.files
+    }
 
-      var converter: Config = Option(params.config).map(CLArgResolver.getConfig).orNull
+    ensureSameFs(ingestFiles)
 
-      if (converter == null && params.files.nonEmpty) {
-        // if there is no converter passed in, try to infer the schema from the input files themselves
-        Command.user.info("No converter defined - will attempt to detect schema from input files")
-        val file = params.files.iterator.flatMap(PathUtils.interpretPath).headOption.getOrElse {
-          throw new ParameterException(s"<files> '${params.files.mkString(",")}' did not evaluate to anything" +
-              "that could be read")
+    // try to load the sft, first check for an existing schema, then load from the params/environment
+    var sft: SimpleFeatureType =
+      Option(params.featureName).flatMap(n => Try(withDataStore(_.getSchema(n))).filter(_ != null).toOption)
+        .orElse(Option(params.spec).flatMap(s => Option(CLArgResolver.getSft(s, params.featureName))))
+        .orNull
+
+    var converter: Config = Option(params.config).map(CLArgResolver.getConfig).orNull
+
+    if (converter == null && ingestFiles.nonEmpty) {
+      // if there is no converter passed in, try to infer the schema from the input files themselves
+      Command.user.info("No converter defined - will attempt to detect schema from input files")
+      val file = ingestFiles.iterator.flatMap(PathUtils.interpretPath).headOption.getOrElse {
+        throw new ParameterException(s"<files> '${ingestFiles.mkString(",")}' did not evaluate to anything" +
+            "that could be read")
+      }
+      val (inferredSft, inferredConverter) = {
+        val opt = if (params.fmt == DataFormats.Shp) {
+          ShapefileConverterFactory.infer(file.path, Option(sft))
+        } else {
+          SimpleFeatureConverter.infer(() => file.open, Option(sft))
         }
-        val inferred = SimpleFeatureConverter.infer(() => file.open, Option(sft)).getOrElse {
+        opt.getOrElse {
           throw new ParameterException("Could not determine converter from inputs - please specify a converter")
         }
+      }
 
-        val renderOptions = ConfigRenderOptions.concise().setFormatted(true)
-        var inferredSftString: Option[String] = None
+      val renderOptions = ConfigRenderOptions.concise().setFormatted(true)
+      var inferredSftString: Option[String] = None
 
-        if (sft == null) {
-          val typeName = Option(params.featureName).getOrElse {
-            val existing = withDataStore(_.getTypeNames)
-            val fileName = Option(FilenameUtils.getBaseName(file.path))
-            val base = fileName.map(_.trim.replaceAll("[^A-Za-z0-9]+", "_")).filterNot(_.isEmpty).getOrElse("geomesa")
-            var name = base
-            var i = 0
-            while (existing.contains(name)) {
-              name = s"${base}_$i"
-              i += 1
-            }
-            name
+      if (sft == null) {
+        val typeName = Option(params.featureName).getOrElse {
+          val existing = withDataStore(_.getTypeNames)
+          val fileName = Option(FilenameUtils.getBaseName(file.path))
+          val base = fileName.map(_.trim.replaceAll("[^A-Za-z0-9]+", "_")).filterNot(_.isEmpty).getOrElse("geomesa")
+          var name = base
+          var i = 0
+          while (existing.contains(name)) {
+            name = s"${base}_$i"
+            i += 1
           }
-          sft = SimpleFeatureTypes.renameSft(inferred._1, typeName)
-          inferredSftString = Some(SimpleFeatureTypes.toConfig(sft, includePrefix = false).root().render(renderOptions))
+          name
+        }
+        sft = SimpleFeatureTypes.renameSft(inferredSft, typeName)
+        inferredSftString = Some(SimpleFeatureTypes.toConfig(sft, includePrefix = false).root().render(renderOptions))
+        if (!params.force) {
           Command.user.info(s"Inferred schema: $typeName identified ${SimpleFeatureTypes.encodeType(sft)}")
         }
-        val converterString = inferred._2.root().render(renderOptions)
+      }
+      converter = inferredConverter
+
+      if (!params.force) {
+        val converterString = inferredConverter.root().render(renderOptions)
+        def persist(): Unit = if (Prompt.confirm("Persist this converter for future use (y/n)? ")) {
+          writeInferredConverter(sft.getTypeName, converterString, inferredSftString)
+        }
         Command.user.info(s"Inferred converter:\n$converterString")
         if (Prompt.confirm("Use inferred converter (y/n)? ")) {
-          if (Prompt.confirm("Persist this converter for future use (y/n)? ")) {
-            writeInferredConverter(sft.getTypeName, converterString, inferredSftString)
-          }
-          converter = inferred._2
+          persist()
         } else {
           Command.user.info("Please re-run with a valid converter")
+          persist()
           return
         }
       }
-
-      if (sft == null) {
-        throw new ParameterException("SimpleFeatureType name and/or specification argument is required")
-      } else if (converter == null) {
-        throw new ParameterException("Converter config argument is required")
-      }
-
-      createConverterIngest(sft, converter).run()
     }
+
+    if (sft == null) {
+      throw new ParameterException("SimpleFeatureType name and/or specification argument is required")
+    } else if (converter == null) {
+      throw new ParameterException("Converter config argument is required")
+    }
+
+    if (params.fmt == DataFormats.Shp) {
+      // shapefiles have to be ingested locally, as we need access to the related files
+      if (params.mode == RunModes.Distributed) {
+        Command.user.warn("Forcing run mode to local for shapefile ingestion")
+      }
+      params.mode = RunModes.Local
+    }
+
+    createConverterIngest(sft, converter, ingestFiles).run()
   }
 
-  protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config): Runnable = {
-    new ConverterIngest(sft, connection, converterConfig, params.files, Option(params.mode),
-      libjarsFile, libjarsPaths, params.threads)
+  protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config, ingestFiles: Seq[String]): Runnable = {
+    new ConverterIngest(sft, connection, converterConfig, ingestFiles, Option(params.mode),
+      libjarsFile, libjarsPaths, params.threads, Option(params.maxSplitSize))
   }
 
-  protected def createShpIngest(): Runnable =
-    new ShapefileIngest(connection, Option(params.featureName), params.files, params.threads)
-
-  def ensureSameFs(prefixes: Seq[String]): Unit = {
-    prefixes.foreach { pre =>
-      if (params.files.exists(_.toLowerCase.startsWith(s"$pre://")) &&
-        !params.files.forall(_.toLowerCase.startsWith(s"$pre://"))) {
-        throw new ParameterException(s"Files must all be on the same file system: ($pre) or all be local")
+  private def ensureSameFs(ingestFiles: Seq[String]): Unit = {
+    if (ingestFiles.exists(PathUtils.isRemote)) {
+      // If we have a remote file, make sure they are all the same FS
+      val prefix = ingestFiles.head.split("/")(0).toLowerCase
+      if (!ingestFiles.forall(_.toLowerCase.startsWith(prefix))) {
+        throw new ParameterException(s"Files must all be on the same file system: ($prefix) or all be local")
       }
     }
   }
@@ -165,8 +190,14 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
 }
 
 // @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam
+trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam with OptionalForceParam
     with OptionalConverterConfigParam with OptionalInputFormatParam with DistributedRunParam {
   @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
   var threads: Integer = 1
+
+  @Parameter(names = Array("--split-max-size"), description = "Maximum size of a split in bytes (distributed jobs)")
+  var maxSplitSize: Integer = _
+
+  @Parameter(names = Array("--src-list"), description = "Input files are text files with lists of files, one per line, to ingest.")
+  var srcList: Boolean = false
 }

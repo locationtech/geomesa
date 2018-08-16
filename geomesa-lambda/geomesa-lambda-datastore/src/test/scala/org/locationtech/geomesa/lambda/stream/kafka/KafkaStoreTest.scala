@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.AdminUtils
-import kafka.javaapi.TopicMetadataRequest
 import org.geotools.data.memory.MemoryDataStore
 import org.geotools.data.{DataUtilities, Query, Transaction}
 import org.geotools.factory.Hints
@@ -41,20 +40,8 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
   def newNamespace(): String = s"ks-test-${namespaces.getAndIncrement()}"
 
   def createTopic(ns: String, zookeepers: String, sft: SimpleFeatureType): Unit = {
-    import scala.collection.JavaConversions._
     val topic = KafkaStore.topic(ns, sft)
     KafkaStore.withZk(zookeepers)(zk => AdminUtils.createTopic(zk, topic, 2, 1))
-    // based on https://cwiki.apache.org/confluence/display/KAFKA/Finding+Topic+and+Partition+Leader
-    val Array(broker, port) = brokers.split(":")
-    val consumer = new kafka.javaapi.consumer.SimpleConsumer(broker, port.toInt, 100000, 64 * 1024, "test")
-    val req = new TopicMetadataRequest(java.util.Arrays.asList(topic))
-    var hasLeader = false
-    while (!hasLeader) {
-      Thread.sleep(100)
-      hasLeader = consumer.send(req).topicsMetadata.exists { item =>
-        item.partitionsMetadata.length == 2 && item.partitionsMetadata.forall(_.leader.host != null)
-      }
-    }
     logger.trace(s"created topic $topic")
   }
 

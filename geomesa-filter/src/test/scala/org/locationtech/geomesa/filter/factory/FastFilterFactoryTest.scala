@@ -12,7 +12,7 @@ package org.locationtech.geomesa.filter.factory
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.expression.{FastPropertyName, OrHashEquality}
+import org.locationtech.geomesa.filter.expression.{FastPropertyName, OrHashEquality, OrSequentialEquality}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.spatial.BBOX
 import org.specs2.mutable.Specification
@@ -45,11 +45,35 @@ class FastFilterFactoryTest extends Specification {
       val bbox = FastFilterFactory.toFilter(sft, "bbox(geom, -180, -90, 180, 90)")
       bbox.asInstanceOf[BBOX].getExpression1 must beAnInstanceOf[FastPropertyName]
     }
-    "create hash OR filter" >> {
+    "create sequential OR filter" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,*geom:Point:srid=4326")
       val or = FastFilterFactory.toFilter(sft, "name = 'foo' OR name = 'bar' OR name = 'baz'")
-      or must beAnInstanceOf[OrHashEquality]
+      or must beAnInstanceOf[OrSequentialEquality]
       foreach(Seq("foo", "bar", "baz")) { name =>
+        or.evaluate(ScalaSimpleFeature.create(sft, "1", name, "POINT (45 55)")) must beTrue
+      }
+      foreach(Seq("blu", "qux")) { name =>
+        or.evaluate(ScalaSimpleFeature.create(sft, "1", name, "POINT (45 55)")) must beFalse
+      }
+    }
+    "create hash OR filter for > 4 values" >> {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,*geom:Point:srid=4326")
+      val or = FastFilterFactory.toFilter(sft, "name = 'foo' OR name = 'bar' OR name = 'baz' OR name = 'foo2' " +
+          "OR name = 'bar2' OR name = 'baz2' OR name = 'foo3'")
+      or must beAnInstanceOf[OrHashEquality]
+      foreach(Seq("foo", "bar", "baz", "foo2", "bar2", "baz2", "foo3")) { name =>
+        or.evaluate(ScalaSimpleFeature.create(sft, "1", name, "POINT (45 55)")) must beTrue
+      }
+      foreach(Seq("blu", "qux")) { name =>
+        or.evaluate(ScalaSimpleFeature.create(sft, "1", name, "POINT (45 55)")) must beFalse
+      }
+    }
+    "fall back to standard OR filters" >> {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,*geom:Point:srid=4326")
+      val or = FastFilterFactory.toFilter(sft, "name = 'foo' OR name = 'bar' OR bbox(geom,-120,45,-115,50)")
+      or must not(beAnInstanceOf[OrHashEquality])
+      or must not(beAnInstanceOf[OrSequentialEquality])
+      foreach(Seq("foo", "bar")) { name =>
         or.evaluate(ScalaSimpleFeature.create(sft, "1", name, "POINT (45 55)")) must beTrue
       }
       foreach(Seq("blu", "qux")) { name =>

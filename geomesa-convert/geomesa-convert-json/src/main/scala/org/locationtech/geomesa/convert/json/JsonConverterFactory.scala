@@ -18,7 +18,8 @@ import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.json.GeoJsonParsing.GeoJsonFeature
 import org.locationtech.geomesa.convert.json.JsonConverter.{JsonField, _}
 import org.locationtech.geomesa.convert.json.JsonConverterFactory.{JsonConfigConvert, JsonFieldConvert}
-import org.locationtech.geomesa.convert.{ErrorMode, ParseMode, SimpleFeatureValidator}
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
+import org.locationtech.geomesa.convert.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert}
 import org.locationtech.geomesa.convert2.TypeInference.{IdentityTransform, InferredType}
@@ -105,7 +106,7 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
         // field definitions - call .toSeq first to ensure consistent ordering with types
         val fields = props.toSeq.map { case (path, values) =>
           val attr = name(path)
-          val inferred = TypeInference.infer(Seq(values)).head
+          val inferred = TypeInference.infer(values.map(Seq(_))).head
           inferredTypes += inferred.copy(name = attr) // note: side-effect in map
           // account for optional nodes by wrapping transform with a try/null
           val transform = Some(Expression(s"try(${inferred.transform.apply(0)},null)"))
@@ -124,7 +125,7 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
 
         val jsonConfig = JsonConfig(typeToProcess, featurePath, idField, Map.empty, Map.empty)
         val fieldConfig = fields :+ geomField
-        val options = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode.Default,
+        val options = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(),
           StandardCharsets.UTF_8, verbose = true)
 
         val config = configConvert.to(jsonConfig)

@@ -7,7 +7,7 @@ source distribution.
 
 .. pull-quote::
 
-  Apache Kudu completes Hadoop's storage layer to enable fast analytics on fast data.
+    Apache Kudu completes Hadoop's storage layer to enable fast analytics on fast data.
 
 GeoMesa leverages Kudu predicate push-down, column selection, and more, all through the GeoTools API. The Kudu
 Data Store is a good choice for running Spark analytics on a few attributes at a time, as the columnar storage format
@@ -16,7 +16,7 @@ non-indexed columns, space on disk is minimized compared to more complex systems
 
 .. warning::
 
-The GeoMesa Kudu data store is an alpha-level feature, and hasn't been robustly tested at scale.
+    The GeoMesa Kudu data store is an alpha-level feature, and hasn't been robustly tested at scale.
 
 To get started with the Kudu Data Store, try the :doc:`/tutorials/geomesa-quickstart-kudu` tutorial.
 

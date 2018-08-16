@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.tools.data
 import com.beust.jcommander.{ParameterException, Parameters}
 import org.locationtech.geomesa.fs.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.common.conf.{PartitionSchemeArgResolver, SchemeArgs}
-import org.locationtech.geomesa.fs.storage.common.partitions.Z2Scheme
+import org.locationtech.geomesa.fs.storage.common.partitions.SpatialPartitionSchemeConfig
 import org.locationtech.geomesa.fs.storage.common.{Encodings, PartitionScheme}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{EncodingParam, FsParams, SchemeParams}
@@ -39,7 +39,7 @@ object FsCreateSchemaCommand {
       case Left(e) => throw new ParameterException(e)
       case Right(s) if s.isLeafStorage == params.leafStorage => s
       case Right(s) =>
-        val opts = s.getOptions.asScala.updated(Z2Scheme.Config.LeafStorage, params.leafStorage.toString).toMap
+        val opts = s.getOptions.asScala.updated(SpatialPartitionSchemeConfig.LeafStorage, params.leafStorage.toString).toMap
         PartitionScheme.apply(sft, s.getName, opts.asJava)
     }
 

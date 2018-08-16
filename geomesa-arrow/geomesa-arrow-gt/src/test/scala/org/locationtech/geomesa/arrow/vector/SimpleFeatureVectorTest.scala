@@ -11,8 +11,8 @@ package org.locationtech.geomesa.arrow.vector
 import java.util.Date
 
 import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.{DirtyRootAllocator, NullableBigIntVector, NullableIntVector}
 import org.apache.arrow.vector.complex.FixedSizeListVector
+import org.apache.arrow.vector.{BigIntVector, DirtyRootAllocator, IntVector}
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -87,7 +87,7 @@ class SimpleFeatureVectorTest extends Specification {
         // verify that id is encoded as 2 longs
         val idVector = vector.underlying.getChild(SimpleFeatureVector.FeatureIdField)
         idVector must beAnInstanceOf[FixedSizeListVector]
-        idVector.asInstanceOf[FixedSizeListVector].getDataVector must beAnInstanceOf[NullableBigIntVector]
+        idVector.asInstanceOf[FixedSizeListVector].getDataVector must beAnInstanceOf[BigIntVector]
         // check wrapping
         WithClose(SimpleFeatureVector.wrap(vector.underlying, Map.empty)) { wrapped =>
           wrapped.reader.getValueCount mustEqual features.length
@@ -111,7 +111,7 @@ class SimpleFeatureVectorTest extends Specification {
           }
           // verify that id is encoded as an int
           val idVector = vector.underlying.getChild(SimpleFeatureVector.FeatureIdField)
-          idVector must beAnInstanceOf[NullableIntVector]
+          idVector must beAnInstanceOf[IntVector]
           // check wrapping
           WithClose(SimpleFeatureVector.wrap(vector.underlying, Map.empty)) { wrapped =>
             wrapped.reader.getValueCount mustEqual features.length
@@ -248,6 +248,23 @@ class SimpleFeatureVectorTest extends Specification {
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length
         forall(0 until 10)(i => vector.reader.get(i) mustEqual nulls(i))
+      }
+    }
+    "set and get line strings" >> {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,*geom:LineString:srid=4326")
+      val features = (0 until 10).map { i =>
+        ScalaSimpleFeature.create(sft, s"0$i", s"name0${i % 2}", s"LINESTRING (30 10, 1$i 30, 40 40)")
+      }
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(true))) { vector =>
+        features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
+        vector.writer.setValueCount(features.length)
+        vector.reader.getValueCount mustEqual features.length
+        forall(0 until 10)(i => vector.reader.get(i) mustEqual features(i))
+        // check wrapping
+        WithClose(SimpleFeatureVector.wrap(vector.underlying, Map.empty)) { wrapped =>
+          wrapped.reader.getValueCount mustEqual features.length
+          forall(0 until 10)(i => wrapped.reader.get(i) mustEqual features(i))
+        }
       }
     }
     "clear" >> {

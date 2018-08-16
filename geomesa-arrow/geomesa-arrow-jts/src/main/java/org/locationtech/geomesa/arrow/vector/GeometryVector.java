@@ -22,17 +22,30 @@ public interface GeometryVector<T extends Geometry, V extends FieldVector> exten
 
   GeometryFactory factory = new GeometryFactory();
 
-  GeometryWriter<T> getWriter();
-  GeometryReader<T> getReader();
   V getVector();
+
+  void set(int i, T geom);
+  void setValueCount(int count);
+
+  T get(int i);
+  int getValueCount();
+  int getNullCount();
 
   void transfer(int fromIndex, int toIndex, GeometryVector<T, V> to);
 
+  @Deprecated
+  GeometryWriter<T> getWriter();
+
+  @Deprecated
+  GeometryReader<T> getReader();
+
+  @Deprecated
   interface GeometryWriter<T extends Geometry> {
     void set(int i, T geom);
     void setValueCount(int count);
   }
 
+  @Deprecated
   interface GeometryReader<T extends Geometry> {
     T get(int i);
     int getValueCount();

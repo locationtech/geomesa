@@ -8,29 +8,31 @@
 
 package org.locationtech.geomesa.convert.text
 
-import java.io.{InputStream, StringReader}
+import java.io.{ByteArrayInputStream, InputStream, StringReader}
 import java.nio.charset.{Charset, StandardCharsets}
 
 import com.typesafe.config.Config
 import org.apache.commons.io.IOUtils
-import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
-import org.locationtech.geomesa.convert.ParseMode.ParseMode
+import org.locationtech.geomesa.convert.Modes.ErrorMode
+import org.locationtech.geomesa.convert.Modes.ParseMode
+import org.locationtech.geomesa.convert.SimpleFeatureConverters.SimpleFeatureConverterWrapper
+import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter._
 import org.locationtech.geomesa.convert.text.DelimitedTextConverterFactory.{DelimitedTextConfigConvert, DelimitedTextOptionsConvert}
-import org.locationtech.geomesa.convert.{ErrorMode, ParseMode, SimpleFeatureValidator}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, PrimitiveConvert}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.features.serialization.ObjectType
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.{ConfigObjectCursor, ConfigReader}
 
 import scala.util.Try
 
 class DelimitedTextConverterFactory
-    extends AbstractConverterFactory[DelimitedTextConverter, DelimitedTextConfig, BasicField, DelimitedTextOptions] {
+    extends AbstractConverterFactory[DelimitedTextConverter, DelimitedTextConfig, BasicField, DelimitedTextOptions]
+      with org.locationtech.geomesa.convert.SimpleFeatureConverterFactory[String] {
 
   override protected val typeToProcess = "delimited-text"
 
@@ -80,7 +82,7 @@ class DelimitedTextConverterFactory
           }
 
           val options = DelimitedTextOptions(None, None, None, None, SimpleFeatureValidator.default,
-            ParseMode.Default, ErrorMode.Default, StandardCharsets.UTF_8, verbose = true)
+            ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8, verbose = true)
 
           val config = configConvert.to(converterConfig)
               .withFallback(fieldConvert.to(fields))
@@ -92,6 +94,31 @@ class DelimitedTextConverterFactory
       }
 
       results.headOption
+    }
+  }
+
+  // deprecated version one processing, needed to handle skip lines
+
+  override def canProcess(conf: Config): Boolean =
+    conf.hasPath("type") && conf.getString("type").equalsIgnoreCase(typeToProcess)
+
+  override def buildConverter(sft: SimpleFeatureType, conf: Config): SimpleFeatureConverter[String] = {
+    val converter = apply(sft, conf).orNull.asInstanceOf[DelimitedTextConverter]
+    if (converter == null) {
+      throw new IllegalStateException("Could not create converter - did you call canProcess()?")
+    }
+    // used to handle processSingleInput, which doesn't skip lines
+    lazy val skipless = if (converter.options.skipLines.forall(_ < 1)) { converter } else {
+      new DelimitedTextConverter(converter.targetSft, converter.config, converter.fields,
+        converter.options.copy(skipLines = None))
+    }
+
+    new SimpleFeatureConverterWrapper[String](converter) {
+      override def processInput(is: Iterator[String], ec: EvaluationContext): Iterator[SimpleFeature] =
+        converter.options.skipLines.map(is.drop).getOrElse(is).flatMap(processSingleInput(_, ec))
+
+      override def processSingleInput(i: String, ec: EvaluationContext): Iterator[SimpleFeature] =
+        register(skipless.process(new ByteArrayInputStream(i.getBytes(StandardCharsets.UTF_8)), ec))
     }
   }
 }

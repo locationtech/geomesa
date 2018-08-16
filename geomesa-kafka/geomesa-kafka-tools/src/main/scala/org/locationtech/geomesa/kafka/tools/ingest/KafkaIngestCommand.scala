@@ -18,6 +18,7 @@ import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.tools.ingest.KafkaIngestCommand.KafkaIngestParams
 import org.locationtech.geomesa.kafka.tools.{KafkaDataStoreCommand, ProducerDataStoreParams}
 import org.locationtech.geomesa.tools.Command
+import org.locationtech.geomesa.tools.ingest.AbstractIngest.LocalIngestConverter
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
@@ -39,25 +40,24 @@ class KafkaIngestCommand extends IngestCommand[KafkaDataStore] with KafkaDataSto
   )
 
   // override to add delay in writing messages
-  override protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config): Runnable = {
+  override protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config, ingestFiles: Seq[String]): Runnable = {
     import scala.collection.JavaConversions._
 
     val delay = params.delay.toMillis
-    if (delay <= 0) { super.createConverterIngest(sft, converterConfig) } else {
+    if (delay <= 0) { super.createConverterIngest(sft, converterConfig, Seq()) } else {
       Command.user.info(s"Inserting delay of ${params.delay}")
-      new ConverterIngest(sft, connection, converterConfig, params.files, Option(params.mode), libjarsFile, libjarsPaths, params.threads) {
+      new ConverterIngest(sft, connection, converterConfig, ingestFiles, Option(params.mode), libjarsFile, libjarsPaths, params.threads) {
         override def createLocalConverter(path: String, failures: AtomicLong): LocalIngestConverter = {
           new LocalIngestConverterImpl(sft, path, converters, failures) {
-            override def convert(is: InputStream): (SimpleFeatureType, Iterator[SimpleFeature]) = {
+            override def convert(is: InputStream): Iterator[SimpleFeature] = {
               val converted = converter.process(is, ec)
-              val delayed = new Iterator[SimpleFeature] {
+              new Iterator[SimpleFeature] {
                 override def hasNext: Boolean = converted.hasNext
                 override def next(): SimpleFeature = {
                   Thread.sleep(delay)
                   converted.next
                 }
               }
-              (sft, delayed)
             }
           }
         }

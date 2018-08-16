@@ -17,6 +17,8 @@ jts
 kryo
 mango
 minlog
+pureconfig
+pureconfig-macros
 Saxon-HE
 scala
 spatial4j

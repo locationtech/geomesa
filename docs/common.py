@@ -92,12 +92,6 @@ rst_epilog = """
 
 .. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_2.11-%(release_last)s.tar.gz
 
-.. |release_kafka08_plugin| replace:: `geomesa-kafka-08-gs-plugin-2.11-%(release_last)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-08-gs-plugin_2.11/%(release_last)s/geomesa-kafka-08-gs-plugin_2.11-%(release)s-install.tar.gz>`__
-
-.. |release_kafka09_plugin| replace:: `geomesa-kafka-09-gs-plugin-2.11-%(release_last)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-09-gs-plugin_2.11/%(release_last)s/geomesa-kafka-09-gs-plugin_2.11-%(release)s-install.tar.gz>`__
-
-.. |release_kafka10_plugin| replace:: `geomesa-kafka-10-gs-plugin-2.11-%(release_last)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-10-gs-plugin_2.11/%(release_last)s/geomesa-kafka-10-gs-plugin_2.11-%(release)s-install.tar.gz>`__
-
 .. |eclipse_release| replace:: %(release_eclipse)s
 
 .. |eclipse_release_tarball| replace:: http://download.locationtech.org/geomesa/%(release_eclipse)s/geomesa-dist-%(release_eclipse)s-bin.tar.gz
@@ -118,7 +112,7 @@ rst_epilog = """
 
 .. |geotools_version| replace:: 18.x
 
-.. |accumulo_version| replace:: 1.9.1 or later
+.. |accumulo_version| replace:: 1.9.2 or later
 
 .. |hbase_version| replace:: 1.3.x
 
@@ -130,7 +124,7 @@ rst_epilog = """
 
 .. |cassandra_version| replace:: 3.x
 
-.. |spark_version| replace:: 2.2.x
+.. |spark_version| replace:: 2.2.x or 2.3.x
 
 .. |release_last| replace:: %(release_last)s
 

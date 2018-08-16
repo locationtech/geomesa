@@ -62,7 +62,7 @@ $ gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
 Then verify the file:
 
 ```bash
-$ gpg2 --verify geomesa-accumulo_2.11-2.0.0-bin.tar.gz.asc geomesa-accumulo_2.11-2.0.0-bin.tar.gz
+$ gpg2 --verify geomesa-accumulo_2.11-${geomesa.release.version}-bin.tar.gz.asc geomesa-accumulo_2.11-${geomesa.release.version}-bin.tar.gz
 ```
 
 The keys currently used for signing are:

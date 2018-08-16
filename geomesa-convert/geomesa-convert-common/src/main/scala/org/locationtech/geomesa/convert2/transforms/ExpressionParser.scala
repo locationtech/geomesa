@@ -43,7 +43,7 @@ private [transforms] class ExpressionParser extends BasicParser {
   def expression: Rule1[Expression] = rule("expression") { expr ~ EOI }
 
   protected def expr: Rule1[Expression] = rule("expr") {
-    (cast | nonCast) ~ whitespace
+    whitespace ~ (cast | nonCast) ~ whitespace
   }
 
   private def cast: Rule1[Expression] = rule("cast") {
@@ -60,7 +60,7 @@ private [transforms] class ExpressionParser extends BasicParser {
   }
 
   private def column: Rule1[Expression] = rule("$col") {
-    "$" ~ int ~~> { i => if (i == 0) { WholeRecord } else { Column(i) } }
+    "$" ~ int ~~> { i => Column(i) }
   }
 
   private def field: Rule1[Expression] = rule("$field") {
@@ -68,11 +68,11 @@ private [transforms] class ExpressionParser extends BasicParser {
   }
 
   private def tryFunction: Rule1[Expression] = rule("try") {
-    ("try(" ~ expr ~ "," ~ whitespace ~ expr ~ ")") ~~> { (primary, fallback) => TryExpression(primary, fallback) }
+    ("try" ~ whitespace ~ "(" ~ expr ~ "," ~ expr ~ ")") ~~> { (primary, fallback) => TryExpression(primary, fallback) }
   }
 
   private def function: Rule1[Expression] = rule("function") {
-    (optional(unquotedString ~ ":") ~ unquotedString ~ "(" ~ zeroOrMore(expr, "," ~ whitespace) ~ ")") ~~> {
+    (optional(unquotedString ~ ":") ~ unquotedString ~ whitespace ~ "(" ~ zeroOrMore(expr, ",") ~ ")") ~~> {
       (ns, fn, args) => {
         val name = ns.map(_ + ":" + fn).getOrElse(fn)
         val function = TransformerFunction.functions.getOrElse(name,

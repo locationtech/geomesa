@@ -10,6 +10,7 @@ package org.locationtech.geomesa.filter.expression
 
 import java.util.Collections
 
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.{Filter, FilterVisitor, Or}
 
@@ -50,6 +51,8 @@ class OrHashEquality(property: PropertyName, values: HashSet[AnyRef]) extends Or
 }
 
 object OrHashEquality {
+
+  val OrHashThreshold = SystemProperty("geomesa.filter.hash.threshold", "5")
 
   class OrHashListEquality(property: PropertyName, values: HashSet[AnyRef])
       extends OrHashEquality(property: PropertyName, values: HashSet[AnyRef]) {

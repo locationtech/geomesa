@@ -182,6 +182,38 @@ provide some benefit when exporting data in certain formats (e.g. Arrow):
     Ensure that you use valid UUIDs if you indicate that you are using them. Otherwise you will experience
     exceptions writing and/or reading data.
 
+Configuring Geometry Serialization
+----------------------------------
+
+By default, geometries are serialized using a modified version of the well-known binary (WKB) format. Alternatively,
+geometries may be serialized using the
+`tiny well-known binary (TWKB) <https://github.com/TWKB/Specification/blob/master/twkb.md>`__ format. TWKB will be
+smaller on disk, but does not allow full double floating point precision. For point geometries, TWKB will take
+4-12 bytes (depending on the precision specified), compared to 18 bytes for WKB. For line strings, polygons, or
+other geometries with multiple coordinates, the space savings will be greater due to TWKB's delta encoding scheme.
+
+For any geometry type attribute, TWKB serialization can be enabled by setting the floating point precision
+through the ``precision`` user-data key. Precision indicates the number of decimal places that will be stored, and
+must be between -7 and 7, inclusive. A negative precision can be used to indicate rounding of whole numbers to the
+left of the decimal place. For reference, 6 digits of latitude/longitude precision can store a resolution of
+approximately 10cm.
+
+For geometries with more than two dimensions, the precision of the Z and M dimensions may be specified separately.
+Generally these dimensions do not need to be stored with the same resolution as X/Y. By default, Z will
+be stored with precision 1, and M with precision 0. To change this, specify the additional precisions after
+the X/Y precision, separated with commas. For example, ``6,1,0`` would set the X/Y precision to 6, the Z
+precision to 1 and the M precision to 0. Z and M precisions must be between 0 and 7, inclusive.
+
+TWKB serialization can be set when creating a new schema, but can also be enabled at any time through the
+``updateSchema`` method. If modifying an existing schema, any data already written will not be updated.
+
+.. code-block:: java
+
+    SimpleFeatureType sft = ...
+    sft.getDescriptor("geom").getUserData().put("precision", "4");
+
+See :ref:`attribute_options` for details on how to set attribute options.
+
 Configuring Column Groups
 -------------------------
 

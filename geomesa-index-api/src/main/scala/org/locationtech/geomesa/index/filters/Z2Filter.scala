@@ -15,7 +15,7 @@ import org.locationtech.geomesa.index.filters.Z3Filter._
 import org.locationtech.geomesa.index.index.z2.Z2IndexValues
 import org.locationtech.sfcurve.zorder.Z2
 
-class Z2Filter(val xy: Array[Array[Int]]) extends java.io.Serializable {
+class Z2Filter(val xy: Array[Array[Int]]) {
 
   def inBounds(buf: Array[Byte], offset: Int): Boolean = {
     val keyZ = Z2Filter.rowToZ(buf, offset)

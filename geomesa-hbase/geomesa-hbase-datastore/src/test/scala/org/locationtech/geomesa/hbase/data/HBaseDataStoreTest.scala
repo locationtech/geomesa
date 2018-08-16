@@ -28,7 +28,6 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 
-import scala.collection.{GenTraversableOnce, immutable}
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
@@ -103,34 +102,32 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
           }
         }
 
-      def testTransforms(ds: HBaseDataStore): MatchResult[_] = {
-        forall(Seq(("INCLUDE", toAdd), ("bbox(geom,42,48,52,62)", toAdd.drop(2)))) { case (filter, results) =>
-          val transforms = Array("derived=strConcat('hello',name)", "geom")
-          val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
-          val features = SelfClosingIterator(fr).toList
-          features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
-            beSome("derived:String,*geom:Point:srid=4326")
-          features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
-          forall(features) { feature =>
-            feature.getAttribute("derived") mustEqual s"helloname${feature.getID}"
-            feature.getAttribute("geom") mustEqual results.find(_.getID == feature.getID).get.getAttribute("geom")
+        def testTransforms(ds: HBaseDataStore): MatchResult[_] = {
+          forall(Seq(("INCLUDE", toAdd), ("bbox(geom,42,48,52,62)", toAdd.drop(2)))) { case (filter, results) =>
+            val transforms = Array("derived=strConcat('hello',name)", "geom")
+            val fr = ds.getFeatureReader(new Query(typeName, ECQL.toFilter(filter), transforms), Transaction.AUTO_COMMIT)
+            val features = SelfClosingIterator(fr).toList
+            features.headOption.map(f => SimpleFeatureTypes.encodeType(f.getFeatureType)) must
+              beSome("derived:String,*geom:Point:srid=4326")
+            features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
+            forall(features) { feature =>
+              feature.getAttribute("derived") mustEqual s"helloname${feature.getID}"
+              feature.getAttribute("geom") mustEqual results.find(_.getID == feature.getID).get.getAttribute("geom")
+            }
           }
         }
-      }
 
         testTransforms(ds)
 
-      def testProcesses(ds: HBaseDataStore): MatchResult[_] = {
-        val source = ds.getFeatureSource(typeName)
-        val input = new ListFeatureCollection(sft, Array[SimpleFeature](toAdd(4)))
+        def testProcesses(ds: HBaseDataStore): MatchResult[_] = {
+          val query = new ListFeatureCollection(sft, Array[SimpleFeature](toAdd(4)))
+          val source = ds.getFeatureSource(typeName).getFeatures()
 
-          val proximity = new ProximitySearchProcess()
-          val proximityResults = proximity.execute(input, source.getFeatures(), 10.0)
-          SelfClosingIterator(proximityResults.features()).toList mustEqual Seq(toAdd(4))
+          val proximity = new ProximitySearchProcess().execute(query, source, 10.0)
+          SelfClosingIterator(proximity.features()).toList mustEqual Seq(toAdd(4))
 
-          val tube = new TubeSelectProcess()
-          val tubeResults = tube.execute(input, source.getFeatures(), Filter.INCLUDE, null, null, 100.0, 10, null)
-          SelfClosingIterator(proximityResults.features()).toList mustEqual Seq(toAdd(4))
+          val tube = new TubeSelectProcess().execute(query, source, Filter.INCLUDE, null, 1L, 100.0, 10, null)
+          SelfClosingIterator(tube.features()).toList mustEqual Seq(toAdd(4))
         }
 
         testProcesses(ds)
@@ -184,15 +181,19 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
         val ids = fs.addFeatures(new ListFeatureCollection(sft, toAdd))
         ids.asScala.map(_.getID) must containTheSameElementsAs((0 until 10).map(_.toString))
 
+        val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("name"), Array("dtg", "geom", "name"))
+
         foreach(Seq(true, false)) { remote =>
           val settings = Map(RemoteFilteringParam.getName -> remote)
           val ds = DataStoreFinder.getDataStore(params ++ settings).asInstanceOf[HBaseDataStore]
-          testQuery(ds, typeName, "INCLUDE", null, toAdd)
-          testQuery(ds, typeName, "IN('0', '2')", null, Seq(toAdd(0), toAdd(2)))
-          testQuery(ds, typeName, "bbox(geom,-126,38,-119,52) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-01T07:59:59.000Z", null, toAdd.dropRight(2))
-          testQuery(ds, typeName, "bbox(geom,-126,42,-119,45)", null, toAdd.dropRight(4))
-          testQuery(ds, typeName, "name < 'name5'", null, toAdd.take(5))
-          testQuery(ds, typeName, "name = 'name5'", null, Seq(toAdd(5)))
+          foreach(transformsList) { transforms =>
+            testQuery(ds, typeName, "INCLUDE", transforms, toAdd)
+            testQuery(ds, typeName, "IN('0', '2')", transforms, Seq(toAdd(0), toAdd(2)))
+            testQuery(ds, typeName, "bbox(geom,-126,38,-119,52) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-01T07:59:59.000Z", transforms, toAdd.dropRight(2))
+            testQuery(ds, typeName, "bbox(geom,-126,42,-119,45)", transforms, toAdd.dropRight(4))
+            testQuery(ds, typeName, "name < 'name5'", transforms, toAdd.take(5))
+            testQuery(ds, typeName, "name = 'name5'", transforms, Seq(toAdd(5)))
+          }
         }
       } finally {
         ds.dispose()

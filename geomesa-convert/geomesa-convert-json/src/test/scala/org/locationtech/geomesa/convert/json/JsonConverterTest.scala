@@ -489,7 +489,7 @@ class JsonConverterTest extends Specification {
             |        id: 2,
             |        number: 456,
             |        color: "blue",
-                     "geometry": "Point ( 101 102)"
+                     "geometry": "Point (101 89)"
             |      }
             |    ]
             | }
@@ -511,7 +511,7 @@ class JsonConverterTest extends Specification {
           """.stripMargin)
 
         val pt1 = new Point(new Coordinate(55, 56), new PrecisionModel(PrecisionModel.FIXED), 4326)
-        val pt2 = new Point(new Coordinate(101, 102), new PrecisionModel(PrecisionModel.FIXED), 4326)
+        val pt2 = new Point(new Coordinate(101, 89), new PrecisionModel(PrecisionModel.FIXED), 4326)
 
         val converter = SimpleFeatureConverter(sft, parserConf)
         val features = converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))).toList
@@ -540,7 +540,7 @@ class JsonConverterTest extends Specification {
             |        id: 2,
             |        number: 456,
             |        color: "blue",
-                     "geometry": "LineString ( 101 102, 200 200)"
+                     "geometry": "LineString ( 101 89, 102 88)"
             |      }
             |    ]
             | }
@@ -561,9 +561,6 @@ class JsonConverterTest extends Specification {
             | }
           """.stripMargin)
 
-        val pt1 = new Point(new Coordinate(55, 56), new PrecisionModel(PrecisionModel.FIXED), 4326)
-        val pt2 = new Point(new Coordinate(101, 102), new PrecisionModel(PrecisionModel.FIXED), 4326)
-
         val converter = SimpleFeatureConverter(sft, parserConf)
         val features = converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))).toList
         features must haveLength(2)
@@ -571,7 +568,7 @@ class JsonConverterTest extends Specification {
         features(0).getDefaultGeometry mustEqual WKTUtils.read("LineString (55 56, 56 57)")
 
         features(1).getDefaultGeometry must beAnInstanceOf[LineString]
-        features(1).getDefaultGeometry mustEqual WKTUtils.read("LineString ( 101 102, 200 200)")
+        features(1).getDefaultGeometry mustEqual WKTUtils.read("LineString (101 89, 102 88)")
       }
 
       "parse points" >> {
@@ -589,7 +586,7 @@ class JsonConverterTest extends Specification {
                 |        id: 2,
                 |        number: 456,
                 |        color: "blue",
-                         "geometry": "Point ( 101 102)"
+                         "geometry": "Point ( 101 89)"
                 |      }
                 |    ]
                 | }
@@ -611,7 +608,7 @@ class JsonConverterTest extends Specification {
           """.stripMargin)
 
         val pt1 = new Point(new Coordinate(55, 56), new PrecisionModel(PrecisionModel.FIXED), 4326)
-        val pt2 = new Point(new Coordinate(101, 102), new PrecisionModel(PrecisionModel.FIXED), 4326)
+        val pt2 = new Point(new Coordinate(101, 89), new PrecisionModel(PrecisionModel.FIXED), 4326)
 
         val converter = SimpleFeatureConverter(sft, parserConf)
         val features = converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))).toList
@@ -1271,6 +1268,71 @@ class JsonConverterTest extends Specification {
         Seq("name3", 3, WKTUtils.read("POINT (43 53)"))
       )
       features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
+    }
+
+    "infer schemas with empty attributes" in {
+      val json = Seq(
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[164.2,-48.6732]},"properties":{"A":"foo"}}]}""",
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[154.3,-38.6832]},"properties":{"A":""}}]}""",
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[152.3,-38.7832]},"properties":{"A":"bar"}}]}"""
+      ).mkString("\n")
+
+      def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+
+      val inferred = new JsonConverterFactory().infer(bytes)
+
+      inferred must beSome
+
+      val sft = inferred.get._1
+      sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
+          Seq(("A", classOf[String]), ("geom", classOf[Point]))
+
+      val converter = SimpleFeatureConverter(sft, inferred.get._2)
+      converter must not(beNull)
+
+      val features = converter.process(bytes).toList
+      features must haveLength(3)
+
+      val expected = Seq(
+        Seq("foo", WKTUtils.read("POINT (164.2 -48.6732)")),
+        Seq("",    WKTUtils.read("POINT (154.3 -38.6832)")),
+        Seq("bar", WKTUtils.read("POINT (152.3 -38.7832)"))
+      )
+      features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
+    }
+
+    "infer schemas with three dimensional points" in {
+      val json = Seq(
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[164.2,-48.6732]},"properties":{"A":"foo"}}]}""",
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[154.3,-38.6832,500.2]},"properties":{"A":"bar"}}]}""",
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[152.3,-38.7832]},"properties":{"A":"baz"}}]}"""
+      ).mkString("\n")
+
+      def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+
+      val inferred = new JsonConverterFactory().infer(bytes)
+
+      inferred must beSome
+
+      val sft = inferred.get._1
+      sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
+          Seq(("A", classOf[String]), ("geom", classOf[Point]))
+
+      val converter = SimpleFeatureConverter(sft, inferred.get._2)
+      converter must not(beNull)
+
+      val features = converter.process(bytes).toList
+      features must haveLength(3)
+
+      val expected = Seq(
+        Seq("foo", WKTUtils.read("POINT (164.2 -48.6732)")),
+        Seq("bar", WKTUtils.read("POINT (154.3 -38.6832 500.2)")),
+        Seq("baz", WKTUtils.read("POINT (152.3 -38.7832)"))
+      )
+      features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
+      foreach(features.zip(expected)) { case (f, e) =>
+        f.getAttribute(1).asInstanceOf[Point].getCoordinate.equals3D(e(1).asInstanceOf[Point].getCoordinate) must beTrue
+      }
     }
   }
 }

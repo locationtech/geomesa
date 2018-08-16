@@ -33,4 +33,46 @@ object TextTools {
       new String(Array.fill(length)(c))
     }
   }
+
+  /**
+    * Builds a natural word list, e.g. 'foo, bar, baz and blu'
+    *
+    * @param words words
+    * @return
+    */
+  def wordList(words: Iterable[String]): String = {
+    if (words.isEmpty) { "" } else {
+      val iter = words.iterator
+      var word: String = iter.next
+      if (iter.hasNext) {
+        val builder = new StringBuilder(word)
+        word = iter.next
+        while (iter.hasNext) {
+          builder.append(", ").append(word)
+          word = iter.next
+        }
+        builder.append(" and ").append(word)
+        builder.result()
+      } else {
+        word
+      }
+    }
+  }
+
+  /**
+    * Checks if a string contains non-whitespace
+    *
+    * @param string string, not null
+    * @return
+    */
+  def isWhitespace(string: String): Boolean = {
+    var i = 0
+    while (i < string.length) {
+      if (!string.charAt(i).isWhitespace) {
+        return false
+      }
+      i += 1
+    }
+    true
+  }
 }

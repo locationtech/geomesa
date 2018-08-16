@@ -11,13 +11,14 @@ package org.locationtech.geomesa.convert.text
 import java.io.{ByteArrayInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
 
+import com.google.common.hash.Hashing
 import com.google.common.io.Resources
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.apache.commons.csv.CSVFormat
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.DefaultCounter
+import org.locationtech.geomesa.convert.{DefaultCounter, SimpleFeatureConverters}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -71,6 +72,12 @@ class DelimitedTextConverterTest extends Specification {
 
       "handle more derived fields than input fields" >> {
         res(0).getAttribute("oneup").asInstanceOf[String] must be equalTo "1"
+      }
+
+      "correctly identify feature IDs based on lines" >> {
+        val hashing = Hashing.md5()
+        res(0).getID mustEqual hashing.hashBytes("1,hello,45.0,45.0".getBytes(StandardCharsets.UTF_8)).toString
+        res(1).getID mustEqual hashing.hashBytes("2,world,90.0,90.0".getBytes(StandardCharsets.UTF_8)).toString
       }
     }
 
@@ -375,6 +382,7 @@ class DelimitedTextConverterTest extends Specification {
         res(1).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(90, 90))
       }
     }
+
     "handle user data" >> {
       val conf = ConfigFactory.parseString(
         """
@@ -720,6 +728,33 @@ class DelimitedTextConverterTest extends Specification {
       res(0).getAttribute("geom").toString mustEqual "POINT (45 45)"
     }
 
+    "not skip lines for v1 processSingleInput" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "delimited-text",
+          |   format       = "DEFAULT",
+          |   id-field     = "md5(string2bytes($0))",
+          |   fields = [
+          |     { name = "phrase", transform = "$2" },
+          |     { name = "geom",   transform = "point($3::double, $4::double)" }
+          |   ]
+          |   options = {
+          |     skip-lines = 1
+          |   }
+          | }
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType("test", "phrase:String,*geom:Point:srid=4326")
+      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      converter must not(beNull)
+
+      val res = converter.processSingleInput("""1,hello,45.0,45.0""").toList
+      res must haveSize(1)
+      res.head.getAttribute("phrase") mustEqual "hello"
+      res.head.getAttribute("geom").toString mustEqual "POINT (45 45)"
+    }
+
     "infer a converter from input data" >> {
       import scala.collection.JavaConverters._
 
@@ -744,6 +779,23 @@ class DelimitedTextConverterTest extends Specification {
       features must haveLength(2)
       features(0).getAttributes.asScala mustEqual Seq(1, "hello", 45f, 45f, WKTUtils.read("POINT (45 45)"))
       features(1).getAttributes.asScala mustEqual Seq(2, "world", 90f, 90f, WKTUtils.read("POINT (90 90)"))
+    }
+
+    "ingest magic files" >> {
+      val data =
+        """id,name:String,age:Int,*geom:Point:srid=4326
+          |fid-0,name0,0,POINT(40 50)
+          |fid-1,name1,1,POINT(41 51)""".stripMargin
+      val is = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))
+      val features = DelimitedTextConverter.magicParsing("foo", is).toList
+      features must haveLength(2)
+      foreach(0 to 1) { i =>
+        features(i).getID mustEqual s"fid-$i"
+        features(i).getAttributeCount mustEqual 3
+        features(i).getAttribute(0) mustEqual s"name$i"
+        features(i).getAttribute(1) mustEqual i
+        features(i).getAttribute(2) mustEqual WKTUtils.read(s"POINT(4$i 5$i)")
+      }
     }
   }
 }

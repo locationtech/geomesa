@@ -184,6 +184,9 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     }
   }
 
+  def getTransform: Option[(String, SimpleFeatureType)] =
+    for { t <- Option(transforms); s <- Option(transformSchema) } yield { (t, s) }
+
   def getDateAsLong(index: Int): Long = {
     val offset = offsets(index)
     if (offset == -1) {

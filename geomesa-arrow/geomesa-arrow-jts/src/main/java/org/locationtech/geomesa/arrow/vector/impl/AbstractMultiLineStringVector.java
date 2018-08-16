@@ -12,30 +12,26 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
 import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.vector.BitVector;
+import org.apache.arrow.vector.BitVectorHelper;
 import org.apache.arrow.vector.FieldVector;
-import org.apache.arrow.vector.UInt4Vector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
 import org.apache.arrow.vector.complex.BaseRepeatedValueVector;
 import org.apache.arrow.vector.complex.FixedSizeListVector;
 import org.apache.arrow.vector.complex.ListVector;
 import org.apache.arrow.vector.types.pojo.ArrowType;
-import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.FieldType;
-import org.locationtech.geomesa.arrow.vector.GeometryVector;
 
-import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractMultiLineStringVector implements GeometryVector<MultiLineString, ListVector> {
+public abstract class AbstractMultiLineStringVector<T extends FieldVector>
+    extends AbstractGeometryVector<MultiLineString, ListVector, T> {
 
   public static FieldType createFieldType(Map<String, String> metadata) {
     return new FieldType(true, ArrowType.List.INSTANCE, null, metadata);
   }
 
-  private final ListVector vector;
-  private final MultiLineStringWriter writer;
-  private final MultiLineStringReader reader;
+  private final ListVector innerVector;
+  private final FixedSizeListVector tuples;
 
   protected AbstractMultiLineStringVector(String name, BufferAllocator allocator, Map<String, String> metadata) {
     this(new ListVector(name, allocator, createFieldType(metadata), null));
@@ -45,145 +41,67 @@ public abstract class AbstractMultiLineStringVector implements GeometryVector<Mu
     this(container.addOrGet(name, createFieldType(metadata), ListVector.class));
   }
 
+  @SuppressWarnings("unchecked")
   protected AbstractMultiLineStringVector(ListVector vector) {
+    super(vector);
     // create the fields we will write to up front
     if (vector.getDataVector().equals(BaseRepeatedValueVector.DEFAULT_DATA_VECTOR)) {
       vector.initializeChildrenFromFields(getFields());
       vector.allocateNew();
     }
-    this.vector = vector;
-    this.writer = createWriter(vector);
-    this.reader = createReader(vector);
-  }
-
-  protected abstract List<Field> getFields();
-  protected abstract MultiLineStringWriter createWriter(ListVector vector);
-  protected abstract MultiLineStringReader createReader(ListVector vector);
-
-  @Override
-  public MultiLineStringWriter getWriter() {
-    return writer;
+    this.innerVector = (ListVector) vector.getChildrenFromFields().get(0);
+    this.tuples = (FixedSizeListVector) innerVector.getChildrenFromFields().get(0);
+    setOrdinalVector((T) tuples.getChildrenFromFields().get(0));
   }
 
   @Override
-  public MultiLineStringReader getReader() {
-    return reader;
-  }
-
-  @Override
-  public ListVector getVector() {
-    return vector;
-  }
-
-  @Override
-  public void close() throws Exception {
-    vector.close();
-  }
-
-  @Override
-  public void transfer(int fromIndex, int toIndex, GeometryVector<MultiLineString, ListVector> to) {
-    to.getWriter().set(toIndex, reader.get(fromIndex));
-  }
-
-  public static abstract class MultiLineStringWriter extends AbstractGeometryWriter<MultiLineString> {
-
-    private final BitVector.Mutator nullSet;
-    private final ListVector.Mutator mutator;
-    private final ListVector.Mutator innerMutator;
-    private final FixedSizeListVector.Mutator tupleMutator;
-
-    protected MultiLineStringWriter(ListVector vector) {
-      // the only way to access the bit vectors and set an index as null
-      this.nullSet = ((BitVector)vector.getFieldInnerVectors().get(0)).getMutator();
-      ListVector innerList = (ListVector) vector.getChildrenFromFields().get(0);
-      FixedSizeListVector tuples = (FixedSizeListVector) innerList.getChildrenFromFields().get(0);
-      this.mutator = vector.getMutator();
-      this.innerMutator = innerList.getMutator();
-      this.tupleMutator = tuples.getMutator();
-      setOrdinalMutator(tuples.getChildrenFromFields().get(0).getMutator());
+  public void set(int index, MultiLineString geom) {
+    if (index == 0) {
+      // need to do this to avoid issues with re-setting the value at index 0
+      vector.setLastSet(0);
+      innerVector.setLastSet(0);
     }
-
-    @Override
-    public void set(int index, MultiLineString geom) {
-      if (index == 0) {
-        // need to do this to avoid issues with re-setting the value at index 0
-        mutator.setLastSet(0);
-        innerMutator.setLastSet(0);
-      }
-      if (geom == null) {
-        nullSet.setSafe(index, 0);
-      } else {
-        int innerIndex = mutator.startNewValue(index);
-        for (int i = 0; i < geom.getNumGeometries(); i++) {
-          LineString line = (LineString) geom.getGeometryN(i);
-          int position = innerMutator.startNewValue(innerIndex + i);
-          for (int j = 0; j < line.getNumPoints(); j++) {
-            Coordinate p = line.getCoordinateN(j);
-            tupleMutator.setNotNull(position + j);
-            writeOrdinal((position + j) * 2, p.y);
-            writeOrdinal((position + j) * 2 + 1, p.x);
-          }
-          innerMutator.endValue(innerIndex + i, line.getNumPoints());
+    final int innerIndex = vector.startNewValue(index);
+    if (geom == null) {
+      vector.endValue(index, 0);
+      BitVectorHelper.setValidityBit(vector.getValidityBuffer(), index, 0);
+    } else {
+      for (int i = 0; i < geom.getNumGeometries(); i++) {
+        final LineString line = (LineString) geom.getGeometryN(i);
+        final int position = innerVector.startNewValue(innerIndex + i);
+        for (int j = 0; j < line.getNumPoints(); j++) {
+          final Coordinate p = line.getCoordinateN(j);
+          tuples.setNotNull(position + j);
+          writeOrdinal((position + j) * 2, p.y);
+          writeOrdinal((position + j) * 2 + 1, p.x);
         }
-        mutator.endValue(index, geom.getNumGeometries());
+        innerVector.endValue(innerIndex + i, line.getNumPoints());
       }
-    }
-
-    @Override
-    public void setValueCount(int count) {
-      mutator.setValueCount(count);
+      vector.endValue(index, geom.getNumGeometries());
     }
   }
 
-  public static abstract class MultiLineStringReader extends AbstractGeometryReader<MultiLineString> {
-
-    private final ListVector.Accessor accessor;
-    private final UInt4Vector.Accessor outerOffsets;
-    private final UInt4Vector.Accessor offsets;
-
-    public MultiLineStringReader(ListVector vector) {
-      this.accessor = vector.getAccessor();
-      this.outerOffsets = ((UInt4Vector) vector.getFieldInnerVectors().get(1)).getAccessor();
-      FieldVector innerList = vector.getChildrenFromFields().get(0);
-      this.offsets = ((UInt4Vector) innerList.getFieldInnerVectors().get(1)).getAccessor();
-      setOrdinalAccessor(innerList.getChildrenFromFields().get(0).getChildrenFromFields().get(0).getAccessor());
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public MultiLineString get(int index) {
-      if (accessor.isNull(index)) {
-        return null;
-      } else {
-        int outerOffsetStart = outerOffsets.get(index);
-        LineString[] lines = new LineString[outerOffsets.get(index + 1) - outerOffsetStart];
-        for (int j = 0; j < lines.length; j++) {
-          int offsetStart = offsets.get(outerOffsetStart + j);
-          Coordinate[] coordinates = new Coordinate[offsets.get(outerOffsetStart + j + 1) - offsetStart];
-          for (int i = 0; i < coordinates.length; i++) {
-            double y = readOrdinal((offsetStart + i) * 2);
-            double x = readOrdinal((offsetStart + i) * 2 + 1);
-            coordinates[i] = new Coordinate(x, y);
-          }
-          lines[j] = factory.createLineString(coordinates);
+  @Override
+  @SuppressWarnings("unchecked")
+  public MultiLineString get(int index) {
+    if (vector.isNull(index)) {
+      return null;
+    } else {
+      final int outerOffsetStart = vector.getOffsetBuffer().getInt(index * ListVector.OFFSET_WIDTH);
+      final int outerOffsetEnd = vector.getOffsetBuffer().getInt((index + 1) * ListVector.OFFSET_WIDTH);
+      final LineString[] lines = new LineString[outerOffsetEnd - outerOffsetStart];
+      for (int j = 0; j < lines.length; j++) {
+        final int offsetStart = innerVector.getOffsetBuffer().getInt((outerOffsetStart + j) * ListVector.OFFSET_WIDTH);
+        final int offsetEnd = innerVector.getOffsetBuffer().getInt((outerOffsetStart + j + 1) * ListVector.OFFSET_WIDTH);
+        final Coordinate[] coordinates = new Coordinate[offsetEnd - offsetStart];
+        for (int i = 0; i < coordinates.length; i++) {
+          final double y = readOrdinal((offsetStart + i) * 2);
+          final double x = readOrdinal((offsetStart + i) * 2 + 1);
+          coordinates[i] = new Coordinate(x, y);
         }
-        return factory.createMultiLineString(lines);
+        lines[j] = factory.createLineString(coordinates);
       }
-    }
-
-    @Override
-    public int getValueCount() {
-      return accessor.getValueCount();
-    }
-
-    @Override
-    public int getNullCount() {
-      int count = accessor.getNullCount();
-      if (count < 0) {
-        return 0;
-      } else {
-        return count;
-      }
+      return factory.createMultiLineString(lines);
     }
   }
 }

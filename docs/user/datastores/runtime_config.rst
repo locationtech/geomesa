@@ -116,6 +116,16 @@ This property controls how often simple feature type metadata is read from the u
 Calls to ``updateSchema`` on a data store will not show up in other instances until the metadata
 cache has expired. The expiry is specified as a duration, e.g. ``10 minutes`` or ``1 hour``.
 
+geomesa.filter.hash.threshold
++++++++++++++++++++++++++++++
+
+Evaluating a filter of the form ``name = 'john' OR name = 'jane' OR name = 'doe'`` can be slow if the number
+of clauses is high. GeoMesa will optimize such filters by turning them into a hash lookup instead of a sequential
+comparison. This property controls the threshold for switching to a hash lookup. By default, the threshold is ``5``.
+
+Note that for datastores with distributed filtering (e.g. HBase and Accumulo), this property needs to be set
+on the distributed processing nodes.
+
 geomesa.audit.provider.impl
 +++++++++++++++++++++++++++
 
@@ -148,3 +158,10 @@ GeoMesa will throw an exception if it detects a major version discrepancy betwee
 the distributed classpath (e.g. HBase region servers or Accumulo tablet servers), as this will generally cause
 queries to fail. The version check may be suppressed by setting ths property to ``false``, although this is not
 recommended.
+
+geomesa.distributed.version.skip
++++++++++++++++++++++++++++++++++
+
+This property can be used to suppress checking for version mismatches in the distributed classpath. In contrast
+to ``geomesa.distributed.version.check``, this property will totally bypass trying to load the distributed
+classpath version when set to ``true``.

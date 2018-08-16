@@ -15,8 +15,8 @@ import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
-import org.locationtech.geomesa.convert.ParseMode.ParseMode
+import org.locationtech.geomesa.convert.Modes.ErrorMode
+import org.locationtech.geomesa.convert.Modes.ParseMode
 import org.locationtech.geomesa.convert.Transformers._
 import org.locationtech.geomesa.convert.ValidationMode.ValidationMode
 import org.locationtech.geomesa.convert2.transforms.Expression
@@ -75,7 +75,7 @@ object StandardOption extends Enumeration {
   }
 }
 
-@deprecated("Replaced with org.locationtech.geomesa.convert.ErrorMode")
+@deprecated("Replaced with org.locationtech.geomesa.convert.Modes.ErrorMode")
 object ValidationMode extends Enumeration {
   type ValidationMode = Value
   val SkipBadRecords = Value(ErrorMode.SkipBadRecords.toString)
@@ -159,7 +159,8 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
   protected def getParsingOptions(conf: Config, sft: SimpleFeatureType): ConvertParseOpts = {
     val verbose = if (conf.hasPath(StandardOption.VerboseOpt.path)) conf.getBoolean(StandardOption.VerboseOpt.path) else false
     val opts = ConvertParseOpts(getParseMode(conf), getValidator(conf, sft), getValidationMode(conf), verbose = verbose)
-    logger.info(s"Using ParseMode ${opts.parseMode} with error mode ${opts.validationMode} and validator ${opts.validator.name}")
+    lazy val SimpleFeatureValidator(validators@_*) = opts.validator // unapplySeq to extract names
+    logger.info(s"Using ParseMode ${opts.parseMode} with error mode ${opts.validationMode} and validator ${validators.mkString(", ")}")
     opts
   }
 
@@ -314,8 +315,9 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
 
   protected val validate: (SimpleFeature, EvaluationContext) => SimpleFeature =
     (sf: SimpleFeature, ec: EvaluationContext) => {
-      if (parseOpts.validator.validate(sf)) { sf } else {
-        val msg = s"Invalid SimpleFeature on line ${ec.counter.getLineCount}: ${parseOpts.validator.lastError}"
+      val error = parseOpts.validator.validate(sf)
+      if (error == null) { sf } else {
+        val msg = s"Invalid SimpleFeature on line ${ec.counter.getLineCount}: $error"
         if (parseOpts.validationMode == ValidationMode.RaiseErrors) {
           throw new IOException(msg)
         } else {

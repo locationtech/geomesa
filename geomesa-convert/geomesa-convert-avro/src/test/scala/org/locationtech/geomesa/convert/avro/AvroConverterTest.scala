@@ -10,6 +10,7 @@ package org.locationtech.geomesa.convert.avro
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
+import com.google.common.hash.Hashing
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.file.DataFileWriter
@@ -29,28 +30,28 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
 
   sequential
 
-  val conf = ConfigFactory.parseString(
-    """
-      | {
-      |   type        = "avro"
-      |   schema-file = "/schema.avsc"
-      |   sft         = "testsft"
-      |   id-field    = "uuid()"
-      |   fields = [
-      |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
-      |     { name = "dtg",  transform = "date('yyyy-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
-      |     { name = "lat",  transform = "avroPath($tobj, '/kvmap[$k=lat]/v')" },
-      |     { name = "lon",  transform = "avroPath($tobj, '/kvmap[$k=lon]/v')" },
-      |     { name = "geom", transform = "point($lon, $lat)" }
-      |   ]
-      | }
-    """.stripMargin)
-
   val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
 
   "AvroConverter should" should {
 
     "properly convert a GenericRecord to a SimpleFeature" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type        = "avro"
+          |   schema-file = "/schema.avsc"
+          |   sft         = "testsft"
+          |   id-field    = "uuid()"
+          |   fields = [
+          |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
+          |     { name = "dtg",  transform = "date('yyyy-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
+          |     { name = "lat",  transform = "avroPath($tobj, '/kvmap[$k=lat]/v')" },
+          |     { name = "lon",  transform = "avroPath($tobj, '/kvmap[$k=lon]/v')" },
+          |     { name = "geom", transform = "point($lon, $lat)" }
+          |   ]
+          | }
+        """.stripMargin)
+
       val converter = SimpleFeatureConverter(sft, conf)
       val ec = converter.createEvaluationContext()
       val res = converter.process(new ByteArrayInputStream(bytes), ec).toList
@@ -97,6 +98,41 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
       ec.counter.getFailure mustEqual 0L
       ec.counter.getSuccess mustEqual 1L
       ec.counter.getLineCount mustEqual 1L  // only 1 record passed in itr
+    }
+
+    "make avro bytes available as $0" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type        = "avro"
+          |   schema-file = "/schema.avsc"
+          |   sft         = "testsft"
+          |   id-field    = "md5($0)"
+          |   fields = [
+          |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
+          |     { name = "dtg",  transform = "date('yyyy-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
+          |     { name = "lat",  transform = "avroPath($tobj, '/kvmap[$k=lat]/v')" },
+          |     { name = "lon",  transform = "avroPath($tobj, '/kvmap[$k=lon]/v')" },
+          |     { name = "geom", transform = "point($lon, $lat)" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      val converter = SimpleFeatureConverter(sft, conf)
+      val ec = converter.createEvaluationContext()
+
+      // pass two messages to check message buffering for record bytes
+      val res = converter.process(new ByteArrayInputStream(bytes ++ bytes), ec).toList
+      res must haveLength(2)
+      foreach(res) { sf =>
+        sf.getID mustEqual Hashing.md5().hashBytes(bytes).toString
+        sf.getAttributeCount must be equalTo 2
+        sf.getAttribute("dtg") must not(beNull)
+      }
+
+      ec.counter.getFailure mustEqual 0L
+      ec.counter.getSuccess mustEqual 2L
+      ec.counter.getLineCount mustEqual 2L
     }
 
     "automatically convert geomesa avro files" >> {

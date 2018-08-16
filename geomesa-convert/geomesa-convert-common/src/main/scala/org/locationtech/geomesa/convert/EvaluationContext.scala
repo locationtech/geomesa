@@ -18,13 +18,48 @@ trait EvaluationContext {
 }
 
 object EvaluationContext {
+
+  val InputFilePathKey = "inputFilePath"
+
   def empty: EvaluationContext = apply(IndexedSeq.empty, Array.empty, new DefaultCounter, Map.empty)
-  def apply(names: IndexedSeq[String], values: Array[Any], counter: Counter, caches: Map[String, EnrichmentCache]): EvaluationContext =
+
+  def apply(names: IndexedSeq[String],
+            values: Array[Any],
+            counter: Counter,
+            caches: Map[String, EnrichmentCache]): EvaluationContext =
     new EvaluationContextImpl(names, values, counter, caches)
+
+  /**
+    * Gets a global parameter map containing the input file path
+    *
+    * @param file input file path
+    * @return
+    */
+  def inputFileParam(file: String): Map[String, AnyRef] = Map(InputFilePathKey -> file)
+
+  /**
+    * Evaluation context accessors
+    *
+    * @param ec context
+    */
+  implicit class RichEvaluationContext(val ec: EvaluationContext) extends AnyVal {
+    def getInputFilePath: Option[String] = ec.indexOf(InputFilePathKey) match {
+      case -1 => None
+      case i  => Option(ec.get(i)).map(_.toString)
+    }
+    def setInputFilePath(path: String): Unit = ec.indexOf(InputFilePathKey) match {
+      case -1 => throw new IllegalArgumentException(s"$InputFilePathKey is not present in execution context")
+      case i  => ec.set(i, path)
+    }
+  }
+
 }
 
-class EvaluationContextImpl(names: IndexedSeq[String], values: Array[Any], val counter: Counter, caches: Map[String, EnrichmentCache])
-  extends EvaluationContext {
+class EvaluationContextImpl(names: IndexedSeq[String],
+                            values: Array[Any],
+                            val counter: Counter,
+                            caches: Map[String, EnrichmentCache]) extends EvaluationContext {
+
   // check to see what global variables have been set
   // global variables are at the end of the array
   private val globalValuesOffset = values.takeWhile(_ == null).length

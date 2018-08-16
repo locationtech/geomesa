@@ -22,15 +22,16 @@ import javax.xml.validation.SchemaFactory
 import javax.xml.xpath.{XPath, XPathConstants, XPathExpression, XPathFactory}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.BOMInputStream
-import org.locationtech.geomesa.convert.ErrorMode.ErrorMode
-import org.locationtech.geomesa.convert.LineMode.LineMode
-import org.locationtech.geomesa.convert.ParseMode.ParseMode
+import org.locationtech.geomesa.convert.Modes.ErrorMode
+import org.locationtech.geomesa.convert.Modes.LineMode
+import org.locationtech.geomesa.convert.Modes.ParseMode
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert.xml.XmlConverter.{XmlConfig, XmlField, XmlOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig, ConverterOptions, Field}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.w3c.dom.{Element, NodeList}
 import org.xml.sax.InputSource
@@ -99,16 +100,16 @@ class XmlConverter(targetSft: SimpleFeatureType, config: XmlConfig, fields: Seq[
       val lines = IOUtils.lineIterator(is, options.encoding).asScala
       lines.flatMap { line =>
         ec.counter.incLineCount()
-        try {
-          Iterator.single(parseDocument(new StringReader(line)))
-        } catch {
-          case NonFatal(e) =>
-            ec.counter.incFailure()
-            options.errorMode match {
-              case ErrorMode.SkipBadRecords => logger.warn("Failed parsing input: ", e)
-              case ErrorMode.RaiseErrors => throw e
-            }
-            Iterator.empty
+        if (TextTools.isWhitespace(line)) { Iterator.empty } else {
+          try { Iterator.single(parseDocument(new StringReader(line))) } catch {
+            case NonFatal(e) =>
+              ec.counter.incFailure()
+              options.errorMode match {
+                case ErrorMode.SkipBadRecords => logger.warn("Failed parsing input: ", e)
+                case ErrorMode.RaiseErrors => throw e
+              }
+              Iterator.empty
+          }
         }
       }
     } else {

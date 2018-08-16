@@ -19,7 +19,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, Z2Scheme}
+import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, XZ2Scheme, Z2Scheme}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -82,6 +82,25 @@ class PartitionSchemeTest extends Specification with AllExpectations {
 
     }
 
+    "10 bit datetime xz2 partition" >> {
+      val sf = new SimpleFeatureImpl(
+        List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-03T10:15:30Z")),
+          gf.createPoint(new Coordinate(10, 10))), sft, new FeatureIdImpl("1"))
+
+      val sf2 = new SimpleFeatureImpl(
+        List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-03T10:15:30Z")),
+          gf.createPoint(new Coordinate(-75, 38))), sft, new FeatureIdImpl("1"))
+
+      val ps = new CompositeScheme(Seq(
+        new DateTimeScheme("yyy/DDD", ChronoUnit.DAYS, 1, "dtg", true),
+        new XZ2Scheme(10, "geom", true)
+      ))
+
+      ps.getPartition(sf) mustEqual "2017/003/1030"
+      ps.getPartition(sf2) mustEqual "2017/003/0825"
+
+    }
+
     "20 bit datetime z2 partition" >> {
       val sf = new SimpleFeatureImpl(
         List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-03T10:15:30Z")),
@@ -97,6 +116,23 @@ class PartitionSchemeTest extends Specification with AllExpectations {
       ))
       ps.getPartition(sf) mustEqual "2017/003/0789456"
       ps.getPartition(sf2) mustEqual "2017/003/0632516"
+    }
+
+    "20 bit datetime xz2 partition" >> {
+      val sf = new SimpleFeatureImpl(
+        List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-03T10:15:30Z")),
+          gf.createPoint(new Coordinate(10, 10))), sft, new FeatureIdImpl("1"))
+
+      val sf2 = new SimpleFeatureImpl(
+        List[AnyRef]("test", Integer.valueOf(10), Date.from(Instant.parse("2017-01-03T10:15:30Z")),
+          gf.createPoint(new Coordinate(-75, 38))), sft, new FeatureIdImpl("1"))
+
+      val ps = new CompositeScheme(Seq(
+        new DateTimeScheme("yyy/DDD", ChronoUnit.DAYS, 1, "dtg", true),
+        new XZ2Scheme(20, "geom", true)
+      ))
+      ps.getPartition(sf) mustEqual "2017/003/1052614"
+      ps.getPartition(sf2) mustEqual "2017/003/0843360"
     }
 
     "return correct date partitions" >> {

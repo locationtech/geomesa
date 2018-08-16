@@ -18,7 +18,6 @@ import org.locationtech.geomesa.convert.json.{JsonConverter, JsonConverterFactor
 import org.locationtech.geomesa.convert.text.{DelimitedTextConverter, DelimitedTextConverterFactory}
 import org.locationtech.geomesa.convert.xml.{XmlConverter, XmlConverterFactory}
 import org.locationtech.geomesa.convert2
-import org.locationtech.geomesa.convert2.composite.CompositeConverterFactory
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -43,6 +42,9 @@ class FindConvertersTest extends Specification {
       classOf[XmlConverter] must not(throwAn[ClassNotFoundException])
       classOf[XmlConverterFactory] must not(throwAn[ClassNotFoundException])
 
+      classOf[org.locationtech.geomesa.convert.CompositeConverter[_]] must not(throwAn[ClassNotFoundException])
+      classOf[org.locationtech.geomesa.convert.CompositeConverterFactory[_]] must not(throwAn[ClassNotFoundException])
+
       classOf[org.locationtech.geomesa.convert2.composite.CompositeConverter] must not(throwAn[ClassNotFoundException])
       classOf[org.locationtech.geomesa.convert2.composite.CompositeConverterFactory] must not(throwAn[ClassNotFoundException])
 
@@ -57,7 +59,7 @@ class FindConvertersTest extends Specification {
 
       ServiceLoader.load(classOf[convert2.SimpleFeatureConverterFactory]).asScala.map(_.getClass) must containAllOf(
         Seq(
-          classOf[CompositeConverterFactory],
+          classOf[org.locationtech.geomesa.convert2.composite.CompositeConverterFactory],
           classOf[AvroConverterFactory],
           classOf[FixedWidthConverterFactory],
           classOf[DelimitedTextConverterFactory],

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.index
 import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.StrictLogging
-import com.vividsolutions.jts.geom.Envelope
+import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import org.locationtech.geomesa.utils.geotools.GridSnap
 
 import scala.annotation.tailrec
@@ -37,6 +37,8 @@ class SizeSeparatedBucketIndex[T](sizes: Seq[(Double, Double)] = SizeSeparatedBu
                                   extents: Envelope = new Envelope(-180.0, 180.0, -90.0, 90.0))
     extends SpatialIndex[T] with StrictLogging {
 
+  // TODO https://geomesa.atlassian.net/browse/GEOMESA-2323 better anti-meridian handling
+
   require(sizes.nonEmpty, "No valid tier sizes specified")
   require(sizes.lengthCompare(1) == 0 ||
       sizes.sliding(2).forall { case Seq((x1, y1), (x2, y2)) => x1 <= x2 && y1 <= y2 },
@@ -54,32 +56,26 @@ class SizeSeparatedBucketIndex[T](sizes: Seq[(Double, Double)] = SizeSeparatedBu
     new Tier(width, height, buckets, new GridSnap(extents, xSize, ySize))
   }
 
-  override def insert(x: Double, y: Double, key: String, item: T): Unit = {
-    val tier = tiers.head
-    // volatile reads should be cheaper than writes, so only update the variable if necessary
-    if (tier.empty) {
-      tier.empty = false
-    }
-    tier.bucket(x, y).put(key, item)
-  }
 
-  override def insert(envelope: Envelope, key: String, item: T): Unit = {
+  override def insert(geom: Geometry, key: String, value: T): Unit = {
+    val envelope = geom.getEnvelopeInternal
     val tier = selectTier(envelope)
     // volatile reads should be cheaper than writes, so only update the variable if necessary
     if (tier.empty) {
       tier.empty = false
     }
-    tier.bucket(envelope).put(key, item)
+    tier.bucket(envelope).put(key, value)
   }
 
-  override def remove(x: Double, y: Double, key: String): T = tiers.head.bucket(x, y).remove(key)
+  override def remove(geom: Geometry, key: String): T = {
+    val envelope = geom.getEnvelopeInternal
+    selectTier(envelope).bucket(envelope).remove(key)
+  }
 
-  override def remove(envelope: Envelope, key: String): T = selectTier(envelope).bucket(envelope).remove(key)
-
-  // use first (smallest) tier for point operations
-  override def get(x: Double, y: Double, key: String): T = tiers.head.bucket(x, y).get(key)
-
-  override def get(envelope: Envelope, key: String): T = selectTier(envelope).bucket(envelope).get(key)
+  override def get(geom: Geometry, key: String): T = {
+    val envelope = geom.getEnvelopeInternal
+    selectTier(envelope).bucket(envelope).get(key)
+  }
 
   override def query(xmin: Double, ymin: Double, xmax: Double, ymax: Double): Iterator[T] =
     tiers.iterator.flatMap(_.iterator(xmin, ymin, xmax, ymax))
@@ -191,7 +187,6 @@ class SizeSeparatedBucketIndex[T](sizes: Seq[(Double, Double)] = SizeSeparatedBu
 
       override def next(): T = iter.next()
     }
-
   }
 }
 

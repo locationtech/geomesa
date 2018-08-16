@@ -78,7 +78,7 @@ trait GeoJsonParsing {
   def parseGeometry(el: JsonElement): Geometry = el match {
     case o: JsonObject    => parseGeometryObject(o)
     case o: JsonPrimitive => WKTUtils.read(o.getAsString)
-    case o: JsonNull      => null.asInstanceOf[Geometry]
+    case _: JsonNull      => null.asInstanceOf[Geometry]
     case _ => throw new IllegalArgumentException(s"Unknown geometry type: $el")
   }
 
@@ -119,8 +119,11 @@ trait GeoJsonParsing {
   }
 
   private def toPointCoords(el: JsonElement): Coordinate = {
-    val Seq(x, y) = el.getAsJsonArray.asScala.map(_.getAsDouble).toSeq
-    new Coordinate(x, y)
+    el.getAsJsonArray.asScala.map(_.getAsDouble).toSeq match {
+      case Seq(x, y)    => new Coordinate(x, y)
+      case Seq(x, y, z) => new Coordinate(x, y, z)
+      case s => throw new IllegalArgumentException(s"Invalid point - expected 2 or 3 values, got ${s.mkString(", ")}")
+    }
   }
 
   private def toCoordSeq(el: JsonElement): CoordinateSequence =
