@@ -17,6 +17,7 @@ import org.geotools.geometry.DirectPosition2D
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
 import org.locationtech.geomesa.utils.conf.SemanticVersion
+import org.locationtech.geomesa.utils.geometry.GeometryPrecision
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.index.VisibilityLevel.VisibilityLevel
@@ -175,6 +176,16 @@ object RichAttributeDescriptors {
       ad.getUserData.containsKey(USER_DATA_MAP_KEY_TYPE) && ad.getUserData.containsKey(USER_DATA_MAP_VALUE_TYPE)
 
     def isMultiValued: Boolean = isList || isMap
+
+    def getPrecision: GeometryPrecision = {
+      Option(ad.getUserData.get(OPT_PRECISION).asInstanceOf[String]).map(_.split(',')) match {
+        case None => GeometryPrecision.FullPrecision
+        case Some(Array(xy)) => GeometryPrecision.TwkbPrecision(xy.toByte)
+        case Some(Array(xy, z)) => GeometryPrecision.TwkbPrecision(xy.toByte, z.toByte)
+        case Some(Array(xy, z, m)) => GeometryPrecision.TwkbPrecision(xy.toByte, z.toByte, m.toByte)
+        case Some(p) => throw new IllegalArgumentException(s"Invalid geometry precision: ${p.mkString(",")}")
+      }
+    }
   }
 
   implicit class RichAttributeTypeBuilder(val builder: AttributeTypeBuilder) extends AnyVal {

@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.features.serialization
 
-import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 
 import scala.reflect.ClassTag
@@ -22,32 +21,32 @@ import scala.reflect.ClassTag
   * 3. Doesn't use a precision model
   */
 // noinspection LanguageFeature
-trait GeometrySerialization[T <: NumericWriter, V <: NumericReader] extends LazyLogging {
+trait WkbSerialization[T <: NumericWriter, V <: NumericReader] {
 
   // note: dimensions have to be determined from the internal coordinate sequence, not the geometry itself.
 
-  import GeometrySerialization._
+  import WkbSerialization._
 
   private lazy val factory = new GeometryFactory()
   private lazy val csFactory = factory.getCoordinateSequenceFactory
 
-  def serialize(out: T, geometry: Geometry): Unit = {
+  def serializeWkb(out: T, geometry: Geometry): Unit = {
     if (geometry == null) { out.writeByte(NULL_BYTE) } else {
       out.writeByte(NOT_NULL_BYTE)
       geometry match {
         case g: Point              => writePoint(out, g)
         case g: LineString         => writeLineString(out, g)
         case g: Polygon            => writePolygon(out, g)
-        case g: MultiPoint         => writeGeometryCollection(out, GeometrySerialization.MultiPoint, g)
-        case g: MultiLineString    => writeGeometryCollection(out, GeometrySerialization.MultiLineString, g)
-        case g: MultiPolygon       => writeGeometryCollection(out, GeometrySerialization.MultiPolygon, g)
-        case g: GeometryCollection => writeGeometryCollection(out, GeometrySerialization.GeometryCollection, g)
+        case g: MultiPoint         => writeGeometryCollection(out, WkbSerialization.MultiPoint, g)
+        case g: MultiLineString    => writeGeometryCollection(out, WkbSerialization.MultiLineString, g)
+        case g: MultiPolygon       => writeGeometryCollection(out, WkbSerialization.MultiPolygon, g)
+        case g: GeometryCollection => writeGeometryCollection(out, WkbSerialization.GeometryCollection, g)
       }
     }
   }
 
-  def deserialize(in: V): Geometry = {
-    if (in.readByte() == NULL_BYTE) { null } else {
+  def deserializeWkb(in: V, checkNull: Boolean = false): Geometry = {
+    if (checkNull && in.readByte() == NULL_BYTE) { null } else {
       in.readInt(true) match {
         case Point2d            => readPoint(in, Some(2))
         case LineString2d       => readLineString(in, Some(2))
@@ -120,7 +119,7 @@ trait GeometrySerialization[T <: NumericWriter, V <: NumericReader] extends Lazy
     out.writeInt(g.getNumGeometries, optimizePositive = true)
     var i = 0
     while (i < g.getNumGeometries) {
-      serialize(out, g.getGeometryN(i))
+      serializeWkb(out, g.getGeometryN(i))
       i += 1
     }
   }
@@ -130,7 +129,7 @@ trait GeometrySerialization[T <: NumericWriter, V <: NumericReader] extends Lazy
     val geoms = Array.ofDim[U](numGeoms)
     var i = 0
     while (i < numGeoms) {
-      geoms.update(i, deserialize(in).asInstanceOf[U])
+      geoms.update(i, deserializeWkb(in, checkNull = true).asInstanceOf[U])
       i += 1
     }
     geoms
@@ -176,7 +175,7 @@ trait GeometrySerialization[T <: NumericWriter, V <: NumericReader] extends Lazy
   }
 }
 
-object GeometrySerialization {
+object WkbSerialization {
 
   // 2-d values - corresponds to com.vividsolutions.jts.io.WKBConstants
   val Point2d: Int            = 1

@@ -80,8 +80,8 @@ object KuduColumnAdapter {
       case ObjectType.UUID     => UuidColumnAdapter(name, config)
       case ObjectType.BYTES    => BytesColumnAdapter(name, config)
       case ObjectType.JSON     => StringColumnAdapter(name, config)
-      case ObjectType.LIST     => KryoColumnAdapter(name, bindings, config)
-      case ObjectType.MAP      => KryoColumnAdapter(name, bindings, config)
+      case ObjectType.LIST     => KryoColumnAdapter(name, bindings, descriptor, config)
+      case ObjectType.MAP      => KryoColumnAdapter(name, bindings, descriptor, config)
       case ObjectType.GEOMETRY =>
         if (bindings(1) == ObjectType.POINT) {
           PointColumnAdapter(sft, name, config, descriptor != sft.getGeometryDescriptor)
@@ -387,11 +387,13 @@ object KuduColumnAdapter {
   /**
     * Encodes variable-size types (lists and maps) for storing in a fixed number of columns (i.e. one)
     */
-  case class KryoColumnAdapter(name: String, bindings: Seq[ObjectType], config: ColumnConfiguration)
-      extends KuduColumnAdapter[AnyRef] {
+  case class KryoColumnAdapter(name: String,
+                               bindings: Seq[ObjectType],
+                               descriptor: AttributeDescriptor,
+                               config: ColumnConfiguration) extends KuduColumnAdapter[AnyRef] {
 
     // note: reader and writer handle null values
-    private val writer = KryoFeatureSerialization.matchWriter(bindings)
+    private val writer = KryoFeatureSerialization.matchWriter(bindings, descriptor)
     private val reader = KryoFeatureDeserialization.matchReader(bindings)
 
     private val column = s"${name}_sft"
