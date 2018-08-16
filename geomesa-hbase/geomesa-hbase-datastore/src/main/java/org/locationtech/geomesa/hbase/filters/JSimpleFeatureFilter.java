@@ -28,9 +28,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+// Replaced with CqlTransformFilter
+@Deprecated
 public class JSimpleFeatureFilter extends FilterBase {
 
     public static int Priority = 30;
+
+    private static Logger logger = LoggerFactory.getLogger(JSimpleFeatureFilter.class);
 
     private final Filter localFilter;
     private final KryoBufferSimpleFeature reusable;
@@ -233,6 +237,7 @@ public class JSimpleFeatureFilter extends FilterBase {
     }
 
     public static org.apache.hadoop.hbase.filter.Filter parseFrom(final byte [] pbBytes) throws DeserializationException {
+        logger.trace("Parsing filter of length: " + pbBytes.length);
         int sftLen =  Bytes.readAsInt(pbBytes, 0, 4);
         String sftString = new String(pbBytes, 4, sftLen);
 

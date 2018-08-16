@@ -8,20 +8,21 @@
 
 package org.locationtech.geomesa.utils.cache
 
-import scala.collection.mutable.{Map, MapLike}
 import scala.ref.SoftReference
 
 /**
  * Creates a per-thread cache of values wrapped in SoftReferences, which allows them to be reclaimed
  * by garbage-collection when needed.
  *
- * @tparam K
- * @tparam V
+ * @tparam K key type
+ * @tparam V value type
  */
-class SoftThreadLocalCache[K, V <: AnyRef] extends Map[K, V] with MapLike[K, V, SoftThreadLocalCache[K, V]] {
+class SoftThreadLocalCache[K, V <: AnyRef] extends scala.collection.mutable.Map[K, V]
+    with scala.collection.mutable.MapLike[K, V, SoftThreadLocalCache[K, V]] {
 
-  protected[cache] val cache = new ThreadLocal[Map[K, SoftReference[V]]] {
-    override def initialValue = Map.empty
+  protected [cache] val cache = new ThreadLocal[scala.collection.mutable.Map[K, SoftReference[V]]] {
+    override def initialValue: scala.collection.mutable.Map[K, SoftReference[V]] =
+      scala.collection.mutable.Map.empty
   }
 
   override def get(key: K): Option[V] = cache.get().get(key).flatMap(_.get)

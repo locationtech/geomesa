@@ -14,10 +14,7 @@ import com.google.common.primitives.{Longs, Shorts}
 import org.locationtech.geomesa.index.index.z3.Z3IndexValues
 import org.locationtech.sfcurve.zorder.Z3
 
-class Z3Filter(val xy: Array[Array[Int]],
-               val t: Array[Array[Array[Int]]],
-               val minEpoch: Short,
-               val maxEpoch: Short) extends java.io.Serializable {
+class Z3Filter(val xy: Array[Array[Int]], val t: Array[Array[Array[Int]]], val minEpoch: Short, val maxEpoch: Short) {
 
   def inBounds(buf: Array[Byte], offset: Int): Boolean = {
     val keyZ = Z3Filter.rowToZ(buf, offset)
