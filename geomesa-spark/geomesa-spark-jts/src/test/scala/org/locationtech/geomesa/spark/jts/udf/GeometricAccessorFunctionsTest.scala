@@ -19,14 +19,15 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class GeometricAccessorFunctionsTest extends Specification with TestEnvironment  {
 
-  "sql geometry accessors" should {
-    sequential
+  sequential
 
-    // before
-    step {
-      // Trigger initialization of spark session
-      val _ = spark
-    }
+  // before
+  step {
+    // Trigger initialization of spark session
+    val _ = spark
+  }
+
+  "sql geometry accessors" should {
 
     "st_boundary" >> {
       sc.sql("select st_boundary(null)").collect.head(0) must beNull
@@ -46,7 +47,7 @@ class GeometricAccessorFunctionsTest extends Specification with TestEnvironment 
 
     "st_coordDim" >> {
       sc.sql("select st_coordDim(null)").collect.head(0) must beNull
-      dfBlank.select(st_coordDim(lit(null))).first mustEqual 0
+      dfBlank.select(st_coordDim(lit(null))).first must beNull
 
       val result = sc.sql(
         """
@@ -61,7 +62,7 @@ class GeometricAccessorFunctionsTest extends Specification with TestEnvironment 
     "st_dimension" >> {
       "null" >> {
         sc.sql("select st_dimension(null)").collect.head(0) must beNull
-        dfBlank.select(st_dimension(lit(null))).first mustEqual 0
+        dfBlank.select(st_dimension(lit(null))).first must beNull
       }
 
       "point" >> {
@@ -539,7 +540,7 @@ class GeometricAccessorFunctionsTest extends Specification with TestEnvironment 
     "st_numGeometries" >> {
       "null" >> {
         sc.sql("select st_numGeometries(null)").collect.head(0) must beNull
-        dfBlank.select(st_numGeometries(lit(null))).first mustEqual 0
+        dfBlank.select(st_numGeometries(lit(null))).first must beNull
       }
 
       "point" >> {
@@ -578,7 +579,7 @@ class GeometricAccessorFunctionsTest extends Specification with TestEnvironment 
     "st_numPoints" >> {
       "null" >> {
         sc.sql("select st_numPoints(null)").collect.head(0) must beNull
-        dfBlank.select(st_numPoints(lit(null))).first mustEqual 0
+        dfBlank.select(st_numPoints(lit(null))).first must beNull
       }
 
       "point" >> {
@@ -724,10 +725,10 @@ class GeometricAccessorFunctionsTest extends Specification with TestEnvironment 
 
       }
     }
+  }
 
-    // after
-    step {
-      spark.stop()
-    }
+  // after
+  step {
+    spark.stop()
   }
 }

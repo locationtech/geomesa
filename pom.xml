@@ -91,7 +91,7 @@
         <zookeeper.version>3.4.10</zookeeper.version>
         <thrift.version>0.9.3</thrift.version>
         <hadoop.version>2.6.4</hadoop.version>
-        <spark.version>2.2.0</spark.version>
+        <spark.version>2.3.1</spark.version>
         <hbase.version>1.3.1</hbase.version>
         <hbase.guava.version>12.0.1</hbase.guava.version>
         <cassandra.version>3.0.0</cassandra.version>
@@ -2136,19 +2136,9 @@
                 <version>2.7.1</version>
             </dependency>
             <dependency>
-                <groupId>org.codehaus.janino</groupId>
-                <artifactId>commons-compiler</artifactId>
-                <version>2.7.8</version>
-            </dependency>
-            <dependency>
                 <groupId>com.thoughtworks.paranamer</groupId>
                 <artifactId>paranamer</artifactId>
                 <version>2.6</version>
-            </dependency>
-            <dependency>
-                <groupId>org.codehaus.janino</groupId>
-                <artifactId>janino</artifactId>
-                <version>2.7.8</version>
             </dependency>
             <dependency>
                 <groupId>com.twitter</groupId>
