@@ -64,7 +64,7 @@ trait Z2IndexKeySpace extends IndexKeySpace[Z2IndexValues, Long] {
       return Z2IndexValues(sfc, geometries, Seq.empty)
     }
 
-    val xy = geometries.values.map(GeometryUtils.bounds)
+    val xy = geometries.values.flatMap(GeometryUtils.bounds(_, 10, 20))
 
     Z2IndexValues(sfc, geometries, xy)
   }

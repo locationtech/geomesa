@@ -59,7 +59,7 @@ trait XZ2IndexKeySpace extends IndexKeySpace[XZ2IndexValues, Long] {
     // compute our ranges based on the coarse bounds for our query
 
     val sfc = XZ2SFC(sft.getXZPrecision)
-    val xy = geometries.values.map(GeometryUtils.bounds)
+    val xy = geometries.values.flatMap(GeometryUtils.bounds(_, 10, 20))
 
     XZ2IndexValues(sfc, geometries, xy)
   }

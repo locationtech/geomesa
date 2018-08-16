@@ -87,7 +87,7 @@ trait XZ3IndexKeySpace extends IndexKeySpace[XZ3IndexValues, Z3IndexKey] {
 
     // compute our ranges based on the coarse bounds for our query
 
-    val xy = geometries.values.map(GeometryUtils.bounds)
+    val xy = geometries.values.flatMap(GeometryUtils.bounds(_, 10, 20))
 
     // calculate map of weeks to time intervals in that week
     val timesByBin = scala.collection.mutable.Map.empty[Short, (Double, Double)]
