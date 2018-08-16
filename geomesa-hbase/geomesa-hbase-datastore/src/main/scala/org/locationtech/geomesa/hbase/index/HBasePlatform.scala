@@ -28,7 +28,7 @@ trait HBasePlatform extends HBaseIndexAdapter {
                                                table: TableName,
                                                hbaseFilters: Seq[(Int, HFilter)],
                                                coprocessor: Option[CoprocessorConfig],
-                                               toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan = {
+                                               toFeatures: Iterator[Result] => Iterator[SimpleFeature]): HBaseQueryPlan = {
     val filterList = hbaseFilters.sortBy(_._1).map(_._2)
     coprocessor match {
       case None =>

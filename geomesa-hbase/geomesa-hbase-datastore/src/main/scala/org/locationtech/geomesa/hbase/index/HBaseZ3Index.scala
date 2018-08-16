@@ -31,7 +31,7 @@ trait HBaseZ3PushDown extends Z3Index[HBaseDataStore, HBaseFeature, Mutation, Sc
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     val z3Filter = indexValues.map { values =>
       val offset = if (sft.isTableSharing) { 2 } else { 1 } // sharing + shard - note: currently sharing is always false
-      (Z3HBaseFilter.Priority, new Z3HBaseFilter(Z3Filter(values), offset))
+      (Z3HBaseFilter.Priority, Z3HBaseFilter(Z3Filter(values), offset))
     }
     config.copy(filters = config.filters ++ z3Filter)
   }
