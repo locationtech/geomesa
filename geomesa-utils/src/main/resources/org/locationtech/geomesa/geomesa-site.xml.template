@@ -329,7 +329,7 @@
 
     <property>
         <name>geomesa.hbase.client.scanner.caching.size</name>
-        <value>2147483647</value>
+        <value></value>
         <description>Set the number of rows for caching that will be passed to scanners. If not set, the Configuration setting HConstants.HBASE_CLIENT_SCANNER_CACHING will
             apply. Higher caching values will enable faster scanners but will use more memory.
         </description>
