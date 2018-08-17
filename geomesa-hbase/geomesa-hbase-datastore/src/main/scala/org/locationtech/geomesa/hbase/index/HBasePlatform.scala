@@ -9,16 +9,18 @@
 package org.locationtech.geomesa.hbase.index
 
 import com.google.common.collect.Lists
-import org.apache.hadoop.hbase.TableName
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.client.{Result, Scan}
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
+import org.apache.hadoop.hbase.{HConstants, TableName}
 import org.locationtech.geomesa.hbase.HBaseFilterStrategyType
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.{CoprocessorPlan, HBaseDataStore, HBaseQueryPlan, ScanPlan}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-trait HBasePlatform extends HBaseIndexAdapter {
+trait HBasePlatform extends HBaseIndexAdapter with LazyLogging {
 
   override protected def buildPlatformScanPlan(ds: HBaseDataStore,
                                                sft: SimpleFeatureType,
@@ -85,14 +87,21 @@ trait HBasePlatform extends HBaseIndexAdapter {
       // note: mrrf first priority
       val filterList = new FilterList(hbaseFilters.+:(mrrf): _*)
 
+      val cacheSize = SystemProperty("geomesa.hbase.client.scanner.caching.size")
+        .toInt.getOrElse(HConstants.DEFAULT_HBASE_CLIENT_SCANNER_CACHING)
+      logger.debug(s"HBase client scanner caching size: $cacheSize")
+
+      val cacheBlocks = SystemProperty("geomesa.hbase.query.block.caching.enabled")
+        .toBoolean.getOrElse(true)
+      logger.debug(s"Query block caching enabled: $cacheBlocks")
+
       val s = new Scan()
       s.setStartRow(localRanges.head.getStartRow)
       s.setStopRow(localRanges.get(localRanges.length - 1).getStopRow)
       s.setFilter(filterList)
       s.addColumn(colFamily, HBaseColumnGroups.default)
-      // TODO GEOMESA-1806 parameterize cache size
-      s.setCaching(1000)
-      s.setCacheBlocks(true)
+      s.setCaching(cacheSize)
+      s.setCacheBlocks(cacheBlocks)
       s
     }
 
