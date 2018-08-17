@@ -61,7 +61,7 @@ trait XZ2IndexKeySpace extends IndexKeySpace[XZ2IndexValues, Long] {
     val sfc = XZ2SFC(sft.getXZPrecision)
 
     // compute our ranges based on the coarse bounds for our query
-    val xy = {
+    val xy: Seq[(Double, Double, Double, Double)] = {
       val multiplier = QueryProperties.PolygonDecompMultiplier.toInt.get
       val bits = QueryProperties.PolygonDecompBits.toInt.get
       geometries.values.flatMap(GeometryUtils.bounds(_, multiplier, bits))
