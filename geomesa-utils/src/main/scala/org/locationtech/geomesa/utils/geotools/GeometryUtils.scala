@@ -110,7 +110,7 @@ object GeometryUtils extends LazyLogging {
     * @param geometry geometry
     * @param maxBounds maximum number of bounds that will be returned
     * @param maxBitResolution maximum bit resolution to decompose to
-    *                         bit resolution must be odd, and between 1-63, inclusive
+    *                         must be between 1-63, inclusive
     * @return seq of (xmin, ymin, xmax, ymax)
     */
   def bounds(geometry: Geometry, maxBounds: Int, maxBitResolution: Int): Seq[(Double, Double, Double, Double)] = {
@@ -119,7 +119,8 @@ object GeometryUtils extends LazyLogging {
     }
 
     try {
-      val resolution = ResolutionRange(0, maxBitResolution, 5)
+      // use `maxBitResolution | 1` to ensure oddness, which is required by GeohashUtils
+      val resolution = ResolutionRange(0, maxBitResolution | 1, 5)
       val geohashes = GeohashUtils.decomposeGeometry(geometry, maxBounds, resolution, relaxFit = true)
       geohashes.map(gh => (gh.bbox.ll.getX, gh.bbox.ll.getY, gh.bbox.ur.getX, gh.bbox.ur.getY))
     } catch {

@@ -141,9 +141,9 @@ geomesa.query.decomposition.bits
 ++++++++++++++++++++++++++++++++
 
 In addition to ``geomesa.query.decomposition.multiplier``, above, ``geomesa.query.decomposition.bits`` sets a
-lower threshold on the size of the envelopes. It must be between 1 and 63, inclusive, and must be an odd number.
-See the Wikipedia article on `GeoHashes <https://en.wikipedia.org/wiki/Geohash#Algorithm_and_example>`__ for the
-approximate spatial extent of a given number of bits.
+lower threshold on the size of the envelopes. It must be between 1 and 63, inclusive. See the Wikipedia article
+on `GeoHashes <https://en.wikipedia.org/wiki/Geohash#Algorithm_and_example>`__ for the approximate spatial extent
+of a given number of bits.
 
 geomesa.audit.provider.impl
 +++++++++++++++++++++++++++

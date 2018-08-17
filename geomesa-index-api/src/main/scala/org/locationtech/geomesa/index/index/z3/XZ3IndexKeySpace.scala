@@ -57,6 +57,8 @@ trait XZ3IndexKeySpace extends IndexKeySpace[XZ3IndexValues, Z3IndexKey] {
   override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): XZ3IndexValues = {
     import org.locationtech.geomesa.filter.FilterHelper._
 
+    // TODO GEOMESA-2377 clean up duplicate code blocks in Z2/XZ2/Z3/XZ3IndexKeySpace
+
     // note: z3 requires a date field
     val dtgField = sft.getDtgField.getOrElse {
       throw new RuntimeException("Trying to execute an xz3 query but the schema does not have a date")

@@ -66,6 +66,8 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
 
     import org.locationtech.geomesa.filter.FilterHelper._
 
+    // TODO GEOMESA-2377 clean up duplicate code blocks in Z2/XZ2/Z3/XZ3IndexKeySpace
+
     val dtgField = sft.getDtgField.getOrElse {
       throw new RuntimeException("Trying to execute a z3 query but the schema does not have a date")
     }
