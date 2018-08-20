@@ -33,6 +33,11 @@ class FileSystemDataStore(fc: FileContext,
                           defaultEncoding: Option[String])
     extends ContentDataStore with HasGeoMesaStats with HasGeoMesaMetadata[String] with LazyLogging {
 
+  override def dispose(): Unit = {
+    super.dispose()
+    manager.invalidate(root)
+  }
+
   private val manager = FileSystemStorageManager(fc, conf, root)
 
   override val metadata: GeoMesaMetadata[String] = new NoOpMetadata[String]

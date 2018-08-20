@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.common
 
 import java.io.{IOException, InputStreamReader}
 import java.util.Collections
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.config._
@@ -21,6 +21,7 @@ import org.apache.hadoop.fs._
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
+import org.locationtech.geomesa.fs.storage.common.utils.PathCache.CacheDurationProperty
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
@@ -191,8 +192,9 @@ object FileMetadata extends MethodProfiling with LazyLogging {
 
   private val options = ConfigRenderOptions.concise().setFormatted(true)
 
-  private val cache = Caffeine.newBuilder().build(
-    new CacheLoader[(FileContext, Path), FileMetadata]() {
+  private val cache = Caffeine.newBuilder()
+    .expireAfterWrite(CacheDurationProperty.toDuration.get.toMillis, TimeUnit.MILLISECONDS)
+    .build(new CacheLoader[(FileContext, Path), FileMetadata]() {
       // note: returning null will cause it to attempt to load again the next time it's accessed
       override def load(key: (FileContext, Path)): FileMetadata = loadFile(key._1, key._2).orNull
     }
@@ -236,6 +238,10 @@ object FileMetadata extends MethodProfiling with LazyLogging {
     * @return
     */
   def load(fc: FileContext, root: Path): Option[FileMetadata] = Option(cache.get((fc, filePath(root))))
+
+  def invalidate(fc: FileContext, root: Path): Unit = {
+    cache.invalidate((fc, root))
+  }
 
   /**
     * Path for the metadata file under a given root

@@ -45,4 +45,13 @@ public interface FileSystemStorageFactory {
      * @return the newly created storage
      */
     FileSystemStorage create(FileContext fc, Configuration conf, Path root, SimpleFeatureType sft);
+
+    /**
+     * Clears the cache...
+     *
+     * @param fc file context
+     * @param root storage root path
+     * @return storage, if path is compatible with this factory
+     */
+    void unload(FileContext fc, Path root);
 }

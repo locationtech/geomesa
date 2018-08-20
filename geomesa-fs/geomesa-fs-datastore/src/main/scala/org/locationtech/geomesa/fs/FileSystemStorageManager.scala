@@ -113,6 +113,12 @@ class FileSystemStorageManager private (fc: FileContext, conf: Configuration, ro
       }
     } { (s, time) => logger.debug(s"${ if (s.isDefined) "Loaded" else "No" } storage at path '$path' in ${time}ms") }
   }
+
+  def invalidate(path: Path) = {
+    import org.locationtech.geomesa.utils.conversions.JavaConverters._
+    FileSystemStorageFactory.factories().foreach(_.unload(fc, path))
+
+  }
 }
 
 object FileSystemStorageManager {

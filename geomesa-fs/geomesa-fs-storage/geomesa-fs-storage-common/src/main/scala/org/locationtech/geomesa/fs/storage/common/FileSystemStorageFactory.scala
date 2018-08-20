@@ -44,6 +44,11 @@ abstract class FileSystemStorageFactory extends org.locationtech.geomesa.fs.stor
   }
 
   protected def load(conf: Configuration, metadata: FileMetadata): FileSystemStorage
+
+  def unload(fc: FileContext,
+             root: Path): Unit = {
+    FileMetadata.invalidate(fc, root)
+  }
 }
 
 object FileSystemStorageFactory {
