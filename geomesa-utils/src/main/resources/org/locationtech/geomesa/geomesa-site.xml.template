@@ -237,6 +237,27 @@
     </property>
 
     <property>
+        <name>geomesa.query.decomposition.multiplier</name>
+        <value>0</value> <!-- disabled by default -->
+        <description>
+            Sets the maximum decomposition of complex polygons into rectangular envelopes. Use '0' to disable
+            decomposition.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.query.decomposition.bits</name>
+        <value>20</value>
+        <description>
+            Sets a lower threshold on the size of the polygon decomposition envelopes. Must be between 1 and 63,
+            inclusive, and must be an odd number. Specifies the number of bits of precision as per the GeoHash
+            specification.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
         <name>geomesa.metadata.expiry</name>
         <value>10 minutes</value>
         <description>This property controls how often simple feature type metadata

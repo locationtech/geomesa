@@ -785,7 +785,7 @@ object GeohashUtils
    */
   def decomposeGeometry(targetGeom: Geometry,
                         maxSize: Int = 100,
-                        resolutions: ResolutionRange = new ResolutionRange(0, 40, 5),
+                        resolutions: ResolutionRange = ResolutionRange(0, 40, 5),
                         relaxFit: Boolean = true): List[GeoHash] =
   // quick hit to avoid wasting time for single points
     targetGeom match {

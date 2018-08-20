@@ -8,14 +8,19 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.GeodeticCalculator
+import org.locationtech.geomesa.utils.geohash.GeohashUtils
+import org.locationtech.geomesa.utils.geohash.GeohashUtils.ResolutionRange
+
+import scala.util.control.NonFatal
 
 /**
  * The object provides convenience methods for common operations on geometries.
  */
-object GeometryUtils {
+object GeometryUtils extends LazyLogging {
 
   val geoFactory: GeometryFactory = JTSFactoryFinder.getGeometryFactory
 
@@ -100,6 +105,32 @@ object GeometryUtils {
   }
 
   /**
+    * Returns the rough bounds of a geometry, decomposing the geometry to provide better accuracy
+    *
+    * @param geometry geometry
+    * @param maxBounds maximum number of bounds that will be returned
+    * @param maxBitResolution maximum bit resolution to decompose to
+    *                         must be between 1-63, inclusive
+    * @return seq of (xmin, ymin, xmax, ymax)
+    */
+  def bounds(geometry: Geometry, maxBounds: Int, maxBitResolution: Int): Seq[(Double, Double, Double, Double)] = {
+    if (maxBounds < 2 || GeometryUtils.isRectangular(geometry)) {
+      return Seq(bounds(geometry))
+    }
+
+    try {
+      // use `maxBitResolution | 1` to ensure oddness, which is required by GeohashUtils
+      val resolution = ResolutionRange(0, maxBitResolution | 1, 5)
+      val geohashes = GeohashUtils.decomposeGeometry(geometry, maxBounds, resolution, relaxFit = true)
+      geohashes.map(gh => (gh.bbox.ll.getX, gh.bbox.ll.getY, gh.bbox.ur.getX, gh.bbox.ur.getY))
+    } catch {
+      case NonFatal(e) =>
+        logger.error("Error decomposing geometry, falling back to envelope bounds:", e)
+        Seq(bounds(geometry))
+    }
+  }
+
+  /**
     * Evaluates the complexity of a geometry. Will return true if the geometry is a point or
     * a rectangular polygon without interior holes.
     *
@@ -108,25 +139,43 @@ object GeometryUtils {
     */
   def isRectangular(geometry: Geometry): Boolean = geometry match {
     case _: Point   => true
-    case p: Polygon => noInteriorRings(p) && noCutouts(p) && allRightAngles(p)
+    case p: Polygon => isRectangular(p)
     case _ => false
   }
 
-  // checks that there are no interior holes
-  private def noInteriorRings(p: Polygon): Boolean = p.getNumInteriorRing == 0
-
-  // checks that all points are on the exterior envelope of the polygon
-  private def noCutouts(p: Polygon): Boolean = {
-    val (xmin, ymin, xmax, ymax) = {
+  /**
+    * Checks that a polygon is rectangular and has no interior holes
+    *
+    * @param p polygon
+    * @return
+    */
+  def isRectangular(p: Polygon): Boolean = {
+    if (p.isEmpty) {
+      true
+    } else if (p.getNumInteriorRing != 0) {
+      // checks that there are no interior holes
+      false
+    } else {
       val env = p.getEnvelopeInternal
-      (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
-    }
-    p.getCoordinates.forall(c => c.x == xmin || c.x == xmax || c.y == ymin || c.y == ymax)
-  }
+      val (xmin, ymin, xmax, ymax) = (env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
 
-  // checks that there aren't any angled lines
-  private def allRightAngles(p: Polygon): Boolean =
-    p.getCoordinates.sliding(2).forall { case Array(left, right) => left.x == right.x || left.y == right.y }
+      // checks that all points are on the exterior envelope of the polygon
+      def cutout(c: Coordinate): Boolean = c.x != xmin && c.x != xmax && c.y != ymin && c.y != ymax
+
+      val coords = p.getCoordinates // note: getCoordinates constructs an array so just call once
+      var i = 1
+      while (i < coords.length) {
+        val c = coords(i)
+        // checks that there aren't any cutouts or angled lines
+        if (cutout(c) || (c.x != coords(i - 1).x && c.y != coords(i - 1).y)) {
+          return false
+        }
+        i += 1
+      }
+      // check final coord cutout
+      !cutout(coords(0))
+    }
+  }
 
   /**
     * This function checks if a segment crosses the IDL.

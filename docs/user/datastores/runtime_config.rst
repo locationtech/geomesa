@@ -126,6 +126,25 @@ comparison. This property controls the threshold for switching to a hash lookup.
 Note that for datastores with distributed filtering (e.g. HBase and Accumulo), this property needs to be set
 on the distributed processing nodes.
 
+geomesa.query.decomposition.multiplier
+++++++++++++++++++++++++++++++++++++++
+
+GeoMesa creates scan ranges based on the spatial predicates in a query. For complex spatial predicates,
+GeoMesa will decompose the geometry into smaller, rectangular envelopes, which avoids scanning over rows which
+don't intersect the geometry. This behavior can be controlled through two properties.
+
+``geomesa.query.decomposition.multiplier`` controls the maximum number of envelopes that a geometry will be
+decomposed into. If set below 2, no decomposition will be performed and instead the geometry envelope will be used.
+Also see ``geomesa.query.decomposition.bits``, next.
+
+geomesa.query.decomposition.bits
+++++++++++++++++++++++++++++++++
+
+In addition to ``geomesa.query.decomposition.multiplier``, above, ``geomesa.query.decomposition.bits`` sets a
+lower threshold on the size of the envelopes. It must be between 1 and 63, inclusive. See the Wikipedia article
+on `GeoHashes <https://en.wikipedia.org/wiki/Geohash#Algorithm_and_example>`__ for the approximate spatial extent
+of a given number of bits.
+
 geomesa.audit.provider.impl
 +++++++++++++++++++++++++++
 

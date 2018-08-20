@@ -66,6 +66,8 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
 
     import org.locationtech.geomesa.filter.FilterHelper._
 
+    // TODO GEOMESA-2377 clean up duplicate code blocks in Z2/XZ2/Z3/XZ3IndexKeySpace
+
     val dtgField = sft.getDtgField.getOrElse {
       throw new RuntimeException("Trying to execute a z3 query but the schema does not have a date")
     }
@@ -95,8 +97,12 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
     val minTime = z3.time.min.toLong
     val maxTime = z3.time.max.toLong
 
-    // compute our accumulo ranges based on the coarse bounds for our query
-    val xy = geometries.values.map(GeometryUtils.bounds)
+    // compute our ranges based on the coarse bounds for our query
+    val xy: Seq[(Double, Double, Double, Double)] = {
+      val multiplier = QueryProperties.PolygonDecompMultiplier.toInt.get
+      val bits = QueryProperties.PolygonDecompBits.toInt.get
+      geometries.values.flatMap(GeometryUtils.bounds(_, multiplier, bits))
+    }
 
     // calculate map of weeks to time intervals in that week
     val timesByBin = scala.collection.mutable.Map.empty[Short, Seq[(Long, Long)]].withDefaultValue(Seq.empty)
