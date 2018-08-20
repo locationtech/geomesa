@@ -313,7 +313,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     *
     * @return client version
     */
-  def getClientVersion: SemanticVersion = SemanticVersion(GeoMesaProperties.ProjectVersion)
+  def getClientVersion: SemanticVersion = SemanticVersion(GeoMesaProperties.ProjectVersion, lenient = true)
 
   /**
     * Gets the geomesa version
