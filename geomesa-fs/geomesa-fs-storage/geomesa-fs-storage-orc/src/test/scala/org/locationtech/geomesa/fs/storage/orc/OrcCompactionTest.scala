@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.parquet
+package org.locationtech.geomesa.fs.storage.orc
 
 import java.nio.file.Files
 
@@ -16,6 +16,7 @@ import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.Query
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
 import org.locationtech.geomesa.fs.storage.common._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -26,9 +27,8 @@ import org.specs2.specification.AllExpectations
 
 import scala.collection.JavaConversions._
 
-
 @RunWith(classOf[JUnitRunner])
-class CompactionTest extends Specification with AllExpectations {
+class OrcCompactionTest extends Specification with AllExpectations {
 
   sequential
 
@@ -36,17 +36,16 @@ class CompactionTest extends Specification with AllExpectations {
   val tempDir = Files.createTempDirectory("geomesa")
   val fc = FileContext.getFileContext(tempDir.toUri)
 
-  "ParquetFileSystemStorage" should {
+  "OrcFileSystemStorage" should {
     "compact partitions" >> {
-      val parquetFactory = new ParquetFileSystemStorageFactory
+      val orcFactory = new OrcFileSystemStorageFactory
 
       val conf = new Configuration()
-      conf.set("parquet.compression", "gzip")
 
       val scheme = PartitionScheme.apply(sft, "daily")
       PartitionScheme.addToSft(sft, scheme)
 
-      val fsStorage = parquetFactory.create(fc, conf, new Path(tempDir.toUri), sft)
+      val fsStorage: FileSystemStorage = orcFactory.create(fc, conf, new Path(tempDir.toUri), sft)
 
       val dtg = "2017-01-01"
 
@@ -81,7 +80,6 @@ class CompactionTest extends Specification with AllExpectations {
       // Compact to create a single file
       fsStorage.compact(partition)
       fsStorage.getMetadata.getFiles(partition) must haveSize(1)
-      
       val features = SelfClosingIterator(fsStorage.getReader(Seq(partition), Query.ALL)).toList
       val ids = features.map(_.getID)
       ids mustEqual Seq("1", "2", "3")
