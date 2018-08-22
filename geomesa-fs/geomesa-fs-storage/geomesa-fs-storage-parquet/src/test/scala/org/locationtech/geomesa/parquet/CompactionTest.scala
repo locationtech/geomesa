@@ -81,7 +81,14 @@ class CompactionTest extends Specification with AllExpectations {
       // Compact to create a single file
       fsStorage.compact(partition)
       fsStorage.getMetadata.getFiles(partition) must haveSize(1)
-      
+
+      val reader = fsStorage.getReader(Seq(partition), Query.ALL)
+      reader.hasNext
+      reader.next must not equalTo(null)
+      reader.hasNext
+      reader.next must not equalTo(null)
+      reader.next must not equalTo(null)
+
       val features = SelfClosingIterator(fsStorage.getReader(Seq(partition), Query.ALL)).toList
       val ids = features.map(_.getID)
       ids mustEqual Seq("1", "2", "3")

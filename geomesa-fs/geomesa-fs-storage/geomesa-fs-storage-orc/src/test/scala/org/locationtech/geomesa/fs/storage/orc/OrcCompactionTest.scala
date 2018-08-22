@@ -80,7 +80,7 @@ class OrcCompactionTest extends Specification with AllExpectations {
       // Compact to create a single file
       fsStorage.compact(partition)
       fsStorage.getMetadata.getFiles(partition) must haveSize(1)
-      val features = SelfClosingIterator(fsStorage.getReader(Seq(partition), Query.ALL)).toList
+      val features = SelfClosingIterator(fsStorage.getReader(Seq(partition), Query.ALL)).map(ScalaSimpleFeature.copy).toList
       val ids = features.map(_.getID)
       ids mustEqual Seq("1", "2", "3")
       features must haveSize(3)

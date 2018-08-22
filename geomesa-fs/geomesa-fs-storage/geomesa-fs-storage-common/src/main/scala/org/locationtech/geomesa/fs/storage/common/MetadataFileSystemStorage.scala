@@ -13,10 +13,12 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.geotools.data.Query
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils}
 import org.locationtech.geomesa.index.planning.QueryRunner
+import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -132,6 +134,7 @@ abstract class MetadataFileSystemStorage(conf: Configuration,
     WithClose(createWriter(sft, dataPath), threaded) { case (writer, features) =>
       while (features.hasNext) {
         writer.write(features.next())
+        writer.flush()
         written += 1
       }
     }
