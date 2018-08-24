@@ -194,6 +194,8 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           // query
           val queries = Seq(
             "strToUpperCase(name) = 'JONES'",
+            "name = 'jones' OR name = 'smith'",
+            "name = 'foo' OR name = 'bar' OR name = 'baz' OR name = 'blarg' OR name = 'jones' OR name = 'smith'",
             "name = 'jones'",
             "age < 25",
             "bbox(geom, -15, -15, -5, -5) AND age < 25",
