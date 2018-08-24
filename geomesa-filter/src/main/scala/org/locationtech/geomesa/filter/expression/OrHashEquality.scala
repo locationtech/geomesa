@@ -29,7 +29,7 @@ class OrHashEquality(property: PropertyName, values: HashSet[AnyRef]) extends Or
 
   import scala.collection.JavaConverters._
 
-  lazy private val children: Set[Filter] = values.map(value => factory.equals(property, factory.literal(value)))
+  private val children: Set[Filter] = values.map(value => factory.equals(property, factory.literal(value)))
 
   override def getChildren: java.util.List[Filter] = children.toList.asJava
 
