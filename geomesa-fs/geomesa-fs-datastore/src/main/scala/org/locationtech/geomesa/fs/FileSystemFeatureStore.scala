@@ -27,7 +27,7 @@ import org.opengis.filter.IncludeFilter
 
 import scala.concurrent.duration.Duration
 
-class FileSystemFeatureStore(storage: FileSystemStorage,
+class FileSystemFeatureStore(val storage: FileSystemStorage,
                              entry: ContentEntry,
                              query: Query,
                              readThreads: Int,

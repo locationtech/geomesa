@@ -273,6 +273,8 @@ object OrcOutputFormatWriter {
             y.add(new DoubleWritable(pt.y))
             i += 1
           }
+          xx.add(x)
+          yy.add(y)
           j += 1
         }
       }
@@ -323,6 +325,8 @@ object OrcOutputFormatWriter {
             y.add(new DoubleWritable(pt.y))
             i += 1
           }
+          xx.add(x)
+          yy.add(y)
           j += 1
         }
       }
@@ -367,10 +371,11 @@ object OrcOutputFormatWriter {
           val xx = new OrcList[OrcList[DoubleWritable]](description.getChildren.get(xCol).getChildren.get(0), polygon.getNumGeometries)
           val yy = new OrcList[OrcList[DoubleWritable]](description.getChildren.get(yCol).getChildren.get(0), polygon.getNumGeometries)
           var j = 0
-          while (j < polygon.getNumGeometries) {
-            val line = polygon.getGeometryN(j).asInstanceOf[LineString]
-            val x = new OrcList[DoubleWritable](description.getChildren.get(xCol).getChildren.get(0).getChildren.get(0), line.getNumPoints)
-            val y = new OrcList[DoubleWritable](description.getChildren.get(yCol).getChildren.get(0).getChildren.get(0), line.getNumPoints)
+
+          while (j < polygon.getNumInteriorRing + 1) {
+            val line = if (j == 0) { polygon.getExteriorRing } else { polygon.getInteriorRingN(j - 1) }
+            val x = new OrcList[DoubleWritable](description.getChildren.get(xCol).getChildren.get(0), line.getNumPoints)
+            val y = new OrcList[DoubleWritable](description.getChildren.get(yCol).getChildren.get(0), line.getNumPoints)
             var i = 0
             while (i < line.getNumPoints) {
               val pt = line.getCoordinateN(i)
@@ -378,8 +383,12 @@ object OrcOutputFormatWriter {
               y.add(new DoubleWritable(pt.y))
               i += 1
             }
+            xx.add(x)
+            yy.add(y)
             j += 1
           }
+          xxx.add(xx)
+          yyy.add(yy)
           k += 1
         }
       }
