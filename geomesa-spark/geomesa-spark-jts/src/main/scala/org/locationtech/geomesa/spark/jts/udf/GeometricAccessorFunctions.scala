@@ -14,6 +14,8 @@ import com.vividsolutions.jts.geom._
 import org.apache.spark.sql.SQLContext
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 
+import scala.util.Try
+
 object GeometricAccessorFunctions {
   val ST_Boundary: Geometry => Geometry = nullableUDF(geom => geom.getBoundary)
   val ST_CoordDim: Geometry => Integer = nullableUDF(geom => {
@@ -26,19 +28,21 @@ object GeometricAccessorFunctions {
     case geom: Polygon => geom.getExteriorRing
     case _ => null
   }
-  val ST_GeometryN: (Geometry, Int) => Geometry = nullableUDF((geom, n) => geom.getGeometryN(n-1))
+  val ST_GeometryN: (Geometry, Int) => Geometry = nullableUDF { (geom, n) =>
+    if (n > 0 && n <= geom.getNumGeometries) { geom.getGeometryN(n - 1) } else { null }
+  }
   val ST_GeometryType: Geometry => String = nullableUDF(geom => geom.getGeometryType)
-  val ST_InteriorRingN: (Geometry, Int) => Geometry = nullableUDF((geom, n) => {
+  val ST_InteriorRingN: (Geometry, Int) => Geometry = nullableUDF { (geom, n) =>
     geom match {
       case geom: Polygon =>
         if (0 < n && n <= geom.getNumInteriorRing) {
-          geom.getInteriorRingN(n-1)
+          geom.getInteriorRingN(n - 1)
         } else {
           null
         }
       case _ => null
     }
-  })
+  }
   val ST_IsClosed: Geometry => jl.Boolean = nullableUDF({
     case geom: LineString => geom.isClosed
     case geom: MultiLineString => geom.isClosed
@@ -55,17 +59,19 @@ object GeometricAccessorFunctions {
   val ST_IsValid: Geometry => jl.Boolean = nullableUDF(geom => geom.isValid)
   val ST_NumGeometries: Geometry => Integer = nullableUDF(geom => geom.getNumGeometries)
   val ST_NumPoints: Geometry => Integer = nullableUDF(geom => geom.getNumPoints)
-  val ST_PointN: (Geometry, Int) => Point = nullableUDF((geom, n) => {
+  val ST_PointN: (Geometry, Int) => Point = nullableUDF { (geom, n) =>
     geom match {
-      case geom: LineString =>
-        if (n < 0) {
-          geom.getPointN(n + geom.getLength.toInt)
+      case g: LineString =>
+        if (n > 0 && n <= g.getNumPoints) {
+          g.getPointN(n - 1)
+        } else if (n < 0 && n + g.getNumPoints >= 0) {
+          g.getPointN(n + g.getNumPoints)
         } else {
-          geom.getPointN(n-1)
+          null
         }
       case _ => null
     }
-  })
+  }
   val ST_X: Geometry => jl.Float = {
     case geom: Point => geom.getX.toFloat
     case _ => null
