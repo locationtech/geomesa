@@ -266,9 +266,13 @@ object AbstractConverter {
     */
   private def addDependencies(field: Field, fieldMap: Map[String, Field], dag: Dag): Unit = {
     if (!dag.contains(field)) {
-      val deps = field.transforms.toSeq.flatMap(_.dependencies(Set(field), fieldMap)).toSet
-      dag.put(field, deps)
-      deps.foreach(addDependencies(_, fieldMap, dag))
+      val queue = scala.collection.mutable.Queue(field)
+      while (queue.nonEmpty) {
+        val next = queue.dequeue()
+        val deps = next.transforms.toSeq.flatMap(_.dependencies(Set(next), fieldMap))
+        dag.put(next, deps.toSet)
+        queue.enqueue(deps.filterNot(dag.contains): _*)
+      }
     }
   }
 
