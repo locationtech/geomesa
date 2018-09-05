@@ -14,13 +14,15 @@
 hadoop_version="%%hadoop.version.recommended%%"
 hadoop_version_min="%%hadoop.version.minimum%%"
 
+# this version required for hadoop 2.8, earlier hadoop versions use 3.1.0-incubating
+htrace_core_version="4.1.0-incubating"
+
 # for hadoop 2.5 and 2.6 to work we need these
 # These should match up to what the hadoop version desires
 guava_version="11.0.2"
 com_log_version="1.1.3"
 aws_sdk_version="1.7.4"
 commons_config_version="1.6"
-htrace_version="3.1.0-incubating"
 
 # this should match the parquet desired version
 snappy_version="1.1.1.6"
@@ -42,7 +44,6 @@ declare -a urls=(
   "${base_url}org/apache/hadoop/hadoop-common/${hadoop_version}/hadoop-common-${hadoop_version}.jar"
   "${base_url}org/apache/hadoop/hadoop-hdfs/${hadoop_version}/hadoop-hdfs-${hadoop_version}.jar"
   "${base_url}org/apache/hadoop/hadoop-aws/${hadoop_version}/hadoop-aws-${hadoop_version}.jar"
-  "${base_url}org/apache/htrace/htrace-core/${htrace_version}/htrace-core-${htrace_version}.jar"
   "${base_url}com/amazonaws/aws-java-sdk/${aws_sdk_version}/aws-java-sdk-${aws_sdk_version}.jar"
   "${base_url}org/xerial/snappy/snappy-java/${snappy_version}/snappy-java-${snappy_version}.jar"
   "${base_url}commons-configuration/commons-configuration/${commons_config_version}/commons-configuration-${commons_config_version}.jar"
@@ -54,6 +55,13 @@ declare -a urls=(
   "${base_url}org/apache/httpcomponents/httpcore/4.3.3/httpcore-4.3.3.jar"
   "${base_url}commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar"
 )
+
+# compare the first digit of htrace core version to determine the artifact name
+if [[ "${htrace_core_version%%.*}" -lt 4 ]]; then
+  urls+=("${base_url}org/apache/htrace/htrace-core/${htrace_core_version}/htrace-core-${htrace_core_version}.jar")
+else
+  urls+=("${base_url}org/apache/htrace/htrace-core4/${htrace_core_version}/htrace-core4-${htrace_core_version}.jar")
+fi
 
 # if there's already a guava jar (e.g. geoserver) don't install guava to avoid conflicts
 if [ -z "$(find $install_dir -maxdepth 1 -name 'guava-*' -print -quit)" ]; then
