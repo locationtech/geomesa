@@ -17,9 +17,9 @@ Extract it somewhere convenient:
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-bigtable-dist_2.11-$VERSION-bin.tar.gz"
-    $ tar xvf geomesa-bigtable-dist_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-bigtable-dist_2.11-$VERSION
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-bigtable_2.11-$VERSION-bin.tar.gz"
+    $ tar xvf geomesa-bigtable_2.11-$VERSION-bin.tar.gz
+    $ cd geomesa-bigtable_2.11-$VERSION
     $ ls
     bin  conf  dist  docs  examples  lib  LICENSE.txt  logs
 

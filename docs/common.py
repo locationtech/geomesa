@@ -82,13 +82,13 @@ rst_epilog = """
 
 .. _Java JDK 8: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
-.. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_2.11/%(release_last)s/geomesa-accumulo-dist_2.11-%(release_last)s-bin.tar.gz
+.. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_2.11/%(release_last)s/geomesa-accumulo_2.11-%(release_last)s-bin.tar.gz
 
-.. |release_tarball_kafka| replace:: %(url_locationtech_release)s/geomesa-kafka-dist_2.11/%(release_last)s/geomesa-kafka-dist_2.11-%(release_last)s-bin.tar.gz
+.. |release_tarball_kafka| replace:: %(url_locationtech_release)s/geomesa-kafka-dist_2.11/%(release_last)s/geomesa-kafka_2.11-%(release_last)s-bin.tar.gz
 
-.. |release_tarball_hbase| replace:: %(url_locationtech_release)s/geomesa-hbase-dist_2.11/%(release_last)s/geomesa-hbase-dist_2.11-%(release_last)s-bin.tar.gz
+.. |release_tarball_hbase| replace:: %(url_locationtech_release)s/geomesa-hbase-dist_2.11/%(release_last)s/geomesa-hbase_2.11-%(release_last)s-bin.tar.gz
 
-.. |release_tarball_cassandra| replace:: %(url_locationtech_release)s/geomesa-cassandra-dist_2.11/%(release_last)s/geomesa-cassandra-dist_2.11-%(release_last)s-bin.tar.gz
+.. |release_tarball_cassandra| replace:: %(url_locationtech_release)s/geomesa-cassandra-dist_2.11/%(release_last)s/geomesa-cassandra_2.11-%(release_last)s-bin.tar.gz
 
 .. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_2.11-%(release_last)s.tar.gz
 

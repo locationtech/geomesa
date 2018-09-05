@@ -21,8 +21,8 @@ Extract it somewhere convenient:
 
     # download and unpackage the most recent distribution:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-kafka_2.11-$VERSION-bin.tar.gz"
-    $ tar xzvf geomesa-kafka-dist_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-kafka-dist_2.11-$VERSION
+    $ tar xzvf geomesa-kafka_2.11-$VERSION-bin.tar.gz
+    $ cd geomesa-kafka_2.11-$VERSION
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt
 

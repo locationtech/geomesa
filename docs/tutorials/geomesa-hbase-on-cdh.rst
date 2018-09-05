@@ -2,7 +2,7 @@ Deploying GeoMesa HBase on Cloudera CDH 5.X
 ===========================================
 
 - Download and extract the GeoMesa HBase distribution, as detailed in :ref:`setting_up_hbase_commandline`. In the
-  following steps, ``GEOMESA_HBASE_HOME`` refers to the extracted directory ``geomesa-hbase-dist_2.11-$VERSION/``.
+  following steps, ``GEOMESA_HBASE_HOME`` refers to the extracted directory ``geomesa-hbase_2.11-$VERSION/``.
 
 - Unpack, and add/modify GeoMesa env variables in the file ``$GEOMESA_HBASE_HOME/conf/geomesa-env.sh`` :
 

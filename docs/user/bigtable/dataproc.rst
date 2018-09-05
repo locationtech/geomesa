@@ -36,7 +36,7 @@ Find the master node instance and then scp the distro as follows.
 
 .. code-block:: shell
 
-   $ gcloud beta compute scp --zone $ZONEID  ~/.m2/repository/org/locationtech/geomesa/geomesa-bigtable-dist_2.11/$VERSION/geomesa-bigtable-dist_2.11-$VERSION-bin.tar.gz <masterhost>:~/
+   $ gcloud beta compute scp --zone $ZONEID  ~/.m2/repository/org/locationtech/geomesa/geomesa-bigtable-dist_2.11/$VERSION/geomesa-bigtable_2.11-$VERSION-bin.tar.gz <masterhost>:~/
 
 Log in to the master node using gcloud ssh as follows.
 
@@ -50,7 +50,7 @@ spark runtime jar.
 
 .. code-block:: shell
 
-   $ tar zxvf geomesa-bigtable-dist_2.11-$VERSION-bin.tar.gz
+   $ tar zxvf geomesa-bigtable_2.11-$VERSION-bin.tar.gz
    $ ln -s geomesa-bigtable_2.11-$VERSION geomesa
    $ export PATH=$PATH:~/geomesa/bin
    $ export HADOOP_HOME=/usr/lib/hadoop
