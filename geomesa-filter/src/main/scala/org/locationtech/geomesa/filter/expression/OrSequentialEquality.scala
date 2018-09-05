@@ -25,7 +25,7 @@ class OrSequentialEquality(property: PropertyName, values: Seq[AnyRef]) extends 
 
   import scala.collection.JavaConverters._
 
-  lazy private val children: Seq[Filter] = values.map(value => factory.equals(property, factory.literal(value)))
+  private val children: Seq[Filter] = values.map(value => factory.equals(property, factory.literal(value)))
 
   override def getChildren: java.util.List[Filter] = children.toList.asJava
 

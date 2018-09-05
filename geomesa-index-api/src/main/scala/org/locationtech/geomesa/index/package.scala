@@ -6,9 +6,12 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.kryo.serialization
+package org.locationtech.geomesa
 
-import com.esotericsoftware.kryo.io.{Input, Output}
-import org.locationtech.geomesa.features.serialization.TwkbSerialization
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
-object KryoGeometrySerialization extends TwkbSerialization[Output, Input]
+package object index {
+
+  val FilterCacheSize = SystemProperty("geomesa.cache.filters.size", "1000")
+  val ZFilterCacheSize = SystemProperty("geomesa.cache.z-filters.size", "1000")
+}

@@ -237,6 +237,27 @@
     </property>
 
     <property>
+        <name>geomesa.query.decomposition.multiplier</name>
+        <value>0</value> <!-- disabled by default -->
+        <description>
+            Sets the maximum decomposition of complex polygons into rectangular envelopes. Use '0' to disable
+            decomposition.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.query.decomposition.bits</name>
+        <value>20</value>
+        <description>
+            Sets a lower threshold on the size of the polygon decomposition envelopes. Must be between 1 and 63,
+            inclusive, and must be an odd number. Specifies the number of bits of precision as per the GeoHash
+            specification.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
         <name>geomesa.metadata.expiry</name>
         <value>10 minutes</value>
         <description>This property controls how often simple feature type metadata
@@ -323,6 +344,23 @@
             SYNC_WAL: Write the Mutation to the WAL synchronously.
             USE_DEFAULT: If this is for tables durability, use HBase's global default value (SYNC_WAL).
             For addtional information see HBase docs. https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/client/Durability.htm
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.hbase.client.scanner.caching.size</name>
+        <value></value>
+        <description>Set the number of rows for caching that will be passed to scanners. If not set, the Configuration setting HConstants.HBASE_CLIENT_SCANNER_CACHING will
+            apply. Higher caching values will enable faster scanners but will use more memory.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.hbase.query.block.caching.enabled</name>
+        <value>true</value>
+        <description>Set whether blocks should be cached for this Scan. This is true by default.  When true, default settings of the table and family are used (this will never override caching blocks if the block cache is disabled for that family or entirely).
         </description>
         <final>false</final>
     </property>

@@ -30,5 +30,8 @@ package object hbase {
   object HBaseSystemProperties {
     val CoprocessorPath = SystemProperty("geomesa.hbase.coprocessor.path")
     val WriteBatchSize = SystemProperty("geomesa.hbase.write.batch")
+    val WalDurability = SystemProperty("geomesa.hbase.wal.durability")
+    val ScannerCaching = SystemProperty("geomesa.hbase.client.scanner.caching.size")
+    val ScannerBlockCaching = SystemProperty("geomesa.hbase.query.block.caching.enabled", "true")
   }
 }

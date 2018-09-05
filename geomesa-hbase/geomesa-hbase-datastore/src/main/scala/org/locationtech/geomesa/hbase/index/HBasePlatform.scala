@@ -8,17 +8,19 @@
 
 package org.locationtech.geomesa.hbase.index
 
-import com.google.common.collect.Lists
+import java.util.Collections
+
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{Result, Scan}
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
-import org.locationtech.geomesa.hbase.HBaseFilterStrategyType
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.{CoprocessorPlan, HBaseDataStore, HBaseQueryPlan, ScanPlan}
+import org.locationtech.geomesa.hbase.{HBaseFilterStrategyType, HBaseSystemProperties}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-trait HBasePlatform extends HBaseIndexAdapter {
+trait HBasePlatform extends HBaseIndexAdapter with LazyLogging {
 
   override protected def buildPlatformScanPlan(ds: HBaseDataStore,
                                                sft: SimpleFeatureType,
@@ -28,7 +30,7 @@ trait HBasePlatform extends HBaseIndexAdapter {
                                                table: TableName,
                                                hbaseFilters: Seq[(Int, HFilter)],
                                                coprocessor: Option[CoprocessorConfig],
-                                               toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan = {
+                                               toFeatures: Iterator[Result] => Iterator[SimpleFeature]): HBaseQueryPlan = {
     val filterList = hbaseFilters.sortBy(_._1).map(_._2)
     coprocessor match {
       case None =>
@@ -63,42 +65,63 @@ trait HBasePlatform extends HBaseIndexAdapter {
                                            originalRanges: Seq[Scan],
                                            colFamily: Array[Byte],
                                            hbaseFilters: Seq[HFilter]): Seq[Scan] = {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
+
+    val cacheSize = HBaseSystemProperties.ScannerCaching.toInt
+    val cacheBlocks = HBaseSystemProperties.ScannerBlockCaching.toBoolean.get // has a default value so .get is safe
+
+    logger.debug(s"HBase client scanner: block caching: $cacheBlocks, caching: $cacheSize")
 
     val rowRanges = new java.util.ArrayList[RowRange](originalRanges.length)
     originalRanges.foreach(r => rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false)))
 
     val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
-    val numRanges = sortedRowRanges.length
+    val numRanges = sortedRowRanges.size()
     val numThreads = ds.config.queryThreads
     // TODO GEOMESA-1806 parameterize this?
     val rangesPerThread = math.min(ds.config.maxRangesPerExtendedScan, math.max(1, math.ceil(numRanges / numThreads * 2).toInt))
-    // TODO GEOMESA-1806 align partitions with region boundaries
-    val groupedRanges = Lists.partition(sortedRowRanges, rangesPerThread)
 
     // group scans into batches to achieve some client side parallelism
-    val groupedScans = groupedRanges.map { localRanges =>
-      // TODO GEOMESA-1806
-      // currently, this constructor will call sortAndMerge a second time
-      // this is unnecessary as we have already sorted and merged above
-      val mrrf = new MultiRowRangeFilter(localRanges)
-      // note: mrrf first priority
-      val filterList = new FilterList(hbaseFilters.+:(mrrf): _*)
+    val groupedScans = new java.util.ArrayList[Scan](sortedRowRanges.size() / rangesPerThread + 1)
 
-      val s = new Scan()
-      s.setStartRow(localRanges.head.getStartRow)
-      s.setStopRow(localRanges.get(localRanges.length - 1).getStopRow)
-      s.setFilter(filterList)
-      s.addColumn(colFamily, HBaseColumnGroups.default)
-      // TODO GEOMESA-1806 parameterize cache size
-      s.setCaching(1000)
-      s.setCacheBlocks(true)
-      s
+    // TODO GEOMESA-1806 align partitions with region boundaries
+
+    var i = 0
+    var start: Int = 0
+
+    while (i < sortedRowRanges.size()) {
+      val mod = i % rangesPerThread
+      if (mod == 0) {
+        start = i
+      }
+      if (mod == rangesPerThread - 1 || i == sortedRowRanges.size() - 1) {
+        // TODO GEOMESA-1806
+        // currently, this constructor will call sortAndMerge a second time
+        // this is unnecessary as we have already sorted and merged above
+        val mrrf = new MultiRowRangeFilter(sortedRowRanges.subList(start, i + 1))
+        // note: mrrf first priority
+        val filterList = new FilterList(hbaseFilters.+:(mrrf): _*)
+
+        val s = new Scan()
+        s.setStartRow(sortedRowRanges.get(start).getStartRow)
+        s.setStopRow(sortedRowRanges.get(i).getStopRow)
+        s.setFilter(filterList)
+        s.addColumn(colFamily, HBaseColumnGroups.default)
+        s.setCacheBlocks(cacheBlocks)
+        cacheSize.foreach(s.setCaching)
+
+        // apply visibilities
+        ds.applySecurity(s)
+
+        groupedScans.add(s)
+      }
+      i += 1
     }
 
-    // Apply Visibilities
-    groupedScans.foreach(ds.applySecurity)
-    groupedScans
+    // shuffle the ranges, otherwise our threads will tend to all hit the same region server at once
+    Collections.shuffle(groupedScans)
+
+    groupedScans.asScala
   }
 
   private def configureCoprocessorScan(ds: HBaseDataStore,

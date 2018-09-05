@@ -114,8 +114,8 @@ Distributed Runtime Version Checks
 ----------------------------------
 
 To prevent unexpected bugs due to JAR version mismatches, GeoMesa will now throw an exception if it detects
-incompatible versions on the distributed classpath. This behavior may be disbled by setting the system property
-``geomesa.distributed.version.check=false``.
+incompatible versions on the distributed classpath. This behavior may be disbled by setting the system properties
+``geomesa.distributed.version.check=false`` and/or ``geomesa.distributed.version.skip=true``.
 
 Shapefile Ingestion
 -------------------
@@ -131,6 +131,11 @@ GeoMesa previously supported auto ingest of specially formatted delimited CSV an
 has been replaced with standard ingest type inference, which works similarly but may create different results.
 Generally, the previous behavior can be replicated by using type inference to create a converter definition,
 then modifying the converter to set the feature ID to the first column (``$1``).
+
+Spark Version Update
+--------------------
+
+GeoMesa now builds against Spark 2.3.1, and supports versions 2.2.x and 2.3.x.
 
 Arrow Version Update
 --------------------

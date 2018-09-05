@@ -194,6 +194,12 @@
                                     <pattern>shapeless</pattern>
                                     <shadedPattern>org.locationtech.geomesa.accumulo.shaded.shapeless</shadedPattern>
                                 </relocation>
+                                <!-- Databricks uses an old version of scalalogging, include it to allow us to run on databricks clusters -->
+                                <relocation>
+                                    <pattern>com.typesafe.scalalogging</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shaded.com.typesafe.scalalogging
+                                    </shadedPattern>
+                                </relocation>
                             </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />

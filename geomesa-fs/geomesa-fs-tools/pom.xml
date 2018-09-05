@@ -63,6 +63,14 @@
             <groupId>org.specs2</groupId>
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-mapreduce-client-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-minicluster</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

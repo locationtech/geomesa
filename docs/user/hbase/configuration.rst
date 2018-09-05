@@ -34,3 +34,15 @@ ingests where performance is of more concern than reliability. Available setting
 
 For addtional information see `HBase documentation
 <https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/client/Durability.html>`__.
+
+geomesa.hbase.client.scanner.caching.size
++++++++++++++++++++++++++++++++++++++++++
+
+Set the number of rows that scanners will read ahead. If not set, the default caching will apply as configured in
+``hbase-site.xml``. Higher caching values will enable faster scanners but will use more memory.
+
+geomesa.hbase.query.block.caching.enabled
++++++++++++++++++++++++++++++++++++++++++
+
+Set whether blocks should be cached for scans, true by default. When true, default settings of the table and
+family are used (this will never override caching blocks if the block cache is disabled for that family or entirely).

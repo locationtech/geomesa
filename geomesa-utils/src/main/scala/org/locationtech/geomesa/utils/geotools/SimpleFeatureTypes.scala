@@ -72,6 +72,7 @@ object SimpleFeatureTypes {
     val OPT_BIN_TRACK_ID = "bin-track-id"
     val OPT_CQ_INDEX     = "cq-index"
     val OPT_JSON         = "json"
+    val OPT_PRECISION    = "precision"
   }
 
   private [geomesa] object AttributeConfigs {

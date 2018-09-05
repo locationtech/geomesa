@@ -29,7 +29,9 @@ object JobUtils extends LazyLogging {
     // always prepend GEOMESA_EXTRA_CLASSPATHS first
     val paths = (extra ++ found).map(f => "file://" + f.getAbsolutePath)
     // tmpjars is the hadoop config that corresponds to libjars
-    conf.setStrings("tmpjars", paths: _*)
+    if (paths.nonEmpty) {
+      conf.setStrings("tmpjars", paths: _*)
+    }
     logger.debug(s"Job will use the following libjars:${paths.mkString("\n\t", "\n\t", "")}")
   }
 }

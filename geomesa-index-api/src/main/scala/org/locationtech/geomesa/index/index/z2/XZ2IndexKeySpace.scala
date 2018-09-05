@@ -49,6 +49,8 @@ trait XZ2IndexKeySpace extends IndexKeySpace[XZ2IndexValues, Long] {
   override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): XZ2IndexValues = {
     import org.locationtech.geomesa.filter.FilterHelper._
 
+    // TODO GEOMESA-2377 clean up duplicate code blocks in Z2/XZ2/Z3/XZ3IndexKeySpace
+
     val geometries: FilterValues[Geometry] = {
       val extracted = extractGeometries(filter, sft.getGeomField, sft.isPoints)
       if (extracted.nonEmpty) { extracted } else { FilterValues(Seq(WholeWorldPolygon)) }
@@ -56,10 +58,14 @@ trait XZ2IndexKeySpace extends IndexKeySpace[XZ2IndexValues, Long] {
 
     explain(s"Geometries: $geometries")
 
-    // compute our ranges based on the coarse bounds for our query
-
     val sfc = XZ2SFC(sft.getXZPrecision)
-    val xy = geometries.values.map(GeometryUtils.bounds)
+
+    // compute our ranges based on the coarse bounds for our query
+    val xy: Seq[(Double, Double, Double, Double)] = {
+      val multiplier = QueryProperties.PolygonDecompMultiplier.toInt.get
+      val bits = QueryProperties.PolygonDecompBits.toInt.get
+      geometries.values.flatMap(GeometryUtils.bounds(_, multiplier, bits))
+    }
 
     XZ2IndexValues(sfc, geometries, xy)
   }
