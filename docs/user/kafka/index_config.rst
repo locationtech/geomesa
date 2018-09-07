@@ -87,14 +87,14 @@ will have to iterate over all the features in the index. Generally the number of
 is still a fast operation.
 
 For more advanced use-cases, additional in-memory index structures can be created to satisfy non-spatial queries.
-This can be enabled by setting the ``kafka.cache.cqengine.indices`` data store parameter. The value should
+This can be enabled by setting the ``kafka.index.cqengine`` data store parameter. The value should
 be a comma-delimited list of ``name:type``, where `name` is an attribute name and `type` is a CQEngine index
 type. See :ref:`in_memory_index` for more information. Note that when using CQEngine, the default geometry will
 not be indexed without an explicit configuration (e.g. ``geom:geometry`` in the parameter value). In addition,
 CQEngine may require more processing than the standard index.
 
 As an example, consider the schema ``name:String,age:Int,dtg:Date,*geom:Point:srid=4326``. To create an index
-on each attribute, you could set ``kafka.cache.cqengine.indices`` to
+on each attribute, you could set ``kafka.index.cqengine`` to
 ``name:radix,age:default,dtg:navigable,geom:geometry``. See :ref:`in_memory_index` for an explanation of the
 index types.
 
