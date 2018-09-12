@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geotools.converters
 
-import java.time.ZonedDateTime
+import java.time._
 import java.time.format.DateTimeFormatter
 import java.util.{Date, UUID}
 
@@ -238,6 +238,19 @@ class ConverterFactoriesTest extends Specification {
     "convert a date to a full ISO8601 string" >> {
       val converter = factory.createConverter(classOf[Date], classOf[String], null)
       converter.convert(date, classOf[String]) mustEqual "2015-01-01T00:00:00.000Z"
+    }
+
+    "convert java time classes to dates" >> {
+      val times = Seq(
+        Instant.ofEpochMilli(date.getTime),
+        ZonedDateTime.ofInstant(Instant.ofEpochMilli(date.getTime), ZoneOffset.UTC),
+        LocalDateTime.ofInstant(Instant.ofEpochMilli(date.getTime), ZoneOffset.UTC),
+        OffsetDateTime.ofInstant(Instant.ofEpochMilli(date.getTime), ZoneOffset.UTC),
+        LocalDate.from(ZonedDateTime.ofInstant(Instant.ofEpochMilli(date.getTime), ZoneOffset.UTC))
+      )
+      foreach(times) { time =>
+        factory.createConverter(time.getClass, classOf[Date], null).convert(time, classOf[Date]) mustEqual date
+      }
     }
   }
 }
