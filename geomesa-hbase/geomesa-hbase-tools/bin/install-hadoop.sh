@@ -15,11 +15,13 @@
 hadoop_version="%%hadoop.version.recommended%%"
 zookeeper_version="%%zookeeper.version.recommended%%"
 
+# this version required for hadoop 2.8, earlier hadoop versions use 3.1.0-incubating
+htrace_core_version="4.1.0-incubating"
+
 # These are needed for Hadoop and to work
 # These will depend on the specific hadoop  versions
 guava_version="%%hbase.guava.version%%"
 com_log_version="1.1.3"
-htrace_version="3.1.0-incubating"
 netty3_version="3.6.2.Final"
 netty4_version="%%netty.version%%"
 
@@ -41,7 +43,6 @@ declare -a urls=(
   "${base_url}org/apache/hadoop/hadoop-client/${hadoop_version}/hadoop-client-${hadoop_version}.jar"
   "${base_url}org/apache/hadoop/hadoop-common/${hadoop_version}/hadoop-common-${hadoop_version}.jar"
   "${base_url}org/apache/hadoop/hadoop-hdfs/${hadoop_version}/hadoop-hdfs-${hadoop_version}.jar"
-  "${base_url}org/apache/htrace/htrace-core/${htrace_version}/htrace-core-${htrace_version}.jar"
   "${base_url}commons-logging/commons-logging/${com_log_version}/commons-logging-${com_log_version}.jar"
   "${base_url}commons-cli/commons-cli/1.2/commons-cli-1.2.jar"
   "${base_url}commons-io/commons-io/2.5/commons-io-2.5.jar"
@@ -50,6 +51,13 @@ declare -a urls=(
   "${base_url}io/netty/netty/${netty3_version}/netty-${netty3_version}.jar"
   "${base_url}com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar"
 )
+
+# compare the first digit of htrace core version to determine the artifact name
+if [[ "${htrace_core_version%%.*}" -lt 4 ]]; then
+  urls+=("${base_url}org/apache/htrace/htrace-core/${htrace_core_version}/htrace-core-${htrace_core_version}.jar")
+else
+  urls+=("${base_url}org/apache/htrace/htrace-core4/${htrace_core_version}/htrace-core4-${htrace_core_version}.jar")
+fi
 
 # if there's already a guava jar (e.g. geoserver) don't install guava to avoid conflicts
 if [ -z "$(find $install_dir -maxdepth 1 -name 'guava-*' -print -quit)" ]; then
