@@ -10,9 +10,11 @@
 package org.locationtech.geomesa.cassandra.data
 
 import com.datastax.driver.core._
+import org.geotools.data.Query
 import org.locationtech.geomesa.cassandra._
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.CassandraDataStoreConfig
 import org.locationtech.geomesa.cassandra.index.CassandraFeatureIndex
+import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.index.utils.LocalLocking
@@ -25,9 +27,9 @@ class CassandraDataStore(val session: Session, config: CassandraDataStoreConfig)
   override val metadata: GeoMesaMetadata[String] =
     new CassandraBackedMetadata(session, config.catalog, MetadataStringSerializer)
 
-  override def manager: CassandraIndexManagerType = CassandraFeatureIndex
+  override val manager: CassandraIndexManagerType = CassandraFeatureIndex
 
-  override def stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
+  override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
   override def createFeatureWriterAppend(sft: SimpleFeatureType,
                                          indices: Option[Seq[CassandraFeatureIndexType]]): CassandraFeatureWriterType =
@@ -37,6 +39,9 @@ class CassandraDataStore(val session: Session, config: CassandraDataStoreConfig)
                                          indices: Option[Seq[CassandraFeatureIndexType]],
                                          filter: Filter): CassandraFeatureWriterType =
     new CassandraModifyFeatureWriter(sft, this, indices, filter)
+
+  override def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection =
+    new CassandraFeatureCollection(source, query)
 
   override def createSchema(sft: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
