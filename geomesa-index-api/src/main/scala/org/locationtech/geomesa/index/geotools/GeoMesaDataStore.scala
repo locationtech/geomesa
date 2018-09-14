@@ -15,6 +15,7 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.locationtech.geomesa.index.api.{WrappedFeature, _}
+import org.locationtech.geomesa.index.conf.SchemaProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.VersionKey
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter.FlushableFeatureWriter
@@ -348,27 +349,29 @@ object GeoMesaDataStore extends LazyLogging {
         // short-circuit load - should try again next time cache is accessed
         throw new RuntimeException("Can't load remote versions if there are no feature types")
       }
-      val clientVersion = key.ds.getClientVersion
-      // use lenient parsing to account for versions like 1.3.5.1
-      val iterVersions = key.ds.loadIteratorVersions.map(v => SemanticVersion(v, lenient = true))
+      if (!SchemaProperties.CheckDistributedVersion.toBoolean.contains(true)) { Right(None) } else {
+        val clientVersion = key.ds.getClientVersion
+        // use lenient parsing to account for versions like 1.3.5.1
+        val iterVersions = key.ds.loadIteratorVersions.map(v => SemanticVersion(v, lenient = true))
 
-      def message: String = "Classpath errors detected: configured server-side iterators do not match " +
-          s"client version. Client version: $clientVersion, server versions: ${iterVersions.mkString(", ")}"
+        def message: String = "Classpath errors detected: configured server-side iterators do not match " +
+            s"client version. Client version: $clientVersion, server versions: ${iterVersions.mkString(", ")}"
 
-      // take the newest one if there are multiple - probably an update went partially awry, so it's
-      // likely to match more tablet servers than the lower version
-      val version = iterVersions.reduceLeftOption((left, right) => if (right > left) { right } else { left })
+        // take the newest one if there are multiple - probably an update went partially awry, so it's
+        // likely to match more tablet servers than the lower version
+        val version = iterVersions.reduceLeftOption((left, right) => if (right > left) { right } else { left })
 
-      // ensure matching minor versions
-      if (iterVersions.exists(MinorOrdering.compare(_, clientVersion) != 0) && CheckDistributedVersion.toBoolean.get) {
-        Left(new RuntimeException(s"$message. You may override this check by setting the system property " +
-            s"'-D${CheckDistributedVersion.property}=false'"))
-      } else {
-        if (iterVersions.exists(_ != clientVersion)) {
-          // if it's a patch/pre-release version mismatch, or the user has disabled the check, just log it
-          logger.warn(message)
+        // ensure matching minor versions
+        if (iterVersions.exists(MinorOrdering.compare(_, clientVersion) != 0)) {
+          Left(new RuntimeException(s"$message. You may override this check by setting the system property " +
+              s"'-D${CheckDistributedVersion.property}=false'"))
+        } else {
+          if (iterVersions.exists(_ != clientVersion)) {
+            // if it's a patch/pre-release version mismatch, or the user has disabled the check, just log it
+            logger.warn(message)
+          }
+          Right(version)
         }
-        Right(version)
       }
     }
   }

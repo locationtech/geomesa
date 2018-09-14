@@ -18,7 +18,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.hbase.index.{HBaseAttributeIndex, HBaseIdIndex, HBaseZ3Index}
-import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.conf.{QueryProperties, SchemaProperties}
 import org.locationtech.geomesa.process.query.ProximitySearchProcess
 import org.locationtech.geomesa.process.tube.TubeSelectProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -230,14 +230,22 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
     }
 
     "support remote version" in {
-      val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
-      ds must not(beNull)
-
+      // note: we have to use a unique catalog to avoid getting a cached version
+      // we can't use the thread local value b/c it's loaded in an asynchronous guava cache
+      SchemaProperties.CheckDistributedVersion.set("true")
       try {
-        ds.getDistributeVersion must beSome(SemanticVersion(GeoMesaProperties.ProjectVersion))
+        val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> "HBaseDistributedVersionTest")
+        val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+        ds must not(beNull)
+
+        try {
+          ds.createSchema(SimpleFeatureTypes.createType("test-version", "dtg:Date,*geom:Point:srid=4326"))
+          ds.getDistributeVersion must beSome(SemanticVersion(GeoMesaProperties.ProjectVersion))
+        } finally {
+          ds.dispose()
+        }
       } finally {
-        ds.dispose()
+        SchemaProperties.CheckDistributedVersion.clear()
       }
     }
   }

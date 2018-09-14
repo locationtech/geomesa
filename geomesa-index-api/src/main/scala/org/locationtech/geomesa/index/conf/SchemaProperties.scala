@@ -12,6 +12,5 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 
 object SchemaProperties {
   val ValidateDistributedClasspath = SystemProperty("geomesa.validate.distributed.classpath", "true")
-  val SkipDistributedVersion = SystemProperty("geomesa.distributed.version.skip", "false")
-  val CheckDistributedVersion = SystemProperty("geomesa.distributed.version.check", "true")
+  val CheckDistributedVersion = SystemProperty("geomesa.distributed.version.check", "false")
 }
