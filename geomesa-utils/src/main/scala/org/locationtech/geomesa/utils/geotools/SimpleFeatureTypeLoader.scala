@@ -18,7 +18,6 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import scala.util.Try
 
 
 /**
@@ -89,7 +88,8 @@ class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
         Some(ConfigFactory.parseURL(url))
       } catch {
         case e: Throwable =>
-          logger.warn(s"Unable to load config from url $url", e)
+          logger.warn(s"Unable to load SFT config from url $url")
+          logger.trace(s"Unable to load SFT config from url $url", e)
           None
       }
     }.reduceLeftOption(_.withFallback(_))

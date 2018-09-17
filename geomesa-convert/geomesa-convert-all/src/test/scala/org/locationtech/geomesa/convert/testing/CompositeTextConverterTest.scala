@@ -13,6 +13,7 @@ import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -20,7 +21,9 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class CompositeTextConverterTest extends Specification {
+class CompositeTextConverterTest extends Specification with LazyLogging {
+
+  sequential
 
   val data =
     """1  ,hello,badvalue,45.0
@@ -89,10 +92,6 @@ class CompositeTextConverterTest extends Specification {
     }
 
     "reference converters using global conf" in {
-
-      val backup = System.getProperty("config.file")
-      val confPath = this.getClass.getClassLoader.getResource("testing.conf").getPath
-      System.setProperty("config.file", confPath)
       val converter = SimpleFeatureConverter(sft, "comp1")
       converter must not(beNull)
 
@@ -110,27 +109,16 @@ class CompositeTextConverterTest extends Specification {
       res(0).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
       res(1).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
 
-      if (backup != null) {
-        System.setProperty("config.file", backup)
-      }
-
       1 mustEqual 1
     }
 
     "call next without hasNext" in {
-      val backup = System.getProperty("config.file")
-      val confPath = this.getClass.getClassLoader.getResource("testing.conf").getPath
-      System.setProperty("config.file", confPath)
       val converter = SimpleFeatureConverter(sft, "comp1")
       converter must not(beNull)
 
       // TODO enable this once GEOMESA-2397 is done
       val first = converter.process(new ByteArrayInputStream("3 5050".getBytes)).next
       first.getID must be equalTo "50.050.0"
-
-      if (backup != null) {
-        System.setProperty("config.file", backup)
-      }
 
       1 mustEqual 1
     }.pendingUntilFixed("GEOMESA-2397")
