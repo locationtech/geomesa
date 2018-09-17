@@ -106,7 +106,7 @@ object SimpleFeatureConverter extends StrictLogging {
     */
   def apply(sft: SimpleFeatureType, converterName: String): SimpleFeatureConverter = {
     val converter = ConverterConfigLoader.configForName(converterName).getOrElse {
-      throw new IllegalArgumentException(s"Unable to load converter config for name '$converterName'")
+      throw new IllegalArgumentException(s"Unable to load converter config for converter named '$converterName'")
     }
     apply(sft, converter)
   }

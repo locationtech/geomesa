@@ -39,7 +39,7 @@ object ConverterConfigLoader extends LazyLogging {
   // Public API
   def listConverterNames: List[String] = confs.keys.toList
   def getAllConfigs: Map[String, Config] = confs
-  def configForName(name: String) = confs.get(name)
+  def configForName(name: String): Option[Config] = confs.get(name)
 
   // Rebase a config to to the converter root...allows standalone
   // configurations to start with "converter", "input-converter"
@@ -71,7 +71,7 @@ trait GeoMesaConvertParser extends LazyLogging {
 }
 
 object GeoMesaConvertParser {
-  def isConvertConfig(conf: Config) = {
+  def isConvertConfig(conf: Config): Boolean = {
     conf.hasPath("type")
   }
 }
@@ -88,11 +88,18 @@ class URLConfigProvider extends ConverterConfigProvider with GeoMesaConvertParse
   import URLConfigProvider._
 
   override def loadConfigs(): util.Map[String, Config] =
-    configURLs
-      .map(ConfigFactory.parseURL)
-      .reduceLeftOption(_.withFallback(_))
-      .map(parseConf)
-      .getOrElse(Map.empty[String, Config]).asJava
+    configURLs.flatMap { url =>
+      try {
+        Some(ConfigFactory.parseURL(url))
+      } catch {
+        case e: Throwable =>
+          logger.warn(s"Unable to load converter config from url $url")
+          logger.trace(s"Unable to load converter config from url $url", e)
+          None
+      }
+    }.reduceLeftOption(_.withFallback(_))
+    .map(parseConf)
+    .getOrElse(Map.empty[String, Config]).asJava
 
   // Will also pick things up from the SystemProperties
   def configURLs: Seq[URL] = {

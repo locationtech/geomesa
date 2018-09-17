@@ -6,12 +6,14 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.convert.text
+package org.locationtech.geomesa.convert.testing
+// this has to be in testing package because of weird import shadowing
 
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -19,7 +21,9 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class CompositeTextConverterTest extends Specification {
+class CompositeTextConverterTest extends Specification with LazyLogging {
+
+  sequential
 
   val data =
     """1  ,hello,badvalue,45.0
@@ -28,7 +32,7 @@ class CompositeTextConverterTest extends Specification {
       |2  ,world,,90.0
     """.stripMargin
 
-  val conf = ConfigFactory.parseString(
+  val localConf = ConfigFactory.parseString(
     """
       | {
       |   type         = "composite-converter",
@@ -68,8 +72,8 @@ class CompositeTextConverterTest extends Specification {
 
   "CompositeConverter" should {
 
-    "process some data" in {
-      val converter = SimpleFeatureConverter(sft, conf)
+    "process some data using local conf" in {
+      val converter = SimpleFeatureConverter(sft, localConf)
       converter must not(beNull)
 
       val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
@@ -87,10 +91,42 @@ class CompositeTextConverterTest extends Specification {
       res(1).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
     }
 
+    "reference converters using global conf" in {
+      val converter = SimpleFeatureConverter(sft, "comp1")
+      converter must not(beNull)
+
+      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
+
+      res.size must be equalTo 2
+      res(0).getID must be equalTo "first1"
+      res(1).getID must be equalTo "second2"
+
+      // and get correct line numbers
+      res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
+      res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 4
+
+      // and get default string to double values
+      res(0).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
+      res(1).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
+
+      1 mustEqual 1
+    }
+
+    "call next without hasNext" in {
+      val converter = SimpleFeatureConverter(sft, "comp1")
+      converter must not(beNull)
+
+      // TODO enable this once GEOMESA-2397 is done
+      val first = converter.process(new ByteArrayInputStream("3 5050".getBytes)).next
+      first.getID must be equalTo "50.050.0"
+
+      1 mustEqual 1
+    }.pendingUntilFixed("GEOMESA-2397")
+
     "be built using old api" in {
       import org.locationtech.geomesa.convert.SimpleFeatureConverters
 
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
+      val converter = SimpleFeatureConverters.build[String](sft, localConf)
       converter must not(beNull)
 
       val res = converter.processInput(data.split("\n").iterator).toList

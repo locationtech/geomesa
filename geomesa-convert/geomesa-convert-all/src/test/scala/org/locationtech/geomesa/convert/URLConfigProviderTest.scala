@@ -106,15 +106,17 @@ class URLConfigProviderTest extends Specification {
       try {
         jetty.start()
         val port = jetty.getConnectors()(0).getLocalPort
-        System.setProperty(URLConfigProvider.ConverterConfigURLs, s"http://localhost:$port/")
-        System.setProperty(URLSftProvider.SftConfigURLs, s"http://localhost:$port/")
 
-        ConverterConfigLoader.listConverterNames must containTheSameElementsAs(Seq("example-csv-url", "example-csv-url2"))
-        SimpleFeatureTypeLoader.listTypeNames must containTheSameElementsAs(Seq("example-csv-url", "example-csv-url2"))
+        // Should be able to handle bad urls as well as good urls
+        System.setProperty(URLConfigProvider.ConverterConfigURLs, s"http://localhost:$port/,http://fakeurl:80/foobar")
+        System.setProperty(URLSftProvider.SftConfigURLs, s"http://localhost:$port/,http://fakeurl:80/foobar")
+
+        ConverterConfigLoader.listConverterNames must containAllOf(Seq("example-csv-url", "example-csv-url2"))
+        SimpleFeatureTypeLoader.listTypeNames must containAllOf(Seq("example-csv-url", "example-csv-url2"))
 
         // Intentional second calls to ensure the providers is a list and can be called twice
-        ConverterConfigLoader.listConverterNames must containTheSameElementsAs(Seq("example-csv-url", "example-csv-url2"))
-        SimpleFeatureTypeLoader.listTypeNames must containTheSameElementsAs(Seq("example-csv-url", "example-csv-url2"))
+        ConverterConfigLoader.listConverterNames must containAllOf(Seq("example-csv-url", "example-csv-url2"))
+        SimpleFeatureTypeLoader.listTypeNames must containAllOf(Seq("example-csv-url", "example-csv-url2"))
 
         SimpleFeatureTypeLoader.sftForName("example-csv-url").isDefined must beTrue
 
@@ -128,6 +130,8 @@ class URLConfigProviderTest extends Specification {
       }
       finally {
         jetty.stop()
+        System.clearProperty(URLConfigProvider.ConverterConfigURLs)
+        System.clearProperty(URLSftProvider.SftConfigURLs)
       }
     }
   }
