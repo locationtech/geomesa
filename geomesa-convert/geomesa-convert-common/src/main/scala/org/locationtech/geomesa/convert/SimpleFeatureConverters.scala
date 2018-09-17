@@ -57,7 +57,7 @@ object SimpleFeatureConverters extends LazyLogging {
           case c: AbstractConverter[_, _, _] => c.asInstanceOf[AbstractConverter[_ <: ConverterConfig, _, _]]
         }
         if (converters.hasNext) { new SimpleFeatureConverterWrapper(converters.next) } else {
-          throw new IllegalArgumentException(s"Cannot find factory for ${sft.getTypeName}")
+          throw new IllegalArgumentException(s"Cannot find converter factory for type ${sft.getTypeName}")
         }
     }
   }

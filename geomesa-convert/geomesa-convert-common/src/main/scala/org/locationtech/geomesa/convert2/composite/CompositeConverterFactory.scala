@@ -22,7 +22,12 @@ class CompositeConverterFactory extends SimpleFeatureConverterFactory {
       val converters: Seq[(Predicate, SimpleFeatureConverter)] =
         conf.getConfigList("converters").asScala.map { c =>
           val pred = Predicate(c.getString("predicate"))
-          val converter = SimpleFeatureConverter(sft, conf.getConfig(c.getString("converter")))
+          val converterName = c.getString("converter")
+          val converter = if (conf.hasPath(converterName)) {
+            SimpleFeatureConverter(sft, conf.getConfig(converterName)) // load from local conf (within composite converter)
+          } else {
+            SimpleFeatureConverter(sft, converterName) // load from a gobal named reference
+          }
           (pred, converter)
         }
       Some(new CompositeConverter(sft, converters))

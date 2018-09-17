@@ -18,6 +18,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 
 /**
@@ -82,11 +83,18 @@ class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
   override def loadTypes(): JList[SimpleFeatureType] = {
     val urls = configURLs.toList
     logger.debug(s"Loading config from urls: ${urls.mkString(", ")}")
-    urls
-      .map(ConfigFactory.parseURL)
-      .reduceLeftOption(_.withFallback(_))
-      .map(parseConf)
-      .getOrElse(List.empty[SimpleFeatureType])
+    urls.flatMap { url =>
+      logger.debug(s"Attempting to parse config from url $url")
+      try {
+        Some(ConfigFactory.parseURL(url))
+      } catch {
+        case e: Throwable =>
+          logger.warn(s"Unable to load config from url $url", e)
+          None
+      }
+    }.reduceLeftOption(_.withFallback(_))
+    .map(parseConf)
+    .getOrElse(List.empty[SimpleFeatureType])
   }
   
   // Will also pick things up from the SystemProperties

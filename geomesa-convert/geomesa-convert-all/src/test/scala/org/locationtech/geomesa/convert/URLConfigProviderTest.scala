@@ -128,6 +128,8 @@ class URLConfigProviderTest extends Specification {
       }
       finally {
         jetty.stop()
+        System.clearProperty(URLConfigProvider.ConverterConfigURLs)
+        System.clearProperty(URLSftProvider.SftConfigURLs)
       }
     }
   }
