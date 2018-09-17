@@ -172,15 +172,8 @@ a comma-separated list of arbitrary URLs. For more information on defining types
 geomesa.distributed.version.check
 +++++++++++++++++++++++++++++++++
 
-This property can be used to suppress checking for version mismatches in the distributed classpath. By default,
+This property can be used to check for version mismatches in the distributed classpath. When enabled,
 GeoMesa will throw an exception if it detects a major version discrepancy between the local classpath and
 the distributed classpath (e.g. HBase region servers or Accumulo tablet servers), as this will generally cause
-queries to fail. The version check may be suppressed by setting ths property to ``false``, although this is not
-recommended.
-
-geomesa.distributed.version.skip
-+++++++++++++++++++++++++++++++++
-
-This property can be used to suppress checking for version mismatches in the distributed classpath. In contrast
-to ``geomesa.distributed.version.check``, this property will totally bypass trying to load the distributed
-classpath version when set to ``true``.
+queries to fail. If not enabled, then classpath errors will not be detected proactively, and will likely result
+in runtime exceptions.

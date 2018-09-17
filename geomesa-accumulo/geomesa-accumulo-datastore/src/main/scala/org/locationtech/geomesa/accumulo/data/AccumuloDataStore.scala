@@ -9,8 +9,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.util.Collections
-import java.util.concurrent.{ConcurrentHashMap, Executors, ScheduledExecutorService, TimeUnit}
+import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import org.apache.accumulo.core.client._
 import org.apache.accumulo.core.client.admin.TableOperations
@@ -27,7 +26,6 @@ import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
 import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.conf.SchemaProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
@@ -120,27 +118,26 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   override protected def createQueryPlanner(): AccumuloQueryPlannerType = new AccumuloQueryPlanner(this)
 
   override protected def loadIteratorVersions: Set[String] = {
-    if (SchemaProperties.SkipDistributedVersion.toBoolean.contains(true)) { Set.empty } else {
-      val tables = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean])
-      val ops = connector.tableOperations()
-      val versions = getTypeNames.par.map(getSchema).flatMap { sft =>
-        manager.indices(sft).par.flatMap { index =>
-          try {
-            val table = index.getTableName(sft.getTypeName, this)
-            if (tables.add(table) && ops.exists(table)) {
-              WithClose(connector.createScanner(table, new Authorizations())) { scanner =>
-                ProjectVersionIterator.scanProjectVersion(scanner)
-              }
-            } else {
-              Seq.empty
+    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
+
+    // just check the first table available
+    val versions = getTypeNames.iterator.map(getSchema).flatMap { sft =>
+      manager.indices(sft).iterator.flatMap { index =>
+        try {
+          val table = index.getTableName(sft.getTypeName, this)
+          if (connector.tableOperations().exists(table)) {
+            WithClose(connector.createScanner(table, new Authorizations())) { scanner =>
+              ProjectVersionIterator.scanProjectVersion(scanner).iterator
             }
-          } catch {
-            case NonFatal(_) => Seq.empty
+          } else {
+            Iterator.empty
           }
+        } catch {
+          case NonFatal(_) => Iterator.empty
         }
       }
-      versions.seq.toSet
     }
+    versions.headOption.toSet
   }
 
   @throws(classOf[IllegalArgumentException])

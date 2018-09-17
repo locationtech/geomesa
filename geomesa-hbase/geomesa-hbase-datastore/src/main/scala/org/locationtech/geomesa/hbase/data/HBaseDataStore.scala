@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.hbase.data
 
 import java.util.Collections
-import java.util.concurrent.ConcurrentHashMap
 
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
@@ -22,7 +21,6 @@ import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseVersionAggregator
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.index.{HBaseColumnGroups, HBaseFeatureIndex}
-import org.locationtech.geomesa.index.conf.SchemaProperties
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
@@ -112,30 +110,29 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
     new HBaseQueryPlanner(this)
 
   override protected def loadIteratorVersions: Set[String] = {
-    if (SchemaProperties.SkipDistributedVersion.toBoolean.contains(true)) { Set.empty } else {
-      val tables = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean])
-      val admin = connection.getAdmin
-      val versions = getTypeNames.par.map(getSchema).flatMap { sft =>
-        manager.indices(sft).par.flatMap { index =>
-          try {
-            val table = TableName.valueOf(index.getTableName(sft.getTypeName, this))
-            if (tables.add(table.getNameAsString) && admin.tableExists(table)) {
-              val options = HBaseVersionAggregator.configure(sft, index)
-              WithClose(connection.getTable(table)) { t =>
-                WithClose(GeoMesaCoprocessor.execute(t, new Scan().setFilter(new FilterList()), options)) { bytes =>
-                  bytes.map(_.toStringUtf8).toList // force evaluation of the iterator before closing it
-                }
+    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
+
+    // just check the first table available
+    val versions = getTypeNames.iterator.map(getSchema).flatMap { sft =>
+      manager.indices(sft).iterator.flatMap { index =>
+        try {
+          val table = TableName.valueOf(index.getTableName(sft.getTypeName, this))
+          if (connection.getAdmin.tableExists(table)) {
+            val options = HBaseVersionAggregator.configure(sft, index)
+            WithClose(connection.getTable(table)) { t =>
+              WithClose(GeoMesaCoprocessor.execute(t, new Scan().setFilter(new FilterList()), options)) { bytes =>
+                bytes.map(_.toStringUtf8).toList.iterator // force evaluation of the iterator before closing it
               }
-            } else {
-              Seq.empty
             }
-          } catch {
-            case NonFatal(_) => Seq.empty
+          } else {
+            Iterator.empty
           }
+        } catch {
+          case NonFatal(_) => Iterator.empty
         }
       }
-      versions.seq.toSet
     }
+    versions.headOption.toSet
   }
 }
 

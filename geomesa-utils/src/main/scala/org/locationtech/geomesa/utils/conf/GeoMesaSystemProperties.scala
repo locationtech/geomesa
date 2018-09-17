@@ -22,6 +22,8 @@ object GeoMesaSystemProperties extends LazyLogging {
 
     def set(value: String): Unit = System.setProperty(property, value)
 
+    def clear(): Unit = System.clearProperty(property)
+
     def get: String = ConfigLoader.Config.get(property) match {
       case Some((value, true))  => value // final value - can't be overridden
       case Some((value, false)) => fromSysProps.getOrElse(value)
