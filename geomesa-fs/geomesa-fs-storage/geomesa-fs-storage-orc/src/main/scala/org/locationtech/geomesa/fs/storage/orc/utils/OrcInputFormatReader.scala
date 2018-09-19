@@ -35,27 +35,32 @@ object OrcInputFormatReader {
     var col = 0
     while (i < sft.getAttributeCount) {
       val bindings = ObjectType.selectType(sft.getDescriptor(i))
-      val reader = bindings.head match {
-        case ObjectType.GEOMETRY => col += 1; createGeometryReader(bindings(1), col - 1, col, i)
-        case ObjectType.DATE     => new DateInputFormatReader(col, i)
-        case ObjectType.STRING   => new StringInputFormatReader(col, i)
-        case ObjectType.INT      => new IntInputFormatReader(col, i)
-        case ObjectType.LONG     => new LongInputFormatReader(col, i)
-        case ObjectType.FLOAT    => new FloatInputFormatReader(col, i)
-        case ObjectType.DOUBLE   => new DoubleInputFormatReader(col, i)
-        case ObjectType.BOOLEAN  => new BooleanInputFormatReader(col, i)
-        case ObjectType.BYTES    => new BytesInputFormatReader(col, i)
-        case ObjectType.JSON     => new StringInputFormatReader(col, i)
-        case ObjectType.UUID     => new UuidInputFormatReader(col, i)
-        case ObjectType.LIST     => new ListInputFormatReader(col, i, bindings(1))
-        case ObjectType.MAP      => new MapInputFormatReader(col, i, bindings(1), bindings(2))
-        case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
-      }
       if (columns.forall(_.contains(i))) {
+        val reader = bindings.head match {
+          case ObjectType.GEOMETRY => col += 1; createGeometryReader(bindings(1), col - 1, col, i)
+          case ObjectType.DATE     => new DateInputFormatReader(col, i)
+          case ObjectType.STRING   => new StringInputFormatReader(col, i)
+          case ObjectType.INT      => new IntInputFormatReader(col, i)
+          case ObjectType.LONG     => new LongInputFormatReader(col, i)
+          case ObjectType.FLOAT    => new FloatInputFormatReader(col, i)
+          case ObjectType.DOUBLE   => new DoubleInputFormatReader(col, i)
+          case ObjectType.BOOLEAN  => new BooleanInputFormatReader(col, i)
+          case ObjectType.BYTES    => new BytesInputFormatReader(col, i)
+          case ObjectType.JSON     => new StringInputFormatReader(col, i)
+          case ObjectType.UUID     => new UuidInputFormatReader(col, i)
+          case ObjectType.LIST     => new ListInputFormatReader(col, i, bindings(1))
+          case ObjectType.MAP      => new MapInputFormatReader(col, i, bindings(1), bindings(2))
+          case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
+        }
         builder += reader
+        col += 1
+      } else {
+        bindings.head match {
+          case ObjectType.GEOMETRY => col += 2
+          case _                   => col += 1
+        }
       }
       i += 1
-      col += 1
     }
 
     if (fid) {

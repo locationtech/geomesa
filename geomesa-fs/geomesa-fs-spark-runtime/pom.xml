@@ -49,6 +49,7 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>14.0.1</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
@@ -79,10 +80,12 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-common</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-minicluster</artifactId>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
