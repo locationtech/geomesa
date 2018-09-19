@@ -185,7 +185,7 @@ private class SimpleFeatureSpecParser extends BasicParser {
 
   // single sft option
   private def sftOption: Rule1[(String, String)] = rule("FeatureTypeOption") {
-    (oneOrMore(char | ".") ~> { s => s } ~ "=" ~ sftOptionValue) ~~> { (k, v) => (k, v) }
+    (oneOrMore(char | anyOf(".-")) ~> { s => s } ~ "=" ~ sftOptionValue) ~~> { (k, v) => (k, v) }
   }
 
   // value for an sft option
