@@ -34,24 +34,24 @@ object OrcInputFormatReader {
     var i = 0
     var col = 0
     while (i < sft.getAttributeCount) {
+      val bindings = ObjectType.selectType(sft.getDescriptor(i))
+      val reader = bindings.head match {
+        case ObjectType.GEOMETRY => col += 1; createGeometryReader(bindings(1), col - 1, col, i)
+        case ObjectType.DATE     => new DateInputFormatReader(col, i)
+        case ObjectType.STRING   => new StringInputFormatReader(col, i)
+        case ObjectType.INT      => new IntInputFormatReader(col, i)
+        case ObjectType.LONG     => new LongInputFormatReader(col, i)
+        case ObjectType.FLOAT    => new FloatInputFormatReader(col, i)
+        case ObjectType.DOUBLE   => new DoubleInputFormatReader(col, i)
+        case ObjectType.BOOLEAN  => new BooleanInputFormatReader(col, i)
+        case ObjectType.BYTES    => new BytesInputFormatReader(col, i)
+        case ObjectType.JSON     => new StringInputFormatReader(col, i)
+        case ObjectType.UUID     => new UuidInputFormatReader(col, i)
+        case ObjectType.LIST     => new ListInputFormatReader(col, i, bindings(1))
+        case ObjectType.MAP      => new MapInputFormatReader(col, i, bindings(1), bindings(2))
+        case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
+      }
       if (columns.forall(_.contains(i))) {
-        val bindings = ObjectType.selectType(sft.getDescriptor(i))
-        val reader = bindings.head match {
-          case ObjectType.GEOMETRY => col += 1; createGeometryReader(bindings(1), col - 1, col, i)
-          case ObjectType.DATE     => new DateInputFormatReader(col, i)
-          case ObjectType.STRING   => new StringInputFormatReader(col, i)
-          case ObjectType.INT      => new IntInputFormatReader(col, i)
-          case ObjectType.LONG     => new LongInputFormatReader(col, i)
-          case ObjectType.FLOAT    => new FloatInputFormatReader(col, i)
-          case ObjectType.DOUBLE   => new DoubleInputFormatReader(col, i)
-          case ObjectType.BOOLEAN  => new BooleanInputFormatReader(col, i)
-          case ObjectType.BYTES    => new BytesInputFormatReader(col, i)
-          case ObjectType.JSON     => new StringInputFormatReader(col, i)
-          case ObjectType.UUID     => new UuidInputFormatReader(col, i)
-          case ObjectType.LIST     => new ListInputFormatReader(col, i, bindings(1))
-          case ObjectType.MAP      => new MapInputFormatReader(col, i, bindings(1), bindings(2))
-          case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
-        }
         builder += reader
       }
       i += 1
@@ -268,7 +268,7 @@ object OrcInputFormatReader {
             coordinates(i) = new Coordinate(convertUnboxed(xList.get(i)), convertUnboxed(yList.get(i)))
             i += 1
           }
-          lines(j) = gf.createLinearRing(coordinates)
+          lines(j) = gf.createLineString(coordinates)
           j += 1
         }
         sf.setAttribute(attribute, gf.createMultiLineString(lines))
@@ -299,7 +299,7 @@ object OrcInputFormatReader {
         while (k < polygons.length) {
           val xxList = xxxList.get(k)
           val yyList = yyyList.get(k)
-          val lines = Array.ofDim[LineString](xxList.size)
+          val lines = Array.ofDim[LinearRing](xxList.size)
           var j = 0
           while (j < lines.length) {
             val xList = xxList.get(j)
@@ -312,6 +312,11 @@ object OrcInputFormatReader {
             }
             lines(j) = gf.createLinearRing(coordinates)
             j += 1
+          }
+          polygons(k) = if (lines.size == 1) {
+            gf.createPolygon(lines(0))
+          } else {
+            gf.createPolygon(lines(0), lines.tail)
           }
           k += 1
         }
