@@ -19,7 +19,7 @@ import kafka.utils.ZkUtils
 import org.apache.kafka.clients.consumer.{Consumer, KafkaConsumer}
 import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
-import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore, SimpleFeatureWriter}
+import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore}
 import org.geotools.data.{Query, Transaction}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, MetadataBackedDataStore}
@@ -181,7 +181,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     GeoMesaFeatureReader(sft, query, runner, None, config.audit)
   }
 
-  override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): SimpleFeatureWriter = {
+  override def getFeatureWriter(typeName: String, filter: Filter, transaction: Transaction): KafkaFeatureWriter = {
     val sft = getSchema(typeName)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
@@ -189,7 +189,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     new ModifyKafkaFeatureWriter(sft, producer, filter)
   }
 
-  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): SimpleFeatureWriter = {
+  override def getFeatureWriterAppend(typeName: String, transaction: Transaction): KafkaFeatureWriter = {
     val sft = getSchema(typeName)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")

@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.kafka.data
 
+import java.io.Flushable
 import java.util.concurrent.atomic.AtomicLong
 
 import com.typesafe.scalalogging.LazyLogging
@@ -20,12 +21,20 @@ import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{Filter, Id}
 
+trait KafkaFeatureWriter extends SimpleFeatureWriter with Flushable {
+
+  /**
+    * Sends a 'clear' message that will delete any features written so far
+    */
+  def clear(): Unit
+}
+
 object KafkaFeatureWriter {
 
   private val featureIds = new AtomicLong(0)
 
   class AppendKafkaFeatureWriter(sft: SimpleFeatureType, producer: Producer[Array[Byte], Array[Byte]])
-      extends SimpleFeatureWriter with LazyLogging {
+      extends KafkaFeatureWriter with LazyLogging {
 
     protected val topic: String = KafkaDataStore.topic(sft)
 
@@ -51,7 +60,15 @@ object KafkaFeatureWriter {
 
     override def remove(): Unit = throw new NotImplementedError()
 
-    override def close(): Unit = {}
+    override def flush(): Unit = producer.flush()
+
+    override def close(): Unit = producer.flush() // note: the producer is shared, so don't close it
+
+    override def clear(): Unit = {
+      logger.debug(s"Writing clear to $topic")
+      val (key, value) = serializer.serialize(GeoMessage.clear())
+      producer.send(new ProducerRecord(topic, key, value))
+    }
 
     protected def reset(id: String): Unit = {
       feature.setId(id)
@@ -62,12 +79,6 @@ object KafkaFeatureWriter {
       }
       feature.getUserData.clear()
       feature
-    }
-
-    def clear(): Unit = {
-      logger.debug(s"Writing clear to $topic")
-      val (key, value) = serializer.serialize(GeoMessage.clear())
-      producer.send(new ProducerRecord(topic, key, value))
     }
   }
 
