@@ -50,12 +50,21 @@ class OrcFileSystemWriterTest extends Specification {
           val reader = new OrcFileSystemReader(sft, config, None, None)
           val read = WithClose(reader.read(file)) { i => SelfClosingIterator(i).map(ScalaSimpleFeature.copy).toList }
           read mustEqual features
+          // test out not calling 'hasNext'
+          var i = 0
+          WithClose(reader.read(file)) { iter =>
+            while (i < features.size) {
+              iter.next() mustEqual features(i)
+              i += 1
+            }
+            iter.next must throwA[NoSuchElementException]
+          }
         }
       }
     }
   }
 
-  def withTestFile[R](code: (Path) => R): R = {
+  def withTestFile[R](code: Path => R): R = {
     val file = Files.createTempFile("gm-orc-test", "")
     file.toFile.delete()
     try { code(new Path(file.toUri)) } finally {
@@ -63,7 +72,7 @@ class OrcFileSystemWriterTest extends Specification {
     }
   }
 
-  def withPath[R](code: (Path) => R): R = {
+  def withPath[R](code: Path => R): R = {
     val file = Files.createTempDirectory("geomesa").toFile.getPath
     try { code(new Path(file)) } finally {
       FileUtils.deleteDirectory(new File(file))

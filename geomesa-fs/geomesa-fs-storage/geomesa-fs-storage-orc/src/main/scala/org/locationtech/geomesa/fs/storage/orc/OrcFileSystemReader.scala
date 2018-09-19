@@ -48,6 +48,7 @@ class OrcFileSystemReader(sft: SimpleFeatureType,
       sf.setFeature(feature)
       sf
     }
+    private val result = transformed.getOrElse(feature)
 
     private val reader = OrcFile.createReader(file, OrcFile.readerOptions(config))
     private val rows = reader.rows(options)
@@ -70,8 +71,12 @@ class OrcFileSystemReader(sft: SimpleFeatureType,
       * @return
       */
     override def next(): SimpleFeature = {
-      staged = false
-      transformed.getOrElse(feature)
+      if (staged || hasNext) {
+        staged = false
+        result
+      } else {
+        Iterator.empty.next
+      }
     }
 
     override def close(): Unit = rows.close()
