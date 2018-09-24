@@ -46,7 +46,7 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
       val sft = ds.getSchema(query.getTypeName)
 
       val storage = ds.storage(query.getTypeName)
-      val inputPaths = storage.getPartitions(query.getFilter).flatMap(storage.getFilePaths)
+      val inputPaths = storage.getPartitions(query.getFilter).flatMap(p => storage.getFilePaths(p.name))
 
       val rdd = if (inputPaths.isEmpty) { sc.emptyRDD[SimpleFeature] } else {
         // note: file input format requires a job object, but conf gets copied in job object creation,

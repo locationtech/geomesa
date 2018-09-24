@@ -27,7 +27,15 @@ import org.opengis.feature.simple.SimpleFeature
 class FileSystemFeatureIterator(storage: FileSystemStorage, query: Query, readThreads: Int)
     extends java.util.Iterator[SimpleFeature] with Closeable {
 
-  private val partitions = storage.getPartitions(query.getFilter)
+  private val partitions = {
+    val metadata = storage.getPartitions(query.getFilter)
+    val result = new java.util.ArrayList[String](metadata.size())
+    val iter = metadata.iterator()
+    while (iter.hasNext) {
+      result.add(iter.next.name)
+    }
+    result
+  }
 
   private val iter: FileSystemReader =
     if (partitions.isEmpty) {

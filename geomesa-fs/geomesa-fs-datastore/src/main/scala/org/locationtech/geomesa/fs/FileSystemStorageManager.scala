@@ -104,14 +104,17 @@ class FileSystemStorageManager private (fc: FileContext, conf: Configuration, ro
   private def loadPath(path: Path): Option[FileSystemStorage] = {
     import org.locationtech.geomesa.utils.conversions.JavaConverters._
 
-    profile {
+    def complete(storage: Option[FileSystemStorage], time: Long): Unit =
+      logger.debug(s"${ if (storage.isDefined) "Loaded" else "No" } storage at path '$path' in ${time}ms")
+
+    profile(complete _) {
       val loaded = FileSystemStorageFactory.factories().flatMap(_.load(fc, conf, path).asScala.iterator)
       if (!loaded.hasNext) { None } else {
         val storage = loaded.next
         register(path, storage)
         Some(storage)
       }
-    } { (s, time) => logger.debug(s"${ if (s.isDefined) "Loaded" else "No" } storage at path '$path' in ${time}ms") }
+    }
   }
 }
 

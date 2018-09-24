@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import com.vividsolutions.jts.geom.Envelope
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.Query
-import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
@@ -32,17 +31,23 @@ class ConverterStorage(fc: FileContext,
 
   import scala.collection.JavaConverters._
 
-  override def getMetadata: FileMetadata = metadata
+  override def getMetadata: StorageMetadata = metadata
 
-  override def getPartitions: java.util.List[String] = metadata.getPartitions
+  override def getPartitions: java.util.List[PartitionMetadata] = metadata.getPartitions
 
-  override def getPartitions(filter: Filter): java.util.List[String] = {
+  override def getPartitions(filter: Filter): java.util.List[PartitionMetadata] = {
     val all = getPartitions
-    lazy val coveringPartitions = partitionScheme.getPartitions(filter)
-    if (filter == Filter.INCLUDE || coveringPartitions.isEmpty) { all } else { // TODO should this ever happen?
-      val filtered = new java.util.ArrayList(all)
-      filtered.retainAll(coveringPartitions)
-      filtered
+    if (filter == Filter.INCLUDE) { all } else {
+      val coveringPartitions = new java.util.HashSet(metadata.getPartitionScheme.getPartitions(filter))
+      if (!coveringPartitions.isEmpty) {
+        val iter = all.iterator()
+        while (iter.hasNext) {
+          if (!coveringPartitions.contains(iter.next.name)) {
+            iter.remove()
+          }
+        }
+      }
+      all
     }
   }
 
@@ -69,8 +74,6 @@ class ConverterStorage(fc: FileContext,
 
   override def compact(partition: String, threads: Int): Unit =
     throw new UnsupportedOperationException("Converter storage does not support compactions")
-
-  override def updateMetadata(): Unit = metadata.dirty.set(true)
 }
 
 object ConverterStorage {
@@ -80,7 +83,7 @@ object ConverterStorage {
   class ConverterMetadata(fc: FileContext,
                           root: Path,
                           sft: SimpleFeatureType,
-                          scheme: PartitionScheme) extends FileMetadata {
+                          scheme: PartitionScheme) extends StorageMetadata {
 
     import scala.collection.JavaConverters._
 
@@ -96,58 +99,27 @@ object ConverterStorage {
 
     override def getSchema: SimpleFeatureType = sft
 
-    override def getPartitionCount: Int = getPartitions.size()
+    override def getPartition(name: String): PartitionMetadata = {
+      val path = new Path(name)
+      val files = if (!PathCache.exists(fc, path)) { Collections.emptyList[String]() } else {
+        PathCache.list(fc, path).map(_.getPath.getName).toList.asJava
+      }
+      new PartitionMetadata(name, files, -1L, new Envelope())
+    }
 
-    override def getFileCount: Int =
-      getPartitions.asScala.map(p => PathCache.list(fc, new Path(p)).length).sum
+    override def getPartitions: java.util.List[PartitionMetadata] =
+      buildPartitionList(fc, scheme, root, "", 0, dirty.compareAndSet(true, false)).map(getPartition).asJava
 
-    override def getPartitions: java.util.List[String] =
-      buildPartitionList(fc, scheme, root, "", 0, dirty.compareAndSet(true, false)).asJava
-
-    override def getFiles(partition: String): java.util.List[String] =
-      PathCache.list(fc, new Path(partition)).map(_.getPath.getName).toList.asJava
-
-    override def getPartitionFiles: java.util.Map[String, java.util.List[String]] =
-      getPartitions.asScala.map(p => p -> getFiles(p)).toMap.asJava
-
-    override def addFile(partition: String, file: String): Unit =
+    override def addPartition(partition: PartitionMetadata): Unit =
       throw new UnsupportedOperationException("Converter storage does not support updating metadata")
 
-    override def addFiles(partition: String, files: java.util.List[String]): Unit =
+    override def removePartition(partition: PartitionMetadata): Unit =
       throw new UnsupportedOperationException("Converter storage does not support updating metadata")
 
-    override def addFiles(partitionsToFiles: java.util.Map[String, java.util.List[String]]): Unit =
+    override def compact(): Unit =
       throw new UnsupportedOperationException("Converter storage does not support updating metadata")
 
-    override def removeFile(partition: String, file: String): Unit =
-      throw new UnsupportedOperationException("Converter storage does not support updating metadata")
-
-    override def removeFiles(partition: String, file: java.util.List[String]): Unit =
-      throw new UnsupportedOperationException("Converter storage does not support updating metadata")
-
-    override def removeFiles(partitionsToFiles: java.util.Map[String, java.util.List[String]]): Unit =
-      throw new UnsupportedOperationException("Converter storage does not support updating metadata")
-
-    override def replaceFiles(partition: String, files: java.util.List[String], replacement: String): Unit =
-      throw new UnsupportedOperationException("Converter storage does not support updating metadata")
-
-    override def setFiles(partitionsToFiles: java.util.Map[String, java.util.List[String]]): Unit =
-      throw new UnsupportedOperationException("Converter storage does not support updating metadata")
-
-    override def getFeatureCount: Long =
-      throw new UnsupportedOperationException("Converter storage does not support counts")
-
-    override def incrementFeatureCount(count: Long): Unit =
-      throw new UnsupportedOperationException("Converter storage does not support counts")
-
-    override def getEnvelope: ReferencedEnvelope =
-      throw new UnsupportedOperationException("Converter storage does not support bounds")
-
-    override def expandBounds(envelope: Envelope): Unit =
-      throw new UnsupportedOperationException("Converter storage does not support bounds")
-
-    override def persist(): Unit =
-      throw new UnsupportedOperationException("Converter storage does not support persisting metatdata")
+    override def reload(): Unit = dirty.set(true)
   }
 
   private def buildPartitionList(fc: FileContext,

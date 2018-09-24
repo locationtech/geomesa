@@ -23,7 +23,6 @@ import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemWri
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.IncludeFilter
 
 import scala.concurrent.duration.Duration
 
@@ -89,14 +88,27 @@ class FileSystemFeatureStore(val storage: FileSystemStorage,
     }
   }
 
-  override def getBoundsInternal(query: Query): ReferencedEnvelope = storage.getMetadata.getEnvelope
   override def buildFeatureType(): SimpleFeatureType = sft
+
+  override def getBoundsInternal(query: Query): ReferencedEnvelope = {
+    import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelope}
+    val partitions = storage.getPartitions(query.getFilter).iterator
+    if (!partitions.hasNext) { wholeWorldEnvelope } else {
+      val envelope = new ReferencedEnvelope(CRS_EPSG_4326)
+      while (partitions.hasNext) {
+        envelope.expandToInclude(partitions.next.bounds())
+      }
+      envelope
+    }
+  }
+
   override def getCountInternal(query: Query): Int = {
-    if (query == Query.ALL || query.getFilter.isInstanceOf[IncludeFilter]) {
-      storage.getMetadata.getFeatureCount.toInt
-    } else {
-      -1L
-    }.toInt
+    val partitions = storage.getPartitions(query.getFilter).iterator
+    var sum = 0L
+    while (partitions.hasNext) {
+      sum += partitions.next.count()
+    }
+    sum.toInt
   }
 
   override def getReaderInternal(original: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {

@@ -12,21 +12,23 @@ import java.util.concurrent.atomic.AtomicLong
 
 import com.typesafe.scalalogging.LazyLogging
 
-trait MethodProfiling {
+trait MethodProfiling extends LazyLogging {
 
-  def profile[R](code: => R)(implicit onComplete: (R, Long) => Unit): R = {
+  def profile[R](onComplete: Long => Unit)(code: => R): R = {
+    val start = System.currentTimeMillis
+    val result: R = code
+    onComplete(System.currentTimeMillis - start)
+    result
+  }
+
+  def profile[R](onComplete: (R, Long) => Unit)(code: => R): R = {
     val start = System.currentTimeMillis
     val result: R = code
     onComplete(result, System.currentTimeMillis - start)
     result
   }
 
-  def profile[R](timings: Timings, identifier: String)(code: => R): R = {
-    val start = System.currentTimeMillis
-    val result: R = code
-    timings.occurrence(identifier, System.currentTimeMillis - start)
-    result
-  }
+  def profile[R](message: String)(code: => R): R = profile(time => logger.debug(s"$message in ${time}ms"))(code)
 }
 
 /**

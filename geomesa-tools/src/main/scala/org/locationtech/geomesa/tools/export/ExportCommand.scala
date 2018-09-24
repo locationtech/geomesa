@@ -38,10 +38,11 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
   override def params: ExportParams
 
   override def execute(): Unit = {
-    profile(withDataStore(export)) { (count, time) =>
+    def complete(count: Option[Long], time: Long): Unit =
       Command.user.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
           s"in ${time}ms${count.map(" for " + _ + " features").getOrElse("")}")
-    }
+
+    profile(complete _)(withDataStore(export))
   }
 
   protected def export(ds: DS): Option[Long] = {

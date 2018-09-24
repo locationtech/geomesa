@@ -15,14 +15,14 @@ import org.locationtech.geomesa.fs.tools.status.FsGetPartitionsCommand.FsGetPart
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 
 class FsGetPartitionsCommand extends FsDataStoreCommand {
-  override val params = new FsGetPartitionsParams
 
   override val name: String = "get-partitions"
+  override val params = new FsGetPartitionsParams
 
   override def execute(): Unit = withDataStore { ds =>
     import scala.collection.JavaConverters._
     Command.user.info(s"Partitions for type ${params.featureName}:")
-    ds.storage(params.featureName).getMetadata.getPartitions.asScala.sorted.foreach(Command.output.info)
+    ds.storage(params.featureName).getMetadata.getPartitions.asScala.map(_.name).sorted.foreach(Command.output.info)
   }
 }
 

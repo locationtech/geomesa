@@ -17,7 +17,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.common.{FileMetadata, PartitionScheme}
+import org.locationtech.geomesa.fs.storage.common.PartitionScheme
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -43,10 +43,8 @@ class OrcFileSystemWriterTest extends Specification {
     "write and read simple features" in {
 
       withPath { path =>
-        val created = FileMetadata.create(fc, path, sft, encoding, scheme)
-
         withTestFile { file =>
-          WithClose(new OrcFileSystemWriter(sft, config, file, created)) { writer => features.foreach(writer.write) }
+          WithClose(new OrcFileSystemWriter(sft, config, file)) { writer => features.foreach(writer.write) }
           val reader = new OrcFileSystemReader(sft, config, None, None)
           val read = WithClose(reader.read(file)) { i => SelfClosingIterator(i).map(ScalaSimpleFeature.copy).toList }
           read mustEqual features

@@ -1,0 +1,61 @@
+{
+    "encoding" : "orc",
+    "featureType" : {
+        "attributes" : [
+            {
+                "index" : "false",
+                "name" : "fid",
+                "type" : "Integer"
+            },
+            {
+                "index" : "true",
+                "name" : "name",
+                "type" : "String"
+            },
+            {
+                "index" : "false",
+                "name" : "age",
+                "type" : "Integer"
+            },
+            {
+                "default" : "true",
+                "index" : "false",
+                "name" : "lastseen",
+                "type" : "Date"
+            },
+            {
+                "default" : "true",
+                "name" : "geom",
+                "srid" : "4326",
+                "type" : "Point"
+            }
+        ],
+        "type-name" : "example-csv",
+        "user-data" : {
+            "geomesa.fs.encoding" : "orc",
+            "geomesa.fs.partition-scheme.config" : "{\"options\":{\"datetime-format\":\"yyyy/MM/dd\",\"dtg-attribute\":\"lastseen\",\"leaf-storage\":\"true\",\"step\":\"1\",\"step-unit\":\"Days\"},\"scheme\":\"datetime\"}",
+            "geomesa.index.dtg" : "lastseen"
+        }
+    },
+    "partitionScheme" : {
+        "options" : {
+            "datetime-format" : "yyyy/MM/dd",
+            "dtg-attribute" : "lastseen",
+            "leaf-storage" : "true",
+            "step" : "1",
+            "step-unit" : "Days"
+        },
+        "scheme" : "datetime"
+    },
+    "partitions" : {
+        "2015/05/06" : [
+            "06_Wb48cb7293793447480c0885f3f4bb56a.orc"
+        ],
+        "2015/06/07" : [
+            "07_W25d311113f0b4bad819f209f00a58173.orc"
+        ],
+        "2015/10/23" : [
+            "23_Weedeb59bad0d4521b2ae46189eac4a4d.orc"
+        ]
+    }
+}

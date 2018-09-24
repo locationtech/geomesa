@@ -101,10 +101,10 @@ class DataStorePersistence(ds: DataStore,
       if (!persistExpired) {
         logger.trace(s"Persist disabled for $topic")
       } else {
-        implicit def complete(modified: Long, time: Long): Unit =
+        def complete(modified: Long, time: Long): Unit =
           logger.debug(s"Wrote $modified updated feature(s) to persistent storage in ${time}ms")
 
-        profile {
+        profile(complete _) {
           // do an update query first
           val filter = ff.id(toPersist.keys.map(ff.featureId).toSeq: _*)
           WithClose(ds.getFeatureWriter(sft.getTypeName, filter, Transaction.AUTO_COMMIT)) { writer =>
@@ -127,10 +127,10 @@ class DataStorePersistence(ds: DataStore,
 
         // if any weren't updates, add them as inserts
         if (toPersist.nonEmpty) {
-          implicit def complete(appended: Long, time: Long): Unit =
+          def complete(appended: Long, time: Long): Unit =
             logger.debug(s"Wrote $appended new feature(s) to persistent storage in ${time}ms")
 
-          profile {
+          profile(complete _) {
             WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
               var count = 0L
               toPersist.values.foreach { case (offset, updated) =>

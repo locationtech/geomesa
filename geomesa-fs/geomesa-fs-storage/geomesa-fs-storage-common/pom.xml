@@ -13,13 +13,11 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-index-api_${scala.binary.version}</artifactId>
-            <version>${project.version}</version>
+            <artifactId>geomesa-fs-storage-api_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-fs-storage-api_${scala.binary.version}</artifactId>
-            <version>${project.version}</version>
+            <artifactId>geomesa-index-api_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -30,9 +28,24 @@
             <artifactId>geomesa-filter_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-z3_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.pureconfig</groupId>
+            <artifactId>pureconfig_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-data</artifactId>
         </dependency>
+
+        <!-- provided dependencies -->
+
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
@@ -45,18 +58,8 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-mapreduce-client-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-z3_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.github.pureconfig</groupId>
-            <artifactId>pureconfig_2.11</artifactId>
-        </dependency>
+
+        <!-- test dependencies -->
 
         <dependency>
             <groupId>org.specs2</groupId>

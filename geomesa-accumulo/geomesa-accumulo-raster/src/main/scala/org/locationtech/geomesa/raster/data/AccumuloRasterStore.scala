@@ -29,7 +29,6 @@ import org.locationtech.geomesa.raster.iterators.BBOXCombiner._
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geohash.BoundingBox
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, NoOpTimings, Timings, TimingsImpl}
 
 import scala.collection.JavaConversions._
 
@@ -40,7 +39,7 @@ class AccumuloRasterStore(val connector: Connector,
                           writeMemoryConfig: Option[String] = None,
                           writeThreadsConfig: Option[Int] = None,
                           queryThreadsConfig: Option[Int] = None,
-                          collectStats: Boolean = false) extends Closeable with MethodProfiling with LazyLogging {
+                          collectStats: Boolean = false) extends Closeable with LazyLogging {
 
   val writeMemory = writeMemoryConfig.getOrElse("10000").toLong
   val writeThreads = writeThreadsConfig.getOrElse(10)

@@ -24,7 +24,7 @@ class MethodProfilingTest extends Specification {
           "test"
         }
         def exec: String = {
-          profile(timings, "1")(slowMethod())
+          profile(time => timings.occurrence("1", time))(slowMethod())
         }
       }
 

@@ -109,7 +109,7 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
       }
 
       fs.getCount(Query.ALL) mustEqual 20
-      fs.asInstanceOf[FileSystemFeatureStore].storage.getMetadata.getFileCount mustEqual 6
+      fs.asInstanceOf[FileSystemFeatureStore].storage.getMetadata.getPartitions.map(_.files().size).sum mustEqual 6
     }
 
     "Compaction command should run successfully" in {
@@ -131,7 +131,7 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
         feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
         featureHasProperGeometries(feat) mustEqual true
       }
-      fs.asInstanceOf[FileSystemFeatureStore].storage.getMetadata.getFileCount mustEqual 3
+      fs.asInstanceOf[FileSystemFeatureStore].storage.getMetadata.getPartitions.map(_.files().size).sum mustEqual 3
     }
   }
 

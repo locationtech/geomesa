@@ -18,12 +18,6 @@ Once installed, the tools should be available through the command ``geomesa-fs``
 Commands that are common to multiple back ends are described in :doc:`/user/cli/index`. The commands
 here are FileSystem-specific.
 
-General Arguments
------------------
-
-Most commands require you to specify the file system used. This generally includes the root path that the files
-are under. Specify the path with ``--path`` (or ``-p``).
-
 Commands
 --------
 
@@ -35,6 +29,7 @@ Compact one or more filesystem partitions.
 ======================== =========================================================
 Argument                 Description
 ======================== =========================================================
+``-p, --path *``         The filesystem root path used to store data
 ``-f, --feature-name *`` The name of the schema
 ``--partitions``         Partitions to compact (omit to compact all partitions)
 ``--mode``               One of ``local`` or ``distributed`` (to use map/reduce)
@@ -51,6 +46,7 @@ Displays the files for one or more filesystem partitions.
 ======================== =========================================================
 Argument                 Description
 ======================== =========================================================
+``-p, --path *``         The filesystem root path used to store data
 ``-f, --feature-name *`` The name of the schema
 ``--partitions``         Partitions to compact (omit to list all partitions)
 ======================== =========================================================
@@ -63,6 +59,7 @@ Displays the partitions for a given filesystem store.
 ======================== =============================================================
 Argument                 Description
 ======================== =============================================================
+``-p, --path *``         The filesystem root path used to store data
 ``-f, --feature-name *`` The name of the schema
 ======================== =============================================================
 
@@ -79,6 +76,7 @@ All data and metadata will be stored in the filesystem under the hierarchy of th
 ======================== =============================================================
 Argument                 Description
 ======================== =============================================================
+``-p, --path *``         The filesystem root path used to store data
 ``-e, --encoding *``     The encoding used for the underlying files. Implementations are provided for ``parquet`` and ``orc``.
 ``--partition-scheme *`` Common partition scheme name (e.g. daily, z2) or path to a file containing a scheme config
 ``--num-reducers``       Number of reducers to use (required for distributed ingest)
@@ -133,8 +131,50 @@ Note that in our example January 1st and 2nd both do not have all four quadrants
 dataset for that day didn't have any data in that region of the world. If additional data were ingested, the directory
 and a corresponding file would be created.
 
-``update-metadata``
+``manage-metadata``
 ^^^^^^^^^^^^^^^^^^^
 
-Recompute the list of partitions stored within the metadata file in a filesystem datastore. This metadata file
-is used at query time in lieu of performing repeated directory listings.
+This command will compact, add and delete metadata entries in a file system storage instance. It has three
+sub-commands:
+
+* ``compact`` - compact multiple metadata files down to a single file
+* ``register`` - create a new metadata entry for an existing data file
+* ``unregister`` - remove a metadata entry for an existing data file
+
+To invoke the command, use the command name followed by the sub-command, then any arguments. For example::
+
+    $ geomesa manage-metadata compact -p /tmp/geomesa ...
+
+======================== =============================================================
+Argument                 Description
+======================== =============================================================
+``-p, --path *``         The filesystem root path used to store data
+``-f, --feature-name *`` The name of the schema
+======================== =============================================================
+
+``compact``
+^^^^^^^^^^^
+
+The ``compact`` sub-command will rewrite multiple metadata files as a single file. Note that this does
+not change the data files; that is accomplished by the top-level ``compact`` command, as described above.
+
+``register/unregister``
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``register`` and ``unregister`` sub-commands will add or delete metadata associated with a particular file.
+The files must already exist under the appropriate partition path. If new data files are created through some
+external bulk process, then they must be registered using this command before they are queryable.
+
+======================== =============================================================
+Argument                 Description
+======================== =============================================================
+``--partition *``        The name of the partition to modify
+``--files *``            The names of the files being registered. May be specified
+                         multiple times to register multiple files
+``--count``              The number of features in the files being registered. This
+                         is not required, but can be used later for estimating query
+                         sizes
+``--bounds``             Geographic bounds of the data files being registered, in the
+                         form ``xmin,ymin,xmax,ymax``. This is not required, but can
+                         be used later for estimating query bounds
+======================== =============================================================
