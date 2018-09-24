@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.convert
 
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
+
+import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, URLSftProvider}
 import org.mortbay.jetty.handler.AbstractHandler
@@ -110,6 +112,8 @@ class URLConfigProviderTest extends Specification {
         // Should be able to handle bad urls as well as good urls
         System.setProperty(URLConfigProvider.ConverterConfigURLs, s"http://localhost:$port/,http://fakeurl:80/foobar")
         System.setProperty(URLSftProvider.SftConfigURLs, s"http://localhost:$port/,http://fakeurl:80/foobar")
+        // This ensures that the URLConfigProvider's config will re-read
+        ConfigFactory.invalidateCaches()
 
         ConverterConfigLoader.listConverterNames must containAllOf(Seq("example-csv-url", "example-csv-url2"))
         SimpleFeatureTypeLoader.listTypeNames must containAllOf(Seq("example-csv-url", "example-csv-url2"))

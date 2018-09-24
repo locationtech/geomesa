@@ -34,8 +34,8 @@ object OrcInputFormatReader {
     var i = 0
     var col = 0
     while (i < sft.getAttributeCount) {
+      val bindings = ObjectType.selectType(sft.getDescriptor(i))
       if (columns.forall(_.contains(i))) {
-        val bindings = ObjectType.selectType(sft.getDescriptor(i))
         val reader = bindings.head match {
           case ObjectType.GEOMETRY => col += 1; createGeometryReader(bindings(1), col - 1, col, i)
           case ObjectType.DATE     => new DateInputFormatReader(col, i)
@@ -53,9 +53,14 @@ object OrcInputFormatReader {
           case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
         }
         builder += reader
+        col += 1
+      } else {
+        bindings.head match {
+          case ObjectType.GEOMETRY => col += 2
+          case _                   => col += 1
+        }
       }
       i += 1
-      col += 1
     }
 
     if (fid) {
@@ -268,7 +273,7 @@ object OrcInputFormatReader {
             coordinates(i) = new Coordinate(convertUnboxed(xList.get(i)), convertUnboxed(yList.get(i)))
             i += 1
           }
-          lines(j) = gf.createLinearRing(coordinates)
+          lines(j) = gf.createLineString(coordinates)
           j += 1
         }
         sf.setAttribute(attribute, gf.createMultiLineString(lines))
@@ -299,7 +304,7 @@ object OrcInputFormatReader {
         while (k < polygons.length) {
           val xxList = xxxList.get(k)
           val yyList = yyyList.get(k)
-          val lines = Array.ofDim[LineString](xxList.size)
+          val lines = Array.ofDim[LinearRing](xxList.size)
           var j = 0
           while (j < lines.length) {
             val xList = xxList.get(j)
@@ -312,6 +317,11 @@ object OrcInputFormatReader {
             }
             lines(j) = gf.createLinearRing(coordinates)
             j += 1
+          }
+          polygons(k) = if (lines.size == 1) {
+            gf.createPolygon(lines(0))
+          } else {
+            gf.createPolygon(lines(0), lines.tail)
           }
           k += 1
         }

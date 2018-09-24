@@ -89,7 +89,9 @@ object OrcSimpleFeatureInputFormat {
   }
 
   def getReadColumns(conf: Configuration): Option[Set[Int]] =
-    Option(conf.get(ReadColumnsConfig)).map(_.split(",").map(_.toInt).toSet)
+    Option(conf.get(ReadColumnsConfig))
+      .filter(_.nonEmpty)
+      .map(_.split(",").map(_.toInt).toSet)
 
   class OrcSimpleFeatureRecordReader(delegate: RecordReader[NullWritable, OrcStruct], conf: Configuration)
       extends RecordReader[Void, SimpleFeature] {
