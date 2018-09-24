@@ -43,7 +43,22 @@ object OrcSearchArguments {
           Seq.empty
         }
       } else {
-        val category = description.getChildren.get(sft.indexOf(prop)).getCategory
+        val index = sft.indexOf(prop)
+
+        // count any geom fields before the property, they take up two columns
+        val offset = {
+          var i = 0
+          var geoms = 0
+          while (i < index) {
+            if (classOf[Geometry].isAssignableFrom(sft.getDescriptor(i).getType.getBinding)) {
+              geoms += 1
+            }
+            i += 1
+          }
+          geoms
+        }
+
+        val category = description.getChildren.get(index + offset).getCategory
         val typeAndConversion = category match {
           case BOOLEAN   => Some(PredicateLeaf.Type.BOOLEAN, (v: Any) => v)
           case INT       => Some(PredicateLeaf.Type.LONG, (v: Any) => v.asInstanceOf[java.lang.Integer].longValue)

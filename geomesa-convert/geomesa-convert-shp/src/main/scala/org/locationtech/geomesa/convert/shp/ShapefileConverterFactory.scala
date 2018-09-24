@@ -13,15 +13,12 @@ import java.nio.charset.StandardCharsets
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.shapefile.ShapefileDataStore
-import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
 import org.locationtech.geomesa.convert2.AbstractConverterFactory._
-import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.transforms.Expression.Column
-import org.opengis.feature.`type`.GeometryType
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
