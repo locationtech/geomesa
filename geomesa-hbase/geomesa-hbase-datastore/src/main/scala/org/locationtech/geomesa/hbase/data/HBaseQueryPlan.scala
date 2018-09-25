@@ -20,15 +20,32 @@ import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosing
 import org.opengis.feature.simple.SimpleFeature
 
 sealed trait HBaseQueryPlan extends HBaseQueryPlanType {
+
   def filter: HBaseFilterStrategyType
+
+  /**
+    * Table being scanned
+    *
+    * @return
+    */
   def table: TableName
+
+  /**
+    * Ranges being scanned. These may not correspond to the actual scans being executed
+    *
+    * @return
+    */
   def ranges: Seq[Scan]
+
+  /**
+    * Scans to be executed
+    *
+    * @return
+    */
+  def scans: Seq[Scan]
 
   override def explain(explainer: Explainer, prefix: String = ""): Unit =
     HBaseQueryPlan.explain(this, explainer, prefix)
-
-  // used for explaining column families and remote filters
-  protected def sampleScan: Option[Scan]
 
   // additional explaining, if any
   protected def explain(explainer: Explainer): Unit = {}
@@ -41,8 +58,9 @@ object HBaseQueryPlan {
     explainer(s"Table: ${Option(plan.table).orNull}")
     explainer(s"Filter: ${plan.filter.toString}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
-    explainer(s"Column families: ${plan.sampleScan.flatMap(r => Option(r.getFamilies)).getOrElse(Array.empty).map(Bytes.toString).mkString(",")}")
-    explainer(s"Remote filters: ${plan.sampleScan.flatMap(r => Option(r.getFilter)).map(filterToString).getOrElse("none")}")
+    explainer(s"Scans (${plan.scans.size}): ${plan.scans.take(5).map(rangeToString).mkString(", ")}")
+    explainer(s"Column families: ${plan.scans.headOption.flatMap(r => Option(r.getFamilies)).getOrElse(Array.empty).map(Bytes.toString).mkString(",")}")
+    explainer(s"Remote filters: ${plan.scans.headOption.flatMap(r => Option(r.getFilter)).map(filterToString).getOrElse("none")}")
     plan.explain(explainer)
     explainer.popLevel()
   }
@@ -53,7 +71,7 @@ object HBaseQueryPlan {
       val c = 0xff & b
       if (c >= 32 && c <= 126) { c.toChar.toString } else { f"%%$c%02x;" }
     }
-    s"[${range.getStartRow.map(printable).mkString("")},${range.getStopRow.map(printable).mkString("")}]"
+    s"[${range.getStartRow.map(printable).mkString("")}::${range.getStopRow.map(printable).mkString("")}]"
   }
 
   private [data] def filterToString(filter: HFilter): String = {
@@ -69,19 +87,18 @@ object HBaseQueryPlan {
 case class EmptyPlan(filter: HBaseFilterStrategyType) extends HBaseQueryPlan {
   override val table: TableName = null
   override val ranges: Seq[Scan] = Seq.empty
-  override protected val sampleScan: Option[Scan] = None
+  override val scans: Seq[Scan] = Seq.empty
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
 }
 
 case class ScanPlan(filter: HBaseFilterStrategyType,
                     table: TableName,
                     ranges: Seq[Scan],
+                    scans: Seq[Scan],
                     resultsToFeatures: Iterator[Result] => Iterator[SimpleFeature]) extends HBaseQueryPlan {
 
-  override protected val sampleScan: Option[Scan] = ranges.headOption
-
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
-    val results = new HBaseBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000)
+    val results = new HBaseBatchScan(ds.connection, table, scans, ds.config.queryThreads, 100000)
     SelfClosingIterator(resultsToFeatures(results), results.close())
   }
 }
@@ -89,13 +106,13 @@ case class ScanPlan(filter: HBaseFilterStrategyType,
 
 case class CoprocessorPlan(filter: HBaseFilterStrategyType,
                            table: TableName,
-                           ranges: Seq[Scan], // original ranges, for explaining
-                           coprocessorScan: Scan, // single coprocessor scan containing all ranges
-                           coprocessorConfig: CoprocessorConfig) extends HBaseQueryPlan  {
+                           ranges: Seq[Scan],
+                           scan: Scan,
+                           config: CoprocessorConfig) extends HBaseQueryPlan  {
 
   import org.locationtech.geomesa.hbase.coprocessor._
 
-  override protected val sampleScan: Option[Scan] = Some(coprocessorScan)
+  override def scans: Seq[Scan] = Seq(scan)
 
   /**
     * Runs the query plain against the underlying database, returning the raw entries
@@ -105,13 +122,12 @@ case class CoprocessorPlan(filter: HBaseFilterStrategyType,
     */
   override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
     val hbaseTable = ds.connection.getTable(table)
-    val results = GeoMesaCoprocessor.execute(hbaseTable, coprocessorScan, coprocessorConfig.options).collect {
-      case r if r.size() > 0 => coprocessorConfig.bytesToFeatures(r.toByteArray)
+    val results = GeoMesaCoprocessor.execute(hbaseTable, scan, config.options).collect {
+      case r if r.size() > 0 => config.bytesToFeatures(r.toByteArray)
     }
-    coprocessorConfig.reduce(results)
+    config.reduce(results)
   }
 
-  override protected def explain(explainer: Explainer): Unit = {
-    explainer("Coprocessor options: " + coprocessorConfig.options.map(m => s"[${m._1}:${m._2}]").mkString(", "))
-  }
+  override protected def explain(explainer: Explainer): Unit =
+    explainer("Coprocessor options: " + config.options.map(m => s"[${m._1}:${m._2}]").mkString(", "))
 }

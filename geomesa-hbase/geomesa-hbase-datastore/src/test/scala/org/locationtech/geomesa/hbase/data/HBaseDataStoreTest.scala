@@ -250,7 +250,11 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
     }
   }
 
-  def testQuery(ds: HBaseDataStore, typeName: String, filter: String, transforms: Array[String], results: Seq[SimpleFeature]): MatchResult[Any] = {
+  def testQuery(ds: HBaseDataStore,
+                typeName: String,
+                filter: String,
+                transforms: Array[String],
+                results: Seq[SimpleFeature]): MatchResult[Any] = {
     val query = new Query(typeName, ECQL.toFilter(filter), transforms)
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
     val features = SelfClosingIterator(fr).toList
@@ -264,5 +268,12 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
       }
     }
     ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual results.length
+
+    // verify ranges are grouped appropriately to not cross shard boundaries
+    forall(ds.getQueryPlan(query).flatMap(_.scans)) { scan =>
+      if (scan.getStartRow.isEmpty || scan.getStopRow.isEmpty) { ok } else {
+        scan.getStartRow()(0) mustEqual scan.getStopRow()(0)
+      }
+    }
   }
 }

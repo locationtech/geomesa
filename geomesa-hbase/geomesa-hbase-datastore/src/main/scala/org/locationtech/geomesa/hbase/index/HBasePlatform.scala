@@ -31,7 +31,7 @@ trait HBasePlatform extends HBaseIndexAdapter with LazyLogging {
                                                hbaseFilters: Seq[(Int, HFilter)],
                                                coprocessor: Option[CoprocessorConfig],
                                                toFeatures: Iterator[Result] => Iterator[SimpleFeature]): HBaseQueryPlan = {
-    val filterList = hbaseFilters.sortBy(_._1).map(_._2)
+    val filterList = if (hbaseFilters.isEmpty) { None } else { Some(hbaseFilters.sortBy(_._1).map(_._2)) }
     coprocessor match {
       case None =>
         // optimize the scans
@@ -40,7 +40,7 @@ trait HBasePlatform extends HBaseIndexAdapter with LazyLogging {
         } else {
           configureMultiRowRangeFilter(ds, ranges, colFamily, filterList)
         }
-        ScanPlan(filter, table, scans, toFeatures)
+        ScanPlan(filter, table, ranges, scans, toFeatures)
 
       case Some(coprocessorConfig) =>
         val scan = configureCoprocessorScan(ds, ranges, colFamily, filterList)
@@ -51,11 +51,14 @@ trait HBasePlatform extends HBaseIndexAdapter with LazyLogging {
   private def configureSmallScans(ds: HBaseDataStore,
                                   ranges: Seq[Scan],
                                   colFamily: Array[Byte],
-                                  hbaseFilters: Seq[HFilter]): Seq[Scan] = {
-    val filterList = if (hbaseFilters.isEmpty) { None } else { Some(new FilterList(hbaseFilters: _*)) }
+                                  filterList: Option[Seq[HFilter]]): Seq[Scan] = {
+    val filter = filterList.map {
+      case Seq(f)  => f
+      case filters => new FilterList(filters: _*)
+    }
     ranges.foreach { r =>
       r.addColumn(colFamily, HBaseColumnGroups.default)
-      filterList.foreach(r.setFilter)
+      filter.foreach(r.setFilter)
       ds.applySecurity(r)
     }
     ranges
@@ -64,58 +67,79 @@ trait HBasePlatform extends HBaseIndexAdapter with LazyLogging {
   private def configureMultiRowRangeFilter(ds: HBaseDataStore,
                                            originalRanges: Seq[Scan],
                                            colFamily: Array[Byte],
-                                           hbaseFilters: Seq[HFilter]): Seq[Scan] = {
+                                           filterList: Option[Seq[HFilter]]): Seq[Scan] = {
     import scala.collection.JavaConverters._
 
-    val cacheSize = HBaseSystemProperties.ScannerCaching.toInt
     val cacheBlocks = HBaseSystemProperties.ScannerBlockCaching.toBoolean.get // has a default value so .get is safe
+    val cacheSize = HBaseSystemProperties.ScannerCaching.toInt
 
     logger.debug(s"HBase client scanner: block caching: $cacheBlocks, caching: $cacheSize")
 
-    val rowRanges = new java.util.ArrayList[RowRange](originalRanges.length)
-    originalRanges.foreach(r => rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false)))
+    val rowRanges = HBasePlatform.sortAndMerge(originalRanges)
 
-    val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
-    val numRanges = sortedRowRanges.size()
-    val numThreads = ds.config.queryThreads
     // TODO GEOMESA-1806 parameterize this?
-    val rangesPerThread = math.min(ds.config.maxRangesPerExtendedScan, math.max(1, math.ceil(numRanges / numThreads * 2).toInt))
+    val rangesPerThread = math.min(ds.config.maxRangesPerExtendedScan,
+      math.max(1, math.ceil(rowRanges.size() / ds.config.queryThreads * 2).toInt))
 
     // group scans into batches to achieve some client side parallelism
-    val groupedScans = new java.util.ArrayList[Scan](sortedRowRanges.size() / rangesPerThread + 1)
+    // we double the initial size to account for extra groupings based on the shard byte
+    val groupedScans = new java.util.ArrayList[Scan]((rowRanges.size() / rangesPerThread + 1) * 2)
+
+    def addGroup(group: java.util.List[RowRange]): Unit = {
+      val s = new Scan()
+      s.setStartRow(group.get(0).getStartRow)
+      s.setStopRow(group.get(group.size() - 1).getStopRow)
+      if (group.size() > 1) {
+        // TODO GEOMESA-1806
+        // currently, the MultiRowRangeFilter constructor will call sortAndMerge a second time
+        // this is unnecessary as we have already sorted and merged
+        val mrrf = new MultiRowRangeFilter(group)
+        // note: mrrf first priority
+        s.setFilter(filterList.map(f => new FilterList(f.+:(mrrf): _*)).getOrElse(mrrf))
+      } else {
+        filterList.foreach {
+          case Seq(f)  => s.setFilter(f)
+          case filters => s.setFilter(new FilterList(filters: _*))
+        }
+      }
+
+      s.addColumn(colFamily, HBaseColumnGroups.default)
+      s.setCacheBlocks(cacheBlocks)
+      cacheSize.foreach(s.setCaching)
+
+      // apply visibilities
+      ds.applySecurity(s)
+
+      groupedScans.add(s)
+    }
 
     // TODO GEOMESA-1806 align partitions with region boundaries
 
-    var i = 0
-    var start: Int = 0
+    if (!rowRanges.isEmpty) {
+      var i = 1
+      var groupStart = 0
+      var groupCount = 1
+      var groupFirstByte: Byte =
+        if (rowRanges.get(0).getStartRow.isEmpty) { 0 } else { rowRanges.get(0).getStartRow()(0) }
 
-    while (i < sortedRowRanges.size()) {
-      val mod = i % rangesPerThread
-      if (mod == 0) {
-        start = i
+      while (i < rowRanges.size()) {
+        val nextRange = rowRanges.get(i)
+        // add the group if we hit our group size or if we transition the first byte (i.e. our shard byte)
+        if (groupCount == rangesPerThread ||
+            (nextRange.getStartRow.length > 0 && groupFirstByte != nextRange.getStartRow()(0))) {
+          // note: excludes current range we're checking
+          addGroup(rowRanges.subList(groupStart, i))
+          groupFirstByte = if (nextRange.getStopRow.isEmpty) { Byte.MaxValue } else { nextRange.getStopRow()(0) }
+          groupStart = i
+          groupCount = 1
+        } else {
+          groupCount += 1
+        }
+        i += 1
       }
-      if (mod == rangesPerThread - 1 || i == sortedRowRanges.size() - 1) {
-        // TODO GEOMESA-1806
-        // currently, this constructor will call sortAndMerge a second time
-        // this is unnecessary as we have already sorted and merged above
-        val mrrf = new MultiRowRangeFilter(sortedRowRanges.subList(start, i + 1))
-        // note: mrrf first priority
-        val filterList = new FilterList(hbaseFilters.+:(mrrf): _*)
 
-        val s = new Scan()
-        s.setStartRow(sortedRowRanges.get(start).getStartRow)
-        s.setStopRow(sortedRowRanges.get(i).getStopRow)
-        s.setFilter(filterList)
-        s.addColumn(colFamily, HBaseColumnGroups.default)
-        s.setCacheBlocks(cacheBlocks)
-        cacheSize.foreach(s.setCaching)
-
-        // apply visibilities
-        ds.applySecurity(s)
-
-        groupedScans.add(s)
-      }
-      i += 1
+      // add the final group - there will always be at least one remaining range
+      addGroup(rowRanges.subList(groupStart, i))
     }
 
     // shuffle the ranges, otherwise our threads will tend to all hit the same region server at once
@@ -127,19 +151,29 @@ trait HBasePlatform extends HBaseIndexAdapter with LazyLogging {
   private def configureCoprocessorScan(ds: HBaseDataStore,
                                        ranges: Seq[Scan],
                                        colFamily: Array[Byte],
-                                       hbaseFilters: Seq[HFilter]): Scan = {
-    val rowRanges = new java.util.ArrayList[RowRange](ranges.length)
-    ranges.foreach(r => rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false)))
-
-    val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
-    val mrrf = new MultiRowRangeFilter(sortedRowRanges)
-    // note: mrrf first priority
-    val filterList = new FilterList(hbaseFilters.+:(mrrf): _*)
-
+                                       filterList: Option[Seq[HFilter]]): Scan = {
     val scan = new Scan()
     scan.addColumn(colFamily, HBaseColumnGroups.default)
-    scan.setFilter(filterList)
+    // note: mrrf first priority
+    val mrrf = new MultiRowRangeFilter(HBasePlatform.sortAndMerge(ranges))
+    // note: our coprocessors always expect a filter list
+    scan.setFilter(new FilterList(filterList.map(f => f.+:(mrrf)).getOrElse(Seq(mrrf)): _*))
     ds.applySecurity(scan)
     scan
+  }
+}
+
+object HBasePlatform {
+
+  /**
+    * Scala convenience method for org.apache.hadoop.hbase.filter.MultiRowRangeFilter#sortAndMerge(java.util.List)
+    *
+    * @param ranges scan ranges
+    * @return
+    */
+  def sortAndMerge(ranges: Seq[Scan]): java.util.List[RowRange] = {
+    val rowRanges = new java.util.ArrayList[RowRange](ranges.length)
+    ranges.foreach(r => rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false)))
+    MultiRowRangeFilter.sortAndMerge(rowRanges)
   }
 }
