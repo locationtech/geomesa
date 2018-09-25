@@ -22,31 +22,31 @@ public interface FileSystemStorage {
      *
      * @return metadata
      */
-    FileMetadata getMetadata();
+    StorageMetadata getMetadata();
 
     /**
      * Convenience method that delegates to the metadata
      *
-     * @see FileMetadata#getPartitions()
+     * @see StorageMetadata#getPartitions()
      *
      * @return partitions
      */
-    List<String> getPartitions();
+    List<PartitionMetadata> getPartitions();
 
     /**
      * Convenience method that delegates to the partition scheme
      *
-     * @see FileMetadata#getPartitionScheme()
+     * @see StorageMetadata#getPartitionScheme()
      * @see PartitionScheme#getPartitions(org.opengis.filter.Filter)
      *
      * @return partitions
      */
-    List<String> getPartitions(Filter filter);
+    List<PartitionMetadata> getPartitions(Filter filter);
 
     /**
      * Convenience method that delegates to the partition scheme
      *
-     * @see FileMetadata#getPartitionScheme()
+     * @see StorageMetadata#getPartitionScheme()
      * @see PartitionScheme#getPartition(SimpleFeature)
      *
      * @param feature simple feature
@@ -110,13 +110,4 @@ public interface FileSystemStorage {
      * @param threads suggested threads used for reading to-be-compacted data files
      */
     void compact(String partition, int threads);
-
-    /**
-     * Update the metadata for this filesystem - This should leave the metadata in a
-     * consistent and correct state.
-     *
-     * Care should be taken with this method. Currently, there is no guarantee for correct behavior if
-     * multiple threads or storage instances attempt to simultaneously update the metadata.
-     */
-    void updateMetadata();
 }

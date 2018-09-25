@@ -18,6 +18,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.fs.FileSystemDataStore
+import org.locationtech.geomesa.fs.storage.api.PartitionMetadata
 import org.locationtech.geomesa.fs.storage.common.jobs.{PartitionInputFormat, StorageConfiguration}
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcStorageConfiguration
@@ -33,7 +34,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
   def run(dsParams: Map[String, String],
           typeName: String,
-          partitions: Seq[String],
+          partitions: Seq[PartitionMetadata],
           tempPath: Option[Path],
           libjarsFile: String,
           libjarsPaths: Iterator[() => Seq[File]],
@@ -71,7 +72,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
       StorageConfiguration.setSft(job.getConfiguration, sft)
       StorageConfiguration.setPath(job.getConfiguration, root.toUri.toString)
       StorageConfiguration.setEncoding(job.getConfiguration, metadata.getEncoding)
-      StorageConfiguration.setPartitions(job.getConfiguration, partitions.toArray)
+      StorageConfiguration.setPartitions(job.getConfiguration, partitions.map(_.name).toArray)
       StorageConfiguration.setFileType(job.getConfiguration, FileType.Compacted)
 
       FileOutputFormat.setOutputPath(job, qualifiedTempPath.getOrElse(root))
@@ -84,7 +85,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
       // Save the existing files so we can delete them afterwards
       // Be sure to filter this based on the input partitions
-      val existingDataFiles = partitions.flatMap(storage.getFilePaths).toList
+      val existingDataFiles = partitions.map(p => (p, storage.getFilePaths(p.name))).toList
 
       Command.user.info("Submitting job - please wait...")
       job.submit()
@@ -117,14 +118,14 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
         if (copied) {
           Command.user.info("Removing old files")
           val fc = metadata.getFileContext
-          existingDataFiles.foreach(fc.delete(_, false))
-          Command.user.info(s"Removed ${existingDataFiles.size} files")
-
-          Command.user.info("Updating metadata for compaction results")
-          // TODO GEOMESA-2018 We sleep here to allow a chance for S3 to become "consistent" with its storage listings
-          Thread.sleep(5000)
-          storage.updateMetadata()
-          Command.user.info("Metadata Updated")
+          existingDataFiles.foreach { case (partition, files) =>
+            files.foreach(fc.delete(_, false))
+            storage.getMetadata.removePartition(partition)
+            Command.user.info(s"Removed ${files.size} files in partition ${partition.name}")
+          }
+          Command.user.info("Compacting metadata")
+          storage.getMetadata.compact()
+          Command.user.info("Done")
         }
       }
 

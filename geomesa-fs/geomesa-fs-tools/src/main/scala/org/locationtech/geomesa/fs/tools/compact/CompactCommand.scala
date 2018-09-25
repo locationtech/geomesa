@@ -29,9 +29,9 @@ import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
 
-import scala.collection.JavaConversions._
-
 class CompactCommand extends FsDataStoreCommand with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   private val libjarsFileName = "org/locationtech/geomesa/fs/tools/ingest-libjars.list"
 
@@ -47,21 +47,18 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
 
   def compact(ds: FileSystemDataStore): Unit = {
     Command.user.info(s"Beginning Compaction Process...")
-    Command.user.info(s"Updating metadata to ensure consistency")
 
     val storage = ds.storage(params.featureName)
 
-    storage.updateMetadata()
-    Command.user.info(s"Metadata update complete")
+    val allPartitions = storage.getPartitions.asScala
 
-    val allPartitions = storage.getPartitions
-    val toCompact: Seq[String] = if (params.partitions.nonEmpty) {
-      params.partitions.filterNot(allPartitions.contains).headOption.foreach { p =>
-        throw new ParameterException(s"Partition $p cannot be found in metadata")
+    val toCompact = if (params.partitions.isEmpty) { allPartitions } else {
+      val filtered = allPartitions.filterNot(p => params.partitions.contains(p.name))
+      if (filtered.lengthCompare(params.partitions.size()) != 0) {
+        val unmatched = params.partitions.asScala.filterNot(name => allPartitions.exists(_.name == name))
+        throw new ParameterException(s"Partition(s) ${unmatched.mkString(", ")} cannot be found in metadata")
       }
-      params.partitions
-    } else {
-      allPartitions
+      filtered
     }
     Command.user.info(s"Compacting ${toCompact.size} partitions")
 
@@ -75,7 +72,7 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
 
     mode match {
       case RunModes.Local =>
-        toCompact.foreach { p =>
+        toCompact.map(_.name).foreach { p =>
           logger.info(s"Compacting $p")
           storage.compact(p)
         }

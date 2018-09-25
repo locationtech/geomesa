@@ -8,12 +8,9 @@
 
 package org.locationtech.geomesa.fs.tools
 
-import java.io.File
-import java.net.{MalformedURLException, URL}
 import java.util
 
 import com.beust.jcommander.{IValueValidator, Parameter, ParameterException}
-import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
 import org.locationtech.geomesa.fs.FileSystemDataStore
 import org.locationtech.geomesa.fs.FileSystemDataStoreFactory.FileSystemDataStoreParams
 import org.locationtech.geomesa.fs.storage.common.FileSystemStorageFactory
@@ -58,7 +55,7 @@ object FsDataStoreCommand {
   }
 
   trait PartitionParam {
-    @Parameter(names = Array("--partitions"), description = "Partitions (if empty all partitions will be used)", required = false, variableArity = true)
+    @Parameter(names = Array("--partitions"), description = "Partitions to operate on (if empty all partitions will be used)", required = false, variableArity = true)
     var partitions: java.util.List[String] = new util.ArrayList[String]()
   }
 

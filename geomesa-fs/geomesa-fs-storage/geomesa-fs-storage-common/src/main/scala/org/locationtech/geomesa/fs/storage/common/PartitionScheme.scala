@@ -78,7 +78,7 @@ object PartitionScheme {
 
     val schemeName = conf.getString("scheme")
     val optConf = conf.getConfig("options")
-    val opts = conf.getConfig("options").entrySet().map(e => e.getKey -> optConf.getString(e.getKey)).toMap
+    val opts = optConf.entrySet().map(e => e.getKey -> optConf.getString(e.getKey)).toMap
 
     apply(sft, schemeName, opts)
   }

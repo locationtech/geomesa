@@ -12,7 +12,7 @@ import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.fs.tools.compact.CompactCommand
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
 import org.locationtech.geomesa.fs.tools.export.{FsExportCommand, FsPlaybackCommand}
-import org.locationtech.geomesa.fs.tools.ingest.{FsIngestCommand, UpdateMetadataCommand}
+import org.locationtech.geomesa.fs.tools.ingest.{FsIngestCommand, ManageMetadataCommand}
 import org.locationtech.geomesa.fs.tools.stats._
 import org.locationtech.geomesa.fs.tools.status._
 import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
@@ -36,7 +36,7 @@ object FsRunner extends Runner {
     new FsGetSftConfigCommand,
     new GenerateAvroSchemaCommand,
     new ConvertCommand,
-    new UpdateMetadataCommand,
+    new ManageMetadataCommand(this, jc),
     new ClasspathCommand,
     new ConfigureCommand,
     new ScalaConsoleCommand,

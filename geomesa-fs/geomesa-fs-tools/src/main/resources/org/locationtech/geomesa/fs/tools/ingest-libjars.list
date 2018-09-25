@@ -34,5 +34,6 @@ Saxon-HE
 scala
 scalap
 sfcurve
+shapeless
 spatial4j
 stream

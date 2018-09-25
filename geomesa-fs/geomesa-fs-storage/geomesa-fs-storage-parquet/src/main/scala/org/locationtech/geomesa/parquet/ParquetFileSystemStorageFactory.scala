@@ -10,14 +10,14 @@ package org.locationtech.geomesa.parquet
 
 import org.apache.hadoop.conf.Configuration
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
-import org.locationtech.geomesa.fs.storage.common.{FileMetadata, FileSystemStorageFactory}
+import org.locationtech.geomesa.fs.storage.common.{StorageMetadata, FileSystemStorageFactory}
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage.{ParquetCompressionOpt, ParquetEncoding}
 
 class ParquetFileSystemStorageFactory extends FileSystemStorageFactory {
 
   override def getEncoding: String = ParquetEncoding
 
-  override protected def load(conf: Configuration, metadata: FileMetadata): FileSystemStorage = {
+  override protected def load(conf: Configuration, metadata: StorageMetadata): FileSystemStorage = {
     if (conf.get(ParquetCompressionOpt) == null) {
       Option(System.getProperty(ParquetCompressionOpt)).foreach(conf.set(ParquetCompressionOpt, _))
     }

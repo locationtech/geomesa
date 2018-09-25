@@ -17,7 +17,7 @@ import org.apache.hadoop.fs.{FileContext, Path}
 import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemStorageFactory}
-import org.locationtech.geomesa.fs.storage.common.{FileMetadata, PartitionScheme}
+import org.locationtech.geomesa.fs.storage.common.{StorageMetadata, PartitionScheme}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -32,7 +32,7 @@ class ConverterStorageFactory extends FileSystemStorageFactory with LazyLogging 
   override def load(fc: FileContext,
                     conf: Configuration,
                     root: Path): Optional[FileSystemStorage] = {
-    if (Option(conf.get(ConverterPathParam)).exists(_ != root.getName) || FileMetadata.load(fc, root).isDefined) {
+    if (Option(conf.get(ConverterPathParam)).exists(_ != root.getName) || StorageMetadata.load(fc, root).isDefined) {
       Optional.empty()
     } else {
       try {

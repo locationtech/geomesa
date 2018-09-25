@@ -113,10 +113,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
                               output: Explainer): Seq[QueryPlan[DS, F, W]] = {
     import org.locationtech.geomesa.filter.filterToString
 
-    implicit def complete(plans: Seq[QueryPlan[DS, F, W]], time: Long): Unit =
-      output(s"Query planning took ${time}ms")
-
-    profile {
+    profile(time => output(s"Query planning took ${time}ms")) {
       // set hints that we'll need later on, fix the query filter so it meets our expectations going forward
       val query = configureQuery(sft, original)
       optimizeFilter(sft, query)
@@ -140,7 +137,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
 
       var strategyCount = 1
       strategies.map { strategy =>
-        implicit def complete(plan: QueryPlan[DS, F, W], time: Long): Unit = {
+        def complete(plan: QueryPlan[DS, F, W], time: Long): Unit = {
           plan.explain(output)
           output(s"Plan creation took ${time}ms").popLevel()
         }
@@ -148,7 +145,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
         output.pushLevel(s"Strategy $strategyCount of ${strategies.length}: ${strategy.index}")
         strategyCount += 1
         output(s"Strategy filter: $strategy")
-        profile(strategy.index.getQueryPlan(sft, ds, strategy, hints, output))
+        profile(complete _)(strategy.index.getQueryPlan(sft, ds, strategy, hints, output))
       }
     }
   }

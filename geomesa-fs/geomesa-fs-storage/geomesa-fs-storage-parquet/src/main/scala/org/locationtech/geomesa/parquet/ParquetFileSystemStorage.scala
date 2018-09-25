@@ -15,6 +15,7 @@ import org.apache.parquet.filter2.compat.FilterCompat
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.api._
+import org.locationtech.geomesa.fs.storage.common.MetadataFileSystemStorage.WriterCallback
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.{FileSystemPathReader, MetadataFileSystemStorage, MetadataObservingFileSystemWriter}
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage._
@@ -27,23 +28,16 @@ import org.opengis.filter.Filter
   * @param conf conf
   * @param fileMetadata metadata
   */
-class ParquetFileSystemStorage(conf: Configuration, fileMetadata: FileMetadata)
+class ParquetFileSystemStorage(conf: Configuration, fileMetadata: StorageMetadata)
     extends MetadataFileSystemStorage(conf, fileMetadata) {
 
   override protected val extension: String = FileExtension
 
-  override protected def createWriter(sft: SimpleFeatureType, file: Path): FileSystemWriter = {
-    new FileSystemWriter with MetadataObservingFileSystemWriter {
-      def metadata: FileMetadata = fileMetadata
-
-      private val sftConf = new Configuration(conf)
-      StorageConfiguration.setSft(sftConf, sft)
-
-      private val writer = SimpleFeatureParquetWriter.builder(file, sftConf).build()
-
-      override def writeInternal(f: SimpleFeature): Unit = writer.write(f)
-      override def flush(): Unit = {}
-      override def closeInternal(): Unit = CloseQuietly(writer)
+  override protected def createWriter(sft: SimpleFeatureType, file: Path, cb: WriterCallback): FileSystemWriter = {
+    val sftConf = new Configuration(conf)
+    StorageConfiguration.setSft(sftConf, sft)
+    new ParquetFileSystemWriter(sft, file, sftConf) with MetadataObservingFileSystemWriter {
+      override def callback: WriterCallback = cb
     }
   }
 
@@ -84,4 +78,13 @@ object ParquetFileSystemStorage {
   val FileExtension    = "parquet"
 
   val ParquetCompressionOpt = "parquet.compression"
+
+  class ParquetFileSystemWriter(sft: SimpleFeatureType, file: Path, conf: Configuration) extends FileSystemWriter {
+
+    private val writer = SimpleFeatureParquetWriter.builder(file, conf).build()
+
+    override def write(f: SimpleFeature): Unit = writer.write(f)
+    override def flush(): Unit = {}
+    override def close(): Unit = CloseQuietly(writer)
+  }
 }

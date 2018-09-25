@@ -63,24 +63,24 @@ class CompactionTest extends Specification with AllExpectations {
 
       // First simple feature goes in its own file
       write(sf1)
-      fsStorage.getMetadata.getFiles(partition) must haveSize(1)
+      fsStorage.getMetadata.getPartition(partition).files() must haveSize(1)
       SelfClosingIterator(fsStorage.getReader(Seq(partition), Query.ALL)).toList must haveSize(1)
 
       // Second simple feature should be in a separate file
       val sf2 = ScalaSimpleFeature.create(sft, "2", "second", 200, dtg, "POINT (10 10)")
       write(sf2)
-      fsStorage.getMetadata.getFiles(partition) must haveSize(2)
+      fsStorage.getMetadata.getPartition(partition).files() must haveSize(2)
       SelfClosingIterator(fsStorage.getReader(Seq(partition), Query.ALL)).toList must haveSize(2)
 
       // Third feature in a third file
       val sf3 = ScalaSimpleFeature.create(sft, "3", "third", 300, dtg, "POINT (10 10)")
       write(sf3)
-      fsStorage.getMetadata.getFiles(partition) must haveSize(3)
+      fsStorage.getMetadata.getPartition(partition).files() must haveSize(3)
       SelfClosingIterator(fsStorage.getReader(Seq(partition), Query.ALL)).toList must haveSize(3)
 
       // Compact to create a single file
       fsStorage.compact(partition)
-      fsStorage.getMetadata.getFiles(partition) must haveSize(1)
+      fsStorage.getMetadata.getPartition(partition).files() must haveSize(1)
       SelfClosingIterator(fsStorage.getReader(Seq(partition), Query.ALL)).toList must haveSize(3)
     }
   }

@@ -13,7 +13,6 @@ import java.nio.file.Files
 import java.time.temporal.ChronoUnit
 import java.util.Collections
 
-import com.typesafe.config.ConfigFactory
 import org.apache.commons.io.FileUtils
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
@@ -63,7 +62,7 @@ class FileSystemDataStoreTest extends Specification {
           "fs.encoding" -> format,
           "fs.config" -> "parquet.compression=gzip")
 
-        val ds = DataStoreFinder.getDataStore(dsParams)
+        val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
 
         ds.createSchema(sft)
 
@@ -75,22 +74,13 @@ class FileSystemDataStoreTest extends Specification {
         }
 
         // metadata
-        new File(dir, s"$format/metadata.json").exists() must beTrue
+        new File(dir, s"$format/metadata").exists() must beTrue
+        new File(dir, s"$format/metadata").isDirectory must beTrue
 
-        val conf = ConfigFactory.parseFile(new File(dir, s"$format/metadata.json"))
-        conf.hasPath("partitions") must beTrue
-        foreach(Seq("05", "06", "07")) { day =>
-          val name = s"2017/06/$day"
-          val partition = conf.getConfig("partitions").getStringList(name)
-          partition.size() mustEqual 1
-          partition.get(0).matches(s"W[0-9a-f]{32}\\.$format") must beTrue
-
-          // Metadata, schema, and partition file checks
-          new File(dir, s"$format/$name").exists() must beTrue
-          new File(dir, s"$format/$name").isDirectory must beTrue
-          new File(dir, s"$format/$name/${partition.get(0)}").exists() must beTrue
-          new File(dir, s"$format/$name/${partition.get(0)}").isFile must beTrue
-        }
+        val expected = Seq("2017/06/05", "2017/06/06", "2017/06/07")
+        ds.storage(sft.getTypeName).getPartitions must haveLength(3)
+        ds.storage(sft.getTypeName).getPartitions.map(_.name) must containTheSameElementsAs(expected)
+        foreach(expected)(name => new File(dir, s"$format/$name").isDirectory must beTrue)
 
         ds.getTypeNames must have size 1
         val fs = ds.getFeatureSource(format)

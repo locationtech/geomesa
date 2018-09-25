@@ -40,10 +40,11 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
   override val params = new ConvertParameters
 
   override def execute(): Unit = {
-    profile(convertAndExport()) { (count, time) =>
+    def complete(count: Option[Long], time: Long): Unit =
       Command.user.info(s"Conversion complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
           s"in ${time}ms${count.map(c => s" for $c features").getOrElse("")}")
-    }
+
+    profile(complete _)(convertAndExport())
   }
 
   private def convertAndExport(): Option[Long] = {

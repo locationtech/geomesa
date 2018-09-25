@@ -11,14 +11,12 @@ package org.locationtech.geomesa.fs.storage.orc
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch
-import org.apache.orc.{OrcFile, TypeDescription}
-import org.locationtech.geomesa.fs.storage.api.FileMetadata
-import org.locationtech.geomesa.fs.storage.common.MetadataObservingFileSystemWriter
+import org.apache.orc.OrcFile
+import org.locationtech.geomesa.fs.storage.api.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.orc.utils.OrcAttributeWriter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class OrcFileSystemWriter(sft: SimpleFeatureType, config: Configuration, file: Path, val metadata: FileMetadata)
-  extends MetadataObservingFileSystemWriter {
+class OrcFileSystemWriter(sft: SimpleFeatureType, config: Configuration, file: Path) extends FileSystemWriter {
 
   private val schema = OrcFileSystemStorage.createTypeDescription(sft)
 
@@ -29,7 +27,7 @@ class OrcFileSystemWriter(sft: SimpleFeatureType, config: Configuration, file: P
 
   private val attributeWriter = OrcAttributeWriter(sft, batch)
 
-  override def writeInternal(sf: SimpleFeature): Unit = {
+  override def write(sf: SimpleFeature): Unit = {
     attributeWriter.apply(sf, batch.size)
     batch.size += 1
     // If the batch is full, write it out and start over
@@ -46,7 +44,7 @@ class OrcFileSystemWriter(sft: SimpleFeatureType, config: Configuration, file: P
     }
   }
 
-  override def closeInternal(): Unit = {
+  override def close(): Unit = {
     flush()
     writer.close()
   }

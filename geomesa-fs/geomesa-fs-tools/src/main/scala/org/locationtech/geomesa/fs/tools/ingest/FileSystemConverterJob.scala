@@ -139,15 +139,8 @@ trait FileSystemConverterJob extends StorageConfiguration with JobWithLibJars wi
       if (!job.isSuccessful) {
         Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
       } else {
-        val copied = qualifiedTempPath.forall { tp =>
+        qualifiedTempPath.foreach { tp =>
           StorageJobUtils.distCopy(tp, metadata.getRoot, statusCallback, 3, stageCount)
-        }
-        if (copied) {
-          Command.user.info("Updating metadata for ingest results")
-          // We sleep here to allow a chance for S3 to become "consistent" with its storage listings
-          Thread.sleep(5000)
-          storage.updateMetadata()
-          Command.user.info("Metadata Updated")
         }
       }
 

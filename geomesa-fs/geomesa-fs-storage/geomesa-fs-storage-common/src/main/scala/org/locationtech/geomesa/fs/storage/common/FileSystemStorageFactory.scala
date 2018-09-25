@@ -24,7 +24,7 @@ abstract class FileSystemStorageFactory extends org.locationtech.geomesa.fs.stor
                     root: Path): Optional[FileSystemStorage] = {
     import org.locationtech.geomesa.utils.conversions.JavaConverters._
 
-    FileMetadata.load(fc, root) // note: this is a cached operation
+    StorageMetadata.load(fc, root) // note: this is a cached operation
         .filter(_.getEncoding == getEncoding)
         .map(load(conf, _))
         .asJava
@@ -40,10 +40,10 @@ abstract class FileSystemStorageFactory extends org.locationtech.geomesa.fs.stor
     Encodings.getEncoding(sft).filterNot(_.equalsIgnoreCase(getEncoding)).foreach { e =>
       throw new IllegalArgumentException(s"This factory can't create storage with encoding '$e'")
     }
-    load(conf, FileMetadata.create(fc, root, sft, getEncoding, scheme))
+    load(conf, StorageMetadata.create(fc, root, sft, getEncoding, scheme))
   }
 
-  protected def load(conf: Configuration, metadata: FileMetadata): FileSystemStorage
+  protected def load(conf: Configuration, metadata: StorageMetadata): FileSystemStorage
 }
 
 object FileSystemStorageFactory {

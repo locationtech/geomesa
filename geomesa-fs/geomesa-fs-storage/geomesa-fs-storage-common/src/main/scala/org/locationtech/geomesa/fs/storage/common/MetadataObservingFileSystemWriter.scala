@@ -10,44 +10,25 @@ package org.locationtech.geomesa.fs.storage.common
 
 import com.vividsolutions.jts.geom.{Envelope, Geometry}
 import org.locationtech.geomesa.fs.storage.api.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.common.MetadataFileSystemStorage.WriterCallback
 import org.opengis.feature.simple.SimpleFeature
 
 trait MetadataObservingFileSystemWriter extends FileSystemWriter {
-  def metadata: org.locationtech.geomesa.fs.storage.api.FileMetadata
 
-  private var count: Long= 0l
-  private var bounds: Envelope = _
+  def callback: WriterCallback
 
-  override def write(feature: SimpleFeature): Unit = {
+  private var count: Long = 0L
+  private val bounds: Envelope = new Envelope()
+
+  abstract override def write(feature: SimpleFeature): Unit = {
+    super.write(feature)
     // Update internal count/bounds/etc
-    count += 1
-    if (bounds == null) {
-      bounds = feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
-    } else {
-      bounds = {
-        bounds.expandToInclude(feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal)
-        bounds
-      }
-    }
-    writeInternal(feature)
+    count += 1L
+    bounds.expandToInclude(feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal)
   }
 
-  /**
-    * Implementing classes use this method to write SimpleFeatures to disk
-    * @param feature SimpleFeature to write
-    */
-  def writeInternal(feature: SimpleFeature): Unit
-
-  /**
-    * Implementing classes use this method to handle cleaning up writers, etc.
-    */
-  def closeInternal(): Unit
-
-  override def close(): Unit = {
-    // Finalize metadata
-    metadata.incrementFeatureCount(count)
-    metadata.expandBounds(bounds)
-    metadata.persist()
-    closeInternal()
+  abstract override def close(): Unit = {
+    super.close()
+    callback.onClose(count, bounds)
   }
 }

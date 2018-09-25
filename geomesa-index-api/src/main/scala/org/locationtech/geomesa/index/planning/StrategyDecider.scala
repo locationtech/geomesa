@@ -53,8 +53,7 @@ class CostBasedStrategyDecider extends StrategyDecider with MethodProfiling {
        explain: Explainer): FilterPlan[DS, F, W] = {
     val costs = options.map { option =>
       var time = 0L
-      def complete(result: Seq[Long], timing: Long): Unit = time = timing
-      val optionCosts = profile(option.strategies.map(f => f.index.getCost(sft, stats, f, transform)))(complete)
+      val optionCosts = profile(t => time = t)(option.strategies.map(f => f.index.getCost(sft, stats, f, transform)))
       (option, optionCosts.sum, time)
     }.sortBy(_._2)
     explain(s"Costs: ${costs.map(c => s"${c._1} (Cost ${c._2} in ${c._3}ms)").mkString("; ")}")
@@ -100,11 +99,13 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
     val availableIndices = ds.manager.indices(sft, mode = IndexMode.Read)
 
     // get the various options that we could potentially use
-    val options = profile(new FilterSplitter(sft, availableIndices).getQueryOptions(filter, transform)) {
-      (options, time) => explain(s"Query processing took ${time}ms and produced ${options.length} options")
+    var time = 0L
+    val options = profile(t => time = t) {
+      new FilterSplitter(sft, availableIndices).getQueryOptions(filter, transform)
     }
+    explain(s"Query processing took ${time}ms and produced ${options.length} options")
 
-    val selected = profile {
+    val selected = profile(time => explain(s"Strategy selection took ${time}ms for ${options.length} options")) {
       if (requested.isDefined) {
         val forced = {
           val index = requested.get
@@ -136,7 +137,7 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
         explain(s"Filter plans not selected: ${options.filterNot(_.eq(plan)).mkString(", ")}")
         plan
       }
-    } ((_, time) => explain(s"Strategy selection took ${time}ms for ${options.length} options"))
+    }
 
     selected.strategies
   }

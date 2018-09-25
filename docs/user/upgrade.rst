@@ -126,6 +126,19 @@ has been replaced with standard ingest type inference, which works similarly but
 Generally, the previous behavior can be replicated by using type inference to create a converter definition,
 then modifying the converter to set the feature ID to the first column (``$1``).
 
+FileSystem Storage API Changes
+------------------------------
+
+The FileSystem Storage API is still considered beta-level software, and has been updated in this release. The
+DataStore API has not changed, however the internal class interfaces have changed in this release, potentially
+requiring changes in user code.
+
+In addition, the format used to store metadata files has been updated, so older versions of GeoMesa will not be
+able to read metadata created with this version. When accessing older metadata for the first time, GeoMesa will
+update the files to the new format, potentially breaking any old clients still being used.
+
+Finally, the ``update-metadata`` tools command has been replaced with ``manage-metadata``.
+
 Spark Version Update
 --------------------
 

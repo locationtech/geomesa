@@ -70,7 +70,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
 
         logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
 
-        val partitions = storage.getPartitions()
+        val partitions = storage.getPartitions().map(_.name)
         partitions must haveLength(writers.size)
 
         val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
@@ -151,7 +151,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
 
         logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
 
-        val partitions = storage.getPartitions()
+        val partitions = storage.getPartitions().map(_.name)
         partitions must haveLength(writers.size)
 
         val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
