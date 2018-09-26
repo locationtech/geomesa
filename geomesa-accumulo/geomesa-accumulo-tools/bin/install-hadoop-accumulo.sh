@@ -16,8 +16,13 @@ hadoop_version="%%hadoop.version.recommended%%"
 zookeeper_version="%%zookeeper.version.recommended%%"
 thrift_version="%%thrift.version%%"
 
-# this version required for hadoop 2.8, earlier hadoop versions use 3.1.0-incubating
-htrace_core_version="4.1.0-incubating"
+# accumulo up to 1.9.2 are using this
+# it's possible hadoop uses it too ... def 2.7.x does
+htrace3_core_version="3.1.0-incubating"
+
+# this version required for hadoop 2.8 and older but has separate package names
+# so we install it should be safe.
+htrace4_core_version="4.1.0-incubating"
 
 # for hadoop 2.5 and 2.6 to work we need these
 guava_version="11.0.2"
@@ -50,14 +55,9 @@ declare -a urls=(
   "${base_url}org/apache/hadoop/hadoop-hdfs/${hadoop_version}/hadoop-hdfs-${hadoop_version}.jar"
   "${base_url}commons-logging/commons-logging/${com_log_version}/commons-logging-${com_log_version}.jar"
   "${base_url}org/apache/commons/commons-vfs2/${commons_vfs2_version}/commons-vfs2-${commons_vfs2_version}.jar"
+  "${base_url}org/apache/htrace/htrace-core/${htrace3_core_version}/htrace-core-${htrace3_core_version}.jar"
+  "${base_url}org/apache/htrace/htrace-core4/${htrace4_core_version}/htrace-core4-${htrace4_core_version}.jar"
 )
-
-# compare the first digit of htrace core version to determine the artifact name
-if [[ "${htrace_core_version%%.*}" -lt 4 ]]; then
-  urls+=("${base_url}org/apache/htrace/htrace-core/${htrace_core_version}/htrace-core-${htrace_core_version}.jar")
-else
-  urls+=("${base_url}org/apache/htrace/htrace-core4/${htrace_core_version}/htrace-core4-${htrace_core_version}.jar")
-fi
 
 # if there's already a guava jar (e.g. geoserver) don't install guava to avoid conflicts
 if [ -z "$(find $install_dir -maxdepth 1 -name 'guava-*' -print -quit)" ]; then
