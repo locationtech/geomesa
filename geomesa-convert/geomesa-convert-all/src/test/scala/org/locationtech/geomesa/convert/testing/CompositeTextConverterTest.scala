@@ -115,13 +115,9 @@ class CompositeTextConverterTest extends Specification with LazyLogging {
     "call next without hasNext" in {
       val converter = SimpleFeatureConverter(sft, "comp1")
       converter must not(beNull)
-
-      // TODO enable this once GEOMESA-2397 is done
-      val first = converter.process(new ByteArrayInputStream("3 5050".getBytes)).next
-      first.getID must be equalTo "50.050.0"
-
-      1 mustEqual 1
-    }.pendingUntilFixed("GEOMESA-2397")
+      val iter = converter.process(new ByteArrayInputStream("3 5050".getBytes))
+      iter.next.getID mustEqual "50.050.0"
+    }
 
     "be built using old api" in {
       import org.locationtech.geomesa.convert.SimpleFeatureConverters
