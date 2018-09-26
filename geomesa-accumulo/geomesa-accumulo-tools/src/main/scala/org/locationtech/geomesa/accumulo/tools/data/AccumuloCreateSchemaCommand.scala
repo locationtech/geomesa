@@ -10,12 +10,16 @@ package org.locationtech.geomesa.accumulo.tools.data
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.tools.data.AccumuloCreateSchemaCommand.AccumuloCreateSchemaParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
-import org.locationtech.geomesa.tools.data.{CreateSchemaCommand, CreateSchemaParams}
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
 
 class AccumuloCreateSchemaCommand extends CreateSchemaCommand[AccumuloDataStore] with AccumuloDataStoreCommand {
   override val params = new AccumuloCreateSchemaParams()
 }
 
-@Parameters(commandDescription = "Create a GeoMesa feature type")
-class AccumuloCreateSchemaParams extends CreateSchemaParams with AccumuloDataStoreParams
+object AccumuloCreateSchemaCommand {
+  @Parameters(commandDescription = "Create a GeoMesa feature type")
+  class AccumuloCreateSchemaParams extends CreateSchemaParams with AccumuloDataStoreParams
+}
