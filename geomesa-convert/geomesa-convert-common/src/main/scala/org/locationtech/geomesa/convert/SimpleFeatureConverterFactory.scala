@@ -234,9 +234,13 @@ object SimpleFeatureConverter {
     */
   def addDependencies(field: Field, fieldMap: Map[String, Field], dag: Dag): Unit = {
     if (!dag.contains(field)) {
-      val deps = Option(field.transform).toSeq.flatMap(_.dependenciesOf(Set(field), fieldMap)).toSet
-      dag.put(field, deps)
-      deps.foreach(addDependencies(_, fieldMap, dag))
+      val queue = scala.collection.mutable.Queue(field)
+      while (queue.nonEmpty) {
+        val next = queue.dequeue()
+        val deps = Option(next.transform).toSeq.flatMap(_.dependenciesOf(Set(next), fieldMap))
+        dag.put(next,deps.toSet)
+        queue.enqueue(deps.filterNot(dag.contains): _*)
+      }
     }
   }
 

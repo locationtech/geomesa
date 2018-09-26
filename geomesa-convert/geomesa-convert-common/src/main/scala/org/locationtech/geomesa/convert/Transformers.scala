@@ -11,6 +11,7 @@ package org.locationtech.geomesa.convert
 import java.nio.charset.StandardCharsets
 import java.util.{Date, ServiceLoader, UUID}
 
+import com.google.common.cache.{CacheBuilder, CacheLoader}
 import com.google.common.hash.Hashing
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
@@ -43,54 +44,64 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
   val GTEQ = "GTEq"
   val NEQ  = "NEq"
 
-  object TransformerParser {
+  // Parser isn't thread-safe
+  private val LocalTransformerParser = new ThreadLocal[TransformerParser] {
+    override def initialValue() = new TransformerParser()
+  }
+
+  private class TransformerParser {
     private val OPEN_PAREN  = "("
     private val CLOSE_PAREN = ")"
 
-    def decimal     = """-?\d*\.\d+""".r
-    def string      = quotedString         ^^ { s => LitString(s)            }
-    def int         = wholeNumber          ^^ { i => LitInt(i.toInt)         }
-    def double      = decimal <~ "[dD]?".r ^^ { d => LitDouble(d.toDouble)   }
-    def long        = wholeNumber <~ "L"   ^^ { l => LitLong(l.toLong)       }
-    def float       = decimal <~ "[fF]".r  ^^ { l => LitFloat(l.toFloat)     }
-    def boolean     = "false|true".r       ^^ { l => LitBoolean(l.toBoolean) }
-    def nulls       = "null"               ^^ { _ => LitNull                 }
+    val decimal     = """-?\d*\.\d+""".r
+    val string      = quotedString         ^^ { s => LitString(s)            }
+    val int         = wholeNumber          ^^ { i => LitInt(i.toInt)         }
+    val double      = decimal <~ "[dD]?".r ^^ { d => LitDouble(d.toDouble)   }
+    val long        = wholeNumber <~ "L"   ^^ { l => LitLong(l.toLong)       }
+    val float       = decimal <~ "[fF]".r  ^^ { l => LitFloat(l.toFloat)     }
+    val boolean     = "false|true".r       ^^ { l => LitBoolean(l.toBoolean) }
+    val nulls       = "null"               ^^ { _ => LitNull                 }
 
-    def lit         = string | float | double | long | int | boolean | nulls // order is important - most to least specific
+    val lit         = string | float | double | long | int | boolean | nulls // order is important - most to least specific
 
-    def wholeRecord = "$0"                   ^^ { _ => WholeRecord                  }
-    def regexExpr   = string <~ "::r"        ^^ { case LitString(s) => RegexExpr(s) }
-    def column      = "$" ~> "[1-9][0-9]*".r ^^ { i => Col(i.toInt)                 }
-
-    def cast2int     = expr <~ "::int" ~ "(eger)?".r ^^ { e => Cast2Int(e)     }
-    def cast2long    = expr <~ "::long"              ^^ { e => Cast2Long(e)    }
-    def cast2float   = expr <~ "::float"             ^^ { e => Cast2Float(e)   }
-    def cast2double  = expr <~ "::double"            ^^ { e => Cast2Double(e)  }
-    def cast2boolean = expr <~ "::bool" ~ "(ean)?".r ^^ { e => Cast2Boolean(e) }
-    def cast2string  = expr <~ "::string"            ^^ { e => Cast2String(e)  }
-
-    def fieldLookup = "$" ~> ident                   ^^ { i => FieldLookup(i)  }
-    def noNsfnName  = ident                          ^^ { n => LitString(n)    }
-    def nsFnName    = ident ~ ":" ~ ident            ^^ { case ns ~ ":" ~ n => LitString(s"$ns:$n") }
-    def fnName      = nsFnName | noNsfnName
-    def tryFn       = ("try" ~ OPEN_PAREN) ~> (argument ~ "," ~ argument) <~ CLOSE_PAREN ^^ {
+    val wholeRecord = "$0"                   ^^ { _ => WholeRecord                  }
+    val regexExpr   = string <~ "::r"        ^^ { case LitString(s) => RegexExpr(s) }
+    val column      = "$" ~> "[1-9][0-9]*".r ^^ { i => Col(i.toInt)                 }
+    val fieldLookup = "$" ~> ident                   ^^ { i => FieldLookup(i)  }
+    val noNsfnName  = ident                          ^^ { n => LitString(n)    }
+    val nsFnName    = ident ~ ":" ~ ident            ^^ { case ns ~ ":" ~ n => LitString(s"$ns:$n") }
+    val fnName      = nsFnName | noNsfnName
+    val tryFn       = ("try" ~ OPEN_PAREN) ~> (argument ~ "," ~ argument) <~ CLOSE_PAREN ^^ {
       case arg ~ ","  ~ fallback => TryFunctionExpr(arg, fallback)
     }
-    def fn          = (fnName <~ OPEN_PAREN) ~ (repsep(argument, ",") <~ CLOSE_PAREN) ^^ {
+    val fn          = (fnName <~ OPEN_PAREN) ~ (repsep(argument, ",") <~ CLOSE_PAREN) ^^ {
       case LitString(name) ~ e => FunctionExpr(functionMap(name).getInstance, e.toArray)
     }
-    def strEq       = ("strEq" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
+    val expr = tryFn | fn | wholeRecord | regexExpr | fieldLookup | column | lit
+
+    val cast2int     = expr <~ "::int" ~ "(eger)?".r ^^ { e => Cast2Int(e)     }
+    val cast2long    = expr <~ "::long"              ^^ { e => Cast2Long(e)    }
+    val cast2float   = expr <~ "::float"             ^^ { e => Cast2Float(e)   }
+    val cast2double  = expr <~ "::double"            ^^ { e => Cast2Double(e)  }
+    val cast2boolean = expr <~ "::bool" ~ "(ean)?".r ^^ { e => Cast2Boolean(e) }
+    val cast2string  = expr <~ "::string"            ^^ { e => Cast2String(e)  }
+
+    val transformExpr: Parser[Expr] = cast2double | cast2int | cast2boolean | cast2float | cast2long | cast2string | expr
+    val strEq       = ("strEq" ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
       case l ~ "," ~ r => strBinOps(EQ)(l, r)
     }
-    def numericPredicate[I](fn: String, predBuilder: (Expr, Expr) => BinaryPredicate[I])       =
-      (fn ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
-        case l ~ "," ~ r => predBuilder(l, r)
-      }
 
-    def getBinPreds[T](t: String, bops: Map[String, ExprToBinPred[T]]) =
-      bops.map{case (n, op) => numericPredicate(t+n, op) }.reduce(_ | _)
-
-    def binaryPred =
+    val andPred     = ("and" ~ OPEN_PAREN) ~> (pred ~ "," ~ pred) <~ CLOSE_PAREN ^^ {
+      case l ~ "," ~ r => And(l, r)
+    }
+    val orPred      = ("or" ~ OPEN_PAREN) ~> (pred ~ "," ~ pred) <~ CLOSE_PAREN ^^ {
+      case l ~ "," ~ r => Or(l, r)
+    }
+    val notPred     = ("not" ~ OPEN_PAREN) ~> pred <~ CLOSE_PAREN ^^ {
+      pred => Not(pred)
+    }
+    val logicPred = andPred | orPred | notPred
+    val binaryPred =
       strEq |
       getBinPreds("int",     intBinOps)    |
       getBinPreds("integer", intBinOps)    |
@@ -100,20 +111,18 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
       getBinPreds("bool",    boolBinOps)   |
       getBinPreds("boolean", boolBinOps)
 
-    def andPred     = ("and" ~ OPEN_PAREN) ~> (pred ~ "," ~ pred) <~ CLOSE_PAREN ^^ {
-      case l ~ "," ~ r => And(l, r)
-    }
-    def orPred      = ("or" ~ OPEN_PAREN) ~> (pred ~ "," ~ pred) <~ CLOSE_PAREN ^^ {
-      case l ~ "," ~ r => Or(l, r)
-    }
-    def notPred     = ("not" ~ OPEN_PAREN) ~> pred <~ CLOSE_PAREN ^^ {
-      pred => Not(pred)
-    }
-    def logicPred = andPred | orPred | notPred
-    def pred: Parser[Predicate] = binaryPred | logicPred
-    def expr = tryFn | fn | wholeRecord | regexExpr | fieldLookup | column | lit
-    def transformExpr: Parser[Expr] = cast2double | cast2int | cast2boolean | cast2float | cast2long | cast2string | expr
-    def argument = transformExpr | string
+    lazy val pred: Parser[Predicate] = binaryPred | logicPred
+
+    val argument = transformExpr | string
+
+    private def numericPredicate[I](fn: String, predBuilder: (Expr, Expr) => BinaryPredicate[I])       =
+      (fn ~ OPEN_PAREN) ~> (transformExpr ~ "," ~ transformExpr) <~ CLOSE_PAREN ^^ {
+        case l ~ "," ~ r => predBuilder(l, r)
+      }
+
+    private def getBinPreds[T](t: String, bops: Map[String, ExprToBinPred[T]]) =
+      bops.map{case (n, op) => numericPredicate(t+n, op) }.reduce(_ | _)
+
   }
 
   sealed trait Expr {
@@ -127,6 +136,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
       * @return dependencies
       */
     def dependenciesOf(stack: Set[Field], fieldNameMap: Map[String, Field]): Set[Field]
+    def deepCopy(): Expr = this
   }
 
   sealed trait Lit[T <: Any] extends Expr {
@@ -161,6 +171,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
         case any: Any       => any.toString.toInt
       }
     override def toString: String = s"$e::int"
+    override def deepCopy() = this.copy(e.deepCopy())
   }
   case class Cast2Long(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Long =
@@ -172,6 +183,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
         case any: Any       => any.toString.toLong
       }
     override def toString: String = s"$e::long"
+    override def deepCopy() = this.copy(e.deepCopy())
   }
   case class Cast2Float(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Float =
@@ -183,6 +195,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
         case any: Any       => any.toString.toFloat
       }
     override def toString: String = s"$e::float"
+    override def deepCopy() = this.copy(e.deepCopy())
   }
   case class Cast2Double(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Double =
@@ -194,16 +207,19 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
         case any: Any       => any.toString.toDouble
       }
     override def toString: String = s"$e::double"
+    override def deepCopy() = this.copy(e.deepCopy())
   }
   case class Cast2Boolean(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       e.eval(args).asInstanceOf[String].toBoolean
     override def toString: String = s"$e::boolean"
+    override def deepCopy() = this.copy(e.deepCopy())
   }
   case class Cast2String(e: Expr) extends CastExpr {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       e.eval(args).toString
     override def toString: String = s"$e::string"
+    override def deepCopy() = this.copy(e.deepCopy())
   }
 
   case object WholeRecord extends Expr {
@@ -241,6 +257,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
     }
 
     override def toString: String = s"$$$n"
+    override def deepCopy() = this.copy()
   }
 
   case class RegexExpr(s: String) extends Expr {
@@ -248,6 +265,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = compiled
     override def dependenciesOf(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] = Set.empty
     override def toString: String = s"$s::r"
+    override def deepCopy() = this.copy()
   }
 
   case class FunctionExpr(f: TransformerFn, arguments: Array[Expr]) extends Expr {
@@ -256,6 +274,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
     override def dependenciesOf(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       arguments.flatMap(_.dependenciesOf(stack, fieldMap)).toSet
     override def toString: String = s"${f.names.head}${arguments.mkString("(", ",", ")")}"
+    override def deepCopy() = this.copy(f, arguments.map(_.deepCopy()))
   }
 
   case class TryFunctionExpr(toTry: Expr, fallback: Expr) extends Expr {
@@ -265,6 +284,7 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
     override def dependenciesOf(stack: Set[Field], fieldMap: Map[String, Field]): Set[Field] =
       toTry.dependenciesOf(stack, fieldMap) ++ fallback.dependenciesOf(stack, fieldMap)
     override def toString: String = s"try($toTry,$fallback)"
+    override def deepCopy() = this.copy(toTry.deepCopy(), fallback.deepCopy())
   }
 
   sealed trait Predicate {
@@ -342,18 +362,24 @@ object Transformers extends EnhancedTokenParsers with LazyLogging {
   val And = buildBinaryLogicPredicate(_ && _)
   val Or  = buildBinaryLogicPredicate(_ || _)
 
+  private val exprCache = CacheBuilder.newBuilder().build(new CacheLoader[String, Expr] {
+    override def load(s: String): Expr = {
+      parse(LocalTransformerParser.get.transformExpr, s) match {
+        case Success(r, _) => r
+        case Failure(e, _) => throw new IllegalArgumentException(s"Error parsing expression '$s': $e"); null
+        case Error(e, _)   => throw new RuntimeException(s"Error parsing expression '$s': $e"); null
+      }
+    }
+  })
+
   def parseTransform(s: String): Expr = {
     logger.trace(s"Parsing transform $s")
-    parse(TransformerParser.transformExpr, s) match {
-      case Success(r, _) => r
-      case Failure(e, _) => throw new IllegalArgumentException(s"Error parsing expression '$s': $e")
-      case Error(e, _)   => throw new RuntimeException(s"Error parsing expression '$s': $e")
-    }
+    exprCache.get(s).deepCopy()
   }
 
   def parsePred(s: String): Predicate = {
     logger.trace(s"Parsing predicate $s")
-    parse(TransformerParser.pred, s) match {
+    parse(LocalTransformerParser.get.pred, s) match {
       case Success(p, _) => p
       case Failure(e, _) => throw new IllegalArgumentException(s"Error parsing predicate '$s': $e")
       case Error(e, _)   => throw new RuntimeException(s"Error parsing predicate '$s': $e")
