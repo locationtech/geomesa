@@ -49,7 +49,7 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>14.0.1</version>
-            <scope>test</scope>
+            <!--<scope>test</scope>-->
         </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
@@ -147,6 +147,7 @@
                                     <pattern>org.apache.parquet</pattern>
                                     <shadedPattern>org.locationtech.geomesa.fs.shaded.org.apache.parquet</shadedPattern>
                                 </relocation>
+<!--
                                 <relocation>
                                     <pattern>org.apache.hadoop.hive</pattern>
                                     <shadedPattern>org.locationtech.geomesa.fs.shaded.org.apache.hadoop.hive</shadedPattern>
@@ -155,6 +156,7 @@
                                     <pattern>org.apache.hive</pattern>
                                     <shadedPattern>org.locationtech.geomesa.fs.shaded.org.apache.hive</shadedPattern>
                                 </relocation>
+-->
                             </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
