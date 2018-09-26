@@ -2048,11 +2048,13 @@
                         <artifactId>jol-core</artifactId>
                     </exclusion>
                 </exclusions>
+                <classifier>nohive</classifier>
             </dependency>
             <dependency>
                 <groupId>org.apache.orc</groupId>
                 <artifactId>orc-mapreduce</artifactId>
                 <version>${orc.version}</version>
+                <classifier>nohive</classifier>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>

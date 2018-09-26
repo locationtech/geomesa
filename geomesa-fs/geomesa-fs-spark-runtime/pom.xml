@@ -19,6 +19,11 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-datastore_${scala.binary.version}</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0.1</version>
+        </dependency>
 
         <!-- only needed for packaging into the shaded jar -->
         <dependency>
@@ -45,12 +50,6 @@
         </dependency>
 
         <!-- test dependencies -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>14.0.1</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.specs2</groupId>
             <artifactId>specs2-core_${scala.binary.version}</artifactId>
@@ -146,14 +145,6 @@
                                 <relocation>
                                     <pattern>org.apache.parquet</pattern>
                                     <shadedPattern>org.locationtech.geomesa.fs.shaded.org.apache.parquet</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.apache.hadoop.hive</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.fs.shaded.org.apache.hadoop.hive</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.apache.hive</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.fs.shaded.org.apache.hive</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
