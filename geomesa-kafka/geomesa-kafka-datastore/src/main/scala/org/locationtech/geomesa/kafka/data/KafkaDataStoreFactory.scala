@@ -17,9 +17,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.{EventTimeConfig, IndexConfig, KafkaDataStoreConfig, TopicConfig}
-import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams.{Brokers, IndexTiers, ZkPath, Zookeepers}
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -48,27 +47,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   override def getDescription: String = KafkaDataStoreFactory.Description
 
   // note: we don't return producer configs, as they would not be used in geoserver
-  override def getParametersInfo: Array[Param] =
-    Array(
-      Brokers,
-      Zookeepers,
-      ZkPath,
-      ConsumerCount,
-      ConsumerConfig,
-      CacheExpiry,
-      EventTime,
-      CqEngineIndices,
-      IndexResolutionX,
-      IndexResolutionY,
-      IndexTiers,
-      EventTimeOrdering,
-      LazyFeatures,
-      ConsumeEarliest,
-      AuditQueries,
-      LooseBBox,
-      Authorizations,
-      NamespaceParam
-    )
+  override def getParametersInfo: Array[Param] = KafkaDataStoreFactory.ParameterInfo :+ NamespaceParam
 
   override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
     KafkaDataStoreFactory.canProcess(params)
@@ -78,17 +57,39 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
 }
 
-object KafkaDataStoreFactory extends LazyLogging {
+object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  val DisplayName = "Kafka (GeoMesa)"
-  val Description = "Apache Kafka\u2122 distributed log"
-
   val DefaultZkPath: String = "geomesa/ds/kafka"
 
-  def canProcess(params: java.util.Map[String, Serializable]): Boolean =
-    Brokers.exists(params) && Zookeepers.exists(params)
+  override val DisplayName = "Kafka (GeoMesa)"
+  override val Description = "Apache Kafka\u2122 distributed log"
+
+  // note: these are consumer-oriented and don't include producer configs
+  override val ParameterInfo: Array[GeoMesaParam[_]] =
+    Array(
+      KafkaDataStoreFactoryParams.Brokers,
+      KafkaDataStoreFactoryParams.Zookeepers,
+      KafkaDataStoreFactoryParams.ZkPath,
+      KafkaDataStoreFactoryParams.ConsumerCount,
+      KafkaDataStoreFactoryParams.ConsumerConfig,
+      KafkaDataStoreFactoryParams.CacheExpiry,
+      KafkaDataStoreFactoryParams.EventTime,
+      KafkaDataStoreFactoryParams.CqEngineIndices,
+      KafkaDataStoreFactoryParams.IndexResolutionX,
+      KafkaDataStoreFactoryParams.IndexResolutionY,
+      KafkaDataStoreFactoryParams.IndexTiers,
+      KafkaDataStoreFactoryParams.EventTimeOrdering,
+      KafkaDataStoreFactoryParams.LazyFeatures,
+      KafkaDataStoreFactoryParams.ConsumeEarliest,
+      KafkaDataStoreFactoryParams.AuditQueries,
+      KafkaDataStoreFactoryParams.LooseBBox,
+      KafkaDataStoreFactoryParams.Authorizations
+    )
+
+  override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
+    KafkaDataStoreFactoryParams.Brokers.exists(params) && KafkaDataStoreFactoryParams.Zookeepers.exists(params)
 
   def buildConfig(params: java.util.Map[String, Serializable]): KafkaDataStoreConfig = {
     import KafkaDataStoreFactoryParams._
@@ -192,7 +193,7 @@ object KafkaDataStoreFactory extends LazyLogging {
       }
     }
 
-    IndexTiers.lookupOpt(params).flatMap(parse).getOrElse(SizeSeparatedBucketIndex.DefaultTiers)
+    KafkaDataStoreFactoryParams.IndexTiers.lookupOpt(params).flatMap(parse).getOrElse(SizeSeparatedBucketIndex.DefaultTiers)
   }
 
   /**
@@ -202,7 +203,7 @@ object KafkaDataStoreFactory extends LazyLogging {
     * @return
     */
   private [data] def createZkNamespace(params: java.util.Map[String, Serializable]): String = {
-    ZkPath.lookupOpt(params)
+    KafkaDataStoreFactoryParams.ZkPath.lookupOpt(params)
         .map(_.trim)
         .filterNot(_.isEmpty)
         .map(p => if (p.startsWith("/")) { p.substring(1).trim } else { p })  // leading '/'

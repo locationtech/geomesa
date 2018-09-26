@@ -19,13 +19,14 @@ import com.google.common.collect.ImmutableMap
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.CassandraDataStoreConfig
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreParams}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import scala.util.control.NonFatal
 
 class CassandraDataStoreFactory extends DataStoreFactorySpi {
+
   import CassandraDataStoreFactory.Params._
 
   // this is a pass-through required of the ancestor interface
@@ -97,39 +98,42 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     new CassandraDataStore(session, cfg)
   }
 
+  override def isAvailable = true
+
   override def getDisplayName: String = CassandraDataStoreFactory.DisplayName
 
   override def getDescription: String = CassandraDataStoreFactory.Description
 
   override def getParametersInfo: Array[Param] =
-    Array(
-      ContactPointParam,
-      KeySpaceParam,
-      CatalogParam,
-      UserNameParam,
-      PasswordParam,
-      GenerateStatsParam,
-      AuditQueriesParam,
-      LooseBBoxParam,
-      CachingParam,
-      QueryThreadsParam,
-      QueryTimeoutParam,
-      NamespaceParam,
-      DeprecatedGeoServerPasswordParam
-    )
+    CassandraDataStoreFactory.ParameterInfo ++ Array(NamespaceParam, DeprecatedGeoServerPasswordParam)
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean = KeySpaceParam.exists(params)
-
-  override def isAvailable = true
+  override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+    CassandraDataStoreFactory.canProcess(params)
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
-
 }
 
-object CassandraDataStoreFactory {
+object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
 
-  val DisplayName = "Cassandra (GeoMesa)"
-  val Description = "Apache Cassandra\u2122 distributed key/value store"
+  override val DisplayName = "Cassandra (GeoMesa)"
+  override val Description = "Apache Cassandra\u2122 distributed key/value store"
+
+  override val ParameterInfo: Array[GeoMesaParam[_]] =
+    Array(
+      Params.ContactPointParam,
+      Params.KeySpaceParam,
+      Params.CatalogParam,
+      Params.UserNameParam,
+      Params.PasswordParam,
+      Params.GenerateStatsParam,
+      Params.AuditQueriesParam,
+      Params.LooseBBoxParam,
+      Params.CachingParam,
+      Params.QueryThreadsParam,
+      Params.QueryTimeoutParam
+    )
+
+  override def canProcess(params: java.util.Map[String,Serializable]): Boolean = Params.KeySpaceParam.exists(params)
 
   object Params extends GeoMesaDataStoreParams {
 

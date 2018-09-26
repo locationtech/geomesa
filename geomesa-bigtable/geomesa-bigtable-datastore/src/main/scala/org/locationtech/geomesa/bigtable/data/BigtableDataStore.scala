@@ -18,6 +18,7 @@ import org.locationtech.geomesa.hbase.HBaseIndexManagerType
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.hbase.data._
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 class BigtableDataStore(connection: Connection, config: HBaseDataStoreConfig)
@@ -46,7 +47,17 @@ class BigtableDataStoreFactory extends HBaseDataStoreFactory {
   override def canProcess(params: java.util.Map[java.lang.String,java.io.Serializable]): Boolean =
     BigtableDataStoreFactory.canProcess(params)
 
-  override def getParametersInfo: Array[Param] =
+  override def getParametersInfo: Array[Param] = BigtableDataStoreFactory.ParameterInfo :+ NamespaceParam
+}
+
+object BigtableDataStoreFactory extends GeoMesaDataStoreInfo {
+
+  val BigtableCatalogParam = new GeoMesaParam[String]("bigtable.catalog", "Catalog table name", optional = false, deprecatedKeys = Seq("bigtable.table.name"))
+
+  override val DisplayName = "Google Bigtable (GeoMesa)"
+  override val Description = "Google Bigtable\u2122 distributed key/value store"
+
+  override val ParameterInfo: Array[GeoMesaParam[_]] =
     Array(
       BigtableCatalogParam,
       QueryThreadsParam,
@@ -56,17 +67,9 @@ class BigtableDataStoreFactory extends HBaseDataStoreFactory {
       LooseBBoxParam,
       CachingParam
     )
-}
-
-object BigtableDataStoreFactory {
-
-  val DisplayName = "Google Bigtable (GeoMesa)"
-  val Description = "Google Bigtable\u2122 distributed key/value store"
-
-  val BigtableCatalogParam = new GeoMesaParam[String]("bigtable.catalog", "Catalog table name", optional = false, deprecatedKeys = Seq("bigtable.table.name"))
 
   // verify that the hbase-site.xml exists and contains the appropriate bigtable keys
-  def canProcess(params: java.util.Map[java.lang.String,java.io.Serializable]): Boolean = {
+  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean = {
     BigtableCatalogParam.exists(params) &&
       Option(HBaseConfiguration.create().get(HBaseDataStoreFactory.BigTableParamCheck)).exists(_.trim.nonEmpty)
   }

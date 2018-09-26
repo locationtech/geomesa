@@ -16,7 +16,7 @@ import java.util.Properties
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreFactory, AccumuloDataStoreParams}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, ZookeeperOffsetManager}
@@ -64,52 +64,57 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
 
   override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
 
-  override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
-    AccumuloDataStoreFactory.canProcess(LambdaDataStoreFactory.filter(params)) &&
-        Seq(ExpiryParam, Kafka.BrokersParam, Kafka.ZookeepersParam).forall(_.exists(params))
-
-  override def getParametersInfo: Array[Param] = Array(
-    Accumulo.InstanceParam,
-    Accumulo.ZookeepersParam,
-    Accumulo.CatalogParam,
-    Accumulo.UserParam,
-    Accumulo.PasswordParam,
-    Accumulo.KeytabParam,
-    Kafka.BrokersParam,
-    Kafka.ZookeepersParam,
-    ExpiryParam,
-    PersistParam,
-    AuthsParam,
-    ForceEmptyAuthsParam,
-    QueryTimeoutParam,
-    QueryThreadsParam,
-    Accumulo.RecordThreadsParam,
-    Accumulo.WriteThreadsParam,
-    Kafka.PartitionsParam,
-    Kafka.ConsumersParam,
-    Kafka.ProducerOptsParam,
-    Kafka.ConsumerOptsParam,
-    VisibilitiesParam,
-    LooseBBoxParam,
-    GenerateStatsParam,
-    AuditQueriesParam,
-    NamespaceParam
-  )
+  override def isAvailable: Boolean = true
 
   override def getDisplayName: String = LambdaDataStoreFactory.DisplayName
 
   override def getDescription: String = LambdaDataStoreFactory.Description
 
-  override def isAvailable: Boolean = true
+  override def getParametersInfo: Array[Param] = LambdaDataStoreFactory.ParameterInfo :+ NamespaceParam
+
+  override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
+    LambdaDataStoreFactory.canProcess(params)
 
   override def getImplementationHints: java.util.Map[Key, _] = java.util.Collections.emptyMap()
 }
 
-object LambdaDataStoreFactory {
+object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
 
-  private val DisplayName = "Kafka/Accumulo Lambda (GeoMesa)"
+  override val DisplayName = "Kafka/Accumulo Lambda (GeoMesa)"
 
-  private val Description = "Hybrid store using Kafka for recent events and Accumulo for long-term storage"
+  override val Description = "Hybrid store using Kafka for recent events and Accumulo for long-term storage"
+
+  override val ParameterInfo: Array[GeoMesaParam[_]] =
+    Array(
+      Params.Accumulo.InstanceParam,
+      Params.Accumulo.ZookeepersParam,
+      Params.Accumulo.CatalogParam,
+      Params.Accumulo.UserParam,
+      Params.Accumulo.PasswordParam,
+      Params.Accumulo.KeytabParam,
+      Params.Kafka.BrokersParam,
+      Params.Kafka.ZookeepersParam,
+      Params.ExpiryParam,
+      Params.PersistParam,
+      Params.AuthsParam,
+      Params.ForceEmptyAuthsParam,
+      Params.QueryTimeoutParam,
+      Params.QueryThreadsParam,
+      Params.Accumulo.RecordThreadsParam,
+      Params.Accumulo.WriteThreadsParam,
+      Params.Kafka.PartitionsParam,
+      Params.Kafka.ConsumersParam,
+      Params.Kafka.ProducerOptsParam,
+      Params.Kafka.ConsumerOptsParam,
+      Params.VisibilitiesParam,
+      Params.LooseBBoxParam,
+      Params.GenerateStatsParam,
+      Params.AuditQueriesParam
+    )
+
+  override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
+    AccumuloDataStoreFactory.canProcess(LambdaDataStoreFactory.filter(params)) &&
+        Seq(Params.ExpiryParam, Params.Kafka.BrokersParam, Params.Kafka.ZookeepersParam).forall(_.exists(params))
 
   object Params extends GeoMesaDataStoreParams with SecurityParams {
 
