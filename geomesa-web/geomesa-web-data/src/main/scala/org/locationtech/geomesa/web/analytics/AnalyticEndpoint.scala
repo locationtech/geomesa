@@ -18,7 +18,7 @@ import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.web.core.GeoMesaDataStoreServlet
 import org.scalatra.BadRequest
-import org.scalatra.json.NativeJsonSupport
+import org.scalatra.json.JacksonJsonSupport
 
 import scala.io.Source
 import scala.xml.Elem
@@ -26,7 +26,7 @@ import scala.xml.Elem
 /**
  * Rest endpoint to access geomesa analytics
  */
-class AnalyticEndpoint(val persistence: FilePersistence) extends GeoMesaDataStoreServlet with NativeJsonSupport {
+class AnalyticEndpoint(val persistence: FilePersistence) extends GeoMesaDataStoreServlet with JacksonJsonSupport {
 
   import AnalyticEndpoint._
   override protected implicit def jsonFormats: Formats = DefaultFormats
