@@ -15,7 +15,8 @@ import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand.KuduParams
 import org.locationtech.geomesa.kudu.tools.data.KuduCreateSchemaCommand.KuduCreateSchemaParams
 import org.locationtech.geomesa.kudu.utils.ColumnConfiguration
-import org.locationtech.geomesa.tools.data.{CreateSchemaCommand, CreateSchemaParams}
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal

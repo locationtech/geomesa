@@ -13,7 +13,8 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, ToggleRemoteFilterParam}
 import org.locationtech.geomesa.hbase.tools.data.HBaseCreateSchemaCommand.HBaseCreateSchemaParams
-import org.locationtech.geomesa.tools.data.{CreateSchemaCommand, CreateSchemaParams}
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
 import org.opengis.feature.simple.SimpleFeatureType
 
 class HBaseCreateSchemaCommand extends CreateSchemaCommand[HBaseDataStore] with HBaseDataStoreCommand {

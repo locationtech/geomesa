@@ -10,12 +10,16 @@ package org.locationtech.geomesa.lambda.tools.data
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
+import org.locationtech.geomesa.lambda.tools.data.LambdaCreateSchemaCommand.LambdaCreateSchemaParams
 import org.locationtech.geomesa.lambda.tools.{LambdaDataStoreCommand, LambdaDataStoreParams}
-import org.locationtech.geomesa.tools.data.{CreateSchemaCommand, CreateSchemaParams}
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
 
 class LambdaCreateSchemaCommand extends CreateSchemaCommand[LambdaDataStore] with LambdaDataStoreCommand {
   override val params = new LambdaCreateSchemaParams()
 }
 
-@Parameters(commandDescription = "Create a GeoMesa feature type")
-class LambdaCreateSchemaParams extends CreateSchemaParams with LambdaDataStoreParams
+object LambdaCreateSchemaCommand {
+  @Parameters(commandDescription = "Create a GeoMesa feature type")
+  class LambdaCreateSchemaParams extends CreateSchemaParams with LambdaDataStoreParams
+}

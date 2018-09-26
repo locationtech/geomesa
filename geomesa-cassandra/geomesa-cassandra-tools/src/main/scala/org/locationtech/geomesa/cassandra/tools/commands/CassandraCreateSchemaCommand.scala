@@ -13,7 +13,8 @@ import org.locationtech.geomesa.cassandra.data.CassandraDataStore
 import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand
 import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand.CassandraDataStoreParams
 import org.locationtech.geomesa.cassandra.tools.commands.CassandraCreateSchemaCommand.CassandraCreateSchemaParams
-import org.locationtech.geomesa.tools.data.{CreateSchemaCommand, CreateSchemaParams}
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
 
 class CassandraCreateSchemaCommand extends CreateSchemaCommand[CassandraDataStore] with CassandraDataStoreCommand {
   override val params = new CassandraCreateSchemaParams

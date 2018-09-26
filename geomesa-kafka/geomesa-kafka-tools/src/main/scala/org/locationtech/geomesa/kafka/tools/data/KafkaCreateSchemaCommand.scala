@@ -12,7 +12,8 @@ import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.tools.data.KafkaCreateSchemaCommand.KafkaCreateSchemaParams
 import org.locationtech.geomesa.kafka.tools.{KafkaDataStoreCommand, StatusDataStoreParams}
-import org.locationtech.geomesa.tools.data.{CreateSchemaCommand, CreateSchemaParams}
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
 
 class KafkaCreateSchemaCommand extends CreateSchemaCommand[KafkaDataStore] with KafkaDataStoreCommand {
   override val params = new KafkaCreateSchemaParams()

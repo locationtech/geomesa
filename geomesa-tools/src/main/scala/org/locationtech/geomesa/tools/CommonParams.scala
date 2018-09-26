@@ -121,11 +121,6 @@ trait RequiredAttributesParam extends AttributesParam {
   var attributes: java.util.List[String] = _
 }
 
-trait OptionalSharedTablesParam {
-  @Parameter(names = Array("--use-shared-tables"), description = "Use shared tables for feature storage (true/false)", arity = 1)
-  var useSharedTables: Boolean = true //default to true in line with datastore
-}
-
 trait OptionalForceParam {
   @Parameter(names = Array("--force"), description = "Force execution without prompt")
   var force: Boolean = false

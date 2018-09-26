@@ -16,7 +16,8 @@ import org.locationtech.geomesa.fs.storage.common.{Encodings, PartitionScheme}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{EncodingParam, FsParams, SchemeParams}
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand.FsCreateSchemaParams
-import org.locationtech.geomesa.tools.data.{CreateSchemaCommand, CreateSchemaParams}
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand
+import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
 import org.opengis.feature.simple.SimpleFeatureType
 
 class FsCreateSchemaCommand extends CreateSchemaCommand[FileSystemDataStore] with FsDataStoreCommand {
