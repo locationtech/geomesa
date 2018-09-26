@@ -22,7 +22,7 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreParams}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityParams}
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
@@ -86,11 +86,34 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
   // overridden by BigtableFactory
   protected def validateConnection: Boolean = true
 
+  override def isAvailable = true
+
   override def getDisplayName: String = HBaseDataStoreFactory.DisplayName
 
   override def getDescription: String = HBaseDataStoreFactory.Description
 
-  override def getParametersInfo: Array[Param] =
+  override def getParametersInfo: Array[Param] = HBaseDataStoreFactory.ParameterInfo :+ NamespaceParam
+
+  override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+    HBaseDataStoreFactory.canProcess(params)
+
+  override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
+}
+
+object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
+
+  import HBaseDataStoreParams._
+
+  val HBaseGeoMesaPrincipal = "hbase.geomesa.principal"
+  val HBaseGeoMesaKeyTab    = "hbase.geomesa.keytab"
+
+  val RemoteFilterProperty = SystemProperty("geomesa.hbase.remote.filtering", "true")
+  val ConfigPathProperty   = SystemProperty("geomesa.hbase.config.paths")
+
+  override val DisplayName = "HBase (GeoMesa)"
+  override val Description = "Apache HBase\u2122 distributed key/value store"
+
+  override val ParameterInfo: Array[GeoMesaParam[_]] =
     Array(
       HBaseCatalogParam,
       ZookeeperParam,
@@ -105,32 +128,16 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       CachingParam,
       EnableSecurityParam,
       AuthsParam,
-      ForceEmptyAuthsParam,
-      NamespaceParam
+      ForceEmptyAuthsParam
     )
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
-    HBaseDataStoreFactory.canProcess(params)
-
-  override def isAvailable = true
-
-  override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
-}
-
-object HBaseDataStoreFactory extends LazyLogging {
-
-  import HBaseDataStoreParams._
-
-  val DisplayName = "HBase (GeoMesa)"
-  val Description = "Apache HBase\u2122 distributed key/value store"
-
-  val HBaseGeoMesaPrincipal = "hbase.geomesa.principal"
-  val HBaseGeoMesaKeyTab    = "hbase.geomesa.keytab"
-
-  val RemoteFilterProperty = SystemProperty("geomesa.hbase.remote.filtering", "true")
-  val ConfigPathProperty   = SystemProperty("geomesa.hbase.config.paths")
-
   private [geomesa] val BigTableParamCheck = "google.bigtable.instance.id"
+
+  // check that the hbase-site.xml does not have bigtable keys
+  override def canProcess(params: java.util.Map[java.lang.String,Serializable]): Boolean = {
+    HBaseCatalogParam.exists(params) &&
+        Option(HBaseConfiguration.create().get(BigTableParamCheck)).forall(_.trim.isEmpty)
+  }
 
   case class HBaseDataStoreConfig(catalog: String,
                                   remoteFilter: Boolean,
@@ -144,12 +151,6 @@ object HBaseDataStoreFactory extends LazyLogging {
                                   authProvider: Option[AuthorizationsProvider],
                                   coprocessorUrl: Option[Path],
                                   namespace: Option[String]) extends GeoMesaDataStoreConfig
-
-  // check that the hbase-site.xml does not have bigtable keys
-  def canProcess(params: java.util.Map[java.lang.String,Serializable]): Boolean = {
-    HBaseCatalogParam.exists(params) &&
-      Option(HBaseConfiguration.create().get(BigTableParamCheck)).forall(_.trim.isEmpty)
-  }
 
   def buildAuthsProvider(connection: Connection, params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
     val forceEmptyOpt: Option[java.lang.Boolean] = ForceEmptyAuthsParam.lookupOpt(params)

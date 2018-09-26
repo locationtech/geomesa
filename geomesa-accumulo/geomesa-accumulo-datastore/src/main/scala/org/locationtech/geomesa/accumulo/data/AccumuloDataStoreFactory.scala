@@ -53,11 +53,29 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     ds
   }
 
+  override def isAvailable = true
+
   override def getDisplayName: String = AccumuloDataStoreFactory.DISPLAY_NAME
 
   override def getDescription: String = AccumuloDataStoreFactory.DESCRIPTION
 
   override def getParametersInfo: Array[Param] =
+    AccumuloDataStoreFactory.ParameterInfo ++ Array(NamespaceParam, DeprecatedGeoServerPasswordParam)
+
+  override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+    AccumuloDataStoreFactory.canProcess(params)
+
+  override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
+}
+
+object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
+
+  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
+
+  override val DisplayName = "Accumulo (GeoMesa)"
+  override val Description = "Apache Accumulo\u2122 distributed key/value store"
+
+  override val ParameterInfo: Array[GeoMesaParam[_]] =
     Array(
       InstanceIdParam,
       ZookeepersParam,
@@ -75,24 +93,22 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
       GenerateStatsParam,
       AuditQueriesParam,
       CachingParam,
-      ForceEmptyAuthsParam,
-      NamespaceParam,
-      DeprecatedGeoServerPasswordParam
+      ForceEmptyAuthsParam
     )
 
-  def canProcess(params: JMap[String,Serializable]): Boolean = AccumuloDataStoreFactory.canProcess(params)
+  @deprecated("Use DisplayName")
+  val DISPLAY_NAME: String = DisplayName
+  @deprecated("Use Description")
+  val DESCRIPTION: String = Description
 
-  override def isAvailable = true
-
-  override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
-}
-
-object AccumuloDataStoreFactory {
-
-  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
-
-  val DISPLAY_NAME = "Accumulo (GeoMesa)"
-  val DESCRIPTION = "Apache Accumulo\u2122 distributed key/value store"
+  override def canProcess(params: java.util.Map[String, Serializable]): Boolean = {
+    val hasConnector = ConnectorParam.lookupOpt(params).isDefined
+    def hasConnection = InstanceIdParam.exists(params) && ZookeepersParam.exists(params) && UserParam.exists(params)
+    def hasMock = InstanceIdParam.exists(params) && UserParam.exists(params) && MockParam.lookupOpt(params).contains(java.lang.Boolean.TRUE)
+    def hasPassword = PasswordParam.exists(params) && !KeytabPathParam.exists(params)
+    def hasKeytab = !PasswordParam.exists(params) && KeytabPathParam.exists(params) && isKerberosAvailable
+    hasConnector || ((hasConnection || hasMock) && (hasPassword || hasKeytab))
+  }
 
   def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): Connector = {
     val instance = InstanceIdParam.lookup(params)
@@ -224,15 +240,6 @@ object AccumuloDataStoreFactory {
   // Note: doesn't confirm whether correctly configured for Kerberos e.g. core-site.xml on CLASSPATH
   def isKerberosAvailable: Boolean =
     AccumuloVersion.accumuloVersion != AccumuloVersion.V15 && AccumuloVersion.accumuloVersion != AccumuloVersion.V16
-
-  def canProcess(params: JMap[String,Serializable]): Boolean = {
-    val hasConnector = ConnectorParam.lookupOpt(params).isDefined
-    def hasConnection = InstanceIdParam.exists(params) && ZookeepersParam.exists(params) && UserParam.exists(params)
-    def hasMock = InstanceIdParam.exists(params) && UserParam.exists(params) && MockParam.lookupOpt(params).contains(java.lang.Boolean.TRUE)
-    def hasPassword = PasswordParam.exists(params) && !KeytabPathParam.exists(params)
-    def hasKeytab = !PasswordParam.exists(params) && KeytabPathParam.exists(params) && isKerberosAvailable
-    hasConnector || ((hasConnection || hasMock) && (hasPassword || hasKeytab))
-  }
 }
 
 // keep params in a separate object so we don't require accumulo classes on the build path to access it

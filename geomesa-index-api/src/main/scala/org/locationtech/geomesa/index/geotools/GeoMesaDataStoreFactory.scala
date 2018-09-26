@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.geotools
 
+import java.io.Serializable
 import java.util.concurrent.TimeUnit
 
 import org.locationtech.geomesa.index.conf.{QueryProperties, StatsProperties}
@@ -22,8 +23,8 @@ object GeoMesaDataStoreFactory {
   private val GenerateStatsSysParam = SystemPropertyBooleanParam(StatsProperties.GenerateStats)
   private val TimeoutSysParam = SystemPropertyDurationParam(QueryProperties.QueryTimeout)
 
-  private val DeprecatedTimeout = ConvertedParam[Duration, java.lang.Long]("queryTimeout", (v) => Duration(v, TimeUnit.SECONDS))
-  private val DeprecatedAccumuloTimeout = ConvertedParam[Duration, java.lang.Long]("accumulo.queryTimeout", (v) => Duration(v, TimeUnit.SECONDS))
+  private val DeprecatedTimeout = ConvertedParam[Duration, java.lang.Long]("queryTimeout", v => Duration(v, TimeUnit.SECONDS))
+  private val DeprecatedAccumuloTimeout = ConvertedParam[Duration, java.lang.Long]("accumulo.queryTimeout", v => Duration(v, TimeUnit.SECONDS))
 
   val QueryThreadsParam  = new GeoMesaParam[Integer]("geomesa.query.threads", "The number of threads to use per query", default = Int.box(8), deprecatedKeys = Seq("queryThreads", "accumulo.queryThreads"))
   val QueryTimeoutParam  = new GeoMesaParam[Duration]("geomesa.query.timeout", "The max time a query will be allowed to run before being killed, e.g. '60 seconds'", deprecatedParams = Seq(DeprecatedTimeout, DeprecatedAccumuloTimeout), systemProperty = Some(TimeoutSysParam))
@@ -66,5 +67,12 @@ object GeoMesaDataStoreFactory {
 
     val LooseBBoxParam =
       if (looseBBoxDefault) { GeoMesaDataStoreFactory.LooseBBoxParam } else { GeoMesaDataStoreFactory.StrictBBoxParam }
+  }
+
+  trait GeoMesaDataStoreInfo {
+    def DisplayName: String
+    def Description: String
+    def ParameterInfo: Array[GeoMesaParam[_]]
+    def canProcess(params: java.util.Map[String,Serializable]): Boolean
   }
 }

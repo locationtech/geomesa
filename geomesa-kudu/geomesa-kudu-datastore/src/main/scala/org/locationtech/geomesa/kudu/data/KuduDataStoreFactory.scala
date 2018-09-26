@@ -16,7 +16,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.kudu.client.KuduClient
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreParams}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.kudu.KuduSystemProperties.{AdminOperationTimeout, OperationTimeout, SocketReadTimeout}
 import org.locationtech.geomesa.kudu.data.KuduDataStoreFactory.KuduDataStoreConfig
 import org.locationtech.geomesa.security
@@ -63,39 +63,43 @@ class KuduDataStoreFactory extends DataStoreFactorySpi {
     new KuduDataStore(client, cfg)
   }
 
+  override def isAvailable = true
+
   override def getDisplayName: String = KuduDataStoreFactory.DisplayName
 
   override def getDescription: String = KuduDataStoreFactory.Description
 
-  override def getParametersInfo: Array[Param] =
-    Array(
-      KuduMasterParam,
-      CatalogParam,
-      CredentialsParam,
-      WorkerThreadsParam,
-      BossThreadsParam,
-      QueryThreadsParam,
-      QueryTimeoutParam,
-      AuthsParam,
-      LooseBBoxParam,
-      AuditQueriesParam,
-      GenerateStatsParam,
-      StatisticsParam,
-      CachingParam,
-      NamespaceParam
-    )
+  override def getParametersInfo: Array[Param] = KuduDataStoreFactory.ParameterInfo :+ NamespaceParam
 
   override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
     KuduDataStoreFactory.canProcess(params)
 
-  override def isAvailable = true
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
 }
 
-object KuduDataStoreFactory extends LazyLogging {
+object KuduDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
-  val DisplayName = "Kudu (GeoMesa)"
-  val Description = "Apache Kudu\u2122 columnar store"
+  override val DisplayName = "Kudu (GeoMesa)"
+  override val Description = "Apache Kudu\u2122 columnar store"
+
+  override val ParameterInfo: Array[GeoMesaParam[_]] =
+    Array(
+      Params.KuduMasterParam,
+      Params.CatalogParam,
+      Params.CredentialsParam,
+      Params.WorkerThreadsParam,
+      Params.BossThreadsParam,
+      Params.QueryThreadsParam,
+      Params.QueryTimeoutParam,
+      Params.AuthsParam,
+      Params.LooseBBoxParam,
+      Params.AuditQueriesParam,
+      Params.GenerateStatsParam,
+      Params.StatisticsParam,
+      Params.CachingParam
+    )
+
+  override def canProcess(params: java.util.Map[String,Serializable]): Boolean = Params.KuduMasterParam.exists(params)
 
   // noinspection TypeAnnotation
   object Params extends GeoMesaDataStoreParams {
@@ -110,8 +114,6 @@ object KuduDataStoreFactory extends LazyLogging {
     val StatisticsParam    = new GeoMesaParam[java.lang.Boolean]("kudu.client.stats.disable", "Disable Kudu client statistics")
     val AuthsParam         = org.locationtech.geomesa.security.AuthsParam
   }
-
-  def canProcess(params: java.util.Map[String,Serializable]): Boolean = Params.KuduMasterParam.exists(params)
 
   def buildClient(params: java.util.Map[String, java.io.Serializable]): KuduClient = {
     import Params._

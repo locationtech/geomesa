@@ -14,8 +14,9 @@ import java.util.{Collections, Properties}
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
-import org.geotools.data.{DataAccessFactory, DataStore, DataStoreFactorySpi}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
+import org.geotools.data.DataAccessFactory.Param
+import org.geotools.data.{DataStore, DataStoreFactorySpi}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.SystemPropertyDurationParam
@@ -63,19 +64,34 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 
   override def isAvailable: Boolean = true
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean = PathParam.exists(params)
+  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+    FileSystemDataStoreFactory.canProcess(params)
 
-  override def getParametersInfo: Array[DataAccessFactory.Param] =
-    Array(PathParam, EncodingParam, ReadThreadsParam, WriteTimeoutParam, ConfParam, NamespaceParam)
+  override def getDisplayName: String = FileSystemDataStoreFactory.DisplayName
 
-  override def getDisplayName: String = "File System (GeoMesa)"
+  override def getDescription: String = FileSystemDataStoreFactory.Description
 
-  override def getDescription: String = "File System Data Store"
+  override def getParametersInfo: Array[Param] = FileSystemDataStoreFactory.ParameterInfo :+ NamespaceParam
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = Collections.emptyMap()
 }
 
-object FileSystemDataStoreFactory {
+object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
+
+  override val DisplayName: String = "File System (GeoMesa)"
+  override val Description: String = "File System Data Store"
+
+  override val ParameterInfo: Array[GeoMesaParam[_]] =
+    Array(
+      FileSystemDataStoreParams.PathParam,
+      FileSystemDataStoreParams.EncodingParam,
+      FileSystemDataStoreParams.ReadThreadsParam,
+      FileSystemDataStoreParams.WriteTimeoutParam,
+      FileSystemDataStoreParams.ConfParam
+    )
+
+  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+    FileSystemDataStoreParams.PathParam.exists(params)
 
   private val configuration = new Configuration()
 
