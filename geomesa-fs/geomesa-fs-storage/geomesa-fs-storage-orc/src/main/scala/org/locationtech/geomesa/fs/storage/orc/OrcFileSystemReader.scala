@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.orc
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
-import org.apache.hadoop.hive.ql.io.sarg.SearchArgument
+import org.apache.orc.storage.ql.io.sarg.SearchArgument
 import org.apache.orc.{OrcFile, Reader}
 import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.features.serialization.ObjectType

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.orc
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
-import org.apache.hadoop.hive.ql.exec.vector.VectorizedRowBatch
+import org.apache.orc.storage.ql.exec.vector.VectorizedRowBatch
 import org.apache.orc.OrcFile
 import org.locationtech.geomesa.fs.storage.api.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.orc.utils.OrcAttributeWriter
