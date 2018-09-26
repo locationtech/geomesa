@@ -39,9 +39,9 @@ class CompositeConverter(val targetSft: SimpleFeatureType, delegates: Seq[(Predi
   }
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
-    val setEc: (Int) => Unit = ec match {
-      case c: CompositeEvaluationContext => (i) => c.setCurrent(i)
-      case _ => (_) => Unit
+    val setEc: Int => Unit = ec match {
+      case c: CompositeEvaluationContext => i => c.setCurrent(i)
+      case _ => _ => Unit
     }
     val toEval = Array.ofDim[Any](1)
 
@@ -77,7 +77,7 @@ class CompositeConverter(val targetSft: SimpleFeatureType, delegates: Seq[(Predi
         }
       }
 
-      override def next(): SimpleFeature = delegate.next
+      override def next(): SimpleFeature = if (hasNext) { delegate.next } else { Iterator.empty.next }
 
       override def close(): Unit = {
         CloseWithLogging(delegate)
