@@ -384,6 +384,39 @@ To set the cardinality of an attribute, use the key ``cardinality`` on the attri
             .addPoint("geom", default = true)
             .build("mySft")
 
+Configuring Attribute Tiered Indexing
+-------------------------------------
+
+GeoMesa creates a tiered index structure for attribute indices. The index consists of the encoded attribute value,
+followed by a Z-curve or date index. This can greatly speed up the query pattern of looking for particular
+attribute value(s) combined with a spatial or temporal predicate.
+
+By default GeoMesa will use the most-specific curve that is compatible with the simple feature type. In priority
+order, this means ``Z3``, ``XZ3``, ``Z2``, ``XZ2`` and ``date``. The date index is a second attribute index on
+the default date attribute.
+
+If desired, a specific tiered index implementation can be set by using the ``geomesa.index.tiering`` user data key,
+set to the name of one of the indices mentioned above.
+
+.. tabs::
+
+    .. code-tab:: java
+
+        SimpleFeatureType sft = ...
+        sft.getUserData().put("geomesa.index.tiering", "date");
+
+    .. code-tab:: scala SchemaBuilder
+
+        import org.locationtech.geomesa.utils.geotools.SchemaBuilder
+
+        val sft = SchemaBuilder.builder()
+            .addString("name").withIndex()
+            .addDate("dtg")
+            .addPoint("geom", default = true)
+            .userData
+            .indexTiering("date")
+            .build("mySft")
+
 .. _table_split_config:
 
 Configuring Index Splits

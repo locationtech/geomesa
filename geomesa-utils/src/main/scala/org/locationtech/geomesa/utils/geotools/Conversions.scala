@@ -317,6 +317,9 @@ object RichSimpleFeatureType {
     def isUuid: Boolean = userData[String](FID_UUID_KEY).exists(java.lang.Boolean.parseBoolean)
     def isUuidEncoded: Boolean = isUuid && userData[String](FID_UUID_ENCODED_KEY).forall(java.lang.Boolean.parseBoolean)
 
+    def setIndexTiering(tiering: String): Unit = sft.getUserData.put(INDEX_TIERING_KEY, tiering)
+    def getIndexTiering: Option[String] = Option(sft.getUserData.get(INDEX_TIERING_KEY).asInstanceOf[String])
+
     def setRemoteVersion(version: SemanticVersion): Unit = sft.getUserData.put(REMOTE_VERSION, String.valueOf(version))
     def getRemoteVersion: Option[SemanticVersion] =
       Option(sft.getUserData.get(REMOTE_VERSION).asInstanceOf[String]).map(SemanticVersion.apply)

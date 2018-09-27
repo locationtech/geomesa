@@ -26,6 +26,13 @@ import org.opengis.filter.Filter
 abstract class IndexKeySpace[T, U](implicit val ordering: Ordering[U]) {
 
   /**
+    * Well-known name of the key space
+    *
+    * @return
+    */
+  def name: String
+
+  /**
     * Can be used with the simple feature type or not
     *
     * @param sft simple feature type
@@ -46,7 +53,7 @@ abstract class IndexKeySpace[T, U](implicit val ordering: Ordering[U]) {
     * @param sft simple feature type
     * @return
     */
-  def toIndexKey(sft: SimpleFeatureType, lenient: Boolean = false): (SimpleFeature) => Seq[U]
+  def toIndexKey(sft: SimpleFeatureType, lenient: Boolean = false): SimpleFeature => Seq[U]
 
   /**
     * Index key from the attributes of a simple feature

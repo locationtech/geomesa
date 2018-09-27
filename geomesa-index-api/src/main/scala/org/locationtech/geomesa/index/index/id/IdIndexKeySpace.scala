@@ -24,11 +24,13 @@ object IdIndexKeySpace extends IndexKeySpace[Set[Array[Byte]], Array[Byte]]()(By
 
 trait IdIndexKeySpace extends IndexKeySpace[Set[Array[Byte]], Array[Byte]] {
 
-  override def supports(sft: SimpleFeatureType): Boolean = true
+  override val name: String = IdIndex.Name
 
   // note: technically this doesn't match the index key, but it's only
   // used for extracting the feature ID so it works out
-  override def indexKeyByteLength: Int = 0
+  override val indexKeyByteLength: Int = 0
+
+  override def supports(sft: SimpleFeatureType): Boolean = true
 
   override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): SimpleFeature => Seq[Array[Byte]] =
     toBytesKey(GeoMesaFeatureIndex.idToBytes(sft))

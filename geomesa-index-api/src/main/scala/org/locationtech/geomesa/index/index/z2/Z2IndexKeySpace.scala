@@ -35,6 +35,8 @@ trait Z2IndexKeySpace extends IndexKeySpace[Z2IndexValues, Long] {
 
   def sfc: Z2SFC
 
+  override val name: String = Z2Index.Name
+
   override val indexKeyByteLength: Int = 8
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.isPoints

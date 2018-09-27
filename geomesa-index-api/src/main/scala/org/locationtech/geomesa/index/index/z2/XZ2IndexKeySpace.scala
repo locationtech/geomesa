@@ -30,6 +30,8 @@ trait XZ2IndexKeySpace extends IndexKeySpace[XZ2IndexValues, Long] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
+  override val name: String = XZ2Index.Name
+
   override val indexKeyByteLength: Int = 8
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.nonPoints

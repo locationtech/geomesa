@@ -34,6 +34,8 @@ trait XZ3IndexKeySpace extends IndexKeySpace[XZ3IndexValues, Z3IndexKey] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
+  override val name: String = XZ3Index.Name
+
   override val indexKeyByteLength: Int = 10
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.getDtgField.isDefined && sft.nonPoints
