@@ -210,7 +210,7 @@ org.jruby.jcodings:jcodings	1.0.8	compile
 org.jruby.joni:joni	2.1.2	compile
 org.json4s:json4s-ast_2.11	3.5.4	compile
 org.json4s:json4s-core_2.11	3.5.4	compile
-org.json4s:json4s-ext_2.11	3.5.2	compile
+org.json4s:json4s-ext_2.11	3.5.4	compile
 org.json4s:json4s-native_2.11	3.5.4	compile
 org.json4s:json4s-scalap_2.11	3.5.4	compile
 org.locationtech.sfcurve:sfcurve-api_2.11	0.2.0	compile
