@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.converter
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 
-import com.vividsolutions.jts.geom.Envelope
+import org.locationtech.jts.geom.Envelope
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.Query
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter

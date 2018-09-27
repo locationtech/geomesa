@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.apache.spark.sql.functions._
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.jts._

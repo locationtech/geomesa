@@ -14,7 +14,7 @@ import java.nio.file.Files
 import java.sql.{Connection, DriverManager}
 
 import com.typesafe.config.ConfigFactory
-import com.vividsolutions.jts.geom.Point
+import org.locationtech.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature

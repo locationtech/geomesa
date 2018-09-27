@@ -10,7 +10,7 @@ package org.locationtech.geomesa.compute.spark.sql
 
 import java.util.{List => jList, Map => jMap, UUID}
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.apache.metamodel
 import org.apache.metamodel.DataContext
 import org.apache.metamodel.query.parser.QueryParser

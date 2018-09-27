@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.orc.utils
 
 import java.util.UUID
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.apache.orc.storage.ql.exec.vector._
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder

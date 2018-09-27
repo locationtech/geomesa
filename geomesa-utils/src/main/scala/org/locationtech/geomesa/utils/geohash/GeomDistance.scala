@@ -10,7 +10,7 @@ package org.locationtech.geomesa.utils.geohash
 
 import java.awt.geom.Point2D
 
-import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point, PrecisionModel}
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point, PrecisionModel}
 import org.geotools.referencing.GeodeticCalculator
 import org.locationtech.geomesa.utils.text.ObjectPoolFactory
 

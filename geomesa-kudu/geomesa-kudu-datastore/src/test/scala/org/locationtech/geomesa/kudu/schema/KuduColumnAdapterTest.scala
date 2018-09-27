@@ -10,7 +10,7 @@ package org.locationtech.geomesa.kudu.schema
 
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom.{Geometry, Point}
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.apache.kudu.Schema
 import org.apache.kudu.client.RowResult
 import org.geotools.util.Converters

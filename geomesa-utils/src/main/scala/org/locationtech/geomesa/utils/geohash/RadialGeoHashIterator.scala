@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import com.vividsolutions.jts.geom.{Coordinate, Point}
+import org.locationtech.jts.geom.{Coordinate, Point}
 import org.locationtech.geomesa.utils.geohash.GeoHashIterator._
 
 

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.stats
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}

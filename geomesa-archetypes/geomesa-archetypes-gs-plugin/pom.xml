@@ -153,7 +153,7 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>com.vividsolutions</groupId>
+                <groupId>org.locationtech.jts</groupId>
                 <artifactId>jts-core</artifactId>
                 <version>${jts.version}</version>
                 <scope>provided</scope>

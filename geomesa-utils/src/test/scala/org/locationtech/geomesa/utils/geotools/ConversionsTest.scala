@@ -10,7 +10,7 @@ package org.locationtech.geomesa.utils.geotools
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.data.simple.SimpleFeatureIterator
 import org.geotools.feature.collection.{FeatureIteratorImpl, SimpleFeatureIteratorImpl}
 import org.geotools.feature.simple.SimpleFeatureImpl

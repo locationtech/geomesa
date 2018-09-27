@@ -12,7 +12,7 @@ import java.util
 
 import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
-import com.vividsolutions.jts.geom.Envelope
+import org.locationtech.jts.geom.Envelope
 import org.locationtech.geomesa.fs.storage.api.PartitionMetadata
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams

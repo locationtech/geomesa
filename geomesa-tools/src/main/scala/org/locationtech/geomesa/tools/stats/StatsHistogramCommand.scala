@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.tools.stats
 
 import com.beust.jcommander.Parameter
-import com.vividsolutions.jts.geom.{Geometry, Point}
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.geotools.data.DataStore
 import org.geotools.util.Converters
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}

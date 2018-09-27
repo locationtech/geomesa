@@ -10,7 +10,7 @@ package org.locationtech.geomesa.arrow.features
 
 import java.util.{Objects, Collection => jCollection, List => jList, Map => jMap}
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader
 import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId

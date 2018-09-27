@@ -11,7 +11,7 @@ package org.locationtech.geomesa.blob.api.handlers
 import java.util
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.blob.api.GeoMesaBlobStoreSFT._
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature

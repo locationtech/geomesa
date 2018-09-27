@@ -8,7 +8,7 @@
 
 package org.apache.spark.sql.jts
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.apache.spark.sql._
 import org.apache.spark.sql.types._
 

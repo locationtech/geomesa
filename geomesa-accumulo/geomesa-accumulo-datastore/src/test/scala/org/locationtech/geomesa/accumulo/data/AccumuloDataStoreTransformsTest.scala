@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.Point
+import org.locationtech.jts.geom.Point
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.factory.Hints

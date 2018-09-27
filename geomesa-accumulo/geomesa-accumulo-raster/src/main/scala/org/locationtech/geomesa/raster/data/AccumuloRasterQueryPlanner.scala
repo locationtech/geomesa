@@ -11,7 +11,7 @@ package org.locationtech.geomesa.raster.data
 
 import com.google.common.collect.{ImmutableSetMultimap, ImmutableMap => IMap}
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.hadoop.io.Text

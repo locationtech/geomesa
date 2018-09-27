@@ -10,7 +10,7 @@ package org.locationtech.geomesa.arrow.io
 
 import java.io.ByteArrayInputStream
 
-import com.vividsolutions.jts.geom.LineString
+import org.locationtech.jts.geom.LineString
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
 import org.junit.runner.RunWith

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.arrow.vector
 import java.io.Closeable
 import java.util.{Collections, Date}
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.{ListVector, StructVector}
 import org.apache.arrow.vector.types.FloatingPointPrecision

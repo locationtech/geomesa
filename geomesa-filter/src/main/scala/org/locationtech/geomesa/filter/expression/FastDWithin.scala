@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.filter.expression
 
-import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.operation.distance.DistanceOp
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.operation.distance.DistanceOp
 import org.geotools.referencing.GeodeticCalculator
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.utils.geotools.GeometryUtils

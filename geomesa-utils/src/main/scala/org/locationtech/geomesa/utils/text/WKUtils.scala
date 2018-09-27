@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.utils.text
 
-import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
 import org.apache.commons.pool2.BasePooledObjectFactory
 import org.apache.commons.pool2.impl.{GenericObjectPoolConfig, DefaultPooledObject, GenericObjectPool}
 

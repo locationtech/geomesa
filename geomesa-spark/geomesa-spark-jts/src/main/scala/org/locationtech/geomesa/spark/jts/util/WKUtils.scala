@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.spark.jts.util
 
-import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.io._
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.io._
 
 trait WKTUtils {
   private[this] val readerPool = new ThreadLocal[WKTReader]{

@@ -13,7 +13,7 @@ import java.util.Date
 
 import com.google.common.collect.{ImmutableSet, ImmutableSortedSet}
 import com.google.common.primitives.{Bytes, Longs, Shorts}
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.conf.Property
 import org.apache.hadoop.io.Text

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.process.tube
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.factory.Hints

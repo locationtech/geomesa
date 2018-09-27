@@ -11,7 +11,7 @@ package org.locationtech.geomesa.kudu.result
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-import com.vividsolutions.jts.geom.Envelope
+import org.locationtech.jts.geom.Envelope
 import org.apache.kudu.client.RowResult
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature

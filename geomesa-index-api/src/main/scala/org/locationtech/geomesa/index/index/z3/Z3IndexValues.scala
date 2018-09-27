@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.index.z3
 
 import java.time.ZonedDateTime
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.filter.{Bounds, FilterValues}
 

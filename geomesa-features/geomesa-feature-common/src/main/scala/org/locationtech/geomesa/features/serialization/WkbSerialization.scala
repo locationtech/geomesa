@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features.serialization
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 
 import scala.reflect.ClassTag
 
@@ -177,7 +177,7 @@ trait WkbSerialization[T <: NumericWriter, V <: NumericReader] {
 
 object WkbSerialization {
 
-  // 2-d values - corresponds to com.vividsolutions.jts.io.WKBConstants
+  // 2-d values - corresponds to org.locationtech.jts.io.WKBConstants
   val Point2d: Int            = 1
   val LineString2d: Int       = 2
   val Polygon2d: Int          = 3

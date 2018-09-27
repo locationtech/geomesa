@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.jupyter
 
 object L {
-  import com.vividsolutions.jts.geom._
+  import org.locationtech.jts.geom._
   import org.apache.commons.lang3.StringEscapeUtils
   import org.opengis.feature.`type`.AttributeDescriptor
   import org.opengis.feature.simple.SimpleFeature

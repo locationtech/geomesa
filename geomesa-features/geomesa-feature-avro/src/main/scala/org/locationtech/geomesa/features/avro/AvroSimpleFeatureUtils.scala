@@ -12,8 +12,8 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.{Date, Locale, UUID}
 
-import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.io.WKBWriter
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.io.WKBWriter
 import org.apache.avro.{Schema, SchemaBuilder}
 import org.geotools.util.Converters
 import org.opengis.feature.simple.SimpleFeatureType

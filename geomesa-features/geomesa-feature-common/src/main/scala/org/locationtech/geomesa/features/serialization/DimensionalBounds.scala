@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features.serialization
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 
 /**
   * Extracts the bounds from a geometry. The generic geometry envelope only deals with X and Y, this

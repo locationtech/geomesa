@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.utils
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.data.Query
 import org.geotools.feature.FeatureTypes
 import org.geotools.geometry.jts.GeometryCoordinateSequenceTransformer

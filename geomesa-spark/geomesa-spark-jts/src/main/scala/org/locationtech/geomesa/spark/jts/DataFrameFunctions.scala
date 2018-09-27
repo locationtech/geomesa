@@ -10,7 +10,7 @@ package org.locationtech.geomesa.spark.jts
 
 import java.{lang => jl}
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.apache.spark.sql.catalyst.expressions.Literal
 import org.apache.spark.sql.functions.{array, lit}
 import org.apache.spark.sql.jts._

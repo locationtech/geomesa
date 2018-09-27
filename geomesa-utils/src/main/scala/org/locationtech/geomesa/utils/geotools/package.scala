@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
-import com.vividsolutions.jts.geom.Polygon
+import org.locationtech.jts.geom.Polygon
 import org.geotools.data.FeatureReader
 import org.geotools.data.collection.DelegateFeatureReader
 import org.geotools.feature.collection.DelegateFeatureIterator

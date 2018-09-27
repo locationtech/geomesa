@@ -11,7 +11,7 @@ package org.locationtech.geomesa.features.avro
 import java.io.InputStream
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.apache.avro.Schema
 import org.apache.avro.io._
 import org.geotools.data.DataUtilities

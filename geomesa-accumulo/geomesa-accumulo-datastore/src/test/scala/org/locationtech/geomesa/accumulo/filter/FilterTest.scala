@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.filter
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Coordinate
+import org.locationtech.jts.geom.Coordinate
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder

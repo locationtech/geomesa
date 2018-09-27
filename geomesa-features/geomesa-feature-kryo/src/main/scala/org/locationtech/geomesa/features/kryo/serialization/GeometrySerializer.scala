@@ -10,7 +10,7 @@ package org.locationtech.geomesa.features.kryo.serialization
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{Kryo, Serializer}
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 
 /**

@@ -11,7 +11,7 @@ package org.apache.spark.geomesa.api.python
 import java.io.OutputStream
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import net.razorvine.pickle.{IObjectPickler, Pickler}
 import org.apache.spark.api.java.JavaRDD
 import org.apache.spark.api.python.SerDeUtil

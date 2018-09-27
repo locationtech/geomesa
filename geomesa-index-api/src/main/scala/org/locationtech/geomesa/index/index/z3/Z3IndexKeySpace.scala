@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.index.z3
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.{Geometry, Point}
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod

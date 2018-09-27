@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert.shp
 import java.nio.file.Paths
 
 import com.typesafe.config.ConfigFactory
-import com.vividsolutions.jts.geom.MultiPolygon
+import org.locationtech.jts.geom.MultiPolygon
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter

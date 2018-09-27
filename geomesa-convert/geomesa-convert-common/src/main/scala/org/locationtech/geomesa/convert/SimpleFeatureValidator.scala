@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert
 import java.util.{Date, Locale, ServiceLoader}
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.utils.geotools.wholeWorldEnvelope
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty

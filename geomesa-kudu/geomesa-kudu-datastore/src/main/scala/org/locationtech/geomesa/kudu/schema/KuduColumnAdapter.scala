@@ -12,7 +12,7 @@ import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom.{Coordinate, Geometry, Point}
+import org.locationtech.jts.geom.{Coordinate, Geometry, Point}
 import org.apache.kudu.ColumnSchema.ColumnSchemaBuilder
 import org.apache.kudu.client.KuduPredicate.ComparisonOp
 import org.apache.kudu.client.{KuduPredicate, PartialRow, RowResult}

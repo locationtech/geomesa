@@ -10,8 +10,8 @@ package org.locationtech.geomesa.raster.iterators
 
 import java.util
 
-import com.vividsolutions.jts.geom.Point
-import com.vividsolutions.jts.io.WKTReader
+import org.locationtech.jts.geom.Point
+import org.locationtech.jts.io.WKTReader
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.Combiner
 import org.locationtech.geomesa.raster.iterators.BBOXCombiner._

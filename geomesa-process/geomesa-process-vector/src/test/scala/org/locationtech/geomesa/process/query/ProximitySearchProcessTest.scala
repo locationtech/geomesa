@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.process.query
 
-import com.vividsolutions.jts.geom.{Coordinate, Point}
+import org.locationtech.jts.geom.{Coordinate, Point}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.GeodeticCalculator

@@ -15,7 +15,7 @@ import java.util.Date
 
 import com.drew.imaging._
 import com.drew.metadata.exif.GpsDirectory
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.blob.api.handlers.AbstractFileHandler
 import org.locationtech.geomesa.utils.text.WKTUtils
 

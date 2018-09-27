@@ -31,9 +31,9 @@ class GenerateFeatureWrappersTest extends Specification {
           |  def dtgOpt(): Option[java.util.Date] = Option(dtg())
           |  def setDtg(x: java.util.Date): Unit = sf.setAttribute(1, x)
           |
-          |  def geom(): com.vividsolutions.jts.geom.Point = sf.getAttribute(2).asInstanceOf[com.vividsolutions.jts.geom.Point]
-          |  def geomOpt(): Option[com.vividsolutions.jts.geom.Point] = Option(geom())
-          |  def setGeom(x: com.vividsolutions.jts.geom.Point): Unit = sf.setAttribute(2, x)
+          |  def geom(): org.locationtech.jts.geom.Point = sf.getAttribute(2).asInstanceOf[org.locationtech.jts.geom.Point]
+          |  def geomOpt(): Option[org.locationtech.jts.geom.Point] = Option(geom())
+          |  def setGeom(x: org.locationtech.jts.geom.Point): Unit = sf.setAttribute(2, x)
           |
           |  def debug(): String = {
           |    import scala.collection.JavaConversions._
@@ -59,9 +59,9 @@ class GenerateFeatureWrappersTest extends Specification {
           |  def dtgOpt(): Option[java.util.Map[java.lang.String,java.util.Date]] = Option(dtg())
           |  def setDtg(x: java.util.Map[java.lang.String,java.util.Date]): Unit = sf.setAttribute(1, x)
           |
-          |  def geom(): com.vividsolutions.jts.geom.Point = sf.getAttribute(2).asInstanceOf[com.vividsolutions.jts.geom.Point]
-          |  def geomOpt(): Option[com.vividsolutions.jts.geom.Point] = Option(geom())
-          |  def setGeom(x: com.vividsolutions.jts.geom.Point): Unit = sf.setAttribute(2, x)
+          |  def geom(): org.locationtech.jts.geom.Point = sf.getAttribute(2).asInstanceOf[org.locationtech.jts.geom.Point]
+          |  def geomOpt(): Option[org.locationtech.jts.geom.Point] = Option(geom())
+          |  def setGeom(x: org.locationtech.jts.geom.Point): Unit = sf.setAttribute(2, x)
           |
           |  def debug(): String = {
           |    import scala.collection.JavaConversions._
@@ -87,9 +87,9 @@ class GenerateFeatureWrappersTest extends Specification {
           |  def _dt_gOpt(): Option[java.util.Date] = Option(_dt_g())
           |  def set_dt_g(x: java.util.Date): Unit = sf.setAttribute(1, x)
           |
-          |  def geom(): com.vividsolutions.jts.geom.Point = sf.getAttribute(2).asInstanceOf[com.vividsolutions.jts.geom.Point]
-          |  def geomOpt(): Option[com.vividsolutions.jts.geom.Point] = Option(geom())
-          |  def setGeom(x: com.vividsolutions.jts.geom.Point): Unit = sf.setAttribute(2, x)
+          |  def geom(): org.locationtech.jts.geom.Point = sf.getAttribute(2).asInstanceOf[org.locationtech.jts.geom.Point]
+          |  def geomOpt(): Option[org.locationtech.jts.geom.Point] = Option(geom())
+          |  def setGeom(x: org.locationtech.jts.geom.Point): Unit = sf.setAttribute(2, x)
           |
           |  def debug(): String = {
           |    import scala.collection.JavaConversions._
@@ -119,9 +119,9 @@ class GenerateFeatureWrappersTest extends Specification {
           |    def dtgOpt(): Option[java.util.Date] = Option(dtg())
           |    def setDtg(x: java.util.Date): Unit = sf.setAttribute(1, x)
           |
-          |    def geom(): com.vividsolutions.jts.geom.Point = sf.getAttribute(2).asInstanceOf[com.vividsolutions.jts.geom.Point]
-          |    def geomOpt(): Option[com.vividsolutions.jts.geom.Point] = Option(geom())
-          |    def setGeom(x: com.vividsolutions.jts.geom.Point): Unit = sf.setAttribute(2, x)
+          |    def geom(): org.locationtech.jts.geom.Point = sf.getAttribute(2).asInstanceOf[org.locationtech.jts.geom.Point]
+          |    def geomOpt(): Option[org.locationtech.jts.geom.Point] = Option(geom())
+          |    def setGeom(x: org.locationtech.jts.geom.Point): Unit = sf.setAttribute(2, x)
           |
           |    def debug(): String = {
           |      import scala.collection.JavaConversions._

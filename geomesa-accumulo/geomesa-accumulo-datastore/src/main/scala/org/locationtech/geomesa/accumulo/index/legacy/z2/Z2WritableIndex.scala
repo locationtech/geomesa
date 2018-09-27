@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets
 
 import com.google.common.collect.{ImmutableSet, ImmutableSortedSet}
 import com.google.common.primitives.{Bytes, Longs}
-import com.vividsolutions.jts.geom.{Geometry, GeometryCollection, LineString, Point}
+import org.locationtech.jts.geom.{Geometry, GeometryCollection, LineString, Point}
 import org.apache.accumulo.core.conf.Property
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geometry
 
-import com.vividsolutions.jts.geom.Polygon
+import org.locationtech.jts.geom.Polygon
 import org.geotools.geometry.jts.JTS
 
 @deprecated

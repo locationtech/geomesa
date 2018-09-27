@@ -11,7 +11,7 @@ package org.locationtech.geomesa.arrow.vector
 import java.nio.charset.StandardCharsets
 import java.util.Date
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{FixedSizeListVector, ListVector, StructVector}

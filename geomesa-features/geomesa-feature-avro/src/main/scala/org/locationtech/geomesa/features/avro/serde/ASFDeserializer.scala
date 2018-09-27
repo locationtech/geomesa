@@ -10,7 +10,7 @@ package org.locationtech.geomesa.features.avro.serde
 
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.apache.avro.io.Decoder
 import org.locationtech.geomesa.features.avro.{AvroSimpleFeatureUtils, AvroSimpleFeature}
 

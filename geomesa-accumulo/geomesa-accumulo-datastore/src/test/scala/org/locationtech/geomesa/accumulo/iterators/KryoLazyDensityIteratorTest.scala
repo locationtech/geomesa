@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.Envelope
+import org.locationtech.jts.geom.Envelope
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor

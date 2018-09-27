@@ -10,7 +10,7 @@ package org.locationtech.geomesa.utils.geotools
 
 import java.io.{BufferedWriter, File, FileWriter}
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.data.{Base64, DataUtilities}
 import org.geotools.feature.FeatureIterator
 import org.locationtech.geomesa.utils.text.WKBUtils

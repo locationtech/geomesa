@@ -12,7 +12,7 @@ package org.locationtech.geomesa.parquet
 import java.nio.ByteBuffer
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom.Point
+import org.locationtech.jts.geom.Point
 import org.apache.parquet.io.api.{Binary, RecordConsumer}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
