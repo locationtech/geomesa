@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.kafka.data
 
 import java.io.IOException
+import java.net.URL
 import java.util.concurrent.ScheduledExecutorService
 import java.util.{Properties, UUID}
 
@@ -21,10 +22,14 @@ import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore}
 import org.geotools.data.{Query, Transaction}
+import org.locationtech.geomesa.features.SerializationType
+import org.locationtech.geomesa.features.SerializationType.SerializationType
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, UnoptimizedRunnableStats}
+import org.locationtech.geomesa.kafka.confluent.SchemaRegistryClient
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter}
@@ -43,6 +48,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.concurrent.duration.Duration
+import scala.util.control.NonFatal
 
 class KafkaDataStore(val config: KafkaDataStoreConfig)
     extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
@@ -87,6 +93,11 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
 
   private val runner = new KafkaQueryRunner(caches, stats, Some(config.authProvider))
 
+  private val schemaRegistryClient = config.serialization match {
+    case SerializationType.AVRO => config.schemaRegistry.map(url => new SchemaRegistryClient(url.toString))
+    case _ => None
+  }
+
   // migrate old schemas, if any
   if (!metadata.read("migration", "check").exists(_.toBoolean)) {
     new MetadataMigration(this, config.catalog, config.zookeepers).run()
@@ -128,6 +139,15 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         logger.warn(s"Topic [$topic] already exists - it may contain stale data")
       } else {
         AdminUtilsVersions.createTopic(zk, topic, config.topics.partitions, config.topics.replication)
+      }
+    }
+
+    schemaRegistryClient.foreach { client =>
+      val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true, withFeatureId = false)
+      try {
+        client.registerSchema(topic, schema)
+      } catch {
+        case NonFatal(e) => logger.warn(s"Error registering schema with url ${client.url}", e)
       }
     }
   }
@@ -186,7 +206,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    new ModifyKafkaFeatureWriter(sft, producer, filter)
+    new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter)
   }
 
   override def getFeatureWriterAppend(typeName: String, transaction: Transaction): KafkaFeatureWriter = {
@@ -194,7 +214,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    new AppendKafkaFeatureWriter(sft, producer)
+    new AppendKafkaFeatureWriter(sft, producer, config.serialization)
   }
 
   override def dispose(): Unit = {
@@ -286,7 +306,9 @@ object KafkaDataStore extends LazyLogging {
                                   consumers: ConsumerConfig,
                                   producers: ProducerConfig,
                                   topics: TopicConfig,
+                                  serialization: SerializationType,
                                   indices: IndexConfig,
+                                  schemaRegistry: Option[SchemaRegistryConfig],
                                   looseBBox: Boolean,
                                   authProvider: AuthorizationsProvider,
                                   audit: Option[(AuditWriter, AuditProvider, String)],
@@ -308,4 +330,6 @@ object KafkaDataStore extends LazyLogging {
                          executor: Option[(ScheduledExecutorService, Ticker)])
 
   case class EventTimeConfig(expression: String, ordering: Boolean)
+
+  case class SchemaRegistryConfig(url: URL)
 }

@@ -16,7 +16,9 @@ import org.apache.kafka.clients.producer.{Producer, ProducerRecord}
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
+import org.locationtech.geomesa.kafka.RecordVersions
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{Filter, Id}
@@ -33,12 +35,13 @@ object KafkaFeatureWriter {
 
   private val featureIds = new AtomicLong(0)
 
-  class AppendKafkaFeatureWriter(sft: SimpleFeatureType, producer: Producer[Array[Byte], Array[Byte]])
-      extends KafkaFeatureWriter with LazyLogging {
+  class AppendKafkaFeatureWriter(sft: SimpleFeatureType,
+                                 producer: Producer[Array[Byte], Array[Byte]],
+                                 serialization: SerializationType) extends KafkaFeatureWriter with LazyLogging {
 
     protected val topic: String = KafkaDataStore.topic(sft)
 
-    protected val serializer = new GeoMessageSerializer(sft)
+    protected val serializer = GeoMessageSerializer(sft, serialization)
 
     protected val feature = new ScalaSimpleFeature(sft, "-1")
 
@@ -54,8 +57,10 @@ object KafkaFeatureWriter {
     override def write(): Unit = {
       val sf = GeoMesaFeatureWriter.featureWithFid(sft, feature)
       logger.debug(s"Writing update to $topic: $sf")
-      val (key, value) = serializer.serialize(GeoMessage.change(sf))
-      producer.send(new ProducerRecord(topic, key, value))
+      val (key, value, headers) = serializer.serialize(GeoMessage.change(sf))
+      val record = new ProducerRecord(topic, key, value)
+      headers.foreach { case (k, v) => RecordVersions.setHeader(record, k, v) }
+      producer.send(record)
     }
 
     override def remove(): Unit = throw new NotImplementedError()
@@ -66,8 +71,10 @@ object KafkaFeatureWriter {
 
     override def clear(): Unit = {
       logger.debug(s"Writing clear to $topic")
-      val (key, value) = serializer.serialize(GeoMessage.clear())
-      producer.send(new ProducerRecord(topic, key, value))
+      val (key, value, headers) = serializer.serialize(GeoMessage.clear())
+      val record = new ProducerRecord(topic, key, value)
+      headers.foreach { case (k, v) => RecordVersions.setHeader(record, k, v) }
+      producer.send(record)
     }
 
     protected def reset(id: String): Unit = {
@@ -82,8 +89,10 @@ object KafkaFeatureWriter {
     }
   }
 
-  class ModifyKafkaFeatureWriter(sft: SimpleFeatureType, producer: Producer[Array[Byte], Array[Byte]], filter: Filter)
-      extends AppendKafkaFeatureWriter(sft, producer) {
+  class ModifyKafkaFeatureWriter(sft: SimpleFeatureType,
+                                 producer: Producer[Array[Byte], Array[Byte]],
+                                 serialization: SerializationType,
+                                 filter: Filter) extends AppendKafkaFeatureWriter(sft, producer, serialization) {
 
     import scala.collection.JavaConversions._
 
@@ -105,8 +114,10 @@ object KafkaFeatureWriter {
     override def remove(): Unit = {
       val id = GeoMesaFeatureWriter.featureWithFid(sft, feature).getID
       logger.debug(s"Writing delete to $topic: $id")
-      val (key, value) = serializer.serialize(GeoMessage.delete(id))
-      producer.send(new ProducerRecord(topic, key, value))
+      val (key, value, headers) = serializer.serialize(GeoMessage.delete(id))
+      val record = new ProducerRecord(topic, key, value)
+      headers.foreach { case (k, v) => RecordVersions.setHeader(record, k, v) }
+      producer.send(record)
     }
   }
 }

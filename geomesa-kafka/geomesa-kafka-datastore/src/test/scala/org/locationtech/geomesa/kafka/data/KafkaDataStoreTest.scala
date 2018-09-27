@@ -61,6 +61,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
   }
 
   lazy val baseParams = Map(
+//    "kafka.serialization.type"      -> "avro",
     "kafka.brokers"                 -> kafka.brokers,
     "kafka.zookeepers"              -> kafka.zookeepers,
     "kafka.topic.partitions"        -> 1,

@@ -36,6 +36,7 @@ object AvroSimpleFeatureUtils {
 
   def generateSchema(sft: SimpleFeatureType,
                      withUserData: Boolean,
+                     withFeatureId: Boolean,
                      namespace: String = AVRO_NAMESPACE): Schema = {
     val nameEncoder = new FieldNameEncoder(VERSION)
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
@@ -43,10 +44,15 @@ object AvroSimpleFeatureUtils {
         .namespace(namespace)
         .fields
         .name(AVRO_SIMPLE_FEATURE_VERSION).`type`.intType.noDefault
-        .name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
+
+    val withFid = if (withFeatureId) {
+      initialAssembler.name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
+    } else {
+      initialAssembler
+    }
 
     val withFields =
-      sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
+      sft.getAttributeDescriptors.foldLeft(withFid) { case (assembler, ad) =>
         addField(assembler, nameEncoder.encode(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
       }
 

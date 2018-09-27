@@ -51,7 +51,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       }
 
       var decoder: BinaryDecoder = null
-      val fsr = new FeatureSpecificReader(features(0).getFeatureType)
+      val fsr = FeatureSpecificReader(features(0).getFeatureType)
       def convert(bytes: Array[Byte]) = {
         val bais = new ByteArrayInputStream(bytes)
         decoder = DecoderFactory.get().directBinaryDecoder(bais, decoder)

@@ -19,7 +19,8 @@ import org.geotools.data.DataUtilities
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.Assert
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.{AvroSimpleFeature, FeatureSpecificReader}
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.avro.FeatureSpecificReader
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -56,15 +57,15 @@ class Version1BackwardsCompatTest extends Specification {
     f
   }
 
-  def readAvroWithFsr(f: File, oldType: SimpleFeatureType): Seq[AvroSimpleFeature] =
+  def readAvroWithFsr(f: File, oldType: SimpleFeatureType): Seq[SimpleFeature] =
     readAvroWithFsr(f, oldType, oldType)
 
   def readAvroWithFsr(f: File, oldType: SimpleFeatureType, newType: SimpleFeatureType) = {
     val fis = new FileInputStream(f)
     val decoder = DecoderFactory.get().binaryDecoder(fis, null)
-    val fsr = new FeatureSpecificReader(oldType, newType)
+    val fsr = FeatureSpecificReader(oldType, newType)
 
-    val sfList = new ListBuffer[AvroSimpleFeature]()
+    val sfList = new ListBuffer[SimpleFeature]()
     do {
       sfList += fsr.read(null, decoder)
     } while(!decoder.isEnd)
@@ -161,7 +162,7 @@ class Version1BackwardsCompatTest extends Specification {
 
       subset.foreach { sf =>
         // parsed as the new AvroSimpleFeature
-        sf must beAnInstanceOf[AvroSimpleFeature]
+        sf must beAnInstanceOf[ScalaSimpleFeature]
 
         sf.getAttributeCount mustEqual 5
         sf.getAttributes.size mustEqual 5
@@ -278,7 +279,7 @@ class Version1BackwardsCompatTest extends Specification {
 
       val bais = new ByteArrayInputStream(baos.toByteArray)
 
-      val fsr = new FeatureSpecificReader(sft, bOnly)
+      val fsr = FeatureSpecificReader(sft, bOnly)
       val asf = fsr.read(null, DecoderFactory.get.directBinaryDecoder(bais, null))
 
       asf.getAttributeCount mustEqual 1
@@ -294,7 +295,7 @@ class Version1BackwardsCompatTest extends Specification {
       v2.write(baos2)
 
       val bais2 = new ByteArrayInputStream(baos2.toByteArray)
-      val fsr2 = new FeatureSpecificReader(sft)
+      val fsr2 = FeatureSpecificReader(sft)
       val asf2 = fsr2.read(null, DecoderFactory.get.directBinaryDecoder(bais2, null))
 
       asf2.getAttributeCount mustEqual 2

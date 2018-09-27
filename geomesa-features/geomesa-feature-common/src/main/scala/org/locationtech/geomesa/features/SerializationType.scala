@@ -11,6 +11,6 @@ package org.locationtech.geomesa.features
 // putting this in it's own file prevents intellij from flagging every use as a compile error
 object SerializationType extends Enumeration {
   type SerializationType = Value
-  val KRYO = Value("kryo")
-  val AVRO = Value("avro")
+  val KRYO: Value = Value("kryo")
+  val AVRO: Value = Value("avro")
 }
