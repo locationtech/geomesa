@@ -11,7 +11,8 @@ package org.locationtech.geomesa.security
 import java.nio.charset.StandardCharsets
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.security.VisibilityEvaluator.{VisibilityAnd, VisibilityNone, VisibilityOr, VisibilityValue}
+import org.locationtech.geomesa.security.VisibilityEvaluator._
+import org.parboiled.errors.ParsingException
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -59,6 +60,19 @@ class VisibilityEvaluatorTest extends Specification {
           VisibilityAnd(Seq(VisibilityValue(user), VisibilityOr(Seq(VisibilityValue(admin), VisibilityValue(test)))))
       VisibilityEvaluator.parse("\"user\"&(\"admin\"|test)") mustEqual
           VisibilityAnd(Seq(VisibilityValue(user), VisibilityOr(Seq(VisibilityValue(admin), VisibilityValue(test)))))
+      VisibilityEvaluator.parse("user|admin&test") mustEqual
+          VisibilityOr(Seq(VisibilityValue(user), VisibilityAnd(Seq(VisibilityValue(admin), VisibilityValue(test)))))
+      VisibilityEvaluator.parse("user&admin|test") mustEqual
+          VisibilityOr(Seq(VisibilityAnd(Seq(VisibilityValue(user), VisibilityValue(admin))), VisibilityValue(test)))
+    }
+
+    "be able to parse complex quoted strings" >> {
+      val complexString = "foo bar'"
+      val complex = complexString.getBytes(StandardCharsets.UTF_8)
+      VisibilityEvaluator.parse(complexString) must throwA[ParsingException]
+      VisibilityEvaluator.parse('"' + complexString + '"') mustEqual VisibilityValue(complex)
+      VisibilityEvaluator.parse(s"""(user&"$complexString")|test""") mustEqual
+          VisibilityOr(Seq(VisibilityAnd(Seq(VisibilityValue(user), VisibilityValue(complex))), VisibilityValue(test)))
     }
 
     "evaluate authorizations" >> {
@@ -91,6 +105,39 @@ class VisibilityEvaluatorTest extends Specification {
 
     "parse z and 9" >> {
       VisibilityEvaluator.parse("zZ9") mustEqual VisibilityValue("zZ9".getBytes(StandardCharsets.UTF_8))
+    }
+
+    "throw a ParseException if the expression is invalid" >> {
+      VisibilityEvaluator.parse(" ") must throwA[ParsingException]
+      VisibilityEvaluator.parse("&") must throwA[ParsingException]
+      VisibilityEvaluator.parse("|") must throwA[ParsingException]
+      VisibilityEvaluator.parse("user&admin&") must throwA[ParsingException]
+      VisibilityEvaluator.parse("user|admin|") must throwA[ParsingException]
+      VisibilityEvaluator.parse("&user&admin") must throwA[ParsingException]
+      VisibilityEvaluator.parse("|user|admin") must throwA[ParsingException]
+      VisibilityEvaluator.parse("user&(admin") must throwA[ParsingException]
+      VisibilityEvaluator.parse("user|(admin") must throwA[ParsingException]
+      VisibilityEvaluator.parse("user&admin)") must throwA[ParsingException]
+      VisibilityEvaluator.parse("user|admin)") must throwA[ParsingException]
+      VisibilityEvaluator.parse("(user&admin") must throwA[ParsingException]
+      VisibilityEvaluator.parse("(user|admin") must throwA[ParsingException]
+    }
+
+    "recreate the expression" >> {
+      VisibilityEvaluator.parse(null).expression mustEqual ""
+      VisibilityEvaluator.parse("").expression mustEqual ""
+      VisibilityEvaluator.parse("user").expression mustEqual "user"
+      VisibilityEvaluator.parse("user&admin&test").expression mustEqual "user&admin&test"
+      VisibilityEvaluator.parse("user|admin|test").expression mustEqual "user|admin|test"
+      VisibilityEvaluator.parse("(user&admin)|test").expression mustEqual "(user&admin)|test"
+    }
+
+    "apply and unapply" >> {
+      VisibilityExpression("(user&admin)|test") mustEqual VisibilityEvaluator.parse("(user&admin)|test")
+      VisibilityEvaluator.parse("(user&admin)|test") match {
+        case VisibilityExpression(expression) => expression mustEqual "(user&admin)|test"
+        case _ => ko("didn't unapply")
+      }
     }
   }
 }
