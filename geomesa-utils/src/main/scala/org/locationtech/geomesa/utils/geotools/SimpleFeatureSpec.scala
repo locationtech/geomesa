@@ -12,7 +12,7 @@ import java.util.regex.Pattern
 import java.util.{Date, UUID}
 
 import com.vividsolutions.jts.geom._
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.text.StringEscapeUtils
 import org.geotools.feature.AttributeTypeBuilder
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType

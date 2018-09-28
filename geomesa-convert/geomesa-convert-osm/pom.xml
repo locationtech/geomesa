@@ -68,10 +68,6 @@
             <artifactId>h2</artifactId>
             <version>1.4.192</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
 
         <dependency>
             <groupId>org.specs2</groupId>

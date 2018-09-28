@@ -10,7 +10,7 @@ package org.locationtech.geomesa.utils.text
 
 import java.util.regex.Pattern
 
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.text.StringEscapeUtils
 import org.parboiled.scala._
 import org.parboiled.scala.rules.Rule1
 

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.geotools
 import java.util.Date
 
 import com.typesafe.config.Config
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.text.StringEscapeUtils
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.utils.geotools.AttributeSpec.GeomAttributeSpec
 import org.locationtech.geomesa.utils.geotools.NameableFeatureTypeFactory.NameableSimpleFeatureType

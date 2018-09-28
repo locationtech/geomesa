@@ -10,13 +10,14 @@ package org.locationtech.geomesa.jupyter
 
 object L {
   import com.vividsolutions.jts.geom._
-  import org.apache.commons.lang3.StringEscapeUtils
-  import org.opengis.feature.`type`.AttributeDescriptor
-  import org.opengis.feature.simple.SimpleFeature
-  import org.geotools.geojson.geom.GeometryJSON
+  import org.apache.commons.text.CharacterPredicates.ASCII_ALPHA_NUMERALS
+  import org.apache.commons.text.{RandomStringGenerator, StringEscapeUtils}
   import org.apache.spark.sql._
   import org.geotools.feature.simple.SimpleFeatureBuilder
+  import org.geotools.geojson.geom.GeometryJSON
   import org.locationtech.geomesa.spark.{GeoMesaDataSource, SparkUtils}
+  import org.opengis.feature.`type`.AttributeDescriptor
+  import org.opengis.feature.simple.SimpleFeature
 
   trait GeoRenderable {
     def render: String
@@ -252,7 +253,7 @@ object L {
      """.stripMargin
 
   def render(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8, path: String = "js") = {
-    val id = org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric(5)
+    val id = new RandomStringGenerator.Builder().withinRange('0', 'z').filteredBy(ASCII_ALPHA_NUMERALS).build().generate(5)
     s"""
        |<iframe id="${id}" sandbox="allow-scripts allow-same-origin" style="border:none;width:100%;height:520px" srcdoc="${xml.Utility.escape(buildMap(layers, center, zoom, path))}"></iframe>
        |<script>
