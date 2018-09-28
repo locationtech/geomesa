@@ -55,7 +55,7 @@ Now lets ingest.
 
 .. code-block:: bash
 
-    $ bin/geomesa-fs ingest -p file:///tmp/dstest -e parquet -s example-csv -C example-csv \
+    $ bin/geomesa-fs ingest -p /tmp/dstest -e parquet -s example-csv -C example-csv \
     --partition-scheme daily,z2-2bit examples/ingest/csv/example.csv
 
     INFO  Creating schema example-csv
@@ -69,7 +69,7 @@ We can verify our ingest by running an export:
 
 .. code-block:: bash
 
-    $ bin/geomesa-fs export -p file:///tmp/dstest -f example-csv
+    $ bin/geomesa-fs export -p /tmp/dstest -f example-csv
 
     id,fid:Integer:index=false,name:String:index=true,age:Integer:index=false,lastseen:Date:default=true:index=false,*geom:Point:srid=4326
     26236,26236,Hermione,25,2015-06-07T00:00:00.000Z,POINT (40.232 -53.2356)
@@ -81,56 +81,58 @@ Now lets inpsect the filesystem to see what it looks like:
 
 .. code-block:: bash
 
-    $ find /tmp/dstest
-    /tmp/dstest
+    $ find /tmp/dstest | sort
+    /tmp/dstest/
     /tmp/dstest/example-csv
     /tmp/dstest/example-csv/2015
     /tmp/dstest/example-csv/2015/05
     /tmp/dstest/example-csv/2015/05/06
-    /tmp/dstest/example-csv/2015/05/06/2
-    /tmp/dstest/example-csv/2015/05/06/2/.0000.parquet.crc
-    /tmp/dstest/example-csv/2015/05/06/2/0000.parquet
-    /tmp/dstest/example-csv/2015/10
-    /tmp/dstest/example-csv/2015/10/23
-    /tmp/dstest/example-csv/2015/10/23/1
-    /tmp/dstest/example-csv/2015/10/23/1/.0000.parquet.crc
-    /tmp/dstest/example-csv/2015/10/23/1/0000.parquet
+    /tmp/dstest/example-csv/2015/05/06/2_Wcec6a2ec594a4a2eb7c7980a1baf4ab3.parquet
+    /tmp/dstest/example-csv/2015/05/06/.2_Wcec6a2ec594a4a2eb7c7980a1baf4ab3.parquet.crc
     /tmp/dstest/example-csv/2015/06
     /tmp/dstest/example-csv/2015/06/07
-    /tmp/dstest/example-csv/2015/06/07/1
-    /tmp/dstest/example-csv/2015/06/07/1/.0000.parquet.crc
-    /tmp/dstest/example-csv/2015/06/07/1/0000.parquet
-    /tmp/dstest/example-csv/schema.sft
-    /tmp/dstest/example-csv/.metadata.crc
-    /tmp/dstest/example-csv/.schema.sft.crc
+    /tmp/dstest/example-csv/2015/06/07/1_Wcc082b9cf9bc4965b4cbf64741fee5b6.parquet
+    /tmp/dstest/example-csv/2015/06/07/.1_Wcc082b9cf9bc4965b4cbf64741fee5b6.parquet.crc
+    /tmp/dstest/example-csv/2015/10
+    /tmp/dstest/example-csv/2015/10/23
+    /tmp/dstest/example-csv/2015/10/23/1_W741f2151a4ed4eec97461a174a8588b7.parquet
+    /tmp/dstest/example-csv/2015/10/23/.1_W741f2151a4ed4eec97461a174a8588b7.parquet.crc
     /tmp/dstest/example-csv/metadata
-
+    /tmp/dstest/example-csv/metadata/storage.json
+    /tmp/dstest/example-csv/metadata/.storage.json.crc
+    /tmp/dstest/example-csv/metadata/update-2015-05-06-2-12240906-4171-4ab0-acfe-d2ce9c5fff76.json
+    /tmp/dstest/example-csv/metadata/.update-2015-05-06-2-12240906-4171-4ab0-acfe-d2ce9c5fff76.json.crc
+    /tmp/dstest/example-csv/metadata/update-2015-06-07-1-ecd68700-88e3-4f04-9438-84b6ab935907.json
+    /tmp/dstest/example-csv/metadata/.update-2015-06-07-1-ecd68700-88e3-4f04-9438-84b6ab935907.json.crc
+    /tmp/dstest/example-csv/metadata/update-2015-10-23-1-667f27a7-4f64-472a-80ed-82e8f1e65575.json
+    /tmp/dstest/example-csv/metadata/.update-2015-10-23-1-667f27a7-4f64-472a-80ed-82e8f1e65575.json.crc
 
 Notice that we have a directory structure laid out based on our ``daily,z2-2bit`` scheme. Notice the first parquet
-file path is composed of a date path ``2016/05/06`` and then a z2 ordinate of ``2`` ::
+file path is composed of a date path ``2016/05/06`` and then a z2 ordinate of ``2``, which is part of the file name ::
 
-    /tmp/dstest/example-csv/2015/05/06/2/0000.parquet
+    /tmp/dstest/example-csv/2015/05/06/2/2_Wcec6a2ec594a4a2eb7c7980a1baf4ab3.parquet
 
-The parquet file name is ``0000`` which indicates it is the first file we have ingested in this spatio-temporal
-filesystem partition. If we were to ingest a second file it would be named ``0001.parquet`` and GeoMesa would read the
-contents of both at query time.
+The rest of the parquet file name is a UUID, which allows for multiple threads to write different files at once
+without interference. If we ingested additional data, another file would be created under the partition, and
+GeoMesa would scan them both at query time.
 
-We'll also take a quick look at the metadata to see that it lists the parquet files in the system:
+Each new file (or file deletion) will create a separate metadata file, which contains details on the file:
 
 .. code-block:: bash
 
-    $ cat /tmp/dstest/example-csv/metadata
+    $ cat /tmp/dstest/example-csv/metadata/update-2015-05-06-629788a4-6a70-4009-ae20-c45602a88483.json
     {
-        "partitions" : {
-            "2015/05/06/2" : [
-                "0000.parquet"
-            ],
-            "2015/06/07/1" : [
-                "0000.parquet"
-            ],
-            "2015/10/23/1" : [
-                "0000.parquet"
-            ]
-        }
+        "action" : "Add",
+        "count" : 1,
+        "envelope" : {
+            "xmax" : -100.2365,
+            "xmin" : -100.2365,
+            "ymax" : 23.0,
+            "ymin" : 23.0
+        },
+        "files" : [
+            "2_Wcec6a2ec594a4a2eb7c7980a1baf4ab3.parquet"
+        ],
+        "name" : "2015/05/06/2",
+        "timestamp" : 1538148168948
     }
-

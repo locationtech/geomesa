@@ -15,6 +15,7 @@ import java.util.Collections
 import com.vividsolutions.jts.geom.Envelope
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.fs.storage.api.PartitionMetadata
@@ -61,6 +62,29 @@ class FileMetadataTest extends Specification with AllExpectations {
           metadata.getPartition("1").files.asScala must containTheSameElementsAs((1 to 3).map(i => s"file$i"))
           metadata.getPartition("2").files.asScala must containTheSameElementsAs((5 to 6).map(i => s"file$i"))
         }
+      }
+    }
+    "read metadata from nested folders" in {
+      withPath { path =>
+        val created = StorageMetadata.create(fc, path, sft, encoding, scheme)
+        created.addPartition(new PartitionMetadata("1", Collections.singletonList("file1"), 10L, new Envelope(-10, 10, -5, 5)))
+        created.addPartition(new PartitionMetadata("1", java.util.Arrays.asList("file2", "file3"), 20L, new Envelope(-11, 11, -5, 5)))
+        fc.mkdir(new Path(path, "metadata/nested/"), FsPermission.getDirDefault, false)
+        fc.util.listStatus(new Path(path, "metadata")).foreach { file =>
+          if (file.getPath.getName.startsWith("update-")) {
+            fc.rename(file.getPath, new Path(path, s"metadata/nested/${file.getPath.getName}"))
+          }
+        }
+        created.reload()
+        val loaded = StorageMetadata.load(fc, path).get
+        foreach(Seq(created, loaded)) { metadata =>
+          metadata.getEncoding mustEqual encoding
+          metadata.getSchema mustEqual sft
+          metadata.getPartitionScheme mustEqual scheme
+          metadata.getPartitions.asScala.map(_.name) mustEqual Seq("1")
+          metadata.getPartition("1").files.asScala must containTheSameElementsAs((1 to 3).map(i => s"file$i"))
+        }
+
       }
     }
     "transition old metadata files" in {

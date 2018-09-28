@@ -10,9 +10,10 @@ package org.locationtech.geomesa.fs.storage.common
 
 import java.io.InputStreamReader
 import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{ConcurrentHashMap, ScheduledThreadPoolExecutor, TimeUnit}
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
+import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom.Envelope
@@ -20,7 +21,6 @@ import org.apache.hadoop.fs.Options.CreateOpts
 import org.apache.hadoop.fs._
 import org.locationtech.geomesa.fs.storage.api.{PartitionMetadata, PartitionScheme}
 import org.locationtech.geomesa.fs.storage.common.StorageMetadata.PartitionAction.PartitionAction
-import org.locationtech.geomesa.fs.storage.common.StorageMetadata.{EnvelopeConfig, PartitionAction, PartitionConfig}
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -47,9 +47,13 @@ class StorageMetadata private (fc: FileContext,
                                encoding: String)
     extends org.locationtech.geomesa.fs.storage.api.StorageMetadata {
 
+  import StorageMetadata._
+
   import scala.collection.JavaConverters._
 
   private val partitions = new ConcurrentHashMap[String, PartitionMetadata]()
+
+  executor.scheduleWithFixedDelay(new ReloadRunnable(this), delay, delay, TimeUnit.MILLISECONDS)
 
   override def getRoot: Path = root
 
@@ -136,6 +140,8 @@ class StorageMetadata private (fc: FileContext,
 
 object StorageMetadata extends MethodProfiling with LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   private val MetadataDirectory = "metadata"
 
   private val MetadataPath = s"$MetadataDirectory/storage.json"
@@ -148,19 +154,16 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
 
   private val options = ConfigRenderOptions.concise().setFormatted(true)
 
+  private val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(1))
+
+  private val delay = PathCache.CacheDurationProperty.toDuration.get.toMillis
+
   private val cache = Caffeine.newBuilder().build(
     new CacheLoader[(FileContext, Path), StorageMetadata]() {
       // note: returning null will cause it to attempt to load again the next time it's accessed
       override def load(key: (FileContext, Path)): StorageMetadata = loadStorage(key._1, key._2).orNull
     }
   )
-
-  private val PartitionPathFilter = new PathFilter {
-    override def accept(path: Path): Boolean = {
-      val name = path.getName
-      name.startsWith(UpdateFilePrefix) && name.endsWith(JsonPathSuffix)
-    }
-  }
 
   /**
     * Creates a new, empty metadata and persists it
@@ -211,18 +214,18 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
     */
   def writePartitionConfig(fc: FileContext, root: Path, config: PartitionConfig): Unit = {
     val name = s"$UpdatePathPrefix${config.name.replaceAll("[^a-zA-Z0-9]", "-")}-${UUID.randomUUID()}$JsonPathSuffix"
-    val file = new Path(root, name)
     val data = profile("Serialized partition configuration") {
       ConfigWriter[PartitionConfig].to(config).render(options)
     }
     profile("Persisted partition configuration") {
+      val file = new Path(root, name)
       WithClose(fc.create(file, java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent)) { out =>
         out.writeBytes(data)
         out.hflush()
         out.hsync()
       }
+      PathCache.invalidate(fc, file)
     }
-    PathCache.invalidate(fc, file)
   }
 
   /**
@@ -257,7 +260,16 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
   private def listPartitionConfigs(fc: FileContext, root: Path): Seq[Path] = {
     val directory = new Path(root, MetadataDirectory)
     if (!PathCache.exists(fc, directory)) { Seq.empty } else {
-      fc.util.listStatus(directory, PartitionPathFilter).toSeq.map(_.getPath)
+      val paths = Seq.newBuilder[Path]
+      val iter = fc.util.listFiles(directory, true)
+      while (iter.hasNext) {
+        val path = iter.next.getPath
+        val name = path.getName
+        if (name.startsWith(UpdateFilePrefix) && name.endsWith(JsonPathSuffix)) {
+          paths += path
+        }
+      }
+      paths.result()
     }
   }
 
@@ -375,6 +387,10 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
   implicit val ActionConvert: ConfigConvert[PartitionAction] =
     ConfigConvert[String].xmap[PartitionAction](name => PartitionAction.values.find(_.toString == name).get, _.toString)
 
+  private class ReloadRunnable(storage: StorageMetadata) extends Runnable {
+    override def run(): Unit = storage.reload()
+  }
+
   /**
     * Transition the old single-file metadata.json to the new append-log format
     *
@@ -383,8 +399,6 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
     * @return
     */
   private def transitionMetadata(fc: FileContext, root: Path): Option[StorageMetadata] = {
-    import scala.collection.JavaConverters._
-
     val old = new Path(root, "metadata.json")
     if (!PathCache.exists(fc, old)) { None } else {
       val oldConfig = WithClose(new InputStreamReader(fc.open(old))) { in =>

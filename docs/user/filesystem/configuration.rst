@@ -19,3 +19,14 @@ When writing to many partitions at once, this may cause memory problems due to t
 mitigate this, idle partitions can be closed after a configurable timeout.
 
 The timeout is defined as a duration, e.g. ``60 seconds`` or ``100 millis``.
+
+FileSystem Operations
+---------------------
+
+geomesa.fs.file.cache.duration
+++++++++++++++++++++++++++++++
+
+To avoid repeated reads from disk, GeoMesa will cache the results of disk operations for a certain period of time.
+This has the side effect that files modified by external processes may not be visible until after the cache timeout.
+
+The property is defined as a duration, e.g. ``60 seconds`` or ``100 millis``. By default it is ``10 minutes``.

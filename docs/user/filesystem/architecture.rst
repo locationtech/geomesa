@@ -57,6 +57,15 @@ The partition scheme must be provided at ingest time. Examples of common schemes
 More information on defining partition schemes can be found in :ref:`fsds_partition_schemes` and
 :ref:`fsds_ingest_command`.
 
+Metadata
+--------
+
+GeoMesa FSDS stores metadata about partitions and data files, to avoid having to interrogate the filesystem
+repeatedly. When a new data file is added or removed, an associated metadata file will be created to track
+the operation. These files are stored in a folder named ``metadata`` under the root path for the FSDS.
+
+If the number of metadata files grows too large, they may be reduced down by using the ``compact`` or
+``manage-metadata compact`` command-line functions, and/or manually moved into subfolders.
 
 Storage Formats
 ---------------

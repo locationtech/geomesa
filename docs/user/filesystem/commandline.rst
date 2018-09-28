@@ -24,7 +24,8 @@ Commands
 ``compact``
 ^^^^^^^^^^^
 
-Compact one or more filesystem partitions.
+Compact one or more filesystem partitions. This will merge multiple files into a single file, which may
+provide better query peformance.
 
 ======================== =========================================================
 Argument                 Description
