@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.text
 
-import org.apache.commons.lang.StringEscapeUtils
+import org.apache.commons.text.StringEscapeUtils
 
 import scala.util.parsing.combinator.JavaTokenParsers
 

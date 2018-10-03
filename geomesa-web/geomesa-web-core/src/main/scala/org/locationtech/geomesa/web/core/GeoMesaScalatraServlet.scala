@@ -8,9 +8,10 @@
 
 package org.locationtech.geomesa.web.core
 
+import java.io.{PrintWriter, StringWriter}
+
 import com.typesafe.scalalogging.LazyLogging
 import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse}
-import org.apache.commons.lang.exception.ExceptionUtils
 import org.geotools.data.DataStoreFinder
 import org.scalatra.{ActionResult, InternalServerError, ScalatraServlet}
 
@@ -46,7 +47,7 @@ trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
   def handleError(msg: String, e: Exception): ActionResult = {
     logger.error(msg, e)
     if (debug) {
-      InternalServerError(body = s"$msg\n${e.getMessage}\n${ExceptionUtils.getStackTrace(e)}")
+      InternalServerError(body = s"$msg\n${e.getMessage}\n${GeoMesaScalatraServlet.getStackTrace(e)}")
     } else {
       InternalServerError()
     }
@@ -62,5 +63,11 @@ object GeoMesaScalatraServlet {
       case r: HttpServletRequestWrapper => new PathHandlingServletRequest(r)
       case _ => request
     }
+  }
+
+  private def getStackTrace(e: Throwable): String = {
+    val writer = new StringWriter()
+    e.printStackTrace(new PrintWriter(writer, true))
+    writer.toString
   }
 }
