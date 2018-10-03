@@ -46,6 +46,7 @@ do
       echo Waiting for HBase to be configured.
       ROOTDIR=`cat /usr/lib/hbase/conf/hbase-site.xml 2> /dev/null | tr '\n' ' ' | sed 's/ //g' | grep -o -P "<name>hbase.rootdir</name><value>.+?</value>" | sed 's/<name>hbase.rootdir<\/name><value>//' | sed 's/<\/value>//'`
 done
+ROOTDIR="${ROOTDIR%/}" # standardize to remove trailing slash
 
 chown -R $GMUSER:$GMUSER ${GMDIR}
 
@@ -57,7 +58,6 @@ echo The HBase Root dir is ${ROOTDIR}.
 echo "# Auto-registration for geomesa coprocessors ${NL}export CUSTOM_JAVA_OPTS=\"${JAVA_OPTS} ${CUSTOM_JAVA_OPTS} -Dgeomesa.hbase.coprocessor.path=${ROOTDIR}/lib/${DISTRIBUTED_JAR_NAME}\" ${NL}" >> /opt/geomesa/conf/geomesa-env.sh
 
 # Deploy the GeoMesa HBase distributed runtime to the HBase root directory
-ROOTDIR="${ROOTDIR%/}" # standardize to remove trailing slash
 if [[ "$ROOTDIR" = s3* ]]; then
   aws s3 cp /opt/geomesa/dist/hbase/$DISTRIBUTED_JAR_NAME ${ROOTDIR}/lib/ && \
   echo "Installed GeoMesa distributed runtime to ${ROOTDIR}/lib/"
