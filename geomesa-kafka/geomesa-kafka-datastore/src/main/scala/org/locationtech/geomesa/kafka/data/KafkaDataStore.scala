@@ -94,7 +94,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
   private val runner = new KafkaQueryRunner(caches, stats, Some(config.authProvider))
 
   private val schemaRegistryClient = config.serialization match {
-    case SerializationType.AVRO => config.schemaRegistry.map(url => new SchemaRegistryClient(url.toString))
+    case SerializationType.AVRO => config.schemaRegistry.map(r => new SchemaRegistryClient(r.url))
     case _ => None
   }
 

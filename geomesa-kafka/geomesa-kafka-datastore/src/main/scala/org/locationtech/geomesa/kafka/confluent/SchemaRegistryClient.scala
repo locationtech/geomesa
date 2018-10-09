@@ -21,11 +21,9 @@ import org.locationtech.geomesa.utils.io.WithClose
 
 import scala.util.{Failure, Success, Try}
 
-class SchemaRegistryClient(baseUrl: String,
+class SchemaRegistryClient(val url: URL,
                            sslSocketFactory: Option[SSLSocketFactory] = None,
                            authentication: Option[String] = None) {
-
-  val url: String = baseUrl.replaceFirst("/$", "") // trim any trailing '/'
 
   private val parser = new Schema.Parser()
   private val gson = new GsonBuilder().create()
@@ -58,7 +56,7 @@ class SchemaRegistryClient(baseUrl: String,
     * @return response
     */
   private def request(path: String, method: String, body: Option[Array[Byte]]): String = {
-    val connection = new URL(s"$url/$path").openConnection.asInstanceOf[HttpURLConnection]
+    val connection = new URL(url, path).openConnection.asInstanceOf[HttpURLConnection]
     try {
       for { f <- sslSocketFactory; c <- Option(connection).collect { case c: HttpsURLConnection => c } } {
         c.setSSLSocketFactory(f)
@@ -86,7 +84,7 @@ class SchemaRegistryClient(baseUrl: String,
       val response = connection.getResponseCode
       if (response == HttpURLConnection.HTTP_OK) {
         WithClose(connection.getInputStream)(IOUtils.toString(_, StandardCharsets.UTF_8))
-      } else if (response == HttpURLConnection.HTTP_NO_CONTENT) {
+      } else if (response == HttpURLConnection.HTTP_NO_CONTENT || response == HttpURLConnection.HTTP_NOT_FOUND) {
         null
       } else {
         val message = Try(WithClose(connection.getErrorStream)(IOUtils.toString(_, StandardCharsets.UTF_8))) match {
