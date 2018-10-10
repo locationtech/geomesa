@@ -12,6 +12,7 @@ import java.io.InputStream
 
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.Transformers.Predicate
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.annotation.tailrec
@@ -101,7 +102,7 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(P
 
   override def process(is: InputStream, ec: EvaluationContext): Iterator[SimpleFeature] = ???
 
-  override def close(): Unit = indexedConverters.foreach(_.close())
+  override def close(): Unit = indexedConverters.foreach(CloseWithLogging.apply)
 }
 
 case class CompositeEvaluationContext(contexts: IndexedSeq[EvaluationContext]) extends EvaluationContext {
