@@ -74,13 +74,15 @@ class JdbcConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, conf)
-      converter must not(beNull)
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        converter must not(beNull)
 
-      val res = converter.process(new ByteArrayInputStream("select * from example".getBytes(StandardCharsets.UTF_8))).toList
-      // note: comparison has to be done backwards,
-      // as java.util.Date.equals(java.sql.Timestamp) != java.sql.Timestamp.equals(java.util.Date)
-      features mustEqual res
+        val sql = new ByteArrayInputStream("select * from example".getBytes(StandardCharsets.UTF_8))
+        val res = WithClose(converter.process(sql))(_.toList)
+        // note: comparison has to be done backwards,
+        // as java.util.Date.equals(java.sql.Timestamp) != java.sql.Timestamp.equals(java.util.Date)
+        features mustEqual res
+      }
     }
   }
 

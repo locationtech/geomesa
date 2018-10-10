@@ -13,7 +13,6 @@ import java.util.zip.Deflater
 
 import com.beust.jcommander.{ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.IOUtils
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.convert.EvaluationContext
@@ -26,9 +25,9 @@ import org.locationtech.geomesa.tools.utils.CLArgResolver
 import org.locationtech.geomesa.tools.utils.DataFormats._
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose}
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.locationtech.geomesa.utils.text.TextTools.getPlural
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -68,7 +67,8 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
     val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(""))
     val maxFeatures = Option(params.maxFeatures).map(_.intValue())
 
-    def features() = ConvertCommand.convertFeatures(files, converter, ec, filter, maxFeatures)
+    def features(): CloseableIterator[SimpleFeature] =
+      ConvertCommand.convertFeatures(files, converter, ec, filter, maxFeatures)
 
     val exporter = getExporter(params, features())
 
@@ -81,7 +81,8 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
           + s"and ${getPlural(ec.counter.getFailure, "failure")}")
       count
     } finally {
-      IOUtils.closeQuietly(exporter)
+      CloseWithLogging(exporter)
+      CloseWithLogging(converter)
     }
   }
 }

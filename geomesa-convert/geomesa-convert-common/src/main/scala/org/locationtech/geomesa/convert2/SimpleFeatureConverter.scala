@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.convert2
 
-import java.io.InputStream
+import java.io.{Closeable, InputStream}
 import java.util.ServiceLoader
 
 import com.typesafe.config.Config
@@ -23,7 +23,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 /**
   * Converts input streams into simple features
   */
-trait SimpleFeatureConverter {
+trait SimpleFeatureConverter extends Closeable {
 
   /**
     * Result feature type
@@ -136,5 +136,7 @@ object SimpleFeatureConverter extends StrictLogging {
                                          counter: Counter): EvaluationContext = {
       converter.createEvaluationContext(globalParams, counter)
     }
+
+    override def close(): Unit = converter.close()
   }
 }

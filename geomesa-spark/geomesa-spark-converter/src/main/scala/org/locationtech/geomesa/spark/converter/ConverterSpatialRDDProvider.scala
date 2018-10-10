@@ -88,7 +88,7 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
     // Verify the config before returning.
     try {
-      SimpleFeatureConverter(sft, ConfigFactory.parseString(converterConf))
+      SimpleFeatureConverter(sft, ConfigFactory.parseString(converterConf)).close()
     } catch {
       case NonFatal(e) => throw new IllegalArgumentException("Could not resolve converter", e)
     }

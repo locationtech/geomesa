@@ -22,6 +22,7 @@ import org.locationtech.geomesa.convert.ValidationMode.ValidationMode
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.transforms.Expression.LiteralNull
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -442,6 +443,8 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
          ret.iterator
     }
   }
+
+  override def close(): Unit = caches.values.foreach(CloseWithLogging.apply)
 }
 
 @deprecated("Replaced with org.locationtech.geomesa.convert2.AbstractConverter")

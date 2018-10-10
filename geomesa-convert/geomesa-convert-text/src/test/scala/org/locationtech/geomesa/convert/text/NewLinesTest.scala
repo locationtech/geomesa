@@ -15,6 +15,7 @@ import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -53,19 +54,21 @@ class NewLinesTest extends Specification {
     ))
 
     "process trailing newline" >> {
-      val converter = SimpleFeatureConverter(sft, conf)
-      val data = "45.0,45.0\n55.0,55.0\n"
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val data = "45.0,45.0\n55.0,55.0\n"
 
-      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)))
-      res.length mustEqual 2
+        val res = WithClose(converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        res must haveLength(2)
+      }
     }
 
     "process middle of data newline" >> {
-      val converter = SimpleFeatureConverter(sft, conf)
-      val data = "45.0,45.0\n\n55.0,55.0\n"
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val data = "45.0,45.0\n\n55.0,55.0\n"
 
-      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)))
-      res.length mustEqual 2
+        val res = WithClose(converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        res must haveLength(2)
+      }
     }
   }
 }

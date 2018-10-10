@@ -27,6 +27,8 @@ class ConverterStorage(fc: FileContext,
                        converter: SimpleFeatureConverter,
                        partitionScheme: PartitionScheme) extends FileSystemStorage {
 
+  // TODO close converter...
+
   private val metadata = new ConverterMetadata(fc, root, sft, partitionScheme)
 
   import scala.collection.JavaConverters._
