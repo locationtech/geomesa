@@ -11,6 +11,7 @@ package org.locationtech.geomesa.security
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
 
+import org.apache.commons.text.StringEscapeUtils
 import org.locationtech.geomesa.utils.text.BasicParser
 import org.parboiled.errors.{ErrorUtils, ParsingException}
 import org.parboiled.scala.parserunners.{BasicParseRunner, ReportingParseRunner}
@@ -37,6 +38,9 @@ object VisibilityEvaluator {
   /**
     * Parses a visibility from a string. Results are cached for repeated calls
     *
+    * Per standard operator precedence, the binary `&` has higher precedence than `|`, i.e.
+    * `user|admin&test` is the same as `user|(admin&test)` and `user&admin|test` is the same as `(user&admin)|test`
+    *
     * @param visibility visibility string, e.g. 'admin|user'
     * @param report provide detailed reporting on errors, or not
     * @throws org.parboiled.errors.ParsingException if visibility is not valid
@@ -44,9 +48,7 @@ object VisibilityEvaluator {
     */
   @throws(classOf[ParsingException])
   def parse(visibility: String, report: Boolean = false): VisibilityExpression = {
-    if (visibility == null || visibility.isEmpty) {
-      VisibilityNone
-    } else {
+    if (visibility == null || visibility.isEmpty) { VisibilityNone } else {
       var parsed = cache.get(visibility)
       if (parsed == null) {
         val runner = if (report) { ReportingParseRunner(Parser.visibility) } else { BasicParseRunner(Parser.visibility) }
@@ -70,6 +72,19 @@ object VisibilityEvaluator {
       * @return true if can see, otherwise false
       */
     def evaluate(authorizations: Seq[Array[Byte]]): Boolean
+
+    /**
+      * Converts back to a string. The result can be converted back to a Visibility Expression again by
+      * calling `VisbilityEvaluator.parse`
+      *
+      * @return the expression as a string
+      */
+    def expression: String
+  }
+
+  object VisibilityExpression {
+    def apply(visibility: String): VisibilityExpression = parse(visibility)
+    def unapply(visibility: VisibilityExpression): Option[String] = Some(visibility.expression)
   }
 
   /**
@@ -77,6 +92,7 @@ object VisibilityEvaluator {
     */
   case object VisibilityNone extends VisibilityExpression {
     override def evaluate(authorizations: Seq[Array[Byte]]): Boolean = true
+    override def expression: String = ""
   }
 
   /**
@@ -86,17 +102,20 @@ object VisibilityEvaluator {
     */
   case class VisibilityValue(value: Array[Byte]) extends VisibilityExpression {
 
-    require(value.forall(isValidAuthChar), s"Invalid character in '${new String(value, StandardCharsets.UTF_8)}'")
-
     override def evaluate(authorizations: Seq[Array[Byte]]): Boolean =
       authorizations.exists(java.util.Arrays.equals(value, _))
 
-    override def equals(o: Any): Boolean = {
-      o match {
-        case VisibilityValue(v) => java.util.Arrays.equals(value, v)
-        case _ => false
-      }
+    override def expression: String = {
+      val string = new String(value, StandardCharsets.UTF_8)
+      if (value.forall(isValidAuthChar)) { string } else { '"' + StringEscapeUtils.escapeJava(string) + '"' }
     }
+
+    override def equals(o: Any): Boolean = o match {
+      case VisibilityValue(v) => java.util.Arrays.equals(value, v)
+      case _ => false
+    }
+
+    override def hashCode(): Int = java.util.Arrays.hashCode(value)
   }
 
   /**
@@ -106,6 +125,13 @@ object VisibilityEvaluator {
     */
   case class VisibilityAnd(expressions: Seq[VisibilityExpression]) extends VisibilityExpression {
     override def evaluate(authorizations: Seq[Array[Byte]]): Boolean = expressions.forall(_.evaluate(authorizations))
+    override def expression: String = {
+      val clauses = expressions.map {
+        case e: VisibilityOr => s"(${e.expression})"
+        case e => e.expression
+      }
+      clauses.mkString("&")
+    }
   }
 
   /**
@@ -115,6 +141,13 @@ object VisibilityEvaluator {
     */
   case class VisibilityOr(expressions: Seq[VisibilityExpression]) extends VisibilityExpression {
     override def evaluate(authorizations: Seq[Array[Byte]]): Boolean = expressions.exists(_.evaluate(authorizations))
+    override def expression: String = {
+      val clauses = expressions.map {
+        case e: VisibilityAnd => s"(${e.expression})"
+        case e => e.expression
+      }
+      clauses.mkString("|")
+    }
   }
 
   private def isValidAuthChar(b: Byte): Boolean = validAuthChars(0xff & b)
@@ -122,7 +155,7 @@ object VisibilityEvaluator {
 
 class VisibilityEvaluator private extends BasicParser {
 
-  import org.locationtech.geomesa.security.VisibilityEvaluator.{VisibilityAnd, VisibilityExpression, VisibilityOr, VisibilityValue}
+  import org.locationtech.geomesa.security.VisibilityEvaluator._
   import org.parboiled.scala._
 
   def visibility: Rule1[VisibilityExpression] = rule {
@@ -130,16 +163,16 @@ class VisibilityEvaluator private extends BasicParser {
   }
 
   private def expression: Rule1[VisibilityExpression] = rule {
-    oneOrMore(term, "&") ~~> ((a) => if (a.length == 1) { a.head } else { VisibilityAnd(a) })
+    oneOrMore(term, "|") ~~> (a => if (a.length == 1) { a.head } else { VisibilityOr(a) })
   }
 
   private def term: Rule1[VisibilityExpression] = rule {
-    oneOrMore(factor, "|") ~~> ((a) => if (a.length == 1) { a.head } else { VisibilityOr(a) })
+    oneOrMore(factor, "&") ~~> (a => if (a.length == 1) { a.head } else { VisibilityAnd(a) })
   }
 
   private def factor: Rule1[VisibilityExpression] = rule { value | parens }
 
-  private def parens = rule { "(" ~ expression ~ ")" }
+  private def parens: Rule1[VisibilityExpression] = rule { "(" ~ expression ~ ")" }
 
   private def value: Rule1[VisibilityExpression] = rule {
     string ~~> { s => VisibilityValue(s.getBytes(StandardCharsets.UTF_8))}
