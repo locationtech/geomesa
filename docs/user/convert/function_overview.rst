@@ -21,7 +21,12 @@ Type Conversions
 String Functions
 ~~~~~~~~~~~~~~~~
 
+-  ``strip``
+-  ``stripPrefix``
+-  ``stripSuffix``
 -  ``stripQuotes``
+-  ``replace``
+-  ``removeChars``
 -  ``length``
 -  ``trim``
 -  ``capitalize``
