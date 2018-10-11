@@ -73,11 +73,11 @@ Examples: ``stripSuffix('afoob', 'abc') = afoo``
 remove
 ^^^^^^
 
-Description: Removes characters from a string
+Description: Removes a substring from a string
 
-Usage: ``remove($1, $chars)``
+Usage: ``remove($1, $substring)``
 
-Examples: ``remove('afoboc', 'abc') = foo``
+Examples: ``remove('foabco', 'abc') = foo``
 
 replace
 ^^^^^^^
