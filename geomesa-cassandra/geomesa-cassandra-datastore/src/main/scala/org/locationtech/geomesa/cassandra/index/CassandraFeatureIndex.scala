@@ -13,6 +13,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import com.datastax.driver.core._
+import com.datastax.driver.core.exceptions.AlreadyExistsException
 import com.datastax.driver.core.querybuilder.{QueryBuilder, Select}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
@@ -21,6 +22,7 @@ import org.locationtech.geomesa.cassandra.index.legacy.{CassandraAttributeIndexV
 import org.locationtech.geomesa.cassandra.{RowValue, _}
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.IndexKeySpace._
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexKeySpace, ShardStrategy}
@@ -113,30 +115,31 @@ trait CassandraFeatureIndex[T, U] extends CassandraFeatureIndexType with ClientS
 
   override def supports(sft: SimpleFeatureType): Boolean = keySpace.supports(sft)
 
-  override def configure(sft: SimpleFeatureType, ds: CassandraDataStore): Unit = {
-    super.configure(sft, ds)
-
-    val tableName = getTableName(sft.getTypeName, ds)
+  override def configure(sft: SimpleFeatureType, ds: CassandraDataStore, partition: Option[String]): String = {
+    val table = super.configure(sft, ds, partition)
     val cluster = ds.session.getCluster
-    val table = cluster.getMetadata.getKeyspace(ds.session.getLoggedKeyspace).getTable(tableName)
 
-    if (table == null) {
+    if (cluster.getMetadata.getKeyspace(ds.session.getLoggedKeyspace).getTable(table) == null) {
       val (partitions, pks) = columns.partition(_.partition)
-      val create = s"CREATE TABLE $tableName (${columns.map(c => s"${c.name} ${c.cType}").mkString(", ")}, " +
+      val create = s"CREATE TABLE $table (${columns.map(c => s"${c.name} ${c.cType}").mkString(", ")}, " +
           s"PRIMARY KEY (${partitions.map(_.name).mkString("(", ", ", ")")}" +
           s"${if (pks.nonEmpty) { pks.map(_.name).mkString(", ", ", ", "")} else { "" }}))"
       logger.debug(create)
-      ds.session.execute(create)
+      try { ds.session.execute(create) } catch {
+        case _: AlreadyExistsException => // ignore, another thread created it for us
+      }
     }
+
+    table
   }
 
-  override def writer(sft: SimpleFeatureType, ds: CassandraDataStore): (CassandraFeature) => Seq[Seq[RowValue]] = {
+  override def writer(sft: SimpleFeatureType, ds: CassandraDataStore): CassandraFeature => Seq[Seq[RowValue]] = {
     val shards = shardStrategy(sft)
     val toIndexKey: SimpleFeature => Seq[U] = keySpace.toIndexKey(sft)
     createValues(shards, toIndexKey, includeFeature = true)
   }
 
-  override def remover(sft: SimpleFeatureType, ds: CassandraDataStore): (CassandraFeature) => Seq[Seq[RowValue]] = {
+  override def remover(sft: SimpleFeatureType, ds: CassandraDataStore): CassandraFeature => Seq[Seq[RowValue]] = {
     val shards = shardStrategy(sft)
     val toIndexKey = keySpace.toIndexKey(sft, lenient = true)
     createValues(shards, toIndexKey, includeFeature = false)
@@ -151,25 +154,33 @@ trait CassandraFeatureIndex[T, U] extends CassandraFeatureIndexType with ClientS
   private def bytesToString(row: Array[Byte], offset: Int, length: Int, feature: SimpleFeature): String =
     new String(row, offset, length, StandardCharsets.UTF_8)
 
-  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] =
+  override def getSplits(sft: SimpleFeatureType, partition: Option[String]): Seq[Array[Byte]] =
     throw new NotImplementedError("Cassandra does not support splits")
 
   override def removeAll(sft: SimpleFeatureType, ds: CassandraDataStore): Unit = {
-    val tableName = getTableName(sft.getTypeName, ds)
-    val truncate = s"TRUNCATE $tableName"
-    logger.debug(truncate)
-    ds.session.execute(truncate)
+    if (TablePartition.partitioned(sft)) {
+      // partitioned indices can just drop the partitions
+      delete(sft, ds, None)
+    } else {
+      // note: tables are never shared
+      getTableNames(sft, ds, None).foreach { table =>
+        val truncate = s"TRUNCATE $table"
+        logger.debug(truncate)
+        ds.session.execute(truncate)
+      }
+    }
   }
 
-  override def delete(sft: SimpleFeatureType, ds: CassandraDataStore, shared: Boolean): Unit = {
-    if (shared) {
-      throw new NotImplementedError("Cassandra tables are never shared")
-    } else {
-      val tableName = getTableName(sft.getTypeName, ds)
-      val delete = s"DROP TABLE IF EXISTS $tableName"
+  override def delete(sft: SimpleFeatureType, ds: CassandraDataStore, partition: Option[String]): Unit = {
+    // note: tables are never shared
+    getTableNames(sft, ds, partition).foreach { table =>
+      val delete = s"DROP TABLE IF EXISTS $table"
       logger.debug(delete)
       ds.session.execute(delete)
     }
+
+    // deletes the metadata
+    super.delete(sft, ds, partition)
   }
 
   override def getQueryPlan(sft: SimpleFeatureType,
@@ -206,14 +217,14 @@ trait CassandraFeatureIndex[T, U] extends CassandraFeatureIndexType with ClientS
       import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
       val ks = ds.session.getLoggedKeyspace
-      val tableName = getTableName(sft.getTypeName, ds)
+      val tables = getTablesForQuery(sft, ds, filter.filter)
 
-      val statements = ranges.map(CassandraFeatureIndex.statement(ks, tableName, _))
+      val statements = tables.flatMap(table => ranges.map(CassandraFeatureIndex.statement(ks, table, _)))
 
       val useFullFilter = keySpace.useFullFilter(indexValues, Some(ds.config), hints)
       val ecql = if (useFullFilter) { filter.filter } else { filter.secondary }
       val toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
-      StatementPlan(filter, tableName, statements.toSeq, ds.config.queryThreads, ecql, toFeatures)
+      StatementPlan(filter, tables, statements, ds.config.queryThreads, ecql, toFeatures)
     }
   }
 

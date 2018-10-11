@@ -19,6 +19,7 @@ import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseFeature}
+import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -33,7 +34,7 @@ class HBaseIndexFileMapper extends Mapper[Writable, SimpleFeature, ImmutableByte
   private var ds: HBaseDataStore = _
   private var sft: SimpleFeatureType = _
   private var writer: HBaseFeature => Seq[Mutation] = _
-  private var wrapper: (SimpleFeature) => HBaseFeature = _
+  private var wrapper: SimpleFeature => HBaseFeature = _
 
   private var features: Counter = _
   private var entries: Counter = _
@@ -103,8 +104,9 @@ object HBaseIndexFileMapper {
     try {
       val sft = ds.getSchema(typeName)
       require(sft != null, s"Schema $typeName does not exist, please create it first")
+      require(!TablePartition.partitioned(sft), "Writing to partitioned tables is not currently supported")
       val idx = ds.manager.index(index)
-      val tableName = TableName.valueOf(idx.getTableName(typeName, ds))
+      val tableName = TableName.valueOf(idx.getTableNames(sft, ds, None).head)
       val table = ds.connection.getTable(tableName)
 
       GeoMesaConfigurator.setDataStoreOutParams(job.getConfiguration, params)

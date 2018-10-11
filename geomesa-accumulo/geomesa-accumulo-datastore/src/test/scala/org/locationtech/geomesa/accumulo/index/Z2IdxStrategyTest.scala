@@ -60,11 +60,14 @@ class Z2IdxStrategyTest extends Specification with TestWithDataStore {
     "print values" in {
       skipped("used for debugging")
       println()
-      ds.connector.createScanner(Z2Index.getTableName(sftName, ds), new Authorizations()).foreach { r =>
-        val bytes = r.getKey.getRow.getBytes
-        val keyZ = Longs.fromByteArray(bytes.drop(2))
-        val (x, y) = Z2SFC.invert(Z2(keyZ))
-        println(s"row: $x $y")
+      Z2Index.getTableNames(sft, ds).foreach { table =>
+        println(table)
+        ds.connector.createScanner(table, new Authorizations()).foreach { r =>
+          val bytes = r.getKey.getRow.getBytes
+          val keyZ = Longs.fromByteArray(bytes.drop(2))
+          val (x, y) = Z2SFC.invert(Z2(keyZ))
+          println(s"row: $x $y")
+        }
       }
       println()
       success

@@ -82,9 +82,10 @@ object DtgAgeOffIterator {
   def set(ds: AccumuloDataStore, sft: SimpleFeatureType, expiry: Duration, dtg: String): Unit = {
     val tableOps = ds.connector.tableOperations()
     ds.manager.indices(sft).foreach { index =>
-      val table = index.getTableName(sft.getTypeName, ds)
-      if (tableOps.exists(table)) {
-        tableOps.attachIterator(table, configure(sft, index, expiry, Option(dtg))) // all scopes
+      index.getTableNames(sft, ds, None).foreach { table =>
+        if (tableOps.exists(table)) {
+          tableOps.attachIterator(table, configure(sft, index, expiry, Option(dtg))) // all scopes
+        }
       }
     }
   }

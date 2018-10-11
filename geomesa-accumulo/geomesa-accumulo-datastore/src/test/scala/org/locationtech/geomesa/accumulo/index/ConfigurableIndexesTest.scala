@@ -17,6 +17,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -40,9 +41,11 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
 
   "AccumuloDataStore" should {
     "only create the z3 index" >> {
-      ds.tableOps.exists(Z3Index.getTableName(sft.getTypeName, ds)) must beTrue
+      val z3Tables = Z3Index.getTableNames(sft, ds)
+      z3Tables must not(beEmpty)
+      foreach(z3Tables)(t => ds.tableOps.exists(t) must beTrue)
       forall(AccumuloFeatureIndex.AllIndices.filter(i => i != Z3Index)) { i =>
-        Try(i.getTableName(sft.getTypeName, ds)).map(ds.tableOps.exists).getOrElse(false) must beFalse
+        foreach(Try(i.getTableNames(sft, ds)).getOrElse(Seq.empty))(table => ds.tableOps.exists(table) must beFalse)
       }
     }
 
@@ -74,15 +77,18 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
       sft.setIndices(sft.getIndices :+ (Z2Index.name, Z2Index.version, IndexMode.ReadWrite))
       ds.updateSchema(sftName, sft)
-      forall(Seq(Z3Index, Z2Index))(i => ds.tableOps.exists(i.getTableName(sft.getTypeName, ds)) must beTrue)
-      forall(AccumuloFeatureIndex.AllIndices.filter(i => i != Z3Index && i != Z2Index)) { i =>
-        Try(i.getTableName(sft.getTypeName, ds)).map(ds.tableOps.exists).getOrElse(false) must beFalse
+      forall(Seq(Z3Index, Z2Index)) { i =>
+        val tables = i.getTableNames(sft, ds)
+        tables must not(beEmpty)
+        foreach(tables)(t => ds.tableOps.exists(t) must beTrue)
       }
-      val scanner = connector.createScanner(Z2Index.getTableName(sft.getTypeName, ds), new Authorizations)
-      try {
-        scanner.iterator.hasNext must beFalse
-      } finally {
-        scanner.close()
+      forall(AccumuloFeatureIndex.AllIndices.filter(i => i != Z3Index && i != Z2Index)) { i =>
+        foreach(Try(i.getTableNames(sft, ds)).getOrElse(Seq.empty))(table => ds.tableOps.exists(table) must beFalse)
+      }
+      val z2Tables = Z2Index.getTableNames(sft, ds)
+      z2Tables must not(beEmpty)
+      foreach(z2Tables) { table =>
+        WithClose(connector.createScanner(table, new Authorizations))(_.iterator.hasNext must beFalse)
       }
     }
 

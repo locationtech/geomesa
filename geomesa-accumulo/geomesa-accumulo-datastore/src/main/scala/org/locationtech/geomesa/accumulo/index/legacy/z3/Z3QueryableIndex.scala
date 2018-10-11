@@ -125,7 +125,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
       (iters, entriesToFeatures(sft, hints.getReturnSft), None, AccumuloColumnGroups.default, sft.nonPoints)
     }
 
-    val z3table = getTableName(sft.getTypeName, ds)
+    val z3table = getTableNames(sft, ds, None)
     val numThreads = ds.config.queryThreads
 
     val sfc = LegacyZ3SFC(sft.getZ3Interval)

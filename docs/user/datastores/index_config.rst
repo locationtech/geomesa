@@ -384,6 +384,52 @@ To set the cardinality of an attribute, use the key ``cardinality`` on the attri
             .addPoint("geom", default = true)
             .build("mySft")
 
+.. _partitioned_indices:
+
+Configuring Partitioned Indices
+-------------------------------
+
+To help with large data sets, GeoMesa can partition each index into separate tables, based on the attributes of
+each feature. Having multiple tables for a single index can make it simpler to manage a cluster, for example by
+making it trivial to delete old data. This functionality is currently supported in HBase, Accumulo and Cassandra.
+
+Partitioning must be specified through user data when creating a simple feature type, before calling
+``createSchema``. To indicate a partitioning scheme, use the key ``geomesa.table.partition``. Currently
+the only valid value is ``time``, to indicate time-based partitioning:
+
+.. tabs::
+
+    .. code-tab:: java
+
+        sft.getUserData().put("geomesa.table.partition", "time");
+
+    .. code-tab:: scala SchemaBuilder
+
+        import org.locationtech.geomesa.utils.geotools.SchemaBuilder
+
+        val sft = SchemaBuilder.builder()
+            .addString("name")
+            .addDate("dtg")
+            .addPoint("geom", default = true)
+            .userData
+            .partitioned()
+            .build("mySft")
+
+Note that to enable partitioning the schema must contain a default date field.
+
+When partitioning is enabled, each index will consist of multiple physical tables. The tables are partitioned
+based on the Z-interval (see :ref:`customizing_z_index`). Tables are created dynamically when needed.
+
+Partitioned tables can still be pre-split, as described in :ref:`table_split_config`. For Z3 splits, the min/max
+date configurations are automatically determined by the partition, and do not need to be specified.
+
+When a query must scan multiple tables, by default the tables will be scanned sequentially. To instead scan
+the tables in parallel, set the sytem property ``geomesa.partition.scan.parallel=true``. Note that when enabled,
+queries that span many partitions may place a large load on the system.
+
+The GeoMesa command line tools provide functions for managing partitions; see :ref:`manage_partitions_cli`
+for details.
+
 .. _table_split_config:
 
 Configuring Index Splits
@@ -398,7 +444,7 @@ Splits are managed through implementations of the ``org.locationtech.geomesa.ind
 Specifying a Table Splitter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A table splitter may be specified by through user data when creating a simple feature type, before calling
+A table splitter may be specified through user data when creating a simple feature type, before calling
 ``createSchema``.
 
 To indicate the table splitter class, use the key ``table.splitter.class``:

@@ -20,8 +20,7 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.util.Converters
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
-import org.locationtech.geomesa.index.conf.TableSplitter
-import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
+import org.locationtech.geomesa.index.conf.splitter.TableSplitter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.IndexKeySpace.BoundedByteRange
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
@@ -108,14 +107,13 @@ trait AttributeShardedIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeatur
     }
   }
 
-  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
+  override def getSplits(sft: SimpleFeatureType, partition: Option[String]): Seq[Array[Byte]] = {
     def nonEmpty(bytes: Seq[Array[Byte]]): Seq[Array[Byte]] = if (bytes.nonEmpty) { bytes } else { Seq(Array.empty) }
 
     val sharing = sft.getTableSharingBytes
     val indices = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map(d => sft.indexOf(d.getLocalName))
     val shards = nonEmpty(getShards(sft))
 
-    val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
     val result = indices.flatMap { indexOf =>
       val singleAttributeType = {
         val builder = new SimpleFeatureTypeBuilder()
@@ -123,8 +121,10 @@ trait AttributeShardedIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeatur
         builder.add(sft.getDescriptor(indexOf))
         builder.buildFeatureType()
       }
+      singleAttributeType.getUserData.putAll(sft.getUserData) // copy the splitter options
       val bytes = indexToBytes(indexOf)
-      val splits = nonEmpty(splitter.getSplits(singleAttributeType, name, sft.getTableSplitterOptions))
+      val splits = nonEmpty(TableSplitter.getSplits(singleAttributeType, name, partition))
+
       for (shard <- shards; split <- splits) yield {
         Bytes.concat(sharing, bytes, shard, split)
       }

@@ -14,7 +14,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.conf.Configuration
 import org.geotools.data.Query
-import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloQueryProperties
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, _}
 import org.locationtech.geomesa.filter._
@@ -62,8 +61,6 @@ object AccumuloJobUtils extends LazyLogging {
    * Gets a query plan that can be satisfied via AccumuloInputFormat - e.g. only 1 table and configuration.
    */
   def getSingleQueryPlan(ds: AccumuloDataStore, query: Query): AccumuloQueryPlan = {
-    // disable range batching for this request
-    AccumuloQueryProperties.SCAN_BATCH_RANGES.threadLocalValue.set(Int.MaxValue.toString)
     // disable join plans
     AttributeIndex.AllowJoinPlans.set(false)
 
@@ -84,18 +81,23 @@ object AccumuloJobUtils extends LazyLogging {
         // instead, fall back to a full table scan
         logger.warn("Desired query plan requires multiple scans - falling back to full table scan")
         val qps = ds.getQueryPlan(query, Some(fallbackIndex))
-        if (qps.lengthCompare(1) > 0) {
+        if (qps.lengthCompare(1) > 0 || qps.exists(_.tables.lengthCompare(1) > 0)) {
           logger.error("The query being executed requires multiple scans, which is not currently " +
               "supported by GeoMesa. Your result set will be partially incomplete. " +
               s"Query: ${filterToString(query.getFilter)}")
         }
         qps.head
       } else {
-        queryPlans.head
+        val qp = queryPlans.head
+        if (qp.tables.lengthCompare(1) > 0) {
+          logger.error("The query being executed requires multiple scans, which is not currently " +
+              "supported by GeoMesa. Your result set will be partially incomplete. " +
+              s"Query: ${filterToString(query.getFilter)}")
+        }
+        qp
       }
     } finally {
       // make sure we reset the thread locals
-      AccumuloQueryProperties.SCAN_BATCH_RANGES.threadLocalValue.remove()
       AttributeIndex.AllowJoinPlans.remove()
     }
   }
@@ -106,8 +108,6 @@ object AccumuloJobUtils extends LazyLogging {
     * that's groovy.
     */
   def getMultipleQueryPlan(ds: AccumuloDataStore, query: Query): Seq[AccumuloQueryPlan] = {
-    // disable range batching for this request
-    AccumuloQueryProperties.SCAN_BATCH_RANGES.threadLocalValue.set(Int.MaxValue.toString)
     // disable join plans
     AttributeIndex.AllowJoinPlans.set(false)
 
@@ -127,7 +127,6 @@ object AccumuloJobUtils extends LazyLogging {
       }
     } finally {
       // make sure we reset the thread locals
-      AccumuloQueryProperties.SCAN_BATCH_RANGES.threadLocalValue.remove()
       AttributeIndex.AllowJoinPlans.remove()
     }
   }

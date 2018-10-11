@@ -19,7 +19,7 @@ import org.opengis.filter.Filter
 
 sealed trait CassandraQueryPlan extends CassandraQueryPlanType {
   def filter: CassandraFilterStrategyType
-  def table: String
+  def tables: Seq[String]
   def ranges: Seq[Statement]
   def numThreads: Int
   def clientSideFilter: Option[Filter]
@@ -32,7 +32,7 @@ object CassandraQueryPlan {
   def explain(plan: CassandraQueryPlan, explainer: Explainer, prefix: String): Unit = {
     import org.locationtech.geomesa.filter.filterToString
     explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getName}")
-    explainer(s"Table: ${Option(plan.table).orNull}")
+    explainer(s"Tables: ${plan.tables.mkString(", ")}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(_.toString).mkString(", ")}")
     explainer(s"Client-side filter: ${plan.clientSideFilter.map(filterToString).getOrElse("None")}")
     explainer.popLevel()
@@ -41,7 +41,7 @@ object CassandraQueryPlan {
 
 // plan that will not actually scan anything
 case class EmptyPlan(filter: CassandraFilterStrategyType) extends CassandraQueryPlan {
-  override val table: String = ""
+  override val tables: Seq[String] = Seq.empty
   override val ranges: Seq[Statement] = Seq.empty
   override val numThreads: Int = 0
   override val clientSideFilter: Option[Filter] = None
@@ -49,7 +49,7 @@ case class EmptyPlan(filter: CassandraFilterStrategyType) extends CassandraQuery
 }
 
 case class StatementPlan(filter: CassandraFilterStrategyType,
-                         table: String,
+                         tables: Seq[String],
                          ranges: Seq[Statement],
                          numThreads: Int,
                           // note: filter is applied in entriesToFeatures, this is just for explain logging

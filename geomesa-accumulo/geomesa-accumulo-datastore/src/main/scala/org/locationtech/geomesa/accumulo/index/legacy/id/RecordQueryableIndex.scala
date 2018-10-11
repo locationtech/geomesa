@@ -61,7 +61,7 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
     }
 
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
-      val table = getTableName(sft.getTypeName, ds)
+      val table = getTableNames(sft, ds, None)
       val threads = ds.config.recordThreads
       val dupes = false // record table never has duplicate entries
 

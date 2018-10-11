@@ -70,12 +70,12 @@ class AccumuloBackedMetadata[T](val connector: Connector, val catalog: String, v
     }
   }
 
-  override protected def scanRows(prefix: Option[Array[Byte]]): CloseableIterator[Array[Byte]] = {
+  override protected def scanRows(prefix: Option[Array[Byte]]): CloseableIterator[(Array[Byte], Array[Byte])] = {
     // ensure we don't scan any single-row encoded values
     val range = prefix.map(p => Range.prefix(new Text(p))).getOrElse(new Range("", "~"))
     val scanner = connector.createScanner(catalog, AccumuloVersion.getEmptyAuths)
     scanner.setRange(range)
-    CloseableIterator(scanner.iterator.map(_.getKey.getRow.copyBytes), scanner.close())
+    CloseableIterator(scanner.iterator.map(r => (r.getKey.getRow.copyBytes, r.getValue.get)), scanner.close())
   }
 
   override def close(): Unit = synchronized {

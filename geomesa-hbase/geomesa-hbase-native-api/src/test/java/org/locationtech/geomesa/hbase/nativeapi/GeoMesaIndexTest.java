@@ -36,6 +36,7 @@ import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.FilterFactory2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Option$;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -345,7 +346,7 @@ public class GeoMesaIndexTest {
                 HBaseFeatureIndex$.MODULE$.indices(ds.getSchema(featureName), scala.Option.apply(null), IndexMode$.MODULE$.Any()).iterator();
         List<String> expectedTables = new ArrayList<>();
         while (indices.hasNext()) {
-            expectedTables.add(indices.next().getTableName(featureName, ds));
+            expectedTables.add(indices.next().getTableNames(ds.getSchema(featureName), ds, Option$.MODULE$.empty()).head());
         }
         expectedTables.add(featureName);
 

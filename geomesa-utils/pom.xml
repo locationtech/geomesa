@@ -190,6 +190,7 @@
                         <goals>
                             <goal>revision</goal>
                         </goals>
+                        <!-- properties are set in org/locationtech/geomesa/geomesa.properties -->
                         <configuration>
                             <generateGitPropertiesFile>false</generateGitPropertiesFile>
                         </configuration>

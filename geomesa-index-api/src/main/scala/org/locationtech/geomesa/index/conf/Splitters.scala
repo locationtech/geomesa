@@ -17,13 +17,12 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 @deprecated("org.locationtech.geomesa.index.conf.splitter.DefaultSplitter")
 class DigitSplitter extends TableSplitter with LazyLogging {
+
   /**
    * @param options allowed options are "fmt", "min", and "max"
    * @return
    */
-  override def getSplits(sft: SimpleFeatureType,
-                         index: String,
-                         options: String): Array[Array[Byte]] = {
+  override def getSplits(sft: SimpleFeatureType, index: String, options: String): Array[Array[Byte]] = {
     if (index == IdIndex.Name) {
       logger.warn("Using deprecated split implementation. See" +
           "http://www.geomesa.org/documentation/current/user/datastores/index_config.html for details.")
@@ -36,15 +35,20 @@ class DigitSplitter extends TableSplitter with LazyLogging {
       Array(Array.empty[Byte])
     }
   }
+
+  override def getSplits(sft: SimpleFeatureType,
+                         index: String,
+                         partition: String,
+                         options: String): Array[Array[Byte]] = getSplits(sft, index, options)
 }
 
 @deprecated("org.locationtech.geomesa.index.conf.splitter.DefaultSplitter")
 class HexSplitter extends TableSplitter with LazyLogging {
+
   // note: we don't include 0 to avoid an empty initial tablet
   private val hexSplits = "123456789abcdefABCDEF".map(_.toString.getBytes(StandardCharsets.UTF_8)).toArray
-  override def getSplits(sft: SimpleFeatureType,
-                         index: String,
-                         options: String): Array[Array[Byte]] = {
+
+  override def getSplits(sft: SimpleFeatureType, index: String, options: String): Array[Array[Byte]] = {
     if (index == IdIndex.Name) {
       logger.warn("Using deprecated split implementation. See" +
           "http://www.geomesa.org/documentation/current/user/datastores/index_config.html for details.")
@@ -53,14 +57,17 @@ class HexSplitter extends TableSplitter with LazyLogging {
       Array(Array.empty[Byte])
     }
   }
+
+  override def getSplits(sft: SimpleFeatureType,
+                         index: String,
+                         partition: String,
+                         options: String): Array[Array[Byte]] = getSplits(sft, index, options)
 }
 
 @deprecated("org.locationtech.geomesa.index.conf.splitter.DefaultSplitter")
 class AlphaNumericSplitter extends TableSplitter with LazyLogging {
   // note: we don't include 0 to avoid an empty initial tablet
-  override def getSplits(sft: SimpleFeatureType,
-                         index: String,
-                         options: String): Array[Array[Byte]] = {
+  override def getSplits(sft: SimpleFeatureType, index: String, options: String): Array[Array[Byte]] = {
     if (index == IdIndex.Name) {
       logger.warn("Using deprecated split implementation. See" +
           "http://www.geomesa.org/documentation/current/user/datastores/index_config.html for details.")
@@ -69,17 +76,25 @@ class AlphaNumericSplitter extends TableSplitter with LazyLogging {
       Array(Array.empty[Byte])
     }
   }
+
+  override def getSplits(sft: SimpleFeatureType,
+                         index: String,
+                         partition: String,
+                         options: String): Array[Array[Byte]] = getSplits(sft, index, options)
 }
 
 @deprecated("org.locationtech.geomesa.index.conf.splitter.DefaultSplitter")
 class NoSplitter extends TableSplitter with LazyLogging {
-  override def getSplits(sft: SimpleFeatureType,
-                         index: String,
-                         options: String): Array[Array[Byte]] = {
+  override def getSplits(sft: SimpleFeatureType, index: String, options: String): Array[Array[Byte]] = {
     if (index == IdIndex.Name) {
       logger.warn("Using deprecated split implementation. See" +
           "http://www.geomesa.org/documentation/current/user/datastores/index_config.html for details.")
     }
     Array(Array.empty)
   }
+
+  override def getSplits(sft: SimpleFeatureType,
+                         index: String,
+                         partition: String,
+                         options: String): Array[Array[Byte]] = getSplits(sft, index, options)
 }

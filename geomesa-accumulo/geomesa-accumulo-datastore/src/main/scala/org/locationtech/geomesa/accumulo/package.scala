@@ -12,11 +12,10 @@ import org.apache.accumulo.core.client.BatchWriter
 import org.apache.accumulo.core.data.Mutation
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
 import org.locationtech.geomesa.index.api._
-import org.locationtech.geomesa.index.geotools.{GeoMesaAppendFeatureWriter, GeoMesaDataStore, GeoMesaFeatureWriter, GeoMesaModifyFeatureWriter}
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter._
+import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-
-import scala.collection.mutable
 
 package object accumulo {
 
@@ -27,7 +26,10 @@ package object accumulo {
   type AccumuloQueryPlannerType = QueryPlanner[AccumuloDataStore, AccumuloFeature, Mutation]
   type AccumuloQueryPlanType = QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation]
   type AccumuloIndexManagerType = GeoMesaIndexManager[AccumuloDataStore, AccumuloFeature, Mutation]
+  type AccumuloFeatureWriterFactoryType = FeatureWriterFactory[AccumuloDataStore, AccumuloFeature, Mutation]
   type AccumuloFeatureWriterType = GeoMesaFeatureWriter[AccumuloDataStore, AccumuloFeature, Mutation, BatchWriter]
+  type AccumuloTableFeatureWriterType = TableFeatureWriter[AccumuloDataStore, AccumuloFeature, Mutation, BatchWriter]
+  type AccumuloPartitionedFeatureWriterType = PartitionedFeatureWriter[AccumuloDataStore, AccumuloFeature, Mutation, BatchWriter]
   type AccumuloAppendFeatureWriterType = GeoMesaAppendFeatureWriter[AccumuloDataStore, AccumuloFeature, Mutation, BatchWriter]
   type AccumuloModifyFeatureWriterType = GeoMesaModifyFeatureWriter[AccumuloDataStore, AccumuloFeature, Mutation, BatchWriter]
 
@@ -35,7 +37,8 @@ package object accumulo {
 
     object AccumuloQueryProperties {
       // if we generate more ranges than this we will split them up into sequential scans
-      val SCAN_BATCH_RANGES    = SystemProperty("geomesa.scan.ranges.batch", "20000")
+      @deprecated("Use 'geomesa.scan.ranges.target'")
+      val SCAN_BATCH_RANGES = SystemProperty("geomesa.scan.ranges.batch", "20000")
     }
 
     object AccumuloMapperProperties {
@@ -54,25 +57,4 @@ package object accumulo {
       val STAT_COMPACTION_INTERVAL = SystemProperty("geomesa.stats.compact.interval", "1 hour")
     }
   }
-
-  /**
-   * Sums the values by key and returns a map containing all of the keys in the maps, with values
-   * equal to the sum of all of the values for that key in the maps.
-   * Sums with and aggregates the valueMaps into the aggregateInto map.
-   * @param valueMaps
-   * @param aggregateInto
-   * @param num
-   * @tparam K
-   * @tparam V
-   * @return the modified aggregateInto map containing the summed values
-   */
-  private[accumulo] def sumNumericValueMutableMaps[K, V](valueMaps: Iterable[collection.Map[K,V]],
-                                                     aggregateInto: mutable.Map[K,V] = mutable.Map[K,V]())
-                                                    (implicit num: Numeric[V]): mutable.Map[K, V] =
-    if(valueMaps.isEmpty) aggregateInto
-    else {
-      valueMaps.flatten.foldLeft(aggregateInto.withDefaultValue(num.zero)) { case (mapSoFar, (k, v)) =>
-        mapSoFar += ((k, num.plus(v, mapSoFar(k))))
-      }
-    }
 }

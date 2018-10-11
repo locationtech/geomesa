@@ -38,7 +38,8 @@ class HBaseTestRunnerTest extends Specification with BeforeAfterAll with LazyLog
     new HBaseDataStoreTest,
     new HBaseDensityFilterTest,
     new HBaseStatsAggregatorTest,
-    new HBaseVisibilityTest
+    new HBaseVisibilityTest,
+    new HBasePartitioningTest
   )
 
   override def beforeAll(): Unit = {

@@ -71,6 +71,16 @@ trait GeoMesaMetadata[T] extends Closeable {
     }
 
   /**
+    * Scan for keys starting with a given prefix
+    *
+    * @param typeName simple feature type name
+    * @param prefix key prefix
+    * @param cache may return a cached value if true, otherwise may use a slower lookup
+    * @return keys -> values
+    */
+  def scan(typeName: String, prefix: String, cache: Boolean = true): Seq[(String, T)]
+
+  /**
     * Invalidates any cached value for the given key
     *
     * @param typeName simple feature type name

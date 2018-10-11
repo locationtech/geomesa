@@ -13,13 +13,13 @@ import com.datastax.driver.core._
 import org.geotools.data.Query
 import org.locationtech.geomesa.cassandra._
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.CassandraDataStoreConfig
+import org.locationtech.geomesa.cassandra.data.CassandraFeatureWriter.CassandraFeatureWriterFactory
 import org.locationtech.geomesa.cassandra.index.CassandraFeatureIndex
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.index.utils.LocalLocking
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 class CassandraDataStore(val session: Session, config: CassandraDataStoreConfig)
     extends CassandraDataStoreType(config) with LocalLocking {
@@ -31,14 +31,8 @@ class CassandraDataStore(val session: Session, config: CassandraDataStoreConfig)
 
   override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
-  override def createFeatureWriterAppend(sft: SimpleFeatureType,
-                                         indices: Option[Seq[CassandraFeatureIndexType]]): CassandraFeatureWriterType =
-    new CassandraAppendFeatureWriter(sft, this, indices)
-
-  override def createFeatureWriterModify(sft: SimpleFeatureType,
-                                         indices: Option[Seq[CassandraFeatureIndexType]],
-                                         filter: Filter): CassandraFeatureWriterType =
-    new CassandraModifyFeatureWriter(sft, this, indices, filter)
+  override protected val featureWriterFactory: CassandraFeatureWriterFactory =
+    new CassandraFeatureWriterFactory(this)
 
   override def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection =
     new CassandraFeatureCollection(source, query)
@@ -50,10 +44,7 @@ class CassandraDataStore(val session: Session, config: CassandraDataStoreConfig)
   }
 
   override def delete(): Unit = {
-    val tables = getTypeNames.map(getSchema).flatMap { sft =>
-      manager.indices(sft).map(_.getTableName(sft.getTypeName, this))
-    }
-
+    val tables = getTypeNames.flatMap(getAllIndexTableNames)
     (tables.distinct :+ config.catalog).par.foreach { table =>
       session.execute(s"drop table $table")
     }

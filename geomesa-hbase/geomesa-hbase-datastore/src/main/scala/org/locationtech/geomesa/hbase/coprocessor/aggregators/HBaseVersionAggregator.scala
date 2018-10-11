@@ -11,14 +11,12 @@ package org.locationtech.geomesa.hbase.coprocessor.aggregators
 import java.nio.charset.StandardCharsets
 
 import org.apache.hadoop.hbase.regionserver.RegionScanner
-import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase.HBaseFeatureIndexType
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseVersionAggregator.VersionAggregator
-import org.locationtech.geomesa.index.iterators.{AggregatingScan, StatsScan}
+import org.locationtech.geomesa.index.iterators.AggregatingScan
 import org.locationtech.geomesa.utils.conf.GeoMesaProperties
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 
 class HBaseVersionAggregator extends HBaseAggregator[VersionAggregator] {
 

@@ -95,7 +95,7 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
     val sampling = hints.getSampling
     val hasDupes = descriptor.isMultiValued
 
-    val attrTable = getTableName(sft.getTypeName, ds)
+    val attrTable = getTableNames(sft, ds, None)
     val attrThreads = ds.config.queryThreads
 
     def visibilityIter(schema: SimpleFeatureType): Seq[IteratorSetting] = sft.getVisibilityLevel match {
@@ -267,13 +267,13 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
       new AccRange(new Text(getRowKey(prefix, getId(row.getBytes, 0, row.getLength, null))))
     }
 
-    val recordTable = recordIndex.getTableName(sft.getTypeName, ds)
+    val recordTable = recordIndex.getTableNames(sft, ds, None)
     val recordThreads = ds.config.recordThreads
     val recordRanges = Seq(new AccRange()) // this will get overwritten in the join method
     val joinQuery = BatchScanPlan(filter, recordTable, recordRanges, recordIterators, Seq.empty,
       kvsToFeatures, reduce, recordThreads, hasDupes)
 
-    JoinPlan(filter, attributeScan.table, attributeScan.ranges, attributeScan.iterators,
+    JoinPlan(filter, attributeScan.tables, attributeScan.ranges, attributeScan.iterators,
       attributeScan.columnFamilies, recordThreads, hasDupes, joinFunction, joinQuery)
   }
 

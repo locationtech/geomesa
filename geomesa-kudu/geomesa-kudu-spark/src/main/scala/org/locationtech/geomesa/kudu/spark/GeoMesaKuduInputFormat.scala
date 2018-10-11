@@ -79,21 +79,23 @@ class GeoMesaKuduInputFormat extends InputFormat[NullWritable, SimpleFeature] wi
       val tables = scala.collection.mutable.Map.empty[String, KuduTable]
 
       plans.foreach { plan =>
-        val table = tables.getOrElseUpdate(plan.table, ds.client.openTable(plan.table))
-        plan.ranges.foreach { case (lower, upper) =>
-          val builder = ds.client.newScanTokenBuilder(table)
-          builder.setProjectedColumnNames(plan.adapter.columns.asJava)
-          plan.predicates.foreach(builder.addPredicate)
-          lower.foreach(builder.lowerBound)
-          upper.foreach(builder.exclusiveUpperBound)
-          // TODO .cacheBlocks(cacheBlocks).setTimeout(operationTimeoutMs).setFaultTolerant(isFaultTolerant)
-          builder.build().asScala.foreach { token =>
-            val replicas = token.getTablet.getReplicas
-            val locations = Array.tabulate(replicas.size) { i =>
-              val replica = replicas.get(i)
-              GeoMesaKuduInputFormat.reverseDNS(replica.getRpcHost, replica.getRpcPort)
+        plan.tables.foreach { name =>
+          val table = tables.getOrElseUpdate(name, ds.client.openTable(name))
+          plan.ranges.foreach { case (lower, upper) =>
+            val builder = ds.client.newScanTokenBuilder(table)
+            builder.setProjectedColumnNames(plan.adapter.columns.asJava)
+            plan.predicates.foreach(builder.addPredicate)
+            lower.foreach(builder.lowerBound)
+            upper.foreach(builder.exclusiveUpperBound)
+            // TODO .cacheBlocks(cacheBlocks).setTimeout(operationTimeoutMs).setFaultTolerant(isFaultTolerant)
+            builder.build().asScala.foreach { token =>
+              val replicas = token.getTablet.getReplicas
+              val locations = Array.tabulate(replicas.size) { i =>
+                val replica = replicas.get(i)
+                GeoMesaKuduInputFormat.reverseDNS(replica.getRpcHost, replica.getRpcPort)
+              }
+              splits.add(new GeoMesaKuduInputSplit(token, locations, plan.adapter))
             }
-            splits.add(new GeoMesaKuduInputSplit(token, locations, plan.adapter))
           }
         }
       }

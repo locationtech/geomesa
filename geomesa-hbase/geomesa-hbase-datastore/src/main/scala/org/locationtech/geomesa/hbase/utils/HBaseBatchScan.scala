@@ -32,7 +32,7 @@ class HBaseBatchScan(connection: Connection, tableName: TableName, ranges: Seq[S
 
     val scan = table.getScanner(range)
     try {
-      scan.iterator.foreach(out.put(_))
+      scan.iterator.foreach(out.put)
     } finally {
       scan.close()
     }

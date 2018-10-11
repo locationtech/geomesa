@@ -224,19 +224,6 @@
     </property>
 
     <property>
-        <name>geomesa.scan.ranges.batch</name>
-        <value>20000</value>
-        <description>This property provides a hard upper limit on the number
-            of Accumulo ranges generated for any one query. If the number of
-            ranges exceeds this value, the query will be split up into smaller
-            sequential queries. In general, this should be higher for more
-            robust Accumulo clusters, and lower when there are more concurrent
-            queries.
-        </description>
-        <final>false</final>
-    </property>
-
-    <property>
         <name>geomesa.query.decomposition.multiplier</name>
         <value>0</value> <!-- disabled by default -->
         <description>

@@ -12,8 +12,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
-import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
-import org.locationtech.geomesa.index.conf.{QueryProperties, TableSplitter}
+import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.conf.splitter.TableSplitter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.IndexKeySpace._
 import org.locationtech.geomesa.index.utils.Explainer
@@ -57,14 +57,14 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
 
   override def supports(sft: SimpleFeatureType): Boolean = keySpace.supports(sft)
 
-  override def writer(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
+  override def writer(sft: SimpleFeatureType, ds: DS): F => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     val shards = shardStrategy(sft)
     val toIndexKey = keySpace.toIndexKeyBytes(sft)
     mutator(sharing, shards, toIndexKey, createInsert)
   }
 
-  override def remover(sft: SimpleFeatureType, ds: DS): (F) => Seq[W] = {
+  override def remover(sft: SimpleFeatureType, ds: DS): F => Seq[W] = {
     val sharing = sft.getTableSharingBytes
     val shards = shardStrategy(sft)
     val toIndexKey = keySpace.toIndexKeyBytes(sft, lenient = true)
@@ -79,7 +79,7 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
     (row, offset, length, feature) => idFromBytes(row, offset + start, length - start, feature)
   }
 
-  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
+  override def getSplits(sft: SimpleFeatureType, partition: Option[String]): Seq[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     def nonEmpty(bytes: Seq[Array[Byte]]): Seq[Array[Byte]] = if (bytes.nonEmpty) { bytes } else { Seq(Array.empty) }
@@ -87,8 +87,7 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
     val sharing = sft.getTableSharingBytes
     val shards = nonEmpty(shardStrategy(sft).shards)
 
-    val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
-    val splits = nonEmpty(splitter.getSplits(sft, name, sft.getTableSplitterOptions))
+    val splits = nonEmpty(TableSplitter.getSplits(sft, name, partition))
 
     val result = for (shard <- shards; split <- splits) yield {
       ByteArrays.concat(sharing, shard, split)

@@ -17,8 +17,7 @@ import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
-import org.locationtech.geomesa.index.conf.TableSplitter
-import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
+import org.locationtech.geomesa.index.conf.splitter.TableSplitter
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -33,19 +32,17 @@ trait RecordWritableIndex extends AccumuloFeatureIndex {
     }
   }
 
-  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
+  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore, partition: Option[String]): String = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     import scala.collection.JavaConverters._
 
-    super.configure(sft, ds)
-    val table = getTableName(sft.getTypeName, ds)
+    val table = super.configure(sft, ds, partition)
 
     AccumuloVersion.ensureTableExists(ds.connector, table)
 
     val prefix = sft.getTableSharingBytes
-    val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
-    val splits = splitter.getSplits(sft, name, sft.getTableSplitterOptions)
+    val splits = TableSplitter.getSplits(sft, name, partition)
     val sortedSplits = splits.map(s => new Text(ByteArrays.concat(prefix, s))).toSet
     val splitsToAdd = sortedSplits -- ds.tableOps.listSplits(table).asScala.toSet
     if (splitsToAdd.nonEmpty) {
@@ -56,5 +53,7 @@ trait RecordWritableIndex extends AccumuloFeatureIndex {
     ds.tableOps.setProperty(table, Property.TABLE_BLOOM_KEY_FUNCTOR.getKey, classOf[RowFunctor].getCanonicalName)
     ds.tableOps.setProperty(table, Property.TABLE_BLOOM_ENABLED.getKey, "true")
     ds.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+
+    table
   }
 }

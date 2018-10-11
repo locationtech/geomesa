@@ -16,11 +16,12 @@ import org.apache.hadoop.hbase.{HBaseConfiguration, TableName}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.bigtable.data.BigtableDataStoreFactory
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore}
+import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseQueryPlan, ScanPlan}
 import org.locationtech.geomesa.hbase.index.{HBaseFeatureIndex, HBaseIndexAdapter}
 import org.locationtech.geomesa.hbase.jobs.HBaseGeoMesaRecordReader
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
@@ -41,45 +42,72 @@ class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
     import scala.collection.JavaConversions._
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[HBaseDataStore]
 
-    // get the query plan to set up the iterators, ranges, etc
-    lazy val sft = ds.getSchema(origQuery.getTypeName)
-    lazy val qp = ds.getQueryPlan(origQuery).head
+    try {
+      // get the query plan to set up the iterators, ranges, etc
+      lazy val sft = ds.getSchema(origQuery.getTypeName)
+      lazy val qps = ds.getQueryPlan(origQuery)
 
-    if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
-      val transform = origQuery.getHints.getTransformSchema
-      SpatialRDD(sc.emptyRDD[SimpleFeature], transform.getOrElse(sft))
-    } else {
-      val query = ds.queryPlanner.configureQuery(sft, origQuery)
-      val transform = query.getHints.getTransformSchema
-      GeoMesaConfigurator.setSchema(conf, sft)
-      GeoMesaConfigurator.setSerialization(conf)
-      GeoMesaConfigurator.setIndexIn(conf, qp.filter.index)
-      GeoMesaConfigurator.setTable(conf, qp.table.getNameAsString)
-      transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
+      if (ds == null || sft == null || qps.forall(_.isInstanceOf[EmptyPlan])) {
+        val transform = origQuery.getHints.getTransformSchema
+        SpatialRDD(sc.emptyRDD[SimpleFeature], transform.getOrElse(sft))
+      } else {
+        val query = ds.queryPlanner.configureQuery(sft, origQuery)
+        val transform = query.getHints.getTransformSchema
 
-      // we need to pass the original filter all the way to the Spark workers so
-      // that we enforce bbox'es and secondary filters.
-      GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
+        def queryPlanToRDD(qp: HBaseQueryPlan, conf: Configuration): RDD[SimpleFeature] = {
+          if (qp.isInstanceOf[EmptyPlan]) {
+            sc.emptyRDD[SimpleFeature]
+          } else {
+            GeoMesaConfigurator.setSchema(conf, sft)
+            GeoMesaConfigurator.setSerialization(conf)
+            GeoMesaConfigurator.setIndexIn(conf, qp.filter.index)
+            // note: we've ensured there is only one table per query plan, below
+            GeoMesaConfigurator.setTable(conf, qp.tables.head.getNameAsString)
+            transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
+            // we need to pass the original filter all the way to the Spark workers so
+            // that we enforce bbox'es and secondary filters.
+            GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
 
-      val scans = qp.scans.map {
-        case scan: BigtableExtendedScan =>
-          // need to set the table name in each scan
-          scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
-          BigtableInputFormatBase.scanToString(scan)
+            val scans = qp.scans.map {
+              case scan: BigtableExtendedScan =>
+                // need to set the table name in each scan
+                scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.tables.head.getName)
+                BigtableInputFormatBase.scanToString(scan)
 
-        case scan: org.apache.hadoop.hbase.client.Scan =>
-          val bes = new BigtableExtendedScan()
-          bes.addRange(scan.getStartRow, scan.getStopRow)
-          bes.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
-          BigtableInputFormatBase.scanToString(bes)
+              case scan: org.apache.hadoop.hbase.client.Scan =>
+                val bes = new BigtableExtendedScan()
+                bes.addRange(scan.getStartRow, scan.getStopRow)
+                bes.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.tables.head.getName)
+                BigtableInputFormatBase.scanToString(bes)
+            }
+            conf.setStrings(BigtableInputFormat.SCANS, scans: _*)
+
+            sc.newAPIHadoopRDD(conf, classOf[GeoMesaBigtableInputFormat], classOf[Text], classOf[SimpleFeature]).map(_._2)
+          }
+        }
+
+        // can return a union of the RDDs because the query planner *should*
+        // be rewriting ORs to make them logically disjoint
+        // e.g. "A OR B OR C" -> "A OR (B NOT A) OR ((C NOT A) NOT B)"
+        val rdd = if (qps.lengthCompare(1) == 0 && qps.head.tables.lengthCompare(1) == 0) {
+          queryPlanToRDD(qps.head, conf) // no union needed for single query plan
+        } else {
+          // flatten and duplicate the query plans so each one only has a single table
+          val expanded = qps.flatMap {
+            case qp: ScanPlan => qp.tables.map(t => qp.copy(tables = Seq(t)))
+            case qp: EmptyPlan => Seq(qp)
+            case qp => throw new NotImplementedError(s"Unexpected query plan type: $qp")
+          }
+          sc.union(expanded.map(queryPlanToRDD(_, new Configuration(conf))))
+        }
+        SpatialRDD(rdd, transform.getOrElse(sft))
       }
-      conf.setStrings(BigtableInputFormat.SCANS, scans: _*)
-
-      val rdd = sc.newAPIHadoopRDD(conf, classOf[GeoMesaBigtableInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
-      SpatialRDD(rdd, transform.getOrElse(sft))
+    } finally {
+      if (ds != null) {
+        ds.dispose()
+      }
     }
   }
-
 }
 
 class GeoMesaBigtableInputFormat extends InputFormat[Text, SimpleFeature] {

@@ -16,7 +16,8 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestWrappedFeature, TestWrite, _}
 import org.locationtech.geomesa.index.api.{GeoMesaIndexManager, _}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
-import org.locationtech.geomesa.index.geotools.{GeoMesaAppendFeatureWriter, GeoMesaDataStore, GeoMesaFeatureWriter, GeoMesaModifyFeatureWriter}
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter.{FeatureWriterFactory, GeoMesaAppendFeatureWriter, GeoMesaModifyFeatureWriter, TableFeatureWriter}
+import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.index._
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
@@ -44,14 +45,7 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
 
   override val manager: TestIndexManager = new TestIndexManager
 
-  override protected def createFeatureWriterAppend(sft: SimpleFeatureType,
-                                                   indices: Option[Seq[TestFeatureIndexType]]): TestFeatureWriterType =
-    new TestAppendFeatureWriter(sft, this, indices)
-
-  override protected def createFeatureWriterModify(sft: SimpleFeatureType,
-                                                   indices: Option[Seq[TestFeatureIndexType]],
-                                                   filter: Filter): TestFeatureWriterType =
-    new TestModifyFeatureWriter(sft, this, indices, filter)
+  override protected val featureWriterFactory: TestFeatureWriterFactory = new TestFeatureWriterFactory(this)
 
   override def getQueryPlan(query: Query, index: Option[TestFeatureIndexType], explainer: Explainer): Seq[TestQueryPlan] =
     super.getQueryPlan(query, index, explainer).asInstanceOf[Seq[TestQueryPlan]]
@@ -62,7 +56,9 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
 object TestGeoMesaDataStore {
 
   type TestFeatureIndexType = GeoMesaFeatureIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
+  type TestFeatureWriterFactoryType = FeatureWriterFactory[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
   type TestFeatureWriterType = GeoMesaFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex]
+  type TestTableFeatureWriterType = TableFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex]
   type TestAppendFeatureWriterType = GeoMesaAppendFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex]
   type TestModifyFeatureWriterType = GeoMesaModifyFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex]
   type TestIndexManagerType = GeoMesaIndexManager[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
@@ -135,7 +131,8 @@ object TestGeoMesaDataStore {
 
     override def removeAll(sft: SimpleFeatureType, ds: TestGeoMesaDataStore): Unit = features.clear()
 
-    override def delete(sft: SimpleFeatureType, ds: TestGeoMesaDataStore, shared: Boolean): Unit = features.clear()
+    override def delete(sft: SimpleFeatureType, ds: TestGeoMesaDataStore, partition: Option[String]): Unit =
+      features.clear()
 
     override protected def createInsert(row: Array[Byte], feature: TestWrappedFeature): TestWrite =
       TestWrite(row, feature.feature)
@@ -157,26 +154,35 @@ object TestGeoMesaDataStore {
     override protected def scanPlan(sft: SimpleFeatureType,
                                     ds: TestGeoMesaDataStore,
                                     filter: TestFilterStrategyType,
-                                    config: TestScanConfig): TestQueryPlanType = TestQueryPlan(this, filter, config.ranges, config.ecql)
+                                    config: TestScanConfig): TestQueryPlanType =
+      TestQueryPlan(this, filter, config.ranges, config.ecql)
 
     override def toString: String = getClass.getSimpleName
   }
 
-  class TestAppendFeatureWriter(sft: SimpleFeatureType,
-                                ds: TestGeoMesaDataStore,
-                                indices: Option[Seq[TestFeatureIndexType]])
-      extends TestFeatureWriterType(sft, ds, indices) with TestAppendFeatureWriterType with TestFeatureWriter
+  class TestFeatureWriterFactory(ds: TestGeoMesaDataStore) extends TestFeatureWriterFactoryType {
+    override def createFeatureWriter(sft: SimpleFeatureType,
+                                     indices: Seq[TestFeatureIndexType],
+                                     filter: Option[Filter]): FlushableFeatureWriter = {
+      filter match {
+        case None =>
+          new TestFeatureWriter(sft, ds, indices, null)
+              with TestTableFeatureWriterType with TestAppendFeatureWriterType
 
-  class TestModifyFeatureWriter(sft: SimpleFeatureType,
-                                ds: TestGeoMesaDataStore,
-                                indices: Option[Seq[TestFeatureIndexType]],
-                                val filter: Filter)
-      extends TestFeatureWriterType(sft, ds, indices) with TestModifyFeatureWriterType with TestFeatureWriter
+        case Some(f) =>
+          new TestFeatureWriter(sft, ds, indices, f)
+            with TestTableFeatureWriterType with TestModifyFeatureWriterType
+      }
+    }
+  }
 
-  trait TestFeatureWriter extends TestFeatureWriterType {
+  abstract class TestFeatureWriter(val sft: SimpleFeatureType,
+                                   val ds: TestGeoMesaDataStore,
+                                   val indices: Seq[TestFeatureIndexType],
+                                   val filter: Filter) extends TestFeatureWriterType {
 
-    override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[TestFeatureIndex] =
-      tables.map(t => ds.manager.indices(sft, mode = IndexMode.Write).find(_.getTableName(sft.getTypeName, ds) == t).orNull)
+    override protected def createMutator(table: String): TestFeatureIndex =
+      ds.manager.indices(sft, mode = IndexMode.Write).find(_.getTableNames(sft, ds, None).contains(table)).orNull
 
     override protected def executeWrite(mutator: TestFeatureIndex, writes: Seq[TestWrite]): Unit = {
       writes.foreach { case TestWrite(row, feature, _) => mutator.features.add((row, feature)) }
@@ -186,6 +192,9 @@ object TestGeoMesaDataStore {
       removes.foreach { case TestWrite(row, feature, _) => mutator.features.remove((row, feature)) }
 
     override def wrapFeature(feature: SimpleFeature): TestWrappedFeature = TestWrappedFeature(feature)
+
+    override def flush(): Unit = {}
+    override def close(): Unit = {}
   }
 
   case class TestQueryPlan(index: TestFeatureIndex,

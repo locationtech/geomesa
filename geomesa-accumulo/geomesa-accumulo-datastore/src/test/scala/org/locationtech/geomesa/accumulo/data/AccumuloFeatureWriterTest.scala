@@ -26,6 +26,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -160,13 +161,8 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       val features = SelfClosingIterator(fs.getFeatures(Filter.INCLUDE).features).toSeq
       features must beEmpty
 
-      forall(AccumuloFeatureIndex.indices(sft).map(_.getTableName(sft.getTypeName, ds))) { name =>
-        val scanner = connector.createScanner(name, new Authorizations())
-        try {
-          scanner.iterator().hasNext must beFalse
-        } finally {
-          scanner.close()
-        }
+      forall(AccumuloFeatureIndex.indices(sft).flatMap(_.getTableNames(sft, ds))) { name =>
+        WithClose(connector.createScanner(name, new Authorizations()))(_.iterator.hasNext must beFalse)
       }
     }
 
@@ -406,12 +402,8 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       forall(invalid) { feature =>
         addFeatures(Seq(feature)) must throwAn[IllegalArgumentException]
         forall(ds.manager.indices(sft)) { index =>
-          val table = index.getTableName(sft.getTypeName, ds)
-          val scanner = ds.connector.createScanner(table, new Authorizations())
-          try {
-            scanner.iterator.hasNext must beFalse
-          } finally {
-            scanner.close()
+          forall(index.getTableNames(sft, ds)) { table =>
+            WithClose(connector.createScanner(table, new Authorizations()))(_.iterator.hasNext must beFalse)
           }
         }
       }
@@ -437,10 +429,10 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
         Thread.sleep(2)
       }
 
-      val scanner = ds.connector.createScanner(RecordIndex.getTableName(sftName, ds), new Authorizations)
       val serializer = KryoFeatureSerializer(sft)
-      val rows = scanner.toList
-      scanner.close()
+      val rows = RecordIndex.getTableNames(sft, ds).flatMap { table =>
+        WithClose(ds.connector.createScanner(table, new Authorizations))(_.toList)
+      }
 
       // trim off table prefix to get the UUIDs
       val rowKeys = rows.map(_.getKey.getRow.toString).map(r => r.substring(r.length - 36))
@@ -462,7 +454,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
   }
 
   def clearTablesHard(): Unit = {
-    AccumuloFeatureIndex.indices(sft).map(_.getTableName(sft.getTypeName, ds)).foreach { name =>
+    AccumuloFeatureIndex.indices(sft).flatMap(_.getTableNames(sft, ds)).foreach { name =>
       val deleter = connector.createBatchDeleter(name, new Authorizations(), 5, new BatchWriterConfig())
       deleter.setRanges(Seq(new aRange()))
       deleter.delete()

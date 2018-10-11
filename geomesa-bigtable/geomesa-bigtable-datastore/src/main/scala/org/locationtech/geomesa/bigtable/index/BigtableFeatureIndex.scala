@@ -51,7 +51,7 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
                                      filter: HBaseFilterStrategyType,
                                      ranges: Seq[Scan],
                                      colFamily: Array[Byte],
-                                     table: TableName,
+                                     tables: Seq[TableName],
                                      hbaseFilters: Seq[(Int, HFilter)],
                                      coprocessor: Option[CoprocessorConfig],
                                      toFeatures: Iterator[Result] => Iterator[SimpleFeature]): HBaseQueryPlan = {
@@ -69,7 +69,7 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
       configureBigtableExtendedScan(ds, ranges, colFamily)
     }
 
-    ScanPlan(filter, table, ranges, scans, toFeatures)
+    ScanPlan(filter, tables, ranges, scans, toFeatures)
   }
 
   private def configureBigtableExtendedScan(ds: HBaseDataStore,

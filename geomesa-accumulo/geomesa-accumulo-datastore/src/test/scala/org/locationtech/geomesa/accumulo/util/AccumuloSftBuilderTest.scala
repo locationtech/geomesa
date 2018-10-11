@@ -39,13 +39,13 @@ class AccumuloSftBuilderTest extends Specification {
         .build("test")
 
       def test(sft: SimpleFeatureType) = {
-        import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+        import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{TABLE_SPLITTER, TABLE_SPLITTER_OPTS}
 
         sft.getAttributeCount mustEqual 2
         sft.getAttributeDescriptors.map(_.getLocalName) must containAllOf(List("i", "l"))
 
-        sft.getTableSplitter must beSome(classOf[DefaultSplitter])
-        val opts = KVPairParser.parse(sft.getTableSplitterOptions)
+        sft.getUserData.get(TABLE_SPLITTER) mustEqual classOf[DefaultSplitter].getName
+        val opts = KVPairParser.parse(sft.getUserData.get(TABLE_SPLITTER_OPTS).asInstanceOf[String])
         opts.toSeq must containTheSameElementsAs(config.toSeq)
       }
 

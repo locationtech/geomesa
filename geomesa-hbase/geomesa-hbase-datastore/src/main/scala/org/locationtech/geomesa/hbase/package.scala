@@ -11,7 +11,8 @@ package org.locationtech.geomesa
 import org.apache.hadoop.hbase.client.{BufferedMutator, Mutation}
 import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseFeature}
 import org.locationtech.geomesa.index.api._
-import org.locationtech.geomesa.index.geotools.{GeoMesaAppendFeatureWriter, GeoMesaDataStore, GeoMesaFeatureWriter, GeoMesaModifyFeatureWriter}
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter._
+import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureWriter}
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
@@ -23,7 +24,10 @@ package object hbase {
   type HBaseQueryPlannerType = QueryPlanner[HBaseDataStore, HBaseFeature, Mutation]
   type HBaseQueryPlanType = QueryPlan[HBaseDataStore, HBaseFeature, Mutation]
   type HBaseIndexManagerType = GeoMesaIndexManager[HBaseDataStore, HBaseFeature, Mutation]
+  type HBaseFeatureWriterFactoryType = FeatureWriterFactory[HBaseDataStore, HBaseFeature, Mutation]
   type HBaseFeatureWriterType = GeoMesaFeatureWriter[HBaseDataStore, HBaseFeature, Mutation, BufferedMutator]
+  type HBaseTableFeatureWriterType = TableFeatureWriter[HBaseDataStore, HBaseFeature, Mutation, BufferedMutator]
+  type HBasePartitionedFeatureWriterType = PartitionedFeatureWriter[HBaseDataStore, HBaseFeature, Mutation, BufferedMutator]
   type HBaseAppendFeatureWriterType = GeoMesaAppendFeatureWriter[HBaseDataStore, HBaseFeature, Mutation, BufferedMutator]
   type HBaseModifyFeatureWriterType = GeoMesaModifyFeatureWriter[HBaseDataStore, HBaseFeature, Mutation, BufferedMutator]
 
@@ -33,5 +37,6 @@ package object hbase {
     val WalDurability = SystemProperty("geomesa.hbase.wal.durability")
     val ScannerCaching = SystemProperty("geomesa.hbase.client.scanner.caching.size")
     val ScannerBlockCaching = SystemProperty("geomesa.hbase.query.block.caching.enabled", "true")
+    val TableAvailabilityTimeout = SystemProperty("geomesa.hbase.table.availability.timeout", "30 minutes")
   }
 }

@@ -21,8 +21,10 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.geomesa.utils.text.KVPairParser
+import org.locationtech.geomesa.utils.text.{DateParsing, KVPairParser}
 import org.opengis.feature.simple.SimpleFeatureType
+
+import scala.util.Try
 
 /**
   * Default splitter implementation that creates splits based on configured user data
@@ -31,14 +33,18 @@ class DefaultSplitter extends TableSplitter with LazyLogging {
 
   import DefaultSplitter._
 
+  override def getSplits(sft: SimpleFeatureType, index: String, options: String): Array[Array[Byte]] =
+    getSplits(sft, index, null, options)
+
   override def getSplits(sft: SimpleFeatureType,
                          index: String,
+                         partition: String,
                          options: String): Array[Array[Byte]] = {
     val opts = Option(options).map(KVPairParser.parse).getOrElse(Map.empty)
     index match {
       case IdIndex.Name                 => idBytes(opts)
       case AttributeIndex.Name          => attributeBytes(sft, opts)
-      case Z3Index.Name | XZ3Index.Name => z3Bytes(sft, opts)
+      case Z3Index.Name | XZ3Index.Name => z3Bytes(sft, Option(partition), opts)
       case Z2Index.Name | XZ2Index.Name => z2Bytes(opts)
       case _ => logger.warn(s"Unhandled index type $index"); Array(Array.empty[Byte])
     }
@@ -47,7 +53,12 @@ class DefaultSplitter extends TableSplitter with LazyLogging {
 
 object DefaultSplitter {
 
+  val Instance = new DefaultSplitter
+
   object Parser {
+
+    val Z3MinDateOption = s"${Z3Index.Name}.min"
+    val Z3MaxDateOption = s"${Z3Index.Name}.max"
 
     /**
       * Creates splits suitable for a feature ID index. If nothing is specified, will assume a hex distribution.
@@ -130,10 +141,10 @@ object DefaultSplitter {
         }
       }
 
-      date(s"${Z3Index.Name}.min").map(_.getTime) match {
+      date(Z3MinDateOption).map(_.getTime) match {
         case None => Seq.empty
         case Some(min) =>
-          val max = date(s"${Z3Index.Name}.max").map(_.getTime).getOrElse(System.currentTimeMillis())
+          val max = date(Z3MaxDateOption).map(_.getTime).getOrElse(System.currentTimeMillis())
 
           val toBin = BinnedTime.timeToBinnedTime(interval)
           val minBin = toBin(min).bin
@@ -197,10 +208,20 @@ object DefaultSplitter {
     }.reduce(_ ++ _)
   }
 
-  private def z3Bytes(sft: SimpleFeatureType, options: Map[String, String]): Array[Array[Byte]] = {
+  private def z3Bytes(sft: SimpleFeatureType,
+                      partition: Option[String],
+                      options: Map[String, String]): Array[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    Parser.z3Splits(sft.getZ3Interval, options).map {
+    // if this is a time partition, update the options to include the min/max dates
+    val period = sft.getZ3Interval
+    val opts = partition.flatMap(p => Try(p.toShort).toOption) match {
+      case None => options
+      case Some(p) =>
+        val date = DateParsing.format(BinnedTime.binnedTimeToDate(period).apply(BinnedTime(p, 1L)))
+        options ++ Map(Parser.Z3MinDateOption -> date, Parser.Z3MaxDateOption -> date)
+    }
+    Parser.z3Splits(period, opts).map {
       case (bin, None) => ByteArrays.toBytes(bin)
       case (bin, Some(z)) => ByteArrays.toBytes(bin, z)
     }.toArray

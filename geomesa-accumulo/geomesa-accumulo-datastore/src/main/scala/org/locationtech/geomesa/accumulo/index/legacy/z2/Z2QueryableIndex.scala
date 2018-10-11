@@ -110,7 +110,7 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
       (iters, entriesToFeatures(sft, hints.getReturnSft), None, AccumuloColumnGroups.default, sft.nonPoints)
     }
 
-    val z2table = getTableName(sft.getTypeName, ds)
+    val z2table = getTableNames(sft, ds, None)
     val numThreads = ds.config.queryThreads
 
     val (ranges, z2Iter) = if (filter.primary.isEmpty) {

@@ -55,14 +55,14 @@ class CachedLazyMetadataTest extends Specification {
 
     override protected def scanValue(row: Array[Byte]): Option[Array[Byte]] = Option(data.get(row))
 
-    override protected def scanRows(prefix: Option[Array[Byte]]): CloseableIterator[Array[Byte]] = {
+    override protected def scanRows(prefix: Option[Array[Byte]]): CloseableIterator[(Array[Byte], Array[Byte])] = {
       import scala.collection.JavaConverters._
       prefix match {
-        case None => CloseableIterator(data.keySet().asScala.toIterator)
+        case None => CloseableIterator(data.asScala.toIterator)
         case Some(p) =>
-          val filtered = data.keySet().asScala.toIterator.flatMap { k =>
+          val filtered = data.asScala.toIterator.flatMap { case (k, v) =>
             if (p.length <= k.length && java.util.Arrays.equals(p, k.take(p.length))) {
-              Iterator.single(k)
+              Iterator.single(k -> v)
             } else {
               Iterator.empty
             }

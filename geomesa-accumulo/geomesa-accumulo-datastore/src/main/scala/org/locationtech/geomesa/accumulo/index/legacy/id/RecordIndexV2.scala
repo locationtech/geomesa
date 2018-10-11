@@ -32,11 +32,11 @@ case object RecordIndexV2 extends AccumuloFeatureIndex with AccumuloIndexAdapter
 
   override protected def queryThreads(ds: AccumuloDataStore): Int = ds.config.recordThreads
 
-  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
-    super.configure(sft, ds)
-    val table = getTableName(sft.getTypeName, ds)
+  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore, partition: Option[String]): String = {
+    val table = super.configure(sft, ds, partition)
     // enable the row functor as the feature ID is stored in the Row ID
     ds.tableOps.setProperty(table, Property.TABLE_BLOOM_KEY_FUNCTOR.getKey, classOf[RowFunctor].getCanonicalName)
     ds.tableOps.setProperty(table, Property.TABLE_BLOOM_ENABLED.getKey, "true")
+    table
   }
 }

@@ -10,51 +10,63 @@ package org.locationtech.geomesa.accumulo.data
 
 import org.apache.accumulo.core.client.BatchWriter
 import org.apache.accumulo.core.data.Mutation
+import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
-import org.locationtech.geomesa.accumulo.{AccumuloAppendFeatureWriterType, AccumuloFeatureIndexType, AccumuloFeatureWriterType, AccumuloModifyFeatureWriterType}
+import org.locationtech.geomesa.index.FlushableFeatureWriter
+import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-
-class AccumuloAppendFeatureWriter(sft: SimpleFeatureType,
-                                  ds: AccumuloDataStore,
-                                  indices: Option[Seq[AccumuloFeatureIndexType]],
-                                  val defaultVisibility: String)
-    extends AccumuloFeatureWriterType(sft, ds, indices) with AccumuloAppendFeatureWriterType with AccumuloFeatureWriter
-
-class AccumuloModifyFeatureWriter(sft: SimpleFeatureType,
-                                  ds: AccumuloDataStore,
-                                  indices: Option[Seq[AccumuloFeatureIndexType]],
-                                  val defaultVisibility: String,
-                                  val filter: Filter)
-    extends AccumuloFeatureWriterType(sft, ds, indices) with AccumuloModifyFeatureWriterType with AccumuloFeatureWriter
-
-trait AccumuloFeatureWriter extends AccumuloFeatureWriterType {
+abstract class AccumuloFeatureWriter(val sft: SimpleFeatureType,
+                                     val ds: AccumuloDataStore,
+                                     val indices: Seq[AccumuloFeatureIndexType],
+                                     val defaultVisibility: String,
+                                     val filter: Filter,
+                                     val partition: TablePartition) extends AccumuloFeatureWriterType {
 
   import scala.collection.JavaConversions._
 
-  def defaultVisibility: String
-
-  // note: has to be lazy for initialization of super class
-  private lazy val multiWriter = ds.connector.createMultiTableBatchWriter(GeoMesaBatchWriterConfig())
+  private val multiWriter = ds.connector.createMultiTableBatchWriter(GeoMesaBatchWriterConfig())
   private val wrapper = AccumuloFeature.wrapper(sft, defaultVisibility)
 
-  override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[BatchWriter] =
-    tables.map(multiWriter.getBatchWriter)
+  override protected def createMutator(table: String): BatchWriter = multiWriter.getBatchWriter(table)
 
-  override protected def executeWrite(mutator: BatchWriter, writes: Seq[Mutation]): Unit = mutator.addMutations(writes)
+  override protected def executeWrite(mutator: BatchWriter, writes: Seq[Mutation]): Unit =
+    mutator.addMutations(writes)
 
-  override protected def executeRemove(mutator: BatchWriter, removes: Seq[Mutation]): Unit = mutator.addMutations(removes)
+  override protected def executeRemove(mutator: BatchWriter, removes: Seq[Mutation]): Unit =
+    mutator.addMutations(removes)
 
   override def wrapFeature(feature: SimpleFeature): AccumuloFeature = wrapper(feature)
 
-  abstract override def flush(): Unit = {
-    multiWriter.flush()
-    super.flush()
-  }
+  override def flush(): Unit = multiWriter.flush()
 
-  abstract override def close(): Unit = {
-    multiWriter.close()
-    super.close()
+  override def close(): Unit = multiWriter.close()
+}
+
+object AccumuloFeatureWriter {
+
+  class AccumuloFeatureWriterFactory(ds: AccumuloDataStore) extends AccumuloFeatureWriterFactoryType {
+    override def createFeatureWriter(sft: SimpleFeatureType,
+                                     indices: Seq[AccumuloFeatureIndexType],
+                                     filter: Option[Filter]): FlushableFeatureWriter = {
+      (TablePartition(ds, sft), filter) match {
+        case (None, None) =>
+          new AccumuloFeatureWriter(sft, ds, indices, ds.config.defaultVisibilities, null, null)
+              with AccumuloTableFeatureWriterType with AccumuloAppendFeatureWriterType
+
+        case (None, Some(f)) =>
+          new AccumuloFeatureWriter(sft, ds, indices, ds.config.defaultVisibilities, f, null)
+              with AccumuloTableFeatureWriterType with AccumuloModifyFeatureWriterType
+
+        case (Some(p), None) =>
+          new AccumuloFeatureWriter(sft, ds, indices, ds.config.defaultVisibilities, null, p)
+              with AccumuloPartitionedFeatureWriterType with AccumuloAppendFeatureWriterType
+
+        case (Some(p), Some(f)) =>
+          new AccumuloFeatureWriter(sft, ds, indices, ds.config.defaultVisibilities, f, p)
+              with AccumuloPartitionedFeatureWriterType with AccumuloModifyFeatureWriterType
+      }
+    }
   }
 }

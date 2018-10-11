@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets
 
 import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.QueryBuilder
+import org.locationtech.geomesa.index.metadata.CachedLazyMetadata.ScanQuery
 import org.locationtech.geomesa.index.metadata._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
@@ -53,11 +54,16 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
     }
   }
 
-  override protected def scanKeys(typeName: Option[String]): CloseableIterator[(String, String)] = {
-    val query = QueryBuilder.select("sft", "key").from(catalog)
-    typeName.foreach(t => query.where(QueryBuilder.eq("sft", t)))
-    val keys = session.execute(query).all().map(row => (row.getString("sft"), row.getString("key")))
-    CloseableIterator(keys.iterator)
+  override protected def scanValues(query: Option[ScanQuery]): CloseableIterator[(String, String, Array[Byte])] = {
+    val select = QueryBuilder.select("sft", "key", "value").from(catalog)
+    query.foreach(q => select.where(QueryBuilder.eq("sft", q.typeName)))
+    val values = session.execute(select).all().iterator.map { row =>
+      (row.getString("sft"), row.getString("key"), row.getString("value").getBytes(StandardCharsets.UTF_8))
+    }
+    query.flatMap(_.prefix) match {
+      case None => CloseableIterator(values)
+      case Some(prefix) => CloseableIterator(values.filter(_._2.startsWith(prefix)))
+    }
   }
 
   override def close(): Unit = {} // session gets closed by datastore dispose
