@@ -52,6 +52,8 @@ abstract class AbstractConverter[C <: ConverterConfig, F <: Field, O <: Converte
 
   private val requiredFieldsIndices: Array[Int] = requiredFields.map(f => targetSft.indexOf(f.name))
 
+  private val configCaches = config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
+
   /**
     * Read values for simple features out of the input stream. This should be lazily evaluated,
     * so that any exceptions occur in the call to `hasNext` (and not during the iterator creation),
@@ -74,7 +76,6 @@ abstract class AbstractConverter[C <: ConverterConfig, F <: Field, O <: Converte
     val values = Array.ofDim[Any](names.length)
     // note, globalKeys are maintained even through EvaluationContext.clear()
     globalKeys.foreachIndex { case (k, i) => values(requiredFieldsCount + i) = globalParams(k) }
-    val configCaches = config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
     new EvaluationContextImpl(names, values, counter, configCaches ++ caches)
   }
 
@@ -85,6 +86,8 @@ abstract class AbstractConverter[C <: ConverterConfig, F <: Field, O <: Converte
       case ParseMode.Batch => CloseableIterator(converted.to[ListBuffer].iterator, converted.close())
     }
   }
+
+  override def close(): Unit = configCaches.foreach(_._2.close())
 
   /**
     * Convert input values into a simple feature with attributes.

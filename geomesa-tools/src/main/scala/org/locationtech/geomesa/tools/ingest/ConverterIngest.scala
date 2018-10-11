@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong
 import com.beust.jcommander.ParameterException
 import com.typesafe.config.{Config, ConfigRenderOptions}
 import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool}
-import org.apache.commons.pool2.{BasePooledObjectFactory, ObjectPool}
+import org.apache.commons.pool2.{BasePooledObjectFactory, ObjectPool, PooledObject}
 import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.geotools.data.DataUtilities.compare
@@ -71,10 +71,16 @@ class ConverterIngest(sft: SimpleFeatureType,
   private val factory = new BasePooledObjectFactory[SimpleFeatureConverter] {
     override def wrap(obj: SimpleFeatureConverter) = new DefaultPooledObject[SimpleFeatureConverter](obj)
     override def create(): SimpleFeatureConverter = SimpleFeatureConverter(sft, converterConfig)
+    override def destroyObject(p: PooledObject[SimpleFeatureConverter]): Unit = p.getObject.close()
   }
 
   protected val converters = new GenericObjectPool[SimpleFeatureConverter](factory)
 
+  override def run(): Unit = {
+    try { super.run() } finally {
+      converters.close()
+    }
+  }
   override def createLocalConverter(path: String, failures: AtomicLong): LocalIngestConverter =
     new LocalIngestConverterImpl(sft, path, converters, failures)
 

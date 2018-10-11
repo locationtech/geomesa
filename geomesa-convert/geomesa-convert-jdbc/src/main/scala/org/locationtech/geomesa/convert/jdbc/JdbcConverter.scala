@@ -30,13 +30,19 @@ class JdbcConverter(targetSft: SimpleFeatureType,
                     options: BasicOptions)
     extends AbstractConverter(targetSft, config, fields, options) {
 
+  private val connection = DriverManager.getConnection(config.connection)
+
+  override def close(): Unit = {
+    CloseWithLogging(connection)
+    super.close()
+  }
+
   override protected def read(is: InputStream, ec: EvaluationContext): CloseableIterator[Array[Any]] =
     new StatementIterator(is, ec.counter)
 
   class StatementIterator private [JdbcConverter] (is: InputStream, counter: Counter)
       extends CloseableIterator[Array[Any]] {
 
-    private val connection = DriverManager.getConnection(config.connection)
     private val statements = IOUtils.lineIterator(is, options.encoding) // TODO split on ; ?
 
     private var statement: PreparedStatement = _
@@ -79,7 +85,6 @@ class JdbcConverter(targetSft: SimpleFeatureType,
     override def close(): Unit = {
       Option(results).foreach(CloseWithLogging.apply)
       Option(statement).foreach(CloseWithLogging.apply)
-      CloseWithLogging(connection)
       CloseWithLogging(is)
     }
   }

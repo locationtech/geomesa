@@ -43,6 +43,7 @@ class RedisEnrichmentCacheTest extends Specification {
       val redis = new MockRedis
       val connBuilder = new RedisConnectionBuilder {
         override def getConn: Jedis = redis
+        override def close(): Unit = {}
       }
 
       val cache = new RedisEnrichmentCache(connBuilder, -1, true)
@@ -54,6 +55,7 @@ class RedisEnrichmentCacheTest extends Specification {
       val redis = new MockRedis
       val connBuilder = new RedisConnectionBuilder {
         override def getConn: Jedis = redis
+        override def close(): Unit = {}
       }
 
       val cache = new RedisEnrichmentCache(connBuilder, 1, true)
@@ -69,6 +71,7 @@ class RedisEnrichmentCacheTest extends Specification {
       val redis = new MockRedis
       val connBuilder = new RedisConnectionBuilder {
         override def getConn: Jedis = redis
+        override def close(): Unit = {}
       }
 
       val cache = new RedisEnrichmentCache(connBuilder, -1, false)

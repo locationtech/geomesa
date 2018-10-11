@@ -16,7 +16,9 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -73,50 +75,54 @@ class CompositeTextConverterTest extends Specification with LazyLogging {
   "CompositeConverter" should {
 
     "process some data using local conf" in {
-      val converter = SimpleFeatureConverter(sft, localConf)
-      converter must not(beNull)
+      WithClose(SimpleFeatureConverter(sft, localConf)) { converter =>
+        converter must not(beNull)
 
-      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
+        val res = WithClose(converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))))(_.toList)
 
-      res.size must be equalTo 2
-      res(0).getID must be equalTo "first1"
-      res(1).getID must be equalTo "second2"
+        res.size must be equalTo 2
+        res(0).getID must be equalTo "first1"
+        res(1).getID must be equalTo "second2"
 
-      // and get correct line numbers
-      res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
-      res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 4
+        // and get correct line numbers
+        res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
+        res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 4
 
-      // and get default string to double values
-      res(0).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
-      res(1).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
+        // and get default string to double values
+        res(0).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
+        res(1).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
+      }
     }
 
     "reference converters using global conf" in {
-      val converter = SimpleFeatureConverter(sft, "comp1")
-      converter must not(beNull)
+      WithClose(SimpleFeatureConverter(sft, "comp1")) { converter =>
+        converter must not(beNull)
+        val res = WithClose(converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))))(_.toList)
 
-      val res = converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
+        res.size must be equalTo 2
+        res(0).getID must be equalTo "first1"
+        res(1).getID must be equalTo "second2"
 
-      res.size must be equalTo 2
-      res(0).getID must be equalTo "first1"
-      res(1).getID must be equalTo "second2"
+        // and get correct line numbers
+        res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
+        res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 4
 
-      // and get correct line numbers
-      res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
-      res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 4
-
-      // and get default string to double values
-      res(0).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
-      res(1).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
-
-      1 mustEqual 1
+        // and get default string to double values
+        res(0).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
+        res(1).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
+      }
     }
 
     "call next without hasNext" in {
-      val converter = SimpleFeatureConverter(sft, "comp1")
-      converter must not(beNull)
-      val iter = converter.process(new ByteArrayInputStream("3 5050".getBytes))
-      iter.next.getID mustEqual "50.050.0"
+      WithClose(SimpleFeatureConverter(sft, "comp1")) { converter =>
+        converter must not(beNull)
+        val iter = converter.process(new ByteArrayInputStream("3 5050".getBytes))
+        try {
+          iter.next.getID mustEqual "50.050.0"
+        } finally {
+          iter.close()
+        }
+      }
     }
 
     "be built using old api" in {

@@ -17,6 +17,7 @@ import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -53,24 +54,25 @@ class ShapefileConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, conf)
-      converter must not(beNull)
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        converter must not(beNull)
 
-      // shapefile converter requires the input file path in order to load the related files
-      val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(shpFile))
-      val res = SelfClosingIterator(converter.process(shp.openStream(), ec)).toList
+        // shapefile converter requires the input file path in order to load the related files
+        val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(shpFile))
+        val res = SelfClosingIterator(converter.process(shp.openStream(), ec)).toList
 
-      res must haveLength(52) // 50 states, DC, and puerto rico
+        res must haveLength(52) // 50 states, DC, and puerto rico
 
-      foreach(res) { state =>
-        state.getDefaultGeometry must beAnInstanceOf[MultiPolygon]
-        state.getAttribute("name") must not(beNull)
-        state.getAttribute("abbr") must not(beNull)
-        state.getAttribute("area") must not(beNull)
+        foreach(res) { state =>
+          state.getDefaultGeometry must beAnInstanceOf[MultiPolygon]
+          state.getAttribute("name") must not(beNull)
+          state.getAttribute("abbr") must not(beNull)
+          state.getAttribute("area") must not(beNull)
+        }
+
+        res.map(_.getAttribute("name")) must containAllOf(Seq("Alaska", "California", "New York", "Virginia"))
+        res.map(_.getAttribute("abbr")) must containAllOf(Seq("AK", "CA", "NY", "VA"))
       }
-
-      res.map(_.getAttribute("name")) must containAllOf(Seq("Alaska", "California", "New York", "Virginia"))
-      res.map(_.getAttribute("abbr")) must containAllOf(Seq("AK", "CA", "NY", "VA"))
     }
 
     "infer converters" in {
@@ -82,24 +84,25 @@ class ShapefileConverterTest extends Specification {
       sft.getAttributeCount mustEqual 10
       SimpleFeatureTypes.encodeType(sft) mustEqual shpSpec
 
-      val converter = SimpleFeatureConverter(sft, conf)
-      converter must not(beNull)
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        converter must not(beNull)
 
-      // shapefile converter requires the input file path in order to load the related files
-      val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(shpFile))
-      val res = SelfClosingIterator(converter.process(shp.openStream(), ec)).toList
+        // shapefile converter requires the input file path in order to load the related files
+        val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(shpFile))
+        val res = SelfClosingIterator(converter.process(shp.openStream(), ec)).toList
 
-      res must haveLength(52) // 50 states, DC, and puerto rico
+        res must haveLength(52) // 50 states, DC, and puerto rico
 
-      foreach(res) { state =>
-        state.getDefaultGeometry must beAnInstanceOf[MultiPolygon]
-        state.getAttribute("NAME") must not(beNull)
-        state.getAttribute("STUSPS") must not(beNull)
-        state.getAttribute("ALAND") must not(beNull)
+        foreach(res) { state =>
+          state.getDefaultGeometry must beAnInstanceOf[MultiPolygon]
+          state.getAttribute("NAME") must not(beNull)
+          state.getAttribute("STUSPS") must not(beNull)
+          state.getAttribute("ALAND") must not(beNull)
+        }
+
+        res.map(_.getAttribute("NAME")) must containAllOf(Seq("Alaska", "California", "New York", "Virginia"))
+        res.map(_.getAttribute("STUSPS")) must containAllOf(Seq("AK", "CA", "NY", "VA"))
       }
-
-      res.map(_.getAttribute("NAME")) must containAllOf(Seq("Alaska", "California", "New York", "Virginia"))
-      res.map(_.getAttribute("STUSPS")) must containAllOf(Seq("AK", "CA", "NY", "VA"))
     }
   }
 }

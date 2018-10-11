@@ -27,6 +27,13 @@ class ConverterStorage(fc: FileContext,
                        converter: SimpleFeatureConverter,
                        partitionScheme: PartitionScheme) extends FileSystemStorage {
 
+  // TODO close converter...
+  // the problem is that we aggressively cache storage instances for performance (in FileSystemStorageManager),
+  // so even if we wired a 'close' method through the entire storage api, we'd also have to implement a
+  // 'borrow/return' paradigm and expire idle instances. Since currently only converters with redis caches
+  // actually need to be closed, and since they will only open a single connection per converter, the
+  // impact should be low
+
   private val metadata = new ConverterMetadata(fc, root, sft, partitionScheme)
 
   import scala.collection.JavaConverters._

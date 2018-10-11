@@ -19,6 +19,7 @@ import org.locationtech.geomesa.convert2
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -101,6 +102,10 @@ object SimpleFeatureConverters extends LazyLogging {
     override def createEvaluationContext(globalParams: Map[String, Any], counter: Counter): EvaluationContext =
       converter.createEvaluationContext(globalParams, Map.empty, counter)
 
-    override def close(): Unit = open.asScala.foreach(_.close())
+    override def close(): Unit = {
+      open.asScala.foreach(CloseWithLogging.apply)
+      caches.values.foreach(CloseWithLogging.apply)
+      CloseWithLogging(converter)
+    }
   }
 }

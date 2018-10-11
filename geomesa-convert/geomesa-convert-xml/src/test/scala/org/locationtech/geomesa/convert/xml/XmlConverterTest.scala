@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -77,17 +78,18 @@ class XmlConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, parserConf)
-      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
-      features must haveLength(2)
-      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
-      features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
-      features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-      features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        features must haveLength(2)
+        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+        features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+        features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+        features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      }
     }
 
     "parse multiple features out of a single document with the geometry in the repeated XML tag" >> {
@@ -143,20 +145,21 @@ class XmlConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft2, parserConf)
-      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
-      features must haveLength(2)
-      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
-      features.head.getAttribute("geom").asInstanceOf[Point] mustEqual WKTUtils.read("POINT(1.23 4.23)").asInstanceOf[Point]
+      WithClose(SimpleFeatureConverter(sft2, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        features must haveLength(2)
+        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        features.head.getAttribute("geom").asInstanceOf[Point] mustEqual WKTUtils.read("POINT(1.23 4.23)").asInstanceOf[Point]
 
-      features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
-      features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-      features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
-      features(1).getAttribute("geom").asInstanceOf[Point] mustEqual WKTUtils.read("POINT(4.56 7.56)").asInstanceOf[Point]
+        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+        features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+        features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+        features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        features(1).getAttribute("geom").asInstanceOf[Point] mustEqual WKTUtils.read("POINT(4.56 7.56)").asInstanceOf[Point]
+      }
     }
 
     "parse nested feature nodes" >> {
@@ -199,17 +202,18 @@ class XmlConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, parserConf)
-      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
-      features must haveLength(2)
-      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
-      features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
-      features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-      features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        features must haveLength(2)
+        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+        features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+        features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+        features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      }
     }
 
     "apply xpath functions" >> {
@@ -243,13 +247,14 @@ class XmlConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, parserConf)
-      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
-      features must haveLength(1)
-      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127
-      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        features must haveLength(1)
+        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      }
     }
 
     "use an ID hash for each node" >> {
@@ -288,19 +293,20 @@ class XmlConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, parserConf)
-      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
-      features must haveLength(2)
-      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
-      features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
-      features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-      features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
-      features.head.getID mustEqual "441dd9114a1a345fe59f0dfe461f01ca"
-      features(1).getID mustEqual "42aae6286c7204c3aa1aa99a4e8dae35"
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        features must haveLength(2)
+        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+        features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+        features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+        features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        features.head.getID mustEqual "441dd9114a1a345fe59f0dfe461f01ca"
+        features(1).getID mustEqual "42aae6286c7204c3aa1aa99a4e8dae35"
+      }
     }
 
     "validate with an xsd" >> {
@@ -339,24 +345,24 @@ class XmlConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, parserConf)
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        "parse as itr" >> {
+          val features = WithClose(converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))))(_.toList)
+          features must haveLength(1)
+          features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+          features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+          features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+          features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        }
 
-      "parse as itr" >> {
-        val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
-        features must haveLength(1)
-        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
-        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
-      }
-
-      "parse as stream" >> {
-        val features = converter.process(new ByteArrayInputStream(xml.replaceAllLiterally("\n", " ").getBytes(StandardCharsets.UTF_8))).toList
-        features must haveLength(1)
-        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
-        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        "parse as stream" >> {
+          val features = WithClose(converter.process(new ByteArrayInputStream(xml.replaceAllLiterally("\n", " ").getBytes(StandardCharsets.UTF_8))))(_.toList)
+          features must haveLength(1)
+          features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+          features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+          features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+          features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        }
       }
     }
 
@@ -398,14 +404,14 @@ class XmlConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, parserConf)
-
-      val features = converter.process(new ByteArrayInputStream(xml.getBytes)).toList
-      features must haveLength(1)
-      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(xml.getBytes)))(_.toList)
+        features must haveLength(1)
+        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      }
     }
 
     "parse xml in single line mode" >> {
@@ -448,20 +454,20 @@ class XmlConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, parserConf)
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(xml.getBytes)))(_.toList)
+        features must haveLength(2)
 
-      val features = converter.process(new ByteArrayInputStream(xml.getBytes)).toList
-      features must haveLength(2)
+        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
 
-      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
-
-      features.last.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features.last.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features.last.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features.last.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        features.last.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.last.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.last.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features.last.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      }
     }
 
     "invalidate with an xsd" >> {
@@ -499,9 +505,10 @@ class XmlConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, parserConf)
-      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
-      features must haveLength(0)
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        features must haveLength(0)
+      }
     }
 
     "handle user data" >> {
@@ -538,14 +545,15 @@ class XmlConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, parserConf)
-      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
-      features must haveLength(1)
-      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127
-      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
-      features.head.getUserData.get("my.user.key") mustEqual 127d
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        features must haveLength(1)
+        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        features.head.getUserData.get("my.user.key") mustEqual 127d
+      }
     }
 
     "Parse XMLs with a BOM" >> {
@@ -570,17 +578,18 @@ class XmlConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val xmlConverter = SimpleFeatureConverter(sft, parserConf)
-      val features = xmlConverter.process(xml.openStream()).toList
-      features must haveLength(2)
-      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
-      features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
-      features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-      features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(xml.openStream()))(_.toList)
+        features must haveLength(2)
+        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+        features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+        features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+        features(1).getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      }
     }
 
     "support namespaces with saxon" >> {
@@ -618,13 +627,14 @@ class XmlConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, parserConf)
-      val features = converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))).toList
-      features must haveLength(1)
-      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127
-      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        features must haveLength(1)
+        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      }
     }
 
     "not use single line mode for v1 processInput/processSingleInput" >> {
@@ -660,20 +670,20 @@ class XmlConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
+      WithClose(SimpleFeatureConverters.build[String](sft, parserConf)) { converter =>
+        val features = converter.processInput(Iterator(xml, xml)).toList
+        features must haveLength(2)
 
-      val features = converter.processInput(Iterator(xml, xml)).toList
-      features must haveLength(2)
+        features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
 
-      features.head.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features.head.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features.head.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features.head.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
-
-      features.last.getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features.last.getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features.last.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features.last.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+        features.last.getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features.last.getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features.last.getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features.last.getAttribute("source").asInstanceOf[String] mustEqual "myxml"
+      }
     }
   }
 }

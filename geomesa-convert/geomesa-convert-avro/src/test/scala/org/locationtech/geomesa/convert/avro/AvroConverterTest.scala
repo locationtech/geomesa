@@ -52,17 +52,18 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, conf)
-      val ec = converter.createEvaluationContext()
-      val res = converter.process(new ByteArrayInputStream(bytes), ec).toList
-      res must haveLength(1)
-      val sf = res.head
-      sf.getAttributeCount must be equalTo 2
-      sf.getAttribute("dtg") must not(beNull)
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val ec = converter.createEvaluationContext()
+        val res = WithClose(converter.process(new ByteArrayInputStream(bytes), ec))(_.toList)
+        res must haveLength(1)
+        val sf = res.head
+        sf.getAttributeCount must be equalTo 2
+        sf.getAttribute("dtg") must not(beNull)
 
-      ec.counter.getFailure mustEqual 0L
-      ec.counter.getSuccess mustEqual 1L
-      ec.counter.getLineCount mustEqual 1L  // only 1 record passed in itr
+        ec.counter.getFailure mustEqual 0L
+        ec.counter.getSuccess mustEqual 1L
+        ec.counter.getLineCount mustEqual 1L  // only 1 record passed in itr
+      }
     }
 
     "convert user data" >> {
@@ -86,18 +87,19 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, conf)
-      val ec = converter.createEvaluationContext()
-      val res = converter.process(new ByteArrayInputStream(bytes), ec).toList
-      res must haveLength(1)
-      val sf = res.head
-      sf.getAttributeCount must be equalTo 2
-      sf.getAttribute("dtg") must not(beNull)
-      sf.getUserData.get("my.user.key") mustEqual 45d
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val ec = converter.createEvaluationContext()
+        val res = WithClose(converter.process(new ByteArrayInputStream(bytes), ec))(_.toList)
+        res must haveLength(1)
+        val sf = res.head
+        sf.getAttributeCount must be equalTo 2
+        sf.getAttribute("dtg") must not(beNull)
+        sf.getUserData.get("my.user.key") mustEqual 45d
 
-      ec.counter.getFailure mustEqual 0L
-      ec.counter.getSuccess mustEqual 1L
-      ec.counter.getLineCount mustEqual 1L  // only 1 record passed in itr
+        ec.counter.getFailure mustEqual 0L
+        ec.counter.getSuccess mustEqual 1L
+        ec.counter.getLineCount mustEqual 1L  // only 1 record passed in itr
+      }
     }
 
     "make avro bytes available as $0" >> {
@@ -118,21 +120,22 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverter(sft, conf)
-      val ec = converter.createEvaluationContext()
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val ec = converter.createEvaluationContext()
 
-      // pass two messages to check message buffering for record bytes
-      val res = converter.process(new ByteArrayInputStream(bytes ++ bytes), ec).toList
-      res must haveLength(2)
-      foreach(res) { sf =>
-        sf.getID mustEqual Hashing.md5().hashBytes(bytes).toString
-        sf.getAttributeCount must be equalTo 2
-        sf.getAttribute("dtg") must not(beNull)
+        // pass two messages to check message buffering for record bytes
+        val res = WithClose(converter.process(new ByteArrayInputStream(bytes ++ bytes), ec))(_.toList)
+        res must haveLength(2)
+        foreach(res) { sf =>
+          sf.getID mustEqual Hashing.md5().hashBytes(bytes).toString
+          sf.getAttributeCount must be equalTo 2
+          sf.getAttribute("dtg") must not(beNull)
+        }
+
+        ec.counter.getFailure mustEqual 0L
+        ec.counter.getSuccess mustEqual 2L
+        ec.counter.getLineCount mustEqual 2L
       }
-
-      ec.counter.getFailure mustEqual 0L
-      ec.counter.getSuccess mustEqual 2L
-      ec.counter.getLineCount mustEqual 2L
     }
 
     "automatically convert geomesa avro files" >> {
@@ -155,14 +158,14 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
 
       logger.trace(inferred.get._2.root().render(ConfigRenderOptions.concise().setFormatted(true)))
 
-      val converter = SimpleFeatureConverter(sft, inferred.get._2)
-      converter must not(beNull)
+      WithClose(SimpleFeatureConverter(sft, inferred.get._2)) { converter =>
+        converter must not(beNull)
 
-      val converted = SelfClosingIterator(converter.process(new ByteArrayInputStream(bytes))).toList
+        val converted = SelfClosingIterator(converter.process(new ByteArrayInputStream(bytes))).toList
 
-      converted must containTheSameElementsAs(features)
-
-      converted.map(_.getUserData.get("foo")) must containTheSameElementsAs(Seq.tabulate(10)(i => s"bar$i"))
+        converted must containTheSameElementsAs(features)
+        converted.map(_.getUserData.get("foo")) must containTheSameElementsAs(Seq.tabulate(10)(i => s"bar$i"))
+      }
     }
 
     "automatically convert arbitrary avro files" >> {
@@ -219,19 +222,20 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
 
       logger.trace(inferred.get._2.root().render(ConfigRenderOptions.concise().setFormatted(true)))
 
-      val converter = SimpleFeatureConverter(inferred.get._1, inferred.get._2)
-      converter must not(beNull)
+      WithClose(SimpleFeatureConverter(inferred.get._1, inferred.get._2)) { converter =>
+        converter must not(beNull)
 
-      val converted = SelfClosingIterator(converter.process(new ByteArrayInputStream(bytes))).toList
-      converted must not(beEmpty)
+        val converted = SelfClosingIterator(converter.process(new ByteArrayInputStream(bytes))).toList
+        converted must not(beEmpty)
 
-      val expected = Seq.tabulate(10) { i =>
-        ScalaSimpleFeature.create(expectedSft, s"$i", 40d + i, 50d + i, s"name$i", i, 10f + i,
-          s"POINT (${ 50d + i } ${ 40d + i })")
+        val expected = Seq.tabulate(10) { i =>
+          ScalaSimpleFeature.create(expectedSft, s"$i", 40d + i, 50d + i, s"name$i", i, 10f + i,
+            s"POINT (${ 50d + i } ${ 40d + i })")
+        }
+
+        // note: feature ids won't be the same
+        converted.map(_.getAttributes) must containTheSameElementsAs(expected.map(_.getAttributes))
       }
-
-      // note: feature ids won't be the same
-      converted.map(_.getAttributes) must containTheSameElementsAs(expected.map(_.getAttributes))
     }
   }
 }

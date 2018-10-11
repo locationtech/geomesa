@@ -138,6 +138,7 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
       override def close(): Unit = {
         CloseWithLogging(featureReader)
         CloseWithLogging(iter)
+        CloseWithLogging(converter)
       }
     }
   }
