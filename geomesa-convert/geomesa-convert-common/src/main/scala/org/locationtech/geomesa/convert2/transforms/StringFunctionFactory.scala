@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 
 import scala.util.matching.Regex
 
@@ -16,7 +16,7 @@ import scala.util.matching.Regex
 class StringFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFunction] =
-    Seq(stripQuotes, strip, stripPrefix, stripSuffix, replace, removeChars,
+    Seq(stripQuotes, strip, stripPrefix, stripSuffix, replace, remove,
       strLen, trim, capitalize, lowercase, uppercase, regexReplace, concat,
       substr, string, mkstring, emptyToNull, printf)
 
@@ -53,9 +53,9 @@ class StringFunctionFactory extends TransformerFunctionFactory {
     args(0).asInstanceOf[String].replaceAllLiterally(toRemove, replacement)
   }
 
-  private val removeChars = TransformerFunction("removeChars") { args =>
+  private val remove = TransformerFunction("remove") { args =>
     val toRemove = args(1).asInstanceOf[String]
-    args(0).asInstanceOf[String].replaceAllLiterally(toRemove, "")
+    StringUtils.remove(args(0).asInstanceOf[String], toRemove)
   }
 
   private val trim = TransformerFunction("trim") { args =>

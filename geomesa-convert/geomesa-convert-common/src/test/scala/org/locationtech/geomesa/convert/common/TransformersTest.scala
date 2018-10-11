@@ -948,14 +948,14 @@ class TransformersTest extends Specification {
       }
     }
 
-    "remove chars" >> {
-      val trans = Transformers.parseTransform("removeChars($0, '\\'')")
+    "remove strings" >> {
+      val trans = Transformers.parseTransform("remove($0, '\\'')")
       trans.eval(Array("'foo'")) mustEqual "foo"
       trans.eval(Array("'foo")) mustEqual "foo"
       trans.eval(Array("foo'")) mustEqual "foo"
       trans.eval(Array("f'o'o'")) mustEqual "foo"
 
-      Transformers.parseTransform("remove($0, 'abc')").eval(Array("afbocod")) mustEqual "foo"
+      Transformers.parseTransform("remove($0, 'abc')").eval(Array("foabco")) mustEqual "foo"
     }
 
     "replace" >> {
