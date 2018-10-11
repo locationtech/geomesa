@@ -15,9 +15,9 @@ Extract it somewhere convenient:
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz"
-    $ tar xvf geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-accumulo-dist_2.11-$VERSION
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-accumulo_2.11-$VERSION-bin.tar.gz"
+    $ tar xvf geomesa-accumulo_2.11-$VERSION-bin.tar.gz
+    $ cd geomesa-accumulo_2.11-$VERSION
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
@@ -39,7 +39,7 @@ More information about developing with GeoMesa may be found in the :doc:`/develo
 Installing the Accumulo Distributed Runtime Library
 ---------------------------------------------------
 
-The ``geomesa-accumulo-dist_2.11-$VERSION/dist/accumulo/`` directory contains the distributed
+The ``geomesa-accumulo_2.11-$VERSION/dist/accumulo/`` directory contains the distributed
 runtime JARs that contains server-side code for Accumulo that must be made
 available on each of the Accumulo tablet servers in the cluster. These JARs
 contain GeoMesa code and the Accumulo iterators required for querying GeoMesa data.
@@ -72,7 +72,7 @@ each tablet server.
     $ scp dist/accumulo/geomesa-accumulo-distributed-runtime_2.11-$VERSION.jar \
         tserver1:$ACCUMULO_HOME/lib/ext
     # or for raster support
-    $ scp dist/accumulo/geomesa-accumulo-distributed-runtime-raster_2.11-$VERSION.jar \
+    $ scp dist/accumulo/geomesa-accumulo-raster-distributed-runtime_2.11-$VERSION.jar \
         tserver1:$ACCUMULO_HOME/lib/ext
 
 .. note::
@@ -89,7 +89,7 @@ GeoMesa leverages namespaces and classpath contexts to isolate the GeoMesa
 classpath from the rest of Accumulo.
 
 To install the distributed runtime JAR, use the ``setup-namespace.sh``
-script in the ``geomesa-accumulo-dist_2.11-$VERSION/bin`` directory.
+script in the ``geomesa-accumulo_2.11-$VERSION/bin`` directory.
 
 .. code::
 
@@ -209,7 +209,7 @@ Test the command that invokes the GeoMesa Tools:
 .. code::
 
     $ geomesa-accumulo
-    Using GEOMESA_ACCUMULO_HOME = /path/to/geomesa-accumulo-dist_2.11-$VERSION
+    Using GEOMESA_ACCUMULO_HOME = /path/to/geomesa-accumulo_2.11-$VERSION
     Usage: geomesa-accumulo [command] [command options]
       Commands:
       ...

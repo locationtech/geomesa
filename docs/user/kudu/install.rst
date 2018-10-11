@@ -15,9 +15,9 @@ Extract it somewhere convenient:
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-kudu-dist_2.11-$VERSION-bin.tar.gz"
-    $ tar xvf geomesa-kudu-dist_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-kudu-dist_2.11-$VERSION
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-kudu_2.11-$VERSION-bin.tar.gz"
+    $ tar xvf geomesa-kudu_2.11-$VERSION-bin.tar.gz
+    $ cd geomesa-kudu_2.11-$VERSION
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 

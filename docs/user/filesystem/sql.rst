@@ -22,7 +22,7 @@ GDELT SimpleFeatureType and converter to ingest a year or so of data:
 
 .. code-block:: bash
 
-    tar xvf geomesa-fs-dist_2.11-$VERSION.tar.gz
+    tar xvf geomesa-fs_2.11-$VERSION.tar.gz
     . /etc/hadoop/conf/hadoop-env.sh
     . /etc/hadoop/conf/yarn-env.sh
     export HADOOP_CONF_DIR=/etc/hadoop/conf

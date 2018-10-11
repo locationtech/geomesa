@@ -21,9 +21,9 @@ Extract it somewhere convenient:
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-hbase-dist_2.11-$VERSION-bin.tar.gz"
-    $ tar xvf geomesa-hbase-dist_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-hbase-dist_2.11-$VERSION
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-hbase_2.11-$VERSION-bin.tar.gz"
+    $ tar xvf geomesa-hbase_2.11-$VERSION-bin.tar.gz
+    $ cd geomesa-hbase_2.11-$VERSION
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
@@ -283,9 +283,8 @@ Installing GeoMesa HBase in GeoServer
 
 The HBase GeoServer plugin is bundled by default in a GeoMesa binary distribution. To install, extract
 ``$GEOMESA_HBASE_HOME/dist/gs-plugins/geomesa-hbase-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
-``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with HBase 1.2.3
-bundled. If you require a different version, modify the ``pom.xml`` and build the GeoMesa HBase plugin project from
-scratch with Maven.
+``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with HBase |hbase_bundled_version|
+bundled. This JAR should work with HBase |hbase_version|.
 
 This distribution does not include the Hadoop or Zookeeper JARs; the following JARs
 should be copied from the ``lib`` directory of your HBase or Hadoop installations into
@@ -297,24 +296,20 @@ GeoServer's ``WEB-INF/lib`` directory:
 
     .. group-tab:: Standard
 
-        * hadoop-annotations-2.7.4.jar
-        * hadoop-auth-2.7.4.jar
-        * hadoop-common-2.7.4.jar
-        * hadoop-mapreduce-client-core-2.7.4.jar
-        * hadoop-yarn-api-2.7.4.jar
-        * hadoop-yarn-common-2.7.4.jar
-        * htrace-core-3.1.0-incubating.jar
         * commons-cli-1.2.jar
-        * commons-io-2.5.jar (you may need to remove an older version (2.1) from geoserver)
-        * hbase-common-1.2.6.jar
-        * hbase-client-1.2.6.jar
-        * hbase-server-1.2.6.jar
-        * hbase-protocol-1.2.6.jar
+        * commons-configuration-1.6.jar
+        * commons-io-2.5.jar  (you may need to remove an older version from geoserver)
+        * commons-logging-1.1.3.jar
+        * hadoop-auth-2.7.4.jar
+        * hadoop-client-2.7.4.jar
+        * hadoop-common-2.7.4.jar
+        * hadoop-hdfs-2.7.4.jar
+        * htrace-core-3.1.0-incubating.jar
         * metrics-core-2.2.0.jar
         * netty-3.6.2.Final.jar
         * netty-all-4.0.41.Final.jar
+        * servlet-api-2.4.jar
         * zookeeper-3.4.10.jar
-        * commons-configuration-1.6.jar
 
         You can use the bundled ``$GEOMESA_HBASE_HOME/bin/install-hadoop.sh`` script to install these JARs.
 
@@ -325,13 +320,12 @@ GeoServer's ``WEB-INF/lib`` directory:
         * hadoop-common.jar
         * protobuf-java.jar
         * commons-io.jar
-        * hbase-server-1.2.6.jar
         * zookeeper-3.4.10.jar
         * commons-configuration-1.6.jar
 
 The HBase data store requires the configuration file ``hbase-site.xml`` to be on the classpath. This can
 be accomplished by placing the file in ``geoserver/WEB-INF/classes`` (you should make the directory if it
-doesn't exist). Utilizing a symbolic link will be use full here so any changes are reflected in GeoServer.
+doesn't exist). Utilizing a symbolic link will be useful here so any changes are reflected in GeoServer.
 
 .. tabs::
 
