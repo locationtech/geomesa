@@ -145,13 +145,13 @@ class HBaseColumnGroupsTest extends HBaseTest with LazyLogging  {
         (transformsA ++ transformsAB).foreach { transform =>
           val query = new Query(sft.getTypeName, filter, transform)
           query.getHints.put(QueryHints.LOOSE_BBOX, false)
-          foreach(ds.getQueryPlan(query).flatMap(_.ranges))(_.getFamilies.map(Bytes.toString) mustEqual Array("a"))
+          foreach(ds.getQueryPlan(query).flatMap(_.scans))(_.getFamilies.map(Bytes.toString) mustEqual Array("a"))
           query.toList mustEqual expected.toFeatures(transform)
         }
         (transformsB ++ transformsDefault).foreach { transform =>
           val query = new Query(sft.getTypeName, filter, transform)
           query.getHints.put(QueryHints.LOOSE_BBOX, false)
-          foreach(ds.getQueryPlan(query).flatMap(_.ranges))(_.getFamilies.map(Bytes.toString) mustEqual
+          foreach(ds.getQueryPlan(query).flatMap(_.scans))(_.getFamilies.map(Bytes.toString) mustEqual
               Array(Bytes.toString(HBaseColumnGroups.default)))
           query.toList mustEqual expected.toFeatures(transform)
         }
@@ -163,7 +163,7 @@ class HBaseColumnGroupsTest extends HBaseTest with LazyLogging  {
         (transformsB ++ transformsAB).foreach { transform =>
           val query = new Query(sft.getTypeName, filter, transform)
           query.getHints.put(QueryHints.LOOSE_BBOX, false)
-          foreach(ds.getQueryPlan(query).flatMap(_.ranges))(_.getFamilies.map(Bytes.toString) mustEqual Array("b"))
+          foreach(ds.getQueryPlan(query).flatMap(_.scans))(_.getFamilies.map(Bytes.toString) mustEqual Array("b"))
 //          foreach(ds.getQueryPlan(query).flatMap(_.ranges)) { r =>
 //              if (r.getFamilies.map(Bytes.toString).contains("a")) {
 //                println(ECQL.toCQL(filter) + " " + transform.mkString(","))
@@ -175,7 +175,7 @@ class HBaseColumnGroupsTest extends HBaseTest with LazyLogging  {
         (transformsA ++ transformsDefault).foreach { transform =>
           val query = new Query(sft.getTypeName, filter, transform)
           query.getHints.put(QueryHints.LOOSE_BBOX, false)
-          foreach(ds.getQueryPlan(query).flatMap(_.ranges))(_.getFamilies.map(Bytes.toString) mustEqual
+          foreach(ds.getQueryPlan(query).flatMap(_.scans))(_.getFamilies.map(Bytes.toString) mustEqual
               Array(Bytes.toString(HBaseColumnGroups.default)))
           query.toList mustEqual expected.toFeatures(transform)
         }
@@ -187,7 +187,7 @@ class HBaseColumnGroupsTest extends HBaseTest with LazyLogging  {
         (transformsA ++ transformsB ++ transformsAB ++ transformsDefault).foreach { transform =>
           val query = new Query(sft.getTypeName, filter, transform)
           query.getHints.put(QueryHints.LOOSE_BBOX, false)
-          foreach(ds.getQueryPlan(query).flatMap(_.ranges))(_.getFamilies.map(Bytes.toString) mustEqual
+          foreach(ds.getQueryPlan(query).flatMap(_.scans))(_.getFamilies.map(Bytes.toString) mustEqual
               Array(Bytes.toString(HBaseColumnGroups.default)))
           query.toList mustEqual expected.toFeatures(transform)
         }
@@ -206,7 +206,7 @@ class HBaseColumnGroupsTest extends HBaseTest with LazyLogging  {
 
       foreach(ds.getQueryPlan(query)) { qp =>
         qp must beAnInstanceOf[CoprocessorPlan]
-        qp.asInstanceOf[CoprocessorPlan].coprocessorScan.getFamilies.map(Bytes.toString) mustEqual Array("a")
+        qp.scans.head.getFamilies.map(Bytes.toString) mustEqual Array("a")
       }
 
       val arrows = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
@@ -237,7 +237,7 @@ class HBaseColumnGroupsTest extends HBaseTest with LazyLogging  {
 
       foreach(ds.getQueryPlan(query)) { qp =>
         qp must beAnInstanceOf[CoprocessorPlan]
-        qp.asInstanceOf[CoprocessorPlan].coprocessorScan.getFamilies.map(Bytes.toString) mustEqual Array("a")
+        qp.scans.head.getFamilies.map(Bytes.toString) mustEqual Array("a")
       }
 
       val bytes = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
@@ -268,7 +268,7 @@ class HBaseColumnGroupsTest extends HBaseTest with LazyLogging  {
 
       foreach(ds.getQueryPlan(query)) { qp =>
         qp must beAnInstanceOf[CoprocessorPlan]
-        qp.asInstanceOf[CoprocessorPlan].coprocessorScan.getFamilies.map(Bytes.toString) mustEqual Array("a")
+        qp.scans.head.getFamilies.map(Bytes.toString) mustEqual Array("a")
       }
 
       val decode = DensityScan.decodeResult(envelope, 640, 480)
@@ -285,7 +285,7 @@ class HBaseColumnGroupsTest extends HBaseTest with LazyLogging  {
 
       foreach(ds.getQueryPlan(query)) { qp =>
         qp must beAnInstanceOf[CoprocessorPlan]
-        qp.asInstanceOf[CoprocessorPlan].coprocessorScan.getFamilies.map(Bytes.toString) mustEqual Array("a")
+        qp.scans.head.getFamilies.map(Bytes.toString) mustEqual Array("a")
       }
 
       def decode(sf: SimpleFeature): Stat = StatsScan.decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String])

@@ -59,7 +59,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
         GeoMesaConfigurator.setTable(conf, qp.table.getNameAsString)
         transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
         // note: secondary filter is handled by scan push-down filter
-        val scans = qp.ranges.map { scan =>
+        val scans = qp.scans.map { scan =>
           // need to set the table name in each scan
           scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
           convertScanToString(scan)

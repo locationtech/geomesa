@@ -26,7 +26,6 @@ import org.locationtech.geomesa.hbase.jobs.HBaseGeoMesaRecordReader
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.spark.SpatialRDD
 import org.locationtech.geomesa.spark.hbase.HBaseSpatialRDDProvider
-import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
@@ -62,17 +61,11 @@ class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
       // that we enforce bbox'es and secondary filters.
       GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
 
-      val scans = qp.ranges.map {
+      val scans = qp.scans.map {
         case scan: BigtableExtendedScan =>
           // need to set the table name in each scan
           scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
           BigtableInputFormatBase.scanToString(scan)
-
-        case get: org.apache.hadoop.hbase.client.Get =>
-          val bes = new BigtableExtendedScan()
-          bes.addRange(get.getRow, ByteArrays.rowFollowingRow(get.getRow))
-          bes.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
-          BigtableInputFormatBase.scanToString(bes)
 
         case scan: org.apache.hadoop.hbase.client.Scan =>
           val bes = new BigtableExtendedScan()

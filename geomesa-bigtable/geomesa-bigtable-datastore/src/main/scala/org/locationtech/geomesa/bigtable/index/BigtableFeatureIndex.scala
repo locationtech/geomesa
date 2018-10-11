@@ -54,7 +54,7 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
                                      table: TableName,
                                      hbaseFilters: Seq[(Int, HFilter)],
                                      coprocessor: Option[CoprocessorConfig],
-                                     toFeatures: (Iterator[Result]) => Iterator[SimpleFeature]): HBaseQueryPlan = {
+                                     toFeatures: Iterator[Result] => Iterator[SimpleFeature]): HBaseQueryPlan = {
     if (hbaseFilters.nonEmpty) {
       // bigtable does support some filters, but currently we only use custom filters that aren't supported
       throw new IllegalArgumentException(s"Bigtable doesn't support filters: ${hbaseFilters.mkString(", ")}")
@@ -69,7 +69,7 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
       configureBigtableExtendedScan(ds, ranges, colFamily)
     }
 
-    ScanPlan(filter, table, scans, toFeatures)
+    ScanPlan(filter, table, ranges, scans, toFeatures)
   }
 
   private def configureBigtableExtendedScan(ds: HBaseDataStore,
@@ -77,10 +77,7 @@ trait BigtablePlatform extends HBasePlatform with LazyLogging {
                                             colFamily: Array[Byte]): Seq[Scan] = {
     import scala.collection.JavaConversions._
 
-    val rowRanges = new java.util.ArrayList[RowRange](originalRanges.length)
-    originalRanges.foreach(r => rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false)))
-
-    val sortedRowRanges = MultiRowRangeFilter.sortAndMerge(rowRanges)
+    val sortedRowRanges = HBasePlatform.sortAndMerge(originalRanges)
     val numRanges = sortedRowRanges.size()
     val numThreads = ds.config.queryThreads
     // TODO GEOMESA-1802 parameterize this?
