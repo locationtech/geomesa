@@ -14,21 +14,22 @@ import com.typesafe.scalalogging.LazyLogging
 
 trait MethodProfiling extends LazyLogging {
 
-  def profile[R](onComplete: Long => Unit)(code: => R): R = {
+  protected def profile[R](onComplete: Long => Unit)(code: => R): R = {
     val start = System.currentTimeMillis
     val result: R = code
     onComplete(System.currentTimeMillis - start)
     result
   }
 
-  def profile[R](onComplete: (R, Long) => Unit)(code: => R): R = {
+  protected def profile[R](onComplete: (R, Long) => Unit)(code: => R): R = {
     val start = System.currentTimeMillis
     val result: R = code
     onComplete(result, System.currentTimeMillis - start)
     result
   }
 
-  def profile[R](message: String)(code: => R): R = profile(time => logger.debug(s"$message in ${time}ms"))(code)
+  protected def profile[R](message: String)(code: => R): R =
+    profile(time => logger.debug(s"$message in ${time}ms"))(code)
 }
 
 /**
