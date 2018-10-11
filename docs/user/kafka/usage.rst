@@ -65,8 +65,6 @@ Parameter                            Type    Description
                                              See :ref:`kafka_ssi`
 ``kafka.serialization.lazy``         Boolean Use lazy deserialization of features. This may improve processing load at
                                              the expense of slightly slower query times
-``kafka.schema.registry.url``        String  URL to a confluent schema registry server, used to register Avro SimpleFeatureType schemas
-                                             (experimental)
 ``geomesa.query.loose-bounding-box`` Boolean Use loose bounding boxes, which offer improved performance but are not exact
 ``geomesa.query.audit``              Boolean Audit incoming queries. By default audits are written to a log file
 ``geomesa.security.auths``           String  Default authorizations used to query data, comma-separated
