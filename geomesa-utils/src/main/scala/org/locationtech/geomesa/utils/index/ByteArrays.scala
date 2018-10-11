@@ -72,6 +72,25 @@ object ByteArrays {
   }
 
   /**
+    * Writes the long as 8 bytes in the provided array, starting at offset,
+    * and preserving sort order for negative values
+    *
+    * @param long long to write
+    * @param bytes bytes array to write to, must have length at least `offset` + 8
+    * @param offset offset to start writing
+    */
+  def writeOrderedLong(long: Long, bytes: Array[Byte], offset: Int = 0): Unit = {
+    bytes(offset    ) = (((long >> 56) & 0xff) ^ 0x80).asInstanceOf[Byte]
+    bytes(offset + 1) = ((long >> 48) & 0xff).asInstanceOf[Byte]
+    bytes(offset + 2) = ((long >> 40) & 0xff).asInstanceOf[Byte]
+    bytes(offset + 3) = ((long >> 32) & 0xff).asInstanceOf[Byte]
+    bytes(offset + 4) = ((long >> 24) & 0xff).asInstanceOf[Byte]
+    bytes(offset + 5) = ((long >> 16) & 0xff).asInstanceOf[Byte]
+    bytes(offset + 6) = ((long >> 8)  & 0xff).asInstanceOf[Byte]
+    bytes(offset + 7) =  (long        & 0xff).asInstanceOf[Byte]
+  }
+
+  /**
     * Reads 2 bytes from the provided array as a short, starting at offset
     *
     * @param bytes array to read from
@@ -113,15 +132,57 @@ object ByteArrays {
      (bytes(offset + 7) & 0xffL)
   }
 
+  /**
+    * Reads 8 bytes from the provided array as a long, starting at offset
+    *
+    * @param bytes array to read from
+    * @param offset offset to start reading
+    * @return
+    */
+  def readOrderedLong(bytes: Array[Byte], offset: Int = 0): Long = { // TODO test
+    (((bytes(offset) ^ 0x80) & 0xffL) << 56) |
+    ((bytes(offset + 1) & 0xffL) << 48) |
+    ((bytes(offset + 2) & 0xffL) << 40) |
+    ((bytes(offset + 3) & 0xffL) << 32) |
+    ((bytes(offset + 4) & 0xffL) << 24) |
+    ((bytes(offset + 5) & 0xffL) << 16) |
+    ((bytes(offset + 6) & 0xffL) <<  8) |
+     (bytes(offset + 7) & 0xffL)
+  }
+
+  /**
+    * Allocates a new array of length two and writes the short to it
+    *
+    * @param short value to encode
+    * @return
+    */
   def toBytes(short: Short): Array[Byte] = {
     val result = Array.ofDim[Byte](2)
     writeShort(short, result)
     result
   }
 
+  /**
+    * Allocates a new array of length eight and writes the long to it
+    *
+    * @param long value to encode
+    * @return
+    */
   def toBytes(long: Long): Array[Byte] = {
     val result = Array.ofDim[Byte](8)
     writeLong(long, result)
+    result
+  }
+
+  /**
+    * Allocates a new array of length eight and writes the long to it, preserving sort order for negative values
+    *
+    * @param long value to encode
+    * @return
+    */
+  def toOrderedBytes(long: Long): Array[Byte] = {
+    val result = Array.ofDim[Byte](8)
+    writeOrderedLong(long, result)
     result
   }
 

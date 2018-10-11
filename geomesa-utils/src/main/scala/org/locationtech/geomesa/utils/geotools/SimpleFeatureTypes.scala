@@ -50,6 +50,7 @@ object SimpleFeatureTypes {
     val COMPRESSION_TYPE     = "geomesa.table.compression.type"  // valid: snappy, lzo, gz(default), bzip2, lz4, zstd
     val FID_UUID_KEY         = "geomesa.fid.uuid"
     val FID_UUID_ENCODED_KEY = "geomesa.fid.uuid-encoded"
+    val INDEX_TIERING_KEY    = "geomesa.index.tiering"
   }
 
   private [geomesa] object InternalConfigs {

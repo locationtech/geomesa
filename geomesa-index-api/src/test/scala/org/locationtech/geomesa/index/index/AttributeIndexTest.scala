@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.index
 
+import java.nio.charset.StandardCharsets
+
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{Query, Transaction}
 import org.geotools.factory.Hints
@@ -18,7 +20,10 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestAttributeIndex, TestRange}
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
+import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey}
+import org.locationtech.geomesa.index.index.date.DateIndexKeySpace
+import org.locationtech.geomesa.index.index.z2.Z2IndexKeySpace
+import org.locationtech.geomesa.index.index.z3.Z3IndexKeySpace
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -256,6 +261,38 @@ class AttributeIndexTest extends Specification with LazyLogging {
       agePlans.head.index must beAnInstanceOf[TestAttributeIndex]
       agePlans.head.filter.primary must beSome(ECQL.toFilter("age = 21"))
       agePlans.head.filter.secondary must beSome(notNull)
+    }
+
+    "allow for custom tiered secondary indices" in {
+      val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326"
+
+      val tiers = Seq(
+        (Z3IndexKeySpace, ""),
+        (DateIndexKeySpace, ";geomesa.index.tiering='date'"),
+        (Z2IndexKeySpace, ";geomesa.index.tiering='z2'"),
+        (null, ";geomesa.index.tiering='none'")
+      )
+
+      val nameBytes = AttributeIndexKey.encodeForIndex("name1", list = false).head.getBytes(StandardCharsets.UTF_8)
+      val idBytes = "id".getBytes(StandardCharsets.UTF_8)
+
+      foreach(tiers.zipWithIndex) { case ((ks, opt), i) =>
+        val sft = SimpleFeatureTypes.createType(s"$typeName$i", s"$spec$opt")
+        val feature = ScalaSimpleFeature.create(sft, "id", "name1", "2018-01-01T00:00:00.000Z", "POINT(45 55)")
+        val ds = new TestGeoMesaDataStore(true)
+        ds.createSchema(sft)
+        WithClose(ds.getFeatureWriterAppend(s"$typeName$i", Transaction.AUTO_COMMIT)) { writer =>
+          FeatureUtils.copyToWriter(writer, feature, useProvidedFid = true)
+          writer.write()
+        }
+
+        // note: drop first 4 bytes before comparing: sharing prefix, shard, attribute identifier
+        val keyBytes = ds.manager.indices(sft, Some(AttributeIndex.Name)).head.features.head._1.drop(4)
+        val tieredBytes = if (ks == null) { Array.empty[Byte] } else {
+          ks.toIndexKeyBytes(sft)(Seq.empty, feature, Array.empty).head
+        }
+        keyBytes mustEqual ByteArrays.concat(Seq(nameBytes, ByteArrays.ZeroByteArray, tieredBytes, idBytes): _*)
+      }
     }
   }
 }

@@ -41,6 +41,8 @@ trait AttributeDateIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, 
 
   object DateIndexKeySpace extends IndexKeySpace[(Option[String], Filter), Long] {
 
+    override val name: String = "date-attribute"
+
     override def supports(sft: SimpleFeatureType): Boolean = sft.getDtgField.isDefined
 
     override val indexKeyByteLength: Int = 12

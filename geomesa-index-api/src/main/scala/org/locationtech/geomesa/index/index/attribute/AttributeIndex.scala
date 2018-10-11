@@ -20,6 +20,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.ShardStrategy.AttributeShardStrategy
 import org.locationtech.geomesa.index.index._
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex.AttributeRowDecoder
+import org.locationtech.geomesa.index.index.date.DateIndexKeySpace
 import org.locationtech.geomesa.index.index.legacy.AttributeShardedIndex.typeRegistry
 import org.locationtech.geomesa.index.index.z2.{XZ2IndexKeySpace, Z2IndexKeySpace}
 import org.locationtech.geomesa.index.index.z3.{XZ3IndexKeySpace, Z3IndexKeySpace}
@@ -40,8 +41,23 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
 
   override protected val keySpace: AttributeIndexKeySpace = AttributeIndexKeySpace
 
-  override protected def tieredKeySpace(sft: SimpleFeatureType): Option[IndexKeySpace[_, _]] =
-    AttributeIndex.TieredOptions.find(_.supports(sft))
+  override protected def tieredKeySpace(sft: SimpleFeatureType): Option[IndexKeySpace[_, _]] = {
+    sft.getIndexTiering match {
+      case None => AttributeIndex.TieredOptions.find(_.supports(sft))
+      case Some(tier) if tier.equalsIgnoreCase("none") => None
+      case Some(tier) =>
+        lazy val supported = AttributeIndex.TieredOptions.filter(_.supports(sft)).map(_.name).mkString(", ")
+        val option = AttributeIndex.TieredOptions.find(_.name.equalsIgnoreCase(tier))
+        if (option.isEmpty) {
+          throw new IllegalArgumentException(s"No index tier defined for name '$tier'. Available tiers that" +
+              s"support the feature type: $supported")
+        } else if (!option.get.supports(sft)) {
+          throw new IllegalArgumentException(s"Index tier '$tier' does not support the feature type. Available " +
+              s"tiers that support the feature type: $supported")
+        }
+        option
+    }
+  }
 
   override protected def shardStrategy(sft: SimpleFeatureType): ShardStrategy = AttributeShardStrategy(sft)
 
@@ -52,12 +68,12 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     // exclude feature byte and 2 index bytes and shard bytes
     val from = if (sft.isTableSharing) { 3 + shards } else { 2 + shards }
     val descriptor = sft.getDescriptor(index)
-    val decode: (String) => AnyRef = if (descriptor.isList) {
+    val decode: String => AnyRef = if (descriptor.isList) {
       // get the alias from the type of values in the collection
       val alias = descriptor.getListType().getSimpleName.toLowerCase(Locale.US)
       // Note that for collection types, only a single entry of the collection will be decoded - this is
       // because the collection entries have been broken up into multiple rows
-      (encoded) => Collections.singletonList(typeRegistry.decode(alias, encoded))
+      encoded => Collections.singletonList(typeRegistry.decode(alias, encoded))
     } else {
       val alias = descriptor.getType.getBinding.getSimpleName.toLowerCase(Locale.US)
       typeRegistry.decode(alias, _)
@@ -119,7 +135,9 @@ object AttributeIndex {
 
   val Name = "attr"
 
-  val TieredOptions = Seq(Z3IndexKeySpace, XZ3IndexKeySpace, Z2IndexKeySpace, XZ2IndexKeySpace)
+  // note: keep in priority order
+  val TieredOptions: Seq[IndexKeySpace[_, _]] =
+    Seq(Z3IndexKeySpace, XZ3IndexKeySpace, Z2IndexKeySpace, XZ2IndexKeySpace, DateIndexKeySpace)
 
   trait AttributeRowDecoder {
 

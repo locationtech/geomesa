@@ -31,6 +31,8 @@ trait AttributeIndexKeySpace extends IndexKeySpace[AttributeIndexValues[Any], At
 
   import scala.collection.JavaConverters._
 
+  override val name: String = AttributeIndex.Name
+
   override def supports(sft: SimpleFeatureType): Boolean =
     sft.getAttributeDescriptors.asScala.exists(_.isIndexed)
 
@@ -40,7 +42,7 @@ trait AttributeIndexKeySpace extends IndexKeySpace[AttributeIndexValues[Any], At
   override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): SimpleFeature => Seq[AttributeIndexKey] = {
     val indexedAttributes =
       SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map(d => (sft.indexOf(d.getName), d.isList))
-    (feature) => indexedAttributes.flatMap { case (i, list) =>
+    feature => indexedAttributes.flatMap { case (i, list) =>
       AttributeIndexKey.encodeForIndex(feature.getAttribute(i), list).map(v => AttributeIndexKey(i.toShort, v))
     }
   }

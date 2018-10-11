@@ -445,6 +445,14 @@ object SchemaBuilder {
     def attributeShards(shards: Int): U = userData(Configs.ATTR_SPLITS_KEY, shards.toString)
 
     /**
+      * Specify the index to use as a secondary, tiered index for attribute indices
+      *
+      * @param index index
+      * @return
+      */
+    def indexTiering(index: String): U = userData(Configs.INDEX_TIERING_KEY, index)
+
+    /**
       * Specifies that feature IDs are UUIDs. This can save space on disk, as a UUID can be serialized more
       * efficiently than its string representation. Note that if enabled, all feature IDs **must** be
       * valid UUIDs, in the format '28a12c18-e5ae-4c04-ae7b-bf7cdbfaf234'

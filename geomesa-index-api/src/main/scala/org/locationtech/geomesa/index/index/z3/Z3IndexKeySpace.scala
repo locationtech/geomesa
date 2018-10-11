@@ -40,6 +40,8 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
 
   def sfc(period: TimePeriod): Z3SFC
 
+  override val name: String = Z3Index.Name
+
   override val indexKeyByteLength: Int = 10
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.getDtgField.isDefined && sft.isPoints
