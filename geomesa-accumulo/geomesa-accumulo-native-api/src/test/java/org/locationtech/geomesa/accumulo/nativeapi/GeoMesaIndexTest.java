@@ -37,6 +37,7 @@ import org.locationtech.geomesa.utils.index.IndexMode$;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.type.AttributeDescriptor;
 import org.opengis.filter.FilterFactory2;
+import scala.Option$;
 
 import javax.annotation.Nullable;
 import java.time.ZonedDateTime;
@@ -306,7 +307,7 @@ public class GeoMesaIndexTest {
                 AccumuloFeatureIndex$.MODULE$.indices(ds.getSchema(featureName), scala.Option.apply(null), IndexMode$.MODULE$.Any()).iterator();
         List<String> expectedTables = new ArrayList<>();
         while (indices.hasNext()) {
-            expectedTables.add(indices.next().getTableName(featureName, ds));
+            expectedTables.add(indices.next().getTableNames(ds.getSchema(featureName), ds, Option$.MODULE$.empty()).head());
         }
         expectedTables.add(featureName);
         expectedTables.add(featureName + "_stats");

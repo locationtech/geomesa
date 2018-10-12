@@ -11,7 +11,6 @@ package org.locationtech.geomesa.accumulo.index
 import java.util.Collections
 import java.util.Map.Entry
 
-import com.google.common.collect.ImmutableSortedSet
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.mock.MockConnector
 import org.apache.accumulo.core.conf.Property
@@ -27,14 +26,12 @@ import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloIndexManagerType, AccumuloVersion}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureDeserializers}
+import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.index.{IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
-import scala.util.Try
-import scala.util.control.NonFatal
 
 object AccumuloFeatureIndex extends AccumuloIndexManagerType with LazyLogging {
 
@@ -142,25 +139,23 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
 
   protected def hasPrecomputedBins: Boolean
 
-  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
-    import scala.collection.JavaConversions._
+  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore, partition: Option[String]): String = {
+    import scala.collection.JavaConverters._
 
-    super.configure(sft, ds)
-
-    val table = getTableName(sft.getTypeName, ds)
+    val table = super.configure(sft, ds, partition)
 
     // create table if needed
     AccumuloVersion.ensureTableExists(ds.connector, table, sft.isLogicalTime)
 
     // create splits
-    val splitsToAdd = getSplits(sft).map(new Text(_)).toSet -- ds.tableOps.listSplits(table).toSet
+    val splitsToAdd = getSplits(sft, partition).map(new Text(_)).toSet -- ds.tableOps.listSplits(table).asScala.toSet
     if (splitsToAdd.nonEmpty) {
-      // noinspection RedundantCollectionConversion
-      ds.tableOps.addSplits(table, ImmutableSortedSet.copyOf(splitsToAdd.toIterable))
+      ds.tableOps.addSplits(table, new java.util.TreeSet(splitsToAdd.asJava))
     }
 
     // create locality groups
-    val localityGroups = new java.util.HashMap[String, java.util.Set[Text]](ds.tableOps.getLocalityGroups(table))
+    val existingGroups = ds.tableOps.getLocalityGroups(table)
+    val localityGroups = new java.util.HashMap[String, java.util.Set[Text]](existingGroups)
 
     def addGroup(cf: Text): Unit = {
       val key = cf.toString
@@ -180,54 +175,81 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
     if (hasPrecomputedBins) {
       addGroup(AccumuloColumnGroups.BinColumnFamily)
     }
-    ds.tableOps.setLocalityGroups(table, localityGroups)
+
+    if (localityGroups != existingGroups) {
+      ds.tableOps.setLocalityGroups(table, localityGroups)
+    }
 
     // enable block cache
     ds.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+
+    table
   }
 
   override def removeAll(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
-    val table = getTableName(sft.getTypeName, ds)
-    if (ds.tableOps.exists(table)) {
-      val auths = ds.config.authProvider.getAuthorizations
-      val config = GeoMesaBatchWriterConfig().setMaxWriteThreads(ds.config.writeThreads)
-      WithClose(ds.connector.createBatchDeleter(table, auths, ds.config.queryThreads, config)) { deleter =>
-        val range = if (sft.isTableSharing) {
-          val prefix = new Text(sft.getTableSharingBytes)
-          new Range(prefix, true, Range.followingPrefix(prefix), false)
-        } else {
-          new Range()
+    if (TablePartition.partitioned(sft)) {
+      // partitioned indices can just drop the partitions
+      delete(sft, ds, None)
+    } else {
+      getTableNames(sft, ds, None).par.foreach { table =>
+        if (ds.tableOps.exists(table)) {
+          val auths = ds.config.authProvider.getAuthorizations
+          val config = GeoMesaBatchWriterConfig().setMaxWriteThreads(ds.config.writeThreads)
+          WithClose(ds.connector.createBatchDeleter(table, auths, ds.config.queryThreads, config)) { deleter =>
+            val range = if (sft.isTableSharing) {
+              val prefix = new Text(sft.getTableSharingBytes)
+              new Range(prefix, true, Range.followingPrefix(prefix), false)
+            } else {
+              new Range()
+            }
+            deleter.setRanges(Collections.singletonList(range))
+            deleter.delete()
+          }
         }
-        deleter.setRanges(Collections.singletonList(range))
-        deleter.delete()
       }
     }
   }
 
-  override def delete(sft: SimpleFeatureType, ds: AccumuloDataStore, shared: Boolean): Unit = {
-    if (shared) { removeAll(sft, ds) } else {
-      val table = getTableName(sft.getTypeName, ds)
-      if (ds.tableOps.exists(table)) {
-        // we need to synchronize deleting of tables in mock accumulo as it's not thread safe
-        if (ds.connector.isInstanceOf[MockConnector]) {
-          ds.connector.synchronized(ds.tableOps.delete(table))
-        } else {
-          ds.tableOps.delete(table)
+  override def delete(sft: SimpleFeatureType, ds: AccumuloDataStore, partition: Option[String]): Unit = {
+    val shared = sft.isTableSharing &&
+        ds.getTypeNames.filter(_ != sft.getTypeName).map(ds.getSchema).exists(_.isTableSharing)
+    if (shared) {
+      if (partition.isDefined) {
+        throw new IllegalStateException("Found a shared schema with partitioning, which should not be possible")
+      }
+      removeAll(sft, ds)
+    } else {
+      getTableNames(sft, ds, partition).par.foreach { table =>
+        if (ds.tableOps.exists(table)) {
+          // we need to synchronize deleting of tables in mock accumulo as it's not thread safe
+          if (ds.connector.isInstanceOf[MockConnector]) {
+            ds.connector.synchronized(ds.tableOps.delete(table))
+          } else {
+            ds.tableOps.delete(table)
+          }
         }
       }
     }
+
+    // deletes the metadata
+    super.delete(sft, ds, partition)
   }
 
   // back compatibility check for old metadata keys
-  abstract override def getTableName(typeName: String, ds: AccumuloDataStore): String = {
+  abstract override def getTableNames(sft: SimpleFeatureType,
+                                      ds: AccumuloDataStore,
+                                      partition: Option[String]): Seq[String] = {
     lazy val oldKey = this match {
       case i if i.name == RecordIndexV1.name  => "tables.record.name"
       case i if i.name == AttributeIndex.name => "tables.idx.attr.name"
       case i => s"tables.${i.name}.name"
     }
-    Try(super.getTableName(typeName, ds)).recoverWith {
-      case NonFatal(e) => Try(ds.metadata.read(typeName, oldKey).getOrElse(throw e))
-    }.get
+    val names = super.getTableNames(sft, ds, partition)
+    if (names.isEmpty) {
+      ds.metadata.read(sft.getTypeName, oldKey).toSeq
+    } else {
+      names
+    }
   }
 
   /**
@@ -238,11 +260,11 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
     * @return
     */
   private [index] def entriesToFeatures(sft: SimpleFeatureType,
-                                        returnSft: SimpleFeatureType): (Entry[Key, Value]) => SimpleFeature = {
+                                        returnSft: SimpleFeatureType): Entry[Key, Value] => SimpleFeature = {
     // Perform a projecting decode of the simple feature
     if (serializedWithId) {
       val deserializer = SimpleFeatureDeserializers(returnSft, SerializationType.KRYO)
-      (kv: Entry[Key, Value]) => {
+      kv: Entry[Key, Value] => {
         val sf = deserializer.deserialize(kv.getValue.get)
         AccumuloFeatureIndex.applyVisibility(sf, kv.getKey)
         sf
@@ -250,7 +272,7 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
     } else {
       val getId = getIdFromRow(sft)
       val deserializer = SimpleFeatureDeserializers(returnSft, SerializationType.KRYO, SerializationOptions.withoutId)
-      (kv: Entry[Key, Value]) => {
+      kv: Entry[Key, Value] => {
         val sf = deserializer.deserialize(kv.getValue.get)
         val row = kv.getKey.getRow
         sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row.getBytes, 0, row.getLength, sf))

@@ -27,7 +27,7 @@ trait HBasePlatform extends HBaseIndexAdapter with LazyLogging {
                                                filter: HBaseFilterStrategyType,
                                                ranges: Seq[Scan],
                                                colFamily: Array[Byte],
-                                               table: TableName,
+                                               tables: Seq[TableName],
                                                hbaseFilters: Seq[(Int, HFilter)],
                                                coprocessor: Option[CoprocessorConfig],
                                                toFeatures: Iterator[Result] => Iterator[SimpleFeature]): HBaseQueryPlan = {
@@ -40,11 +40,11 @@ trait HBasePlatform extends HBaseIndexAdapter with LazyLogging {
         } else {
           configureMultiRowRangeFilter(ds, ranges, colFamily, filterList)
         }
-        ScanPlan(filter, table, ranges, scans, toFeatures)
+        ScanPlan(filter, tables, ranges, scans, toFeatures)
 
       case Some(coprocessorConfig) =>
         val scan = configureCoprocessorScan(ds, ranges, colFamily, filterList)
-        CoprocessorPlan(filter, table, ranges, scan, coprocessorConfig)
+        CoprocessorPlan(filter, tables, ranges, scan, coprocessorConfig)
     }
   }
 

@@ -118,24 +118,24 @@ class TableSharingTest extends Specification with LazyLogging {
 
   // Delete one shared table feature to ensure that deleteSchema works.
   s"Removing ${sft2.getTypeName}" should {
-    val sft2Scanner = ds.connector.createScanner(XZ2Index.getTableName(sft2.getTypeName, ds), ds.auths)
-    val sft2RecordScanner = ds.connector.createScanner(RecordIndex.getTableName(sft2.getTypeName, ds), ds.auths)
-
     ds.removeSchema(sft2.getTypeName)
 
     // TODO: Add tests to measure what tables exist, etc.
     // TODO: test ds.getNames.
 
     // TODO: Observe that this kind of collection is empty.
-    sft2Scanner.setRange(new org.apache.accumulo.core.data.Range())
-    sft2Scanner.iterator
-      .map(e => s"ST Key: ${e.getKey}")
-      .filter(_.contains("feature2"))
-      .take(10)
-      .foreach(s => logger.debug(s))
+    XZ2Index.getTableNames(sft2, ds).foreach { table =>
+      val scanner = ds.connector.createScanner(table, ds.auths)
+      scanner.setRange(new org.apache.accumulo.core.data.Range())
+      scanner.iterator.map(e => s"ST Key: ${e.getKey}").filter(_.contains("feature2")).take(10)
+          .foreach(s => logger.debug(s))
+    }
 
-    sft2RecordScanner.setRange(new org.apache.accumulo.core.data.Range())
-    sft2RecordScanner.iterator.take(10).foreach { e => logger.debug(s"Record Key: ${e.getKey}") }
+    RecordIndex.getTableNames(sft2, ds).foreach { table =>
+      val scanner = ds.connector.createScanner(table, ds.auths)
+      scanner.setRange(new org.apache.accumulo.core.data.Range())
+      scanner.iterator.take(10).foreach { e => logger.debug(s"Record Key: ${e.getKey}") }
+    }
 
     s"result in FeatureStore named ${sft2.getTypeName} being gone" >> {
       ds.getNames.contains(sft2.getTypeName) must beFalse

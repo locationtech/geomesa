@@ -54,11 +54,12 @@ class HBaseBackedMetadata[T](val connection: Connection, val catalog: TableName,
     if (result.isEmpty) { None } else { Option(result.getValue(ColumnFamily, ColumnQualifier)) }
   }
 
-  override protected def scanRows(prefix: Option[Array[Byte]]): CloseableIterator[Array[Byte]] = {
-    val scan = new Scan()
+  override protected def scanRows(prefix: Option[Array[Byte]]): CloseableIterator[(Array[Byte], Array[Byte])] = {
+    val scan = new Scan().addColumn(ColumnFamily, ColumnQualifier)
     prefix.foreach(scan.setRowPrefixFilter)
     val scanner = table.getScanner(scan)
-    CloseableIterator(scanner.iterator.map(_.getRow), scanner.close())
+    val results = scanner.iterator.map(s => (s.getRow, s.getValue(ColumnFamily, ColumnQualifier)))
+    CloseableIterator(results, scanner.close())
   }
 
   override def close(): Unit = table.close()

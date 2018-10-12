@@ -217,8 +217,9 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
               "attr.name.pattern:[a-f],attr.age.pattern:[0-9],attr.age.pattern2:[8-8][0-9]'"))
 
         def splits(index: String): Seq[Array[Byte]] = {
-          val table = TableName.valueOf(ds.manager.index(index).getTableName(typeName, ds))
-          ds.connection.getRegionLocator(table).getStartKeys
+          ds.manager.index(index).getTableNames(ds.getSchema(typeName), ds, None).flatMap { table =>
+            ds.connection.getRegionLocator(TableName.valueOf(table)).getStartKeys
+          }
         }
 
         splits(HBaseAttributeIndex.identifier) must haveLength((6 + 10 + 10) * 4) // a-f for name, 0-9 + [8]0-9 for age * 4 shards

@@ -15,7 +15,6 @@ import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.temporal.ChronoField
 import java.util.{Date, Locale, Collection => JCollection}
 
-import com.google.common.collect.ImmutableSortedSet
 import com.google.common.primitives.Bytes
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.data.{Range => AccRange}
@@ -43,16 +42,18 @@ import scala.util.{Failure, Success, Try}
 trait AttributeWritableIndex extends AccumuloFeatureIndex
     with AttributeSplittable with AttributeRowDecoder with LazyLogging {
 
-  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
+  override def getSplits(sft: SimpleFeatureType, partition: Option[String]): Seq[Array[Byte]] = {
     val indices = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map(d => sft.indexOf(d.getLocalName))
     indices.map(i => AttributeWritableIndex.getRowPrefix(sft, i))
   }
 
-  override def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
+  override def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore, partition: Option[String]): Unit = {
     val splits = getSplits(sft)
     if (splits.nonEmpty) {
       val texts = splits.map(new Text(_))
-      ds.tableOps.addSplits(getTableName(sft.getTypeName, ds), ImmutableSortedSet.copyOf(texts.toArray))
+      getTableNames(sft, ds, partition).foreach { table =>
+        ds.tableOps.addSplits(table, new java.util.TreeSet(texts.asJava))
+      }
     }
   }
 

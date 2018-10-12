@@ -8,10 +8,18 @@
 
 package org.locationtech.geomesa
 
+
+import java.io.Flushable
+
+import org.geotools.data.simple.SimpleFeatureWriter
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 package object index {
 
+  type FlushableFeatureWriter = SimpleFeatureWriter with Flushable
+
   val FilterCacheSize = SystemProperty("geomesa.cache.filters.size", "1000")
   val ZFilterCacheSize = SystemProperty("geomesa.cache.z-filters.size", "1000")
+
+  val PartitionParallelScan = SystemProperty("geomesa.partition.scan.parallel", "false")
 }

@@ -14,7 +14,6 @@ import java.util.Date
 import com.google.common.collect.ImmutableSet
 import com.typesafe.config.ConfigFactory
 import com.vividsolutions.jts.geom.{Geometry, Point}
-import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
@@ -25,9 +24,9 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
-import org.locationtech.geomesa.accumulo.{AccumuloVersion, TestWithMultipleSfts}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -323,12 +322,15 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sft = SimpleFeatureTypes.createType("customsplit", spec)
       sft.setTableSharing(false)
       ds.createSchema(sft)
-      val recTable = RecordIndex.getTableName(sft.getTypeName, ds)
-      val splits = ds.connector.tableOperations().listSplits(recTable)
-      // note: first split is dropped, which creates 259 splits but 260 regions
-      splits.size() mustEqual 259
-      splits.head mustEqual new Text("a1")
-      splits.last mustEqual new Text("z9")
+      val recTables = RecordIndex.getTableNames(sft, ds)
+      recTables must not(beEmpty)
+      foreach(recTables) { recTable =>
+        val splits = ds.connector.tableOperations().listSplits(recTable)
+        // note: first split is dropped, which creates 259 splits but 260 regions
+        splits.size() mustEqual 259
+        splits.head mustEqual new Text("a1")
+        splits.last mustEqual new Text("z9")
+      }
     }
 
     "create a schema with custom record splitting options with table sharing on" in {
@@ -341,7 +343,9 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val prevTable = s"${ds.config.catalog}_${RecordIndex.name}_v${RecordIndex.version}"
       val prevsplits = ImmutableSet.copyOf(ds.tableOps.listSplits(prevTable).toIterable)
       ds.createSchema(sft)
-      val recTable = RecordIndex.getTableName(sft.getTypeName, ds)
+      val recTables = RecordIndex.getTableNames(sft, ds)
+      recTables must haveLength(1)
+      val recTable = recTables.head
       recTable mustEqual prevTable
       val afterSplits = ds.connector.tableOperations().listSplits(recTable)
 
@@ -409,7 +413,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
         val dst = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
         val qpts = dst.getQueryPlan(query)
         forall(qpts) { qpt =>
-          qpt.table mustEqual Z3Index.getTableName(defaultTypeName, dst)
+          qpt.tables mustEqual Z3Index.getTableNames(defaultSft, dst)
           qpt.numThreads mustEqual numThreads
         }
       }
@@ -419,7 +423,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       // check default
       val qpts = ds.getQueryPlan(query)
       forall(qpts) { qpt =>
-        qpt.table mustEqual Z3Index.getTableName(defaultTypeName, ds)
+        qpt.tables mustEqual Z3Index.getTableNames(defaultSft, ds)
         qpt.numThreads mustEqual 8
       }
     }
@@ -433,7 +437,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "return a list of all accumulo tables associated with a schema" in {
-      val indices = ds.manager.indices(defaultSft).map(_.getTableName(defaultSft.getTypeName, ds))
+      val indices = ds.manager.indices(defaultSft).flatMap(_.getTableNames(defaultSft, ds))
       val expected = Seq(sftBaseName, s"${sftBaseName}_stats", s"${sftBaseName}_queries") ++ indices
       ds.getAllTableNames(defaultTypeName) must containTheSameElementsAs(expected)
     }
@@ -443,7 +447,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val sftName = sft.getTypeName
 
       "create all appropriate tables" >> {
-        val tables = AccumuloFeatureIndex.indices(sft).map(_.getTableName(sft.getTypeName, ds))
+        val tables = AccumuloFeatureIndex.indices(sft).flatMap(_.getTableNames(sft, ds))
         tables must haveLength(4)
         forall(Seq(Z2Index, Z3Index, AttributeIndex))(t => tables must contain(endWith(t.name)))
         forall(tables)(t => ds.connector.tableOperations.exists(t) must beTrue)
@@ -748,7 +752,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> catalog)).asInstanceOf[AccumuloDataStore]
       val sft = SimpleFeatureTypes.createType(catalog, "name:String:index=join,dtg:Date,*geom:Point:srid=4326")
       ds.createSchema(sft)
-      val tables = AccumuloFeatureIndex.indices(sft).map(_.getTableName(sft.getTypeName, ds)) ++ Seq(catalog)
+      val tables = AccumuloFeatureIndex.indices(sft).flatMap(_.getTableNames(sft, ds)) ++ Seq(catalog)
       tables must haveSize(5)
       connector.tableOperations().list().toSeq must containAllOf(tables)
       ds.delete()

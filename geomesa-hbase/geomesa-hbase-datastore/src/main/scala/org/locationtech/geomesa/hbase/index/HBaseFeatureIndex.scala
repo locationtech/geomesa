@@ -24,6 +24,7 @@ import org.locationtech.geomesa.hbase.coprocessor.AllCoprocessors
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.index.legacy._
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
+import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.index.ClientSideFiltering
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.index.IndexMode
@@ -56,17 +57,18 @@ object HBaseFeatureIndex extends HBaseIndexManagerType {
 
 trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[Result] with LazyLogging {
 
+  import org.locationtech.geomesa.hbase.HBaseSystemProperties.TableAvailabilityTimeout
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   protected val dataBlockEncoding: Option[DataBlockEncoding] = Some(DataBlockEncoding.FAST_DIFF)
 
-  override def configure(sft: SimpleFeatureType, ds: HBaseDataStore): Unit = {
+  override def configure(sft: SimpleFeatureType, ds: HBaseDataStore, partition: Option[String]): String = {
     import HBaseFeatureIndex.DistributedJarNamePattern
     import HBaseSystemProperties.CoprocessorPath
 
-    super.configure(sft, ds)
+    val table = super.configure(sft, ds, partition)
 
-    val name = TableName.valueOf(getTableName(sft.getTypeName, ds))
+    val name = TableName.valueOf(table)
 
     WithClose(ds.connection.getAdmin) { admin =>
       if (!admin.tableExists(name)) {
@@ -119,9 +121,24 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
           AllCoprocessors.foreach(c => if (!names.contains(c.getCanonicalName)) { addCoprocessor(c, descriptor) })
         }
 
-        admin.createTable(descriptor, getSplits(sft).toArray)
+        try { admin.createTableAsync(descriptor, getSplits(sft, partition).toArray) } catch {
+          case _: org.apache.hadoop.hbase.TableExistsException => // ignore, another thread created it for us
+        }
+      }
+
+      // wait for the table to come online
+      if (!admin.isTableAvailable(name)) {
+        val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
+        logger.debug(s"Waiting for table '$table' to become available with " +
+            s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
+        val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)
+        while (!admin.isTableAvailable(name) && stop.forall(_ > System.currentTimeMillis())) {
+          Thread.sleep(1000)
+        }
       }
     }
+
+    table
   }
 
   override def removeAll(sft: SimpleFeatureType, ds: HBaseDataStore): Unit = {
@@ -129,34 +146,53 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
 
     import scala.collection.JavaConversions._
 
-    val tableName = TableName.valueOf(getTableName(sft.getTypeName, ds))
+    if (TablePartition.partitioned(sft)) {
+      // partitioned indices can just drop the partitions
+      delete(sft, ds, None)
+    } else {
+      getTableNames(sft, ds, None).par.foreach { name =>
+        val tableName = TableName.valueOf(name)
 
-    WithClose(ds.connection.getTable(tableName)) { table =>
-      val scan = new Scan().setFilter(new KeyOnlyFilter)
-      if (sft.isTableSharing) {
-        scan.setRowPrefixFilter(sft.getTableSharingBytes)
-      }
-      ds.applySecurity(scan)
-      val mutateParams = new BufferedMutatorParams(tableName)
-      WithClose(table.getScanner(scan), ds.connection.getBufferedMutator(mutateParams)) { case (scanner, mutator) =>
-        scanner.iterator.grouped(10000).foreach { result =>
-          // TODO set delete visibilities
-          val deletes = result.map(r => new Delete(r.getRow))
-          mutator.mutate(deletes)
+        WithClose(ds.connection.getTable(tableName)) { table =>
+          val scan = new Scan().setFilter(new KeyOnlyFilter)
+          if (sft.isTableSharing) {
+            scan.setRowPrefixFilter(sft.getTableSharingBytes)
+          }
+          ds.applySecurity(scan)
+          val mutateParams = new BufferedMutatorParams(tableName)
+          WithClose(table.getScanner(scan), ds.connection.getBufferedMutator(mutateParams)) { case (scanner, mutator) =>
+            scanner.iterator.grouped(10000).foreach { result =>
+              // TODO set delete visibilities
+              val deletes = result.map(r => new Delete(r.getRow))
+              mutator.mutate(deletes)
+            }
+          }
         }
       }
     }
   }
 
-  override def delete(sft: SimpleFeatureType, ds: HBaseDataStore, shared: Boolean): Unit = {
-    if (shared) { removeAll(sft, ds) } else {
-      val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
-      WithClose(ds.connection.getAdmin) { admin =>
+  override def delete(sft: SimpleFeatureType, ds: HBaseDataStore, partition: Option[String]): Unit = {
+    // note: hbase tables are never shared
+    WithClose(ds.connection.getAdmin) { admin =>
+      getTableNames(sft, ds, partition).par.foreach { name =>
+        val table = TableName.valueOf(name)
         if (admin.tableExists(table)) {
-          admin.disableTable(table)
+          admin.disableTableAsync(table)
+          val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
+          logger.debug(s"Waiting for table '$table' to be disabled with " +
+              s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
+          val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)
+          while (!admin.isTableDisabled(table) && stop.forall(_ > System.currentTimeMillis())) {
+            Thread.sleep(1000)
+          }
+          // no async operation, but timeout can be controlled through hbase-site.xml "hbase.client.sync.wait.timeout.msec"
           admin.deleteTable(table)
         }
       }
     }
+
+    // deletes the metadata
+    super.delete(sft, ds, partition)
   }
 }

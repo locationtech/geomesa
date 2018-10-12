@@ -20,6 +20,8 @@ class NoOpMetadata[T] extends GeoMesaMetadata[T] {
 
   override def read(typeName: String, key: String, cache: Boolean): Option[T] = None
 
+  override def scan(typeName: String, prefix: String, cache: Boolean): Seq[(String, T)] = Seq.empty
+
   override def invalidateCache(typeName: String, key: String): Unit = {}
 
   override def delete(typeName: String): Unit = {}

@@ -46,7 +46,7 @@ case object Z3IndexV2 extends AccumuloFeatureIndex with Z3WritableIndex with Z3Q
     sft.getDtgField.isDefined && sft.getGeometryDescriptor != null
   }
 
-  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
+  override def getSplits(sft: SimpleFeatureType, partition: Option[String]): Seq[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     SplitArrays.apply(sft.getZShards)
   }

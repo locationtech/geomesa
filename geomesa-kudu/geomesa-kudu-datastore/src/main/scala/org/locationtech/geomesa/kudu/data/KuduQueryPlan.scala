@@ -20,7 +20,7 @@ import org.opengis.filter.Filter
 
 sealed trait KuduQueryPlan extends KuduQueryPlanType {
   def filter: KuduFilterStrategyType
-  def table: String
+  def tables: Seq[String]
   def ranges: Seq[(Option[PartialRow], Option[PartialRow])]
   def predicates: Seq[KuduPredicate]
   def ecql: Option[Filter]
@@ -36,7 +36,7 @@ object KuduQueryPlan {
   def explain(plan: KuduQueryPlan, explainer: Explainer, prefix: String): Unit = {
     import org.locationtech.geomesa.filter.filterToString
     explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getName}")
-    explainer(s"Table: ${Option(plan.table).orNull}")
+    explainer(s"Table: ${plan.tables.mkString(", ")}")
     explainer(s"Columns: ${plan.adapter.columns.mkString(", ")}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(_.toString).mkString(", ")}")
     explainer(s"Additional predicates: ${if (plan.predicates.isEmpty) { "None" } else { plan.predicates.map(_.toString).mkString(", ") }}")
@@ -47,7 +47,7 @@ object KuduQueryPlan {
 
   // plan that will not actually scan anything
   case class EmptyPlan(filter: KuduFilterStrategyType) extends KuduQueryPlan {
-    override def table: String = ""
+    override def tables: Seq[String] = Seq.empty
     override def ranges: Seq[(Option[PartialRow], Option[PartialRow])] = Seq.empty
     override def predicates: Seq[KuduPredicate] = Seq.empty
     override def ecql: Option[Filter] = None
@@ -57,7 +57,7 @@ object KuduQueryPlan {
   }
 
   case class ScanPlan(filter: KuduFilterStrategyType,
-                      table: String,
+                      tables: Seq[String],
                       ranges: Seq[(Option[PartialRow], Option[PartialRow])],
                       predicates: Seq[KuduPredicate],
                       // note: filter is applied in entriesToFeatures, this is just for explain logging
@@ -72,12 +72,14 @@ object KuduQueryPlan {
     override def scan(ds: KuduDataStore): CloseableIterator[SimpleFeature] = {
       import org.locationtech.geomesa.kudu.utils.RichKuduClient.RichScanner
 
-      if (numThreads > 1) {
-        val scan = new KuduBatchScan(ds.client, table, adapter.columns, ranges, predicates, numThreads, 1000)
-        adapter.adapt(scan.flatMap(_.iterator.asScala))
+      if (numThreads > 1 || tables.lengthCompare(1) > 0) {
+        CloseableIterator(tables.iterator).flatMap { table =>
+          val scan = new KuduBatchScan(ds.client, table, adapter.columns, ranges, predicates, numThreads, 1000)
+          adapter.adapt(scan.flatMap(_.iterator.asScala))
+        }
       } else {
         // avoid the overhead of spinning up the threads, etc
-        val kuduTable = ds.client.openTable(table)
+        val kuduTable = ds.client.openTable(tables.head)
         val cols = adapter.columns.map(kuduTable.getSchema.getColumnIndex).asJava.asInstanceOf[java.util.List[Integer]]
         val iter = CloseableIterator(ranges.iterator).flatMap { case (lo, hi) =>
           val builder = ds.client.newScannerBuilder(kuduTable).setProjectedColumnIndexes(cols)

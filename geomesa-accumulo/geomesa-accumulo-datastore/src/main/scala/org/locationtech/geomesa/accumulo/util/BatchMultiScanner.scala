@@ -21,6 +21,16 @@ import org.locationtech.geomesa.accumulo.index.BatchScanPlan
 
 import scala.collection.JavaConversions._
 
+/**
+  * Runs a join scan against two tables
+  *
+  * @param ds data store
+  * @param in input scan
+  * @param join join scan
+  * @param joinFunction maps results of input scan to ranges for join scan
+  * @param numThreads threads
+  * @param batchSize batch size
+  */
 class BatchMultiScanner(ds: AccumuloDataStore,
                         in: ScannerBase,
                         join: BatchScanPlan,
@@ -85,7 +95,7 @@ class BatchMultiScanner(ds: AccumuloDataStore,
     }
   })
 
-  override def close() {
+  override def close(): Unit = {
     if (!executor.isShutdown) {
       executor.shutdownNow()
     }
@@ -94,9 +104,9 @@ class BatchMultiScanner(ds: AccumuloDataStore,
 
   override def iterator: Iterator[Entry[Key, Value]] = new Iterator[Entry[Key, Value]] {
 
-    private var prefetch: Entry[Key, Value] = null
+    private var prefetch: Entry[Key, Value] = _
 
-    private def prefetchIfNull() = {
+    private def prefetchIfNull(): Unit = {
       // loop while we might have another and we haven't set prefetch
       while (prefetch == null && (!outDone.get || outQ.size > 0)) {
         prefetch = outQ.poll(5, TimeUnit.MILLISECONDS)

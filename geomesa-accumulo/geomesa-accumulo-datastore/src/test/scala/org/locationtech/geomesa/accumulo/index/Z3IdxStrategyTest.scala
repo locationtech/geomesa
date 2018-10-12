@@ -77,13 +77,16 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       skipped("used for debugging")
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-      ds.connector.createScanner(Z3Index.getTableName(sftName, ds), new Authorizations()).foreach { r =>
-        val prefix = 2 // table sharing + split
-        val bytes = r.getKey.getRow.getBytes
-        val keyZ = Longs.fromByteArray(bytes.drop(prefix))
-        val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(Z3(keyZ))
-        val weeks = Shorts.fromBytes(bytes(prefix), bytes(prefix + 1))
-        println(s"row: $weeks $x $y $t")
+      Z3Index.getTableNames(sft, ds).foreach { table =>
+        println(table)
+        ds.connector.createScanner(table, new Authorizations()).foreach { r =>
+          val prefix = 2 // table sharing + split
+          val bytes = r.getKey.getRow.getBytes
+          val keyZ = Longs.fromByteArray(bytes.drop(prefix))
+          val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(Z3(keyZ))
+          val weeks = Shorts.fromBytes(bytes(prefix), bytes(prefix + 1))
+          println(s"row: $weeks $x $y $t")
+        }
       }
       println()
       success

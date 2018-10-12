@@ -68,10 +68,10 @@ trait AccumuloIndexAdapter extends IndexAdapter[AccumuloDataStore, AccumuloFeatu
                                   filter: FilterStrategy[AccumuloDataStore, AccumuloFeature, Mutation],
                                   config: ScanConfig): QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation] = {
     if (config.ranges.isEmpty) { EmptyPlan(filter) } else {
-      val table = getTableName(sft.getTypeName, ds)
       val numThreads = queryThreads(ds)
+      val tables = getTablesForQuery(sft, ds, filter.filter)
       val ScanConfig(ranges, cf, iters, eToF, reduce, dedupe) = config
-      BatchScanPlan(filter, table, ranges, iters, Seq(cf), eToF, reduce, numThreads, dedupe)
+      BatchScanPlan(filter, tables, ranges, iters, Seq(cf), eToF, reduce, numThreads, dedupe)
     }
   }
 
@@ -137,7 +137,7 @@ object AccumuloIndexAdapter {
   case class ScanConfig(ranges: Seq[Range],
                         columnFamily: Text,
                         iterators: Seq[IteratorSetting],
-                        entriesToFeatures: (Entry[Key, Value]) => SimpleFeature,
-                        reduce: Option[(CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature]],
+                        entriesToFeatures: Entry[Key, Value] => SimpleFeature,
+                        reduce: Option[CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature]],
                         duplicates: Boolean)
 }

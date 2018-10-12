@@ -13,13 +13,13 @@ import java.util.{UUID, Map => jMap}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, sumNumericValueMutableMaps}
+import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.iterators.IteratorCache
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.{AttributeSpec, GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{AttributeSpec, GeometryUtils}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -32,8 +32,8 @@ class KryoLazyMapAggregatingIterator extends KryoLazyAggregatingIterator[mutable
   import KryoLazyMapAggregatingIterator._
 
   var mapAttribute: Int = -1
-  var serializer: KryoFeatureSerializer = null
-  var featureToSerialize: SimpleFeature = null
+  var serializer: KryoFeatureSerializer = _
+  var featureToSerialize: SimpleFeature = _
 
   override def init(options: Map[String, String]): mutable.Map[AnyRef, Int] = {
     val attributeName = options(MAP_ATTRIBUTE)
@@ -97,6 +97,27 @@ object KryoLazyMapAggregatingIterator extends LazyLogging {
       Iterator(result)
     } else {
       CloseableIterator.empty
+    }
+  }
+
+  /**
+    * Sums the values by key and returns a map containing all of the keys in the maps, with values
+    * equal to the sum of all of the values for that key in the maps
+    *
+    * Sums with and aggregates the valueMaps into the aggregateInto map
+    *
+    * @param valueMaps input maps
+    * @param aggregateInto container for results
+    * @param num numeric type
+    * @return the modified aggregateInto map containing the summed values
+    */
+  private def sumNumericValueMutableMaps[K, V](valueMaps: Iterable[collection.Map[K,V]],
+                                               aggregateInto: mutable.Map[K,V] = scala.collection.mutable.Map.empty[K,V])
+                                               (implicit num: Numeric[V]): scala.collection.mutable.Map[K, V] = {
+    if (valueMaps.isEmpty) { aggregateInto } else {
+      valueMaps.flatten.foldLeft(aggregateInto.withDefaultValue(num.zero)) { case (mapSoFar, (k, v)) =>
+        mapSoFar += ((k, num.plus(v, mapSoFar(k))))
+      }
     }
   }
 }

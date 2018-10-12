@@ -34,7 +34,7 @@ case object Z3IndexV1 extends AccumuloFeatureIndex with Z3WritableIndex with Z3Q
     sft.getDtgField.isDefined && sft.isPoints
   }
 
-  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = Seq.empty
+  override def getSplits(sft: SimpleFeatureType, partition: Option[String]): Seq[Array[Byte]] = Seq.empty
 
   override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType

@@ -20,6 +20,7 @@ import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseVersionAggregator
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
+import org.locationtech.geomesa.hbase.data.HBaseFeatureWriter.HBaseFeatureWriterFactory
 import org.locationtech.geomesa.hbase.index.{HBaseColumnGroups, HBaseFeatureIndex}
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
@@ -30,7 +31,6 @@ import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
@@ -42,17 +42,10 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
 
   override def manager: HBaseIndexManagerType = HBaseFeatureIndex
 
-  override def stats: GeoMesaStats =
+  override val stats: GeoMesaStats =
     if (config.remoteFilter) { new DistributedRunnableStats(this) } else { new UnoptimizedRunnableStats(this) }
 
-  override def createFeatureWriterAppend(sft: SimpleFeatureType,
-                                         indices: Option[Seq[HBaseFeatureIndexType]]): HBaseFeatureWriterType =
-    new HBaseAppendFeatureWriter(sft, this, indices)
-
-  override def createFeatureWriterModify(sft: SimpleFeatureType,
-                                         indices: Option[Seq[HBaseFeatureIndexType]],
-                                         filter: Filter): HBaseFeatureWriterType =
-    new HBaseModifyFeatureWriter(sft, this, indices, filter)
+  override protected val featureWriterFactory: HBaseFeatureWriterFactory = new HBaseFeatureWriterFactory(this)
 
   @throws(classOf[IllegalArgumentException])
   override protected def validateNewSchema(sft: SimpleFeatureType): Unit = {
@@ -69,9 +62,7 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
   }
 
   override def delete(): Unit = {
-    val tables = getTypeNames.map(getSchema).flatMap { sft =>
-      manager.indices(sft).map(_.getTableName(sft.getTypeName, this))
-    }
+    val tables = getTypeNames.flatMap(getAllIndexTableNames)
     val admin = connection.getAdmin
     try {
       (tables.distinct :+ config.catalog).map(TableName.valueOf).par.foreach { table =>
@@ -115,20 +106,22 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
     // just check the first table available
     val versions = getTypeNames.iterator.map(getSchema).flatMap { sft =>
       manager.indices(sft).iterator.flatMap { index =>
-        try {
-          val table = TableName.valueOf(index.getTableName(sft.getTypeName, this))
-          if (connection.getAdmin.tableExists(table)) {
-            val options = HBaseVersionAggregator.configure(sft, index)
-            WithClose(connection.getTable(table)) { t =>
-              WithClose(GeoMesaCoprocessor.execute(t, new Scan().setFilter(new FilterList()), options)) { bytes =>
-                bytes.map(_.toStringUtf8).toList.iterator // force evaluation of the iterator before closing it
+        index.getTableNames(sft, this, None).flatMap { table =>
+          try {
+            val name = TableName.valueOf(table)
+            if (connection.getAdmin.tableExists(name)) {
+              val options = HBaseVersionAggregator.configure(sft, index)
+              WithClose(connection.getTable(name)) { t =>
+                WithClose(GeoMesaCoprocessor.execute(t, new Scan().setFilter(new FilterList()), options)) { bytes =>
+                  bytes.map(_.toStringUtf8).toList.iterator // force evaluation of the iterator before closing it
+                }
               }
+            } else {
+              Iterator.empty
             }
-          } else {
-            Iterator.empty
+          } catch {
+            case NonFatal(_) => Iterator.empty
           }
-        } catch {
-          case NonFatal(_) => Iterator.empty
         }
       }
     }

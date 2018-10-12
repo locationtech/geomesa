@@ -57,7 +57,7 @@ class ZookeeperMetadata[T](val namespace: String, val zookeepers: String, val se
     }
   }
 
-  override protected def scanRows(prefix: Option[Array[Byte]]): CloseableIterator[Array[Byte]] = {
+  override protected def scanRows(prefix: Option[Array[Byte]]): CloseableIterator[(Array[Byte], Array[Byte])] = {
     import scala.collection.JavaConversions._
     val path = prefix.map(toPath(_, withSlash = false))
     if (client.checkExists().forPath(Root) == null) { CloseableIterator.empty } else {
@@ -66,7 +66,10 @@ class ZookeeperMetadata[T](val namespace: String, val zookeepers: String, val se
         case None => all
         case Some(p) => all.filter(_.startsWith(p))
       }
-      filtered.map(_.getBytes(StandardCharsets.UTF_8))
+      filtered.map { f =>
+        val bytes = f.getBytes(StandardCharsets.UTF_8)
+        (bytes, client.getData.forPath(toPath(bytes)))
+      }
     }
   }
 

@@ -35,6 +35,13 @@ class InMemoryMetadata[T] extends GeoMesaMetadata[T] {
     schemas.get(typeName).flatMap(_.get(key))
   }
 
+  override def scan(typeName: String, prefix: String, cache: Boolean): Seq[(String, T)] = synchronized {
+    schemas.get(typeName) match {
+      case None => Seq.empty
+      case Some(m) => m.filterKeys(_.startsWith(prefix)).toSeq
+    }
+  }
+
   override def delete(typeName: String): Unit = synchronized {
     schemas.remove(typeName)
   }

@@ -64,9 +64,9 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
                                   filter: HBaseFilterStrategyType,
                                   config: ScanConfig): HBaseQueryPlanType = {
     if (config.ranges.isEmpty) { EmptyPlan(filter) } else {
-      val table = TableName.valueOf(getTableName(sft.getTypeName, ds))
+      val tables = getTablesForQuery(sft, ds, filter.filter).map(TableName.valueOf)
       val ScanConfig(ranges, colFamily, hbaseFilters, coprocessor, toFeatures) = config
-      buildPlatformScanPlan(ds, sft, filter, ranges, colFamily, table, hbaseFilters, coprocessor, toFeatures)
+      buildPlatformScanPlan(ds, sft, filter, ranges, colFamily, tables, hbaseFilters, coprocessor, toFeatures)
     }
   }
 
@@ -130,7 +130,7 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
                                       filter: HBaseFilterStrategyType,
                                       ranges: Seq[Scan],
                                       colFamily: Array[Byte],
-                                      table: TableName,
+                                      tables: Seq[TableName],
                                       hbaseFilters: Seq[(Int, HFilter)],
                                       coprocessor: Option[CoprocessorConfig],
                                       toFeatures: Iterator[Result] => Iterator[SimpleFeature]): HBaseQueryPlan

@@ -105,10 +105,13 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
   "AttributeIndexStrategy" should {
     "print values" in {
       skipped("used for debugging")
-      val scanner = connector.createScanner(AttributeIndex.getTableName(sftName, ds), MockUserAuthorizations)
-      val prefix = AttributeWritableIndex.getRowPrefix(sft, sft.indexOf("height"))
-      scanner.setRange(AccRange.prefix(new Text(prefix)))
-      scanner.asScala.foreach(println)
+      AttributeIndex.getTableNames(sft, ds).foreach { table =>
+        println(table)
+        val scanner = connector.createScanner(table, MockUserAuthorizations)
+        val prefix = AttributeWritableIndex.getRowPrefix(sft, sft.indexOf("height"))
+        scanner.setRange(AccRange.prefix(new Text(prefix)))
+        scanner.asScala.foreach(println)
+      }
       println()
       success
     }

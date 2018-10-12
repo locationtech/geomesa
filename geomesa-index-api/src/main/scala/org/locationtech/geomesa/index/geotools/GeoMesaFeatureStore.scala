@@ -62,7 +62,7 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats,
     if (errors.isEmpty) { fids } else {
       val e = new IllegalArgumentException("Some features were not written:")
       // suppressed exceptions should contain feature ids and attributes
-      errors.foreach(e.addSuppressed(_))
+      errors.foreach(e.addSuppressed)
       throw e
     }
   }

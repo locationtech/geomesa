@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo.index
 
 import java.util.Map.Entry
 
-import com.google.common.collect.ImmutableSortedSet
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.hadoop.io.Text
@@ -26,6 +25,7 @@ import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.filter.{FilterHelper, andOption, partitionPrimarySpatials, partitionPrimaryTemporals}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
+import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.index.ShardStrategy
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
@@ -51,6 +51,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   type ScanConfigFn = (SimpleFeatureType, Option[Filter], Option[(String, SimpleFeatureType)]) => ScanConfig
 
@@ -63,16 +64,17 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     override def initialValue: Boolean = true
   }
 
-  override def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
-    import scala.collection.JavaConversions._
-    val table = getTableName(sft.getTypeName, ds)
-    val splits = getSplits(sft).map(new Text(_)).toSet -- ds.tableOps.listSplits(table)
-    if (splits.nonEmpty) {
-      ds.tableOps.addSplits(table, ImmutableSortedSet.copyOf(splits.toArray))
+  override def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore, partition: Option[String]): Unit = {
+    val target = getSplits(sft, partition).map(new Text(_)).toSet
+    getTableNames(sft, ds, partition).foreach { table =>
+      val splits = target -- ds.tableOps.listSplits(table)
+      if (splits.nonEmpty) {
+        ds.tableOps.addSplits(table, new java.util.TreeSet(splits.asJava))
+      }
     }
   }
 
-  override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
+  override def writer(sft: SimpleFeatureType, ds: AccumuloDataStore): AccumuloFeature => Seq[Mutation] = {
     val sharing = sft.getTableSharingBytes
     val shards = shardStrategy(sft)
     val coverages = sft.getAttributeDescriptors.map(_.getIndexCoverage()).toArray
@@ -83,7 +85,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     }
   }
 
-  override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): (AccumuloFeature) => Seq[Mutation] = {
+  override def remover(sft: SimpleFeatureType, ds: AccumuloDataStore): AccumuloFeature => Seq[Mutation] = {
     val sharing = sft.getTableSharingBytes
     val shards = shardStrategy(sft)
     val coverages = sft.getAttributeDescriptors.map(_.getIndexCoverage()).toArray
@@ -203,7 +205,7 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     if (config.ranges.isEmpty) { EmptyPlan(filter) } else {
       config match {
         case c: JoinScanConfig => joinScanPlan(sft, ds, filter, c)
-        case c => super.scanPlan(sft, ds, filter, config)
+        case _ => super.scanPlan(sft, ds, filter, config)
       }
     }
   }
@@ -444,8 +446,24 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
                            config: JoinScanConfig): QueryPlan[AccumuloDataStore, AccumuloFeature, Mutation] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    val table = getTableName(sft.getTypeName, ds)
-    val recordTable = config.recordIndex.getTableName(sft.getTypeName, ds)
+    val (tables, recordTables) = TablePartition(ds, sft) match {
+      case None => (getTableNames(sft, ds, None), config.recordIndex.getTableNames(sft, ds, None))
+      case Some(tp) =>
+        val partitions = filter.filter.map(tp.partitions).getOrElse(Seq.empty)
+        if (partitions.nonEmpty) {
+          partitions.flatMap { p =>
+            for {
+              t <- getTableNames(sft, ds, Some(p))
+              r <- config.recordIndex.getTableNames(sft, ds, Some(p))
+            } yield {
+              (t, r)
+            }
+          }.unzip
+        } else {
+          (getTableNames(sft, ds, None), config.recordIndex.getTableNames(sft, ds, None))
+        }
+    }
+
     val recordThreads = ds.config.recordThreads
 
     // function to join the attribute index scan results to the record table
@@ -453,16 +471,16 @@ trait AccumuloAttributeIndex extends AccumuloFeatureIndex with AccumuloIndexAdap
     val prefix = sft.getTableSharingBytes
     val getId = getIdFromRow(sft)
     val getRowKey = RecordIndex.getRowKey(sft)
-    val joinFunction: JoinFunction = (kv) => {
+    val joinFunction: JoinFunction = kv => {
       val row = kv.getKey.getRow
       new Range(new Text(getRowKey(prefix, getId(row.getBytes, 0, row.getLength, null))))
     }
 
     val recordRanges = Seq.empty // this will get overwritten in the join method
-    val joinQuery = BatchScanPlan(filter, recordTable, recordRanges, config.recordIterators,
+    val joinQuery = BatchScanPlan(filter, recordTables, recordRanges, config.recordIterators,
       Seq(config.recordColumnFamily), config.entriesToFeatures, config.reduce, recordThreads, hasDuplicates = false)
 
-    JoinPlan(filter, table, config.ranges, config.iterators,
+    JoinPlan(filter, tables, config.ranges, config.iterators,
       Seq(config.columnFamily), recordThreads, config.duplicates, joinFunction, joinQuery)
   }
 
@@ -587,7 +605,7 @@ object AccumuloAttributeIndex {
   def reduceAttributeStats(sft: SimpleFeatureType,
                            indexSft: SimpleFeatureType,
                            transform: Option[SimpleFeatureType],
-                           hints: Hints): (CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature] = {
+                           hints: Hints): CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
     if (transform.isDefined || !hints.isStatsEncode) {
       // returned stats will be in the transform schema or in json
@@ -596,7 +614,7 @@ object AccumuloAttributeIndex {
       // we have to transform back into the original sft after operating on the index values
       val decode = StatsScan.decodeStat(indexSft)
       val encode = StatsScan.encodeStat(sft)
-      (iter) => {
+      iter => {
         StatsScan.reduceFeatures(indexSft, hints)(iter).map { feature =>
           // we can create a new stat with the correct sft, then add the result
           // this should set the correct metadata but preserve the underlying data
@@ -610,7 +628,7 @@ object AccumuloAttributeIndex {
   }
 
   trait AttributeSplittable {
-    def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit
+    def configureSplits(sft: SimpleFeatureType, ds: AccumuloDataStore, partition: Option[String]): Unit
   }
 
   class JoinScanConfig(val recordIndex: AccumuloFeatureIndex,
@@ -619,8 +637,8 @@ object AccumuloAttributeIndex {
                        ranges: Seq[Range],
                        columnFamily: Text,
                        iterators: Seq[IteratorSetting],
-                       entriesToFeatures: (Entry[Key, Value]) => SimpleFeature,
-                       reduce: Option[(CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature]],
+                       entriesToFeatures: Entry[Key, Value] => SimpleFeature,
+                       reduce: Option[CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature]],
                        duplicates: Boolean)
       extends ScanConfig(ranges, columnFamily, iterators, entriesToFeatures, reduce, duplicates)
 }

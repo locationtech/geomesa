@@ -14,8 +14,7 @@ import java.util.{Collections, Locale}
 import com.google.common.primitives.Bytes
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
-import org.locationtech.geomesa.index.conf.TableSplitter
-import org.locationtech.geomesa.index.conf.splitter.DefaultSplitter
+import org.locationtech.geomesa.index.conf.splitter.TableSplitter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.ShardStrategy.AttributeShardStrategy
 import org.locationtech.geomesa.index.index._
@@ -83,7 +82,7 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     }
   }
 
-  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
+  override def getSplits(sft: SimpleFeatureType, partition: Option[String]): Seq[Array[Byte]] = {
     def nonEmpty(bytes: Seq[Array[Byte]]): Seq[Array[Byte]] = if (bytes.nonEmpty) { bytes } else { Seq(Array.empty) }
 
     val sharing = sft.getTableSharingBytes
@@ -91,7 +90,6 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
     val shards = nonEmpty(shardStrategy(sft).shards)
 
     // evaluate the splits per indexed attribute, instead of for the whole feature
-    val splitter = sft.getTableSplitter.getOrElse(classOf[DefaultSplitter]).newInstance().asInstanceOf[TableSplitter]
     val result = indices.flatMap { indexOf =>
       val singleAttributeType = {
         val builder = new SimpleFeatureTypeBuilder()
@@ -99,8 +97,10 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
         builder.add(sft.getDescriptor(indexOf))
         builder.buildFeatureType()
       }
+      singleAttributeType.getUserData.putAll(sft.getUserData) // copy the splitter options
       val attribute = AttributeIndexKey.indexToBytes(indexOf)
-      val splits = nonEmpty(splitter.getSplits(singleAttributeType, name, sft.getTableSplitterOptions))
+      val splits = nonEmpty(TableSplitter.getSplits(singleAttributeType, name, partition))
+
       for (shard <- shards; split <- splits) yield {
         Bytes.concat(sharing, shard, attribute, split)
       }

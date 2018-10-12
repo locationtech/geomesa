@@ -19,6 +19,7 @@ import org.apache.hadoop.util.{Tool, ToolRunner}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AttributeIndex}
+import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.jobs._
 import org.locationtech.geomesa.jobs.accumulo.{AccumuloJobUtils, GeoMesaArgs, InputDataStoreArgs, InputFeatureArgs}
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaAccumuloInputFormat
@@ -108,12 +109,6 @@ class AttributeIndexJob extends Tool {
       // re-load the sft now that we've updated it
       sft = ds.getSchema(sft.getTypeName)
 
-      val index = AccumuloFeatureIndex.indices(sft, mode = IndexMode.Write)
-          .find(_.name == AttributeIndex.name)
-          .getOrElse(throw new IllegalStateException("Could not find expected attribute index for simple feature type"))
-
-      val tableName = index.getTableName(typeName, ds)
-
       val job = Job.getInstance(conf,
         s"GeoMesa Attribute Index Job '${sft.getTypeName}' - '${attributes.mkString(", ")}'")
 
@@ -136,7 +131,6 @@ class AttributeIndexJob extends Tool {
       AccumuloOutputFormat.setConnectorInfo(job, parsedArgs.inUser, new PasswordToken(parsedArgs.inPassword.getBytes))
       // use deprecated method to work with both 1.5/1.6
       AccumuloOutputFormat.setZooKeeperInstance(job, parsedArgs.inInstanceId, parsedArgs.inZookeepers)
-      AccumuloOutputFormat.setDefaultTableName(job, tableName)
       AccumuloOutputFormat.setCreateTables(job, true)
 
       val result = job.waitForCompletion(true)
@@ -158,8 +152,9 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
 
   private var counter: Counter = _
 
-  private var writer: (AccumuloFeature) => Seq[Mutation] = _
-  private var toWritable: (SimpleFeature) => AccumuloFeature = _
+  private var writer: AccumuloFeature => Seq[Mutation] = _
+  private var toWritable: SimpleFeature => AccumuloFeature = _
+  private var table: SimpleFeature => Text = _
 
   override protected def setup(context: Context): Unit = {
     counter = context.getCounter("org.locationtech.geomesa", "attributes-written")
@@ -177,6 +172,19 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
         .find(_.name == AttributeIndex.name).getOrElse(AttributeIndex)
     writer = index.writer(sft, ds)
     toWritable = AccumuloFeature.wrapper(sft, ds.config.defaultVisibilities)
+    table = TablePartition(ds, sft) match {
+      case Some(tp) =>
+        val tables = scala.collection.mutable.Map.empty[String, String]
+        f => {
+          // create the new partition table if needed, which also writes the metadata for it
+          val partition = tp.partition(f)
+          new Text(tables.getOrElseUpdate(partition, index.configure(sft, ds, Some(partition))))
+        }
+
+      case None =>
+        val name = new Text(index.getTableNames(sft, ds, None).head)
+        f => name
+    }
 
     ds.dispose()
   }
@@ -185,9 +193,10 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
 
   }
 
-  override def map(key: Text, value: SimpleFeature, context: Context) {
+  override def map(key: Text, value: SimpleFeature, context: Context): Unit = {
     val mutations = writer(toWritable(value))
-    mutations.foreach(context.write(null: Text, _)) // default table name is set already
+    val out = table(value)
+    mutations.foreach(context.write(out, _))
     counter.increment(mutations.length)
   }
 }

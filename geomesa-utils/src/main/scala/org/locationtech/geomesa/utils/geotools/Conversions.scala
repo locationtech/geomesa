@@ -301,7 +301,9 @@ object RichSimpleFeatureType {
     def getUserDataPrefixes: Seq[String] =
       Seq(GEOMESA_PREFIX) ++ userData[String](USER_DATA_PREFIX).map(_.split(",")).getOrElse(Array.empty)
 
+    @deprecated("Table splitter key can vary with partitioning scheme")
     def getTableSplitter: Option[Class[_]] = userData[String](TABLE_SPLITTER).map(Class.forName)
+    @deprecated("Table splitter options key can vary with partitioning scheme")
     def getTableSplitterOptions: String = userData[String](TABLE_SPLITTER_OPTS).orNull
 
     def setZShards(splits: Int): Unit = sft.getUserData.put(Z_SPLITS_KEY, splits.toString)

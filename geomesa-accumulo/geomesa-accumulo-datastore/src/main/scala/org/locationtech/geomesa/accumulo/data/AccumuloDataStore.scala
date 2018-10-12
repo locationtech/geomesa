@@ -19,6 +19,7 @@ import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
+import org.locationtech.geomesa.accumulo.data.AccumuloFeatureWriter.AccumuloFeatureWriterFactory
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index.AccumuloAttributeIndex.AttributeSplittable
 import org.locationtech.geomesa.accumulo.index._
@@ -26,6 +27,7 @@ import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
 import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
@@ -38,7 +40,6 @@ import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
@@ -62,8 +63,10 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   private val statsTable = GeoMesaFeatureIndex.formatSharedTableName(config.catalog, "stats")
   override val stats = new AccumuloGeoMesaStats(this, statsTable, config.generateStats)
 
+  override protected val featureWriterFactory: AccumuloFeatureWriterFactory = new AccumuloFeatureWriterFactory(this)
+
   // If on a secured cluster, create a thread to periodically renew Kerberos tgt
-  val kerberosTgtRenewer: Option[ScheduledExecutorService] = try {
+  private val kerberosTgtRenewer: Option[ScheduledExecutorService] = try {
     if (UserGroupInformation.isSecurityEnabled) {
       val executor = Executors.newSingleThreadScheduledExecutor()
       executor.scheduleAtFixedRate(
@@ -103,15 +106,6 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   // data store hooks
 
-  override protected def createFeatureWriterAppend(sft: SimpleFeatureType,
-                                                   indices: Option[Seq[AccumuloFeatureIndexType]]): AccumuloFeatureWriterType =
-    new AccumuloAppendFeatureWriter(sft, this, indices, config.defaultVisibilities)
-
-  override protected def createFeatureWriterModify(sft: SimpleFeatureType,
-                                                   indices: Option[Seq[AccumuloFeatureIndexType]],
-                                                   filter: Filter): AccumuloFeatureWriterType =
-    new AccumuloModifyFeatureWriter(sft, this, indices, config.defaultVisibilities, filter)
-
   override protected def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection =
     new AccumuloFeatureCollection(source, query)
 
@@ -121,10 +115,9 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
     // just check the first table available
-    val versions = getTypeNames.iterator.map(getSchema).flatMap { sft =>
-      manager.indices(sft).iterator.flatMap { index =>
+    val versions = getTypeNames.iterator.flatMap { typeName =>
+      getAllIndexTableNames(typeName).iterator.flatMap { table =>
         try {
-          val table = index.getTableName(sft.getTypeName, this)
           if (connector.tableOperations().exists(table)) {
             WithClose(connector.createScanner(table, new Authorizations())) { scanner =>
               ProjectVersionIterator.scanProjectVersion(scanner).iterator
@@ -204,8 +197,10 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     // check for newly indexed attributes and re-configure the splits
     val previousAttrIndices = previous.getAttributeDescriptors.collect { case d if d.isIndexed => d.getLocalName }
     if (sft.getAttributeDescriptors.exists(d => d.isIndexed && !previousAttrIndices.contains(d.getLocalName))) {
+      val partitioned = TablePartition.partitioned(sft)
       manager.indices(sft).foreach {
-        case s: AttributeSplittable => s.configureSplits(sft, this)
+        case s: AttributeSplittable if !partitioned => s.configureSplits(sft, this, None)
+        case s: AttributeSplittable => s.getPartitions(sft, this).foreach(p => s.configureSplits(sft, this, Some(p)))
         case _ => // no-op
       }
     }
@@ -305,7 +300,6 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     super.dispose()
     kerberosTgtRenewer.foreach( _.shutdown() )
   }
-
 }
 
 object AccumuloDataStore {

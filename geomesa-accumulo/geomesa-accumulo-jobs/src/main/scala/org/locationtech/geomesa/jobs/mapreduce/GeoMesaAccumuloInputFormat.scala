@@ -103,7 +103,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     val queryPlan = AccumuloJobUtils.getSingleQueryPlan(ds, query)
 
     // use the query plan to set the accumulo input format options
-    InputFormatBase.setInputTableName(job, queryPlan.table)
+    // note: we've ensured that there is only a single table in `getSingleQueryPlan`
+    InputFormatBase.setInputTableName(job, queryPlan.tables.head)
     if (queryPlan.ranges.nonEmpty) {
       InputFormatBase.setRanges(job, queryPlan.ranges)
     }
@@ -118,7 +119,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     val conf = job.getConfiguration
 
     GeoMesaConfigurator.setSerialization(conf)
-    GeoMesaConfigurator.setTable(conf, queryPlan.table)
+    GeoMesaConfigurator.setTable(conf, queryPlan.tables.head)
     GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
     GeoMesaConfigurator.setFeatureType(conf, featureTypeName)
     if (query.getFilter != Filter.INCLUDE) {
@@ -164,10 +165,10 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
 
   val delegate = new AccumuloInputFormat
 
-  var sft: SimpleFeatureType = null
-  var table: AccumuloFeatureIndex = null
+  var sft: SimpleFeatureType = _
+  var table: AccumuloFeatureIndex = _
 
-  private def init(context: JobContext) = if (sft == null) {
+  private def init(context: JobContext): Unit = if (sft == null) {
     val conf = context.getConfiguration
     val params = new CaseInsensitiveMap(GeoMesaConfigurator.getDataStoreInParams(conf)).asInstanceOf[java.util.Map[String, String]]
 
@@ -208,7 +209,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
 
       // Unwrap token and build connector
       hadoopWrappedToken match {
-        case Some(hwt) => {
+        case Some(hwt) =>
           val identifier = new AuthenticationTokenIdentifier
           val token =  try {
             // Convert to DelegationToken.
@@ -232,7 +233,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
 
           // Get datastore using updated params
           DataStoreFinder.getDataStore(new CaseInsensitiveMap(updatedParams).asInstanceOf[java.util.Map[_, _]]).asInstanceOf[AccumuloDataStore]
-        }
+
         case _ => throw new IllegalArgumentException("Could not find Hadoop-wrapped Accumulo token in JobContext credentials or Hadoop configuration")
       }
     }
@@ -240,7 +241,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
     val tableName = GeoMesaConfigurator.getTable(conf)
     table = AccumuloFeatureIndex.indices(sft, mode = IndexMode.Read)
-        .find(t => t.getTableName(sft.getTypeName, ds) == tableName)
+        .find(t => t.getTableNames(sft, ds, None).contains(tableName))
         .getOrElse(throw new RuntimeException(s"Couldn't find input table $tableName"))
     ds.dispose()
   }

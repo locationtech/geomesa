@@ -38,7 +38,7 @@ case object Z2IndexV1 extends AccumuloFeatureIndex with Z2WritableIndex with Z2Q
 
   override def supports(sft: SimpleFeatureType): Boolean = sft.getGeometryDescriptor != null
 
-  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] = {
+  override def getSplits(sft: SimpleFeatureType, partition: Option[String]): Seq[Array[Byte]] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     SplitArrays.apply(sft.getZShards)
   }

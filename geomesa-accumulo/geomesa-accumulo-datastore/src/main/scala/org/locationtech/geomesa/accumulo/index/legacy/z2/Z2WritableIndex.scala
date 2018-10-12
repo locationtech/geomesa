@@ -111,11 +111,10 @@ trait Z2WritableIndex extends AccumuloFeatureIndex {
     prefix + length
   }
 
-  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
+  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore, partition: Option[String]): String = {
     import scala.collection.JavaConversions._
 
-    super.configure(sft, ds)
-    val table = getTableName(sft.getTypeName, ds)
+    val table = super.configure(sft, ds, partition)
 
     AccumuloVersion.ensureTableExists(ds.connector, table)
 
@@ -136,5 +135,7 @@ trait Z2WritableIndex extends AccumuloFeatureIndex {
     }
 
     ds.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+
+    table
   }
 }

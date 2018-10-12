@@ -32,7 +32,7 @@ object SimpleFeatureTypes {
     val VIS_LEVEL_KEY        = "geomesa.visibility.level"
     val Z3_INTERVAL_KEY      = "geomesa.z3.interval"
     val XZ_PRECISION_KEY     = "geomesa.xz.precision"
-    val TABLE_SPLITTER       = "table.splitter.class"
+    val TABLE_SPLITTER       = "table.splitter.class" // note: doesn't start with geomesa so we don't persist it
     val TABLE_SPLITTER_OPTS  = "table.splitter.options"
     val MIXED_GEOMETRIES     = "geomesa.mixed.geometries"
     val RESERVED_WORDS       = "override.reserved.words" // note: doesn't start with geomesa so we don't persist it
@@ -50,15 +50,18 @@ object SimpleFeatureTypes {
     val COMPRESSION_TYPE     = "geomesa.table.compression.type"  // valid: snappy, lzo, gz(default), bzip2, lz4, zstd
     val FID_UUID_KEY         = "geomesa.fid.uuid"
     val FID_UUID_ENCODED_KEY = "geomesa.fid.uuid-encoded"
+    val TABLE_PARTITIONING   = "geomesa.table.partition"
   }
 
   private [geomesa] object InternalConfigs {
-    val GEOMESA_PREFIX      = "geomesa."
-    val SHARING_PREFIX_KEY  = "geomesa.table.sharing.prefix"
-    val USER_DATA_PREFIX    = "geomesa.user-data.prefix"
-    val INDEX_VERSIONS      = "geomesa.indices"
-    val REMOTE_VERSION      = "gm.remote.version" // note: doesn't start with geomesa so we don't persist it
-    val KEYWORDS_DELIMITER  = "\u0000"
+    val GEOMESA_PREFIX          = "geomesa."
+    val SHARING_PREFIX_KEY      = "geomesa.table.sharing.prefix"
+    val USER_DATA_PREFIX        = "geomesa.user-data.prefix"
+    val INDEX_VERSIONS          = "geomesa.indices"
+    val PARTITION_SPLITTER      = "geomesa.splitter.class"
+    val PARTITION_SPLITTER_OPTS = "geomesa.splitter.opts"
+    val REMOTE_VERSION          = "gm.remote.version" // note: doesn't start with geomesa so we don't persist it
+    val KEYWORDS_DELIMITER      = "\u0000"
   }
 
   object AttributeOptions {

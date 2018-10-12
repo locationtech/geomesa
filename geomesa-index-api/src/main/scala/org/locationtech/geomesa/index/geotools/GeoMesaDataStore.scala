@@ -14,11 +14,13 @@ import java.util.concurrent.TimeUnit
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
+import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.api.{WrappedFeature, _}
 import org.locationtech.geomesa.index.conf.SchemaProperties
+import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.VersionKey
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter.FlushableFeatureWriter
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter.FeatureWriterFactory
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
@@ -26,6 +28,7 @@ import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.conf.SemanticVersion.MinorOrdering
 import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{Configs, InternalConfigs}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
@@ -50,27 +53,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
 
   def manager: GeoMesaIndexManager[DS, F, W]
 
-  /**
-    * @see `GeoMesaFeatureWriter[DS, F, W, _]` for base implementation
-    *
-    * @param sft simple feature type
-    * @param indices indices to write to
-    * @return
-    */
-  protected def createFeatureWriterAppend(sft: SimpleFeatureType,
-                                          indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W]]]): FlushableFeatureWriter
-
-  /**
-    * See `GeoMesaFeatureWriter[DS, F, W, _]` for base implementation
-    *
-    * @param sft simple feature type
-    * @param indices indices to write to
-    * @param filter features to modify
-    * @return
-    */
-  protected def createFeatureWriterModify(sft: SimpleFeatureType,
-                                          indices: Option[Seq[GeoMesaFeatureIndex[DS, F, W]]],
-                                          filter: Filter): FlushableFeatureWriter
+  protected def featureWriterFactory: FeatureWriterFactory[DS, F, W]
 
   override protected def catalog: String = config.catalog
 
@@ -98,7 +81,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     * @return
     */
   def getAllIndexTableNames(typeName: String): Seq[String] =
-    Option(getSchema(typeName)).toSeq.flatMap(manager.indices(_).map(_.getTableName(typeName, this)))
+    Option(getSchema(typeName)).toSeq.flatMap(sft => manager.indices(sft).flatMap(_.getTableNames(sft, this, None)))
 
   // hooks to allow extended functionality
 
@@ -113,6 +96,21 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     * @return iterator versions
     */
   protected def loadIteratorVersions: Set[String] = Set.empty
+
+  override protected def validateNewSchema(sft: SimpleFeatureType): Unit = {
+    import Configs.{TABLE_SPLITTER, TABLE_SPLITTER_OPTS}
+    import InternalConfigs.{PARTITION_SPLITTER, PARTITION_SPLITTER_OPTS}
+
+    // for partitioned schemas, disable table sharing and persist the table partitioning keys
+    if (TablePartition.partitioned(sft)) {
+      Seq((TABLE_SPLITTER, PARTITION_SPLITTER), (TABLE_SPLITTER_OPTS, PARTITION_SPLITTER_OPTS)).foreach {
+        case (from, to) => Option(sft.getUserData.get(from)).foreach(sft.getUserData.put(to, _))
+      }
+      sft.setTableSharing(false)
+    }
+
+    super.validateNewSchema(sft)
+  }
 
   // set the enabled indices
   @throws(classOf[IllegalArgumentException])
@@ -144,20 +142,24 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
         case None => throw new IllegalArgumentException(s"Index $name:$version does not exist")
       }
     }
-    // configure the new indices
-    validatedIndices.foreach(_.configure(sft, this))
+    // configure the new indices (if not using partitioned tables)
+    if (!TablePartition.partitioned(sft)) {
+      validatedIndices.foreach(_.configure(sft, this, None))
+    }
   }
 
-  // create the index tables
-  override protected def onSchemaCreated(sft: SimpleFeatureType): Unit =
-    manager.indices(sft).foreach(_.configure(sft, this))
+  // create the index tables (if not using partitioned tables)
+  override protected def onSchemaCreated(sft: SimpleFeatureType): Unit = {
+    if (!TablePartition.partitioned(sft)) {
+      manager.indices(sft).foreach(_.configure(sft, this, None))
+    }
+  }
 
   override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {}
 
   // delete the index tables
   override protected def onSchemaDeleted(sft: SimpleFeatureType): Unit = {
-    val shared = sft.isTableSharing && getTypeNames.filter(_ != sft.getTypeName).map(getSchema).exists(_.isTableSharing)
-    manager.indices(sft).par.foreach(_.delete(sft, this, shared))
+    manager.indices(sft).par.foreach(_.delete(sft, this, None))
     stats.clearStats(sft)
   }
 
@@ -247,7 +249,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     if (transaction != Transaction.AUTO_COMMIT) {
       logger.warn("Ignoring transaction - not supported")
     }
-    createFeatureWriterModify(sft, None, filter)
+    featureWriterFactory.createFeatureWriter(sft, manager.indices(sft, mode = IndexMode.Write), Some(filter))
   }
 
   /**
@@ -259,19 +261,29 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
    * @return feature writer
    */
   override def getFeatureWriterAppend(typeName: String, transaction: Transaction): FlushableFeatureWriter = {
-    if (transaction != Transaction.AUTO_COMMIT) {
-      logger.warn("Ignoring transaction - not supported")
-    }
-    getIndexWriterAppend(typeName, null)
-  }
-
-  def getIndexWriterAppend(typeName: String,
-                           indices: Seq[GeoMesaFeatureIndex[DS, F, W]]): FlushableFeatureWriter = {
     val sft = getSchema(typeName)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    createFeatureWriterAppend(sft, Option(indices))
+    if (transaction != Transaction.AUTO_COMMIT) {
+      logger.warn("Ignoring transaction - not supported")
+    }
+    featureWriterFactory.createFeatureWriter(sft, manager.indices(sft, mode = IndexMode.Write), None)
+  }
+
+  /**
+    * Writes to the specified indices
+    *
+    * @param typeName feature type name
+    * @param indices indices to write
+    * @return
+    */
+  def getIndexWriterAppend(typeName: String, indices: Seq[GeoMesaFeatureIndex[DS, F, W]]): FlushableFeatureWriter = {
+    val sft = getSchema(typeName)
+    if (sft == null) {
+      throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
+    }
+    featureWriterFactory.createFeatureWriter(sft, indices, None)
   }
 
   /**

@@ -472,6 +472,13 @@ object SchemaBuilder {
     def xzPrecision(precision: Int): U = userData(Configs.XZ_PRECISION_KEY, precision.toString)
 
     /**
+      * Enable date-based table partitioning
+      *
+      * @return user data builder for chainging calls
+      */
+    def partitioned(): U = userData(Configs.TABLE_PARTITIONING, "time")
+
+    /**
       * Add arbitrary user data values to the schema
       *
       * @param key user data key

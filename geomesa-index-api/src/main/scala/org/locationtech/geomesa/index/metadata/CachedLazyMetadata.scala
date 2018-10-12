@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.index.metadata.CachedLazyMetadata.ScanQuery
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, IsSynchronized, MaybeSynchronized, NotSynchronized}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.WithClose
@@ -65,10 +66,10 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   /**
     * Reads row keys from the underlying table
     *
-    * @param typeName row key prefix
-    * @return matching row keys (not values)
+    * @param query row key prefix
+    * @return matching tuples of (typeName, key, value)
     */
-  protected def scanKeys(typeName: Option[String]): CloseableIterator[(String, String)]
+  protected def scanValues(query: Option[ScanQuery]): CloseableIterator[(String, String, Array[Byte])]
 
   // only synchronize if table doesn't exist - otherwise it's ready only and we can avoid synchronization
   private val tableExists: MaybeSynchronized[Boolean] =
@@ -90,8 +91,8 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
 
   override def getFeatureTypes: Array[String] = {
     if (!tableExists.get) { Array.empty } else {
-      WithClose(scanKeys(None)) { keys =>
-        keys.collect { case (typeName, key) if key == GeoMesaMetadata.ATTRIBUTES_KEY => typeName }.toArray
+      WithClose(scanValues(None)) { keys =>
+        keys.collect { case (typeName, key, _) if key == GeoMesaMetadata.ATTRIBUTES_KEY => typeName }.toArray
       }
     }
   }
@@ -101,6 +102,35 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
       metaDataCache.invalidate((typeName, key))
     }
     metaDataCache.get((typeName, key))
+  }
+
+  override def scan(typeName: String, prefix: String, cache: Boolean): Seq[(String, T)] = {
+    import scala.collection.JavaConverters._
+
+    def noCache: Seq[(String, T)] = {
+      WithClose(scanValues(Some(ScanQuery(typeName, Option(prefix))))) { iter =>
+        iter.map { case (t, k, v) =>
+          val value = serializer.deserialize(t, k, v)
+          metaDataCache.put((t, k), Option(value))
+          k -> value
+        }.toSeq
+      }
+    }
+
+    if (!tableExists.get) {
+      Seq.empty
+    } else if (cache) {
+      val result = metaDataCache.asMap().asScala.flatMap { case ((t, k), value) =>
+        if (t == typeName && k.startsWith(prefix)) {
+          value.map(v => k -> v)
+        } else {
+          Seq.empty
+        }
+      }
+      if (result.nonEmpty) { result.toSeq } else { noCache }
+    } else {
+      noCache
+    }
   }
 
   override def insert(typeName: String, key: String, value: T): Unit = insert(typeName, Map(key -> value))
@@ -130,7 +160,7 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
     import scala.collection.JavaConversions._
 
     if (tableExists.get) {
-      WithClose(scanKeys(Some(typeName))) { keys =>
+      WithClose(scanValues(Some(ScanQuery(typeName)))) { keys =>
         if (keys.nonEmpty) {
           delete(typeName, keys.map(_._2).toSeq)
         }
@@ -146,5 +176,8 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
 }
 
 object CachedLazyMetadata {
+
   val Expiry = SystemProperty("geomesa.metadata.expiry", "10 minutes")
+
+  case class ScanQuery(typeName: String, prefix: Option[String] = None)
 }

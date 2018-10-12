@@ -51,7 +51,7 @@ trait CassandraTieredFeatureIndex[T, U] extends CassandraFeatureIndex[T, U] {
                              includeFeature: Boolean)
                             (cf: CassandraFeature): Seq[Seq[RowValue]]
 
-  override def writer(sft: SimpleFeatureType, ds: CassandraDataStore): (CassandraFeature) => Seq[Seq[RowValue]] = {
+  override def writer(sft: SimpleFeatureType, ds: CassandraDataStore): CassandraFeature => Seq[Seq[RowValue]] = {
     tieredKeySpace(sft) match {
       case None => super.writer(sft, ds)
       case Some(tier) =>
@@ -62,7 +62,7 @@ trait CassandraTieredFeatureIndex[T, U] extends CassandraFeatureIndex[T, U] {
     }
   }
 
-  override def remover(sft: SimpleFeatureType, ds: CassandraDataStore): (CassandraFeature) => Seq[Seq[RowValue]] = {
+  override def remover(sft: SimpleFeatureType, ds: CassandraDataStore): CassandraFeature => Seq[Seq[RowValue]] = {
     tieredKeySpace(sft) match {
       case None => super.remover(sft, ds)
       case Some(tier) =>
@@ -116,14 +116,14 @@ trait CassandraTieredFeatureIndex[T, U] extends CassandraFeatureIndex[T, U] {
         import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
         val ks = ds.session.getLoggedKeyspace
-        val tableName = getTableName(sft.getTypeName, ds)
+        val tables = getTablesForQuery(sft, ds, filter.filter)
 
-        val statements = ranges.map(CassandraFeatureIndex.statement(ks, tableName, _))
+        val statements = tables.flatMap(table => ranges.map(CassandraFeatureIndex.statement(ks, table, _)))
 
         val useFullFilter = keySpace.useFullFilter(Some(values), Some(ds.config), hints)
         val ecql = if (useFullFilter) { filter.filter } else { filter.secondary }
         val toFeatures = resultsToFeatures(sft, ecql, hints.getTransform)
-        StatementPlan(filter, tableName, statements.toSeq, ds.config.queryThreads, ecql, toFeatures)
+        StatementPlan(filter, tables, statements, ds.config.queryThreads, ecql, toFeatures)
       }
     }
   }

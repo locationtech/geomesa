@@ -27,7 +27,7 @@ import org.apache.spark.rdd.{NewHadoopRDD, RDD}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams}
-import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, EmptyPlan}
+import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, BatchScanPlan, EmptyPlan, ScanPlan}
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
@@ -53,11 +53,12 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
     lazy val transform = query.getHints.getTransformSchema
 
-    def queryPlanToRDD(sft: SimpleFeatureType, qp: AccumuloQueryPlan, conf: Configuration) = {
+    def queryPlanToRDD(sft: SimpleFeatureType, qp: AccumuloQueryPlan, conf: Configuration): RDD[SimpleFeature] = {
       if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
         sc.emptyRDD[SimpleFeature]
       } else {
-        InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, qp.table)
+        // note: we've ensured there is only one table per query plan, below
+        InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, qp.tables.head)
         InputConfigurator.setRanges(classOf[AccumuloInputFormat], conf, qp.ranges)
         qp.iterators.foreach(InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, _))
 
@@ -69,7 +70,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
         InputConfigurator.setBatchScan(classOf[AccumuloInputFormat], conf, true)
         InputConfigurator.setBatchScan(classOf[GeoMesaAccumuloInputFormat], conf, true)
         GeoMesaConfigurator.setSerialization(conf)
-        GeoMesaConfigurator.setTable(conf, qp.table)
+        GeoMesaConfigurator.setTable(conf, qp.tables.head)
         GeoMesaConfigurator.setDataStoreInParams(conf, params)
         GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
 
@@ -153,10 +154,18 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
       // can return a union of the RDDs because the query planner *should*
       // be rewriting ORs to make them logically disjoint
       // e.g. "A OR B OR C" -> "A OR (B NOT A) OR ((C NOT A) NOT B)"
-      val sfrdd = if (qps.length == 1)
-          queryPlanToRDD(sft, qps.head, conf) // no union needed for single query plan
-        else
-          sc.union(qps.map(queryPlanToRDD(sft, _, new Configuration(conf))))
+      val sfrdd = if (qps.lengthCompare(1) == 0 && qps.head.tables.lengthCompare(1) == 0) {
+        queryPlanToRDD(sft, qps.head, conf) // no union needed for single query plan
+      } else {
+        // flatten and duplicate the query plans so each one only has a single table
+        val expanded = qps.flatMap {
+          case qp: BatchScanPlan => qp.tables.map(t => qp.copy(tables = Seq(t)))
+          case qp: ScanPlan => qp.tables.map(t => qp.copy(tables = Seq(t)))
+          case qp: EmptyPlan => Seq(qp)
+          case qp => throw new NotImplementedError(s"Unexpected query plan type: $qp")
+        }
+        sc.union(expanded.map(queryPlanToRDD(sft, _, new Configuration(conf))))
+      }
       SpatialRDD(sfrdd, transform.getOrElse(sft))
     } finally {
       if (ds != null) {

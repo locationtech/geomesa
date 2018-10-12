@@ -11,25 +11,20 @@ package org.locationtech.geomesa.cassandra.data
 
 import com.datastax.driver.core.querybuilder._
 import org.locationtech.geomesa.cassandra._
+import org.locationtech.geomesa.index.FlushableFeatureWriter
+import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class CassandraAppendFeatureWriter(sft: SimpleFeatureType,
-                                   ds: CassandraDataStore,
-                                   indices: Option[Seq[CassandraFeatureIndexType]])
-      extends CassandraFeatureWriterType(sft, ds, indices) with CassandraAppendFeatureWriterType with CassandraFeatureWriter
-
-class CassandraModifyFeatureWriter(sft: SimpleFeatureType,
-                                   ds: CassandraDataStore,
-                                   indices: Option[Seq[CassandraFeatureIndexType]],
-                                   val filter: Filter)
-    extends CassandraFeatureWriterType(sft, ds, indices) with CassandraModifyFeatureWriterType with CassandraFeatureWriter
-
-trait CassandraFeatureWriter extends CassandraFeatureWriterType {
+abstract class CassandraFeatureWriter(val sft: SimpleFeatureType,
+                                      val ds: CassandraDataStore,
+                                      val indices: Seq[CassandraFeatureIndexType],
+                                      val filter: Filter,
+                                      val partition: TablePartition) extends CassandraFeatureWriterType {
 
   private val wrapper = CassandraFeature.wrapper(sft)
 
-  override protected def createMutators(tables: IndexedSeq[String]): IndexedSeq[String] = tables
+  override protected def createMutator(table: String): String = table
 
   override protected def executeWrite(table: String, writes: Seq[Seq[RowValue]]): Unit = {
     writes.foreach { row =>
@@ -55,4 +50,34 @@ trait CassandraFeatureWriter extends CassandraFeatureWriterType {
   }
 
   override def wrapFeature(feature: SimpleFeature): CassandraFeature = wrapper(feature)
+
+  override def flush(): Unit = {}
+  override def close(): Unit = {}
+}
+
+object CassandraFeatureWriter {
+
+  class CassandraFeatureWriterFactory(ds: CassandraDataStore) extends CassandraFeatureWriterFactoryType {
+    override def createFeatureWriter(sft: SimpleFeatureType,
+                                     indices: Seq[CassandraFeatureIndexType],
+                                     filter: Option[Filter]): FlushableFeatureWriter = {
+      (TablePartition(ds, sft), filter) match {
+        case (None, None) =>
+          new CassandraFeatureWriter(sft, ds, indices, null, null)
+              with CassandraTableFeatureWriterType with CassandraAppendFeatureWriterType
+
+        case (None, Some(f)) =>
+          new CassandraFeatureWriter(sft, ds, indices, f, null)
+              with CassandraTableFeatureWriterType with CassandraModifyFeatureWriterType
+
+        case (Some(p), None) =>
+          new CassandraFeatureWriter(sft, ds, indices, null, p)
+              with CassandraPartitionedFeatureWriterType with CassandraAppendFeatureWriterType
+
+        case (Some(p), Some(f)) =>
+          new CassandraFeatureWriter(sft, ds, indices, f, p)
+              with CassandraPartitionedFeatureWriterType with CassandraModifyFeatureWriterType
+      }
+    }
+  }
 }

@@ -18,6 +18,7 @@ import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, RemoteFilterNotUsedParam}
 import org.locationtech.geomesa.hbase.tools.ingest.HBaseBulkLoadCommand.BulkLoadParams
+import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.tools.{Command, RequiredIndexParam, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.TextTools
@@ -34,13 +35,14 @@ class HBaseBulkLoadCommand extends HBaseDataStoreCommand {
     if (sft == null) {
       throw new ParameterException(s"Schema '${params.featureName}' does not exist")
     }
+    require(!TablePartition.partitioned(sft), "Bulk loading partitioned tables is not currently supported")
 
     val index = params.loadRequiredIndex(ds, IndexMode.Write).asInstanceOf[HBaseFeatureIndex]
     val input = new Path(params.input)
 
     Command.user.info(s"Running HBase incremental load...")
     val start = System.currentTimeMillis()
-    val tableName = TableName.valueOf(index.getTableName(params.featureName, ds))
+    val tableName = TableName.valueOf(index.getTableNames(sft, ds, None).head)
     val table = ds.connection.getTable(tableName)
     val locator = ds.connection.getRegionLocator(tableName)
     val config = new Configuration

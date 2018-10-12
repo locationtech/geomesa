@@ -49,8 +49,9 @@ trait KuduTieredFeatureIndex[T, U] extends KuduFeatureIndex[T, U] {
                                   minTier: => Array[Byte],
                                   maxTier: => Array[Byte]): Seq[(Option[PartialRow], Option[PartialRow])]
 
-  override def writer(sft: SimpleFeatureType, ds: KuduDataStore): (KuduFeature) => Seq[WriteOperation] = {
-    val table = ds.client.openTable(getTableName(sft.getTypeName, ds))
+  override def writer(sft: SimpleFeatureType, ds: KuduDataStore): KuduFeature => Seq[WriteOperation] = {
+    // note: table partitioning is disabled in the data store
+    val table = ds.client.openTable(getTableNames(sft, ds, None).head)
     val schema = KuduSimpleFeatureSchema(sft)
     val splitters = KuduFeatureIndex.splitters(sft)
     val toIndexKey = keySpace.toIndexKey(sft)
@@ -58,8 +59,9 @@ trait KuduTieredFeatureIndex[T, U] extends KuduFeatureIndex[T, U] {
     createInsert(sft, table, schema, splitters, toIndexKey, toTieredKey)
   }
 
-  override def remover(sft: SimpleFeatureType, ds: KuduDataStore): (KuduFeature) => Seq[WriteOperation] = {
-    val table = ds.client.openTable(getTableName(sft.getTypeName, ds))
+  override def remover(sft: SimpleFeatureType, ds: KuduDataStore): KuduFeature => Seq[WriteOperation] = {
+    // note: table partitioning is disabled in the data store
+    val table = ds.client.openTable(getTableNames(sft, ds, None).head)
     val toIndexKey = keySpace.toIndexKey(sft)
     val toTieredKey = createTieredKey(tieredKeySpace(sft).map(_.toIndexKeyBytes(sft))) _
     createDelete(table, toIndexKey, toTieredKey)
@@ -102,9 +104,9 @@ trait KuduTieredFeatureIndex[T, U] extends KuduFeatureIndex[T, U] {
 
         val adapter = KuduResultAdapter(sft, auths, ecql, hints)
 
-        val table = getTableName(sft.getTypeName, ds)
+        val tables = getTablesForQuery(sft, ds, filter.filter)
 
-        ScanPlan(filter, table, ranges.toSeq, predicates, ecql, adapter, ds.config.queryThreads)
+        ScanPlan(filter, tables, ranges.toSeq, predicates, ecql, adapter, ds.config.queryThreads)
       }
     }
   }

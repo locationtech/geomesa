@@ -116,6 +116,65 @@ Argument                 Description
 ``--removeAll``          Delete all existing keywords
 ======================== ==============================================================
 
+.. _manage_partitions_cli:
+
+``manage-partitions``
+---------------------
+
+This command will list, add and delete partitioned tables used by GeoMesa. It has four sub-commands:
+
+* ``list`` - list the partitions for a given schema
+* ``add`` - create new partitions
+* ``delete`` - delete existing partitions
+* ``name`` - display the partition name associated with an attribute (i.e. date)
+
+To invoke the command, use the command name followed by the sub-command, then any arguments. For example::
+
+    $ geomesa manage-partitions list -c myCatalog ...
+
+======================== =============================================================
+Argument                 Description
+======================== =============================================================
+``-c, --catalog *``      The catalog table containing schema metadata
+``-f, --feature-name *`` The name of the schema
+======================== =============================================================
+
+``list``
+^^^^^^^^
+
+The ``list`` sub-command will print out the current partitions for a schema.
+
+``add/delete``
+^^^^^^^^^^^^^^
+
+The ``add`` and ``delete`` sub-commands will add or delete partitions, respectively. The ``add`` command
+will create new tables as necessary, while the ``delete`` command will drop tables.
+
+======================== =============================================================
+Argument                 Description
+======================== =============================================================
+``--partition *``        The name of the partition to add or delete. May be specified
+                         multiple times to operate on multiple partitions
+``--force``              Force deletion of partitions without confirmation prompt
+                         (delete only)
+======================== =============================================================
+
+To determine the appropriate partition name, use the ``name`` sub-command.
+
+``name``
+^^^^^^^^
+
+The ``name`` sub-command will display the partition name associated with a particular date. The partition
+names are required when adding or deleting partitions.
+
+======================== =============================================================
+Argument                 Description
+======================== =============================================================
+``--value *``            The date for the partition, in the form
+                         ``yyyy-MM-ddTHH:mm:ss.SSSZ``. May be specified multiple
+                         times to display multiple partition names
+======================== =============================================================
+
 ``remove-schema``
 -----------------
 

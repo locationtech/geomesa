@@ -37,14 +37,15 @@ trait Z3WritableIndex extends AccumuloFeatureIndex {
 
   def hasSplits: Boolean
 
-  override def delete(sft: SimpleFeatureType, ds: AccumuloDataStore, shared: Boolean): Unit = {
-    val table = getTableName(sft.getTypeName, ds)
-    if (ds.tableOps.exists(table)) {
-      // we need to synchronize deleting of tables in mock accumulo as it's not thread safe
-      if (ds.connector.isInstanceOf[MockConnector]) {
-        ds.connector.synchronized(ds.tableOps.delete(table))
-      } else {
-        ds.tableOps.delete(table)
+  override def delete(sft: SimpleFeatureType, ds: AccumuloDataStore, partition: Option[String]): Unit = {
+    getTableNames(sft, ds, partition).par.foreach { table =>
+      if (ds.tableOps.exists(table)) {
+        // we need to synchronize deleting of tables in mock accumulo as it's not thread safe
+        if (ds.connector.isInstanceOf[MockConnector]) {
+          ds.connector.synchronized(ds.tableOps.delete(table))
+        } else {
+          ds.tableOps.delete(table)
+        }
       }
     }
   }
@@ -131,12 +132,12 @@ trait Z3WritableIndex extends AccumuloFeatureIndex {
     prefix + length
   }
 
-  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore): Unit = {
+  override def configure(sft: SimpleFeatureType, ds: AccumuloDataStore, partition: Option[String]): String = {
     // z3 always has it's own table
     // note: we don't call super as it will write the table name we're overriding
     val suffix = GeoMesaFeatureIndex.tableSuffix(this)
     val table = GeoMesaFeatureIndex.formatSoloTableName(ds.config.catalog, suffix, sft.getTypeName)
-    ds.metadata.insert(sft.getTypeName, tableNameKey, table)
+    ds.metadata.insert(sft.getTypeName, tableNameKey(None), table)
 
     AccumuloVersion.ensureTableExists(ds.connector, table)
 
@@ -152,5 +153,7 @@ trait Z3WritableIndex extends AccumuloFeatureIndex {
     }
 
     ds.tableOps.setProperty(table, Property.TABLE_BLOCKCACHE_ENABLED.getKey, "true")
+
+    table
   }
 }

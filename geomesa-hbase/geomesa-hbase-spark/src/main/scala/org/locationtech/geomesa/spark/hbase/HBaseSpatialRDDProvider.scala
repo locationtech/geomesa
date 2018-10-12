@@ -17,7 +17,7 @@ import org.apache.hadoop.io.Text
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.geotools.data.{Query, Transaction}
-import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseDataStoreFactory, HBaseQueryPlan}
+import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.jobs.GeoMesaHBaseInputFormat
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
@@ -56,12 +56,13 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
         GeoMesaConfigurator.setSchema(conf, sft)
         GeoMesaConfigurator.setSerialization(conf)
         GeoMesaConfigurator.setIndexIn(conf, qp.filter.index)
-        GeoMesaConfigurator.setTable(conf, qp.table.getNameAsString)
+        // note: we've ensured there is only one table per query plan, below
+        GeoMesaConfigurator.setTable(conf, qp.tables.head.getNameAsString)
         transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
         // note: secondary filter is handled by scan push-down filter
         val scans = qp.scans.map { scan =>
           // need to set the table name in each scan
-          scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.table.getName)
+          scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.tables.head.getName)
           convertScanToString(scan)
         }
         conf.setStrings(MultiTableInputFormat.SCANS, scans: _*)
@@ -77,10 +78,16 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
         // can return a union of the RDDs because the query planner *should*
         // be rewriting ORs to make them logically disjoint
         // e.g. "A OR B OR C" -> "A OR (B NOT A) OR ((C NOT A) NOT B)"
-        val rdd = if (qps.lengthCompare(1) == 0) {
+        val rdd = if (qps.lengthCompare(1) == 0 && qps.head.tables.lengthCompare(1) == 0) {
           queryPlanToRDD(qps.head, conf) // no union needed for single query plan
         } else {
-          sc.union(qps.map(queryPlanToRDD(_, new Configuration(conf))))
+          // flatten and duplicate the query plans so each one only has a single table
+          val expanded = qps.flatMap {
+            case qp: ScanPlan => qp.tables.map(t => qp.copy(tables = Seq(t)))
+            case qp: EmptyPlan => Seq(qp)
+            case qp => throw new NotImplementedError(s"Unexpected query plan type: $qp")
+          }
+          sc.union(expanded.map(queryPlanToRDD(_, new Configuration(conf))))
         }
         SpatialRDD(rdd, transform.getOrElse(sft))
       }

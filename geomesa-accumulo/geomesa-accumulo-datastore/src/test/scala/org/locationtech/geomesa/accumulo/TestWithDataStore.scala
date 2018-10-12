@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.accumulo
 
+import org.apache.accumulo.core.client.Connector
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.client.{Connector, Scanner}
 import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
@@ -18,7 +18,6 @@ import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -122,9 +121,6 @@ trait TestWithDataStore extends Specification {
   }
 
   def explain(filter: String): String = explain(new Query(sftName, ECQL.toFilter(filter)))
-
-  def scanner(table: AccumuloFeatureIndex): Scanner =
-    connector.createScanner(table.getTableName(sftName, ds), new Authorizations())
 
   def rowToString(key: Key) = bytesToString(key.getRow.copyBytes())
 

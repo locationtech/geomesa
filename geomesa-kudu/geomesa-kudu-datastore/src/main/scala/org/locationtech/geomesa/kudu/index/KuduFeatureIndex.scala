@@ -126,17 +126,16 @@ trait KuduFeatureIndex[T, U] extends KuduFeatureIndexType with LazyLogging {
 
   override def supports(sft: SimpleFeatureType): Boolean = keySpace.supports(sft)
 
-  override def configure(sft: SimpleFeatureType, ds: KuduDataStore): Unit = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+  override def configure(sft: SimpleFeatureType, ds: KuduDataStore, partition: Option[String]): String = {
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TABLE_SPLITTER_OPTS
 
-    super.configure(sft, ds)
-
-    val table = getTableName(sft.getTypeName, ds)
+    val table = super.configure(sft, ds, partition)
 
     if (!ds.client.tableExists(table)) {
       val schema = tableSchema(sft)
       val options = new CreateTableOptions()
-      val splitters = Option(sft.getTableSplitterOptions).map(KVPairParser.parse).getOrElse(Map.empty)
+      val splitters =
+        Option(sft.getUserData.get(TABLE_SPLITTER_OPTS).asInstanceOf[String]).map(KVPairParser.parse).getOrElse(Map.empty)
 
       configurePartitions(sft, schema, splitters, options)
 
@@ -149,18 +148,22 @@ trait KuduFeatureIndex[T, U] extends KuduFeatureIndexType with LazyLogging {
 
       ds.client.createTable(table, schema, options)
     }
+
+    table
   }
 
-  override def writer(sft: SimpleFeatureType, ds: KuduDataStore): (KuduFeature) => Seq[WriteOperation] = {
-    val table = ds.client.openTable(getTableName(sft.getTypeName, ds))
+  override def writer(sft: SimpleFeatureType, ds: KuduDataStore): KuduFeature => Seq[WriteOperation] = {
+    // note: table partitioning is disabled in the data store
+    val table = ds.client.openTable(getTableNames(sft, ds, None).head)
     val splitters = KuduFeatureIndex.splitters(sft)
     val toIndexKey = keySpace.toIndexKey(sft)
     val schema = KuduSimpleFeatureSchema(sft)
     createInsert(sft, table, schema, splitters, toIndexKey)
   }
 
-  override def remover(sft: SimpleFeatureType, ds: KuduDataStore): (KuduFeature) => Seq[WriteOperation] = {
-    val table = ds.client.openTable(getTableName(sft.getTypeName, ds))
+  override def remover(sft: SimpleFeatureType, ds: KuduDataStore): KuduFeature => Seq[WriteOperation] = {
+    // note: table partitioning is disabled in the data store
+    val table = ds.client.openTable(getTableNames(sft, ds, None).head)
     val toIndexKey = keySpace.toIndexKey(sft, lenient = true)
     createDelete(sft, table, toIndexKey)
   }
@@ -168,35 +171,37 @@ trait KuduFeatureIndex[T, U] extends KuduFeatureIndexType with LazyLogging {
   override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String =
     throw new NotImplementedError("Kudu does not support binary rows")
 
-  override def getSplits(sft: SimpleFeatureType): Seq[Array[Byte]] =
+  override def getSplits(sft: SimpleFeatureType, partition: Option[String]): Seq[Array[Byte]] =
     throw new NotImplementedError("Kudu does not support binary splits")
 
   override def removeAll(sft: SimpleFeatureType, ds: KuduDataStore): Unit = {
     import org.locationtech.geomesa.kudu.utils.RichKuduClient.RichScanner
 
-    val table = ds.client.openTable(getTableName(sft.getTypeName, ds))
-    val builder = ds.client.newScannerBuilder(table)
-    builder.setProjectedColumnNames(keyColumns.flatMap(_.columns.map(_.getName)).asJava)
+    getTableNames(sft, ds, None).par.foreach { name =>
+      val table = ds.client.openTable(name)
+      val builder = ds.client.newScannerBuilder(table)
+      builder.setProjectedColumnNames(keyColumns.flatMap(_.columns.map(_.getName)).asJava)
 
-    WithClose(SessionHolder(ds.client.newSession()), builder.build().iterator) { case (holder, iterator) =>
-      holder.session.setFlushMode(FlushMode.AUTO_FLUSH_BACKGROUND)
-      iterator.foreach { row =>
-        val delete = table.newDelete()
-        keyColumns.foreach(_.transfer(row, delete.getRow))
-        holder.session.apply(delete)
+      WithClose(SessionHolder(ds.client.newSession()), builder.build().iterator) { case (holder, iterator) =>
+        holder.session.setFlushMode(FlushMode.AUTO_FLUSH_BACKGROUND)
+        iterator.foreach { row =>
+          val delete = table.newDelete()
+          keyColumns.foreach(_.transfer(row, delete.getRow))
+          holder.session.apply(delete)
+        }
       }
     }
   }
 
-  override def delete(sft: SimpleFeatureType, ds: KuduDataStore, shared: Boolean): Unit = {
-    if (shared) {
-      throw new NotImplementedError("Kudu tables are never shared")
-    } else {
-      val table = getTableName(sft.getTypeName, ds)
+  override def delete(sft: SimpleFeatureType, ds: KuduDataStore, partition: Option[String]): Unit = {
+    getTableNames(sft, ds, partition).par.foreach { table =>
       if (ds.client.tableExists(table)) {
         ds.client.deleteTable(table)
       }
     }
+
+    // deletes the metadata
+    super.delete(sft, ds, partition)
   }
 
   override def getQueryPlan(sft: SimpleFeatureType,
@@ -224,7 +229,7 @@ trait KuduFeatureIndex[T, U] extends KuduFeatureIndexType with LazyLogging {
     }
 
     if (ranges.isEmpty) { EmptyPlan(filter) } else {
-      val table = getTableName(sft.getTypeName, ds)
+      val tables = getTablesForQuery(sft, ds, filter.filter)
       val schema = KuduSimpleFeatureSchema(sft)
 
       val fullFilter =
@@ -237,7 +242,7 @@ trait KuduFeatureIndex[T, U] extends KuduFeatureIndexType with LazyLogging {
 
       val adapter = KuduResultAdapter(sft, auths, ecql, hints)
 
-      ScanPlan(filter, table, ranges.toSeq, predicates, ecql, adapter, ds.config.queryThreads)
+      ScanPlan(filter, tables, ranges.toSeq, predicates, ecql, adapter, ds.config.queryThreads)
     }
   }
 

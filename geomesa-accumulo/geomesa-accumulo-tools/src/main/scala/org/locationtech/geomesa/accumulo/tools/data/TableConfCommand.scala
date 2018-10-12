@@ -16,7 +16,6 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam, Runner}
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -41,12 +40,11 @@ class TableConfListCommand extends AccumuloDataStoreCommand {
   override def execute(): Unit = {
     Command.user.info(s"Reading configuration parameters for index '${params.index}'")
     withDataStore { ds =>
-      val table = getTableName(ds, ds.getSchema(params.featureName), params.index)
-      val properties = getProperties(ds, table)
+      val tables = getTableNames(ds, ds.getSchema(params.featureName), params.index)
+      val properties = tables.flatMap(getProperties(ds, _))
       val pattern = Option(params.key).map(Pattern.compile)
-      properties.filterKeys(k => pattern.forall(_.matcher(k).matches)).toSeq.sorted.foreach { case (k, v) =>
-        Command.output.info(s"  $k=$v")
-      }
+      val out = properties.collect { case ((t, k), v) if pattern.forall(_.matcher(k).matches) => (k, v) }
+      out.distinct.sorted.foreach { case (k, v) => Command.output.info(s"  $k=$v") }
     }
   }
 }
@@ -61,15 +59,15 @@ class TableConfUpdateCommand extends AccumuloDataStoreCommand {
   override def execute(): Unit = {
     withDataStore { ds =>
       Command.user.info(s"Reading configuration parameters for index '${params.index}'")
-      val table = getTableName(ds, ds.getSchema(params.featureName), params.index)
-      val value = getProp(ds, table, params.key)
-      Command.user.info(s"  current value: ${params.key}=$value")
+      val tables = getTableNames(ds, ds.getSchema(params.featureName), params.index)
+      val values = tables.map(getProp(ds, _, params.key)).distinct
+      values.foreach(v => Command.user.info(s"  current value: ${params.key}=$v"))
 
-      if (params.newValue != value) {
+      if (values != Seq(params.newValue)) {
         Command.user.info(s"Updating configuration parameter to '${params.newValue}'...")
-        setValue(ds, table, params.key, params.newValue)
-        val updated = getProp(ds, table, params.key)
-        Command.user.info(s"  updated value: ${params.key}=$updated")
+        tables.foreach(setValue(ds, _, params.key, params.newValue))
+        val updated = tables.map(getProp(ds, _, params.key)).distinct
+        updated.foreach(v => Command.user.info(s"  updated value: ${params.key}=$v"))
       } else {
         Command.user.info(s"'${params.key}' already set to '${params.newValue}'.")
       }
@@ -80,7 +78,8 @@ class TableConfUpdateCommand extends AccumuloDataStoreCommand {
 object TableConfCommand {
 
   def getProp(ds: AccumuloDataStore, table: String, key: String): String =
-    getProperties(ds, table).getOrElse(key, throw new RuntimeException(s"Parameter '$key' not found in table '$table'"))
+    getProperties(ds, table).getOrElse((table, key),
+      throw new RuntimeException(s"Parameter '$key' not found in table '$table'"))
 
   def setValue(ds: AccumuloDataStore, table: String, key: String, value: String): Unit = {
     try {
@@ -90,18 +89,18 @@ object TableConfCommand {
     }
   }
 
-  def getProperties(ds: AccumuloDataStore, table: String): Map[String, String] = {
+  def getProperties(ds: AccumuloDataStore, table: String): Map[(String, String), String] = {
     try {
-      ds.connector.tableOperations.getProperties(table).map(e => (e.getKey, e.getValue)).toMap
+      ds.connector.tableOperations.getProperties(table).map(e => ((table, e.getKey), e.getValue)).toMap
     } catch {
       case e: TableNotFoundException =>
         throw new RuntimeException(s"Error: table $table does not exist: ${e.getMessage}", e)
     }
   }
 
-  def getTableName(ds: AccumuloDataStore, sft: SimpleFeatureType, index: String): String = {
+  def getTableNames(ds: AccumuloDataStore, sft: SimpleFeatureType, index: String): Seq[String] = {
     val indices = AccumuloFeatureIndex.indices(sft)
-    indices.find(_.name.equalsIgnoreCase(index)).map(_.getTableName(sft.getTypeName, ds)).getOrElse {
+    indices.find(_.name.equalsIgnoreCase(index)).map(_.getTableNames(sft, ds, None)).getOrElse {
       throw new IllegalArgumentException(s"Index '$index' does not exist for schema '${sft.getTypeName}'. " +
           s"Available indices: ${indices.map(_.name).mkString(", ")}")
     }
