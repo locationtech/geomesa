@@ -10,7 +10,6 @@ package org.locationtech.geomesa.kafka.data
 
 import java.awt.RenderingHints
 import java.io.Serializable
-import java.net.URL
 import java.util.Properties
 import java.util.concurrent.ScheduledExecutorService
 
@@ -87,8 +86,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreFactoryParams.ConsumeEarliest,
       KafkaDataStoreFactoryParams.AuditQueries,
       KafkaDataStoreFactoryParams.LooseBBox,
-      KafkaDataStoreFactoryParams.Authorizations,
-      KafkaDataStoreFactoryParams.SchemaRegistryUrl
+      KafkaDataStoreFactoryParams.Authorizations
     )
 
   override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
