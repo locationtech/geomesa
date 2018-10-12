@@ -30,14 +30,63 @@ Example: ``withDefault(null, 'bar') = bar``
 String Functions
 ~~~~~~~~~~~~~~~~
 
+strip
+^^^^^
+
+Description: Removes characters from the start or end of a string. Defaults to whitespace.
+
+Usage: ``strip($1)`` or ``strip($1, $chars)``
+
+Examples: ``strip('afoob', 'abc') = foo``
+``strip('foao', 'abc') = foao``
+``strip('\t foo ') = foo``
+
 stripQuotes
 ^^^^^^^^^^^
 
-Description: Remove double quotes from a string.
+Description: Remove double or single quotes from a the start or end of a string
 
 Usage: ``stripQuotes($1)``
 
-Example: ``stripQuotes('fo"o') = foo``
+Examples: ``stripQuotes('"foo"') = foo``
+``stripQuotes('\'foo\'') = foo``
+``stripQuotes('fo"o') = fo"o``
+
+stripPrefix
+^^^^^^^^^^^
+
+Description: Removes characters from the start of a string. Whitespace is preserved.
+
+Usage: ``stripPrefix($1, $chars)``
+
+Examples: ``stripPrefix('afoob', 'abc') = foob``
+
+stripSuffix
+^^^^^^^^^^^
+
+Description: Removes characters from the end of a string. Whitespace is preserved.
+
+Usage: ``stripSuffix($1, $chars)``
+
+Examples: ``stripSuffix('afoob', 'abc') = afoo``
+
+remove
+^^^^^^
+
+Description: Removes a substring from a string
+
+Usage: ``remove($1, $substring)``
+
+Examples: ``remove('foabco', 'abc') = foo``
+
+replace
+^^^^^^^
+
+Description: Replaces a literal string with another string
+
+Usage: ``replace($1, $toReplace, $replacement)``
+
+Examples: ``replace('foobar', 'ob', 'ab') = foabar``
 
 length
 ^^^^^^

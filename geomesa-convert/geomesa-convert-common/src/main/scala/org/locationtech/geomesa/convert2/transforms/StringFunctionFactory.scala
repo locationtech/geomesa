@@ -8,13 +8,16 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
+import org.apache.commons.lang3.StringUtils
+
 import scala.util.matching.Regex
 
 
 class StringFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFunction] =
-    Seq(stripQuotes, strLen, trim, capitalize, lowercase, uppercase, regexReplace, concat,
+    Seq(stripQuotes, strip, stripPrefix, stripSuffix, replace, remove,
+      strLen, trim, capitalize, lowercase, uppercase, regexReplace, concat,
       substr, string, mkstring, emptyToNull, printf)
 
   private val string = TransformerFunction("toString") { args =>
@@ -22,7 +25,37 @@ class StringFunctionFactory extends TransformerFunctionFactory {
   }
 
   private val stripQuotes = TransformerFunction("stripQuotes") { args =>
-    args(0).asInstanceOf[String].replaceAll("\"", "")
+    StringUtils.strip(args(0).asInstanceOf[String], "'\"")
+  }
+
+  private val strip = TransformerFunction("strip") { args =>
+    if (args.length == 1) {
+      StringUtils.strip(args(0).asInstanceOf[String])
+    } else {
+      val toStrip = args(1).asInstanceOf[String]
+      StringUtils.strip(args(0).asInstanceOf[String], toStrip)
+    }
+  }
+
+  private val stripPrefix = TransformerFunction("stripPrefix") { args =>
+    val toStrip = args(1).asInstanceOf[String]
+    StringUtils.stripStart(args(0).asInstanceOf[String], toStrip)
+  }
+
+  private val stripSuffix = TransformerFunction("stripSuffix") { args =>
+    val toStrip = args(1).asInstanceOf[String]
+    StringUtils.stripEnd(args(0).asInstanceOf[String], toStrip)
+  }
+
+  private val replace = TransformerFunction("replace") { args =>
+    val toRemove = args(1).asInstanceOf[String]
+    val replacement = args(2).asInstanceOf[String]
+    args(0).asInstanceOf[String].replaceAllLiterally(toRemove, replacement)
+  }
+
+  private val remove = TransformerFunction("remove") { args =>
+    val toRemove = args(1).asInstanceOf[String]
+    StringUtils.remove(args(0).asInstanceOf[String], toRemove)
   }
 
   private val trim = TransformerFunction("trim") { args =>

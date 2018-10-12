@@ -866,5 +866,106 @@ class TransformersTest extends Specification {
       trans.eval(Array("bar")) mustEqual "bar"
       trans.eval(Array("")) mustEqual ""
     }
+
+    "strip strings" >> {
+
+      "strip quotes" >> {
+        val trans = Transformers.parseTransform("stripQuotes($0)")
+        trans.eval(Array("'foo'")) mustEqual "foo"
+        trans.eval(Array("\"foo'")) mustEqual "foo"
+        trans.eval(Array("\"'foo'")) mustEqual "foo"
+
+        // white space is preserved
+        trans.eval(Array("'foo\t\t")) mustEqual "foo\t\t"
+        trans.eval(Array("  foo'\"\"")) mustEqual "  foo"
+      }
+
+      "all whitespace no args" >> {
+        val trans = Transformers.parseTransform("strip($0)")
+        trans.eval(Array("\t   foo   \t\t\t")) mustEqual "foo"
+      }
+
+      "from start and front with strip" >> {
+        val trans = Transformers.parseTransform("strip($0, '\\'')")
+        trans.eval(Array("'foo'")) mustEqual "foo"
+        trans.eval(Array("'foo")) mustEqual "foo"
+        trans.eval(Array("foo'")) mustEqual "foo"
+      }
+
+      "multiple chars (e.g. quotes)" >> {
+        val trans = Transformers.parseTransform("strip($0, '\\'\\\"')")
+        trans.eval(Array("'foo'")) mustEqual "foo"
+        trans.eval(Array("\"foo'")) mustEqual "foo"
+        trans.eval(Array("\"'foo'")) mustEqual "foo"
+        trans.eval(Array("'foo")) mustEqual "foo"
+        trans.eval(Array("foo'\"\"")) mustEqual "foo"
+      }
+
+      "prefix only" >> {
+        val trans = Transformers.parseTransform("stripPrefix($0, '\\'')")
+        trans.eval(Array("'foo'", "'")) mustEqual "foo'"
+        trans.eval(Array("'foo", "'")) mustEqual "foo"
+        trans.eval(Array("foo'", "'")) mustEqual "foo'"
+        trans.eval(Array(" 'foo'", "'")) mustEqual " 'foo'"
+      }
+
+      "prefix with  multiple chars" >> {
+        val trans = Transformers.parseTransform("stripPrefix($0, '\\'\\\"')")
+        trans.eval(Array("'foo'", "'")) mustEqual "foo'"
+        trans.eval(Array("'foo", "'")) mustEqual "foo"
+        trans.eval(Array("foo'", "'")) mustEqual "foo'"
+        trans.eval(Array("\"'foo\"", "'")) mustEqual "foo\""
+        trans.eval(Array("\"\"\"'foo'", "'")) mustEqual "foo'"
+      }
+
+      "suffix only" >> {
+        val trans = Transformers.parseTransform("stripSuffix($0, '\\'')")
+        trans.eval(Array("'foo'")) mustEqual "'foo"
+        trans.eval(Array("'foo")) mustEqual "'foo"
+        trans.eval(Array("foo'")) mustEqual "foo"
+      }
+
+      "suffix with preserving whitespace" >> {
+        val trans = Transformers.parseTransform("stripSuffix($0, 'ab')")
+        trans.eval(Array("fooab ")) mustEqual "fooab "
+      }
+
+      "suffix multiple chars" >> {
+        val trans = Transformers.parseTransform("stripSuffix($0, '\\'\\\"')")
+        trans.eval(Array("'\"foo'")) mustEqual "'\"foo"
+        trans.eval(Array("'\"foo")) mustEqual "'\"foo"
+        trans.eval(Array("\"foo'")) mustEqual "\"foo"
+        trans.eval(Array("'foo\"'")) mustEqual "'foo"
+        trans.eval(Array("'foo\"")) mustEqual "'foo"
+        trans.eval(Array("foo'\"")) mustEqual "foo"
+      }
+
+      "something other than quotes" >> {
+        val trans = Transformers.parseTransform("strip($0, 'X')")
+        trans.eval(Array("XfooX")) mustEqual "foo"
+        trans.eval(Array("Xfoo")) mustEqual "foo"
+        trans.eval(Array("fooX")) mustEqual "foo"
+      }
+    }
+
+    "remove strings" >> {
+      val trans = Transformers.parseTransform("remove($0, '\\'')")
+      trans.eval(Array("'foo'")) mustEqual "foo"
+      trans.eval(Array("'foo")) mustEqual "foo"
+      trans.eval(Array("foo'")) mustEqual "foo"
+      trans.eval(Array("f'o'o'")) mustEqual "foo"
+
+      Transformers.parseTransform("remove($0, 'abc')").eval(Array("foabco")) mustEqual "foo"
+    }
+
+    "replace" >> {
+      val trans = Transformers.parseTransform("replace($0, '\\'', '\\\"')")
+      trans.eval(Array("'foo'")) mustEqual "\"foo\""
+      trans.eval(Array("'foo")) mustEqual "\"foo"
+      trans.eval(Array("foo'")) mustEqual "foo\""
+      trans.eval(Array("f'o'o'")) mustEqual "f\"o\"o\""
+
+      Transformers.parseTransform("replace($0, 'a', 'o')").eval(Array("faa")) mustEqual "foo"
+    }
   }
 }
