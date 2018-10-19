@@ -76,10 +76,10 @@ class VisibilityFilterFunctionTest extends Specification {
       }
     }
 
-    "evaluate to true with no vis on the feature" in {
+    "evaluate to false with no vis on the feature" in {
       withAuths(Seq("ADMIN", "USER")) {
-        filter().evaluate(featureWithUserData(null)) must beTrue
-        filter(Some("name")).evaluate(featureWithAttribute(null)) must beTrue
+        filter().evaluate(featureWithUserData(null)) must beFalse
+        filter(Some("name")).evaluate(featureWithAttribute(null)) must beFalse
       }
     }
 
