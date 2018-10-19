@@ -44,14 +44,14 @@ class VisibilityFilterFunctionTest extends Specification {
       VisibilityFilterFunction.filter.evaluate(f) must beTrue
     }
 
-    "work with no viz on the feature" in {
+    "return false if no viz on the feature" in {
       val f = new SimpleFeatureImpl(List.empty[AnyRef], testSFT, new FeatureIdImpl(""))
 
       val ctx = SecurityContextHolder.createEmptyContext()
       ctx.setAuthentication(new TestingAuthenticationToken(null, null, "ADMIN", "USER"))
       SecurityContextHolder.setContext(ctx)
 
-      VisibilityFilterFunction.filter.evaluate(f) must beTrue
+      VisibilityFilterFunction.filter.evaluate(f) must beFalse
     }
 
     "return false when user does not have the right auths" in {

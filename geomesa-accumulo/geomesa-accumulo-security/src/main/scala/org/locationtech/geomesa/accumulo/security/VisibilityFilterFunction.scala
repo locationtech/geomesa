@@ -40,7 +40,7 @@ class VisibilityFilterFunction
   private val provider = security.getAuthorizationsProvider(Map.empty[String, java.io.Serializable].asJava, Seq())
   private val auths = provider.getAuthorizations.map(_.getBytes(StandardCharsets.UTF_8))
   private val vizEvaluator = new VisibilityEvaluator(new Authorizations(auths))
-  private val vizCache = collection.concurrent.TrieMap.empty[String, Boolean]
+  private val vizCache = collection.concurrent.TrieMap.empty[String, java.lang.Boolean]
 
   private var expression: Expression = _
 
@@ -59,7 +59,11 @@ class VisibilityFilterFunction
       } else {
         expression.evaluate(obj).asInstanceOf[String]
       }
-      Boolean.box(vis == null || vizCache.getOrElseUpdate(vis, vizEvaluator.evaluate(new ColumnVisibility(vis))))
+      if (vis == null || vis.trim.isEmpty) {
+        java.lang.Boolean.FALSE
+      } else {
+        vizCache.getOrElseUpdate(vis, Boolean.box(vizEvaluator.evaluate(new ColumnVisibility(vis))))
+      }
 
     case _ => java.lang.Boolean.FALSE
   }
