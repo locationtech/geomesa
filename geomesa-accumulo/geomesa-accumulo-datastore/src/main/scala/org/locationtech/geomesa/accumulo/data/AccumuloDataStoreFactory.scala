@@ -23,12 +23,10 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
-import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
-import org.locationtech.geomesa.security
-import org.locationtech.geomesa.security.SecurityParams
+import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityParams}
 import org.locationtech.geomesa.utils.audit.AuditProvider
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -203,7 +201,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     }
   }
 
-  def buildAuthsProvider(connector: Connector, params: JMap[String, Serializable]): AccumuloAuthsProvider = {
+  def buildAuthsProvider(connector: Connector, params: JMap[String, Serializable]): AuthorizationsProvider = {
     val forceEmptyOpt: Option[java.lang.Boolean] = ForceEmptyAuthsParam.lookupOpt(params)
     val forceEmptyAuths = forceEmptyOpt.getOrElse(java.lang.Boolean.FALSE).asInstanceOf[Boolean]
 
@@ -233,7 +231,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       if (forceEmptyAuths || configuredAuths.length > 0) configuredAuths.toList
       else masterAuthsStrings.toList
 
-    new AccumuloAuthsProvider(security.getAuthorizationsProvider(params, auths))
+    AuthorizationsProvider.apply(params, auths)
   }
 
   // Kerberos is only available in Accumulo >= 1.7.

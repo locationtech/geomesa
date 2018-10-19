@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa
 
-import java.util.ServiceLoader
 import java.{io => jio, util => ju}
 
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -16,6 +15,8 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.opengis.feature.simple.SimpleFeature
 
 package object security {
+
+  import scala.collection.JavaConverters._
 
   val GEOMESA_AUDIT_PROVIDER_IMPL = SystemProperty("geomesa.audit.provider.impl")
   val GEOMESA_AUTH_PROVIDER_IMPL  = SystemProperty("geomesa.auth.provider.impl")
@@ -52,41 +53,6 @@ package object security {
     def visibility: Option[String] = Option(SecurityUtils.getVisibility(sf))
   }
 
-  def getAuthorizationsProvider(params: ju.Map[String, jio.Serializable], auths: Seq[String]): AuthorizationsProvider = {
-    import scala.collection.JavaConversions._
-
-    // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
-    val providers = ServiceLoader.load(classOf[AuthorizationsProvider]).toBuffer
-    val toWrap = AuthProviderParam.lookupOpt(params).getOrElse {
-      GEOMESA_AUTH_PROVIDER_IMPL.option match {
-        case Some(prop) =>
-          if (classOf[DefaultAuthorizationsProvider].getName == prop)
-            new DefaultAuthorizationsProvider
-          else
-            providers.find(_.getClass.getName == prop).getOrElse {
-              throw new IllegalArgumentException(s"The service provider class '$prop' specified by " +
-                  s"${GEOMESA_AUTH_PROVIDER_IMPL.property} could not be loaded")
-            }
-        case None =>
-          providers.length match {
-            case 0 => new DefaultAuthorizationsProvider
-            case 1 => providers.head
-            case _ =>
-              throw new IllegalStateException(
-                "Found multiple AuthorizationsProvider implementations. Please specify the one to use with " +
-                    s"the system property '${GEOMESA_AUTH_PROVIDER_IMPL.property}' :: " +
-                    s"${providers.map(_.getClass.getName).mkString(", ")}")
-          }
-      }
-    }
-
-    val authorizationsProvider = new FilteringAuthorizationsProvider(toWrap)
-
-    // update the authorizations in the parameters and then configure the auth provider
-    // we copy the map so as not to modify the original
-    val modifiedParams = params ++ Map(AuthsParam.key -> auths.mkString(","))
-    authorizationsProvider.configure(modifiedParams)
-
-    authorizationsProvider
-  }
+  def getAuthorizationsProvider(params: ju.Map[String, jio.Serializable], auths: Seq[String]): AuthorizationsProvider =
+    AuthorizationsProvider.apply(params, auths.asJava)
 }

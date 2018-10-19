@@ -19,14 +19,14 @@ import com.google.common.collect.{ImmutableMap, ImmutableSetMultimap}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
-import org.apache.accumulo.core.security.TablePermission
+import org.apache.accumulo.core.security.{Authorizations, TablePermission}
 import org.geotools.coverage.grid.GridEnvelope2D
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
-import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.raster.iterators.BBOXCombiner._
 import org.locationtech.geomesa.raster.util.RasterUtils
+import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geohash.BoundingBox
 
@@ -34,7 +34,7 @@ import scala.collection.JavaConversions._
 
 class AccumuloRasterStore(val connector: Connector,
                           val tableName: String,
-                          val authorizationsProvider: AccumuloAuthsProvider,
+                          val authorizationsProvider: AuthorizationsProvider,
                           val writeVisibilities: String,
                           writeMemoryConfig: Option[String] = None,
                           writeThreadsConfig: Option[Int] = None,
@@ -54,7 +54,7 @@ class AccumuloRasterStore(val connector: Connector,
 
   private val usageStats = if (collectStats) new AccumuloAuditService(connector, authorizationsProvider, profileTable, true) else null
 
-  def getAuths = authorizationsProvider.getAuthorizations
+  def getAuths = new Authorizations(authorizationsProvider.getAuthorizations: _*)
 
   /**
    *  Given A Query, return a single buffered image that is a mosaic of the tiles

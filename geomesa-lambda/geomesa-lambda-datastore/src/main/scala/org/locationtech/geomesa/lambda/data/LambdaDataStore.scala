@@ -44,7 +44,7 @@ class LambdaDataStore(val persistence: DataStore,
     extends DataStore with HasGeoMesaStats with LazyLogging {
 
   private val authProvider: Option[AuthorizationsProvider] = persistence match {
-    case ds: AccumuloDataStore => Some(ds.config.authProvider.authProvider)
+    case ds: AccumuloDataStore => Some(ds.config.authProvider)
     case _ => None
   }
 
