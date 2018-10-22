@@ -208,7 +208,10 @@ object GeoMesaParam {
     } else if (extension != null) {
       java.util.Collections.singletonMap(Parameter.EXT, extension)
     } else if (enumerations.nonEmpty) {
-      java.util.Collections.singletonMap(Parameter.OPTIONS, enumerations.asJava)
+      // convert to a mutable java list, as geoserver tries to sort it in place
+      val enums = new java.util.ArrayList[AnyRef](enumerations.length)
+      enumerations.foreach(enums.add)
+      java.util.Collections.singletonMap(Parameter.OPTIONS, enums)
     } else {
       null
     }
