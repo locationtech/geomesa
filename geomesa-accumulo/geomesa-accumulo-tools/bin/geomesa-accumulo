@@ -96,7 +96,7 @@ done
 
 # For zookeeper only include the single root jar
 if [[ -d "${ZOOKEEPER_HOME}" ]]; then
-  ZOOKEEPER_JAR="$(find $ZOOKEEPER_HOME -maxdepth 1 -type f -name *zookeeper*jar)"
+  ZOOKEEPER_JAR="$(find -L $ZOOKEEPER_HOME -maxdepth 1 -type f -name *zookeeper*jar)"
 fi
 
 # Geomesa tools setup completed, below we parse user arguments
