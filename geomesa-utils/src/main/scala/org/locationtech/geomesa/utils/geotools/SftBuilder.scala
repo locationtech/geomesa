@@ -176,6 +176,11 @@ abstract class InitBuilder[T] {
     sft
   }
 
+  def build(namespace: String, nameSpec: String): SimpleFeatureType = {
+    val sft = SimpleFeatureTypes.createType(namespace, nameSpec, getSpec)
+    dtgFieldOpt.foreach(sft.setDtgField)
+    sft
+  }
 }
 
 class SftBuilder extends InitBuilder[SftBuilder] {}

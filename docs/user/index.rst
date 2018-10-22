@@ -21,6 +21,7 @@ User Manual
    filesystem/index
    geoserver
    blobstore
+   merged_view
    convert/index
    geojson
    metrics
