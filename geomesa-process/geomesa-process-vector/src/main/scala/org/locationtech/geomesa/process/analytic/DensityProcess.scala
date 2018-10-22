@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.process.analytic
 
 import java.awt.image.DataBuffer
-import javax.media.jai.RasterFactory
 
+import javax.media.jai.RasterFactory
 import org.geotools.coverage.CoverageFactoryFinder
 import org.geotools.coverage.grid.GridCoverage2D
 import org.geotools.data.Query
@@ -23,6 +23,7 @@ import org.geotools.process.vector.{BBOXExpandingFilterVisitor, HeatmapSurface}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.process.GeoMesaProcess
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.coverage.grid.GridGeometry
 import org.opengis.filter.Filter
 import org.opengis.util.ProgressListener
@@ -69,15 +70,15 @@ class DensityProcess extends GeoMesaProcess {
     val heatMap = new HeatmapSurface(pixels, envelope, outputWidth, outputHeight)
 
     try {
-      val features = obsFeatures.features()
-      while (features.hasNext) {
-        val pts = decode(features.next())
-        while (pts.hasNext) {
-          val (x, y, weight) = pts.next()
-          heatMap.addPoint(x, y, weight)
+      WithClose(obsFeatures.features()) { features =>
+        while (features.hasNext) {
+          val pts = decode(features.next())
+          while (pts.hasNext) {
+            val (x, y, weight) = pts.next()
+            heatMap.addPoint(x, y, weight)
+          }
         }
       }
-      features.close()
     } catch {
       case e: Exception => throw new ProcessException("Error processing heatmap", e)
     }

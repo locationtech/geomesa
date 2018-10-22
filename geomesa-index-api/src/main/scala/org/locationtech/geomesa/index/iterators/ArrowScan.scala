@@ -142,27 +142,7 @@ object ArrowScan {
     import Configuration._
 
     // handle sort from query
-    hints.getSortFields.foreach { sort =>
-      if (sort.lengthCompare(1) > 0) {
-        throw new IllegalArgumentException("Arrow queries only support sort by a single field: " +
-            hints.getSortReadableString)
-      } else if (sort.head._1.isEmpty) {
-        throw new IllegalArgumentException("Arrow queries only support sort by properties: " +
-            hints.getSortReadableString)
-      } else {
-        hints.getArrowSort match {
-          case None =>
-            hints.put(QueryHints.ARROW_SORT_FIELD, sort.head._1)
-            hints.put(QueryHints.ARROW_SORT_REVERSE, sort.head._2)
-          case Some(s) =>
-            if (s != sort.head) {
-              throw new IllegalArgumentException(s"Query sort does not match Arrow hints sort: " +
-                  s"${hints.getSortReadableString} != ${s._1}:${if (s._2) "DESC" else "ASC"}")
-            }
-        }
-        hints.remove(QueryHints.Internal.SORT_FIELDS)
-      }
-    }
+    setSortHints(hints)
 
     val arrowSft = hints.getTransformSchema.getOrElse(sft)
     val includeFids = hints.isArrowIncludeFid
@@ -214,6 +194,35 @@ object ArrowScan {
       )
       val reduce = mergeDeltas(arrowSft, dictionaryFields, encoding, batchSize, sort) _
       ArrowScanConfig(config, reduce)
+    }
+  }
+
+  /**
+    * Converts standard sort hints from the query into arrow sort hints
+    *
+    * @param hints hints
+    */
+  def setSortHints(hints: Hints): Unit = {
+    hints.getSortFields.foreach { sort =>
+      if (sort.lengthCompare(1) > 0) {
+        throw new IllegalArgumentException("Arrow queries only support sort by a single field: " +
+            hints.getSortReadableString)
+      } else if (sort.head._1.isEmpty) {
+        throw new IllegalArgumentException("Arrow queries only support sort by properties: " +
+            hints.getSortReadableString)
+      } else {
+        hints.getArrowSort match {
+          case None =>
+            hints.put(QueryHints.ARROW_SORT_FIELD, sort.head._1)
+            hints.put(QueryHints.ARROW_SORT_REVERSE, sort.head._2)
+          case Some(s) =>
+            if (s != sort.head) {
+              throw new IllegalArgumentException(s"Query sort does not match Arrow hints sort: " +
+                  s"${hints.getSortReadableString} != ${s._1}:${if (s._2) "DESC" else "ASC"}")
+            }
+        }
+        hints.remove(QueryHints.Internal.SORT_FIELDS)
+      }
     }
   }
 

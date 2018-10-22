@@ -12,6 +12,7 @@ import org.geotools.data.{DataStore, Query, Transaction}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, NoOpMetadata}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.{SeqStat, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -19,11 +20,15 @@ import org.opengis.filter.Filter
 /**
   * Allows for running of stats in a non-distributed fashion, and doesn't store any stats results
   *
-  * @param ds datastore
+  * @param store datastore
   */
-class UnoptimizedRunnableStats(val ds: DataStore with HasGeoMesaMetadata[String]) extends MetadataBackedStats {
+class UnoptimizedRunnableStats(store: DataStore) extends MetadataBackedStats {
 
   override protected val generateStats: Boolean = false
+
+  override protected val ds: HasGeoMesaMetadata[String] = new HasGeoMesaMetadata[String] {
+    override val metadata: GeoMesaMetadata[String] = new NoOpMetadata[String]
+  }
 
   override private [geomesa] val metadata: GeoMesaMetadata[Stat] = new NoOpMetadata[Stat]
 
@@ -31,11 +36,8 @@ class UnoptimizedRunnableStats(val ds: DataStore with HasGeoMesaMetadata[String]
     val stat = Stat(sft, stats)
     val query = new Query(sft.getTypeName, filter)
     try {
-      val reader = CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
-      try {
+      WithClose(CloseableIterator(store.getFeatureReader(query, Transaction.AUTO_COMMIT))) { reader =>
         reader.foreach(stat.observe)
-      } finally {
-        reader.close()
       }
       stat match {
         case s: SeqStat => s.stats.asInstanceOf[Seq[T]]

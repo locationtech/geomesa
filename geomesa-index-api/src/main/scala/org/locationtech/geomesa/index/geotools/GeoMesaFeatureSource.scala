@@ -43,7 +43,7 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
                            protected val collection: (Query, GeoMesaFeatureSource) => GeoMesaFeatureCollection)
     extends SimpleFeatureSource with LazyLogging {
 
-  lazy private val hints = Collections.unmodifiableSet(Set.empty[Key])
+  lazy private val hints = Collections.unmodifiableSet(Collections.emptySet[Key])
 
   override def getSchema: SimpleFeatureType = sft
 
@@ -101,13 +101,6 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
   override def addFeatureListener(listener: FeatureListener): Unit = throw new NotImplementedError()
 
   override def removeFeatureListener(listener: FeatureListener): Unit = throw new NotImplementedError()
-
-  object GeoMesaQueryCapabilities extends QueryCapabilities {
-    override def isOffsetSupported = false
-    override def isReliableFIDSupported = true
-    override def isUseProvidedFIDSupported = true
-    override def supportsSorting(sortAttributes: Array[SortBy]) = true
-  }
 }
 
 /**
@@ -275,4 +268,11 @@ class DelegatingResourceInfo(source: SimpleFeatureSource) extends ResourceInfo {
   override def getCRS: CoordinateReferenceSystem = source.getSchema.getCoordinateReferenceSystem
 
   override def getBounds: ReferencedEnvelope = source.getBounds
+}
+
+object GeoMesaQueryCapabilities extends QueryCapabilities {
+  override def isOffsetSupported = false
+  override def isReliableFIDSupported = true
+  override def isUseProvidedFIDSupported = true
+  override def supportsSorting(sortAttributes: Array[SortBy]) = true
 }

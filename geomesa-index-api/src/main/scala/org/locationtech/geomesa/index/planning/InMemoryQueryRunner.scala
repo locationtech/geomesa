@@ -22,6 +22,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
+import org.locationtech.geomesa.index.planning.InMemoryQueryRunner.ArrowDictionaryHook
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{Explainer, Reprojection}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils, VisibilityEvaluator}
@@ -71,7 +72,8 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
     val iter = features(sft, filter).filter(isVisible(_, auths))
 
-    val result = CloseableIterator(transform(iter, sft, stats, query.getHints, filter))
+    val hook = Some(ArrowDictionaryHook(stats, filter))
+    val result = CloseableIterator(transform(sft, iter, query.getHints.getTransform, query.getHints, hook))
 
     Reprojection(query) match {
       case None    => result
@@ -101,26 +103,37 @@ object InMemoryQueryRunner {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-  def transform(features: Iterator[SimpleFeature],
-                sft: SimpleFeatureType,
-                stats: GeoMesaStats,
+  case class ArrowDictionaryHook(stats: GeoMesaStats, filter: Option[Filter])
+
+  /**
+    * Transform plain features into the appropriate return type, based on the hints
+    *
+    * @param sft simple feature type being queried
+    * @param features plain, untransformed features matching the simple feature type
+    * @param hints query hints
+    * @param arrow stats hook and cql filter - used for dictionary building in certain arrow queries
+    * @return
+    */
+  def transform(sft: SimpleFeatureType,
+                features: Iterator[SimpleFeature],
+                transform: Option[(String, SimpleFeatureType)],
                 hints: Hints,
-                filter: Option[Filter]): Iterator[SimpleFeature] = {
+                arrow: Option[ArrowDictionaryHook] = None): Iterator[SimpleFeature] = {
     if (hints.isBinQuery) {
       val trackId = Option(hints.getBinTrackIdField).filter(_ != "id").map(sft.indexOf)
       val geom = hints.getBinGeomField.map(sft.indexOf)
       val dtg = hints.getBinDtgField.map(sft.indexOf)
       binTransform(features, sft, trackId, geom, dtg, hints.getBinLabelField.map(sft.indexOf), hints.isBinSorting)
     } else if (hints.isArrowQuery) {
-      arrowTransform(features, sft, stats, hints, filter)
+      arrowTransform(features, sft, transform, hints, arrow)
     } else if (hints.isDensityQuery) {
       val Some(envelope) = hints.getDensityEnvelope
       val Some((width, height)) = hints.getDensityBounds
       densityTransform(features, sft, envelope, width, height, hints.getDensityWeight)
     } else if (hints.isStatsQuery) {
-      statsTransform(features, sft, hints.getTransform, hints.getStatsQuery, hints.isStatsEncode || hints.isSkipReduce)
+      statsTransform(features, sft, transform, hints.getStatsQuery, hints.isStatsEncode || hints.isSkipReduce)
     } else {
-      hints.getTransform match {
+      transform match {
         case None =>
           val sort = hints.getSortFields.map(SimpleFeatureOrdering(sft, _))
           noTransform(sft, features, sort)
@@ -154,9 +167,9 @@ object InMemoryQueryRunner {
 
   private def arrowTransform(original: Iterator[SimpleFeature],
                              sft: SimpleFeatureType,
-                             stats: GeoMesaStats,
+                             transform: Option[(String, SimpleFeatureType)],
                              hints: Hints,
-                             filter: Option[Filter]): Iterator[SimpleFeature] = {
+                             hook: Option[ArrowDictionaryHook]): Iterator[SimpleFeature] = {
 
     import org.locationtech.geomesa.arrow.allocator
 
@@ -164,7 +177,7 @@ object InMemoryQueryRunner {
     val batchSize = ArrowScan.getBatchSize(hints)
     val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid)
 
-    val (features, arrowSft) = hints.getTransform match {
+    val (features, arrowSft) = transform match {
       case None =>
         val sorting = sort.map { case (field, reverse) =>
           if (reverse) { SimpleFeatureOrdering(sft, field).reverse } else { SimpleFeatureOrdering(sft, field) }
@@ -177,11 +190,17 @@ object InMemoryQueryRunner {
         (projectionTransform(original, sft, tsft, definitions, sorting), tsft)
     }
 
+    lazy val ArrowDictionaryHook(stats, filter) = hook.getOrElse {
+      throw new IllegalStateException("Arrow query called without required hooks for dictionary lookups")
+    }
+
     val dictionaryFields = hints.getArrowDictionaryFields
     val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
     val cachedDictionaries: Map[String, TopK[AnyRef]] = if (!hints.isArrowCachedDictionaries) { Map.empty } else {
       val toLookup = dictionaryFields.filterNot(providedDictionaries.contains)
-      stats.getStats[TopK[AnyRef]](sft, toLookup).map(k => k.property -> k).toMap
+      if (toLookup.isEmpty) { Map.empty } else {
+        stats.getStats[TopK[AnyRef]](sft, toLookup).map(k => k.property -> k).toMap
+      }
     }
 
     if (hints.isArrowDoublePass ||
@@ -267,7 +286,7 @@ object InMemoryQueryRunner {
                                height: Int,
                                weight: Option[String]): Iterator[SimpleFeature] = {
     val grid = new GridSnap(envelope, width, height)
-    val result = scala.collection.mutable.Map.empty[(Int, Int), Double]
+    val result = scala.collection.mutable.Map.empty[(Int, Int), Double].withDefaultValue(0d)
     val getWeight = DensityScan.getWeight(sft, weight)
     val writeGeom = DensityScan.writeGeometry(sft, grid)
     features.foreach(f => writeGeom(f, getWeight(f), result))

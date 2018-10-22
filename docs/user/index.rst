@@ -23,6 +23,7 @@ User Manual
    filesystem/index
    kudu/index
    lambda/index
+   merged_view
    convert/index
    process
    geojson

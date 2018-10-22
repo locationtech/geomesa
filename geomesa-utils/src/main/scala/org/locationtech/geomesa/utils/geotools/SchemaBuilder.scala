@@ -306,6 +306,16 @@ object SchemaBuilder {
       */
     def build(name: String): SimpleFeatureType = SimpleFeatureTypes.createType(name, spec)
 
+    /**
+      * Create a new simple feature type using the current attributes
+      *
+      * @param namespace simple feature type namespace
+      * @param name simple feature type name
+      * @return simple feature type
+      */
+    def build(namespace: String, name: String): SimpleFeatureType =
+      SimpleFeatureTypes.createType(namespace, name, spec)
+
     protected def add(spec: String): A = {
       if (specString.nonEmpty) {
         specString.append(",")
