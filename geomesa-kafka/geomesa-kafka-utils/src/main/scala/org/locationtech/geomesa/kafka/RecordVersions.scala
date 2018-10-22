@@ -39,7 +39,6 @@ object RecordVersions extends LazyLogging {
     consumerMethods.find(m => m.getName == "headers" && m.getParameterCount == 0) match {
       case Some(method) =>
         record => {
-          record.headers.iterator.next.key
           val headers = method.invoke(record).asInstanceOf[Headers].iterator()
           val builder = Map.newBuilder[String, Array[Byte]]
           while (headers.hasNext) {
