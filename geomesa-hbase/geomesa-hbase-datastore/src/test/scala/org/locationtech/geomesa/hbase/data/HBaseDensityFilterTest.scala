@@ -23,7 +23,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
-import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties}
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -41,7 +41,6 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
   val TEST_HINT = new Hints()
   val sftName = "test_sft"
   val typeName = "HBaseDensityFilterTest"
-
 
   lazy val params = Map(
     ConnectionParam.getName -> connection,
@@ -167,7 +166,12 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
 
       val features_list = new ListFeatureCollection(sft, toAdd)
       fs.addFeatures(features_list)
-      fs.getCount(Query.ALL) mustEqual 150
+      QueryProperties.QueryExactCount.threadLocalValue.set("true")
+      try {
+        fs.getCount(Query.ALL) mustEqual 150
+      } finally {
+        QueryProperties.QueryExactCount.threadLocalValue.remove()
+      }
 
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -1, 33, 6, 40)"
       val density = getDensity(typeName, q, fs)

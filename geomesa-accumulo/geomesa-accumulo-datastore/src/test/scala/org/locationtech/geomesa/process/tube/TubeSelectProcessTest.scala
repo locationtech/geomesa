@@ -22,6 +22,7 @@ import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
+import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
@@ -446,7 +447,12 @@ class TubeSelectProcessTest extends Specification {
       // result set to tube on
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
 
-      features.size mustEqual 6
+      QueryProperties.QueryExactCount.threadLocalValue.set("true")
+      try {
+        features.size mustEqual 6
+      } finally {
+        QueryProperties.QueryExactCount.threadLocalValue.remove()
+      }
 
       // get back type b from tube
       val ts = new TubeSelectProcess()
@@ -458,7 +464,12 @@ class TubeSelectProcessTest extends Specification {
         sf.getAttribute("type") mustEqual "b"
       }
 
-      results.size mustEqual 6
+      QueryProperties.QueryExactCount.threadLocalValue.set("true")
+      try {
+        results.size mustEqual 6
+      } finally {
+        QueryProperties.QueryExactCount.threadLocalValue.remove()
+      }
     }
   }
 
