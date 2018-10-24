@@ -64,7 +64,7 @@
 
         <!-- this must remain outside of version specific scala profiles for sbt/ivy -->
         <scala.binary.version>2.11</scala.binary.version>
-        <scala.version>2.11.7</scala.version>
+        <scala.version>2.11.12</scala.version>
 
         <scala.xml.version>1.0.6</scala.xml.version>
         <scala.parsers.version>1.0.6</scala.parsers.version>
@@ -78,6 +78,8 @@
         <parquet.version>1.9.0</parquet.version>
         <orc.version>1.4.4</orc.version>
         <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
+        <jaxb.api.version>2.4.0-b180830.0359</jaxb.api.version>
+        <jaxb.impl.version>2.4.0-b180830.0438</jaxb.impl.version>
         <gdal.version>2.0.0</gdal.version>
         <json4s.version>3.5.4</json4s.version>
         <scalatra.version>2.6.3</scalatra.version>
@@ -90,7 +92,7 @@
         <accumulo.version>1.8.1</accumulo.version>
         <zookeeper.version>3.4.10</zookeeper.version>
         <thrift.version>0.9.3</thrift.version>
-        <hadoop.version>2.6.4</hadoop.version>
+        <hadoop.version>3.1.1</hadoop.version>
         <spark.version>2.3.1</spark.version>
         <hbase.version>1.3.1</hbase.version>
         <hbase.guava.version>12.0.1</hbase.guava.version>
@@ -2115,17 +2117,17 @@
             <dependency>
                 <groupId>javax.xml.bind</groupId>
                 <artifactId>jaxb-api</artifactId>
-                <version>2.2.7</version>
+                <version>${jaxb.api.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.sun.xml.bind</groupId>
                 <artifactId>jaxb-core</artifactId>
-                <version>2.2.11</version>
+                <version>${jaxb.impl.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.sun.xml.bind</groupId>
                 <artifactId>jaxb-impl</artifactId>
-                <version>2.2.11</version>
+                <version>${jaxb.impl.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
@@ -2675,6 +2677,7 @@
                             <jvmArg>-Djava.awt.headless=true</jvmArg>
                         </jvmArgs>
                         <args>
+                            <arg>-nobootcp</arg>
                             <arg>-nowarn</arg>
                             <arg>-unchecked</arg>
                             <arg>-deprecation</arg>
