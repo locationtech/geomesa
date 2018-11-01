@@ -18,7 +18,7 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
-import org.locationtech.geomesa.kafka.data.KafkaDataStore.{EventTimeConfig, IndexConfig, KafkaDataStoreConfig, TopicConfig}
+import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -76,6 +76,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreFactoryParams.ConsumerConfig,
       KafkaDataStoreFactoryParams.CacheExpiry,
       KafkaDataStoreFactoryParams.EventTime,
+      KafkaDataStoreFactoryParams.SerializationType,
       KafkaDataStoreFactoryParams.CqEngineIndices,
       KafkaDataStoreFactoryParams.IndexResolutionX,
       KafkaDataStoreFactoryParams.IndexResolutionY,
@@ -110,6 +111,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       val props = ProducerConfig.lookupOpt(params).map(_.asScala.toMap).getOrElse(Map.empty[String, String])
       KafkaDataStore.ProducerConfig(props)
     }
+
+    val serialization = org.locationtech.geomesa.features.SerializationType.withName(SerializationType.lookup(params))
 
     val indices = {
       val cacheExpiry = CacheExpiry.lookupOpt(params).getOrElse(Duration.Inf)
@@ -160,7 +163,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       }
     }
 
-    KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, producers, topics,
+    KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, producers, topics, serialization,
       indices, looseBBox, authProvider, audit, ns)
   }
 
@@ -189,7 +192,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         }
         Some(parsed.toSeq.sorted)
       } catch {
-        case NonFatal(e) => logger.warn(s"Ignoring invalid index tiers '$tiers': $e"); None
+        case NonFatal(e) => logger.warn(s"Ignoring invalid index tiers '$tiers': ${e.toString}"); None
       }
     }
 
@@ -246,6 +249,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val TopicPartitions   = new GeoMesaParam[Integer]("kafka.topic.partitions", "Number of partitions to use in new kafka topics", default = 1, deprecatedKeys = Seq("partitions"))
     val TopicReplication  = new GeoMesaParam[Integer]("kafka.topic.replication", "Replication factor to use in new kafka topics", default = 1, deprecatedKeys = Seq("replication"))
     val ConsumerCount     = new GeoMesaParam[Integer]("kafka.consumer.count", "Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)", default = 1, deprecatedParams = Seq(DeprecatedProducer))
+    val SerializationType = new GeoMesaParam[String]("kafka.serialization.type", "Type of serialization to use. Must be one of 'kryo' or 'avro'", default = "kryo", enumerations = Seq("kryo", "avro"))
     val ExecutorTicker    = new GeoMesaParam[(ScheduledExecutorService, Ticker)]("kafka.cache.executor", "Executor service and ticker to use for expiring features")
     val CacheExpiry       = new GeoMesaParam[Duration]("kafka.cache.expiry", "Features will be expired after this delay", deprecatedParams = Seq(DeprecatedExpiry))
     // TODO these should really be per-feature, not per datastore...

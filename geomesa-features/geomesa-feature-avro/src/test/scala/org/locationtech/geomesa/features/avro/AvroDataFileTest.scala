@@ -20,6 +20,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -115,8 +116,8 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
         dfw.close()
       }
 
-      val datumReader = new FeatureSpecificReader(null, null, SerializationOptions.withUserData)
-      val dfs = new DataFileStream[AvroSimpleFeature](new FileInputStream(tmpFile), datumReader)
+      val datumReader = new FeatureSpecificReader(SerializationOptions.withUserData)
+      val dfs = new DataFileStream[SimpleFeature](new FileInputStream(tmpFile), datumReader)
       dfs.getMetaString(AvroDataFile.SftNameKey) mustEqual simpleSft.getTypeName
       dfs.getMetaString(AvroDataFile.SftSpecKey) mustEqual SimpleFeatureTypes.encodeType(simpleSft)
       dfs.getMetaLong(AvroDataFile.VersionKey) mustEqual 3L

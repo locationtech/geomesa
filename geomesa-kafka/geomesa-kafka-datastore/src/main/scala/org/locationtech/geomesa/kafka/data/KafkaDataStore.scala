@@ -21,6 +21,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore}
 import org.geotools.data.{Query, Transaction}
+import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
@@ -186,7 +187,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    new ModifyKafkaFeatureWriter(sft, producer, filter)
+    new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter)
   }
 
   override def getFeatureWriterAppend(typeName: String, transaction: Transaction): KafkaFeatureWriter = {
@@ -194,7 +195,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    new AppendKafkaFeatureWriter(sft, producer)
+    new AppendKafkaFeatureWriter(sft, producer, config.serialization)
   }
 
   override def dispose(): Unit = {
@@ -286,6 +287,7 @@ object KafkaDataStore extends LazyLogging {
                                   consumers: ConsumerConfig,
                                   producers: ProducerConfig,
                                   topics: TopicConfig,
+                                  serialization: SerializationType,
                                   indices: IndexConfig,
                                   looseBBox: Boolean,
                                   authProvider: AuthorizationsProvider,

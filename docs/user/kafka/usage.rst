@@ -51,6 +51,7 @@ Parameter                            Type    Description
 ``kafka.consumer.count``             Integer Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)
 ``kafka.topic.partitions``           Integer Number of partitions to use in new kafka topics
 ``kafka.topic.replication``          Integer Replication factor to use in new kafka topics
+``kafka.serialization.type``         String  Internal serialization format to use for kafka messages. Must be one of ``kryo`` or ``avro``
 ``kafka.cache.expiry``               String  Expire features from in-memory cache after this delay, e.g. "10 minutes". See :ref:`kafka_expiry`
 ``kafka.cache.event-time``           String  Instead of message time, determine expiry based on feature data. See :ref:`kafka_event_time`
 ``kafka.cache.event-time.ordering``  Boolean Instead of message time, determine feature ordering based on the feature event time.

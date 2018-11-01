@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import org.locationtech.geomesa.features.SerializationOption
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
+import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.kryo.impl.ActiveDeserialization.{ImmutableActiveDeserialization, MutableActiveDeserialization}
 import org.locationtech.geomesa.features.kryo.impl.LazyDeserialization.{ImmutableLazyDeserialization, MutableLazyDeserialization}
 import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureSerialization}
@@ -60,23 +60,9 @@ object KryoFeatureSerializer {
     override private [kryo] def deserializeSft = sft
   }
 
-  class Builder private [KryoFeatureSerializer] (sft: SimpleFeatureType) {
-
-    private val options = scala.collection.mutable.Set.empty[SerializationOption]
-
-    def immutable: Builder = add(SerializationOption.Immutable)
-    def mutable: Builder = remove(SerializationOption.Immutable)
-    def withUserData: Builder = add(SerializationOption.WithUserData)
-    def withoutUserData: Builder = remove(SerializationOption.WithUserData)
-    def withId: Builder = remove(SerializationOption.WithoutId)
-    def withoutId: Builder = add(SerializationOption.WithoutId)
-    def `lazy`: Builder = add(SerializationOption.Lazy)
-    def active: Builder = remove(SerializationOption.Lazy)
-
-    private def add(key: SerializationOption): Builder = { options.add(key); this }
-    private def remove(key: SerializationOption): Builder = { options.remove(key); this }
-
-    def build(): KryoFeatureSerializer = apply(sft, options.toSet)
+  class Builder private [KryoFeatureSerializer] (sft: SimpleFeatureType)
+      extends SimpleFeatureSerializer.Builder[Builder] {
+    override def build(): KryoFeatureSerializer = apply(sft, options.toSet)
   }
 }
 

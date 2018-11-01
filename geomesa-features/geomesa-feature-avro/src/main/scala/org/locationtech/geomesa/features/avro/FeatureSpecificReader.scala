@@ -8,160 +8,161 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.io.InputStream
-import java.util.{Date, UUID}
-
-import com.vividsolutions.jts.geom.Geometry
 import org.apache.avro.Schema
-import org.apache.avro.io._
+import org.apache.avro.io.{Decoder, _}
 import org.geotools.data.DataUtilities
-import org.geotools.filter.identity.FeatureIdImpl
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils._
+import org.locationtech.geomesa.features.avro.FeatureSpecificReader.AttributeReader
 import org.locationtech.geomesa.features.avro.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
 import org.locationtech.geomesa.features.avro.serialization.AvroUserDataSerialization
+import org.locationtech.geomesa.features.serialization.ObjectType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConversions._
+/**
+  * Creates an unitialized feature reader. One of `setType` or `setTypes` must be called before reading
+  *
+  * @param opts serialization options
+  */
+class FeatureSpecificReader(opts: SerializationOptions) extends DatumReader[SimpleFeature] {
 
-class FeatureSpecificReader(var oldType: SimpleFeatureType, var newType: SimpleFeatureType,
-                            opts: SerializationOptions = SerializationOptions.none)
-  extends DatumReader[AvroSimpleFeature] {
-
-  def this(sft: SimpleFeatureType) = this(sft, sft)
+  private val includeUserData = opts.withUserData
 
   // DataFileStreams or DataFileReaders may set this after construction of the object
-  // so all instance variables need to be be lazy
-  protected var oldSchema = Option(oldType).map(generateSchema(_, opts.withUserData)).orNull
+  private var attributeReader: AttributeReader = _
 
-  protected var nameEncoder: FieldNameEncoder = null
+  /**
+    * Set the simple feature type being read. One of `setType` or `setTypes` must be called before reading
+    *
+    * @param sft simple feature type
+    */
+  def setType(sft: SimpleFeatureType): Unit = setTypes(sft, sft)
 
-  protected lazy val fieldsDesired = DataUtilities.attributeNames(newType).map(nameEncoder.decode)
+  /**
+    * Sets the simple feature type being read, and the projected return value. One of `setType` or `setTypes`
+    * must be called before reading
+    *
+    * @param originalType simple feature type of the underlying data
+    * @param projectedType projected type to read out
+    */
+  def setTypes(originalType: SimpleFeatureType, projectedType: SimpleFeatureType): Unit =
+    attributeReader = new AttributeReader(originalType, projectedType, !opts.withoutId)
 
-  protected lazy val dataFields = oldSchema.getFields.filter { isDataField }
+  override def setSchema(schema: Schema): Unit = {}
 
-  lazy val typeMap: Map[String, Class[_]] =
-    oldType.getAttributeDescriptors.map { ad => nameEncoder.encode(ad.getLocalName) -> ad.getType.getBinding }.toMap
+  override def read(reuse: SimpleFeature, in: Decoder): SimpleFeature = {
+    val version = in.readInt()
 
-  lazy val nillableAttrs: Set[String] = oldType.getAttributeDescriptors.filter(_.isNillable).map {
-    ad => nameEncoder.encode(ad.getLocalName)
-  }.toSet
-
-  protected def isDataField(f: Schema.Field) =
-    !f.name.equals(FEATURE_ID_AVRO_FIELD_NAME) &&
-      !f.name.equals(AVRO_SIMPLE_FEATURE_VERSION) &&
-      !f.name.equals(AVRO_SIMPLE_FEATURE_USERDATA)
-
-  override def setSchema(schema: Schema): Unit = oldSchema = schema
-
-  def setTypes(oldType: SimpleFeatureType, newType: SimpleFeatureType): Unit = {
-    this.oldType = oldType
-    this.newType = newType
-    oldSchema = generateSchema(oldType, opts.withUserData)
-  }
-
-  protected def buildFieldReaders(deserializer: ASFDeserializer) =
-    oldType.getAttributeDescriptors.map { ad =>
-      val name = nameEncoder.encode(ad.getLocalName)
-      buildSetOrConsume(name, typeMap(name), deserializer)
+    if (version > VERSION) {
+      throw new IllegalArgumentException(s"AvroSimpleFeature version $version  is unsupported. " +
+          "You may need to upgrade to a new version")
     }
 
-  protected def buildSetOrConsume(name: String, cls: Class[_], deserializer: ASFDeserializer) = {
-    val f =
-      if (!fieldsDesired.contains(name)) buildConsume(cls, name, deserializer)
-      else buildSet(cls, name, deserializer)
+    val feature = attributeReader.read(version, in)
 
-    if (nillableAttrs.contains(name))
-      (sf: AvroSimpleFeature, in: Decoder) =>
-        if (in.readIndex() == 1) in.readNull()
-        else f(sf, in)
-    else
-      f
-  }
-
-  protected def buildSet(clazz: Class[_], name: String, deserializer: ASFDeserializer): (AvroSimpleFeature, Decoder) => Unit = {
-    val decoded = nameEncoder.decode(name)
-    clazz match {
-      case cls if classOf[java.lang.String].isAssignableFrom(cls)    => deserializer.setString(_, decoded, _)
-      case cls if classOf[java.lang.Integer].isAssignableFrom(cls)   => deserializer.setInt(_, decoded, _)
-      case cls if classOf[java.lang.Long].isAssignableFrom(cls)      => deserializer.setLong(_, decoded, _)
-      case cls if classOf[java.lang.Double].isAssignableFrom(cls)    => deserializer.setDouble(_, decoded, _)
-      case cls if classOf[java.lang.Float].isAssignableFrom(cls)     => deserializer.setFloat(_, decoded, _)
-      case cls if classOf[java.lang.Boolean].isAssignableFrom(cls)   => deserializer.setBool(_, decoded, _)
-      case cls if classOf[UUID].isAssignableFrom(cls)                => deserializer.setUUID(_, decoded, _)
-      case cls if classOf[Date].isAssignableFrom(cls)                => deserializer.setDate(_, decoded, _)
-      case cls if classOf[Geometry].isAssignableFrom(cls)            => deserializer.setGeometry(_, decoded, _)
-      case cls if classOf[java.util.List[_]].isAssignableFrom(cls)   => deserializer.setList(_, decoded, _)
-      case cls if classOf[java.util.Map[_, _]].isAssignableFrom(cls) => deserializer.setMap(_, decoded, _)
-      case cls if classOf[Array[Byte]].isAssignableFrom(cls)         => deserializer.setBytes(_, decoded, _)
-    }
-  }
-
-  protected def buildConsume(clazz: Class[_], name: String, deserializer: ASFDeserializer) = {
-    val f = deserializer.buildConsumeFunction(clazz)
-    (sf: SimpleFeature, in: Decoder) => f(in)
-  }
-
-  protected lazy val v1fieldreaders = buildFieldReaders(Version1Deserializer)
-  protected lazy val v2fieldreaders = buildFieldReaders(Version2Deserializer)
-
-  protected def defaultRead(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
-    val serializationVersion = in.readInt()
-    readAttributes(in, serializationVersion)
-  }
-
-  protected def readWithUserData(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = {
-    val serializationVersion = in.readInt()
-
-    FeatureSpecificReader.checkVersion(serializationVersion)
-    val sf = readAttributes(in, serializationVersion)
-
-    val userData = AvroUserDataSerialization.deserialize(in)
-    sf.getUserData.putAll(userData)
-
-    sf
-  }
-
-  protected def readAttributes(in: Decoder, serializationVersion: Int): AvroSimpleFeature = {
-
-    nameEncoder = new FieldNameEncoder(serializationVersion)
-
-    // choose the proper deserializer
-    val deserializer = serializationVersion match {
-      case 1                              => v1fieldreaders
-      case _ if serializationVersion >= 2 => v2fieldreaders
+    if (includeUserData) {
+      feature.getUserData.putAll(AvroUserDataSerialization.deserialize(in))
     }
 
-    // Read the id
-    val id = new FeatureIdImpl(in.readString())
-
-    // Followed by the data fields
-    val sf = new AvroSimpleFeature(id, newType)
-    deserializer.foreach { f => f(sf, in) }
-    sf
+    feature
   }
-
-  private lazy val reader: (AvroSimpleFeature, Decoder) => AvroSimpleFeature =
-    if (opts.withUserData)
-      readWithUserData
-    else
-      defaultRead
-
-  override def read(reuse: AvroSimpleFeature, in: Decoder): AvroSimpleFeature = reader(reuse, in)
 }
 
 object FeatureSpecificReader {
 
-  // first field is serialization version, 2nd field is ID of simple feature
-  def extractId(is: InputStream, reuse: BinaryDecoder = null): String = {
-    val decoder = DecoderFactory.get().directBinaryDecoder(is, reuse)
-    decoder.readInt()
-    decoder.readString()
+  /**
+    * Creates a feature specific reader, initialized with the feature type
+    *
+    * @param sft simple feature type
+    * @param opts serialization options
+    * @return
+    */
+  def apply(sft: SimpleFeatureType, opts: SerializationOptions = SerializationOptions.none): FeatureSpecificReader = {
+    val reader = new FeatureSpecificReader(opts)
+    reader.setType(sft)
+    reader
   }
 
-  def checkVersion(version: Int) = {
-    if (version > VERSION) throw new IllegalArgumentException(s"AvroSimpleFeature version $version is unsupported. " +
-      s"You may need to upgrade to a new version")
+  /**
+    * Creates a projecting feature specific reader, initialized with the feature type
+    *
+    * @param originalType simple feature type of the data being read
+    * @param projectedType simple feature type to project to during read
+    * @return
+    */
+  def apply(originalType: SimpleFeatureType, projectedType: SimpleFeatureType): FeatureSpecificReader =
+    apply(originalType, projectedType, SerializationOptions.none)
+
+  /**
+    * Creates a projecting feature specific reader, initialized with the feature type
+    *
+    * @param originalType simple feature type of the data being read
+    * @param projectedType simple feature type to project to during read
+    * @param opts serialization options
+    * @return
+    */
+  def apply(originalType: SimpleFeatureType,
+            projectedType: SimpleFeatureType,
+            opts: SerializationOptions): FeatureSpecificReader = {
+    val reader = new FeatureSpecificReader(opts)
+    reader.setTypes(originalType, projectedType)
+    reader
   }
 
+  private class AttributeReader(originalType: SimpleFeatureType,
+                                projectedType: SimpleFeatureType,
+                                includeFid: Boolean) {
+
+    import scala.collection.JavaConverters._
+
+    private val requiredFields = DataUtilities.attributeNames(projectedType).toSet
+    private val nillableFields = originalType.getAttributeDescriptors.asScala.collect {
+      case ad if ad.isNillable => ad.getLocalName
+    }.toSet
+
+    private val v2Readers = buildFieldReaders(Version2Deserializer)
+    private lazy val v1Readers = buildFieldReaders(Version1Deserializer)
+
+    def read(version: Int, decoder: Decoder): ScalaSimpleFeature = {
+      val feature = ScalaSimpleFeature.create(projectedType, if (includeFid) { decoder.readString() } else { "" })
+      if (version > 1) {
+        v2Readers.foreach(_.apply(feature, decoder))
+      } else {
+        v1Readers.foreach(_.apply(feature, decoder))
+      }
+      feature
+    }
+
+    private def buildFieldReaders(d: ASFDeserializer): Seq[(ScalaSimpleFeature, Decoder) => Unit] = {
+      originalType.getAttributeDescriptors.asScala.map { ad =>
+        val name = ad.getLocalName
+        val i = projectedType.indexOf(name)
+        val skip = !requiredFields.contains(name)
+
+        val f: (ScalaSimpleFeature, Decoder) => Unit = ObjectType.selectType(ad).head match {
+          case ObjectType.STRING   => if (skip) { (_, in) => d.consumeString(in)   } else { d.setString(_, i, _)   }
+          case ObjectType.INT      => if (skip) { (_, in) => d.consumeInt(in)      } else { d.setInt(_, i, _)      }
+          case ObjectType.LONG     => if (skip) { (_, in) => d.consumeLong(in)     } else { d.setLong(_, i, _)     }
+          case ObjectType.FLOAT    => if (skip) { (_, in) => d.consumeFloat(in)    } else { d.setFloat(_, i, _)    }
+          case ObjectType.DOUBLE   => if (skip) { (_, in) => d.consumeDouble(in)   } else { d.setDouble(_, i, _)   }
+          case ObjectType.BOOLEAN  => if (skip) { (_, in) => d.consumeBool(in)     } else { d.setBool(_, i, _)     }
+          case ObjectType.DATE     => if (skip) { (_, in) => d.consumeDate(in)     } else { d.setDate(_, i, _)     }
+          case ObjectType.UUID     => if (skip) { (_, in) => d.consumeUUID(in)     } else { d.setUUID(_, i, _)     }
+          case ObjectType.GEOMETRY => if (skip) { (_, in) => d.consumeGeometry(in) } else { d.setGeometry(_, i, _) }
+          case ObjectType.LIST     => if (skip) { (_, in) => d.consumeList(in)     } else { d.setList(_, i, _)     }
+          case ObjectType.MAP      => if (skip) { (_, in) => d.consumeMap(in)      } else { d.setMap(_, i, _)      }
+          case ObjectType.BYTES    => if (skip) { (_, in) => d.consumeBytes(in)    } else { d.setBytes(_, i, _)    }
+          case ObjectType.JSON     => if (skip) { (_, in) => d.consumeString(in)   } else { d.setString(_, i, _)   }
+          case b => throw new IllegalArgumentException(s"Unexpected attribute binding: $b")
+        }
+
+        if (nillableFields.contains(name)) {
+          (sf: ScalaSimpleFeature, in: Decoder) => if (in.readIndex() == 1) { in.readNull() } else { f(sf, in) }
+        } else {
+          f
+        }
+      }
+    }
+  }
 }
