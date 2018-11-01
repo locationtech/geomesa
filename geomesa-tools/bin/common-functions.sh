@@ -27,13 +27,13 @@ function findJars() {
   CP=()
   if [[ -d "${home}" ]]; then
     if [[ "$3" == "true" ]]; then
-      for jar in $(find ${home} -maxdepth 1 -iname "*.jar" -type f); do
+      for jar in $(find -L ${home} -maxdepth 1 -iname "*.jar" -type f); do
         if [[ "$jar" != *-sources.jar && ("$2" != "true" || "$jar" != *slf4j*) ]]; then
           CP+=(${jar})
         fi
       done
     else
-      for jar in $(find ${home} -type f -iname "*.jar"); do
+      for jar in $(find -L ${home} -type f -iname "*.jar"); do
         if [[ "$jar" != *-sources.jar && ("$2" != "true" || "$jar" != *slf4j*) ]]; then
           CP+=(${jar})
         fi
@@ -126,7 +126,7 @@ function combineClasspaths() {
 function filterSLF4J() {
   base="$1"
   CP=()
-  for jar in $(find ${base} -maxdepth 1 -type f -name "*.jar"); do
+  for jar in $(find -L ${base} -maxdepth 1 -type f -name "*.jar"); do
     if [[ "$jar" != *"slf4j"* ]]; then
       CP+=(${jar})
     fi
