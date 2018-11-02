@@ -69,7 +69,7 @@ class CqlTransformFilter(delegate: DelegateFilter, serialized: Array[Byte])
   override def filterRow(): Boolean = false
   override def getNextKeyHint(currentKV: KeyValue): KeyValue = null
   override def getNextCellHint(currentKV: Cell): Cell = null
-  override def isFamilyEssential(name: Array[Byte]): Boolean = false
+  override def isFamilyEssential(name: Array[Byte]): Boolean = true
   override def toByteArray: Array[Byte] = serialized
 
   // overrides package-private method in Filter

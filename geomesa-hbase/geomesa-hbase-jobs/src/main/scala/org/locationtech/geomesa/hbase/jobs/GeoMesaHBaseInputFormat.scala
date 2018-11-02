@@ -74,7 +74,7 @@ class HBaseGeoMesaRecordReader(table: HBaseIndexAdapter,
 
   import scala.collection.JavaConverters._
 
-  private val results = new Iterator[Result] {
+  private val results: Iterator[Result] = new Iterator[Result] {
 
     private var current: Result = _
 
