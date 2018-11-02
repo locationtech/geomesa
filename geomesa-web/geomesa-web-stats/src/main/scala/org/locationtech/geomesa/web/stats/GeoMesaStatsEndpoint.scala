@@ -28,7 +28,7 @@ import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
 
 class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScalatraServlet.DefaultRootPath)
-    extends GeoMesaScalatraServlet with LazyLogging with NativeJsonSupport with SwaggerSupport {
+    extends GeoMesaScalatraServlet with LazyLogging with JacksonJsonSupport with SwaggerSupport {
 
   // must override applicationName for Swagger to work
   override def applicationName: Option[String] = Some(s"$rootPath/$root")
