@@ -74,13 +74,13 @@ class FeatureSpecificReaderTest extends LazyLogging {
     f
   }
 
-  def readAvroWithFsr(f: File, oldType: SimpleFeatureType): List[AvroSimpleFeature] = readAvroWithFsr(new FeatureSpecificReader(oldType, oldType), f)
+  def readAvroWithFsr(f: File, oldType: SimpleFeatureType): List[SimpleFeature] = readAvroWithFsr(FeatureSpecificReader(oldType), f)
 
-  def readAvroWithFsr(fsr: FeatureSpecificReader, f: File): List[AvroSimpleFeature] = {
+  def readAvroWithFsr(fsr: FeatureSpecificReader, f: File): List[SimpleFeature] = {
     val fis = new FileInputStream(f)
     val decoder = DecoderFactory.get().binaryDecoder(fis, null)
 
-    val sfList = new ListBuffer[AvroSimpleFeature]()
+    val sfList = new ListBuffer[SimpleFeature]()
 
     do {
       sfList += fsr.read(null, decoder)
@@ -124,7 +124,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
   }
 
 
-  def getSubsetData : List[AvroSimpleFeature] = {
+  def getSubsetData : List[SimpleFeature] = {
     val numFields = 60
     val numRecords = 10
 
@@ -142,7 +142,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
 
     val f = writeAvroFile(sfList)
     val subsetType = SimpleFeatureTypes.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String")
-    val subsetList = readAvroWithFsr(new FeatureSpecificReader(oldType, subsetType), f)
+    val subsetList = readAvroWithFsr(FeatureSpecificReader(oldType, subsetType), f)
 
     subsetList
   }
@@ -179,7 +179,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
   def testGeoTypes() = {
     val orig = createTypeWithGeo
     val f = writeAvroFile(List(orig))
-    val fsrList = readAvroWithFsr(new FeatureSpecificReader(orig.getType, orig.getType), f)
+    val fsrList = readAvroWithFsr(FeatureSpecificReader(orig.getType, orig.getType), f)
 
     Assert.assertEquals(1, fsrList.size)
     val sf = fsrList(0)
@@ -214,7 +214,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
     val pipeFile = writePipeFile(sfList)
 
     val subsetType = SimpleFeatureTypes.createType("subsetType", "f0:String,f1:String,f3:String,f30:String,f59:String")
-    val fsrList = readAvroWithFsr(new FeatureSpecificReader(oldType, subsetType), avroFile)
+    val fsrList = readAvroWithFsr(FeatureSpecificReader(oldType, subsetType), avroFile)
     val pipeList = readPipeFile(pipeFile, oldType)
 
     Assert.assertEquals(sfList.size, pipeList.size)
@@ -280,7 +280,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
 
     val pipeList = readPipeFile(pipeFile, oldType)
 
-    val avroList = readAvroWithFsr(new FeatureSpecificReader(oldType, subsetType), avroFile)
+    val avroList = readAvroWithFsr(FeatureSpecificReader(oldType, subsetType), avroFile)
 
     Assert.assertEquals(pipeList.size, avroList.size)
     Assert.assertEquals(numRecords, avroList.size)
@@ -325,7 +325,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
 
     // deserialize
     val bais = new ByteArrayInputStream(bytes)
-    val reader = new FeatureSpecificReader(sft, sft, SerializationOptions.withUserData)
+    val reader = FeatureSpecificReader(sft, SerializationOptions.withUserData)
     val decoder = DecoderFactory.get().binaryDecoder(bytes, 0, bytes.length, null)
     val result = reader.read(null, decoder)
     assertThat(result, is(not(nullValue(classOf[SimpleFeature]))))
@@ -357,7 +357,7 @@ class FeatureSpecificReaderTest extends LazyLogging {
     val pipeTime = System.currentTimeMillis() - pipeStart
     logger.debug(f"Text Read time $pipeTime%dms")
 
-    val fsr = new FeatureSpecificReader(oldType, subsetType)
+    val fsr = FeatureSpecificReader(oldType, subsetType)
     val avroStart = System.currentTimeMillis()
     readAvroWithFsr(fsr, avroFile)
     val avroTime = System.currentTimeMillis() - avroStart

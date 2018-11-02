@@ -53,3 +53,17 @@ compacted out from the log, and the log size will start to grow unbounded.
 If upgrading from a version of GeoMesa prior to 2.1.0, the topic should be run for a while using a size or
 time-based retention policy before enabling compaction, as messages written with older versions of GeoMesa will
 never be compacted out.
+
+Integration with Other Systems
+------------------------------
+
+The Kafka data store is easy to integrate with by consuming the Kafka topic. The messages are a change log of
+updates. Message keys consist of the simple feature ID, as UTF-8 bytes. Message bodies are serialized simple
+features, or null to indicate deletion. The internal serialization version is set as a message header under the
+key ``"v"``, when using Kafka 0.11.x or newer.
+
+By default, message bodies are serialized with a custom Kryo serializer. For Java/Scala clients, the
+``org.locationtech.geomesa.features.kryo.KryoFeatureSerializer`` class may be used to decode messages, available
+in the ``geomesa-feature-kryo_2.11`` module through Maven. Alternatively, producers can be configured to send
+Avro-encoded messages through the ``kafka.serialization.type`` data store parameter. Avro libraries exist in many
+languages, and Avro messages follow a defined schema that allows for cross-platform parsing.

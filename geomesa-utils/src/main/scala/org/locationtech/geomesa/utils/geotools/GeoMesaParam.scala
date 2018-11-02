@@ -35,6 +35,7 @@ import scala.util.control.NonFatal
   * @param deprecatedKeys deprecated keys for this parameter
   * @param deprecatedParams deprecated params replaced by this parameter, but that require conversion
   * @param systemProperty system property used as a fallback lookup
+  * @param enumerations list of values used to restrain the user input
   */
 class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' field from Param
                                 desc: String = "", // can't override final 'description' field from Param
@@ -45,30 +46,31 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
                                 val extension: String = null,
                                 val deprecatedKeys: Seq[String] = Seq.empty,
                                 val deprecatedParams: Seq[DeprecatedParam[T]] = Seq.empty,
-                                val systemProperty: Option[SystemPropertyParam[T]] = None)
+                                val systemProperty: Option[SystemPropertyParam[T]] = None,
+                                val enumerations: Seq[T] = Seq.empty)
                                (implicit ct: ClassTag[T])
-    extends Param(_key, binding(ct), desc, !optional, sample(default), metadata(password, largeText, extension))
+    extends Param(_key, binding(ct), desc, !optional, sample(default), metadata(password, largeText, extension, enumerations))
       with LazyLogging {
 
   private val deprecated = deprecatedKeys ++ deprecatedParams.map(_.key)
 
-  private val toTypedValue: (AnyRef) => T = {
+  private val toTypedValue: AnyRef => T = {
     if (ct.runtimeClass == classOf[Duration]) {
-      (v) => GeoMesaParam.parseDuration(v.asInstanceOf[String]).asInstanceOf[T]
+      v => GeoMesaParam.parseDuration(v.asInstanceOf[String]).asInstanceOf[T]
     } else if (ct.runtimeClass == classOf[Properties]) {
-      (v) => GeoMesaParam.parseProperties(v.asInstanceOf[String]).asInstanceOf[T]
+      v => GeoMesaParam.parseProperties(v.asInstanceOf[String]).asInstanceOf[T]
     } else {
-      (v) => v.asInstanceOf[T]
+      v => v.asInstanceOf[T]
     }
   }
 
-  private val fromTypedValue: (T) => AnyRef = {
+  private val fromTypedValue: T => AnyRef = {
     if (ct.runtimeClass == classOf[Duration]) {
-      (v) => GeoMesaParam.printDuration(v.asInstanceOf[Duration])
+      v => GeoMesaParam.printDuration(v.asInstanceOf[Duration])
     } else if (ct.runtimeClass == classOf[Properties]) {
-      (v) => GeoMesaParam.printProperties(v.asInstanceOf[Properties])
+      v => GeoMesaParam.printProperties(v.asInstanceOf[Properties])
     } else {
-      (v) => v
+      v => v
     }
   }
 
@@ -146,12 +148,14 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
 
 object GeoMesaParam {
 
+  import scala.collection.JavaConverters._
+
   trait DeprecatedParam[T <: AnyRef] {
     def key: String
     def lookup(params: java.util.Map[String, _ <: Serializable], required: Boolean): T
   }
 
-  case class ConvertedParam[T <: AnyRef, U <: AnyRef](key: String, convert: (U) => T)(implicit ct: ClassTag[U])
+  case class ConvertedParam[T <: AnyRef, U <: AnyRef](key: String, convert: U => T)(implicit ct: ClassTag[U])
       extends DeprecatedParam[T] {
     override def lookup(params: java.util.Map[String, _ <: Serializable], required: Boolean): T = {
       val res = Option(new Param(key, ct.runtimeClass, "", required).lookUp(params).asInstanceOf[U]).map(convert)
@@ -192,7 +196,10 @@ object GeoMesaParam {
     case v => v
   }
 
-  def metadata(password: Boolean, largeText: Boolean, extension: String): java.util.Map[String, AnyRef] = {
+  def metadata(password: Boolean,
+               largeText: Boolean,
+               extension: String,
+               enumerations: Seq[AnyRef]): java.util.Map[String, AnyRef] = {
     // presumably we wouldn't have any combinations of these...
     if (password) {
       java.util.Collections.singletonMap(Parameter.IS_PASSWORD, java.lang.Boolean.TRUE)
@@ -200,6 +207,11 @@ object GeoMesaParam {
       java.util.Collections.singletonMap(Parameter.IS_LARGE_TEXT, java.lang.Boolean.TRUE)
     } else if (extension != null) {
       java.util.Collections.singletonMap(Parameter.EXT, extension)
+    } else if (enumerations.nonEmpty) {
+      // convert to a mutable java list, as geoserver tries to sort it in place
+      val enums = new java.util.ArrayList[AnyRef](enumerations.length)
+      enumerations.foreach(enums.add)
+      java.util.Collections.singletonMap(Parameter.OPTIONS, enums)
     } else {
       null
     }

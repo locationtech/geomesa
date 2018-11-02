@@ -15,8 +15,8 @@ import org.locationtech.geomesa.security.AuthorizationsProvider
 
 import scala.collection.JavaConversions._
 
+@deprecated
 class AccumuloAuthsProvider(val authProvider: AuthorizationsProvider) {
-
   def getAuthorizations: Authorizations = {
     new Authorizations(authProvider.getAuthorizations.map(_.getBytes(StandardCharsets.UTF_8)))
   }

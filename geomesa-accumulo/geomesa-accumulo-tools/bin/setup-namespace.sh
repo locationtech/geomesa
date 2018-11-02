@@ -88,7 +88,7 @@ if [[ -z "$GEOMESA_JAR" ]]; then
     if [ -z "${GEOMESA_ACCUMULO_HOME}" ]; then
         GEOMESA_ACCUMULO_HOME="$(cd "`dirname "$0"`"/..; pwd)"
     fi
-    GEOMESA_JAR=$(find ${GEOMESA_ACCUMULO_HOME}/dist/accumulo -name "geomesa-accumulo-distributed-runtime*" | grep -v "raster")
+    GEOMESA_JAR=$(find -L ${GEOMESA_ACCUMULO_HOME}/dist/accumulo -name "geomesa-accumulo-distributed-runtime*" | grep -v "raster")
     if [[ "x$GEOMESA_JAR" == "x" ]]; then
         echo "Could not find GeoMesa distributed runtime JAR - please specify the JAR using the '-g' flag"
         ERROR=1

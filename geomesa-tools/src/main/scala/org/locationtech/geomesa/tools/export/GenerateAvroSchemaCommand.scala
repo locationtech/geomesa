@@ -21,7 +21,7 @@ class GenerateAvroSchemaCommand extends Command {
 
   override def execute(): Unit = {
     val sft = CLArgResolver.getSft(params.spec, params.featureName)
-    val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true)
+    val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true, withFeatureId = true)
     Command.output.info(schema.toString(true))
   }
 }

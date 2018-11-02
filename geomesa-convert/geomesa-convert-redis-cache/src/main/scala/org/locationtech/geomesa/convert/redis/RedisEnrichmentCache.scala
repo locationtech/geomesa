@@ -10,12 +10,14 @@
 package org.locationtech.geomesa.convert.redis
 
 import java.io.Closeable
+import java.net.URI
 import java.util.concurrent.TimeUnit
 
 import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.{EnrichmentCache, EnrichmentCacheFactory}
 import redis.clients.jedis.{Jedis, JedisPool}
+import redis.clients.util.JedisURIHelper
 
 import scala.util.Try
 
@@ -64,20 +66,20 @@ class RedisEnrichmentCacheFactory extends EnrichmentCacheFactory {
   override def canProcess(conf: Config): Boolean = conf.hasPath("type") && conf.getString("type").equals("redis")
 
   override def build(conf: Config): EnrichmentCache = {
-    val Array(host, port) = parseRedisURL(conf.getString("redis-url"))
+    val redisUrl = {
+      val url = conf.getString("redis-url")
+      Some(url).filter(u => Try(new URI(u)).toOption.exists(JedisURIHelper.isValid)).getOrElse {
+        if (url.indexOf(":") == -1) { url } else { s"redis://$url" }
+      }
+    }
     val timeout = if (conf.hasPath("expiration")) conf.getLong("expiration") else -1
     val connBuilder: RedisConnectionBuilder = new RedisConnectionBuilder {
-      private val pool = new JedisPool(host, port.toInt)
+      private val pool = new JedisPool(redisUrl)
       override def getConn: Jedis = pool.getResource
       override def close(): Unit = pool.close()
     }
 
     val localCache = Try(conf.getBoolean("local-cache")).getOrElse(true)
     new RedisEnrichmentCache(connBuilder, timeout, localCache)
-  }
-
-  private def parseRedisURL(url: String) = {
-    if (url.indexOf(":") != -1) url.split(":")
-    else Array(url, "6379")
   }
 }
