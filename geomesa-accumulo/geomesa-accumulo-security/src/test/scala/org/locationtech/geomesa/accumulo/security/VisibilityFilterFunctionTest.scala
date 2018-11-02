@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.security
 
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.security._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -43,7 +44,7 @@ class VisibilityFilterFunctionTest extends Specification {
       VisibilityFilterFunction.filter.evaluate(f) must beTrue
     }
 
-    "work with no viz on the feature" in {
+    "return false if no viz on the feature" in {
       val f = new SimpleFeatureImpl(List.empty[AnyRef], testSFT, new FeatureIdImpl(""))
 
       val ctx = SecurityContextHolder.createEmptyContext()
@@ -75,5 +76,15 @@ class VisibilityFilterFunctionTest extends Specification {
       VisibilityFilterFunction.filter.evaluate(f) must beTrue
     }
 
+    "with an attribute" in {
+      val f = new SimpleFeatureImpl(Array.ofDim[AnyRef](2), testSFT, new FeatureIdImpl(""), false)
+      f.setAttribute(0, "ADMIN&USER")
+
+      val ctx = SecurityContextHolder.createEmptyContext()
+      ctx.setAuthentication(new TestingAuthenticationToken(null, null, "ADMIN", "USER"))
+      SecurityContextHolder.setContext(ctx)
+
+      ECQL.toFilter("visibility(name) = true").evaluate(f) must beTrue
+    }
   }
 }
