@@ -23,27 +23,26 @@ package org.locationtech.geomesa.utils.iterators
  */
 
 case class CartesianProductIterable(seqs: Seq[Seq[_]]) extends Iterable[Seq[_]] {
-  lazy val expectedSize: Int = seqs.map(_.size).product
+  lazy val expectedSize: Long = seqs.map(_.size.toLong).product
 
   def iterator: Iterator[Seq[_]] = new Iterator[Seq[_]] {
-    val n = seqs.size
-    val maxes = seqs.map(seq => seq.size)
-    val indexes = scala.collection.mutable.MutableList.fill(seqs.size)(0)
-    var nextItem: Option[Seq[_]] = if (isValid) Option(realize) else None
-  
-    def isValid: Boolean = (0 until n).forall(i => indexes(i) < maxes(i))
-  
-    def realize: Seq[_] = (0 until n).map(i => seqs(i)(indexes(i)))
-  
-    def hasNext: Boolean = nextItem.isDefined
-  
-    def next(): Seq[_] = {
-      if (nextItem.isEmpty) throw new Exception("Iterator exhausted")
+    val n: Int = seqs.size
+    val maxes: Vector[Int] = seqs.map(seq => seq.size).toVector
+    val indexes = new scala.collection.mutable.ArraySeq[Int](seqs.size)
+    var nextItem: Seq[_] = if (isValid) realize else null
 
-      val result = nextItem.get
+    def isValid: Boolean = (0 until n).forall(i => indexes(i) < maxes(i))
+
+    def realize: Seq[_] = (0 until n).map(i => seqs(i)(indexes(i)))
+
+    def hasNext: Boolean = nextItem != null
+
+    def next(): Seq[_] = {
+      if (nextItem == null) throw new Exception("Iterator exhausted")
+      val result = nextItem
 
       // advance the internal state
-      nextItem = None
+      nextItem = null
       var j = 0
       var done = false
       while (j < n && !done) {
@@ -55,10 +54,10 @@ case class CartesianProductIterable(seqs: Seq[Seq[_]]) extends Iterable[Seq[_]] 
           done = true
         }
       }
-      if (done || j < n) nextItem = Option(realize)
+      if (done || j < n) nextItem = realize
 
       result
     }
   }
 }
- 
+
