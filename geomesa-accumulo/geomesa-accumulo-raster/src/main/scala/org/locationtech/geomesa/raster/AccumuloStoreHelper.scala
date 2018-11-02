@@ -9,13 +9,12 @@
 package org.locationtech.geomesa.raster
 
 import java.io.Serializable
-import java.util.{ServiceLoader, Map => JMap}
+import java.util.{Collections, Map => JMap}
 
 import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.client.{Connector, ZooKeeperInstance}
-import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
-import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider, _}
+import org.locationtech.geomesa.security.AuthorizationsProvider
 
 import scala.collection.JavaConversions._
 
@@ -70,46 +69,9 @@ object AccumuloStoreHelper {
       masterAuthsStrings.toList
   }
 
-  def getAuthorizationsProvider(params: JMap[String,Serializable], connector: Connector): AccumuloAuthsProvider = {
-    val auths = getAuthorizations(params, connector)
-    getAuthorizationsProvider(auths, connector)
-  }
+  def getAuthorizationsProvider(params: JMap[String,Serializable], connector: Connector): AuthorizationsProvider =
+    AuthorizationsProvider.apply(Collections.emptyMap(), getAuthorizations(params, connector))
 
-  def getAuthorizationsProvider(auths: Seq[String], connector: Connector): AccumuloAuthsProvider = {
-    // we wrap the authorizations provider in one that will filter based on the max auths configured for this store
-    val authorizationsProvider = new FilteringAuthorizationsProvider ({
-      val providers = ServiceLoader.load(classOf[AuthorizationsProvider]).toBuffer
-      GEOMESA_AUTH_PROVIDER_IMPL.option match {
-        case Some(prop) =>
-          if (classOf[DefaultAuthorizationsProvider].getName == prop)
-            new DefaultAuthorizationsProvider
-          else
-            providers.find(_.getClass.getName == prop)
-              .getOrElse {
-                val message =
-                  s"The service provider class '$prop' specified by " +
-                    s"${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY} could not be loaded"
-                throw new IllegalArgumentException(message)
-              }
-        case None =>
-          providers.length match {
-            case 0 => new DefaultAuthorizationsProvider
-            case 1 => providers.head
-            case _ =>
-              val message =
-                "Found multiple AuthorizationsProvider implementations. Please specify the one " +
-                  "to use with the system property " +
-                  s"'${AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY}' :: " +
-                  s"${providers.map(_.getClass.getName).mkString(", ")}"
-              throw new IllegalStateException(message)
-          }
-      }
-    })
-
-    // update the authorizations in the parameters and then configure the auth provider
-    // we copy the map so as not to modify the original
-    val modifiedParams = Map(AuthsParam.key -> auths.mkString(","))
-    authorizationsProvider.configure(modifiedParams)
-    new AccumuloAuthsProvider(authorizationsProvider)
-  }
+  def getAuthorizationsProvider(auths: Seq[String], connector: Connector): AuthorizationsProvider =
+    AuthorizationsProvider.apply(Collections.emptyMap(), auths)
 }

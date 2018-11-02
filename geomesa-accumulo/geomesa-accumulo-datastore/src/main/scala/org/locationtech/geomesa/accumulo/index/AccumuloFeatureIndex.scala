@@ -193,7 +193,7 @@ trait AccumuloFeatureIndex extends AccumuloFeatureIndexType {
     } else {
       getTableNames(sft, ds, None).par.foreach { table =>
         if (ds.tableOps.exists(table)) {
-          val auths = ds.config.authProvider.getAuthorizations
+          val auths = ds.auths
           val config = GeoMesaBatchWriterConfig().setMaxWriteThreads(ds.config.writeThreads)
           WithClose(ds.connector.createBatchDeleter(table, auths, ds.config.queryThreads, config)) { deleter =>
             val range = if (sft.isTableSharing) {

@@ -24,7 +24,6 @@ import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index.AccumuloAttributeIndex.AttributeSplittable
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
-import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.partition.TablePartition
@@ -32,6 +31,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -41,7 +41,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 /**
@@ -89,7 +89,8 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   // some convenience operations
 
-  def auths: Authorizations = config.authProvider.getAuthorizations
+  def auths: Authorizations = new Authorizations(config.authProvider.getAuthorizations.asScala: _*)
+
   val tableOps: TableOperations = connector.tableOperations()
 
   override def delete(): Unit = {
@@ -177,7 +178,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     }
 
     // default to full indices if ambiguous - replace 'index=true' with explicit 'index=full'
-    sft.getAttributeDescriptors.foreach { descriptor =>
+    sft.getAttributeDescriptors.asScala.foreach { descriptor =>
       import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions.OPT_INDEX
       descriptor.getUserData.get(OPT_INDEX) match {
         case s: String if java.lang.Boolean.parseBoolean(s) => descriptor.getUserData.put(OPT_INDEX, IndexCoverage.FULL.toString)
@@ -195,8 +196,10 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
     // check for newly indexed attributes and re-configure the splits
-    val previousAttrIndices = previous.getAttributeDescriptors.collect { case d if d.isIndexed => d.getLocalName }
-    if (sft.getAttributeDescriptors.exists(d => d.isIndexed && !previousAttrIndices.contains(d.getLocalName))) {
+    val previousAttrIndices = previous.getAttributeDescriptors.asScala.collect {
+      case d if d.isIndexed => d.getLocalName
+    }
+    if (sft.getAttributeDescriptors.asScala.exists(d => d.isIndexed && !previousAttrIndices.contains(d.getLocalName))) {
       val partitioned = TablePartition.partitioned(sft)
       manager.indices(sft).foreach {
         case s: AttributeSplittable if !partitioned => s.configureSplits(sft, this, None)
@@ -241,7 +244,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     }
     if (sft != null) {
       // back compatible check for index versions
-      if (!sft.getUserData.contains(INDEX_VERSIONS)) {
+      if (!sft.getUserData.containsKey(INDEX_VERSIONS)) {
         // back compatible check if user data wasn't encoded with the sft
         if (!sft.getUserData.containsKey(AccumuloFeatureIndex.DeprecatedSchemaVersionKey)) {
           metadata.read(typeName, "dtgfield").foreach(sft.setDtgField)
@@ -344,7 +347,7 @@ object AccumuloDataStore {
 case class AccumuloDataStoreConfig(catalog: String,
                                    defaultVisibilities: String,
                                    generateStats: Boolean,
-                                   authProvider: AccumuloAuthsProvider,
+                                   authProvider: AuthorizationsProvider,
                                    audit: Option[(AuditWriter with AuditReader, AuditProvider, String)],
                                    queryTimeout: Option[Long],
                                    looseBBox: Boolean,

@@ -20,10 +20,10 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.opengis.filter.capability.FunctionName
 
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
-
+@deprecated
 object VisibilityFilterFunction {
   val name: FunctionName = new FunctionNameImpl("visibility", classOf[java.lang.Boolean])
   def filter: Filter = {
@@ -33,7 +33,7 @@ object VisibilityFilterFunction {
   }
 }
 
-// TODO yank VisibilityEvaluator from Accumulo project and bring it into GeoMesa
+@deprecated
 class VisibilityFilterFunction
   extends FunctionExpressionImpl(VisibilityFilterFunction.name) {
   private val provider = security.getAuthorizationsProvider(Map.empty[String, java.io.Serializable].asJava, Seq())
