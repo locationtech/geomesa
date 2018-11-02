@@ -22,7 +22,7 @@ import org.apache.spark.sql.types.{DataTypes, StructType}
 import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
-import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils}
+import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils, SparkVersions}
 import org.opengis.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
 import org.opengis.filter.{FilterFactory2, Filter => GTFilter}
 
@@ -177,7 +177,7 @@ object SQLRules extends LazyLogging {
                 join
               } else {
                 val joinRelation = alterRelation(leftRel, rightRel, join.condition.get)
-                val newLogicalRelLeft = left.copy(output = left.output ++ right.output, relation = joinRelation)
+                val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
                 Join(newLogicalRelLeft, right, join.joinType, join.condition)
               }
 
@@ -190,7 +190,7 @@ object SQLRules extends LazyLogging {
             case (leftRel: GeoMesaRelation, rightRel: GeoMesaRelation) if leftRel.spatiallyPartition && rightRel.spatiallyPartition =>
               if (leftRel.partitionEnvelopes == rightRel.partitionEnvelopes) {
                 val joinRelation = alterRelation(leftRel, rightRel, join.condition.get)
-                val newLogicalRelLeft = left.copy(output = left.output ++ right.output, relation = joinRelation)
+                val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
                 val newProjectLeft = leftProject.copy(projectList = leftProjectList ++ rightProjectList, child = newLogicalRelLeft)
                 Join(newProjectLeft, rightProject, join.joinType, join.condition)
               } else if (leftRel.coverPartition) {
@@ -200,7 +200,7 @@ object SQLRules extends LazyLogging {
                   leftRel.numPartitions,
                   rightRel.geometryOrdinal)
                 val joinRelation = alterRelation(leftRel, rightRel, join.condition.get)
-                val newLogicalRelLeft = left.copy(output = left.output ++ right.output, relation = joinRelation)
+                val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
                 val newProjectLeft = leftProject.copy(projectList = leftProjectList ++ rightProjectList, child = newLogicalRelLeft)
                 Join(newProjectLeft, rightProject, join.joinType, join.condition)
               } else {
@@ -258,7 +258,7 @@ object SQLRules extends LazyLogging {
 
           if (gtFilters.nonEmpty) {
             val relation = gmRel.copy(filt = ff.and(gtFilters :+ gmRel.filt), partitionHints = partitionHints)
-            val newrel = lr.copy(output = lr.output, relation = relation)
+            val newrel = SparkVersions.copy(lr)(output = lr.output, relation = relation)
             if (sFilters.nonEmpty) {
               // Keep filters that couldn't be transformed at the top level
               Filter(sFilters.reduce(And), newrel)
