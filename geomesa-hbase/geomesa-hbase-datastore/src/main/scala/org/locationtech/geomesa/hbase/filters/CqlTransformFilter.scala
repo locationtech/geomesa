@@ -69,7 +69,7 @@ class CqlTransformFilter(delegate: DelegateFilter, serialized: Array[Byte])
   override def filterRow(): Boolean = false
   override def getNextKeyHint(currentKV: KeyValue): KeyValue = null
   override def getNextCellHint(currentKV: Cell): Cell = null
-  override def isFamilyEssential(name: Array[Byte]): Boolean = false
+  override def isFamilyEssential(name: Array[Byte]): Boolean = true
   override def toByteArray: Array[Byte] = serialized
 
   // overrides package-private method in Filter
@@ -158,8 +158,8 @@ object CqlTransformFilter extends StrictLogging {
         ByteArrays.writeInt(cqlBytes.length, array, offset)
         offset += 4
         System.arraycopy(cqlBytes, 0, array, offset, cqlBytes.length)
-        // write out a zero to indicate that there aren't any transforms
-        ByteArrays.writeInt(0, array, offset + cqlBytes.length)
+        // write out a -1 to indicate that there aren't any transforms
+        ByteArrays.writeInt(-1, array, offset + cqlBytes.length)
 
         array
 
@@ -217,7 +217,7 @@ object CqlTransformFilter extends StrictLogging {
 
       val tdefsLength = ByteArrays.readInt(bytes, offset)
 
-      if (tdefsLength == 0) {
+      if (tdefsLength == -1) {
         if (cql == null) {
           throw new DeserializationException("No filter or transform defined")
         } else {
