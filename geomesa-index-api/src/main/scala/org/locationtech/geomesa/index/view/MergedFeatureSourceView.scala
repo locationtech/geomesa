@@ -145,7 +145,11 @@ class MergedFeatureSourceView(ds: MergedDataStoreView, sources: Seq[SimpleFeatur
 
     override def getCount: Int = MergedFeatureSourceView.this.getCount(query)
 
-    override def size: Int = getCount
+    override def size: Int = {
+      // note: we shouldn't return -1 here, but we don't return the actual value unless EXACT_COUNT is set
+      val count = getCount
+      if (count < 0) { 0 } else { count }
+    }
   }
 }
 
