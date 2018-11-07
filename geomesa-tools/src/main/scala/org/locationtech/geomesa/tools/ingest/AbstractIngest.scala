@@ -71,7 +71,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     * @param statusCallback for reporting status
     * @return (success, failures) counts
     */
-  def runDistributedJob(statusCallback: StatusCallback): (Long, Long)
+  def runDistributedJob(statusCallback: Option[StatusCallback], waitForCompletion: Boolean = true): Option[(Long, Long)]
 
   protected val ds: DataStore = DataStoreFinder.getDataStore(dsParams)
 
@@ -85,6 +85,8 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
       if (mode.contains(RunModes.Local)) {
         runLocal()
       } else {
+        beforeRunTasks()
+        Command.user.info("Running ingestion in distributed mode")
         runDistributed()
       }
     } else if (mode.forall(_ == RunModes.Local)) {
@@ -212,13 +214,12 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
   }
 
   protected def runDistributed(): Unit = {
-    beforeRunTasks()
-    Command.user.info("Running ingestion in distributed mode")
     val start = System.currentTimeMillis()
     val statusCallback = createCallback()
-    val (success, failed) = runDistributedJob(statusCallback)
-    Command.user.info(s"Distributed ingestion complete in ${TextTools.getTime(start)}")
-    Command.user.info(getStatInfo(success, failed))
+    runDistributedJob(Some(statusCallback)).foreach { case (success, failed) =>
+      Command.user.info(s"Distributed ingestion complete in ${TextTools.getTime(start)}")
+      Command.user.info(getStatInfo(success, failed))
+    }
   }
 
   private def createCallback(): StatusCallback = {

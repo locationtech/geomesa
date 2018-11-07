@@ -53,7 +53,9 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
         libjarsPaths,
         params.threads,
         Option(params.tempDir).map(new Path(_)),
-        Option(params.reducers))
+        Option(params.reducers),
+        !params.noJobStatusTracking,
+        !params.noWaitForCompletion)
   }
 }
 
@@ -80,10 +82,13 @@ object FsIngestCommand {
                                   libjarsPaths: Iterator[() => Seq[File]],
                                   numLocalThreads: Int,
                                   tempPath: Option[Path],
-                                  reducers: Option[java.lang.Integer])
-      extends ConverterIngest(sft, dsParams, converterConfig, inputs, mode, libjarsFile, libjarsPaths, numLocalThreads) {
+                                  reducers: Option[java.lang.Integer],
+                                  jobStatusTracking: Boolean,
+                                  waitForCompletion: Boolean)
+      extends ConverterIngest(sft, dsParams, converterConfig, inputs, mode, libjarsFile, libjarsPaths, numLocalThreads,
+        jobStatusTracking = jobStatusTracking) {
 
-    override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
+    override def runDistributedJob(statusCallback: Option[StatusCallback], waitForCompletion: Boolean): Option[(Long, Long)] = {
       if (reducers.isEmpty) {
         throw new ParameterException("Must provide num-reducers argument for distributed ingest")
       }
@@ -95,7 +100,7 @@ object FsIngestCommand {
         throw new ParameterException(s"Ingestion is not supported for encoding $encoding")
       }
       job.run(dsParams, sft.getTypeName, converterConfig, inputs, tempPath, reducers.get,
-        libjarsFile, libjarsPaths, statusCallback)
+        libjarsFile, libjarsPaths, statusCallback, waitForCompletion)
     }
   }
 }

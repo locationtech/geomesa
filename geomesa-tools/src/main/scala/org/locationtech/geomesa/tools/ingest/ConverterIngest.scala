@@ -40,6 +40,9 @@ import scala.util.Try
   * @param libjarsFile file with list of jars needed for ingest
   * @param libjarsPaths paths to search for libjars
   * @param numLocalThreads for local ingest, how many threads to use
+  * @param maxSplitSize max size of maps in a distributed ingest
+  * @param jobStatusTracking print job status
+  * @param waitForCompletion wait for the job to complete before returning
   */
 class ConverterIngest(sft: SimpleFeatureType,
                       dsParams: Map[String, String],
@@ -49,7 +52,9 @@ class ConverterIngest(sft: SimpleFeatureType,
                       libjarsFile: String,
                       libjarsPaths: Iterator[() => Seq[File]],
                       numLocalThreads: Int,
-                      maxSplitSize: Option[Integer] = None)
+                      maxSplitSize: Option[Integer] = None,
+                      jobStatusTracking: Boolean = true,
+                      waitForCompletion: Boolean = true)
     extends AbstractIngest(dsParams, sft.getTypeName, inputs, mode, libjarsFile, libjarsPaths, numLocalThreads) {
 
   override def beforeRunTasks(): Unit = {
@@ -81,15 +86,24 @@ class ConverterIngest(sft: SimpleFeatureType,
       converters.close()
     }
   }
+
+  override def runDistributed(): Unit = {
+    if (jobStatusTracking) {
+      super.runDistributed()
+    } else {
+      runDistributedJob(None, waitForCompletion)
+    }
+  }
+
   override def createLocalConverter(path: String, failures: AtomicLong): LocalIngestConverter =
     new LocalIngestConverterImpl(sft, path, converters, failures)
 
-  override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
+  override def runDistributedJob(statusCallback: Option[StatusCallback] = None, waitForCompletion: Boolean): Option[(Long, Long)] = {
     // Check conf if we should run against small files and use Combine* classes accordingly
     if (mode.contains(RunModes.DistributedCombine)) {
-      new ConverterCombineIngestJob(dsParams, sft, converterConfig, inputs, maxSplitSize, libjarsFile, libjarsPaths).run(statusCallback)
+      new ConverterCombineIngestJob(dsParams, sft, converterConfig, inputs, maxSplitSize, libjarsFile, libjarsPaths).run(statusCallback, waitForCompletion)
     } else {
-      new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths).run(statusCallback)
+      new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths).run(statusCallback, waitForCompletion)
     }
   }
 }

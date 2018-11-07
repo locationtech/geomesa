@@ -37,7 +37,7 @@ abstract class AbstractIngestJob(dsParams: Map[String, String],
   def written(job: Job): Long
   def failed(job: Job): Long
 
-  def run(statusCallback: StatusCallback): (Long, Long) = {
+  def run(statusCallback: Option[StatusCallback] = None, waitForCompletion: Boolean = true): Option[(Long, Long)] = {
 
     val job = Job.getInstance(new Configuration, "GeoMesa Tools Ingest")
 
@@ -49,22 +49,29 @@ abstract class AbstractIngestJob(dsParams: Map[String, String],
     job.submit()
     Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
 
-    def counters = Seq(("ingested", written(job)), ("failed", failed(job)))
+    statusCallback match {
+      case Some(callback) =>
+        def counters = Seq(("ingested", written(job)), ("failed", failed(job)))
 
-    while (!job.isComplete) {
-      if (job.getStatus.getState != JobStatus.State.PREP) {
-        // we don't have any reducers, just track mapper progress
-        statusCallback("", job.mapProgress(), counters, done = false)
-      }
-      Thread.sleep(500)
+        while (!job.isComplete) {
+          if (job.getStatus.getState != JobStatus.State.PREP) {
+            // we don't have any reducers, just track mapper progress
+            callback("", job.mapProgress(), counters, done = false)
+          }
+          Thread.sleep(500)
+        }
+        callback("", job.mapProgress(), counters, done = true)
+
+        if (!job.isSuccessful) {
+          Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
+        }
+
+        Some((written(job), failed(job)))
+      case None =>
+        Command.user.info("Ingest Job Submitted")
+        if (waitForCompletion) job.waitForCompletion(false)
+        None
     }
-    statusCallback("", job.mapProgress(), counters, done = true)
-
-    if (!job.isSuccessful) {
-      Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
-    }
-
-    (written(job), failed(job))
   }
 
   def configureJob(job: Job): Unit = {

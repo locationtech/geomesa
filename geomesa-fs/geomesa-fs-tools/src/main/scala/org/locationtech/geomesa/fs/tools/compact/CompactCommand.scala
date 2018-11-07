@@ -94,6 +94,9 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
           libjarsFileName, libjarsSearchPath, statusCallback)
         Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
         Command.user.info(AbstractIngest.getStatInfo(success, failed, "Compacted"))
+
+      case RunModes.DistributedCombine =>
+        throw new RuntimeException("DistributedCombine run mode is not supported with this command.")
     }
 
     Command.user.info(s"Compaction completed")
