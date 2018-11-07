@@ -6,6 +6,7 @@ avro
 caffeine
 commons-csv
 commons-pool
+commons-text
 config
 curator-client
 curator-framework

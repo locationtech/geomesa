@@ -8,24 +8,28 @@
 
 package org.locationtech.geomesa.blob.accumulo
 
+import java.util.Collections
+
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
 import org.apache.accumulo.core.data.{Mutation, Range, Value}
+import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data._
-import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.blob.api.{Blob, BlobStore}
+import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.AuditProvider
 
-import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
 class AccumuloBlobStoreImpl(val connector: Connector,
                             val blobTableName: String,
-                            val authProvider: AccumuloAuthsProvider,
+                            val authProvider: AuthorizationsProvider,
                             val auditProvider: AuditProvider,
                             val bwConf: BatchWriterConfig ) extends BlobStore with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   AccumuloVersion.ensureTableExists(connector, blobTableName)
 
@@ -35,7 +39,7 @@ class AccumuloBlobStoreImpl(val connector: Connector,
   override def get(id: String): Blob = {
     val scanner = connector.createScanner(
       blobTableName,
-      authProvider.getAuthorizations
+      new Authorizations(authProvider.getAuthorizations.asScala: _*)
     )
     try {
       scanner.setRange(new Range(new Text(id)))
@@ -61,11 +65,11 @@ class AccumuloBlobStoreImpl(val connector: Connector,
   override def deleteBlob(id: String): Unit = {
     val bd = connector.createBatchDeleter(
       blobTableName,
-      authProvider.getAuthorizations,
+      new Authorizations(authProvider.getAuthorizations.asScala: _*),
       bwConf.getMaxWriteThreads,
       bwConf)
     try {
-      bd.setRanges(List(new Range(new Text(id))))
+      bd.setRanges(Collections.singletonList(new Range(new Text(id))))
       bd.delete()
     } finally {
       bd.close()

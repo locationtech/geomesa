@@ -12,28 +12,12 @@ import java.nio.ByteBuffer
 
 import com.vividsolutions.jts.io.InStream
 import org.apache.avro.io.Decoder
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeature
-import org.locationtech.geomesa.utils.text.WKBUtils
+import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
 
 /**
  * AvroSimpleFeature version 2 changes serialization of Geometry types from
  * WKT (Well Known Text) to WKB (Well Known Binary)
  */
-object Version2Deserializer extends ASFDeserializer {
-
-  override def setGeometry(sf: AvroSimpleFeature, field: String, in: Decoder): Unit = {
-    val bb = in.readBytes(null)
-    val bytes = new Array[Byte](bb.remaining)
-    bb.get(bytes)
-    val geom = WKBUtils.read(bytes)
-    sf.setAttributeNoConvert(field, geom)
-  }
-
-  class BBInStream(bb: ByteBuffer) extends InStream {
-    override def read(buf: Array[Byte]): Unit = bb.get(buf)
-  }
-
-  override def consumeGeometry(in: Decoder) = in.skipBytes()
-
-}
-
+object Version2Deserializer extends ASFDeserializer

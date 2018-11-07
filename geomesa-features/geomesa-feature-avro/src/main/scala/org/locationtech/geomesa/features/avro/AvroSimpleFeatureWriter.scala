@@ -12,7 +12,6 @@ import java.nio.ByteBuffer
 
 import com.vividsolutions.jts.io.WKBWriter
 import org.apache.avro.Schema
-import org.apache.avro.Schema.Field
 import org.apache.avro.io.{DatumWriter, Encoder}
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
@@ -24,74 +23,57 @@ class AvroSimpleFeatureWriter(sft: SimpleFeatureType, opts: Set[SerializationOpt
 
   import AvroSimpleFeatureUtils._
 
-  private var schema: Schema =
-    generateSchema(sft,
-      withUserData = opts.withUserData,
-      namespace = sft.getName.getNamespaceURI)
-
-  private val nameEncoder = new FieldNameEncoder(VERSION)
-  private val typeMap = createTypeMap(sft, new WKBWriter(), nameEncoder)
-  private val names = DataUtilities.attributeNames(sft).map(nameEncoder.encode)
-  private var lastDataIdx = getLastDataIdx
-
-  private def getLastDataIdx = schema.getFields.size() - (if (opts.withUserData) 1 else 0)
-
-  override def setSchema(s: Schema): Unit = {
-    schema = s
-    lastDataIdx = getLastDataIdx
+  private val converters = {
+    val nameEncoder = new FieldNameEncoder(VERSION)
+    val typeMap = createTypeMap(sft, new WKBWriter(), nameEncoder)
+    DataUtilities.attributeNames(sft).map(n => typeMap(nameEncoder.encode(n)).conv)
   }
+  private val includeFid = !opts.withoutId
+  private val includeUserData = opts.withUserData
+  private val fieldOffset = if (includeFid) { 2 } else { 1 } // version + fid (optional)
 
-  def defaultWrite(datum: SimpleFeature, out: Encoder) = {
+  private var schema: Schema = generateSchema(sft, includeUserData, includeFid, sft.getName.getNamespaceURI)
 
-    def rawField(field: Field) = datum.getAttribute(field.pos - 2)
+  override def setSchema(s: Schema): Unit = schema = s
 
-    def getFieldValue[T](field: Field): T =
-      if (rawField(field) == null)
-        null.asInstanceOf[T]
-      else
-        convertValue(field.pos - 2, rawField(field)).asInstanceOf[T]
-
-    def write(schema: Schema, f: Field): Unit = {
-      import Schema.Type._
-
-      schema.getType match {
-        case UNION   =>
-          val unionIdx = if (rawField(f) == null) 1 else 0
-          out.writeIndex(unionIdx)
-          write(schema.getTypes.get(unionIdx), f)
-        case STRING  => out.writeString(getFieldValue[CharSequence](f))
-        case BYTES   => out.writeBytes(getFieldValue[ByteBuffer](f))
-        case INT     => out.writeInt(getFieldValue[Int](f))
-        case LONG    => out.writeLong(getFieldValue[Long](f))
-        case DOUBLE  => out.writeDouble(getFieldValue[Double](f))
-        case FLOAT   => out.writeFloat(getFieldValue[Float](f))
-        case BOOLEAN => out.writeBoolean(getFieldValue[Boolean](f))
-        case NULL    => out.writeNull()
-        case _ => throw new RuntimeException("unsupported avro simple feature type")
-      }
+  override def write(datum: SimpleFeature, out: Encoder): Unit = {
+    // write out the version and feature id
+    out.writeInt(VERSION)
+    if (includeFid) {
+      out.writeString(datum.getID)
     }
 
-    // write out the version and feature ID first
-    out.writeInt(VERSION)
-    out.writeString(datum.getID)
-
-    // Write out fields from Simple Feature
-    var i = 2
-    while (i < lastDataIdx) {
-      val f = schema.getFields.get(i)
-      write(f.schema, f)
+    // write out fields from simple feature
+    var i = 0
+    while (i < converters.length) {
+      val value = datum.getAttribute(i)
+      val field = schema.getFields.get(i + fieldOffset)
+      write(out, field.schema, if (value == null) { null } else { converters(i).apply(value) })
       i += 1
     }
+
+    // write out user data
+    if (includeUserData) {
+      AvroUserDataSerialization.serialize(out, datum.getUserData)
+    }
   }
 
-  def writeWithUserData(datum: SimpleFeature, out: Encoder) = {
-    defaultWrite(datum, out)
-    AvroUserDataSerialization.serialize(out, datum.getUserData)
+  private def write(out: Encoder, fieldSchema: Schema, value: Any): Unit = {
+    fieldSchema.getType match {
+      case Schema.Type.STRING  => out.writeString(value.asInstanceOf[CharSequence])
+      case Schema.Type.BYTES   => out.writeBytes(value.asInstanceOf[ByteBuffer])
+      case Schema.Type.INT     => out.writeInt(value.asInstanceOf[Int])
+      case Schema.Type.LONG    => out.writeLong(value.asInstanceOf[Long])
+      case Schema.Type.DOUBLE  => out.writeDouble(value.asInstanceOf[Double])
+      case Schema.Type.FLOAT   => out.writeFloat(value.asInstanceOf[Float])
+      case Schema.Type.BOOLEAN => out.writeBoolean(value.asInstanceOf[Boolean])
+      case Schema.Type.NULL    => out.writeNull()
+      case Schema.Type.UNION   =>
+        val unionIdx = if (value == null) { 1 } else { 0 }
+        out.writeIndex(unionIdx)
+        write(out, fieldSchema.getTypes.get(unionIdx), value)
+
+      case t => throw new NotImplementedError(s"Unsupported Avro attribute type: $t")
+    }
   }
-
-  private val writer: (SimpleFeature, Encoder) => Unit = if (opts.withUserData) writeWithUserData else defaultWrite
-
-  override def write(datum: SimpleFeature, out: Encoder): Unit = writer(datum, out)
-
-  private def convertValue(idx: Int, v: AnyRef) = typeMap(names(idx)).conv.apply(v)
 }

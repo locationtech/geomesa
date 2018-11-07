@@ -8,7 +8,11 @@
 
 package org.locationtech.geomesa.features.avro.serde
 
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+
 import org.apache.avro.io.Decoder
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeature
 import org.locationtech.geomesa.utils.text.WKTUtils
 
@@ -18,12 +22,28 @@ import org.locationtech.geomesa.utils.text.WKTUtils
 object Version1Deserializer extends ASFDeserializer {
 
   override def setGeometry(sf: AvroSimpleFeature, field: String, in: Decoder): Unit = {
-    val geom = WKTUtils.read(in.readString())
-    sf.setAttributeNoConvert(field, geom)
+    var (bb, bytes) = buffers.getOrElseUpdate((ByteBuffer.allocate(16), Array.empty))
+    bb = in.readBytes(bb)
+    val length = bb.remaining
+    if (bytes.length < length) {
+      bytes = Array.ofDim(length)
+    }
+    buffers.put((bb, bytes))
+    bb.get(bytes, 0, length)
+    sf.setAttributeNoConvert(field, WKTUtils.read(new String(bytes, 0, length, StandardCharsets.UTF_8)))
   }
 
-  // For good measure use skipString() even though it uses skipBytes() underneath
-  // in order to protect from internal Avro changes
-  override def consumeGeometry(in: Decoder) = in.skipString()
+  override def setGeometry(sf: ScalaSimpleFeature, field: Int, in:Decoder): Unit = {
+    var (bb, bytes) = buffers.getOrElseUpdate((ByteBuffer.allocate(16), Array.empty))
+    bb = in.readBytes(bb)
+    val length = bb.remaining
+    if (bytes.length < length) {
+      bytes = Array.ofDim(length)
+    }
+    buffers.put((bb, bytes))
+    bb.get(bytes, 0, length)
+    sf.setAttributeNoConvert(field, WKTUtils.read(new String(bytes, 0, length, StandardCharsets.UTF_8)))
+  }
 
+  override def consumeGeometry(in: Decoder): Unit = in.skipBytes()
 }

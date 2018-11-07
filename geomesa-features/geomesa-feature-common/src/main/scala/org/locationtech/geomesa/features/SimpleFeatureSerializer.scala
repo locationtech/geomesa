@@ -111,6 +111,27 @@ trait SimpleFeatureSerializer extends HasEncodingOptions {
 
 object SimpleFeatureSerializer {
 
+  trait Builder[T <: Builder[T]] {
+
+    this: T =>
+
+    protected val options = scala.collection.mutable.Set.empty[SerializationOption]
+
+    protected def add(key: SerializationOption): T = { options.add(key); this }
+    protected def remove(key: SerializationOption): T = { options.remove(key); this }
+
+    def immutable: T = add(SerializationOption.Immutable)
+    def mutable: T = remove(SerializationOption.Immutable)
+    def withUserData: T = add(SerializationOption.WithUserData)
+    def withoutUserData: T = remove(SerializationOption.WithUserData)
+    def withId: T = remove(SerializationOption.WithoutId)
+    def withoutId: T = add(SerializationOption.WithoutId)
+    def `lazy`: T = add(SerializationOption.Lazy)
+    def active: T = remove(SerializationOption.Lazy)
+
+    def build(): SimpleFeatureSerializer
+  }
+
   /**
     * Serializer that doesn't implement all the semi-optional methods
     */

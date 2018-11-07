@@ -5,5 +5,5 @@ setup(
     version='${python.version}',
     url='http://www.geomesa.org',
     packages=find_packages(),
-    install_requires=['pytz', 'shapely', 'pyspark>=2.1.1,<2.3.0']
+    install_requires=['pytz', 'shapely']
 )

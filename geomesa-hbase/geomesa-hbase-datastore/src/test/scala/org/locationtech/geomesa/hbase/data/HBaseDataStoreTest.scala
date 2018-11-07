@@ -132,6 +132,16 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
 
         testProcesses(ds)
 
+        def testCount(ds: HBaseDataStore): MatchResult[_] = {
+          val query = new Query(typeName, Filter.INCLUDE, Query.NO_PROPERTIES)
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          results must haveLength(10)
+          results.map(_.getID) must containTheSameElementsAs(toAdd.map(_.getID))
+          foreach(results)(_.getAttributeCount mustEqual 0)
+        }
+
+        testCount(ds)
+
         ds.getFeatureSource(typeName).removeFeatures(ECQL.toFilter("INCLUDE"))
 
         forall(Seq("INCLUDE",

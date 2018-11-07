@@ -64,7 +64,7 @@ else
 fi
 
 # if there's already a guava jar (e.g. geoserver) don't install guava to avoid conflicts
-if [ -z "$(find $install_dir -maxdepth 1 -name 'guava-*' -print -quit)" ]; then
+if [ -z "$(find -L $install_dir -maxdepth 1 -name 'guava-*' -print -quit)" ]; then
   urls+=("${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar")
 fi
 

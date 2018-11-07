@@ -17,7 +17,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord}
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.{FeatureEvent, FeatureListener}
-import org.locationtech.geomesa.kafka.KafkaConsumerVersions
+import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.IndexConfig
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCache
@@ -104,7 +104,7 @@ object KafkaCacheLoader {
                              lazyDeserialization: Boolean,
                              initialLoadConfig: Option[IndexConfig]) extends ThreadedConsumer with KafkaCacheLoader {
 
-    private val serializer = new GeoMessageSerializer(sft, lazyDeserialization)
+    private val serializer = GeoMessageSerializer(sft, `lazy` = lazyDeserialization)
 
     try { classOf[ConsumerRecord[Any, Any]].getMethod("timestamp") } catch {
       case _: NoSuchMethodException => logger.warn("This version of Kafka doesn't support timestamps, using system time")
@@ -128,7 +128,7 @@ object KafkaCacheLoader {
     }
 
     override protected [KafkaCacheLoader] def consume(record: ConsumerRecord[Array[Byte], Array[Byte]]): Unit = {
-      val message = serializer.deserialize(record.key(), record.value())
+      val message = serializer.deserialize(record.key(), record.value(), RecordVersions.getHeaders(record))
       val timestamp = try { record.timestamp() } catch { case _: NoSuchMethodError => System.currentTimeMillis() }
       logger.trace(s"Consumed message [$topic:${record.partition}:${record.offset}] $message")
       message match {
@@ -169,7 +169,7 @@ object KafkaCacheLoader {
 
     override protected def consume(record: ConsumerRecord[Array[Byte], Array[Byte]]): Unit = {
       if (done.get) { toLoad.consume(record) } else {
-        val message = serializer.deserialize(record.key, record.value)
+        val message = serializer.deserialize(record.key, record.value, RecordVersions.getHeaders(record))
         val timestamp = try { record.timestamp() } catch { case _: NoSuchMethodError => System.currentTimeMillis() }
         logger.trace(s"Consumed message [$topic:${record.partition}:${record.offset}] $message")
         message match {
