@@ -39,6 +39,7 @@ Argument               Description
 ``-f, --feature-name`` The name of the schema
 ``-t, --threads``      Number of parallel threads used
 ``--input-format``     Format of input files (csv, tsv, avro, shp, json, etc)
+``--no-tracking``      This application closes when ingest job is submitted. Useful for launching jobs with a script.
 ``--run-mode``         Must be one of ``local``, ``distributed``, or ``distributedcombine``
 ``--split-max-size``   Maximum size of a split in bytes (distributed jobs)
 ``--src-list``         Input files are text files with lists of files, one per line, to ingest.
@@ -79,6 +80,11 @@ See :ref:`cli_sft_conf` for more details on specifying the ``SimpleFeatureType``
 The ``--input-format`` argument can be used to specify the type of files being ingested. Currently
 GeoMesa supports Avro, CSV, TSV, Json/GeoJson, GML, and SHP. If not specified, the input file extensions
 will be used to determine the file type.
+
+The ``--no-tracking`` argument instructs the application to close when the ingest job has been submitted rather than
+tracking and displaying the progress of the ingest. This is useful when a script is submitting the job or it is
+undesirable to leave the JVM running. Note that supplying this parameter does not silence the application and it will
+still provide information about the status of the job submission.
 
 The ``--run-mode`` argument can be used to run ingestion locally or distributed (using map/reduce). Note that in
 order to run in distributed mode, the input files must be in HDFS. By default, input files on the local filesystem
