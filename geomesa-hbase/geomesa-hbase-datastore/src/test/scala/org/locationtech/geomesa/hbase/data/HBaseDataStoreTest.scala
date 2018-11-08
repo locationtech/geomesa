@@ -18,14 +18,14 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.hbase.index.{HBaseAttributeIndex, HBaseIdIndex, HBaseZ3Index}
-import org.locationtech.geomesa.index.conf.{QueryProperties, SchemaProperties}
+import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties, SchemaProperties}
 import org.locationtech.geomesa.process.query.ProximitySearchProcess
 import org.locationtech.geomesa.process.tube.TubeSelectProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.Filter
+import org.opengis.filter.{Filter, Id}
 import org.specs2.matcher.MatchResult
 
 import scala.collection.JavaConversions._
@@ -278,7 +278,6 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
         feature.getAttribute(attribute) mustEqual results.find(_.getID == feature.getID).get.getAttribute(attribute)
       }
     }
-    ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual results.length
 
     // verify ranges are grouped appropriately to not cross shard boundaries
     forall(ds.getQueryPlan(query).flatMap(_.scans)) { scan =>
@@ -286,5 +285,19 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
         scan.getStartRow()(0) mustEqual scan.getStopRow()(0)
       }
     }
+
+    query.getFilter match {
+      case _: Id =>
+        // id filters use estimated stats based on the filter itself
+        ds.getFeatureSource(typeName).getCount(query) mustEqual results.length
+        ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual results.length
+
+      case _ =>
+        ds.getFeatureSource(typeName).getCount(query) mustEqual -1
+        ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual 0
+    }
+
+    query.getHints.put(QueryHints.EXACT_COUNT, true)
+    ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual results.length
   }
 }

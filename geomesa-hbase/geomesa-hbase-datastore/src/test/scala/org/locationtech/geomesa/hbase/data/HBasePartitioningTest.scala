@@ -19,6 +19,7 @@ import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
+import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.conf.partition.{TablePartition, TimePartition}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
@@ -152,6 +153,11 @@ class HBasePartitioningTest extends HBaseTest with LazyLogging {
         feature.getAttribute(attribute) mustEqual results.find(_.getID == feature.getID).get.getAttribute(attribute)
       }
     }
-    ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual results.length
+    QueryProperties.QueryExactCount.threadLocalValue.set("true")
+    try {
+      ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual results.length
+    } finally {
+      QueryProperties.QueryExactCount.threadLocalValue.remove()
+    }
   }
 }
