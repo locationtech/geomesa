@@ -161,7 +161,14 @@ class GeoMesaFeatureCollection(private [geotools] val source: GeoMesaFeatureSour
 
   override def getBounds: ReferencedEnvelope = source.getBounds(query)
 
-  override def getCount: Int = source.getCount(query)
+  override def getCount: Int = {
+    if (!open.get) {
+      // once opened the query will already be configured by the query planner,
+      // otherwise do it here
+      source.runner.configureQuery(source.getSchema, query)
+    }
+    source.getCount(query)
+  }
 
   // note: this shouldn't return -1 (as opposed to FeatureSource.getCount), but we still don't return a valid
   // size unless exact counts are enabled

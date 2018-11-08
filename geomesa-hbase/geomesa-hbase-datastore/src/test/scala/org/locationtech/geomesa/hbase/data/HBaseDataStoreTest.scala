@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.hbase.data
 
+import java.util.Collections
+
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.TableName
 import org.geotools.data._
@@ -140,7 +142,24 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
           foreach(results)(_.getAttributeCount mustEqual 0)
         }
 
+        def testExactCount(ds: HBaseDataStore): MatchResult[_] = {
+          // without hints
+          ds.getFeatureSource(typeName).getFeatures(new Query(typeName, Filter.INCLUDE)).size() mustEqual 0
+          ds.getFeatureSource(typeName).getCount(new Query(typeName, Filter.INCLUDE)) mustEqual -1
+
+          val queryWithHint = new Query(typeName, Filter.INCLUDE)
+          queryWithHint.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
+          val queryWithViewParam = new Query(typeName, Filter.INCLUDE)
+          queryWithViewParam.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS,
+            Collections.singletonMap("EXACT_COUNT", "true"))
+
+          foreach(Seq(queryWithHint, queryWithViewParam)) { query =>
+            ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual 10
+          }
+        }
+
         testCount(ds)
+        testExactCount(ds)
 
         ds.getFeatureSource(typeName).removeFeatures(ECQL.toFilter("INCLUDE"))
 
