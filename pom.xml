@@ -562,6 +562,30 @@
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
+                <artifactId>gt-jdbc</artifactId>
+                <version>${gt.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.geotools.jdbc</groupId>
+                <artifactId>gt-jdbc-h2</artifactId>
+                <version>${gt.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.geotools</groupId>
                 <artifactId>gt-imageio-ext-gdal</artifactId>
                 <version>${gt.version}</version>
                 <exclusions>
