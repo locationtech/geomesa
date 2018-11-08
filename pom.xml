@@ -657,6 +657,30 @@
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
+                <artifactId>gt-jdbc</artifactId>
+                <version>${gt.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.geotools.jdbc</groupId>
+                <artifactId>gt-jdbc-h2</artifactId>
+                <version>${gt.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.geotools</groupId>
                 <artifactId>gt-imageio-ext-gdal</artifactId>
                 <version>${gt.version}</version>
                 <exclusions>
@@ -2737,6 +2761,7 @@
                     <configuration>
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
+                            <validHeader>build/copyright/ccri-2017.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
                             <validHeader>build/copyright/dstl-copyright-2016.txt</validHeader>

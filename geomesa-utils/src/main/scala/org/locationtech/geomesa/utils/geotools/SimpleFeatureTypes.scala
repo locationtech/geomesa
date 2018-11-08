@@ -151,25 +151,33 @@ object SimpleFeatureTypes {
     * Encode a SimpleFeatureType as a comma-separated String
     *
     * @param sft - SimpleFeatureType to encode
+    * @return a string representing a serialization of the sft
+    */
+  def encodeType(sft: SimpleFeatureType): String =
+    sft.getAttributeDescriptors.map(encodeDescriptor(sft, _)).mkString(",")
+
+  /**
+    * Encode a SimpleFeatureType as a comma-separated String
+    *
+    * @param sft - SimpleFeatureType to encode
     * @param includeUserData - defaults to false
     * @return a string representing a serialization of the sft
     */
-  def encodeType(sft: SimpleFeatureType, includeUserData: Boolean = false): String = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
-    lazy val userData = {
-      val prefixes = sft.getUserDataPrefixes
-      sft.getUserData.filter { case (k, v) => v != null && prefixes.exists(k.toString.startsWith) }
-    }
-    val suffix = if (!includeUserData || userData.isEmpty) { "" } else {
-      userData.map { case (k, v) => s"$k='${StringEscapeUtils.escapeJava(v.toString)}'" }.mkString(";", ",", "")
-    }
-
-    sft.getAttributeDescriptors.map(encodeDescriptor(sft, _)).mkString("", ",", suffix)
+  def encodeType(sft: SimpleFeatureType, includeUserData: Boolean): String = {
+    val userData = if (includeUserData) { encodeUserData(sft) } else { "" }
+    sft.getAttributeDescriptors.map(encodeDescriptor(sft, _)).mkString("", ",", userData)
   }
 
   def encodeDescriptor(sft: SimpleFeatureType, descriptor: AttributeDescriptor): String =
     AttributeSpec(sft, descriptor).toSpec
+
+  def encodeUserData(sft: SimpleFeatureType): String = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    val prefixes = sft.getUserDataPrefixes
+    val userData = sft.getUserData.filter { case (k, v) => v != null && prefixes.exists(k.toString.startsWith) }
+    userData.map { case (k, v) => s"$k='${StringEscapeUtils.escapeJava(v.toString)}'" }.mkString(";", ",", "")
+  }
 
   def toConfig(sft: SimpleFeatureType,
                includeUserData: Boolean = true,
