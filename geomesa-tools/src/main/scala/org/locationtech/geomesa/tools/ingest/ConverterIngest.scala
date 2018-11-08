@@ -41,7 +41,6 @@ import scala.util.Try
   * @param libjarsPaths paths to search for libjars
   * @param numLocalThreads for local ingest, how many threads to use
   * @param maxSplitSize max size of maps in a distributed ingest
-  * @param jobStatusTracking print job status
   * @param waitForCompletion wait for the job to complete before returning
   */
 class ConverterIngest(sft: SimpleFeatureType,
@@ -53,7 +52,6 @@ class ConverterIngest(sft: SimpleFeatureType,
                       libjarsPaths: Iterator[() => Seq[File]],
                       numLocalThreads: Int,
                       maxSplitSize: Option[Integer] = None,
-                      jobStatusTracking: Boolean = true,
                       waitForCompletion: Boolean = true)
     extends AbstractIngest(dsParams, sft.getTypeName, inputs, mode, libjarsFile, libjarsPaths, numLocalThreads) {
 
@@ -87,18 +85,14 @@ class ConverterIngest(sft: SimpleFeatureType,
     }
   }
 
-  override def runDistributed(): Unit = {
-    if (jobStatusTracking) {
-      super.runDistributed()
-    } else {
-      runDistributedJob(None, waitForCompletion)
-    }
+  override def runDistributed(wait: Boolean): Unit = {
+    super.runDistributed(waitForCompletion)
   }
 
   override def createLocalConverter(path: String, failures: AtomicLong): LocalIngestConverter =
     new LocalIngestConverterImpl(sft, path, converters, failures)
 
-  override def runDistributedJob(statusCallback: Option[StatusCallback] = None, waitForCompletion: Boolean): Option[(Long, Long)] = {
+  override def runDistributedJob(statusCallback: StatusCallback, waitForCompletion: Boolean): Option[(Long, Long)] = {
     // Check conf if we should run against small files and use Combine* classes accordingly
     if (mode.contains(RunModes.DistributedCombine)) {
       new ConverterCombineIngestJob(dsParams, sft, converterConfig, inputs, maxSplitSize, libjarsFile, libjarsPaths).run(statusCallback, waitForCompletion)

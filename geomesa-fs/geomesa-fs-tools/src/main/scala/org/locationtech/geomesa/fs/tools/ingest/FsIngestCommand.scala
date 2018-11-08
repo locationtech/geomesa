@@ -54,8 +54,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
         params.threads,
         Option(params.tempDir).map(new Path(_)),
         Option(params.reducers),
-        !params.noJobStatusTracking,
-        !params.noWaitForCompletion)
+        params.waitForCompletion)
   }
 }
 
@@ -83,12 +82,10 @@ object FsIngestCommand {
                                   numLocalThreads: Int,
                                   tempPath: Option[Path],
                                   reducers: Option[java.lang.Integer],
-                                  jobStatusTracking: Boolean,
                                   waitForCompletion: Boolean)
-      extends ConverterIngest(sft, dsParams, converterConfig, inputs, mode, libjarsFile, libjarsPaths, numLocalThreads,
-        jobStatusTracking = jobStatusTracking) {
+      extends ConverterIngest(sft, dsParams, converterConfig, inputs, mode, libjarsFile, libjarsPaths, numLocalThreads) {
 
-    override def runDistributedJob(statusCallback: Option[StatusCallback], waitForCompletion: Boolean): Option[(Long, Long)] = {
+    override def runDistributedJob(statusCallback: StatusCallback, waitForCompletion: Boolean): Option[(Long, Long)] = {
       if (reducers.isEmpty) {
         throw new ParameterException("Must provide num-reducers argument for distributed ingest")
       }

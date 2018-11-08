@@ -136,7 +136,7 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
 
   protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config, ingestFiles: Seq[String]): Runnable = {
     new ConverterIngest(sft, connection, converterConfig, ingestFiles, Option(params.mode),
-      libjarsFile, libjarsPaths, params.threads, Option(params.maxSplitSize), !params.noJobStatusTracking, !params.noWaitForCompletion)
+      libjarsFile, libjarsPaths, params.threads, Option(params.maxSplitSize), params.waitForCompletion)
   }
 
   private def ensureSameFs(ingestFiles: Seq[String]): Unit = {
@@ -201,9 +201,7 @@ trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam w
   @Parameter(names = Array("--src-list"), description = "Input files are text files with lists of files, one per line, to ingest.")
   var srcList: Boolean = false
 
-  @Parameter(names = Array("--no-job-status"), description = "Progress of the ingest job is not printed to the console, however, the application will close when job completes.")
-  var noJobStatusTracking: Boolean = false
-
-  @Parameter(names = Array("--no-wait"), description = "This application closes when ingest job is submitted. Useful for launching jobs with a script.")
+  @Parameter(names = Array("--no-tracking"), description = "This application closes when ingest job is submitted. Useful for launching jobs with a script.")
   var noWaitForCompletion: Boolean = false
+  def waitForCompletion: Boolean = !noWaitForCompletion
 }
