@@ -17,12 +17,12 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.utils.cache.PropertiesPersistence
 import org.locationtech.geomesa.web.core.GeoMesaDataStoreServlet
-import org.scalatra.json.NativeJsonSupport
+import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.{BadRequest, Ok}
 
 import scala.util.Try
 
-class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesaDataStoreServlet with NativeJsonSupport {
+class QueryAuditEndpoint(val persistence: PropertiesPersistence) extends GeoMesaDataStoreServlet with JacksonJsonSupport {
 
   import QueryAuditEndpoint._
 

@@ -19,6 +19,7 @@ import org.locationtech.geomesa.security._
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.opengis.filter.capability.FunctionName
+import org.opengis.filter.expression.Expression
 
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
@@ -39,15 +40,31 @@ class VisibilityFilterFunction
   private val provider = security.getAuthorizationsProvider(Map.empty[String, java.io.Serializable].asJava, Seq())
   private val auths = provider.getAuthorizations.map(_.getBytes(StandardCharsets.UTF_8))
   private val vizEvaluator = new VisibilityEvaluator(new Authorizations(auths))
-  private val vizCache = collection.concurrent.TrieMap.empty[String, Boolean]
+  private val vizCache = collection.concurrent.TrieMap.empty[String, java.lang.Boolean]
 
-  def evaluateSF(feature: SimpleFeature): java.lang.Boolean = {
-    feature.visibility.exists(v => vizCache.getOrElseUpdate(v, vizEvaluator.evaluate(new ColumnVisibility(v))))
+  private var expression: Expression = _
+
+  override def setParameters(params: java.util.List[Expression]): Unit = {
+    super.setParameters(params)
+    if (!params.isEmpty) {
+      expression = getExpression(0)
+    }
   }
 
   @Override
   override def evaluate(obj: Object): Object = obj match {
-    case sf: SimpleFeature => evaluateSF(sf)
+    case sf: SimpleFeature =>
+      val vis = if (expression == null) {
+        SecurityUtils.getVisibility(sf)
+      } else {
+        expression.evaluate(obj).asInstanceOf[String]
+      }
+      if (vis == null || vis.trim.isEmpty) {
+        java.lang.Boolean.FALSE
+      } else {
+        vizCache.getOrElseUpdate(vis, Boolean.box(vizEvaluator.evaluate(new ColumnVisibility(vis))))
+      }
+
     case _ => java.lang.Boolean.FALSE
   }
 }
