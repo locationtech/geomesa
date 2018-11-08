@@ -44,7 +44,7 @@ class KafkaIngestCommand extends IngestCommand[KafkaDataStore] with KafkaDataSto
     val delay = params.delay.toMillis
     if (delay <= 0) { super.createConverterIngest(sft, converterConfig, ingestFiles) } else {
       Command.user.info(s"Inserting delay of ${params.delay}")
-      new ConverterIngest(sft, connection, converterConfig, ingestFiles, Option(params.mode), libjarsFile, libjarsPaths, params.threads) {
+      new ConverterIngest(sft, connection, converterConfig, ingestFiles, Option(params.mode), libjarsFile, libjarsPaths, params.threads, None, params.waitForCompletion) {
         override def createLocalConverter(path: String, failures: AtomicLong): LocalIngestConverter = {
           new LocalIngestConverterImpl(sft, path, converters, failures) {
             override def convert(is: InputStream): Iterator[SimpleFeature] = {

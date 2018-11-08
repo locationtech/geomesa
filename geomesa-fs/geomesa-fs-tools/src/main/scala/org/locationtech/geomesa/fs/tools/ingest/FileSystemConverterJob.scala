@@ -44,7 +44,8 @@ trait FileSystemConverterJob extends StorageConfiguration with JobWithLibJars wi
           reducers: Int,
           libjarsFile: String,
           libjarsPaths: Iterator[() => Seq[File]],
-          statusCallback: StatusCallback): (Long, Long) = {
+          statusCallback: StatusCallback,
+          waitForCompletion: Boolean = true): Option[(Long, Long)] = {
 
     import scala.collection.JavaConversions._
 
@@ -113,38 +114,43 @@ trait FileSystemConverterJob extends StorageConfiguration with JobWithLibJars wi
 
       val stageCount = if (qualifiedTempPath.isDefined) { 3 } else { 2 }
 
-      var mapping = true
-      while (!job.isComplete) {
-        if (job.getStatus.getState != JobStatus.State.PREP) {
-          if (mapping) {
-            val mapProgress = job.mapProgress()
-            if (mapProgress < 1f) {
-              statusCallback(s"Map (stage 1/$stageCount): ", mapProgress, mapCounters, done = false)
+      if(waitForCompletion) {
+        var mapping = true
+        while (!job.isComplete) {
+          if (job.getStatus.getState != JobStatus.State.PREP) {
+            if (mapping) {
+              val mapProgress = job.mapProgress()
+              if (mapProgress < 1f) {
+                statusCallback(s"Map (stage 1/$stageCount): ", mapProgress, mapCounters, done = false)
+              } else {
+                statusCallback(s"Map (stage 1/$stageCount): ", mapProgress, mapCounters, done = true)
+                statusCallback.reset()
+                mapping = false
+              }
             } else {
-              statusCallback(s"Map (stage 1/$stageCount): ", mapProgress, mapCounters, done = true)
-              statusCallback.reset()
-              mapping = false
+              statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), reduceCounters, done = false)
             }
-          } else {
-            statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), reduceCounters, done = false)
+          }
+          Thread.sleep(500)
+        }
+        statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), reduceCounters, done = true)
+
+        // Do this earlier than the data copy bc its throwing errors
+        val counterResult = (written(job), failed(job))
+
+        if (!job.isSuccessful) {
+          Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
+        } else {
+          qualifiedTempPath.foreach { tp =>
+            StorageJobUtils.distCopy(tp, metadata.getRoot, statusCallback, 3, stageCount)
           }
         }
-        Thread.sleep(500)
-      }
-      statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), reduceCounters, done = true)
 
-      // Do this earlier than the data copy bc its throwing errors
-      val counterResult = (written(job), failed(job))
-
-      if (!job.isSuccessful) {
-        Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
+        Some(counterResult)
       } else {
-        qualifiedTempPath.foreach { tp =>
-          StorageJobUtils.distCopy(tp, metadata.getRoot, statusCallback, 3, stageCount)
-        }
+        Command.user.info("Job Submitted")
+        None
       }
-
-      counterResult
     } finally {
       ds.dispose()
     }

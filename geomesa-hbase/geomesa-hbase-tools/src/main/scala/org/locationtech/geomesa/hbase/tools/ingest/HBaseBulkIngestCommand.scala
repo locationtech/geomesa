@@ -34,7 +34,7 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
   override protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config, ingestFiles: Seq[String]): Runnable = {
 
     new ConverterIngest(sft, connection, converterConfig, ingestFiles, Option(params.mode),
-      libjarsFile, libjarsPaths, params.threads, Option(params.maxSplitSize)) {
+      libjarsFile, libjarsPaths, params.threads, Option(params.maxSplitSize), params.waitForCompletion) {
 
       override def run(): Unit = {
         super.run()
@@ -42,7 +42,7 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
             s"-c ${params.catalog} -f ${sft.getTypeName} --index ${params.index} --input ${params.outputPath}")
       }
 
-      override def runDistributedJob(statusCallback: StatusCallback): (Long, Long) = {
+      override def runDistributedJob(statusCallback: StatusCallback, waitForCompletion: Boolean): Option[(Long, Long)] = {
         // validate index param now that we have a datastore and the sft has been created
         val index: String = params.loadRequiredIndex(ds.asInstanceOf[HBaseDataStore], IndexMode.Write).identifier
 
@@ -52,7 +52,7 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
           converterIngestJob(dsParams, sft, converterConfig, inputs, index)
         }
 
-        job.run(statusCallback)
+        job.run(statusCallback, waitForCompletion)
       }
 
       override protected def runLocal(): Unit =

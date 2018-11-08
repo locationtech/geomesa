@@ -37,7 +37,7 @@ abstract class AbstractIngestJob(dsParams: Map[String, String],
   def written(job: Job): Long
   def failed(job: Job): Long
 
-  def run(statusCallback: StatusCallback): (Long, Long) = {
+  def run(statusCallback: StatusCallback, waitForCompletion: Boolean = true): Option[(Long, Long)] = {
 
     val job = Job.getInstance(new Configuration, "GeoMesa Tools Ingest")
 
@@ -49,22 +49,27 @@ abstract class AbstractIngestJob(dsParams: Map[String, String],
     job.submit()
     Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
 
-    def counters = Seq(("ingested", written(job)), ("failed", failed(job)))
+    if (waitForCompletion) {
+      def counters = Seq(("ingested", written(job)), ("failed", failed(job)))
 
-    while (!job.isComplete) {
-      if (job.getStatus.getState != JobStatus.State.PREP) {
-        // we don't have any reducers, just track mapper progress
-        statusCallback("", job.mapProgress(), counters, done = false)
+      while (!job.isComplete) {
+        if (job.getStatus.getState != JobStatus.State.PREP) {
+          // we don't have any reducers, just track mapper progress
+          statusCallback("", job.mapProgress(), counters, done = false)
+        }
+        Thread.sleep(500)
       }
-      Thread.sleep(500)
-    }
-    statusCallback("", job.mapProgress(), counters, done = true)
+      statusCallback("", job.mapProgress(), counters, done = true)
 
-    if (!job.isSuccessful) {
-      Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
-    }
+      if (!job.isSuccessful) {
+        Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
+      }
 
-    (written(job), failed(job))
+      Some((written(job), failed(job)))
+    } else {
+      Command.user.info("Ingest Job Submitted")
+      None
+    }
   }
 
   def configureJob(job: Job): Unit = {
