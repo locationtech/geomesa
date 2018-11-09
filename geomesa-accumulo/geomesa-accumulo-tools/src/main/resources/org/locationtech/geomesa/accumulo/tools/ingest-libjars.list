@@ -5,6 +5,7 @@ accumulo-trace
 avro
 caffeine
 commons-csv
+commons-lang3
 commons-pool
 commons-text
 config
