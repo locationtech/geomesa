@@ -20,7 +20,7 @@ trait GenericMapSerialization[T <: PrimitiveWriter, V <: PrimitiveReader] extend
 
   def deserialize(in: V, map: java.util.Map[AnyRef, AnyRef]): Unit
 
-  protected def write(out: T, value: AnyRef) = value match {
+  protected def write(out: T, value: AnyRef): Unit = value match {
     case v: String            => out.writeString(v)
     case v: java.lang.Integer => out.writeInt(v)
     case v: java.lang.Long    => out.writeLong(v)

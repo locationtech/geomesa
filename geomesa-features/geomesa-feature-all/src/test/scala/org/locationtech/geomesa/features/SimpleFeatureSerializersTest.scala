@@ -34,7 +34,7 @@ class SimpleFeatureSerializersTest extends Specification {
 
   val builder = AvroSimpleFeatureFactory.featureBuilder(sft)
 
-  def getFeatures = (0 until 6).map { i =>
+  def getFeatures: Seq[SimpleFeature] = (0 until 6).map { i =>
     builder.reset()
     builder.set("geom", WKTUtils.read("POINT(-110 30)"))
     builder.set("dtg", "2012-01-02T05:06:07.000Z")
@@ -44,17 +44,16 @@ class SimpleFeatureSerializersTest extends Specification {
     sf
   }
 
-  def getFeaturesWithVisibility = {
+  def getFeaturesWithVisibility: Seq[SimpleFeature] = {
     import security._
 
     val features = getFeatures
     val visibilities = Seq("test&usa", "admin&user", "", null, "test", "user")
 
-    features.zip(visibilities).map({
-      case (sf, vis) =>
-        sf.visibility = vis
-        sf
-    })
+    features.zip(visibilities).map { case (sf, vis) =>
+      sf.visibility = vis
+      sf
+    }
 
     features
   }
@@ -337,7 +336,7 @@ class SimpleFeatureSerializersTest extends Specification {
       forall(decoded.zip(features)) { case (d, sf) =>
         d.getID mustEqual sf.getID
         d.getAttributes mustEqual sf.getAttributes
-        d.getUserData.toMap mustEqual sf.getUserData.filter(_._2 != null)
+        d.getUserData.toMap mustEqual sf.getUserData.toMap
       }
     }
 
@@ -395,9 +394,8 @@ class SimpleFeatureSerializersTest extends Specification {
 
       val decoded = encoded.map(decoder.deserialize)
 
-      // when decoding any empty visibilities will be transformed to null
       forall(features.zip(decoded)) { case (in, out) =>
-        out.getUserData.toMap mustEqual in.getUserData.filter(_._2 != null)
+        out.getUserData.toMap mustEqual in.getUserData.toMap
       }
     }
   }
