@@ -41,7 +41,7 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
 
     // may not be able to write all entries - must pre-filter to know correct count
     val skip = new java.util.HashSet[AnyRef]()
-    map.foreach { case (k, _) => if (!canSerialize(k)) { skip.add(k) } }
+    map.foreach { case (k, _) => if (k == null || !canSerialize(k)) { skip.add(k) } }
 
     val toWrite = if (skip.isEmpty) { map } else {
       logger.warn(s"Skipping serialization of entries: " +
@@ -52,12 +52,8 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
     out.writeInt(toWrite.size) // don't use positive optimized version for back compatibility
 
     toWrite.foreach { case (key, value) =>
-      if (key == null) {
-        out.writeString(nullMapping)
-      } else {
-        out.writeString(baseClassMappings.getOrElse(key.getClass, key.getClass.getName))
-        write(out, key)
-      }
+      out.writeString(baseClassMappings.getOrElse(key.getClass, key.getClass.getName))
+      write(out, key)
       if (value == null) {
         out.writeString(nullMapping)
       } else {
@@ -81,9 +77,7 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
     var i = 0
     while (i < size) {
       val keyClass = in.readString()
-      val key = if (keyClass == nullMapping) { null } else {
-        read(in, baseClassLookups.getOrElse(keyClass, Class.forName(keyClass)))
-      }
+      val key = read(in, baseClassLookups.getOrElse(keyClass, Class.forName(keyClass)))
       val valueClass = in.readString()
       val value = if (valueClass == nullMapping) { null } else {
         read(in, baseClassLookups.getOrElse(valueClass, Class.forName(valueClass)))
