@@ -146,6 +146,16 @@
                                     <pattern>org.apache.parquet</pattern>
                                     <shadedPattern>org.locationtech.geomesa.fs.shaded.org.apache.parquet</shadedPattern>
                                 </relocation>
+                                <!-- spark also includes orc/hive, relocate to avoid version conflicts -->
+                                <relocation>
+                                    <pattern>org.apache.orc</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.fs.shaded.org.apache.orc</shadedPattern>
+                                </relocation>
+                                <!-- orc relies on kryo, relocate to avoid version conflicts -->
+                                <relocation>
+                                    <pattern>com.esotericsoftware.kryo</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.fs.shaded.com.esotericsoftware.kryo</shadedPattern>
+                                </relocation>
                             </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
