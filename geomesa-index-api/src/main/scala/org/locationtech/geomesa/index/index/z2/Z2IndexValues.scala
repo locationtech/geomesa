@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.index.z2
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.filter.FilterValues
 

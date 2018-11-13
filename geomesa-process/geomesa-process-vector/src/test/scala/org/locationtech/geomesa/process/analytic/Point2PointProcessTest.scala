@@ -11,7 +11,7 @@ package org.locationtech.geomesa.process.analytic
 import java.text.SimpleDateFormat
 import java.util.TimeZone
 
-import com.vividsolutions.jts.geom.LineString
+import org.locationtech.jts.geom.LineString
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith

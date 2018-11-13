@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.tools.ingest
 import java.nio.file.{Files, Path}
 import java.time.temporal.ChronoUnit
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.geotools.data.{DataStore, DataStoreFinder, Query, Transaction}

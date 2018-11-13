@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features.kyro.interop;
 
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Point;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.junit.Assert;
 import org.junit.Test;

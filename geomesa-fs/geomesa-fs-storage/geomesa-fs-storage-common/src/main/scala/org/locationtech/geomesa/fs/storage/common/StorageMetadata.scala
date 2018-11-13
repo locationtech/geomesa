@@ -16,7 +16,7 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.config._
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Envelope
+import org.locationtech.jts.geom.Envelope
 import org.apache.hadoop.fs.Options.CreateOpts
 import org.apache.hadoop.fs._
 import org.locationtech.geomesa.fs.storage.api.{PartitionMetadata, PartitionScheme}

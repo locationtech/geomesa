@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.utils.bin
 import java.io.ByteArrayOutputStream
 import java.util.{Arrays, Date}
 
-import com.vividsolutions.jts.geom.Point
+import org.locationtech.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.{ByteArrayCallback, ByteStreamCallback}

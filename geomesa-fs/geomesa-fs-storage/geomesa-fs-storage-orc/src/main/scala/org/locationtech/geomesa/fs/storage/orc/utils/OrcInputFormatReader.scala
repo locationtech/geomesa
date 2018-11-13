@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.orc.utils
 
 import java.util.UUID
 
-import com.vividsolutions.jts.geom.{Coordinate, LineString, LinearRing, Polygon}
+import org.locationtech.jts.geom.{Coordinate, LineString, LinearRing, Polygon}
 import org.apache.hadoop.io._
 import org.apache.orc.mapred.{OrcList, OrcMap, OrcStruct, OrcTimestamp}
 import org.geotools.filter.identity.FeatureIdImpl

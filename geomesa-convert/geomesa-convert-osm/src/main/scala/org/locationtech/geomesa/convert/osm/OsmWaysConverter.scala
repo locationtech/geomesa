@@ -14,7 +14,7 @@ import java.sql.{Connection, DriverManager}
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Coordinate
+import org.locationtech.jts.geom.Coordinate
 import de.topobyte.osm4j.core.model.iface._
 import de.topobyte.osm4j.core.model.impl.Node
 import de.topobyte.osm4j.pbf.seq.PbfIterator

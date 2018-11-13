@@ -10,7 +10,7 @@ package org.locationtech.geomesa.utils.uuid
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.{Geometry, Point, Polygon}
+import org.locationtech.jts.geom.{Geometry, Point, Polygon}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod}

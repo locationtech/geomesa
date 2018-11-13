@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.stats
 import java.io.{Closeable, Flushable}
 import java.util.Date
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
 import org.locationtech.geomesa.utils.geotools._

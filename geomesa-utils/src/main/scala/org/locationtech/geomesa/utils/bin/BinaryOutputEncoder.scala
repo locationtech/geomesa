@@ -14,7 +14,7 @@ import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, LineString, Point}
+import org.locationtech.jts.geom.{Geometry, LineString, Point}
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.{ByteArrayCallback, ByteStreamCallback}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.ToValues
 import org.locationtech.geomesa.utils.collection.CloseableIterator

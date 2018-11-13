@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.data
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureReader
 import org.geotools.feature.DefaultFeatureCollection

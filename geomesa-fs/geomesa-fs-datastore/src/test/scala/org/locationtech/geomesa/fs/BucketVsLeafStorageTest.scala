@@ -13,7 +13,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.stream.Collectors
 
-import com.vividsolutions.jts.geom.Coordinate
+import org.locationtech.jts.geom.Coordinate
 import org.apache.commons.io.FileUtils
 import org.geotools.data.DataStoreFinder
 import org.geotools.data.collection.ListFeatureCollection

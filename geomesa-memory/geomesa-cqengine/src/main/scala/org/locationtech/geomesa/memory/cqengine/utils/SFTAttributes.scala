@@ -11,7 +11,7 @@ package org.locationtech.geomesa.memory.cqengine.utils
 import java.util.UUID
 
 import com.googlecode.cqengine.attribute.Attribute
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.memory.cqengine.attribute.{SimpleFeatureFidAttribute, SimpleFeatureAttribute}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

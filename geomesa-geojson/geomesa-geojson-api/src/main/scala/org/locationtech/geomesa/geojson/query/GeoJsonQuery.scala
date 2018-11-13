@@ -10,7 +10,7 @@ package org.locationtech.geomesa.geojson.query
 
 import java.io.ByteArrayOutputStream
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.geojson.geom.GeometryJSON
 import org.json4s.{JArray, JObject, JValue}
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.index.encoders
 import java.nio.ByteBuffer
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}

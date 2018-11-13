@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.spark.jts.util
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.json.simple.JSONObject
 import org.json.simple.parser.JSONParser
 import org.junit.runner.RunWith

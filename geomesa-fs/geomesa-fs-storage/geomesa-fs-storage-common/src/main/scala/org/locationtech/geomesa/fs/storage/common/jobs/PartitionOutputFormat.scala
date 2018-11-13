@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.storage.common.jobs
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Envelope, Geometry}
+import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.mapred.InvalidJobConfException
 import org.apache.hadoop.mapreduce._

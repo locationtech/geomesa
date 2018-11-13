@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.convert.json
 
 import com.google.gson.{JsonElement, JsonNull, JsonObject, JsonPrimitive}
-import com.vividsolutions.jts.geom._
-import com.vividsolutions.jts.geom.impl.CoordinateArraySequence
+import org.locationtech.jts.geom._
+import org.locationtech.jts.geom.impl.CoordinateArraySequence
 import org.locationtech.geomesa.utils.text.WKTUtils
 
 

@@ -9,7 +9,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import com.vividsolutions.jts.geom.{Envelope, Geometry}
+import org.locationtech.jts.geom.{Envelope, Geometry}
 
 import scala.math.abs
 

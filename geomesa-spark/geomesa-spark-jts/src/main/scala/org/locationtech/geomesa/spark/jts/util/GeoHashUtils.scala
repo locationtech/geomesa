@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.spark.jts.util
 
-import com.vividsolutions.jts.geom.{Envelope, Geometry, GeometryFactory, PrecisionModel}
+import org.locationtech.jts.geom.{Envelope, Geometry, GeometryFactory, PrecisionModel}
 import scala.collection.BitSet
 import scala.collection.immutable.{BitSet => IBitSet}
 import java.{lang => jl}

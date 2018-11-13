@@ -10,7 +10,7 @@ package org.locationtech.geomesa.features.avro.serde
 
 import java.nio.ByteBuffer
 
-import com.vividsolutions.jts.io.InStream
+import org.locationtech.jts.io.InStream
 import org.apache.avro.io.Decoder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeature

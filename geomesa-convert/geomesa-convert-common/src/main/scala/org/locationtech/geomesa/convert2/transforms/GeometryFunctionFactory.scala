@@ -10,7 +10,7 @@ package org.locationtech.geomesa.convert2.transforms
 
 import java.util.concurrent.ConcurrentHashMap
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.geotools.geometry.jts.{JTS, JTSFactoryFinder}
 import org.geotools.referencing.CRS
 import org.locationtech.geomesa.convert.EvaluationContext

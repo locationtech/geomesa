@@ -23,7 +23,7 @@ class JTSDocsTest extends Specification with TestEnvironment {
   "jts documentation example" should {
     sequential
 
-    import com.vividsolutions.jts.geom._
+    import org.locationtech.jts.geom._
     import org.apache.spark.sql.types._
     import org.locationtech.geomesa.spark.jts._
 

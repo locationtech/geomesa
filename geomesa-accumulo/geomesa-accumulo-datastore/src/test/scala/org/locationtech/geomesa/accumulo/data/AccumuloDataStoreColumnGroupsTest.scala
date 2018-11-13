@@ -12,7 +12,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util.Date
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
-import com.vividsolutions.jts.geom.{Envelope, Point}
+import org.locationtech.jts.geom.{Envelope, Point}
 import org.apache.arrow.memory.RootAllocator
 import org.geotools.data._
 import org.geotools.filter.text.ecql.ECQL

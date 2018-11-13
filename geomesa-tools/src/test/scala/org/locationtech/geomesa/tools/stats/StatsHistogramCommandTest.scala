@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.stats
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.stats.GeoMesaStats

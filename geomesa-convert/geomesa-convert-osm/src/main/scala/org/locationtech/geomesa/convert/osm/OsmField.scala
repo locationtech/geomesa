@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert.osm
 import java.util.Date
 
 import com.typesafe.config.Config
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import de.topobyte.osm4j.core.model.iface._
 import de.topobyte.osm4j.core.model.util.OsmModelUtil
 import org.geotools.geometry.jts.JTSFactoryFinder

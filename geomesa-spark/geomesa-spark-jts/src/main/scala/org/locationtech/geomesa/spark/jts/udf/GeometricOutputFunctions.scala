@@ -9,8 +9,8 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import com.vividsolutions.jts.geom.{Geometry, Point}
-import com.vividsolutions.jts.io.geojson.GeoJsonWriter
+import org.locationtech.jts.geom.{Geometry, Point}
+import org.locationtech.jts.io.geojson.GeoJsonWriter
 import org.apache.spark.sql.SQLContext
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.geomesa.spark.jts.util.WKBUtils

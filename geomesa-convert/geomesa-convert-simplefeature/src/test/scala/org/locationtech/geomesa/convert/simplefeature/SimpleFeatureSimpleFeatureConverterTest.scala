@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.convert.simplefeature
 
 import com.typesafe.config.ConfigFactory
-import com.vividsolutions.jts.geom.Coordinate
+import org.locationtech.jts.geom.Coordinate
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.convert.SimpleFeatureConverters

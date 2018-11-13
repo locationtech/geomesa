@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Date
 
 import com.google.common.hash.Hashing
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.apache.commons.codec.binary.Base64
 import org.geotools.util.Converters
 import org.junit.runner.RunWith

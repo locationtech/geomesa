@@ -13,7 +13,7 @@ import java.lang.Boolean
 import java.util
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Coordinate, Geometry, GeometryFactory}
+import org.locationtech.jts.geom.{Coordinate, Geometry, GeometryFactory}
 import org.gdal.gdal.{Dataset, Transformer, gdal}
 import org.gdal.gdalconst.gdalconstConstants
 import org.locationtech.geomesa.blob.api.handlers.AbstractFileHandler

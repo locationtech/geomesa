@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.api;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 import org.apache.hadoop.classification.InterfaceStability;
 
 import java.util.Date;

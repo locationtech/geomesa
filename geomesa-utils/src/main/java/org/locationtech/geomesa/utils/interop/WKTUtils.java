@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.interop;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.geomesa.utils.text.WKTUtils$;
 
 public class WKTUtils {

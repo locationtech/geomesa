@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.api;
 
-import com.vividsolutions.jts.geom.Envelope;
+import org.locationtech.jts.geom.Envelope;
 import org.apache.hadoop.fs.FileContext;
 import org.apache.hadoop.fs.Path;
 import org.geotools.geometry.jts.ReferencedEnvelope;

@@ -9,8 +9,8 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import com.vividsolutions.jts.geom._
-import com.vividsolutions.jts.util.GeometricShapeFactory
+import org.locationtech.jts.geom._
+import org.locationtech.jts.util.GeometricShapeFactory
 import org.apache.spark.sql.SQLContext
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext

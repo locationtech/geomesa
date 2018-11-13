@@ -32,7 +32,7 @@
             <artifactId>geomesa-cqengine_2.11</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.vividsolutions</groupId>
+            <groupId>org.locationtech.jts</groupId>
             <artifactId>jts-core</artifactId>
         </dependency>
         <dependency>

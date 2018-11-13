@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import com.vividsolutions.jts.geom._
-import com.vividsolutions.jts.geom.util.AffineTransformation
-import com.vividsolutions.jts.operation.distance.DistanceOp
+import org.locationtech.jts.geom._
+import org.locationtech.jts.geom.util.AffineTransformation
+import org.locationtech.jts.operation.distance.DistanceOp
 import org.apache.spark.sql.SQLContext
 import org.locationtech.spatial4j.distance.{DistanceCalculator, DistanceUtils}
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext
