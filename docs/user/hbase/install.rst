@@ -277,9 +277,7 @@ Installing GeoMesa HBase in GeoServer
 
 .. warning::
 
-   GeoServer 2.13.0 and 2.13.1 are not recommended due to two serious bugs:
-     * GeoMesa WPS processes are not triggered correctly, and will run slowly or not at all
-     * GeoMesa count optimizations are bypassed, potentially resulting in large duplicate scans for WFS queries
+    GeoMesa 2.2.0 and later require GeoServer 2.14.0 or later. GeoMesa 2.1.0 and earlier require GeoServer 2.12.5.
 
 The HBase GeoServer plugin is bundled by default in a GeoMesa binary distribution. To install, extract
 ``$GEOMESA_HBASE_HOME/dist/gs-plugins/geomesa-hbase-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
@@ -342,15 +340,6 @@ doesn't exist). Utilizing a symbolic link will be useful here so any changes are
             ln -s /usr/hdp/current/hbase-client/hbase-site.xml /path/to/geoserver/WEB-INF/classes/hbase-site.xml
 
 Restart GeoServer after the JARs are installed.
-
-Jackson Version
-^^^^^^^^^^^^^^^
-
-.. warning::
-
-    Some GeoMesa functions (in particular Arrow conversion) requires ``jackson-core-2.6.x``. Some versions
-    of GeoServer ship with an older version, ``jackson-core-2.5.0.jar``. After installing the GeoMesa
-    GeoServer plugin, be sure to delete the older JAR from GeoServer's ``WEB-INF/lib`` folder.
 
 Connecting to External HBase Clusters Backed By S3
 --------------------------------------------------

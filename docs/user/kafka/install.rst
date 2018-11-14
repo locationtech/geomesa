@@ -107,8 +107,7 @@ Installing GeoMesa Kafka in GeoServer
 
 .. warning::
 
-    The GeoMesa Kafka GeoServer plugin is tested against GeoServer
-    |geoserver_version| and GeoTools |geotools_version|.
+    GeoMesa 2.2.0 and later require GeoServer 2.14.0 or later. GeoMesa 2.1.0 and earlier require GeoServer 2.12.5.
 
 As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a
 `GeoTools`_-compatible data store. This makes it possible
@@ -234,12 +233,3 @@ connection). Edit the script before running to ensure the correct JAR versions
 are specified.
 
 Restart GeoServer after the JARs are installed.
-
-Jackson Version
-^^^^^^^^^^^^^^^
-
-.. warning::
-
-    Some GeoMesa functions (in particular Arrow conversion) requires ``jackson-core-2.6.x``. Some versions
-    of GeoServer ship with an older version, ``jackson-core-2.5.0.jar``. After installing the GeoMesa
-    GeoServer plugin, be sure to delete the older JAR from GeoServer's ``WEB-INF/lib`` folder.
