@@ -15,11 +15,11 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
         </dependency>
+
+        <!-- provided dependencies -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-            <version>4.0.4.RELEASE</version>
-            <scope>provided</scope>
         </dependency>
 
         <!-- test dependencies -->

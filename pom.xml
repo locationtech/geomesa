@@ -75,8 +75,9 @@
         <avro.version>1.7.5</avro.version>
         <parquet.version>1.9.0</parquet.version>
         <orc.version>1.4.4</orc.version>
-        <jackson.version>2.6.5</jackson.version> <!-- used by spark and arrow (which defaults to 2.7.1) -->
-        <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
+        <fasterxml.jackson.version>2.6.7</fasterxml.jackson.version> <!-- used by spark (2.6.7) and arrow (2.7.1) -->
+        <fasterxml.jackson.databind.version>2.6.7.1</fasterxml.jackson.databind.version> <!-- used by spark (2.6.7.1) and arrow (2.7.1) -->
+        <codehaus.jackson.version>1.9.3</codehaus.jackson.version>
         <gdal.version>2.0.0</gdal.version>
         <json4s.version>3.5.4</json4s.version>
         <scalatra.version>2.6.3</scalatra.version>
@@ -1667,7 +1668,7 @@
             <dependency>
                 <groupId>com.googlecode.cqengine</groupId>
                 <artifactId>cqengine</artifactId>
-                <version>2.7.1</version>
+                <version>3.0.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>
@@ -1689,7 +1690,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
-                <version>1.16</version>
+                <version>1.18</version>
             </dependency>
             <dependency>
                 <groupId>commons-cli</groupId>
@@ -1765,22 +1766,22 @@
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-core-asl</artifactId>
-                <version>${jackson.codehaus.version}</version>
+                <version>${codehaus.jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-mapper-asl</artifactId>
-                <version>${jackson.codehaus.version}</version>
+                <version>${codehaus.jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-jaxrs</artifactId>
-                <version>${jackson.codehaus.version}</version>
+                <version>${codehaus.jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-xc</artifactId>
-                <version>${jackson.codehaus.version}</version>
+                <version>${codehaus.jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.json4s</groupId>
@@ -1915,21 +1916,20 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- version used by spark - also compatible with arrow (which defaults to 2.7.1) -->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>${jackson.version}</version>
+                <version>${fasterxml.jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
-                <version>${jackson.version}</version>
+                <version>${fasterxml.jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
+                <version>${fasterxml.jackson.databind.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.scalatra</groupId>
@@ -2235,6 +2235,18 @@
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-webmvc</artifactId>
                 <version>4.3.18.RELEASE</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-core</artifactId>
+                <version>4.2.7.RELEASE</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-web</artifactId>
+                <version>4.2.7.RELEASE</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
