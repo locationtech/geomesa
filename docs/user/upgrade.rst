@@ -97,7 +97,7 @@ GeoTools 20 and GeoServer 2.14
 ------------------------------
 
 GeoMesa 2.2.0 is compiled against GeoTools 20.0 and GeoServer 2.14. This version of GeoTools upgrades JTS
-from 1.14 to 1.16, which includes a transition of the project under the Locationtech umbrella. The new version
+from 1.14 to 1.16, which includes a transition of the project to Locationtech. The new version
 of JTS renames the packages from ``com.vividsolutions`` to ``org.locationtech.jts``. Due to the package renaming,
 GeoMesa will no longer work with older versions of GeoTools and GeoServer.
 
