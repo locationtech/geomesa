@@ -148,6 +148,8 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
 
   private lazy val serializerV1 = KryoFeatureSerializer.builder(sft).withUserData.immutable.build()
 
+  private lazy val serializerV2M = KryoFeatureSerializer.builder(sft).withoutId.withUserData.immutable.build()
+
   /**
     * Serializes a message
     *
@@ -257,6 +259,13 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
             case NonFatal(suppressed) => e.addSuppressed(suppressed); throw e
           }
       }
+    } else if (key.length > 0 && key(0) == 2) {
+      try { deserializeV2M(key, value) } catch {
+        case NonFatal(e) =>
+          try { tryDeserializeTypes(key, value) } catch {
+            case NonFatal(suppressed) => e.addSuppressed(suppressed); throw e
+          }
+      }
     } else {
       tryDeserializeTypes(key, value)
     }
@@ -291,6 +300,21 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
       case 'D' => Delete(new String(value, StandardCharsets.UTF_8))
       case 'X' => Clear
       case m   => throw new IllegalArgumentException(s"Unknown message type: $m" )
+    }
+  }
+
+  /**
+    * Deserialize version 2 milestone messages - these were never in an official release, but were in
+    * 2.1.0.m1 through 2.1.0.m3
+    *
+    * @param key message key
+    * @param value message value
+    * @return
+    */
+  private def deserializeV2M(key: Array[Byte], value: Array[Byte]): GeoMessage = {
+    if (key.length == 1) { Clear } else {
+      val id = new String(key, 1, key.length - 1, StandardCharsets.UTF_8)
+      if (value == null) { Delete(id) } else { Change(serializerV2M.deserialize(id, value)) }
     }
   }
 }
