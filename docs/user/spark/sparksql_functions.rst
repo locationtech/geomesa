@@ -499,6 +499,20 @@ Casts ``Geometry`` *g* to a ``Polygon``.
 
 .. _st_byteArray:
 
+.. _st_castToGeometry:
+
+st_castToGeometry
+^^^^^^^^^^^^^^^^
+
+::
+
+    Geometry st_castToGeometry(Geometry g)
+
+Casts ``Geometry`` subclass *g* to a ``Geometry``. This can be necessary e.g. when storing the output of
+``st_makePoint`` as a ``Geometry`` in a case class.
+
+.. _st_byteArray:
+
 st_byteArray
 ^^^^^^^^^^^^
 
