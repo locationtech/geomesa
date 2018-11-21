@@ -122,15 +122,15 @@ object ConvertCommand extends LazyLogging {
     }
 
     params.outputFormat match {
-      case Csv | Tsv      => new DelimitedExporter(writer, params.outputFormat, None, !params.noHeader)
-      case Shp            => new ShapefileExporter(ExportCommand.checkShpFile(params))
-      case GeoJson | Json => new GeoJsonExporter(writer)
-      case Gml | Xml      => new GmlExporter(outputStream)
-      case Avro           => new AvroExporter(outputStream, avroCompression)
-      case Bin            => new BinExporter(hints, outputStream)
-      case Arrow          => new ArrowExporter(hints, outputStream, arrowDictionaries)
-      case Leaflet        => new LeafletMapExporter(params)
-      case _              => throw new ParameterException(s"Format ${params.outputFormat} is not supported.")
+      case Csv | Tsv => new DelimitedExporter(writer, params.outputFormat, None, !params.noHeader)
+      case Shp       => new ShapefileExporter(ExportCommand.checkShpFile(params))
+      case Json      => new GeoJsonExporter(writer)
+      case Gml | Xml => new GmlExporter(outputStream)
+      case Avro      => new AvroExporter(outputStream, avroCompression)
+      case Bin       => new BinExporter(hints, outputStream)
+      case Arrow     => new ArrowExporter(hints, outputStream, arrowDictionaries)
+      case Leaflet   => new LeafletMapExporter(params)
+      case _         => throw new ParameterException(s"Format ${params.outputFormat} is not supported.")
     }
   }
 
