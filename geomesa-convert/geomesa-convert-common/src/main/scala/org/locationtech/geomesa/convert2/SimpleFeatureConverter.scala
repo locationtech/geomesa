@@ -55,7 +55,8 @@ object SimpleFeatureConverter extends StrictLogging {
 
   import scala.collection.JavaConverters._
 
-  private val factories = ServiceLoader.load(classOf[SimpleFeatureConverterFactory]).asScala.toList
+  val factories: List[SimpleFeatureConverterFactory] =
+    ServiceLoader.load(classOf[SimpleFeatureConverterFactory]).asScala.toList
 
   private val factoriesV1 = ServiceLoader.load(classOf[convert.SimpleFeatureConverterFactory[_]]).asScala.toList
 
