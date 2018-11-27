@@ -45,9 +45,10 @@ Parameter                            Type    Description
                                              format. See `Producer Configs <http://kafka.apache.org/documentation.html#producerconfigs>`_
 ``kafka.consumer.config``            String  Configuration options for kafka consumer, in Java properties
                                              format. See `New Consumer Configs <http://kafka.apache.org/documentation.html#newconsumerconfigs>`_
-``kafka.consumer.from-beginning``    Boolean Start reading from the beginning of the topic (vs ignore existing messages). If enabled, features
-                                             will not be available for query until all existing messages are processed. However, feature
-                                             listeners will still be invoked as normal. See :ref:`kafka_initial_load`
+``kafka.consumer.read-back``         String  On start up, read messages that were written within this time frame (vs ignore old messages), e.g.
+                                             '1 hour'. Use 'Inf' to read all messages. If enabled, features will not be available for query until
+                                             all existing messages are processed. However, feature listeners will still be invoked as normal.
+                                             See :ref:`kafka_initial_load`
 ``kafka.consumer.count``             Integer Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)
 ``kafka.topic.partitions``           Integer Number of partitions to use in new kafka topics
 ``kafka.topic.replication``          Integer Replication factor to use in new kafka topics
