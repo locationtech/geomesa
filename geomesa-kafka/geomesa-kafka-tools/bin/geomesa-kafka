@@ -16,17 +16,23 @@ fi
 # Load common functions and setup
 . "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
 
-if [[ -n "$KAFKA_HOME" ]]; then
-  GM_KAFKA_CP="$(findJars $KAFKA_HOME/libs true)"
+# Kafka paths, user can hard set these in geomesa-env, or rely on this script to find set them via KAFKA_HOME
+if [[ -z "$KAFKA_LIB" && -n "$KAFKA_HOME" && -d "${KAFKA_HOME}/libs" ]]; then
+  KAFKA_LIB="${KAFKA_HOME}/libs"
+fi
+
+if [[ -n "$KAFKA_LIB" ]]; then
+  GM_KAFKA_CP="$(findJars $KAFKA_LIB true)"
 else
   GM_KAFKA_CP=""
 fi
+
 # Start constructing GEOMESA_CP (classpath)
 # include geomesa first so that the correct log4j.properties is picked up
 GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB):$GM_KAFKA_CP"
 
 # Prepend user defined directories to the classpath using java classpath syntax
-# We preprend so that they take precedence when explicitly defined by the user
+# We prepend so that they take precedence when explicitly defined by the user
 if [[ -n "${GEOMESA_EXTRA_CLASSPATHS}" ]]; then
   GEOMESA_CP="${GEOMESA_EXTRA_CLASSPATHS}:${GEOMESA_CP}"
 fi
