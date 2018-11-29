@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.kafka.utils
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.data.FeatureEvent
 import org.geotools.data.FeatureEvent.Type
 import org.geotools.data.simple.SimpleFeatureSource

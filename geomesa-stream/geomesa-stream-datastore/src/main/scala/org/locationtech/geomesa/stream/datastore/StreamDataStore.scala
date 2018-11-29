@@ -18,7 +18,7 @@ import java.{util => ju}
 import com.github.benmanes.caffeine.cache.{Cache, Caffeine, RemovalCause, RemovalListener}
 import com.google.common.collect.{Lists, Maps}
 import com.typesafe.config.ConfigFactory
-import com.vividsolutions.jts.geom.{Envelope, Geometry}
+import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.apache.camel.CamelContext
 import org.apache.camel.impl.DefaultCamelContext
 import org.geotools.data.DataAccessFactory.Param

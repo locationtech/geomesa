@@ -13,7 +13,7 @@ import java.time.temporal.ChronoUnit
 import java.util.Collections
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.apache.spark.sql.{DataFrame, SQLContext, SQLTypes, SparkSession}

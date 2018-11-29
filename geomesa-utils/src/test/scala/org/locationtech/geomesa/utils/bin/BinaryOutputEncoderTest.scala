@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.bin
 import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 
-import com.vividsolutions.jts.geom.{LineString, Point}
+import org.locationtech.jts.geom.{LineString, Point}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.junit.runner.RunWith

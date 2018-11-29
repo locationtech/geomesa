@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.fs.storage.common
 
-import com.vividsolutions.jts.geom.{Envelope, Geometry}
+import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.locationtech.geomesa.fs.storage.api.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.common.MetadataFileSystemStorage.WriterCallback
 import org.opengis.feature.simple.SimpleFeature

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.index
 
-import com.vividsolutions.jts.geom.{Coordinate, Envelope, Geometry, GeometryFactory}
+import org.locationtech.jts.geom.{Coordinate, Envelope, Geometry, GeometryFactory}
 
 /**
  * Trait for indexing and querying spatial data

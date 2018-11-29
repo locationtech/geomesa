@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.index.encoders
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.{Geometry, Point}
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.ByteArrayCallback
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

@@ -13,7 +13,7 @@ import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.Date
 
 import com.google.gson._
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.apache.commons.text.StringEscapeUtils
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.utils.geotools._

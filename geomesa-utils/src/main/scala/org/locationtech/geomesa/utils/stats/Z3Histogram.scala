@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.stats
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Coordinate, Geometry, Point}
+import org.locationtech.jts.geom.{Coordinate, Geometry, Point}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod, Z3SFC}

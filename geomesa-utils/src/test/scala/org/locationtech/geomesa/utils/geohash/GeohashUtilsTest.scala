@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.geohash
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.junit.Ignore
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._

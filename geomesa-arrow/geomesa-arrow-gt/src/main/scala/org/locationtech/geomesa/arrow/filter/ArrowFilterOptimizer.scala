@@ -11,7 +11,7 @@ package org.locationtech.geomesa.arrow.filter
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Coordinate, Polygon}
+import org.locationtech.jts.geom.{Coordinate, Polygon}
 import org.geotools.filter.visitor.BindingFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature

@@ -13,7 +13,7 @@ import java.util
 import java.util.Date
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.apache.hadoop.classification.InterfaceStability
 import org.geotools.data.Transaction
 import org.geotools.data.simple.SimpleFeatureWriter

@@ -9,7 +9,7 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.apache.commons.codec.binary.Base64
 import org.locationtech.geomesa.utils.text.WKBUtils
 

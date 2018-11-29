@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.geotools
 import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.geometry.DirectPosition2D
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod

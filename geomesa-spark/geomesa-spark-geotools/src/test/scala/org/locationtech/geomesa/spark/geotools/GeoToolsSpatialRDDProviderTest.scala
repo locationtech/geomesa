@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.spark.geotools
 
-import com.vividsolutions.jts.geom.Coordinate
+import org.locationtech.jts.geom.Coordinate
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data.simple.SimpleFeatureStore

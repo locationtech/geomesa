@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.process.knn
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Point
+import org.locationtech.jts.geom.Point
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.DefaultFeatureCollection

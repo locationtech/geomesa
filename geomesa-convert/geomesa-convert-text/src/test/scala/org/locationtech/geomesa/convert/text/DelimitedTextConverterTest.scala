@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets
 import com.google.common.hash.Hashing
 import com.google.common.io.Resources
 import com.typesafe.config.ConfigFactory
-import com.vividsolutions.jts.geom.{Coordinate, GeometryFactory, Point}
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.apache.commons.csv.CSVFormat
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith

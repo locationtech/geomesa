@@ -10,8 +10,8 @@ package org.locationtech.geomesa.spark.jts.util
 
 import java.{lang => jl}
 
-import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.io.geojson.GeoJsonWriter
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.io.geojson.GeoJsonWriter
 import org.apache.spark.sql.{DataFrame, Dataset, Row}
 import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.types._

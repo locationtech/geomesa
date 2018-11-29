@@ -10,7 +10,7 @@ package org.locationtech.geomesa.features.avro
 
 import java.util.{Collection => JCollection, List => JList}
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.geometry.jts.ReferencedEnvelope

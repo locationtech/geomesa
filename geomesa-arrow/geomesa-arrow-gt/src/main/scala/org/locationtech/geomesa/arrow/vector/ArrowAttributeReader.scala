@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicLong
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{BaseRepeatedValueVector, FixedSizeListVector, ListVector, StructVector}
 import org.apache.arrow.vector.holders._

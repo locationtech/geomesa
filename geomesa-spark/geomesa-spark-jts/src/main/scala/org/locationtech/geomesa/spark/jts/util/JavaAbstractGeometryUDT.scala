@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.spark.jts.util
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 
 class JavaAbstractGeometryUDT {
   def deserializer(datum: Array[Byte]): Geometry = {

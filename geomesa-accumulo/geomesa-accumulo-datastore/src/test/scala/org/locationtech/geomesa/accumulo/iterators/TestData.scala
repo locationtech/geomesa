@@ -12,7 +12,7 @@ import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, GeometryFactory}
+import org.locationtech.jts.geom.{Geometry, GeometryFactory}
 import org.apache.accumulo.core.data.Value
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.DataStore

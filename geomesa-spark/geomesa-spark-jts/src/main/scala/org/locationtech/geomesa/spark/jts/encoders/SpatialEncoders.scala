@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.spark.jts.encoders
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.apache.spark.sql.Encoder
 import org.apache.spark.sql.catalyst.encoders.ExpressionEncoder
 

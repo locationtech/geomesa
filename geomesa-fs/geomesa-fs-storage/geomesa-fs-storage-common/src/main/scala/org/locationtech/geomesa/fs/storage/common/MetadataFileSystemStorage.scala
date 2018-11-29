@@ -12,7 +12,7 @@ package org.locationtech.geomesa.fs.storage.common
 import java.util.Collections
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Envelope
+import org.locationtech.jts.geom.Envelope
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.geotools.data.Query

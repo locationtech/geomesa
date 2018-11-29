@@ -12,7 +12,7 @@ import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.ConfigFactory
-import com.vividsolutions.jts.geom.{Coordinate, Point}
+import org.locationtech.jts.geom.{Coordinate, Point}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

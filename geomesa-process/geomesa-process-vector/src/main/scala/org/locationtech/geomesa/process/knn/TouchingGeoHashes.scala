@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.process.knn
 
-import com.vividsolutions.jts.geom.Coordinate
+import org.locationtech.jts.geom.Coordinate
 import org.locationtech.geomesa.utils.geohash.GeoHash
 
 /**

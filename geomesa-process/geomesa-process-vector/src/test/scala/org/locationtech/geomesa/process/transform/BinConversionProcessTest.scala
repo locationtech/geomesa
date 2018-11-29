@@ -10,7 +10,7 @@ package org.locationtech.geomesa.process.transform
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.Point
+import org.locationtech.jts.geom.Point
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature

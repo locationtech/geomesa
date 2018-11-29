@@ -10,7 +10,7 @@ package org.locationtech.geomesa.spark.jts.udf
 
 import java.{lang => jl}
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.apache.spark.sql.SQLContext
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 

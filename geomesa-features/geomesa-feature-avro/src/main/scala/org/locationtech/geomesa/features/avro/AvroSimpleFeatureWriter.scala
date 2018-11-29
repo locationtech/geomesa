@@ -10,7 +10,7 @@ package org.locationtech.geomesa.features.avro
 
 import java.nio.ByteBuffer
 
-import com.vividsolutions.jts.io.WKBWriter
+import org.locationtech.jts.io.WKBWriter
 import org.apache.avro.Schema
 import org.apache.avro.io.{DatumWriter, Encoder}
 import org.geotools.data.DataUtilities

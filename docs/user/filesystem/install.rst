@@ -71,6 +71,10 @@ The output should look like this::
 Installing GeoMesa FileSystem in GeoServer
 ------------------------------------------
 
+.. warning::
+
+    GeoMesa 2.2.0 and later require GeoServer 2.14.0 or later. GeoMesa 2.1.0 and earlier require GeoServer 2.12.5.
+
 The FileSystem GeoServer plugin is bundled by default in the GeoMesa FS binary distribution. To install, extract
 ``$GEOMESA_FS_HOME/dist/gs-plugins/geomesa-fs-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
 ``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with Parquet 1.9.0

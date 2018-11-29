@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.jupyter
 
-import com.vividsolutions.jts.geom.Coordinate
+import org.locationtech.jts.geom.Coordinate
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification

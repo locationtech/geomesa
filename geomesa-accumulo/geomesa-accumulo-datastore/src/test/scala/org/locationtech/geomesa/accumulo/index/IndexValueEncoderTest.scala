@@ -12,7 +12,7 @@ import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.apache.accumulo.core.data.Value
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder

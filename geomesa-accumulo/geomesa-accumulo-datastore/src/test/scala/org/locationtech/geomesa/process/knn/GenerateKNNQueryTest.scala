@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.process.knn
 
-import com.vividsolutions.jts.geom.GeometryCollection
+import org.locationtech.jts.geom.GeometryCollection
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.referencing.CRS
 import org.geotools.referencing.crs.DefaultGeographicCRS

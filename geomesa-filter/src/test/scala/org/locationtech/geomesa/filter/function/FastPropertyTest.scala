@@ -9,7 +9,7 @@
 
 package org.locationtech.geomesa.filter.function
 
-import com.vividsolutions.jts.geom.Point
+import org.locationtech.jts.geom.Point
 import org.geotools.feature.{NameImpl, AttributeTypeBuilder}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.spatial.BBOXImpl

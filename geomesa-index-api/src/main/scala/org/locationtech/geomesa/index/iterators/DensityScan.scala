@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.iterators
 import java.awt.image.BufferedImage
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.ClassKey
 import org.geotools.filter.text.ecql.ECQL

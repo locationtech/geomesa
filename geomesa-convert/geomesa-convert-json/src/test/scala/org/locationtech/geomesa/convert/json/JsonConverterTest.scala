@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 
 import com.typesafe.config.ConfigFactory
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

@@ -12,7 +12,7 @@ import java.io.OutputStream
 import java.util.{Date, UUID}
 
 import com.esotericsoftware.kryo.io.Output
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer.{NON_NULL_BYTE, NULL_BYTE, VERSION}
 import org.locationtech.geomesa.features.kryo.json.KryoJsonSerialization

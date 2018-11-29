@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.stats
 import java.util.{Date, Locale}
 
 import com.clearspring.analytics.stream.frequency.IFrequency
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC}
 import org.locationtech.geomesa.utils.clearspring.CountMinSketch

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.index
 import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.StrictLogging
-import com.vividsolutions.jts.geom.{Envelope, Geometry}
+import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.locationtech.geomesa.utils.geotools.GridSnap
 
 import scala.annotation.tailrec

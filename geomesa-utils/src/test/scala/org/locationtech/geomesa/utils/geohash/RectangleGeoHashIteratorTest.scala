@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import com.vividsolutions.jts.geom.Coordinate
+import org.locationtech.jts.geom.Coordinate
 import org.junit.{Assert, Test}
 import org.locationtech.geomesa.utils.geohash.GeoHashIterator._
 

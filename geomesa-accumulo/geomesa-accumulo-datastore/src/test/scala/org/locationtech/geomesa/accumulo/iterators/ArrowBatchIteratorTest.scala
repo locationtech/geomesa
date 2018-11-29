@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, Closeable}
 
-import com.vividsolutions.jts.geom.LineString
+import org.locationtech.jts.geom.LineString
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{Query, Transaction}

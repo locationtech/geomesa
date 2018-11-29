@@ -13,7 +13,7 @@ import java.util.Date
 
 import com.google.common.collect.ImmutableSet
 import com.typesafe.config.ConfigFactory
-import com.vividsolutions.jts.geom.{Geometry, Point}
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text

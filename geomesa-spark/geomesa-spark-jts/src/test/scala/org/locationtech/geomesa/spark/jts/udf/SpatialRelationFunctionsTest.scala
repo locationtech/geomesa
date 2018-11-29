@@ -10,7 +10,7 @@ package org.locationtech.geomesa.spark.jts.udf
 
 import java.{lang => jl}
 
-import com.vividsolutions.jts.geom.Point
+import org.locationtech.jts.geom.Point
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, TypedColumn, _}
 import org.junit.runner.RunWith

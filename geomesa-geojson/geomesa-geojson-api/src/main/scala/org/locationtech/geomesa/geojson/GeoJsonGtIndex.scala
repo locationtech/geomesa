@@ -12,7 +12,7 @@ import java.io.Closeable
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, Point}
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.geotools.data.{DataStore, FeatureWriter, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.geojson.geom.GeometryJSON

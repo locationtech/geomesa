@@ -13,7 +13,7 @@ import java.util.Date
 
 import com.clearspring.analytics.stream.cardinality.RegisterSet
 import com.esotericsoftware.kryo.io.{Input, Output}
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal}
 import org.locationtech.geomesa.utils.clearspring.{HyperLogLog, StreamSummary}

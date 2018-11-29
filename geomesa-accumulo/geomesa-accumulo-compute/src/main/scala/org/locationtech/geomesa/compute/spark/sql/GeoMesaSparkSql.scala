@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.{Date, List => jList, Map => jMap, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.apache.hadoop.conf.Configuration
 import org.apache.metamodel.query.FilterClause
 import org.apache.metamodel.{DataContext, query}

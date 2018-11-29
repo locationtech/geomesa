@@ -90,6 +90,29 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 2.2.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+GeoTools 20 and GeoServer 2.14
+------------------------------
+
+GeoMesa 2.2.0 is compiled against GeoTools 20.0 and GeoServer 2.14. This version of GeoTools upgrades JTS
+from 1.14 to 1.16, which includes a transition of the project to Locationtech. The new version
+of JTS renames the packages from ``com.vividsolutions`` to ``org.locationtech.jts``. Due to the package renaming,
+GeoMesa will no longer work with older versions of GeoTools and GeoServer.
+
+.. warning::
+
+  GeoMesa 2.2.0 requires GeoTools 20.0 or later and GeoServer 2.14 or later.
+
+Accumulo DataStore GeoServer Installation
+-----------------------------------------
+
+When using GeoServer, the GeoMesa Accumulo data store now requires Accumulo client JARs 1.9.2 or later.
+This is due to classpath conflicts between earlier Accumulo clients and GeoServer 2.14. Fortunately, newer Accumulo
+clients can talk to older Accumulo instances, so it is only necessary to upgrade the client JARs in GeoServer,
+but not the entire Accumulo cluster.
+
 Version 2.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

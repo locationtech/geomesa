@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.spark.jts.rules
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.LeafExpression
 import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.geotools
 import java.util.regex.Pattern
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.apache.commons.text.StringEscapeUtils
 import org.geotools.feature.AttributeTypeBuilder
 import org.opengis.feature.`type`.AttributeDescriptor

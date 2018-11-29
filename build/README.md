@@ -44,6 +44,7 @@ geospatial analytics.
   [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-${geomesa.release.version}/geomesa-cassandra_2.11-${geomesa.release.version}-bin.tar.gz) |
   [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-${geomesa.release.version}/geomesa-kafka_2.11-${geomesa.release.version}-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-${geomesa.release.version}/geomesa-fs_2.11-${geomesa.release.version}-bin.tar.gz) |
+  [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-${geomesa.release.version}/geomesa-bigtable_2.11-${geomesa.release.version}-bin.tar.gz) |
   [**Source**](https://github.com/locationtech/geomesa/archive/geomesa_2.11-${geomesa.release.version}.tar.gz) |
   [**CheckSums**](https://github.com/locationtech/geomesa/releases/geomesa_2.11-${geomesa.release.version})
 

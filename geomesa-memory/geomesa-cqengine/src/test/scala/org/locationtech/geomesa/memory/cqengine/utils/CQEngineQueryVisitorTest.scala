@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.memory.cqengine.utils
 
 import com.googlecode.cqengine.query.{Query, QueryFactory => QF}
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.memory.cqengine.query.Intersects

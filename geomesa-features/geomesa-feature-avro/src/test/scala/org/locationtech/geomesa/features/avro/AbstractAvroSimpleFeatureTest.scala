@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.UUID
 
-import com.vividsolutions.jts.geom.{Point, Polygon}
+import org.locationtech.jts.geom.{Point, Polygon}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.avro.serde.Version2ASF

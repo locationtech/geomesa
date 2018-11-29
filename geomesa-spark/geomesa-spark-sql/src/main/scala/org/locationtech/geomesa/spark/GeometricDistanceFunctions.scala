@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.spark
 
-import com.vividsolutions.jts.geom.{Coordinate, Geometry, LineString}
+import org.locationtech.jts.geom.{Coordinate, Geometry, LineString}
 import org.apache.spark.sql.SQLContext
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.referencing.crs.DefaultGeographicCRS

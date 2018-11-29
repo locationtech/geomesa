@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.arrow.vector.impl;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 import org.apache.arrow.vector.FieldVector;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.locationtech.geomesa.arrow.vector.GeometryVector;

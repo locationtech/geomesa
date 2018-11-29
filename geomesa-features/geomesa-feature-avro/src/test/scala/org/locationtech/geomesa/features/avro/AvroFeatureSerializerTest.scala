@@ -13,7 +13,7 @@ import java.util
 import java.util.{Date, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractImmutableSimpleFeature
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}

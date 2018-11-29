@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.UUID
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{LineString, Point, Polygon}
+import org.locationtech.jts.geom.{LineString, Point, Polygon}
 import org.apache.avro.io.{DecoderFactory, EncoderFactory}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints

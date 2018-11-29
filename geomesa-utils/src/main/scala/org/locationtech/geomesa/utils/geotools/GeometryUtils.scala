@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.geotools
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.referencing.GeodeticCalculator
 import org.locationtech.geomesa.utils.geohash.GeohashUtils

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import com.vividsolutions.jts.geom.{Geometry, Point}
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{Query, Transaction}
 import org.geotools.factory.Hints

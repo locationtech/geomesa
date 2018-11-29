@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.process.query
 
-import com.vividsolutions.jts.geom.{Coordinate, Point}
+import org.locationtech.jts.geom.{Coordinate, Point}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL

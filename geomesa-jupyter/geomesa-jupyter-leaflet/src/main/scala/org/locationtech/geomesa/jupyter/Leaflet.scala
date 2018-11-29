@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.jupyter
 
 object L {
-  import com.vividsolutions.jts.geom._
+  import org.locationtech.jts.geom._
   import org.apache.commons.text.CharacterPredicates.ASCII_ALPHA_NUMERALS
   import org.apache.commons.text.{RandomStringGenerator, StringEscapeUtils}
   import org.apache.spark.sql._

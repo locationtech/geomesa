@@ -46,7 +46,6 @@
         <module>geomesa-security</module>
         <module>geomesa-spark</module>
         <module>geomesa-stream</module>
-        <module>geomesa-test</module>
         <module>geomesa-tools</module>
         <module>geomesa-utils</module>
         <module>geomesa-web</module>
@@ -70,15 +69,15 @@
         <scala.parsers.version>1.0.6</scala.parsers.version>
 
         <geoserver.version>2.12.0</geoserver.version>
-        <gt.version>18.0</gt.version>
-        <jaiext.version>1.0.16</jaiext.version>
-        <imageio-ext.version>1.1.18</imageio-ext.version>
-        <jts.version>1.14.0</jts.version>
+        <gt.version>20.0</gt.version>
+        <jaiext.version>1.1.1</jaiext.version>
+        <jts.version>1.16.0</jts.version>
         <avro.version>1.7.5</avro.version>
         <parquet.version>1.9.0</parquet.version>
         <orc.version>1.4.4</orc.version>
-        <jackson.version>2.6.5</jackson.version> <!-- used by spark and arrow (which defaults to 2.7.1) -->
-        <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
+        <fasterxml.jackson.version>2.6.7</fasterxml.jackson.version> <!-- used by spark (2.6.7) and arrow (2.7.1) -->
+        <fasterxml.jackson.databind.version>2.6.7.1</fasterxml.jackson.databind.version> <!-- used by spark (2.6.7.1) and arrow (2.7.1) -->
+        <codehaus.jackson.version>1.9.3</codehaus.jackson.version>
         <gdal.version>2.0.0</gdal.version>
         <json4s.version>3.5.4</json4s.version>
         <scalatra.version>2.6.3</scalatra.version>
@@ -349,19 +348,19 @@
                 <version>2.3</version>
             </dependency>
             <dependency>
-                <groupId>com.vividsolutions</groupId>
-                <artifactId>jts-io</artifactId>
+                <groupId>org.locationtech.jts.io</groupId>
+                <artifactId>jts-io-common</artifactId>
                 <version>${jts.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.vividsolutions</groupId>
+                <groupId>org.locationtech.jts</groupId>
                 <artifactId>jts-core</artifactId>
                 <version>${jts.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.spatial4j</groupId>
                 <artifactId>spatial4j</artifactId>
-                <version>0.6</version>
+                <version>0.7</version>
             </dependency>
             <dependency>
                 <!-- 'works with' due to license issues -->
@@ -538,7 +537,7 @@
                         <artifactId>jt-utils</artifactId>
                     </exclusion>
                     <exclusion>
-                        <groupId>com.vividsolutions</groupId>
+                        <groupId>org.locationtech.jts</groupId>
                         <artifactId>jts-example</artifactId>
                     </exclusion>
                     <exclusion>
@@ -602,102 +601,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalarcbinarygrid</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalecw</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalecwjp2</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalehdr</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalenvihdr</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalerdasimg</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalframework</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalidrisi</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalkakadujp2</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalmrsid</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalmrsidjp2</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalnitf</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalrpftoc</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdaldted</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdalvrt</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-gdal-bindings</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-geocore</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-imagereadmt</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-streams</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>it.geosolutions.imageio-ext</groupId>
-                        <artifactId>imageio-ext-utilities</artifactId>
+                        <artifactId>*</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -768,7 +672,12 @@
                         <artifactId>jai_imageio</artifactId>
                     </exclusion>
                     <exclusion>
-                        <groupId>com.vividsolutions</groupId>
+                        <!-- excluded due to license issues -->
+                        <groupId>org.jaitools</groupId>
+                        <artifactId>jt-utils</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.locationtech.jts</groupId>
                         <artifactId>jts-example</artifactId>
                     </exclusion>
                     <exclusion>
@@ -799,7 +708,7 @@
                         <artifactId>jai_codec</artifactId>
                     </exclusion>
                     <exclusion>
-                        <groupId>com.vividsolutions</groupId>
+                        <groupId>org.locationtech.jts</groupId>
                         <artifactId>jts-example</artifactId>
                     </exclusion>
                     <exclusion>
@@ -830,7 +739,7 @@
                         <artifactId>jai_imageio</artifactId>
                     </exclusion>
                     <exclusion>
-                        <groupId>com.vividsolutions</groupId>
+                        <groupId>org.locationtech.jts</groupId>
                         <artifactId>jts-example</artifactId>
                     </exclusion>
                 </exclusions>
@@ -856,249 +765,6 @@
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
                         <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdalarcbinarygrid</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdalecw</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdalecwjp2</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdalehdr</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdalenvihdr</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdalerdasimg</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdalframework</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdalidrisi</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdalkakadujp2</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdalmrsid</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdalmrsidjp2</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdalnitf</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdalrpftoc</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-gdaldted</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-geocore</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-imagereadmt</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-library</artifactId>
-                <version>${imageio-ext.version}</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-streams</artifactId>
-                <version>${imageio-ext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-tiff</artifactId>
-                <version>${imageio-ext.version}</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-utilities</artifactId>
-                <version>${imageio-ext.version}</version>
-                <scope>provided</scope>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1481,6 +1147,12 @@
                 <groupId>commons-net</groupId>
                 <artifactId>commons-net</artifactId>
                 <version>3.3</version>
+            </dependency>
+            <dependency>
+                <!-- managed from jts 1.1.1 and geotools 1.1 -->
+                <groupId>com.googlecode.json-simple</groupId>
+                <artifactId>json-simple</artifactId>
+                <version>1.1.1</version>
             </dependency>
             <dependency>
                 <groupId>com.esotericsoftware</groupId>
@@ -1996,7 +1668,7 @@
             <dependency>
                 <groupId>com.googlecode.cqengine</groupId>
                 <artifactId>cqengine</artifactId>
-                <version>2.7.1</version>
+                <version>3.0.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.spark</groupId>
@@ -2018,7 +1690,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
-                <version>1.16</version>
+                <version>1.18</version>
             </dependency>
             <dependency>
                 <groupId>commons-cli</groupId>
@@ -2033,7 +1705,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
-                <version>3.6</version>
+                <version>3.7</version>
             </dependency>
             <dependency>
                 <groupId>commons-collections</groupId>
@@ -2094,22 +1766,22 @@
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-core-asl</artifactId>
-                <version>${jackson.codehaus.version}</version>
+                <version>${codehaus.jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-mapper-asl</artifactId>
-                <version>${jackson.codehaus.version}</version>
+                <version>${codehaus.jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-jaxrs</artifactId>
-                <version>${jackson.codehaus.version}</version>
+                <version>${codehaus.jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
                 <artifactId>jackson-xc</artifactId>
-                <version>${jackson.codehaus.version}</version>
+                <version>${codehaus.jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.json4s</groupId>
@@ -2170,12 +1842,12 @@
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
-                <version>2.7.1</version>
+                <version>4.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-client</artifactId>
-                <version>2.7.1</version>
+                <version>4.0.1</version>
             </dependency>
             <dependency>
                 <groupId>com.thoughtworks.paranamer</groupId>
@@ -2244,21 +1916,20 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- version used by spark - also compatible with arrow (which defaults to 2.7.1) -->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>${jackson.version}</version>
+                <version>${fasterxml.jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-core</artifactId>
-                <version>${jackson.version}</version>
+                <version>${fasterxml.jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${jackson.version}</version>
+                <version>${fasterxml.jackson.databind.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.scalatra</groupId>
@@ -2559,18 +2230,30 @@
                 <version>3.6.2.Final</version>
             </dependency>
 
-            <!-- geoserver 2.9 spring version -->
+            <!-- geoserver 2.14 spring version -->
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-webmvc</artifactId>
-                <version>4.2.5.RELEASE</version>
+                <version>4.3.18.RELEASE</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-core</artifactId>
+                <version>4.2.7.RELEASE</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.security</groupId>
+                <artifactId>spring-security-web</artifactId>
+                <version>4.2.7.RELEASE</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <!-- marked provided due to license issues -->
                 <groupId>com.google.code.findbugs</groupId>
                 <artifactId>jsr305</artifactId>
-                <version>1.3.9</version>
+                <version>2.0.3</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -3052,6 +2735,16 @@
     </developers>
 
     <repositories>
+        <!-- include central so that it is searched before our alternate repos -->
+        <repository>
+            <id>central</id>
+            <name>Maven Repository Switchboard</name>
+            <layout>default</layout>
+            <url>http://repo1.maven.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
         <repository>
             <id>locationtech-releases</id>
             <url>https://repo.locationtech.org/content/groups/releases</url>

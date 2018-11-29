@@ -12,7 +12,7 @@ import java.io.{File, FileInputStream, FileOutputStream}
 import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.vividsolutions.jts.geom.LineString
+import org.locationtech.jts.geom.LineString
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.filter.text.ecql.ECQL

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features.serialization
 
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.locationtech.geomesa.utils.geometry.GeometryPrecision.TwkbPrecision
 
 /**
