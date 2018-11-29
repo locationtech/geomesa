@@ -20,6 +20,7 @@ function build_and_mirror {
 	set +x
 	if [ "$release" == "root" ] ; then
 		set -x
+		for file in $(ls $GEOMESA/docs/target/html/); do rm -r $GEOMESA_GITHUB_IO/documentation/$file; done
 		rsync -av $GEOMESA/docs/target/html/ $GEOMESA_GITHUB_IO/documentation/
 		set +x
 	else
