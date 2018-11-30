@@ -169,7 +169,7 @@ Requirements:
 
 * [Git](http://git-scm.com/)
 * [Java JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
-* [Apache Maven](http://maven.apache.org/) 3.2.2 or later
+* [Apache Maven](http://maven.apache.org/) 3.3.9 or later
 
 Use Git to download the source code. Navigate to the destination directory, then run:
 
@@ -185,3 +185,8 @@ provides the script `build/mvn`, which is a wrapper around Maven that downloads 
 [Zinc](https://github.com/typesafehub/zinc), a fast incremental compiler:
 
     build/mvn clean install -T8 -DskipTests
+
+If the Zinc build fails with an error finding "javac", try setting the JAVA_HOME
+environment variable to point to the root of your JDK.  Example from a Mac:
+
+    JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_51.jdk/Contents/Home" build/mvn clean install

@@ -2403,7 +2403,8 @@
                 <plugin>
                     <groupId>net.alchim31.maven</groupId>
                     <artifactId>scala-maven-plugin</artifactId>
-                    <version>3.2.1</version>
+                    <!-- 3.4.4 was released 2018-11-01.  It requires Maven version >= 3.3.9. -->
+                    <version>3.4.4</version>
                     <configuration>
                         <dependencies>
                             <dependency>
