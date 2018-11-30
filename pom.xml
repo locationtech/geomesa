@@ -2351,6 +2351,12 @@
                     </configuration>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-clean-plugin</artifactId>
+                    <!-- 3.1.0 was released 2018-04-14. -->
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
                     <version>1.6.0</version>
@@ -2366,6 +2372,12 @@
                     <artifactId>maven-jar-plugin</artifactId>
                     <!-- 3.1.0 was released 2018-04-06. -->
                     <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-install-plugin</artifactId>
+                    <!-- 3.0.0-M1 was released 2018-09-23. -->
+                    <version>3.0.0-M1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -2455,6 +2467,12 @@
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <!-- 3.0.1 was released 2018-05-28. -->
                     <version>3.0.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <!-- 3.7.1 was released 2018-04-27. -->
+                    <version>3.7.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
