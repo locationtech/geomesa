@@ -2515,7 +2515,8 @@
                 <plugin>
                     <groupId>com.mycila</groupId>
                     <artifactId>license-maven-plugin</artifactId>
-                    <version>2.10</version>
+                    <!-- 3.0 was released 2016-08-20 and is the latest as of 2018-11-30. -->
+                    <version>3.0</version>
                     <configuration>
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
