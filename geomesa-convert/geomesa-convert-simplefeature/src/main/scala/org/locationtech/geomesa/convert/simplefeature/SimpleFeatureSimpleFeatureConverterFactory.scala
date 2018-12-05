@@ -9,8 +9,9 @@
 package org.locationtech.geomesa.convert.simplefeature
 
 import com.typesafe.config.Config
-import org.locationtech.geomesa.convert.Transformers.{Expr, FieldLookup}
+import org.locationtech.geomesa.convert.Transformers.{Expr, ExpressionWrapper, FieldLookup}
 import org.locationtech.geomesa.convert._
+import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -66,6 +67,7 @@ class SimpleFeatureSimpleFeatureConverterFactory extends AbstractSimpleFeatureCo
     else Transformers.parseTransform(field.getString("transform")) match {
       // convert field lookups to col lookups
       case FieldLookup(n) => Transformers.Col(inputSFT.indexOf(n))
+      case ExpressionWrapper(Expression.FieldLookup(n)) => Transformers.Col(inputSFT.indexOf(n))
       case t => t
     }
   }
