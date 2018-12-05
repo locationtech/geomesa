@@ -8,15 +8,18 @@
 
 package org.locationtech.geomesa.accumulo.util
 
-import com.typesafe.scalalogging.LazyLogging
-import org.junit.{Assert, Test}
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
-class BoundingBoxUtilTest extends LazyLogging {
-  @Test def getRangesTest {
-    val bbox: BoundingBox = BoundingBox.apply(GeoHash.apply("tmzcrzpt").getPoint, GeoHash.apply("ttb12p21").getPoint)
-    val ranges = BoundingBoxUtil.getRanges(bbox)
-    logger.debug("" + ranges)
-    Assert.assertEquals(15, ranges.size)
+@RunWith(classOf[JUnitRunner])
+class BoundingBoxUtilTest extends Specification {
+  "BoundingBoxUtil" should {
+    "get ranges" >> {
+      val bbox: BoundingBox = BoundingBox.apply(GeoHash.apply("tmzcrzpt").getPoint, GeoHash.apply("ttb12p21").getPoint)
+      val ranges = BoundingBoxUtil.getRanges(bbox)
+      ranges must haveLength(15)
+    }
   }
 }
