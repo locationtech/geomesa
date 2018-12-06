@@ -36,6 +36,22 @@ user data hint ``json=true``. In your converter, select the outer element and th
 through the ``toString`` transformer function. You will be able to filter and transform the data using JSONPath
 at query time. See :ref:`json_attributes` for more details.
 
+JSON Composite Converters
+-------------------------
+
+Composite converters can handle processing different JSON formats in a single stream. To use a composite
+converter, specify ``type = "composite-json"`` in your converter definition.
+
+Composite converters can define top-level options, fields, etc, the same as a normal JSON converter. These
+values will be inherited by each of the child converters. If each child is unique, then it is valid to not
+define anything at the top level.
+
+Composite converters must define a ``converters`` element, which is an array of nested JSON converter
+definitions. In addition to the standard configuration, each nested converter must have a ``predicate``
+element that determines which converter to use for each JSON document. The value passed into the predicate
+will be the parsed JSON document (available as ``$0``), so generally the predicate will make use of the
+``jsonPath`` function (below). See :ref:`composite_predicates` for more details on predicates.
+
 .. _json_converter_functions:
 
 JSON Transform Functions
@@ -48,12 +64,6 @@ require further processing (e.g. ``jsonList`` or ``jsonMap``, below).
 
 In addition to the standard functions in :ref:`converter_functions`, the JSON converter provides the following
 JSON-specific functions:
-
-jsonToString
-~~~~~~~~~~~~
-
-This will convert a JSON element to a string. It can be useful for quickly representing a complex object, for
-example in order to create a feature ID based on the hash of a row.
 
 jsonList
 ~~~~~~~~
@@ -76,6 +86,14 @@ mapToJson
 This function converts a java.util.Map into a JSON string. It requires a single parameter, which must be a
 java.util.Map. It can be useful for storing complex JSON as a single attribute, which can then be queried
 using GeoMesa's JSON attribute support. See :ref:`json_attributes` for more information.
+
+jsonPath
+~~~~~~~~
+
+This function will evaluate a `JSONPath <http://goessner.net/articles/JsonPath/>`__ expression against a
+given JSON element. Generally, it is better to use the ``path`` element of the ``fields`` element, but
+this method can be useful for composite predicates (see above). The first argument is the path to evaluate,
+and the second argument is the element to operate on.
 
 Example Usage
 -------------

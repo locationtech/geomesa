@@ -36,7 +36,7 @@ object TransformerFunction {
     map.result()
   }
 
-  def apply(n: String*)(f: (Array[Any]) => Any): TransformerFunction = {
+  def apply(n: String*)(f: Array[Any] => Any): TransformerFunction = {
     new NamedTransformerFunction(n) {
       override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = f(args)
     }

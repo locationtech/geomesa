@@ -13,9 +13,8 @@ import java.nio.charset.Charset
 import java.util.Collections
 
 import com.typesafe.config.{Config, ConfigFactory, ConfigObject, ConfigValueFactory}
-import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.convert.Modes.ErrorMode
-import org.locationtech.geomesa.convert.Modes.ParseMode
+import com.typesafe.scalalogging.{LazyLogging, Logger}
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.SimpleFeatureValidator.{HasDtgValidator, HasGeoValidator}
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
@@ -82,10 +81,10 @@ abstract class AbstractConverterFactory[S <: AbstractConverter[_, C, F, O]: Clas
     * @param conf config
     * @return
     */
-  protected def withDefaults(conf: Config): Config = AbstractConverterFactory.standardDefaults(conf)
+  protected def withDefaults(conf: Config): Config = AbstractConverterFactory.standardDefaults(conf, logger)
 }
 
-object AbstractConverterFactory extends LazyLogging {
+object AbstractConverterFactory {
 
   import scala.collection.JavaConverters._
 
@@ -121,7 +120,7 @@ object AbstractConverterFactory extends LazyLogging {
     * @param conf conf
     * @return
     */
-  def standardDefaults(conf: Config): Config = {
+  def standardDefaults(conf: Config, logger: => Logger): Config = {
     import scala.collection.JavaConverters._
 
     val updates = ArrayBuffer.empty[Config => Config]
