@@ -474,7 +474,7 @@ For the default splitter, ``table.splitter.options`` should consist of comma-sep
 of ``id``, ``z3``, ``z2`` or ``attr`` (``xz3`` and ``xz2`` indices use ``z3`` and ``z2``, respectively).
 
 +------------+-------------------------------+----------------------------------------+
-| Index Type | Option                        | Description                            |
+| Index      | Option                        | Description                            |
 +============+===============================+========================================+
 | Z3/XZ3     | ``z3.min``                    | The minimum date for the data          |
 +            +-------------------------------+----------------------------------------+
