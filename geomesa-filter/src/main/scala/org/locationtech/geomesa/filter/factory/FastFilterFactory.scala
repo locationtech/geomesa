@@ -10,6 +10,7 @@ package org.locationtech.geomesa.filter.factory
 
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.filter.visitor.DuplicatingFilterVisitor
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
 import org.locationtech.geomesa.filter.expression.FastDWithin.DWithinLiteral
@@ -178,6 +179,13 @@ object FastFilterFactory {
   def optimize(sft: SimpleFeatureType, filter: Filter): Filter = {
     sfts.set(sft)
     try { filter.accept(new QueryPlanFilterVisitor(sft), factory).asInstanceOf[Filter] } finally {
+      sfts.remove()
+    }
+  }
+
+  def copy(sft: SimpleFeatureType, filter: Filter): Filter = {
+    sfts.set(sft)
+    try { filter.accept(new DuplicatingFilterVisitor(factory), null).asInstanceOf[Filter] } finally {
       sfts.remove()
     }
   }
