@@ -239,12 +239,12 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
 
       val r = sc.sql(
         """
-          |select st_makePoint(0, 0)
+          |select st_makePoint(0, 1) geom
         """.stripMargin
       )
-      val expected = WKTUtils.read("POINT(0 0)")
+      val expected = WKTUtils.read("POINT(0 1)")
       r.collect().head.getAs[Point](0) mustEqual expected
-      dfBlank.select(st_makePoint(0, 0)).first mustEqual expected
+      dfBlank.select(st_makePoint(0, 1)).first mustEqual expected
     }
 
     "st_makePointM" >> {
