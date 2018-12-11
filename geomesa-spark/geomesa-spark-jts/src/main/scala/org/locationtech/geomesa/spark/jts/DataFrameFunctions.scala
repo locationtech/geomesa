@@ -93,7 +93,7 @@ object DataFrameFunctions extends SpatialEncoders {
     def st_makePoint(x: Column, y: Column): TypedColumn[Any, Point] =
       udfToColumn(ST_MakePoint, constructorNames, x, y)
     def st_makePoint(x: Double, y: Double): TypedColumn[Any, Point] =
-      st_makePoint(lit(x), lit(x))
+      st_makePoint(lit(x), lit(y))
 
     def st_makeLine(pointSeq: Column): TypedColumn[Any, LineString] =
       udfToColumn(ST_MakeLine, constructorNames, pointSeq)
