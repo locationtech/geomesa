@@ -73,6 +73,11 @@
                                     <pattern>javax.measure</pattern>
                                     <shadedPattern>org.locationtech.geomesa.hbase.shade.javax.measure</shadedPattern>
                                 </relocation>
+                                <!-- fix conflict with hadoop 2.8+ json-smart 1.3.1 -->
+                                <relocation>
+                                    <pattern>net.minidev.json</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.accumulo.shade.net.minidev.json</shadedPattern>
+                                </relocation>
                             </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
