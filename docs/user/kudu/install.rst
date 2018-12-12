@@ -1,6 +1,10 @@
 Installing GeoMesa Kudu
 =======================
 
+.. note::
+
+    GeoMesa currently supports Kudu version |kudu_version|.
+
 Installing the Binary Distribution
 ----------------------------------
 

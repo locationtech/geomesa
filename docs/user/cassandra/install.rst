@@ -1,6 +1,10 @@
 Installing GeoMesa Cassandra
 ============================
 
+.. note::
+
+    GeoMesa currently supports Cassandra version |cassandra_version|.
+
 Connecting to Cassandra
 -----------------------
 

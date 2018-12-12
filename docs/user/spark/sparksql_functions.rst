@@ -497,12 +497,10 @@ st_castToPolygon
 
 Casts ``Geometry`` *g* to a ``Polygon``.
 
-.. _st_byteArray:
-
 .. _st_castToGeometry:
 
 st_castToGeometry
-^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
 
 ::
 

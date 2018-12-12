@@ -1,6 +1,10 @@
 Installing GeoMesa HBase
 ========================
 
+.. note::
+
+    GeoMesa currently supports HBase version |hbase_version|.
+
 GeoMesa supports traditional HBase installations as well as HBase running on `Amazon's EMR <https://aws.amazon.com/emr/>`_
 , `Hortonworks' Data Platform (HDP) <https://hortonworks.com/products/data-center/hdp/>`_, and the
 `Cloudera Distribution of Hadoop (CDH) <https://www.cloudera.com/products/enterprise-data-hub.html>`_. For details

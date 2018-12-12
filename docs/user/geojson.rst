@@ -682,6 +682,8 @@ expressions must be enclosed in double quotes.
     sf.getAttribute("\"$.json.foo\""); // returns "baz"
     sf.getAttribute("\"$.json.bar\""); // returns null
 
+.. _json_path_filter_function:
+
 JSONPath CQL Filter Function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

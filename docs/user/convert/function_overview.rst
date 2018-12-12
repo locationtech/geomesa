@@ -104,6 +104,12 @@ Control Functions
 -  ``try``
 -  ``withDefault``
 
+State Functions
+~~~~~~~~~~~~~~~
+
+-  ``inputFilePath``
+-  ``lineNo``
+
 .. _convert_scripting_functions:
 
 Functions defined using scripting languages

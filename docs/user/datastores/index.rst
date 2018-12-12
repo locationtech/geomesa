@@ -15,6 +15,7 @@ about GeoMesa data stores.
     runtime_config
     query_planning
     query_config
+    filter_functions
     analytic_queries
     authorizations
     auditing
