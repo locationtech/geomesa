@@ -148,8 +148,10 @@ trait InputFormatParam extends InputFilesParam {
   def fmt: DataFormats.DataFormat = {
     import scala.collection.JavaConversions._
     val fmtParam = Option(format).flatMap(f => DataFormats.values.find(_.toString.equalsIgnoreCase(f)))
+    // back compatible check for 'geojson' as a format (instead, just use 'json')
+    lazy val geojson = if ("geojson".equalsIgnoreCase(format)) { Some(DataFormats.Json) } else { None }
     lazy val fmtFile = files.flatMap(DataFormats.fromFileName(_).right.toOption).headOption
-    fmtParam.orElse(fmtFile).orNull
+    fmtParam.orElse(geojson).orElse(fmtFile).orNull
   }
 }
 

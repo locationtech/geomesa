@@ -59,17 +59,17 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
 
     lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
     val exporter = params.outputFormat match {
-      case Csv | Tsv      => new DelimitedExporter(getWriter(params), params.outputFormat, attributes, !params.noHeader)
-      case Shp            => new ShapefileExporter(checkShpFile(params))
-      case GeoJson | Json => new GeoJsonExporter(getWriter(params))
-      case Gml | Xml      => new GmlExporter(createOutputStream(params.file, params.gzip))
-      case Avro           => new AvroExporter(createOutputStream(params.file, null), avroCompression)
-      case Arrow          => new ArrowExporter(query.getHints, createOutputStream(params.file, params.gzip), ArrowExporter.queryDictionaries(ds, query))
-      case Bin            => new BinExporter(query.getHints, createOutputStream(params.file, params.gzip))
-      case Leaflet        => new LeafletMapExporter(params)
-      case Null           => NullExporter
+      case Csv | Tsv => new DelimitedExporter(getWriter(params), params.outputFormat, attributes, !params.noHeader)
+      case Shp       => new ShapefileExporter(checkShpFile(params))
+      case Json      => new GeoJsonExporter(getWriter(params))
+      case Gml | Xml => new GmlExporter(createOutputStream(params.file, params.gzip))
+      case Avro      => new AvroExporter(createOutputStream(params.file, null), avroCompression)
+      case Arrow     => new ArrowExporter(query.getHints, createOutputStream(params.file, params.gzip), ArrowExporter.queryDictionaries(ds, query))
+      case Bin       => new BinExporter(query.getHints, createOutputStream(params.file, params.gzip))
+      case Leaflet   => new LeafletMapExporter(params)
+      case Null      => NullExporter
       // shouldn't happen unless someone adds a new format and doesn't implement it here
-      case _              => throw new UnsupportedOperationException(s"Format ${params.outputFormat} can't be exported")
+      case _         => throw new UnsupportedOperationException(s"Format ${params.outputFormat} can't be exported")
     }
 
     try {

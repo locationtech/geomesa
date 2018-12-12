@@ -18,7 +18,7 @@ import org.apache.commons.io.FilenameUtils
 object DataFormats extends Enumeration {
 
   type DataFormat = Value
-  val Arrow, Avro, Bin, Csv, GeoJson, Gml, Json, Leaflet , Null, Shp, Tsv, Xml = Value
+  val Arrow, Avro, Bin, Csv, Gml, Json, Leaflet , Null, Shp, Tsv, Xml = Value
 
   /**
     * Returns either the format, or the extension as a string if it doesn't match
