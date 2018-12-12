@@ -40,11 +40,7 @@ GeoMesa uses JIRA to track ongoing development and issues:
 Building
 --------
 
-GeoMesa requires Maven 3.2.2 or later to build:
-
-```
-geomesa> mvn clean install
-```
+See the instructinos in README.md.
 
 Contributing
 ------------
