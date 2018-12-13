@@ -35,5 +35,9 @@ Saxon-HE
 scala
 scalap
 sfcurve
+si-quantity
+si-units
 spatial4j
 stream
+unit-api
+uom

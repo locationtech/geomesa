@@ -25,4 +25,8 @@ Saxon-HE
 scala
 spatial4j
 sfcurve
+si-quantity
+si-units
 stream
+unit-api
+uom

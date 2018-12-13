@@ -33,6 +33,10 @@ scala
 scalap
 sfcurve
 spatial4j
+si-quantity
+si-units
 stream
+unit-api
+uom
 zk
 zookeeper
