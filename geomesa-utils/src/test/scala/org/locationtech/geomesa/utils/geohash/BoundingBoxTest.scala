@@ -8,35 +8,37 @@
 
 package org.locationtech.geomesa.utils.geohash
 
-import com.typesafe.scalalogging.LazyLogging
-import org.junit.{Assert, Test}
+import org.junit.runner.RunWith
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
-class BoundingBoxTest extends LazyLogging {
-  @Test def boundingBoxTest {
-    var bbox = BoundingBox.apply(GeoHash.apply("dqb00").getPoint, GeoHash.apply("dqbxx").getPoint)
-    var hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox)
-    logger.debug(hashes.size + "\n" + hashes)
-    Assert.assertEquals(24, hashes.size)
-
-    bbox = BoundingBox.apply(-78, -77.895029, 38.045834, 38)
-    hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox, 32)
-    logger.debug(hashes.size + "\n" + hashes)
-    Assert.assertEquals(6, hashes.size)
-
-    bbox = BoundingBox.apply(-78, -77.89503, 38.0458335, 38)
-    hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox, 32)
-    logger.debug(hashes.size + "\n" + hashes)
-    Assert.assertEquals(6, hashes.size)
-
-    bbox = BoundingBox.apply(-50, 50, -40, 40)
-    hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox, 32)
-    logger.debug(hashes.size + "\n" + hashes)
-    Assert.assertEquals(8, hashes.size)
-
-    bbox = BoundingBox.apply(1, 1, 1, 1)
-    hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox, 32)
-    logger.debug(hashes.size + "\n" + hashes)
-    Assert.assertEquals(1, hashes.size)
-
+@RunWith(classOf[JUnitRunner])
+class BoundingBoxTest extends Specification {
+  "BoundingBox" should {
+    "return appropriate hashes" >> {
+      val bbox = BoundingBox.apply(GeoHash.apply("dqb00").getPoint, GeoHash.apply("dqbxx").getPoint)
+      val hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox)
+      hashes must haveLength(24)
+    }
+    "return appropriate hashes" >> {
+      val bbox = BoundingBox.apply(-78, -77.895029, 38.045834, 38)
+      val hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox, 32)
+      hashes must haveLength(6)
+    }
+    "return appropriate hashes" >> {
+      val bbox = BoundingBox.apply(-78, -77.89503, 38.0458335, 38)
+      val hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox, 32)
+      hashes must haveLength(6)
+    }
+    "return appropriate hashes" >> {
+      val bbox = BoundingBox.apply(-50, 50, -40, 40)
+      val hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox, 32)
+      hashes must haveLength(8)
+    }
+    "return appropriate hashes" >> {
+      val bbox = BoundingBox.apply(1, 1, 1, 1)
+      val hashes = BoundingBox.getGeoHashesFromBoundingBox(bbox, 32)
+      hashes must haveLength(1)
+    }
   }
 }

@@ -12,12 +12,15 @@ import com.typesafe.config.ConfigFactory
 import org.locationtech.jts.geom.Coordinate
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
+@RunWith(classOf[JUnitRunner])
 class SimpleFeatureSimpleFeatureConverterTest extends Specification {
 
   "SimpleFeature2SimpleFeature" should {
