@@ -296,18 +296,18 @@ a:hover {
 }
 
 .pre {
-   background: #d5d5d5;
+   background: #e5e5e5;
 }
 
 div[class^='highlight'] {
-  background: #d5d5d5;
+  background: #e5e5e5;
   border: 1px solid #c9c8c9;
   border-radius: 3px;
   padding: 1px;
 }
 
 div.highlight pre {
-  background: #d5d5d5;
+  background: #e5e5e5;
 }
 
 .c1, .cm {
@@ -315,7 +315,7 @@ div.highlight pre {
 }
 
 code.docutils.literal {
-   background: #d5d5d5;
+   background: #e5e5e5;
 }
 
 .rst-content .admonition-title {
