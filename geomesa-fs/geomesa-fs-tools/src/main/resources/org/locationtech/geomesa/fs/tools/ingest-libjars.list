@@ -37,5 +37,9 @@ scala
 scalap
 sfcurve
 shapeless
+si-quantity
+si-units
 spatial4j
 stream
+unit-api
+uom
