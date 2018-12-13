@@ -282,7 +282,7 @@ object TypeInference {
     * @return
     */
   private def binding(typed: ObjectType): String = typed match {
-    case STRING              => "String"
+    case STRING | null       => "String"
     case INT                 => "Int"
     case LONG                => "Long"
     case FLOAT               => "Float"
