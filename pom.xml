@@ -1762,6 +1762,13 @@
                 <artifactId>orc-mapreduce</artifactId>
                 <version>${orc.version}</version>
                 <classifier>nohive</classifier>
+                <exclusions>
+                    <!-- excluded the with-hive orc-core -->
+                    <exclusion>
+                        <groupId>org.apache.orc</groupId>
+                        <artifactId>orc-core</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.jackson</groupId>
