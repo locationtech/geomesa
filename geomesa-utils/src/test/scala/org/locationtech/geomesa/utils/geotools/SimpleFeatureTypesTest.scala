@@ -484,6 +484,34 @@ class SimpleFeatureTypesTest extends Specification {
       sft.getUserData.get("mydatatwo") mustEqual "two"
     }
 
+    "allow quoted and unquoted keys in user data conf" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          |{
+          |  type-name = "testconf"
+          |  fields = [
+          |    { name = "testStr",  type = "string"       , index = true  },
+          |    { name = "testCard", type = "string"       , index = true, cardinality = high },
+          |    { name = "testList", type = "List[String]" , index = false },
+          |    { name = "geom",     type = "Point"        , srid = 4326, default = true }
+          |  ]
+          |  user-data = {
+          |    "mydataone" = true
+          |    mydatatwo = "two"
+          |    "my.data.three" = "three"
+          |    my.data.four = "four"
+          |  }
+          |}
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(conf)
+      sft.getUserData.size() mustEqual 4
+      sft.getUserData.get("mydataone") mustEqual "true"
+      sft.getUserData.get("mydatatwo") mustEqual "two"
+      sft.getUserData.get("my.data.three") mustEqual "three"
+      sft.getUserData.get("my.data.four") mustEqual "four"
+    }
+
     "untyped lists and maps as a type" >> {
       val conf = ConfigFactory.parseString(
         """
