@@ -232,10 +232,15 @@ code,.rst-content tt,.rst-content code {
 
 .wy-nav-top {
    background: #fff6ed;
+   color: #A53824 !important;
 }
 
 .wy-nav-top img {
    background-color: #fff6ed;
+}
+
+.wy-nav-top a {
+  color: #A53824;
 }
 
 .wy-nav-content {
