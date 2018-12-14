@@ -231,11 +231,11 @@ code,.rst-content tt,.rst-content code {
 }
 
 .wy-nav-top {
-   background: #E6A150;
+   background: #fff6ed;
 }
 
 .wy-nav-top img {
-   background-color: #E6A150;
+   background-color: #fff6ed;
 }
 
 .wy-nav-content {
@@ -247,12 +247,12 @@ code,.rst-content tt,.rst-content code {
 }
 
 @media screen and (max-width: 768px) {
-    .wy-body-for-nav {
-        background: #333
-    }
-    .wy-nav-content {
-        background: #333
-    }
+  .wy-body-for-nav {
+    background: #fcfcfc;
+  }
+  .wy-nav-content {
+    background: #fcfcfc;
+  }
 }
 
 .rst-versions {
