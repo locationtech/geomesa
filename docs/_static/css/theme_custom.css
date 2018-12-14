@@ -190,6 +190,9 @@ code,.rst-content tt,.rst-content code {
   background-color: #a53824;
   color: #fcfcfc;
 }
+.wy-menu-vertical li.toctree-l3.current li.toctree-l4 > a:hover code.literal {
+  color: #565656;
+}
 .wy-nav-side {
   background-color: #fff6ed;
   padding-bottom: 0;
