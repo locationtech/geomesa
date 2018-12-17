@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.kafka.utils
 
+import java.net.URL
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.LazyLogging
@@ -15,6 +16,7 @@ import org.apache.kafka.clients.producer.Partitioner
 import org.apache.kafka.common.Cluster
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.avro.AvroFeatureSerializer
+import org.locationtech.geomesa.features.confluent.ConfluentFeatureSerializer
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializer}
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
@@ -66,6 +68,7 @@ object GeoMessageSerializer {
 
   val KryoVersion: Byte = 2
   val AvroVersion: Byte = 3
+  val ConfluentVersion: Byte = 3
 
   val VersionHeader = "v"
 
@@ -75,12 +78,14 @@ object GeoMessageSerializer {
     * Create a message serializer
     *
     * @param sft simple feature type
-    * @param serialization serialization type (avro or kryo)
+    * @param serialization serialization type (avro, kryo, or confluent)
+    * @param schemaRegistryUrl Confluent schema registry url
     * @param `lazy` use lazy deserialization
     * @return
     */
   def apply(sft: SimpleFeatureType,
             serialization: SerializationType = SerializationType.KRYO,
+            schemaRegistryUrl: Option[URL],
             `lazy`: Boolean = false): GeoMessageSerializer = {
     val kryoBuilder = KryoFeatureSerializer.builder(sft).withoutId.withUserData.immutable
     val avroBuilder = AvroFeatureSerializer.builder(sft).withoutId.withUserData.immutable
@@ -89,6 +94,13 @@ object GeoMessageSerializer {
     val (serializer, version) = serialization match {
       case SerializationType.KRYO => (kryoSerializer, KryoVersion)
       case SerializationType.AVRO => (avroSerializer, AvroVersion)
+      case SerializationType.CONFLUENT =>
+        val confluentBuilder = schemaRegistryUrl match {
+          case Some(srUrl) => ConfluentFeatureSerializer.builder(sft, srUrl).withoutId.withUserData.immutable
+          case None =>
+            throw new IllegalArgumentException("Confluent serialization used, however no schema-registry url provided.")
+        }
+        (confluentBuilder.build(), ConfluentVersion)
       case _ => throw new NotImplementedError(s"Unexpected serialization type $serialization")
     }
     new GeoMessageSerializer(sft, serializer, kryoSerializer, avroSerializer, version)
@@ -133,7 +145,7 @@ object GeoMessageSerializer {
   * Serializes `GeoMessage`s
   *
   * @param sft simple feature type being serialized
-  * @param serializer serializer used for writing messages
+  * @param serializer serializer used for reading or writing messages
   * @param kryo kryo serializer used for deserializing kryo messages
   * @param avro avro serializer used for deserializing avro messages
   * @param version version byte corresponding to the serializer type
@@ -168,14 +180,18 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
     *
     * @param key the serialized message key
     * @param value the serialized message body
+    * @param timestamp the kafka message timestamp
     * @return the deserialized message
     */
-  def deserialize(key: Array[Byte], value: Array[Byte], headers: Map[String, Array[Byte]] = Map.empty): GeoMessage = {
+  def deserialize(key: Array[Byte],
+                  value: Array[Byte],
+                  headers: Map[String, Array[Byte]] = Map.empty,
+                  timestamp: Option[Long] = None): GeoMessage = {
     try {
       headers.get(GeoMessageSerializer.VersionHeader) match {
-        case Some(h) if h.length == 1 && h(0) == GeoMessageSerializer.KryoVersion => deserialize(key, value, kryo)
-        case Some(h) if h.length == 1 && h(0) == GeoMessageSerializer.AvroVersion => deserialize(key, value, avro)
-        case _ => tryDeserializeVersions(key, value)
+        case Some(h) if h.length == 1 && h(0) == GeoMessageSerializer.KryoVersion => deserialize(key, value, kryo, timestamp)
+        case Some(h) if h.length == 1 && h(0) == GeoMessageSerializer.AvroVersion => deserialize(key, value, avro, timestamp)
+        case _ => tryDeserializeVersions(key, value, timestamp)
       }
     } catch {
       case NonFatal(e) =>
@@ -232,10 +248,13 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
     * @param deserializer deserializer appropriate for the message encoding
     * @return
     */
-  private def deserialize(key: Array[Byte], value: Array[Byte], deserializer: SimpleFeatureSerializer): GeoMessage = {
+  private def deserialize(key: Array[Byte],
+                          value: Array[Byte],
+                          deserializer: SimpleFeatureSerializer,
+                          timestamp: Option[Long]): GeoMessage = {
     if (key.isEmpty) { Clear } else {
       val id = new String(key, StandardCharsets.UTF_8)
-      if (value == null) { Delete(id) } else { Change(deserializer.deserialize(id, value)) }
+      if (value == null) { Delete(id) } else { Change(deserializer.deserialize(id, value, timestamp)) }
     }
   }
 
@@ -249,16 +268,16 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
     * @param value message value
     * @return
     */
-  private def tryDeserializeVersions(key: Array[Byte], value: Array[Byte]): GeoMessage = {
+  private def tryDeserializeVersions(key: Array[Byte], value: Array[Byte], timestamp: Option[Long]): GeoMessage = {
     if (key.length == 10 && key(0) == 1 && Seq('C', 'D', 'X').contains(key(1).toChar)) {
       try { deserializeV1(key, value) } catch {
         case NonFatal(e) =>
-          try { tryDeserializeTypes(key, value) } catch {
+          try { tryDeserializeTypes(key, value, timestamp) } catch {
             case NonFatal(suppressed) => e.addSuppressed(suppressed); throw e
           }
       }
     } else {
-      tryDeserializeTypes(key, value)
+      tryDeserializeTypes(key, value, timestamp)
     }
   }
 
@@ -269,10 +288,10 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
     * @param value message value
     * @return
     */
-  private def tryDeserializeTypes(key: Array[Byte], value: Array[Byte]): GeoMessage = {
-    try { deserialize(key, value, serializer) } catch {
+  private def tryDeserializeTypes(key: Array[Byte], value: Array[Byte], timestamp: Option[Long]): GeoMessage = {
+    try { deserialize(key, value, serializer, timestamp) } catch {
       case NonFatal(e) =>
-        try { deserialize(key, value, if (serializer.eq(kryo)) { avro } else { kryo }) } catch {
+        try { deserialize(key, value, if (serializer.eq(kryo)) { avro } else { kryo }, timestamp) } catch {
           case NonFatal(suppressed) => e.addSuppressed(suppressed); throw e
         }
     }

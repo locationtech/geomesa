@@ -107,6 +107,21 @@ trait SimpleFeatureSerializer extends HasEncodingOptions {
     * @return
     */
   def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature
+
+  /**
+    * Deserialize a simple feature from a byte array, with a feature id and timestamp provided separately.
+    *
+    * Used for Kafka Deserialization when the date of the feature is stored in the kafka record's timestamp.
+    *
+    * Note that this only makes sense when used in conjunction with
+    * `org.locationtech.geomesa.features.SerializationOption.WithoutId()`
+    *
+    * @param id feature id
+    * @param timestamp Optional timestamp
+    * @param bytes bytes
+    * @return
+    */
+  def deserialize(id: String, bytes: Array[Byte], timestamp: Option[Long]): SimpleFeature = deserialize(id, bytes)
 }
 
 object SimpleFeatureSerializer {

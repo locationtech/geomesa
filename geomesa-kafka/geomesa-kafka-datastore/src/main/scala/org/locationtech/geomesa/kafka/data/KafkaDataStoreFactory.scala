@@ -10,6 +10,7 @@ package org.locationtech.geomesa.kafka.data
 
 import java.awt.RenderingHints
 import java.io.Serializable
+import java.net.URL
 import java.util.Properties
 import java.util.concurrent.ScheduledExecutorService
 
@@ -85,6 +86,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreFactoryParams.LazyFeatures,
       KafkaDataStoreFactoryParams.ConsumeEarliest,
       KafkaDataStoreFactoryParams.AuditQueries,
+      KafkaDataStoreFactoryParams.SchemaRegistryUrl,
       KafkaDataStoreFactoryParams.LooseBBox,
       KafkaDataStoreFactoryParams.Authorizations
     )
@@ -147,6 +149,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       IndexConfig(cacheExpiry, eventTime, xBuckets, yBuckets, ssiTiers, cqEngine, lazyDeserialization, executor)
     }
 
+    val schemaRegistryUrl = SchemaRegistryUrl.lookupOpt(params)
+
     val looseBBox = LooseBBox.lookup(params).booleanValue()
 
     val audit = if (!AuditQueries.lookup(params)) { None } else {
@@ -164,7 +168,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     }
 
     KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, producers, topics, serialization,
-      indices, looseBBox, authProvider, audit, ns)
+      indices, schemaRegistryUrl, looseBBox, authProvider, audit, ns)
   }
 
   private def buildAuthProvider(params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
@@ -249,7 +253,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val TopicPartitions   = new GeoMesaParam[Integer]("kafka.topic.partitions", "Number of partitions to use in new kafka topics", default = 1, deprecatedKeys = Seq("partitions"))
     val TopicReplication  = new GeoMesaParam[Integer]("kafka.topic.replication", "Replication factor to use in new kafka topics", default = 1, deprecatedKeys = Seq("replication"))
     val ConsumerCount     = new GeoMesaParam[Integer]("kafka.consumer.count", "Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)", default = 1, deprecatedParams = Seq(DeprecatedProducer))
-    val SerializationType = new GeoMesaParam[String]("kafka.serialization.type", "Type of serialization to use. Must be one of 'kryo' or 'avro'", default = "kryo", enumerations = Seq("kryo", "avro"))
+    val SerializationType = new GeoMesaParam[String]("kafka.serialization.type", "Type of serialization to use. Must be one of 'kryo' or 'avro'", default = "kryo", enumerations = Seq("kryo", "avro", "confluent"))
     val ExecutorTicker    = new GeoMesaParam[(ScheduledExecutorService, Ticker)]("kafka.cache.executor", "Executor service and ticker to use for expiring features")
     val CacheExpiry       = new GeoMesaParam[Duration]("kafka.cache.expiry", "Features will be expired after this delay", deprecatedParams = Seq(DeprecatedExpiry))
     // TODO these should really be per-feature, not per datastore...
@@ -260,6 +264,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val CqEngineIndices   = new GeoMesaParam[String]("kafka.index.cqengine", "Use CQEngine for indexing individual attributes. Specify as `name:type`, delimited by commas, where name is an attribute and type is one of `default`, `navigable`, `radix`, `unique`, `hash` or `geometry`", deprecatedKeys = Seq("kafka.cache.cqengine.indices"))
     val EventTimeOrdering = new GeoMesaParam[java.lang.Boolean]("kafka.cache.event-time.ordering", "Instead of message time, determine feature ordering based on event time data", default = Boolean.box(false))
     val LazyFeatures      = new GeoMesaParam[java.lang.Boolean]("kafka.serialization.lazy", "Use lazy deserialization of features. This may improve processing load at the expense of slightly slower query times", default = Boolean.box(true))
+    val SchemaRegistryUrl = new GeoMesaParam[URL]("kafka.schema.registry.url", "URL to a confluent schema registry server, used to read Confluent schemas (experimental)")
     val LooseBBox         = GeoMesaDataStoreFactory.LooseBBoxParam
     val AuditQueries      = GeoMesaDataStoreFactory.AuditQueriesParam
     val Authorizations    = org.locationtech.geomesa.security.AuthsParam
