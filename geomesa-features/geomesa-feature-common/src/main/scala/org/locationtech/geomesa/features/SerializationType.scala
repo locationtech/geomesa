@@ -13,4 +13,5 @@ object SerializationType extends Enumeration {
   type SerializationType = Value
   val KRYO: Value = Value("kryo")
   val AVRO: Value = Value("avro")
+  val CONFLUENT: Value = Value("confluent")
 }

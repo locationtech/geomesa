@@ -13,6 +13,7 @@
 
     <modules>
         <module>geomesa-feature-avro</module>
+        <module>geomesa-feature-confluent</module>
         <module>geomesa-feature-kryo</module>
         <module>geomesa-feature-nio</module>
         <module>geomesa-feature-common</module>

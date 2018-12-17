@@ -41,7 +41,7 @@ object KafkaFeatureWriter {
 
     protected val topic: String = KafkaDataStore.topic(sft)
 
-    protected val serializer = GeoMessageSerializer(sft, serialization)
+    protected val serializer = GeoMessageSerializer(sft, serialization, None)
 
     protected val feature = new ScalaSimpleFeature(sft, "-1")
 

@@ -51,7 +51,8 @@ Parameter                            Type    Description
 ``kafka.consumer.count``             Integer Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)
 ``kafka.topic.partitions``           Integer Number of partitions to use in new kafka topics
 ``kafka.topic.replication``          Integer Replication factor to use in new kafka topics
-``kafka.serialization.type``         String  Internal serialization format to use for kafka messages. Must be one of ``kryo`` or ``avro``
+``kafka.serialization.type``         String  Internal serialization format to use for kafka messages. Must be one of ``kryo``, ``avro``, or
+                                             ``confluent``. Confluent is experimental, read-only and record timestamps are required.
 ``kafka.cache.expiry``               String  Expire features from in-memory cache after this delay, e.g. "10 minutes". See :ref:`kafka_expiry`
 ``kafka.cache.event-time``           String  Instead of message time, determine expiry based on feature data. See :ref:`kafka_event_time`
 ``kafka.cache.event-time.ordering``  Boolean Instead of message time, determine feature ordering based on the feature event time.
@@ -65,6 +66,8 @@ Parameter                            Type    Description
                                              See :ref:`kafka_ssi`
 ``kafka.serialization.lazy``         Boolean Use lazy deserialization of features. This may improve processing load at
                                              the expense of slightly slower query times
+``kafka.schema.registry.url``        String  URL to a confluent schema registry server, used to read Confluent schemas for kafka topics
+                                             serialized with the Confluent avro serializer. Experimental, read-only, record timestamps required.
 ``geomesa.query.loose-bounding-box`` Boolean Use loose bounding boxes, which offer improved performance but are not exact
 ``geomesa.query.audit``              Boolean Audit incoming queries. By default audits are written to a log file
 ``geomesa.security.auths``           String  Default authorizations used to query data, comma-separated

@@ -9,11 +9,13 @@
 package org.locationtech.geomesa.kafka.data
 
 import java.io.IOException
+import java.net.URL
 import java.util.concurrent.ScheduledExecutorService
 import java.util.{Properties, UUID}
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
+import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient
 import kafka.admin.AdminUtils
 import kafka.utils.ZkUtils
 import org.apache.kafka.clients.consumer.{Consumer, KafkaConsumer}
@@ -21,6 +23,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore}
 import org.geotools.data.{Query, Transaction}
+import org.locationtech.geomesa.features.SerializationType
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, MetadataBackedDataStore}
@@ -30,6 +33,7 @@ import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter}
 import org.locationtech.geomesa.kafka.index._
+import org.locationtech.geomesa.kafka.utils.ConfluentMetadata
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
 import org.locationtech.geomesa.kafka.{AdminUtilsVersions, KafkaConsumerVersions}
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
@@ -53,7 +57,11 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
   override protected def catalog: String = config.catalog
 
   override val metadata: GeoMesaMetadata[String] =
-    new ZookeeperMetadata(s"${config.catalog}/$MetadataPath", config.zookeepers, MetadataStringSerializer)
+    if (config.serialization == SerializationType.CONFLUENT && config.schemaRegistryUrl.isDefined) {
+      new ConfluentMetadata(new CachedSchemaRegistryClient(config.schemaRegistryUrl.get.toExternalForm, 100))
+    } else {
+      new ZookeeperMetadata(s"${config.catalog}/$MetadataPath", config.zookeepers, MetadataStringSerializer)
+    }
 
   override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
@@ -80,8 +88,10 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         val consumers = KafkaDataStore.consumers(config, topic)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
         val laz = config.indices.lazyDeserialization
+        val ser = config.serialization
+        val regUrl = config.schemaRegistryUrl
         val initialLoadConfig = if (config.consumers.consumeFromBeginning) { Some(config.indices) } else { None }
-        new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, laz, initialLoadConfig)
+        new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, laz, ser, regUrl, initialLoadConfig)
       }
     }
   })
@@ -289,6 +299,7 @@ object KafkaDataStore extends LazyLogging {
                                   topics: TopicConfig,
                                   serialization: SerializationType,
                                   indices: IndexConfig,
+                                  schemaRegistryUrl: Option[URL],
                                   looseBBox: Boolean,
                                   authProvider: AuthorizationsProvider,
                                   audit: Option[(AuditWriter, AuditProvider, String)],

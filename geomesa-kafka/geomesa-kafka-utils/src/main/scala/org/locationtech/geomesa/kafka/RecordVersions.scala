@@ -26,6 +26,8 @@ object RecordVersions extends LazyLogging {
 
   def getHeaders(record: ConsumerRecord[_, _]): Map[String, Array[Byte]] = _getHeaders(record)
 
+  def getTimestamp(record:ConsumerRecord[_,_]): Option[Long] = _getTimestamp(record)
+
   private val _setHeader: (ProducerRecord[_, _], String, Array[Byte]) => Unit = {
     producerMethods.find(m => m.getName == "headers" && m.getParameterCount == 0) match {
       case Some(method) => (record, k, v) => method.invoke(record).asInstanceOf[Headers].add(k, v)
@@ -51,6 +53,15 @@ object RecordVersions extends LazyLogging {
       case None =>
         logger.warn("This version of Kafka doesn't support message headers, serialization may be slower")
         _ => Map.empty
+    }
+  }
+
+  private val _getTimestamp: ConsumerRecord[_, _] => Option[Long] = {
+    consumerMethods.find(m => m.getName == "timestamp" && m.getParameterCount == 0).map{ method =>
+      record: ConsumerRecord[_,_] => Option(method.invoke(record).asInstanceOf[java.lang.Long]).map(Long2long)
+    }.getOrElse{
+      logger.warn("This version of Kafka doesn't support message timestamps, confluent serialization not supported")
+      _: ConsumerRecord[_,_] => None
     }
   }
 

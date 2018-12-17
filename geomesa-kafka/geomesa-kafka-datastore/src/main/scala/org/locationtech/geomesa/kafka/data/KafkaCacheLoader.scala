@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.kafka.data
 
 import java.io.Closeable
+import java.net.URL
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Executors}
@@ -17,6 +18,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord}
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.{FeatureEvent, FeatureListener}
+import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.IndexConfig
@@ -102,9 +104,11 @@ object KafkaCacheLoader {
                              override protected val topic: String,
                              override protected val frequency: Long,
                              lazyDeserialization: Boolean,
+                             serialization: SerializationType,
+                             schemaRegistryUrl: Option[URL],
                              initialLoadConfig: Option[IndexConfig]) extends ThreadedConsumer with KafkaCacheLoader {
 
-    private val serializer = GeoMessageSerializer(sft, `lazy` = lazyDeserialization)
+    private val serializer = GeoMessageSerializer(sft, serialization, schemaRegistryUrl, `lazy` = lazyDeserialization)
 
     try { classOf[ConsumerRecord[Any, Any]].getMethod("timestamp") } catch {
       case _: NoSuchMethodException => logger.warn("This version of Kafka doesn't support timestamps, using system time")
@@ -128,7 +132,10 @@ object KafkaCacheLoader {
     }
 
     override protected [KafkaCacheLoader] def consume(record: ConsumerRecord[Array[Byte], Array[Byte]]): Unit = {
-      val message = serializer.deserialize(record.key(), record.value(), RecordVersions.getHeaders(record))
+      val message = serializer.deserialize(record.key(),
+                                           record.value(),
+                                           RecordVersions.getHeaders(record),
+                                           RecordVersions.getTimestamp(record))
       val timestamp = try { record.timestamp() } catch { case _: NoSuchMethodError => System.currentTimeMillis() }
       logger.trace(s"Consumed message [$topic:${record.partition}:${record.offset}] $message")
       message match {
@@ -169,7 +176,10 @@ object KafkaCacheLoader {
 
     override protected def consume(record: ConsumerRecord[Array[Byte], Array[Byte]]): Unit = {
       if (done.get) { toLoad.consume(record) } else {
-        val message = serializer.deserialize(record.key, record.value, RecordVersions.getHeaders(record))
+        val message = serializer.deserialize(record.key,
+                                             record.value,
+                                             RecordVersions.getHeaders(record),
+                                             RecordVersions.getTimestamp(record))
         val timestamp = try { record.timestamp() } catch { case _: NoSuchMethodError => System.currentTimeMillis() }
         logger.trace(s"Consumed message [$topic:${record.partition}:${record.offset}] $message")
         message match {

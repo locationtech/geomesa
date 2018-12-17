@@ -76,6 +76,12 @@
                 <version>${zkclient.version}</version>
                 <scope>provided</scope>
             </dependency>
+            <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-schema-registry</artifactId>
+                <version>${confluent.version}</version>
+                <scope>provided</scope>
+            </dependency>
 
             <!-- test dependencies -->
             <dependency>
@@ -120,6 +126,19 @@
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-test</artifactId>
                 <version>2.7.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-schema-registry</artifactId>
+                <version>${confluent.version}</version>
+                <classifier>tests</classifier>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-avro-serializer</artifactId>
+                <version>${confluent.version}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
