@@ -54,7 +54,7 @@ class ConfluentFeatureSerializer(sft: SimpleFeatureType,
   }
   private var geomSrcAttributeName: Option[String] = None
 
-  override def deserialize(id: String, bytes: Array[Byte], timestamp: Long): SimpleFeature = {
+  override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {
     val genericRecord = kafkaAvroDeserializer.get.deserialize("", bytes).asInstanceOf[GenericRecord]
     val attrs = sft.getAttributeDescriptors.asScala.map(_.getLocalName).map { attrName =>
       if (attrName == geomAttributeName) {
@@ -71,7 +71,7 @@ class ConfluentFeatureSerializer(sft: SimpleFeatureType,
           }
         }
       } else if (attrName == dateAttributeName) {
-        new Date(timestamp)
+        null // this will be set to the message timestamp by the GeoMessageSerializer
       } else {
         genericRecord.get(attrName)
       }

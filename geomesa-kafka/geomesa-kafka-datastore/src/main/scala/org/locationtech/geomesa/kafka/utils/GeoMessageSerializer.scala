@@ -10,6 +10,7 @@ package org.locationtech.geomesa.kafka.utils
 
 import java.net.URL
 import java.nio.charset.StandardCharsets
+import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.producer.Partitioner
@@ -254,7 +255,13 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
                           timestamp: Long): GeoMessage = {
     if (key.isEmpty) { Clear } else {
       val id = new String(key, StandardCharsets.UTF_8)
-      if (value == null) { Delete(id) } else { Change(deserializer.deserialize(id, value, timestamp)) }
+      if (value == null) { Delete(id) } else {
+        val sf = deserializer.deserialize(id, value)
+        if (deserializer.isInstanceOf[ConfluentFeatureSerializer]) {
+          sf.setAttribute(ConfluentFeatureSerializer.dateAttributeName, new Date(timestamp))
+        }
+        Change(sf)
+      }
     }
   }
 
