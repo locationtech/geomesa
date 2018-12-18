@@ -10,7 +10,6 @@ package org.locationtech.geomesa.features.confluent
 
 import java.io.{InputStream, OutputStream}
 import java.net.URL
-import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.jts.geom.Geometry

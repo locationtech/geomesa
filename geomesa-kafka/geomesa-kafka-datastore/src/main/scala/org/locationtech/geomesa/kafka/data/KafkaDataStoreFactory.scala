@@ -114,7 +114,17 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStore.ProducerConfig(props)
     }
 
-    val serialization = org.locationtech.geomesa.features.SerializationType.withName(SerializationType.lookup(params))
+    val schemaRegistryUrl = SchemaRegistryUrl.lookupOpt(params)
+
+    val serialization = {
+      val ser = org.locationtech.geomesa.features.SerializationType.withName(SerializationType.lookup(params))
+      if (ser == org.locationtech.geomesa.features.SerializationType.CONFLUENT || schemaRegistryUrl.isEmpty) {
+        ser
+      } else {
+        throw new IllegalArgumentException(s"The serialization format '$serialization' is not valid when using the " +
+          s"'kafka.schema.registry.url', only 'confluent' is supported")
+      }
+    }
 
     val indices = {
       val cacheExpiry = CacheExpiry.lookupOpt(params).getOrElse(Duration.Inf)
@@ -148,8 +158,6 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
       IndexConfig(cacheExpiry, eventTime, xBuckets, yBuckets, ssiTiers, cqEngine, lazyDeserialization, executor)
     }
-
-    val schemaRegistryUrl = SchemaRegistryUrl.lookupOpt(params)
 
     val looseBBox = LooseBBox.lookup(params).booleanValue()
 
