@@ -57,7 +57,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
   override protected def catalog: String = config.catalog
 
   override val metadata: GeoMesaMetadata[String] =
-    if (config.serialization == SerializationType.CONFLUENT && config.schemaRegistryUrl.isDefined) {
+    if (config.schemaRegistryUrl.isDefined) {
       new ConfluentMetadata(new CachedSchemaRegistryClient(config.schemaRegistryUrl.get.toExternalForm, 100))
     } else {
       new ZookeeperMetadata(s"${config.catalog}/$MetadataPath", config.zookeepers, MetadataStringSerializer)
