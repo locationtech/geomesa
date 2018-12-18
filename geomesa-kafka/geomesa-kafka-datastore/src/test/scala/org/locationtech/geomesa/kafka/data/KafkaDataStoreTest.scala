@@ -72,8 +72,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
     "kafka.zookeepers"              -> kafka.zookeepers,
     "kafka.topic.partitions"        -> 1,
     "kafka.topic.replication"       -> 1,
-    "kafka.consumer.from-beginning" -> true,
-    "kafka.schema.registry.url"     -> kafka.schemaRegistryUrl
+    "kafka.consumer.from-beginning" -> true
   )
 
   val gf = JTSFactoryFinder.getGeometryFactory

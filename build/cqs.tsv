@@ -249,7 +249,7 @@ com.101tec:zkclient	0.10	provided
 com.datastax.cassandra:cassandra-driver-core	3.0.0	provided
 com.datastax.cassandra:cassandra-driver-mapping	3.0.0	provided
 io.confluent:kafka-avro-serializer	5.1.0	provided
-io.confluent:kafka-schema-registry	5.1.0	provided
+io.confluent:kafka-schema-registry-client	5.1.0	provided
 javax.media:jai_codec	1.1.3	provided
 javax.media:jai_core	1.1.3	provided
 org.apache.hadoop:hadoop-annotations	2.6.4	provided
@@ -272,6 +272,7 @@ org.springframework.security:spring-security-core	4.2.7.RELEASE	provided
 org.springframework.security:spring-security-web	4.2.7.RELEASE	provided
 org.springframework:spring-web	4.3.18.RELEASE	provided
 
+io.confluent:kafka-schema-registry	5.1.0	test
 io.confluent:kafka-schema-registry	tests:5.1.0	test
 junit:junit	4.12	test
 org.apache.accumulo:accumulo-test	1.8.1	test

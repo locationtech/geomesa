@@ -78,7 +78,7 @@
             </dependency>
             <dependency>
                 <groupId>io.confluent</groupId>
-                <artifactId>kafka-schema-registry</artifactId>
+                <artifactId>kafka-schema-registry-client</artifactId>
                 <version>${confluent.version}</version>
                 <scope>provided</scope>
             </dependency>
@@ -126,6 +126,12 @@
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-test</artifactId>
                 <version>2.7.1</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-schema-registry</artifactId>
+                <version>${confluent.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

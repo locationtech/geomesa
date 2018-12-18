@@ -46,11 +46,10 @@ class ConfluentFeatureSerializer(sft: SimpleFeatureType,
                                  val options: Set[SerializationOption] = Set.empty)
     extends SimpleFeatureSerializer with LazyLogging {
 
-  private val kafkaAvroDeserializer = {
-    val kad = new ThreadLocal[KafkaAvroDeserializer]()
-    kad.set(new KafkaAvroDeserializer(schemaRegistryClient))
-    kad
+  private val kafkaAvroDeserializer = new ThreadLocal[KafkaAvroDeserializer]() {
+    override def initialValue(): KafkaAvroDeserializer = new KafkaAvroDeserializer(schemaRegistryClient)
   }
+
   private var geomSrcAttributeName: Option[String] = None
 
   override def deserialize(id: String, bytes: Array[Byte]): SimpleFeature = {

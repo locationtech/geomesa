@@ -121,7 +121,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       if (ser == org.locationtech.geomesa.features.SerializationType.CONFLUENT || schemaRegistryUrl.isEmpty) {
         ser
       } else {
-        throw new IllegalArgumentException(s"The serialization format '$serialization' is not valid when using the " +
+        throw new IllegalArgumentException(s"The serialization format '$ser' is not valid when using the " +
           s"'kafka.schema.registry.url', only 'confluent' is supported")
       }
     }
