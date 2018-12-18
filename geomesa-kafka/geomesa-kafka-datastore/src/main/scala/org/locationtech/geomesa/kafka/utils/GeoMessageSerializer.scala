@@ -186,7 +186,7 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
   def deserialize(key: Array[Byte],
                   value: Array[Byte],
                   headers: Map[String, Array[Byte]] = Map.empty,
-                  timestamp: Option[Long] = None): GeoMessage = {
+                  timestamp: Long): GeoMessage = {
     try {
       headers.get(GeoMessageSerializer.VersionHeader) match {
         case Some(h) if h.length == 1 && h(0) == GeoMessageSerializer.KryoVersion => deserialize(key, value, kryo, timestamp)
@@ -251,7 +251,7 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
   private def deserialize(key: Array[Byte],
                           value: Array[Byte],
                           deserializer: SimpleFeatureSerializer,
-                          timestamp: Option[Long]): GeoMessage = {
+                          timestamp: Long): GeoMessage = {
     if (key.isEmpty) { Clear } else {
       val id = new String(key, StandardCharsets.UTF_8)
       if (value == null) { Delete(id) } else { Change(deserializer.deserialize(id, value, timestamp)) }
@@ -268,7 +268,7 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
     * @param value message value
     * @return
     */
-  private def tryDeserializeVersions(key: Array[Byte], value: Array[Byte], timestamp: Option[Long]): GeoMessage = {
+  private def tryDeserializeVersions(key: Array[Byte], value: Array[Byte], timestamp: Long): GeoMessage = {
     if (key.length == 10 && key(0) == 1 && Seq('C', 'D', 'X').contains(key(1).toChar)) {
       try { deserializeV1(key, value) } catch {
         case NonFatal(e) =>
@@ -288,7 +288,7 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
     * @param value message value
     * @return
     */
-  private def tryDeserializeTypes(key: Array[Byte], value: Array[Byte], timestamp: Option[Long]): GeoMessage = {
+  private def tryDeserializeTypes(key: Array[Byte], value: Array[Byte], timestamp: Long): GeoMessage = {
     try { deserialize(key, value, serializer, timestamp) } catch {
       case NonFatal(e) =>
         try { deserialize(key, value, if (serializer.eq(kryo)) { avro } else { kryo }, timestamp) } catch {

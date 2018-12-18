@@ -14,13 +14,13 @@ import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.jts.geom.Geometry
-import org.locationtech.jts.io.WKTReader
 import io.confluent.kafka.schemaregistry.client.{CachedSchemaRegistryClient, SchemaRegistryClient}
 import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import org.apache.avro.generic.GenericRecord
 import org.locationtech.geomesa.features.confluent.ConfluentFeatureSerializer._
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
+import org.locationtech.geomesa.utils.interop.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConverters._
@@ -47,12 +47,15 @@ class ConfluentFeatureSerializer(sft: SimpleFeatureType,
                                  val options: Set[SerializationOption] = Set.empty)
     extends SimpleFeatureSerializer with LazyLogging {
 
-  private val kafkaAvroDeserializer = new KafkaAvroDeserializer(schemaRegistryClient)
-  private val wktReader = new WKTReader()
-  var geomSrcAttributeName: Option[String] = None
+  private val kafkaAvroDeserializer = {
+    val kad = new ThreadLocal[KafkaAvroDeserializer]()
+    kad.set(new KafkaAvroDeserializer(schemaRegistryClient))
+    kad
+  }
+  private var geomSrcAttributeName: Option[String] = None
 
-  override def deserialize(id: String, bytes: Array[Byte], timestamp: Option[Long]): SimpleFeature = {
-    val genericRecord = kafkaAvroDeserializer.deserialize("", bytes).asInstanceOf[GenericRecord]
+  override def deserialize(id: String, bytes: Array[Byte], timestamp: Long): SimpleFeature = {
+    val genericRecord = kafkaAvroDeserializer.get.deserialize("", bytes).asInstanceOf[GenericRecord]
     val attrs = sft.getAttributeDescriptors.asScala.map(_.getLocalName).map { attrName =>
       if (attrName == geomAttributeName) {
         geomSrcAttributeName.map(readFieldAsWkt(genericRecord, _).get).getOrElse {
@@ -68,7 +71,7 @@ class ConfluentFeatureSerializer(sft: SimpleFeatureType,
           }
         }
       } else if (attrName == dateAttributeName) {
-        new Date(timestamp.get)
+        new Date(timestamp)
       } else {
         genericRecord.get(attrName)
       }
@@ -80,7 +83,7 @@ class ConfluentFeatureSerializer(sft: SimpleFeatureType,
                              fieldName: String,
                              logFailure: Boolean = true): Option[Geometry] = {
     try {
-      Option(wktReader.read(genericRecord.get(fieldName).toString))
+      Option(WKTUtils.read(genericRecord.get(fieldName).toString))
     } catch {
       case NonFatal(t) =>
         if (logFailure) {

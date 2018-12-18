@@ -30,7 +30,7 @@ import scala.util.control.NonFatal
 
 class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMesaMetadata[String] with LazyLogging {
 
-  val topicSftCache: LoadingCache[String, String] =
+  private val topicSftCache: LoadingCache[String, String] =
     Caffeine.newBuilder()
       .expireAfterWrite(10, TimeUnit.MINUTES)
       .build(
@@ -108,22 +108,22 @@ object ConfluentMetadata extends LazyLogging {
                          field: Schema.Field,
                          typeOverride: Option[Schema.Type] = None): Unit = {
     typeOverride.getOrElse(field.schema().getType) match {
-      case STRING => builder.add(field.name(), classOf[java.lang.String])
+      case STRING  => builder.add(field.name(), classOf[java.lang.String])
       case BOOLEAN => builder.add(field.name(), classOf[java.lang.Boolean])
-      case INT => builder.add(field.name(), classOf[java.lang.Integer])
-      case DOUBLE => builder.add(field.name(), classOf[java.lang.Double])
-      case LONG => builder.add(field.name(), classOf[java.lang.Long])
-      case FLOAT => builder.add(field.name(), classOf[java.lang.Float])
-      case BYTES => logger.error("Avro schema requested BYTES, which is not yet supported") //todo: support
-      case UNION => field.schema().getTypes.asScala.map(_.getType).find(_ != NULL)
-                         .foreach(t => addSchemaToBuilder(builder, field, Option(t))) //todo: support more union types and log any errors better
-      case MAP => logger.error("Avro schema requested MAP, which is not yet supported") //todo: support
-      case RECORD => logger.error("Avro schema requested RECORD, which is not yet supported") //todo: support
-      case ENUM => builder.add(field.name(), classOf[java.lang.String])
-      case ARRAY => logger.error("Avro schema requested ARRAY, which is not yet supported") //todo: support
-      case FIXED => logger.error("Avro schema requested FIXED, which is not yet supported") //todo: support
-      case NULL => logger.error("Avro schema requested NULL, which is not yet supported") //todo: support
-      case _ => logger.error(s"Avro schema requested unknown type ${field.schema().getType}")
+      case INT     => builder.add(field.name(), classOf[java.lang.Integer])
+      case DOUBLE  => builder.add(field.name(), classOf[java.lang.Double])
+      case LONG    => builder.add(field.name(), classOf[java.lang.Long])
+      case FLOAT   => builder.add(field.name(), classOf[java.lang.Float])
+      case BYTES   => logger.error("Avro schema requested BYTES, which is not yet supported") //todo: support
+      case UNION   => field.schema().getTypes.asScala.map(_.getType).find(_ != NULL)
+                           .foreach(t => addSchemaToBuilder(builder, field, Option(t))) //todo: support more union types and log any errors better
+      case MAP     => logger.error("Avro schema requested MAP, which is not yet supported") //todo: support
+      case RECORD  => logger.error("Avro schema requested RECORD, which is not yet supported") //todo: support
+      case ENUM    => builder.add(field.name(), classOf[java.lang.String])
+      case ARRAY   => logger.error("Avro schema requested ARRAY, which is not yet supported") //todo: support
+      case FIXED   => logger.error("Avro schema requested FIXED, which is not yet supported") //todo: support
+      case NULL    => logger.error("Avro schema requested NULL, which is not yet supported") //todo: support
+      case _       => logger.error(s"Avro schema requested unknown type ${field.schema().getType}")
     }
   }
 }

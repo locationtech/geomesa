@@ -121,7 +121,7 @@ trait SimpleFeatureSerializer extends HasEncodingOptions {
     * @param bytes bytes
     * @return
     */
-  def deserialize(id: String, bytes: Array[Byte], timestamp: Option[Long]): SimpleFeature = deserialize(id, bytes)
+  def deserialize(id: String, bytes: Array[Byte], timestamp: Long): SimpleFeature = deserialize(id, bytes)
 }
 
 object SimpleFeatureSerializer {

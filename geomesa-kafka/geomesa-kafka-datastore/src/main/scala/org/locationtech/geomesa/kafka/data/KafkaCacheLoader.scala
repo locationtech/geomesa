@@ -132,11 +132,11 @@ object KafkaCacheLoader {
     }
 
     override protected [KafkaCacheLoader] def consume(record: ConsumerRecord[Array[Byte], Array[Byte]]): Unit = {
+      val timestamp = RecordVersions.getTimestamp(record)
       val message = serializer.deserialize(record.key(),
                                            record.value(),
                                            RecordVersions.getHeaders(record),
-                                           RecordVersions.getTimestamp(record))
-      val timestamp = try { record.timestamp() } catch { case _: NoSuchMethodError => System.currentTimeMillis() }
+                                           timestamp)
       logger.trace(s"Consumed message [$topic:${record.partition}:${record.offset}] $message")
       message match {
         case m: Change => fireEvent(m, timestamp); cache.put(m.feature)
@@ -176,11 +176,11 @@ object KafkaCacheLoader {
 
     override protected def consume(record: ConsumerRecord[Array[Byte], Array[Byte]]): Unit = {
       if (done.get) { toLoad.consume(record) } else {
+        val timestamp = RecordVersions.getTimestamp(record)
         val message = serializer.deserialize(record.key,
                                              record.value,
                                              RecordVersions.getHeaders(record),
-                                             RecordVersions.getTimestamp(record))
-        val timestamp = try { record.timestamp() } catch { case _: NoSuchMethodError => System.currentTimeMillis() }
+                                             timestamp)
         logger.trace(s"Consumed message [$topic:${record.partition}:${record.offset}] $message")
         message match {
           case m: Change => toLoad.fireEvent(m, timestamp); cache.put(m.feature)
