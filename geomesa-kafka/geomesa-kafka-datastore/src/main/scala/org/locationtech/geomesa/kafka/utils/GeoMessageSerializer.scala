@@ -186,7 +186,7 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
   def deserialize(key: Array[Byte],
                   value: Array[Byte],
                   headers: Map[String, Array[Byte]] = Map.empty,
-                  timestamp: Long): GeoMessage = {
+                  timestamp: Long = System.currentTimeMillis()): GeoMessage = {
     try {
       headers.get(GeoMessageSerializer.VersionHeader) match {
         case Some(h) if h.length == 1 && h(0) == GeoMessageSerializer.KryoVersion => deserialize(key, value, kryo, timestamp)
