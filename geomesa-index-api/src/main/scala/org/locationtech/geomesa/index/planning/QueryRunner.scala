@@ -16,6 +16,7 @@ import org.locationtech.geomesa.filter.{FilterHelper, andFilters, ff}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
+import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -24,9 +25,24 @@ import org.opengis.filter.Filter
 
 trait QueryRunner {
 
+  /**
+    * Execute a query
+    *
+    * @param sft simple feature type
+    * @param query query to run
+    * @param explain explain output
+    * @return
+    */
   def runQuery(sft: SimpleFeatureType,
                query: Query,
                explain: Explainer = new ExplainLogging): CloseableIterator[SimpleFeature]
+
+  /**
+    * Hook for query interceptors
+    *
+    * @return
+    */
+  protected def interceptors: QueryInterceptorFactory
 
   /**
     * Configure the query - set hints, transforms, etc.
@@ -39,6 +55,9 @@ trait QueryRunner {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     val query = new Query(original) // note: this ends up sharing a hints object between the two queries
+
+    // query rewriting
+    interceptors(sft).foreach(_.rewrite(query))
 
     // set query hints - we need this in certain situations where we don't have access to the query directly
     QueryPlanner.threadedHints.get.foreach { hints =>
@@ -106,10 +125,14 @@ trait QueryRunner {
 }
 
 object QueryRunner {
+
   // used for configuring input queries
-  val default: QueryRunner = new QueryRunner {
+  private val default: QueryRunner = new QueryRunner {
+    override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
     override def runQuery(sft: SimpleFeatureType,
                           query: Query,
                           explain: Explainer): CloseableIterator[SimpleFeature] = throw new NotImplementedError
   }
+
+  def configureDefaultQuery(sft: SimpleFeatureType, original: Query): Query = default.configureQuery(sft, original)
 }

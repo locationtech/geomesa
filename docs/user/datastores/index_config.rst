@@ -559,6 +559,50 @@ Full Example
     sft.getUserData().put("table.splitter.options",
         "id.pattern:[0-9a-f],attr.name.pattern:[a-z],z3.min:2018-01-01,z3.max:2018-01-31,z3.bits:2,z2.bits:4");
 
+Configuring Query Interceptors
+------------------------------
+
+GeoMesa provides a chance for custom logic to be applied to a query before executing it. Query interceptors must
+be specified through user data in the simple feature type, and may be set before calling ``createSchema``, or
+updated by calling ``updateSchema``. To indicate query interceptors, use the key ``geomesa.query.interceptors``:
+
+.. code-block:: java
+
+    sft.getUserData().put("geomesa.query.interceptors", "com.example.MyQueryInterceptor");
+
+The value must be a comma-separated string consisting of the names of one or more classes implementing
+the trait ``org.locationtech.geomesa.index.planning.QueryInterceptor``:
+
+.. code-block:: scala
+
+    /**
+      * Provides a hook to modify a query before executing it
+      */
+    trait QueryInterceptor extends Closeable {
+
+      /**
+        * Called exactly once after the interceptor is instantiated
+        *
+        * @param ds data store
+        * @param sft simple feature type
+        */
+      def init(ds: DataStore, sft: SimpleFeatureType): Unit
+
+      /**
+        * Modifies the query in place
+        *
+        * @param query query
+        */
+      def rewrite(query: Query): Unit
+    }
+
+Interceptors must have a default, no-arg constructor. The interceptor lifecycle consists of:
+
+1. The instance is instantiated via reflection, using its default constructor
+#. The instance is initialized via the ``init`` method, passing in the data store containing the simple feature type
+#. ``rewrite`` is called repeatedly
+#. The instance is cleaned up via the ``close`` method
+
 .. _stat_attribute_config:
 
 Configuring Cached Statistics

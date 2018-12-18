@@ -26,6 +26,7 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
+import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.kafka.{AdminUtilsVersions, KafkaConsumerVersions}
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
@@ -62,7 +63,9 @@ class KafkaStore(ds: DataStore,
     KryoFeatureSerializer(sft, options)
   }
 
-  private val queryRunner = new KafkaQueryRunner(cache, stats, authProvider)
+  private val interceptors = QueryInterceptorFactory(ds)
+
+  private val queryRunner = new KafkaQueryRunner(cache, stats, authProvider, interceptors)
 
   private val loader = {
     val consumers = KafkaStore.consumers(consumerConfig, topic, offsetManager, config.consumers, cache.partitionAssigned)
@@ -74,9 +77,9 @@ class KafkaStore(ds: DataStore,
     Some(new DataStorePersistence(ds, sft, offsetManager, cache, topic, config.expiry.toMillis, config.persist))
   }
 
-  private val setVisibility: (SimpleFeature) => (SimpleFeature) = config.visibility match {
-    case None => (f) => f
-    case Some(vis) => (f) => {
+  private val setVisibility: SimpleFeature => SimpleFeature = config.visibility match {
+    case None => f => f
+    case Some(vis) => f => {
       if (SecurityUtils.getVisibility(f) == null) {
         SecurityUtils.setFeatureVisibility(f, vis)
       }
@@ -154,6 +157,7 @@ class KafkaStore(ds: DataStore,
 
   override def close(): Unit = {
     CloseWithLogging(loader)
+    CloseWithLogging(interceptors)
     persistence.foreach(CloseWithLogging.apply)
     offsetManager.removeOffsetListener(topic, cache)
   }
@@ -175,7 +179,7 @@ object KafkaStore {
   def topic(ns: String, sft: SimpleFeatureType): String =
     s"${ns}_${sft.getTypeName}".replaceAll("[^a-zA-Z0-9_\\-]", "_")
 
-  def withZk[T](zookeepers: String)(fn: (ZkUtils) => T): T = {
+  def withZk[T](zookeepers: String)(fn: ZkUtils => T): T = {
     val security = SystemProperty("geomesa.zookeeper.security.enabled").option.exists(_.toBoolean)
     val zkUtils = ZkUtils(zookeepers, 3000, 3000, security)
     try { fn(zkUtils) } finally {
