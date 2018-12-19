@@ -117,7 +117,12 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val schemaRegistryUrl = SchemaRegistryUrl.lookupOpt(params)
 
     val serialization = {
-      val ser = org.locationtech.geomesa.features.SerializationType.withName(SerializationType.lookup(params))
+      val ser = if (schemaRegistryUrl.isDefined && !params.containsKey(SerializationType.key)) {
+        org.locationtech.geomesa.features.SerializationType.CONFLUENT
+      } else {
+        org.locationtech.geomesa.features.SerializationType.withName(SerializationType.lookup(params))
+      }
+
       if (ser == org.locationtech.geomesa.features.SerializationType.CONFLUENT || schemaRegistryUrl.isEmpty) {
         ser
       } else {

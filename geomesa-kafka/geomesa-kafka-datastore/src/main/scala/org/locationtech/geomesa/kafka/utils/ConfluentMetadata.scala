@@ -92,6 +92,9 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
 }
 
 object ConfluentMetadata extends LazyLogging {
+
+  // Currently hard-coded to the default confluent uses (<topic>-value).  See the following documentation:
+  //   https://docs.confluent.io/current/schema-registry/docs/serializer-formatter.html#subject-name-strategy
   val SUBJECT_POSTFIX = "-value"
 
   def schemaToSft(schema: Schema, sftName: String): SimpleFeatureType = {

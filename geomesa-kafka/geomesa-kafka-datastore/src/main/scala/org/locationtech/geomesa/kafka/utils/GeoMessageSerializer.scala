@@ -69,7 +69,6 @@ object GeoMessageSerializer {
 
   val KryoVersion: Byte = 2
   val AvroVersion: Byte = 3
-  val ConfluentVersion: Byte = 3
 
   val VersionHeader = "v"
 
