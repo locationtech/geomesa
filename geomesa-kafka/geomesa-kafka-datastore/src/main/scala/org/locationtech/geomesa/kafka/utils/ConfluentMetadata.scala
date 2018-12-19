@@ -8,22 +8,17 @@
 
 package org.locationtech.geomesa.kafka.utils
 
-import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Geometry
 import io.confluent.kafka.schemaregistry.client.SchemaRegistryClient
-import org.apache.avro.Schema
-import org.apache.avro.Schema.Type._
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils
 import org.locationtech.geomesa.features.confluent.ConfluentFeatureSerializer
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
-import org.locationtech.geomesa.kafka.utils.ConfluentMetadata.{schemaToSft, SUBJECT_POSTFIX}
+import org.locationtech.geomesa.kafka.utils.ConfluentMetadata.SUBJECT_POSTFIX
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
@@ -43,7 +38,10 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
     try {
       val subject = topic + SUBJECT_POSTFIX
       val schemaId = schemaRegistry.getLatestSchemaMetadata(subject).getId
-      val sft = schemaToSft(schemaRegistry.getByID(schemaId), topic) // todo: any restrictions on sftName not on topic?
+      val sft = AvroSimpleFeatureUtils.schemaToSft(schemaRegistry.getByID(schemaId),
+                                                   topic,
+                                                   Some(ConfluentFeatureSerializer.geomAttributeName),
+                                                   Some(ConfluentFeatureSerializer.dateAttributeName))
       KafkaDataStore.setTopic(sft, topic)
       Option(SimpleFeatureTypes.encodeType(sft, includeUserData = true))
     } catch {
@@ -96,37 +94,4 @@ object ConfluentMetadata extends LazyLogging {
   // Currently hard-coded to the default confluent uses (<topic>-value).  See the following documentation:
   //   https://docs.confluent.io/current/schema-registry/docs/serializer-formatter.html#subject-name-strategy
   val SUBJECT_POSTFIX = "-value"
-
-  def schemaToSft(schema: Schema, sftName: String): SimpleFeatureType = {
-    val builder = new SimpleFeatureTypeBuilder
-    builder.setName(sftName)
-    builder.setDefaultGeometry(ConfluentFeatureSerializer.geomAttributeName)
-    builder.add(ConfluentFeatureSerializer.geomAttributeName, classOf[Geometry])
-    builder.add(ConfluentFeatureSerializer.dateAttributeName, classOf[Date])
-    schema.getFields.asScala.foreach(addSchemaToBuilder(builder, _))
-    builder.buildFeatureType()
-  }
-
-  def addSchemaToBuilder(builder: SimpleFeatureTypeBuilder,
-                         field: Schema.Field,
-                         typeOverride: Option[Schema.Type] = None): Unit = {
-    typeOverride.getOrElse(field.schema().getType) match {
-      case STRING  => builder.add(field.name(), classOf[java.lang.String])
-      case BOOLEAN => builder.add(field.name(), classOf[java.lang.Boolean])
-      case INT     => builder.add(field.name(), classOf[java.lang.Integer])
-      case DOUBLE  => builder.add(field.name(), classOf[java.lang.Double])
-      case LONG    => builder.add(field.name(), classOf[java.lang.Long])
-      case FLOAT   => builder.add(field.name(), classOf[java.lang.Float])
-      case BYTES   => logger.error("Avro schema requested BYTES, which is not yet supported") //todo: support
-      case UNION   => field.schema().getTypes.asScala.map(_.getType).find(_ != NULL)
-                           .foreach(t => addSchemaToBuilder(builder, field, Option(t))) //todo: support more union types and log any errors better
-      case MAP     => logger.error("Avro schema requested MAP, which is not yet supported") //todo: support
-      case RECORD  => logger.error("Avro schema requested RECORD, which is not yet supported") //todo: support
-      case ENUM    => builder.add(field.name(), classOf[java.lang.String])
-      case ARRAY   => logger.error("Avro schema requested ARRAY, which is not yet supported") //todo: support
-      case FIXED   => logger.error("Avro schema requested FIXED, which is not yet supported") //todo: support
-      case NULL    => logger.error("Avro schema requested NULL, which is not yet supported") //todo: support
-      case _       => logger.error(s"Avro schema requested unknown type ${field.schema().getType}")
-    }
-  }
 }
