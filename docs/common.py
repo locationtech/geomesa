@@ -69,7 +69,6 @@ url_github_archive = "https://github.com/locationtech/geomesa/archive"
 
 url_locationtech_release = "https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
 
-
 # RST appended to every file. Used for global substitions.
 # (the "%(release)s" substitutions are done by the Python format() method
 # prior to appending the RST epilog to each file)
@@ -119,7 +118,9 @@ rst_epilog = """
 
 .. |cassandra_version| replace:: 3.x
 
-.. |spark_version| replace:: 2.2.x or 2.3.x
+.. |kudu_version| replace:: 1.7.x
+
+.. |spark_version| replace:: 2.2.x, 2.3.x or 2.4.x
 
 .. |release_last| replace:: %(release_last)s
 

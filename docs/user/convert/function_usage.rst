@@ -814,6 +814,31 @@ delimiters for a map:
 
     { name = "numbers", transform = "parseMap('int -> string', $2, '->', ',')" }
 
+State Functions
+~~~~~~~~~~~~~~~
+
+inputFilePath
+^^^^^^^^^^^^^
+
+Description: provides the absolute path to the file being operated on, if available
+
+Example: ``$inputFilePath``
+
+The file path is a variable, referenced through ``$`` notation.
+
+The file path may not always be available, depending on how the converter is being invoked.
+When invoked through the GeoMesa command-line tools or GeoMesa NiFi, it will be set appropriately.
+
+lineNo
+^^^^^^
+
+Description: provides the current line number in the file being operated on, if available
+
+Example: ``lineNo()``
+
+The line number may not always be available, depending on the converter being used. For some converters,
+line number may be an abstract concept. For example, in the Avro converter line number will refer to the
+number of the Avro record in the file.
 
 Enrichment Functions
 ~~~~~~~~~~~~~~~~~~~~
