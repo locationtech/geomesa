@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.index.strategies
 
-import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
@@ -78,9 +77,6 @@ object SpatioTemporalFilterStrategy {
     */
   def isBounded(temporalFilter: Filter, sft: SimpleFeatureType, dtg: String): Boolean = {
     val intervals = FilterHelper.extractIntervals(temporalFilter, dtg)
-    val maxDate = BinnedTime.maxDate(sft.getZ3Interval)
-    intervals.nonEmpty && intervals.values.forall { i =>
-      i.lower.value.exists(_.isAfter(BinnedTime.ZMinDate)) && i.upper.value.exists(_.isBefore(maxDate))
-    }
+    intervals.nonEmpty && intervals.values.forall(_.isBoundedBothSides)
   }
 }
