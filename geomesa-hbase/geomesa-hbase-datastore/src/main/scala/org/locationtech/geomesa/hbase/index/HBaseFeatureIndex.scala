@@ -96,8 +96,10 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
               // the jar should be under hbase.dynamic.jars.dir to enable filters, so look there
               val dir = new Path(conf.get("hbase.dynamic.jars.dir"))
               WithClose(dir.getFileSystem(conf)) { fs =>
-                fs.listStatus(dir).collectFirst {
-                  case s if DistributedJarNamePattern.matcher(s.getPath.getName).matches() => s.getPath
+                if (!fs.isDirectory(dir)) { None } else {
+                  fs.listStatus(dir).collectFirst {
+                    case s if DistributedJarNamePattern.matcher(s.getPath.getName).matches() => s.getPath
+                  }
                 }
               }
             } catch {
