@@ -128,7 +128,7 @@ code,.rst-content tt,.rst-content code {
 
 /* first level headers */
 .wy-menu-vertical li.toctree-l1 > a {
-
+  color: #a53824;
 }
 
 /* first level header - selected */
@@ -211,7 +211,7 @@ code,.rst-content tt,.rst-content code {
 }
 
 .wy-side-nav-search>a,.wy-side-nav-search .wy-dropdown>a {
-  color: #565656;
+  color: #a53824;
 }
 
 .wy-side-nav-search>div.version {
