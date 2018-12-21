@@ -32,19 +32,22 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
 
   writable: RecordWritableIndex =>
 
-  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
   override def getQueryPlan(sft: SimpleFeatureType,
                             ds: AccumuloDataStore,
                             filter: AccumuloFilterStrategyType,
                             hints: Hints,
                             explain: Explainer): AccumuloQueryPlan = {
+
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
     val prefix = sft.getTableSharingBytes
 
     val ranges = filter.primary match {
       case None =>
-        // check that full table scans are allowed
-        QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+        if (hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
+          // check that full table scans are allowed
+          QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+        }
         filter.secondary.foreach { f =>
           logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
         }

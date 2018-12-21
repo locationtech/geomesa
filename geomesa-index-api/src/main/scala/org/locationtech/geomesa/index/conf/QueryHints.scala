@@ -68,6 +68,7 @@ object QueryHints {
     val TRANSFORMS       = new ClassKey(classOf[String])
     val TRANSFORM_SCHEMA = new ClassKey(classOf[SimpleFeatureType])
     val SORT_FIELDS      = new ClassKey(classOf[String])
+    val MAX_FEATURES     = new ClassKey(classOf[java.lang.Integer])
     val SKIP_REDUCE      = new ClassKey(classOf[java.lang.Boolean])
 
     def toSortHint(sortBy: Array[SortBy]): String = {
@@ -157,6 +158,7 @@ object QueryHints {
       Option(hints.get(Internal.SORT_FIELDS).asInstanceOf[String]).map(Internal.fromSortHint).filterNot(_.isEmpty)
     def getSortReadableString: String =
       getSortFields.map(_.map { case (f, r) => s"$f ${if (r) "DESC" else "ASC" }"}.mkString(", ")).getOrElse("none")
+    def getMaxFeatures: Option[Int] = Option(hints.get(Internal.MAX_FEATURES).asInstanceOf[Integer]).map(_.intValue())
     def isExactCount: Option[Boolean] = Option(hints.get(EXACT_COUNT)).map(_.asInstanceOf[Boolean])
     def isLambdaQueryPersistent: Boolean =
       Option(hints.get(LAMBDA_QUERY_PERSISTENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)

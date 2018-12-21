@@ -106,14 +106,18 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
                             filter: FilterStrategy[DS, F, W],
                             hints: Hints,
                             explain: Explainer): QueryPlan[DS, F, W] = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
     val sharing = sft.getTableSharingBytes
 
     val indexValues = filter.primary.map(keySpace.getIndexValues(sft, _, explain))
 
     val ranges = indexValues match {
       case None =>
-        // check that full table scans are allowed
-        QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+        if (hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
+          // check that full table scans are allowed
+          QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+        }
         filter.secondary.foreach { f =>
           logger.warn(s"Running full table scan on $name index for schema ${sft.getTypeName} with filter ${filterToString(f)}")
         }
