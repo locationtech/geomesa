@@ -242,6 +242,17 @@ object QueryPlanner extends LazyLogging {
     }
   }
 
+  /**
+    * Sets the max features from a query into the query hints
+    *
+    * @param query query
+    */
+  def setMaxFeatures(query: Query): Unit = {
+    if (!query.isMaxFeaturesUnlimited) {
+      query.getHints.put(QueryHints.Internal.MAX_FEATURES, Int.box(query.getMaxFeatures))
+    }
+  }
+
   private def computeSchema(sft: SimpleFeatureType, transforms: Seq[Definition]): SimpleFeatureType = {
     val descriptors: Seq[AttributeDescriptor] = transforms.map { definition =>
       definition.expression match {

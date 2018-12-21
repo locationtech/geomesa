@@ -152,6 +152,13 @@ For more granularity, it is also possible to specify the full-table scan behavio
 replaced with the schema name (e.g. "gdelt"). Properties set for an individual schema will take precedence
 over the globally-defined behavior.
 
+geomesa.scan.block-full-table.threshold
++++++++++++++++++++++++++++++++++++++++
+
+This property works in conjunction with ``geomesa.scan.block-full-table``, above. If a query puts a reasonable limit
+on the number of features that are returned (through the use of ``maxFeatures``), then it will not be blocked.
+The property is specified as an integer. By default, a limit of 1000 or less is allowed.
+
 geomesa.scan.ranges.target
 ++++++++++++++++++++++++++
 
