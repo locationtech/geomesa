@@ -209,12 +209,16 @@ trait KuduFeatureIndex[T, U] extends KuduFeatureIndexType with LazyLogging {
                             filter: KuduFilterStrategyType,
                             hints: Hints,
                             explain: Explainer): KuduQueryPlanType = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
     val indexValues = filter.primary.map(keySpace.getIndexValues(sft, _, explain))
 
     val ranges: Iterator[(Option[PartialRow], Option[PartialRow])] = indexValues match {
       case None =>
-        // check that full table scans are allowed
-        QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+        if (hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
+          // check that full table scans are allowed
+          QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+        }
         filter.secondary.foreach { f =>
           logger.debug(s"Running full table scan on $name index for schema ${sft.getTypeName} " +
               s"with filter ${filterToString(f)}")
