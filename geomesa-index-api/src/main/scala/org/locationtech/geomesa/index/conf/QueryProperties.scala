@@ -40,4 +40,6 @@ object QueryProperties {
       }
     }
   }
+
+  val BlockMaxThreshold = SystemProperty("geomesa.scan.block-full-table.threshold", "1000")
 }
