@@ -19,6 +19,7 @@ import org.apache.avro.generic.GenericRecord
 import org.locationtech.geomesa.features.confluent.ConfluentFeatureSerializer._
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.interop.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -39,12 +40,15 @@ object ConfluentFeatureSerializer {
   }
   val geomAttributeName = "_geom"
   val dateAttributeName = "_date"
+  val visAttributeName = "visibilities"
 }
 
 class ConfluentFeatureSerializer(sft: SimpleFeatureType,
                                  schemaRegistryClient: SchemaRegistryClient,
                                  val options: Set[SerializationOption] = Set.empty)
     extends SimpleFeatureSerializer with LazyLogging {
+
+  private val visAttributeIndex = sft.indexOf(visAttributeName)
 
   private val kafkaAvroDeserializer = new ThreadLocal[KafkaAvroDeserializer]() {
     override def initialValue(): KafkaAvroDeserializer = new KafkaAvroDeserializer(schemaRegistryClient)
@@ -74,7 +78,11 @@ class ConfluentFeatureSerializer(sft: SimpleFeatureType,
         genericRecord.get(attrName)
       }
     }
-    ScalaSimpleFeatureFactory.buildFeature(sft, attrs, id)
+    val sf = ScalaSimpleFeatureFactory.buildFeature(sft, attrs, id)
+    if (visAttributeIndex != -1) {
+      SecurityUtils.setFeatureVisibility(sf, sf.getAttribute(visAttributeIndex).asInstanceOf[String])
+    }
+    sf
   }
 
   private def readFieldAsWkt(genericRecord: GenericRecord,
