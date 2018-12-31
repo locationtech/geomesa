@@ -7,7 +7,7 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
-imageio_version='1.1.13'
+imageio_version='1.1.25'
 imageio_gdal_bindings_version='1.9.2'
 
 # Load common functions and setup
@@ -18,7 +18,7 @@ fi
 
 install_dir="${1:-${%%gmtools.dist.name%%_HOME}/lib}"
 
-base_url="${GEOMESA_MAVEN_URL:-http://download.osgeo.org/webdav/}"
+base_url="${GEOMESA_MAVEN_URL:-https://repo.boundlessgeo.com/main/}"
 
 partial_url='geotools/it/geosolutions/imageio-ext'
 

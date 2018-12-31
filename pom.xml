@@ -2790,7 +2790,7 @@
             <id>central</id>
             <name>Maven Repository Switchboard</name>
             <layout>default</layout>
-            <url>http://repo1.maven.org/maven2</url>
+            <url>https://repo1.maven.org/maven2</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
@@ -2812,17 +2812,15 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <!-- geotools -->
         <repository>
             <id>boundlessgeo</id>
-            <url>http://repo.boundlessgeo.com/main</url>
+            <url>https://repo.boundlessgeo.com/main</url>
         </repository>
+        <!-- jai -->
         <repository>
             <id>osgeo</id>
-            <url>http://download.osgeo.org/webdav/geotools</url>
-        </repository>
-        <repository>
-            <id>conjars.org</id>
-            <url>http://conjars.org/repo</url>
+            <url>https://download.osgeo.org/webdav/geotools</url>
         </repository>
     </repositories>
 

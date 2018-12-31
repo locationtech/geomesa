@@ -165,24 +165,6 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-streams</artifactId>
-                <version>${imageio-ext.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-utilities</artifactId>
-                <version>${imageio-ext.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-geocore</artifactId>
-                <version>${imageio-ext.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
                 <groupId>javax.media</groupId>
                 <artifactId>jai_codec</artifactId>
                 <version>1.1.3</version>

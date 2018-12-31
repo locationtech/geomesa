@@ -152,7 +152,6 @@ org.apache.kudu:kudu-client	1.7.0	compile
 org.apache.kudu:kudu-mapreduce	1.7.0	compile
 org.apache.metamodel:MetaModel-core	4.3.6	compile
 org.apache.metamodel:MetaModel-pojo	4.3.6	compile
-org.apache.orc:orc-core	1.4.4	compile
 org.apache.orc:orc-core	nohive:1.4.4	compile
 org.apache.orc:orc-mapreduce	nohive:1.4.4	compile
 org.apache.parquet:parquet-column	1.9.0	compile
