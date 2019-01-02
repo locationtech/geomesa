@@ -53,6 +53,7 @@ abstract class GeoMesaFeatureReader(val query: Query, timeout: Option[Long], val
 }
 
 object GeoMesaFeatureReader {
+
   def apply(sft: SimpleFeatureType,
             query: Query,
             qp: QueryRunner,
@@ -66,83 +67,83 @@ object GeoMesaFeatureReader {
       case (Some((s, p, t)), Some(max)) => new GeoMesaFeatureReaderWithAudit(sft, query, qp, timeout, s, p, t, max) with FeatureLimiting
     }
   }
-}
 
-/**
- * Basic feature reader that wraps the underlying iterator of simple features.
- */
-class GeoMesaFeatureReaderImpl(sft: SimpleFeatureType,
-                               query: Query,
-                               qp: QueryRunner,
-                               timeout: Option[Long],
-                               maxFeatures: Long = 0L) extends GeoMesaFeatureReader(query, timeout, maxFeatures) {
+  /**
+    * Basic feature reader that wraps the underlying iterator of simple features.
+    */
+  class GeoMesaFeatureReaderImpl(sft: SimpleFeatureType,
+                                 query: Query,
+                                 qp: QueryRunner,
+                                 timeout: Option[Long],
+                                 maxFeatures: Long = 0L) extends GeoMesaFeatureReader(query, timeout, maxFeatures) {
 
-  private val iter = qp.runQuery(sft, query)
+    private val iter = qp.runQuery(sft, query)
 
-  override def hasNext: Boolean = iter.hasNext
-  override def next(): SimpleFeature = iter.next()
-  override protected def closeOnce(): Unit = iter.close()
-}
-
-/**
- * Basic feature reader with method profiling for stat gathering.
- */
-class GeoMesaFeatureReaderWithAudit(sft: SimpleFeatureType,
-                                    query: Query,
-                                    qp: QueryRunner,
-                                    timeout: Option[Long],
-                                    auditWriter: AuditWriter,
-                                    auditProvider: AuditProvider,
-                                    storeType: String,
-                                    maxFeatures: Long = 0L)
-    extends GeoMesaFeatureReader(query, timeout, maxFeatures) with MethodProfiling {
-
-  private val timings = new TimingsImpl
-  private val iter = profile(time => timings.occurrence("planning", time))(qp.runQuery(sft, query))
-
-  override def next(): SimpleFeature = profile(time => timings.occurrence("next", time))(iter.next())
-  override def hasNext: Boolean = profile(time => timings.occurrence("hasNext", time))(iter.hasNext)
-
-  override protected def closeOnce(): Unit = {
-    iter.close()
-    val stat = QueryEvent(
-      storeType,
-      sft.getTypeName,
-      System.currentTimeMillis(),
-      auditProvider.getCurrentUserId,
-      filterToString(query.getFilter),
-      ViewParams.getReadableHints(query),
-      timings.time("planning"),
-      timings.time("next") + timings.time("hasNext"),
-      count
-    )
-    auditWriter.writeEvent(stat) // note: implementations should be asynchronous
-  }
-}
-
-trait FeatureCounting extends GeoMesaFeatureReader {
-
-  protected var counter = 0L
-  // because the query planner configures the query hints, we can't check for bin hints
-  // until after setting up the iterator
-  protected val sfCount: (SimpleFeature) => Int = if (getFeatureType == BinaryOutputEncoder.BinEncodedSft) {
-    // bin queries pack multiple records into each feature
-    // to count the records, we have to count the total bytes coming back, instead of the number of features
-    val bytesPerHit = if (query.getHints.getBinLabelField.isDefined) 24 else 16
-    (sf) => sf.getAttribute(0).asInstanceOf[Array[Byte]].length / bytesPerHit
-  } else {
-    (_) => 1
+    override def hasNext: Boolean = iter.hasNext
+    override def next(): SimpleFeature = iter.next()
+    override protected def closeOnce(): Unit = iter.close()
   }
 
-  abstract override def next(): SimpleFeature = {
-    val sf = super.next()
-    counter += sfCount(sf)
-    sf
+  /**
+    * Basic feature reader with method profiling for stat gathering.
+    */
+  class GeoMesaFeatureReaderWithAudit(sft: SimpleFeatureType,
+                                      query: Query,
+                                      qp: QueryRunner,
+                                      timeout: Option[Long],
+                                      auditWriter: AuditWriter,
+                                      auditProvider: AuditProvider,
+                                      storeType: String,
+                                      maxFeatures: Long = 0L)
+      extends GeoMesaFeatureReader(query, timeout, maxFeatures) with MethodProfiling {
+
+    private val timings = new TimingsImpl
+    private val iter = profile(time => timings.occurrence("planning", time))(qp.runQuery(sft, query))
+
+    override def next(): SimpleFeature = profile(time => timings.occurrence("next", time))(iter.next())
+    override def hasNext: Boolean = profile(time => timings.occurrence("hasNext", time))(iter.hasNext)
+
+    override protected def closeOnce(): Unit = {
+      iter.close()
+      val stat = QueryEvent(
+        storeType,
+        sft.getTypeName,
+        System.currentTimeMillis(),
+        auditProvider.getCurrentUserId,
+        filterToString(query.getFilter),
+        ViewParams.getReadableHints(query),
+        timings.time("planning"),
+        timings.time("next") + timings.time("hasNext"),
+        count
+      )
+      auditWriter.writeEvent(stat) // note: implementations should be asynchronous
+    }
   }
 
-  abstract override def count: Long = counter
-}
+  trait FeatureCounting extends GeoMesaFeatureReader {
 
-trait FeatureLimiting extends FeatureCounting {
-  abstract override def hasNext: Boolean = counter < maxFeatures && super.hasNext
+    protected var counter = 0L
+    // because the query planner configures the query hints, we can't check for bin hints
+    // until after setting up the iterator
+    protected val sfCount: SimpleFeature => Int = if (getFeatureType == BinaryOutputEncoder.BinEncodedSft) {
+      // bin queries pack multiple records into each feature
+      // to count the records, we have to count the total bytes coming back, instead of the number of features
+      val bytesPerHit = if (query.getHints.getBinLabelField.isDefined) 24 else 16
+      sf => sf.getAttribute(0).asInstanceOf[Array[Byte]].length / bytesPerHit
+    } else {
+      _ => 1
+    }
+
+    abstract override def next(): SimpleFeature = {
+      val sf = super.next()
+      counter += sfCount(sf)
+      sf
+    }
+
+    abstract override def count: Long = counter
+  }
+
+  trait FeatureLimiting extends FeatureCounting {
+    abstract override def hasNext: Boolean = counter < maxFeatures && super.hasNext
+  }
 }

@@ -12,6 +12,7 @@ import org.calrissian.mango.types.LexiTypeEncoders
 import org.geotools.util.Converters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
 import org.locationtech.geomesa.utils.index.ByteArrays
+import org.opengis.feature.`type`.AttributeDescriptor
 
 import scala.util.Try
 
@@ -30,36 +31,61 @@ case class AttributeIndexKey(i: Short, value: String, inclusive: Boolean = true)
 
 object AttributeIndexKey {
 
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+  import scala.collection.JavaConverters._
+
   private val typeRegistry = LexiTypeEncoders.LEXI_TYPES
+
+  val lexicoders: Seq[Class[_]] = AttributeIndexKey.typeRegistry.getAllEncoders.asScala.map(_.resolves()).toList
 
   // store 2 bytes for the index of the attribute in the sft - this allows up to 32k attributes in the sft.
   def indexToBytes(i: Int): Array[Byte] = ByteArrays.toBytes(i.toShort)
 
   /**
-    * Lexicographically encode the value. Collections will return multiple rows, one for each entry.
+    * Lexicographically encode the value, converting types appropriately
+    *
+    * @param value query value
+    * @param binding binding of the attribute being queried
+    * @return
     */
-  def encodeForIndex(value: Any, list: Boolean): Seq[String] = {
-    import scala.collection.JavaConverters._
-
-    if (value == null) {
-      Seq.empty
-    } else if (list) {
-      // encode each value into a separate row
-      value.asInstanceOf[java.util.List[_]].asScala.collect { case v if v != null => typeEncode(v) }
-    } else {
-      Seq(typeEncode(value))
+  def encodeForQuery(value: Any, binding: Class[_]): String = {
+    if (value == null) { null } else {
+      Try(typeEncode(Option(Converters.convert(value, binding)).getOrElse(value))).getOrElse(value.toString)
     }
   }
 
   /**
-    * Lexicographically encode the value. Will convert types appropriately.
+    * Lexicographically encode a value using it's runtime class
+    *
+    * @param value value
+    * @return
     */
-  def encodeForQuery(value: Any, binding: Class[_]): String = {
-    if (value == null) { null } else {
-      typeEncode(Option(Converters.convert(value, binding)).getOrElse(value))
-    }
-  }
+  def typeEncode(value: Any): String = typeRegistry.encode(value)
 
-  // Lexicographically encode a value using it's runtime class
-  def typeEncode(value: Any): String = Try(typeRegistry.encode(value)).getOrElse(value.toString)
+  /**
+    * Decode a lexicoded value
+    *
+    * @param alias type alias used for decoding
+    * @param value encoded value
+    * @return
+    */
+  def decode(alias: String, value: String): AnyRef = typeRegistry.decode(alias, value)
+
+  /**
+    * Is the type supported for lexicoding
+    *
+    * @param descriptor attribute descriptor
+    * @return
+    */
+  def encodable(descriptor: AttributeDescriptor): Boolean =
+    encodable(if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding })
+
+  /**
+    * Is the type supported for lexicoding
+    *
+    * @param binding class binding
+    * @return
+    */
+  def encodable(binding: Class[_]): Boolean = lexicoders.exists(_.isAssignableFrom(binding))
 }

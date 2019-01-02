@@ -11,7 +11,6 @@ package org.locationtech.geomesa.features.serialization
 import java.util.{UUID, Collections => jCollections, List => jList, Map => jMap}
 
 import org.locationtech.jts.geom._
-import org.geotools.factory.Hints
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs.{USER_DATA_LIST_TYPE, USER_DATA_MAP_KEY_TYPE, USER_DATA_MAP_VALUE_TYPE}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -20,7 +19,7 @@ object ObjectType extends Enumeration {
 
   type ObjectType = Value
 
-  val STRING, INT, LONG, FLOAT, DOUBLE, BOOLEAN, DATE, UUID, GEOMETRY, HINTS, LIST, MAP, BYTES, JSON = Value
+  val STRING, INT, LONG, FLOAT, DOUBLE, BOOLEAN, DATE, UUID, GEOMETRY, LIST, MAP, BYTES, JSON = Value
 
   val POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRY_COLLECTION = Value
 
@@ -61,7 +60,6 @@ object ObjectType extends Enumeration {
       case c if classOf[java.util.Date].isAssignableFrom(c) => Seq(DATE)
       case c if classOf[UUID].isAssignableFrom(c) => Seq(UUID)
       case c if classOf[Geometry].isAssignableFrom(c) => geometryType(c.asInstanceOf[Class[_ <: Geometry]])
-      case c if classOf[Hints.Key].isAssignableFrom(c) => Seq(HINTS)
       case c if classOf[Array[Byte]].isAssignableFrom(c) => Seq(BYTES)
       case c if classOf[jList[_]].isAssignableFrom(c) => listType(metadata)
       case c if classOf[jMap[_, _]].isAssignableFrom(c) => mapType(metadata)

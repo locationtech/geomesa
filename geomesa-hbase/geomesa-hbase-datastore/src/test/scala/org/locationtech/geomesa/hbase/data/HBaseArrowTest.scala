@@ -18,6 +18,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
+import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.CoprocessorPlan
 import org.locationtech.geomesa.hbase.filters.Z3HBaseFilter
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator

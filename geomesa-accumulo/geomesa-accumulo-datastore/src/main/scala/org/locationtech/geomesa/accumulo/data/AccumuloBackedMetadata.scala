@@ -24,6 +24,8 @@ class AccumuloBackedMetadata[T](val connector: Connector, val catalog: String, v
 
   protected val config: BatchWriterConfig = GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(2)
 
+  private val empty = new Text()
+
   private var writerCreated = false
 
   lazy private val writer = synchronized {
@@ -36,12 +38,12 @@ class AccumuloBackedMetadata[T](val connector: Connector, val catalog: String, v
 
   override protected def checkIfTableExists: Boolean = connector.tableOperations().exists(catalog)
 
-  override protected def createTable(): Unit = AccumuloVersion.ensureTableExists(connector, catalog)
+  override protected def createTable(): Unit = AccumuloVersion.createTableIfNeeded(connector, catalog)
 
   override protected def write(rows: Seq[(Array[Byte], Array[Byte])]): Unit = {
     rows.foreach { case (k, v) =>
       val m = new Mutation(k)
-      m.put(EMPTY_TEXT, EMPTY_TEXT, new Value(v))
+      m.put(empty, empty, new Value(v))
       writer.addMutation(m)
     }
     writer.flush()

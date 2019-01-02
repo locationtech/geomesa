@@ -8,41 +8,17 @@
 
 package org.locationtech.geomesa
 
-import org.apache.kudu.client.{AlterTableOptions, KuduSession, Operation, PartialRow}
-import org.locationtech.geomesa.index.api._
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter._
-import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureWriter}
-import org.locationtech.geomesa.index.planning.QueryPlanner
-import org.locationtech.geomesa.index.strategies.{AttributeFilterStrategy, IdFilterStrategy, SpatialFilterStrategy, SpatioTemporalFilterStrategy}
-import org.locationtech.geomesa.kudu.data.{KuduDataStore, KuduFeature}
+import org.apache.kudu.client.{AlterTableOptions, PartialRow}
 import org.locationtech.geomesa.kudu.schema.KuduColumnAdapter
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 package object kudu {
 
-  type KuduDataStoreType = GeoMesaDataStore[KuduDataStore, KuduFeature, WriteOperation]
-  type KuduFeatureIndexType = GeoMesaFeatureIndex[KuduDataStore, KuduFeature, WriteOperation]
-  type KuduFilterPlanType = FilterPlan[KuduDataStore, KuduFeature, WriteOperation]
-  type KuduFilterStrategyType = FilterStrategy[KuduDataStore, KuduFeature, WriteOperation]
-  type KuduQueryPlannerType = QueryPlanner[KuduDataStore, KuduFeature, WriteOperation]
-  type KuduQueryPlanType = QueryPlan[KuduDataStore, KuduFeature, WriteOperation]
-  type KuduIndexManagerType = GeoMesaIndexManager[KuduDataStore, KuduFeature, WriteOperation]
-  type KuduFeatureWriterFactoryType = FeatureWriterFactory[KuduDataStore, KuduFeature, WriteOperation]
-  type KuduFeatureWriterType = GeoMesaFeatureWriter[KuduDataStore, KuduFeature, WriteOperation, KuduSession]
-  type KuduTableFeatureWriterType = TableFeatureWriter[KuduDataStore, KuduFeature, WriteOperation, KuduSession]
-  type KuduPartitionedFeatureWriterType = PartitionedFeatureWriter[KuduDataStore, KuduFeature, WriteOperation, KuduSession]
-  type KuduAppendFeatureWriterType = GeoMesaAppendFeatureWriter[KuduDataStore, KuduFeature, WriteOperation, KuduSession]
-  type KuduModifyFeatureWriterType = GeoMesaModifyFeatureWriter[KuduDataStore, KuduFeature, WriteOperation, KuduSession]
-  type KuduSpatioTemporalFilterStrategy = SpatioTemporalFilterStrategy[KuduDataStore, KuduFeature, WriteOperation]
-  type KuduSpatialFilterStrategy = SpatialFilterStrategy[KuduDataStore, KuduFeature, WriteOperation]
-  type KuduIdFilterStrategy = IdFilterStrategy[KuduDataStore, KuduFeature, WriteOperation]
-  type KuduAttributeFilterStrategy = AttributeFilterStrategy[KuduDataStore, KuduFeature, WriteOperation]
+  val KuduSplitterOptions = "geomesa.kudu.splitters"
 
   case class KuduValue[T](value: T, adapter: KuduColumnAdapter[T]) {
     def writeToRow(row: PartialRow): Unit = adapter.writeToRow(row, value)
   }
-
-  case class WriteOperation(op: Operation, partition: String, partitioning: () => Option[Partitioning])
 
   case class Partitioning(table: String, alteration: AlterTableOptions)
 

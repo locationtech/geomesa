@@ -74,7 +74,7 @@ class AccumuloRasterStore(val connector: Connector,
     plan match {
       case Some(qp) =>
         qp.iterators.foreach(batchScanner.addScanIterator)
-        qp.columnFamilies.foreach(batchScanner.fetchColumnFamily)
+        qp.columnFamily.foreach(batchScanner.fetchColumnFamily)
         batchScanner.setRanges(qp.ranges)
         adaptIteratorToChunks(SelfClosingIterator(batchScanner.iterator, batchScanner.close))
       case _        => Iterator.empty

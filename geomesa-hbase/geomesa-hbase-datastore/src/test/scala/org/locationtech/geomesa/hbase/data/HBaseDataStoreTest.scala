@@ -19,8 +19,11 @@ import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
-import org.locationtech.geomesa.hbase.index.{HBaseAttributeIndex, HBaseIdIndex, HBaseZ3Index}
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties, SchemaProperties}
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.locationtech.geomesa.index.index.id.IdIndex
+import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.process.query.ProximitySearchProcess
 import org.locationtech.geomesa.process.tube.TubeSelectProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -249,14 +252,19 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
               "attr.name.pattern:[a-f],attr.age.pattern:[0-9],attr.age.pattern2:[8-8][0-9]'"))
 
         def splits(index: String): Seq[Array[Byte]] = {
-          ds.manager.index(index).getTableNames(ds.getSchema(typeName), ds, None).flatMap { table =>
-            ds.connection.getRegionLocator(TableName.valueOf(table)).getStartKeys
+          ds.manager.indices(ds.getSchema(typeName)).find(_.identifier.startsWith(index)).toSeq.flatMap { index =>
+            index.getTableNames(None).flatMap { table =>
+              ds.connection.getRegionLocator(TableName.valueOf(table)).getStartKeys
+            }
           }
         }
 
-        splits(HBaseAttributeIndex.identifier) must haveLength((6 + 10 + 10) * 4) // a-f for name, 0-9 + [8]0-9 for age * 4 shards
-        splits(HBaseZ3Index.identifier) must haveLength(16) // 2 bits * 4 shards
-        splits(HBaseIdIndex.identifier) must haveLength(4) // default 4 splits
+        splits(GeoMesaFeatureIndex.identifier(AttributeIndex.name, AttributeIndex.version, Seq("name"))) must
+            haveLength(24) // a-f * 4 shards
+        splits(GeoMesaFeatureIndex.identifier(AttributeIndex.name, AttributeIndex.version, Seq("age"))) must
+            haveLength(80) // 0-9 + [8]0-9 * 4 shards
+        splits(Z3Index.name) must haveLength(16) // 2 bits * 4 shards
+        splits(IdIndex.name) must haveLength(4) // default 4 splits
       } finally {
         ds.dispose()
       }

@@ -10,59 +10,52 @@ package org.locationtech.geomesa.index.strategies
 
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
-import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-trait SpatioTemporalFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W] extends
-    GeoMesaFeatureIndex[DS, F, W] {
+trait SpatioTemporalFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 
   import SpatioTemporalFilterStrategy.{StaticCost, isBounded}
 
-  override def getFilterStrategy(sft: SimpleFeatureType,
-                                 filter: Filter,
-                                 transform: Option[SimpleFeatureType]): Seq[FilterStrategy[DS, F, W]] = {
+  def geom: String
+  def dtg: String
 
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-
-    val dtg = sft.getDtgField.getOrElse {
-      throw new RuntimeException("Trying to plan a z3 query but the schema does not have a date")
-    }
+  override def getFilterStrategy(filter: Filter,
+                                 transform: Option[SimpleFeatureType],
+                                 stats: Option[GeoMesaStats]): Option[FilterStrategy] = {
 
     if (filter == Filter.INCLUDE) {
-      Seq(FilterStrategy(this, None, None))
+      Some(FilterStrategy(this, None, None, Long.MaxValue))
     } else if (filter == Filter.EXCLUDE) {
-      Seq.empty
+      None
     } else {
       val (temporal, nonTemporal) = FilterExtractingVisitor(filter, dtg, sft)
       val (spatial, others) = nonTemporal match {
         case None     => (None, None)
-        case Some(nt) => FilterExtractingVisitor(nt, sft.getGeomField, sft, SpatialFilterStrategy.spatialCheck)
+        case Some(nt) => FilterExtractingVisitor(nt, geom, sft, SpatialFilterStrategy.spatialCheck)
       }
 
-      if (temporal.exists(isBounded(_, sft, dtg)) && (spatial.isDefined || !sft.getDescriptor(dtg).isIndexed)) {
-        Seq(FilterStrategy(this, andOption((spatial ++ temporal).toSeq), others))
+      // if there is no geom predicate, we can still use this index, but if there is a
+      // date attribute index that will work better
+      val spatialCheck = spatial.isDefined || !sft.getIndices.exists { i =>
+        (i.name == AttributeIndex.name || i.name == AttributeIndex.JoinIndexName) && i.attributes.headOption.contains(dtg)
+      }
+
+      if (spatialCheck && temporal.exists(isBounded(_, sft, dtg))) {
+        // https://geomesa.atlassian.net/browse/GEOMESA-1166
+        // TODO check date range and use z2 instead if too big
+        // TODO also if very small bbox, z2 has ~10 more bits of lat/lon info
+        val primary = andFilters(spatial.toSeq ++ temporal)
+        lazy val cost = stats.flatMap(_.getCount(sft, primary, exact = false)).getOrElse {
+          if (spatial.isDefined) { StaticCost } else { SpatialFilterStrategy.StaticCost + 1 }
+        }
+        Some(FilterStrategy(this, Some(primary), others, cost))
       } else {
-        Seq(FilterStrategy(this, None, Some(filter)))
-      }
-    }
-  }
-
-  override def getCost(sft: SimpleFeatureType,
-                       stats: Option[GeoMesaStats],
-                       filter: FilterStrategy[DS, F, W],
-                       transform: Option[SimpleFeatureType]): Long = {
-    // https://geomesa.atlassian.net/browse/GEOMESA-1166
-    // TODO check date range and use z2 instead if too big
-    // TODO also if very small bbox, z2 has ~10 more bits of lat/lon info
-    filter.primary match {
-      case None    => Long.MaxValue
-      case Some(f) => stats.flatMap(_.getCount(sft, f, exact = false)).getOrElse {
-        val names = filter.primary.map(FilterHelper.propertyNames(_, sft)).getOrElse(Seq.empty)
-        if (names.contains(sft.getGeomField)) StaticCost else SpatialFilterStrategy.StaticCost + 1
+        Some(FilterStrategy(this, None, Some(filter), Long.MaxValue))
       }
     }
   }

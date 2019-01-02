@@ -13,71 +13,95 @@ import java.util.Date
 import org.locationtech.jts.geom.{Geometry, Point}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
-import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.filter.FilterValues
+import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
+import org.locationtech.geomesa.index.api.ShardStrategy.{NoShardStrategy, ZShardStrategy}
+import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.QueryHints.LOOSE_BBOX
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
-import org.locationtech.geomesa.index.index.IndexKeySpace
-import org.locationtech.geomesa.index.index.IndexKeySpace._
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.sfcurve.IndexRange
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-object Z3IndexKeySpace extends Z3IndexKeySpace {
-  override def sfc(period: TimePeriod): Z3SFC = Z3SFC(period)
-}
-
-trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
+class Z3IndexKeySpace(val sft: SimpleFeatureType,
+                      val sharding: ShardStrategy,
+                      geomField: String,
+                      dtgField: String) extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  def sfc(period: TimePeriod): Z3SFC
+  require(classOf[Point].isAssignableFrom(sft.getDescriptor(geomField).getType.getBinding),
+    s"Expected field $geomField to have a point binding, but instead it has: " +
+        sft.getDescriptor(geomField).getType.getBinding.getSimpleName)
+  require(classOf[Date].isAssignableFrom(sft.getDescriptor(dtgField).getType.getBinding),
+    s"Expected field $dtgField to have a date binding, but instead it has: " +
+        sft.getDescriptor(dtgField).getType.getBinding.getSimpleName)
+
+  protected val sfc = Z3SFC(sft.getZ3Interval)
+
+  protected val geomIndex: Int = sft.indexOf(geomField)
+  protected val dtgIndex: Int = sft.indexOf(dtgField)
+
+  protected val timeToIndex: TimeToBinnedTime = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
+
+  private val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
+  private val boundsToDates = BinnedTime.boundsToIndexableDates(sft.getZ3Interval)
+
+  override val attributes: Seq[String] = Seq(geomField, dtgField)
 
   override val indexKeyByteLength: Int = 10
 
-  override def supports(sft: SimpleFeatureType): Boolean = sft.getDtgField.isDefined && sft.isPoints
+  override val sharing: Array[Byte] = Array.empty
 
-  override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): SimpleFeature => Seq[Z3IndexKey] = {
-    val z3 = sfc(sft.getZ3Interval)
-    val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
-    val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 index requires a valid date"))
-    val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
+  override def toIndexKey(writable: WritableFeature,
+                          tier: Array[Byte],
+                          id: Array[Byte],
+                          lenient: Boolean): RowKeyValue[Z3IndexKey] = {
+    val geom = writable.getAttribute[Point](geomIndex)
+    if (geom == null) {
+      throw new IllegalArgumentException(s"Null geometry in feature ${writable.feature.getID}")
+    }
+    val dtg = writable.getAttribute[Date](dtgIndex)
+    val time = if (dtg == null) { 0 } else { dtg.getTime }
+    val BinnedTime(b, t) = timeToIndex(time)
+    val z = try { sfc.index(geom.getX, geom.getY, t, lenient).z } catch {
+      case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry/time: $geom,$dtg", e)
+    }
+    val shard = sharding(writable)
 
-    getZValue(z3, geomIndex, dtgIndex, timeToIndex, lenient)
-  }
+    // create the byte array - allocate a single array up front to contain everything
+    // ignore tier, not used here
+    val bytes = Array.ofDim[Byte](shard.length + 10 + id.length)
 
-  override def toIndexKeyBytes(sft: SimpleFeatureType, lenient: Boolean): ToIndexKeyBytes = {
-    val z3 = sfc(sft.getZ3Interval)
-    val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
-    val dtgIndex = sft.getDtgIndex.getOrElse(throw new IllegalStateException("Z3 index requires a valid date"))
-    val timeToIndex = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
-
-    getZValueBytes(z3, geomIndex, dtgIndex, timeToIndex, lenient)
-  }
-
-  override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): Z3IndexValues = {
-
-    import org.locationtech.geomesa.filter.FilterHelper._
-
-    // TODO GEOMESA-2377 clean up duplicate code blocks in Z2/XZ2/Z3/XZ3IndexKeySpace
-
-    val dtgField = sft.getDtgField.getOrElse {
-      throw new RuntimeException("Trying to execute a z3 query but the schema does not have a date")
+    if (shard.isEmpty) {
+      ByteArrays.writeShort(b, bytes, 0)
+      ByteArrays.writeLong(z, bytes, 2)
+      System.arraycopy(id, 0, bytes, 10, id.length)
+    } else {
+      bytes(0) = shard.head // shard is only a single byte
+      ByteArrays.writeShort(b, bytes, 1)
+      ByteArrays.writeLong(z, bytes, 3)
+      System.arraycopy(id, 0, bytes, 11, id.length)
     }
 
-    val z3 = sfc(sft.getZ3Interval)
+    SingleRowKeyValue(bytes, sharing, shard, Z3IndexKey(b, z), tier, id, writable.values)
+  }
+
+  override def getIndexValues(filter: Filter, explain: Explainer): Z3IndexValues = {
+
+    import org.locationtech.geomesa.filter.FilterHelper._
 
     // standardize the two key query arguments:  polygon and date-range
 
     val geometries: FilterValues[Geometry] = {
-      val extracted = extractGeometries(filter, sft.getGeomField, sft.isPoints)
+      val extracted = extractGeometries(filter, geomField, intersect = true) // intersect since we have points
       if (extracted.nonEmpty) { extracted } else { FilterValues(Seq(WholeWorldPolygon)) }
     }
 
@@ -91,11 +115,8 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
 
     if (geometries.disjoint || intervals.disjoint) {
       explain("Disjoint geometries or dates extracted, short-circuiting to empty query")
-      return Z3IndexValues(z3, geometries, Seq.empty, intervals, Map.empty)
+      return Z3IndexValues(sfc, geometries, Seq.empty, intervals, Map.empty)
     }
-
-    val minTime = z3.time.min.toLong
-    val maxTime = z3.time.max.toLong
 
     // compute our ranges based on the coarse bounds for our query
     val xy: Seq[(Double, Double, Double, Double)] = {
@@ -104,10 +125,11 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
       geometries.values.flatMap(GeometryUtils.bounds(_, multiplier, bits))
     }
 
+    val minTime = sfc.time.min.toLong
+    val maxTime = sfc.time.max.toLong
+
     // calculate map of weeks to time intervals in that week
     val timesByBin = scala.collection.mutable.Map.empty[Short, Seq[(Long, Long)]].withDefaultValue(Seq.empty)
-    val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
-    val boundsToDates = BinnedTime.boundsToIndexableDates(sft.getZ3Interval)
 
     // note: intervals shouldn't have any overlaps
     intervals.foreach { interval =>
@@ -120,12 +142,12 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
         } else {
           timesByBin(lb) ++= Seq((lt, maxTime))
           timesByBin(ub) ++= Seq((minTime, ut))
-          Range.inclusive(lb + 1, ub - 1).foreach(b => timesByBin(b.toShort) = z3.wholePeriod)
+          Range.inclusive(lb + 1, ub - 1).foreach(b => timesByBin(b.toShort) = sfc.wholePeriod)
         }
       }
     }
 
-    Z3IndexValues(z3, geometries, xy, intervals, timesByBin.toMap)
+    Z3IndexValues(sfc, geometries, xy, intervals, timesByBin.toMap)
   }
 
   override def getRanges(values: Z3IndexValues, multiplier: Int): Iterator[ScanRange[Z3IndexKey]] = {
@@ -146,10 +168,8 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
     }
   }
 
-  override def getRangeBytes(ranges: Iterator[ScanRange[Z3IndexKey]],
-                             prefixes: Seq[Array[Byte]],
-                             tier: Boolean): Iterator[ByteRange] = {
-    if (prefixes.isEmpty) {
+  override def getRangeBytes(ranges: Iterator[ScanRange[Z3IndexKey]], tier: Boolean): Iterator[ByteRange] = {
+    if (sharding.length == 0) {
       ranges.map {
         case BoundedRange(lo, hi) =>
           BoundedByteRange(ByteArrays.toBytes(lo.bin, lo.z), ByteArrays.toBytesFollowingPrefix(hi.bin, hi.z))
@@ -162,7 +182,7 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
         case BoundedRange(lo, hi) =>
           val lower = ByteArrays.toBytes(lo.bin, lo.z)
           val upper = ByteArrays.toBytesFollowingPrefix(hi.bin, hi.z)
-          prefixes.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
+          sharding.shards.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
 
         case r =>
           throw new IllegalArgumentException(s"Unexpected range type $r")
@@ -182,53 +202,17 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
     def simpleGeoms = values.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
     !looseBBox || !simpleGeoms
   }
+}
 
-  private def getZValue(z3: Z3SFC,
-                        geomIndex: Int,
-                        dtgIndex: Int,
-                        timeToIndex: TimeToBinnedTime,
-                        lenient: Boolean)
-                       (feature: SimpleFeature): Seq[Z3IndexKey] = {
-    val geom = feature.getAttribute(geomIndex).asInstanceOf[Point]
-    if (geom == null) {
-      throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
-    }
-    val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
-    val time = if (dtg == null) { 0 } else { dtg.getTime }
-    val BinnedTime(b, t) = timeToIndex(time)
-    val z = try { z3.index(geom.getX, geom.getY, t, lenient).z } catch {
-      case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry/time: $geom,$dtg", e)
-    }
-    Seq(Z3IndexKey(b, z))
-  }
+object Z3IndexKeySpace extends IndexKeySpaceFactory[Z3IndexValues, Z3IndexKey] {
 
-  // note: duplicated code to avoid having to create an index key instance
-  private def getZValueBytes(z3: Z3SFC,
-                             geomIndex: Int,
-                             dtgIndex: Int,
-                             timeToIndex: TimeToBinnedTime,
-                             lenient: Boolean)
-                            (prefix: Seq[Array[Byte]],
-                             feature: SimpleFeature,
-                             suffix: Array[Byte]): Seq[Array[Byte]] = {
-    val geom = feature.getAttribute(geomIndex).asInstanceOf[Point]
-    if (geom == null) {
-      throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
-    }
-    val dtg = feature.getAttribute(dtgIndex).asInstanceOf[Date]
-    val time = if (dtg == null) { 0 } else { dtg.getTime }
-    val BinnedTime(b, t) = timeToIndex(time)
-    val z = try { z3.index(geom.getX, geom.getY, t, lenient).z } catch {
-      case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry/time: $geom,$dtg", e)
-    }
+  override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
+    attributes.lengthCompare(2) == 0 && attributes.forall(sft.indexOf(_) != -1) &&
+        classOf[Point].isAssignableFrom(sft.getDescriptor(attributes.head).getType.getBinding) &&
+        classOf[Date].isAssignableFrom(sft.getDescriptor(attributes.last).getType.getBinding)
 
-    // create the byte array - allocate a single array up front to contain everything
-    val bytes = Array.ofDim[Byte](prefix.map(_.length).sum + 10 + suffix.length)
-    var i = 0
-    prefix.foreach { p => System.arraycopy(p, 0, bytes, i, p.length); i += p.length }
-    ByteArrays.writeShort(b, bytes, i)
-    ByteArrays.writeLong(z, bytes, i + 2)
-    System.arraycopy(suffix, 0, bytes, i + 10, suffix.length)
-    Seq(bytes)
+  override def apply(sft: SimpleFeatureType, attributes: Seq[String], tier: Boolean): Z3IndexKeySpace = {
+    val shards = if (tier) { NoShardStrategy } else { ZShardStrategy(sft) }
+    new Z3IndexKeySpace(sft, shards, attributes.head, attributes.last)
   }
 }

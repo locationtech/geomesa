@@ -10,8 +10,8 @@ package org.locationtech.geomesa.hbase.coprocessor.aggregators
 
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.hbase.HBaseFeatureIndexType
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
@@ -33,10 +33,10 @@ object HBaseDensityAggregator {
     * Creates an iterator config for the kryo density iterator
     */
   def configure(sft: SimpleFeatureType,
-                index: HBaseFeatureIndexType,
+                index: GeoMesaFeatureIndex[_, _],
                 filter: Option[Filter],
                 hints: Hints): Map[String, String] = {
-    DensityScan.configure(sft, index, filter, hints) ++
-        Map(GeoMesaCoprocessor.AggregatorClass -> classOf[HBaseDensityAggregator].getName)
+    DensityScan.configure(sft, index, filter, hints) +
+        (GeoMesaCoprocessor.AggregatorClass -> classOf[HBaseDensityAggregator].getName)
   }
 }

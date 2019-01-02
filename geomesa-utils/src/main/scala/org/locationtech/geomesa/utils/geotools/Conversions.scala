@@ -16,14 +16,13 @@ import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.geometry.DirectPosition2D
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
-import org.locationtech.geomesa.utils.conf.SemanticVersion
+import org.locationtech.geomesa.utils.conf.{IndexId, SemanticVersion}
 import org.locationtech.geomesa.utils.geometry.GeometryPrecision
-import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.index.VisibilityLevel.VisibilityLevel
+import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
 import org.locationtech.geomesa.utils.stats.Cardinality._
 import org.locationtech.geomesa.utils.stats.IndexCoverage._
-import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -111,20 +110,10 @@ object RichAttributeDescriptors {
   // noinspection AccessorLikeMethodIsEmptyParen
   implicit class RichAttributeDescriptor(val ad: AttributeDescriptor) extends AnyVal {
 
+    @deprecated
     def setIndexCoverage(coverage: IndexCoverage): Unit = ad.getUserData.put(OPT_INDEX, coverage.toString)
-
-    def getIndexCoverage(): IndexCoverage = {
-      val coverage = ad.getUserData.get(OPT_INDEX).asInstanceOf[String]
-      if (coverage == null) { IndexCoverage.NONE } else {
-        Try(IndexCoverage.withName(coverage)).getOrElse {
-          if (java.lang.Boolean.valueOf(coverage)) {
-            IndexCoverage.JOIN
-          } else {
-            IndexCoverage.NONE
-          }
-        }
-      }
-    }
+    @deprecated("Use AttributeIndex.indexed()")
+    def getIndexCoverage(): IndexCoverage = IndexCoverage.NONE
 
     def setKeepStats(enabled: Boolean): Unit = if (enabled) {
       ad.getUserData.put(OPT_STATS, "true")
@@ -147,9 +136,10 @@ object RichAttributeDescriptors {
 
     def isJson(): Boolean = Option(ad.getUserData.get(OPT_JSON)).contains("true")
 
-    def setBinTrackId(opt: Boolean): Unit = ad.getUserData.put(OPT_BIN_TRACK_ID, opt.toString)
-
-    def isBinTrackId(): Boolean = Option(ad.getUserData.get(OPT_BIN_TRACK_ID)).contains("true")
+    @deprecated
+    def setBinTrackId(opt: Boolean): Unit = {}
+    @deprecated
+    def isBinTrackId(): Boolean = false
 
     def setListType(typ: Class[_]): Unit = ad.getUserData.put(USER_DATA_LIST_TYPE, typ.getName)
 
@@ -165,10 +155,8 @@ object RichAttributeDescriptors {
 
     private def tryClass(value: AnyRef): Class[_] = Try(Class.forName(value.asInstanceOf[String])).getOrElse(null)
 
-    def isIndexed: Boolean = getIndexCoverage() match {
-      case IndexCoverage.FULL | IndexCoverage.JOIN => true
-      case IndexCoverage.NONE => false
-    }
+    @deprecated("Use AttributeIndex.indexed()")
+    def isIndexed: Boolean = false
 
     def isList: Boolean = ad.getUserData.containsKey(USER_DATA_LIST_TYPE)
 
@@ -206,10 +194,6 @@ object RichAttributeDescriptors {
 
 object RichSimpleFeatureType {
 
-  import RichAttributeDescriptors.RichAttributeDescriptor
-
-  import scala.collection.JavaConversions._
-
   // in general we store everything as strings so that it's easy to pass to accumulo iterators
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
 
@@ -238,7 +222,8 @@ object RichSimpleFeatureType {
 
     def isLogicalTime: Boolean = userData[String](LOGICAL_TIME_KEY).forall(_.toBoolean)
 
-    def getBinTrackId: Option[String] = sft.getAttributeDescriptors.find(_.isBinTrackId()).map(_.getLocalName)
+    @deprecated
+    def getBinTrackId: Option[String] = None
 
     def isPoints: Boolean = {
       val gd = sft.getGeometryDescriptor
@@ -268,11 +253,13 @@ object RichSimpleFeatureType {
     def getXZPrecision: Short = userData[String](XZ_PRECISION_KEY).map(_.toShort).getOrElse(XZSFC.DefaultPrecision)
     def setXZPrecision(p: Short): Unit = sft.getUserData.put(XZ_PRECISION_KEY, p.toString)
 
-    //  If no user data is specified when creating a new SFT, we should default to 'true'.
-    def isTableSharing: Boolean = userData[String](TABLE_SHARING_KEY).forall(_.toBoolean)
+    // note: defaults to false now
+    def isTableSharing: Boolean = userData[String](TABLE_SHARING_KEY).exists(_.toBoolean)
+    @deprecated("table sharing no longer supported")
     def setTableSharing(sharing: Boolean): Unit = sft.getUserData.put(TABLE_SHARING_KEY, sharing.toString)
 
     def getTableSharingPrefix: String = userData[String](SHARING_PREFIX_KEY).getOrElse("")
+    @deprecated("table sharing no longer supported")
     def setTableSharingPrefix(prefix: String): Unit = sft.getUserData.put(SHARING_PREFIX_KEY, prefix)
 
     def getTableSharingBytes: Array[Byte] = if (sft.isTableSharing) {
@@ -286,16 +273,11 @@ object RichSimpleFeatureType {
       sft.getUserData.put(COMPRESSION_TYPE, c)
     }
 
-    // gets (name, version, mode) of enabled indices
-    def getIndices: Seq[(String, Int, IndexMode)] = {
-      def toTuple(string: String): (String, Int, IndexMode) = {
-        val Array(n, v, m) = string.split(":")
-        (n, v.toInt, new IndexMode(m.toInt))
-      }
-      userData[String](INDEX_VERSIONS).map(_.split(",").map(toTuple).toSeq).getOrElse(List.empty)
-    }
-    def setIndices(indices: Seq[(String, Int, IndexMode)]): Unit =
-      sft.getUserData.put(INDEX_VERSIONS, indices.map { case (n, v, m) => s"$n:$v:${m.flag}"}.mkString(","))
+    // gets indices configured for this sft
+    def getIndices: Seq[IndexId] =
+      userData[String](INDEX_VERSIONS).map(_.split(",").map(IndexId.apply).toSeq).getOrElse(Seq.empty)
+    def setIndices(indices: Seq[IndexId]): Unit =
+      sft.getUserData.put(INDEX_VERSIONS, indices.map(_.encoded).mkString(","))
 
     def setUserDataPrefixes(prefixes: Seq[String]): Unit = sft.getUserData.put(USER_DATA_PREFIX, prefixes.mkString(","))
     def getUserDataPrefixes: Seq[String] =

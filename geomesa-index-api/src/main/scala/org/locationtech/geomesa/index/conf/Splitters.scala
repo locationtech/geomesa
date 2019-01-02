@@ -23,7 +23,7 @@ class DigitSplitter extends TableSplitter with LazyLogging {
    * @return
    */
   override def getSplits(sft: SimpleFeatureType, index: String, options: String): Array[Array[Byte]] = {
-    if (index == IdIndex.Name) {
+    if (index == IdIndex.name) {
       logger.warn("Using deprecated split implementation. See" +
           "http://www.geomesa.org/documentation/current/user/datastores/index_config.html for details.")
       val opts = KVPairParser.parse(options)
@@ -49,7 +49,7 @@ class HexSplitter extends TableSplitter with LazyLogging {
   private val hexSplits = "123456789abcdefABCDEF".map(_.toString.getBytes(StandardCharsets.UTF_8)).toArray
 
   override def getSplits(sft: SimpleFeatureType, index: String, options: String): Array[Array[Byte]] = {
-    if (index == IdIndex.Name) {
+    if (index == IdIndex.name) {
       logger.warn("Using deprecated split implementation. See" +
           "http://www.geomesa.org/documentation/current/user/datastores/index_config.html for details.")
       hexSplits
@@ -68,7 +68,7 @@ class HexSplitter extends TableSplitter with LazyLogging {
 class AlphaNumericSplitter extends TableSplitter with LazyLogging {
   // note: we don't include 0 to avoid an empty initial tablet
   override def getSplits(sft: SimpleFeatureType, index: String, options: String): Array[Array[Byte]] = {
-    if (index == IdIndex.Name) {
+    if (index == IdIndex.name) {
       logger.warn("Using deprecated split implementation. See" +
           "http://www.geomesa.org/documentation/current/user/datastores/index_config.html for details.")
       (('1' to '9') ++ ('a' to 'z') ++ ('A' to 'Z')).map(c => Array(c.toByte)).toArray
@@ -86,7 +86,7 @@ class AlphaNumericSplitter extends TableSplitter with LazyLogging {
 @deprecated("org.locationtech.geomesa.index.conf.splitter.DefaultSplitter")
 class NoSplitter extends TableSplitter with LazyLogging {
   override def getSplits(sft: SimpleFeatureType, index: String, options: String): Array[Array[Byte]] = {
-    if (index == IdIndex.Name) {
+    if (index == IdIndex.name) {
       logger.warn("Using deprecated split implementation. See" +
           "http://www.geomesa.org/documentation/current/user/datastores/index_config.html for details.")
     }

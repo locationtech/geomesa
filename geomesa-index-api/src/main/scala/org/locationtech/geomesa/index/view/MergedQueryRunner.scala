@@ -17,7 +17,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.ARROW_DICTIONARY_CACHED
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
-import org.locationtech.geomesa.index.planning.{InMemoryQueryRunner, QueryPlanner, QueryRunner}
+import org.locationtech.geomesa.index.planning.{LocalQueryRunner, QueryPlanner, QueryRunner}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, StatUpdater, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
@@ -168,14 +168,13 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[DataStore]) extends
       val schema = reader.getFeatureType
       if (schema == org.locationtech.geomesa.arrow.ArrowEncodedSft) {
         // arrow processing has been handled by the store already
-        SelfClosingIterator(reader)
+        CloseableIterator(reader)
       } else {
         // the store just returned normal features, do the arrow processing here
         schema.getUserData.putAll(sft.getUserData) // copy default dtg, etc if necessary
-        val iter = CloseableIterator(reader)
         // note: we don't need to pass in the transform or filter, as the transform should have already been
         // applied and the dictionaries calculated up front (if needed)
-        SelfClosingIterator(InMemoryQueryRunner.transform(schema, iter, None, hints, None), iter.close())
+        LocalQueryRunner.transform(schema, CloseableIterator(reader), None, hints, None)
       }
     }
 
@@ -189,12 +188,11 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[DataStore]) extends
       val schema = reader.getFeatureType
       if (schema == DensityScan.DensitySft) {
         // density processing has been handled by the store already
-        SelfClosingIterator(reader)
+        CloseableIterator(reader)
       } else {
         // the store just returned regular features, do the density processing here
         schema.getUserData.putAll(sft.getUserData) // copy default dtg, etc if necessary
-        val iter = CloseableIterator(reader)
-        SelfClosingIterator(InMemoryQueryRunner.transform(schema, iter, None, hints, None), iter.close())
+        LocalQueryRunner.transform(schema, CloseableIterator(reader), None, hints, None)
       }
     }
   }
@@ -207,12 +205,11 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[DataStore]) extends
       val schema = reader.getFeatureType
       if (schema == StatsScan.StatsSft) {
         // stats processing has been handled by the store already
-        SelfClosingIterator(reader)
+        CloseableIterator(reader)
       } else {
         // the store just returned regular features, do the stats processing here
         schema.getUserData.putAll(sft.getUserData) // copy default dtg, etc if necessary
-        val iter = CloseableIterator(reader)
-        SelfClosingIterator(InMemoryQueryRunner.transform(schema, iter, None, hints, None), iter.close())
+        LocalQueryRunner.transform(schema, CloseableIterator(reader), None, hints, None)
       }
     }
     StatsScan.reduceFeatures(sft, hints)(results)
@@ -225,12 +222,11 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[DataStore]) extends
       val schema = reader.getFeatureType
       if (schema == BinaryOutputEncoder.BinEncodedSft) {
         // bin processing has been handled by the store already
-        SelfClosingIterator(reader)
+        CloseableIterator(reader)
       } else {
         // the store just returned regular features, do the bin processing here
         schema.getUserData.putAll(sft.getUserData) // copy default dtg, etc if necessary
-        val iter = CloseableIterator(reader)
-        SelfClosingIterator(InMemoryQueryRunner.transform(schema, iter, None, hints, None), iter.close())
+        LocalQueryRunner.transform(schema, CloseableIterator(reader), None, hints, None)
       }
     }
   }

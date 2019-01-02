@@ -16,16 +16,17 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.index.encoders.{DecodedIndexValue, IndexValueEncoder}
+import org.locationtech.geomesa.accumulo.index.IndexValueEncoder.IndexValueEncoderImpl
 import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.data.Raster
+import org.locationtech.geomesa.raster.index.RasterEntryDecoder.DecodedIndexValue
 import org.opengis.feature.simple.SimpleFeature
 
 object RasterEntry {
 
   val encoder = new ThreadLocal[SimpleFeatureSerializer] {
-    override def initialValue(): SimpleFeatureSerializer = IndexValueEncoder(rasterSft, includeIds = true)
+    override def initialValue(): SimpleFeatureSerializer = new IndexValueEncoderImpl(rasterSft)
   }
 
   def encodeIndexCQMetadata(metadata: DecodedIndexValue): Array[Byte] = {
@@ -85,6 +86,9 @@ object RasterEntryEncoder extends LazyLogging {
 }
 
 object RasterEntryDecoder {
+
+  case class DecodedIndexValue(id: String, geom: Geometry, date: Option[Date], attributes: Map[String, Any])
+
   def rasterImageDeserialize(imageBytes: Array[Byte]): RenderedImage = {
     val in: ObjectInputStream = new ObjectInputStream(new ByteArrayInputStream(imageBytes))
     var read: RenderedImage = null

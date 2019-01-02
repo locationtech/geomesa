@@ -8,17 +8,23 @@
 
 package org.locationtech.geomesa.utils.text
 
-import java.time.{ZoneOffset, ZonedDateTime}
+import java.nio.charset.StandardCharsets
 import java.time.format.DateTimeFormatter
-import java.util.Date
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.regex.Pattern
+import java.util.{Date, Locale}
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.codec.binary.Hex
 import org.apache.commons.csv.{CSVFormat, CSVParser, CSVPrinter}
 import org.opengis.feature.simple.SimpleFeatureType
 
 object StringSerialization extends LazyLogging {
 
   private val dateFormat: DateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
+
+  private val AlphaNumericPattern = Pattern.compile("^[a-zA-Z0-9]+$")
+  private val AlphaNumeric = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
 
   /**
     * Encode a map of sequences as a string
@@ -79,5 +85,41 @@ object StringSerialization extends LazyLogging {
       }
       key -> values
     }.toMap
+  }
+
+  /**
+    * Encode non-alphanumeric characters in a string with
+    * underscore plus hex digits representing the bytes. Note
+    * that multibyte characters will be represented with multiple
+    * underscores and bytes...e.g. _8a_2f_3b
+    */
+  def alphaNumericSafeString(input: String): String = {
+    if (AlphaNumericPattern.matcher(input).matches()) { input } else {
+      val sb = new StringBuilder
+      input.foreach { c =>
+        if (AlphaNumeric.contains(c)) { sb.append(c) } else {
+          val hex = Hex.encodeHex(c.toString.getBytes(StandardCharsets.UTF_8))
+          val encoded = hex.grouped(2).map(arr => "_" + arr(0) + arr(1)).mkString.toLowerCase(Locale.US)
+          sb.append(encoded)
+        }
+      }
+      sb.toString()
+    }
+  }
+
+  def decodeAlphaNumericSafeString(input: String): String = {
+    if (AlphaNumericPattern.matcher(input).matches()) { input } else {
+      val sb = new StringBuilder
+      var i = 0
+      while (i < input.length) {
+        val c = input.charAt(i)
+        if (c != '_') { sb.append(c) } else {
+          i += 2
+          sb.append(Hex.decodeHex(Array(input.charAt(i - 1), input.charAt(i))))
+        }
+        i += 1
+      }
+      sb.toString()
+    }
   }
 }

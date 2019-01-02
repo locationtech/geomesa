@@ -15,54 +15,53 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.locationtech.geomesa.index.FlushableFeatureWriter
-import org.locationtech.geomesa.index.api.{WrappedFeature, _}
+import org.locationtech.geomesa.index.api.{IndexManager, _}
 import org.locationtech.geomesa.index.conf.SchemaProperties
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.VersionKey
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter.FeatureWriterFactory
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.locationtech.geomesa.index.index.id.IdIndex
+import org.locationtech.geomesa.index.metadata.GeoMesaMetadata.ATTRIBUTES_KEY
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.conf.SemanticVersion.MinorOrdering
-import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, SemanticVersion}
+import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, IndexId, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{Configs, InternalConfigs}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOptions, Configs, InternalConfigs}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import scala.util.control.NonFatal
 
 /**
   * Abstract base class for data store implementations on top of distributed databases
   *
   * @param config common datastore configuration options - subclasses can extend this
   * @tparam DS type of this data store
-  * @tparam F wrapper around a simple feature - used for caching write calculations
-  * @tparam W write result - feature writers will transform simple features into these
   */
-abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](val config: GeoMesaDataStoreConfig)
+abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaDataStoreConfig)
     extends MetadataBackedDataStore(config) with HasGeoMesaStats {
 
   this: DS =>
 
-  lazy val queryPlanner: QueryPlanner[DS, F, W] = createQueryPlanner()
+  import scala.collection.JavaConverters._
+
+  val queryPlanner: QueryPlanner[DS] = new QueryPlanner[DS](this)
+
+  val manager: IndexManager = new IndexManager(this)
+
+  @deprecated
+  protected def catalog: String = config.catalog
 
   // abstract methods to be implemented by subclasses
 
-  def manager: GeoMesaIndexManager[DS, F, W]
-
-  protected def featureWriterFactory: FeatureWriterFactory[DS, F, W]
-
-  override protected def catalog: String = config.catalog
-
-  /**
-    * Optimized method to delete everything (all tables) associated with this datastore
-    * (index tables and catalog table)
-    * NB: We are *not* currently deleting the query table and/or query information.
-    */
-  def delete(): Unit
+  def adapter: IndexAdapter[DS]
 
   /**
     * Returns all tables that may be created for the simple feature type. Note that some of these
@@ -81,14 +80,16 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     * @return
     */
   def getAllIndexTableNames(typeName: String): Seq[String] =
-    Option(getSchema(typeName)).toSeq.flatMap(sft => manager.indices(sft).flatMap(_.getTableNames(sft, this, None)))
+    Option(getSchema(typeName)).toSeq.flatMap(sft => manager.indices(sft).flatMap(_.getTableNames(None)))
+
+  /**
+    * Optimized method to delete everything (all tables) associated with this datastore
+    * (index tables and catalog table)
+    * NB: We are *not* currently deleting the query table and/or query information.
+    */
+  def delete(): Unit = adapter.deleteTables(getTypeNames.flatMap(getAllTableNames).distinct)
 
   // hooks to allow extended functionality
-
-  protected def createQueryPlanner(): QueryPlanner[DS, F, W] = new QueryPlanner[DS, F, W](this)
-
-  protected def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection =
-    new GeoMesaFeatureCollection(source, query)
 
   /**
     * Gets iterator versions as a string. Subclasses with distributed classpaths should override and implement.
@@ -97,69 +98,129 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     */
   protected def loadIteratorVersions: Set[String] = Set.empty
 
-  override protected def validateNewSchema(sft: SimpleFeatureType): Unit = {
+  /**
+    * Update the local value for `sft.getIndices`. Only needed for legacy data stores with old index metadata
+    * encoding
+    *
+    * @param sft simple feature type
+    */
+  protected def transitionIndices(sft: SimpleFeatureType): Unit =
+    throw new NotImplementedError("This data store does not support legacy index formats - please create a new schema")
+
+  @throws(classOf[IllegalArgumentException])
+  override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
     import Configs.{TABLE_SPLITTER, TABLE_SPLITTER_OPTS}
     import InternalConfigs.{PARTITION_SPLITTER, PARTITION_SPLITTER_OPTS}
 
-    // for partitioned schemas, disable table sharing and persist the table partitioning keys
+    // check for old enabled indices and re-map them
+    SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.drop(1).find(sft.getUserData.containsKey).foreach { key =>
+      sft.getUserData.put(SimpleFeatureTypes.Configs.ENABLED_INDICES, sft.getUserData.remove(key))
+    }
+
+    // validate column groups
+    adapter.groups.validate(sft)
+
+    // disable table sharing, no longer supported
+    // noinspection ScalaDeprecation
+    if (sft.isTableSharing) {
+      logger.warn("Table sharing is no longer supported - disabling table sharing")
+      sft.getUserData.remove(Configs.TABLE_SHARING_KEY)
+      sft.getUserData.remove(InternalConfigs.SHARING_PREFIX_KEY)
+    }
+
+    // configure the indices to use
+    if (sft.getIndices.isEmpty) {
+      val indices = GeoMesaFeatureIndexFactory.indices(sft)
+      if (indices.isEmpty) {
+        throw new IllegalArgumentException("There are no available indices that support the schema " +
+            SimpleFeatureTypes.encodeType(sft))
+      }
+      sft.setIndices(indices)
+    }
+
+    // try to create the indices up front to ensure they are valid for the sft
+    GeoMesaFeatureIndexFactory.create(this, sft, sft.getIndices)
+
+    // remove the enabled indices after configuration so we don't persist them
+    sft.getUserData.remove(SimpleFeatureTypes.Configs.ENABLED_INDICES)
+    // remove any 'index' flags in the attribute metadata, they have already been captured in the indices above
+    sft.getAttributeDescriptors.asScala.foreach(_.getUserData.remove(AttributeOptions.OPT_INDEX))
+
+    // for partitioned schemas, persist the table partitioning keys
     if (TablePartition.partitioned(sft)) {
       Seq((TABLE_SPLITTER, PARTITION_SPLITTER), (TABLE_SPLITTER_OPTS, PARTITION_SPLITTER_OPTS)).foreach {
         case (from, to) => Option(sft.getUserData.get(from)).foreach(sft.getUserData.put(to, _))
       }
-      sft.setTableSharing(false)
     }
-
-    super.validateNewSchema(sft)
   }
-
-  // set the enabled indices
-  @throws(classOf[IllegalArgumentException])
-  override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = manager.setIndices(sft)
 
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-
-    import scala.collection.JavaConverters._
-
-    // verify that attribute index is enabled if necessary
-    if (!previous.getAttributeDescriptors.asScala.exists(_.isIndexed) &&
-        sft.getAttributeDescriptors.asScala.exists(_.isIndexed) &&
-        sft.getIndices.forall(_._1 != AttributeIndex.Name)) {
-      val attr = manager.CurrentIndices.find(_.name == AttributeIndex.Name)
-      sft.setIndices(sft.getIndices ++ attr.map(i => (i.name, i.version, IndexMode.ReadWrite)))
-    }
-
-    // update the configured indices if needed
-    val previousIndices = previous.getIndices.map { case (name, version, _) => (name, version) }
-    val newIndices = sft.getIndices.filterNot {
-      case (name, version, _) => previousIndices.contains((name, version))
-    }
-    val validatedIndices = newIndices.map { case (name, version, _) =>
-      manager.lookup.get(name, version) match {
-        case Some(i) if i.supports(sft) => i
-        case Some(i) => throw new IllegalArgumentException(s"Index ${i.identifier} does not support this feature type")
-        case None => throw new IllegalArgumentException(s"Index $name:$version does not exist")
+    // check for attributes flagged 'index' and convert them to sft-level user data
+    sft.getAttributeDescriptors.asScala.foreach { d =>
+      val index = d.getUserData.remove(AttributeOptions.OPT_INDEX).asInstanceOf[String]
+      if (index == null || index.equalsIgnoreCase(IndexCoverage.NONE.toString) || index.equalsIgnoreCase("false")) {
+        // no-op
+      } else if (index.equalsIgnoreCase(IndexCoverage.FULL.toString) || java.lang.Boolean.valueOf(index)) {
+        val fields = Seq(d.getLocalName) ++ Option(sft.getGeomField) ++ sft.getDtgField
+        val attribute = IndexId(AttributeIndex.name, AttributeIndex.version, fields, IndexMode.ReadWrite)
+        val existing = sft.getIndices.map(GeoMesaFeatureIndex.identifier)
+        if (!existing.contains(GeoMesaFeatureIndex.identifier(attribute))) {
+          sft.setIndices(sft.getIndices :+ attribute)
+        }
+      } else {
+        throw new IllegalArgumentException(s"Configured index coverage '$index' is not valid: expected " +
+            IndexCoverage.FULL.toString)
       }
     }
-    // configure the new indices (if not using partitioned tables)
-    if (!TablePartition.partitioned(sft)) {
-      validatedIndices.foreach(_.configure(sft, this, None))
+
+    // try to create the new indices to ensure they are valid for the sft
+    val previousIndices = previous.getIndices.map(GeoMesaFeatureIndex.identifier)
+    val newIndices = sft.getIndices.filterNot(i => previousIndices.contains(GeoMesaFeatureIndex.identifier(i)))
+    if (newIndices.nonEmpty) {
+      try { GeoMesaFeatureIndexFactory.create(this, sft, newIndices) } catch {
+        case NonFatal(e) => throw new IllegalArgumentException(s"Error configuring new feature index:", e)
+      }
     }
   }
 
   // create the index tables (if not using partitioned tables)
   override protected def onSchemaCreated(sft: SimpleFeatureType): Unit = {
-    if (!TablePartition.partitioned(sft)) {
-      manager.indices(sft).foreach(_.configure(sft, this, None))
+    val indices = manager.indices(sft)
+    if (TablePartition.partitioned(sft)) {
+      logger.debug(s"Delaying creation of partitioned indices ${indices.map(_.identifier).mkString(", ")}")
+    } else {
+      logger.debug(s"Creating indices ${indices.map(_.identifier).mkString(", ")}")
+      indices.foreach(index => adapter.createTable(index, index.configureTableName(None), index.getSplits(None)))
     }
   }
 
-  override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {}
+  // create the new index tables (if not using partitioned tables)
+  override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+    val old = previous.getIndices.map(GeoMesaFeatureIndex.identifier)
+    val added = manager.indices(sft).filterNot(i => old.contains(i.identifier))
+    if (TablePartition.partitioned(sft)) {
+      logger.debug(s"Delaying creation of partitioned indices ${added.map(_.identifier).mkString(", ")}")
+    } else {
+      logger.debug(s"Creating indices ${added.map(_.identifier).mkString(", ")}")
+      added.foreach(index => adapter.createTable(index, index.configureTableName(None), index.getSplits(None)))
+    }
+  }
 
   // delete the index tables
   override protected def onSchemaDeleted(sft: SimpleFeatureType): Unit = {
-    manager.indices(sft).par.foreach(_.delete(sft, this, None))
+    // noinspection ScalaDeprecation
+    if (sft.isTableSharing && getTypeNames.exists(t => t != sft.getTypeName && getSchema(t).isTableSharing)) {
+      manager.indices(sft).par.foreach { index =>
+        if (index.keySpace.sharing.isEmpty) {
+          adapter.deleteTables(index.deleteTableNames(None))
+        } else {
+          adapter.clearTables(index.deleteTableNames(None), Some(index.keySpace.sharing))
+        }
+      }
+    } else {
+      manager.indices(sft).par.foreach(index => adapter.deleteTables(index.deleteTableNames(None)))
+    }
     stats.clearStats(sft)
   }
 
@@ -173,19 +234,34 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
   override def getSchema(typeName: String): SimpleFeatureType = {
     val sft = super.getSchema(typeName)
     if (sft != null) {
-      val missingIndices = sft.getIndices.filterNot { case (n, v, _) =>
-        manager.AllIndices.exists(i => i.name == n && i.version == v)
-      }
-
-      if (missingIndices.nonEmpty) {
-        val versions = missingIndices.map { case (n, v, _) => s"$n:$v" }.mkString(",")
-        val available = manager.AllIndices.map(i => s"${i.name}:${i.version}").mkString(",")
-        logger.error(s"Trying to access schema ${sft.getTypeName} with invalid index versions '$versions' - " +
-            s"available indices are '$available'")
-        throw new IllegalStateException(s"The schema ${sft.getTypeName} was written with a newer " +
-            "version of GeoMesa than this client can handle. Please ensure that you are using the " +
-            "same GeoMesa jar versions across your entire workflow. For more information, see " +
-            "http://www.geomesa.org/documentation/user/installation_and_configuration.html#upgrading")
+      // ensure index metadata is correct
+      if (sft.getIndices.exists(i => i.attributes.isEmpty && i.name != IdIndex.name)) {
+        // migrate index metadata to standardized versions and attributes
+        transitionIndices(sft)
+        // validate indices
+        try { manager.indices(sft) } catch {
+          case NonFatal(e) =>
+            throw new IllegalStateException(s"The schema ${sft.getTypeName} was written with a older " +
+                "version of GeoMesa that is no longer supported. You may continue to use an older client, or " +
+                s"manually edit the metadata for '${InternalConfigs.INDEX_VERSIONS}' to exclude the invalid indices.", e)
+        }
+        // back up the old metadata
+        metadata.insert(typeName, s"$ATTRIBUTES_KEY.bak", metadata.readRequired(typeName, ATTRIBUTES_KEY))
+        // store the updated metadata
+        metadata.insert(typeName, ATTRIBUTES_KEY, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
+      } else {
+        // validate indices
+        try { manager.indices(sft) } catch {
+          case NonFatal(e) =>
+            val versions = sft.getIndices.map(i => s"${i.name}:${i.version}").mkString(",")
+            val available = GeoMesaFeatureIndexFactory.available(sft).map(i => s"${i._1}:${i._2}").mkString(",")
+            logger.error(s"Trying to access schema ${sft.getTypeName} with invalid index versions '$versions' - " +
+                s"available indices are '$available'", e)
+            throw new IllegalStateException(s"The schema ${sft.getTypeName} was written with a newer " +
+                "version of GeoMesa than this client can handle. Please ensure that you are using the " +
+                "same GeoMesa jar versions across your entire workflow. For more information, see " +
+                "http://www.geomesa.org/documentation/user/installation_and_configuration.html#upgrading")
+        }
       }
 
       // get the remote version if it's available, but don't wait for it
@@ -209,9 +285,9 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
     if (config.caching) {
-      new GeoMesaFeatureStore(this, sft, queryPlanner, createFeatureCollection) with CachingFeatureSource
+      new GeoMesaFeatureStore(this, sft, queryPlanner) with GeoMesaFeatureSource.CachingFeatureSource
     } else {
-      new GeoMesaFeatureStore(this, sft, queryPlanner, createFeatureCollection)
+      new GeoMesaFeatureStore(this, sft, queryPlanner)
     }
   }
 
@@ -249,7 +325,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     if (transaction != Transaction.AUTO_COMMIT) {
       logger.warn("Ignoring transaction - not supported")
     }
-    featureWriterFactory.createFeatureWriter(sft, manager.indices(sft, mode = IndexMode.Write), Some(filter))
+    GeoMesaFeatureWriter(this, sft, manager.indices(sft, mode = IndexMode.Write), Some(filter))
   }
 
   /**
@@ -268,7 +344,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     if (transaction != Transaction.AUTO_COMMIT) {
       logger.warn("Ignoring transaction - not supported")
     }
-    featureWriterFactory.createFeatureWriter(sft, manager.indices(sft, mode = IndexMode.Write), None)
+    GeoMesaFeatureWriter(this, sft, manager.indices(sft, mode = IndexMode.Write), None)
   }
 
   /**
@@ -278,12 +354,12 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     * @param indices indices to write
     * @return
     */
-  def getIndexWriterAppend(typeName: String, indices: Seq[GeoMesaFeatureIndex[DS, F, W]]): FlushableFeatureWriter = {
+  def getIndexWriterAppend(typeName: String, indices: Seq[GeoMesaFeatureIndex[_, _]]): FlushableFeatureWriter = {
     val sft = getSchema(typeName)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    featureWriterFactory.createFeatureWriter(sft, indices, None)
+    GeoMesaFeatureWriter(this, sft, indices, None)
   }
 
   /**
@@ -310,14 +386,13 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
    * @return query plans
    */
   def getQueryPlan(query: Query,
-                   index: Option[GeoMesaFeatureIndex[DS, F, W]] = None,
-                   explainer: Explainer = new ExplainLogging): Seq[QueryPlan[DS, F, W]] = {
+                   index: Option[String] = None,
+                   explainer: Explainer = new ExplainLogging): Seq[QueryPlan[DS]] = {
     require(query.getTypeName != null, "Type name is required in the query")
     val sft = getSchema(query.getTypeName)
     if (sft == null) {
       throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")
     }
-
     queryPlanner.planQuery(sft, query, index, explainer)
   }
 
@@ -355,8 +430,8 @@ object GeoMesaDataStore extends LazyLogging {
 
   import org.locationtech.geomesa.index.conf.SchemaProperties.CheckDistributedVersion
 
-  private val loader = new CacheLoader[VersionKey[_, _, _], Either[Exception, Option[SemanticVersion]]]() {
-    override def load(key: VersionKey[_, _, _]): Either[Exception, Option[SemanticVersion]] = {
+  private val loader = new CacheLoader[VersionKey, Either[Exception, Option[SemanticVersion]]]() {
+    override def load(key: VersionKey): Either[Exception, Option[SemanticVersion]] = {
       if (key.ds.getTypeNames.length == 0) {
         // short-circuit load - should try again next time cache is accessed
         throw new RuntimeException("Can't load remote versions if there are no feature types")
@@ -389,14 +464,14 @@ object GeoMesaDataStore extends LazyLogging {
   }
 
   private val versions = Caffeine.newBuilder().refreshAfterWrite(1, TimeUnit.DAYS)
-      .buildAsync[VersionKey[_, _, _], Either[Exception, Option[SemanticVersion]]](loader)
+      .buildAsync[VersionKey, Either[Exception, Option[SemanticVersion]]](loader)
 
   /**
     * Kick off an asynchronous call to load remote iterator versions
     *
     * @param ds datastore
     */
-  def initRemoteVersion[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds: GeoMesaDataStore[DS, F, W]): Unit = {
+  def initRemoteVersion(ds: GeoMesaDataStore[_]): Unit = {
     // can't get remote version if there aren't any tables
     if (ds.getTypeNames.length > 0) {
       versions.get(new VersionKey(ds))
@@ -409,13 +484,14 @@ object GeoMesaDataStore extends LazyLogging {
     *
     * @param ds data store
     */
-  private class VersionKey[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](val ds: GeoMesaDataStore[DS, F, W]) {
+  private class VersionKey(val ds: GeoMesaDataStore[_]) {
 
     override def equals(other: Any): Boolean = other match {
-      case that: VersionKey[_, _, _] => ds.catalog == that.ds.catalog && ds.getClass == that.ds.getClass
+      case that: VersionKey => ds.config.catalog == that.ds.config.catalog && ds.getClass == that.ds.getClass
       case _ => false
     }
 
-    override def hashCode(): Int = Seq(ds.catalog, ds.getClass).map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+    override def hashCode(): Int =
+      Seq(ds.config.catalog, ds.getClass).map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
   }
 }

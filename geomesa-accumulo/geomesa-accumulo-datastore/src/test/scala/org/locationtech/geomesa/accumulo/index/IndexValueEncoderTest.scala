@@ -15,17 +15,18 @@ import java.util.{Date, UUID}
 import org.locationtech.jts.geom.Geometry
 import org.apache.accumulo.core.data.Value
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class IndexValueEncoderTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   val defaultSchema = "*geom:Point,dtg:Date,s:String,i:Int,d:Double,f:Float,u:UUID,l:List[String]"
   val allSchema = s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String:$OPT_INDEX_VALUE=true,i:Int:$OPT_INDEX_VALUE=true,d:Double:$OPT_INDEX_VALUE=true,f:Float:$OPT_INDEX_VALUE=true,u:UUID:$OPT_INDEX_VALUE=true,l:List[String]"
@@ -38,26 +39,29 @@ class IndexValueEncoderTest extends Specification {
   def getSft(schema: String = defaultSchema) =
     SimpleFeatureTypes.createType("IndexValueEncoderTest" + index.getAndIncrement, schema)
 
+  def getIndexValueFields(sft: SimpleFeatureType): Seq[String] =
+    IndexValueEncoder.getIndexSft(sft).getAttributeDescriptors.asScala.map(_.getLocalName)
+
   "IndexValueEncoder" should {
     "default to id,geom,date" in {
       val sft = getSft()
-      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg"))
+      getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg"))
     }
     "default to id,geom if no date" in {
       val sft = getSft("*geom:Point,foo:String")
-      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom"))
+      getIndexValueFields(sft) must containAllOf(Seq("geom"))
     }
     "allow custom fields to be set" in {
       val sft = getSft(s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
-      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg", "i", "f"))
+      getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg", "i", "f"))
     }
     "always include id,geom,dtg" in {
       val sft = getSft(s"*geom:Point,dtg:Date,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
-      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg", "i", "f"))
+      getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg", "i", "f"))
     }
     "not allow complex types" in {
       val sft = getSft(s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,l:List[String]:$OPT_INDEX_VALUE=true")
-      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg"))
+      getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg"))
     }
 
     "encode and decode id,geom,date" in {

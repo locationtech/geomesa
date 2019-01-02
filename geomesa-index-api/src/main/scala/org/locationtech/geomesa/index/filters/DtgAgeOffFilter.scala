@@ -13,7 +13,7 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
-import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaIndexManager}
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.IteratorCache
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -26,10 +26,8 @@ import scala.util.control.NonFatal
   */
 trait DtgAgeOffFilter extends AgeOffFilter with LazyLogging {
 
-  protected def manager: GeoMesaIndexManager[_, _, _]
-
   protected var sft: SimpleFeatureType = _
-  protected var index: GeoMesaFeatureIndex[_, _, _] = _
+  protected var index: GeoMesaFeatureIndex[_, _] = _
 
   protected var reusableSf: KryoBufferSimpleFeature = _
   protected var dtgIndex: Int = -1
@@ -41,10 +39,7 @@ trait DtgAgeOffFilter extends AgeOffFilter with LazyLogging {
 
     val spec = options(SftOpt)
     sft = IteratorCache.sft(spec)
-
-    index = try { manager.index(options(IndexOpt)) } catch {
-      case NonFatal(_) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(IndexOpt)}")
-    }
+    index = IteratorCache.index(sft, spec, options(IndexOpt))
 
     // noinspection ScalaDeprecation
     val withId = if (index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
@@ -81,7 +76,7 @@ object DtgAgeOffFilter {
   }
 
   def configure(sft: SimpleFeatureType,
-                index: GeoMesaFeatureIndex[_, _, _],
+                index: GeoMesaFeatureIndex[_, _],
                 expiry: scala.concurrent.duration.Duration,
                 dtgField: Option[String]): Map[String, String] = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType

@@ -9,57 +9,59 @@
 package org.locationtech.geomesa.index.index.id
 
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
+import org.locationtech.geomesa.index.api.ShardStrategy.NoShardStrategy
+import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
-import org.locationtech.geomesa.index.index.IndexKeySpace
-import org.locationtech.geomesa.index.index.IndexKeySpace._
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-object IdIndexKeySpace extends IndexKeySpace[Set[Array[Byte]], Array[Byte]]()(ByteArrays.ByteOrdering)
-    with IdIndexKeySpace
+class IdIndexKeySpace(val sft: SimpleFeatureType) extends IndexKeySpace[Set[Array[Byte]], Array[Byte]] {
 
-trait IdIndexKeySpace extends IndexKeySpace[Set[Array[Byte]], Array[Byte]] {
+  import IdIndexKeySpace.Empty
 
-  override def supports(sft: SimpleFeatureType): Boolean = true
+  private val idToBytes = GeoMesaFeatureIndex.idToBytes(sft)
+
+  override val attributes: Seq[String] = Seq.empty
 
   // note: technically this doesn't match the index key, but it's only
   // used for extracting the feature ID so it works out
-  override def indexKeyByteLength: Int = 0
+  override val indexKeyByteLength: Int = 0
 
-  override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): SimpleFeature => Seq[Array[Byte]] =
-    toBytesKey(GeoMesaFeatureIndex.idToBytes(sft))
+  override val sharing: Array[Byte] = Empty
 
-  override def toIndexKeyBytes(sft: SimpleFeatureType, lenient: Boolean): ToIndexKeyBytes = getIdAsBytes
+  override val sharding: ShardStrategy = NoShardStrategy
 
-  override def getIndexValues(sft: SimpleFeatureType,
-                              filter: Filter,
-                              explain: Explainer): Set[Array[Byte]] = {
+  override def toIndexKey(writable: WritableFeature,
+                          tier: Array[Byte],
+                          id: Array[Byte],
+                          lenient: Boolean): RowKeyValue[Array[Byte]] = {
+    SingleRowKeyValue(id, Empty, Empty, id, tier, id, writable.values)
+  }
+
+  override def getIndexValues(filter: Filter, explain: Explainer): Set[Array[Byte]] = {
     // Multiple sets of IDs in a ID Filter are ORs. ANDs of these call for the intersection to be taken.
     // intersect together all groups of ID Filters, producing a set of IDs
     val identifiers = IdFilterStrategy.intersectIdFilters(filter)
     explain(s"Extracted ID filter: ${identifiers.mkString(", ")}")
-    val serializer = GeoMesaFeatureIndex.idToBytes(sft)
-    identifiers.map(serializer.apply)
+    identifiers.map(idToBytes.apply)
   }
 
   override def getRanges(values: Set[Array[Byte]], multiplier: Int): Iterator[ScanRange[Array[Byte]]] =
     values.iterator.map(SingleRowRange.apply)
 
-  override def getRangeBytes(ranges: Iterator[ScanRange[Array[Byte]]],
-                             prefixes: Seq[Array[Byte]],
-                             tier: Boolean): Iterator[ByteRange] = {
-    if (prefixes.isEmpty) {
+  override def getRangeBytes(ranges: Iterator[ScanRange[Array[Byte]]], tier: Boolean): Iterator[ByteRange] = {
+    if (sharding.length == 0) {
       ranges.map {
         case SingleRowRange(row) => SingleRowByteRange(row)
         case r => throw new IllegalArgumentException(s"Unexpected range type $r")
       }
     } else {
       ranges.flatMap {
-        case SingleRowRange(row) => prefixes.map(p => SingleRowByteRange(ByteArrays.concat(p, row)))
+        case SingleRowRange(row) => sharding.shards.map(p => SingleRowByteRange(ByteArrays.concat(p, row)))
         case r => throw new IllegalArgumentException(s"Unexpected range type $r")
       }
     }
@@ -68,20 +70,14 @@ trait IdIndexKeySpace extends IndexKeySpace[Set[Array[Byte]], Array[Byte]] {
   override def useFullFilter(values: Option[Set[Array[Byte]]],
                              config: Option[GeoMesaDataStoreConfig],
                              hints: Hints): Boolean = false
+}
 
-  private def toBytesKey(toBytes: (String) => Array[Byte])(feature: SimpleFeature): Seq[Array[Byte]] =
-    Seq(toBytes(feature.getID))
+object IdIndexKeySpace extends IndexKeySpaceFactory[Set[Array[Byte]], Array[Byte]] {
 
-  private def getIdAsBytes(prefix: Seq[Array[Byte]], feature: SimpleFeature, suffix: Array[Byte]): Seq[Array[Byte]] = {
-    // note: suffix contains feature ID, so we don't need to add anything else
-    val length = prefix.map(_.length).sum + suffix.length
-    val result = Array.ofDim[Byte](length)
-    var i = 0
-    prefix.foreach { p =>
-      System.arraycopy(p, 0, result, i, p.length)
-      i += p.length
-    }
-    System.arraycopy(suffix, 0, result, i, suffix.length)
-    Seq(result)
-  }
+  private val Empty = Array.empty[Byte]
+
+  override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean = attributes.isEmpty
+
+  override def apply(sft: SimpleFeatureType, attributes: Seq[String], tier: Boolean): IdIndexKeySpace =
+    new IdIndexKeySpace(sft)
 }

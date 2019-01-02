@@ -8,23 +8,36 @@
 
 package org.locationtech.geomesa.index.index.z2
 
-import org.locationtech.geomesa.index.api.WrappedFeature
+import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
+import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.index.ShardStrategy.ZShardStrategy
-import org.locationtech.geomesa.index.index.{BaseFeatureIndex, ShardStrategy}
+import org.locationtech.geomesa.index.index.ConfiguredIndex
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
+import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
-    extends BaseFeatureIndex[DS, F, W, R, C, XZ2IndexValues, Long] with SpatialFilterStrategy[DS, F, W] {
+class XZ2Index protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, version: Int, val geom: String, mode: IndexMode)
+    extends GeoMesaFeatureIndex[XZ2IndexValues, Long](ds, sft, XZ2Index.name, version, Seq(geom), mode)
+        with SpatialFilterStrategy[XZ2IndexValues, Long] {
 
-  override val name: String = XZ2Index.Name
+  def this(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geom: String, mode: IndexMode) =
+    this(ds, sft, XZ2Index.version, geom, mode)
 
-  override protected val keySpace: XZ2IndexKeySpace = XZ2IndexKeySpace
+  override val keySpace: XZ2IndexKeySpace = new XZ2IndexKeySpace(sft, ZShardStrategy(sft), geom)
 
-  override protected def shardStrategy(sft: SimpleFeatureType): ShardStrategy = ZShardStrategy(sft)
+  override val tieredKeySpace: Option[IndexKeySpace[_, _]] = None
 }
 
-object XZ2Index {
-  val Name = "xz2"
+object XZ2Index extends ConfiguredIndex {
+
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  override val name = "xz2"
+  override val version = 2
+
+  override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
+    XZ2IndexKeySpace.supports(sft, attributes)
+
+  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] =
+    if (sft.nonPoints) { Seq(Seq(sft.getGeomField)) } else { Seq.empty }
 }

@@ -15,10 +15,8 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
-import org.locationtech.geomesa.index.api.WrappedFeature
 import org.locationtech.geomesa.index.conf.partition.TimePartition.CustomPartitionCache
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.metadata.{CachedLazyMetadata, GeoMesaMetadata}
+import org.locationtech.geomesa.index.metadata.{CachedLazyMetadata, GeoMesaMetadata, HasGeoMesaMetadata}
 import org.locationtech.geomesa.utils.text.DateParsing
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -97,7 +95,7 @@ object TimePartition {
 
     override def name: String = Name
 
-    override def create[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds: GeoMesaDataStore[DS, F, W], sft: SimpleFeatureType): TablePartition = {
+    override def create(ds: HasGeoMesaMetadata[String], sft: SimpleFeatureType): TablePartition = {
       val dtg = sft.getDtgField.getOrElse {
         throw new IllegalArgumentException("Can't use time partitioning without a date field")
       }

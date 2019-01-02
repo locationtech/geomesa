@@ -14,16 +14,15 @@ import java.util.concurrent._
 import com.datastax.driver.core._
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
 
-
 class CassandraBatchScan(session: Session, ranges: Seq[Statement], threads: Int, buffer: Int)
     extends AbstractBatchScan[Statement, Row](ranges, threads, buffer) {
 
+  import scala.collection.JavaConverters._
+
   override protected def singletonSentinel: Row = CassandraBatchScan.Sentinel
 
-  override protected def scan(range: Statement, out: BlockingQueue[Row]): Unit = {
-    import scala.collection.JavaConversions._
-    session.execute(range).foreach(out.put(_))
-  }
+  override protected def scan(range: Statement, out: BlockingQueue[Row]): Unit =
+    session.execute(range).asScala.foreach(out.put)
 }
 
 object CassandraBatchScan {

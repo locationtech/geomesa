@@ -10,20 +10,18 @@ package org.locationtech.geomesa.accumulo.tools.data
 
 import java.nio.charset.StandardCharsets
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
-import java.util.{Date, UUID}
 import java.util.concurrent.{Executors, TimeUnit}
+import java.util.{Date, UUID}
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.google.common.primitives.UnsignedBytes
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.data.Key
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
-import org.locationtech.geomesa.accumulo.index.legacy.id.RecordIndexV2
-import org.locationtech.geomesa.accumulo.index.legacy.z3.Z3WritableIndex
 import org.locationtech.geomesa.accumulo.tools.data.AccumuloCompactCommand.{CompactParams, RangeCompaction}
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.curve.BinnedTime
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
@@ -37,8 +35,8 @@ import scala.util.control.NonFatal
 
 class AccumuloCompactCommand extends AccumuloDataStoreCommand {
 
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
   import org.locationtech.geomesa.filter.ff
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
 
@@ -81,13 +79,11 @@ class AccumuloCompactCommand extends AccumuloDataStoreCommand {
 
     Command.user.info(msg.toString)
 
-    def filterSplits(index: AccumuloFeatureIndexType): Iterator[Seq[Text]] => Iterator[Seq[Text]] = {
+    def filterSplits(index: GeoMesaFeatureIndex[_, _]): Iterator[Seq[Text]] => Iterator[Seq[Text]] = {
       z3Bins match {
-        case Some((min, max)) if index.name == Z3Index.Name =>
-          val offset = index match {
-            case i: Z3WritableIndex if !i.hasSplits => if (sft.isTableSharing) { 1 } else { 0 }
-            case _ => if (sft.isTableSharing) { 2 } else { 1 }
-          }
+        case Some((min, max)) if index.name == Z3Index.name =>
+          val offset = index.keySpace.sharding.length + index.keySpace.sharing.length
+
           def compareStart(s: Text): Boolean =
             s == null || s.getLength < offset + 2 || ByteArrays.readShort(s.getBytes, offset) <= max
           def compareEnd(e: Text): Boolean =
@@ -95,7 +91,7 @@ class AccumuloCompactCommand extends AccumuloDataStoreCommand {
 
           iter => iter.filter { case Seq(s, e) => compareStart(s) && compareEnd(e) }
 
-        case Some((min, max)) if params.z3Ids && (index.name == IdIndex.Name || index.name == RecordIndexV2.name) =>
+        case Some((min, max)) if params.z3Ids && index.name == IdIndex.name =>
           val offset = if (sft.isTableSharing) { 1 } else { 0 }
           if (sft.isUuidEncoded) {
             // uuid is already stored in correct binary format
@@ -141,7 +137,7 @@ class AccumuloCompactCommand extends AccumuloDataStoreCommand {
     ds.manager.indices(sft).foreach { index =>
       val filtering = filterSplits(index)
 
-      index.getTablesForQuery(sft, ds, filter).foreach { table =>
+      index.getTablesForQuery(filter).foreach { table =>
         val tableSplits = ops.listSplits(table).asScala.toList
 
         var count = 0

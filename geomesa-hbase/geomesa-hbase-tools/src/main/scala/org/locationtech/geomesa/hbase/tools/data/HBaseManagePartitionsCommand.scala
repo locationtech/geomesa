@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.hbase.tools.data
 
 import com.beust.jcommander.{JCommander, Parameters}
-import org.apache.hadoop.hbase.client.Mutation
-import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseFeature}
+import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, RemoteFilterNotUsedParam}
 import org.locationtech.geomesa.hbase.tools.data.HBaseManagePartitionsCommand._
@@ -30,28 +29,23 @@ class HBaseManagePartitionsCommand(runner: Runner, jc: JCommander)
 
 object HBaseManagePartitionsCommand  {
 
-  class HBaseListPartitionsCommand extends HBaseDataStoreCommand
-      with ListPartitionsCommand[HBaseDataStore, HBaseFeature, Mutation] {
+  class HBaseListPartitionsCommand extends HBaseDataStoreCommand with ListPartitionsCommand[HBaseDataStore] {
     override val params: HBaseListPartitionsParams = new HBaseListPartitionsParams
   }
 
-  class HBaseAddPartitionsCommand extends HBaseDataStoreCommand
-      with AddPartitionsCommand[HBaseDataStore, HBaseFeature, Mutation] {
+  class HBaseAddPartitionsCommand extends HBaseDataStoreCommand with AddPartitionsCommand[HBaseDataStore] {
     override val params: HBaseAddPartitionsParams = new HBaseAddPartitionsParams
   }
 
-  class HBaseAdoptPartitionCommand extends HBaseDataStoreCommand
-      with AdoptPartitionCommand[HBaseDataStore, HBaseFeature, Mutation] {
+  class HBaseAdoptPartitionCommand extends HBaseDataStoreCommand with AdoptPartitionCommand[HBaseDataStore] {
     override val params: HBaseAdoptPartitionParams = new HBaseAdoptPartitionParams
   }
 
-  class HBaseDeletePartitionsCommand extends HBaseDataStoreCommand
-      with DeletePartitionsCommand[HBaseDataStore, HBaseFeature, Mutation] {
+  class HBaseDeletePartitionsCommand extends HBaseDataStoreCommand with DeletePartitionsCommand[HBaseDataStore] {
     override val params: HBaseDeletePartitionsParams = new HBaseDeletePartitionsParams
   }
 
-  class HBaseNamePartitionsCommand extends HBaseDataStoreCommand
-      with NamePartitionsCommand[HBaseDataStore, HBaseFeature, Mutation] {
+  class HBaseNamePartitionsCommand extends HBaseDataStoreCommand with NamePartitionsCommand[HBaseDataStore] {
     override val params: HBaseNamePartitionsParams = new HBaseNamePartitionsParams
   }
 

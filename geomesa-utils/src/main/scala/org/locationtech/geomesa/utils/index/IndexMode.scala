@@ -26,4 +26,6 @@ object IndexMode {
     def write: Boolean = (flag & WriteBit) != 0
     def supports(m: IndexMode): Boolean = (this.read || !m.read) && (this.write || !m.write)
   }
+
+  def apply(flag: Int): IndexMode = new IndexMode(flag)
 }

@@ -83,13 +83,6 @@ object KuduIndexColumnAdapter {
     override def writeToRow(row: PartialRow, value: Short): Unit = row.addShort(name, value)
   }
 
-  // used for attribute index to identify the attribute name
-  // use run-length encoding, which is good for repeated values
-  object IdxColumnAdapter extends KuduIndexColumnAdapter[Short]("idx", INT16, RLE, compression()) {
-    override def readFromRow(row: RowResult): Short = row.getShort(name)
-    override def writeToRow(row: PartialRow, value: Short): Unit = row.addShort(name, value)
-  }
-
   // used for attribute index lexicoded values
   // use prefix encoding - values will be sorted
   // TODO use appropriate type instead of lexicoding?

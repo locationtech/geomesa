@@ -8,20 +8,16 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import org.geotools.data.{FeatureListener, Query, Transaction}
-import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureSource, GeoMesaFeatureStore}
+import org.geotools.data.{FeatureListener, Transaction}
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureStore
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.AppendKafkaFeatureWriter
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-class KafkaFeatureStore(ds: KafkaDataStore,
-                        sft: SimpleFeatureType,
-                        runner: QueryRunner,
-                        cache: KafkaCacheLoader,
-                        collection: (Query, GeoMesaFeatureSource) => GeoMesaFeatureCollection)
-    extends GeoMesaFeatureStore(ds, sft, runner, collection) {
+class KafkaFeatureStore(ds: KafkaDataStore, sft: SimpleFeatureType, runner: QueryRunner, cache: KafkaCacheLoader)
+    extends GeoMesaFeatureStore(ds, sft, runner) {
 
   override def removeFeatures(filter: Filter): Unit = filter match {
     case Filter.INCLUDE => clearFeatures()

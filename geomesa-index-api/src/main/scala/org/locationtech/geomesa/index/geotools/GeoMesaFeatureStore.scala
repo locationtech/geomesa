@@ -13,11 +13,10 @@ import java.util.{List => jList}
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.feature._
-import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -27,11 +26,8 @@ import org.opengis.filter.identity.FeatureId
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
 
-class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats,
-                          sft: SimpleFeatureType,
-                          runner: QueryRunner,
-                          collection: (Query, GeoMesaFeatureSource) => GeoMesaFeatureCollection)
-    extends GeoMesaFeatureSource(ds, sft, runner, collection) with SimpleFeatureStore {
+class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeatureType, runner: QueryRunner)
+    extends GeoMesaFeatureSource(ds, sft, runner) with SimpleFeatureStore {
 
   private var transaction: Transaction = Transaction.AUTO_COMMIT
 
@@ -123,23 +119,25 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats,
   }
 
   override def removeFeatures(filter: Filter): Unit = {
-    // check for Filter.INCLUDE and optimized delete
-    if (filter == Filter.INCLUDE && ds.isInstanceOf[GeoMesaDataStore[_, _, _]]) {
-      // use reflection to get around scala's type checking...
-      val method = classOf[GeoMesaFeatureIndex[_, _, _]].getDeclaredMethods.find(_.getName == "removeAll").getOrElse {
-        throw new IllegalStateException("Can't find method 'removeAll' in GeoMesaFeatureIndex")
-      }
-      ds.asInstanceOf[GeoMesaDataStore[_, _, _]].manager.indices(sft, mode = IndexMode.Write).foreach {
-        index: GeoMesaFeatureIndex[_, _, _] => method.invoke(index, sft, ds)
-      }
-      ds.asInstanceOf[GeoMesaDataStore[_, _, _]].stats.clearStats(sft)
-    } else {
-      WithClose(ds.getFeatureWriter(sft.getTypeName, filter, transaction)) { writer =>
-        while (writer.hasNext) {
-          writer.next()
-          writer.remove()
+    ds match {
+      case gm: GeoMesaDataStore[_] if filter == Filter.INCLUDE =>
+        if (TablePartition.partitioned(sft)) {
+          gm.manager.indices(sft).par.foreach(index => gm.adapter.deleteTables(index.deleteTableNames(None)))
+        } else {
+          gm.manager.indices(sft).par.foreach { index =>
+            val prefix = Some(index.keySpace.sharing).filterNot(_.isEmpty)
+            gm.adapter.clearTables(index.getTableNames(None), prefix)
+          }
         }
-      }
+        gm.stats.clearStats(sft)
+
+      case _ =>
+        WithClose(ds.getFeatureWriter(sft.getTypeName, filter, transaction)) { writer =>
+          while (writer.hasNext) {
+            writer.next()
+            writer.remove()
+          }
+        }
     }
   }
 

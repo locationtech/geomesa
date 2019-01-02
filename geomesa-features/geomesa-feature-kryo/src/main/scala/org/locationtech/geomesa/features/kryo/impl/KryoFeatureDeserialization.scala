@@ -75,10 +75,8 @@ object KryoFeatureDeserialization {
 
   private [geomesa] def getReaders(key: String, sft: SimpleFeatureType): Array[(Input) => AnyRef] = {
     import scala.collection.JavaConversions._
-    readers.getOrElseUpdate(key, sft.getAttributeDescriptors.map { ad =>
-      val bindings = ObjectType.selectType(ad.getType.getBinding, ad.getUserData)
-      matchReader(bindings)
-    }.toArray)
+    readers.getOrElseUpdate(key,
+      sft.getAttributeDescriptors.map(ad => matchReader(ObjectType.selectType(ad))).toArray)
   }
 
   private [geomesa] def matchReader(bindings: Seq[ObjectType]): (Input) => AnyRef = {

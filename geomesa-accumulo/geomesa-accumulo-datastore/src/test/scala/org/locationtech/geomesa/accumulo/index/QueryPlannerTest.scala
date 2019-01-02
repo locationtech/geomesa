@@ -16,8 +16,11 @@ import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureSerializers}
+import org.locationtech.geomesa.index.index.id.IdIndex
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.opengis.filter.sort.SortBy
 import org.specs2.mutable.Specification
@@ -71,7 +74,8 @@ class QueryPlannerTest extends Specification with TestWithDataStore {
         new SimpleEntry[Key, Value](key, value)
       }
 
-      val expectedResult = kvs.map(RecordIndex.entriesToFeatures(sft, sft)).map(_.visibility)
+      val expectedResult =
+        kvs.map(AccumuloIndexAdapter.entriesToFeatures(new IdIndex(null, sft, IndexMode.ReadWrite), sft)).map(_.visibility)
 
       expectedResult must haveSize(kvs.length)
       expectedResult mustEqual expectedVis

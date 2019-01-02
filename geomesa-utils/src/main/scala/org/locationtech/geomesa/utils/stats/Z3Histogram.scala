@@ -71,17 +71,17 @@ class Z3Histogram(val sft: SimpleFeatureType,
   def directIndex(timeBin: Short, value: Long): Int = binMap.get(timeBin).map(_.indexOf(value)).getOrElse(-1)
 
   def indexOf(value: (Geometry, Date)): (Short, Int) = {
-    val (timeBin, z) = toKey(value._1, value._2)
+    val (timeBin, z) = toKey(value._1, value._2, lenient = false)
     (timeBin, directIndex(timeBin, z))
   }
 
   def medianValue(timeBin: Short, i: Int): (Geometry, Date) = fromKey(timeBin, binMap(timeBin).medianValue(i))
 
-  private def toKey(geom: Geometry, dtg: Date): (Short, Long) = {
+  private def toKey(geom: Geometry, dtg: Date, lenient: Boolean): (Short, Long) = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
     val BinnedTime(bin, offset) = timeToBin(dtg.getTime)
     val centroid = geom.safeCentroid()
-    val z = sfc.index(centroid.getX, centroid.getY, offset).z
+    val z = sfc.index(centroid.getX, centroid.getY, offset, lenient).z
     (bin, z)
   }
 
@@ -111,7 +111,7 @@ class Z3Histogram(val sft: SimpleFeatureType,
     val dtg  = sf.getAttribute(d).asInstanceOf[Date]
     if (geom != null && dtg != null) {
       try {
-        val (timeBin, z3) = toKey(geom, dtg)
+        val (timeBin, z3) = toKey(geom, dtg, lenient = false)
         binMap.getOrElseUpdate(timeBin, newBins).add(z3, 1L)
       } catch {
         case e: Exception => logger.warn(s"Error observing geom '$geom' and date '$dtg': ${e.toString}")
@@ -124,7 +124,7 @@ class Z3Histogram(val sft: SimpleFeatureType,
     val dtg  = sf.getAttribute(d).asInstanceOf[Date]
     if (geom != null && dtg != null) {
       try {
-        val (timeBin, z3) = toKey(geom, dtg)
+        val (timeBin, z3) = toKey(geom, dtg, lenient = true)
         binMap.get(timeBin).foreach(_.add(z3, -1L))
       } catch {
         case e: Exception => logger.warn(s"Error un-observing geom '$geom' and date '$dtg': ${e.toString}")

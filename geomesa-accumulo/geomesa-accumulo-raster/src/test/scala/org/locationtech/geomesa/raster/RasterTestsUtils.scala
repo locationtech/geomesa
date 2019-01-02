@@ -15,8 +15,8 @@ import java.util.{Date, UUID}
 import org.geotools.coverage.grid.{GridCoverage2D, GridCoverageFactory}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.accumulo.index.encoders.DecodedIndexValue
 import org.locationtech.geomesa.raster.data.{AccumuloRasterStore, Raster, RasterQuery}
+import org.locationtech.geomesa.raster.index.RasterEntryDecoder.DecodedIndexValue
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeoHash}
 import org.opengis.geometry.Envelope

@@ -9,6 +9,8 @@
 
 package org.locationtech.geomesa.spark.accumulo
 
+import java.util.Collections
+
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.ClientConfiguration
 import org.apache.accumulo.core.client.mapred.AbstractInputFormat
@@ -26,8 +28,8 @@ import org.apache.spark.deploy.SparkHadoopUtil
 import org.apache.spark.rdd.{NewHadoopRDD, RDD}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams}
-import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, BatchScanPlan, EmptyPlan, ScanPlan}
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, EmptyPlan, ScanPlan}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloDataStoreParams, AccumuloQueryPlan}
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
@@ -62,8 +64,8 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
         InputConfigurator.setRanges(classOf[AccumuloInputFormat], conf, qp.ranges)
         qp.iterators.foreach(InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, _))
 
-        if (qp.columnFamilies.nonEmpty) {
-          val cf = qp.columnFamilies.map(cf => new AccPair[Text, Text](cf, null))
+        qp.columnFamily.foreach { colFamily =>
+          val cf = Collections.singletonList(new AccPair[Text, Text](colFamily, null))
           InputConfigurator.fetchColumns(classOf[AccumuloInputFormat], conf, cf)
         }
 

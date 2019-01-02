@@ -20,15 +20,15 @@ import org.apache.hadoop.util.{Tool, ToolRunner}
 import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.jobs._
 import org.locationtech.geomesa.jobs.accumulo.{GeoMesaArgs, InputCqlArgs, InputDataStoreArgs, InputFeatureArgs}
 import org.locationtech.geomesa.jobs.mapreduce.{GeoMesaAccumuloInputFormat, GeoMesaOutputFormat}
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
-import scala.util.control.NonFatal
 
 /**
  * Class to write data to a single index
@@ -72,29 +72,22 @@ class WriteIndexJob(libjars: Option[(Seq[String], Iterator[() => Seq[File]])] = 
     val featureIn  = parsedArgs.inFeature
     val dsInParams = parsedArgs.inDataStore
     val filter     = Option(parsedArgs.inCql).getOrElse("INCLUDE")
-    val indices    = parsedArgs.indexNames.map { name =>
-      try {
-        name.split(":") match {
-          case Array(n)    => AccumuloFeatureIndex.CurrentIndices.find(_.name == name).get
-          case Array(n, v) => AccumuloFeatureIndex.lookup((n, v.toInt))
-        }
-      } catch {
-        case NonFatal(e) =>
-          throw new IllegalArgumentException(s"Invalid index $name. Valid values are " +
-              s"${AccumuloFeatureIndex.AllIndices.map(_.identifier).sorted.mkString(", ")}")
-      }
-    }
 
     // validation and initialization - ensure the types exist before launching distributed job
-    val sft = {
-      val dsIn = DataStoreFinder.getDataStore(dsInParams)
+    val (sft, indices) = {
+      val dsIn = DataStoreFinder.getDataStore(dsInParams).asInstanceOf[GeoMesaDataStore[_]]
       require(dsIn != null, "The specified input data store could not be created - check your job parameters")
       try {
         val sft = dsIn.getSchema(featureIn)
         require(sft != null, s"The feature '$featureIn' does not exist in the input data store")
-        require(indices.forall(_.supports(sft)),
-          "The requested indices are not compatible with the simple feature type")
-        sft
+        val allIndices = dsIn.manager.indices(sft, IndexMode.Write)
+        val indices = parsedArgs.indexNames.map { name =>
+          allIndices.find(_.identifier == name).orElse(allIndices.find(_.name == name)).getOrElse {
+            throw new IllegalArgumentException(s"Invalid index $name. Valid values are " +
+                allIndices.map(_.identifier).sorted.mkString(", "))
+          }
+        }
+        (sft, indices)
       } finally {
         dsIn.dispose()
       }
@@ -142,7 +135,7 @@ class PassThroughMapper extends Mapper[Text, SimpleFeature, Text, SimpleFeature]
   type Context = Mapper[Text, SimpleFeature, Text, SimpleFeature]#Context
 
   private val text: Text = new Text
-  private var counter: Counter = null
+  private var counter: Counter = _
 
   override protected def setup(context: Context): Unit = {
     counter = context.getCounter("org.locationtech.geomesa", "features-written")

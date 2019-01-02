@@ -15,7 +15,9 @@ import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{FilterHelper, andFilters, ff}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
+import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -107,7 +109,17 @@ trait QueryRunner {
     */
   protected [geomesa] def getReturnSft(sft: SimpleFeatureType, hints: Hints): SimpleFeatureType = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-    hints.getTransformSchema.getOrElse(sft)
+    if (hints.isBinQuery) {
+      BinaryOutputEncoder.BinEncodedSft
+    } else if (hints.isArrowQuery) {
+      org.locationtech.geomesa.arrow.ArrowEncodedSft
+    } else if (hints.isDensityQuery) {
+      DensityScan.DensitySft
+    } else if (hints.isStatsQuery) {
+      StatsScan.StatsSft
+    } else {
+      hints.getTransformSchema.getOrElse(sft)
+    }
   }
 }
 

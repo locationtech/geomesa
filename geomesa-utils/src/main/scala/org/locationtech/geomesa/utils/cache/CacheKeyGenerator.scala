@@ -8,12 +8,29 @@
 
 package org.locationtech.geomesa.utils.cache
 
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
 object CacheKeyGenerator {
 
-  import collection.JavaConversions._
-
+  /**
+    * Encodes the simple feature type fo use as a cache key. Note that this encodes all user data, not just
+    * geomesa-prefixed ones
+    *
+    * @param sft simple feature type
+    * @return
+    */
   def cacheKey(sft: SimpleFeatureType): String =
-    s"${sft.getName};${sft.getAttributeDescriptors.map(ad => s"${ad.getLocalName}:${ad.getType.getBinding.getSimpleName}").mkString(",")}"
+    s"${sft.getName};${SimpleFeatureTypes.encodeType(sft)}${SimpleFeatureTypes.encodeUserData(sft.getUserData)}"
+
+  /**
+    * Restores a simple feature type from a cache key
+    *
+    * @param key cache key
+    * @return
+    */
+  def restore(key: String): SimpleFeatureType = {
+    val i = key.indexOf(';')
+    SimpleFeatureTypes.createType(key.substring(0, i), key.substring(i + 1))
+  }
 }

@@ -23,7 +23,7 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
-import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore.AccumuloDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityParams}
@@ -166,10 +166,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     val auditQueries = if (AuditQueriesParam.exists(params)) { AuditQueriesParam.lookup(params).booleanValue() } else {
       !connector.isInstanceOf[MockConnector] && AuditQueriesParam.default
     }
-    val auditService = {
-      val auditTable = GeoMesaFeatureIndex.formatSharedTableName(catalog, "queries")
-      new AccumuloAuditService(connector, authProvider, auditTable, auditQueries)
-    }
+    val auditService = new AccumuloAuditService(connector, authProvider, s"${catalog}_queries", auditQueries)
 
     val generateStats = GenerateStatsParam.lookup(params)
     val queryTimeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis)

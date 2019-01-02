@@ -19,7 +19,8 @@ import org.geotools.data.store.DataFeatureCollection
 import org.geotools.factory.Hints
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.index.geotools.{DelegatingResourceInfo, GeoMesaFeatureCollection}
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.DelegatingResourceInfo
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.index.view.MergedFeatureSourceView.MergedQueryCapabilities

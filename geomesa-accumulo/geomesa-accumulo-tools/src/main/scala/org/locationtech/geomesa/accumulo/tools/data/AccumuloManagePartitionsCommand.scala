@@ -9,8 +9,7 @@
 package org.locationtech.geomesa.accumulo.tools.data
 
 import com.beust.jcommander.{JCommander, Parameters}
-import org.apache.accumulo.core.data.Mutation
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeature}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.tools.data.AccumuloManagePartitionsCommand._
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.data.ManagePartitionsCommand
@@ -29,28 +28,23 @@ class AccumuloManagePartitionsCommand(runner: Runner, jc: JCommander)
 
 object AccumuloManagePartitionsCommand  {
 
-  class AccumuloListPartitionsCommand extends AccumuloDataStoreCommand
-      with ListPartitionsCommand[AccumuloDataStore, AccumuloFeature, Mutation] {
+  class AccumuloListPartitionsCommand extends AccumuloDataStoreCommand with ListPartitionsCommand[AccumuloDataStore] {
     override val params: AccumuloListPartitionsParams = new AccumuloListPartitionsParams
   }
 
-  class AccumuloAddPartitionsCommand extends AccumuloDataStoreCommand
-      with AddPartitionsCommand[AccumuloDataStore, AccumuloFeature, Mutation] {
+  class AccumuloAddPartitionsCommand extends AccumuloDataStoreCommand with AddPartitionsCommand[AccumuloDataStore] {
     override val params: AccumuloAddPartitionsParams = new AccumuloAddPartitionsParams
   }
 
-  class AccumuloAdoptPartitionCommand extends AccumuloDataStoreCommand
-      with AdoptPartitionCommand[AccumuloDataStore, AccumuloFeature, Mutation] {
+  class AccumuloAdoptPartitionCommand extends AccumuloDataStoreCommand with AdoptPartitionCommand[AccumuloDataStore] {
     override val params: AccumuloAdoptPartitionParams = new AccumuloAdoptPartitionParams
   }
 
-  class AccumuloDeletePartitionsCommand extends AccumuloDataStoreCommand
-      with DeletePartitionsCommand[AccumuloDataStore, AccumuloFeature, Mutation] {
+  class AccumuloDeletePartitionsCommand extends AccumuloDataStoreCommand with DeletePartitionsCommand[AccumuloDataStore] {
     override val params: AccumuloDeletePartitionsParams = new AccumuloDeletePartitionsParams
   }
 
-  class AccumuloNamePartitionsCommand extends AccumuloDataStoreCommand
-      with NamePartitionsCommand[AccumuloDataStore, AccumuloFeature, Mutation] {
+  class AccumuloNamePartitionsCommand extends AccumuloDataStoreCommand with NamePartitionsCommand[AccumuloDataStore] {
     override val params: AccumuloNamePartitionsParams = new AccumuloNamePartitionsParams
   }
 

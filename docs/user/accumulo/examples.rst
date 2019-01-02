@@ -255,7 +255,7 @@ To confirm that GeoMesa can properly parse your edited
     $ geomesa-accumulo env -s gdelt --format spec
     Using GEOMESA_ACCUMULO_HOME = /opt/geomesa/tools
     Simple Feature Types:
-    gdelt = globalEventId:String,eventCode:String,actor1:String,actor2:String,dtg:Date:index=join,*geom:Point:srid=4326;geomesa.index.dtg='dtg',geomesa.table.sharing='false'
+    gdelt = globalEventId:String,eventCode:String,actor1:String,actor2:String,dtg:Date:index=join,*geom:Point:srid=4326;geomesa.index.dtg='dtg'
 
     $ geomesa-accumulo env -c gdelt_tsv
     Using GEOMESA_ACCUMULO_HOME = /opt/geomesa/tools

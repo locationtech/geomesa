@@ -11,8 +11,8 @@ package org.locationtech.geomesa.hbase.coprocessor.aggregators
 import org.apache.commons.codec.binary.Base64
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.stats._
@@ -31,10 +31,10 @@ object HBaseStatsAggregator {
   }
 
   def configure(sft: SimpleFeatureType,
-                index: HBaseFeatureIndexType,
+                index: GeoMesaFeatureIndex[_, _],
                 filter: Option[Filter],
                 hints: Hints): Map[String, String] = {
-    StatsScan.configure(sft, index, filter, hints) ++
-      Map(GeoMesaCoprocessor.AggregatorClass -> classOf[HBaseStatsAggregator].getName)
+    StatsScan.configure(sft, index, filter, hints) +
+      (GeoMesaCoprocessor.AggregatorClass -> classOf[HBaseStatsAggregator].getName)
   }
 }

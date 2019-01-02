@@ -12,7 +12,6 @@ import java.time.{ZoneOffset, ZonedDateTime}
 
 import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
 import org.locationtech.geomesa.index.conf.partition.{TablePartition, TimePartition}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.tools._
@@ -20,6 +19,7 @@ import org.locationtech.geomesa.tools.data.ManagePartitionsCommand._
 import org.locationtech.geomesa.tools.utils.ParameterConverters.IntervalConverter
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
@@ -35,11 +35,11 @@ abstract class ManagePartitionsCommand(val runner: Runner, val jc: JCommander) e
 
   override val subCommands: Seq[Command] = Seq(list, add, adopt, delete, generate)
 
-  protected def list: ListPartitionsCommand[_, _, _]
-  protected def add: AddPartitionsCommand[_, _, _]
-  protected def adopt: AdoptPartitionCommand[_, _, _]
-  protected def delete: DeletePartitionsCommand[_, _, _]
-  protected def generate: NamePartitionsCommand[_, _, _]
+  protected def list: ListPartitionsCommand[_]
+  protected def add: AddPartitionsCommand[_]
+  protected def adopt: AdoptPartitionCommand[_]
+  protected def delete: DeletePartitionsCommand[_]
+  protected def generate: NamePartitionsCommand[_]
 }
 
 object ManagePartitionsCommand {
@@ -52,14 +52,13 @@ object ManagePartitionsCommand {
   /**
     * List existing partitions
     */
-  trait ListPartitionsCommand[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
-      extends PartitionsCommand[DS, F, W] {
+  trait ListPartitionsCommand[DS <: GeoMesaDataStore[DS]] extends PartitionsCommand[DS] {
 
     override val name = "list"
 
     override protected def execute(ds: DS, sft: SimpleFeatureType, partition: TablePartition): Unit = {
       Command.user.info(s"Partitions for schema ${params.featureName}:")
-      val partitions = ds.manager.indices(sft).par.flatMap(_.getPartitions(sft, ds))
+      val partitions = ds.manager.indices(sft).par.flatMap(_.getPartitions)
       partitions.seq.distinct.sorted.foreach(p => Command.output.info(p))
     }
   }
@@ -67,22 +66,22 @@ object ManagePartitionsCommand {
   /**
     * Add new partitions
     */
-  trait AddPartitionsCommand[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
-      extends ModifyPartitionsCommand[DS, F, W] {
+  trait AddPartitionsCommand[DS <: GeoMesaDataStore[DS]] extends ModifyPartitionsCommand[DS] {
 
     override val name = "add"
 
     override protected def modify(ds: DS, sft: SimpleFeatureType, partition: TablePartition, p: String): Unit = {
       Command.user.info(s"Adding partition '$p'")
-      ds.manager.indices(sft, mode = IndexMode.Write).par.foreach(_.configure(sft, ds, Some(p)))
+      ds.manager.indices(sft, mode = IndexMode.Write).par.foreach { index =>
+        ds.adapter.createTable(index, index.configureTableName(Some(p)), index.getSplits(Some(p)))
+      }
     }
   }
 
   /**
     * Adopt an existing set of index tables as a new partitions
     */
-  trait AdoptPartitionCommand[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
-      extends PartitionsCommand[DS, F, W] {
+  trait AdoptPartitionCommand[DS <: GeoMesaDataStore[DS]] extends PartitionsCommand[DS] {
 
     override val name = "adopt"
     override def params: AdoptPartitionParam
@@ -104,12 +103,26 @@ object ManagePartitionsCommand {
         throw new IllegalArgumentException(s"Expected an index table for each index: ${indices.map(_.name).mkString(", ")}")
       }
       // match tables first, to fail fast if there is no match
-      val indicesAndTables = indices.map { index =>
-        val table = tables.find(_.contains(GeoMesaFeatureIndex.tableSuffix(index, None))).getOrElse {
-          throw new IllegalArgumentException(s"None of the index tables correspond to ${index.identifier}")
-        }
-        (index, table)
+      val indexNames = indices.map { index =>
+        val name = StringSerialization.alphaNumericSafeString(index.name)
+        val attributes = index.attributes.map(StringSerialization.alphaNumericSafeString).mkString("_")
+        val version = s"v${index.version}"
+        (index, name, attributes, version)
       }
+      val indicesAndTables = tables.map { table =>
+        val matchedByName = indexNames.filter { case (_, n, _, v) => table.contains(n) && table.contains(v) }
+        if (matchedByName.lengthCompare(1) == 0) {
+          (matchedByName.head._1, table)
+        } else {
+          val matchedByAttributes = matchedByName.filter(m => table.contains(m._3))
+          if (matchedByAttributes.lengthCompare(1) == 0) {
+            (matchedByAttributes.head._1, table)
+          } else {
+            throw new IllegalArgumentException(s"Could not match an index to table '$table'")
+          }
+        }
+      }
+
       indicesAndTables.foreach { case (index, table) =>
         ds.metadata.insert(sft.getTypeName, index.tableNameKey(Some(params.partition)), table)
       }
@@ -122,8 +135,7 @@ object ManagePartitionsCommand {
   /**
     * Delete existing partitions
     */
-  trait DeletePartitionsCommand[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
-      extends ModifyPartitionsCommand[DS, F, W] {
+  trait DeletePartitionsCommand[DS <: GeoMesaDataStore[DS]] extends ModifyPartitionsCommand[DS] {
 
     override val name = "delete"
     override def params: PartitionsParam with OptionalForceParam
@@ -139,15 +151,16 @@ object ManagePartitionsCommand {
 
     override protected def modify(ds: DS, sft: SimpleFeatureType, partition: TablePartition, p: String): Unit = {
       Command.user.info(s"Deleting partition '$p'")
-      ds.manager.indices(sft).par.foreach(_.delete(sft, ds, Some(p)))
+      ds.manager.indices(sft).par.foreach { index =>
+        ds.adapter.deleteTables(index.deleteTableNames(Some(p)))
+      }
     }
   }
 
   /**
     * Map from values (e.g. dates) to partition names
     */
-  trait NamePartitionsCommand[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
-      extends PartitionsCommand[DS, F, W] {
+  trait NamePartitionsCommand[DS <: GeoMesaDataStore[DS]] extends PartitionsCommand[DS] {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -155,15 +168,14 @@ object ManagePartitionsCommand {
     override def params: NamePartitionsParam
 
     override protected def execute(ds: DS, sft: SimpleFeatureType, partition: TablePartition): Unit = {
-      partition match {
-        case p: TimePartition =>
-          val sf = new ScalaSimpleFeature(sft, "")
-          params.values.asScala.foreach { value =>
-            sf.setAttribute(sft.getDtgIndex.get, value)
-            Command.output.info(s"$value -> ${partition.partition(sf)}")
-          }
-
-        case _ => throw new NotImplementedError(s"Unsupported partition implementation: ${partition.getClass.getName}")
+      if (partition.isInstanceOf[TimePartition]) {
+        val sf = new ScalaSimpleFeature(sft, "")
+        params.values.asScala.foreach { value =>
+          sf.setAttribute(sft.getDtgIndex.get, value)
+          Command.output.info(s"$value -> ${partition.partition(sf)}")
+        }
+      } else {
+        throw new NotImplementedError(s"Unsupported partition implementation: ${partition.getClass.getName}")
       }
     }
   }
@@ -171,8 +183,7 @@ object ManagePartitionsCommand {
   /**
     * Base trait to facilitate acting on each partition
     */
-  trait ModifyPartitionsCommand[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
-      extends PartitionsCommand[DS, F, W] {
+  trait ModifyPartitionsCommand[DS <: GeoMesaDataStore[DS]] extends PartitionsCommand[DS] {
 
     override def params: PartitionsParam
 
@@ -187,8 +198,7 @@ object ManagePartitionsCommand {
   /**
     * Base trait for dealing with partitions
     */
-  trait PartitionsCommand[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
-      extends DataStoreCommand[DS] {
+  trait PartitionsCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[DS] {
 
     override def params: RequiredTypeNameParam
 

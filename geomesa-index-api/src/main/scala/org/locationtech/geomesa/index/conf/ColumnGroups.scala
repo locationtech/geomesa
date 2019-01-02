@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.conf
 
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeUnit
 
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -18,52 +19,16 @@ import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, Projecting
 import org.locationtech.geomesa.index.metadata.CachedLazyMetadata
 import org.locationtech.geomesa.index.planning.Transforms
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
+import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-trait ColumnGroups[T <: AnyRef] {
+class ColumnGroups {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
-
-  private val cache = {
-    val expiry = CachedLazyMetadata.Expiry.toDuration.get.toMillis
-    Caffeine.newBuilder().expireAfterWrite(expiry, TimeUnit.MILLISECONDS).build[String, Seq[(T, SimpleFeatureType)]]()
-  }
-
-  private lazy val defaultString = convert(default)
-  private lazy val reservedStrings = reserved.map(convert)
-
-  /**
-    * Default column group, that contains all the attributes
-    *
-    * @return
-    */
-  def default: T
-
-  /**
-    * Any additional column groups that are used internally
-    *
-    * @return
-    */
-  protected def reserved: Set[T]
-
-  /**
-    * Convert a user-specified group into the appropriate type
-    *
-    * @param group group
-    * @return
-    */
-  protected def convert(group: String): T
-
-  /**
-    * Convert a group back into a user-specified string
-    *
-    * @param group group
-    * @return
-    */
-  protected def convert(group: T): String
 
   /**
     * Gets the column groups for a simple feature type. The default group will contain all columns
@@ -71,29 +36,35 @@ trait ColumnGroups[T <: AnyRef] {
     * @param sft simple feature type
     * @return
     */
-  def apply(sft: SimpleFeatureType): Seq[(T, SimpleFeatureType)] = {
+  def apply(sft: SimpleFeatureType): Seq[(Array[Byte], SimpleFeatureType)] = {
     val key = CacheKeyGenerator.cacheKey(sft)
-    var groups = cache.getIfPresent(key)
+    var groups = ColumnGroups.cache.getIfPresent(key)
     if (groups == null) {
-      val map = scala.collection.mutable.Map.empty[String, SimpleFeatureTypeBuilder]
+      if (sft.getVisibilityLevel == VisibilityLevel.Attribute) {
+        groups = IndexedSeq((ColumnGroups.Attributes, sft))
+      } else {
+        val map = scala.collection.mutable.Map.empty[String, SimpleFeatureTypeBuilder]
 
-      sft.getAttributeDescriptors.asScala.foreach { descriptor =>
-        descriptor.getColumnGroups().foreach { group =>
-          map.getOrElseUpdate(group, new SimpleFeatureTypeBuilder()).add(descriptor)
+        sft.getAttributeDescriptors.asScala.foreach { descriptor =>
+          descriptor.getColumnGroups().foreach { group =>
+            map.getOrElseUpdate(group, new SimpleFeatureTypeBuilder()).add(descriptor)
+          }
+        }
+
+        val sfts = map.map { case (group, builder) =>
+          builder.setName(sft.getTypeName)
+          val subset = builder.buildFeatureType()
+          subset.getUserData.putAll(sft.getUserData)
+          (group.getBytes(StandardCharsets.UTF_8), subset)
+        } + (ColumnGroups.Default -> sft)
+
+        // return the smallest groups first, for consistency tiebreaker is string comparison of group
+        groups = sfts.toIndexedSeq.sortBy { case (group, subset) =>
+          (subset.getAttributeCount, new String(group, StandardCharsets.UTF_8))
         }
       }
 
-      val sfts = map.map { case (group, builder) =>
-        builder.setName(sft.getTypeName)
-        val subset = builder.buildFeatureType()
-        subset.getUserData.putAll(sft.getUserData)
-        (convert(group), subset)
-      } + (default -> sft)
-
-      // return the smallest groups first
-      groups = sfts.toSeq.sortBy(_._2.getAttributeCount)
-
-      cache.put(key, groups)
+      ColumnGroups.cache.put(key, groups)
     }
     groups
   }
@@ -104,9 +75,9 @@ trait ColumnGroups[T <: AnyRef] {
     * @param sft simple feature type
     * @return
     */
-  def serializers(sft: SimpleFeatureType): Seq[(T, SimpleFeatureSerializer)] = {
+  def serializers(sft: SimpleFeatureType): Seq[(Array[Byte], SimpleFeatureSerializer)] = {
     apply(sft).map { case (colFamily, subset) =>
-      if (colFamily.eq(default)) {
+      if (colFamily.eq(ColumnGroups.Default) || colFamily.eq(ColumnGroups.Attributes)) {
         (colFamily, KryoFeatureSerializer(subset, SerializationOptions.withoutId))
       } else {
         (colFamily, new ProjectingKryoFeatureSerializer(sft, subset, SerializationOptions.withoutId))
@@ -122,15 +93,19 @@ trait ColumnGroups[T <: AnyRef] {
     * @param ecql filter, if any
     * @return
     */
-  def group(sft: SimpleFeatureType, transform: String, ecql: Option[Filter]): (T, SimpleFeatureType) = {
-    val definitions = Transforms.definitions(transform)
-    val groups = apply(sft).iterator
-    var group = groups.next
-    // last group has all the columns, so just return the last one if nothing else matches
-    while (groups.hasNext && !Transforms.supports(group._2, definitions, ecql)) {
-      group = groups.next
+  def group(sft: SimpleFeatureType, transform: Option[String], ecql: Option[Filter]): (Array[Byte], SimpleFeatureType) = {
+    val groups = apply(sft)
+    transform.map(Transforms.definitions) match {
+      case None => groups.last
+      case Some(definitions) =>
+        val iter = groups.iterator
+        var group = iter.next
+        // last group has all the columns, so just return the last one if nothing else matches
+        while (iter.hasNext && !Transforms.supports(group._2, definitions, ecql)) {
+          group = iter.next
+        }
+        group
     }
-    group
   }
 
   /**
@@ -139,13 +114,29 @@ trait ColumnGroups[T <: AnyRef] {
     * @param sft simple feature type
     */
   def validate(sft: SimpleFeatureType): Unit = {
-    // note: we validate against strings, as some col group types don't compare well (i.e. byte arrays)
     val groups = sft.getAttributeDescriptors.asScala.flatMap(_.getColumnGroups()).distinct
     groups.foreach { group =>
-      if (group == defaultString || reservedStrings.contains(group)) {
+      if (group == ColumnGroups.DefaultString || group == ColumnGroups.AttributesString) {
         throw new IllegalArgumentException(s"Column group '$group' is reserved for internal use - " +
             "please choose another name")
       }
     }
+    if (sft.getVisibilityLevel == VisibilityLevel.Attribute && groups.nonEmpty) {
+      throw new IllegalArgumentException("Column groups are not supported when using attribute-level visibility")
+    }
   }
+}
+
+object ColumnGroups {
+
+  private val DefaultString = "d"
+  private val AttributesString = "a"
+
+  val Default: Array[Byte] = DefaultString.getBytes(StandardCharsets.UTF_8)
+  val Attributes: Array[Byte] = AttributesString.getBytes(StandardCharsets.UTF_8)
+
+  private val cache =
+    Caffeine.newBuilder()
+        .expireAfterWrite(CachedLazyMetadata.Expiry.toDuration.get.toMillis, TimeUnit.MILLISECONDS)
+        .build[String, IndexedSeq[(Array[Byte], SimpleFeatureType)]]()
 }

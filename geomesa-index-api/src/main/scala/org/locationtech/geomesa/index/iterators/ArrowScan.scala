@@ -133,7 +133,7 @@ object ArrowScan {
     * @return
     */
   def configure(sft: SimpleFeatureType,
-                index: GeoMesaFeatureIndex[_, _, _],
+                index: GeoMesaFeatureIndex[_, _],
                 stats: GeoMesaStats,
                 filter: Option[Filter],
                 ecql: Option[Filter],

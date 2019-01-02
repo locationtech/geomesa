@@ -8,8 +8,7 @@
 
 package org.locationtech.geomesa.index.conf.partition
 
-import org.locationtech.geomesa.index.api.WrappedFeature
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait TablePartitionFactory {
@@ -27,5 +26,5 @@ trait TablePartitionFactory {
     * @param sft simple feature type
     * @return
     */
-  def create[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds: GeoMesaDataStore[DS, F, W], sft: SimpleFeatureType): TablePartition
+  def create(ds: HasGeoMesaMetadata[String], sft: SimpleFeatureType): TablePartition
 }

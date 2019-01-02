@@ -13,7 +13,7 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.{BatchScanPlan, JoinPlan}
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinPlan}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.specs2.runner.JUnitRunner
 
@@ -52,7 +52,7 @@ class BatchMultiScannerTest extends TestWithDataStore {
     val jp = qp.join.get._2.asInstanceOf[BatchScanPlan]
     foreach(jp.tables)(table => connector.tableOperations.exists(table) must beTrue)
 
-    val bms = new BatchMultiScanner(ds, attrScanner, jp, qp.join.get._1, 5, batchSize)
+    val bms = new BatchMultiScanner(ds.connector, attrScanner, jp, qp.join.get._1, ds.auths, 5, batchSize)
 
     val retrieved = bms.iterator.map(jp.entriesToFeatures).toList
     forall(retrieved)(_.getAttribute(attr) mustEqual value)

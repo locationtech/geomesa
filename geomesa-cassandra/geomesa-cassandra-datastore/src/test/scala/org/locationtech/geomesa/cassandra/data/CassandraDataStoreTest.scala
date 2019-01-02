@@ -29,6 +29,7 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.opengis.feature.simple.SimpleFeature
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -173,7 +174,7 @@ class CassandraDataStoreTest extends Specification {
         testLooseBbox(ds, loose = false)
       }
 
-      ds.getFeatureSource(typeName).removeFeatures(ECQL.toFilter("INCLUDE"))
+      ds.getFeatureSource(typeName).removeFeatures(ECQL.toFilter(toAdd.map(_.getID).mkString("IN('", "','", "')")))
 
       forall(Seq("INCLUDE",
         "IN('0', '2')",
@@ -282,7 +283,7 @@ class CassandraDataStoreTest extends Specification {
                 filter: String,
                 transforms: Array[String],
                 results: Seq[SimpleFeature],
-                explain: Option[Explainer] = None) = {
+                explain: Option[Explainer] = None): MatchResult[Traversable[SimpleFeature]] = {
     val query = new Query(typeName, ECQL.toFilter(filter), transforms)
     explain.foreach(e => ds.getQueryPlan(query, explainer = e))
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)

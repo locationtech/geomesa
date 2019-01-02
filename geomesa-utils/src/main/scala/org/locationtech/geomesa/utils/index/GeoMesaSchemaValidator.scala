@@ -11,11 +11,9 @@ package org.locationtech.geomesa.utils.index
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
@@ -26,12 +24,11 @@ object GeoMesaSchemaValidator {
   def validate(sft: SimpleFeatureType): Unit = {
     MixedGeometryCheck.validateGeometryType(sft)
     TemporalIndexCheck.validateDtgField(sft)
-    TemporalIndexCheck.validateDtgIndex(sft)
     ReservedWordCheck.validateAttributeNames(sft)
     IndexConfigurationCheck.validateIndices(sft)
   }
 
-  private [index] def declared(sft: SimpleFeatureType, prop: String): Boolean =
+  private [geomesa] def declared(sft: SimpleFeatureType, prop: String): Boolean =
     Option(sft.getUserData.get(prop)).orElse(SystemProperty(prop).option).exists(SimpleFeatureTypes.toBoolean)
 }
 
@@ -88,22 +85,6 @@ object TemporalIndexCheck extends LazyLogging {
               s"to the first temporal attribute found: $candidate"
           logger.warn(theWarning)
           sft.setDtgField(candidate)
-        }
-      }
-    }
-  }
-
-  // note: dtg should be set appropriately before calling this method
-  def validateDtgIndex(sft: SimpleFeatureType): Unit = {
-    sft.getDtgField.foreach { dtg =>
-      if (sft.getDescriptor(dtg).getIndexCoverage == IndexCoverage.JOIN) {
-        if (!GeoMesaSchemaValidator.declared(sft, DEFAULT_DTG_JOIN)) {
-          throw new IllegalArgumentException("Trying to create a schema with a partial (join) attribute index " +
-              s"on the default date field '$dtg'. This may cause whole-world queries with time bounds to be much " +
-              "slower. If this is intentional, you may override this check by putting Boolean.TRUE into the " +
-              s"SimpleFeatureType user data under the key '$DEFAULT_DTG_JOIN' before calling createSchema, or by " +
-              s"setting the system property '$DEFAULT_DTG_JOIN' to 'true'. Otherwise, please either specify a " +
-              "full attribute index or remove it entirely.")
         }
       }
     }

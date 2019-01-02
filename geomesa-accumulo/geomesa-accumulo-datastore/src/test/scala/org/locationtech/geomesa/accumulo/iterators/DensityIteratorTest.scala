@@ -19,10 +19,11 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.index.RecordIndex
-import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithMultipleSfts}
+import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.SimpleFeatureType
@@ -49,7 +50,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
   def getDensity(sftName: String,
                  query: String,
                  envelope: Option[Envelope] = None,
-                 strategy: Option[AccumuloFeatureIndexType] = None): List[(Double, Double, Double)] = {
+                 strategy: Option[GeoMesaFeatureIndex[_, _]] = None): List[(Double, Double, Double)] = {
     val q = new Query(sftName, ECQL.toFilter(query))
     val geom = envelope.getOrElse(q.getFilter.accept(ExtractBoundsFilterVisitor.BOUNDS_VISITOR, null).asInstanceOf[Envelope])
     q.getHints.put(QueryHints.DENSITY_BBOX, new ReferencedEnvelope(geom, DefaultGeographicCRS.WGS84))
@@ -108,7 +109,9 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
 
       "with record index" >> {
         val q = "INCLUDE"
-        val density = getDensity(sft.getTypeName, q, Some(new Envelope(-180, 180, -90, 90)), Some(RecordIndex))
+        val idIndex = ds.manager.indices(sft).find(_.name == IdIndex.name)
+        idIndex must beSome
+        val density = getDensity(sft.getTypeName, q, Some(new Envelope(-180, 180, -90, 90)), idIndex)
 
         density.length must beLessThan(150)
         density.map(_._3).sum mustEqual 150

@@ -67,9 +67,6 @@ The following file defines a ``SimpleFeatureType`` called ``example``, with four
             { name = "dtg",  type = "Date",   default = true,  index = true }
             { name = "geom", type = "Point",  default = true , srid = 4326  }
           ]
-          user-data = {
-            geomesa.table.sharing = "false"
-          }
         }
       }
     }
@@ -91,7 +88,7 @@ Example
 
 This string corresponds to the configuration example above::
 
-  name:String:index=true,age:Integer,dtg:Date:index=true:default=true,*geom:Point:srid=4326;'geomesa.table.sharing'='false'
+  name:String:index=true,age:Integer,dtg:Date:index=true:default=true,*geom:Point:srid=4326
 
 Configuration String
 --------------------

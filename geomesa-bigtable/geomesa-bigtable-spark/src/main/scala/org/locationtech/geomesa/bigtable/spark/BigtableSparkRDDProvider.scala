@@ -21,12 +21,14 @@ import org.geotools.data.{DataStoreFinder, Query}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.bigtable.data.BigtableDataStoreFactory
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseQueryPlan, ScanPlan}
-import org.locationtech.geomesa.hbase.index.{HBaseFeatureIndex, HBaseIndexAdapter}
+import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{EmptyPlan, ScanPlan}
+import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseQueryPlan}
 import org.locationtech.geomesa.hbase.jobs.HBaseGeoMesaRecordReader
+import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaFeatureIndexFactory}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.spark.SpatialRDD
 import org.locationtech.geomesa.spark.hbase.HBaseSpatialRDDProvider
+import org.locationtech.geomesa.utils.conf.IndexId
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
@@ -114,11 +116,14 @@ class GeoMesaBigtableInputFormat extends InputFormat[Text, SimpleFeature] {
   var delegate: BigtableInputFormat = _
 
   var sft: SimpleFeatureType = _
-  var table: HBaseIndexAdapter = _
+  var index: GeoMesaFeatureIndex[_, _] = _
 
   private def init(conf: Configuration): Unit = if (sft == null) {
     sft = GeoMesaConfigurator.getSchema(conf)
-    table = HBaseFeatureIndex.index(GeoMesaConfigurator.getIndexIn(conf)).asInstanceOf[HBaseIndexAdapter]
+    val identifier = GeoMesaConfigurator.getIndexIn(conf)
+    index = GeoMesaFeatureIndexFactory.create(null, sft, Seq(IndexId.id(identifier))).headOption.getOrElse {
+      throw new RuntimeException(s"Index option not configured correctly: $identifier")
+    }
     delegate = new BigtableInputFormat(TableName.valueOf(GeoMesaConfigurator.getTable(conf)))
     delegate.setConf(conf)
     // see TableMapReduceUtil.java
@@ -141,7 +146,7 @@ class GeoMesaBigtableInputFormat extends InputFormat[Text, SimpleFeature] {
     val rr = delegate.createRecordReader(split, context)
     val transform = GeoMesaConfigurator.getTransformSchema(context.getConfiguration)
     val ecql = GeoMesaConfigurator.getFilter(context.getConfiguration).map(FastFilterFactory.toFilter(sft, _))
-    new HBaseGeoMesaRecordReader(table, sft, ecql, transform, rr, false)
+    new HBaseGeoMesaRecordReader(index, sft, ecql, transform, rr, false)
   }
 }
 

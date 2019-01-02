@@ -14,14 +14,15 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.index.z2.Z2Index
+import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class ConfigurableIndexesTest extends Specification with TestWithDataStore {
@@ -41,12 +42,12 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
 
   "AccumuloDataStore" should {
     "only create the z3 index" >> {
-      val z3Tables = Z3Index.getTableNames(sft, ds)
+      val indices = ds.manager.indices(sft)
+      indices must haveLength(1)
+      indices.head.name mustEqual Z3Index.name
+      val z3Tables = indices.head.getTableNames()
       z3Tables must not(beEmpty)
-      foreach(z3Tables)(t => ds.tableOps.exists(t) must beTrue)
-      forall(AccumuloFeatureIndex.AllIndices.filter(i => i != Z3Index)) { i =>
-        foreach(Try(i.getTableNames(sft, ds)).getOrElse(Seq.empty))(table => ds.tableOps.exists(table) must beFalse)
-      }
+      foreach(z3Tables)(t => ds.connector.tableOperations().exists(t) must beTrue)
     }
 
     "be able to use z3 for spatial queries" >> {
@@ -75,20 +76,22 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
 
     "add another empty index" >> {
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-      sft.setIndices(sft.getIndices :+ (Z2Index.name, Z2Index.version, IndexMode.ReadWrite))
+      sft.setIndices(sft.getIndices :+ IndexId(Z2Index.name, Z2Index.version, Seq("geom"), IndexMode.ReadWrite))
       ds.updateSchema(sftName, sft)
-      forall(Seq(Z3Index, Z2Index)) { i =>
-        val tables = i.getTableNames(sft, ds)
+      val indices = ds.manager.indices(sft)
+      indices must haveLength(2)
+      indices.map(_.name) must containTheSameElementsAs(Seq(Z3Index.name, Z2Index.name))
+      forall(indices) { i =>
+        val tables = i.getTableNames()
         tables must not(beEmpty)
-        foreach(tables)(t => ds.tableOps.exists(t) must beTrue)
-      }
-      forall(AccumuloFeatureIndex.AllIndices.filter(i => i != Z3Index && i != Z2Index)) { i =>
-        foreach(Try(i.getTableNames(sft, ds)).getOrElse(Seq.empty))(table => ds.tableOps.exists(table) must beFalse)
-      }
-      val z2Tables = Z2Index.getTableNames(sft, ds)
-      z2Tables must not(beEmpty)
-      foreach(z2Tables) { table =>
-        WithClose(connector.createScanner(table, new Authorizations))(_.iterator.hasNext must beFalse)
+        foreach(tables)(t => ds.connector.tableOperations().exists(t) must beTrue)
+        if (i.name == Z2Index.name) {
+          foreach(tables) { table =>
+            WithClose(connector.createScanner(table, new Authorizations))(_.iterator.hasNext must beFalse)
+          }
+        } else {
+          ok
+        }
       }
     }
 

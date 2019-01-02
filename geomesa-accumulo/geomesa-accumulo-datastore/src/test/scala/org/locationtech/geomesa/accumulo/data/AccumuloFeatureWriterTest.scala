@@ -21,10 +21,11 @@ import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.{AccumuloFeatureIndex, AttributeIndex, RecordIndex}
+import org.locationtech.geomesa.accumulo.index.JoinIndex
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -87,7 +88,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
 
       features must haveSize(2)
       features.map(f => (f.getAttribute("name"), f.getAttribute("age"))) must
-          containTheSameElementsAs(Seq(("tom", 60), ("billy", 25)))
+          containTheSameElementsAs(Seq(("tom", Int.box(60)), ("billy", Int.box(25))))
       features.map(f => (f.getAttribute("name"), f.getID)) must
           containTheSameElementsAs(Seq(("tom", "id2"), ("billy", "id1")))
     }
@@ -136,7 +137,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       val updated = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("age = 60")).features).toSeq
 
       updated.map(f => (f.getAttribute("name"), f.getAttribute("age"))) must
-          containTheSameElementsAs(Seq(("will", 60), ("karen", 60), ("bob", 60)))
+          containTheSameElementsAs(Seq(("will", Int.box(60)), ("karen", Int.box(60)), ("bob", Int.box(60))))
       updated.map(f => (f.getAttribute("name"), f.getID)) must
           containTheSameElementsAs(Seq(("will", "fid1"), ("karen", "fid4"), ("bob", "fid5")))
     }
@@ -161,7 +162,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       val features = SelfClosingIterator(fs.getFeatures(Filter.INCLUDE).features).toSeq
       features must beEmpty
 
-      forall(AccumuloFeatureIndex.indices(sft).flatMap(_.getTableNames(sft, ds))) { name =>
+      forall(ds.manager.indices(sft).flatMap(_.getTableNames())) { name =>
         WithClose(connector.createScanner(name, new Authorizations()))(_.iterator.hasNext must beFalse)
       }
     }
@@ -180,7 +181,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
 
         val features = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("(age = 15) or (age = 16) or (age = 17)")).features).toSeq
         features.map(f => (f.getAttribute("name"), f.getAttribute("age"))) must
-            containTheSameElementsAs(Seq(("dude1", 15), ("dude2", 16), ("dude3", 17)))
+            containTheSameElementsAs(Seq(("dude1", Int.box(15)), ("dude2", Int.box(16)), ("dude3", Int.box(17))))
       } catch {
         case e: Exception =>
           trans.rollback()
@@ -358,7 +359,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
 
       val filter = CQL.toFilter("name = 'will'")
 
-      ds.getQueryPlan(new Query(sft.getTypeName, filter)).head.filter.index mustEqual AttributeIndex
+      ds.getQueryPlan(new Query(sft.getTypeName, filter)).head.filter.index.name mustEqual JoinIndex.name
 
       // Retrieve Will's ID before deletion.
       val featuresBeforeDelete = SelfClosingIterator(fs.getFeatures(filter).features).toSeq
@@ -401,10 +402,8 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       )
       forall(invalid) { feature =>
         addFeatures(Seq(feature)) must throwAn[IllegalArgumentException]
-        forall(ds.manager.indices(sft)) { index =>
-          forall(index.getTableNames(sft, ds)) { table =>
-            WithClose(connector.createScanner(table, new Authorizations()))(_.iterator.hasNext must beFalse)
-          }
+        forall(ds.manager.indices(sft).flatMap(_.getTableNames())) { table =>
+          WithClose(connector.createScanner(table, new Authorizations()))(_.iterator.hasNext must beFalse)
         }
       }
     }
@@ -429,8 +428,11 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
         Thread.sleep(2)
       }
 
+      val idIndex = ds.manager.indices(sft).find(_.name == IdIndex.name).orNull
+      idIndex must not(beNull)
+
       val serializer = KryoFeatureSerializer(sft)
-      val rows = RecordIndex.getTableNames(sft, ds).flatMap { table =>
+      val rows = idIndex.getTableNames().flatMap { table =>
         WithClose(ds.connector.createScanner(table, new Authorizations))(_.toList)
       }
 
@@ -443,7 +445,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
       // ensure that the second part of the UUID is random
       rowKeys.map(_.substring(19)).toSet must haveLength(5)
 
-      val ids = rows.map(e => RecordIndex.getIdFromRow(sft)(e.getKey.getRow.getBytes, 0, e.getKey.getRow.getLength, null))
+      val ids = rows.map(e => idIndex.getIdFromRow(e.getKey.getRow.getBytes, 0, e.getKey.getRow.getLength, null))
       ids must haveLength(5)
       forall(ids)(_ must not(beMatching("fid\\d")))
       // ensure they share a common prefix, since they have the same dtg/geom
@@ -454,7 +456,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithDataStore wit
   }
 
   def clearTablesHard(): Unit = {
-    AccumuloFeatureIndex.indices(sft).flatMap(_.getTableNames(sft, ds)).foreach { name =>
+    ds.manager.indices(sft).flatMap(_.getTableNames()).foreach { name =>
       val deleter = connector.createBatchDeleter(name, new Authorizations(), 5, new BatchWriterConfig())
       deleter.setRanges(Seq(new aRange()))
       deleter.delete()

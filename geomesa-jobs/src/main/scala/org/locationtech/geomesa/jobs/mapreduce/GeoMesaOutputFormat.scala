@@ -17,7 +17,6 @@ import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{DataStoreFinder, DataUtilities}
 import org.geotools.filter.identity.FeatureIdImpl
-import org.locationtech.geomesa.index.api.WrappedFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.index.IndexMode
@@ -38,7 +37,7 @@ object GeoMesaOutputFormat {
    * Configure the data store you will be writing to.
    */
   def configureDataStore(job: Job, dsParams: Map[String, String]): Unit = {
-    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[GeoMesaDataStore[_, _, _]]
+    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[GeoMesaDataStore[_]]
     assert(ds != null, "Invalid data store parameters")
     ds.dispose()
 
@@ -77,11 +76,12 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
  *
  * Key is ignored. If the feature type for the given feature does not exist yet, it will be created.
  */
-class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
-    (params: Map[String, String], indices: Option[Seq[String]], context: TaskAttemptContext)
+class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS]](params: Map[String, String],
+                                                      indices: Option[Seq[String]],
+                                                      context: TaskAttemptContext)
     extends RecordWriter[Text, SimpleFeature] with LazyLogging {
 
-  val ds: GeoMesaDataStore[DS, F, W] = DataStoreFinder.getDataStore(params).asInstanceOf[GeoMesaDataStore[DS, F, W]]
+  val ds: DS = DataStoreFinder.getDataStore(params).asInstanceOf[DS]
 
   val sftCache    = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
   val writerCache = scala.collection.mutable.Map.empty[String, SimpleFeatureWriter]
@@ -106,7 +106,7 @@ class GeoMesaRecordWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature,
 
     val writer = writerCache.getOrElseUpdate(sftName, {
       val i = indices match {
-        case Some(names) => names.map(ds.manager.index)
+        case Some(names) => names.map(ds.manager.index(sft, _, IndexMode.Write))
         case None => ds.manager.indices(sft, mode = IndexMode.Write)
       }
       ds.getIndexWriterAppend(sftName, i)

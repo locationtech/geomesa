@@ -15,6 +15,8 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
+import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.stats._
@@ -237,9 +239,22 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
     // get the attributes that we will keep stats for
-    val stAttributes = Option(sft.getGeomField).toSeq ++ sft.getDtgField
-    val indexedAttributes = sft.getAttributeDescriptors.filter(d => d.isIndexed && okForStats(d)).map(_.getLocalName)
-    val flaggedAttributes = sft.getAttributeDescriptors.filter(d => d.isKeepStats && okForStats(d)).map(_.getLocalName)
+
+    val stAttributesBuilder = Seq.newBuilder[String]
+    val indexedAttributesBuilder = Seq.newBuilder[String]
+
+    sft.getIndices.foreach {
+      case i if Seq(Z3Index, XZ3Index, Z2Index, XZ2Index).exists(_.name == i.name) => stAttributesBuilder ++= i.attributes
+      case i => i.attributes.headOption.foreach(indexedAttributesBuilder += _)
+    }
+
+    val stAttributes = stAttributesBuilder.result().distinct
+    val indexedAttributes = indexedAttributesBuilder.result().distinct.filter { a =>
+      !stAttributes.contains(a) && okForStats(sft.getDescriptor(a))
+    }
+    val flaggedAttributes = sft.getAttributeDescriptors.collect {
+      case d if d.isKeepStats && okForStats(d) => d.getLocalName
+    }.filter(a => !stAttributes.contains(a) && !indexedAttributes.contains(a))
 
     val count = Stat.Count()
 
@@ -336,7 +351,7 @@ class MetadataStatUpdater(stats: MetadataBackedStats, sft: SimpleFeatureType, st
   }
 }
 
-class StatsMetadataSerializer(ds: GeoMesaDataStore[_, _, _]) extends MetadataSerializer[Stat] {
+class StatsMetadataSerializer(ds: GeoMesaDataStore[_]) extends MetadataSerializer[Stat] {
 
   private val sfts = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
 
