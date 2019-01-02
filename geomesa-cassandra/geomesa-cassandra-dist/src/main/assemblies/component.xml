@@ -62,6 +62,13 @@
             <directory>../geomesa-cassandra-tools/conf</directory>
             <outputDirectory>conf</outputDirectory>
             <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-cassandra-tools/conf-filtered</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
             <filtered>true</filtered>
             <directoryMode>755</directoryMode>
         </fileSet>
