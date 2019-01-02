@@ -19,11 +19,12 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator,
 import org.geotools.feature.collection.DecoratingSimpleFeatureCollection
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.GeodeticCalculator
-import org.geotools.util.{Converters, NullProgressListener}
+import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.{ff, orFilters}
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -221,7 +222,7 @@ object RouteVisitor {
 
     // gets the heading for an input feature
     val getFeatureHeading: (SimpleFeature) => Double = headingIndex match {
-      case Some(index) => (sf) => Converters.convert(sf.getAttribute(index), classOf[Double])
+      case Some(index) => (sf) => FastConverter.convert(sf.getAttribute(index), classOf[Double])
       case None =>
       (sf) => {
         val geom = sf.getAttribute(geomIndex).asInstanceOf[LineString]
