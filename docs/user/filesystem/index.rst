@@ -1,5 +1,5 @@
-FileSystem Data Store (HDFS, S3)
-================================
+FileSystem Data Store
+=====================
 
 The GeoMesa FileSystem datastore (FSDS) provides a cost-effective, performant solution for massive OLAP-style spatial
 data analytics using frameworks such as Apache Spark. It utilizes modern columnar formats that enable data compression

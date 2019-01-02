@@ -1,8 +1,10 @@
 Tutorials
 =========
 
-Getting Started
----------------
+Not sure where to begin? Take a look at :doc:`/user/getting_started`.
+
+Quick Starts
+------------
 
 .. toctree::
     :maxdepth: 1
@@ -32,6 +34,8 @@ Data In/Out
     geomesa-blobstore-exif
     geomesa-quickstart-storm
     geomesa-raster
+
+.. _tutorials_analytics:
 
 Data Analysis
 -------------
