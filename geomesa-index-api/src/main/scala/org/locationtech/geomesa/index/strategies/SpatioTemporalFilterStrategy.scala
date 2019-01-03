@@ -13,13 +13,12 @@ import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 trait SpatioTemporalFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 
-  import SpatioTemporalFilterStrategy.{StaticCost, isBounded}
+  import SpatioTemporalFilterStrategy.StaticCost
 
   def geom: String
   def dtg: String
@@ -34,28 +33,34 @@ trait SpatioTemporalFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
       None
     } else {
       val (temporal, nonTemporal) = FilterExtractingVisitor(filter, dtg, sft)
-      val (spatial, others) = nonTemporal match {
-        case None     => (None, None)
-        case Some(nt) => FilterExtractingVisitor(nt, geom, sft, SpatialFilterStrategy.spatialCheck)
-      }
+      val intervals = temporal.map(FilterHelper.extractIntervals(_, dtg)).getOrElse(FilterValues.empty)
 
-      // if there is no geom predicate, we can still use this index, but if there is a
-      // date attribute index that will work better
-      val spatialCheck = spatial.isDefined || !sft.getIndices.exists { i =>
-        (i.name == AttributeIndex.name || i.name == AttributeIndex.JoinIndexName) && i.attributes.headOption.contains(dtg)
-      }
-
-      if (spatialCheck && temporal.exists(isBounded(_, sft, dtg))) {
-        // https://geomesa.atlassian.net/browse/GEOMESA-1166
-        // TODO check date range and use z2 instead if too big
-        // TODO also if very small bbox, z2 has ~10 more bits of lat/lon info
-        val primary = andFilters(spatial.toSeq ++ temporal)
-        lazy val cost = stats.flatMap(_.getCount(sft, primary, exact = false)).getOrElse {
-          if (spatial.isDefined) { StaticCost } else { SpatialFilterStrategy.StaticCost + 1 }
-        }
-        Some(FilterStrategy(this, Some(primary), others, cost))
-      } else {
+      if (!intervals.disjoint && !intervals.exists(_.isBounded)) {
+        // if there aren't any intervals then we would have to do a full table scan
         Some(FilterStrategy(this, None, Some(filter), Long.MaxValue))
+      } else {
+        val (spatial, others) = nonTemporal match {
+          case Some(f) => FilterExtractingVisitor(f, geom, sft, SpatialFilterStrategy.spatialCheck)
+          case None    => (None, None)
+        }
+        val primary = andFilters(spatial.toSeq ++ temporal)
+
+        lazy val cost = {
+          // we can still use this index with a geom, but if there is a date attribute index that will work better
+          if (spatial.isEmpty && AttributeIndex.indexed(sft, dtg)) {
+            Long.MaxValue
+          } else {
+            // TODO check date range and use z2 instead if too big
+            // TODO also if very small bbox, z2 has ~10 more bits of lat/lon info
+            // https://geomesa.atlassian.net/browse/GEOMESA-1166
+
+            val base = stats.flatMap(_.getCount(sft, primary, exact = false)).getOrElse(StaticCost)
+            // de-prioritize non-spatial and one-sided date filters
+            if (spatial.isDefined && intervals.forall(_.isBoundedBothSides)) { base } else { base * 2 + 1 }
+          }
+        }
+
+        Some(FilterStrategy(this, Some(primary), others, cost))
       }
     }
   }
@@ -68,6 +73,7 @@ object SpatioTemporalFilterStrategy {
   /**
     * Returns true if the temporal filters create a range with an upper and lower bound
     */
+  @deprecated("deprecated with no replacement")
   def isBounded(temporalFilter: Filter, sft: SimpleFeatureType, dtg: String): Boolean = {
     val intervals = FilterHelper.extractIntervals(temporalFilter, dtg)
     intervals.nonEmpty && intervals.values.forall(_.isBoundedBothSides)

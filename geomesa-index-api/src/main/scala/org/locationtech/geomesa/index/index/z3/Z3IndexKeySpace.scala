@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.index.z3
 
 import java.util.Date
 
-import org.locationtech.jts.geom.{Geometry, Point}
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
@@ -24,6 +24,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.locationtech.geomesa.utils.index.ByteArrays
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -33,7 +34,7 @@ import scala.util.control.NonFatal
 class Z3IndexKeySpace(val sft: SimpleFeatureType,
                       val sharding: ShardStrategy,
                       geomField: String,
-                      dtgField: String) extends IndexKeySpace[Z3IndexValues, Z3IndexKey] {
+                      dtgField: String) extends IndexKeySpace[Z3IndexValues, Z3IndexKey] with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -115,7 +116,7 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
 
     if (geometries.disjoint || intervals.disjoint) {
       explain("Disjoint geometries or dates extracted, short-circuiting to empty query")
-      return Z3IndexValues(sfc, geometries, Seq.empty, intervals, Map.empty)
+      return Z3IndexValues(sfc, geometries, Seq.empty, intervals, Map.empty, Seq.empty)
     }
 
     // compute our ranges based on the coarse bounds for our query
@@ -130,13 +131,15 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
 
     // calculate map of weeks to time intervals in that week
     val timesByBin = scala.collection.mutable.Map.empty[Short, Seq[(Long, Long)]].withDefaultValue(Seq.empty)
+    val unboundedBins = Seq.newBuilder[(Short, Short)]
 
     // note: intervals shouldn't have any overlaps
     intervals.foreach { interval =>
+      val (lower, upper) = boundsToDates(interval.bounds)
+      val BinnedTime(lb, lt) = dateToIndex(lower)
+      val BinnedTime(ub, ut) = dateToIndex(upper)
+
       if (interval.isBoundedBothSides) {
-        val (lower, upper) = boundsToDates(interval.bounds)
-        val BinnedTime(lb, lt) = dateToIndex(lower)
-        val BinnedTime(ub, ut) = dateToIndex(upper)
         if (lb == ub) {
           timesByBin(lb) ++= Seq((lt, ut))
         } else {
@@ -144,14 +147,20 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
           timesByBin(ub) ++= Seq((minTime, ut))
           Range.inclusive(lb + 1, ub - 1).foreach(b => timesByBin(b.toShort) = sfc.wholePeriod)
         }
+      } else if (interval.lower.value.isDefined) {
+        timesByBin(lb) ++= Seq((lt, maxTime))
+        unboundedBins += (((lb + 1).toShort, Short.MaxValue))
+      } else if (interval.upper.value.isDefined) {
+        timesByBin(ub) ++= Seq((minTime, ut))
+        unboundedBins += ((0, (ub - 1).toShort))
       }
     }
 
-    Z3IndexValues(sfc, geometries, xy, intervals, timesByBin.toMap)
+    Z3IndexValues(sfc, geometries, xy, intervals, timesByBin.toMap, unboundedBins.result())
   }
 
   override def getRanges(values: Z3IndexValues, multiplier: Int): Iterator[ScanRange[Z3IndexKey]] = {
-    val Z3IndexValues(z3, _, xy, _, timesByBin) = values
+    val Z3IndexValues(z3, _, xy, _, timesByBin, unboundedBins) = values
 
     // note: `target` will always be Some, as ScanRangesTarget has a default value
     val target = QueryProperties.ScanRangesTarget.option.map { t =>
@@ -162,10 +171,21 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
 
     lazy val wholePeriodRanges = toZRanges(z3.wholePeriod)
 
-    timesByBin.iterator.flatMap { case (bin, times) =>
+    val bounded = timesByBin.iterator.flatMap { case (bin, times) =>
       val zs = if (times.eq(z3.wholePeriod)) { wholePeriodRanges } else { toZRanges(times) }
       zs.map(range => BoundedRange(Z3IndexKey(bin, range.lower), Z3IndexKey(bin, range.upper)))
     }
+
+    val unbounded = unboundedBins.iterator.map {
+      case (0, Short.MaxValue)     => UnboundedRange(Z3IndexKey(0, 0L))
+      case (lower, Short.MaxValue) => LowerBoundedRange(Z3IndexKey(lower, 0L))
+      case (0, upper)              => UpperBoundedRange(Z3IndexKey(upper, Long.MaxValue))
+      case (lower, upper) =>
+        logger.error(s"Unexpected unbounded bin endpoints: $lower:$upper")
+        UnboundedRange(Z3IndexKey(0, 0L))
+    }
+
+    bounded ++ unbounded
   }
 
   override def getRangeBytes(ranges: Iterator[ScanRange[Z3IndexKey]], tier: Boolean): Iterator[ByteRange] = {
@@ -173,6 +193,15 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
       ranges.map {
         case BoundedRange(lo, hi) =>
           BoundedByteRange(ByteArrays.toBytes(lo.bin, lo.z), ByteArrays.toBytesFollowingPrefix(hi.bin, hi.z))
+
+        case LowerBoundedRange(lo) =>
+          BoundedByteRange(ByteArrays.toBytes(lo.bin, lo.z), ByteRange.UnboundedUpperRange)
+
+        case UpperBoundedRange(hi) =>
+          BoundedByteRange(ByteRange.UnboundedLowerRange, ByteArrays.toBytesFollowingPrefix(hi.bin, hi.z))
+
+        case UnboundedRange(_) =>
+          BoundedByteRange(ByteRange.UnboundedLowerRange, ByteRange.UnboundedUpperRange)
 
         case r =>
           throw new IllegalArgumentException(s"Unexpected range type $r")
@@ -184,6 +213,19 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
           val upper = ByteArrays.toBytesFollowingPrefix(hi.bin, hi.z)
           sharding.shards.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
 
+        case LowerBoundedRange(lo) =>
+          val lower = ByteArrays.toBytes(lo.bin, lo.z)
+          val upper = ByteRange.UnboundedUpperRange
+          sharding.shards.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
+
+        case UpperBoundedRange(hi) =>
+          val lower = ByteRange.UnboundedLowerRange
+          val upper = ByteArrays.toBytesFollowingPrefix(hi.bin, hi.z)
+          sharding.shards.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
+
+        case UnboundedRange(_) =>
+          Seq(BoundedByteRange(ByteRange.UnboundedLowerRange, ByteRange.UnboundedUpperRange))
+
         case r =>
           throw new IllegalArgumentException(s"Unexpected range type $r")
       }
@@ -194,13 +236,16 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
                              config: Option[GeoMesaDataStoreConfig],
                              hints: Hints): Boolean = {
     // if the user has requested strict bounding boxes, we apply the full filter
+    // if we have a complicated geometry predicate, we need to pass it through to be evaluated
+    // if we have unbounded dates, we need to pass them through as we don't have z-values for all periods
+
     // if the spatial predicate is rectangular (e.g. a bbox), the index is fine enough that we
     // don't need to apply the filter on top of it. this may cause some minor errors at extremely
     // fine resolutions, but the performance is worth it
-    // if we have a complicated geometry predicate, we need to pass it through to be evaluated
     val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(config.forall(_.looseBBox))
-    def simpleGeoms = values.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
-    !looseBBox || !simpleGeoms
+    def unboundedDates: Boolean = values.exists(_.temporalUnbounded.nonEmpty)
+    def complexGeoms: Boolean = values.exists(_.geometries.values.exists(g => !GeometryUtils.isRectangular(g)))
+    !looseBBox || unboundedDates || complexGeoms
   }
 }
 
