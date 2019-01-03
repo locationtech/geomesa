@@ -474,11 +474,14 @@ class QueryFilterSplitterTest extends Specification {
       val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft))
       val filter = f("dtg TEQUALS 2014-01-01T12:30:00.000Z")
       val options = splitter.getQueryOptions(filter)
-      options must haveLength(1)
-      options.head.strategies must haveLength(1)
-      options.head.strategies.head.index mustEqual AttributeIndex
-      options.head.strategies.head.primary must beSome(filter)
-      options.head.strategies.head.secondary must beNone
+      options must haveLength(2)
+      foreach(options)(_.strategies must haveLength(1))
+      val strategies = options.map(_.strategies.head)
+      strategies.map(_.index) must containTheSameElementsAs(Seq(AttributeIndex, Z3Index))
+      foreach(strategies) { strategy =>
+        strategy.primary must beSome(filter)
+        strategy.secondary must beNone
+      }
     }
 
     "provide only one option on OR queries of high cardinality indexed attributes" >> {

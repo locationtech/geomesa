@@ -94,6 +94,8 @@ object FeatureStateFactory extends LazyLogging {
     override def insertIntoIndex(): Unit = index.insert(g, id, feature)
     override def removeFromIndex(): SimpleFeature = index.remove(g, id)
     override def retrieveFromIndex(): SimpleFeature = index.get(g, id)
+
+    override def toString: String = s"FeatureState($feature)"
   }
 
   /**
@@ -128,6 +130,8 @@ object FeatureStateFactory extends LazyLogging {
       future.cancel(false)
       super.removeFromIndex()
     }
+
+    override def toString: String = s"ExpiryState($feature)"
   }
 
   /**
@@ -142,6 +146,7 @@ object FeatureStateFactory extends LazyLogging {
     override def insertIntoIndex(): Unit = expiration.expire(this)
     override def retrieveFromIndex(): SimpleFeature = null
     override def removeFromIndex(): SimpleFeature = null
+    override def toString: String = s"ExpiredState($feature)"
   }
 
 
