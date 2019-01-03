@@ -18,4 +18,5 @@ case class Z3IndexValues(sfc: Z3SFC,
                          geometries: FilterValues[Geometry],
                          spatialBounds: Seq[(Double, Double, Double, Double)],
                          intervals: FilterValues[Bounds[ZonedDateTime]],
-                         temporalBounds: Map[Short, Seq[(Long, Long)]])
+                         temporalBounds: Map[Short, Seq[(Long, Long)]],
+                         temporalUnbounded: Seq[(Short, Short)])
