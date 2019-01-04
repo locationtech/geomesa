@@ -6,23 +6,21 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.geotools
-
-import java.util.{List => jList}
+package org.locationtech.geomesa.utils.geotools.sft
 
 import com.typesafe.config._
-import org.locationtech.geomesa.utils.geotools.AttributeSpec.{GeomAttributeSpec, ListAttributeSpec, MapAttributeSpec, SimpleAttributeSpec}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs._
+import org.locationtech.geomesa.utils.geotools.ConfigSftParsing
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.KEYWORDS_DELIMITER
+import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec._
 import org.opengis.feature.simple.SimpleFeatureType
-
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 
 /**
   * SimpleFeatureSpec parsing from/to typesafe config
   */
 object SimpleFeatureSpecConfig {
+
+  import scala.collection.JavaConverters._
 
   val TypeNamePath   = "type-name"
   val AttributesPath = "attributes"
@@ -64,8 +62,8 @@ object SimpleFeatureSpecConfig {
 
     // Update "default" options (dtg and geom)
     val defaults = sft.getDtgField.toSeq ++ Option(sft.getGeomField)
-    val attributes = sft.getAttributeDescriptors.map { ad =>
-      val config = AttributeSpec(sft, ad).toConfigMap
+    val attributes = sft.getAttributeDescriptors.asScala.map { ad =>
+      val config = SimpleFeatureSpec.attribute(sft, ad).toConfigMap
       if (defaults.contains(ad.getLocalName)) {
         config.updated("default", "true").asJava
       } else {
@@ -75,16 +73,16 @@ object SimpleFeatureSpecConfig {
 
     val base = ConfigFactory.empty()
       .withValue(TypeNamePath, ConfigValueFactory.fromAnyRef(sft.getTypeName))
-      .withValue(AttributesPath, ConfigValueFactory.fromIterable(attributes))
+      .withValue(AttributesPath, ConfigValueFactory.fromIterable(attributes.asJava))
 
     val updated = if (includeUserData) {
       val prefixes = sft.getUserDataPrefixes
       // special handling for keywords delimiter
-      val keywords = Map(KEYWORDS_KEY -> sft.getKeywords.asJava).filter(_._2.nonEmpty)
-      val toConvert = keywords ++ sft.getUserData.collect {
+      val keywords = Map(KEYWORDS_KEY -> sft.getKeywords.asJava).filterNot(_._2.isEmpty)
+      val toConvert = keywords ++ sft.getUserData.asScala.collect {
         case (k, v) if v != null && prefixes.exists(k.toString.startsWith) && k != KEYWORDS_KEY => (k.toString, v)
       }
-      val userData = ConfigValueFactory.fromMap(toConvert)
+      val userData = ConfigValueFactory.fromMap(toConvert.asJava)
       base.withValue(UserDataPath, userData)
     } else {
       base
@@ -122,7 +120,7 @@ object SimpleFeatureSpecConfig {
     import org.locationtech.geomesa.utils.conf.ConfConversions._
 
     val name = conf.getStringOpt(TypeNamePath)
-    val attributes = conf.getConfigListOpt("fields").getOrElse(conf.getConfigList(AttributesPath)).map(buildField)
+    val attributes = conf.getConfigListOpt("fields").getOrElse(conf.getConfigList(AttributesPath)).asScala.map(buildField)
     val opts = getOptions(conf.getConfigOpt(UserDataPath).getOrElse(ConfigFactory.empty))
 
     (name, SimpleFeatureSpec(attributes, opts))
@@ -140,14 +138,14 @@ object SimpleFeatureSpecConfig {
     }
   }
 
-  def normalizeKey(k: String): String = ConfigUtil.splitPath(k).mkString(".")
+  def normalizeKey(k: String): String = String.join(".", ConfigUtil.splitPath(k))
 
   private def getOptions(conf: Config): Map[String, String] = {
-    val asMap = conf.entrySet().map(e => normalizeKey(e.getKey) -> e.getValue.unwrapped()).toMap
+    val asMap = conf.entrySet().asScala.map(e => normalizeKey(e.getKey) -> e.getValue.unwrapped()).toMap
     asMap.filterKeys(!NonOptions.contains(_)).map {
       // Special case to handle adding keywords
-      case (KEYWORDS_KEY, v: jList[String]) => KEYWORDS_KEY -> v.mkString(KEYWORDS_DELIMITER)
-      case (k, v: jList[String]) => k -> v.mkString(",")
+      case (KEYWORDS_KEY, v: java.util.List[String]) => KEYWORDS_KEY -> String.join(KEYWORDS_DELIMITER, v)
+      case (k, v: java.util.List[String]) => k -> String.join(",", v)
       case (k, v) => k -> s"$v"
     }
   }

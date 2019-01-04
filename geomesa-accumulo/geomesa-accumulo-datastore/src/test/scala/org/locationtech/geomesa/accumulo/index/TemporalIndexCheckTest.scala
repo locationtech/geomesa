@@ -100,13 +100,13 @@ class TemporalIndexCheckTest extends Specification {
     "return a dtg attribute descriptor if DEFAULT_DATE_KEY is set properly" in {
       val testType = copy(oneDTGType)
       testType.setDtgField("dtg")
-      testType.getDtgDescriptor must beSome(oneDTGType.getDescriptor("dtg"))
+      testType.getDtgIndex.map(testType.getDescriptor) must beSome(oneDTGType.getDescriptor("dtg"))
     }
 
     "not return a dtg attribute descriptor if DEFAULT_DATE_KEY is not set correctly" in {
       val testType = copy(noDTGType)
       testType.setDtgField("dtg") must throwAn[IllegalArgumentException]
-      testType.getDtgDescriptor must beNone
+      testType.getDtgIndex.map(testType.getDescriptor) must beNone
     }
   }
 }

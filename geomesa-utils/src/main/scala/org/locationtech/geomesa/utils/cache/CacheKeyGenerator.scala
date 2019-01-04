@@ -31,6 +31,6 @@ object CacheKeyGenerator {
     */
   def restore(key: String): SimpleFeatureType = {
     val i = key.indexOf(';')
-    SimpleFeatureTypes.createType(key.substring(0, i), key.substring(i + 1))
+    SimpleFeatureTypes.createImmutableType(key.substring(0, i), key.substring(i + 1))
   }
 }

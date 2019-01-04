@@ -27,6 +27,7 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.jobs._
 import org.locationtech.geomesa.jobs.accumulo.{AccumuloJobUtils, GeoMesaArgs, InputDataStoreArgs, InputFeatureArgs}
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaAccumuloInputFormat
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.IndexCoverage
@@ -97,7 +98,7 @@ class AttributeIndexJob extends Tool {
     val ds = DataStoreFinder.getDataStore(dsInParams).asInstanceOf[AccumuloDataStore]
     require(ds != null, "The specified input data store could not be created - check your job parameters")
     try {
-      var sft = ds.getSchema(typeName)
+      var sft = Option(ds.getSchema(typeName)).map(SimpleFeatureTypes.mutable).orNull
       require(sft != null, s"The schema '$typeName' does not exist in the input data store")
 
       // validate attributes and set the index coverage
@@ -167,7 +168,7 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
     counter = context.getCounter("org.locationtech.geomesa", "attributes-written")
     val dsParams = GeoMesaConfigurator.getDataStoreInParams(context.getConfiguration)
     val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
-    val sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(context.getConfiguration))
+    val sft = SimpleFeatureTypes.mutable(ds.getSchema(GeoMesaConfigurator.getFeatureType(context.getConfiguration)))
     val attributes = context.getConfiguration.get(AttributeIndexJob.AttributesKey).split(",").toSet
     val indices = ds.manager.indices(sft, IndexMode.Write).filter { i =>
       (i.name == AttributeIndex.name || i.name == JoinIndex.name) &&

@@ -206,7 +206,7 @@ object SimpleFeatureVector {
     // add sft-level metadata
     val options = Option(vector.getField.getMetadata.get(OptionsKey)).getOrElse("")
 
-    val sft = SimpleFeatureTypes.createType(vector.getField.getName, attributes.mkString(",") + options)
+    val sft = SimpleFeatureTypes.createImmutableType(vector.getField.getName, attributes.mkString(",") + options)
     val geomPrecision = {
       val geomVector: Option[FieldVector] =
         Option(sft.getGeomField).flatMap(d => Option(vector.getChild(d))).orElse(getNestedVector[Geometry](sft, vector))

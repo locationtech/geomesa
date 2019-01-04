@@ -6,9 +6,10 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.geotools
+package org.locationtech.geomesa.utils.geotools.sft
 
-import org.locationtech.geomesa.utils.geotools.AttributeSpec._
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec._
 import org.locationtech.geomesa.utils.text.BasicParser
 import org.parboiled.errors.{ErrorUtils, InvalidInputError, ParsingException}
 import org.parboiled.scala.parserunners.{BasicParseRunner, ReportingParseRunner}

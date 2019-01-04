@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.geotools
 
 import java.io.IOException
+import java.util.Collections
 import java.util.concurrent.TimeUnit
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
@@ -232,10 +233,11 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
    * @return feature type, or null if it does not exist
    */
   override def getSchema(typeName: String): SimpleFeatureType = {
-    val sft = super.getSchema(typeName)
+    var sft = super.getSchema(typeName)
     if (sft != null) {
       // ensure index metadata is correct
       if (sft.getIndices.exists(i => i.attributes.isEmpty && i.name != IdIndex.name)) {
+        sft = SimpleFeatureTypes.mutable(sft)
         // migrate index metadata to standardized versions and attributes
         transitionIndices(sft)
         // validate indices
@@ -249,6 +251,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
         metadata.insert(typeName, s"$ATTRIBUTES_KEY.bak", metadata.readRequired(typeName, ATTRIBUTES_KEY))
         // store the updated metadata
         metadata.insert(typeName, ATTRIBUTES_KEY, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
+        sft = super.getSchema(typeName)
       } else {
         // validate indices
         try { manager.indices(sft) } catch {
@@ -266,11 +269,14 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
 
       // get the remote version if it's available, but don't wait for it
       GeoMesaDataStore.versions.get(new VersionKey(this)).getNow(Right(None)) match {
-        case Right(v) => v.foreach(sft.setRemoteVersion)
-        case Left(e)  => throw e
+        case Left(e) => throw e
+        case Right(version) =>
+          version.foreach { v =>
+            val userData = Collections.singletonMap[AnyRef, AnyRef](InternalConfigs.REMOTE_VERSION, v.toString)
+            sft = SimpleFeatureTypes.immutable(sft, userData)
+          }
       }
     }
-
     sft
   }
 
