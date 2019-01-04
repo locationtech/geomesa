@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{Query, Transaction}
 import org.geotools.factory.Hints
+import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTS
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
@@ -60,6 +61,12 @@ class GeoMesaDataStoreTest extends Specification {
         recovered.getX must beCloseTo(expected.getX, 0.001)
         recovered.getY must beCloseTo(expected.getY, 0.001)
       }
+    }
+    "handle weird idl-wrapping polygons" in {
+      val filter = ECQL.toFilter("intersects(geom, 'POLYGON((-179.99 45, -179.99 90, 179.99 90, 179.99 45, -179.99 45))')")
+      val query = new Query("test", filter)
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
+      results must beEmpty
     }
   }
 }
