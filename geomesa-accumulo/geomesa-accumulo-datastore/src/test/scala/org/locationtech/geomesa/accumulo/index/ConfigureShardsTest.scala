@@ -14,6 +14,7 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.Z_SPLITS_KEY
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -66,7 +67,7 @@ class ConfigureShardsTest extends Specification with TestWithDataStore {
 
     "throw exception" >> {
       val sftPrivate = SimpleFeatureTypes.createType("private", spec)
-      sftPrivate.setZShards(128)
+      sftPrivate.getUserData.put(Z_SPLITS_KEY, "128")
       GeoMesaSchemaValidator.validate(sftPrivate) must throwAn[IllegalArgumentException]
     }
   }

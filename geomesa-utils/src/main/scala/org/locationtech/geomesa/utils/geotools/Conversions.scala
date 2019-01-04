@@ -208,6 +208,7 @@ object RichSimpleFeatureType {
 
     def getDtgField: Option[String] = userData[String](DEFAULT_DATE_KEY)
     def getDtgIndex: Option[Int] = getDtgField.map(sft.indexOf).filter(_ != -1)
+    @deprecated
     def getDtgDescriptor: Option[AttributeDescriptor] = getDtgIndex.map(sft.getDescriptor)
     def clearDtgField(): Unit = sft.getUserData.remove(DEFAULT_DATE_KEY)
     def setDtgField(dtg: String): Unit = {
@@ -217,8 +218,10 @@ object RichSimpleFeatureType {
       sft.getUserData.put(DEFAULT_DATE_KEY, dtg)
     }
 
-    def getStIndexSchema: String = userData[String](ST_INDEX_SCHEMA_KEY).orNull
-    def setStIndexSchema(schema: String): Unit = sft.getUserData.put(ST_INDEX_SCHEMA_KEY, schema)
+    @deprecated("GeoHash index is not longer supported")
+    def getStIndexSchema: String = null
+    @deprecated("GeoHash index is not longer supported")
+    def setStIndexSchema(schema: String): Unit = {}
 
     def isLogicalTime: Boolean = userData[String](LOGICAL_TIME_KEY).forall(_.toBoolean)
 
@@ -301,6 +304,7 @@ object RichSimpleFeatureType {
     def isUuid: Boolean = userData[String](FID_UUID_KEY).exists(java.lang.Boolean.parseBoolean)
     def isUuidEncoded: Boolean = isUuid && userData[String](FID_UUID_ENCODED_KEY).forall(java.lang.Boolean.parseBoolean)
 
+    @deprecated
     def setRemoteVersion(version: SemanticVersion): Unit = sft.getUserData.put(REMOTE_VERSION, String.valueOf(version))
     def getRemoteVersion: Option[SemanticVersion] =
       Option(sft.getUserData.get(REMOTE_VERSION).asInstanceOf[String]).map(SemanticVersion.apply)

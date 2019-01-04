@@ -27,7 +27,6 @@ import org.opengis.filter.Filter
 object IteratorCache {
 
   // thread safe objects can use a concurrent hashmap
-  private val sftCache = new ConcurrentHashMap[String, SimpleFeatureType]()
   private val serializerCache = new ConcurrentHashMap[(String, String), KryoFeatureSerializer]()
   private val indexCache = new ConcurrentHashMap[(String, String), GeoMesaFeatureIndex[_, _]]()
 
@@ -41,15 +40,7 @@ object IteratorCache {
     * @param spec simple feature type spec
     * @return
     */
-  def sft(spec: String): SimpleFeatureType = {
-    // note: before the cache is populated, we might end up creating multiple objects, but it is still thread-safe
-    val cached = sftCache.get(spec)
-    if (cached != null) { cached } else {
-      val sft = SimpleFeatureTypes.createType("", spec)
-      sftCache.put(spec, sft)
-      sft
-    }
-  }
+  def sft(spec: String): SimpleFeatureType = SimpleFeatureTypes.createImmutableType("", spec)
 
   /**
     * Returns a cached serializer, creating one if necessary

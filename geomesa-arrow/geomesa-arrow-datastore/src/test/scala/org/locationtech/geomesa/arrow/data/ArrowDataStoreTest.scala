@@ -36,7 +36,7 @@ class ArrowDataStoreTest extends Specification {
 
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 
-  val sft = SimpleFeatureTypes.createType("test", "name:String,foo:String,dtg:Date,*geom:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createImmutableType("test", "name:String,foo:String,dtg:Date,*geom:Point:srid=4326")
 
   val features0 = (0 until 10).map { i =>
     ScalaSimpleFeature.create(sft, s"0$i", s"name0$i", s"foo${i % 2}", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")

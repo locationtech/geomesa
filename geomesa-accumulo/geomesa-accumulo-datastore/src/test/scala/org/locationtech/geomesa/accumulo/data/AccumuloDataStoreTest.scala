@@ -12,7 +12,6 @@ import java.io.IOException
 import java.util.Date
 
 import com.typesafe.config.ConfigFactory
-import org.locationtech.jts.geom.{Geometry, Point}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
@@ -40,6 +39,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.locationtech.geomesa.utils.text.{StringSerialization, WKTUtils}
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -188,7 +188,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
       val initialKeywords = Set("keywordA=Hello", "keywordB", "keywordC")
       val spec = s"name:String;$KEYWORDS_KEY=${initialKeywords.mkString(KEYWORDS_DELIMITER)}"
-      val sft = createNewSchema(spec, dtgField = None)
+      val sft = SimpleFeatureTypes.mutable(createNewSchema(spec, dtgField = None))
 
       val keywordsToRemove = Set("keywordA=Hello", "keywordC")
       sft.removeKeywords(keywordsToRemove)
@@ -206,7 +206,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val keywordsToAdd = Set("keywordA", "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\")
 
       val spec = s"name:String;$KEYWORDS_KEY=$originalKeyword"
-      val sft = createNewSchema(spec, dtgField = None)
+      val sft = SimpleFeatureTypes.mutable(createNewSchema(spec, dtgField = None))
 
       sft.addKeywords(keywordsToAdd)
       ds.updateSchema(sft.getTypeName, sft)
@@ -218,7 +218,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     "not allow updating non-keyword user data" in {
       import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TABLE_SHARING_KEY
 
-      val sft: SimpleFeatureType = createNewSchema("name:String", dtgField = None)
+      val sft = SimpleFeatureTypes.mutable(createNewSchema("name:String", dtgField = None))
       ds.createSchema(sft)
 
       sft.getUserData.put(TABLE_SHARING_KEY, "false") // Change table sharing
@@ -451,7 +451,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "update metadata for indexed attributes" in {
-      val sft = createNewSchema("name:String,dtg:Date,*geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.mutable(createNewSchema("name:String,dtg:Date,*geom:Point:srid=4326"))
       sft.getIndices.map(_.name) must containTheSameElementsAs(Seq(Z3Index, Z2Index, IdIndex).map(_.name))
       sft.getAttributeDescriptors.head.getUserData.put(AttributeOptions.OPT_INDEX, IndexCoverage.JOIN.toString)
       ds.updateSchema(sft.getTypeName, sft)

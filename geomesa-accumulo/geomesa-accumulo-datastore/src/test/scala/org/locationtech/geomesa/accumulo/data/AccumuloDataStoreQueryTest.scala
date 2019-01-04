@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.util.{Collections, Date}
 
-import org.locationtech.jts.geom.Coordinate
 import org.geotools.data._
 import org.geotools.factory.Hints
 import org.geotools.feature.NameImpl
@@ -36,6 +35,7 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Coordinate
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -275,8 +275,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       ds.createSchema(sftWithNs)
 
-      ds.getSchema(typeName) mustEqual sft
-      ds.getSchema(new NameImpl(ns, typeName)) mustEqual sft
+      ds.getSchema(typeName) mustEqual SimpleFeatureTypes.immutable(sft)
+      ds.getSchema(new NameImpl(ns, typeName)) mustEqual SimpleFeatureTypes.immutable(sft)
 
       val dsWithNs = DataStoreFinder.getDataStore(dsParams ++ Map(NamespaceParam.key -> "ns0"))
       val name = dsWithNs.getSchema(typeName).getName

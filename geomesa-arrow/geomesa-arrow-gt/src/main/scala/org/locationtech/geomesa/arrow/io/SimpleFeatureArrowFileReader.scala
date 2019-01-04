@@ -63,7 +63,7 @@ trait SimpleFeatureArrowFileReader extends Closeable {
 
 object SimpleFeatureArrowFileReader {
 
-  type VectorToIterator = (SimpleFeatureVector) => Iterator[ArrowSimpleFeature]
+  type VectorToIterator = SimpleFeatureVector => Iterator[ArrowSimpleFeature]
 
   /**
     * A reader that caches results in memory. Repeated calls to `features()` will not require re-reading

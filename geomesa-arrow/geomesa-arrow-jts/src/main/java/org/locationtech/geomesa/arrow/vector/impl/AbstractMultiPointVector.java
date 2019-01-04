@@ -87,7 +87,7 @@ public abstract class AbstractMultiPointVector<T extends FieldVector>
         final double x = readOrdinal((offsetStart + i) * 2 + 1);
         coordinates[i] = new Coordinate(x, y);
       }
-      return factory.createMultiPoint(coordinates);
+      return factory.createMultiPointFromCoords(coordinates);
     }
   }
 }

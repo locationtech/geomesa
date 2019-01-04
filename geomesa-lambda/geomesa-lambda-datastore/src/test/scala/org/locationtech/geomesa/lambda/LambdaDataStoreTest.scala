@@ -43,7 +43,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
-  val sft = SimpleFeatureTypes.createType("lambda", "name:String,dtg:Date,*geom:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createImmutableType("lambda", "name:String,dtg:Date,*geom:Point:srid=4326")
   val features = Seq(
     ScalaSimpleFeature.create(sft, "0", "n0", "2017-06-15T00:00:00.000Z", "POINT (45 50)"),
     ScalaSimpleFeature.create(sft, "1", "n1", "2017-06-15T00:00:01.000Z", "POINT (46 51)")
