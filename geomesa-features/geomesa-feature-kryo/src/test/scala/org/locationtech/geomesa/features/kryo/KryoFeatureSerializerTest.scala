@@ -366,6 +366,30 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       deserialized.getAttributeCount mustEqual 1
     }
 
+    "handle corrupt data by returning nulls" in {
+      val sft = SimpleFeatureTypes.createType("corruptType", "age:Int,dtg:Date,*geom:Point")
+
+      val sf = new ScalaSimpleFeature(sft, "testFeature")
+      sf.setAttribute("age", "10")
+      sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
+      sf.setAttribute("geom", "POINT(45.0 49.0)")
+      sf.getUserData.put("foo", "bar")
+
+      foreach(options) { opts =>
+        val serialized = KryoFeatureSerializer(sft, opts).serialize(sf)
+        // mess up the bytes for 'geom' - this change was picked semi-randomly but works to fail the deserializer
+        serialized(32) = Byte.MaxValue
+
+        val deserialized = KryoFeatureSerializer(sft, opts).deserialize(serialized)
+
+        deserialized.getID mustEqual sf.getID
+        deserialized.getAttributeCount mustEqual 3
+        deserialized.getAttribute(0) mustEqual sf.getAttribute(0)
+        deserialized.getAttribute(1) mustEqual sf.getAttribute(1)
+        deserialized.getAttribute(2) must beNull
+      }
+    }
+
     "be backwards compatible" in {
       val spec = "dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("testType", spec)

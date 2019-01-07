@@ -138,10 +138,14 @@ object KryoJsonSerialization extends LazyLogging {
     * @return parsed json object
     */
   def deserialize(in: Input): JObject = {
-    if (in.readByte == BooleanFalse) {
-      null
-    } else {
-      readDocument(in: Input)
+    try {
+      if (in.readByte == BooleanFalse) {
+        null
+      } else {
+        readDocument(in: Input)
+      }
+    } catch {
+      case NonFatal(e) => logger.error("Error reading serialized kryo json", e); null
     }
   }
 
@@ -161,39 +165,43 @@ object KryoJsonSerialization extends LazyLogging {
   def deserialize(in: Input, path: Seq[PathElement]): Any = {
     if (path.isEmpty) {
       deserializeAndRender(in)
-    } else if (in.readByte == BooleanFalse) {
-      null
     } else {
-      // collection of (type, position) for our matches so far
-      var matches: Seq[(Byte, Int)] = Seq((DocByte, in.position()))
-      var function: Option[JsonPathFunction] = None
+      try {
+        if (in.readByte == BooleanFalse) { null } else {
+          // collection of (type, position) for our matches so far
+          var matches: Seq[(Byte, Int)] = Seq((DocByte, in.position()))
+          var function: Option[JsonPathFunction] = None
 
-      // collect types and indices for each match at each level
-      val paths = path.iterator
-      while (paths.hasNext && matches.nonEmpty) {
-        paths.next match {
-          case PathAttribute(name: String, _)       => matches = matchPathAttribute(in, matches, Some(name))
-          case PathAttributeWildCard                => matches = matchPathAttribute(in, matches, None)
-          case PathIndex(index: Int)                => matches = matchPathIndex(in, matches, Some(Seq(index)))
-          case PathIndices(indices: Seq[Int])       => matches = matchPathIndex(in, matches, Some(indices))
-          case PathIndexWildCard                    => matches = matchPathIndex(in, matches, None)
-          case PathDeepScan                         => matches = matchDeep(in, matches)
-          case PathFunction(f)                      => function = Some(f) // only 1 trailing function allowed by parser spec
+          // collect types and indices for each match at each level
+          val paths = path.iterator
+          while (paths.hasNext && matches.nonEmpty) {
+            paths.next match {
+              case PathAttribute(name: String, _)       => matches = matchPathAttribute(in, matches, Some(name))
+              case PathAttributeWildCard                => matches = matchPathAttribute(in, matches, None)
+              case PathIndex(index: Int)                => matches = matchPathIndex(in, matches, Some(Seq(index)))
+              case PathIndices(indices: Seq[Int])       => matches = matchPathIndex(in, matches, Some(indices))
+              case PathIndexWildCard                    => matches = matchPathIndex(in, matches, None)
+              case PathDeepScan                         => matches = matchDeep(in, matches)
+              case PathFunction(f)                      => function = Some(f) // only 1 trailing function allowed by parser spec
+            }
+          }
+
+          val values = matches.map { case (t, p) => readPathValue(in, t, p) }
+          val mapped = function match {
+            case None    => values
+            case Some(f) => values.map(applyPathFunction(f, _))
+          }
+
+          if (mapped.isEmpty) {
+            null
+          } else if (values.length == 1) {
+            mapped.head
+          } else {
+            mapped
+          }
         }
-      }
-
-      val values = matches.map { case (t, p) => readPathValue(in, t, p) }
-      val mapped = function match {
-        case None    => values
-        case Some(f) => values.map(applyPathFunction(f, _))
-      }
-
-      if (mapped.isEmpty) {
-        null
-      } else if (values.length == 1) {
-        mapped.head
-      } else {
-        mapped
+      } catch {
+        case NonFatal(e) => logger.error("Error reading serialized kryo json", e); null
       }
     }
   }

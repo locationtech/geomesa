@@ -15,7 +15,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
 import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
-import org.opengis.feature.`type`.{AttributeDescriptor, Name}
+import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
@@ -121,8 +121,8 @@ object AbstractSimpleFeature {
   */
 abstract class AbstractSimpleFeature(sft: SimpleFeatureType) extends SimpleFeature {
 
-  lazy protected val geomDesc  = sft.getGeometryDescriptor
-  lazy protected val geomIndex = if (geomDesc == null) { -1 } else { sft.indexOf(geomDesc.getLocalName) }
+  lazy protected val geomDesc: GeometryDescriptor = sft.getGeometryDescriptor
+  lazy protected val geomIndex: Int = if (geomDesc == null) { -1 } else { sft.indexOf(geomDesc.getLocalName) }
 
   override def getFeatureType: SimpleFeatureType = sft
   override def getType: SimpleFeatureType = sft
