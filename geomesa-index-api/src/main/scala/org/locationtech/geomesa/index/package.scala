@@ -22,4 +22,6 @@ package object index {
   val ZFilterCacheSize = SystemProperty("geomesa.cache.z-filters.size", "1000")
 
   val PartitionParallelScan = SystemProperty("geomesa.partition.scan.parallel", "false")
+
+  val DistributedLockTimeout = SystemProperty("geomesa.distributed.lock.timeout", "2 minutes")
 }

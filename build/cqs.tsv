@@ -136,9 +136,7 @@ org.apache.commons:commons-math	2.2	compile
 org.apache.commons:commons-pool2	2.4.2	compile
 org.apache.commons:commons-text	1.4	compile
 org.apache.commons:commons-vfs2	2.1	compile
-org.apache.curator:curator-client	2.4.0	compile
 org.apache.curator:curator-client	4.0.1	compile
-org.apache.curator:curator-framework	2.4.0	compile
 org.apache.curator:curator-framework	4.0.1	compile
 org.apache.curator:curator-recipes	2.4.0	compile
 org.apache.curator:curator-recipes	4.0.1	compile
