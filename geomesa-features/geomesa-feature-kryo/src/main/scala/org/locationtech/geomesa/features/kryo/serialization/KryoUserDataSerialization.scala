@@ -8,9 +8,12 @@
 
 package org.locationtech.geomesa.features.kryo.serialization
 
+import java.util.UUID
+
 import com.esotericsoftware.kryo.io.{Input, Output}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.serialization.GenericMapSerialization
+import org.locationtech.jts.geom.{Geometry, LineString, Point, Polygon}
 
 object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] {
 
@@ -30,6 +33,10 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
     classOf[java.lang.Boolean] -> "$b",
     classOf[java.util.Date]    -> "$D",
     classOf[Array[Byte]]       -> "$B",
+    classOf[UUID]              -> "$u",
+    classOf[Point]             -> "$pt",
+    classOf[LineString]        -> "$ls",
+    classOf[Polygon]           -> "$pl",
     classOf[Hints.Key]         -> "$h"
   )
 
@@ -88,14 +95,48 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
     }
   }
 
+  override protected def writeGeometry(out: Output, geom: Geometry): Unit =
+    KryoGeometrySerialization.serializeWkb(out, geom)
+
+  override protected def readGeometry(in: Input): Geometry =
+    KryoGeometrySerialization.deserializeWkb(in, checkNull = true)
+
   override protected def writeBytes(out: Output, bytes: Array[Byte]): Unit = {
     out.writeInt(bytes.length)
     out.writeBytes(bytes)
   }
 
   override protected def readBytes(in: Input): Array[Byte] = {
-    val btyes = Array.ofDim[Byte](in.readInt)
-    in.readBytes(btyes)
-    btyes
+    val bytes = Array.ofDim[Byte](in.readInt)
+    in.readBytes(bytes)
+    bytes
+  }
+
+  override protected def writeList(out: Output, list: java.util.List[AnyRef]): Unit = {
+    out.writeInt(list.size)
+    val iterator = list.iterator()
+    while (iterator.hasNext) {
+      val value = iterator.next()
+      if (value == null) {
+        out.writeString(nullMapping)
+      } else {
+        out.writeString(baseClassMappings.getOrElse(value.getClass, value.getClass.getName))
+        write(out, value)
+      }
+    }
+  }
+
+  override protected def readList(in: Input): java.util.List[AnyRef] = {
+    val size = in.readInt()
+    val list = new java.util.ArrayList[AnyRef](size)
+    var i = 0
+    while (i < size) {
+      val clas = in.readString()
+      if (clas == nullMapping) { list.add(null) } else {
+        list.add(read(in, baseClassLookups.getOrElse(clas, Class.forName(clas))))
+      }
+      i += 1
+    }
+    list
   }
 }

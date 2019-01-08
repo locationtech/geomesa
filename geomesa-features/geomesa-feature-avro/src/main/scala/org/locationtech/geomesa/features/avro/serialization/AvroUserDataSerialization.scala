@@ -13,40 +13,38 @@ import org.locationtech.geomesa.features.serialization.GenericMapSerialization
 
 object AvroUserDataSerialization extends GenericMapSerialization[Encoder, Decoder] {
 
+  import scala.collection.JavaConverters._
+
   val NullMarkerString = "<null>"
 
   override def serialize(out: Encoder, map: java.util.Map[AnyRef, AnyRef]): Unit = {
-    import scala.collection.JavaConversions._
-
     // may not be able to write all entries - must pre-filter to know correct count
-    val filtered = map.filter {
-      case (key, value) =>
-        if (canSerialize(key)) {
-          true
-        } else {
-          logger.warn(s"Can't serialize Map entry ($key,$value) - it will be skipped.")
-          false
-        }
+    val filtered = map.asScala.filter { case (key, value) =>
+      if (canSerialize(key)) {
+        true
+      } else {
+        logger.warn(s"Can't serialize Map entry ($key,$value) - it will be skipped.")
+        false
+      }
     }
 
     out.writeArrayStart()
     out.setItemCount(filtered.size)
 
-    filtered.foreach {
-      case (key, value) =>
-        out.startItem()
-        if (key == null) {
-          out.writeString(NullMarkerString)
-        } else {
-          out.writeString(key.getClass.getName)
-          write(out, key)
-        }
-        if (value == null) {
-          out.writeString(NullMarkerString)
-        } else {
-          out.writeString(value.getClass.getName)
-          write(out, value)
-        }
+    filtered.foreach { case (key, value) =>
+      out.startItem()
+      if (key == null) {
+        out.writeString(NullMarkerString)
+      } else {
+        out.writeString(key.getClass.getName)
+        write(out, key)
+      }
+      if (value == null) {
+        out.writeString(NullMarkerString)
+      } else {
+        out.writeString(value.getClass.getName)
+        write(out, value)
+      }
     }
 
     out.writeArrayEnd()
@@ -85,5 +83,36 @@ object AvroUserDataSerialization extends GenericMapSerialization[Encoder, Decode
     val bytes = Array.ofDim[Byte](buffer.remaining())
     buffer.get(bytes)
     bytes
+  }
+
+  override protected def writeList(out: Encoder, list: java.util.List[AnyRef]): Unit = {
+    out.writeArrayStart()
+    out.setItemCount(list.size())
+    list.asScala.foreach { value =>
+      out.startItem()
+      if (value == null) {
+        out.writeString(NullMarkerString)
+      } else {
+        out.writeString(value.getClass.getName)
+        write(out, value)
+      }
+    }
+    out.writeArrayEnd()
+  }
+
+  override protected def readList(in: Decoder): java.util.List[AnyRef] = {
+    val size = in.readArrayStart().toInt
+    val list = new java.util.ArrayList[AnyRef](size)
+    var remaining = size
+    while (remaining > 0) {
+      val clas = in.readString()
+      val value = if (clas == NullMarkerString) { null } else { read(in, Class.forName(clas)) }
+      list.add(value)
+      remaining -= 1
+      if (remaining == 0) {
+        remaining = in.arrayNext().toInt
+      }
+    }
+    list
   }
 }
