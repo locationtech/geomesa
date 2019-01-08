@@ -400,6 +400,22 @@ class SimpleFeatureSerializersTest extends Specification {
     }
   }
 
+  "SimpleFeatureSerializers" should {
+    "serialize user data byte arrays" >> {
+      val features = getFeatures
+      var i = 0
+      features.foreach { f => f.getUserData.put("foo", Array.fill[Byte](i)(i.toByte)); i += 1 }
+
+      foreach(Seq(SerializationType.KRYO, SerializationType.AVRO)) { typ =>
+        val serializer = SimpleFeatureSerializers(sft, typ, SerializationOptions.withUserData)
+        foreach(features) { feature =>
+          val reserialized = serializer.deserialize(serializer.serialize(feature))
+          reserialized.getUserData.get("foo") mustEqual feature.getUserData.get("foo")
+        }
+      }
+    }
+  }
+
   type MatcherFactory[T] = (T) => Matcher[T]
   type UserDataMap = java.util.Map[AnyRef, AnyRef]
 

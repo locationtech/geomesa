@@ -53,17 +53,17 @@ object AvroUserDataSerialization extends GenericMapSerialization[Encoder, Decode
   }
 
   override def deserialize(in: Decoder): java.util.Map[AnyRef, AnyRef] = {
-    var size = in.readArrayStart().toInt
+    val size = in.readArrayStart().toInt
     val map = new java.util.HashMap[AnyRef, AnyRef](size)
-    deserialize(in, size, map)
+    deserializeWithSize(in, size, map)
     map
   }
 
   override def deserialize(in: Decoder, map: java.util.Map[AnyRef, AnyRef]): Unit = {
-    deserialize(in, in.readArrayStart().toInt, map)
+    deserializeWithSize(in, in.readArrayStart().toInt, map)
   }
 
-  private def deserialize(in: Decoder, size: Int, map: java.util.Map[AnyRef, AnyRef]): Unit = {
+  private def deserializeWithSize(in: Decoder, size: Int, map: java.util.Map[AnyRef, AnyRef]): Unit = {
     var remaining = size
     while (remaining > 0) {
       val keyClass = in.readString()
@@ -76,5 +76,14 @@ object AvroUserDataSerialization extends GenericMapSerialization[Encoder, Decode
         remaining = in.arrayNext().toInt
       }
     }
+  }
+
+  override protected def writeBytes(out: Encoder, bytes: Array[Byte]): Unit = out.writeBytes(bytes)
+
+  override protected def readBytes(in: Decoder): Array[Byte] = {
+    val buffer = in.readBytes(null)
+    val bytes = Array.ofDim[Byte](buffer.remaining())
+    buffer.get(bytes)
+    bytes
   }
 }

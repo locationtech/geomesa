@@ -28,6 +28,7 @@ trait GenericMapSerialization[T <: PrimitiveWriter, V <: PrimitiveReader] extend
     case v: java.lang.Double  => out.writeDouble(v)
     case v: java.lang.Boolean => out.writeBoolean(v)
     case v: java.util.Date    => out.writeLong(v.getTime)
+    case v: Array[Byte]       => writeBytes(out, v)
     case v: Hints.Key         => out.writeString(HintKeySerialization.keyToId(v))
     case _ => throw new IllegalArgumentException(s"Unsupported value: $value (${value.getClass})")
   }
@@ -40,12 +41,29 @@ trait GenericMapSerialization[T <: PrimitiveWriter, V <: PrimitiveReader] extend
     case c if classOf[java.lang.Double].isAssignableFrom(c)  => Double.box(in.readDouble())
     case c if classOf[java.lang.Boolean].isAssignableFrom(c) => Boolean.box(in.readBoolean())
     case c if classOf[java.util.Date].isAssignableFrom(c)    => new java.util.Date(in.readLong())
+    case c if classOf[Array[Byte]] == c                      => readBytes(in)
     case c if classOf[Hints.Key].isAssignableFrom(c)         => HintKeySerialization.idToKey(in.readString())
     case _ => throw new IllegalArgumentException(s"Unsupported value class: $clas")
   }
 
+  /**
+    * Write bytes
+    *
+    * @param out out
+    * @param bytes bytes
+    */
+  protected def writeBytes(out: T, bytes: Array[Byte]): Unit
+
+  /**
+    * Read bytes
+    *
+    * @param in in
+    * @return bytes
+    */
+  protected def readBytes(in: V): Array[Byte]
+
   protected def canSerialize(obj: AnyRef): Boolean = obj match {
     case key: Hints.Key => HintKeySerialization.canSerialize(key)
-    case _    => true
+    case _ => true
   }
 }
