@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.features
 
-import org.locationtech.jts.geom.Point
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
@@ -17,6 +16,7 @@ import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, Projecting
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Point
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
@@ -396,6 +396,22 @@ class SimpleFeatureSerializersTest extends Specification {
 
       forall(features.zip(decoded)) { case (in, out) =>
         out.getUserData.toMap mustEqual in.getUserData.toMap
+      }
+    }
+  }
+
+  "SimpleFeatureSerializers" should {
+    "serialize user data byte arrays" >> {
+      val features = getFeatures
+      var i = 0
+      features.foreach { f => f.getUserData.put("foo", Array.fill[Byte](i)(i.toByte)); i += 1 }
+
+      foreach(Seq(SerializationType.KRYO, SerializationType.AVRO)) { typ =>
+        val serializer = SimpleFeatureSerializers(sft, typ, SerializationOptions.withUserData)
+        foreach(features) { feature =>
+          val reserialized = serializer.deserialize(serializer.serialize(feature))
+          reserialized.getUserData.get("foo") mustEqual feature.getUserData.get("foo")
+        }
       }
     }
   }

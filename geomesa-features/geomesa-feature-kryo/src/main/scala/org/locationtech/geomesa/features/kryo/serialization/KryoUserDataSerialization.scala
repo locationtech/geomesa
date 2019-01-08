@@ -29,6 +29,7 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
     classOf[Boolean]           -> "$b",
     classOf[java.lang.Boolean] -> "$b",
     classOf[java.util.Date]    -> "$D",
+    classOf[Array[Byte]]       -> "$B",
     classOf[Hints.Key]         -> "$h"
   )
 
@@ -46,7 +47,7 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
     val toWrite = if (skip.isEmpty) { map } else {
       logger.warn(s"Skipping serialization of entries: " +
           map.collect { case (k, v) if skip.contains(k) => s"$k->$v" }.mkString("[", "],[", "]"))
-      map.filterNot { case (k, v) => skip.contains(k) }
+      map.filterNot { case (k, _) => skip.contains(k) }
     }
 
     out.writeInt(toWrite.size) // don't use positive optimized version for back compatibility
@@ -85,5 +86,16 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
       map.put(key, value)
       i += 1
     }
+  }
+
+  override protected def writeBytes(out: Output, bytes: Array[Byte]): Unit = {
+    out.writeInt(bytes.length)
+    out.writeBytes(bytes)
+  }
+
+  override protected def readBytes(in: Input): Array[Byte] = {
+    val btyes = Array.ofDim[Byte](in.readInt)
+    in.readBytes(btyes)
+    btyes
   }
 }
