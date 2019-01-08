@@ -11,9 +11,9 @@ package org.locationtech.geomesa.features.kryo.serialization
 import java.util.UUID
 
 import com.esotericsoftware.kryo.io.{Input, Output}
+import com.vividsolutions.jts.geom.{Geometry, LineString, Point, Polygon}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.serialization.GenericMapSerialization
-import org.locationtech.jts.geom.{Geometry, LineString, Point, Polygon}
 
 object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] {
 

@@ -11,9 +11,10 @@ package org.locationtech.geomesa.features.serialization
 import java.util.{Date, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
+import com.vividsolutions.jts.geom.Geometry
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.utils.text.WKBUtils
-import org.locationtech.jts.geom.Geometry
+
 
 // noinspection LanguageFeature
 trait GenericMapSerialization[T <: PrimitiveWriter, V <: PrimitiveReader] extends LazyLogging {
