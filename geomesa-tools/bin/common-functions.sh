@@ -17,7 +17,7 @@ function setGeoLog() {
     export GEOMESA_OPTS="-Dgeomesa.log.dir=${GEOMESA_LOG_DIR} ${GEOMESA_OPTS}"
   fi
   if [[ ! -d "${GEOMESA_LOG_DIR}" ]]; then
-    mkdir "${GEOMESA_LOG_DIR}"
+    mkdir -p "${GEOMESA_LOG_DIR}"
   fi
 }
 
