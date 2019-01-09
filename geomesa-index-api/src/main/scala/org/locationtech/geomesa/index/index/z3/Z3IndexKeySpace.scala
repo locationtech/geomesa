@@ -216,13 +216,16 @@ trait Z3IndexKeySpace extends IndexKeySpace[Z3IndexValues, Z3IndexKey] with Lazy
                              config: Option[GeoMesaDataStoreConfig],
                              hints: Hints): Boolean = {
     // if the user has requested strict bounding boxes, we apply the full filter
+    // if we have a complicated geometry predicate, we need to pass it through to be evaluated
+    // if we have unbounded dates, we need to pass them through as we don't have z-values for all periods
+
     // if the spatial predicate is rectangular (e.g. a bbox), the index is fine enough that we
     // don't need to apply the filter on top of it. this may cause some minor errors at extremely
     // fine resolutions, but the performance is worth it
-    // if we have a complicated geometry predicate, we need to pass it through to be evaluated
     val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(config.forall(_.looseBBox))
-    def simpleGeoms = values.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
-    !looseBBox || !simpleGeoms
+    def unboundedDates: Boolean = values.exists(_.temporalUnbounded.nonEmpty)
+    def complexGeoms: Boolean = values.exists(_.geometries.values.exists(g => !GeometryUtils.isRectangular(g)))
+    !looseBBox || unboundedDates || complexGeoms
   }
 
   private def getZValue(z3: Z3SFC,
