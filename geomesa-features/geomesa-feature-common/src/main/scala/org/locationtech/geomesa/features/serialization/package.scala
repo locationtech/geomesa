@@ -10,8 +10,8 @@ package org.locationtech.geomesa.features
 
 package object serialization {
 
-  val NULL_BYTE     = 0.asInstanceOf[Byte]
-  val NOT_NULL_BYTE = 1.asInstanceOf[Byte]
+  val NULL_BYTE    : Byte = 0
+  val NOT_NULL_BYTE: Byte = 1
 
   type PrimitiveWriter = AnyRef {
     def writeInt(value: Int): Unit
