@@ -11,6 +11,8 @@ Installation instructions are available for each data store implementation:
 * :doc:`/user/bigtable/install`
 * :doc:`/user/cassandra/install`
 
+Not sure where to begin? Take a look at :doc:`/user/getting_started`.
+
 Upgrading
 ---------
 
