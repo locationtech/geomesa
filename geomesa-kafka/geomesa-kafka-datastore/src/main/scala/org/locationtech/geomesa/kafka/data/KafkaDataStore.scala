@@ -9,15 +9,17 @@
 package org.locationtech.geomesa.kafka.data
 
 import java.io.IOException
-import java.util.concurrent.ScheduledExecutorService
-import java.util.{Properties, UUID}
+import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
+import java.util.{Collections, Properties, UUID}
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.AdminUtils
 import kafka.utils.ZkUtils
-import org.apache.kafka.clients.consumer.{Consumer, KafkaConsumer}
+import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener
+import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, KafkaConsumer}
 import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
+import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.{ByteArrayDeserializer, ByteArraySerializer}
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore}
 import org.geotools.data.{Query, Transaction}
@@ -44,6 +46,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.concurrent.duration.Duration
+import scala.util.{Failure, Success, Try}
 
 class KafkaDataStore(val config: KafkaDataStoreConfig)
     extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
@@ -80,8 +83,8 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         val consumers = KafkaDataStore.consumers(config, topic)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
         val laz = config.indices.lazyDeserialization
-        val initialLoadConfig = if (config.consumers.consumeFromBeginning) { Some(config.indices) } else { None }
-        new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, laz, initialLoadConfig)
+        val initialLoad = config.consumers.readBack.isDefined
+        new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, laz, initialLoad, config.indices.eventTime)
       }
     }
   })
@@ -252,7 +255,6 @@ object KafkaDataStore extends LazyLogging {
     props.put(ENABLE_AUTO_COMMIT_CONFIG, "false")
     props.put(KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
     props.put(VALUE_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
-    props.put(AUTO_OFFSET_RESET_CONFIG, if (config.consumers.consumeFromBeginning) { "earliest" } else { "latest" })
     props.put(BOOTSTRAP_SERVERS_CONFIG, config.brokers)
     config.consumers.properties.foreach { case (k, v) => props.put(k, v) }
     new KafkaConsumer[Array[Byte], Array[Byte]](props)
@@ -263,21 +265,77 @@ object KafkaDataStore extends LazyLogging {
     require(config.consumers.count > 0, "Number of consumers must be greater than 0")
 
     val group = UUID.randomUUID().toString
+    val partitions = Collections.newSetFromMap(new ConcurrentHashMap[Int, java.lang.Boolean])
 
     logger.debug(s"Creating ${config.consumers.count} consumers for topic [$topic] with group-id [$group]")
 
     Seq.fill(config.consumers.count) {
       val consumer = KafkaDataStore.consumer(config, group)
-      KafkaConsumerVersions.subscribe(consumer, topic)
+      val listener = config.consumers.readBack match {
+        case None    => new NoOpConsumerRebalanceListener()
+        case Some(d) => new ReadBackRebalanceListener(consumer, partitions, d)
+      }
+      KafkaConsumerVersions.subscribe(consumer, topic, listener)
       consumer
     }
   }
 
-  def withZk[T](zookeepers: String)(fn: ZkUtils => T): T = {
+  private [kafka] def withZk[T](zookeepers: String)(fn: ZkUtils => T): T = {
     val security = SystemProperty("geomesa.zookeeper.security.enabled").option.exists(_.toBoolean)
     val zkUtils = ZkUtils(zookeepers, 3000, 3000, security)
     try { fn(zkUtils) } finally {
       zkUtils.close()
+    }
+  }
+
+  /**
+    * Rebalance listener that seeks the consumer to the an offset based on a read-back duration
+    *
+    * @param consumer consumer
+    * @param partitions shared partition map, to ensure we only read-back once per partition. For subsequent
+    *                   rebalances, we should have committed offsets that will be used
+    * @param readBack duration to read back, or Duration.Inf to go to the beginning
+    */
+  private [kafka] class ReadBackRebalanceListener(consumer: Consumer[Array[Byte], Array[Byte]],
+                                                  partitions: java.util.Set[Int],
+                                                  readBack: Duration)
+      extends ConsumerRebalanceListener with LazyLogging {
+
+    import scala.collection.JavaConverters._
+
+    override def onPartitionsRevoked(topicPartitions: java.util.Collection[TopicPartition]): Unit = {}
+
+    override def onPartitionsAssigned(topicPartitions: java.util.Collection[TopicPartition]): Unit = {
+      topicPartitions.asScala.foreach { tp =>
+        if (partitions.add(tp.partition())) {
+          KafkaConsumerVersions.pause(consumer, tp)
+          try {
+            if (readBack.isFinite()) {
+              val offset = Try {
+                val time = System.currentTimeMillis() - readBack.toMillis
+                KafkaConsumerVersions.offsetsForTimes(consumer, tp.topic, Seq(tp.partition), time).get(tp.partition)
+              }
+              offset match {
+                case Success(Some(o)) =>
+                  logger.debug(s"Seeking to offset $o for read-back $readBack on [${tp.topic}:${tp.partition}]")
+                  consumer.seek(tp, o)
+
+                case Success(None) =>
+                  logger.debug(s"No prior offset found for read-back $readBack on [${tp.topic}:${tp.partition}], " +
+                      "reading from head of queue")
+
+                case Failure(e) =>
+                  logger.warn(s"Error finding initial offset: [${tp.topic}:${tp.partition}], seeking to beginning", e)
+                  KafkaConsumerVersions.seekToBeginning(consumer, tp)
+              }
+            } else {
+              KafkaConsumerVersions.seekToBeginning(consumer, tp)
+            }
+          } finally {
+            KafkaConsumerVersions.resume(consumer, tp)
+          }
+        }
+      }
     }
   }
 
@@ -294,7 +352,7 @@ object KafkaDataStore extends LazyLogging {
                                   audit: Option[(AuditWriter, AuditProvider, String)],
                                   namespace: Option[String]) extends NamespaceConfig
 
-  case class ConsumerConfig(count: Int, properties: Map[String, String], consumeFromBeginning: Boolean)
+  case class ConsumerConfig(count: Int, properties: Map[String, String], readBack: Option[Duration])
 
   case class ProducerConfig(properties: Map[String, String])
 
