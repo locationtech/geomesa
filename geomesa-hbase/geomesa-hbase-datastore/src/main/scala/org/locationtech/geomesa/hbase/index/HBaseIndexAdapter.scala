@@ -15,7 +15,7 @@ import org.apache.hadoop.hbase.filter.{Filter => HFilter}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
 import org.locationtech.geomesa.hbase.coprocessor.aggregators._
 import org.locationtech.geomesa.hbase.coprocessor.utils.CoprocessorConfig
 import org.locationtech.geomesa.hbase.data.{EmptyPlan, HBaseDataStore, HBaseFeature, HBaseQueryPlan}
@@ -146,7 +146,8 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
                                         returnSft: SimpleFeatureType): Iterator[Result] => Iterator[SimpleFeature] = {
     // Perform a projecting decode of the simple feature
     val getId = getIdFromRow(sft)
-    val deserializer = KryoFeatureSerializer(returnSft, SerializationOptions.withoutId)
+
+    val deserializer = new ProjectingKryoFeatureDeserializer(sft, returnSft, SerializationOptions.withoutId)
     resultsToFeatures(deserializer, getId)
   }
 
@@ -160,6 +161,18 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
       sf
     }
   }
+
+  private def resultsToFeatures(deserializer: ProjectingKryoFeatureDeserializer,
+                                getId: (Array[Byte], Int, Int, SimpleFeature) => String)
+                               (results: Iterator[Result]): Iterator[SimpleFeature] = {
+    results.map { result =>
+      val RowAndValue(row, rowOffset, rowLength, value, valueOffset, valueLength) = rowAndValue(result)
+      val sf = deserializer.deserialize(value, valueOffset, valueLength)
+      sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(getId(row, rowOffset, rowLength, sf))
+      sf
+    }
+  }
+
 }
 
 object HBaseIndexAdapter extends LazyLogging {
