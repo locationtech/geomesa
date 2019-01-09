@@ -15,6 +15,6 @@ trait ZookeeperLocking extends org.locationtech.geomesa.utils.zk.ZookeeperLockin
 
   def connector: Connector
 
-  override def mock: Boolean = connector.isInstanceOf[MockConnector]
-  override def zookeepers: String = connector.getInstance.getZooKeepers
+  override protected def mock: Boolean = connector.isInstanceOf[MockConnector]
+  override protected def zookeepers: String = connector.getInstance.getZooKeepers
 }

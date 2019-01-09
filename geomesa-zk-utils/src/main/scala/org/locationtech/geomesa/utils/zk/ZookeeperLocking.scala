@@ -18,8 +18,8 @@ import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
 
 trait ZookeeperLocking extends DistributedLocking {
 
-  def mock: Boolean
-  def zookeepers: String
+  protected def mock: Boolean
+  protected def zookeepers: String
 
   /**
     * Gets and acquires a distributed lock based on the key.
