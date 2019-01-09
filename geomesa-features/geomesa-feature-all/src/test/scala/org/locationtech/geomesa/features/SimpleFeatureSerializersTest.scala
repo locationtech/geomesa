@@ -353,13 +353,14 @@ class SimpleFeatureSerializersTest extends Specification {
       decoder.deserialize(encoded) must equalSF(sf, withoutUserData)
     }
 
-    "fail when user data were not encoded but are expected by the decoder" >> {
+    "not fail when user data was not encoded but is expected by the decoder" >> {
       val encoder = KryoFeatureSerializer(sft, SerializationOptions.none)
       val encoded = encoder.serialize(getFeaturesWithVisibility.head)
 
       val decoder = KryoFeatureSerializer(sft, SerializationOptions.withUserData)
 
-      decoder.deserialize(encoded) must throwA[Exception]
+      val decoded = decoder.deserialize(encoded)
+      decoded.getUserData must beEmpty
     }
   }
 

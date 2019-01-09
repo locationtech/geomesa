@@ -11,11 +11,14 @@ package org.locationtech.geomesa.features.kryo.serialization
 import java.util.UUID
 
 import com.esotericsoftware.kryo.io.{Input, Output}
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.serialization.GenericMapSerialization
 import org.locationtech.jts.geom.{Geometry, LineString, Point, Polygon}
 
-object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] {
+import scala.util.control.NonFatal
+
+object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] with LazyLogging {
 
   private val nullMapping = "$_"
 
@@ -72,14 +75,27 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
   }
 
   override def deserialize(in: Input): java.util.Map[AnyRef, AnyRef] = {
-    val size = in.readInt()
-    val map = new java.util.HashMap[AnyRef, AnyRef](size)
-    deserializeWithSize(in, map, size)
-    map
+    try {
+      val size = in.readInt()
+      val map = new java.util.HashMap[AnyRef, AnyRef](size)
+      deserializeWithSize(in, map, size)
+      map
+    } catch {
+      case NonFatal(e) =>
+        logger.error("Error reading serialized kryo user data:", e)
+        new java.util.HashMap[AnyRef, AnyRef]()
+    }
   }
 
-  override def deserialize(in: Input, map: java.util.Map[AnyRef, AnyRef]): Unit =
-    deserializeWithSize(in, map, in.readInt())
+  override def deserialize(in: Input, map: java.util.Map[AnyRef, AnyRef]): Unit = {
+    try {
+      deserializeWithSize(in, map, in.readInt())
+    } catch {
+      case NonFatal(e) =>
+        logger.error("Error reading serialized kryo user data:", e)
+        new java.util.HashMap[AnyRef, AnyRef]()
+    }
+  }
 
   private def deserializeWithSize(in: Input, map: java.util.Map[AnyRef, AnyRef], size: Int): Unit = {
     var i = 0
