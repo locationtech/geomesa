@@ -13,8 +13,8 @@ import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.util.Converters
 import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
@@ -80,8 +80,12 @@ object AbstractSimpleFeature {
       setAttribute(index, value)
     }
     override def setAttribute(index: Int, value: Object): Unit = {
-      val binding = sft.getDescriptor(index).getType.getBinding
-      setAttributeNoConvert(index, Converters.convert(value, binding).asInstanceOf[AnyRef])
+      if (value == null) {
+        setAttributeNoConvert(index, null)
+      } else {
+        val binding = sft.getDescriptor(index).getType.getBinding
+        setAttributeNoConvert(index, FastConverter.convert(value, binding).asInstanceOf[AnyRef])
+      }
     }
 
     // following methods delegate to setAttribute to get type conversion

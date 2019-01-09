@@ -46,6 +46,15 @@ geomesa.convert.scripts.path
 This property allows for adding files to the classpath. It should be set to a colon-separated list of file
 paths. This is useful for getting scripts onto the classpath for use by map-reduce ingest jobs.
 
+geomesa.distributed.lock.timeout
+++++++++++++++++++++++++++++++++
+
+The property controls the length of time a data store will wait to acquire a distributed lock before performing
+schema operations (``createSchema``, ``updateSchema`` and ``removeSchema``). As GeoMesa is often run in parallel,
+acquiring a distributed lock among different processes prevents metadata corruption that may result from multiple
+threads altering the schema simultaneously. The timeout is specified as a duration, e.g. ``1 minute`` or
+``30 seconds``, with a default value of ``2 minutes``.
+
 geomesa.distributed.version.check
 +++++++++++++++++++++++++++++++++
 

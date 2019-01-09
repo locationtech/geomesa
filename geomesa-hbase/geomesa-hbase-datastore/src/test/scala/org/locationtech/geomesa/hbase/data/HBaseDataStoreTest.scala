@@ -273,7 +273,7 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
 
         try {
           ds.createSchema(SimpleFeatureTypes.createType("test-version", "dtg:Date,*geom:Point:srid=4326"))
-          ds.getDistributeVersion must beSome(SemanticVersion(GeoMesaProperties.ProjectVersion))
+          ds.getDistributedVersion must beSome(SemanticVersion(GeoMesaProperties.ProjectVersion))
         } finally {
           ds.dispose()
         }
