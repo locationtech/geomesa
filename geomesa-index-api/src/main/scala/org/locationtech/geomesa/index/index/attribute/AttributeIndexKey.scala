@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.index.index.attribute
 
 import org.calrissian.mango.types.LexiTypeEncoders
-import org.geotools.util.Converters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.ByteArrays
 
 import scala.util.Try
@@ -56,7 +56,7 @@ object AttributeIndexKey {
     */
   def encodeForQuery(value: Any, binding: Class[_]): String = {
     if (value == null) { null } else {
-      typeEncode(Option(Converters.convert(value, binding)).getOrElse(value))
+      typeEncode(Option(FastConverter.convert(value, binding)).getOrElse(value))
     }
   }
 
