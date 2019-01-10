@@ -24,8 +24,8 @@ import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.{OrcCom
 import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.TempDirParam
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
-import org.locationtech.geomesa.tools.ingest.AbstractIngest
-import org.locationtech.geomesa.tools.ingest.AbstractIngest.PrintProgress
+import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.PrintProgress
+import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.{Command, DistributedRunParam, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.io.PathUtils
@@ -124,7 +124,7 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
         val (success, failed) = job.run(connection, params.featureName, toCompact, tempDir,
           libjarsFileName, libjarsSearchPath, statusCallback)
         Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
-        Command.user.info(AbstractIngest.getStatInfo(success, failed, "Compacted"))
+        Command.user.info(IngestCommand.getStatInfo(success, failed, "Compacted"))
 
       case RunModes.DistributedCombine =>
         throw new RuntimeException("DistributedCombine run mode is not supported with this command.")

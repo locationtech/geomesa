@@ -15,6 +15,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 trait OrcStorageConfiguration extends StorageConfiguration {
   override def configureOutput(sft: SimpleFeatureType, job: Job): Unit = {
+    StorageConfiguration.setEncoding(job.getConfiguration, "orc")
     job.setOutputFormatClass(classOf[OrcPartitionOutputFormat])
     OrcSimpleFeatureOutputFormat.setDescription(job.getConfiguration,
       OrcFileSystemStorage.createTypeDescription(sft))

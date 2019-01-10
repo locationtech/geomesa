@@ -27,7 +27,8 @@ import org.locationtech.geomesa.fs.tools.ingest.StorageJobUtils
 import org.locationtech.geomesa.jobs.mapreduce.{GeoMesaOutputFormat, JobWithLibJars}
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
+import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.StatusCallback
+import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.SimpleFeature
 
 trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
@@ -93,18 +94,16 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
       def mapCounters = Seq(("mapped", written(job)), ("failed", failed(job)))
 
-      val stageCount = if (qualifiedTempPath.isDefined) { 2 } else { 1 }
-
       while (!job.isComplete) {
         Thread.sleep(1000)
         if (job.getStatus.getState != JobStatus.State.PREP) {
           val mapProgress = job.mapProgress()
           if (mapProgress < 1f) {
-            statusCallback(s"Map (stage 1/$stageCount): ", mapProgress, mapCounters, done = false)
+            statusCallback("Map: ", mapProgress, mapCounters, done = false)
           }
         }
       }
-      statusCallback(s"Map (stage 1/$stageCount): ", job.mapProgress(), mapCounters, done = true)
+      statusCallback("Map: ", job.mapProgress(), mapCounters, done = true)
       statusCallback.reset()
 
       val counterResult = (written(job), failed(job))
@@ -113,7 +112,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
         Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
       } else {
         val copied = qualifiedTempPath.forall { tp =>
-          StorageJobUtils.distCopy(tp, root,  statusCallback, 2, stageCount)
+          StorageJobUtils.distCopy(tp, root,  statusCallback)
         }
         if (copied) {
           Command.user.info("Removing old files")
@@ -121,11 +120,10 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
           existingDataFiles.foreach { case (partition, files) =>
             files.foreach(fc.delete(_, false))
             storage.getMetadata.removePartition(partition)
-            Command.user.info(s"Removed ${files.size} files in partition ${partition.name}")
+            Command.user.info(s"Removed ${TextTools.getPlural(files.size, "file")} in partition ${partition.name}")
           }
           Command.user.info("Compacting metadata")
           storage.getMetadata.compact()
-          Command.user.info("Done")
         }
       }
 

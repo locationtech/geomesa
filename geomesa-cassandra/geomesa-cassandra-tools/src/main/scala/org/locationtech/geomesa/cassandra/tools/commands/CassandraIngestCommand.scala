@@ -15,7 +15,8 @@ import org.locationtech.geomesa.cassandra.data.CassandraDataStore
 import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand
 import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand.CassandraDataStoreParams
 import org.locationtech.geomesa.cassandra.tools.commands.CassandraIngestCommand.CassandraIngestParams
-import org.locationtech.geomesa.tools.ingest.{IngestCommand, IngestParams}
+import org.locationtech.geomesa.tools.ingest.IngestCommand
+import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.utils.io.PathUtils
 
 import scala.collection.JavaConversions._
