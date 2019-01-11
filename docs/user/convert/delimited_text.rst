@@ -24,6 +24,7 @@ formats are instances of ``org.apache.commons.csv.CSVFormat``:
 
 In addition, GeoMesa supports custom quote, escape and delimiter characters, which can be used to modify the
 base format. These can be specified through ``options.quote``, ``options.escape`` and ``options.delimiter``.
+Quotes and escapes can be disabled by setting the option to an empty string.
 
 If the input files have header lines, they can be skipped over by specifying a number of lines to skip
 using ``options.skip-lines``, e.g. ``options.skip-lines = 1``.

@@ -220,12 +220,26 @@ object DelimitedTextConverter {
                                  userData: Map[String, Expression]) extends ConverterConfig
 
   case class DelimitedTextOptions(skipLines: Option[Int],
-                                  quote: Option[Char],
-                                  escape: Option[Char],
+                                  quote: OptionalChar,
+                                  escape: OptionalChar,
                                   delimiter: Option[Char],
                                   validators: SimpleFeatureValidator,
                                   parseMode: ParseMode,
                                   errorMode: ErrorMode,
                                   encoding: Charset,
                                   verbose: Boolean) extends ConverterOptions
+
+  sealed trait OptionalChar {
+    def foreach[U](f: Character => U): Unit
+  }
+
+  final case object CharNotSpecified extends OptionalChar {
+    override def foreach[U](f: Character => U): Unit = {}
+  }
+  final case class CharEnabled(char: Char) extends OptionalChar {
+    override def foreach[U](f: Character => U): Unit = f.apply(char)
+  }
+  final case object CharDisabled extends OptionalChar {
+    override def foreach[U](f: Character => U): Unit = f.apply(null)
+  }
 }
