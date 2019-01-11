@@ -18,7 +18,7 @@ import org.locationtech.geomesa.lambda.tools.data._
 import org.locationtech.geomesa.lambda.tools.export.LambdaExportCommand
 import org.locationtech.geomesa.lambda.tools.stats._
 import org.locationtech.geomesa.tools._
-import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
+import org.locationtech.geomesa.tools.export.{ConvertCommand, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.status._
 
 object LambdaRunner extends RunnerWithAccumuloEnvironment {

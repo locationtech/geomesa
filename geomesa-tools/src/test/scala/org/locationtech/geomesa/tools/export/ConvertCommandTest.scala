@@ -6,22 +6,27 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools
+package org.locationtech.geomesa.tools.export
 
 import java.io.{File, FilenameFilter}
 import java.nio.charset.StandardCharsets
 
+import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.tools.ingest.IngestCommand
+import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats.DataFormat
-import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats}
-import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
+import org.locationtech.geomesa.utils.io.WithClose
+import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class ConvertCommandTest extends Specification with LazyLogging {
+
+  sequential
 
   val csvInput = getClass.getResource("/convert/csv-data.csv").getFile
   val csvConf  = {
@@ -29,7 +34,7 @@ class ConvertCommandTest extends Specification with LazyLogging {
     FileUtils.readFileToString(file, StandardCharsets.UTF_8)
   }
 
-  val tsvInput = getClass.getResource("/convert/tsv-data.csv").getFile
+  val tsvInput = getClass.getResource("/convert/tsv-data.tsv").getFile
   val tsvConf  = {
     val file = new File(getClass.getResource("/convert/tsv-convert.conf").getFile)
     FileUtils.readFileToString(file, StandardCharsets.UTF_8)
@@ -42,7 +47,7 @@ class ConvertCommandTest extends Specification with LazyLogging {
   }
 
   val inFormats = Seq(DataFormats.Csv, DataFormats.Tsv, DataFormats.Json)
-  val outFormats = DataFormats.values.filter( _ != DataFormats.Null ).toSeq
+  val outFormats = DataFormats.values.toSeq
 
   for (in <- inFormats; out <- outFormats) {
     logger.debug(s"Testing $in to $out converter")
@@ -60,14 +65,14 @@ class ConvertCommandTest extends Specification with LazyLogging {
   def testPair(inFmt: DataFormat, outFmt: DataFormat): Unit = {
     s"Convert Command should convert $inFmt -> $outFmt" in {
       val (inputFile, conf) = getInputFileAndConf(inFmt)
-      val sft = CLArgResolver.getSft(conf)
 
-      def withCommand[T](test: (ConvertCommand) => T): T = {
+      def withCommand[T](test: ConvertCommand => T): T = {
         val command = new ConvertCommand
         command.params.files.add(inputFile)
         command.params.config = conf
         command.params.spec = conf
         command.params.outputFormat = outFmt
+        command.params.force = true
         command.params.file =
           if (outFmt == DataFormats.Leaflet) {
             File.createTempFile("convertTest", s".html")
@@ -96,7 +101,8 @@ class ConvertCommandTest extends Specification with LazyLogging {
 
       "get a Converter" in {
         withCommand { command =>
-          ConvertCommand.getConverter(command.params, sft) must not(beNull)
+          val sftAndConverter = IngestCommand.getSftAndConverter(command.params, Seq.empty, None, None)
+          sftAndConverter must beASuccessfulTry(beSome[(SimpleFeatureType, Config)])
         }
       }
       "get an Exporter" in {
@@ -104,19 +110,30 @@ class ConvertCommandTest extends Specification with LazyLogging {
           WithClose(ConvertCommand.getExporter(command.params, null))(_ must not(beNull))
         }
       }
-      "convert File" in {
-        withCommand { command =>
-          val converter = ConvertCommand.getConverter(command.params, sft)
-          val ec = converter.createEvaluationContext(Map("inputFilePath" -> inputFile))
-          val files = Iterator.single(inputFile).flatMap(PathUtils.interpretPath)
-          val features = ConvertCommand.convertFeatures(files, converter, ec, None, None)
-          features.toSeq must haveLength(3)
-        }
-      }
       "export data" in {
         withCommand { command =>
           command.execute()
-          command.params.file.length() must beGreaterThan(0L)
+          if (command.params.outputFormat == DataFormats.Null) {
+            command.params.file.length() mustEqual 0
+          } else {
+            command.params.file.length() must beGreaterThan(0L)
+          }
+        }
+      }
+      "use type inference" in {
+        if (inFmt == DataFormats.Csv || inFmt == DataFormats.Tsv) {
+          withCommand { command =>
+            command.params.config = null
+            command.params.spec = null
+            command.execute()
+            if (command.params.outputFormat == DataFormats.Null) {
+              command.params.file.length() mustEqual 0
+            } else {
+              command.params.file.length() must beGreaterThan(0L)
+            }
+          }
+        } else {
+          ok
         }
       }
     }
