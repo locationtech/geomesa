@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -19,12 +19,12 @@ import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord}
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.{FeatureEvent, FeatureListener}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
-import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
-import org.locationtech.geomesa.kafka.data.KafkaDataStore.IndexConfig
+import org.locationtech.geomesa.kafka.data.KafkaDataStore.EventTimeConfig
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCache
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.kafka.utils.{GeoMessageSerializer, KafkaFeatureEvent}
+import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -106,7 +106,9 @@ object KafkaCacheLoader {
                              lazyDeserialization: Boolean,
                              serialization: SerializationType,
                              schemaRegistryUrl: Option[URL],
-                             initialLoadConfig: Option[IndexConfig]) extends ThreadedConsumer with KafkaCacheLoader {
+                             doInitialLoad: Boolean,
+                             initialLoadConfig: Option[EventTimeConfig])
+      extends ThreadedConsumer with KafkaCacheLoader {
 
     private val serializer = GeoMessageSerializer(sft, serialization, schemaRegistryUrl, `lazy` = lazyDeserialization)
 
@@ -114,13 +116,13 @@ object KafkaCacheLoader {
       case _: NoSuchMethodException => logger.warn("This version of Kafka doesn't support timestamps, using system time")
     }
 
-    initialLoadConfig match {
-      case None => startConsumers()
-      case Some(config) =>
-        // for the initial load, don't bother spatially indexing until we have the final state
-        val executor = Executors.newSingleThreadExecutor()
-        executor.submit(new InitialLoader(sft, consumers, topic, frequency, serializer, config, this))
-        executor.shutdown()
+    if (doInitialLoad) {
+      // for the initial load, don't bother spatially indexing until we have the final state
+      val executor = Executors.newSingleThreadExecutor()
+      executor.submit(new InitialLoader(sft, consumers, topic, frequency, serializer, initialLoadConfig, this))
+      executor.shutdown()
+    } else {
+      startConsumers()
     }
 
     override def close(): Unit = {
@@ -162,10 +164,10 @@ object KafkaCacheLoader {
                               override protected val topic: String,
                               override protected val frequency: Long,
                               serializer: GeoMessageSerializer,
-                              config: IndexConfig,
+                              eventTime: Option[EventTimeConfig],
                               toLoad: KafkaCacheLoaderImpl) extends ThreadedConsumer with Runnable {
 
-    private val cache = KafkaFeatureCache.nonIndexing(sft, config.eventTime)
+    private val cache = KafkaFeatureCache.nonIndexing(sft, eventTime)
 
     // track the offsets that we want to read to
     private val offsets = new ConcurrentHashMap[Int, Long]()

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -514,6 +514,13 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
           val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
           ds.getFeatureSource(sft.getTypeName).getFeatures(query).features must throwA[RuntimeException]
         }
+        // verify that we won't block if max features is set
+        foreach(fullScans) { filter =>
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter), 10, null: Array[String], null)
+          val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
+          features mustEqual List(feature)
+        }
+
         // verify that we can override individually
         System.setProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table", "false")
         foreach(fullScans) { filter =>

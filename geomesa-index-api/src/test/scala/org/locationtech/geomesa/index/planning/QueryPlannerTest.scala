@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,9 +9,11 @@
 package org.locationtech.geomesa.index.planning
 
 import org.geotools.data.Query
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.sort.{SortBy, SortOrder}
 import org.specs2.mutable.Specification
@@ -45,6 +47,14 @@ class QueryPlannerTest extends Specification {
       val query = new Query(sft.getTypeName)
       query.getHints.put(QueryHints.QUERY_INDEX, "foo")
       planner.runQuery(sft, query) must throwAn[IllegalArgumentException]
+    }
+
+    "return z3 index for spatio-temporal queries that are bounded by the epoch" in {
+      val filter = ECQL.toFilter("BBOX(geom, -1, -1, 1, 1) and dtg > '1970-01-01' and dtg < '2018-01-01'")
+      val query = new Query(sft.getTypeName, filter)
+      foreach(ds.getQueryPlan(query)) { plan =>
+        plan.index.name mustEqual Z3Index.Name
+      }
     }
 
     "be able to sort by id asc" >> {

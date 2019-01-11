@@ -57,10 +57,10 @@
             <filtered>true</filtered>
         </fileSet>
         <fileSet>
-            <directory>../geomesa-kafka-tools/conf</directory>
+            <directory>../geomesa-kafka-tools/conf-filtered</directory>
             <outputDirectory>conf</outputDirectory>
             <fileMode>0644</fileMode>
-            <filtered>false</filtered>
+            <filtered>true</filtered>
             <directoryMode>755</directoryMode>
         </fileSet>
 

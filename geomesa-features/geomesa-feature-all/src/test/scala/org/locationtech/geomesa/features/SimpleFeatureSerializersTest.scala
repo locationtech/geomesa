@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.features
 
-import org.locationtech.jts.geom.Point
+import java.util.UUID
+
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
@@ -17,6 +18,7 @@ import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, Projecting
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Point
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
@@ -351,13 +353,14 @@ class SimpleFeatureSerializersTest extends Specification {
       decoder.deserialize(encoded) must equalSF(sf, withoutUserData)
     }
 
-    "fail when user data were not encoded but are expected by the decoder" >> {
+    "not fail when user data was not encoded but is expected by the decoder" >> {
       val encoder = KryoFeatureSerializer(sft, SerializationOptions.none)
       val encoded = encoder.serialize(getFeaturesWithVisibility.head)
 
       val decoder = KryoFeatureSerializer(sft, SerializationOptions.withUserData)
 
-      decoder.deserialize(encoded) must throwA[Exception]
+      val decoded = decoder.deserialize(encoded)
+      decoded.getUserData must beEmpty
     }
   }
 
@@ -396,6 +399,33 @@ class SimpleFeatureSerializersTest extends Specification {
 
       forall(features.zip(decoded)) { case (in, out) =>
         out.getUserData.toMap mustEqual in.getUserData.toMap
+      }
+    }
+  }
+
+  "SimpleFeatureSerializers" should {
+    "serialize user data byte arrays, uuids, geometries, and lists" >> {
+
+      val features = getFeatures
+      var i = 0
+      features.foreach { f =>
+        f.getUserData.put("bytes", Array.fill[Byte](i)(i.toByte))
+        f.getUserData.put("uuid", UUID.randomUUID())
+        f.getUserData.put("point", WKTUtils.read(s"POINT (4$i 55)"))
+        f.getUserData.put("geom", WKTUtils.read(s"LINESTRING (4$i 55, 4$i 56, 4$i 57)"))
+        f.getUserData.put("list", java.util.Arrays.asList("foo", s"bar$i", 5, i))
+        i += 1
+      }
+
+      foreach(Seq(SerializationType.KRYO, SerializationType.AVRO)) { typ =>
+        val serializer = SimpleFeatureSerializers(sft, typ, SerializationOptions.withUserData)
+        foreach(features) { feature =>
+          val reserialized = serializer.deserialize(serializer.serialize(feature))
+          // note: can't compare whole map at once as byte arrays aren't considered equal in that comparison
+          foreach(Seq("bytes", "uuid", "point", "geom", "list")) { key =>
+            reserialized.getUserData.get(key) mustEqual feature.getUserData.get(key)
+          }
+        }
       }
     }
   }

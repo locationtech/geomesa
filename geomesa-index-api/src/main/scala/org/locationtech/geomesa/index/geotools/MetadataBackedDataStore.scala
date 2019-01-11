@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -357,9 +357,14 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     * Make sure that you 'release' the lock in a finally block.
     */
   protected [geomesa] def acquireCatalogLock(): Releasable = {
+    import org.locationtech.geomesa.index.DistributedLockTimeout
     val path = s"/org.locationtech.geomesa/ds/$catalog"
-    acquireDistributedLock(path, 120000).getOrElse {
-      throw new RuntimeException(s"Could not acquire distributed lock at '$path'")
+    val timeout = DistributedLockTimeout.toDuration.getOrElse {
+      // note: should always be a valid fallback value so this exception should never be triggered
+      throw new IllegalArgumentException(s"Couldn't convert '${DistributedLockTimeout.get}' to a duration")
+    }
+    acquireDistributedLock(path, timeout.toMillis).getOrElse {
+      throw new RuntimeException(s"Could not acquire distributed lock at '$path' within $timeout")
     }
   }
 

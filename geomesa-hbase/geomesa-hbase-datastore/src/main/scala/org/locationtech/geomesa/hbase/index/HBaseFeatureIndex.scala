@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -96,8 +96,10 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
               // the jar should be under hbase.dynamic.jars.dir to enable filters, so look there
               val dir = new Path(conf.get("hbase.dynamic.jars.dir"))
               WithClose(dir.getFileSystem(conf)) { fs =>
-                fs.listStatus(dir).collectFirst {
-                  case s if DistributedJarNamePattern.matcher(s.getPath.getName).matches() => s.getPath
+                if (!fs.isDirectory(dir)) { None } else {
+                  fs.listStatus(dir).collectFirst {
+                    case s if DistributedJarNamePattern.matcher(s.getPath.getName).matches() => s.getPath
+                  }
                 }
               }
             } catch {

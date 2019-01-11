@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,14 +12,13 @@ import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
-import org.locationtech.geomesa.filter.{andFilters, decomposeAnd, ff}
+import org.locationtech.geomesa.filter.{FilterHelper, andFilters, ff}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.opengis.filter.spatial.BBOX
 
 trait QueryRunner {
 
@@ -35,6 +34,7 @@ trait QueryRunner {
     */
   protected [geomesa] def configureQuery(sft: SimpleFeatureType, original: Query): Query = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     val query = new Query(original) // note: this ends up sharing a hints object between the two queries
 
@@ -55,21 +55,18 @@ trait QueryRunner {
 
     // set sorting in the query
     QueryPlanner.setQuerySort(sft, query)
+    QueryPlanner.setMaxFeatures(query)
 
-    // add the bbox from the density query to the filter
-    if (query.getHints.isDensityQuery) {
-      val env = query.getHints.getDensityEnvelope.get.asInstanceOf[ReferencedEnvelope]
-      val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env)
-      if (query.getFilter == Filter.INCLUDE) {
-        query.setFilter(bbox)
-      } else {
-        // add the bbox - try to not duplicate an existing bbox
-        val bounds = bbox.getBounds
-        val filters = decomposeAnd(query.getFilter).filter {
-          case b: BBOX if bounds.contains(b.getBounds) => false
-          case _ => true
+    // add the bbox from the density query to the filter, if there is no more restrictive filter
+    query.getHints.getDensityEnvelope.foreach { env =>
+      val geoms = FilterHelper.extractGeometries(query.getFilter, sft.getGeomField)
+      if (geoms.isEmpty || geoms.exists(g => !env.contains(g.getEnvelopeInternal))) {
+        val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env.asInstanceOf[ReferencedEnvelope])
+        if (query.getFilter == Filter.INCLUDE) {
+          query.setFilter(bbox)
+        } else {
+          query.setFilter(andFilters(Seq(query.getFilter, bbox)))
         }
-        query.setFilter(andFilters(filters ++ Seq(bbox)))
       }
     }
 

@@ -1,58 +1,61 @@
 Getting Started
 ===============
 
-This chapter highlights several features of GeoMesa, along with tutorials for getting started.
+The first step to getting started with GeoMesa is to choose a persistent storage solution. This may be dictated
+by your target environment, but if not there are several options available.
 
-Quick Start
------------
+If you want a near real-time view of streaming data, then consider using
+:doc:`Kafka </tutorials/geomesa-quickstart-kafka>`.
 
-The GeoMesa quick start tutorials are the fastest and easiest way to get started with GeoMesa.
-They are a good stepping-stone on the path to the other tutorials that present increasingly involved examples
-of how to use GeoMesa. The tutorials show how to write custom Java code to ingest and query data with GeoMesa,
-and visualize the changes being made in GeoServer.
+Otherwise, you can get similar functionality through :doc:`HBase </tutorials/geomesa-quickstart-hbase>`,
+:doc:`Accumulo </tutorials/geomesa-quickstart-accumulo>`, :doc:`Cassandra </tutorials/geomesa-quickstart-cassandra>`,
+Google Bigtable or :doc:`Apache Kudu </tutorials/geomesa-quickstart-kudu>`. HBase and Accumulo support distributed
+processing, so may be faster for certain operations. HBase and Cassandra are the most widely-used technologies,
+while Accumulo is often chosen for its advanced security features.
 
-Quick starts are available for several back-end databases:
+Another option is the :doc:`FileSystem </tutorials/geomesa-quickstart-fsds>` data store, which has a very low
+barrier to entry, and can read existing data in a variety of file formats. The FileSystem data store can provide
+extremely low-cost storage when backed by cloud-native object stores; however, it generally is not as performant as
+using an actual database.
 
-* :doc:`/tutorials/geomesa-quickstart-accumulo`
-* :doc:`/tutorials/geomesa-quickstart-hbase`
-* :doc:`/tutorials/geomesa-quickstart-cassandra`
+For advanced use cases, multiple stores can be combined through a :doc:`/user/merged_view` to provide both high
+performance (for recent data) and low cost (for older data).
 
-GeoDocker: Bootstrapping GeoMesa Accumulo and Spark on AWS
-----------------------------------------------------------
+Whichever storage solution you choose, the GeoMesa API is the same (outside of some back-end-specific configuration
+options). For most users, the back-end can be swapped out with minimal code changes.
 
-Getting started with spatio-temporal analysis with GeoMesa, Accumulo, and Spark on Amazon Web Services (AWS)
-is incredibly simple, thanks to the `Geodocker <https://github.com/geodocker/geodocker-geomesa>`_ project.
-The guide below describes how to bootstrap a GeoMesa Accumulo cluster using Amazon ElasticMapReduce (EMR) and
-Docker in order to ingest and query sample GDELT data.
+Quick Starts
+------------
 
-See :doc:`/tutorials/geodocker-geomesa/geodocker-geomesa-spark-on-aws`.
+The GeoMesa :doc:`quick start tutorials </tutorials/index>` are the fastest and easiest way to get started with
+GeoMesa. They are a good stepping-stone on the path to the other tutorials that present increasingly involved
+examples of how to use GeoMesa. The tutorials show how to write custom Java code to ingest and query data with
+GeoMesa, and visualize the changes being made in GeoServer.
 
-GeoMesa Kafka
+Docker Images
 -------------
 
-The GeoMesa Kakfa Quick Start tutorial shows how to write custom Java code to produce and consume messages in
-Apache Kafka using GeoMesa, query the data and visualize the changes being made in Kafka with GeoServer.
+The `Geodocker <https://github.com/geodocker/geodocker-geomesa>`_ project provides Docker images that make it easy
+to stand up an Accumulo cluster with GeoMesa already configured. This
+:doc:`guide </tutorials/geodocker-geomesa/geodocker-geomesa-spark-on-aws>` describes how to bootstrap a cluster
+using Amazon ElasticMapReduce (EMR) and Docker in order to ingest and query sample GDELT data.
 
-See :doc:`/tutorials/geomesa-quickstart-kafka`.
-
-Storm Analysis
+Data Ingestion
 --------------
 
-GeoMesa can leverage the `Apache Storm`_ distributed computation system to ingest and analyze
-geospatial data in near real time. The :doc:`/tutorials/geomesa-quickstart-storm` tutorial
-shows how to use Kafka, GeoMesa, and Storm to parse Open Street Map data files and ingest
-them into Accumulo.
-
-See :doc:`/tutorials/geomesa-quickstart-storm`.
-
-.. _Apache Storm: http://storm.apache.org/
+GeoMesa provides an :doc:`ingestion framework </user/convert/index>` that can be configured using JSON, which
+means that your data can be ingested without writing any code. This makes it quick and easy to get started with
+your custom data formats, and updates can be handled on-the-fly, without code changes.
 
 GeoJSON
 -------
 
-GeoMesa provides built-in integration with GeoJSON. GeoMesa provides a GeoJSON API
+GeoMesa provides built-in integration with GeoJSON. GeoMesa provides a :doc:`GeoJSON API </user/geojson>`
 that allows for the indexing and querying of GeoJSON data without using the GeoTools
-API--all data and operations are pure JSON. The API also includes a REST endpoint for
+API -- all data and operations are pure JSON. The API also includes a REST endpoint for
 web integration.
 
-See :doc:`/user/geojson`.
+Spark
+-----
+
+GeoMesa provides spatial functionality on top of Spark and Spark SQL. To get started, see :ref:`tutorials_analytics`.

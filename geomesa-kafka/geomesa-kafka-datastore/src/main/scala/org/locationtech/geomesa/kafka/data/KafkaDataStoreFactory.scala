@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -75,6 +75,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreFactoryParams.ZkPath,
       KafkaDataStoreFactoryParams.ConsumerCount,
       KafkaDataStoreFactoryParams.ConsumerConfig,
+      KafkaDataStoreFactoryParams.ConsumerReadBack,
       KafkaDataStoreFactoryParams.CacheExpiry,
       KafkaDataStoreFactoryParams.EventTime,
       KafkaDataStoreFactoryParams.SerializationType,
@@ -84,7 +85,6 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreFactoryParams.IndexTiers,
       KafkaDataStoreFactoryParams.EventTimeOrdering,
       KafkaDataStoreFactoryParams.LazyFeatures,
-      KafkaDataStoreFactoryParams.ConsumeEarliest,
       KafkaDataStoreFactoryParams.AuditQueries,
       KafkaDataStoreFactoryParams.SchemaRegistryUrl,
       KafkaDataStoreFactoryParams.LooseBBox,
@@ -106,7 +106,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val consumers = {
       val count = ConsumerCount.lookup(params).intValue
       val props = ConsumerConfig.lookupOpt(params).map(_.asScala.toMap).getOrElse(Map.empty[String, String])
-      KafkaDataStore.ConsumerConfig(count, props, ConsumeEarliest.lookup(params).booleanValue)
+      val readBack = ConsumerReadBack.lookupOpt(params)
+      KafkaDataStore.ConsumerConfig(count, props, readBack)
     }
 
     val producers = {
@@ -137,8 +138,12 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         CqEngineIndices.lookupOpt(params) match {
           case Some(attributes) =>
             attributes.split(",").toSeq.map { attribute =>
-              val Array(name, indexType) = attribute.split(":", 2)
-              (name, CQIndexType.withName(indexType))
+              try {
+                val Array(name, indexType) = attribute.split(":", 2)
+                (name, CQIndexType.withName(indexType))
+              } catch {
+                case _: MatchError => throw new IllegalArgumentException(s"Invalid CQEngine index value: $attribute")
+              }
             }
 
           case None =>
@@ -244,7 +249,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   object KafkaDataStoreFactoryParams extends NamespaceParams {
     // deprecated lookups
     private val DeprecatedProducer = ConvertedParam[java.lang.Integer, java.lang.Boolean]("isProducer", v => if (v) { 0 } else { 1 })
-    private val DeprecatedOffset = ConvertedParam[java.lang.Boolean, String]("autoOffsetReset", v => "earliest".equalsIgnoreCase(v))
+    private val DeprecatedOffset = ConvertedParam[Duration, String]("autoOffsetReset", v => if ("earliest".equalsIgnoreCase(v)) { Duration.Inf } else { null })
+    private val DeprecatedEarliest = ConvertedParam[Duration, java.lang.Boolean]("kafka.consumer.from-beginning", v => if (v) { Duration.Inf } else { null })
     private val DeprecatedExpiry = ConvertedParam[Duration, java.lang.Long]("expirationPeriod", v => Duration(v, "ms"))
     private val DeprecatedConsistency = ConvertedParam[Duration, java.lang.Long]("consistencyCheck", v => Duration(v, "ms"))
     private val DeprecatedCleanup = new DeprecatedParam[Duration] {
@@ -262,7 +268,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val ZkPath            = new GeoMesaParam[String]("kafka.zk.path", "Zookeeper discoverable path (namespace)", default = DefaultZkPath, deprecatedKeys = Seq("zkPath"))
     val ProducerConfig    = new GeoMesaParam[Properties]("kafka.producer.config", "Configuration options for kafka producer, in Java properties format. See http://kafka.apache.org/documentation.html#producerconfigs", largeText = true, deprecatedKeys = Seq("producerConfig"))
     val ConsumerConfig    = new GeoMesaParam[Properties]("kafka.consumer.config", "Configuration options for kafka consumer, in Java properties format. See http://kafka.apache.org/documentation.html#newconsumerconfigs", largeText = true, deprecatedKeys = Seq("consumerConfig"))
-    val ConsumeEarliest   = new GeoMesaParam[java.lang.Boolean]("kafka.consumer.from-beginning", "Start reading from the beginning of the topic (vs ignore old messages)", default = Boolean.box(false), deprecatedParams = Seq(DeprecatedOffset))
+    val ConsumerReadBack  = new GeoMesaParam[Duration]("kafka.consumer.read-back", "On start up, read messages that were written within this time frame (vs ignore old messages), e.g. '1 hour'. Use 'Inf' to read all messages", deprecatedParams = Seq(DeprecatedOffset, DeprecatedEarliest))
     val TopicPartitions   = new GeoMesaParam[Integer]("kafka.topic.partitions", "Number of partitions to use in new kafka topics", default = 1, deprecatedKeys = Seq("partitions"))
     val TopicReplication  = new GeoMesaParam[Integer]("kafka.topic.replication", "Replication factor to use in new kafka topics", default = 1, deprecatedKeys = Seq("replication"))
     val ConsumerCount     = new GeoMesaParam[Integer]("kafka.consumer.count", "Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)", default = 1, deprecatedParams = Seq(DeprecatedProducer))

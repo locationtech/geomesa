@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,11 +14,11 @@ import org.locationtech.jts.geom._
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.ClassKey
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.util.Converters
 import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureSerialization}
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap}
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -189,8 +189,8 @@ object DensityScan extends LazyLogging {
   private def getWeightFromNonNumber(i: Int)(sf: SimpleFeature): Double = {
     val d = sf.getAttribute(i)
     if (d == null) { 0.0 } else {
-      val converted = Converters.convert(d, classOf[java.lang.Double])
-      if (converted == null) 1.0 else converted
+      val converted = FastConverter.convert(d, classOf[java.lang.Double])
+      if (converted == null) { 1.0 } else { converted.doubleValue() }
     }
   }
 

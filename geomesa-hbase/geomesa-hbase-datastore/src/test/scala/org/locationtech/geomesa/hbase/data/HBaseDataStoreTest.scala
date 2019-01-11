@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -97,6 +97,9 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
 
               // this query should be blocked
               testQuery(ds, typeName, "INCLUDE", transforms, toAdd) must throwA[RuntimeException]
+              // with max features set, it should go through - don't count, that will be blocked
+              testQuery(ds, new Query(typeName, ECQL.toFilter("INCLUDE"), 10, transforms, null), toAdd, count = false)
+
               QueryProperties.BlockFullTableScans.threadLocalValue.remove()
               // now it should go through
               testQuery(ds, typeName, "INCLUDE", transforms, toAdd)
@@ -270,7 +273,7 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
 
         try {
           ds.createSchema(SimpleFeatureTypes.createType("test-version", "dtg:Date,*geom:Point:srid=4326"))
-          ds.getDistributeVersion must beSome(SemanticVersion(GeoMesaProperties.ProjectVersion))
+          ds.getDistributedVersion must beSome(SemanticVersion(GeoMesaProperties.ProjectVersion))
         } finally {
           ds.dispose()
         }
@@ -285,10 +288,15 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
                 filter: String,
                 transforms: Array[String],
                 results: Seq[SimpleFeature]): MatchResult[Any] = {
-    val query = new Query(typeName, ECQL.toFilter(filter), transforms)
+    testQuery(ds, new Query(typeName, ECQL.toFilter(filter), transforms), results)
+  }
+
+  def testQuery(ds: HBaseDataStore, query: Query, results: Seq[SimpleFeature], count: Boolean = true): MatchResult[Any] = {
+
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
     val features = SelfClosingIterator(fr).toList
-    val attributes = Option(transforms).getOrElse(ds.getSchema(typeName).getAttributeDescriptors.map(_.getLocalName).toArray)
+    val attributes = Option(query.getPropertyNames)
+        .getOrElse(ds.getSchema(query.getTypeName).getAttributeDescriptors.map(_.getLocalName).toArray)
     features.map(_.getID) must containTheSameElementsAs(results.map(_.getID))
     forall(features) { feature =>
       feature.getAttributes must haveLength(attributes.length)
@@ -298,25 +306,27 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
       }
     }
 
+    if (count) {
+      query.getFilter match {
+        case _: Id =>
+          // id filters use estimated stats based on the filter itself
+          ds.getFeatureSource(query.getTypeName).getCount(query) mustEqual results.length
+          ds.getFeatureSource(query.getTypeName).getFeatures(query).size() mustEqual results.length
+
+        case _ =>
+          ds.getFeatureSource(query.getTypeName).getCount(query) mustEqual -1
+          ds.getFeatureSource(query.getTypeName).getFeatures(query).size() mustEqual 0
+      }
+
+      query.getHints.put(QueryHints.EXACT_COUNT, true)
+      ds.getFeatureSource(query.getTypeName).getFeatures(query).size() mustEqual results.length
+    }
+
     // verify ranges are grouped appropriately to not cross shard boundaries
     forall(ds.getQueryPlan(query).flatMap(_.scans)) { scan =>
       if (scan.getStartRow.isEmpty || scan.getStopRow.isEmpty) { ok } else {
         scan.getStartRow()(0) mustEqual scan.getStopRow()(0)
       }
     }
-
-    query.getFilter match {
-      case _: Id =>
-        // id filters use estimated stats based on the filter itself
-        ds.getFeatureSource(typeName).getCount(query) mustEqual results.length
-        ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual results.length
-
-      case _ =>
-        ds.getFeatureSource(typeName).getCount(query) mustEqual -1
-        ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual 0
-    }
-
-    query.getHints.put(QueryHints.EXACT_COUNT, true)
-    ds.getFeatureSource(typeName).getFeatures(query).size() mustEqual results.length
   }
 }

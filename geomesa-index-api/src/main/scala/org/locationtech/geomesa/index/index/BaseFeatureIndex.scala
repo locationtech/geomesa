@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -106,14 +106,18 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
                             filter: FilterStrategy[DS, F, W],
                             hints: Hints,
                             explain: Explainer): QueryPlan[DS, F, W] = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
     val sharing = sft.getTableSharingBytes
 
     val indexValues = filter.primary.map(keySpace.getIndexValues(sft, _, explain))
 
     val ranges = indexValues match {
       case None =>
-        // check that full table scans are allowed
-        QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+        if (hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
+          // check that full table scans are allowed
+          QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+        }
         filter.secondary.foreach { f =>
           logger.warn(s"Running full table scan on $name index for schema ${sft.getTypeName} with filter ${filterToString(f)}")
         }

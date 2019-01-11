@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,8 +10,8 @@ package org.locationtech.geomesa.convert2.transforms
 
 import java.util.UUID
 
-import org.geotools.util.Converters
 import org.locationtech.geomesa.convert2.transforms.CollectionFunctionFactory.CollectionParsing
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 
 class CollectionFunctionFactory extends TransformerFunctionFactory with CollectionParsing {
 
@@ -67,10 +67,13 @@ object CollectionFunctionFactory {
 
   trait CollectionParsing {
 
-    protected def convert(value: Any, clazz: Class[_]): Any =
-      Option(Converters.convert(value, clazz)).getOrElse {
+    protected def convert(value: Any, clazz: Class[_]): Any = {
+      val converted = FastConverter.convert(value, clazz)
+      if (converted == null) {
         throw new IllegalArgumentException(s"Could not convert value '$value' to type ${clazz.getName})")
       }
+      converted
+    }
 
     protected def determineClazz(s: String): Class[_] = s.toLowerCase match {
       case "string" | "str"   => classOf[String]

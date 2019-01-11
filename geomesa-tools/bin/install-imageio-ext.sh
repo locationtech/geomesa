@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+# Copyright (c) 2013-%%copyright.year%% Commonwealth Computer Research, Inc.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0 which
 # accompanies this distribution and is available at
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
-imageio_version='1.1.13'
+imageio_version='1.1.25'
 imageio_gdal_bindings_version='1.9.2'
 
 # Load common functions and setup
@@ -18,7 +18,7 @@ fi
 
 install_dir="${1:-${%%gmtools.dist.name%%_HOME}/lib}"
 
-base_url="${GEOMESA_MAVEN_URL:-http://download.osgeo.org/webdav/}"
+base_url="${GEOMESA_MAVEN_URL:-https://repo.boundlessgeo.com/main/}"
 
 partial_url='geotools/it/geosolutions/imageio-ext'
 

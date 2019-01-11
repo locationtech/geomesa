@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -18,8 +18,8 @@ import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
 
 trait ZookeeperLocking extends DistributedLocking {
 
-  def mock: Boolean
-  def zookeepers: String
+  protected def mock: Boolean
+  protected def zookeepers: String
 
   /**
     * Gets and acquires a distributed lock based on the key.

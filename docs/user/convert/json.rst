@@ -26,6 +26,16 @@ The ``fields`` element in a JSON converter supports two additional attributes, `
 and available in the ``transform`` element as ``$0``. Geometry types can handle either WKT strings or GeoJSON
 geometry objects.
 
+Handling Complex Elements
+-------------------------
+
+JSON can contain complex, nested elements that don't necessarily map well to the flat attribute structure used
+by ``SimpleFeatureTypes``. These type of elements can be easily handled using GeoMesa's support for
+:ref:`json_attributes`. In your ``SimpleFeatureType`` schema, indicate a complex JSON string through the
+user data hint ``json=true``. In your converter, select the outer element and then turn it into a JSON string
+through the ``toString`` transformer function. You will be able to filter and transform the data using JSONPath
+at query time. See :ref:`json_attributes` for more details.
+
 .. _json_converter_functions:
 
 JSON Transform Functions

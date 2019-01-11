@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -16,7 +16,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.api.{WrappedFeature, _}
-import org.locationtech.geomesa.index.conf.SchemaProperties
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.VersionKey
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
@@ -333,12 +332,15 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     *
     * @return iterator version, if data store has iterators
     */
-  def getDistributeVersion: Option[SemanticVersion] = {
+  def getDistributedVersion: Option[SemanticVersion] = {
     GeoMesaDataStore.versions.get(new VersionKey(this)).get() match {
       case Right(v) => v
       case Left(e)  => throw e
     }
   }
+
+  @deprecated("use getDistributedVersion")
+  def getDistributeVersion: Option[SemanticVersion] = getDistributedVersion
 
   /**
     * Gets the geomesa version
@@ -353,7 +355,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
 
 object GeoMesaDataStore extends LazyLogging {
 
-  import org.locationtech.geomesa.index.conf.SchemaProperties.CheckDistributedVersion
+  import org.locationtech.geomesa.index.conf.SchemaProperties.{CheckDistributedVersion, ValidateDistributedClasspath}
 
   private val loader = new CacheLoader[VersionKey[_, _, _], Either[Exception, Option[SemanticVersion]]]() {
     override def load(key: VersionKey[_, _, _]): Either[Exception, Option[SemanticVersion]] = {
@@ -361,7 +363,7 @@ object GeoMesaDataStore extends LazyLogging {
         // short-circuit load - should try again next time cache is accessed
         throw new RuntimeException("Can't load remote versions if there are no feature types")
       }
-      if (!SchemaProperties.CheckDistributedVersion.toBoolean.contains(true)) { Right(None) } else {
+      if (CheckDistributedVersion.toBoolean.contains(false)) { Right(None) } else {
         val clientVersion = key.ds.getClientVersion
         // use lenient parsing to account for versions like 1.3.5.1
         val iterVersions = key.ds.loadIteratorVersions.map(v => SemanticVersion(v, lenient = true))
@@ -373,16 +375,18 @@ object GeoMesaDataStore extends LazyLogging {
         // likely to match more tablet servers than the lower version
         val version = iterVersions.reduceLeftOption((left, right) => if (right > left) { right } else { left })
 
-        // ensure matching minor versions
-        if (iterVersions.exists(MinorOrdering.compare(_, clientVersion) != 0)) {
-          Left(new RuntimeException(s"$message. You may override this check by setting the system property " +
-              s"'-D${CheckDistributedVersion.property}=false'"))
-        } else {
-          if (iterVersions.exists(_ != clientVersion)) {
-            // if it's a patch/pre-release version mismatch, or the user has disabled the check, just log it
-            logger.warn(message)
-          }
+        // ensure matching versions
+        // return an error if the user has enabled strict checking and it's not a patch/pre-release version mismatch
+        // otherwise just log a warning
+        if (iterVersions.forall(_ == clientVersion)) {
           Right(version)
+        } else if (ValidateDistributedClasspath.toBoolean.contains(false) ||
+            iterVersions.forall(MinorOrdering.compare(_, clientVersion) == 0)) {
+          logger.warn(message)
+          Right(version)
+        } else {
+          Left(new RuntimeException(s"$message. You may override this check by setting the system property " +
+              s"'-D${ValidateDistributedClasspath.property}=false'"))
         }
       }
     }

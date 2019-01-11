@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,18 +9,16 @@
 package org.locationtech.geomesa.hbase.filters
 import java.nio.charset.StandardCharsets
 
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.hbase.exceptions.DeserializationException
 import org.apache.hadoop.hbase.filter.Filter.ReturnCode
+import org.apache.hadoop.hbase.filter.FilterBase
 import org.apache.hadoop.hbase.{Cell, KeyValue}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoBufferSimpleFeature, KryoFeatureSerializer}
-import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.hbase.filters.CqlTransformFilter.DelegateFilter
 import org.locationtech.geomesa.index.iterators.IteratorCache
-import org.locationtech.geomesa.utils.cache.ByteArrayCacheKey
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.SimpleFeatureType
@@ -32,14 +30,10 @@ import scala.util.control.NonFatal
   * HBase filter for CQL predicates and transformations
   *
   * The internal processing logic is kept in a delegate filter that will do either filtering, transforming, or both.
-  * The delegate filter instance is a lightweight wrapper that is copied from a cached value based on the
-  * serialized bytes, to avoid re-processing setup code whenever possible
   *
   * @param delegate delegate filter
-  * @param serialized serialized delegate filter
   */
-class CqlTransformFilter(delegate: DelegateFilter, serialized: Array[Byte])
-    extends org.apache.hadoop.hbase.filter.Filter {
+class CqlTransformFilter(delegate: DelegateFilter) extends FilterBase {
 
   /**
     * From the Filter javadocs:
@@ -60,40 +54,13 @@ class CqlTransformFilter(delegate: DelegateFilter, serialized: Array[Byte])
 
   override def filterKeyValue(v: Cell): ReturnCode = delegate.filterKeyValue(v)
   override def transformCell(v: Cell): Cell = delegate.transformCell(v)
-
-  override def reset(): Unit = {}
-  override def filterRowKey(buffer: Array[Byte], offset: Int, length: Int): Boolean = false
-  override def filterAllRemaining(): Boolean = false
-  override def transform(currentKV: KeyValue): KeyValue = currentKV
-  override def filterRowCells(kvs: java.util.List[Cell]): Unit = {}
-  override def hasFilterRow: Boolean = false
-  override def filterRow(): Boolean = false
-  override def getNextKeyHint(currentKV: KeyValue): KeyValue = null
-  override def getNextCellHint(currentKV: Cell): Cell = null
-  override def isFamilyEssential(name: Array[Byte]): Boolean = true
-  override def toByteArray: Array[Byte] = serialized
-
-  // overrides package-private method in Filter
-  protected [filters] def areSerializedFieldsEqual(other: org.apache.hadoop.hbase.filter.Filter): Boolean = true
-
+  override def toByteArray: Array[Byte] = CqlTransformFilter.serialize(delegate)
   override def toString: String = delegate.toString
 }
 
 object CqlTransformFilter extends StrictLogging {
 
-  import org.locationtech.geomesa.index.FilterCacheSize
-
   val Priority: Int = 30
-
-  private val cache = Caffeine.newBuilder().maximumSize(FilterCacheSize.toInt.get).build(
-    new CacheLoader[ByteArrayCacheKey, DelegateFilter]() {
-      override def load(key: ByteArrayCacheKey): DelegateFilter = {
-        val filter = deserialize(key.bytes)
-        logger.trace(s"Deserialized $filter")
-        filter
-      }
-    }
-  )
 
   /**
     * Override of static method from org.apache.hadoop.hbase.filter.Filter
@@ -104,8 +71,7 @@ object CqlTransformFilter extends StrictLogging {
     */
   @throws(classOf[DeserializationException])
   def parseFrom(pbBytes: Array[Byte]): org.apache.hadoop.hbase.filter.Filter =
-    // note: we copy KryoBufferSimpleFeatures as they seem to cause problems if re-used, even if thread-local
-    new CqlTransformFilter(cache.get(new ByteArrayCacheKey(pbBytes)).copy(), pbBytes)
+    new CqlTransformFilter(deserialize(pbBytes))
 
   /**
     * Create a new filter. Typically, filters created by this method will just be serialized to bytes and sent
@@ -135,7 +101,7 @@ object CqlTransformFilter extends StrictLogging {
       case Some(f) => new FilterTransformDelegate(sft, feature, f)
     }
 
-    new CqlTransformFilter(delegate, serialize(delegate))
+    new CqlTransformFilter(delegate)
   }
 
   /**
@@ -255,7 +221,6 @@ object CqlTransformFilter extends StrictLogging {
     def transform: Option[(String, SimpleFeatureType)]
     def filterKeyValue(v: Cell): ReturnCode
     def transformCell(v: Cell): Cell
-    def copy(): DelegateFilter
   }
 
   /**
@@ -284,8 +249,6 @@ object CqlTransformFilter extends StrictLogging {
     }
 
     override def transformCell(v: Cell): Cell = v
-
-    override def copy(): FilterDelegate = new FilterDelegate(sft, feature.copy(), FastFilterFactory.copy(sft, filt))
 
     override def toString: String = s"CqlFilter[${ECQL.toCQL(filt)}]"
   }
@@ -321,8 +284,6 @@ object CqlTransformFilter extends StrictLogging {
         KeyValue.Type.Put, value, 0, value.length)
     }
 
-    override def copy(): TransformDelegate = new TransformDelegate(sft, feature.copy())
-
     override def toString: String = s"TransformFilter[${feature.getTransform.get._1}]"
   }
 
@@ -357,9 +318,6 @@ object CqlTransformFilter extends StrictLogging {
         v.getFamilyLength, v.getQualifierArray, v.getQualifierOffset, v.getQualifierLength, v.getTimestamp,
         KeyValue.Type.Put, value, 0, value.length)
     }
-
-    override def copy(): FilterTransformDelegate =
-      new FilterTransformDelegate(sft, feature.copy(), FastFilterFactory.copy(sft, filt))
 
     override def toString: String = s"CqlTransformFilter[${ECQL.toCQL(filt)}, ${feature.getTransform.get._1}]"
   }

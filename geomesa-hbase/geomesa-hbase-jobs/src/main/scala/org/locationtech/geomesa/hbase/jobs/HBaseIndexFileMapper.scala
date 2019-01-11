@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,12 +13,12 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.client.{Mutation, Put}
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat2
-import org.apache.hadoop.hbase.{HConstants, TableName}
+import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseFeature}
+import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStore, HBaseFeature}
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
@@ -125,7 +125,11 @@ object HBaseIndexFileMapper {
       job.setMapOutputKeyClass(classOf[ImmutableBytesWritable])
       job.setMapOutputValueClass(classOf[Put])
 
-      // sets reducer, output classes, num-reducers, and hbase config
+      // set hbase config
+      HBaseConfiguration.merge(job.getConfiguration, HBaseConfiguration.create(job.getConfiguration))
+      HBaseConnectionPool.configureSecurity(job.getConfiguration)
+
+      // sets reducer, output classes and num-reducers
       // override the libjars hbase tries to set, as they end up conflicting with the ones we set
       val libjars = job.getConfiguration.get("tmpjars")
       HFileOutputFormat2.configureIncrementalLoad(job, table, ds.connection.getRegionLocator(tableName))

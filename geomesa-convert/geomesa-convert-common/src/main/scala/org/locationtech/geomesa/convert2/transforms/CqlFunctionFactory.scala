@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -11,7 +11,7 @@ package org.locationtech.geomesa.convert2.transforms
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
-import org.geotools.util.Converters
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 
 
 class CqlFunctionFactory extends TransformerFunctionFactory with LazyLogging {
@@ -80,10 +80,10 @@ object CqlFunctionFactory {
     }
 
     override def set[T](obj: Any, xpath: String, value: T, target: Class[T]): Unit =
-      obj.asInstanceOf[Array[Any]].update(toIndex(xpath), Converters.convert(value, target))
+      obj.asInstanceOf[Array[Any]].update(toIndex(xpath), FastConverter.convert(value, target))
 
     override def get[T](obj: Any, xpath: String, target: Class[T]): T =
-      Converters.convert(obj.asInstanceOf[Array[Any]].apply(toIndex(xpath)), target)
+      FastConverter.convert(obj.asInstanceOf[Array[Any]].apply(toIndex(xpath)), target)
 
     private def toIndex(xpath: String): Int = {
       if (xpath.length == 1) {

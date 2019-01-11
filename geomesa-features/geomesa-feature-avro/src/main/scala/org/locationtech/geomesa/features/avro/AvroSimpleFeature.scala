@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,7 +14,7 @@ import org.locationtech.jts.geom.Geometry
 import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.util.Converters
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
@@ -44,7 +44,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
   def setAttribute(name: String, value: Object) = setAttribute(sft.indexOf(name), value)
   def setAttribute(name: Name, value: Object) = setAttribute(name.getLocalPart, value)
   def setAttribute(index: Int, value: Object) = setAttributeNoConvert(index,
-    Converters.convert(value, getFeatureType.getDescriptor(index).getType.getBinding).asInstanceOf[AnyRef])
+    FastConverter.convert(value, getFeatureType.getDescriptor(index).getType.getBinding).asInstanceOf[AnyRef])
 
   def setAttributes(vals: JList[Object]) = vals.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
   def setAttributes(vals: Array[Object])= vals.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }

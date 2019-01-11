@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2017-2018 IBM
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2017-2019 IBM
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -188,12 +188,16 @@ trait CassandraFeatureIndex[T, U] extends CassandraFeatureIndexType with ClientS
                             filter: CassandraFilterStrategyType,
                             hints: Hints,
                             explain: Explainer): CassandraQueryPlanType = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
     val indexValues = filter.primary.map(keySpace.getIndexValues(sft, _, explain))
 
     val ranges: Iterator[Seq[RowRange]] = indexValues match {
       case None =>
-        // check that full table scans are allowed
-        QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+        if (hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
+          // check that full table scans are allowed
+          QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+        }
         filter.secondary.foreach { f =>
           logger.warn(s"Running full table scan on $name index for schema ${sft.getTypeName} with filter ${filterToString(f)}")
         }

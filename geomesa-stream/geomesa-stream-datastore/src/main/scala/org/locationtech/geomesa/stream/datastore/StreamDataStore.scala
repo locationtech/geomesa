@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -18,7 +18,6 @@ import java.{util => ju}
 import com.github.benmanes.caffeine.cache.{Cache, Caffeine, RemovalCause, RemovalListener}
 import com.google.common.collect.{Lists, Maps}
 import com.typesafe.config.ConfigFactory
-import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.apache.camel.CamelContext
 import org.apache.camel.impl.DefaultCamelContext
 import org.geotools.data.DataAccessFactory.Param
@@ -30,7 +29,7 @@ import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.filter.FidFilterImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.stream.SimpleFeatureStreamSource
 import org.locationtech.geomesa.stream.generic.{GenericSimpleFeatureStreamSource, GenericSimpleFeatureStreamSourceFactory}
@@ -38,6 +37,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.index.{SpatialIndex, SynchronizedQuadtree}
+import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -220,7 +220,7 @@ class StreamDataStoreFactory extends DataStoreFactorySpi {
     val name = SftConfig.lookup(params)
     val ctxnamespace = s"${ns.getOrElse("")}:$name"
     val sft = SimpleFeatureTypeLoader.sftForName(name).getOrElse(throw new RuntimeException("Invalid sft"))
-    val converter =  () => SimpleFeatureConverters.build[String](sft, ConverterConfig.lookup(params))
+    val converter =  () => SimpleFeatureConverter(sft, ConverterConfig.lookup(params))
     val context = GenericSimpleFeatureStreamSourceFactory.getContext(ctxnamespace)
     val source = new GenericSimpleFeatureStreamSource(context, route, sft, threads, converter)
     new StreamDataStore(source, timeout, ns)

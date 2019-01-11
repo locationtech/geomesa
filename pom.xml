@@ -10,7 +10,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa_2.11</artifactId>
     <packaging>pom</packaging>
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
 
     <licenses>
         <license>
@@ -58,8 +58,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>2.1.0</geomesa.release.version>
-        <geomesa.devel.version>2.2.0-SNAPSHOT</geomesa.devel.version>
+        <geomesa.release.version>2.2.0</geomesa.release.version>
+        <geomesa.devel.version>2.3.0-SNAPSHOT</geomesa.devel.version>
+        <copyright.year>2019</copyright.year>
 
         <!-- this must remain outside of version specific scala profiles for sbt/ivy -->
         <scala.binary.version>2.11</scala.binary.version>
@@ -1854,13 +1855,24 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
+                <artifactId>curator-client</artifactId>
+                <version>4.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-framework</artifactId>
+                <version>4.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
                 <version>4.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
-                <artifactId>curator-client</artifactId>
+                <artifactId>curator-test</artifactId>
                 <version>4.0.1</version>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.thoughtworks.paranamer</groupId>
@@ -2534,15 +2546,14 @@
                     <configuration>
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
-                            <validHeader>build/copyright/ccri-dstl-copyright.txt</validHeader>
-                            <validHeader>build/copyright/ccri-dstl-copyright-2016.txt</validHeader>
-                            <validHeader>build/copyright/dstl-copyright-2016.txt</validHeader>
-                            <validHeader>build/copyright/dstl-copyright-2017.txt</validHeader>
+                            <validHeader>build/copyright/ccri-dstl.txt</validHeader>
+                            <validHeader>build/copyright/ccri-dstl-2016.txt</validHeader>
+                            <validHeader>build/copyright/dstl.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
                         </validHeaders>
                         <properties>
-                            <year>2018</year>
+                            <year>${copyright.year}</year>
                             <owner>Commonwealth Computer Research, Inc.</owner>
                         </properties>
                         <headerDefinitions>
@@ -2796,7 +2807,7 @@
             <id>central</id>
             <name>Maven Repository Switchboard</name>
             <layout>default</layout>
-            <url>http://repo1.maven.org/maven2</url>
+            <url>https://repo1.maven.org/maven2</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
@@ -2818,17 +2829,15 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+        <!-- geotools -->
         <repository>
             <id>boundlessgeo</id>
-            <url>http://repo.boundlessgeo.com/main</url>
+            <url>https://repo.boundlessgeo.com/main</url>
         </repository>
+        <!-- jai -->
         <repository>
             <id>osgeo</id>
-            <url>http://download.osgeo.org/webdav/geotools</url>
-        </repository>
-        <repository>
-            <id>conjars.org</id>
-            <url>http://conjars.org/repo</url>
+            <url>https://download.osgeo.org/webdav/geotools</url>
         </repository>
         <repository>
             <id>confluent</id>

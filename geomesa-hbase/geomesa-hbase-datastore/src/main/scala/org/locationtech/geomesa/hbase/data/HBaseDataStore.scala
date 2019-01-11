@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,6 +14,7 @@ import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.security.visibility.Authorizations
+import org.apache.hadoop.hbase.zookeeper.ZKConfig
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.hbase._
@@ -30,12 +31,13 @@ import org.locationtech.geomesa.index.stats.{DistributedRunnableStats, GeoMesaSt
 import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
 
 class HBaseDataStore(val connection: Connection, override val config: HBaseDataStoreConfig)
-    extends HBaseDataStoreType(config) with LocalLocking {
+    extends HBaseDataStoreType(config) with ZookeeperLocking {
 
   override val metadata: GeoMesaMetadata[String] =
     new HBaseBackedMetadata(connection, TableName.valueOf(config.catalog), MetadataStringSerializer)
@@ -46,6 +48,10 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
     if (config.remoteFilter) { new DistributedRunnableStats(this) } else { new UnoptimizedRunnableStats(this) }
 
   override protected val featureWriterFactory: HBaseFeatureWriterFactory = new HBaseFeatureWriterFactory(this)
+
+  // zookeeper locking
+  override protected val mock: Boolean = false
+  override protected val zookeepers: String = ZKConfig.getZKQuorumServersString(connection.getConfiguration)
 
   @throws(classOf[IllegalArgumentException])
   override protected def validateNewSchema(sft: SimpleFeatureType): Unit = {

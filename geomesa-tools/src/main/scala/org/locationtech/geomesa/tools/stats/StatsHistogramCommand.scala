@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -11,10 +11,10 @@ package org.locationtech.geomesa.tools.stats
 import com.beust.jcommander.Parameter
 import org.locationtech.jts.geom.{Geometry, Point}
 import org.geotools.data.DataStore
-import org.geotools.util.Converters
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.stats.{Histogram, MinMax, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -75,13 +75,13 @@ trait StatsHistogramCommand[DS <: DataStore with HasGeoMesaStats] extends DataSt
             var lower: Any = null
             var upper: Any = null
             while (lower == null) {
-              lower = Converters.convert(Prompt.read(s"Enter initial lower bound for '$attribute': "), ct)
+              lower = FastConverter.convert(Prompt.read(s"Enter initial lower bound for '$attribute': "), ct)
               if (lower == null) {
                 Command.user.error(s"Couldn't convert input to appropriate type: ${ct.getSimpleName}")
               }
             }
             while (upper == null) {
-              upper = Converters.convert(Prompt.read(s"Enter initial upper bound for '$attribute': "), ct)
+              upper = FastConverter.convert(Prompt.read(s"Enter initial upper bound for '$attribute': "), ct)
               if (upper == null) {
                 Command.user.error(s"Couldn't convert input to appropriate type: ${ct.getSimpleName}")
               }

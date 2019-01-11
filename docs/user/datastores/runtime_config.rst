@@ -46,6 +46,15 @@ geomesa.convert.scripts.path
 This property allows for adding files to the classpath. It should be set to a colon-separated list of file
 paths. This is useful for getting scripts onto the classpath for use by map-reduce ingest jobs.
 
+geomesa.distributed.lock.timeout
+++++++++++++++++++++++++++++++++
+
+The property controls the length of time a data store will wait to acquire a distributed lock before performing
+schema operations (``createSchema``, ``updateSchema`` and ``removeSchema``). As GeoMesa is often run in parallel,
+acquiring a distributed lock among different processes prevents metadata corruption that may result from multiple
+threads altering the schema simultaneously. The timeout is specified as a duration, e.g. ``1 minute`` or
+``30 seconds``, with a default value of ``2 minutes``.
+
 geomesa.distributed.version.check
 +++++++++++++++++++++++++++++++++
 
@@ -151,6 +160,13 @@ For more granularity, it is also possible to specify the full-table scan behavio
 (``SimpleFeatureTypes``). Use ``geomesa.scan.<type-name>.block-full-table``, where ``<type-name>`` is
 replaced with the schema name (e.g. "gdelt"). Properties set for an individual schema will take precedence
 over the globally-defined behavior.
+
+geomesa.scan.block-full-table.threshold
++++++++++++++++++++++++++++++++++++++++
+
+This property works in conjunction with ``geomesa.scan.block-full-table``, above. If a query puts a reasonable limit
+on the number of features that are returned (through the use of ``maxFeatures``), then it will not be blocked.
+The property is specified as an integer. By default, a limit of 1000 or less is allowed.
 
 geomesa.scan.ranges.target
 ++++++++++++++++++++++++++

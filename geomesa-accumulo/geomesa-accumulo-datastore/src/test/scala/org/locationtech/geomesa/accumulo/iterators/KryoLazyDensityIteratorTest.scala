@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -126,5 +126,18 @@ class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
       compiled must haveLength(5)
       forall(compiled)(_ mustEqual 30)
     }
+
+    "Correctly apply filters smaller than the envelope" in {
+      // note: uses features from previous step
+      val q = new Query(sftName, ECQL.toFilter("BBOX(geom, 0.5, 33, 1.5, 40)"))
+      val envelope = new ReferencedEnvelope(-180, 180, -90, 90, org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
+      q.getHints.put(QueryHints.DENSITY_BBOX, envelope)
+      q.getHints.put(QueryHints.DENSITY_WIDTH, 500)
+      q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
+      val decode = DensityScan.decodeResult(envelope, 500, 500)
+      val density = SelfClosingIterator(fs.getFeatures(q).features).flatMap(decode).toList
+      density.map(_._3).sum mustEqual 30
+    }
+
   }
 }

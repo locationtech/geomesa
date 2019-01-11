@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.index.index.attribute
 
 import org.calrissian.mango.types.LexiTypeEncoders
-import org.geotools.util.Converters
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.ByteArrays
 
 import scala.util.Try
@@ -56,7 +56,7 @@ object AttributeIndexKey {
     */
   def encodeForQuery(value: Any, binding: Class[_]): String = {
     if (value == null) { null } else {
-      typeEncode(Option(Converters.convert(value, binding)).getOrElse(value))
+      typeEncode(Option(FastConverter.convert(value, binding)).getOrElse(value))
     }
   }
 

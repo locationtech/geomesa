@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,9 +13,9 @@ import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.util.Converters
 import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
-import org.opengis.feature.`type`.{AttributeDescriptor, Name}
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
@@ -80,8 +80,12 @@ object AbstractSimpleFeature {
       setAttribute(index, value)
     }
     override def setAttribute(index: Int, value: Object): Unit = {
-      val binding = sft.getDescriptor(index).getType.getBinding
-      setAttributeNoConvert(index, Converters.convert(value, binding).asInstanceOf[AnyRef])
+      if (value == null) {
+        setAttributeNoConvert(index, null)
+      } else {
+        val binding = sft.getDescriptor(index).getType.getBinding
+        setAttributeNoConvert(index, FastConverter.convert(value, binding).asInstanceOf[AnyRef])
+      }
     }
 
     // following methods delegate to setAttribute to get type conversion
@@ -121,8 +125,8 @@ object AbstractSimpleFeature {
   */
 abstract class AbstractSimpleFeature(sft: SimpleFeatureType) extends SimpleFeature {
 
-  lazy protected val geomDesc  = sft.getGeometryDescriptor
-  lazy protected val geomIndex = if (geomDesc == null) { -1 } else { sft.indexOf(geomDesc.getLocalName) }
+  lazy protected val geomDesc: GeometryDescriptor = sft.getGeometryDescriptor
+  lazy protected val geomIndex: Int = if (geomDesc == null) { -1 } else { sft.indexOf(geomDesc.getLocalName) }
 
   override def getFeatureType: SimpleFeatureType = sft
   override def getType: SimpleFeatureType = sft

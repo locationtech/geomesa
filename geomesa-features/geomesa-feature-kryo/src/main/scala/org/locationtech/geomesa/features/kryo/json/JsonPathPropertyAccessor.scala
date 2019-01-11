@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15,11 +15,11 @@ import com.jayway.jsonpath.{Configuration, JsonPath}
 import org.geotools.factory.Hints
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
-import org.geotools.util.Converters
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{PathAttribute, PathAttributeWildCard, PathDeepScan, PathElement}
 import org.locationtech.geomesa.features.kryo.json.JsonPathPropertyAccessor.pathFor
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -79,7 +79,7 @@ trait JsonPathPropertyAccessor extends PropertyAccessor {
     if (target == null) {
       result.asInstanceOf[T]
     } else {
-      Converters.convert(result, target)
+      FastConverter.convert(result, target)
     }
   }
 

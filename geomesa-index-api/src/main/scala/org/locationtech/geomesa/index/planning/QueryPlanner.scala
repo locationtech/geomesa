@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -239,6 +239,17 @@ object QueryPlanner extends LazyLogging {
         query.getHints.put(QueryHints.Internal.SORT_FIELDS, hint)
       }
       query.setSortBy(null)
+    }
+  }
+
+  /**
+    * Sets the max features from a query into the query hints
+    *
+    * @param query query
+    */
+  def setMaxFeatures(query: Query): Unit = {
+    if (!query.isMaxFeaturesUnlimited) {
+      query.getHints.put(QueryHints.Internal.MAX_FEATURES, Int.box(query.getMaxFeatures))
     }
   }
 

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -114,7 +114,7 @@ object ScalaSimpleFeature {
     */
   class LazyImmutableSimpleFeature(sft: SimpleFeatureType,
                                    id: String,
-                                   readAttribute: (Int) => AnyRef,
+                                   readAttribute: Int => AnyRef,
                                    readUserData: => java.util.Map[AnyRef, AnyRef])
       extends AbstractImmutableSimpleFeature(sft, id) {
 
@@ -142,7 +142,7 @@ object ScalaSimpleFeature {
     */
   class LazyMutableSimpleFeature(sft: SimpleFeatureType,
                                  initialId: String,
-                                 readAttribute: (Int) => AnyRef,
+                                 readAttribute: Int => AnyRef,
                                  readUserData: => java.util.Map[AnyRef, AnyRef])
       extends AbstractMutableSimpleFeature(sft, initialId, null) {
 

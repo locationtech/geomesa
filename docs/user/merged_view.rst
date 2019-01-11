@@ -39,20 +39,22 @@ For example, to merge a GeoMesa Accumulo data store with a PostGis data store, y
 
 .. code-block:: json
 
-    stores = [
-      {
-        "accumulo.zookeepers" = "localhost",
-        "accumulo.instance.id" = "test",
-        "accumulo.catalog" = "test",
-        "accumulo.user" = "test",
-        "accumulo.password" = "test"
-      },
-      {
-        "dbtype" = "postgis",
-        "host" = "localhost",
-        "port" = "5432",
-        "database" = "test",
-        "user" = "test",
-        "passwd" = "test"
-      }
-    ]
+    {
+      "stores": [
+        {
+          "accumulo.zookeepers": "localhost",
+          "accumulo.instance.id": "test",
+          "accumulo.catalog": "test",
+          "accumulo.user": "test",
+          "accumulo.password": "test"
+        },
+        {
+          "dbtype": "postgis",
+          "host": "localhost",
+          "port": "5432",
+          "database": "test",
+          "user": "test",
+          "passwd": "test"
+        }
+      ]
+    }

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -17,7 +17,6 @@ import org.calrissian.mango.types.{LexiTypeEncoders, TypeRegistry}
 import org.geotools.data.DataUtilities
 import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.util.Converters
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.conf.splitter.TableSplitter
@@ -33,6 +32,7 @@ import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -379,7 +379,7 @@ object AttributeShardedIndex {
     */
   def encodeForQuery(value: Any, binding: Class[_]): Array[Byte] = {
     if (value == null) { Array.empty } else {
-      val converted = Option(Converters.convert(value, binding)).getOrElse(value)
+      val converted = Option(FastConverter.convert(value, binding)).getOrElse(value)
       val encoded = typeEncode(converted)
       if (encoded == null || encoded.isEmpty) {
         Array.empty

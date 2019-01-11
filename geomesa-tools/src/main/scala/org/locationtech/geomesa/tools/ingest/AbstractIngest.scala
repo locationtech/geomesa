@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -202,7 +202,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
 
     Command.user.info(s"Local ingestion complete in ${TextTools.getTime(start)}")
     if (files.lengthCompare(1) == 0) {
-      Command.user.info(getStatInfo(written.get, failed.get, input = s" for file: ${files.head.path}."))
+      Command.user.info(getStatInfo(written.get, failed.get, input = s" for file: ${files.head.path}"))
     } else {
       Command.user.info(getStatInfo(written.get, failed.get))
     }
@@ -253,7 +253,7 @@ object AbstractIngest {
     } else {
       s"and failed to ingest ${TextTools.getPlural(failures, "feature")}"
     }
-    s"$action ${TextTools.getPlural(successes, "feature")} $failureString$input."
+    s"$action ${TextTools.getPlural(successes, "feature")} $failureString$input"
   }
 
   sealed trait StatusCallback {

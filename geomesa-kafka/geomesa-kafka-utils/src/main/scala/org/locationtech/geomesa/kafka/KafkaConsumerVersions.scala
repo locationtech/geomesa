@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,7 +10,7 @@ package org.locationtech.geomesa.kafka
 
 import java.util.Collections
 
-import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener}
+import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, OffsetAndTimestamp}
 import org.apache.kafka.common.TopicPartition
 
 /**
@@ -36,6 +36,9 @@ object KafkaConsumerVersions {
 
   def endOffsets(consumer: Consumer[_, _], topic: String, partitions: Seq[Int]): Map[Int, Long] =
     _endOffsets(consumer, topic, partitions)
+
+  def offsetsForTimes(consumer: Consumer[_, _], topic: String, partitions: Seq[Int], time: Long): Map[Int, Long] =
+    _offsetsForTimes(consumer, topic, partitions, time)
 
   private val _seekToBeginning: (Consumer[_, _], TopicPartition) => Unit = consumerTopicInvocation("seekToBeginning")
 
@@ -92,6 +95,24 @@ object KafkaConsumerVersions {
       val result = Map.newBuilder[Int, Long]
       result.sizeHint(offsets.size())
       offsets.asScala.foreach { case (tp, o) => result += (tp.partition -> o) }
+      result.result()
+    }
+  }
+
+  private val _offsetsForTimes: (Consumer[_, _], String, Seq[Int], Long) => Map[Int, Long] = {
+    import scala.collection.JavaConverters._
+    // note: this method doesn't exist until 0.10.1, so may be null
+    val method = methods.find(m => m.getName == "offsetsForTimes" && m.getParameterCount == 1).orNull
+    (consumer, topic, partitions, time) => {
+      if (method == null) {
+        throw new NoSuchMethodException(s"Couldn't find Consumer.offsetsForTimes method")
+      }
+      val timestamps = new java.util.HashMap[TopicPartition, java.lang.Long](partitions.length)
+      partitions.foreach(p => timestamps.put(new TopicPartition(topic, p), Long.box(time)))
+      val offsets = method.invoke(consumer, timestamps).asInstanceOf[java.util.Map[TopicPartition, OffsetAndTimestamp]]
+      val result = Map.newBuilder[Int, Long]
+      result.sizeHint(offsets.size())
+      offsets.asScala.foreach { case (tp, o) => if (o != null) { result += (tp.partition -> o.offset()) } }
       result.result()
     }
   }

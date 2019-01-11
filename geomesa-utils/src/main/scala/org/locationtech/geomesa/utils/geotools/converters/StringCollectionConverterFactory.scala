@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,7 +10,7 @@ package org.locationtech.geomesa.utils.geotools.converters
 
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.Key
-import org.geotools.util.{Converter, ConverterFactory, Converters}
+import org.geotools.util.{Converter, ConverterFactory}
 
 /**
   * Converts between strings and collections (maps and lists).
@@ -76,7 +76,7 @@ object StringCollectionConverterFactory {
       } else {
         val result = new java.util.ArrayList[Any]
         stripped.split(",").foreach { e =>
-          val converted = Converters.convert(e.trim, listType)
+          val converted = FastConverter.convert(e.trim, listType)
           if (converted != null) {
             result.add(converted)
           }
@@ -115,9 +115,9 @@ object StringCollectionConverterFactory {
       } else {
         val result = new java.util.HashMap[Any, Any]
         stripped.split(",").map(_.split(split)).filter(_.length == 2).foreach { case Array(k, v) =>
-          val convertedKey = Converters.convert(k.trim, keyType)
+          val convertedKey = FastConverter.convert(k.trim, keyType)
           if (convertedKey != null) {
-            val convertedValue = Converters.convert(v.trim, valueType)
+            val convertedValue = FastConverter.convert(v.trim, valueType)
             if (convertedValue != null) {
               result.put(convertedKey, convertedValue)
             }

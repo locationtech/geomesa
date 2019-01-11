@@ -14,8 +14,8 @@ are ``snappy``, ``lzo``, ``gz``, ``bzip2``, ``lz4`` or ``zstd``.
 .. code-block:: java
 
     SimpleFeatureType sft = ....;
-    sft.getUserData().put("geomesa.compression.enabled", "true");
-    sft.getUserData().put("geomesa.compression.type", "snappy");
+    sft.getUserData().put("geomesa.table.compression.enabled", "true");
+    sft.getUserData().put("geomesa.table.compression.type", "snappy");
 
 .. code-block:: shell
 

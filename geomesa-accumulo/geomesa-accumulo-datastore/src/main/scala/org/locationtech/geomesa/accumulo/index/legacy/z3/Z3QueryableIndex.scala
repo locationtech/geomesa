@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -55,8 +55,10 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
     }
 
     if (filter.primary.isEmpty) {
-      // check that full table scans are allowed
-      QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+      if (hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
+        // check that full table scans are allowed
+        QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
+      }
       filter.secondary.foreach { f =>
         logger.warn(s"Running full table scan for schema ${sft.getTypeName} with filter ${filterToString(f)}")
       }

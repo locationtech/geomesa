@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15,6 +15,6 @@ trait ZookeeperLocking extends org.locationtech.geomesa.utils.zk.ZookeeperLockin
 
   def connector: Connector
 
-  override def mock: Boolean = connector.isInstanceOf[MockConnector]
-  override def zookeepers: String = connector.getInstance.getZooKeepers
+  override protected def mock: Boolean = connector.isInstanceOf[MockConnector]
+  override protected def zookeepers: String = connector.getInstance.getZooKeepers
 }

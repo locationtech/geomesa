@@ -1,10 +1,10 @@
 Installing GeoMesa Kafka
 ========================
 
-.. warning::
+.. note::
 
-    Using the `Kafka <http://kafka.apache.org/>`_ module requires Kafka |kafka_version|
-    and ZooKeeper |zookeeper_version|.
+    GeoMesa currently supports Kafka version |kafka_version|. However, not all features are supported
+    for versions prior to 1.0.
 
 Installing from the Binary Distribution
 ---------------------------------------

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -17,14 +17,13 @@ import org.locationtech.jts.geom.impl.CoordinateArraySequence
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.referencing.GeodeticCalculator
-import org.geotools.util.Converters
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
 
 import scala.collection.immutable.NumericRange
 
@@ -82,7 +81,7 @@ abstract class TubeBuilder(val tubeFeatures: SimpleFeatureCollection,
   // handle date parsing from input -> TODO revisit date parsing...
   def transform(tubeFeatures: SimpleFeatureCollection, dtgField: String): Iterator[SimpleFeature] = {
     SelfClosingIterator(tubeFeatures.features).map { sf =>
-      val date = Converters.convert(sf.getAttribute(dtgField), classOf[Date])
+      val date = FastConverter.convert(sf.getAttribute(dtgField), classOf[Date])
 
       if (date == null) {
         logger.error("Unable to retrieve date field from input tubeFeatures...ensure there a field named " + dtgField)
