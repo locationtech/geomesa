@@ -13,8 +13,7 @@ import java.nio.charset.{Charset, StandardCharsets}
 
 import com.typesafe.config.Config
 import org.apache.commons.io.IOUtils
-import org.locationtech.geomesa.convert.Modes.ErrorMode
-import org.locationtech.geomesa.convert.Modes.ParseMode
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.SimpleFeatureConverters.SimpleFeatureConverterWrapper
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter._
@@ -81,8 +80,8 @@ class DelimitedTextConverterFactory
             BasicField(d.getLocalName, Some(Expression(types(i).transform(i + 1)))) // 0 is the whole record
           }
 
-          val options = DelimitedTextOptions(None, None, None, None, SimpleFeatureValidator.default,
-            ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8, verbose = true)
+          val options = DelimitedTextOptions(None, CharNotSpecified, CharNotSpecified, None,
+            SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8, verbose = true)
 
           val config = configConvert.to(converterConfig)
               .withFallback(fieldConvert.to(fields))
@@ -156,10 +155,25 @@ object DelimitedTextConverterFactory {
         if (value.isUndefined) { Right(None) } else { reader.from(value).right.map(Option.apply) }
       }
 
+      def optionalChar(key: String): Either[ConfigReaderFailures, OptionalChar] = {
+        val value = cur.atKeyOrUndefined(key)
+        if (value.isUndefined) { Right(CharNotSpecified) } else {
+          PrimitiveConvert.charConfigReader.from(value) match {
+            case Right(c) => Right(CharEnabled(c))
+            case Left(failures) =>
+              if (PrimitiveConvert.stringConfigReader.from(value).right.exists(_.isEmpty)) {
+                Right(CharDisabled)
+              } else {
+                Left(failures)
+              }
+          }
+        }
+      }
+
       for {
         skipLines <- option("skip-lines", PrimitiveConvert.intConfigReader).right
-        quote     <- option("quote", PrimitiveConvert.charConfigReader).right
-        escape    <- option("escape", PrimitiveConvert.charConfigReader).right
+        quote     <- optionalChar("quote").right
+        escape    <- optionalChar("escape").right
         delimiter <- option("delimiter", PrimitiveConvert.charConfigReader).right
       } yield {
         DelimitedTextOptions(skipLines, quote, escape, delimiter, validators, parseMode, errorMode, encoding, verbose)
