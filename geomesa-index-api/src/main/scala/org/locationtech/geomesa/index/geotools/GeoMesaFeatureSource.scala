@@ -86,12 +86,15 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
     getFeatures(new Query(sft.getTypeName, filter))
 
   override def getFeatures(query: Query): SimpleFeatureCollection = {
-    // GeoServer querylayer extension generates query instances w/o type name set
-    if(query.getTypeName == null) {
-      logger.warn(s"Received Query with null TypeName, setting to ${sft.getTypeName}")
-      query.setTypeName(sft.getTypeName)
+    val q = query.getTypeName match {
+      case null =>
+        logger.debug(s"Received Query with null TypeName, setting to ${sft.getTypeName}")
+        val nq = new Query(query)
+        nq.setTypeName(sft.getTypeName)
+        nq
+      case _ => query
     }
-    collection(query, this)
+    collection(q, this)
   }
 
   override def getName: Name = getSchema.getName

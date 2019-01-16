@@ -448,8 +448,6 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       def check = fs.getFeatures(q).features().close()
       // induce issue
       check must not throwA[NullPointerException]()
-      // show fix side effect, consistent with other GeoMesaDataStore Query mutations
-      q.getTypeName must be equalTo sft.getTypeName
     }
   }
 
