@@ -421,6 +421,18 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
     }
   }
 
+  "KafkaFeatureSource" should {
+    "handle Query instances with null TypeName (GeoServer querylayer extension implementation nuance)" >> {
+      val (p, c, sft) = createStorePair("querylayer")
+      p.createSchema(sft)
+      val fs = c.getFeatureSource(sft.getTypeName)
+      val q = new Query(null, Filter.INCLUDE)
+      def check = fs.getFeatures(q).features().close()
+      // induce issue
+      check must not throwA[NullPointerException]()
+    }
+  }
+
   step {
     logger.info("Stopping embedded kafka/zk")
     kafka.close()
