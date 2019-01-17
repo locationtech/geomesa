@@ -85,7 +85,17 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
   override def getFeatures(filter: Filter): SimpleFeatureCollection =
     getFeatures(new Query(sft.getTypeName, filter))
 
-  override def getFeatures(query: Query): SimpleFeatureCollection = collection(query, this)
+  override def getFeatures(query: Query): SimpleFeatureCollection = {
+    val q = query.getTypeName match {
+      case null =>
+        logger.debug(s"Received Query with null TypeName, setting to ${sft.getTypeName}")
+        val nq = new Query(query)
+        nq.setTypeName(sft.getTypeName)
+        nq
+      case _ => query
+    }
+    collection(q, this)
+  }
 
   override def getName: Name = getSchema.getName
 
