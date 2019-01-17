@@ -54,9 +54,9 @@ class FSSparkProviderTest extends Specification with BeforeAfterAll with LazyLog
   lazy val dsf: FileSystemDataStoreFactory = new FileSystemDataStoreFactory()
   lazy val ds: DataStore = dsf.createDataStore(params)
 
-  var spark: SparkSession = null
-  var sc: SQLContext = null
-  var df: DataFrame = null
+  var spark: SparkSession = _
+  var sc: SQLContext = _
+  var df: DataFrame = _
 
   override def beforeAll(): Unit = {
     // Start MiniCluster
@@ -99,6 +99,13 @@ class FSSparkProviderTest extends Specification with BeforeAfterAll with LazyLog
       val rows = sc.sql("select count(*) from chicago").collect()
       rows.length mustEqual(1)
       rows.apply(0).get(0).asInstanceOf[Long] mustEqual(3l)
+    }
+
+    "select by spatiotemporal filter" >> {
+      val rows = sc.sql("select * from chicago where st_intersects(geom, st_makeBbox(-80,35,-75,45)) AND " +
+          "dtg > '2016-01-01T12:00:00Z' AND dtg < '2016-01-02T12:00:00Z'").collect()
+      rows.length mustEqual 1
+      rows.apply(0).get(0) mustEqual "2"
     }
 
     "select by secondary indexed attribute" >> {

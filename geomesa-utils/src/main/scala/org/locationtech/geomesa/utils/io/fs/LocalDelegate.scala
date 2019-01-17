@@ -13,6 +13,7 @@ import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.atomic.AtomicBoolean
 
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.LocalFileHandle
 import org.locationtech.geomesa.utils.stats.CountingInputStream
@@ -22,8 +23,9 @@ import scala.util.Try
 
 class LocalDelegate extends FileSystemDelegate {
 
-  override def interpretPath(path: String): Seq[FileHandle] = {
+  import scala.collection.JavaConverters._
 
+  override def interpretPath(path: String): Seq[FileHandle] = {
     val firstWildcard = path.indexOf('*')
     if (firstWildcard == -1) {
       Seq(new LocalFileHandle(new File(path)))
@@ -36,10 +38,8 @@ class LocalDelegate extends FileSystemDelegate {
         (new File(path.substring(0, lastSep)).toPath, path.substring(lastSep + 1))
       }
       if (glob.indexOf('/') == -1 && !glob.contains("**")) {
-        import scala.collection.JavaConversions._
         // we can just look in the current directory
-        val stream = Files.newDirectoryStream(basepath, glob)
-        try { stream.map(s => new LocalFileHandle(s.toFile)).toSeq } finally { stream.close() }
+        WithClose(Files.newDirectoryStream(basepath, glob))(_.asScala.map(s => new LocalFileHandle(s.toFile)).toList)
       } else {
         // we have to walk the file tree
         val matcher = FileSystems.getDefault.getPathMatcher("glob:" + glob)

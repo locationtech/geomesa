@@ -15,7 +15,7 @@ import com.google.common.cache._
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
-import org.geotools.data.{FeatureReader, FeatureWriter, Query}
+import org.geotools.data.{FeatureReader, FeatureWriter, Query, QueryCapabilities}
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -126,7 +126,6 @@ class FileSystemFeatureStore(val storage: FileSystemStorage,
     new DelegateSimpleFeatureReader(transformSft, new DelegateSimpleFeatureIterator(iter))
   }
 
-
   override def canLimit: Boolean = false
   override def canTransact: Boolean = false
   override def canEvent: Boolean = false
@@ -135,4 +134,12 @@ class FileSystemFeatureStore(val storage: FileSystemStorage,
 
   override def canRetype: Boolean = true
   override def canFilter: Boolean = true
+
+  override protected def buildQueryCapabilities(): QueryCapabilities = FileSystemFeatureStore.capabilities
+}
+
+object FileSystemFeatureStore {
+  private val capabilities = new QueryCapabilities() {
+    override def isUseProvidedFIDSupported: Boolean = true
+  }
 }
