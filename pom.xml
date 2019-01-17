@@ -2076,6 +2076,7 @@
                 <groupId>org.apache.orc</groupId>
                 <artifactId>orc-core</artifactId>
                 <version>${orc.version}</version>
+                <classifier>nohive</classifier>
                 <exclusions>
                     <!-- excluded due to license issue -->
                     <exclusion>
@@ -2083,7 +2084,6 @@
                         <artifactId>jol-core</artifactId>
                     </exclusion>
                 </exclusions>
-                <classifier>nohive</classifier>
             </dependency>
             <dependency>
                 <groupId>org.apache.orc</groupId>
