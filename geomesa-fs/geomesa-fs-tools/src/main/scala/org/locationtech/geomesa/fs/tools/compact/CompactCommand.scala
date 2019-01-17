@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs.tools.compact
 
 import java.io.File
+import java.util.Locale
 
 import com.beust.jcommander.{ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
@@ -16,7 +17,7 @@ import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
-import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{PartitionParam, FsParams}
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.compact.CompactCommand.CompactParams
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.{OrcCompactionJob, ParquetCompactionJob}
 import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.TempDirParam
@@ -46,7 +47,7 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
   override def execute(): Unit = withDataStore(compact)
 
   def compact(ds: FileSystemDataStore): Unit = {
-    Command.user.info(s"Beginning Compaction Process...")
+    Command.user.info("Beginning compaction process...")
 
     val storage = ds.storage(params.featureName)
 
@@ -60,21 +61,21 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
       }
       filtered
     }
-    Command.user.info(s"Compacting ${toCompact.size} partitions")
 
     val mode = Option(params.mode).getOrElse {
-      if (PathUtils.isRemote(storage.getMetadata.getRoot.toString)) {
-        RunModes.Distributed
-      } else {
-        RunModes.Local
-      }
+      if (PathUtils.isRemote(storage.getMetadata.getRoot.toString)) { RunModes.Distributed } else { RunModes.Local }
     }
+
+    Command.user.info(s"Compacting ${toCompact.size} partitions in ${mode.toString.toLowerCase(Locale.US)} mode")
+
+    // compact metadata up-front, that will save us listing redundant metadata files for each partition
+    storage.getMetadata.compact()
 
     mode match {
       case RunModes.Local =>
-        toCompact.map(_.name).foreach { p =>
-          logger.info(s"Compacting $p")
-          storage.compact(p)
+        toCompact.par.foreach { p =>
+          logger.info(s"Compacting ${p.name}")
+          storage.compact(p.name)
         }
 
       case RunModes.Distributed =>
