@@ -64,10 +64,7 @@ For example if you are using Amazon EMR with Spark 2.1.1 you can start up a shel
     . /etc/hadoop/conf/hadoop-env.sh
     . /etc/hadoop/conf/yarn-env.sh
     export HADOOP_CONF_DIR=/etc/hadoop/conf
-    spark-shell --jars $GEOMESA_FS_HOME/dist/spark/geomesa-fs-spark-runtime_2.11-$VERSION.jar \
-      --driver-memory 3g \
-      --conf 'spark.executor.extraJavaOptions=-Duser.timezone=UTC' \
-      --conf 'spark.driver.extraJavaOptions=-Duser.timezone=UTC'
+    spark-shell --jars $GEOMESA_FS_HOME/dist/spark/geomesa-fs-spark-runtime_2.11-$VERSION.jar --driver-memory 3g
 
 This will create a new spark shell from which you can load a GeoMesa FileSystem datastore from S3 or HDFS. A common
 usage pattern is to keep parquet files in S3 so they can be elastically queried with EMR and Spark. For example if you

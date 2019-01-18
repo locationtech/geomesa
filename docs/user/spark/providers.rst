@@ -74,13 +74,6 @@ The ``FileSystemRDDProvider`` is a spatial RDD provider for GeoMesa file system 
 the ``geomesa-fs-spark`` module, and the shaded JAR-with-dependencies (which contains all the required
 dependencies for execution) is available in the ``geomesa-fs-spark-runtime`` module.
 
-.. warning::
-
-    It is important to set the system property ``user.timezone=UTC`` when using Spark with the
-    ``FileSystemDataStore``. When using ``spark-shell`` or ``spark-submit``, this can be done through
-    passing ``--conf 'spark.executor.extraJavaOptions=-Duser.timezone=UTC'`` and
-    ``--conf 'spark.driver.extraJavaOptions=-Duser.timezone=UTC'``
-
 This provider can read from and write to a GeoMesa ``FileSystemDataStore``. The configuration parameters
 are the same as those passed to ``DataStoreFinder.getDataStore()``. See :ref:`fsds_parameters` for details.
 
