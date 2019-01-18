@@ -61,7 +61,7 @@ converter for taking this CSV data and transforming it into our ``SimpleFeatureT
   geomesa.converters.example = {
     type     = "delimited-text",
     format   = "CSV",
-    id-field = "md5($0)",
+    id-field = "md5(stringToBytes($0))",
     fields = [
       { name = "phrase", transform = "concatenate($1, $2)" },
       { name = "dtg",    transform = "dateHourMinuteSecondMillis($3)" },
