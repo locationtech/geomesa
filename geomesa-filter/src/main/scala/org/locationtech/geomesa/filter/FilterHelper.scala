@@ -12,7 +12,6 @@ import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.{Date, Locale}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom._
 import org.geotools.data.DataUtilities
 import org.geotools.filter.spatial.BBOXImpl
 import org.locationtech.geomesa.filter.Bounds.Bound
@@ -21,6 +20,7 @@ import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
 import org.locationtech.geomesa.utils.geohash.GeohashUtils._
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.jts.geom._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.{Expression, PropertyName}
@@ -62,7 +62,7 @@ object FilterHelper {
       // copy the geometry so we don't modify the original
       val geomCopy = geom.getFactory.createGeometry(geom)
       // trim to world boundaries
-      val trimmedGeom = geomCopy.intersection(WholeWorldPolygon)
+      val trimmedGeom = trimToWorld(geomCopy)
       if (trimmedGeom.isEmpty) {
         Filter.EXCLUDE
       } else {
@@ -132,6 +132,17 @@ object FilterHelper {
 
   def isWholeWorld[G <: Geometry](g: G): Boolean = g != null && g.union.covers(WholeWorldPolygon)
 
+  /**
+    * Returns the intersection of this geometry with the world polygon
+    *
+    * Note: may return the geometry itself if it is already covered by the world
+    *
+    * @param g geometry
+    * @return
+    */
+  def trimToWorld(g: Geometry): Geometry =
+    if (WholeWorldPolygon.covers(g)) { g } else { g.intersection(WholeWorldPolygon) }
+
   def addWayPointsToBBOX(g: Geometry): Geometry = {
     val geomArray = g.getCoordinates
     val correctedGeom = GeometryUtils.addWayPoints(geomArray).toArray
@@ -148,7 +159,7 @@ object FilterHelper {
     * @return geometry bounds from spatial filters
     */
   def extractGeometries(filter: Filter, attribute: String, intersect: Boolean = true): FilterValues[Geometry] =
-    extractUnclippedGeometries(filter, attribute, intersect).map(_.intersection(WholeWorldPolygon))
+    extractUnclippedGeometries(filter, attribute, intersect).map(trimToWorld)
 
   /**
     * Extract geometries from a filter without validating boundaries.
@@ -183,7 +194,7 @@ object FilterHelper {
         } yield {
           val buffered = filter match {
             case f: DWithin => geom.buffer(distanceDegrees(geom, f.getDistance * metersMultiplier(f.getDistanceUnits))._2)
-            case _: BBOX    => addWayPointsToBBOX(geom.getFactory.createGeometry(geom).intersection(WholeWorldPolygon))
+            case _: BBOX    => addWayPointsToBBOX(trimToWorld(geom.getFactory.createGeometry(geom)))
             case _          => geom
           }
           tryGetIdlSafeGeom(buffered)
@@ -245,7 +256,7 @@ object FilterHelper {
   }
 
   private def createDateTime(bound: Bound[Date],
-                             round: (ZonedDateTime) => ZonedDateTime,
+                             round: ZonedDateTime => ZonedDateTime,
                              roundExclusive: Boolean): Bound[ZonedDateTime] = {
     if (bound.value.isEmpty) { Bound.unbounded } else {
       val dt = bound.value.map(d => ZonedDateTime.ofInstant(d.toInstant, ZoneOffset.UTC))
