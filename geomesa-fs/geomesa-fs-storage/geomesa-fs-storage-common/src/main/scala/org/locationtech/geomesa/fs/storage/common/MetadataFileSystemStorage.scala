@@ -12,7 +12,6 @@ package org.locationtech.geomesa.fs.storage.common
 import java.util.Collections
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Envelope
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.geotools.data.Query
@@ -23,6 +22,7 @@ import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 

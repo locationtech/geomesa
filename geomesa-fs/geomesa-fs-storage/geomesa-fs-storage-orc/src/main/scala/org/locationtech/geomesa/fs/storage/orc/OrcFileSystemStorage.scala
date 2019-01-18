@@ -16,6 +16,7 @@ import org.apache.hadoop.fs.Path
 import org.apache.orc.TypeDescription
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.MetadataFileSystemStorage.WriterCallback
 import org.locationtech.geomesa.fs.storage.common.{FileSystemPathReader, MetadataFileSystemStorage, MetadataObservingFileSystemWriter}
@@ -41,7 +42,7 @@ class OrcFileSystemStorage(conf: Configuration, metadata: StorageMetadata)
   override protected def createReader(sft: SimpleFeatureType,
                                       filter: Option[Filter],
                                       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader =
-    new OrcFileSystemReader(sft, conf, filter, transform)
+    new OrcFileSystemReader(sft, conf, filter.map(FastFilterFactory.optimize(sft, _)), transform)
 }
 
 object OrcFileSystemStorage {
