@@ -369,6 +369,27 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts {
         }
       }
     }
+    "sort on dictionary encoded attributes" in {
+      foreach(sfts) { case (sft, features) =>
+        foreach(filters) { filter =>
+          val transform = Array("team", "weight", "dtg", "geom")
+          val query = new Query(sft.getTypeName, filter, transform)
+          query.getHints.put(QueryHints.ARROW_ENCODE, true)
+          query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "team,weight,dtg")
+          query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+          query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          val out = new ByteArrayOutputStream
+          results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+          def in() = new ByteArrayInputStream(out.toByteArray)
+          WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+            compare(reader.features(), features, transform.toSeq)
+            reader.dictionaries.keySet mustEqual Set("team", "weight", "dtg")
+            reader.dictionaries.apply("weight").iterator.toSeq must contain(null: AnyRef)
+          }
+        }
+      }
+    }
     "work with different batch sizes" in {
       foreach(sfts) { case (sft, features) =>
         foreach(Seq(2, 4, 10, 20)) { batchSize =>
