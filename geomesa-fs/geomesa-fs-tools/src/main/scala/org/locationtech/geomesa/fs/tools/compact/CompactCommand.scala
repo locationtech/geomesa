@@ -10,8 +10,9 @@ package org.locationtech.geomesa.fs.tools.compact
 
 import java.io.File
 import java.util.Locale
+import java.util.concurrent.{CountDownLatch, Executors}
 
-import com.beust.jcommander.{ParameterException, Parameters}
+import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.FileSystemDataStore
@@ -29,6 +30,8 @@ import org.locationtech.geomesa.tools.{Command, DistributedRunParam, RequiredTyp
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
+
+import scala.util.control.NonFatal
 
 class CompactCommand extends FsDataStoreCommand with LazyLogging {
 
@@ -68,15 +71,45 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
 
     Command.user.info(s"Compacting ${toCompact.size} partitions in ${mode.toString.toLowerCase(Locale.US)} mode")
 
+    val start = System.currentTimeMillis()
+
     // compact metadata up-front, that will save us listing redundant metadata files for each partition
     storage.getMetadata.compact()
 
+    val statusCallback = new PrintProgress(System.err, TextTools.buildString(' ', 60), '\u003d', '\u003e', '\u003e')
+
     mode match {
       case RunModes.Local =>
-        toCompact.par.foreach { p =>
-          logger.info(s"Compacting ${p.name}")
-          storage.compact(p.name)
+        val total = toCompact.length
+        val latch = new CountDownLatch(total)
+        val executor = Executors.newFixedThreadPool(math.max(1, math.min(params.threads, total)))
+        try {
+          toCompact.foreach { p =>
+            executor.submit(
+              new Runnable() {
+                override def run(): Unit = {
+                  try {
+                    logger.info(s"Compacting ${p.name}")
+                    storage.compact(p.name)
+                  } catch {
+                    case NonFatal(e) => logger.error(s"Error processing partition '${p.name}':", e)
+                  } finally {
+                    latch.countDown()
+                  }
+                }
+              }
+            )
+          }
+        } finally {
+          executor.shutdown()
         }
+
+        while (latch.getCount > 0) {
+          Thread.sleep(1000)
+          statusCallback("", 1f - latch.getCount.toFloat / total, Seq.empty, done = false)
+        }
+        statusCallback("", 1f, Seq.empty, done = true)
+        Command.user.info(s"Local compaction complete in ${TextTools.getTime(start)}")
 
       case RunModes.Distributed =>
         val encoding = storage.getMetadata.getEncoding
@@ -88,9 +121,6 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
           throw new ParameterException(s"Compaction is not supported for encoding '$encoding'")
         }
         val tempDir = Option(params.tempDir).map(t => new Path(t))
-        val statusCallback = new PrintProgress(System.err, TextTools.buildString(' ', 60), '\u003d', '\u003e', '\u003e')
-
-        val start = System.currentTimeMillis()
         val (success, failed) = job.run(connection, params.featureName, toCompact, tempDir,
           libjarsFileName, libjarsSearchPath, statusCallback)
         Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
@@ -99,13 +129,14 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
       case RunModes.DistributedCombine =>
         throw new RuntimeException("DistributedCombine run mode is not supported with this command.")
     }
-
-    Command.user.info(s"Compaction completed")
   }
 }
 
 object CompactCommand {
   @Parameters(commandDescription = "Compact partitions")
   class CompactParams extends FsParams
-      with RequiredTypeNameParam with TempDirParam with PartitionParam with DistributedRunParam
+      with RequiredTypeNameParam with TempDirParam with PartitionParam with DistributedRunParam {
+    @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local mode")
+    var threads: Integer = 4
+  }
 }
