@@ -126,7 +126,7 @@ fi
 function collectTars() {
   tars=()
   pushd "${1}" > /dev/null 2>&1 # Temp use this dir so pwd gives full path to tar
-    tars=($(find `pwd` -type f -name '*.tar.gz' | sed -e 's/\n/ /g'))
+    tars=($(find `pwd` -type f -name '*.tar.gz' | sed -e 's/\n/ /g' | sort))
   popd > /dev/null 2>&1
   echo "${tars[@]}"
 }
