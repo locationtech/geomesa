@@ -14,6 +14,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilterStrategyType, TestWithDataStore}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
@@ -177,8 +178,8 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
         val heightFilter = ff.equals(ff.property("heightFullIndex"), ff.literal(12.0D))
         val weightFilter = ff.equals(ff.literal(21.12D), ff.property("weightNoIndex"))
 
-        val primary = Some(nameFilter)
-        val secondary = ff.and(Seq(heightFilter, weightFilter, ageFilter))
+        val primary = Some(FastFilterFactory.optimize(sft, nameFilter))
+        val secondary = FastFilterFactory.optimize(sft, ff.and(Seq(heightFilter, weightFilter, ageFilter)))
 
         "when best is first" >> {
           val strats = getStrategies(ff.and(Seq(nameFilter, heightFilter, weightFilter, ageFilter)))
@@ -209,8 +210,8 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
           val strats = getStrategies(ff.and(Seq(like, heightFilter, weightFilter, ageFilter)))
           strats must haveLength(1)
           strats.head.index mustEqual AttributeIndex
-          strats.head.primary must beSome(heightFilter)
-          strats.head.secondary must beSome(ff.and(Seq(like, weightFilter, ageFilter)))
+          strats.head.primary must beSome(FastFilterFactory.optimize(sft, heightFilter))
+          strats.head.secondary must beSome(FastFilterFactory.optimize(sft, ff.and(Seq(like, weightFilter, ageFilter))))
         }
       }
     }
@@ -399,7 +400,8 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
           strats must haveLength(1)
           strats.head.index mustEqual AttributeIndex
           strats.head.primary must beSome
-          decomposeOr(strats.head.primary.get) must containTheSameElementsAs(decomposeOr(ECQL.toFilter(filter)))
+          decomposeOr(strats.head.primary.get) must
+              containTheSameElementsAs(decomposeOr(FastFilterFactory.toFilter(sft, filter)))
           strats.head.secondary must beSome
           strats.head.secondary.get must beAnInstanceOf[And]
           strats.head.secondary.get.asInstanceOf[And].getChildren must haveLength(2)
