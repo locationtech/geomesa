@@ -129,7 +129,7 @@ object FastTemporalOperator {
   }
 }
 
-sealed private abstract class FastTemporalOperator(exp1: Expression, exp2: Expression, op: String)
+sealed private abstract class FastTemporalOperator(exp1: Expression, exp2: Expression, private val op: String)
     extends BinaryTemporalOperator {
 
   override def getExpression1: Expression = exp1
@@ -139,4 +139,15 @@ sealed private abstract class FastTemporalOperator(exp1: Expression, exp2: Expre
   override def getMatchAction: MatchAction = MatchAction.ANY
 
   override def toString: String = s"[ $exp1 $op $exp2 ]"
+
+  def canEqual(other: Any): Boolean = other.isInstanceOf[FastTemporalOperator]
+
+  override def equals(other: Any): Boolean = other match {
+    case that: FastTemporalOperator =>
+      (that canEqual this) && exp1 == that.getExpression1 && exp2 == that.getExpression2 && op == that.op
+    case _ => false
+  }
+
+  override def hashCode(): Int =
+    Seq(exp1, exp2, op).map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
 }

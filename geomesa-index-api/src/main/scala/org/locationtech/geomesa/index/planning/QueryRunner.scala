@@ -11,6 +11,7 @@ package org.locationtech.geomesa.index.planning
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{FilterHelper, andFilters, ff}
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -70,32 +71,14 @@ trait QueryRunner {
       }
     }
 
-    query
-  }
-
-  /**
-    * Updates the filter in the query by binding values, optimizing predicates, etc
-    *
-    * @param sft simple feature type
-    * @param query query
-    */
-  private [geomesa] def optimizeFilter(sft: SimpleFeatureType, query: Query): Unit = {
     if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
-      query.setFilter(optimizeFilter(sft, query.getFilter))
+      // bind the literal values to the appropriate type, so that it isn't done every time the filter is evaluated
+      // update the filter to remove namespaces, handle null property names, and tweak topological filters
+      // replace filters with 'fast' implementations where possible
+      query.setFilter(FastFilterFactory.optimize(sft, query.getFilter))
     }
-  }
 
-  /**
-    * Optimizes the filter - extension point for subclasses
-    *
-    * @param sft simple feature poinnt
-    * @param filter filter
-    * @return optimized filter
-    */
-  protected def optimizeFilter(sft: SimpleFeatureType, filter: Filter): Filter = {
-    // bind the literal values to the appropriate type, so that it isn't done every time the filter is evaluated
-    // update the filter to remove namespaces, handle null property names, and tweak topological filters
-    QueryPlanFilterVisitor.apply(sft, filter)
+    query
   }
 
   /**
