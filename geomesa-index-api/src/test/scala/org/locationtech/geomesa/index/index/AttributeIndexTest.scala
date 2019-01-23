@@ -15,6 +15,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestAttributeIndex, TestRange}
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -179,8 +180,8 @@ class AttributeIndexTest extends Specification with LazyLogging {
 
       forall(ds.getQueryPlan(q)) { qp =>
         qp.filter.index must beAnInstanceOf[TestAttributeIndex]
-        qp.filter.primary must beSome(ECQL.toFilter(after))
-        qp.filter.secondary must beSome(ECQL.toFilter(before))
+        qp.filter.primary must beSome(FastFilterFactory.toFilter(sft, after))
+        qp.filter.secondary must beSome(FastFilterFactory.toFilter(sft, before))
       }
     }
 
@@ -254,7 +255,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
       val agePlans = ds.getQueryPlan(new Query(typeName, ECQL.toFilter("age = 21 AND name IS NOT NULL")))
       agePlans must haveLength(1)
       agePlans.head.index must beAnInstanceOf[TestAttributeIndex]
-      agePlans.head.filter.primary must beSome(ECQL.toFilter("age = 21"))
+      agePlans.head.filter.primary must beSome(FastFilterFactory.toFilter(sft, "age = 21"))
       agePlans.head.filter.secondary must beSome(notNull)
     }
   }

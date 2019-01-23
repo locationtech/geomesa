@@ -60,7 +60,6 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
     val auths = authProvider.map(_.getAuthorizations.map(_.getBytes(StandardCharsets.UTF_8))).getOrElse(Seq.empty)
 
     val query = configureQuery(sft, original)
-    optimizeFilter(sft, query)
 
     explain.pushLevel(s"$name query: '${sft.getTypeName}' ${org.locationtech.geomesa.filter.filterToString(query.getFilter)}")
     explain(s"bin[${query.getHints.isBinQuery}] arrow[${query.getHints.isArrowQuery}] " +
@@ -80,9 +79,6 @@ abstract class InMemoryQueryRunner(stats: GeoMesaStats, authProvider: Option[Aut
       case Some(r) => result.map(r.reproject)
     }
   }
-
-  override protected def optimizeFilter(sft: SimpleFeatureType, filter: Filter): Filter =
-    FastFilterFactory.optimize(sft, filter)
 
   override protected [geomesa] def getReturnSft(sft: SimpleFeatureType, hints: Hints): SimpleFeatureType = {
     if (hints.isBinQuery) {
