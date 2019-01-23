@@ -14,11 +14,11 @@
 function setGeoLog() {
   if [[ -z "${GEOMESA_LOG_DIR}" ]]; then
     export GEOMESA_LOG_DIR="${%%gmtools.dist.name%%_HOME}/logs"
-    export GEOMESA_OPTS="-Dgeomesa.log.dir=${GEOMESA_LOG_DIR} ${GEOMESA_OPTS}"
   fi
   if [[ ! -d "${GEOMESA_LOG_DIR}" ]]; then
     mkdir -p "${GEOMESA_LOG_DIR}"
   fi
+  export GEOMESA_OPTS="-Dgeomesa.log.dir=${GEOMESA_LOG_DIR} ${GEOMESA_OPTS}"
 }
 
 # findJars [path] [bool: remove slf4j jars] [bool: do not descend into sub directories]
