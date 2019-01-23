@@ -80,10 +80,10 @@ object DataFrameFunctions extends SpatialEncoders {
     def st_makeBox2D(lowerLeft: Point, upperRight: Point): TypedColumn[Any, Geometry] =
       st_makeBox2D(pointLit(lowerLeft), pointLit(upperRight))
 
-    def st_makeBBOX(lowerX: Column, upperX: Column, lowerY: Column, upperY: Column): TypedColumn[Any, Geometry] =
-      udfToColumn(ST_MakeBBOX, constructorNames, lowerX, upperX, lowerY, upperY)
-    def st_makeBBOX(lowerX: Double, upperX: Double, lowerY: Double, upperY: Double): TypedColumn[Any, Geometry] =
-      st_makeBBOX(lit(lowerX), lit(upperX), lit(lowerY), lit(upperY))
+    def st_makeBBOX(lowerX: Column, lowerY: Column, upperX: Column, upperY: Column): TypedColumn[Any, Geometry] =
+      udfToColumn(ST_MakeBBOX, constructorNames, lowerX, lowerY, upperX, upperY)
+    def st_makeBBOX(lowerX: Double, lowerY: Double, upperX: Double, upperY: Double): TypedColumn[Any, Geometry] =
+      st_makeBBOX(lit(lowerX), lit(lowerY), lit(upperX), lit(upperY))
 
     def st_makePolygon(lineString: Column): TypedColumn[Any, Polygon] =
       udfToColumn(ST_MakePolygon, constructorNames, lineString)
