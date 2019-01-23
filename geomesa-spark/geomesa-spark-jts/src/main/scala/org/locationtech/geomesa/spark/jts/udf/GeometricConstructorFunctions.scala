@@ -10,9 +10,9 @@ package org.locationtech.geomesa.spark.jts.udf
 
 import com.vividsolutions.jts.geom._
 import org.apache.spark.sql.SQLContext
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
-import org.locationtech.geomesa.spark.jts.util.{WKBUtils, WKTUtils}
 import org.locationtech.geomesa.spark.jts.util.GeoHashUtils._
+import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
+import org.locationtech.geomesa.spark.jts.util.{GeometryUtils, WKBUtils, WKTUtils}
 
 object GeometricConstructorFunctions {
 
