@@ -8,14 +8,11 @@
 
 package org.locationtech.geomesa.fs.storage.api;
 
-import com.vividsolutions.jts.geom.Envelope;
 import org.apache.hadoop.fs.FileContext;
 import org.apache.hadoop.fs.Path;
-import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.opengis.feature.simple.SimpleFeatureType;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Metadata for a FileSystemStorage instance
@@ -93,6 +90,14 @@ public interface StorageMetadata {
      * multiple threads or storage instances attempt to compact metadata simultaneously.
      */
     void compact();
+
+    /**
+     * Rewrite metadata in an optimized fashion
+     *
+     * Care should be taken with this method. Currently, there is no guarantee for correct behavior if
+     * multiple threads or storage instances attempt to compact metadata simultaneously.
+     */
+    default void compact(String partition) { compact(); }
 
     /**
      * Force pick up of any external changes
