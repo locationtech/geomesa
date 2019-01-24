@@ -18,7 +18,7 @@ import org.locationtech.geomesa.filter.expression.FastPropertyIsEqualTo.{FastIsE
 import org.locationtech.geomesa.filter.expression.FastPropertyName.{FastPropertyNameAccessor, FastPropertyNameAttribute}
 import org.locationtech.geomesa.filter.expression.OrHashEquality.OrHashListEquality
 import org.locationtech.geomesa.filter.expression.OrSequentialEquality.OrSequentialListEquality
-import org.locationtech.geomesa.filter.expression.{OrHashEquality, OrSequentialEquality}
+import org.locationtech.geomesa.filter.expression._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor
 import org.opengis.feature.`type`.Name
@@ -26,6 +26,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.MultiValuedFilter.MatchAction
 import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.spatial.DWithin
+import org.opengis.filter.temporal.{After, Before, During}
 import org.opengis.filter.{Filter, FilterFactory2, Or, PropertyIsEqualTo}
 import org.opengis.geometry.Geometry
 import org.xml.sax.helpers.NamespaceSupport
@@ -41,6 +42,64 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   import scala.collection.JavaConverters._
+
+  override def after(exp1: Expression, exp2: Expression): After = after(exp1, exp2, MatchAction.ANY)
+
+  override def after(exp1: Expression, exp2: Expression, matchAction: MatchAction): After = {
+    if (matchAction == MatchAction.ANY) {
+      org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
+        case None =>
+          super.after(exp1, exp2, matchAction)
+
+        case Some(prop) =>
+          val exp1 = prop match {
+            case p: PropertyLiteral => property(p.name)
+            case p: FunctionLiteral => p.function
+          }
+          val descriptor = FastFilterFactory.sfts.get.getDescriptor(prop.name)
+          if (descriptor != null && classOf[java.util.Date].isAssignableFrom(descriptor.getType.getBinding)) {
+            if (prop.flipped) {
+              FastTemporalOperator.after(prop.literal, exp1)
+            } else {
+              FastTemporalOperator.after(exp1, prop.literal)
+            }
+          } else {
+            super.after(exp1, exp2, matchAction)
+          }
+      }
+    } else {
+      super.after(exp1, exp2, matchAction)
+    }
+  }
+
+  override def before(exp1: Expression, exp2: Expression): Before = before(exp1, exp2, MatchAction.ANY)
+
+  override def before(exp1: Expression, exp2: Expression, matchAction: MatchAction): Before = {
+    if (matchAction == MatchAction.ANY) {
+      org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
+        case None =>
+          super.before(exp1, exp2, matchAction)
+
+        case Some(prop) =>
+          val exp1 = prop match {
+            case p: PropertyLiteral => property(p.name)
+            case p: FunctionLiteral => p.function
+          }
+          val descriptor = FastFilterFactory.sfts.get.getDescriptor(prop.name)
+          if (descriptor != null && classOf[java.util.Date].isAssignableFrom(descriptor.getType.getBinding)) {
+            if (prop.flipped) {
+              FastTemporalOperator.before(prop.literal, exp1)
+            } else {
+              FastTemporalOperator.before(exp1, prop.literal)
+            }
+          } else {
+            super.before(exp1, exp2, matchAction)
+          }
+      }
+    } else {
+      super.before(exp1, exp2, matchAction)
+    }
+  }
 
   override def property(name: String): PropertyName = {
     val sft = FastFilterFactory.sfts.get
@@ -134,6 +193,31 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
     }
   }
 
+  override def during(exp1: Expression, exp2: Expression): During = during(exp1, exp2, MatchAction.ANY)
+
+  override def during(exp1: Expression, exp2: Expression, matchAction: MatchAction): During = {
+    if (matchAction == MatchAction.ANY) {
+      org.locationtech.geomesa.filter.checkOrder(exp1, exp2).filterNot(_.flipped) match {
+        case None =>
+          super.during(exp1, exp2, matchAction)
+
+        case Some(prop) =>
+          val exp1 = prop match {
+            case p: PropertyLiteral => property(p.name)
+            case p: FunctionLiteral => p.function
+          }
+          val descriptor = FastFilterFactory.sfts.get.getDescriptor(prop.name)
+          if (descriptor != null && classOf[java.util.Date].isAssignableFrom(descriptor.getType.getBinding)) {
+            FastTemporalOperator.during(exp1, prop.literal)
+          } else {
+            super.during(exp1, exp2, matchAction)
+          }
+      }
+    } else {
+      super.during(exp1, exp2, matchAction)
+    }
+  }
+
   override def dwithin(name: String, geom: Geometry, distance: Double, units: String): DWithin =
     dwithin(property(name), literal(geom), distance, units)
 
@@ -146,8 +230,8 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
   override def dwithin(exp1: Expression, exp2: Expression, distance: Double, units: String, action: MatchAction): DWithin = {
     if (action == MatchAction.ANY) {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
-        case Some(PropertyLiteral(name, lit, _))     => new DWithinLiteral(property(name), lit, distance, units)
-        case Some(FunctionLiteral(name, fn, lit, _)) => new DWithinLiteral(fn, lit, distance, units)
+        case Some(PropertyLiteral(name, lit, _))  => new DWithinLiteral(property(name), lit, distance, units)
+        case Some(FunctionLiteral(_, fn, lit, _)) => new DWithinLiteral(fn, lit, distance, units)
         case _ => super.dwithin(exp1, exp2, distance, units, action)
       }
     } else {
