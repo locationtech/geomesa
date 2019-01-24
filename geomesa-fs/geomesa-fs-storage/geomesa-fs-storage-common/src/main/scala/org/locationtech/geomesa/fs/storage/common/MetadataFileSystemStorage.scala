@@ -127,48 +127,52 @@ abstract class MetadataFileSystemStorage(conf: Configuration,
   override def compact(partition: String, threads: Int): Unit = {
     val toCompact = getFilePaths(partition).asScala
 
-    val leaf = metadata.getPartitionScheme.isLeafStorage
-    val dataPath = StorageUtils.nextFile(metadata.getRoot, partition, leaf, extension, FileType.Compacted)
+    if (toCompact.lengthCompare(2) < 0) {
+      logger.debug(s"Skipping compaction for single data file: ${toCompact.mkString(", ")}")
+    } else {
+      val leaf = metadata.getPartitionScheme.isLeafStorage
+      val dataPath = StorageUtils.nextFile(metadata.getRoot, partition, leaf, extension, FileType.Compacted)
 
-    val sft = metadata.getSchema
+      val sft = metadata.getSchema
 
-    logger.debug(s"Compacting data files: [${toCompact.mkString(", ")}] to into file $dataPath")
+      logger.debug(s"Compacting data files: [${toCompact.mkString(", ")}] to into file $dataPath")
 
-    var written = 0L
+      var written = 0L
 
-    val reader = createReader(sft, None, None)
-    def threaded = FileSystemThreadedReader(reader, toCompact.toIterator, threads)
-    val callback = new CompactCallback(partition, dataPath, toCompact)
+      val reader = createReader(sft, None, None)
+      def threaded = FileSystemThreadedReader(reader, toCompact.toIterator, threads)
+      val callback = new CompactCallback(partition, dataPath, toCompact)
 
-    WithClose(createWriter(sft, dataPath, callback), threaded) { case (writer, features) =>
-      while (features.hasNext) {
-        writer.write(features.next())
-        written += 1
+      WithClose(createWriter(sft, dataPath, callback), threaded) { case (writer, features) =>
+        while (features.hasNext) {
+          writer.write(features.next())
+          written += 1
+        }
       }
-    }
-    PathCache.register(metadata.getFileContext, dataPath)
+      PathCache.register(metadata.getFileContext, dataPath)
 
-    logger.debug(s"Wrote compacted file $dataPath")
+      logger.debug(s"Wrote compacted file $dataPath")
 
-    logger.debug(s"Deleting old files [${toCompact.mkString(", ")}]")
+      logger.debug(s"Deleting old files [${toCompact.mkString(", ")}]")
 
-    val failures = ListBuffer.empty[Path]
-    toCompact.foreach { f =>
-      if (!metadata.getFileContext.delete(f, false)) {
-        failures.append(f)
+      val failures = ListBuffer.empty[Path]
+      toCompact.foreach { f =>
+        if (!metadata.getFileContext.delete(f, false)) {
+          failures.append(f)
+        }
+        PathCache.invalidate(metadata.getFileContext, f)
       }
-      PathCache.invalidate(metadata.getFileContext, f)
-    }
 
-    if (failures.nonEmpty) {
-      logger.error(s"Failed to delete some files: [${failures.mkString(", ")}]")
+      if (failures.nonEmpty) {
+        logger.error(s"Failed to delete some files: [${failures.mkString(", ")}]")
+      }
+
+      logger.debug(s"Compacted $written records into file $dataPath")
     }
 
     logger.debug("Compacting metadata")
 
-    metadata.compact()
-
-    logger.debug(s"Compacted $written records into file $dataPath")
+    metadata.compact(partition)
   }
 
   class AddCallback(partition: String, file: Path) extends WriterCallback {
