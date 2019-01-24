@@ -113,19 +113,42 @@ class StorageMetadata private (fc: FileContext,
     merged.foreach(StorageMetadata.writePartitionConfig(fc, root, _))
   }
 
+  override def compact(partition: String): Unit = {
+    val (paths, merged) = loadMergedConfig(partition)
+    paths.foreach(fc.delete(_, false))
+    merged.foreach(StorageMetadata.writePartitionConfig(fc, root, _))
+  }
+
   override def reload(): Unit = loadMergedConfigs()
+
+  private def loadMergedConfig(partition: String): (Seq[Path], Option[PartitionConfig]) = {
+    val paths = Seq.newBuilder[Path]
+    val configs = Seq.newBuilder[PartitionConfig]
+    StorageMetadata.listPartitionConfigs(fc, root, Option(partition)).foreach { path =>
+      StorageMetadata.readPartitionConfig(fc, path).filter(_.name == partition).foreach { config =>
+        paths += path
+        configs += config
+      }
+    }
+    val merged = StorageMetadata.mergePartitionConfigs(configs.result)
+
+    synchronized {
+      merged.filter(_.files.nonEmpty) match {
+      case None => partitions.remove(partition)
+      case Some(m) =>
+        partitions.put(partition,
+          new PartitionMetadata(m.name, m.files.toSeq.asJava, m.count, m.envelope.toEnvelope))
+      }
+    }
+
+    (paths.result, merged)
+  }
 
   private def loadMergedConfigs(): (Seq[Path], Seq[PartitionConfig]) = {
     val paths = StorageMetadata.listPartitionConfigs(fc, root)
     val configs = paths.flatMap(StorageMetadata.readPartitionConfig(fc, _))
-    val merged = configs.groupBy(_.name).toSeq.flatMap { case (_, updates) =>
-      updates.sortBy(_.timestamp).dropWhile(_.action != PartitionAction.Add).reduceLeftOption { (result, update) =>
-        update.action match {
-          case PartitionAction.Add    => result.add(update)
-          case PartitionAction.Remove => result.remove(update)
-        }
-      }
-    }
+    val merged = configs.groupBy(_.name).values.toSeq.flatMap(StorageMetadata.mergePartitionConfigs)
+
     synchronized {
       partitions.clear()
       merged.foreach { m =>
@@ -134,6 +157,7 @@ class StorageMetadata private (fc: FileContext,
         }
       }
     }
+
     (paths, merged)
   }
 }
@@ -213,7 +237,7 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
     * @param config partition config
     */
   def writePartitionConfig(fc: FileContext, root: Path, config: PartitionConfig): Unit = {
-    val name = s"$UpdatePathPrefix${config.name.replaceAll("[^a-zA-Z0-9]", "-")}-${UUID.randomUUID()}$JsonPathSuffix"
+    val name = s"$UpdatePathPrefix${sanitizePartitionName(config.name)}-${UUID.randomUUID()}$JsonPathSuffix"
     val data = profile("Serialized partition configuration") {
       ConfigWriter[PartitionConfig].to(config).render(options)
     }
@@ -257,19 +281,31 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
     * @param root root path
     * @return
     */
-  private def listPartitionConfigs(fc: FileContext, root: Path): Seq[Path] = {
-    val directory = new Path(root, MetadataDirectory)
-    if (!PathCache.exists(fc, directory)) { Seq.empty } else {
-      val paths = Seq.newBuilder[Path]
-      val iter = fc.util.listFiles(directory, true)
-      while (iter.hasNext) {
-        val path = iter.next.getPath
-        val name = path.getName
-        if (name.startsWith(UpdateFilePrefix) && name.endsWith(JsonPathSuffix)) {
-          paths += path
+  private def listPartitionConfigs(fc: FileContext, root: Path, partition: Option[String] = None): Seq[Path] = {
+    profile("Listed metadata files") {
+      val prefix = partition.map(p => s"$UpdateFilePrefix${sanitizePartitionName(p)}").getOrElse(UpdateFilePrefix)
+      val directory = new Path(root, MetadataDirectory)
+      if (!PathCache.exists(fc, directory)) { Seq.empty } else {
+        val remaining = scala.collection.mutable.Queue(directory)
+        val paths = Seq.newBuilder[Path]
+        while (remaining.nonEmpty) {
+          val dir = remaining.dequeue()
+          val iter = fc.listStatus(dir)
+          while (iter.hasNext) {
+            val status = iter.next
+            val path = status.getPath
+            if (status.isDirectory) {
+              remaining.enqueue(path)
+            } else {
+              val name = path.getName
+              if (name.startsWith(prefix) && name.endsWith(JsonPathSuffix)) {
+                paths += path
+              }
+            }
+          }
         }
+        paths.result()
       }
-      paths.result()
     }
   }
 
@@ -341,6 +377,23 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
       }
     }
   }
+
+  /**
+    * Merge configs for a single partition into a single aggregate config
+    *
+    * @param configs updates for a given partition
+    * @return
+    */
+  private def mergePartitionConfigs(configs: Seq[PartitionConfig]): Option[PartitionConfig] = {
+    configs.sortBy(_.timestamp).dropWhile(_.action != PartitionAction.Add).reduceLeftOption { (result, update) =>
+      update.action match {
+        case PartitionAction.Add    => result.add(update)
+        case PartitionAction.Remove => result.remove(update)
+      }
+    }
+  }
+
+  private def sanitizePartitionName(name: String): String = name.replaceAll("[^a-zA-Z0-9]", "-")
 
   // case classes for serializing to disk
 
