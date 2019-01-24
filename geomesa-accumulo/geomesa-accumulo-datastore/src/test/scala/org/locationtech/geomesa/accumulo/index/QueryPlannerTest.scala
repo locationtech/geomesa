@@ -30,9 +30,9 @@ class QueryPlannerTest extends Specification with TestWithDataStore {
 
   override val spec = "*geom:Point,dtg:Date,s:String"
   val sf = new ScalaSimpleFeature(sft, "id")
-  sf.setAttributes(Array[AnyRef]("POINT(45 45)", "2014/10/10T00:00:00Z", "string"))
+  sf.setAttributes(Array[AnyRef]("POINT(45 45)", "2014-10-10T00:00:00Z", "string"))
   val sf2 = new ScalaSimpleFeature(sft, "id2")
-  sf2.setAttributes(Array[AnyRef]("POINT(45 45)", "2014/10/10T00:00:00Z", "astring"))
+  sf2.setAttributes(Array[AnyRef]("POINT(45 45)", "2014-10-10T00:00:00Z", "astring"))
 
   addFeatures(Seq(sf, sf2))
 

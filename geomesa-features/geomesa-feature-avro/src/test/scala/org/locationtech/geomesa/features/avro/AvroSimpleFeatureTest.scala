@@ -120,7 +120,6 @@ class AvroSimpleFeatureTest extends Specification {
         ",l:MultiPolygon,m:GeometryCollection"
       )
 
-
       val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
       f.setAttribute("a","")
       f.setAttribute("b","")
