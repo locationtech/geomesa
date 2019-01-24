@@ -10,10 +10,9 @@ package org.locationtech.geomesa.features.avro
 
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.geotools.geometry.GeometryBuilder
-import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -30,16 +29,17 @@ class AvroSimpleFeatureFactoryTest extends Specification {
 
   "SimpleFeatureBuilder should return an AvroSimpleFeature when using an AvroSimpleFeatureFactory" in {
     AvroSimpleFeatureFactory.init
-    val geomBuilder = new GeometryBuilder(DefaultGeographicCRS.WGS84)
     val featureFactory = CommonFactoryFinder.getFeatureFactory(null)
     val sft = SimpleFeatureTypes.createType("testavro", "name:String,geom:Point:srid=4326")
     val builder = new SimpleFeatureBuilder(sft, featureFactory)
     builder.reset()
     builder.add("Hello")
-    builder.add(geomBuilder.createPoint(1,1))
+    builder.add("POINT (1 1)")
     val feature = builder.buildFeature("id")
 
     feature.getClass mustEqual classOf[AvroSimpleFeature]
+    feature.getAttribute(0) mustEqual "Hello"
+    feature.getAttribute(1) mustEqual WKTUtils.read("POINT (1 1)")
   }
 
 }
