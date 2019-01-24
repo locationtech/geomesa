@@ -10,10 +10,11 @@ package org.locationtech.geomesa.convert.text
 
 import java.io.{ByteArrayInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
+import java.util.Collections
 
 import com.google.common.hash.Hashing
 import com.google.common.io.Resources
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.apache.commons.csv.CSVFormat
 import org.geotools.factory.Hints
@@ -208,6 +209,23 @@ class DelimitedTextConverterTest extends Specification {
         res.size must be equalTo 2
         res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello, \"foo\""
         res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2world"
+      }
+    }
+
+    "disable quote characters" >> {
+      val quoteConf = conf.withValue("options", ConfigValueFactory.fromMap(Collections.singletonMap("quote", "")))
+      val sft = SimpleFeatureTypes.createType(ConfigFactory.load("sft_testsft.conf"))
+      WithClose(SimpleFeatureConverter(sft, quoteConf)) { converter =>
+        converter must not(beNull)
+        val data = Seq(
+          """1,hello",45.0,45.0""",
+          """2,"world,90.0,90.0""",
+          """willfail,hello""").mkString("\n")
+        val stream = new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))
+        val res = WithClose(converter.process(stream))(_.toList)
+        res.size must be equalTo 2
+        res(0).getAttribute("phrase").asInstanceOf[String] must be equalTo "1hello\""
+        res(1).getAttribute("phrase").asInstanceOf[String] must be equalTo "2\"world"
       }
     }
 
