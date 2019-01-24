@@ -418,7 +418,7 @@ object DeltaWriter extends StrictLogging {
     val getSortAttribute: (ArrowAttributeReader, scala.collection.Map[Integer, Integer], Int) => AnyRef = {
       if (dictionaries.contains(sortBy)) {
         // since we've sorted the dictionaries, we can just compare the encoded index values
-        (reader, mappings, i) => mappings.get(reader.asInstanceOf[ArrowDictionaryReader].getEncoded(i))
+        (reader, mappings, i) => mappings(reader.asInstanceOf[ArrowDictionaryReader].getEncoded(i))
       } else {
         (reader, _, i) => reader.apply(i)
       }
