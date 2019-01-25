@@ -349,7 +349,7 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
     }
     profile("Persisted storage configuration") {
       WithClose(fc.create(file, java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent)) { out =>
-        out.writeBytes(data)
+        out.write(data.getBytes("UTF-8"))
         out.hflush()
         out.hsync()
       }
@@ -368,7 +368,7 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
     val file = new Path(root, MetadataPath)
     if (!PathCache.exists(fc, file)) { None } else {
       val config = profile("Loaded storage configuration") {
-        WithClose(new InputStreamReader(fc.open(file))) { in =>
+        WithClose(new InputStreamReader(fc.open(file), "UTF-8")) { in =>
           ConfigFactory.parseReader(in, ConfigParseOptions.defaults().setSyntax(ConfigSyntax.JSON))
         }
       }
