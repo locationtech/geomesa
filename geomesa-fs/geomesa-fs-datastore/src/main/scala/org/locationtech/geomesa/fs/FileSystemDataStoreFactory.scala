@@ -37,6 +37,9 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
       props.asScala.foreach { case (k, v) => conf.set(k, v) }
       conf
     }.getOrElse(configuration)
+    CharsetParam.lookupOpt(params)
+      .map(_ => (CharsetParam.key -> _))
+      .foreach { case (k, v) => conf.set(k, v) }
 
     val fc = fileContextCache.get(conf)
 
@@ -110,5 +113,6 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
     val ConfParam         = new GeoMesaParam[Properties]("fs.config", "Values to set in the root Configuration, in Java properties format", largeText = true)
     val ReadThreadsParam  = new GeoMesaParam[Integer]("fs.read-threads", "Read Threads", default = 4)
     val WriteTimeoutParam = new GeoMesaParam[Duration]("fs.writer.partition.timeout", "Timeout for closing a partition file after write, e.g. '60 seconds'", default = Duration("60s"), systemProperty = Some(SystemPropertyDurationParam(WriterFileTimeout)))
+    val CharsetParam      = new GeoMesaParam[String]("fs.metadata.charset","Charset for transforming string to/from bytes array")
   }
 }

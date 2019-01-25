@@ -30,15 +30,15 @@ class FileMetadataTest extends Specification with AllExpectations {
   import scala.collection.JavaConverters._
 
   lazy val fc = FileContext.getFileContext(new Configuration())
-  val sft = SimpleFeatureTypes.createType("metadata", "name:String,dtg:Date,*geom:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createType("metadata", "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.user-data.prefix=desc,desc.name=姓名,desc.dtg=ひづけ,desc.geom=좌표")
   val encoding = "parquet"
   val scheme = PartitionScheme(sft, "hourly,z2-2bit", Collections.emptyMap())
 
   "FileMetadata" should {
     "create and persist an empty metadata file" in {
       withPath { path =>
-        val created = StorageMetadata.create(fc, path, sft, encoding, scheme)
-        val loaded = StorageMetadata.load(fc, path).get
+        val created = StorageMetadata.create(fc, path, sft, encoding, scheme, Option("UTF-8"))
+        val loaded = StorageMetadata.load(fc, path, Option("UTF-8")).get
         foreach(Seq(created, loaded)) { metadata =>
           metadata.getEncoding mustEqual encoding
           metadata.getSchema mustEqual sft
@@ -49,11 +49,11 @@ class FileMetadataTest extends Specification with AllExpectations {
     }
     "persist file changes" in {
       withPath { path =>
-        val created = StorageMetadata.create(fc, path, sft, encoding, scheme)
+        val created = StorageMetadata.create(fc, path, sft, encoding, scheme, Option("UTF-8"))
         created.addPartition(new PartitionMetadata("1", Collections.singletonList("file1"), 10L, new Envelope(-10, 10, -5, 5)))
         created.addPartition(new PartitionMetadata("1", java.util.Arrays.asList("file2", "file3"), 20L, new Envelope(-11, 11, -5, 5)))
         created.addPartition(new PartitionMetadata("2", java.util.Arrays.asList("file5", "file6"), 20L, new Envelope(-1, 1, -5, 5)))
-        val loaded = StorageMetadata.load(fc, path).get
+        val loaded = StorageMetadata.load(fc, path, Option("UTF-8")).get
         foreach(Seq(created, loaded)) { metadata =>
           metadata.getEncoding mustEqual encoding
           metadata.getSchema mustEqual sft
@@ -66,7 +66,7 @@ class FileMetadataTest extends Specification with AllExpectations {
     }
     "read metadata from nested folders" in {
       withPath { path =>
-        val created = StorageMetadata.create(fc, path, sft, encoding, scheme)
+        val created = StorageMetadata.create(fc, path, sft, encoding, scheme, Option("UTF-8"))
         created.addPartition(new PartitionMetadata("1", Collections.singletonList("file1"), 10L, new Envelope(-10, 10, -5, 5)))
         created.addPartition(new PartitionMetadata("1", java.util.Arrays.asList("file2", "file3"), 20L, new Envelope(-11, 11, -5, 5)))
         fc.mkdir(new Path(path, "metadata/nested/"), FsPermission.getDirDefault, false)
@@ -76,7 +76,7 @@ class FileMetadataTest extends Specification with AllExpectations {
           }
         }
         created.reload()
-        val loaded = StorageMetadata.load(fc, path).get
+        val loaded = StorageMetadata.load(fc, path, Option("UTF-8")).get
         foreach(Seq(created, loaded)) { metadata =>
           metadata.getEncoding mustEqual encoding
           metadata.getSchema mustEqual sft
@@ -92,7 +92,7 @@ class FileMetadataTest extends Specification with AllExpectations {
         val metadata = new Path(path, "metadata.json")
         fc.util.copy(new Path(getClass.getClassLoader.getResource("metadata-old.json").toURI), metadata)
         fc.util.exists(metadata) must beTrue
-        val option = StorageMetadata.load(fc, path)
+        val option = StorageMetadata.load(fc, path, Option("UTF-8"))
         option must beSome
         val storage = option.get
         storage.getEncoding mustEqual "orc"

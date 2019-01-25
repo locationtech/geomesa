@@ -183,9 +183,9 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
   private val delay = PathCache.CacheDurationProperty.toDuration.get.toMillis
 
   private val cache = Caffeine.newBuilder().build(
-    new CacheLoader[(FileContext, Path), StorageMetadata]() {
+    new CacheLoader[(FileContext, Path, Option[String]), StorageMetadata]() {
       // note: returning null will cause it to attempt to load again the next time it's accessed
-      override def load(key: (FileContext, Path)): StorageMetadata = loadStorage(key._1, key._2).orNull
+      override def load(key: (FileContext, Path, Option[String])): StorageMetadata = loadStorage(key._1, key._2, key._3).orNull
     }
   )
 
@@ -203,7 +203,8 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
              root: Path,
              sft: SimpleFeatureType,
              encoding: String,
-             scheme: PartitionScheme): StorageMetadata = {
+             scheme: PartitionScheme,
+             charset: Option[String] = None): StorageMetadata = {
     val file = new Path(root, MetadataPath)
     // invalidate the path cache so we check the underlying fs, but then cache the result again
     PathCache.invalidate(fc, file)
@@ -211,9 +212,9 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
       throw new IllegalArgumentException(s"Metadata file already exists at path '$file'")
     }
     val sftConfig = SimpleFeatureTypes.toConfig(sft, includePrefix = false, includeUserData = true)
-    writeStorageConfig(fc, root, StorageConfig(sftConfig, PartitionScheme.toConfig(scheme), encoding))
+    writeStorageConfig(fc, root, StorageConfig(sftConfig, PartitionScheme.toConfig(scheme), encoding), charset)
     val metadata = new StorageMetadata(fc, root, sft, scheme, encoding)
-    cache.put((fc, root), metadata)
+    cache.put((fc, root, charset), metadata)
     metadata
   }
 
@@ -227,7 +228,7 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
     * @param root path to the persisted metadata
     * @return
     */
-  def load(fc: FileContext, root: Path): Option[StorageMetadata] = Option(cache.get((fc, root)))
+  def load(fc: FileContext, root: Path, charset: Option[String] = None): Option[StorageMetadata] = Option(cache.get((fc, root, charset)))
 
   /**
     * Write metadata for a single partition operation to disk
@@ -316,8 +317,8 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
     * @param root root path
     * @return
     */
-  private def loadStorage(fc: FileContext, root: Path): Option[StorageMetadata] = {
-    val metadata = readStorageConfig(fc, root).map { config =>
+  private def loadStorage(fc: FileContext, root: Path, charset: Option[String] = None): Option[StorageMetadata] = {
+    val metadata = readStorageConfig(fc, root, charset).map { config =>
       val sft = profile("Created SimpleFeatureType") {
         SimpleFeatureTypes.createType(config.featureType, path = None)
       }
@@ -342,13 +343,16 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
     * @param root root path
     * @param config config
     */
-  private def writeStorageConfig(fc: FileContext, root: Path, config: StorageConfig): Unit = {
+  private def writeStorageConfig(fc: FileContext, root: Path, config: StorageConfig, charset: Option[String] = None): Unit = {
     val file = new Path(root, MetadataPath)
     val data = profile("Serialized storage configuration") {
       ConfigWriter[StorageConfig].to(config).render(options)
     }
     profile("Persisted storage configuration") {
       WithClose(fc.create(file, java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent)) { out =>
+        charset.map(c => {
+          out.write(data.getBytes(c))
+        }).getOrElse(out.writeBytes(data))
         out.writeBytes(data)
         out.hflush()
         out.hsync()
@@ -364,11 +368,12 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
     * @param root root path
     * @return
     */
-  private def readStorageConfig(fc: FileContext, root: Path): Option[StorageConfig] = {
+  private def readStorageConfig(fc: FileContext, root: Path, charset: Option[String] = None): Option[StorageConfig] = {
     val file = new Path(root, MetadataPath)
     if (!PathCache.exists(fc, file)) { None } else {
       val config = profile("Loaded storage configuration") {
-        WithClose(new InputStreamReader(fc.open(file))) { in =>
+        val reader = charset.map(new InputStreamReader(fc.open(file),_) ).getOrElse(new InputStreamReader(fc.open(file)))
+        WithClose(reader) { in =>
           ConfigFactory.parseReader(in, ConfigParseOptions.defaults().setSyntax(ConfigSyntax.JSON))
         }
       }
