@@ -238,17 +238,17 @@ class SimpleFeatureTypesTest extends Specification {
     }
 
     "handle enabled indexes" >> {
-      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='st_idx,records,z3'"
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='z2,id,z3'"
       val sft = SimpleFeatureTypes.createType("test", spec)
-      sft.getUserData.get(ENABLED_INDICES).toString.split(",").toList must be equalTo List("st_idx", "records", "z3")
+      sft.getUserData.get(ENABLED_INDICES).toString.split(",").toList must be equalTo List("z2", "id", "z3")
     }
 
     "handle splitter opts and enabled indexes" >> {
       import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{TABLE_SPLITTER, TABLE_SPLITTER_OPTS}
 
       val specs = List(
-        "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99',geomesa.indices.enabled='st_idx,records,z3'",
-        "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='st_idx,records,z3',table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99'")
+        "name:String,dtg:Date,*geom:Point:srid=4326;table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99',geomesa.indices.enabled='z2,id,z3'",
+        "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='z2,id,z3',table.splitter.class=org.locationtech.geomesa.core.data.DigitSplitter,table.splitter.options='fmt:%02d,min:0,max:99'")
       specs.forall { spec =>
         val sft = SimpleFeatureTypes.createType("test", spec)
         sft.getUserData.get(TABLE_SPLITTER) must be equalTo "org.locationtech.geomesa.core.data.DigitSplitter"
@@ -257,7 +257,7 @@ class SimpleFeatureTypesTest extends Specification {
         opts.get("fmt") must beSome("%02d")
         opts.get("min") must beSome("0")
         opts.get("max") must beSome("99")
-        sft.getUserData.get(ENABLED_INDICES).toString.split(",").toList must be equalTo List("st_idx", "records", "z3")
+        sft.getUserData.get(ENABLED_INDICES).toString.split(",").toList must be equalTo List("z2", "id", "z3")
       }
     }
 
@@ -605,14 +605,14 @@ class SimpleFeatureTypesTest extends Specification {
       import scala.collection.JavaConverters._
       val sft = SimpleFeatureTypes.createType("geolife",
         "userId:String,trackId:String,altitude:Double,dtg:Date,*geom:Point:srid=4326;" +
-            "geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,records:2:3'," +
+            "geomesa.index.dtg='dtg',geomesa.table.sharing='true',geomesa.indices='z3:4:3,z2:3:3,id:2:3'," +
             "geomesa.table.sharing.prefix='\\u0001'")
       val config = SimpleFeatureTypes.toConfig(sft, includePrefix = false)
       config.hasPath(SimpleFeatureSpecConfig.UserDataPath) must beTrue
       val userData = config.getConfig(SimpleFeatureSpecConfig.UserDataPath)
       userData.root.unwrapped().asScala mustEqual Map(
         "geomesa.index.dtg" -> "dtg",
-        "geomesa.indices" -> "z3:4:3,z2:3:3,records:2:3",
+        "geomesa.indices" -> "z3:4:3,z2:3:3,id:2:3",
         "geomesa.table.sharing" -> "true",
         "geomesa.table.sharing.prefix" -> "\u0001"
       )
