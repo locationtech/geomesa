@@ -30,7 +30,7 @@ class FileMetadataTest extends Specification with AllExpectations {
   import scala.collection.JavaConverters._
 
   lazy val fc = FileContext.getFileContext(new Configuration())
-  val sft = SimpleFeatureTypes.createType("metadata", "name:String,dtg:Date,*geom:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createType("metadata", "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.user-data.prefix=desc,desc.name=姓名,desc.dtg=ひづけ,desc.geom=좌표")
   val encoding = "parquet"
   val scheme = PartitionScheme(sft, "hourly,z2-2bit", Collections.emptyMap())
 
@@ -57,6 +57,7 @@ class FileMetadataTest extends Specification with AllExpectations {
         foreach(Seq(created, loaded)) { metadata =>
           metadata.getEncoding mustEqual encoding
           metadata.getSchema mustEqual sft
+          metadata.getSchema.getUserData mustEqual sft.getUserData
           metadata.getPartitionScheme mustEqual scheme
           metadata.getPartitions.asScala.map(_.name) must containTheSameElementsAs(Seq("1", "2"))
           metadata.getPartition("1").files.asScala must containTheSameElementsAs((1 to 3).map(i => s"file$i"))
@@ -83,6 +84,7 @@ class FileMetadataTest extends Specification with AllExpectations {
           metadata.getPartitionScheme mustEqual scheme
           metadata.getPartitions.asScala.map(_.name) mustEqual Seq("1")
           metadata.getPartition("1").files.asScala must containTheSameElementsAs((1 to 3).map(i => s"file$i"))
+          metadata.getSchema.getUserData mustEqual sft.getUserData
         }
 
       }
