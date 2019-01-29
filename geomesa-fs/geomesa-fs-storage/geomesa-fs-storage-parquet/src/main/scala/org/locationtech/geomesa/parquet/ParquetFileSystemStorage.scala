@@ -14,6 +14,7 @@ import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.MetadataFileSystemStorage.WriterCallback
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
@@ -65,10 +66,11 @@ class ParquetFileSystemStorage(conf: Configuration, fileMetadata: StorageMetadat
     // TODO GEOMESA-1954 move this filter conversion higher up in the chain
     val (fc, residualFilter) = new FilterConverter(parquetSft).convert(filt)
     val parquetFilter = fc.map(FilterCompat.get).getOrElse(FilterCompat.NOOP)
+    val gtFilter = FastFilterFactory.optimize(parquetSft, residualFilter)
 
-    logger.debug(s"Parquet filter: $parquetFilter and modified gt filter: $residualFilter")
+    logger.debug(s"Parquet filter: $parquetFilter and modified gt filter: $gtFilter")
 
-    new FilteringReader(conf, parquetSft, parquetFilter, residualFilter, transform)
+    new FilteringReader(conf, parquetSft, parquetFilter, gtFilter, transform)
   }
 }
 

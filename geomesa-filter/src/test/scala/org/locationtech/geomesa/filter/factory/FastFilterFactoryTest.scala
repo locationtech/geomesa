@@ -42,7 +42,7 @@ class FastFilterFactoryTest extends Specification {
     }
     "create fast property names via ECQL" >> {
       val sft = SimpleFeatureTypes.createType("test", "geom:Point:srid=4326")
-      val bbox = FastFilterFactory.toFilter(sft, "bbox(geom, -180, -90, 180, 90)")
+      val bbox = FastFilterFactory.toFilter(sft, "bbox(geom, -179, -89, 179, 89)")
       bbox.asInstanceOf[BBOX].getExpression1 must beAnInstanceOf[FastPropertyName]
     }
     "create sequential OR filter" >> {

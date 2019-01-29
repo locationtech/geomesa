@@ -116,7 +116,6 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
     profile(time => output(s"Query planning took ${time}ms")) {
       // set hints that we'll need later on, fix the query filter so it meets our expectations going forward
       val query = configureQuery(sft, original)
-      optimizeFilter(sft, query)
 
       val hints = query.getHints
 
