@@ -47,8 +47,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       origQuery.getHints.put(QueryHints.LOOSE_BBOX, false)
       ds.getQueryPlan(origQuery)
     }
-    // note: make sure to access this after qps, so that hints are set
-    lazy val transform = origQuery.getHints.getTransformSchema
+    lazy val transform = ds.queryPlanner.configureQuery(sft, origQuery).getHints.getTransformSchema
 
     def queryPlanToRDD(qp: HBaseQueryPlan, conf: Configuration): RDD[SimpleFeature] = {
       if (qp.isInstanceOf[EmptyPlan]) {

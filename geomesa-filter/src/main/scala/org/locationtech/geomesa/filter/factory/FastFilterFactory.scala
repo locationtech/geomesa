@@ -27,7 +27,7 @@ import org.opengis.filter.MultiValuedFilter.MatchAction
 import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.spatial.DWithin
 import org.opengis.filter.temporal.{After, Before, During}
-import org.opengis.filter._
+import org.opengis.filter.{Filter, FilterFactory2, Or, PropertyIsEqualTo}
 import org.opengis.geometry.Geometry
 import org.xml.sax.helpers.NamespaceSupport
 
@@ -46,9 +46,7 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
   override def after(exp1: Expression, exp2: Expression): After = after(exp1, exp2, MatchAction.ANY)
 
   override def after(exp1: Expression, exp2: Expression, matchAction: MatchAction): After = {
-    if (matchAction != MatchAction.ANY) {
-      super.after(exp1, exp2, matchAction)
-    } else {
+    if (matchAction == MatchAction.ANY) {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
         case None =>
           super.after(exp1, exp2, matchAction)
@@ -69,15 +67,15 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
             super.after(exp1, exp2, matchAction)
           }
       }
+    } else {
+      super.after(exp1, exp2, matchAction)
     }
   }
 
   override def before(exp1: Expression, exp2: Expression): Before = before(exp1, exp2, MatchAction.ANY)
 
   override def before(exp1: Expression, exp2: Expression, matchAction: MatchAction): Before = {
-    if (matchAction != MatchAction.ANY) {
-      super.before(exp1, exp2, matchAction)
-    } else {
+    if (matchAction == MatchAction.ANY) {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
         case None =>
           super.before(exp1, exp2, matchAction)
@@ -98,155 +96,8 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
             super.before(exp1, exp2, matchAction)
           }
       }
-    }
-  }
-
-  override def greater(exp1: Expression, exp2: Expression): PropertyIsGreaterThan =
-    greater(exp1, exp2, matchCase = false)
-
-  override def greater(exp1: Expression,
-                       exp2: Expression,
-                       matchCase: Boolean): PropertyIsGreaterThan = greater(exp1, exp2, matchCase, MatchAction.ANY)
-
-  override def greater(exp1: Expression,
-                       exp2: Expression,
-                       matchCase: Boolean,
-                       matchAction: MatchAction): PropertyIsGreaterThan = {
-    if (matchCase || matchAction != MatchAction.ANY) {
-      super.greater(exp1, exp2, matchCase, matchAction)
     } else {
-      org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
-        case None =>
-          super.greater(exp1, exp2, matchCase, matchAction)
-
-        case Some(prop) =>
-          val exp1 = prop match {
-            case p: PropertyLiteral => property(p.name)
-            case p: FunctionLiteral => p.function
-          }
-          val descriptor = FastFilterFactory.sfts.get.getDescriptor(prop.name)
-          if (descriptor != null && classOf[Comparable[_]].isAssignableFrom(descriptor.getType.getBinding)) {
-            if (prop.flipped) {
-              FastComparisonOperator.greaterThan(prop.literal, exp1)
-            } else {
-              FastComparisonOperator.greaterThan(exp1, prop.literal)
-            }
-          } else {
-            super.greater(exp1, exp2, matchCase, matchAction)
-          }
-      }
-    }
-  }
-
-  override def greaterOrEqual(exp1: Expression, exp2: Expression): PropertyIsGreaterThanOrEqualTo =
-    greaterOrEqual(exp1, exp2, matchCase = false)
-
-  override def greaterOrEqual(exp1: Expression,
-                              exp2: Expression,
-                              matchCase: Boolean): PropertyIsGreaterThanOrEqualTo =
-    greaterOrEqual(exp1, exp2, matchCase, MatchAction.ANY)
-
-  override def greaterOrEqual(exp1: Expression,
-                              exp2: Expression,
-                              matchCase: Boolean,
-                              matchAction: MatchAction): PropertyIsGreaterThanOrEqualTo = {
-    if (matchCase || matchAction != MatchAction.ANY) {
-      super.greaterOrEqual(exp1, exp2, matchCase, matchAction)
-    } else {
-      org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
-        case None =>
-          super.greaterOrEqual(exp1, exp2, matchCase, matchAction)
-
-        case Some(prop) =>
-          val exp1 = prop match {
-            case p: PropertyLiteral => property(p.name)
-            case p: FunctionLiteral => p.function
-          }
-          val descriptor = FastFilterFactory.sfts.get.getDescriptor(prop.name)
-          if (descriptor != null && classOf[Comparable[_]].isAssignableFrom(descriptor.getType.getBinding)) {
-            if (prop.flipped) {
-              FastComparisonOperator.greaterThanOrEqual(prop.literal, exp1)
-            } else {
-              FastComparisonOperator.greaterThanOrEqual(exp1, prop.literal)
-            }
-          } else {
-            super.greaterOrEqual(exp1, exp2, matchCase, matchAction)
-          }
-      }
-    }
-  }
-
-  override def less(exp1: Expression, exp2: Expression): PropertyIsLessThan = less(exp1, exp2, matchCase = false)
-
-  override def less(exp1: Expression,
-                    exp2: Expression,
-                    matchCase: Boolean): PropertyIsLessThan = less(exp1, exp2, matchCase, MatchAction.ANY)
-
-  override def less(exp1: Expression,
-                    exp2: Expression,
-                    matchCase: Boolean,
-                    matchAction: MatchAction): PropertyIsLessThan = {
-    if (matchCase || matchAction != MatchAction.ANY) {
-      super.less(exp1, exp2, matchCase, matchAction)
-    } else {
-      org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
-        case None =>
-          super.less(exp1, exp2, matchCase, matchAction)
-
-        case Some(prop) =>
-          val exp1 = prop match {
-            case p: PropertyLiteral => property(p.name)
-            case p: FunctionLiteral => p.function
-          }
-          val descriptor = FastFilterFactory.sfts.get.getDescriptor(prop.name)
-          if (descriptor != null && classOf[Comparable[_]].isAssignableFrom(descriptor.getType.getBinding)) {
-            if (prop.flipped) {
-              FastComparisonOperator.lessThan(prop.literal, exp1)
-            } else {
-              FastComparisonOperator.lessThan(exp1, prop.literal)
-            }
-          } else {
-            super.less(exp1, exp2, matchCase, matchAction)
-          }
-      }
-    }
-  }
-
-  override def lessOrEqual(exp1: Expression, exp2: Expression): PropertyIsLessThanOrEqualTo =
-    lessOrEqual(exp1, exp2, matchCase = false)
-
-  override def lessOrEqual(exp1: Expression,
-                           exp2: Expression,
-                           matchCase: Boolean): PropertyIsLessThanOrEqualTo =
-    lessOrEqual(exp1, exp2, matchCase, MatchAction.ANY)
-
-  override def lessOrEqual(exp1: Expression,
-                           exp2: Expression,
-                           matchCase: Boolean,
-                           matchAction: MatchAction): PropertyIsLessThanOrEqualTo = {
-    if (matchCase || matchAction != MatchAction.ANY) {
-      super.lessOrEqual(exp1, exp2, matchCase, matchAction)
-    } else {
-      org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
-        case None =>
-          super.lessOrEqual(exp1, exp2, matchCase, matchAction)
-
-        case Some(prop) =>
-          val exp1 = prop match {
-            case p: PropertyLiteral => property(p.name)
-            case p: FunctionLiteral => p.function
-          }
-          val descriptor = FastFilterFactory.sfts.get.getDescriptor(prop.name)
-          if (descriptor != null && classOf[Comparable[_]].isAssignableFrom(descriptor.getType.getBinding)) {
-            if (prop.flipped) {
-              FastComparisonOperator.lessThanOrEqual(prop.literal, exp1)
-            } else {
-              FastComparisonOperator.lessThanOrEqual(exp1, prop.literal)
-            }
-          } else {
-            super.lessOrEqual(exp1, exp2, matchCase, matchAction)
-          }
-      }
+      super.before(exp1, exp2, matchAction)
     }
   }
 
@@ -318,9 +169,7 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
     equal(exp1, exp2, matchCase, MatchAction.ANY)
 
   override def equal(exp1: Expression, exp2: Expression, matchCase: Boolean, matchAction: MatchAction): PropertyIsEqualTo = {
-    if (matchAction != MatchAction.ANY) {
-      super.equal(exp1, exp2, matchCase, matchAction)
-    } else {
+    if (matchAction == MatchAction.ANY) {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
         case None =>
           super.equal(exp1, exp2, matchCase, matchAction)
@@ -339,15 +188,15 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
             new FastIsEqualToIgnoreCase(exp1, prop.literal)
           }
       }
+    } else {
+      super.equal(exp1, exp2, matchCase, matchAction)
     }
   }
 
   override def during(exp1: Expression, exp2: Expression): During = during(exp1, exp2, MatchAction.ANY)
 
   override def during(exp1: Expression, exp2: Expression, matchAction: MatchAction): During = {
-    if (matchAction != MatchAction.ANY) {
-      super.during(exp1, exp2, matchAction)
-    } else {
+    if (matchAction == MatchAction.ANY) {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2).filterNot(_.flipped) match {
         case None =>
           super.during(exp1, exp2, matchAction)
@@ -364,6 +213,8 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
             super.during(exp1, exp2, matchAction)
           }
       }
+    } else {
+      super.during(exp1, exp2, matchAction)
     }
   }
 
@@ -377,14 +228,14 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
     dwithin(exp1, exp2, distance, units, MatchAction.ANY)
 
   override def dwithin(exp1: Expression, exp2: Expression, distance: Double, units: String, action: MatchAction): DWithin = {
-    if (action != MatchAction.ANY) {
-      super.dwithin(exp1, exp2, distance, units, action)
-    } else {
+    if (action == MatchAction.ANY) {
       org.locationtech.geomesa.filter.checkOrder(exp1, exp2) match {
         case Some(PropertyLiteral(name, lit, _))  => new DWithinLiteral(property(name), lit, distance, units)
         case Some(FunctionLiteral(_, fn, lit, _)) => new DWithinLiteral(fn, lit, distance, units)
         case _ => super.dwithin(exp1, exp2, distance, units, action)
       }
+    } else {
+      super.dwithin(exp1, exp2, distance, units, action)
     }
   }
 }
@@ -395,7 +246,12 @@ object FastFilterFactory {
 
   val sfts = new ThreadLocal[SimpleFeatureType]()
 
-  def toFilter(sft: SimpleFeatureType, ecql: String): Filter = optimize(sft, ECQL.toFilter(ecql))
+  def toFilter(sft: SimpleFeatureType, ecql: String): Filter = {
+    sfts.set(sft)
+    try { ECQL.toFilter(ecql, factory) } finally {
+      sfts.remove()
+    }
+  }
 
   def toExpression(sft: SimpleFeatureType, ecql: String): Expression = {
     sfts.set(sft)

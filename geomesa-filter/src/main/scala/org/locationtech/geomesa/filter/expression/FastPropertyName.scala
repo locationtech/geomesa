@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.filter.expression
 
-import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.expression.PropertyAccessor
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -36,7 +35,7 @@ abstract class FastPropertyName(name: String) extends PropertyName with Expressi
   override def toString: String = name
 }
 
-object FastPropertyName extends LazyLogging {
+object FastPropertyName {
 
   /**
     * PropertyName implementation that looks up the value by index
@@ -51,7 +50,7 @@ object FastPropertyName extends LazyLogging {
         case _: ClassCastException =>
           obj match {
             case s: SimpleFeatureType => s.getDescriptor(name)
-            case _ => logger.error(s"Unable to evaluate property name against '$obj'"); null
+            case _ => null
           }
       }
     }
@@ -64,15 +63,6 @@ object FastPropertyName extends LazyLogging {
     * @param accessor property accessor
     */
   class FastPropertyNameAccessor(name: String, accessor: PropertyAccessor) extends FastPropertyName(name) {
-    override def evaluate(obj: AnyRef): AnyRef = {
-      // usually obj is a simple feature, but this is also expected to return descriptors for SimpleFeatureTypes
-      try { accessor.get(obj, name, classOf[AnyRef]) } catch {
-        case _: ClassCastException =>
-          obj match {
-            case s: SimpleFeatureType => s.getDescriptor(name)
-            case _ => logger.error(s"Unable to evaluate property name against '$obj'"); null
-          }
-      }
-    }
+    override def evaluate(obj: AnyRef): AnyRef = accessor.get(obj, name, classOf[AnyRef])
   }
 }
