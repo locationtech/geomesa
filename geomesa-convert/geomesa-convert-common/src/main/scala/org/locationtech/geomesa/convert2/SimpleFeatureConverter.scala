@@ -58,6 +58,7 @@ object SimpleFeatureConverter extends StrictLogging {
   val factories: List[SimpleFeatureConverterFactory] =
     ServiceLoader.load(classOf[SimpleFeatureConverterFactory]).asScala.toList
 
+  // noinspection ScalaDeprecation
   private val factoriesV1 = ServiceLoader.load(classOf[convert.SimpleFeatureConverterFactory[_]]).asScala.toList
 
   logger.debug(s"Found ${factories.size + factoriesV1.size} factories: " +
@@ -125,6 +126,7 @@ object SimpleFeatureConverter extends StrictLogging {
     }
   }
 
+  // noinspection ScalaDeprecation
   class SimpleFeatureConverterWrapper(converter: convert.SimpleFeatureConverter[_]) extends SimpleFeatureConverter {
 
     override def targetSft: SimpleFeatureType = converter.targetSFT

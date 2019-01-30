@@ -208,7 +208,7 @@ object AvroConverterFactory {
           case (Some(s), None) => Right(SchemaString(s))
           case (None, Some(s)) => Right(SchemaFile(s))
           case _ =>
-            val reason = new FailureReason {
+            val reason: FailureReason = new FailureReason {
               override val description: String = "Exactly one of 'schema' or 'schema-file' must be defined"
             }
             cur.failed(reason)

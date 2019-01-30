@@ -30,18 +30,27 @@ object ShapefileFunctionFactory {
     private var i = -1
     private var values: Array[Any] = _
 
-    override val names = Seq("shp")
+    override val names: Seq[String] = Seq("shp")
 
     override def getInstance: ShapefileAttribute = new ShapefileAttribute()
 
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       if (i == -1) {
         val names = ctx.get(ctx.indexOf(InputSchemaKey)).asInstanceOf[Array[String]]
+        if (names == null) {
+          throw new IllegalArgumentException("Input schema not found in evaluation context, " +
+              "'shp' function is not available")
+        }
         i = names.indexOf(args(0).asInstanceOf[String]) + 1 // 0 is fid
         if (i == 0) {
-          throw new IllegalArgumentException(s"Attribute '${args(0)}' does not exist in shapefile: ${names.mkString(", ")}")
+          throw new IllegalArgumentException(s"Attribute '${args(0)}' does not exist in shapefile: " +
+              names.mkString(", "))
         }
         values = ctx.get(ctx.indexOf(InputValuesKey)).asInstanceOf[Array[Any]]
+        if (values == null) {
+          throw new IllegalArgumentException("Input values not found in evaluation context, " +
+              "'shp' function is not available")
+        }
       }
       values(i)
     }
@@ -51,13 +60,17 @@ object ShapefileFunctionFactory {
 
     private var values: Array[Any] = _
 
-    override val names = Seq("shpFeatureId")
+    override val names: Seq[String] = Seq("shpFeatureId")
 
     override def getInstance: ShapefileFeatureId = new ShapefileFeatureId()
 
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       if (values == null) {
         values = ctx.get(ctx.indexOf(InputValuesKey)).asInstanceOf[Array[Any]]
+        if (values == null) {
+          throw new IllegalArgumentException("Input values not found in evaluation context, " +
+              "'shpFeatureId' function is not available")
+        }
       }
       values(0)
     }
