@@ -23,6 +23,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
+import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class FileMetadataTest extends Specification with AllExpectations {
@@ -38,7 +39,7 @@ class FileMetadataTest extends Specification with AllExpectations {
     "create and persist an empty metadata file" in {
       withPath { path =>
         val created = StorageMetadata.create(fc, path, sft, encoding, scheme)
-        val loaded = StorageMetadata.load(fc, path).get
+        val loaded = StorageMetadata.load(fc, path, true).get
         foreach(Seq(created, loaded)) { metadata =>
           metadata.getEncoding mustEqual encoding
           metadata.getSchema mustEqual sft
@@ -53,11 +54,11 @@ class FileMetadataTest extends Specification with AllExpectations {
         created.addPartition(new PartitionMetadata("1", Collections.singletonList("file1"), 10L, new Envelope(-10, 10, -5, 5)))
         created.addPartition(new PartitionMetadata("1", java.util.Arrays.asList("file2", "file3"), 20L, new Envelope(-11, 11, -5, 5)))
         created.addPartition(new PartitionMetadata("2", java.util.Arrays.asList("file5", "file6"), 20L, new Envelope(-1, 1, -5, 5)))
-        val loaded = StorageMetadata.load(fc, path).get
+        val loaded = StorageMetadata.load(fc, path, true).get
         foreach(Seq(created, loaded)) { metadata =>
           metadata.getEncoding mustEqual encoding
           metadata.getSchema mustEqual sft
-          metadata.getSchema.getUserData mustEqual sft.getUserData
+          metadata.getSchema.getUserData.toSeq must containAllOf(sft.getUserData.toSeq)
           metadata.getPartitionScheme mustEqual scheme
           metadata.getPartitions.asScala.map(_.name) must containTheSameElementsAs(Seq("1", "2"))
           metadata.getPartition("1").files.asScala must containTheSameElementsAs((1 to 3).map(i => s"file$i"))
@@ -77,14 +78,14 @@ class FileMetadataTest extends Specification with AllExpectations {
           }
         }
         created.reload()
-        val loaded = StorageMetadata.load(fc, path).get
+        val loaded = StorageMetadata.load(fc, path, true).get
         foreach(Seq(created, loaded)) { metadata =>
           metadata.getEncoding mustEqual encoding
           metadata.getSchema mustEqual sft
           metadata.getPartitionScheme mustEqual scheme
           metadata.getPartitions.asScala.map(_.name) mustEqual Seq("1")
           metadata.getPartition("1").files.asScala must containTheSameElementsAs((1 to 3).map(i => s"file$i"))
-          metadata.getSchema.getUserData mustEqual sft.getUserData
+          metadata.getSchema.getUserData.toSeq must containAllOf(sft.getUserData.toSeq)
         }
 
       }
@@ -94,7 +95,7 @@ class FileMetadataTest extends Specification with AllExpectations {
         val metadata = new Path(path, "metadata.json")
         fc.util.copy(new Path(getClass.getClassLoader.getResource("metadata-old.json").toURI), metadata)
         fc.util.exists(metadata) must beTrue
-        val option = StorageMetadata.load(fc, path)
+        val option = StorageMetadata.load(fc, path, true)
         option must beSome
         val storage = option.get
         storage.getEncoding mustEqual "orc"
