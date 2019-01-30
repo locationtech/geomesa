@@ -19,6 +19,7 @@ import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
 import org.apache.hadoop.hbase.filter.KeyOnlyFilter
 import org.apache.hadoop.hbase.io.compress.Compression
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
+import org.apache.hadoop.hbase.regionserver.BloomType
 import org.locationtech.geomesa.hbase._
 import org.locationtech.geomesa.hbase.coprocessor.AllCoprocessors
 import org.locationtech.geomesa.hbase.data._
@@ -85,6 +86,7 @@ trait HBaseFeatureIndex extends HBaseFeatureIndexType with ClientSideFiltering[R
         val descriptor = new HTableDescriptor(name)
         HBaseColumnGroups(sft).foreach { case (group, _) =>
           val column = new HColumnDescriptor(group)
+          column.setBloomFilterType(BloomType.NONE)
           compression.foreach(column.setCompressionType)
           HBaseVersions.addFamily(descriptor, column)
           dataBlockEncoding.foreach(column.setDataBlockEncoding)
