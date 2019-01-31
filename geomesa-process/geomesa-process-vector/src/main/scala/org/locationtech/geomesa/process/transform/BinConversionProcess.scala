@@ -77,7 +77,7 @@ class BinConversionProcess extends GeoMesaProcess with LazyLogging {
 
     val geomField  = Option(geom).map(indexOf)
     val dtgField   = Option(dtg).map(indexOf).orElse(sft.getDtgIndex)
-    val trackField = Option(track).orElse(sft.getBinTrackId).filter(_ != "id").map(indexOf)
+    val trackField = Option(track).filter(_ != "id").map(indexOf)
     val labelField = Option(label).map(indexOf)
 
     val axis = Option(axisOrder).map {

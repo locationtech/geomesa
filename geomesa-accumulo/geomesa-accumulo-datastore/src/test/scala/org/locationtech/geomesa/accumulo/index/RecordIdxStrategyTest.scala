@@ -14,10 +14,13 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.index.conf.QueryHints._
+import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.ExplainNull
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.{Filter, Id}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -64,7 +67,11 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
   addFeatures(features)
 
   val planner = ds.queryPlanner
-  def runQuery(query: Query) = planner.runQuery(sft, query, Some(RecordIndex), ExplainNull)
+
+  def runQuery(query: Query): CloseableIterator[SimpleFeature] = {
+    query.getHints.put(QUERY_INDEX, IdIndex.name)
+    planner.runQuery(sft, query, ExplainNull)
+  }
 
   "RecordIdxStrategy" should {
     "support NOT queries" in {

@@ -11,6 +11,7 @@ package org.locationtech.geomesa.jobs.mapreduce
 
 import java.io._
 import java.net.{URL, URLClassLoader}
+import java.util.Collections
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.impl.{AuthenticationTokenIdentifier, DelegationTokenImpl}
@@ -29,9 +30,9 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloMapperProperties
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
@@ -108,8 +109,8 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
     if (queryPlan.ranges.nonEmpty) {
       InputFormatBase.setRanges(job, queryPlan.ranges)
     }
-    if (queryPlan.columnFamilies.nonEmpty) {
-      InputFormatBase.fetchColumns(job, queryPlan.columnFamilies.map(cf => new AccPair[Text, Text](cf, null)))
+    queryPlan.columnFamily.foreach { colFamily =>
+      InputFormatBase.fetchColumns(job, Collections.singletonList(new AccPair[Text, Text](colFamily, null)))
     }
     queryPlan.iterators.foreach(InputFormatBase.addIterator(job, _))
 
@@ -166,7 +167,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
   val delegate = new AccumuloInputFormat
 
   var sft: SimpleFeatureType = _
-  var table: AccumuloFeatureIndex = _
+  var index: GeoMesaFeatureIndex[_, _] = _
 
   private def init(context: JobContext): Unit = if (sft == null) {
     val conf = context.getConfiguration
@@ -240,8 +241,7 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
 
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
     val tableName = GeoMesaConfigurator.getTable(conf)
-    table = AccumuloFeatureIndex.indices(sft, mode = IndexMode.Read)
-        .find(t => t.getTableNames(sft, ds, None).contains(tableName))
+    index = ds.manager.indices(sft, IndexMode.Read).find(_.getTableNames(None).contains(tableName))
         .getOrElse(throw new RuntimeException(s"Couldn't find input table $tableName"))
     ds.dispose()
   }
@@ -303,33 +303,31 @@ class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with L
     }
   }
 
-  override def createRecordReader(split: InputSplit, context: TaskAttemptContext) = {
+  override def createRecordReader(split: InputSplit, context: TaskAttemptContext): GeoMesaRecordReader = {
     init(context)
     val reader = delegate.createRecordReader(split, context)
     val schema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration).getOrElse(sft)
-    val hasId = table.serializedWithId
-    val serializationOptions = if (hasId) SerializationOptions.none else SerializationOptions.withoutId
-    val decoder = KryoFeatureSerializer(schema, serializationOptions)
-    new GeoMesaRecordReader(sft, table, reader, hasId, decoder)
+    new GeoMesaRecordReader(schema, index, reader)
   }
 }
 
 /**
- * Record reader that delegates to accumulo record readers and transforms the key/values coming back into
- * simple features.
- *
- * @param reader
- */
-class GeoMesaRecordReader(sft: SimpleFeatureType,
-                          table: AccumuloFeatureIndex,
-                          reader: RecordReader[Key, Value],
-                          hasId: Boolean,
-                          decoder: org.locationtech.geomesa.features.SimpleFeatureSerializer)
+  * Record reader that delegates to accumulo record readers and transforms the key/values coming back into
+  * simple features.
+  *
+  * @param sft simple feature type
+  * @param index feature index
+  * @param reader delegate reader
+  */
+class GeoMesaRecordReader(sft: SimpleFeatureType, index: GeoMesaFeatureIndex[_, _], reader: RecordReader[Key, Value])
     extends RecordReader[Text, SimpleFeature] {
 
-  var currentFeature: SimpleFeature = _
+  private val serializer: KryoFeatureSerializer = {
+    val opts = if (index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
+    KryoFeatureSerializer(sft, opts)
+  }
 
-  private val getId = table.getIdFromRow(sft)
+  private var currentFeature: SimpleFeature = _
 
   override def initialize(split: InputSplit, context: TaskAttemptContext): Unit =
     reader.initialize(split, context)
@@ -343,10 +341,10 @@ class GeoMesaRecordReader(sft: SimpleFeatureType,
     */
   private def nextKeyValueInternal(): Boolean = {
     if (reader.nextKeyValue()) {
-      currentFeature = decoder.deserialize(reader.getCurrentValue.get())
-      if (!hasId) {
+      currentFeature = serializer.deserialize(reader.getCurrentValue.get())
+      if (!index.serializedWithId) {
         val row = reader.getCurrentKey.getRow
-        val id = getId(row.getBytes, 0, row.getLength, currentFeature)
+        val id = index.getIdFromRow(row.getBytes, 0, row.getLength, currentFeature)
         currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
       }
       true
@@ -374,20 +372,20 @@ class GroupedSplit extends InputSplit with Writable {
     GeoMesaAccumuloInputFormat.ensureSparkClasspath()
   }
 
-  private[mapreduce] var location: String = null
+  private[mapreduce] var location: String = _
   private[mapreduce] val splits: ArrayBuffer[RangeInputSplit] = ArrayBuffer.empty
 
-  override def getLength = splits.foldLeft(0L)((l: Long, r: RangeInputSplit) => l + r.getLength)
+  override def getLength: Long = splits.foldLeft(0L)((l: Long, r: RangeInputSplit) => l + r.getLength)
 
-  override def getLocations = if (location == null) Array.empty else Array(location)
+  override def getLocations: Array[String] = if (location == null) { Array.empty } else { Array(location) }
 
-  override def write(out: DataOutput) = {
+  override def write(out: DataOutput): Unit = {
     out.writeUTF(location)
     out.writeInt(splits.length)
     splits.foreach(_.write(out))
   }
 
-  override def readFields(in: DataInput) = {
+  override def readFields(in: DataInput): Unit = {
     location = in.readUTF()
     splits.clear()
     var i = 0

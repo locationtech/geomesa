@@ -34,7 +34,7 @@ class QueryPlannerTest extends Specification {
 
   "QueryPlanner" should {
     "be a queryPlanner" in {
-      planner.getClass mustEqual classOf[QueryPlanner[_, _, _]] // sanity check
+      planner.getClass mustEqual classOf[QueryPlanner[_]] // sanity check
     }
 
     "throw an exception for invalid requested index during explain" in {
@@ -53,7 +53,7 @@ class QueryPlannerTest extends Specification {
       val filter = ECQL.toFilter("BBOX(geom, -1, -1, 1, 1) and dtg > '1970-01-01' and dtg < '2018-01-01'")
       val query = new Query(sft.getTypeName, filter)
       foreach(ds.getQueryPlan(query)) { plan =>
-        plan.index.name mustEqual Z3Index.Name
+        plan.filter.index.name mustEqual Z3Index.name
       }
     }
 

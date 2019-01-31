@@ -21,6 +21,7 @@ import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -77,7 +78,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       skipped("used for debugging")
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-      Z3Index.getTableNames(sft, ds).foreach { table =>
+      ds.manager.indices(sft).filter(_.name == Z3Index.name).flatMap(_.getTableNames()).foreach { table =>
         println(table)
         ds.connector.createScanner(table, new Authorizations()).foreach { r =>
           val prefix = 2 // table sharing + split
@@ -212,24 +213,6 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
         f.getAttribute("derived").asInstanceOf[String] must beMatching("myname\\d")
       }
     }
-
-    "apply transforms using only the row key" >> {
-      val filter = "bbox(geom, 38, 59, 51, 61)" +
-          " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
-      val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg"))
-
-      val qps = ds.getQueryPlan(query)
-      forall(qps)(p => p.columnFamilies must containTheSameElementsAs(Seq(AccumuloColumnGroups.BinColumnFamily)))
-
-      val features = runQuery(query).toList
-      features must haveSize(4)
-      features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
-      forall(features) { f =>
-        f.getAttributeCount mustEqual 2 // geom always gets added
-        f.getAttribute("geom") must not(beNull)
-        f.getAttribute("dtg") must not(beNull)
-      }
-    }.pendingUntilFixed("not implemented")
 
     "optimize for bin format" >> {
       val filter = "bbox(geom, 38, 59, 51, 61)" +

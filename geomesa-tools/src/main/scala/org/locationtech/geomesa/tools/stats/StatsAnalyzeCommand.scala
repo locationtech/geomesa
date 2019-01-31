@@ -14,7 +14,7 @@ import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.tools.{CatalogParam, Command, DataStoreCommand, TypeNameParam}
 import org.locationtech.geomesa.utils.stats._
 
-trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
+trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[DS] {
 
   override val name = "stats-analyze"
   override def params: StatsAnalyzeParams

@@ -2,8 +2,9 @@ Index Basics
 ============
 
 GeoMesa will create various indices for a given ``SimpleFeatureType`` schema (see :ref:`index_overview`). This
-allows us to answer a variety of queries in a optimized manner. GeoMesa will make a best effort to determine
-the attributes used for indexing. The attributes to use can also be specified as part of the ``SimpleFeatureType``.
+allows the execution of a variety of queries in a optimized manner. GeoMesa will make a best effort to determine
+the attributes used for indexing. The attributes to use can also be specified as part of the ``SimpleFeatureType`` -
+see :ref:`customizing_index_creation` for details.
 
 Spatial Index (Z2/XZ2)
 ----------------------
@@ -73,6 +74,103 @@ the layout of data on disk, which is fixed at the time of creation. Updating Geo
 will provide bug fixes and new features, but will not update existing data to new index formats.
 
 The exact version of an index used for each schema can be read from the ``SimpleFeatureType`` user data,
-or by simple examining the name of the index tables created by GeoMesa. The particular
-version numbers vary across the different back-end implementations. See :ref:`accumulo_index_versions`,
-:ref:`hbase_index_versions` and :ref:`cassandra_index_versions` for the differences between index versions.
+or by simply examining the name of the index tables created by GeoMesa.
+
+The following versions are available:
+
+.. tabs::
+
+    .. tab:: Z3
+
+        ============= =============== =================================================================
+        Index Version GeoMesa Version Notes
+        ============= =============== =================================================================
+        1             1.1.0           Initial implementation
+        2             1.2.1           Support for non-point geometries
+
+                                      Support for shards
+        3             1.2.5           Removed support for non-point geometries in favor of xz
+
+                                      Removed redundant feature ID in row value to reduce size on disk
+
+                                      Support for per-attribute visibility
+        4             1.3.1           Support for table sharing
+        5             2.0.0           Uses fixed Z-curve implementation
+        6             2.3.0           Configurable attributes
+        ============= =============== =================================================================
+
+    .. tab:: Z2
+
+        ============= =============== =================================================================
+        Index Version GeoMesa Version Notes
+        ============= =============== =================================================================
+        1             1.2.2           Initial implementation
+        2             1.2.5           Removed support for non-point geometries in favor of xz
+
+                                      Removed redundant feature ID in row value to reduce size on disk
+
+                                      Support for per-attribute visibility
+        3             1.3.1           Optimized deletes
+        4             2.0.0           Uses fixed Z-curve implementation
+        5             2.3.0           Configurable attributes
+        ============= =============== =================================================================
+
+    .. tab:: XZ3
+
+        ============= =============== =================================================================
+        Index Version GeoMesa Version Notes
+        ============= =============== =================================================================
+        1             1.2.5           Initial implementation
+        2             2.3.0           Configurable attributes
+        ============= =============== =================================================================
+
+    .. tab:: XZ2
+
+        ============= =============== =================================================================
+        Index Version GeoMesa Version Notes
+        ============= =============== =================================================================
+        1             1.2.5           Initial implementation
+        2             2.3.0           Configurable attributes
+        ============= =============== =================================================================
+
+    .. tab:: Attribute
+
+        ============= =============== =================================================================
+        Index Version GeoMesa Version Notes
+        ============= =============== =================================================================
+        1             1.0.0           Initial implementation
+        2             1.1.0           Added secondary date index
+        3             1.2.5           Removed redundant feature ID in row value to reduce size on disk
+
+                                      Support for per-attribute visibility
+        4             1.3.1           Added secondary Z index
+        5             1.3.2           Support for shards
+        6             2.0.0-m.1       Internal row layout change
+        7             2.0.0           Uses fixed Z-curve implementation
+        8             2.3.0           Configurable secondary index attributes
+        ============= =============== =================================================================
+
+    .. tab:: ID
+
+        ============= =============== =================================================================
+        Index Version GeoMesa Version Notes
+        ============= =============== =================================================================
+        1             1.0.0           Initial implementation
+        2             1.2.5           Removed redundant feature ID in row value to reduce size on disk
+
+                                      Support for per-attribute visibility
+        3             2.0.0           Standardized index identifier to 'id'
+        4             2.3.0           Configurable attributes
+        ============= =============== =================================================================
+
+
+The version numbers here may not correspond exactly to schemas created with GeoMesa versions prior to 2.3.0, as
+each back-end implementation initially had its own versioning scheme. However, the implementation for each index
+was consistent across back-ends in a given GeoMesa release, so if you know the GeoMesa version you can determine
+the index format from the tables above. Refer to the archived `GeoMesa 2.2.0 documentation`_ to see the
+back-end-specific index version numbers.
+
+.. _GeoMesa 2.2.0 documentation: https://www.geomesa.org/documentation/2.2.0/user/datastores/index_basics.html#index-versioning
+
+Note that GeoMesa versions prior to 1.2.2 included a geohash index. That index has been replaced with
+the Z indices and is no longer supported.

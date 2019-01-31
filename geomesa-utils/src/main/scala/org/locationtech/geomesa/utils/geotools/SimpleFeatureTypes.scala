@@ -19,11 +19,11 @@ import org.opengis.feature.`type`.{AttributeDescriptor, FeatureTypeFactory, Geom
 import org.opengis.feature.simple.SimpleFeatureType
 import org.parboiled.errors.ParsingException
 
-import scala.collection.JavaConversions._
-
 object SimpleFeatureTypes {
 
-  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  import scala.collection.JavaConverters._
 
   object Configs {
     val TABLE_SHARING_KEY    = "geomesa.table.sharing"
@@ -72,7 +72,6 @@ object SimpleFeatureTypes {
     val OPT_STATS        = "keep-stats"
     val OPT_CARDINALITY  = "cardinality"
     val OPT_COL_GROUPS   = "column-groups"
-    val OPT_BIN_TRACK_ID = "bin-track-id"
     val OPT_CQ_INDEX     = "cq-index"
     val OPT_JSON         = "json"
     val OPT_PRECISION    = "precision"
@@ -164,7 +163,7 @@ object SimpleFeatureTypes {
     * @return a string representing a serialization of the sft
     */
   def encodeType(sft: SimpleFeatureType): String =
-    sft.getAttributeDescriptors.map(encodeDescriptor(sft, _)).mkString(",")
+    sft.getAttributeDescriptors.asScala.map(encodeDescriptor(sft, _)).mkString(",")
 
   /**
     * Encode a SimpleFeatureType as a comma-separated String
@@ -173,29 +172,36 @@ object SimpleFeatureTypes {
     * @param includeUserData - defaults to false
     * @return a string representing a serialization of the sft
     */
-  def encodeType(sft: SimpleFeatureType, includeUserData: Boolean): String = {
-    val userData = if (includeUserData) { encodeUserData(sft) } else { "" }
-    sft.getAttributeDescriptors.map(encodeDescriptor(sft, _)).mkString("", ",", userData)
-  }
+  def encodeType(sft: SimpleFeatureType, includeUserData: Boolean): String =
+    if (includeUserData) { s"${encodeType(sft)}${encodeUserData(sft)}" } else { encodeType(sft) }
 
   def encodeDescriptor(sft: SimpleFeatureType, descriptor: AttributeDescriptor): String =
     AttributeSpec(sft, descriptor).toSpec
 
   def encodeUserData(sft: SimpleFeatureType): String = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
     val prefixes = sft.getUserDataPrefixes
-    val userData = sft.getUserData.filter { case (k, v) => v != null && prefixes.exists(k.toString.startsWith) }
-    if (userData.isEmpty) { "" } else {
-      userData.map { case (k, v) => encodeUserData(k, v) }.mkString(";", ",", "")
+    val result = new StringBuilder(";")
+    sft.getUserData.asScala.foreach { case (k, v) =>
+      if (v != null && prefixes.exists(k.toString.startsWith)) {
+        result.append(encodeUserData(k, v)).append(",")
+      }
+    }
+    if (result.lengthCompare(1) > 0) { result.substring(0, result.length - 1) } else { "" }
+  }
+
+  def encodeUserData(data: java.util.Map[AnyRef, AnyRef]): String = {
+    if (data.isEmpty) { "" } else {
+      val result = new StringBuilder(";")
+      data.asScala.foreach { case (k, v) =>
+        result.append(encodeUserData(k, v)).append(",")
+      }
+      result.substring(0, result.length - 1)
     }
   }
 
   def encodeUserData(key: AnyRef, value: AnyRef): String = s"$key='${StringEscapeUtils.escapeJava(value.toString)}'"
 
-  def toConfig(sft: SimpleFeatureType,
-               includeUserData: Boolean = true,
-               includePrefix: Boolean = true): Config =
+  def toConfig(sft: SimpleFeatureType, includeUserData: Boolean = true, includePrefix: Boolean = true): Config =
     SimpleFeatureSpecConfig.toConfig(sft, includeUserData, includePrefix)
 
   def toConfigString(sft: SimpleFeatureType,
@@ -227,7 +233,6 @@ object SimpleFeatureTypes {
                                 factory: Option[FeatureTypeFactory] = None): SimpleFeatureType = {
     import AttributeOptions.OPT_DEFAULT
     import Configs.{DEFAULT_DATE_KEY, IGNORE_INDEX_DTG}
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     val defaultGeom = {
       val geomAttributes = spec.attributes.collect { case g: GeomAttributeSpec => g }
@@ -246,11 +251,11 @@ object SimpleFeatureTypes {
     val b = factory.map(new SimpleFeatureTypeBuilder(_)).getOrElse(new SimpleFeatureTypeBuilder())
     b.setNamespaceURI(namespace)
     b.setName(name)
-    b.addAll(spec.attributes.map(_.toDescriptor))
+    b.addAll(spec.attributes.map(_.toDescriptor).asJava)
     defaultGeom.foreach(b.setDefaultGeometry)
 
     val sft = b.buildFeatureType()
-    sft.getUserData.putAll(spec.options)
+    sft.getUserData.putAll(spec.options.asJava)
     defaultDate.foreach(sft.setDtgField)
     sft
   }
@@ -265,8 +270,12 @@ object SimpleFeatureTypes {
     (namespace, local)
   }
 
-  def getSecondaryIndexedAttributes(sft: SimpleFeatureType): Seq[AttributeDescriptor] =
-    sft.getAttributeDescriptors.filter(ad => ad.isIndexed && !ad.isInstanceOf[GeometryDescriptor])
+  @deprecated("Use AttributeIndex.indexed()")
+  def getSecondaryIndexedAttributes(sft: SimpleFeatureType): Seq[AttributeDescriptor] = {
+    sft.getIndices.flatMap { i =>
+      i.attributes.headOption.map(sft.getDescriptor).filterNot(_.isInstanceOf[GeometryDescriptor])
+    }
+  }
 
   private [utils] def toBoolean(value: AnyRef): Boolean = value match {
     case null => false

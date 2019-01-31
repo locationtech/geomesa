@@ -17,8 +17,8 @@ import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer.{NON_NULL_BYTE, NULL_BYTE, VERSION}
 import org.locationtech.geomesa.features.kryo.json.KryoJsonSerialization
 import org.locationtech.geomesa.features.kryo.serialization.{KryoGeometrySerialization, KryoUserDataSerialization}
+import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
-import org.locationtech.geomesa.features.serialization.{ObjectType, TwkbSerialization}
 import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, SoftThreadLocalCache}
 import org.locationtech.geomesa.utils.geometry.GeometryPrecision
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -97,13 +97,10 @@ object KryoFeatureSerialization {
   private [kryo] def getOffsets(sft: String, size: Int): Array[Int] =
     offsets.getOrElseUpdate(sft, Array.ofDim[Int](size))
 
-  // noinspection UnitInMap
   private [geomesa] def getWriters(key: String, sft: SimpleFeatureType): Array[(Output, AnyRef) => Unit] = {
     import scala.collection.JavaConversions._
-    writers.getOrElseUpdate(key, sft.getAttributeDescriptors.map { ad =>
-      val bindings = ObjectType.selectType(ad.getType.getBinding, ad.getUserData)
-      matchWriter(bindings, ad)
-    }.toArray)
+    writers.getOrElseUpdate(key,
+      sft.getAttributeDescriptors.map(ad => matchWriter(ObjectType.selectType(ad), ad)).toArray)
   }
 
   private [geomesa] def matchWriter(bindings: Seq[ObjectType], descriptor: AttributeDescriptor): (Output, AnyRef) => Unit = {

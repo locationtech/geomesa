@@ -15,17 +15,6 @@ Installation
 The age-off iterators are provided as part of the GeoMesa Accumulo Distributed Runtime jar which can be found in the
 :doc:`install` chapter.
 
-Requirements
-------------
-
-Age-off iterators are applied to individual Accumulo tables - as such, to configure age-off on a simple feature
-type, table sharing must be disabled. This may be accomplished by setting the user data string
-``geomesa.table.sharing='false'`` on the simple feature type before calling ``createSchema``. This check may be
-overridden by setting the system property ``geomesa.age-off.override=true``. This may be desirable for configuring
-ingest time age-off on multiple simple feature types, or when it is known that only a single simple feature type
-is present in a catalog. Note that configuring attribute-based age-off on multiple features in a shared catalog
-will generally not work.
-
 Configuration
 -------------
 

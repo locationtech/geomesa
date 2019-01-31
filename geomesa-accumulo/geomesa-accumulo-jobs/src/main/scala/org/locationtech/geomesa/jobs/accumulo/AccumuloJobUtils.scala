@@ -14,8 +14,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.conf.Configuration
 import org.geotools.data.Query
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, _}
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.EmptyPlan
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloQueryPlan}
+import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.jobs.JobUtils
@@ -62,12 +63,12 @@ object AccumuloJobUtils extends LazyLogging {
    */
   def getSingleQueryPlan(ds: AccumuloDataStore, query: Query): AccumuloQueryPlan = {
     // disable join plans
-    AttributeIndex.AllowJoinPlans.set(false)
+    JoinIndex.AllowJoinPlans.set(false)
 
     try {
       lazy val fallbackIndex = {
         val schema = ds.getSchema(query.getTypeName)
-        AccumuloFeatureIndex.indices(schema, mode = IndexMode.Read).headOption.getOrElse {
+        ds.manager.indices(schema, IndexMode.Read).headOption.getOrElse {
           throw new IllegalStateException(s"Schema '${schema.getTypeName}' does not have any readable indices")
         }
       }
@@ -75,12 +76,12 @@ object AccumuloJobUtils extends LazyLogging {
       val queryPlans = ds.getQueryPlan(query)
 
       if (queryPlans.isEmpty) {
-        EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE)))
+        EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), 0L))
       } else if (queryPlans.lengthCompare(1) > 0) {
         // this query requires multiple scans, which we can't execute from some input formats
         // instead, fall back to a full table scan
         logger.warn("Desired query plan requires multiple scans - falling back to full table scan")
-        val qps = ds.getQueryPlan(query, Some(fallbackIndex))
+        val qps = ds.getQueryPlan(query, Some(fallbackIndex.identifier))
         if (qps.lengthCompare(1) > 0 || qps.exists(_.tables.lengthCompare(1) > 0)) {
           logger.error("The query being executed requires multiple scans, which is not currently " +
               "supported by GeoMesa. Your result set will be partially incomplete. " +
@@ -98,7 +99,7 @@ object AccumuloJobUtils extends LazyLogging {
       }
     } finally {
       // make sure we reset the thread locals
-      AttributeIndex.AllowJoinPlans.remove()
+      JoinIndex.AllowJoinPlans.remove()
     }
   }
 
@@ -109,25 +110,25 @@ object AccumuloJobUtils extends LazyLogging {
     */
   def getMultipleQueryPlan(ds: AccumuloDataStore, query: Query): Seq[AccumuloQueryPlan] = {
     // disable join plans
-    AttributeIndex.AllowJoinPlans.set(false)
+    JoinIndex.AllowJoinPlans.set(false)
 
     try {
       lazy val fallbackIndex = {
         val schema = ds.getSchema(query.getTypeName)
-        AccumuloFeatureIndex.indices(schema, mode = IndexMode.Read).headOption.getOrElse {
+        ds.manager.indices(schema, IndexMode.Read).headOption.getOrElse {
           throw new IllegalStateException(s"Schema '${schema.getTypeName}' does not have any readable indices")
         }
       }
 
       val queryPlans = ds.getQueryPlan(query)
       if (queryPlans.isEmpty) {
-        Seq(EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE))))
+        Seq(EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), 0L)))
       } else {
         queryPlans
       }
     } finally {
       // make sure we reset the thread locals
-      AttributeIndex.AllowJoinPlans.remove()
+      JoinIndex.AllowJoinPlans.remove()
     }
   }
 }

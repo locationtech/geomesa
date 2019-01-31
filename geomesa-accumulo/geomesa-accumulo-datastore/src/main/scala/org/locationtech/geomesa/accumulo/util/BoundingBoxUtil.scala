@@ -17,27 +17,28 @@ import org.locationtech.geomesa.utils.geohash.BoundingBox
 import scala.collection.JavaConversions._
 
 /**
- *    This object holds any Accumulo functions related to Geohashes.
- *
- */
+  *    This object holds any Accumulo functions related to Geohashes.
+  *
+  */
+@deprecated("will be removed with no replacement")
 object BoundingBoxUtil {
   /**
-   * returns a list of AccRange objects which may be used in a accumulo query.
-   *
-   * @param bbox
-   * @return
-   */
+    * returns a list of AccRange objects which may be used in a accumulo query.
+    *
+    * @param bbox
+    * @return
+    */
   def getRanges(bbox: BoundingBox): JCollection[AccRange] =
     getRanges(BoundingBox.getGeoHashesFromBoundingBox(bbox, 32), 0, Long.MaxValue / 2)
 
   /**
-   * as above but includes time.
-   *
-   * @param geohashes
-   * @param startTime
-   * @param endTime
-   * @return
-   */
+    * as above but includes time.
+    *
+    * @param geohashes
+    * @param startTime
+    * @param endTime
+    * @return
+    */
   def getRanges(geohashes: List[String], startTime: Long, endTime: Long): Iterable[AccRange] = {
     def getRange(startHash: String, endHash: String) = {
       val List(b, e) = getKeys(startHash, endHash)

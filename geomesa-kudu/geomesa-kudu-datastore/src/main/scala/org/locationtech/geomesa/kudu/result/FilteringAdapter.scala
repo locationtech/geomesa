@@ -44,7 +44,7 @@ case class FilteringAdapter(sft: SimpleFeatureType, auths: Seq[Array[Byte]], ecq
     results.flatMap { row =>
       val vis = VisibilityAdapter.readFromRow(row)
       if ((vis == null || VisibilityEvaluator.parse(vis).evaluate(auths)) &&
-          { feature.setRowResult(row); ecql.evaluate(feature)}) {
+          { feature.setRowResult(row); ecql.evaluate(feature) }) {
         SecurityUtils.setFeatureVisibility(feature, vis)
         Iterator.single(feature)
       } else {

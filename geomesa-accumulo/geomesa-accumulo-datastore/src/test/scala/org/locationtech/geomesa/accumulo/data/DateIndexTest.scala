@@ -10,8 +10,10 @@ package org.locationtech.geomesa.accumulo.data
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
-import org.locationtech.geomesa.accumulo.index.{AttributeIndex, RecordIndex, Z2Index}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.locationtech.geomesa.index.index.id.IdIndex
+import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -31,7 +33,7 @@ class DateIndexTest extends Specification with TestWithMultipleSfts {
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
       val sft = createNewSchema(spec + ";geomesa.ignore.dtg='true'", None)
       sft.getDtgField must beNone
-      sft.getIndices.map(_._1) must containTheSameElementsAs(Seq(Z2Index.name, AttributeIndex.name, RecordIndex.name))
+      sft.getIndices.map(_.name) must containTheSameElementsAs(Seq(Z2Index.name, AttributeIndex.name, IdIndex.name))
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", attributeValues: _*)) must not(throwAn[Exception])
     }
   }

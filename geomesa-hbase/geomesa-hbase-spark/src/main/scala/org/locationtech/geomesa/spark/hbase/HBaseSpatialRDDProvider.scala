@@ -17,6 +17,7 @@ import org.apache.hadoop.io.Text
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.geotools.data.{Query, Transaction}
+import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{EmptyPlan, ScanPlan}
 import org.locationtech.geomesa.hbase.data._
 import org.locationtech.geomesa.hbase.jobs.GeoMesaHBaseInputFormat
 import org.locationtech.geomesa.index.conf.QueryHints

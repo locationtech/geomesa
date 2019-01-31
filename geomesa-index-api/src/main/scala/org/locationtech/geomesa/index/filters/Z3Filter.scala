@@ -10,18 +10,18 @@ package org.locationtech.geomesa.index.filters
 
 import java.nio.ByteBuffer
 
-import com.google.common.primitives.{Longs, Shorts}
 import org.locationtech.geomesa.index.index.z3.Z3IndexValues
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.sfcurve.zorder.Z3
 
 class Z3Filter(val xy: Array[Array[Int]], val t: Array[Array[Array[Int]]], val minEpoch: Short, val maxEpoch: Short) {
 
   def inBounds(buf: Array[Byte], offset: Int): Boolean = {
-    val keyZ = Z3Filter.rowToZ(buf, offset)
-    pointInBounds(keyZ) && timeInBounds(Z3Filter.rowToEpoch(buf, offset), keyZ)
+    val keyZ = ByteArrays.readLong(buf, offset + 2) // account for epoch - first 2 bytes
+    pointInBounds(keyZ) && timeInBounds(ByteArrays.readShort(buf, offset), keyZ)
   }
 
-  def pointInBounds(z: Long): Boolean = {
+  private def pointInBounds(z: Long): Boolean = {
     val x = Z3(z).d0
     val y = Z3(z).d1
     var i = 0
@@ -35,7 +35,7 @@ class Z3Filter(val xy: Array[Array[Int]], val t: Array[Array[Array[Int]]], val m
     false
   }
 
-  def timeInBounds(epoch: Short, z: Long): Boolean = {
+  private def timeInBounds(epoch: Short, z: Long): Boolean = {
     // we know we're only going to scan appropriate epochs, so leave out whole epochs
     if (epoch > maxEpoch || epoch < minEpoch) { true } else {
       val tEpoch = t(epoch - minEpoch)
@@ -171,11 +171,4 @@ object Z3Filter {
 
     new Z3Filter(xy, t, minEpoch, maxEpoch)
   }
-
-  // account for epoch - first 2 bytes
-  def rowToZ(b: Array[Byte], i: Int): Long =
-    Longs.fromBytes(b(i + 2), b(i + 3), b(i + 4), b(i + 5), b(i + 6), b(i + 7), b(i + 8), b(i + 9))
-
-  def rowToEpoch(bytes: Array[Byte], offset: Int): Short =
-    Shorts.fromBytes(bytes(offset), bytes(offset + 1))
 }

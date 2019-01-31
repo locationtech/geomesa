@@ -101,7 +101,6 @@ object GeoMesaMetadata {
   // Metadata keys
   val ATTRIBUTES_KEY       = "attributes"
   val VERSION_KEY          = "version"
-  val SCHEMA_ID_KEY        = "id"
 
   val STATS_GENERATION_KEY = "stats-date"
   val STATS_INTERVAL_KEY   = "stats-interval"

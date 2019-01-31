@@ -17,13 +17,9 @@ import org.opengis.feature.simple.SimpleFeatureType
 class ArrowDescribeSchemaCommand extends DescribeSchemaCommand[ArrowDataStore] with ArrowDataStoreCommand {
   override val params = new ArrowDescribeSchemaParams
 
-  override protected def hasSpatialIndex: Boolean = false
-  override protected def hasSpatioTemporalIndex: Boolean = false
-  override protected def hasAttributeIndex: Boolean = false
-
   override protected def getSchema(ds: ArrowDataStore): SimpleFeatureType = ds.getSchema
 
-  override protected def describe(ds: ArrowDataStore, sft: SimpleFeatureType, output: (String) => Unit): Unit = {
+  override protected def describe(ds: ArrowDataStore, sft: SimpleFeatureType, output: String => Unit): Unit = {
     super.describe(ds, sft, output)
     output("")
     val dictionaries = ds.dictionaries

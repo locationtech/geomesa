@@ -15,7 +15,7 @@ import org.locationtech.geomesa.utils.conf.GeoMesaProperties._
 import scala.util.control.NonFatal
 import org.locationtech.geomesa.index.conf.SchemaProperties
 
-trait VersionRemoteCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
+trait VersionRemoteCommand[DS <: GeoMesaDataStore[_]] extends DataStoreCommand[DS] {
 
   override val name: String = "version-remote"
 

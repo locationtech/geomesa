@@ -8,74 +8,167 @@
 
 package org.locationtech.geomesa.index
 
-import java.nio.charset.StandardCharsets
-
 import com.google.common.primitives.UnsignedBytes
 import org.geotools.data.{Query, Transaction}
-import org.geotools.factory.Hints
-import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestWrappedFeature, TestWrite, _}
-import org.locationtech.geomesa.index.api.{GeoMesaIndexManager, _}
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.index.TestGeoMesaDataStore._
+import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
+import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
+import org.locationtech.geomesa.index.api.{WritableFeature, _}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter.{FeatureWriterFactory, GeoMesaAppendFeatureWriter, GeoMesaModifyFeatureWriter, TableFeatureWriter}
-import org.locationtech.geomesa.index.geotools.{GeoMesaDataStore, GeoMesaFeatureWriter}
-import org.locationtech.geomesa.index.index._
-import org.locationtech.geomesa.index.index.attribute.AttributeIndex
-import org.locationtech.geomesa.index.index.id.IdIndex
-import org.locationtech.geomesa.index.index.legacy.AttributeDateIndex
-import org.locationtech.geomesa.index.index.z2.Z2Index
-import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode}
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.stats.{SeqStat, Stat}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import scala.collection.SortedSet
+
 class TestGeoMesaDataStore(looseBBox: Boolean)
-    extends GeoMesaDataStore[TestGeoMesaDataStore, TestWrappedFeature, TestWrite](TestConfig(looseBBox))
-    with LocalLocking {
+    extends GeoMesaDataStore[TestGeoMesaDataStore](TestConfig(looseBBox)) with LocalLocking {
 
   override val metadata: GeoMesaMetadata[String] = new InMemoryMetadata[String]
 
+  override val adapter: TestIndexAdapter = new TestIndexAdapter
+
   override val stats: GeoMesaStats = new TestStats(this)
 
-  override val manager: TestIndexManager = new TestIndexManager
-
-  override protected val featureWriterFactory: TestFeatureWriterFactory = new TestFeatureWriterFactory(this)
-
-  override def getQueryPlan(query: Query, index: Option[TestFeatureIndexType], explainer: Explainer): Seq[TestQueryPlan] =
+  override def getQueryPlan(query: Query, index: Option[String], explainer: Explainer): Seq[TestQueryPlan] =
     super.getQueryPlan(query, index, explainer).asInstanceOf[Seq[TestQueryPlan]]
-
-  override def delete(): Unit = throw new NotImplementedError()
 }
 
 object TestGeoMesaDataStore {
 
-  type TestFeatureIndexType = GeoMesaFeatureIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
-  type TestFeatureWriterFactoryType = FeatureWriterFactory[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
-  type TestFeatureWriterType = GeoMesaFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex]
-  type TestTableFeatureWriterType = TableFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex]
-  type TestAppendFeatureWriterType = GeoMesaAppendFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex]
-  type TestModifyFeatureWriterType = GeoMesaModifyFeatureWriter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestFeatureIndex]
-  type TestIndexManagerType = GeoMesaIndexManager[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
-  type TestQueryPlanType = QueryPlan[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
-  type TestFilterStrategyType = FilterStrategy[TestGeoMesaDataStore, TestWrappedFeature, TestWrite]
+  class TestIndexAdapter extends IndexAdapter[TestGeoMesaDataStore] {
 
-  case class TestWrappedFeature(feature: SimpleFeature) extends WrappedFeature {
-    override lazy val idBytes: Array[Byte] = feature.getID.getBytes(StandardCharsets.UTF_8)
+    import ByteArrays.ByteOrdering
+
+    private val ordering = new Ordering[SingleRowKeyValue[_]] {
+      override def compare(x: SingleRowKeyValue[_], y: SingleRowKeyValue[_]): Int = ByteOrdering.compare(x.row, y.row)
+    }
+
+    private val tables = scala.collection.mutable.Map.empty[String, scala.collection.mutable.SortedSet[SingleRowKeyValue[_]]]
+
+    override def createTable(index: GeoMesaFeatureIndex[_, _], table: String, splits: => Seq[Array[Byte]]): Unit =
+      tables.put(table, scala.collection.mutable.SortedSet.empty[SingleRowKeyValue[_]](ordering))
+
+    override def deleteTables(tables: Seq[String]): Unit = tables.foreach(this.tables.remove)
+
+    override def clearTables(tables: Seq[String], prefix: Option[Array[Byte]]): Unit = {
+      val predicate: Option[Array[Byte] => Boolean] = prefix.map(p => row => row.startsWith(p))
+      tables.map(this.tables.apply).foreach { table =>
+        predicate match {
+          case None    => table.clear()
+          case Some(p) => table.filter(r => p(r.row)).foreach(table.remove)
+        }
+      }
+    }
+
+    override def createQueryPlan(strategy: QueryStrategy): QueryPlan[TestGeoMesaDataStore] = {
+      import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+      val ranges = strategy.ranges.map {
+        case SingleRowByteRange(row)  => TestRange(row, ByteArrays.rowFollowingRow(row))
+        case BoundedByteRange(lo, hi) => TestRange(lo, hi)
+      }
+      val opts = if (strategy.index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
+      val transform = strategy.hints.getTransformSchema
+      val serializer = transform match {
+        case None    => KryoFeatureSerializer(strategy.index.sft, opts)
+        case Some(s) => new ProjectingKryoFeatureDeserializer(strategy.index.sft, s, opts)
+      }
+      val ecql = strategy.ecql.map(FastFilterFactory.optimize(transform.getOrElse(strategy.index.sft), _))
+      TestQueryPlan(strategy.filter, tables, serializer, ranges, ecql)
+    }
+
+    override def createWriter(sft: SimpleFeatureType,
+                              indices: Seq[GeoMesaFeatureIndex[_, _]],
+                              partition: Option[String]): IndexWriter = {
+      val tables = indices.map(i => this.tables(i.getTableNames(partition).head))
+      new TestIndexWriter(indices, WritableFeature.wrapper(sft, groups), tables)
+    }
+
+    override def toString: String = getClass.getSimpleName
   }
 
-  case class TestWrite(row: Array[Byte], feature: SimpleFeature, delete: Boolean = false)
+  case class TestQueryPlan(filter: FilterStrategy,
+                           tables: scala.collection.Map[String, SortedSet[SingleRowKeyValue[_]]],
+                           serializer: SimpleFeatureSerializer,
+                           ranges: Seq[TestRange],
+                           ecql: Option[Filter]) extends QueryPlan[TestGeoMesaDataStore] {
+    override def scan(ds: TestGeoMesaDataStore): CloseableIterator[SimpleFeature] = {
+      def contained(range: TestRange, row: Array[Byte]): Boolean =
+        ByteArrays.ByteOrdering.compare(range.start, row) <= 0 &&
+            (range.end.isEmpty || ByteArrays.ByteOrdering.compare(range.end, row) > 0)
+
+      val names = filter.index.getTableNames(None)
+      val tbls = names.flatMap(tables.apply)
+      val matches = tbls.flatMap { kv =>
+        if (!ranges.exists(contained(_, kv.row))) {
+          Iterator.empty
+        } else {
+          kv.values.iterator.flatMap { value =>
+            val feature = {
+              val sf = serializer.deserialize(value.value).asInstanceOf[ScalaSimpleFeature]
+              sf.setId(filter.index.getIdFromRow(kv.row, 0, kv.row.length, sf))
+              sf
+            }
+            if (ecql.forall(_.evaluate(feature))) {
+              Iterator.single(feature)
+            } else {
+              Iterator.empty
+            }
+          }
+        }
+      }
+      matches.iterator
+    }
+
+    override def explain(explainer: Explainer, prefix: String): Unit = {
+      explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r =>
+        s"[${r.start.map(UnsignedBytes.toString).mkString(";")}:" +
+            s"${r.end.map(UnsignedBytes.toString).mkString(";")})").mkString(",")}")
+      explainer(s"ecql: ${ecql.map(org.locationtech.geomesa.filter.filterToString).getOrElse("INCLUDE")}")
+    }
+  }
 
   case class TestRange(start: Array[Byte], end: Array[Byte]) {
     override def toString: String = s"TestRange(${start.mkString(":")}, ${end.mkString(":")}}"
   }
 
-  case class TestScanConfig(ranges: Seq[TestRange], ecql: Option[Filter])
+  class TestIndexWriter(indices: Seq[GeoMesaFeatureIndex[_, _]],
+                        wrapper: FeatureWrapper,
+                        tables: Seq[scala.collection.mutable.SortedSet[SingleRowKeyValue[_]]])
+      extends IndexWriter(indices, wrapper) {
+
+    private var i = 0
+
+    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
+      i = 0
+      values.foreach {
+        case kv: SingleRowKeyValue[_] => tables(i).add(kv); i += 1
+        case kv: MultiRowKeyValue[_] => kv.split.foreach(tables(i).add); i += 1
+      }
+    }
+
+    override protected def delete(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
+      i = 0
+      values.foreach {
+        case kv: SingleRowKeyValue[_] => tables(i).remove(kv); i += 1
+        case kv: MultiRowKeyValue[_] => kv.split.foreach(tables(i).remove); i += 1
+      }
+    }
+
+    override def flush(): Unit = {}
+    override def close(): Unit = {}
+  }
 
   case class TestConfig(looseBBox: Boolean) extends GeoMesaDataStoreConfig {
     override val catalog: String = "test"
@@ -85,136 +178,6 @@ object TestGeoMesaDataStore {
     override val queryTimeout: Option[Long] = None
     override val caching: Boolean = false
     override val namespace: Option[String] = None
-  }
-
-  class TestIndexManager extends GeoMesaIndexManager[TestGeoMesaDataStore, TestWrappedFeature, TestWrite] {
-    override val CurrentIndices: Seq[TestFeatureIndex] =
-      Seq(new TestZ3Index, new TestZ2Index, new TestIdIndex, new TestAttributeIndex)
-    override val AllIndices: Seq[TestFeatureIndex] = CurrentIndices :+ new TestAttributeDateIndex
-    override def lookup: Map[(String, Int), TestFeatureIndex] =
-      super.lookup.asInstanceOf[Map[(String, Int), TestFeatureIndex]]
-    override def indices(sft: SimpleFeatureType,
-                         idx: Option[String] = None,
-                         mode: IndexMode = IndexMode.Any): Seq[TestFeatureIndex] =
-      super.indices(sft, idx, mode).asInstanceOf[Seq[TestFeatureIndex]]
-    override def index(identifier: String): TestFeatureIndex = super.index(identifier).asInstanceOf[TestFeatureIndex]
-  }
-
-  class TestZ3Index extends TestFeatureIndex
-      with Z3Index[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig]
-
-  class TestZ2Index extends TestFeatureIndex
-      with Z2Index[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig]
-
-  class TestIdIndex extends TestFeatureIndex
-      with IdIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig]
-
-  class TestAttributeIndex extends TestFeatureIndex
-      with AttributeIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig] {
-    override val version: Int = 2
-  }
-
-  class TestAttributeDateIndex extends TestFeatureIndex
-     with AttributeDateIndex[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig]
-
-  trait TestFeatureIndex extends TestFeatureIndexType
-      with IndexAdapter[TestGeoMesaDataStore, TestWrappedFeature, TestWrite, TestRange, TestScanConfig] {
-
-    private val ordering = new Ordering[(Array[Byte], SimpleFeature)] {
-      override def compare(x: (Array[Byte], SimpleFeature), y: (Array[Byte], SimpleFeature)): Int =
-        ByteArrays.ByteOrdering.compare(x._1, y._1)
-    }
-
-    val features = scala.collection.mutable.SortedSet.empty[(Array[Byte], SimpleFeature)](ordering)
-
-    override val version = 1
-
-    override def removeAll(sft: SimpleFeatureType, ds: TestGeoMesaDataStore): Unit = features.clear()
-
-    override def delete(sft: SimpleFeatureType, ds: TestGeoMesaDataStore, partition: Option[String]): Unit =
-      features.clear()
-
-    override protected def createInsert(row: Array[Byte], feature: TestWrappedFeature): TestWrite =
-      TestWrite(row, feature.feature)
-
-    override protected def createDelete(row: Array[Byte], feature: TestWrappedFeature): TestWrite =
-      TestWrite(row, feature.feature, delete = true)
-
-    override protected def createRange(start: Array[Byte], end: Array[Byte]): TestRange = TestRange(start, end)
-
-    override protected def createRange(row: Array[Byte]): TestRange = TestRange(row, ByteArrays.rowFollowingRow(row))
-
-    override protected def scanConfig(sft: SimpleFeatureType,
-                                      ds: TestGeoMesaDataStore,
-                                      filter: TestFilterStrategyType,
-                                      ranges: Seq[TestRange],
-                                      ecql: Option[Filter],
-                                      hints: Hints): TestScanConfig = TestScanConfig(ranges, ecql)
-
-    override protected def scanPlan(sft: SimpleFeatureType,
-                                    ds: TestGeoMesaDataStore,
-                                    filter: TestFilterStrategyType,
-                                    config: TestScanConfig): TestQueryPlanType =
-      TestQueryPlan(this, filter, config.ranges, config.ecql)
-
-    override def toString: String = getClass.getSimpleName
-  }
-
-  class TestFeatureWriterFactory(ds: TestGeoMesaDataStore) extends TestFeatureWriterFactoryType {
-    override def createFeatureWriter(sft: SimpleFeatureType,
-                                     indices: Seq[TestFeatureIndexType],
-                                     filter: Option[Filter]): FlushableFeatureWriter = {
-      filter match {
-        case None =>
-          new TestFeatureWriter(sft, ds, indices, null)
-              with TestTableFeatureWriterType with TestAppendFeatureWriterType
-
-        case Some(f) =>
-          new TestFeatureWriter(sft, ds, indices, f)
-            with TestTableFeatureWriterType with TestModifyFeatureWriterType
-      }
-    }
-  }
-
-  abstract class TestFeatureWriter(val sft: SimpleFeatureType,
-                                   val ds: TestGeoMesaDataStore,
-                                   val indices: Seq[TestFeatureIndexType],
-                                   val filter: Filter) extends TestFeatureWriterType {
-
-    override protected def createMutator(table: String): TestFeatureIndex =
-      ds.manager.indices(sft, mode = IndexMode.Write).find(_.getTableNames(sft, ds, None).contains(table)).orNull
-
-    override protected def executeWrite(mutator: TestFeatureIndex, writes: Seq[TestWrite]): Unit = {
-      writes.foreach { case TestWrite(row, feature, _) => mutator.features.add((row, feature)) }
-    }
-
-    override protected def executeRemove(mutator: TestFeatureIndex, removes: Seq[TestWrite]): Unit =
-      removes.foreach { case TestWrite(row, feature, _) => mutator.features.remove((row, feature)) }
-
-    override def wrapFeature(feature: SimpleFeature): TestWrappedFeature = TestWrappedFeature(feature)
-
-    override def flush(): Unit = {}
-    override def close(): Unit = {}
-  }
-
-  case class TestQueryPlan(index: TestFeatureIndex,
-                           filter: TestFilterStrategyType,
-                           ranges: Seq[TestRange],
-                           ecql: Option[Filter]) extends TestQueryPlanType {
-    override def scan(ds: TestGeoMesaDataStore): CloseableIterator[SimpleFeature] = {
-      def contained(range: TestRange, row: Array[Byte]): Boolean =
-        ByteArrays.ByteOrdering.compare(range.start, row) <= 0 && ByteArrays.ByteOrdering.compare(range.end, row) > 0
-      index.features.toIterator.collect {
-        case (row, sf) if ranges.exists(contained(_, row)) && ecql.forall(_.evaluate(sf)) => sf
-      }
-    }
-
-    override def explain(explainer: Explainer, prefix: String): Unit = {
-      explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r =>
-        s"[${r.start.map(UnsignedBytes.toString).mkString(";")}:" +
-        s"${r.end.map(UnsignedBytes.toString).mkString(";")})").mkString(",")}")
-      explainer(s"ecql: ${ecql.map(org.locationtech.geomesa.filter.filterToString).getOrElse("INCLUDE")}")
-    }
   }
 
   class TestStats(override protected val ds: TestGeoMesaDataStore) extends MetadataBackedStats {

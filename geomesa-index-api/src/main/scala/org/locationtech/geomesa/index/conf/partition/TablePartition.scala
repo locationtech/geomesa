@@ -11,8 +11,7 @@ package org.locationtech.geomesa.index.conf.partition
 import java.util.ServiceLoader
 
 import com.typesafe.scalalogging.StrictLogging
-import org.locationtech.geomesa.index.api.WrappedFeature
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -62,7 +61,7 @@ object TablePartition extends StrictLogging {
     * @param sft simple feature type
     * @return
     */
-  def apply[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds: GeoMesaDataStore[DS, F, W], sft: SimpleFeatureType): Option[TablePartition] = {
+  def apply(ds: HasGeoMesaMetadata[String], sft: SimpleFeatureType): Option[TablePartition] = {
     val name = sft.getUserData.get(Configs.TABLE_PARTITIONING).asInstanceOf[String]
     if (name == null) { None } else {
       factories.find(_.name.equalsIgnoreCase(name)).map(_.create(ds, sft)).orElse {

@@ -10,19 +10,15 @@ package org.locationtech.geomesa.index.filters
 
 import java.nio.ByteBuffer
 
-import com.google.common.primitives.Longs
 import org.locationtech.geomesa.index.filters.Z3Filter._
 import org.locationtech.geomesa.index.index.z2.Z2IndexValues
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.sfcurve.zorder.Z2
 
 class Z2Filter(val xy: Array[Array[Int]]) {
 
   def inBounds(buf: Array[Byte], offset: Int): Boolean = {
-    val keyZ = Z2Filter.rowToZ(buf, offset)
-    pointInBounds(keyZ)
-  }
-
-  def pointInBounds(z: Long): Boolean = {
+    val z = ByteArrays.readLong(buf, offset)
     val x = Z2(z).d0
     val y = Z2(z).d1
     var i = 0
@@ -79,7 +75,4 @@ object Z2Filter {
     val xy = serialized(XYKey).split(TermSeparator).map(_.split(RangeSeparator).map(_.toInt))
     new Z2Filter(xy)
   }
-
-  private def rowToZ(b: Array[Byte], i: Int): Long =
-    Longs.fromBytes(b(i), b(i + 1), b(i + 2), b(i + 3), b(i + 4), b(i + 5), b(i + 6), b(i + 7))
 }

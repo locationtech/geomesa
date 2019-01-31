@@ -63,7 +63,7 @@ class QueryAuditEndpointTest extends TestWithDataStore with MutableScalatraSpec 
 
     // wait for the async auditor to write out the queries
     val start = System.currentTimeMillis()
-    val table = GeoMesaFeatureIndex.formatSharedTableName(catalog, "queries")
+    val table = s"${catalog}_queries"
     var written = false
     while (!written && System.currentTimeMillis() - start < 5000) {
       import scala.collection.JavaConversions._

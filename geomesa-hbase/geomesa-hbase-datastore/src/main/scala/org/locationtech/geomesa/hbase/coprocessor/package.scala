@@ -16,6 +16,8 @@ import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.apache.hadoop.hbase.protobuf.generated.ClientProtos
 import org.geotools.data.Base64
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
 
@@ -64,4 +66,8 @@ package object coprocessor {
       new FilterList()
     }
   }
+
+  case class CoprocessorConfig(options: Map[String, String],
+                               bytesToFeatures: Array[Byte] => SimpleFeature,
+                               reduce: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = i => i)
 }

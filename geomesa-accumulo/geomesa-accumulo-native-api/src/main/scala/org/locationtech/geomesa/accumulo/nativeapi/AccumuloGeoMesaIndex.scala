@@ -8,12 +8,10 @@
 
 package org.locationtech.geomesa.accumulo.nativeapi
 
-import java.util.{List => JList}
-
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.classification.InterfaceStability
 import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams, AccumuloFeatureWriter}
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.api._
 
 import scala.collection.JavaConversions._
@@ -25,7 +23,7 @@ class AccumuloGeoMesaIndex[T](override protected val ds: AccumuloDataStore,
                               serde: ValueSerializer[T],
                               view: SimpleFeatureView[T]) extends BaseBigTableIndex[T](ds, name, serde, view) {
   override def flush(): Unit = {
-    writers.asMap().values().map(_.asInstanceOf[AccumuloFeatureWriter]).foreach(_.flush())
+    writers.asMap().values().foreach(_.flush())
   }
 }
 

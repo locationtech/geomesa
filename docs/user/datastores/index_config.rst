@@ -20,6 +20,8 @@ the string, like so:
 
 .. code-block:: java
 
+    import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
+
     // append the user-data values to the end of the string, separated by a semi-colon
     String spec = "name:String,dtg:Date,*geom:Point:srid=4326;option.one='foo',option.two='bar'";
     SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
@@ -66,6 +68,8 @@ or when using ``SimpleFeatureTypes.createType``), you can append the attribute o
 separated with a colon:
 
 .. code-block:: java
+
+    import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
 
     // append the user-data after the attribute type, separated by a colon
     String spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326";
@@ -121,18 +125,32 @@ key ``geomesa.index.dtg``. If you would prefer to not index any date, you may di
 Customizing Index Creation
 --------------------------
 
-To speed up ingestion, or because you are only using certain query patterns, you may disable some indices.
-The indices are created when calling ``createSchema``. If nothing is specified, the Z2/Z3 (or XZ2/XZ3
-depending on geometry type) indices and record indices will all be created, as well as any attribute
-indices you have defined.
+Instead of using the default indices, you may specify the exact indices to create. This may be used to create
+fewer indices (to speed up ingestion, or because you are only using certain query patterns), or to create additional
+indices (for example on non-default geometries or dates).
+
+The indices are created when calling ``createSchema``. If nothing is specified, the Z2, Z3 (or XZ2 and XZ3
+depending on geometry type) and ID indices will all be created, as well as any attribute indices you have defined.
 
 .. warning::
 
     Certain queries may be much slower if you disable an index.
 
-To enable only certain indices, you may set a user data value in your simple feature type. The user data key is
+To configure the indices, you may set a user data value in your simple feature type. The user data key is
 ``geomesa.indices.enabled``, and it should contain a comma-delimited list containing a subset of index
-identifiers, as specified in :ref:`index_overview`.
+identifiers, as specified in :ref:`index_overview`. In addition to specifying the indices, you may optionally
+specify the exact attributes that will be used in the index, by appending them with ``:``\ s after the index name.
+
+.. code-block:: java
+
+    import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
+
+    String spec = "name:String,dtg:Date,*start:Point:srid=4326,end:Point:srid=4326";
+    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
+    // enable a default z3 index on start + dtg
+    sft1.getUserData().put("geomesa.indices.enabled", "z3");
+    // enable a z3 index on start + dtg, end + dtg, and an attribute index on name with a secondary index on dtg
+    sft1.getUserData().put("geomesa.indices.enabled", "z3:start:dtg,z3:end:dtg,attr:name:dtg");
 
 See :ref:`set_sft_options` for details on setting user data. If you are using the GeoMesa ``SchemaBuilder``,
 you may instead call the ``indexes`` methods:

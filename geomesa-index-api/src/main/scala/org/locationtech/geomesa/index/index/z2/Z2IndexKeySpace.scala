@@ -11,51 +11,71 @@ package org.locationtech.geomesa.index.index.z2
 import org.locationtech.jts.geom.{Geometry, Point}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.curve.Z2SFC
-import org.locationtech.geomesa.filter.FilterValues
+import org.locationtech.geomesa.filter.{FilterHelper, FilterValues}
+import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
+import org.locationtech.geomesa.index.api.ShardStrategy.{NoShardStrategy, ZShardStrategy}
+import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.QueryHints.LOOSE_BBOX
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
-import org.locationtech.geomesa.index.index.IndexKeySpace
-import org.locationtech.geomesa.index.index.IndexKeySpace._
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-object Z2IndexKeySpace extends Z2IndexKeySpace {
-  override val sfc: Z2SFC = Z2SFC
-}
+class Z2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, geomField: String)
+    extends IndexKeySpace[Z2IndexValues, Long] {
 
-trait Z2IndexKeySpace extends IndexKeySpace[Z2IndexValues, Long] {
+  require(classOf[Point].isAssignableFrom(sft.getDescriptor(geomField).getType.getBinding),
+    s"Expected field $geomField to have a point binding, but instead it has: " +
+        sft.getDescriptor(geomField).getType.getBinding.getSimpleName)
 
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+  protected val sfc: Z2SFC = Z2SFC
 
-  def sfc: Z2SFC
+  protected val geomIndex: Int = sft.indexOf(geomField)
+
+  override val attributes: Seq[String] = Seq(geomField)
 
   override val indexKeyByteLength: Int = 8
 
-  override def supports(sft: SimpleFeatureType): Boolean = sft.isPoints
+  override val sharing: Array[Byte] = Array.empty
 
-  override def toIndexKey(sft: SimpleFeatureType, lenient: Boolean): SimpleFeature => Seq[Long] = {
-    val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
-    getZValue(geomIndex, lenient)
+  override def toIndexKey(writable: WritableFeature,
+                          tier: Array[Byte],
+                          id: Array[Byte],
+                          lenient: Boolean): RowKeyValue[Long] = {
+    val geom = writable.getAttribute[Point](geomIndex)
+    if (geom == null) {
+      throw new IllegalArgumentException(s"Null geometry in feature ${writable.feature.getID}")
+    }
+    val z = try { sfc.index(geom.getX, geom.getY, lenient).z } catch {
+      case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry: $geom", e)
+    }
+    val shard = sharding(writable)
+
+    // create the byte array - allocate a single array up front to contain everything
+    // ignore tier, not used here
+    val bytes = Array.ofDim[Byte](shard.length + 8 + id.length)
+
+    if (shard.isEmpty) {
+      ByteArrays.writeLong(z, bytes, 0)
+      System.arraycopy(id, 0, bytes, 8, id.length)
+    } else {
+      bytes(0) = shard.head // shard is only a single byte
+      ByteArrays.writeLong(z, bytes, 1)
+      System.arraycopy(id, 0, bytes, 9, id.length)
+    }
+
+    SingleRowKeyValue(bytes, sharing, shard, z, tier, id, writable.values)
   }
 
-  override def toIndexKeyBytes(sft: SimpleFeatureType, lenient: Boolean): ToIndexKeyBytes = {
-    val geomIndex = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
-    getZValueBytes(geomIndex, lenient)
-  }
-
-  override def getIndexValues(sft: SimpleFeatureType, filter: Filter, explain: Explainer): Z2IndexValues = {
-    import org.locationtech.geomesa.filter.FilterHelper._
-
-    // TODO GEOMESA-2377 clean up duplicate code blocks in Z2/XZ2/Z3/XZ3IndexKeySpace
+  override def getIndexValues(filter: Filter, explain: Explainer): Z2IndexValues = {
 
     val geometries: FilterValues[Geometry] = {
-      val extracted = extractGeometries(filter, sft.getGeomField, sft.isPoints)
+      val extracted = FilterHelper.extractGeometries(filter, geomField, intersect = true) // intersect since we have points
       if (extracted.nonEmpty) { extracted } else { FilterValues(Seq(WholeWorldPolygon)) }
     }
 
@@ -85,10 +105,8 @@ trait Z2IndexKeySpace extends IndexKeySpace[Z2IndexValues, Long] {
     }
   }
 
-  override def getRangeBytes(ranges: Iterator[ScanRange[Long]],
-                             prefixes: Seq[Array[Byte]],
-                             tier: Boolean): Iterator[ByteRange] = {
-    if (prefixes.isEmpty) {
+  override def getRangeBytes(ranges: Iterator[ScanRange[Long]], tier: Boolean): Iterator[ByteRange] = {
+    if (sharding.length == 0) {
       ranges.map {
         case BoundedRange(lo, hi) => BoundedByteRange(ByteArrays.toBytes(lo), ByteArrays.toBytesFollowingPrefix(hi))
         case r => throw new IllegalArgumentException(s"Unexpected range type $r")
@@ -98,7 +116,7 @@ trait Z2IndexKeySpace extends IndexKeySpace[Z2IndexValues, Long] {
         case BoundedRange(lo, hi) =>
           val lower = ByteArrays.toBytes(lo)
           val upper = ByteArrays.toBytesFollowingPrefix(hi)
-          prefixes.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
+          sharding.shards.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
 
         case r => throw new IllegalArgumentException(s"Unexpected range type $r")
       }
@@ -118,37 +136,16 @@ trait Z2IndexKeySpace extends IndexKeySpace[Z2IndexValues, Long] {
 
     !looseBBox || !simpleGeoms
   }
+}
 
-  private def getZValue(geomIndex: Int, lenient: Boolean)(feature: SimpleFeature): Seq[Long] = {
-    val geom = feature.getAttribute(geomIndex).asInstanceOf[Point]
-    if (geom == null) {
-      throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
-    }
-    try { Seq(sfc.index(geom.getX, geom.getY, lenient).z) } catch {
-      case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry: $geom", e)
-    }
-  }
+object Z2IndexKeySpace extends IndexKeySpaceFactory[Z2IndexValues, Long] {
 
-  private def getZValueBytes(geomIndex: Int,
-                             lenient: Boolean)
-                            (prefix: Seq[Array[Byte]],
-                             feature: SimpleFeature,
-                             suffix: Array[Byte]): Seq[Array[Byte]] = {
-    val geom = feature.getAttribute(geomIndex).asInstanceOf[Point]
-    if (geom == null) {
-      throw new IllegalArgumentException(s"Null geometry in feature ${feature.getID}")
-    }
+  override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
+    attributes.lengthCompare(1) == 0 && sft.indexOf(attributes.head) != -1 &&
+        classOf[Point].isAssignableFrom(sft.getDescriptor(attributes.head).getType.getBinding)
 
-    val z = try { sfc.index(geom.getX, geom.getY, lenient).z } catch {
-      case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry: $geom", e)
-    }
-
-    // create the byte array - allocate a single array up front to contain everything
-    val bytes = Array.ofDim[Byte](prefix.map(_.length).sum + 8 + suffix.length)
-    var i = 0
-    prefix.foreach { p => System.arraycopy(p, 0, bytes, i, p.length); i += p.length }
-    ByteArrays.writeLong(z, bytes, i)
-    System.arraycopy(suffix, 0, bytes, i + 8, suffix.length)
-    Seq(bytes)
+  override def apply(sft: SimpleFeatureType, attributes: Seq[String], tier: Boolean): Z2IndexKeySpace = {
+    val shards = if (tier) { NoShardStrategy } else { ZShardStrategy(sft) }
+    new Z2IndexKeySpace(sft, shards, attributes.head)
   }
 }

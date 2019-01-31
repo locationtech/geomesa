@@ -12,25 +12,22 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
-import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaIndexManager}
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-
-import scala.util.control.NonFatal
 
 trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
     extends SamplingIterator with ConfiguredScan {
 
   import AggregatingScan.Configuration._
 
-  protected def manager: GeoMesaIndexManager[_, _, _]
-
   private var sft: SimpleFeatureType = _
   private var transformSft: SimpleFeatureType = _
-  private var index: GeoMesaFeatureIndex[_, _, _] = _
+  // note: index won't have a hook to the data store, so some operations aren't available
+  private var index: GeoMesaFeatureIndex[_, _] = _
 
-  private var validate: (SimpleFeature) => Boolean = _
+  private var validate: SimpleFeature => Boolean = _
 
   // our accumulated result
   private var result: T = _
@@ -43,9 +40,9 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
   override def init(options: Map[String, String]): Unit = {
     val spec = options(SftOpt)
     sft = IteratorCache.sft(spec)
-
-    index = try { manager.index(options(IndexOpt)) } catch {
-      case NonFatal(_) => throw new RuntimeException(s"Index option not configured correctly: ${options.get(IndexOpt)}")
+    index = options.get(IndexSftOpt) match {
+      case None => IteratorCache.index(sft, spec, options(IndexOpt))
+      case Some(ispec) => IteratorCache.index(IteratorCache.sft(ispec), ispec, options(IndexOpt))
     }
 
     // noinspection ScalaDeprecation
@@ -54,7 +51,7 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
       getId = (_, _, _, _) => reusableSf.getID
     } else {
       reusableSf = IteratorCache.serializer(spec, SerializationOptions.withoutId).getReusableFeature
-      getId = index.getIdFromRow(sft)
+      getId = index.getIdFromRow _
     }
 
     val transform = options.get(TransformDefsOpt)
@@ -69,10 +66,10 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
     val sampling = sample(options)
     val cql = options.get(CqlOpt).map(IteratorCache.filter(sft, spec, _))
     validate = (cql, sampling) match {
-      case (None, None)             => (_) => true
+      case (None, None)             => _ => true
       case (Some(filt), None)       => filt.evaluate(_)
       case (None, Some(samp))       => samp.apply
-      case (Some(filt), Some(samp)) => (f) => filt.evaluate(f) && samp.apply(f)
+      case (Some(filt), Some(samp)) => f => filt.evaluate(f) && samp.apply(f)
     }
     result = initResult(sft, if (hasTransform) { Some(transformSft) } else { None }, options)
   }
@@ -136,20 +133,25 @@ object AggregatingScan {
   object Configuration {
     val SftOpt             = "sft"
     val IndexOpt           = "index"
+    val IndexSftOpt        = "index-sft"
     val CqlOpt             = "cql"
     val TransformSchemaOpt = "tsft"
     val TransformDefsOpt   = "tdefs"
   }
 
   def configure(sft: SimpleFeatureType,
-                index: GeoMesaFeatureIndex[_, _, _],
+                index: GeoMesaFeatureIndex[_, _],
                 filter: Option[Filter],
                 transform: Option[(String, SimpleFeatureType)],
                 sample: Option[(Float, Option[String])]): Map[String, String] = {
     import Configuration._
+    val indexSftOpt = Some(index.sft).collect {
+      case s if s != sft => SimpleFeatureTypes.encodeType(s, includeUserData = true)
+    }
     sample.map(SamplingIterator.configure(sft, _)).getOrElse(Map.empty) ++ optionalMap(
       SftOpt             -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
       IndexOpt           -> index.identifier,
+      IndexSftOpt        -> indexSftOpt,
       CqlOpt             -> filter.map(ECQL.toCQL),
       TransformDefsOpt   -> transform.map(_._1),
       TransformSchemaOpt -> transform.map(t => SimpleFeatureTypes.encodeType(t._2))

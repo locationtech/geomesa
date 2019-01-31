@@ -47,7 +47,7 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
       SelfClosingIterator(persistence.getFeatureReader(query, Transaction.AUTO_COMMIT))
     } else {
       // ensure that we still audit the query
-      val audit = Option(persistence).collect { case ds: GeoMesaDataStore[_, _, _] => ds.config.audit }.flatten
+      val audit = Option(persistence).collect { case ds: GeoMesaDataStore[_] => ds.config.audit }.flatten
       audit.foreach { case (writer, provider, typ) =>
         val stat = QueryEvent(
           s"$typ-lambda",

@@ -32,7 +32,7 @@ trait DensityScan extends AggregatingScan[DensityResult] {
 
   // we snap each point into a pixel and aggregate based on that
   protected var gridSnap: GridSnap = _
-  protected var getWeight: (SimpleFeature) => Double = _
+  protected var getWeight: SimpleFeature => Double = _
   protected var writeGeom: (SimpleFeature, Double, DensityResult) => Unit = _
 
   override protected def initResult(sft: SimpleFeatureType,
@@ -64,7 +64,7 @@ object DensityScan extends LazyLogging {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   type DensityResult = scala.collection.mutable.Map[(Int, Int), Double]
-  type GridIterator  = (SimpleFeature) => Iterator[(Double, Double, Double)]
+  type GridIterator  = SimpleFeature => Iterator[(Double, Double, Double)]
 
   val DensitySft: SimpleFeatureType = SimpleFeatureTypes.createType("density", "*geom:Point:srid=4326")
   val DensityValueKey = new ClassKey(classOf[Array[Byte]])
@@ -77,7 +77,7 @@ object DensityScan extends LazyLogging {
   }
 
   def configure(sft: SimpleFeatureType,
-                index: GeoMesaFeatureIndex[_, _, _],
+                index: GeoMesaFeatureIndex[_, _],
                 filter: Option[Filter],
                 hints: Hints): Map[String, String] = {
     import AggregatingScan.{OptionToConfig, StringToConfig}

@@ -67,35 +67,54 @@ object AccumuloVersion extends Enumeration {
     }
   }
 
-  def ensureTableExists(connector: Connector, table: String, logical: Boolean = true): Unit = {
+  /**
+    * Creates the table if it doesn't exist
+    *
+    * @param connector connector
+    * @param table table name
+    * @param logical use logical time?
+    * @return true if table was created, false if it already existed
+    */
+  def createTableIfNeeded(connector: Connector, table: String, logical: Boolean = true): Boolean = {
     val tableOps = connector.tableOperations()
-    if (!tableOps.exists(table)) {
-      try {
-        val dot = table.indexOf('.')
-        if (dot > 0) {
-          ensureNamespaceExists(connector, table.substring(0, dot))
-        }
-        tableOps.create(table, true, if (logical) TimeType.LOGICAL else TimeType.MILLIS)
-      } catch {
+    if (tableOps.exists(table)) { false } else {
+      val dot = table.indexOf('.')
+      if (dot > 0) {
+        createNamespaceIfNeeded(connector, table.substring(0, dot))
+      }
+      try { tableOps.create(table, true, if (logical) { TimeType.LOGICAL } else { TimeType.MILLIS }); true } catch {
         // this can happen with multiple threads but shouldn't cause any issues
-        case e: TableExistsException =>
-        case e: Exception if e.getClass.getSimpleName == "NamespaceExistsException" =>
+        case e: TableExistsException => false
       }
     }
   }
 
   /**
-   * Check for namespaces and create if needed.
-   */
-  def ensureNamespaceExists(connector: Connector, namespace: String): Unit = {
+    * Creates the namespace if it doesn't exist
+    *
+    * @param connector connector
+    * @param namespace namespace
+    * @return true if namespace was created, false if it already existed
+    */
+  def createNamespaceIfNeeded(connector: Connector, namespace: String): Boolean = {
     require(accumuloVersion != V15, s"Table namespaces are not supported in Accumulo 1.5 - for namespace '$namespace'")
     val nsOps = classOf[Connector].getMethod("namespaceOperations").invoke(connector)
-    if (!nameSpaceExists(nsOps, nsOps.getClass, namespace)) {
+    if (nameSpaceExists(nsOps, nsOps.getClass, namespace)) { false } else {
       val createMethod = nsOps.getClass.getMethod("create", classOf[String])
       createMethod.setAccessible(true)
-      createMethod.invoke(nsOps, namespace)
+      try { createMethod.invoke(nsOps, namespace); true } catch {
+        // this can happen with multiple threads but shouldn't cause any issue
+        case e: Exception if e.getClass.getSimpleName == "NamespaceExistsException" => false
+      }
     }
   }
+
+  @deprecated("Replaced with createTableIfNeeded")
+  def ensureTableExists(connector: Connector, table: String, logical: Boolean = true): Unit =
+    createTableIfNeeded(connector, table, logical)
+
+  @deprecated("Replaced with createNamespaceIfNeeded")
+  def ensureNamespaceExists(connector: Connector, namespace: String): Unit = createNamespaceIfNeeded(connector, namespace)
 
   private def nameSpaceExists(nsOps: AnyRef, nsOpsClass: Class[_], ns: String): Boolean = {
     val existsMethod = nsOpsClass.getMethod("exists", classOf[String])

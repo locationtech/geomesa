@@ -13,7 +13,6 @@ import java.util.regex.Pattern
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import org.apache.accumulo.core.client.TableNotFoundException
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam, Runner}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -99,11 +98,12 @@ object TableConfCommand {
   }
 
   def getTableNames(ds: AccumuloDataStore, sft: SimpleFeatureType, index: String): Seq[String] = {
-    val indices = AccumuloFeatureIndex.indices(sft)
-    indices.find(_.name.equalsIgnoreCase(index)).map(_.getTableNames(sft, ds, None)).getOrElse {
+    val tables = ds.manager.indices(sft).filter(_.name.equalsIgnoreCase(index)).flatMap(_.getTableNames(None))
+    if (tables.isEmpty) {
       throw new IllegalArgumentException(s"Index '$index' does not exist for schema '${sft.getTypeName}'. " +
-          s"Available indices: ${indices.map(_.name).mkString(", ")}")
+          s"Available indices: ${ds.manager.indices(sft).map(_.name).distinct.mkString(", ")}")
     }
+    tables
   }
 
   @Parameters(commandDescription = "Perform table configuration operations")

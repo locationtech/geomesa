@@ -25,7 +25,7 @@ import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureStore}
 import org.geotools.data.{Query, Transaction}
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
-import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, MetadataBackedDataStore}
+import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, UnoptimizedRunnableStats}
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
@@ -52,8 +52,6 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
 
   import KafkaDataStore.{MetadataPath, TopicKey}
-
-  override protected def catalog: String = config.catalog
 
   override val metadata: GeoMesaMetadata[String] =
     new ZookeeperMetadata(s"${config.catalog}/$MetadataPath", config.zookeepers, MetadataStringSerializer)
@@ -160,9 +158,6 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     }
   }
 
-  protected def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection =
-    new GeoMesaFeatureCollection(source, query)
-
   /**
     * @see org.geotools.data.DataStore#getFeatureSource(org.opengis.feature.type.Name)
     * @param typeName simple feature type name
@@ -173,7 +168,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    new KafkaFeatureStore(this, sft, runner, caches.get(typeName), createFeatureCollection)
+    new KafkaFeatureStore(this, sft, runner, caches.get(typeName))
   }
 
   override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader = {

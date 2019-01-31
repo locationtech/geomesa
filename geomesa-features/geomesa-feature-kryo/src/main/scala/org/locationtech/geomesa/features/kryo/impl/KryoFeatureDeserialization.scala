@@ -87,7 +87,7 @@ object KryoFeatureDeserialization extends LazyLogging {
 
   private [geomesa] def getReaders(key: String, sft: SimpleFeatureType): Array[Input => AnyRef] = {
     readers.getOrElseUpdate(key, sft.getAttributeDescriptors.toArray.map {
-      case ad: AttributeDescriptor => matchReader(ObjectType.selectType(ad.getType.getBinding, ad.getUserData))
+      case ad: AttributeDescriptor => matchReader(ObjectType.selectType(ad))
     })
   }
 

@@ -81,7 +81,7 @@ heatmap from the query result. See :ref:`gdelt_heatmaps` for more information.
         import org.geotools.data.Transaction
         import org.geotools.geometry.jts.ReferencedEnvelope.ReferencedEnvelope
         import org.geotools.referencing.CRS
-        import org.locationtech.geomesa.accumulo.iterators.KryoLazyDensityIterator
+        import org.locationtech.geomesa.accumulo.iterators.DensityIterator
         import org.locationtech.geomesa.index.conf.QueryHints
 
         val bounds = new ReferencedEnvelope(-120.0, -110.0, 45.0, 55.0, CRS.decode("EPSG:4326"))

@@ -14,7 +14,6 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, RemoteFilterNotUsedParam}
 import org.locationtech.geomesa.hbase.tools.ingest.HBaseBulkLoadCommand.BulkLoadParams
@@ -37,12 +36,15 @@ class HBaseBulkLoadCommand extends HBaseDataStoreCommand {
     }
     require(!TablePartition.partitioned(sft), "Bulk loading partitioned tables is not currently supported")
 
-    val index = params.loadRequiredIndex(ds, IndexMode.Write).asInstanceOf[HBaseFeatureIndex]
+    val index = params.loadIndex(ds, IndexMode.Write)
     val input = new Path(params.input)
 
     Command.user.info(s"Running HBase incremental load...")
     val start = System.currentTimeMillis()
-    val tableName = TableName.valueOf(index.getTableNames(sft, ds, None).head)
+    val tableName = index.getTableNames(None) match {
+      case Seq(t) => TableName.valueOf(t) // should always be writing to a single table here
+      case tables => throw new IllegalStateException(s"Expected a single table but got: ${tables.mkString(", ")}")
+    }
     val table = ds.connection.getTable(tableName)
     val locator = ds.connection.getRegionLocator(tableName)
     val config = new Configuration

@@ -17,6 +17,7 @@ import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -158,8 +159,6 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
                        val filter: Option[Filter],
                        histogram: Boolean) extends GeoMesaProcessVisitor with LazyLogging {
 
-  import org.locationtech.geomesa.utils.geotools.Conversions._
-
   import scala.collection.JavaConversions._
 
   private val attribute    = attributeDescriptor.getLocalName
@@ -170,11 +169,11 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
   // normally handled in our query planner, but we are going to use the filter directly here
   private lazy val manualFilter = filter.map(FastFilterFactory.optimize(features.getSchema, _))
 
-  private def getAttribute[T](f: SimpleFeature) = {
+  private def getAttribute[T](f: SimpleFeature): T = {
     if (attributeIdx == -1) {
       attributeIdx = f.getType.indexOf(attribute)
     }
-    f.get[T](attributeIdx)
+    f.getAttribute(attributeIdx).asInstanceOf[T]
   }
 
   private def addSingularValue(f: SimpleFeature): Unit = {
@@ -191,8 +190,8 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
     }
   }
 
-  private val addValue: (SimpleFeature) => Unit =
-    if (attributeDescriptor.isList) addMultiValue else addSingularValue
+  private val addValue: SimpleFeature => Unit =
+    if (attributeDescriptor.isList) { addMultiValue } else { addSingularValue }
 
   // non-optimized visit
   override def visit(feature: Feature): Unit = {
@@ -246,7 +245,7 @@ class AttributeVisitor(val features: SimpleFeatureCollection,
     query.setPropertyNames(Seq(attribute).asJava)
 
     // if there is no filter, try to force an attribute scan - should be fastest query
-    if (query.getFilter == Filter.INCLUDE && features.getSchema.getDescriptor(attribute).isIndexed) {
+    if (query.getFilter == Filter.INCLUDE && AttributeIndex.indexed(features.getSchema, attribute)) {
       query.setFilter(AttributeVisitor.getIncludeAttributeFilter(attribute))
     }
 

@@ -16,10 +16,13 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.{MultiTableInputFormat, TableInputFormat}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.hbase.data.HBaseConnectionPool
-import org.locationtech.geomesa.hbase.index.{HBaseFeatureIndex, HBaseIndexAdapter}
+import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseIndexAdapter}
+import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaFeatureIndexFactory}
+import org.locationtech.geomesa.index.planning.LocalQueryRunner
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
+import org.locationtech.geomesa.utils.conf.IndexId
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -31,11 +34,14 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
   val delegate = new MultiTableInputFormat
 
   var sft: SimpleFeatureType = _
-  var table: HBaseIndexAdapter = _
+  var index: GeoMesaFeatureIndex[_, _] = _
 
   private def init(conf: Configuration): Unit = if (sft == null) {
     sft = GeoMesaConfigurator.getSchema(conf)
-    table = HBaseFeatureIndex.index(GeoMesaConfigurator.getIndexIn(conf)).asInstanceOf[HBaseIndexAdapter]
+    val identifier = GeoMesaConfigurator.getIndexIn(conf)
+    index = GeoMesaFeatureIndexFactory.create(null, sft, Seq(IndexId.id(identifier))).headOption.getOrElse {
+      throw new RuntimeException(s"Index option not configured correctly: $identifier")
+    }
     delegate.setConf(conf)
     // see TableMapReduceUtil.java
     HBaseConfiguration.merge(conf, HBaseConfiguration.create(conf))
@@ -60,11 +66,11 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
     val ecql = GeoMesaConfigurator.getFilter(context.getConfiguration).map(FastFilterFactory.toFilter(sft, _))
     val transform = GeoMesaConfigurator.getTransformSchema(context.getConfiguration)
     // TODO GEOMESA-2300 support local filtering
-    new HBaseGeoMesaRecordReader(table, sft, ecql, transform, rr, true)
+    new HBaseGeoMesaRecordReader(index, sft, ecql, transform, rr, true)
   }
 }
 
-class HBaseGeoMesaRecordReader(table: HBaseIndexAdapter,
+class HBaseGeoMesaRecordReader(index: GeoMesaFeatureIndex[_, _],
                                sft: SimpleFeatureType,
                                ecql: Option[Filter],
                                transform: Option[SimpleFeatureType],
@@ -99,13 +105,17 @@ class HBaseGeoMesaRecordReader(table: HBaseIndexAdapter,
   private val features =
     if (remoteFiltering) {
       // transforms and filter are pushed down, so we don't have to deal with them here
-      table.resultsToFeatures(sft, transform.getOrElse(sft))(results)
+      HBaseIndexAdapter.resultsToFeatures(index, transform.getOrElse(sft))(results)
     } else {
       // TODO GEOMESA-2300 this doesn't handle anything beyond simple attribute projection
       val transforms = transform.map { tsft =>
         (tsft.getAttributeDescriptors.asScala.map(d => s"${d.getLocalName}=${d.getLocalName}").mkString(";"), tsft)
       }
-      table.resultsToFeatures(sft, ecql, transforms)(results)
+      val raw = ecql match {
+        case None    => HBaseIndexAdapter.resultsToFeatures(index, sft)(results)
+        case Some(f) => HBaseIndexAdapter.resultsToFeatures(index, sft)(results).filter(f.evaluate)
+      }
+      LocalQueryRunner.transform(sft, raw, transforms, new Hints())
     }
 
   private var staged: SimpleFeature = _

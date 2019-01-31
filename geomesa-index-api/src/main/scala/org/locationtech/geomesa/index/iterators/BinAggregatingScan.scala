@@ -13,6 +13,7 @@ import java.util.Date
 
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{ByteBufferResult, ResultCallback}
 import org.locationtech.geomesa.index.utils.bin.BinSorter
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.bin.{BinaryOutputCallback, BinaryOutputEncoder}
@@ -98,7 +99,7 @@ object BinAggregatingScan {
   }
 
   def configure(sft: SimpleFeatureType,
-                index: GeoMesaFeatureIndex[_, _, _],
+                index: GeoMesaFeatureIndex[_, _],
                 filter: Option[Filter],
                 trackId: String,
                 geom: String,
@@ -106,7 +107,7 @@ object BinAggregatingScan {
                 label: Option[String],
                 batchSize: Int,
                 sort: Boolean,
-                hints: Hints): Map[String, String] = {
+                sampling: Option[(Float, Option[String])]): Map[String, String] = {
     import AggregatingScan.{OptionToConfig, StringToConfig}
     import Configuration._
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -120,7 +121,7 @@ object BinAggregatingScan {
         None
       }
 
-    val base = AggregatingScan.configure(sft, index, filter, None, hints.getSampling) // note: don't pass transforms
+    val base = AggregatingScan.configure(sft, index, filter, None, sampling) // note: don't pass transforms
     base ++ AggregatingScan.optionalMap(
       BatchSizeOpt -> batchSize.toString,
       TrackOpt     -> sft.indexOf(trackId).toString,
@@ -144,41 +145,41 @@ object BinAggregatingScan {
     val dtg = hints.getBinDtgField.orElse(sft.getDtgField)
     (Seq(hints.getBinTrackIdField) ++ geom ++ dtg ++ hints.getBinLabelField).distinct.filter(_ != "id")
   }
-}
 
-// wrapper for java's byte buffer that adds scala methods for the aggregating iterator
-class ByteBufferResult(val buffer: ByteBuffer, var overflow: ByteBuffer) {
-  def ensureCapacity(size: Int): ByteBuffer = {
-    if (buffer.position < buffer.limit - size) {
-      buffer
-    } else if (overflow.position < overflow.limit - size) {
-      overflow
-    } else {
-      val expanded = Array.ofDim[Byte](overflow.limit * 2)
-      System.arraycopy(overflow.array, 0, expanded, 0, overflow.limit)
-      val order = overflow.order
-      val position = overflow.position
-      overflow = ByteBuffer.wrap(expanded).order(order).position(position).asInstanceOf[ByteBuffer]
-      overflow
+  // wrapper for java's byte buffer that adds scala methods for the aggregating iterator
+  class ByteBufferResult(val buffer: ByteBuffer, var overflow: ByteBuffer) {
+    def ensureCapacity(size: Int): ByteBuffer = {
+      if (buffer.position < buffer.limit - size) {
+        buffer
+      } else if (overflow.position < overflow.limit - size) {
+        overflow
+      } else {
+        val expanded = Array.ofDim[Byte](overflow.limit * 2)
+        System.arraycopy(overflow.array, 0, expanded, 0, overflow.limit)
+        val order = overflow.order
+        val position = overflow.position
+        overflow = ByteBuffer.wrap(expanded).order(order).position(position).asInstanceOf[ByteBuffer]
+        overflow
+      }
+    }
+
+    def isEmpty: Boolean = buffer.position == 0
+
+    def clear(): Unit = {
+      buffer.clear()
+      overflow.clear()
     }
   }
 
-  def isEmpty: Boolean = buffer.position == 0
+  class ResultCallback(val result: ByteBufferResult) extends BinaryOutputCallback {
+    override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long): Unit = {
+      val buffer = result.ensureCapacity(16)
+      put(buffer, trackId, lat, lon, dtg)
+    }
 
-  def clear(): Unit = {
-    buffer.clear()
-    overflow.clear()
-  }
-}
-
-class ResultCallback(val result: ByteBufferResult) extends BinaryOutputCallback {
-  override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long): Unit = {
-    val buffer = result.ensureCapacity(16)
-    put(buffer, trackId, lat, lon, dtg)
-  }
-
-  override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long, label: Long): Unit = {
-    val buffer = result.ensureCapacity(24)
-    put(buffer, trackId, lat, lon, dtg, label)
+    override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long, label: Long): Unit = {
+      val buffer = result.ensureCapacity(24)
+      put(buffer, trackId, lat, lon, dtg, label)
+    }
   }
 }

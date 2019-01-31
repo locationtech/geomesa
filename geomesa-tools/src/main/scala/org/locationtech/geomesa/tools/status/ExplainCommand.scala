@@ -18,7 +18,7 @@ import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.tools._
 import org.opengis.filter.Filter
 
-trait ExplainCommand[DS <: GeoMesaDataStore[DS, _, _]] extends DataStoreCommand[DS] {
+trait ExplainCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[DS] {
 
   override def params: ExplainParams
 
