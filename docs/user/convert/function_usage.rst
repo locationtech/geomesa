@@ -781,6 +781,8 @@ And a transform to parse the quoted CSV field:
 
     { name = "friends", transform = "parseList('string', $5)" }
 
+.. _converter_parse_map_fn:
+
 parseMap
 ^^^^^^^^
 

@@ -69,7 +69,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   }
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
-    val converted = convert(new ErrorHandlingIterator(parse(is, ec), ec.counter), ec)
+    val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec.counter), ec)
     options.parseMode match {
       case ParseMode.Incremental => converted
       case ParseMode.Batch => CloseableIterator(converted.to[ListBuffer].iterator, converted.close())
@@ -173,53 +173,6 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   }
 
   override def close(): Unit = configCaches.foreach(_._2.close())
-
-  /**
-    * Handles errors from the underlying parsing of data, before converting to simple features
-    *
-    * @param underlying wrapped iterator
-    * @param counter counter for failures
-    */
-  class ErrorHandlingIterator private [convert2] (underlying: CloseableIterator[T], counter: Counter)
-      extends CloseableIterator[T] {
-
-    private var staged: T = _
-    private var error = false
-
-    override final def hasNext: Boolean = staged != null || {
-      if (error) { false } else {
-        // make sure that we successfully read an underlying record, so that we can always return
-        // a valid record in `next`, otherwise failures will get double counted
-        try {
-          if (underlying.hasNext) {
-            staged = underlying.next
-            true
-          } else {
-            false
-          }
-        } catch {
-          case NonFatal(e) =>
-            counter.incFailure()
-            options.errorMode match {
-              case ErrorMode.SkipBadRecords => logger.warn("Failed parsing input: ", e)
-              case ErrorMode.RaiseErrors => throw e
-            }
-            error = true
-            false // usually parsing can't continue if there is an exception in the underlying read
-        }
-      }
-    }
-
-    override def next(): T = {
-      if (!hasNext) { Iterator.empty.next() } else {
-        val res = staged
-        staged = null.asInstanceOf[T]
-        res
-      }
-    }
-
-    override def close(): Unit = underlying.close()
-  }
 }
 
 object AbstractConverter {

@@ -20,13 +20,13 @@ import org.opengis.referencing.operation.MathTransform
 
 class GeometryFunctionFactory extends TransformerFunctionFactory {
 
-  override def functions =
+  override def functions: Seq[TransformerFunction] =
     Seq(pointParserFn, multiPointParserFn, lineStringParserFn, multiLineStringParserFn, polygonParserFn,
       multiPolygonParserFn, geometryCollectionParserFn, geometryParserFn, projectFromParserFn)
 
   private val gf = JTSFactoryFinder.getGeometryFactory
 
-  private val pointParserFn = TransformerFunction("point") {
+  private val pointParserFn = TransformerFunction.pure("point") {
     case Array(g: Point) => g
     case Array(x: Float, y: Float) => gf.createPoint(new Coordinate(x, y))
     case Array(x: Double, y: Double) => gf.createPoint(new Coordinate(x, y))
@@ -37,56 +37,56 @@ class GeometryFunctionFactory extends TransformerFunctionFactory {
     case args => throw new IllegalArgumentException(s"Invalid point conversion argument: ${args.mkString(",")}")
   }
 
-  private val multiPointParserFn = TransformerFunction("multipoint") {
+  private val multiPointParserFn = TransformerFunction.pure("multipoint") {
     case Array(g: MultiPoint) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[MultiPoint]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[MultiPoint]
     case args => throw new IllegalArgumentException(s"Invalid multipoint conversion argument: ${args.mkString(",")}")
   }
 
-  private val lineStringParserFn = TransformerFunction("linestring") {
+  private val lineStringParserFn = TransformerFunction.pure("linestring") {
     case Array(g: LineString) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[LineString]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[LineString]
     case args => throw new IllegalArgumentException(s"Invalid linestring conversion argument: ${args.mkString(",")}")
   }
 
-  private val multiLineStringParserFn = TransformerFunction("multilinestring") {
+  private val multiLineStringParserFn = TransformerFunction.pure("multilinestring") {
     case Array(g: MultiLineString) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[MultiLineString]
     case Array(g: Array[Byte]) => WKBUtils.read(g)
     case args => throw new IllegalArgumentException(s"Invalid multilinestring conversion argument: ${args.mkString(",")}")
   }
 
-  private val polygonParserFn = TransformerFunction("polygon") {
+  private val polygonParserFn = TransformerFunction.pure("polygon") {
     case Array(g: Polygon) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[Polygon]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[Polygon]
     case args => throw new IllegalArgumentException(s"Invalid polygon conversion argument: ${args.mkString(",")}")
   }
 
-  private val multiPolygonParserFn = TransformerFunction("multipolygon") {
+  private val multiPolygonParserFn = TransformerFunction.pure("multipolygon") {
     case Array(g: MultiPolygon) => g
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[MultiPolygon]
     case Array(g: Array[Byte]) => WKBUtils.read(g).asInstanceOf[MultiPolygon]
     case args => throw new IllegalArgumentException(s"Invalid multipolygon conversion argument: ${args.mkString(",")}")
   }
 
-  private val geometryCollectionParserFn = TransformerFunction("geometrycollection") {
+  private val geometryCollectionParserFn = TransformerFunction.pure("geometrycollection") {
     case Array(g: GeometryCollection) => g.asInstanceOf[GeometryCollection]
     case Array(g: String) => WKTUtils.read(g).asInstanceOf[GeometryCollection]
     case Array(g: Array[Byte]) => WKBUtils.read(g)
     case args => throw new IllegalArgumentException(s"Invalid geometrycollection conversion argument: ${args.mkString(",")}")
   }
 
-  private val geometryParserFn = TransformerFunction("geometry") {
+  private val geometryParserFn = TransformerFunction.pure("geometry") {
     case Array(g: Geometry) => g
     case Array(g: String) => WKTUtils.read(g)
     case Array(g: Array[Byte]) => WKBUtils.read(g)
     case args => throw new IllegalArgumentException(s"Invalid geometry conversion argument: ${args.mkString(",")}")
   }
 
-  private val projectFromParserFn = new NamedTransformerFunction(Seq("projectFrom")) {
+  private val projectFromParserFn: TransformerFunction = new NamedTransformerFunction(Seq("projectFrom"), pure = true) {
 
     import scala.collection.JavaConverters._
 

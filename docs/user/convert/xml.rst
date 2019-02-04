@@ -34,14 +34,46 @@ The ``fields`` element in an XML converter supports an additional attribute, ``p
 expression, which may be relative to the ``feature-path`` (if defined, above) or absolute to the document root.
 The ``path`` expression will be evaluated to a string, and be available in the ``transform`` element as ``$0``.
 
-Transform Functions
--------------------
+XML Composite Converters
+------------------------
+
+Composite converters can handle processing different XML formats in a single stream. To use a composite
+converter, specify ``type = "composite-xml"`` in your converter definition.
+
+Composite converters can define top-level options, fields, etc, the same as a normal XML converter. These
+values will be inherited by each of the child converters. If each child is unique, then it is valid to not
+define anything at the top level.
+
+Composite converters must define a ``converters`` element, which is an array of nested XML converter
+definitions. In addition to the standard configuration, each nested converter must have a ``predicate``
+element that determines which converter to use for each XML document. The value passed into the predicate
+will be the parsed XML document (available as ``$0``), so generally the predicate will make use of the
+``xpath`` function (below). See :ref:`composite_predicates` for more details on predicates.
+
+
+XML Transform Functions
+-----------------------
 
 The ``transform`` element supports referencing the result of the ``path`` expression through ``$0``. Each value will
 be a string.
 
 In addition to the standard functions in :ref:`converter_functions`, the XML converter provides the following
 XML-specific functions:
+
+xpath
+~~~~~
+
+The ``xpath`` function allows you to evaluate an XPath expression outside the context of a field. Generally, the
+``path`` expression is preferred when using XML fields, but the ``xpath`` function is useful for composite converter
+predicates, as described above.
+
+The ``xpath`` function takes between 2 and 4 arguments. The first argument is the XPath expression, as a string.
+The second argument is the XML document on which to apply the XPath expression. Generally the document being
+considered is available as ``$0``. The third argument is the fully-qualified class name of a
+``javax.xml.xpath.XPathFactory`` implementation. If omitted, the default Saxon factory will be used. The fourth
+argument is a ``java.util.Map`` containing any XML namespaces that may be required for XPath evaluation, and may be
+omitted if namespaces are not used. Generally, the :ref:`converter_parse_map_fn` function will be required to create
+an appropriate namespace map. See :ref:`xml_converter_namespaces`, below.
 
 xmlToString
 ~~~~~~~~~~~

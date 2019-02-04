@@ -31,11 +31,11 @@ class DateFunctionFactory extends TransformerFunctionFactory {
     Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant)
   }
 
-  private val millisToDate = TransformerFunction("millisToDate") { args =>
+  private val millisToDate = TransformerFunction.pure("millisToDate") { args =>
     new Date(args(0).asInstanceOf[Long])
   }
 
-  private val secsToDate = TransformerFunction("secsToDate") { args =>
+  private val secsToDate = TransformerFunction.pure("secsToDate") { args =>
     new Date(args(0).asInstanceOf[Long] * 1000L)
   }
 
@@ -149,13 +149,13 @@ class DateFunctionFactory extends TransformerFunctionFactory {
 
 object DateFunctionFactory {
 
-  abstract class StandardDateParser(names: Seq[String]) extends NamedTransformerFunction(names) {
+  abstract class StandardDateParser(names: Seq[String]) extends NamedTransformerFunction(names, pure = true) {
     val format: DateTimeFormatter
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
       DateParsing.parseDate(args(0).toString, format)
   }
 
-  class CustomFormatDateParser extends NamedTransformerFunction(Seq("date")) {
+  class CustomFormatDateParser extends NamedTransformerFunction(Seq("date"), pure = true) {
 
     private var format: DateTimeFormatter = _
 
@@ -169,7 +169,7 @@ object DateFunctionFactory {
     }
   }
 
-  class DateToString extends NamedTransformerFunction(Seq("dateToString")) {
+  class DateToString extends NamedTransformerFunction(Seq("dateToString"), pure = true) {
 
     private var format: DateTimeFormatter = _
 

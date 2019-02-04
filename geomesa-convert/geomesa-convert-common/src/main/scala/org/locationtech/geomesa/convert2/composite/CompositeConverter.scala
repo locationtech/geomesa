@@ -13,8 +13,8 @@ import java.nio.charset.StandardCharsets
 
 import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.{Counter, EnrichmentCache, EvaluationContext}
+import org.locationtech.geomesa.convert2.AbstractCompositeConverter.CompositeEvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-import org.locationtech.geomesa.convert2.composite.CompositeConverter.CompositeEvaluationContext
 import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -86,21 +86,4 @@ class CompositeConverter(val targetSft: SimpleFeatureType, delegates: Seq[(Predi
   }
 
   override def close(): Unit = converters.foreach(CloseWithLogging.apply)
-}
-
-object CompositeConverter {
-
-  class CompositeEvaluationContext(contexts: IndexedSeq[EvaluationContext]) extends EvaluationContext {
-
-    private var current: EvaluationContext = contexts.headOption.orNull
-
-    def setCurrent(i: Int): Unit = current = contexts(i)
-
-    override def get(i: Int): Any = current.get(i)
-    override def set(i: Int, v: Any): Unit = current.set(i, v)
-    override def indexOf(n: String): Int = current.indexOf(n)
-    override def counter: Counter = current.counter
-    override def getCache(k: String): EnrichmentCache = current.getCache(k)
-    override def clear(): Unit = contexts.foreach(_.clear())
-  }
 }

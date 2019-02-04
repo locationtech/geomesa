@@ -28,7 +28,7 @@ import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConfig, XmlField, XmlOptions]
     with org.locationtech.geomesa.convert.SimpleFeatureConverterFactory[String] {
 
-  override protected val typeToProcess: String = "xml"
+  override protected val typeToProcess: String = XmlConverterFactory.TypeToProcess
 
   override protected implicit def configConvert: ConverterConfigConvert[XmlConfig] = XmlConfigConvert
   override protected implicit def fieldConvert: FieldConvert[XmlField] = XmlFieldConvert
@@ -61,6 +61,8 @@ class XmlConverterFactory extends AbstractConverterFactory[XmlConverter, XmlConf
 }
 
 object XmlConverterFactory {
+
+  val TypeToProcess = "xml"
 
   object XmlConfigConvert extends ConverterConfigConvert[XmlConfig] with OptionConvert with StrictLogging {
 

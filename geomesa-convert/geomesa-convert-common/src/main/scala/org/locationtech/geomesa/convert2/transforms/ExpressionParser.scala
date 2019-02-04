@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert2.transforms
 
 import com.typesafe.scalalogging.StrictLogging
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.Expression._
 import org.locationtech.geomesa.utils.text.BasicParser
 import org.parboiled.errors.{ErrorUtils, ParsingException}
@@ -38,6 +39,8 @@ object ExpressionParser extends StrictLogging {
 private [transforms] class ExpressionParser extends BasicParser {
 
   import org.parboiled.scala._
+
+  implicit private val ec: EvaluationContext = EvaluationContext.empty
 
   // full expression
   def expression: Rule1[Expression] = rule("expression") { expr ~ EOI }
@@ -77,7 +80,12 @@ private [transforms] class ExpressionParser extends BasicParser {
         val name = ns.map(_ + ":" + fn).getOrElse(fn)
         val function = TransformerFunction.functions.getOrElse(name,
           throw new ParsingException(s"Invalid function name: $name"))
-        FunctionExpression(function.getInstance, args.toArray)
+        val expr = FunctionExpression(function.getInstance, args.toArray)
+        if (function.pure && args.forall(a => a.isInstanceOf[Literal[_]])) {
+          LiteralAny(expr.eval(Array.empty))
+        } else {
+          expr
+        }
       }
     }
   }
@@ -111,27 +119,57 @@ private [transforms] class ExpressionParser extends BasicParser {
   }
 
   private def castToInt: Rule1[Expression] = rule("::int") {
-    (nonCast ~ ("::integer" | "::int")) ~~> { e => CastToInt(e) }
+    (nonCast ~ ("::integer" | "::int")) ~~> {
+      e => {
+        val expr = CastToInt(e)
+        if (e.isInstanceOf[Literal[_]]) { LiteralInt(expr.eval(Array.empty)) } else { expr }
+      }
+    }
   }
 
   private def castToLong: Rule1[Expression] = rule("::long") {
-    (nonCast ~ "::long") ~~> { e => CastToLong(e) }
+    (nonCast ~ "::long") ~~> {
+      e => {
+        val expr = CastToLong(e)
+        if (e.isInstanceOf[Literal[_]]) { LiteralLong(expr.eval(Array.empty)) } else { expr }
+      }
+    }
   }
 
   private def castToFloat: Rule1[Expression] = rule("::float") {
-    (nonCast ~ "::float") ~~> { e => CastToFloat(e) }
+    (nonCast ~ "::float") ~~> {
+      e => {
+        val expr = CastToFloat(e)
+        if (e.isInstanceOf[Literal[_]]) { LiteralFloat(expr.eval(Array.empty)) } else { expr }
+      }
+    }
   }
 
   private def castToDouble: Rule1[Expression] = rule("::double") {
-    (nonCast ~ "::double") ~~> { e => CastToDouble(e) }
+    (nonCast ~ "::double") ~~> {
+      e => {
+        val expr = CastToDouble(e)
+        if (e.isInstanceOf[Literal[_]]) { LiteralDouble(expr.eval(Array.empty)) } else { expr }
+      }
+    }
   }
 
   private def castToString: Rule1[Expression] = rule("::string") {
-    (nonCast ~ "::string") ~~> { e => CastToString(e) }
+    (nonCast ~ "::string") ~~> {
+      e => {
+        val expr = CastToString(e)
+        if (e.isInstanceOf[Literal[_]]) { LiteralString(expr.eval(Array.empty)) } else { expr }
+      }
+    }
   }
 
   private def castToBoolean: Rule1[Expression] = rule("::boolean") {
-    (nonCast ~ "::" ~ ("boolean" | "bool")) ~~> { e => CastToBoolean(e) }
+    (nonCast ~ "::" ~ ("boolean" | "bool")) ~~> {
+      e => {
+        val expr = CastToBoolean(e)
+        if (e.isInstanceOf[Literal[_]]) { LiteralBoolean(expr.eval(Array.empty)) } else { expr }
+      }
+    }
   }
 
   private def castToRegex: Rule1[Expression] = rule("::r") {
