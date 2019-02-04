@@ -90,16 +90,6 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
-Version 2.3.0 Upgrade Guide
-+++++++++++++++++++++++++++
-
-Internal Metadata Format Change
--------------------------------
-
-The first time a schema is accessed with a GeoMesa 2.3.x data store, the metadata will be transparently rewritten.
-After this, the schema will no longer be readable by older versions of GeoMesa. The old metadata values are
-backed up in the catalog table, in case a rollback is required.
-
 Version 2.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

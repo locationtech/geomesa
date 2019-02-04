@@ -18,6 +18,8 @@ import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.util.control.NonFatal
+
 /**
   * Manages available indices and versions. @see GeoMesaFeatureIndex
   *
@@ -46,8 +48,14 @@ class IndexManager(ds: GeoMesaDataStore[_]) {
     * @param mode read/write mode
     * @return
     */
-  def indices(sft: SimpleFeatureType, mode: IndexMode = IndexMode.Any): Seq[GeoMesaFeatureIndex[_, _]] =
-    cache.get(CacheKeyGenerator.cacheKey(sft))._1.filter(_.mode.supports(mode))
+  def indices(sft: SimpleFeatureType, mode: IndexMode = IndexMode.Any): Seq[GeoMesaFeatureIndex[_, _]] = {
+    try {
+      cache.get(CacheKeyGenerator.cacheKey(sft))._1.filter(_.mode.supports(mode))
+    } catch {
+      case NonFatal(e) =>
+        throw new IllegalArgumentException(s"Invalid indices for simple feature type '${sft.getTypeName}':", e)
+    }
+  }
 
   /**
     * Return an index with the specified identifier

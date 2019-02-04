@@ -245,10 +245,6 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
                 "version of GeoMesa that is no longer supported. You may continue to use an older client, or " +
                 s"manually edit the metadata for '${InternalConfigs.INDEX_VERSIONS}' to exclude the invalid indices.", e)
         }
-        // back up the old metadata
-        metadata.insert(typeName, s"$ATTRIBUTES_KEY.bak", metadata.readRequired(typeName, ATTRIBUTES_KEY))
-        // store the updated metadata
-        metadata.insert(typeName, ATTRIBUTES_KEY, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
       } else {
         // validate indices
         try { manager.indices(sft) } catch {
