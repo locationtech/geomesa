@@ -78,6 +78,12 @@ class MergedDataStoreViewTest extends Specification {
   var path: Path = _
   var ds: MergedDataStoreView = _
 
+  def comboParams(params: java.util.Map[String, String]*): java.util.Map[String, String] = {
+    val configs = params.map(ConfigValueFactory.fromMap).asJava
+    val config = ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(configs))
+    Map(MergedDataStoreViewFactory.ConfigParam.key -> config.root.render(ConfigRenderOptions.concise())).asJava
+  }
+
   step {
     path = Files.createTempDirectory(s"combo-ds-test")
 
@@ -106,16 +112,7 @@ class MergedDataStoreViewTest extends Specification {
     h2Ds.dispose()
     accumuloDs.dispose()
 
-    val comboParams = {
-      val configs = java.util.Arrays.asList(
-        ConfigValueFactory.fromMap(h2Params),
-        ConfigValueFactory.fromMap(accumuloParams)
-      )
-      val config = ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(configs))
-      Map(MergedDataStoreViewFactory.ConfigParam.key -> config.root.render(ConfigRenderOptions.concise())).asJava
-    }
-
-    ds = DataStoreFinder.getDataStore(comboParams).asInstanceOf[MergedDataStoreView]
+    ds = DataStoreFinder.getDataStore(comboParams(h2Params, accumuloParams)).asInstanceOf[MergedDataStoreView]
     ds must not(beNull)
   }
 
@@ -194,11 +191,43 @@ class MergedDataStoreViewTest extends Specification {
             feature.getAttributes must haveLength(attributes.length)
             forall(attributes.zipWithIndex) { case (attribute, i) =>
               feature.getAttribute(attribute) mustEqual feature.getAttribute(i)
-              feature.getAttribute(attribute) mustEqual
-                  results.find(r => feature.getID.contains(r.getID)).get.getAttribute(attribute)
+              // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
+              features.find(f => feature.getID.contains(f.getID)).get.getAttribute(attribute) mustEqual
+                  feature.getAttribute(attribute)
             }
           }
         }
+      }
+    }
+
+    "apply filters to each data store impl" in {
+      val filters = Seq(
+        "IN('3', '4', '5', '6')",
+        "bbox(geom,44,52.5,46,56.5)",
+        "bbox(geom,44,52,46,59) and dtg DURING 2018-01-01T00:02:30.000Z/2018-01-01T00:06:30.000Z",
+        "name IN('name3', 'name4', 'name5', 'name6') and bbox(geom,44,52,46,59) and dtg DURING 2018-01-01T00:01:30.000Z/2018-01-01T00:07:30.000Z"
+      )
+
+      // these filters exclude the '5' feature
+      val h2FilteredParams = new java.util.HashMap[String, String](h2Params)
+      h2FilteredParams.put(MergedDataStoreViewFactory.StoreFilterParam.key, "dtg < '2018-01-01T00:06:00.000Z'")
+      val accumuloFilteredParams = new java.util.HashMap[String, String](accumuloParams)
+      accumuloFilteredParams.put(MergedDataStoreViewFactory.StoreFilterParam.key, "dtg >= '2018-01-01T00:06:00.000Z'")
+
+      val ds = DataStoreFinder.getDataStore(comboParams(h2FilteredParams, accumuloFilteredParams))
+      try {
+        foreach(filters) { filter =>
+          val ecql = ECQL.toFilter(filter)
+          val query = new Query(sftName, ecql)
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          results must haveLength(3)
+          forall(results) { feature =>
+            // note: have to compare backwards as java.sql.Timestamp.equals(java.util.Date) always returns false
+            features.find(f => feature.getID.contains(f.getID)).get.getAttributes mustEqual feature.getAttributes
+          }
+        }
+      } finally {
+        ds.dispose()
       }
     }
 

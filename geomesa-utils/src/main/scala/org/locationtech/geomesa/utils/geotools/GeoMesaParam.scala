@@ -133,7 +133,7 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
     * @param params parameter map
     * @return
     */
-  def lookupOpt(params: java.util.Map[String, Serializable]): Option[T] = Option(lookup(params))
+  def lookupOpt(params: java.util.Map[String, _ <: Serializable]): Option[T] = Option(lookup(params))
 
   /**
     * Logs a warning about deprecated parameter keys

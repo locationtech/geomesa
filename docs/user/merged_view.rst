@@ -59,6 +59,33 @@ For example, to merge a GeoMesa Accumulo data store with a PostGis data store, y
       ]
     }
 
+Query Filtering
+---------------
+
+If the stores being merged have known characteristics, filters can be applied selectively to each store in
+order to speed up queries. The filter is specified along with the other store parameters, under the key
+``geomesa.merged.store.filter``, and should be an ECQL filter string.
+
+The filter will be applied against any query, in addition to the query filter. This can be used to short-circuit
+queries that are not relevant for a particular store. For example, if one store contains features from the past
+24 hours, and a second store contains features older than 24 hours, then you could configure them with
+time-based filters:
+
+.. code-block:: json
+
+    {
+      "stores": [
+        {
+          // regular store parameters go here
+          "geomesa.merged.store.filter": "dtg >= currentDate('-P1D')"
+        },
+        {
+          // regular store parameters go here
+          "geomesa.merged.store.filter": "dtg < currentDate('-P1D')"
+        }
+      ]
+    }
+
 Config Provider
 ---------------
 
