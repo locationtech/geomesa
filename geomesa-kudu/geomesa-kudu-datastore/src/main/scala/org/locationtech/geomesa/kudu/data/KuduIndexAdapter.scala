@@ -84,7 +84,7 @@ class KuduIndexAdapter(ds: KuduDataStore) extends IndexAdapter[KuduDataStore] {
     }
   }
 
-  // TODO add per-datastore (feature type?) config for e.g. geomesa.scan.ranges.target
+  // TODO GEOMESA-2548 add per-datastore (feature type?) config for e.g. geomesa.scan.ranges.target
   // kudu operates better with lower range numbers compared to e.g. accumulo
 
   override def createQueryPlan(strategy: QueryStrategy): KuduQueryPlan = {

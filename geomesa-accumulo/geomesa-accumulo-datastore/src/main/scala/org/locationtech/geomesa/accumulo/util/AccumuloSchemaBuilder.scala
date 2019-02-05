@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.util
 
 import java.util.Locale
 
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.accumulo.util.AccumuloSchemaBuilder.{AccumuloAttributeBuilder, AccumuloUserDataBuilder}
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder.{AbstractAttributeBuilder, AbstractSchemaBuilder, AbstractUserDataBuilder}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -104,7 +105,7 @@ object AccumuloSchemaBuilder {
   }
 
   class AccumuloUserDataBuilder(parent: AccumuloSchemaBuilder, userData: StringBuilder)
-      extends AbstractUserDataBuilder[AccumuloUserDataBuilder](parent, userData) {
+      extends AbstractUserDataBuilder[AccumuloUserDataBuilder](parent, userData) with LazyLogging {
 
     /**
       * Sets table sharing for this schema
@@ -113,7 +114,12 @@ object AccumuloSchemaBuilder {
       * @return user data builder for call chaining
       */
     @deprecated("table sharing is no longer supported")
-    def tableSharing(sharing: Boolean): AccumuloUserDataBuilder = this
+    def tableSharing(sharing: Boolean): AccumuloUserDataBuilder = {
+      if (sharing) {
+        logger.warn("Ignoring table sharing hint - table sharing is no longer supported")
+      }
+      this
+    }
 
     /**
       * Set logical timestamps for the Accumulo tables

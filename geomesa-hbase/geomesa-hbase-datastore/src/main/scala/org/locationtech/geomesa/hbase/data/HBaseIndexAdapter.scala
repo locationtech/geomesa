@@ -168,7 +168,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         val mutateParams = new BufferedMutatorParams(tableName)
         WithClose(table.getScanner(scan), ds.connection.getBufferedMutator(mutateParams)) { case (scanner, mutator) =>
           scanner.iterator.asScala.grouped(10000).foreach { result =>
-            // TODO set delete visibilities
+            // TODO GEOMESA-2546 set delete visibilities
             val deletes = result.map(r => new Delete(r.getRow))
             mutator.mutate(deletes.asJava)
           }

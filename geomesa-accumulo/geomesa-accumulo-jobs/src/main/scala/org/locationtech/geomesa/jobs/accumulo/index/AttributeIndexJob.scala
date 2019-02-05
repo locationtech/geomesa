@@ -155,7 +155,7 @@ class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
 
   private var counter: Counter = _
 
-  // TODO have a standardized writer that returns mutations instead of using a batch writer
+  // TODO GEOMESA-2545 have a standardized writer that returns mutations instead of using a batch writer
 
   private var wrapper: FeatureWrapper = _
   private var converters: Seq[(WriteConverter[_], Int)] = _
