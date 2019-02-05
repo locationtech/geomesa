@@ -66,6 +66,10 @@
                                     <pattern>net.minidev.json</pattern>
                                     <shadedPattern>org.locationtech.geomesa.accumulo.shade.net.minidev.json</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>io.netty</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.accumulo.shade.io.netty</shadedPattern>
+                                </relocation>
                             </relocations>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
