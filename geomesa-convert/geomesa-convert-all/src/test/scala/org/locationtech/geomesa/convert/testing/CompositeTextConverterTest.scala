@@ -40,7 +40,7 @@ class CompositeTextConverterTest extends Specification with LazyLogging {
       |   type         = "composite-converter",
       |   converters = [
       |     { converter = "first",   predicate = "strEq('1', trim(substr($0, 0, 2)))" },
-      |     { converter = "second",  predicate = "strEq('2', trim(substr($0, 0, 2)))" }
+      |     { converter = "second",  predicate = "boolEq(true, contains($0, 'world'))" }
       |   ]
       |   first = {
       |     type         = "delimited-text",

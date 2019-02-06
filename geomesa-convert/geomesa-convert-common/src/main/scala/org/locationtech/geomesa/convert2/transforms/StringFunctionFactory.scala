@@ -18,7 +18,7 @@ class StringFunctionFactory extends TransformerFunctionFactory {
   override def functions: Seq[TransformerFunction] =
     Seq(stripQuotes, strip, stripPrefix, stripSuffix, replace, remove,
       strLen, trim, capitalize, lowercase, uppercase, regexReplace, concat,
-      substr, string, mkstring, emptyToNull, printf)
+      substr, string, mkstring, emptyToNull, printf, contains)
 
   private val string = TransformerFunction("toString") { args =>
     args(0).toString
@@ -100,5 +100,9 @@ class StringFunctionFactory extends TransformerFunctionFactory {
 
   private val printf = TransformerFunction("printf") { args =>
     String.format(args(0).toString, args.drop(1).asInstanceOf[Array[AnyRef]]: _*)
+  }
+
+  private val contains = TransformerFunction("contains") { args =>
+    args(0).asInstanceOf[String].contains(args(1).asInstanceOf[String])
   }
 }

@@ -967,5 +967,10 @@ class TransformersTest extends Specification {
 
       Transformers.parseTransform("replace($0, 'a', 'o')").eval(Array("faa")) mustEqual "foo"
     }
+
+    "contains" >> {
+      val trans = Transformers.parseTransform("contains($0, 'abc'")
+      trans.eval(Array("123, 32 abc %%2322")) mustEqual true
+    }
   }
 }
