@@ -4,7 +4,7 @@
 
     <name>GeoMesa</name>
     <description>A distributed spatio-temporal database built on a number of cloud data storage systems</description>
-    <url>http://www.geomesa.org/</url>
+    <url>https://www.geomesa.org/</url>
     <inceptionYear>2013</inceptionYear>
 
     <groupId>org.locationtech.geomesa</groupId>
@@ -76,7 +76,7 @@
         <jts.version>1.14.0</jts.version>
         <avro.version>1.7.5</avro.version>
         <parquet.version>1.9.0</parquet.version>
-        <orc.version>1.4.4</orc.version>
+        <orc.version>1.5.4</orc.version>
         <jackson.version>2.6.5</jackson.version> <!-- used by spark and arrow (which defaults to 2.7.1) -->
         <jackson.codehaus.version>1.9.3</jackson.codehaus.version>
         <gdal.version>2.0.0</gdal.version>
