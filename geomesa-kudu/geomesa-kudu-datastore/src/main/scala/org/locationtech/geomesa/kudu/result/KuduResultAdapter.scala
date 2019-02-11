@@ -52,6 +52,8 @@ object KuduResultAdapter {
   def apply(sft: SimpleFeatureType, auths: Seq[Array[Byte]], ecql: Option[Filter], hints: Hints): KuduResultAdapter = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
+    // TODO GEOMESA-2547 support sampling
+
     if (hints.isBinQuery) {
       val trackId = Option(hints.getBinTrackIdField).filter(_ != "id")
       val geom = hints.getBinGeomField

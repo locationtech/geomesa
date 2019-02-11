@@ -10,7 +10,7 @@ package org.locationtech.geomesa.raster.iterators
 
 import org.apache.accumulo.core.client.IteratorSetting
 import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
+import org.locationtech.geomesa.accumulo.index.IndexValueEncoder.IndexValueEncoderImpl
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -109,8 +109,7 @@ trait HasIndexValueDecoder extends IteratorExtensions {
     super.init(featureType, options)
     indexSft = SimpleFeatureTypes.createType(featureType.getTypeName,
       options.get(GEOMESA_ITERATORS_SFT_INDEX_VALUE))
-    // noinspection ScalaDeprecation
-    indexEncoder = IndexValueEncoder(indexSft, featureType)
+    indexEncoder = new IndexValueEncoderImpl(featureType)
   }
 }
 
@@ -121,7 +120,7 @@ trait HasFeatureDecoder extends IteratorExtensions {
 
   var featureDecoder: SimpleFeatureSerializer = null
   var featureEncoder: SimpleFeatureSerializer = null
-  val defaultEncoding = org.locationtech.geomesa.accumulo.data.DEFAULT_ENCODING
+  val defaultEncoding = SerializationType.KRYO
 
   // feature encoder/decoder
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
@@ -178,8 +177,6 @@ trait HasFilter extends IteratorExtensions {
  */
 trait HasTransforms extends IteratorExtensions {
 
-  import org.locationtech.geomesa.accumulo.data.DEFAULT_ENCODING
-
   type TransformFunction = (SimpleFeature) => Array[Byte]
   var transform: TransformFunction = null
 
@@ -194,7 +191,7 @@ trait HasTransforms extends IteratorExtensions {
 
       val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
       val transformEncoding = Option(options.get(FEATURE_ENCODING)).map(SerializationType.withName)
-          .getOrElse(DEFAULT_ENCODING)
+          .getOrElse(SerializationType.KRYO)
 
       transform = TransformCreator.createTransform(targetFeatureType, transformEncoding, transformString)
     }

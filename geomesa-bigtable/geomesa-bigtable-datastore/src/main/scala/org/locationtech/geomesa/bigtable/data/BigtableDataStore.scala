@@ -13,8 +13,6 @@ import java.io.Serializable
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client._
 import org.geotools.data.DataAccessFactory.Param
-import org.locationtech.geomesa.bigtable.index.BigtableFeatureIndex
-import org.locationtech.geomesa.hbase.HBaseIndexManagerType
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.hbase.data._
@@ -23,7 +21,7 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 class BigtableDataStore(connection: Connection, config: HBaseDataStoreConfig)
     extends HBaseDataStore(connection, config) {
-  override def manager: HBaseIndexManagerType = BigtableFeatureIndex
+  override val adapter: BigtableIndexAdapter = new BigtableIndexAdapter(this)
   override protected def loadIteratorVersions: Set[String] = Set.empty
 }
 

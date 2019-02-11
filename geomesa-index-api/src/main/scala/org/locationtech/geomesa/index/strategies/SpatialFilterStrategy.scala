@@ -10,45 +10,33 @@ package org.locationtech.geomesa.index.strategies
 
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
-import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.{And, Filter, Or}
 
-trait SpatialFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
-    extends GeoMesaFeatureIndex[DS, F, W] {
+trait SpatialFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 
   import SpatialFilterStrategy.{StaticCost, spatialCheck}
 
-  override def getFilterStrategy(sft: SimpleFeatureType,
-                                 filter: Filter,
-                                 transform: Option[SimpleFeatureType]): Seq[FilterStrategy[DS, F, W]] = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+  def geom: String
 
+  override def getFilterStrategy(filter: Filter,
+                                 transform: Option[SimpleFeatureType],
+                                 stats: Option[GeoMesaStats]): Option[FilterStrategy] = {
     if (filter == Filter.INCLUDE) {
-      Seq(FilterStrategy(this, None, None))
+      Some(FilterStrategy(this, None, None, Long.MaxValue))
     } else if (filter == Filter.EXCLUDE) {
-      Seq.empty
+      None
     } else {
-      val (spatial, nonSpatial) = FilterExtractingVisitor(filter, sft.getGeomField, sft, spatialCheck)
+      val (spatial, nonSpatial) = FilterExtractingVisitor(filter, geom, sft, spatialCheck)
       if (spatial.nonEmpty) {
-        Seq(FilterStrategy(this, spatial, nonSpatial))
-      } else {
-        Seq(FilterStrategy(this, None, Some(filter)))
-      }
-    }
-  }
-
-  override def getCost(sft: SimpleFeatureType,
-                       stats: Option[GeoMesaStats],
-                       filter: FilterStrategy[DS, F, W],
-                       transform: Option[SimpleFeatureType]): Long = {
-    filter.primary match {
-      case None    => Long.MaxValue
-      case Some(f) =>
         // add one so that we prefer the z3 index even if geometry is the limiting factor, resulting in the same count
-        stats.flatMap(_.getCount(sft, f, exact = false).map(c => if (c == 0L) 0L else c + 1L)).getOrElse(StaticCost)
+        lazy val cost = stats.flatMap(_.getCount(sft, spatial.get, exact = false).map(c => if (c == 0L) 0L else c + 1L))
+        Some(FilterStrategy(this, spatial, nonSpatial, cost.getOrElse(StaticCost)))
+      } else {
+        Some(FilterStrategy(this, None, Some(filter), Long.MaxValue))
+      }
     }
   }
 }
@@ -65,8 +53,8 @@ object SpatialFilterStrategy {
     */
   def spatialCheck(filter: Filter): Boolean = {
     filter match {
-      case f: And => true // note: implies further evaluation of children
-      case f: Or  => true // note: implies further evaluation of children
+      case _: And => true // note: implies further evaluation of children
+      case _: Or  => true // note: implies further evaluation of children
       case _ => isSpatialFilter(filter)
     }
   }

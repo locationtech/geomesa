@@ -19,7 +19,7 @@ import org.geotools.data.DataStore
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
-import org.locationtech.geomesa.accumulo.index.encoders.{BinEncoder, IndexValueEncoder}
+import org.locationtech.geomesa.accumulo.index.IndexValueEncoder
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.features.{SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -48,11 +48,10 @@ object TestData extends LazyLogging {
         s"geom:Geometry:srid=4326,dtg:Date,dtg_end_time:Date;geomesa.mixed.geometries=true"
   }
 
-  def getFeatureType(typeNameSuffix: String = "", attrNameSuffix: String = "2", tableSharing: Boolean = true) = {
+  def getFeatureType(typeNameSuffix: String = "", attrNameSuffix: String = "2") = {
     val fn = s"$featureName$typeNameSuffix"
     val ft: SimpleFeatureType = SimpleFeatureTypes.createType(fn, getTypeSpec(attrNameSuffix))
     ft.setDtgField("dtg")
-    ft.setTableSharing(tableSharing)
     ft
   }
 
@@ -84,8 +83,6 @@ object TestData extends LazyLogging {
 
   lazy val featureEncoder = SimpleFeatureSerializers(getFeatureType(), SerializationType.AVRO)
   lazy val indexValueEncoder = IndexValueEncoder(featureType)
-
-  lazy val binEncoder = BinEncoder(featureType)
 
   val defaultDateTime = ZonedDateTime.of(2011, 6, 1, 0, 0, 0, 0, ZoneOffset.UTC)
 

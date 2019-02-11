@@ -16,7 +16,6 @@ import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
-import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -28,7 +27,6 @@ import org.specs2.specification.core.Fragments
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
-import scala.util.Try
 
 /**
  * Trait to simplify tests that require reading and writing features from an AccumuloDataStore
@@ -52,21 +50,14 @@ trait TestWithMultipleSfts extends Specification {
 
   // after all tests, drop the tables we created to free up memory
   override def map(fragments: => Fragments): Fragments = fragments ^ fragmentFactory.step {
-    val to = connector.tableOperations()
-    val tables = Seq(sftBaseName) ++ sfts.flatMap { sft =>
-      Try(AccumuloFeatureIndex.indices(sft).flatMap(_.getTableNames(sft, ds))).getOrElse(Seq.empty)
-    }
-    tables.toSet.filter(to.exists).foreach(to.delete)
+    ds.delete()
     ds.dispose()
   }
 
-  def createNewSchema(spec: String,
-                      dtgField: Option[String] = Some("dtg"),
-                      tableSharing: Boolean = true): SimpleFeatureType = synchronized {
+  def createNewSchema(spec: String, dtgField: Option[String] = Some("dtg")): SimpleFeatureType = synchronized {
     val sftName = sftBaseName + sftCounter.getAndIncrement()
     val sft = SimpleFeatureTypes.createType(sftName, spec)
     dtgField.foreach(sft.setDtgField)
-    sft.setTableSharing(tableSharing)
     ds.createSchema(sft)
     val reloaded = ds.getSchema(sftName) // reload the sft from the ds to ensure all user data is set properly
     sfts += reloaded

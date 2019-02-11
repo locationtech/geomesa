@@ -25,11 +25,17 @@ import org.apache.hadoop.hbase.security.visibility.VisibilityClient;
 import org.geotools.factory.CommonFactoryFinder;
 import org.geotools.feature.AttributeTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
-import org.junit.*;
-import org.locationtech.geomesa.api.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.locationtech.geomesa.api.DefaultSimpleFeatureView;
+import org.locationtech.geomesa.api.GeoMesaIndex;
+import org.locationtech.geomesa.api.GeoMesaQuery;
+import org.locationtech.geomesa.api.SimpleFeatureView;
+import org.locationtech.geomesa.api.ValueSerializer;
 import org.locationtech.geomesa.hbase.data.HBaseDataStore;
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex;
-import org.locationtech.geomesa.hbase.index.HBaseFeatureIndex$;
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex;
 import org.locationtech.geomesa.utils.index.IndexMode$;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -42,7 +48,13 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.security.PrivilegedExceptionAction;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class GeoMesaIndexTest {
@@ -342,11 +354,11 @@ public class GeoMesaIndexTest {
         Assert.assertFalse("creating a MockAccumulo instance should create at least one table", preTables.isEmpty());
 
         // require that the function to pre-compute the names of all tables for this feature type is accurate
-        scala.collection.Iterator<HBaseFeatureIndex> indices =
-                HBaseFeatureIndex$.MODULE$.indices(ds.getSchema(featureName), scala.Option.apply(null), IndexMode$.MODULE$.Any()).iterator();
+        scala.collection.Iterator<GeoMesaFeatureIndex<?, ?>> indices =
+              ds.manager().indices(ds.getSchema(featureName), IndexMode$.MODULE$.Any()).iterator();
         List<String> expectedTables = new ArrayList<>();
         while (indices.hasNext()) {
-            expectedTables.add(indices.next().getTableNames(ds.getSchema(featureName), ds, Option$.MODULE$.empty()).head());
+            expectedTables.add(indices.next().getTableNames(Option$.MODULE$.empty()).head());
         }
         expectedTables.add(featureName);
 

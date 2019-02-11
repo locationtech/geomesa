@@ -17,8 +17,11 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.index.AttributeIndex
-import org.locationtech.geomesa.index.utils.ExplainNull
+import org.locationtech.geomesa.accumulo.index.JoinIndex
+import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.index.conf.QueryHints.QUERY_INDEX
+import org.locationtech.geomesa.index.index.z2.Z2Index
+import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -56,9 +59,10 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
   val queryPlanner = ds.queryPlanner
 
-  def query(filter: String, attributes: Array[String] = Array.empty) = {
+  def query(filter: String, attributes: Array[String] = Array.empty, explain: Explainer = ExplainNull) = {
     val query = new Query(sftName, ECQL.toFilter(filter), if (attributes.length == 0) null else attributes)
-    queryPlanner.runQuery(sft, query, Some(AttributeIndex), ExplainNull).toList
+    query.getHints.put(QUERY_INDEX, JoinIndex.name)
+    queryPlanner.runQuery(sft, query, explain).toList
   }
 
   "AttributeIndexIterator" should {

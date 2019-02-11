@@ -26,13 +26,12 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.junit.Assert;
 import org.junit.Test;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore;
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex;
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex$;
 import org.locationtech.geomesa.api.DefaultSimpleFeatureView;
 import org.locationtech.geomesa.api.GeoMesaIndex;
 import org.locationtech.geomesa.api.GeoMesaQuery;
 import org.locationtech.geomesa.api.SimpleFeatureView;
 import org.locationtech.geomesa.api.ValueSerializer;
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex;
 import org.locationtech.geomesa.utils.index.IndexMode$;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -303,11 +302,11 @@ public class GeoMesaIndexTest {
         Assert.assertFalse("creating a MockAccumulo instance should create at least one table", preTables.isEmpty());
 
         // require that the function to pre-compute the names of all tables for this feature type is accurate
-        scala.collection.Iterator<AccumuloFeatureIndex> indices =
-                AccumuloFeatureIndex$.MODULE$.indices(ds.getSchema(featureName), scala.Option.apply(null), IndexMode$.MODULE$.Any()).iterator();
+        scala.collection.Iterator<GeoMesaFeatureIndex<?, ?>> indices =
+                ds.manager().indices(ds.getSchema(featureName), IndexMode$.MODULE$.Any()).iterator();
         List<String> expectedTables = new ArrayList<>();
         while (indices.hasNext()) {
-            expectedTables.add(indices.next().getTableNames(ds.getSchema(featureName), ds, Option$.MODULE$.empty()).head());
+            expectedTables.add(indices.next().getTableNames(Option$.MODULE$.empty()).head());
         }
         expectedTables.add(featureName);
         expectedTables.add(featureName + "_stats");

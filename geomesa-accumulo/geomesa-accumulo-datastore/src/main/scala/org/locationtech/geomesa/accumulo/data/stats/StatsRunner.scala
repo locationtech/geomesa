@@ -16,9 +16,9 @@ import java.util.concurrent.{Callable, Executors, Future, TimeUnit}
 
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
-import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.utils.geotools._
+import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
@@ -167,8 +167,8 @@ class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Opt
     ds.metadata.read(sft.getTypeName, GeoMesaMetadata.STATS_INTERVAL_KEY).map(_.toLong).getOrElse(1440)
 
   private def lockKey: String = {
-    val ca = GeoMesaFeatureIndex.hexEncodeNonAlphaNumeric(ds.config.catalog)
-    val tn = GeoMesaFeatureIndex.hexEncodeNonAlphaNumeric(sft.getTypeName)
+    val ca = StringSerialization.alphaNumericSafeString(ds.config.catalog)
+    val tn = StringSerialization.alphaNumericSafeString(sft.getTypeName)
     s"/org.locationtech.geomesa/accumulo/stats/$ca/$tn"
   }
 }

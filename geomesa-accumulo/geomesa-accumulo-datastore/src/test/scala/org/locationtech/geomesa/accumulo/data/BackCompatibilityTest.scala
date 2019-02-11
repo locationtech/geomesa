@@ -26,12 +26,14 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.index.JoinIndex
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
+import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -185,6 +187,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
 
     foreach(Seq("1.2.8-bounds", "1.2.8-bounds-multi")) { name =>
       logger.info(s"Running back compatible deletion test on $name")
+
       val sftName = restoreTables(readVersion(getFile(s"data/versioned-data-$name.kryo")))
       val ds = DataStoreFinder.getDataStore(Map(
         AccumuloDataStoreParams.ConnectorParam.key -> connector,
@@ -195,9 +198,10 @@ class BackCompatibilityTest extends Specification with LazyLogging {
       val sft = ds.getSchema(sftName)
 
       // verify the features are there
-      foreach(sft.getIndices) { case (index, _, _) =>
-        val query = new Query(sftName, ECQL.toFilter("name is not null"))
-        query.getHints.put(QueryHints.QUERY_INDEX, index)
+      foreach(sft.getIndices) { index =>
+        val filter = if (index.name == JoinIndex.name) { ECQL.toFilter("name is not null") } else { Filter.INCLUDE }
+        val query = new Query(sftName, filter)
+        query.getHints.put(QueryHints.QUERY_INDEX, GeoMesaFeatureIndex.identifier(index))
         SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must haveLength(4)
       }
 
@@ -206,20 +210,16 @@ class BackCompatibilityTest extends Specification with LazyLogging {
       ds.getFeatureSource(sftName).removeFeatures(ECQL.toFilter(filter))
 
       // verify the delete
-      foreach(sft.getIndices) { case (index, _, _) =>
-        val query = new Query(sftName, ECQL.toFilter("name is not null"))
-        query.getHints.put(QueryHints.QUERY_INDEX, index)
+      foreach(sft.getIndices) { index =>
+        val filter = if (index.name == JoinIndex.name) { ECQL.toFilter("name is not null") } else { Filter.INCLUDE }
+        val query = new Query(sftName, filter)
+        query.getHints.put(QueryHints.QUERY_INDEX, GeoMesaFeatureIndex.identifier(index))
         SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) must beEmpty
       }
     }
   }
 
   def restoreTables(tables: Seq[TableMutations]): String = {
-    // since we re-use the same sft and tables, the converter cache can get messed up
-    // note that the only problem is the attribute table name change between 1.2.2 and 1.2.3, which gets cached
-    // other changes are captured in the index versions, and the cache handles them appropriately
-    GeoMesaFeatureWriter.expireConverterCache()
-
     // reload the tables
     tables.foreach { case TableMutations(table, mutations) =>
       if (connector.tableOperations.exists(table)) {
@@ -280,6 +280,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     "support backward compatibility to 1.3.2"     >> { testVersion("1.3.2") }
     // note: data on disk is the same from 1.3.3 through 2.0.0-m.1
     "support backward compatibility to 2.0.0-m.1" >> { testVersion("2.0.0-m.1") }
+    "support backward compatibility to 2.1.0"     >> { testVersion("2.1.0") }
 
     "delete invalid indexed data" >> { testBoundsDelete() }
   }

@@ -10,8 +10,11 @@ package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.ParameterException
 import org.geotools.data.DataStore
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
+import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, TypeNameParam}
-import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.mutable.ArrayBuffer
@@ -19,10 +22,6 @@ import scala.collection.mutable.ArrayBuffer
 trait DescribeSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override val name: String = "describe-schema"
-
-  protected def hasSpatialIndex: Boolean = true
-  protected def hasSpatioTemporalIndex: Boolean = true
-  protected def hasAttributeIndex: Boolean = true
 
   override def execute(): Unit = withDataStore { ds =>
     val sft = getSchema(ds)
@@ -41,37 +40,44 @@ trait DescribeSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     case p: TypeNameParam => ds.getSchema(p.featureName)
   }
 
-  protected def describe(ds: DS, sft: SimpleFeatureType, output: (String) => Unit): Unit = {
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+  protected def describe(ds: DS, sft: SimpleFeatureType, output: String => Unit): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
     import scala.collection.JavaConversions._
 
+    val indices = ds match {
+      case gmds: GeoMesaDataStore[_] => gmds.manager.indices(sft)
+      case _ => Seq.empty
+    }
+
     val namesAndDescriptions = sft.getAttributeDescriptors.map { descriptor =>
       val name = descriptor.getLocalName
       val description = ArrayBuffer.empty[String]
-      if (descriptor == sft.getGeometryDescriptor) {
-        if (hasSpatialIndex) {
+
+      indices.foreach {
+        case i if (i.name == Z3Index.name || i.name == XZ3Index.name) && i.attributes.take(2).contains(name) =>
+          description.append("(Spatio-temporally indexed)")
+
+        case i if (i.name == Z2Index.name || i.name == XZ2Index.name) && i.attributes.headOption.contains(name) =>
           description.append("(Spatially indexed)")
-        }
-      } else if (sft.getDtgField.contains(name) && hasSpatioTemporalIndex) {
-        description.append("(Spatio-temporally indexed)")
+
+        case i if i.name == AttributeIndex.name && i.attributes.headOption.contains(name) =>
+          description.append("(Attribute indexed)")
+
+        case i if i.name == AttributeIndex.JoinIndexName && i.attributes.headOption.contains(name) =>
+          description.append("(Attribute indexed - join)")
+
+        case _ => // no-op
       }
-      if (hasAttributeIndex) {
-        descriptor.getIndexCoverage() match {
-          case IndexCoverage.JOIN => description.append("(Attribute indexed - join)")
-          case IndexCoverage.FULL => description.append("(Attribute indexed)")
-          case _ => // no-op
-        }
-      }
+
       Option(descriptor.getDefaultValue).foreach(v => description.append(s"Default Value: $v"))
-      (name, descriptor.getType.getBinding.getSimpleName, description)
+      (name, descriptor.getType.getBinding.getSimpleName, description.mkString(" "))
     }
 
     val maxName = namesAndDescriptions.map(_._1.length).max
     val maxType = namesAndDescriptions.map(_._2.length).max
     namesAndDescriptions.foreach { case (n, t, d) =>
-      output(s"${n.padTo(maxName, ' ')} | ${t.padTo(maxType, ' ')} ${d.mkString(" ")}")
+      output(s"${n.padTo(maxName, ' ')} | ${t.padTo(maxType, ' ')} $d")
     }
 
     val userData = sft.getUserData

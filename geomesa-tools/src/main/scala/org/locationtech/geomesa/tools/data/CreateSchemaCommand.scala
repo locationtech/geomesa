@@ -27,6 +27,7 @@ trait CreateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
   override def execute(): Unit = {
     val sft = CLArgResolver.getSft(params.spec, params.featureName)
     Option(params.dtgField).foreach(sft.setDtgField)
+    // note: this will pass through to the datastore, log a warning and then be ignored
     Option(params.useSharedTables).foreach(s => sft.setTableSharing(s.booleanValue()))
     setBackendSpecificOptions(sft)
     withDataStore(createSchema(_, sft))
@@ -54,7 +55,8 @@ trait CreateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 object CreateSchemaCommand {
   // @Parameters(commandDescription = "Create a GeoMesa feature type")
   trait CreateSchemaParams extends RequiredFeatureSpecParam with OptionalTypeNameParam with OptionalDtgParam {
-    @Parameter(names = Array("--use-shared-tables"), description = "Use shared tables for feature storage", arity = 1)
+    @deprecated("shared tables no longer supported")
+    @Parameter(names = Array("--use-shared-tables"), description = "Use shared tables for feature storage (deprecated)", arity = 1)
     var useSharedTables: java.lang.Boolean = _
   }
 }

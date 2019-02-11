@@ -8,25 +8,32 @@
 
 package org.locationtech.geomesa.index.index.id
 
-import org.locationtech.geomesa.index.api.WrappedFeature
+import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.index.ShardStrategy.NoShardStrategy
-import org.locationtech.geomesa.index.index.{BaseFeatureIndex, ShardStrategy}
+import org.locationtech.geomesa.index.index.ConfiguredIndex
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
+import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
-trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
-    extends BaseFeatureIndex[DS, F, W, R, C, Set[Array[Byte]], Array[Byte]] with IdFilterStrategy[DS, F, W] {
+class IdIndex protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, version: Int, mode: IndexMode)
+    extends GeoMesaFeatureIndex[Set[Array[Byte]], Array[Byte]](ds, sft, IdIndex.name, version, Seq.empty, mode)
+        with IdFilterStrategy[Set[Array[Byte]], Array[Byte]] {
 
-  override val name: String = IdIndex.Name
+  def this(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, mode: IndexMode) =
+    this(ds, sft, IdIndex.version, mode)
 
-  override def supports(sft: SimpleFeatureType): Boolean = true
+  override val keySpace: IdIndexKeySpace = new IdIndexKeySpace(sft)
 
-  override protected val keySpace: IdIndexKeySpace = IdIndexKeySpace
-
-  override protected def shardStrategy(sft: SimpleFeatureType): ShardStrategy = NoShardStrategy
+  override val tieredKeySpace: Option[IndexKeySpace[_, _]] = None
 }
 
-object IdIndex {
-  val Name = "id"
+object IdIndex extends ConfiguredIndex {
+
+  override val name = "id"
+  override val version = 4
+
+  override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
+    IdIndexKeySpace.supports(sft, attributes)
+
+  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] = Seq(Seq.empty)
 }

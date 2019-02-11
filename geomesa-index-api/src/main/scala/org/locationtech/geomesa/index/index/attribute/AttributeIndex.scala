@@ -11,125 +11,164 @@ package org.locationtech.geomesa.index.index.attribute
 import java.nio.charset.StandardCharsets
 import java.util.{Collections, Locale}
 
-import com.google.common.primitives.Bytes
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, WrappedFeature}
-import org.locationtech.geomesa.index.conf.splitter.TableSplitter
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex.IdFromRow
+import org.locationtech.geomesa.index.api.ShardStrategy.AttributeShardStrategy
+import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.index.ShardStrategy.AttributeShardStrategy
-import org.locationtech.geomesa.index.index._
-import org.locationtech.geomesa.index.index.attribute.AttributeIndex.AttributeRowDecoder
-import org.locationtech.geomesa.index.index.legacy.AttributeShardedIndex.typeRegistry
+import org.locationtech.geomesa.index.index.ConfiguredIndex
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex.IdFromAttributeRow
 import org.locationtech.geomesa.index.index.z2.{XZ2IndexKeySpace, Z2IndexKeySpace}
 import org.locationtech.geomesa.index.index.z3.{XZ3IndexKeySpace, Z3IndexKeySpace}
 import org.locationtech.geomesa.index.strategies.AttributeFilterStrategy
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.index.ByteArrays
+import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
+import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.Try
 
-trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
-    extends BaseTieredFeatureIndex[DS, F, W, R, C, AttributeIndexValues[Any], AttributeIndexKey]
-        with AttributeFilterStrategy[DS, F, W] with AttributeRowDecoder {
+/**
+  * Attribute index with configurable secondary index tiering. Each attribute has its own table
+  *
+  * @param ds data store
+  * @param sft simple feature type stored in this index
+  * @param version version of the index
+  * @param attribute attribute field being indexed
+  * @param secondaries secondary fields used for the index tiering
+  * @param mode mode of the index (read/write/both)
+  */
+class AttributeIndex protected (ds: GeoMesaDataStore[_],
+                                sft: SimpleFeatureType,
+                                version: Int,
+                                val attribute: String,
+                                secondaries: Seq[String],
+                                mode: IndexMode)
+    extends GeoMesaFeatureIndex[AttributeIndexValues[Any], AttributeIndexKey](ds, sft, AttributeIndex.name, version, secondaries.+:(attribute), mode)
+        with AttributeFilterStrategy[AttributeIndexValues[Any], AttributeIndexKey] {
 
-  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-  override val name: String = AttributeIndex.Name
+  def this(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, attribute: String, secondaries: Seq[String], mode: IndexMode) =
+    this(ds, sft, AttributeIndex.version, attribute, secondaries, mode)
 
-  override protected val keySpace: AttributeIndexKeySpace = AttributeIndexKeySpace
+  private val attributeIndex = sft.indexOf(attribute)
+  private val descriptor = sft.getDescriptor(attributeIndex)
 
-  override protected def tieredKeySpace(sft: SimpleFeatureType): Option[IndexKeySpace[_, _]] =
-    AttributeIndex.TieredOptions.find(_.supports(sft))
+  private val decodeValue: String => AnyRef = if (descriptor.isList) {
+    // get the alias from the type of values in the collection
+    val alias = descriptor.getListType().getSimpleName.toLowerCase(Locale.US)
+    // Note that for collection types, only a single entry of the collection will be decoded - this is
+    // because the collection entries have been broken up into multiple rows
+    encoded => Collections.singletonList(AttributeIndexKey.decode(alias, encoded))
+  } else {
+    val alias = descriptor.getType.getBinding.getSimpleName.toLowerCase(Locale.US)
+    AttributeIndexKey.decode(alias, _)
+  }
 
-  override protected def shardStrategy(sft: SimpleFeatureType): ShardStrategy = AttributeShardStrategy(sft)
+  override val keySpace: AttributeIndexKeySpace =
+    new AttributeIndexKeySpace(sft, AttributeShardStrategy(sft), attribute)
 
-  override def decodeRowValue(sft: SimpleFeatureType, index: Int): (Array[Byte], Int, Int) => Try[AnyRef] = {
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-
-    val shards = if (shardStrategy(sft).shards.isEmpty) { 0 } else { 1 }
-    // exclude feature byte and 2 index bytes and shard bytes
-    val from = if (sft.isTableSharing) { 3 + shards } else { 2 + shards }
-    val descriptor = sft.getDescriptor(index)
-    val decode: (String) => AnyRef = if (descriptor.isList) {
-      // get the alias from the type of values in the collection
-      val alias = descriptor.getListType().getSimpleName.toLowerCase(Locale.US)
-      // Note that for collection types, only a single entry of the collection will be decoded - this is
-      // because the collection entries have been broken up into multiple rows
-      (encoded) => Collections.singletonList(typeRegistry.decode(alias, encoded))
-    } else {
-      val alias = descriptor.getType.getBinding.getSimpleName.toLowerCase(Locale.US)
-      typeRegistry.decode(alias, _)
-    }
-    (row, offset, length) => Try {
-      val valueStart = offset + from // start of the encoded value
-      // null byte indicates end of value
-      val valueEnd = math.min(row.indexOf(ByteArrays.ZeroByte, valueStart), offset + length)
-      decode(new String(row, valueStart, valueEnd - valueStart, StandardCharsets.UTF_8))
+  override val tieredKeySpace: Option[IndexKeySpace[_, _]] = {
+    if (secondaries.isEmpty) { None } else {
+      val opt = AttributeIndex.tiers.collectFirst {
+        case ks if ks.supports(sft, secondaries) => ks.apply(sft, secondaries, tier = true)
+      }
+      if (opt.isEmpty) {
+        throw new IllegalArgumentException(s"No key space matched tiering for attributes: ${secondaries.mkString(", ")}")
+      }
+      opt
     }
   }
 
-  override def getIdFromRow(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String = {
-    val idFromBytes = GeoMesaFeatureIndex.idFromBytes(sft)
-    // drop the encoded value and the secondary index field if it's present - the rest of the row is the ID
-    val shards = if (shardStrategy(sft).shards.isEmpty) { 0 } else { 1 }
-    // exclude feature byte and 2 index bytes and shard bytes
-    val from = if (sft.isTableSharing) { 3 + shards } else { 2 + shards }
-    val secondary = tieredKeySpace(sft).map(_.indexKeyByteLength).getOrElse(0)
-    (row, offset, length, feature) => {
-      val start = row.indexOf(ByteArrays.ZeroByte, from + offset) + secondary + 1
-      idFromBytes(row, start, length + offset - start, feature)
-    }
-  }
+  // note: needs to be lazy to allow for keyspace override in subclasses
+  protected lazy val rowValueOffset: Int = keySpace.sharding.length
 
-  override def getSplits(sft: SimpleFeatureType, partition: Option[String]): Seq[Array[Byte]] = {
-    def nonEmpty(bytes: Seq[Array[Byte]]): Seq[Array[Byte]] = if (bytes.nonEmpty) { bytes } else { Seq(Array.empty) }
+  // note: needs to be lazy to allow for tiered keyspace override in subclasses
+  override protected lazy val idFromRow: IdFromRow =
+    new IdFromAttributeRow(sft, rowValueOffset, tieredKeySpace.map(_.indexKeyByteLength).getOrElse(0))
 
-    val sharing = sft.getTableSharingBytes
-    val indices = SimpleFeatureTypes.getSecondaryIndexedAttributes(sft).map(d => sft.indexOf(d.getLocalName))
-    val shards = nonEmpty(shardStrategy(sft).shards)
-
-    // evaluate the splits per indexed attribute, instead of for the whole feature
-    val result = indices.flatMap { indexOf =>
-      val singleAttributeType = {
-        val builder = new SimpleFeatureTypeBuilder()
-        builder.setName(sft.getName)
-        builder.add(sft.getDescriptor(indexOf))
-        builder.buildFeatureType()
-      }
-      singleAttributeType.getUserData.putAll(sft.getUserData) // copy the splitter options
-      val attribute = AttributeIndexKey.indexToBytes(indexOf)
-      val splits = nonEmpty(TableSplitter.getSplits(singleAttributeType, name, partition))
-
-      for (shard <- shards; split <- splits) yield {
-        Bytes.concat(sharing, shard, attribute, split)
-      }
-    }
-
-    // if not sharing, or the first feature in the table, drop the first split, which will otherwise be empty
-    if (sharing.isEmpty || sharing.head == 0.toByte) {
-      result.drop(1)
-    } else {
-      result
-    }
+  /**
+    * Decodes an attribute value out of row string
+    *
+    * @param row row bytes
+    * @param offset offset into the row bytes
+    * @param length length of the row bytes, from the offset
+    * @return
+    */
+  def decodeRowValue(row: Array[Byte], offset: Int, length: Int): Try[AnyRef] = Try {
+    val valueStart = offset + rowValueOffset // start of the encoded value
+    // null byte indicates end of value
+    val valueEnd = math.min(row.indexOf(ByteArrays.ZeroByte, valueStart), offset + length)
+    decodeValue(new String(row, valueStart, valueEnd - valueStart, StandardCharsets.UTF_8))
   }
 }
 
-object AttributeIndex {
+object AttributeIndex extends ConfiguredIndex {
 
-  val Name = "attr"
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  val TieredOptions = Seq(Z3IndexKeySpace, XZ3IndexKeySpace, Z2IndexKeySpace, XZ2IndexKeySpace)
+  import scala.collection.JavaConverters._
 
-  trait AttributeRowDecoder {
+  // note: keep z-indices before xz-indices, in order to use the most specific option available
+  private val tiers = Seq(Z3IndexKeySpace, XZ3IndexKeySpace, Z2IndexKeySpace, XZ2IndexKeySpace, DateIndexKeySpace)
 
-    /**
-      * Decodes an attribute value out of row string
-      *
-      * @param sft simple feature type
-      * @param i attribute index
-      * @return (bytes, offset, length) => decoded value
-      */
-    def decodeRowValue(sft: SimpleFeatureType, i: Int): (Array[Byte], Int, Int) => Try[Any]
+  val JoinIndexName = "join"
+
+  override val name = "attr"
+  override val version = 8
+
+  override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean = {
+    if (attributes.isEmpty) { false } else {
+      val primary = attributes.take(1)
+      val secondary = attributes.tail
+      AttributeIndexKeySpace.supports(sft, primary) && (secondary.isEmpty || tiers.exists(_.supports(sft, secondary)))
+    }
+  }
+
+  override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] = {
+    sft.getAttributeDescriptors.asScala.flatMap { d =>
+      val index = d.getUserData.get(AttributeOptions.OPT_INDEX).asInstanceOf[String]
+      if (index != null &&
+          (index.equalsIgnoreCase(IndexCoverage.FULL.toString) || java.lang.Boolean.valueOf(index)) &&
+          AttributeIndexKey.encodable(d)) {
+        Seq(Seq(d.getLocalName) ++ Option(sft.getGeomField) ++ sft.getDtgField.filter(_ != d.getLocalName))
+      } else {
+        Seq.empty
+      }
+    }
+  }
+
+  /**
+    * Checks if the given field is attribute indexed
+    *
+    * @param sft simple feature type
+    * @param attribute attribute to check
+    * @return
+    */
+  def indexed(sft: SimpleFeatureType, attribute: String): Boolean = {
+    sft.getIndices.exists { i =>
+      (i.name == name || i.name == JoinIndexName) && i.attributes.headOption.contains(attribute)
+    }
+  }
+
+  /**
+    * Id from attribute index row
+    *
+    * @param sft simple feature type
+    * @param rowValueOffset offset into the row for the value (usually the sharding prefix
+    *                       and/or the attribute number for older index impls)
+    * @param tierKeyLength tiered keyspace length
+    */
+  class IdFromAttributeRow(sft: SimpleFeatureType, rowValueOffset: Int, tierKeyLength: Int)
+      extends IdFromRow(sft, 0) {
+
+    private val idFromBytes = GeoMesaFeatureIndex.idFromBytes(sft)
+
+    override def apply(row: Array[Byte], offset: Int, length: Int, feature: SimpleFeature): String = {
+      // null byte indicates end of value
+      val start = row.indexOf(ByteArrays.ZeroByte, rowValueOffset + offset) + tierKeyLength + 1
+      idFromBytes(row, start, length + offset - start, feature)
+    }
   }
 }

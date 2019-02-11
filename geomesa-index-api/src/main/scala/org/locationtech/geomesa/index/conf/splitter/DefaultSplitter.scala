@@ -19,6 +19,7 @@ import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, Attribute
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
+import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.text.{DateParsing, KVPairParser}
@@ -40,14 +41,18 @@ class DefaultSplitter extends TableSplitter with LazyLogging {
                          index: String,
                          partition: String,
                          options: String): Array[Array[Byte]] = {
-    val opts = Option(options).map(KVPairParser.parse).getOrElse(Map.empty)
-    index match {
-      case IdIndex.Name                 => idBytes(opts)
-      case AttributeIndex.Name          => attributeBytes(sft, opts)
-      case Z3Index.Name | XZ3Index.Name => z3Bytes(sft, Option(partition), opts)
-      case Z2Index.Name | XZ2Index.Name => z2Bytes(opts)
-      case _ => logger.warn(s"Unhandled index type $index"); Array(Array.empty[Byte])
+    val splits = Try(IndexId.id(index)).toOption.flatMap { id =>
+      val opts = Option(options).map(KVPairParser.parse).getOrElse(Map.empty)
+      id.name match {
+        case IdIndex.name                 => Some(idBytes(opts))
+        case Z3Index.name | XZ3Index.name => Some(z3Bytes(sft, Option(partition), opts))
+        case Z2Index.name | XZ2Index.name => Some(z2Bytes(opts))
+        case AttributeIndex.name          => Some(attributeBytes(sft, id.attributes.head, opts))
+        case AttributeIndex.JoinIndexName => Some(attributeBytes(sft, id.attributes.head, opts))
+        case _ => None
+      }
     }
+    splits.getOrElse { logger.warn(s"Unhandled index type $index"); Array(Array.empty[Byte]) }
   }
 }
 
@@ -57,8 +62,8 @@ object DefaultSplitter {
 
   object Parser {
 
-    val Z3MinDateOption = s"${Z3Index.Name}.min"
-    val Z3MaxDateOption = s"${Z3Index.Name}.max"
+    val Z3MinDateOption = s"${Z3Index.name}.min"
+    val Z3MaxDateOption = s"${Z3Index.name}.max"
 
     /**
       * Creates splits suitable for a feature ID index. If nothing is specified, will assume a hex distribution.
@@ -74,7 +79,7 @@ object DefaultSplitter {
       */
     def idSplits(options: Map[String, String]): Seq[String] = {
       val patterns = {
-        val configured = DefaultSplitter.patterns(s"${IdIndex.Name}.pattern", options)
+        val configured = DefaultSplitter.patterns(s"${IdIndex.name}.pattern", options)
         if (configured.hasNext) { configured } else {
           Iterator("[0]", "[4]", "[8]", "[c]") // 4 splits assuming hex layout
         }
@@ -97,7 +102,7 @@ object DefaultSplitter {
       * @return
       */
     def attributeSplits(name: String, binding: Class[_], options: Map[String, String]): Seq[String] = {
-      val patterns = DefaultSplitter.patterns(s"${AttributeIndex.Name}.$name.pattern", options)
+      val patterns = DefaultSplitter.patterns(s"${AttributeIndex.name}.$name.pattern", options)
       val ranges = patterns.flatMap(SplitPatternParser.parse)
       val splits = if (classOf[Number].isAssignableFrom(binding)) {
         try {
@@ -175,7 +180,7 @@ object DefaultSplitter {
       */
     def z3BitSplits(options: Map[String, String]): Seq[Long] = {
       // note: first bit in z value is not used, and is always 0
-      bitSplits(s"${Z3Index.Name}.bits", options, 1)
+      bitSplits(s"${Z3Index.name}.bits", options, 1)
     }
 
     /**
@@ -191,21 +196,20 @@ object DefaultSplitter {
       */
     def z2Splits(options: Map[String, String]): Seq[Long] =
       // note: first 2 bits in z value are not used, and are always 0
-      bitSplits(s"${Z2Index.Name}.bits", options, 2)
+      bitSplits(s"${Z2Index.name}.bits", options, 2)
   }
 
   private def idBytes(options: Map[String, String]): Array[Array[Byte]] =
     Parser.idSplits(options).map(_.getBytes(StandardCharsets.UTF_8)).toArray
 
-  private def attributeBytes(sft: SimpleFeatureType, options: Map[String, String]): Array[Array[Byte]] = {
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
+  private def attributeBytes(sft: SimpleFeatureType,
+                             attribute: String,
+                             options: Map[String, String]): Array[Array[Byte]] = {
+    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-    import scala.collection.JavaConversions._
-
-    sft.getAttributeDescriptors.collect { case ad if ad.isIndexed =>
-      val splits = Parser.attributeSplits(ad.getLocalName, ad.getType.getBinding, options)
-      splits.map(_.getBytes(StandardCharsets.UTF_8)).toArray
-    }.reduce(_ ++ _)
+    val descriptor = sft.getDescriptor(attribute)
+    val binding = if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
+    Parser.attributeSplits(attribute, binding, options).map(_.getBytes(StandardCharsets.UTF_8)).toArray
   }
 
   private def z3Bytes(sft: SimpleFeatureType,

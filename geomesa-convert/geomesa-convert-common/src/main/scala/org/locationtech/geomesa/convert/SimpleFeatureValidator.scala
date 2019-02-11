@@ -145,7 +145,7 @@ object SimpleFeatureValidator extends LazyLogging {
     override def validator(sft: SimpleFeatureType, config: Option[String]): Validator = {
       val geom = sft.getGeomIndex
       val dtg = sft.getDtgIndex.getOrElse(-1)
-      val enabled = sft.getIndices.collect { case (n, _, mode) if mode.write => n.toLowerCase(Locale.US) }
+      val enabled = sft.getIndices.collect { case id if id.mode.write => id.name.toLowerCase(Locale.US) }
       if (enabled.contains("z3") || enabled.contains("xz3") || (enabled.isEmpty && geom != -1 && dtg != -1)) {
         val minDate = Date.from(BinnedTime.ZMinDate.toInstant)
         val maxDate = Date.from(BinnedTime.maxDate(sft.getZ3Interval).toInstant)

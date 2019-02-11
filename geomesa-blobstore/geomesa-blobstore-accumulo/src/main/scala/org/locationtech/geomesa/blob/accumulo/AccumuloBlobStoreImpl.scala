@@ -31,10 +31,12 @@ class AccumuloBlobStoreImpl(val connector: Connector,
 
   import scala.collection.JavaConverters._
 
-  AccumuloVersion.ensureTableExists(connector, blobTableName)
+  AccumuloVersion.createTableIfNeeded(connector, blobTableName)
 
   protected val bw = connector.createBatchWriter(blobTableName, bwConf)
   protected val tableOps = connector.tableOperations()
+
+  private val empty = new Text()
 
   override def get(id: String): Blob = {
     val scanner = connector.createScanner(
@@ -57,7 +59,7 @@ class AccumuloBlobStoreImpl(val connector: Connector,
 
   override def put(id: String, localName: String, bytes: Array[Byte]): Unit = {
     val m = new Mutation(id)
-    m.put(EMPTY_COLF, new Text(localName), new Value(bytes))
+    m.put(empty, new Text(localName), new Value(bytes))
     bw.addMutation(m)
     bw.flush()
   }

@@ -8,12 +8,14 @@
 
 package org.locationtech.geomesa.accumulo.util
 
+import java.util.Locale
+
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.accumulo.util.AccumuloSchemaBuilder.{AccumuloAttributeBuilder, AccumuloUserDataBuilder}
-import org.locationtech.geomesa.index.conf.TableSplitter
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder.{AbstractAttributeBuilder, AbstractSchemaBuilder, AbstractUserDataBuilder}
-import org.locationtech.geomesa.utils.geotools.SftBuilder._
-import org.locationtech.geomesa.utils.geotools.{InitBuilder, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
+import org.locationtech.geomesa.utils.stats.IndexCoverage
 
 class AccumuloSchemaBuilder extends AbstractSchemaBuilder[AccumuloAttributeBuilder, AccumuloUserDataBuilder] {
   override protected def createAttributeBuilder(spec: StringBuilder): AccumuloAttributeBuilder =
@@ -56,7 +58,8 @@ object AccumuloSchemaBuilder {
       *
       * @return attribute builder for chaining calls
       */
-    def withJoinIndex(): AccumuloAttributeBuilder = withOption(AttributeOptions.OPT_INDEX, "join")
+    def withJoinIndex(): AccumuloAttributeBuilder =
+      withOption(AttributeOptions.OPT_INDEX, IndexCoverage.JOIN.toString.toLowerCase(Locale.US))
 
     /**
       * Add a join index on the current attribute. This uses a reduced format to save disk space,
@@ -68,7 +71,7 @@ object AccumuloSchemaBuilder {
       * @return attribute builder for chaining calls
       */
     def withJoinIndex(cardinality: Cardinality): AccumuloAttributeBuilder =
-      withOptions(AttributeOptions.OPT_INDEX -> "join", AttributeOptions.OPT_CARDINALITY -> cardinality.toString)
+      withJoinIndex().withOption(AttributeOptions.OPT_CARDINALITY, cardinality.toString)
 
     /**
       * Adds a full (covering) index. Equivalent to `addIndex`
@@ -102,7 +105,7 @@ object AccumuloSchemaBuilder {
   }
 
   class AccumuloUserDataBuilder(parent: AccumuloSchemaBuilder, userData: StringBuilder)
-      extends AbstractUserDataBuilder[AccumuloUserDataBuilder](parent, userData) {
+      extends AbstractUserDataBuilder[AccumuloUserDataBuilder](parent, userData) with LazyLogging {
 
     /**
       * Sets table sharing for this schema
@@ -110,8 +113,13 @@ object AccumuloSchemaBuilder {
       * @param sharing table sharing
       * @return user data builder for call chaining
       */
-    def tableSharing(sharing: Boolean): AccumuloUserDataBuilder =
-      userData(SimpleFeatureTypes.Configs.TABLE_SHARING_KEY, sharing.toString)
+    @deprecated("table sharing is no longer supported")
+    def tableSharing(sharing: Boolean): AccumuloUserDataBuilder = {
+      if (sharing) {
+        logger.warn("Ignoring table sharing hint - table sharing is no longer supported")
+      }
+      this
+    }
 
     /**
       * Set logical timestamps for the Accumulo tables
@@ -122,20 +130,4 @@ object AccumuloSchemaBuilder {
     def logicalTime(logical: Boolean): AccumuloUserDataBuilder =
       userData(SimpleFeatureTypes.Configs.LOGICAL_TIME_KEY, logical.toString)
   }
-}
-
-@deprecated("AccumuloSchemaBuilder")
-class AccumuloSftBuilder extends InitBuilder[AccumuloSftBuilder] {
-
-  def recordSplitter(clazz: String, splitOptions: Map[String,String]): AccumuloSftBuilder = {
-    // note that SimpleFeatureTypes requires that splitter and splitter opts be ordered properly
-    userData(SimpleFeatureTypes.Configs.TABLE_SPLITTER, clazz)
-    if (splitOptions.nonEmpty) {
-      userData(SimpleFeatureTypes.Configs.TABLE_SPLITTER_OPTS, encodeMap(splitOptions, SepPart, SepEntry))
-    }
-    this
-  }
-
-  def recordSplitter(clazz: Class[_ <: TableSplitter], splitOptions: Map[String,String]): AccumuloSftBuilder =
-    recordSplitter(clazz.getName, splitOptions)
 }

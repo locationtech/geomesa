@@ -37,7 +37,6 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
   sequential
 
   override val spec = "some_id:String,dtg:Date,geom:Point:srid=4326"
-  override val tableSharing = false
 
   "DTGAgeOff" should {
 

@@ -36,9 +36,6 @@ trait TestWithDataStore extends Specification {
   def spec: String
   def dtgField: Option[String] = Some("dtg")
 
-  // TODO GEOMESA-1146 refactor to allow running of tests with table sharing on and off...
-  def tableSharing: Boolean = true
-
   def additionalDsParams(): Map[String, Any] = Map.empty
 
   // we use class name to prevent spillage between unit tests in the mock connector
@@ -77,7 +74,6 @@ trait TestWithDataStore extends Specification {
 
   lazy val (ds, sft) = {
     val sft = SimpleFeatureTypes.createType(sftName, spec)
-    sft.setTableSharing(tableSharing)
     dtgField.foreach(sft.setDtgField)
     val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
     ds.createSchema(sft)

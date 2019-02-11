@@ -14,31 +14,22 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeature
 
 object QueryPlan {
-  type Reducer = (CloseableIterator[SimpleFeature]) => CloseableIterator[SimpleFeature]
+  type Reducer = CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature]
 }
 
 /**
   * Plan for querying a GeoMesaDataStore
   *
   * @tparam DS type of this data store
-  * @tparam F wrapper around a simple feature - used for caching write calculations
-  * @tparam W write result - feature writers will transform simple features into these
   */
-trait QueryPlan[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W] {
+trait QueryPlan[DS <: GeoMesaDataStore[DS]] {
 
   /**
-    * Filter this query plan is satisfying
+    * Reference back to the strategy
     *
     * @return
     */
-  def filter: FilterStrategy[DS, F, W]
-
-  /**
-    * May return duplicate simple features or not
-    *
-    * @return
-    */
-  def hasDuplicates: Boolean = false
+  def filter: FilterStrategy
 
   /**
     * Optional reduce step for simple features coming back

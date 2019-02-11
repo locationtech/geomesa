@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.tools.ingest
 
-import java.util.{List => jList}
-
 import com.beust.jcommander.Parameters
 import com.typesafe.config.Config
 import org.apache.hadoop.fs.Path
@@ -44,7 +42,7 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
 
       override def runDistributedJob(statusCallback: StatusCallback, waitForCompletion: Boolean): Option[(Long, Long)] = {
         // validate index param now that we have a datastore and the sft has been created
-        val index: String = params.loadRequiredIndex(ds.asInstanceOf[HBaseDataStore], IndexMode.Write).identifier
+        val index: String = params.loadIndex(ds.asInstanceOf[HBaseDataStore], IndexMode.Write).identifier
 
         val job = if(params.mode == RunModes.DistributedCombine) {
           converterCombineIngestJob(dsParams, sft, converterConfig, inputs, params.maxSplitSize, index)

@@ -60,4 +60,8 @@ Notes
 * Non-geometry types (including dates) may be indexed as separate attribute indices. For details, see
   :ref:`attribute_indices`.
 * Container types (List and Map) must be parameterized with non-container types from the above table.
-* List types may be indexed, but querying a list type may be slow due to deduplication.
+
+.. warning::
+
+  List types may be indexed, but querying a list type may result in duplicate results. If duplicate
+  results are a problem, users should implement their own de-duplication logic for list queries

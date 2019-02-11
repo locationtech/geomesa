@@ -10,8 +10,7 @@ package org.locationtech.geomesa.index.strategies
 
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
-import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.feature.simple.SimpleFeatureType
@@ -19,26 +18,9 @@ import org.opengis.filter._
 import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.temporal.{After, Before, During, TEquals}
 
-trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W]
-    extends GeoMesaFeatureIndex[DS, F, W] {
+trait AttributeFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 
-  override def getFilterStrategy(sft: SimpleFeatureType,
-                                 filter: Filter,
-                                 transform: Option[SimpleFeatureType]): Seq[FilterStrategy[DS, F, W]] = {
-    import org.locationtech.geomesa.index.strategies.AttributeFilterStrategy.attributeCheck
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-
-    val attributes = FilterHelper.propertyNames(filter, sft)
-    val indexedAttributes = attributes.filter(a => Option(sft.getDescriptor(a)).exists(_.isIndexed))
-    indexedAttributes.flatMap { attribute =>
-      val (primary, secondary) = FilterExtractingVisitor(filter, attribute, sft, attributeCheck(sft))
-      if (primary.isDefined) {
-        Seq(FilterStrategy(this, primary, secondary))
-      } else {
-        Seq.empty
-      }
-    }
-  }
+  def attribute: String
 
   /**
     * Static cost - equals 100, range 250, not null 5000
@@ -48,34 +30,37 @@ trait AttributeFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeat
     *
     * Compare with id at 1, z3 at 200, z2 at 400
     */
-  override def getCost(sft: SimpleFeatureType,
-                       stats: Option[GeoMesaStats],
-                       filter: FilterStrategy[DS, F, W],
-                       transform: Option[SimpleFeatureType]): Long = {
+  override def getFilterStrategy(filter: Filter,
+                                 transform: Option[SimpleFeatureType],
+                                 stats: Option[GeoMesaStats]): Option[FilterStrategy] = {
+    import org.locationtech.geomesa.index.strategies.AttributeFilterStrategy.attributeCheck
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-    filter.primary match {
-      case None    => Long.MaxValue
-      case Some(f) =>
-        // if there is a filter, we know it has a valid property name
-        val attribute = FilterHelper.propertyNames(f, sft).head
-        val cost = stats.flatMap(_.getCount(sft, f, exact = false)).getOrElse {
-          val binding = sft.getDescriptor(attribute).getType.getBinding
-          val bounds = FilterHelper.extractAttributeBounds(f, attribute, binding)
+    val (primary, secondary) = FilterExtractingVisitor(filter, attribute, sft, attributeCheck(sft))
+    if (primary.isDefined) {
+      lazy val cost = {
+        val descriptor = sft.getDescriptor(attribute)
+        val base = stats.flatMap(_.getCount(sft, primary.get, exact = false)).getOrElse {
+          val binding = if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
+          val bounds = FilterHelper.extractAttributeBounds(primary.get, attribute, binding)
           if (bounds.isEmpty || !bounds.forall(_.isBounded)) {
             AttributeFilterStrategy.StaticNotNullCost
           } else if (bounds.precise && !bounds.exists(_.isRange)) {
-            AttributeFilterStrategy.StaticEqualsCost
+            AttributeFilterStrategy.StaticEqualsCost // TODO account for secondary index
           } else {
             AttributeFilterStrategy.StaticRangeCost
           }
         }
         // prioritize attributes based on cardinality hint
-        sft.getDescriptor(attribute).getCardinality() match {
-          case Cardinality.HIGH    => cost / 10
-          case Cardinality.UNKNOWN => cost
-          case Cardinality.LOW     => cost * 10
+        descriptor.getCardinality() match {
+          case Cardinality.HIGH    => base / 10
+          case Cardinality.UNKNOWN => base
+          case Cardinality.LOW     => base * 10
         }
+      }
+      Some(FilterStrategy(this, primary, secondary, cost))
+    } else {
+      None
     }
   }
 }
@@ -102,7 +87,7 @@ object AttributeFilterStrategy {
       case _: During |  _: Before | _: After | _: TEquals => true
       case _: PropertyIsNull => true // we need this to be able to handle 'not null'
       case f: PropertyIsLike => isStringProperty(sft, f.getExpression) && likeEligible(f)
-      case f: Not =>  f.getFilter.isInstanceOf[PropertyIsNull]
+      case f: Not => f.getFilter.isInstanceOf[PropertyIsNull]
       case _ => false
     }
   }

@@ -17,9 +17,9 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
-import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestAttributeIndex, TestRange}
+import org.locationtech.geomesa.index.TestGeoMesaDataStore.TestRange
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
+import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey}
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -179,14 +179,15 @@ class AttributeIndexTest extends Specification with LazyLogging {
       q.getHints.put(QueryHints.QUERY_INDEX, "attr")
 
       forall(ds.getQueryPlan(q)) { qp =>
-        qp.filter.index must beAnInstanceOf[TestAttributeIndex]
+        qp.filter.index must beAnInstanceOf[AttributeIndex]
         qp.filter.primary must beSome(FastFilterFactory.toFilter(sft, after))
         qp.filter.secondary must beSome(FastFilterFactory.toFilter(sft, before))
       }
     }
 
     "handle large or'd attribute queries" in {
-      val spec = "attr:String:index=true,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='attr:1,z3'"
+      // test against the attr+date tiered index, otherwise secondary z3 ranges slow everything down
+      val spec = "attr:String,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='z3,attr:8:attr:dtg'"
       val sft = SimpleFeatureTypes.createType(typeName, spec)
 
       val ds = new TestGeoMesaDataStore(true)
@@ -248,13 +249,13 @@ class AttributeIndexTest extends Specification with LazyLogging {
       val notNull = ECQL.toFilter("name IS NOT NULL")
       val notNullPlans = ds.getQueryPlan(new Query(typeName, notNull))
       notNullPlans must haveLength(1)
-      notNullPlans.head.index must beAnInstanceOf[TestAttributeIndex]
+      notNullPlans.head.filter.index must beAnInstanceOf[AttributeIndex]
       notNullPlans.head.filter.primary must beSome(notNull)
       notNullPlans.head.filter.secondary must beNone
 
       val agePlans = ds.getQueryPlan(new Query(typeName, ECQL.toFilter("age = 21 AND name IS NOT NULL")))
       agePlans must haveLength(1)
-      agePlans.head.index must beAnInstanceOf[TestAttributeIndex]
+      agePlans.head.filter.index must beAnInstanceOf[AttributeIndex]
       agePlans.head.filter.primary must beSome(FastFilterFactory.toFilter(sft, "age = 21"))
       agePlans.head.filter.secondary must beSome(notNull)
     }

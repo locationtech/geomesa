@@ -18,12 +18,12 @@ import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.RecordIndex
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.ProxyIdFunction
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -103,7 +103,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithDataStore {
     "still query by feature id" in {
       val query = new Query(sftName, ECQL.toFilter("IN ('28a12c18-e5ae-4c04-ae7b-bf7cdbfaf235')"))
       foreach(ds.getQueryPlan(query)) { plan =>
-        plan.filter.index mustEqual RecordIndex
+        plan.filter.index.name mustEqual IdIndex.name
       }
       val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       result mustEqual Seq(features(5))

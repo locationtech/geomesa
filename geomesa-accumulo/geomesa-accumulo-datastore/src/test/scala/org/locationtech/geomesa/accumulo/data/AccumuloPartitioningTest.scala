@@ -24,7 +24,6 @@ import org.locationtech.geomesa.index.utils.ExplainPrintln
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.opengis.feature.simple.SimpleFeature
-import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -32,6 +31,8 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloPartitioningTest extends Specification with TestWithDataStore {
+
+  // note: using `Seq.foreach; ok` instead of `foreach(Seq)` shaves several seconds off the time to run this test
 
   sequential
 
@@ -54,12 +55,12 @@ class AccumuloPartitioningTest extends Specification with TestWithDataStore {
       addFeatures(features)
 
       val indices = ds.manager.indices(sft)
-      indices.map(_.name) must containTheSameElementsAs(Seq(Z3Index.Name, Z2Index.Name, IdIndex.Name, AttributeIndex.Name))
-      foreach(indices)(_.getTableNames(sft, ds, None) must haveLength(2))
+      indices.map(_.name) must containTheSameElementsAs(Seq(Z3Index.name, Z2Index.name, IdIndex.name, AttributeIndex.name))
+      foreach(indices)(_.getTableNames(None) must haveLength(2))
 
       val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("name"), Array("dtg", "geom", "attr", "name"))
 
-      foreach(transformsList) { transforms =>
+      transformsList.foreach { transforms =>
         testQuery("IN('0', '2')", transforms, Seq(features(0), features(2)))
         testQuery("bbox(geom,38,48,52,62) and dtg DURING 2018-01-01T00:00:00.000Z/2018-01-08T12:00:00.000Z", transforms, features.dropRight(2))
         testQuery("bbox(geom,42,48,52,62) and dtg DURING 2017-12-15T00:00:00.000Z/2018-01-15T00:00:00.000Z", transforms, features.drop(2))
@@ -72,9 +73,9 @@ class AccumuloPartitioningTest extends Specification with TestWithDataStore {
 
       ds.getFeatureSource(sftName).removeFeatures(ECQL.toFilter("INCLUDE"))
 
-      foreach(indices)(_.getTableNames(sft, ds, None) must beEmpty)
+      foreach(indices)(_.getTableNames(None) must beEmpty)
 
-      forall(Seq("INCLUDE",
+      Seq("INCLUDE",
         "IN('0', '2')",
         "bbox(geom,42,48,52,62)",
         "bbox(geom,38,48,52,62) and dtg DURING 2018-01-01T00:00:00.000Z/2018-01-08T12:00:00.000Z",
@@ -82,14 +83,15 @@ class AccumuloPartitioningTest extends Specification with TestWithDataStore {
         "dtg DURING 2018-01-01T00:00:00.000Z/2018-01-08T12:00:00.000Z",
         "attr = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2018-01-01T00:00:00.000Z/2018-01-08T12:00:00.000Z",
         "name < 'name5'",
-        "name = 'name5'")) { filter =>
+        "name = 'name5'").foreach { filter =>
         val fr = ds.getFeatureReader(new Query(sftName, ECQL.toFilter(filter)), Transaction.AUTO_COMMIT)
         SelfClosingIterator(fr).toList must beEmpty
       }
+      ok
     }
   }
 
-  def testQuery(filter: String, transforms: Array[String], results: Seq[SimpleFeature]): MatchResult[Any] = {
+  def testQuery(filter: String, transforms: Array[String], results: Seq[SimpleFeature]): Unit = {
     val query = new Query(sftName, ECQL.toFilter(filter), transforms)
     val fr = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
     val features = SelfClosingIterator(fr).toList

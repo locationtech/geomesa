@@ -8,20 +8,26 @@
 
 package org.locationtech.geomesa.hbase.jobs
 
+import java.nio.charset.StandardCharsets
+
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
-import org.apache.hadoop.hbase.client.{Mutation, Put}
+import org.apache.hadoop.hbase.client.Put
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat2
+import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.geotools.data.DataStoreFinder
-import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStore, HBaseFeature}
+import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStore, HBaseIndexAdapter}
+import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
+import org.locationtech.geomesa.index.api.{MultiRowKeyValue, SingleRowKeyValue, WritableFeature, WriteConverter}
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
+import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.control.NonFatal
@@ -33,8 +39,8 @@ class HBaseIndexFileMapper extends Mapper[Writable, SimpleFeature, ImmutableByte
 
   private var ds: HBaseDataStore = _
   private var sft: SimpleFeatureType = _
-  private var writer: HBaseFeature => Seq[Mutation] = _
-  private var wrapper: SimpleFeature => HBaseFeature = _
+  private var wrapper: FeatureWrapper = _
+  private var writer: WriteConverter[_] = _
 
   private var features: Counter = _
   private var entries: Counter = _
@@ -49,12 +55,11 @@ class HBaseIndexFileMapper extends Mapper[Writable, SimpleFeature, ImmutableByte
     require(ds != null, "Could not find data store - check your configuration and hbase-site.xml")
     sft = ds.getSchema(GeoMesaConfigurator.getFeatureTypeOut(context.getConfiguration))
     require(sft != null, "Could not find schema - check your configuration")
-    val index = GeoMesaConfigurator.getIndicesOut(context.getConfiguration) match {
-      case Some(Seq(idx)) => ds.manager.index(idx)
+    wrapper = WritableFeature.wrapper(sft, ds.adapter.groups)
+    writer = GeoMesaConfigurator.getIndicesOut(context.getConfiguration) match {
+      case Some(Seq(idx)) => ds.manager.index(sft, idx, IndexMode.Write).createConverter()
       case _ => throw new IllegalArgumentException("Could not find write index - check your configuration")
     }
-    writer = index.writer(sft, ds)
-    wrapper = HBaseFeature.wrapper(sft)
 
     features = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
     entries = context.getCounter(GeoMesaOutputFormat.Counters.Group, "entries")
@@ -64,12 +69,39 @@ class HBaseIndexFileMapper extends Mapper[Writable, SimpleFeature, ImmutableByte
   override def cleanup(context: HBaseIndexFileMapper.MapContext): Unit = ds.dispose()
 
   override def map(key: Writable, value: SimpleFeature, context: HBaseIndexFileMapper.MapContext): Unit = {
+    // TODO create a common writer that will create mutations without writing them
     try {
-      val feature = wrapper(value)
-      writer.apply(feature).asInstanceOf[Seq[Put]].foreach { put =>
-        bytes.set(put.getRow)
-        context.write(bytes, put)
-        entries.increment(1L)
+      val feature = wrapper.wrap(value)
+      writer.convert(feature) match {
+        case kv: SingleRowKeyValue[_] =>
+          kv.values.foreach { value =>
+            val put = new Put(kv.row)
+            put.addImmutable(value.cf, value.cq, value.value)
+            if (!value.vis.isEmpty) {
+              put.setCellVisibility(new CellVisibility(new String(value.vis, StandardCharsets.UTF_8)))
+            }
+            put.setDurability(HBaseIndexAdapter.durability)
+
+            bytes.set(put.getRow)
+            context.write(bytes, put)
+            entries.increment(1L)
+          }
+
+        case mkv: MultiRowKeyValue[_] =>
+          mkv.rows.foreach { row =>
+            mkv.values.foreach { value =>
+              val put = new Put(row)
+              put.addImmutable(value.cf, value.cq, value.value)
+              if (!value.vis.isEmpty) {
+                put.setCellVisibility(new CellVisibility(new String(value.vis, StandardCharsets.UTF_8)))
+              }
+              put.setDurability(HBaseIndexAdapter.durability)
+
+              bytes.set(put.getRow)
+              context.write(bytes, put)
+              entries.increment(1L)
+            }
+          }
       }
       features.increment(1L)
     } catch {
@@ -105,8 +137,11 @@ object HBaseIndexFileMapper {
       val sft = ds.getSchema(typeName)
       require(sft != null, s"Schema $typeName does not exist, please create it first")
       require(!TablePartition.partitioned(sft), "Writing to partitioned tables is not currently supported")
-      val idx = ds.manager.index(index)
-      val tableName = TableName.valueOf(idx.getTableNames(sft, ds, None).head)
+      val idx = ds.manager.index(sft, index, IndexMode.Write)
+      val tableName = idx.getTableNames(None) match {
+        case Seq(t) => TableName.valueOf(t) // should always be writing to a single table here
+        case tables => throw new IllegalStateException(s"Expected a single table but got: ${tables.mkString(", ")}")
+      }
       val table = ds.connection.getTable(tableName)
 
       GeoMesaConfigurator.setDataStoreOutParams(job.getConfiguration, params)

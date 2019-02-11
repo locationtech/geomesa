@@ -58,6 +58,15 @@ object GeoMesaSystemProperties extends LazyLogging {
       }
     }
 
+    def toLong: Option[Long] = option.flatMap { value =>
+      Try(value.toLong) match {
+        case Success(v) => Some(v)
+        case Failure(_) =>
+          logger.warn(s"Invalid long for property $property: $value")
+          Option(default).map(_.toLong)
+      }
+    }
+
     def toBoolean: Option[Boolean] = option.flatMap { value =>
       Try(value.toBoolean) match {
         case Success(v) => Some(v)

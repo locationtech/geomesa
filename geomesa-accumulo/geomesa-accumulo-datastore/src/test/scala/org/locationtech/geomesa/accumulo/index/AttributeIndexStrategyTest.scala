@@ -10,8 +10,6 @@ package org.locationtech.geomesa.accumulo.index
 
 import java.util.Date
 
-import org.apache.accumulo.core.data.{Range => AccRange}
-import org.apache.hadoop.io.Text
 import org.geotools.data._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.cql2.CQLException
@@ -20,17 +18,20 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.legacy.attribute.AttributeWritableIndex
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinPlan}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.index.conf.QueryHints._
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.planning.FilterSplitter
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -90,7 +91,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
   def execute(filter: String, explain: Explainer = ExplainNull, ranges: Option[Matcher[Int]] = None): List[String] = {
     val query = new Query(sftName, ECQL.toFilter(filter))
     forall(ds.getQueryPlan(query, explainer = explain)) { qp =>
-      qp.filter.index mustEqual AttributeIndex
+      qp.filter.index.name must beOneOf(AttributeIndex.name, JoinIndex.name)
       forall(ranges)(_.test(qp.ranges.length))
     }
     val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
@@ -98,21 +99,24 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
   }
 
   def runQuery(query: Query, explain: Explainer = ExplainNull): Iterator[SimpleFeature] = {
-    forall(ds.getQueryPlan(query, explainer = explain))(_.filter.index mustEqual AttributeIndex)
+    forall(ds.getQueryPlan(query, explainer = explain)) { qp =>
+      qp.filter.index.name must beOneOf(AttributeIndex.name, JoinIndex.name)
+    }
     SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
   }
 
   "AttributeIndexStrategy" should {
     "print values" in {
       skipped("used for debugging")
-      AttributeIndex.getTableNames(sft, ds).foreach { table =>
-        println(table)
-        val scanner = connector.createScanner(table, MockUserAuthorizations)
-        val prefix = AttributeWritableIndex.getRowPrefix(sft, sft.indexOf("height"))
-        scanner.setRange(AccRange.prefix(new Text(prefix)))
-        scanner.asScala.foreach(println)
+      ds.manager.indices(sft).foreach { index =>
+        if (index.name == AttributeIndex.name || index.name == JoinIndex.name) {
+          index.getTableNames().foreach { table =>
+            println(table)
+            WithClose(connector.createScanner(table, MockUserAuthorizations))(_.asScala.foreach(println))
+          }
+          println()
+        }
       }
-      println()
       success
     }
 
@@ -792,57 +796,49 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     }
 
     "correctly query on lists of strings" in {
+      // note: may return duplicate results
       "lt" >> {
         val features = execute("fingers<'middle'")
-        features must haveLength(3)
         features must contain("alice", "bob", "charles")
       }
       "gt" >> {
         val features = execute("fingers>'middle'")
-        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
       "lte" >> {
         val features = execute("fingers<='middle'")
-        features must haveLength(4)
         features must contain("alice", "bill", "bob", "charles")
       }
       "gte" >> {
         val features = execute("fingers>='middle'")
-        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
       "between (inclusive)" >> {
         val features = execute("fingers BETWEEN 'pinkie' AND 'thumb'")
-        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
     }
 
     "correctly query on lists of doubles" in {
+      // note: may return duplicate results
       "lt" >> {
         val features = execute("toes<2.0")
-        features must haveLength(2)
         features must contain("alice", "bill")
       }
       "gt" >> {
         val features = execute("toes>2.0")
-        features must haveLength(1)
         features must contain("bob")
       }
       "lte" >> {
         val features = execute("toes<=2.0")
-        features must haveLength(3)
         features must contain("alice", "bill", "bob")
       }
       "gte" >> {
         val features = execute("toes>=2.0")
-        features must haveLength(2)
         features must contain("bill", "bob")
       }
       "between (inclusive)" >> {
         val features = execute("toes BETWEEN 1.5 AND 2.5")
-        features must haveLength(2)
         features must contain("bill", "bob")
       }
     }
@@ -919,23 +915,22 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     val ff = CommonFactoryFinder.getFilterFactory2
 
     "merge PropertyIsEqualTo primary filters" >> {
-      val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
-      val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
-      val qf1 = FilterStrategy(AttributeIndex, Some(q1), None)
-      val qf2 = FilterStrategy(AttributeIndex, Some(q2), None)
+      val q1 = ff.equals(ff.property("name"), ff.literal("1"))
+      val q2 = ff.equals(ff.property("name"), ff.literal("2"))
+      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), None, 0L)
+      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), None, 0L)
       val res = FilterSplitter.tryMergeAttrStrategy(qf1, qf2)
       res must not(beNull)
       res.primary must beSome(ff.or(q1, q2))
     }
 
     "merge PropertyIsEqualTo on multiple ORs" >> {
-
-      val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
-      val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
-      val q3 = ff.equals(ff.property("prop"), ff.literal("3"))
-      val qf1 = FilterStrategy(AttributeIndex, Some(q1), None)
-      val qf2 = FilterStrategy(AttributeIndex, Some(q2), None)
-      val qf3 = FilterStrategy(AttributeIndex, Some(q3), None)
+      val q1 = ff.equals(ff.property("name"), ff.literal("1"))
+      val q2 = ff.equals(ff.property("name"), ff.literal("2"))
+      val q3 = ff.equals(ff.property("name"), ff.literal("3"))
+      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), None, 0L)
+      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), None, 0L)
+      val qf3 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q3), None, 0L)
       val res = FilterSplitter.tryMergeAttrStrategy(FilterSplitter.tryMergeAttrStrategy(qf1, qf2), qf3)
       res must not(beNull)
       res.primary.map(decomposeOr) must beSome(containTheSameElementsAs(Seq[Filter](q1, q2, q3)))
@@ -943,12 +938,12 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
     "merge PropertyIsEqualTo when secondary matches" >> {
       val bbox = ff.bbox("geom", 1, 2, 3, 4, "EPSG:4326")
-      val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
-      val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
-      val q3 = ff.equals(ff.property("prop"), ff.literal("3"))
-      val qf1 = FilterStrategy(AttributeIndex, Some(q1), Some(bbox))
-      val qf2 = FilterStrategy(AttributeIndex, Some(q2), Some(bbox))
-      val qf3 = FilterStrategy(AttributeIndex, Some(q3), Some(bbox))
+      val q1 = ff.equals(ff.property("name"), ff.literal("1"))
+      val q2 = ff.equals(ff.property("name"), ff.literal("2"))
+      val q3 = ff.equals(ff.property("name"), ff.literal("3"))
+      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), Some(bbox), 0L)
+      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), Some(bbox), 0L)
+      val qf3 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q3), Some(bbox), 0L)
       val res = FilterSplitter.tryMergeAttrStrategy(FilterSplitter.tryMergeAttrStrategy(qf1, qf2), qf3)
       res must not(beNull)
       res.primary.map(decomposeOr) must beSome(containTheSameElementsAs(Seq[Filter](q1, q2, q3)))
@@ -957,12 +952,24 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
     "not merge PropertyIsEqualTo when secondary does not match" >> {
       val bbox = ff.bbox("geom", 1, 2, 3, 4, "EPSG:4326")
-      val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
-      val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
-      val qf1 = FilterStrategy(AttributeIndex, Some(q1), Some(bbox))
-      val qf2 = FilterStrategy(AttributeIndex, Some(q2), None)
+      val q1 = ff.equals(ff.property("name"), ff.literal("1"))
+      val q2 = ff.equals(ff.property("name"), ff.literal("2"))
+      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), Some(bbox), 0L)
+      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), None, 0L)
       val res = FilterSplitter.tryMergeAttrStrategy(qf1, qf2)
       res must beNull
+    }
+  }
+
+  "AttributeIndexIterator" should {
+    "be run when requesting extra index-encoded attributes" in {
+      val sftName = "AttributeIndexIteratorTriggerTest"
+      val spec = "name:String:index=join,age:Integer:index-value=true,dtg:Date:index=join,*geom:Point:srid=4326;" +
+          "override.index.dtg.join=true"
+      val sft = SimpleFeatureTypes.createType(sftName, spec)
+      ds.createSchema(sft)
+      val qps = ds.getQueryPlan(new Query(sftName, ECQL.toFilter("name='bob'"), Array("geom", "dtg", "name", "age")))
+      forall(qps)(qp => qp.filter.index.name mustEqual JoinIndex.name)
     }
   }
 }

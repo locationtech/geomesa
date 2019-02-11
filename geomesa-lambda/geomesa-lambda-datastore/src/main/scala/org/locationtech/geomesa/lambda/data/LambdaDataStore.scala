@@ -18,7 +18,7 @@ import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureSource, SimpleFeatureWriter}
 import org.geotools.feature.FeatureTypes
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureCollection, GeoMesaFeatureReader, GeoMesaFeatureSource, GeoMesaFeatureStore}
+import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, GeoMesaFeatureStore}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, NoopStats}
 import org.locationtech.geomesa.kafka.AdminUtilsVersions
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
@@ -63,9 +63,6 @@ class LambdaDataStore(val persistence: DataStore,
   private val runner = new LambdaQueryRunner(persistence, transients, stats)
 
   def persist(typeName: String): Unit = transients.get(typeName).persist()
-
-  protected def createFeatureCollection(query: Query, source: GeoMesaFeatureSource): GeoMesaFeatureCollection =
-    new LambdaFeatureCollection(source, query)
 
   override def getTypeNames: Array[String] = persistence.getTypeNames
 
@@ -120,7 +117,7 @@ class LambdaDataStore(val persistence: DataStore,
   override def getFeatureSource(typeName: Name): SimpleFeatureSource = getFeatureSource(typeName.getLocalPart)
 
   override def getFeatureSource(typeName: String): SimpleFeatureSource =
-    new GeoMesaFeatureStore(this, getSchema(typeName), runner, createFeatureCollection)
+    new GeoMesaFeatureStore(this, getSchema(typeName), runner)
 
   override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader =
     GeoMesaFeatureReader(getSchema(query.getTypeName), query, runner, None, None)

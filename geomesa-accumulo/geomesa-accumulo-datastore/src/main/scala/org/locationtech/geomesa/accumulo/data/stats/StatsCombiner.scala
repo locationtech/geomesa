@@ -54,7 +54,7 @@ class StatsCombiner extends Combiner with LazyLogging {
         CachedLazyBinaryMetadata.decodeRow(key.getRow.getBytes, separator)._1
       } catch {
         // back compatible check
-        case NonFatal(e) => SingleRowAccumuloMetadata.getTypeName(key.getRow)
+        case NonFatal(_) => SingleRowAccumuloMetadata.getTypeName(key.getRow)
       }
       val serializer = serializers(sftName)
 
@@ -91,7 +91,7 @@ object StatsCombiner {
   val SeparatorOption = "sep"
 
   def configure(sft: SimpleFeatureType, connector: Connector, table: String, separator: String): Unit = {
-    AccumuloVersion.ensureTableExists(connector, table)
+    AccumuloVersion.createTableIfNeeded(connector, table)
 
     val sftKey = getSftKey(sft)
     val sftOpt = SimpleFeatureTypes.encodeType(sft)

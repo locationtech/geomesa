@@ -11,7 +11,7 @@ package org.locationtech.geomesa
 import java.math.{MathContext, RoundingMode}
 
 import org.calrissian.mango.types.LexiTypeEncoders
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.utils.geotools.{GeoMesaParam, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -41,7 +41,7 @@ package object raster {
   // Raster CQ MetaData SFT
   // TODO GEOMESA-1278 schema version should be read out of the actual data we're reading and not be constant
   val rasterSft: SimpleFeatureType = SimpleFeatureTypes.createType("RasterIndexEntry",
-    s"*geom:Geometry:srid=4326,dtg:Date:default=true;${AccumuloFeatureIndex.DeprecatedSchemaVersionKey}='8'")
+    s"*geom:Geometry:srid=4326,dtg:Date:default=true;${AccumuloDataStore.DeprecatedSchemaVersionKey}='8'")
 
   // geom field name
   val rasterSftGeomName = "geom"

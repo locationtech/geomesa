@@ -37,10 +37,10 @@ object GeoMesaDataStoreFactory {
 
   trait NamespaceConfig {
     def namespace: Option[String]
+    def catalog: String
   }
 
   trait GeoMesaDataStoreConfig extends NamespaceConfig {
-    def catalog: String
     def audit: Option[(AuditWriter, AuditProvider, String)]
     def generateStats: Boolean
     def queryThreads: Int

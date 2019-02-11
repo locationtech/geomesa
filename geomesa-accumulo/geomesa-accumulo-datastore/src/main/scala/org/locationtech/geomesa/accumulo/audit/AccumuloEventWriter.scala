@@ -70,7 +70,7 @@ class AccumuloEventWriter(connector: Connector, table: String) extends Runnable 
 
   private def getWriter: BatchWriter = synchronized {
     if (maybeWriter == null) {
-      AccumuloVersion.ensureTableExists(connector, table)
+      AccumuloVersion.createTableIfNeeded(connector, table)
       maybeWriter = connector.createBatchWriter(table, batchWriterConfig)
     }
     maybeWriter

@@ -17,7 +17,8 @@ import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, BatchScanPlan}
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.BatchScanPlan
 import org.locationtech.geomesa.process.knn.TouchingGeoHashes
 import org.locationtech.geomesa.raster.iterators.{RasterFilteringIterator => RFI}
 import org.locationtech.geomesa.raster.{defaultResolution, lexiEncodeDoubleToString, rasterSft, rasterSftName}
@@ -86,7 +87,7 @@ object AccumuloRasterQueryPlanner extends LazyLogging {
 
       // TODO: WCS: setup a CFPlanner to match against a list of strings
       // ticket is GEOMESA-559
-      Some(BatchScanPlan(null, null, rows, Seq(cfg), Seq.empty[Text], null, None, -1, hasDuplicates = false))
+      Some(BatchScanPlan(null, null, rows, Seq(cfg), None, null, None, -1))
     }
   }
 
