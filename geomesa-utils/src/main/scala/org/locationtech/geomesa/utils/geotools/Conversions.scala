@@ -29,6 +29,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.reflect.ClassTag
 import scala.util.Try
+import scala.util.control.NonFatal
 
 object Conversions {
 
@@ -292,7 +293,9 @@ object RichSimpleFeatureType {
         val Array(n, v, m) = string.split(":")
         (n, v.toInt, new IndexMode(m.toInt))
       }
-      userData[String](INDEX_VERSIONS).map(_.split(",").map(toTuple).toSeq).getOrElse(List.empty)
+      try { userData[String](INDEX_VERSIONS).map(_.split(",").map(toTuple).toSeq).getOrElse(List.empty) } catch {
+        case NonFatal(e) => throw new IllegalArgumentException("Invalid index metadata", e)
+      }
     }
     def setIndices(indices: Seq[(String, Int, IndexMode)]): Unit =
       sft.getUserData.put(INDEX_VERSIONS, indices.map { case (n, v, m) => s"$n:$v:${m.flag}"}.mkString(","))
