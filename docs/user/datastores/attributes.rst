@@ -63,4 +63,5 @@ Notes
 
 .. warning::
 
-  List types may be indexed, but querying a list type may result in duplicate results
+  List types may be indexed, but querying a list type may result in duplicate results. If duplicate
+  results are a problem, users should implement their own de-duplication logic for list queries
