@@ -185,6 +185,30 @@ class AttributeIndexTest extends Specification with LazyLogging {
       }
     }
 
+    "use implicit upper/lower bounds for one-sided secondary filters" in {
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+        features.foreach { f =>
+          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
+          writer.write()
+        }
+      }
+
+      val query = new Query(typeName, ECQL.toFilter("height = 12.0 AND dtg > '2014-01-01T11:45:00.000Z'"))
+
+      foreach(ds.getQueryPlan(query).flatMap(_.ranges)) { range =>
+        // verify that we have a z3 suffix...
+        // the base length is 10 : 1 (shard) + 2 (i) + 6 (lexicoded float) + 1 (null byte delimiter)
+        range.start.length must beGreaterThan(12)
+      }
+
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
+
+      results must containTheSameElementsAs(Seq("bob", "charles"))
+    }
+
     "handle large or'd attribute queries" in {
       val spec = "attr:String:index=true,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='attr:1,z3'"
       val sft = SimpleFeatureTypes.createType(typeName, spec)

@@ -190,7 +190,7 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
       }
 
       val iter = if (sft.nonPoints) { None } else {
-        val values = Z3IndexValues(sfc, geometries, xy, intervals, timesByBin.toMap)
+        val values = Z3IndexValues(sfc, geometries, xy, intervals, timesByBin.toMap, Seq.empty)
         Some(Z3Iterator.configure(values, hasSplits, isSharing = false, Z3Index.Z3IterPriority))
       }
 
