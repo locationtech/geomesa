@@ -19,26 +19,33 @@ import org.locationtech.geomesa.convert2.{AbstractConverter, Field}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeatureType
 
-class FixedWidthConverter(targetSft: SimpleFeatureType,
+class FixedWidthConverter(sft: SimpleFeatureType,
                           config: BasicConfig,
                           fields: Seq[FixedWidthField],
                           options: BasicOptions)
-    extends AbstractConverter(targetSft, config, fields, options) {
+    extends AbstractConverter[String, BasicConfig, FixedWidthField, BasicOptions](sft, config, fields, options) {
 
-  override protected def read(is: InputStream, ec: EvaluationContext): CloseableIterator[Array[Any]] = {
-    new CloseableIterator[Array[Any]] {
-      private val array = Array.ofDim[Any](1)
+  override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[String] = {
+    new CloseableIterator[String] {
       private val lines = IOUtils.lineIterator(is, options.encoding)
 
       override def hasNext: Boolean = lines.hasNext
 
-      override def next(): Array[Any] = {
-        array(0) = lines.next
+      override def next(): String = {
         ec.counter.incLineCount()
-        array
+        lines.next
       }
 
       override def close(): Unit = lines.close()
+    }
+  }
+
+  override protected def values(parsed: CloseableIterator[String],
+                                ec: EvaluationContext): CloseableIterator[Array[Any]] = {
+    val array = Array.ofDim[Any](1)
+    parsed.map { line =>
+      array(0) = line
+      array
     }
   }
 }

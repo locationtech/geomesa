@@ -55,7 +55,7 @@ object SimpleFeatureConverters extends LazyLogging {
       case Some(c) => c.asInstanceOf[SimpleFeatureConverter[I]]
       case None =>
         val converters = factories.iterator.flatMap(_.apply(sft, converterConf)).collect {
-          case c: AbstractConverter[_, _, _] => c.asInstanceOf[AbstractConverter[_ <: ConverterConfig, _, _]]
+          case c: AbstractConverter[_, _, _, _] => c.asInstanceOf[AbstractConverter[_, _ <: ConverterConfig, _, _]]
         }
         if (converters.hasNext) { new SimpleFeatureConverterWrapper(converters.next) } else {
           throw new IllegalArgumentException(s"Cannot find converter factory for type ${sft.getTypeName}")
@@ -69,7 +69,7 @@ object SimpleFeatureConverters extends LazyLogging {
     * @param converter new converter
     * @tparam I type bounds
     */
-  class SimpleFeatureConverterWrapper[I](converter: AbstractConverter[_ <: ConverterConfig, _, _]) extends
+  class SimpleFeatureConverterWrapper[I](converter: AbstractConverter[_, _ <: ConverterConfig, _, _]) extends
       SimpleFeatureConverter[I] {
 
     private val open =

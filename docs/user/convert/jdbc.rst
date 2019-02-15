@@ -7,6 +7,11 @@ The JDBC converter allows you to create SimpleFeatures directly from a SQL selec
 existing database, using standard JDBC libraries. To use the JDBC converter, specify ``type = "jdbc"``
 in your converter definition.
 
+.. warning::
+
+    The JDBC converter does not sanitize queries. Be careful with inputs, as a malicious actor could
+    potentially execute SQL injection attacks.
+
 Configuration
 -------------
 

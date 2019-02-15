@@ -13,6 +13,7 @@ import java.io.InputStream
 import org.locationtech.geomesa.convert._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+@deprecated("replaced with FeatureToFeatureConverter")
 class SimpleFeatureSimpleFeatureConverter(inputSFT: SimpleFeatureType,
                                           val targetSFT: SimpleFeatureType,
                                           val idBuilder: Transformers.Expr,

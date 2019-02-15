@@ -11,8 +11,7 @@ package org.locationtech.geomesa
 import java.nio.charset.Charset
 
 import com.typesafe.config.Config
-import org.locationtech.geomesa.convert.Modes.ErrorMode
-import org.locationtech.geomesa.convert.Modes.ParseMode
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.{EvaluationContext, SimpleFeatureValidator}
 import org.locationtech.geomesa.convert2.transforms.Expression
 

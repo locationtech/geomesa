@@ -12,13 +12,12 @@ import java.io._
 import java.nio.charset.{Charset, StandardCharsets}
 
 import com.typesafe.config.Config
-import org.apache.commons.csv.{CSVFormat, QuoteMode}
+import org.apache.commons.csv.{CSVFormat, CSVRecord, QuoteMode}
 import org.geotools.factory.GeoTools
 import org.geotools.util.Converters
-import org.locationtech.geomesa.convert.Modes.ErrorMode
-import org.locationtech.geomesa.convert.Modes.ParseMode
-import org.locationtech.geomesa.convert.text.DelimitedTextConverter.{DelimitedTextConfig, DelimitedTextOptions}
-import org.locationtech.geomesa.convert.{EvaluationContext, SimpleFeatureValidator}
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
+import org.locationtech.geomesa.convert.text.DelimitedTextConverter.{CsvIterator, DelimitedTextConfig, DelimitedTextOptions}
+import org.locationtech.geomesa.convert.{Counter, EvaluationContext, SimpleFeatureValidator}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
 import org.locationtech.geomesa.convert2._
 import org.locationtech.geomesa.convert2.transforms.Expression
@@ -30,11 +29,11 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.annotation.tailrec
 
-class DelimitedTextConverter(targetSft: SimpleFeatureType,
+class DelimitedTextConverter(sft: SimpleFeatureType,
                              config: DelimitedTextConfig,
                              fields: Seq[BasicField],
                              options: DelimitedTextOptions)
-    extends AbstractConverter(targetSft, config, fields, options) {
+    extends AbstractConverter[CSVRecord, DelimitedTextConfig, BasicField, DelimitedTextOptions](sft, config, fields, options) {
 
   private val format = {
     var format = DelimitedTextConverter.formats.getOrElse(config.format.toUpperCase,
@@ -45,73 +44,36 @@ class DelimitedTextConverter(targetSft: SimpleFeatureType,
     format
   }
 
-  override protected def read(is: InputStream, ec: EvaluationContext): CloseableIterator[Array[Any]] = {
+  override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[CSVRecord] =
+    new CsvIterator(format, is, options.encoding, options.skipLines.getOrElse(0), ec.counter)
+
+  override protected def values(parsed: CloseableIterator[CSVRecord],
+                                ec: EvaluationContext): CloseableIterator[Array[Any]] = {
     var array = Array.empty[Any]
     val writer = new StringWriter
-
     // printer used to re-create the original line
     // suppress the final newline so that we match the original behavior of splitting on newlines
     val printer = format.withRecordSeparator(null).print(writer)
 
-    val parser = format.parse(new InputStreamReader(is, options.encoding))
-    val records = parser.iterator()
-
-    val elements: Iterator[Array[Any]] = new Iterator[Array[Any]] {
-
-      private var lastLine = 0L
-      private var staged: Array[Any] = _
-
-      @tailrec
-      override final def hasNext: Boolean = staged != null || {
-        if (!records.hasNext) {
-          false
-        } else {
-          val record = records.next
-          val line = parser.getCurrentLineNumber
-          if (line == lastLine) {
-            // commons-csv doesn't always increment the line count for the final line in a file...
-            ec.counter.incLineCount()
-            lastLine = line + 1
-          } else {
-            ec.counter.incLineCount(line - lastLine)
-            lastLine = line
-          }
-
-          if (options.skipLines.exists(lastLine <= _)) {
-            hasNext
-          } else {
-            writer.getBuffer.setLength(0)
-
-            val len = record.size()
-            if (array.length != len + 1) {
-              array = Array.ofDim[Any](len + 1)
-            }
-
-            var i = 0
-            while (i < len) {
-              val value = record.get(i)
-              array(i + 1) = value
-              printer.print(value)
-              i += 1
-            }
-
-            printer.println()
-            array(0) = writer.toString
-
-            staged = array
-            true
-          }
-        }
+    parsed.map { record =>
+      writer.getBuffer.setLength(0)
+      val len = record.size() + 1
+      // it's possible that not all records have the same number of columns
+      if (array.length != len) {
+        array = Array.ofDim[Any](len)
+      }
+      var i = 1
+      while (i < len) {
+        val value = record.get(i - 1)
+        array(i) = value
+        printer.print(value)
+        i += 1
       }
 
-      override def next(): Array[Any] = {
-        val res = staged
-        staged = null
-        res
-      }
+      printer.println()
+      array(0) = writer.toString
+      array
     }
-
-    CloseableIterator(elements, parser.close())
   }
 }
 
@@ -241,5 +203,60 @@ object DelimitedTextConverter {
   }
   final case object CharDisabled extends OptionalChar {
     override def foreach[U](f: Character => U): Unit = f.apply(null)
+  }
+
+  /**
+    * Parses an input stream into CSV records
+    *
+    * @param format csv format
+    * @param is input
+    * @param encoding encoding
+    * @param skip skip lines up front, used for e.g. headers
+    * @param counter counter
+    */
+  class CsvIterator private [DelimitedTextConverter] (format: CSVFormat,
+                                                      is: InputStream,
+                                                      encoding: Charset,
+                                                      skip: Int,
+                                                      counter: Counter) extends CloseableIterator[CSVRecord] {
+
+    private val parser = format.parse(new InputStreamReader(is, encoding))
+    private val records = parser.iterator()
+    private var lastLine = 0L
+    private var staged: CSVRecord = _
+
+    @tailrec
+    override final def hasNext: Boolean = staged != null || {
+      if (!records.hasNext) {
+        false
+      } else {
+        val record = records.next()
+        val line = parser.getCurrentLineNumber
+        if (line == lastLine) {
+          // commons-csv doesn't always increment the line count for the final line in a file...
+          counter.incLineCount()
+          lastLine = line + 1
+        } else {
+          counter.incLineCount(line - lastLine)
+          lastLine = line
+        }
+        if (lastLine <= skip) {
+          hasNext
+        } else {
+          staged = record
+          true
+        }
+      }
+    }
+
+    override def next(): CSVRecord = {
+      if (!hasNext) { Iterator.empty.next() } else {
+        val record = staged
+        staged = null
+        record
+      }
+    }
+
+    override def close(): Unit = parser.close()
   }
 }
