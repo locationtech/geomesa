@@ -10,10 +10,11 @@ package org.locationtech.geomesa.index.view
 
 import java.awt.RenderingHints
 
-import com.typesafe.config.{ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
+import com.typesafe.config._
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi, DataStoreFinder}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
+import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 import scala.util.control.NonFatal
@@ -35,21 +36,28 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
     createNewDataStore(params)
 
   override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
-    val namespace = NamespaceParam.lookupOpt(params)
-
-    val configs = {
-      val config = ConfigFactory.parseString(ConfigParam.lookup(params))
-      if (config.hasPath("stores")) { config.getConfigList("stores") } else {
-        throw new IllegalArgumentException("No 'stores' element defined in configuration")
+    val configs: Seq[Config] = {
+      val explicit = Option(ConfigParam.lookup(params)).map(ConfigFactory.parseString)
+      val loaded = ConfigLoaderParam.flatMap(_.lookupOpt(params)).flatMap { name =>
+        ServiceLoader.load[MergedViewConfigLoader]().find(_.getClass.getName == name).map(_.load())
+      }
+      Seq(explicit, loaded).flatten.flatMap { config =>
+        if (config.hasPath("stores")) { config.getConfigList("stores").asScala } else { Seq.empty }
       }
     }
+
+    if (configs.isEmpty) {
+      throw new IllegalArgumentException("No 'stores' element defined in configuration")
+    }
+
+    val namespace = NamespaceParam.lookupOpt(params)
     val nsConfig = namespace.map(ConfigValueFactory.fromAnyRef)
 
     val stores = Seq.newBuilder[DataStore]
-    stores.sizeHint(configs.size())
+    stores.sizeHint(configs.length)
 
     try {
-      configs.asScala.foreach { config =>
+      configs.foreach { config =>
         lazy val error = new IllegalArgumentException(s"Could not load store using configuration:\n" +
             config.root().render(ConfigRenderOptions.concise().setFormatted(true)))
         // inject the namespace into the underlying stores
@@ -83,10 +91,17 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
   override val DisplayName: String = "Merged DataStore View (GeoMesa)"
   override val Description: String = "A merged, read-only view of multiple data stores"
 
-  val ConfigParam = new GeoMesaParam[String]("geomesa.merged.stores", "Typesafe configuration defining the underlying data stores to query", optional = false, largeText = true)
+  val ConfigLoaderParam: Option[GeoMesaParam[String]] = {
+    val loaders = ServiceLoader.load[MergedViewConfigLoader]().map(_.getClass.getName)
+    if (loaders.isEmpty) { None } else {
+      val param = new GeoMesaParam[String]("geomesa.merged.loader", "Loader used to configure the underlying data stores to query", enumerations = loaders)
+      Some(param)
+    }
+  }
+  val ConfigParam = new GeoMesaParam[String]("geomesa.merged.stores", "Typesafe configuration defining the underlying data stores to query", optional = ConfigLoaderParam.isDefined, largeText = true)
 
-  override val ParameterInfo: Array[GeoMesaParam[_]] = Array(ConfigParam)
+  override val ParameterInfo: Array[GeoMesaParam[_]] = ConfigLoaderParam.toArray :+ ConfigParam
 
   override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
-    params.containsKey(ConfigParam.key)
+    params.containsKey(ConfigParam.key) || ConfigLoaderParam.exists(p => params.containsKey(p.key))
 }

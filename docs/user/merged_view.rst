@@ -58,3 +58,16 @@ For example, to merge a GeoMesa Accumulo data store with a PostGis data store, y
         }
       ]
     }
+
+Config Provider
+---------------
+
+As an alternative to specifying ``geomesa.merged.stores``, config loading can be delegated to a provider
+interface: ``org.locationtech.geomesa.index.view.MergedViewConfigLoader``. Implementations of this class
+must be made available via Java `SPI loading <http://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html>`__,
+with a special descriptor defined in ``META-INF/services``. To use a config provider, use the parameter
+``geomesa.merged.loader`` set to the full class name of the provider class. In GeoServer, available providers
+will be displayed in a selection list.
+
+Note that you may combine the explicit configuration of ``geomesa.merged.stores`` with the delegated
+configuration of ``geomesa.merged.loader``, in which case the two configurations will be merged.

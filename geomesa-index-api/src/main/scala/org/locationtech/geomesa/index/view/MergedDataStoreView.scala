@@ -26,7 +26,7 @@ import org.opengis.feature.simple.SimpleFeatureType
   * @param stores delegate stores
   * @param namespace namespace
   */
-class MergedDataStoreView(stores: Seq[DataStore], namespace: Option[String] = None)
+class MergedDataStoreView(val stores: Seq[DataStore], namespace: Option[String] = None)
     extends HasGeoMesaStats with ReadOnlyDataStore {
 
   import scala.collection.JavaConverters._
