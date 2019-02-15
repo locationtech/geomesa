@@ -559,6 +559,8 @@ Full Example
     sft.getUserData().put("table.splitter.options",
         "id.pattern:[0-9a-f],attr.name.pattern:[a-z],z3.min:2018-01-01,z3.max:2018-01-31,z3.bits:2,z2.bits:4");
 
+.. _query_interceptors:
+
 Configuring Query Interceptors
 ------------------------------
 
@@ -603,7 +605,9 @@ Interceptors must have a default, no-arg constructor. The interceptor lifecycle 
 #. ``rewrite`` is called repeatedly
 #. The instance is cleaned up via the ``close`` method
 
-Interceptors will be invoked in the order they are declared in the user data.
+Interceptors will be invoked in the order they are declared in the user data. In order to see detailed information
+on the results of query interceptors, you can enable ``TRACE``-level logging on the class
+``org.locationtech.geomesa.index.planning.QueryRunner$``.
 
 .. _stat_attribute_config:
 

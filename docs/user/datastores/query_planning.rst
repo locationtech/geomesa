@@ -130,6 +130,8 @@ GeoMesa data store and a query, use the following method:
 Using the binary distribution, you can print out an explain plan using the ``explain`` command. See
 :ref:`cli_explain` for more details.
 
+If using query interceptors, see :ref:`query_interceptors` to enabled detailed logging on interceptor changes.
+
 GeoServer
 ^^^^^^^^^
 

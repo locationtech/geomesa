@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.planning
 
+import com.typesafe.scalalogging.StrictLogging
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -57,7 +58,10 @@ trait QueryRunner {
     val query = new Query(original) // note: this ends up sharing a hints object between the two queries
 
     // query rewriting
-    interceptors(sft).foreach(_.rewrite(query))
+    interceptors(sft).foreach { interceptor =>
+      interceptor.rewrite(query)
+      QueryRunner.logger.trace(s"Query rewritten by $interceptor to: $query")
+    }
 
     // set query hints - we need this in certain situations where we don't have access to the query directly
     QueryPlanner.threadedHints.get.foreach { hints =>
@@ -124,7 +128,7 @@ trait QueryRunner {
   }
 }
 
-object QueryRunner {
+object QueryRunner extends StrictLogging {
 
   // used for configuring input queries
   private val default: QueryRunner = new QueryRunner {
