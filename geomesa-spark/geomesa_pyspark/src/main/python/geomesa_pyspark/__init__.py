@@ -5,7 +5,7 @@ import re
 import sys
 import tempfile
 import zipfile
-import types
+
 
 __version__ = '${python.version}'
 
@@ -34,6 +34,7 @@ def configure(jars=[], packages=[], files=[], spark_home=None, spark_master='yar
     assert spark_master is 'yarn', 'only yarn master is supported with this release'
 
     import pyspark
+    import types
 
     # Need differential behavior based for <= Spark 2.0.x, Spark 2.1.0
     #  is the fist release to provide the module __version__ attribute
