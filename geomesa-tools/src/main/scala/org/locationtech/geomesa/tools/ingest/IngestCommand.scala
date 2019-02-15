@@ -9,31 +9,35 @@
 package org.locationtech.geomesa.tools.ingest
 
 import java.io.{File, FileWriter, PrintWriter}
+import java.nio.charset.StandardCharsets
 import java.util.Locale
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.config.{Config, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.FilenameUtils
+import org.apache.commons.io.{FilenameUtils, IOUtils}
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.convert.all.TypeAwareInference
 import org.locationtech.geomesa.convert.shp.ShapefileConverterFactory
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools._
+import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats, Prompt}
 import org.locationtech.geomesa.utils.geotools.{ConfigSftParsing, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
+import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.io.Source
 import scala.util.Try
 import scala.util.control.NonFatal
 
 trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with InteractiveCommand with LazyLogging {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   override val name = "ingest"
   override def params: IngestParams
@@ -44,13 +48,62 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
   override def execute(): Unit = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
-    val ingestFiles: Seq[String] = if (params.srcList) {
-      params.files.flatMap(Source.fromFile(_).getLines().toList)
-    } else {
-      params.files
+    if (params.files.isEmpty && !StdInHandle.isAvailable) {
+      throw new ParameterException("Missing option: <files>... is required")
     }
 
-    ensureSameFs(ingestFiles)
+    val inputs = if (params.srcList) {
+      val lists = if (params.files.isEmpty) { StdInHandle.available().toSeq } else {
+        params.files.asScala.flatMap(PathUtils.interpretPath)
+      }
+      lists.flatMap(file => WithClose(IOUtils.lineIterator(file.open, StandardCharsets.UTF_8))(_.asScala.toList))
+    } else {
+      params.files.asScala
+    }
+
+    val format = {
+      val param = Option(params.format).flatMap(f => DataFormats.values.find(_.toString.equalsIgnoreCase(f)))
+      // back compatible check for 'geojson' as a format (instead, just use 'json')
+      lazy val geojson = if ("geojson".equalsIgnoreCase(params.format)) { Some(DataFormats.Json) } else { None }
+      lazy val file = inputs.flatMap(DataFormats.fromFileName(_).right.toOption).headOption
+      param.orElse(geojson).orElse(file).orNull
+    }
+
+    val remote = inputs.exists(PathUtils.isRemote)
+
+    if (remote) {
+      // If we have a remote file, make sure they are all the same FS
+      val prefix = inputs.head.split("/")(0).toLowerCase
+      if (!inputs.drop(1).forall(_.toLowerCase.startsWith(prefix))) {
+        throw new ParameterException(s"Files must all be on the same file system: ($prefix) or all be local")
+      }
+    }
+
+    val mode = if (format == DataFormats.Shp) {
+      // shapefiles have to be ingested locally, as we need access to the related files
+      if (Option(params.mode).exists(_ != RunModes.Local)) {
+        Command.user.warn("Forcing run mode to local for shapefile ingestion")
+      }
+      RunModes.Local
+    } else if (remote) {
+      Option(params.mode).getOrElse(RunModes.Distributed)
+    } else {
+      if (Option(params.mode).exists(_ != RunModes.Local)) {
+        throw new ParameterException("Input files must be in a distributed file system to run in distributed mode")
+      }
+      RunModes.Local
+    }
+
+    if (mode == RunModes.Local) {
+      if (!params.waitForCompletion) {
+        throw new ParameterException("Tracking must be enabled when running in local mode")
+      }
+    } else if (params.threads != 1) {
+      throw new ParameterException("Threads can only be specified in local mode")
+    }
+    if (params.maxSplitSize != null && mode != RunModes.DistributedCombine) {
+      throw new ParameterException("Split size can only be specified in distributed-combine mode")
+    }
 
     // try to load the sft, first check for an existing schema, then load from the params/environment
     var sft: SimpleFeatureType =
@@ -60,21 +113,18 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
 
     var converter: Config = Option(params.config).map(CLArgResolver.getConfig).orNull
 
-    if (converter == null && ingestFiles.nonEmpty) {
+    if (converter == null && inputs.nonEmpty) {
       // if there is no converter passed in, try to infer the schema from the input files themselves
       Command.user.info("No converter defined - will attempt to detect schema from input files")
-      val file = ingestFiles.iterator.flatMap(PathUtils.interpretPath).headOption.getOrElse {
-        throw new ParameterException(s"<files> '${ingestFiles.mkString(",")}' did not evaluate to anything" +
-            "that could be read")
+      val file = inputs.iterator.flatMap(PathUtils.interpretPath).headOption.getOrElse {
+        throw new ParameterException(s"<files> '${params.files.asScala.mkString(",")}' did not evaluate to " +
+            "anything that could be read")
       }
       val (inferredSft, inferredConverter) = {
-        val opt = if (params.fmt == DataFormats.Shp) {
-          ShapefileConverterFactory.infer(file.path, Option(sft))
-        } else {
-          Option(params.fmt).map(_.toString.toLowerCase(Locale.US)) match {
-            case Some(fmt) => TypeAwareInference.infer(fmt, () => file.open, Option(sft))
-            case None      => SimpleFeatureConverter.infer(() => file.open, Option(sft))
-          }
+        val opt = format match {
+          case null => SimpleFeatureConverter.infer(() => file.open, Option(sft))
+          case DataFormats.Shp => ShapefileConverterFactory.infer(file.path, Option(sft))
+          case fmt => TypeAwareInference.infer(fmt.toString.toLowerCase(Locale.US), () => file.open, Option(sft))
         }
         opt.getOrElse {
           throw new ParameterException("Could not determine converter from inputs - please specify a converter")
@@ -127,35 +177,30 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
       throw new ParameterException("Converter config argument is required")
     }
 
-    if (params.fmt == DataFormats.Shp) {
-      // shapefiles have to be ingested locally, as we need access to the related files
-      if (params.mode == RunModes.Distributed) {
-        Command.user.warn("Forcing run mode to local for shapefile ingestion")
-      }
-      params.mode = RunModes.Local
-    }
-
-    createConverterIngest(sft, converter, ingestFiles).run()
+    createIngest(mode, sft, converter, inputs).run()
   }
 
-  protected def createConverterIngest(sft: SimpleFeatureType, converterConfig: Config, ingestFiles: Seq[String]): Runnable = {
-    new ConverterIngest(sft, connection, converterConfig, ingestFiles, Option(params.mode),
-      libjarsFile, libjarsPaths, params.threads, Option(params.maxSplitSize), params.waitForCompletion)
-  }
+  protected def createIngest(mode: RunMode, sft: SimpleFeatureType, converter: Config, inputs: Seq[String]): Runnable = {
+    mode match {
+      case RunModes.Local =>
+        new LocalConverterIngest(connection, sft, converter, inputs, params.threads)
 
-  private def ensureSameFs(ingestFiles: Seq[String]): Unit = {
-    if (ingestFiles.exists(PathUtils.isRemote)) {
-      // If we have a remote file, make sure they are all the same FS
-      val prefix = ingestFiles.head.split("/")(0).toLowerCase
-      if (!ingestFiles.forall(_.toLowerCase.startsWith(prefix))) {
-        throw new ParameterException(s"Files must all be on the same file system: ($prefix) or all be local")
-      }
+      case RunModes.Distributed =>
+        new DistributedConverterIngest(connection, sft, converter, inputs, libjarsFile, libjarsPaths,
+          params.waitForCompletion)
+
+      case RunModes.DistributedCombine =>
+        new DistributedCombineConverterIngest(connection, sft, converter, inputs, libjarsFile, libjarsPaths,
+          Option(params.maxSplitSize), params.waitForCompletion)
+
+      case _ =>
+        throw new NotImplementedError(s"Missing implementation for mode $mode")
     }
   }
 
   private def writeInferredConverter(typeName: String, converterString: String, schemaString: Option[String]): Unit = {
     try {
-      val conf = this.getClass.getClassLoader.getResources("reference.conf").find { u =>
+      val conf = this.getClass.getClassLoader.getResources("reference.conf").asScala.find { u =>
         "file".equalsIgnoreCase(u.getProtocol) && u.getPath.endsWith("/conf/reference.conf")
       }
       conf match {
@@ -193,19 +238,36 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
   }
 }
 
-// @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam with OptionalForceParam
-    with OptionalConverterConfigParam with OptionalInputFormatParam with DistributedRunParam {
-  @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
-  var threads: Integer = 1
+object IngestCommand {
 
-  @Parameter(names = Array("--split-max-size"), description = "Maximum size of a split in bytes (distributed jobs)")
-  var maxSplitSize: Integer = _
+  // @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
+  trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam with OptionalForceParam
+      with OptionalConverterConfigParam with OptionalInputFormatParam with DistributedRunParam {
+    @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
+    var threads: Integer = 1
 
-  @Parameter(names = Array("--src-list"), description = "Input files are text files with lists of files, one per line, to ingest.")
-  var srcList: Boolean = false
+    @Parameter(names = Array("--split-max-size"), description = "Maximum size of a split in bytes (distributed jobs)")
+    var maxSplitSize: Integer = _
 
-  @Parameter(names = Array("--no-tracking"), description = "This application closes when ingest job is submitted. Useful for launching jobs with a script.")
-  var noWaitForCompletion: Boolean = false
-  def waitForCompletion: Boolean = !noWaitForCompletion
+    @Parameter(names = Array("--src-list"), description = "Input files are text files with lists of files, one per line, to ingest.")
+    var srcList: Boolean = false
+
+    @Parameter(names = Array("--no-tracking"), description = "Return immediately after submitting ingest job (distributed jobs)")
+    var noWaitForCompletion: Boolean = false
+
+    def waitForCompletion: Boolean = !noWaitForCompletion
+  }
+
+
+  /**
+    * Gets status as a string
+    */
+  def getStatInfo(successes: Long, failures: Long, action: String = "Ingested", input: String = ""): String = {
+    val failureString = if (failures == 0) {
+      "with no failures"
+    } else {
+      s"and failed to ingest ${TextTools.getPlural(failures, "feature")}"
+    }
+    s"$action ${TextTools.getPlural(successes, "feature")} $failureString$input"
+  }
 }

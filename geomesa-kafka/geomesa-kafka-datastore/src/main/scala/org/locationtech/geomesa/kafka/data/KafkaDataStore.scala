@@ -70,6 +70,8 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     KafkaDataStore.producer(config)
   }
 
+  private val cleared = Collections.newSetFromMap(new ConcurrentHashMap[String, java.lang.Boolean]())
+
   private val caches = Caffeine.newBuilder().build(new CacheLoader[String, KafkaCacheLoader] {
     override def load(key: String): KafkaCacheLoader = {
       if (config.consumers.count < 1) {
@@ -186,7 +188,11 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter)
+    val writer = new ModifyKafkaFeatureWriter(sft, producer, config.serialization, filter)
+    if (config.clearOnStart && cleared.add(typeName)) {
+      writer.clear()
+    }
+    writer
   }
 
   override def getFeatureWriterAppend(typeName: String, transaction: Transaction): KafkaFeatureWriter = {
@@ -194,7 +200,11 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    new AppendKafkaFeatureWriter(sft, producer, config.serialization)
+    val writer = new AppendKafkaFeatureWriter(sft, producer, config.serialization)
+    if (config.clearOnStart && cleared.add(typeName)) {
+      writer.clear()
+    }
+    writer
   }
 
   override def dispose(): Unit = {
@@ -335,18 +345,20 @@ object KafkaDataStore extends LazyLogging {
     }
   }
 
-  case class KafkaDataStoreConfig(catalog: String,
-                                  brokers: String,
-                                  zookeepers: String,
-                                  consumers: ConsumerConfig,
-                                  producers: ProducerConfig,
-                                  topics: TopicConfig,
-                                  serialization: SerializationType,
-                                  indices: IndexConfig,
-                                  looseBBox: Boolean,
-                                  authProvider: AuthorizationsProvider,
-                                  audit: Option[(AuditWriter, AuditProvider, String)],
-                                  namespace: Option[String]) extends NamespaceConfig
+  case class KafkaDataStoreConfig(
+      catalog: String,
+      brokers: String,
+      zookeepers: String,
+      consumers: ConsumerConfig,
+      producers: ProducerConfig,
+      clearOnStart: Boolean,
+      topics: TopicConfig,
+      serialization: SerializationType,
+      indices: IndexConfig,
+      looseBBox: Boolean,
+      authProvider: AuthorizationsProvider,
+      audit: Option[(AuditWriter, AuditProvider, String)],
+      namespace: Option[String]) extends NamespaceConfig
 
   case class ConsumerConfig(count: Int, properties: Map[String, String], readBack: Option[Duration])
 

@@ -16,7 +16,8 @@ import org.locationtech.geomesa.kudu.data.KuduDataStore
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand.KuduParams
 import org.locationtech.geomesa.kudu.tools.ingest.KuduIngestCommand.KuduIngestParams
-import org.locationtech.geomesa.tools.ingest.{IngestCommand, IngestParams}
+import org.locationtech.geomesa.tools.ingest.IngestCommand
+import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
 class KuduIngestCommand extends IngestCommand[KuduDataStore] with KuduDataStoreCommand {

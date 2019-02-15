@@ -20,7 +20,8 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.tools.DataStoreRegistration
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportAttributes
 import org.locationtech.geomesa.tools.export.formats.DelimitedExporter
-import org.locationtech.geomesa.tools.ingest.{IngestCommand, IngestParams}
+import org.locationtech.geomesa.tools.ingest.IngestCommand
+import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.tools.utils.DataFormats
 import org.locationtech.geomesa.tools.utils.DataFormats._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator

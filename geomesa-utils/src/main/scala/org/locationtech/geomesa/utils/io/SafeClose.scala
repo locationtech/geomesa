@@ -18,7 +18,19 @@ import scala.util.control.NonFatal
   * Closes anything with a 'close' method without throwing an exception
   */
 trait SafeClose {
+
   def apply(c: AnyCloseable): Option[Throwable]
+
+  def apply(c1: AnyCloseable, c2: AnyCloseable): Option[Throwable] = apply(Seq(c1, c2))
+
+  def apply(cs: Seq[AnyCloseable]): Option[Throwable] = {
+    val errors = cs.flatMap(c => apply(c))
+    if (errors.isEmpty) { None } else {
+      val e = errors.head
+      errors.tail.foreach(e.addSuppressed)
+      Some(e)
+    }
+  }
 }
 
 object SafeClose {
@@ -60,7 +72,19 @@ object WithClose {
   * Flushes anything with a 'flush' method without throwing an exception
   */
 trait SafeFlush {
-  def apply(c: AnyFlushable): Option[Throwable]
+
+  def apply(f: AnyFlushable): Option[Throwable]
+
+  def apply(f1: AnyFlushable, f2: AnyFlushable): Option[Throwable] = apply(Seq(f1, f2))
+
+  def apply(fs: Seq[AnyFlushable]): Option[Throwable] = {
+    val errors = fs.flatMap(f => apply(f))
+    if (errors.isEmpty) { None } else {
+      val e = errors.head
+      errors.tail.foreach(e.addSuppressed)
+      Some(e)
+    }
+  }
 }
 
 object SafeFlush {
@@ -71,8 +95,8 @@ object SafeFlush {
   * Flushes and logs any exceptions
   */
 object FlushWithLogging extends SafeFlush with LazyLogging {
-  override def apply(c: AnyFlushable): Option[Throwable] = try { c.flush(); None } catch {
-    case NonFatal(e) => logger.warn(s"Error calling flush on '$c': ", e); Some(e)
+  override def apply(f: AnyFlushable): Option[Throwable] = try { f.flush(); None } catch {
+    case NonFatal(e) => logger.warn(s"Error calling flush on '$f': ", e); Some(e)
   }
 }
 
@@ -80,7 +104,7 @@ object FlushWithLogging extends SafeFlush with LazyLogging {
   * Flushes and catches any exceptions
   */
 object FlushQuietly extends SafeFlush {
-  override def apply(c: AnyFlushable): Option[Throwable] = try { c.flush(); None } catch {
+  override def apply(f: AnyFlushable): Option[Throwable] = try { f.flush(); None } catch {
     case NonFatal(e) => Some(e)
   }
 }

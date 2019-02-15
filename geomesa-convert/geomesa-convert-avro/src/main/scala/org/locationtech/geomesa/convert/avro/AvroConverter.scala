@@ -15,8 +15,9 @@ import org.apache.avro.Schema
 import org.apache.avro.Schema.Parser
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericDatumWriter, GenericRecord}
-import org.apache.avro.io.{BinaryDecoder, DecoderFactory, EncoderFactory}
-import org.locationtech.geomesa.convert.avro.AvroConverter.{GenericRecordIterator, _}
+import org.apache.avro.io.{DecoderFactory, EncoderFactory}
+import org.codehaus.jackson.node.TextNode
+import org.locationtech.geomesa.convert.avro.AvroConverter._
 import org.locationtech.geomesa.convert.{Counter, EvaluationContext}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression
@@ -26,11 +27,8 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CopyingInputStream
 import org.opengis.feature.simple.SimpleFeatureType
 
-class AvroConverter(targetSft: SimpleFeatureType,
-                    config: AvroConfig,
-                    fields: Seq[BasicField],
-                    options: BasicOptions)
-    extends AbstractConverter(targetSft, config, fields, options) {
+class AvroConverter(sft: SimpleFeatureType, config: AvroConfig, fields: Seq[BasicField], options: BasicOptions)
+    extends AbstractConverter[GenericRecord, AvroConfig, BasicField, BasicOptions](sft, config, fields, options) {
 
   private val schema = config.schema match {
     case SchemaString(s) => Some(new Parser().parse(s))
@@ -44,17 +42,49 @@ class AvroConverter(targetSft: SimpleFeatureType,
     Expression.flatten(expressions).contains(Column(0))
   }
 
-  override protected def read(is: InputStream, ec: EvaluationContext): CloseableIterator[Array[Any]] = {
+  override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[GenericRecord] = {
     schema match {
-      case Some(s) if requiresBytes => new GenericRecordByteIterator(new CopyingInputStream(is), s, ec.counter)
+      case Some(s) if requiresBytes => new GenericRecordBytesIterator(new CopyingInputStream(is), s, ec.counter)
       case Some(s)                  => new GenericRecordIterator(is, s, ec.counter)
-      case None    if requiresBytes => new FileStreamByteIterator(is, ec.counter)
+      case None    if requiresBytes => new FileStreamBytesIterator(is, ec.counter)
       case None                     => new FileStreamIterator(is, ec.counter)
+    }
+  }
+
+  override protected def values(parsed: CloseableIterator[GenericRecord],
+                                ec: EvaluationContext): CloseableIterator[Array[Any]] = {
+    val array = Array.ofDim[Any](2)
+    if (requiresBytes) {
+      parsed.map { record => array(0) = record.get(BytesField); array(1) = record; array }
+    } else {
+      parsed.map { record => array(1) = record; array }
     }
   }
 }
 
 object AvroConverter {
+
+  import scala.collection.JavaConverters._
+
+  val BytesField = "__bytes__"
+
+  /**
+    * Add a `__bytes__` field to the schema, for storing the raw bytes
+    *
+    * @param schema schema
+    * @return
+    */
+  def addBytes(schema: Schema): Schema = {
+    val fields = new java.util.ArrayList[Schema.Field](schema.getFields.size() + 1)
+    schema.getFields.asScala.foreach { field =>
+      fields.add(new Schema.Field(field.name, field.schema, field.doc, field.defaultValue()))
+    }
+    fields.add(new Schema.Field(BytesField, Schema.create(Schema.Type.BYTES), "raw bytes", TextNode.valueOf("")))
+
+    val updated = Schema.createRecord(schema.getName, schema.getDoc, schema.getNamespace, schema.isError)
+    updated.setFields(fields)
+    updated
+  }
 
   case class AvroConfig(`type`: String,
                         schema: SchemaConfig,
@@ -77,55 +107,52 @@ object AvroConverter {
     * @param schema schema
     * @param counter counter
     */
-  class GenericRecordIterator private [avro] (is: InputStream, schema: Schema, counter: Counter)
-      extends CloseableIterator[Array[Any]] {
+  class GenericRecordIterator private [AvroConverter] (is: InputStream, schema: Schema, counter: Counter)
+      extends CloseableIterator[GenericRecord] {
 
     private val reader = new GenericDatumReader[GenericRecord](schema)
-    protected val decoder: BinaryDecoder = DecoderFactory.get.binaryDecoder(is, null)
-
+    private val decoder = DecoderFactory.get.binaryDecoder(is, null)
     private var record: GenericRecord = _
-    private val array = Array.ofDim[Any](2)
 
     override def hasNext: Boolean = !decoder.isEnd
 
-    override def next(): Array[Any] = {
+    override def next(): GenericRecord = {
       counter.incLineCount()
       record = reader.read(record, decoder)
-      array(1) = record
-      array
+      record
     }
 
     override def close(): Unit = is.close()
   }
 
   /**
-    * Reads avro records using a pre-defined schema, setting the bytes for each record in $0 of the result array
+    * Reads avro records using a pre-defined schema, setting the bytes for each record in a
+    * special `__bytes__` field
     *
     * @param is input stream
     * @param schema schema
     * @param counter counter
     */
-  class GenericRecordByteIterator private [avro] (is: CopyingInputStream, schema: Schema, counter: Counter)
-      extends GenericRecordIterator(is, schema, counter) {
+  class GenericRecordBytesIterator private [AvroConverter] (is: CopyingInputStream, schema: Schema, counter: Counter)
+      extends CloseableIterator[GenericRecord] {
 
-    override def next(): Array[Any] = {
-      val array = super.next()
-      val read = is.copy.toByteArray
-      is.copy.reset()
+    private val reader = new GenericDatumReader[GenericRecord](schema, addBytes(schema))
+    private val decoder = DecoderFactory.get.binaryDecoder(is, null)
+    private var record: GenericRecord = _
+
+    override def hasNext: Boolean = !decoder.isEnd
+
+    override def next(): GenericRecord = {
+      counter.incLineCount()
+      record = reader.read(record, decoder)
+      // parse out the bytes read and set them in the record
       // check to see if the decoder buffered some bytes that weren't actually used
       val buffered = decoder.inputStream().available()
-      if (buffered > 0) {
-        // only return the bytes that were actually used
-        val size = read.length - buffered
-        array(0) = Array.ofDim[Byte](size)
-        System.arraycopy(read, 0, array(0), 0, size)
-        // write the unused bytes back to our buffer for the next read
-        is.copy.write(read, size, buffered)
-      } else {
-        array(0) = read
-      }
-      array
+      record.put(BytesField, is.replay(is.copied - buffered))
+      record
     }
+
+    override def close(): Unit = is.close()
   }
 
   /**
@@ -134,48 +161,57 @@ object AvroConverter {
     * @param is input
     * @param counter counter
     */
-  class FileStreamIterator private [avro] (is: InputStream, counter: Counter) extends CloseableIterator[Array[Any]] {
+  class FileStreamIterator private [AvroConverter] (is: InputStream, counter: Counter)
+      extends CloseableIterator[GenericRecord] {
 
-    protected val stream = new DataFileStream(is, new GenericDatumReader[GenericRecord]())
-    protected var record: GenericRecord = _
-
-    private val array = Array.ofDim[Any](2)
+    private val stream = new DataFileStream(is, new GenericDatumReader[GenericRecord]())
+    private var record: GenericRecord = _
 
     override def hasNext: Boolean = stream.hasNext
 
-    override def next(): Array[Any] = {
+    override def next(): GenericRecord = {
       counter.incLineCount()
       record = stream.next(record)
-      array(1) = record
-      array
+      record
     }
 
     override def close(): Unit = stream.close()
   }
 
   /**
-    * Reads avro records from an avro file, with the schema embedded, setting the bytes for each
-    * record in $0 of the result array
+    * Reads avro records from an avro file, with the schema embedded, setting the bytes for
+    * each record in a special `__bytes__` field
     *
     * @param is input
     * @param counter counter
     */
-  class FileStreamByteIterator private [avro] (is: InputStream, counter: Counter)
-      extends FileStreamIterator(is, counter) {
+  class FileStreamBytesIterator private [AvroConverter] (is: InputStream, counter: Counter)
+      extends CloseableIterator[GenericRecord] {
 
+    private val reader = new GenericDatumReader[GenericRecord]()
+    private val stream = new DataFileStream(is, reader)
+    private var record: GenericRecord = _
+
+    reader.setExpected(addBytes(reader.getSchema))
+
+    // we can't tell which bytes correspond to which feature (due to buffering). if we could access the
+    // underlying avro encoder we could figure it out, but it is not exposed through DataFileStream. instead,
+    // re-serialize each record to get the raw bytes
     private val out = new ByteArrayOutputStream()
     private val writer = new GenericDatumWriter[GenericRecord](stream.getSchema)
     private val encoder = EncoderFactory.get.binaryEncoder(out, null)
 
     override def hasNext: Boolean = stream.hasNext
 
-    override def next(): Array[Any] = {
-      val array = super.next()
+    override def next(): GenericRecord = {
+      counter.incLineCount()
+      record = stream.next(record)
+      // regenerate the bytes read and set them in the record
       out.reset()
       writer.write(record, encoder)
       encoder.flush()
-      array(0) = out.toByteArray
-      array
+      record.put(BytesField, out.toByteArray)
+      record
     }
 
     override def close(): Unit = stream.close()

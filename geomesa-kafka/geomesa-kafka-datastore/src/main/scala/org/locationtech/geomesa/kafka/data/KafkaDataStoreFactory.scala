@@ -112,6 +112,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       val props = ProducerConfig.lookupOpt(params).map(_.asScala.toMap).getOrElse(Map.empty[String, String])
       KafkaDataStore.ProducerConfig(props)
     }
+    val clearOnStart = ClearOnStart.lookup(params)
 
     val serialization = org.locationtech.geomesa.features.SerializationType.withName(SerializationType.lookup(params))
 
@@ -168,7 +169,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       }
     }
 
-    KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, producers, topics, serialization,
+    KafkaDataStoreConfig(catalog, brokers, zookeepers, consumers, producers, clearOnStart, topics, serialization,
       indices, looseBBox, authProvider, audit, ns)
   }
 
@@ -251,6 +252,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val ZkPath            = new GeoMesaParam[String]("kafka.zk.path", "Zookeeper discoverable path (namespace)", default = DefaultZkPath, deprecatedKeys = Seq("zkPath"))
     val ProducerConfig    = new GeoMesaParam[Properties]("kafka.producer.config", "Configuration options for kafka producer, in Java properties format. See http://kafka.apache.org/documentation.html#producerconfigs", largeText = true, deprecatedKeys = Seq("producerConfig"))
     val ConsumerConfig    = new GeoMesaParam[Properties]("kafka.consumer.config", "Configuration options for kafka consumer, in Java properties format. See http://kafka.apache.org/documentation.html#newconsumerconfigs", largeText = true, deprecatedKeys = Seq("consumerConfig"))
+    val ClearOnStart      = new GeoMesaParam[java.lang.Boolean]("kafka.producer.clear", "Send a 'clear' message on startup. This will cause clients to ignore any data that was in the topic prior to startup", default = Boolean.box(false))
     val ConsumerReadBack  = new GeoMesaParam[Duration]("kafka.consumer.read-back", "On start up, read messages that were written within this time frame (vs ignore old messages), e.g. '1 hour'. Use 'Inf' to read all messages", deprecatedParams = Seq(DeprecatedOffset, DeprecatedEarliest))
     val TopicPartitions   = new GeoMesaParam[Integer]("kafka.topic.partitions", "Number of partitions to use in new kafka topics", default = 1, deprecatedKeys = Seq("partitions"))
     val TopicReplication  = new GeoMesaParam[Integer]("kafka.topic.replication", "Replication factor to use in new kafka topics", default = 1, deprecatedKeys = Seq("replication"))

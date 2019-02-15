@@ -17,6 +17,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable
 
+@deprecated("replaced with FeatureToFeatureConverter")
 class SimpleFeatureSimpleFeatureConverterFactory extends AbstractSimpleFeatureConverterFactory[SimpleFeature] {
 
   override protected def typeToProcess: String = "simple-feature"

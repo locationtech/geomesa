@@ -37,12 +37,12 @@ trait AttributeFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
     val (primary, secondary) = FilterExtractingVisitor(filter, attribute, sft, attributeCheck(sft))
-    if (primary.isDefined) {
+    primary.map { extracted =>
       lazy val cost = {
         val descriptor = sft.getDescriptor(attribute)
-        val base = stats.flatMap(_.getCount(sft, primary.get, exact = false)).getOrElse {
+        val base = stats.flatMap(_.getCount(sft, extracted, exact = false)).getOrElse {
           val binding = if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
-          val bounds = FilterHelper.extractAttributeBounds(primary.get, attribute, binding)
+          val bounds = FilterHelper.extractAttributeBounds(extracted, attribute, binding)
           if (bounds.isEmpty || !bounds.forall(_.isBounded)) {
             AttributeFilterStrategy.StaticNotNullCost
           } else if (bounds.precise && !bounds.exists(_.isRange)) {
@@ -58,9 +58,7 @@ trait AttributeFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
           case Cardinality.LOW     => base * 10
         }
       }
-      Some(FilterStrategy(this, primary, secondary, cost))
-    } else {
-      None
+      FilterStrategy(this, primary, secondary, cost)
     }
   }
 }

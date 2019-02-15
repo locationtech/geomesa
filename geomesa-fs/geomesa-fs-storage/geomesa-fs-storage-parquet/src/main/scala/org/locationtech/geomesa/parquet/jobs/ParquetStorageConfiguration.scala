@@ -17,6 +17,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 trait ParquetStorageConfiguration extends StorageConfiguration with LazyLogging {
   override def configureOutput(sft: SimpleFeatureType, job: Job): Unit = {
+    StorageConfiguration.setEncoding(job.getConfiguration, "parquet")
     job.setOutputFormatClass(classOf[ParquetPartitionOutputFormat])
 
     ParquetInputFormat.setReadSupportClass(job, classOf[SimpleFeatureReadSupport])

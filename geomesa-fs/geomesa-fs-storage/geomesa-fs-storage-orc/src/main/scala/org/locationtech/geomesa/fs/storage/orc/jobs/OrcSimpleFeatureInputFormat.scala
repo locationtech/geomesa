@@ -11,12 +11,14 @@ package org.locationtech.geomesa.fs.storage.orc.jobs
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.NullWritable
 import org.apache.hadoop.mapreduce._
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
+import org.apache.hadoop.mapreduce.lib.input.{FileInputFormat, FileSplit}
 import org.apache.orc.mapred.OrcStruct
-import org.apache.orc.mapreduce.OrcInputFormat
+import org.apache.orc.mapreduce.{OrcInputFormat, OrcMapreduceRecordReader}
+import org.apache.orc.{OrcConf, OrcFile}
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemReader
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcSimpleFeatureInputFormat.OrcSimpleFeatureRecordReader
@@ -28,7 +30,20 @@ import org.opengis.filter.Filter
 
 class OrcSimpleFeatureInputFormat extends FileInputFormat[Void, SimpleFeature] {
 
-  private val delegate = new OrcInputFormat[OrcStruct]
+  // override the delegate format to set UTC reader options, which aren't exposed
+  // copied from OrcInputFormat
+  private val delegate: OrcInputFormat[OrcStruct] = new OrcInputFormat[OrcStruct] {
+    override def createRecordReader(inputSplit: InputSplit,
+                                    taskAttemptContext: TaskAttemptContext): RecordReader[NullWritable, OrcStruct] = {
+      val split = inputSplit.asInstanceOf[FileSplit]
+      val conf = taskAttemptContext.getConfiguration
+      val readerOptions =
+        OrcFile.readerOptions(conf).maxLength(OrcConf.MAX_FILE_LENGTH.getLong(conf)).useUTCTimestamp(true)
+      val file = OrcFile.createReader(split.getPath, readerOptions)
+      val options = org.apache.orc.mapred.OrcInputFormat.buildOptions(conf, file, split.getStart, split.getLength)
+      new OrcMapreduceRecordReader[OrcStruct](file, options)
+    }
+  }
 
   override def createRecordReader(split: InputSplit, context: TaskAttemptContext): OrcSimpleFeatureRecordReader = {
     val delegateReader = delegate.createRecordReader(split, context)
@@ -66,6 +81,7 @@ object OrcSimpleFeatureInputFormat {
     StorageConfiguration.setSft(conf, sft)
 
     f.map(ECQL.toCQL).foreach(conf.set(FilterConfig, _))
+
     transform.foreach { case (tdefs, tsft) =>
       conf.set(TransformDefinitionConfig, tdefs)
       conf.set(TransformSpecConfig, SimpleFeatureTypes.encodeType(tsft, includeUserData = true))
@@ -77,7 +93,8 @@ object OrcSimpleFeatureInputFormat {
     options.columns.foreach(c => conf.set(ReadColumnsConfig, c.map(sft.indexOf).mkString(",")))
   }
 
-  def getFilter(conf: Configuration): Option[Filter] = Option(conf.get(FilterConfig)).map(ECQL.toFilter)
+  def getFilter(conf: Configuration, sft: SimpleFeatureType): Option[Filter] =
+    Option(conf.get(FilterConfig)).map(FastFilterFactory.toFilter(sft, _))
 
   def getTransforms(conf: Configuration): Option[(String, SimpleFeatureType)] = {
     for {
@@ -97,16 +114,16 @@ object OrcSimpleFeatureInputFormat {
       extends RecordReader[Void, SimpleFeature] {
 
     private val sft = StorageConfiguration.getSft(conf)
-    private val filter = getFilter(conf)
+    private val filter = getFilter(conf, sft)
 
     private val feature = new ScalaSimpleFeature(sft, "")
 
     private val setAttributes = OrcInputFormatReader(sft, getReadColumns(conf))
 
-    private val current: SimpleFeature =
-      getTransforms(conf)
-          .map { case (tdefs, tsft) => TransformSimpleFeature(sft, tsft, tdefs).setFeature(feature) }
-          .getOrElse(feature)
+    private val current: SimpleFeature = getTransforms(conf) match {
+      case Some((tdefs, tsft)) => TransformSimpleFeature(sft, tsft, tdefs).setFeature(feature)
+      case None => feature
+    }
 
     override def initialize(split: InputSplit, context: TaskAttemptContext): Unit =
       delegate.initialize(split, context)
