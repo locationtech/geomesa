@@ -11,6 +11,8 @@ package org.locationtech.geomesa.filter.function
 
 import java.util.Collections
 
+import org.geotools.filter.text.ecql.ECQL
+import org.geotools.filter.visitor.SimplifyingFilterVisitor
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -48,6 +50,11 @@ class ProxyIdFunctionTest extends Specification {
       val fn = new ProxyIdFunction()
       fn.setParameters(Collections.emptyList())
       fn.evaluate(sf1) must throwAn[IllegalArgumentException]
+    }
+    "work with simplifying filter visitor" >> {
+      val filter = ECQL.toFilter("proxyId() = 20")
+      val simplified = filter.accept(new SimplifyingFilterVisitor(), null)
+      simplified mustEqual filter
     }
   }
 }
