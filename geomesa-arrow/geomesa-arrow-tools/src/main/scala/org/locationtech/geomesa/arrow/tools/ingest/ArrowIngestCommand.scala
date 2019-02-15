@@ -13,7 +13,8 @@ import java.io.File
 import com.beust.jcommander.{ParameterException, Parameters}
 import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.{ArrowDataStoreCommand, UrlParam}
-import org.locationtech.geomesa.tools.ingest.{IngestCommand, IngestParams}
+import org.locationtech.geomesa.tools.ingest.IngestCommand
+import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.utils.io.PathUtils
 
 class ArrowIngestCommand extends IngestCommand[ArrowDataStore] with ArrowDataStoreCommand {

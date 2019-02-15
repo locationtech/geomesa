@@ -11,163 +11,127 @@ package org.locationtech.geomesa.fs.tools.ingest
 import java.io.File
 import java.lang.Iterable
 
-import com.typesafe.config.{Config, ConfigRenderOptions}
+import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
+import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.io.{BytesWritable, LongWritable, Text}
 import org.apache.hadoop.mapreduce._
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
-import org.geotools.data.{DataStoreFinder, DataUtilities}
+import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.fs.FileSystemDataStore
+import org.locationtech.geomesa.fs.FileSystemDataStoreFactory.FileSystemDataStoreParams
+import org.locationtech.geomesa.fs.FileSystemStorageManager
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcStorageConfiguration
-import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{DummyReducer, IngestMapper}
-import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat, JobWithLibJars}
+import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{DummyReducer, FsIngestMapper}
+import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.ingest.AbstractIngest.StatusCallback
-import org.opengis.feature.simple.SimpleFeature
+import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.StatusCallback
+import org.locationtech.geomesa.tools.ingest.DistributedConverterIngest.ConverterIngestJob
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-trait FileSystemConverterJob extends StorageConfiguration with JobWithLibJars with LazyLogging {
+abstract class FileSystemConverterJob(dsParams: Map[String, String],
+                                      sft: SimpleFeatureType,
+                                      converterConfig: Config,
+                                      paths: Seq[String],
+                                      libjarsFile: String,
+                                      libjarsPaths: Iterator[() => Seq[File]],
+                                      reducers: Int,
+                                      tmpPath: Option[Path])
+    extends ConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths)
+        with StorageConfiguration with LazyLogging {
 
-  def run(dsParams: Map[String, String],
-          typeName: String,
-          converterConfig: Config,
-          inputPaths: Seq[String],
-          tempPath: Option[Path],
-          reducers: Int,
-          libjarsFile: String,
-          libjarsPaths: Iterator[() => Seq[File]],
-          statusCallback: StatusCallback,
-          waitForCompletion: Boolean = true): Option[(Long, Long)] = {
+  import scala.collection.JavaConverters._
 
-    import scala.collection.JavaConversions._
+  private var job: Job = _
+  private var root: Path = _
+  private var qualifiedTempPath: Option[Path] = None
 
-    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
-    try {
-      val sft = ds.getSchema(typeName)
+  override def reduced(job: Job): Long =
+    job.getCounters.findCounter(GeoMesaOutputFormat.Counters.Group, "reduced").getValue
 
-      val job = Job.getInstance(new Configuration, "GeoMesa Storage Ingest")
+  override def configureJob(job: Job): Unit = {
+    super.configureJob(job)
 
-      setLibJars(job, libjarsFile, libjarsPaths)
+    job.setMapperClass(classOf[FsIngestMapper])
+    job.setMapOutputKeyClass(classOf[Text])
+    job.setMapOutputValueClass(classOf[BytesWritable])
+    job.setOutputKeyClass(classOf[Void])
+    job.setOutputValueClass(classOf[SimpleFeature])
+    job.setReducerClass(classOf[DummyReducer])
+    job.setNumReduceTasks(reducers)
+    // Ensure that the reducers don't start too early
+    // (default is at 0.05 which takes all the map slots and isn't needed)
+    job.getConfiguration.set("mapreduce.job.reduce.slowstart.completedmaps", ".90")
 
-      job.setJarByClass(this.getClass)
+    val fc = FileContext.getFileContext(job.getConfiguration)
+    val manager = FileSystemStorageManager(fc, job.getConfiguration,
+      new Path(FileSystemDataStoreParams.PathParam.lookup(dsParams.asJava)))
 
-      // InputFormat and Mappers
-      job.setInputFormatClass(classOf[ConverterInputFormat])
-      job.setMapperClass(classOf[IngestMapper])
-
-      // Dummy reducer to convert to void and shuffle
-      job.setReducerClass(classOf[DummyReducer])
-      job.setNumReduceTasks(reducers)
-
-      job.setMapOutputKeyClass(classOf[Text])
-      job.setMapOutputValueClass(classOf[BytesWritable])
-      job.setOutputKeyClass(classOf[Void])
-      job.setOutputValueClass(classOf[SimpleFeature])
-
-      val storage = ds.storage(typeName)
-      val metadata = storage.getMetadata
-
-      val qualifiedTempPath = tempPath.map(metadata.getFileContext.makeQualified)
-
-      qualifiedTempPath.foreach { tp =>
-        if (metadata.getFileContext.util.exists(tp)) {
-          Command.user.info("Deleting temp path")
-          metadata.getFileContext.delete(tp, true)
-        }
-      }
-
-      StorageConfiguration.setSft(job.getConfiguration, sft)
-      StorageConfiguration.setPath(job.getConfiguration, metadata.getRoot.toUri.toString)
-      StorageConfiguration.setEncoding(job.getConfiguration, metadata.getEncoding)
-      StorageConfiguration.setFileType(job.getConfiguration, FileType.Written)
-
-      // from ConverterIngestJob
-      ConverterInputFormat.setConverterConfig(job, converterConfig.root().render(ConfigRenderOptions.concise()))
-      ConverterInputFormat.setSft(job, sft)
-
-      FileInputFormat.setInputPaths(job, inputPaths.mkString(","))
-      FileOutputFormat.setOutputPath(job, qualifiedTempPath.getOrElse(metadata.getRoot))
-
-      // MapReduce options
-      job.getConfiguration.set("mapred.map.tasks.speculative.execution", "false")
-      job.getConfiguration.set("mapred.reduce.tasks.speculative.execution", "false")
-      job.getConfiguration.set("mapreduce.job.user.classpath.first", "true")
-      // Ensure that the reducers don't start too early (default is at 0.05 which takes all the map slots and isn't needed)
-      job.getConfiguration.set("mapreduce.job.reduce.slowstart.completedmaps", ".90")
-
-      configureOutput(sft, job)
-
-      Command.user.info("Submitting job - please wait...")
-      job.submit()
-      Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
-
-      def mapCounters = Seq(("mapped", written(job)), ("failed", failed(job)))
-      def reduceCounters = Seq(("written", reduced(job)))
-
-      val stageCount = if (qualifiedTempPath.isDefined) { 3 } else { 2 }
-
-      if(waitForCompletion) {
-        var mapping = true
-        while (!job.isComplete) {
-          if (job.getStatus.getState != JobStatus.State.PREP) {
-            if (mapping) {
-              val mapProgress = job.mapProgress()
-              if (mapProgress < 1f) {
-                statusCallback(s"Map (stage 1/$stageCount): ", mapProgress, mapCounters, done = false)
-              } else {
-                statusCallback(s"Map (stage 1/$stageCount): ", mapProgress, mapCounters, done = true)
-                statusCallback.reset()
-                mapping = false
-              }
-            } else {
-              statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), reduceCounters, done = false)
-            }
-          }
-          Thread.sleep(500)
-        }
-        statusCallback(s"Reduce (stage 2/$stageCount): ", job.reduceProgress(), reduceCounters, done = true)
-
-        // Do this earlier than the data copy bc its throwing errors
-        val counterResult = (written(job), failed(job))
-
-        if (!job.isSuccessful) {
-          Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
-        } else {
-          qualifiedTempPath.foreach { tp =>
-            StorageJobUtils.distCopy(tp, metadata.getRoot, statusCallback, 3, stageCount)
-          }
-        }
-
-        Some(counterResult)
-      } else {
-        Command.user.info("Job Submitted")
-        None
-      }
-    } finally {
-      ds.dispose()
+    root = manager.storage(sft.getTypeName).map(_.getMetadata.getRoot).getOrElse {
+      throw new IllegalArgumentException(s"Could not load metadata for ${sft.getTypeName} at " +
+          FileSystemDataStoreParams.PathParam.lookup(dsParams.asJava))
     }
+    qualifiedTempPath = tmpPath.map(fc.makeQualified)
+
+    qualifiedTempPath.foreach { tp =>
+      if (fc.util.exists(tp)) {
+        Command.user.info(s"Deleting temp path $tp")
+        fc.delete(tp, true)
+      }
+    }
+
+    StorageConfiguration.setSft(job.getConfiguration, sft)
+    StorageConfiguration.setPath(job.getConfiguration, root.toUri.toString)
+    StorageConfiguration.setFileType(job.getConfiguration, FileType.Written)
+
+    FileOutputFormat.setOutputPath(job, qualifiedTempPath.getOrElse(root))
+
+    configureOutput(sft, job)
+
+    this.job = job
   }
 
-  def written(job: Job): Long = job.getCounters.findCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written).getValue
-  def failed(job: Job): Long = job.getCounters.findCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed).getValue
-  def reduced(job: Job): Long = job.getCounters.findCounter(GeoMesaOutputFormat.Counters.Group, "reduced").getValue
+  override def run(statusCallback: StatusCallback, waitForCompletion: Boolean): Option[(Long, Long)] = {
+    val result = super.run(statusCallback, waitForCompletion)
+    if (waitForCompletion && job.isSuccessful) {
+      qualifiedTempPath.foreach(StorageJobUtils.distCopy(_, root, statusCallback))
+    }
+    result
+  }
 }
 
 object FileSystemConverterJob {
 
-  class ParquetConverterJob extends FileSystemConverterJob with ParquetStorageConfiguration
+  class ParquetConverterJob(
+      dsParams: Map[String, String],
+      sft: SimpleFeatureType,
+      converterConfig: Config,
+      paths: Seq[String],
+      libjarsFile: String,
+      libjarsPaths: Iterator[() => Seq[File]],
+      reducers: Int,
+      tmpPath: Option[Path]
+    ) extends FileSystemConverterJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths, reducers, tmpPath)
+          with ParquetStorageConfiguration
 
-  class OrcConverterJob extends FileSystemConverterJob with OrcStorageConfiguration
+  class OrcConverterJob(
+      dsParams: Map[String, String],
+      sft: SimpleFeatureType,
+      converterConfig: Config,
+      paths: Seq[String],
+      libjarsFile: String,
+      libjarsPaths: Iterator[() => Seq[File]],
+      reducers: Int,
+      tmpPath: Option[Path]
+    ) extends FileSystemConverterJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths, reducers, tmpPath)
+          with OrcStorageConfiguration
 
-  class IngestMapper extends Mapper[LongWritable, SimpleFeature, Text, BytesWritable] with LazyLogging {
+  class FsIngestMapper extends Mapper[LongWritable, SimpleFeature, Text, BytesWritable] with LazyLogging {
 
     type Context = Mapper[LongWritable, SimpleFeature, Text, BytesWritable]#Context
 
@@ -209,7 +173,7 @@ object FileSystemConverterJob {
     type Context = Reducer[Text, BytesWritable, Void, SimpleFeature]#Context
 
     private var serializer: KryoFeatureSerializer = _
-    var reduced: Counter = _
+    private var reduced: Counter = _
 
     override def setup(context: Context): Unit = {
       super.setup(context)
@@ -225,6 +189,5 @@ object FileSystemConverterJob {
         reduced.increment(1)
       }
     }
-
   }
 }

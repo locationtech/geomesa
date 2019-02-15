@@ -133,7 +133,7 @@ object TestGeoMesaDataStore {
 
     override def explain(explainer: Explainer, prefix: String): Unit = {
       explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r =>
-        s"[${r.start.map(UnsignedBytes.toString).mkString(";")}:" +
+        s"[${r.start.map(UnsignedBytes.toString).mkString(";")}::" +
             s"${r.end.map(UnsignedBytes.toString).mkString(";")})").mkString(",")}")
       explainer(s"ecql: ${ecql.map(org.locationtech.geomesa.filter.filterToString).getOrElse("INCLUDE")}")
     }

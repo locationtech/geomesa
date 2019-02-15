@@ -36,7 +36,7 @@ class HBaseBulkLoadCommand extends HBaseDataStoreCommand {
     }
     require(!TablePartition.partitioned(sft), "Bulk loading partitioned tables is not currently supported")
 
-    val index = params.loadIndex(ds, IndexMode.Write)
+    val index = params.loadIndex(ds, sft.getTypeName, IndexMode.Write)
     val input = new Path(params.input)
 
     Command.user.info(s"Running HBase incremental load...")

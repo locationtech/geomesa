@@ -36,7 +36,7 @@ import scala.util.control.NonFatal
   * Abstract converter factory implementation. Subclasses need to implement `typeToProcess` and make available
   * pureconfig readers for the converter configuration
   */
-abstract class AbstractConverterFactory[S <: AbstractConverter[C, F, O]: ClassTag,
+abstract class AbstractConverterFactory[S <: AbstractConverter[_, C, F, O]: ClassTag,
                                         C <: ConverterConfig: ClassTag,
                                         F <: Field,
                                         O <: ConverterOptions: ClassTag]
@@ -82,37 +82,10 @@ abstract class AbstractConverterFactory[S <: AbstractConverter[C, F, O]: ClassTa
     * @param conf config
     * @return
     */
-  protected def withDefaults(conf: Config): Config = {
-    import scala.collection.JavaConverters._
-
-    val updates = ArrayBuffer.empty[Config => Config]
-    if (conf.hasPath("options.validation-mode")) {
-      logger.warn(s"Using deprecated option 'validation-mode'. Prefer 'error-mode'")
-      updates.append(c => c.withValue("options.error-mode", conf.getValue("options.validation-mode")))
-    }
-    if (conf.hasPath("options.validating")) {
-      logger.warn(s"Using deprecated validation key 'validating'")
-      val validators = if (conf.getBoolean("options.validating")) {
-        ConfigValueFactory.fromIterable(Seq(HasGeoValidator.name, HasDtgValidator.name).asJava)
-      } else {
-        ConfigValueFactory.fromIterable(Collections.emptyList())
-      }
-      updates.append(c => c.withValue("options.validators", validators))
-    }
-
-    if (conf.hasPath("user-data")) {
-      // re-write user data so that it doesn't have to be quoted
-      val kvs = new java.util.HashMap[String, AnyRef]
-      conf.getConfig("user-data").entrySet.asScala.foreach(e => kvs.put(e.getKey, e.getValue.unwrapped()))
-      val fallback = ConfigFactory.empty().withValue("user-data", ConfigValueFactory.fromMap(kvs))
-      updates.append(c => c.withoutPath("user-data").withFallback(fallback))
-    }
-
-    updates.foldLeft(conf)((c, mod) => mod.apply(c)).withFallback(ConfigFactory.load("base-converter-defaults"))
-  }
+  protected def withDefaults(conf: Config): Config = AbstractConverterFactory.standardDefaults(conf)
 }
 
-object AbstractConverterFactory {
+object AbstractConverterFactory extends LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -140,6 +113,41 @@ object AbstractConverterFactory {
           s"\n\tExisting types: ${existing.mkString(", ")}" +
           s"\n\tInferred types: ${types.mkString(", ")}")
     }
+  }
+
+  /**
+    * Handles common deprecated values and quoting of user data keys
+    *
+    * @param conf conf
+    * @return
+    */
+  def standardDefaults(conf: Config): Config = {
+    import scala.collection.JavaConverters._
+
+    val updates = ArrayBuffer.empty[Config => Config]
+    if (conf.hasPath("options.validation-mode")) {
+      logger.warn(s"Using deprecated option 'validation-mode'. Prefer 'error-mode'")
+      updates.append(c => c.withValue("options.error-mode", conf.getValue("options.validation-mode")))
+    }
+    if (conf.hasPath("options.validating")) {
+      logger.warn(s"Using deprecated validation key 'validating'")
+      val validators = if (conf.getBoolean("options.validating")) {
+        ConfigValueFactory.fromIterable(Seq(HasGeoValidator.name, HasDtgValidator.name).asJava)
+      } else {
+        ConfigValueFactory.fromIterable(Collections.emptyList())
+      }
+      updates.append(c => c.withValue("options.validators", validators))
+    }
+
+    if (conf.hasPath("user-data")) {
+      // re-write user data so that it doesn't have to be quoted
+      val kvs = new java.util.HashMap[String, AnyRef]
+      conf.getConfig("user-data").entrySet.asScala.foreach(e => kvs.put(e.getKey, e.getValue.unwrapped()))
+      val fallback = ConfigFactory.empty().withValue("user-data", ConfigValueFactory.fromMap(kvs))
+      updates.append(c => c.withoutPath("user-data").withFallback(fallback))
+    }
+
+    updates.foldLeft(conf)((c, mod) => mod.apply(c)).withFallback(ConfigFactory.load("base-converter-defaults"))
   }
 
   /**

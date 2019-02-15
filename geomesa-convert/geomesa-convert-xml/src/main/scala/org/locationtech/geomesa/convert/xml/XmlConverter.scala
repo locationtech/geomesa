@@ -22,9 +22,7 @@ import javax.xml.validation.SchemaFactory
 import javax.xml.xpath.{XPath, XPathConstants, XPathExpression, XPathFactory}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.BOMInputStream
-import org.locationtech.geomesa.convert.Modes.ErrorMode
-import org.locationtech.geomesa.convert.Modes.LineMode
-import org.locationtech.geomesa.convert.Modes.ParseMode
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, LineMode, ParseMode}
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert.xml.XmlConverter.{XmlConfig, XmlField, XmlOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression
@@ -32,14 +30,16 @@ import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig, Co
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.TextTools
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.w3c.dom.{Element, NodeList}
 import org.xml.sax.InputSource
 
 import scala.util.control.NonFatal
 
-class XmlConverter(targetSft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlField], options: XmlOptions)
-    extends AbstractConverter(targetSft, config, fields, options) {
+class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlField], options: XmlOptions)
+    extends AbstractConverter[Element, XmlConfig, XmlField, XmlOptions](sft, config, fields, options) {
+
+  import scala.collection.JavaConverters._
 
   private val docBuilder = {
     val factory = DocumentBuilderFactory.newInstance()
@@ -65,67 +65,69 @@ class XmlConverter(targetSft: SimpleFeatureType, config: XmlConfig, fields: Seq[
             "Xpath queries may be slower - check your classpath")
         XPathFactory.newInstance(XPathFactory.DEFAULT_OBJECT_MODEL_URI)
     }
-    factory.newXPath()
-  }
-
-  if (config.xmlNamespaces.nonEmpty) {
-    xpath.setNamespaceContext(new NamespaceContext() {
-      override def getPrefix(namespaceURI: String): String = null
-      override def getPrefixes(namespaceURI: String): java.util.Iterator[_] = null
-      override def getNamespaceURI(prefix: String): String = config.xmlNamespaces.getOrElse(prefix, null)
-    })
+    val xp = factory.newXPath()
+    if (config.xmlNamespaces.nonEmpty) {
+      xp.setNamespaceContext(new NamespaceContext() {
+        override def getPrefix(namespaceURI: String): String = null
+        override def getPrefixes(namespaceURI: String): java.util.Iterator[_] = null
+        override def getNamespaceURI(prefix: String): String = config.xmlNamespaces.getOrElse(prefix, null)
+      })
+    }
+    xp
   }
 
   private val rootPath = config.featurePath.map(xpath.compile)
 
   fields.foreach(_.compile(xpath))
 
-  // detect and exclude the BOM if it exists
-  override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] =
-    super.process(new BOMInputStream(is), ec)
-
   // TODO GEOMESA-1039 more efficient InputStream processing for multi mode
-  override protected def read(is: InputStream, ec: EvaluationContext): CloseableIterator[Array[Any]] = {
-    import scala.collection.JavaConverters._
 
-    def parseDocument(reader: Reader): Element = {
-      // parse the document once, then extract each feature node and operate on it
-      val document = docBuilder.parse(new InputSource(reader))
-      // if a schema is defined, validate it - this will throw an exception on failure
-      xmlValidator.foreach(_.validate(new DOMSource(document)))
-      document.getDocumentElement
-    }
-
-    val elements: Iterator[Element] = if (options.lineMode == LineMode.Single) {
-      val lines = IOUtils.lineIterator(is, options.encoding).asScala
-      lines.flatMap { line =>
+  override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[Element] = {
+    // detect and exclude the BOM if it exists
+    val bis = new BOMInputStream(is)
+    if (options.lineMode == LineMode.Single) {
+      val lines = IOUtils.lineIterator(bis, options.encoding)
+      val elements = lines.asScala.flatMap { line =>
         ec.counter.incLineCount()
         if (TextTools.isWhitespace(line)) { Iterator.empty } else {
-          try { Iterator.single(parseDocument(new StringReader(line))) } catch {
-            case NonFatal(e) =>
-              ec.counter.incFailure()
-              options.errorMode match {
-                case ErrorMode.SkipBadRecords => logger.warn("Failed parsing input: ", e)
-                case ErrorMode.RaiseErrors => throw e
-              }
-              Iterator.empty
-          }
+          Iterator.single(parseDocument(new StringReader(line)))
         }
       }
+      CloseableIterator(elements, lines.close())
     } else {
-      Iterator.fill(1)(parseDocument(new InputStreamReader(is, options.encoding)))
+      val reader = new InputStreamReader(bis, options.encoding)
+      CloseableIterator.fill(1, reader.close()) { ec.counter.incLineCount(); parseDocument(reader) }
     }
+  }
 
-    val records = rootPath match {
-      case None => elements.map(Array[Any](_))
+  override protected def values(parsed: CloseableIterator[Element],
+                                ec: EvaluationContext): CloseableIterator[Array[Any]] = {
+    val array = Array.ofDim[Any](2)
+    rootPath match {
+      case None =>
+        parsed.map { element =>
+          array(0) = element
+          array
+        }
+
       case Some(path) =>
-        elements.flatMap { element =>
+        parsed.flatMap { element =>
+          array(1) = element
           val nodeList = path.evaluate(element, XPathConstants.NODESET).asInstanceOf[NodeList]
-          Iterator.tabulate(nodeList.getLength)(i => Array[Any](nodeList.item(i)))
+          Iterator.tabulate(nodeList.getLength) { i =>
+            array(0) = nodeList.item(i)
+            array
+          }
         }
     }
+  }
 
-    CloseableIterator(records, is.close())
+  private  def parseDocument(reader: Reader): Element = {
+    // parse the document once, then extract each feature node and operate on it
+    val document = docBuilder.parse(new InputSource(reader))
+    // if a schema is defined, validate it - this will throw an exception on failure
+    xmlValidator.foreach(_.validate(new DOMSource(document)))
+    document.getDocumentElement
   }
 }
 

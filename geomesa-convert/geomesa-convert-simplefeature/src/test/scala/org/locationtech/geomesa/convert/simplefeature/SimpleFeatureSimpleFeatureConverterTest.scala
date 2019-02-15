@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.convert.simplefeature
 
 import com.typesafe.config.ConfigFactory
-import org.locationtech.jts.geom.Coordinate
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, SimpleFeatureTypes}
+import org.locationtech.jts.geom.Coordinate
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -67,8 +67,8 @@ class SimpleFeatureSimpleFeatureConverterTest extends Specification {
       val ec = conv.createEvaluationContext()
       val res = conv.processSingleInput(sf, ec).toSeq
 
-      "must not be null" >> { res must not(beNull) }
-      "numberx2 should be 2" >> { res.head.get[Int]("numberx2") must be equalTo 2 }
+      res must haveLength(1)
+      res.head.get[Int]("numberx2") must be equalTo 2
     }
 
     "copy default fields" >> {
@@ -110,9 +110,9 @@ class SimpleFeatureSimpleFeatureConverterTest extends Specification {
       val ec = conv.createEvaluationContext()
       val res = conv.processSingleInput(sf, ec).toSeq
 
-      "must not be null" >> { res must not(beNull) }
-      "numberx2 should be 2" >> { res.head.get[Int]("numberx2") must be equalTo 2 }
-      "color must be blue" >> { res.head.get[String]("color") must be equalTo "blue" }
+      res must haveLength(1)
+      res.head.get[Int]("numberx2") must be equalTo 2
+      res.head.get[String]("color") must be equalTo "blue"
     }
 
   }

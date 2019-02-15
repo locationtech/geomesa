@@ -68,7 +68,7 @@ object Z3Filter {
   val EpochKey  = "epoch"
 
   def apply(values: Z3IndexValues): Z3Filter = {
-    val Z3IndexValues(sfc, _, spatialBounds, _, temporalBounds) = values
+    val Z3IndexValues(sfc, _, spatialBounds, _, temporalBounds, _) = values
 
     val xy: Array[Array[Int]] = spatialBounds.map { case (xmin, ymin, xmax, ymax) =>
       Array(sfc.lon.normalize(xmin), sfc.lat.normalize(ymin), sfc.lon.normalize(xmax), sfc.lat.normalize(ymax))

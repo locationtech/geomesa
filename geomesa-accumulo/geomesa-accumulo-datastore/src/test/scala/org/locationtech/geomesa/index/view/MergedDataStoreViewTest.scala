@@ -12,8 +12,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.nio.file.{Files, Path}
 import java.util.Date
 
-import com.typesafe.config.{ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
-import org.locationtech.jts.geom.Point
+import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
@@ -26,6 +25,7 @@ import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
+import org.locationtech.geomesa.index.view.MergedDataStoreViewTest.TestConfigLoader
 import org.locationtech.geomesa.process.analytic.DensityProcess
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodedValues}
@@ -33,8 +33,10 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.geomesa.utils.stats.MinMax
+import org.locationtech.jts.geom.Point
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -62,24 +64,26 @@ class MergedDataStoreViewTest extends Specification {
 
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 
+  val accumuloParams = Map(
+    AccumuloDataStoreParams.InstanceIdParam.key -> "mycloud",
+    AccumuloDataStoreParams.ZookeepersParam.key -> "myzoo",
+    AccumuloDataStoreParams.UserParam.key       -> "user",
+    AccumuloDataStoreParams.PasswordParam.key   -> "password",
+    AccumuloDataStoreParams.CatalogParam.key    -> sftName,
+    AccumuloDataStoreParams.MockParam.key       -> "true"
+  ).asJava
+
+  var h2Params: java.util.Map[String, String] = _
+
   var path: Path = _
   var ds: MergedDataStoreView = _
 
   step {
     path = Files.createTempDirectory(s"combo-ds-test")
 
-    val h2Params = Map(
+    h2Params = Map(
       "dbtype"   -> "h2",
       "database" -> path.toFile.getAbsolutePath
-    ).asJava
-
-    val accumuloParams = Map(
-      AccumuloDataStoreParams.InstanceIdParam.key -> "mycloud",
-      AccumuloDataStoreParams.ZookeepersParam.key -> "myzoo",
-      AccumuloDataStoreParams.UserParam.key       -> "user",
-      AccumuloDataStoreParams.PasswordParam.key   -> "password",
-      AccumuloDataStoreParams.CatalogParam.key    -> sftName,
-      AccumuloDataStoreParams.MockParam.key       -> "true"
     ).asJava
 
     val h2Ds = DataStoreFinder.getDataStore(h2Params)
@@ -126,6 +130,38 @@ class MergedDataStoreViewTest extends Specification {
       sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual Seq("name", "age", "dtg", "geom")
       sft.getAttributeDescriptors.asScala.map(_.getType.getBinding) mustEqual
           Seq(classOf[String], classOf[Integer], classOf[Date], classOf[Point])
+    }
+
+    "load via SPI config" in {
+      val h2Config = ConfigValueFactory.fromMap(h2Params)
+      val accumuloConfig = ConfigValueFactory.fromMap(accumuloParams)
+
+      def testParams(config: Config): MatchResult[Any] = {
+        val params = Map(
+          MergedDataStoreViewFactory.ConfigParam.key -> config.root.render(ConfigRenderOptions.concise()),
+          MergedDataStoreViewFactory.ConfigLoaderParam.get.key -> classOf[TestConfigLoader].getName
+        )
+        val ds = DataStoreFinder.getDataStore(params.asJava)
+        ds must not(beNull)
+        try {
+          ds must beAnInstanceOf[MergedDataStoreView]
+          ds.asInstanceOf[MergedDataStoreView].stores must haveLength(2)
+        } finally {
+          ds.dispose()
+        }
+      }
+
+      MergedDataStoreViewTest.loadConfig =
+          ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(h2Config, accumuloConfig).asJava))
+      testParams(ConfigFactory.empty())
+
+      MergedDataStoreViewTest.loadConfig =
+          ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(h2Config).asJava))
+      testParams(ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(accumuloConfig).asJava)))
+
+      MergedDataStoreViewTest.loadConfig =
+          ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(accumuloConfig).asJava))
+      testParams(ConfigFactory.empty().withValue("stores", ConfigValueFactory.fromIterable(Seq(h2Config).asJava)))
     }
 
     "query multiple data stores" in {
@@ -307,5 +343,14 @@ class MergedDataStoreViewTest extends Specification {
     ds.dispose()
     PathUtils.deleteRecursively(path)
     allocator.close()
+  }
+}
+
+object MergedDataStoreViewTest {
+
+  private var loadConfig: Config = _
+
+  class TestConfigLoader extends MergedViewConfigLoader {
+    override def load(): Config = loadConfig
   }
 }

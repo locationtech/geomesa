@@ -49,7 +49,7 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
       reader.setLenient(true)
 
       val elements = {
-        val iter = new Iterator[JsonElement] {
+        val iter: Iterator[JsonElement] = new Iterator[JsonElement] {
           private val parser = new JsonParser
           override def hasNext: Boolean = reader.peek() != JsonToken.END_DOCUMENT
           override def next(): JsonElement = parser.parse(reader)

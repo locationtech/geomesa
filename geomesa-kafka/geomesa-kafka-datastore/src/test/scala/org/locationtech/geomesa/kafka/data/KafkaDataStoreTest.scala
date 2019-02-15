@@ -15,7 +15,6 @@ import java.util.{Collections, Date}
 import java.{io, util}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Point
 import kafka.admin.AdminUtils
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
@@ -37,6 +36,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.jts.geom.Point
 import org.mockito.ArgumentMatchers
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -339,6 +339,44 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           consumer.dispose()
           producer.dispose()
         }
+      }
+    }
+
+    "clear on startup" >> {
+      val params = Map("kafka.producer.clear" -> "true")
+      val (producer, consumer, sft) = createStorePair("clear-on-startup", params)
+      try {
+        producer.createSchema(sft)
+        val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
+
+        val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
+        val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
+        val f2 = ScalaSimpleFeature.create(sft, "do", "doe", 40, "2017-01-03T00:00:00.000Z", "POINT (10 10)")
+
+        // initial write
+        WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          Seq(f0, f1).foreach { f =>
+            FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
+            writer.write()
+          }
+        }
+        eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
+
+        // new producer - clears on startup
+        val producer2 = getStore(producer.config.catalog, 0, params)
+        try {
+          // write the third feature
+          WithClose(producer2.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            FeatureUtils.copyToWriter(writer, f2, useProvidedFid = true)
+            writer.write()
+          }
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq mustEqual Seq(f2))
+        } finally {
+          producer2.dispose()
+        }
+      } finally {
+        consumer.dispose()
+        producer.dispose()
       }
     }
 

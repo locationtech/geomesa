@@ -37,7 +37,7 @@ object GeoMesaOutputFormat {
    * Configure the data store you will be writing to.
    */
   def configureDataStore(job: Job, dsParams: Map[String, String]): Unit = {
-    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[GeoMesaDataStore[_]]
+    val ds = DataStoreFinder.getDataStore(dsParams)
     assert(ds != null, "Invalid data store parameters")
     ds.dispose()
 

@@ -23,6 +23,7 @@ import org.locationtech.geomesa.kafka.index.KafkaFeatureCache
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.kafka.utils.{GeoMessageSerializer, KafkaFeatureEvent}
 import org.locationtech.geomesa.kafka.{KafkaConsumerVersions, RecordVersions}
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -112,19 +113,23 @@ object KafkaCacheLoader {
       case _: NoSuchMethodException => logger.warn("This version of Kafka doesn't support timestamps, using system time")
     }
 
-    if (doInitialLoad) {
+    private val initialLoader = if (doInitialLoad) {
       // for the initial load, don't bother spatially indexing until we have the final state
+      val loader = new InitialLoader(sft, consumers, topic, frequency, serializer, initialLoadConfig, this)
       val executor = Executors.newSingleThreadExecutor()
-      executor.submit(new InitialLoader(sft, consumers, topic, frequency, serializer, initialLoadConfig, this))
+      executor.submit(loader)
       executor.shutdown()
+      Some(loader)
     } else {
       startConsumers()
+      None
     }
 
     override def close(): Unit = {
       try {
         super.close()
       } finally {
+        initialLoader.foreach(CloseWithLogging.apply)
         cache.close()
       }
     }
