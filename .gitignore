@@ -23,3 +23,4 @@ geomesa-*.*.*-*
 *.ipynb
 *.sc
 .sphinx
+*/test-tool/*

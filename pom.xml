@@ -55,6 +55,34 @@
     </modules>
 
     <properties>
+        <!-- Java epoch. -->
+        <version.java>1.8</version.java>
+        <maven.compiler.source>${version.java}</maven.compiler.source><!-- Used by M2E. -->
+        <maven.compiler.target>${version.java}</maven.compiler.target><!-- Used by M2E. -->
+
+        <!-- Scala epoch. -->
+        <version.scala.epoch>2.11</version.scala.epoch>
+        <version.scala.release>2.11.7</version.scala.release>
+
+        <!-- Scala.js epoch. -->
+        <version.scalajs.epoch>0.6</version.scalajs.epoch>
+        <version.scalajs.release>0.6.22</version.scalajs.release>
+        <version.scalajs.library>sjs${version.scalajs.epoch}_${version.scala.epoch}</version.scalajs.library>
+
+        <!-- Scala compiler. -->
+        <version.scala.zinc>1.1.7</version.scala.zinc>
+        <version.scala.plugin.macro>2.1.0</version.scala.plugin.macro>
+
+        <!-- JUnit 4/5 Testing -->
+        <version.maven.testing>2.19.1</version.maven.testing><!-- JUnit 5 OK. -->
+        <version.junit.platform>1.1.0</version.junit.platform>
+        <version.junit.jupiter>5.1.0</version.junit.jupiter>
+        <version.junit.vintage>5.1.0</version.junit.vintage>
+
+        <!-- File format. -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- bump version right before performing releases for the README and the documentation -->
@@ -212,6 +240,8 @@
                 </snapshotRepository>
             </distributionManagement>
         </profile>
+
+
 
         <profile>
             <id>locationtech</id>
@@ -2603,7 +2633,207 @@
             </plugins>
         </pluginManagement>
 
-        <plugins>
+	<plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <skip>true</skip>
+                    <skipMain>true</skipMain>
+                </configuration>
+            </plugin>
+
+            <!-- Enable alternative compiler. -->
+            <plugin>
+                <groupId>com.carrotgarden.maven</groupId>
+                <artifactId>scalor-maven-plugin_2.12</artifactId>
+                <version>1.4.2.20180508161326</version>
+
+                <configuration>
+
+                    <!--
+                        Extra logging for demonstration purposes.
+                    -->
+                    <zincLogSourcesList>true</zincLogSourcesList>
+                    <zincLogProjectClassPath>true</zincLogProjectClassPath>
+                    <!-- <zincLogBridgeClassPath>true</zincLogBridgeClassPath> -->
+                    <!-- <zincLogCompilerClassPath>true</zincLogCompilerClassPath> -->
+                    <zincLogCompilerClassPath>true</zincLogCompilerClassPath>
+                    <zincLogCompilerPluginList>true</zincLogCompilerPluginList>
+                    <zincLogCompilerOptions>true</zincLogCompilerOptions>
+                    <!-- <linkerLogRuntime>true</linkerLogRuntime> -->
+                    <!-- <linkerLogOptions>true</linkerLogOptions> -->
+                    <!-- <linkerLogClassPath>true</linkerLogClassPath> -->
+                    <linkerLogBuildStats>true</linkerLogBuildStats>
+                    <linkerLogUpdateResult>true</linkerLogUpdateResult>
+                    <envconfLogConfig>true</envconfLogConfig>
+                    <!-- <eclipseLogBuildParticipant>true</eclipseLogBuildParticipant> -->
+                    <eclipseLogPersistInstall>true</eclipseLogPersistInstall>
+                    <!-- <eclipseLogInstallReport>true</eclipseLogInstallReport> -->
+                    <eclipseLogPersistSettings>true</eclipseLogPersistSettings>
+
+                    <!--
+                        Example of Scala.js module initializer. See test/Init.scala.
+                    -->
+                    <linkerTestInitializerList>
+                        <initializer>test.Init.main(build=${project.artifactId},stamp=${maven.build.timestamp})</initializer>
+                    </linkerTestInitializerList>
+
+                    <!--
+                        Override JavaC compiler options for demonstration.
+                    -->
+                    <zincOptionsJava>
+                        -deprecation
+                        -encoding
+                        ${project.build.sourceEncoding}
+                        -source
+                        ${version.java}
+                        -target
+                        ${version.java}
+                    </zincOptionsJava>
+
+                    <!--
+                        Provide custom ScalaC compiler options with Scala.js support.
+                        https://www.scala-js.org/doc/interoperability/sjs-defined-js-classes.html
+                    -->
+                    <zincOptionsScala>
+                        -P:scalajs:sjsDefinedByDefault
+                        -encoding
+                        ${project.build.sourceEncoding}
+                        -target:jvm-${version.java}
+                        -Xmaxerrs
+                        10
+                        -feature
+                        -unchecked
+                        -deprecation
+                        -language:higherKinds
+                        -Dkp:genAsciiNames=true
+                        -Dscalor.artifact=${project.artifactId}
+                        -compileorder:Mixed
+                    </zincOptionsScala>
+
+                    <!--
+                        Declare webjars resources for JS-VM testing.
+                        Can select only form configured webjars dependencies.
+                        See result of provisioning in ${project.basedir}/test-tool/webjars.
+                    -->
+                    <envconfWebjarsScriptList>
+                        jquery/jquery.js
+                        vue/vue.js
+                    </envconfWebjarsScriptList>
+
+                    <defineBridge>
+                        <!--
+                            Compiler bridge.
+                        -->
+                        <dependency>
+                            <groupId>org.scala-sbt</groupId>
+                            <artifactId>compiler-bridge_${version.scala.epoch}</artifactId>
+                            <version>${version.scala.zinc}</version>
+                        </dependency>
+                    </defineBridge>
+
+                    <defineCompiler>
+                        <!--
+                            Scala compiler.
+                        -->
+                        <dependency>
+                            <groupId>org.scala-lang</groupId>
+                            <artifactId>scala-compiler</artifactId>
+                            <version>${version.scala.release}</version>
+                        </dependency>
+                        <!--
+                            Convert JUnit annotations into Scala.js JUnit meta data.
+                            This dependency provides replacement JUnit *.sjsir classes.
+                        -->
+                        <dependency>
+                            <groupId>org.scala-js</groupId>
+                            <artifactId>scalajs-junit-test-runtime_${version.scala.epoch}</artifactId>
+                            <version>${version.scalajs.release}</version>
+                        </dependency>
+                    </defineCompiler>
+
+                    <definePluginList>
+                        <!--
+                            Macro type provider support.
+                        -->
+                        <dependency>
+                            <groupId>org.scalamacros</groupId>
+                            <artifactId>paradise_${version.scala.release}</artifactId>
+                            <version>${version.scala.plugin.macro}</version>
+                        </dependency>
+                        <!--
+                            Generate Scala.js *.sjsir classes.
+                        -->
+                        <dependency>
+                            <groupId>org.scala-js</groupId>
+                            <artifactId>scalajs-compiler_${version.scala.release}</artifactId>
+                            <version>${version.scalajs.release}</version>
+                        </dependency>
+                        <!--
+                            Convert JUnit annotations into Scala.js JUnit meta data.
+                            This plugin does actual conversion of JUnit test classes for JS-VM.
+                        -->
+                        <dependency>
+                            <groupId>org.scala-js</groupId>
+                            <artifactId>scalajs-junit-test-plugin_${version.scala.release}</artifactId>
+                            <version>${version.scalajs.release}</version>
+                        </dependency>
+                        <!--
+                            Plugin with advanced language features for demonstration.
+                            https://github.com/non/kind-projector
+                        -->
+                        <dependency>
+                            <groupId>org.spire-math</groupId>
+                            <artifactId>kind-projector_${version.scala.epoch}</artifactId>
+                            <version>0.9.6</version>
+                        </dependency>
+                    </definePluginList>
+
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+
+                            <!-- Install Eclipse companion plugin. -->
+                            <goal>eclipse-config</goal>
+
+                            <!-- Transfer source format settings. -->
+                            <goal>eclipse-format</goal>
+
+                            <!-- Manage test application restart in M2E. -->
+                            <goal>eclipse-restart</goal>
+
+                            <!-- Manage Scala IDE presentation compiler. -->
+                            <goal>eclipse-prescomp</goal>
+
+                            <!-- Add Scala sources to the project. -->
+                            <goal>register-macro</goal>
+                            <goal>register-main</goal>
+                            <goal>register-test</goal>
+
+                            <!-- Compile Java and Scala in 3 scopes. -->
+                            <goal>compile-macro</goal>
+                            <goal>compile-main</goal>
+                            <goal>compile-test</goal>
+
+                            <!-- Generate Scala.js runtime.js JavaScript. -->
+                            <goal>scala-js-link-main</goal>
+                            <goal>scala-js-link-test</goal>
+
+                            <!-- Provide Scala.js JS-VM testing environment. -->
+                            <goal>scala-js-env-prov-webjars</goal>
+                            <goal>scala-js-env-prov-nodejs</goal>
+                            <goal>scala-js-env-conf-nodejs</goal>
+
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+
+
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
