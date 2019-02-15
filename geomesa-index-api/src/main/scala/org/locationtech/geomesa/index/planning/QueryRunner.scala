@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.planning
 
-import com.typesafe.scalalogging.StrictLogging
+import com.typesafe.scalalogging.Logger
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
@@ -23,6 +23,7 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+import org.slf4j.LoggerFactory
 
 trait QueryRunner {
 
@@ -128,7 +129,9 @@ trait QueryRunner {
   }
 }
 
-object QueryRunner extends StrictLogging {
+object QueryRunner {
+
+  private val logger = Logger(LoggerFactory.getLogger(classOf[QueryRunner]))
 
   // used for configuring input queries
   private val default: QueryRunner = new QueryRunner {
