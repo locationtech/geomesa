@@ -603,6 +603,8 @@ Interceptors must have a default, no-arg constructor. The interceptor lifecycle 
 #. ``rewrite`` is called repeatedly
 #. The instance is cleaned up via the ``close`` method
 
+Interceptors will be invoked in the order they are declared in the user data.
+
 .. _stat_attribute_config:
 
 Configuring Cached Statistics
