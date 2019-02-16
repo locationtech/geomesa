@@ -25,6 +25,7 @@ import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, DensityScan
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, Reprojection}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, StatParser}
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
@@ -272,9 +273,8 @@ object QueryPlanner extends LazyLogging {
       }
       sftBuilder.setDefaultGeometry(defaultGeom)
     }
-    val tsft = sftBuilder.buildFeatureType()
-    tsft.getUserData.putAll(sft.getUserData) // TODO reconsider default field user data?
-    tsft
+    // TODO reconsider default field user data?
+    SimpleFeatureTypes.immutable(sftBuilder.buildFeatureType(), sft.getUserData)
   }
 }
 

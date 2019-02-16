@@ -19,6 +19,7 @@ import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, Projecting
 import org.locationtech.geomesa.index.metadata.CachedLazyMetadata
 import org.locationtech.geomesa.index.planning.Transforms
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -53,8 +54,7 @@ class ColumnGroups {
 
         val sfts = map.map { case (group, builder) =>
           builder.setName(sft.getTypeName)
-          val subset = builder.buildFeatureType()
-          subset.getUserData.putAll(sft.getUserData)
+          val subset = SimpleFeatureTypes.immutable(builder.buildFeatureType(), sft.getUserData)
           (group.getBytes(StandardCharsets.UTF_8), subset)
         } + (ColumnGroups.Default -> sft)
 

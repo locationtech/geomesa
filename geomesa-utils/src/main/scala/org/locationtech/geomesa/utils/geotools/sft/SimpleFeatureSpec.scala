@@ -6,14 +6,15 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.geotools
+package org.locationtech.geomesa.utils.geotools.sft
 
 import java.util.regex.Pattern
 import java.util.{Date, UUID}
 
-import org.locationtech.jts.geom._
 import org.apache.commons.text.StringEscapeUtils
 import org.geotools.feature.AttributeTypeBuilder
+import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.AttributeSpec
+import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -26,112 +27,111 @@ import org.opengis.feature.simple.SimpleFeatureType
   */
 case class SimpleFeatureSpec(attributes: Seq[AttributeSpec], options: Map[String, AnyRef])
 
-/**
-  * Intermediate format for attribute descriptors
-  */
-sealed trait AttributeSpec {
+object SimpleFeatureSpec {
 
   /**
-    * Attribute name
-    *
-    * @return name
+    * Intermediate format for attribute descriptors
     */
-  def name: String
+  sealed trait AttributeSpec {
 
-  /**
-    * Type binding
-    *
-    * @return class binding
-    */
-  def clazz: Class[_]
+    /**
+      * Attribute name
+      *
+      * @return name
+      */
+    def name: String
 
-  /**
-    * Attribute level options - all options are stored as strings for simplicity.
-    * @see `RichAttributeDescriptors` for conversions.
-    *
-    * @return attribute level options
-    */
-  def options: Map[String, String]
+    /**
+      * Type binding
+      *
+      * @return class binding
+      */
+    def clazz: Class[_]
 
-  /**
-    * Convert to a spec string
-    *
-    * @return a partial spec string
-    */
-  def toSpec: String = {
-    val opts = specOptions.map { case (k, v) =>
-      if (AttributeSpec.simpleOptionPattern.matcher(v).matches()) {
-        s":$k=$v"
-      } else {
-        s":$k='${StringEscapeUtils.escapeJava(v)}'"
+    /**
+      * Attribute level options - all options are stored as strings for simplicity.
+      * @see `RichAttributeDescriptors` for conversions.
+      *
+      * @return attribute level options
+      */
+    def options: Map[String, String]
+
+    /**
+      * Convert to a spec string
+      *
+      * @return a partial spec string
+      */
+    def toSpec: String = {
+      val opts = specOptions.map { case (k, v) =>
+        if (simpleOptionPattern.matcher(v).matches()) {
+          s":$k=$v"
+        } else {
+          s":$k='${StringEscapeUtils.escapeJava(v)}'"
+        }
       }
+      s"$name:$getClassSpec${opts.mkString}"
     }
-    s"$name:$getClassSpec${opts.mkString}"
+
+    /**
+      * Convert to a typesafe config map
+      *
+      * @return a spec map
+      */
+    def toConfigMap: Map[String, String] = Map("name" -> name, "type" -> getClassSpec) ++ configOptions
+
+    /**
+      * Convert to an attribute descriptor
+      *
+      * @return a descriptor
+      */
+    def toDescriptor: AttributeDescriptor = {
+      val builder = new AttributeTypeBuilder().binding(clazz)
+      descriptorOptions.foreach { case (k, v) => builder.userData(k, v) }
+      builderHook(builder)
+      builder.buildDescriptor(name)
+    }
+
+    /**
+      * Gets class binding as a spec string
+      *
+      * @return class part of spec string
+      */
+    protected def getClassSpec: String = typeEncode(clazz)
+
+    /**
+      * Options encoded in the spec string
+      *
+      * @return options to include in the spec string conversion
+      */
+    protected def specOptions: Map[String, String] = options
+
+    /**
+      * Options encoded in the config map
+      *
+      * @return options to include in the config map conversion
+      */
+    protected def configOptions: Map[String, String] = options
+
+    /**
+      * Options set in the attribute descriptor
+      *
+      * @return options to include in the descriptor conversion
+      */
+    protected def descriptorOptions: Map[String, String] = options
+
+    /**
+      * Hook for modifying attribute descriptor
+      *
+      * @param builder attribute desctiptor builder
+      */
+    protected def builderHook(builder: AttributeTypeBuilder): Unit = {}
   }
 
-  /**
-    * Convert to a typesafe config map
-    *
-    * @return a spec map
-    */
-  def toConfigMap: Map[String, String] = Map("name" -> name, "type" -> getClassSpec) ++ configOptions
-
-  /**
-    * Convert to an attribute descriptor
-    *
-    * @return a descriptor
-    */
-  def toDescriptor: AttributeDescriptor = {
-    val builder = new AttributeTypeBuilder().binding(clazz)
-    descriptorOptions.foreach { case (k, v) => builder.userData(k, v) }
-    builderHook(builder)
-    builder.buildDescriptor(name)
-  }
-
-  /**
-    * Gets class binding as a spec string
-    *
-    * @return class part of spec string
-    */
-  protected def getClassSpec: String = s"${AttributeSpec.typeEncode(clazz)}"
-
-  /**
-    * Options encoded in the spec string
-    *
-    * @return options to include in the spec string conversion
-    */
-  protected def specOptions: Map[String, String] = options
-
-  /**
-    * Options encoded in the config map
-    *
-    * @return options to include in the config map conversion
-    */
-  protected def configOptions: Map[String, String] = options
-
-  /**
-    * Options set in the attribute descriptor
-    *
-    * @return options to include in the descriptor conversion
-    */
-  protected def descriptorOptions: Map[String, String] = options
-
-  /**
-    * Hook for modifying attribute descriptor
-    *
-    * @param builder attribute desctiptor builder
-    */
-  protected def builderHook(builder: AttributeTypeBuilder): Unit = {}
-}
-
-object AttributeSpec {
-
-  import SimpleFeatureTypes.AttributeOptions.{OPT_DEFAULT, OPT_INDEX, OPT_SRID}
+  import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions.{OPT_DEFAULT, OPT_INDEX, OPT_SRID}
 
   private val simpleOptionPattern = Pattern.compile("[a-zA-Z0-9_]+")
 
-  def apply(sft: SimpleFeatureType, descriptor: AttributeDescriptor): AttributeSpec = {
-    import SimpleFeatureTypes.AttributeOptions.OPT_DEFAULT
+  def attribute(sft: SimpleFeatureType, descriptor: AttributeDescriptor): AttributeSpec = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
     import scala.collection.JavaConversions._
@@ -175,7 +175,7 @@ object AttributeSpec {
     override def builderHook(builder: AttributeTypeBuilder): Unit = {
       require(!options.get(OPT_SRID).exists(_.toInt != 4326),
         s"Invalid SRID '${options(OPT_SRID)}'. Only 4326 is supported.")
-      builder.crs(CRS_EPSG_4326)
+      builder.crs(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
     }
 
     // default geoms are indicated by the *
@@ -238,7 +238,7 @@ object AttributeSpec {
     classOf[Array[Byte]]         -> "Bytes"
   )
 
-  private [geotools] val simpleTypeMap = Map(
+  private [sft] val simpleTypeMap = Map(
     "String"            -> classOf[java.lang.String],
     "java.lang.String"  -> classOf[java.lang.String],
     "string"            -> classOf[java.lang.String],
@@ -271,7 +271,7 @@ object AttributeSpec {
     "Bytes"             -> classOf[Array[Byte]]
   )
 
-  private [geotools] val geometryTypeMap = Map(
+  private [sft] val geometryTypeMap = Map(
     "Geometry"           -> classOf[Geometry],
     "Point"              -> classOf[Point],
     "LineString"         -> classOf[LineString],
@@ -282,12 +282,12 @@ object AttributeSpec {
     "GeometryCollection" -> classOf[GeometryCollection]
   )
 
-  private [geotools] val listTypeMap = Map(
+  private [sft] val listTypeMap = Map(
     "list"           -> classOf[java.util.List[_]],
     "List"           -> classOf[java.util.List[_]],
     "java.util.List" -> classOf[java.util.List[_]])
 
-  private [geotools] val mapTypeMap  = Map(
+  private [sft] val mapTypeMap  = Map(
     "map"           -> classOf[java.util.Map[_, _]],
     "Map"           -> classOf[java.util.Map[_, _]],
     "java.util.Map" -> classOf[java.util.Map[_, _]])

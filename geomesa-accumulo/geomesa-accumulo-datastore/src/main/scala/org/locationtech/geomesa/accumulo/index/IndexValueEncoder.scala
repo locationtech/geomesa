@@ -8,13 +8,16 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import java.util.concurrent.ConcurrentHashMap
+
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.SerializationOption.{SerializationOption, SerializationOptions}
 import org.locationtech.geomesa.features.SimpleFeatureSerializer.LimitedSerialization
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureSerializer}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
-import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocalCache}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.sft.ImmutableSimpleFeatureType
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -28,12 +31,10 @@ object IndexValueEncoder {
 
   import scala.collection.JavaConversions._
 
-  private val cache = new SoftThreadLocalCache[String, SimpleFeatureType]()
+  private val cache = new ConcurrentHashMap[ImmutableSimpleFeatureType, ImmutableSimpleFeatureType]()
 
-  def apply(sft: SimpleFeatureType): SimpleFeatureSerializer = {
-    val indexSft = cache.getOrElseUpdate(CacheKeyGenerator.cacheKey(sft), getIndexSft(sft))
-    new ProjectingKryoFeatureSerializer(sft, indexSft, SerializationOptions.withoutId)
-  }
+  def apply(sft: SimpleFeatureType): SimpleFeatureSerializer =
+    new ProjectingKryoFeatureSerializer(sft, getIndexSft(sft), SerializationOptions.withoutId)
 
   /**
    * Gets a feature type compatible with the stored index value
@@ -42,6 +43,20 @@ object IndexValueEncoder {
    * @return
    */
   def getIndexSft(sft: SimpleFeatureType): SimpleFeatureType = {
+    sft match {
+      case immutable: ImmutableSimpleFeatureType =>
+        var indexSft = cache.get(immutable)
+        if (indexSft == null) {
+          indexSft = SimpleFeatureTypes.immutable(buildIndexSft(sft)).asInstanceOf[ImmutableSimpleFeatureType]
+          cache.put(immutable, indexSft)
+        }
+        indexSft
+
+      case _ => buildIndexSft(sft)
+    }
+  }
+
+  private def buildIndexSft(sft: SimpleFeatureType): SimpleFeatureType = {
     val builder = new SimpleFeatureTypeBuilder()
     builder.setNamespaceURI(null: String)
     builder.setName(sft.getTypeName + "--index")
@@ -86,7 +101,7 @@ object IndexValueEncoder {
 
     import scala.collection.JavaConverters._
 
-    private val indexSft = cache.getOrElseUpdate(CacheKeyGenerator.cacheKey(sft), getIndexSft(sft))
+    private val indexSft = getIndexSft(sft)
     private val encoder = KryoFeatureSerializer(indexSft)
     private val reusableFeature = new ScalaSimpleFeature(indexSft, "")
     private val indices = indexSft.getAttributeDescriptors.asScala.map(ad => sft.indexOf(ad.getLocalName)).toArray

@@ -9,12 +9,14 @@
 package org.locationtech.geomesa.utils.geotools
 
 import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.config.Config
 import org.apache.commons.text.StringEscapeUtils
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.locationtech.geomesa.utils.geotools.AttributeSpec.GeomAttributeSpec
 import org.locationtech.geomesa.utils.geotools.NameableFeatureTypeFactory.NameableSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.GeomAttributeSpec
+import org.locationtech.geomesa.utils.geotools.sft._
 import org.opengis.feature.`type`.{AttributeDescriptor, FeatureTypeFactory, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.parboiled.errors.ParsingException
@@ -41,6 +43,7 @@ object SimpleFeatureTypes {
     val ENABLED_INDICES      = "geomesa.indices.enabled"
     // keep around old values for back compatibility
     val ENABLED_INDEX_OPTS   = Seq(ENABLED_INDICES, "geomesa.indexes.enabled", "table.indexes.enabled")
+    @deprecated("GeoHash index is no longer supported")
     val ST_INDEX_SCHEMA_KEY  = "geomesa.index.st.schema"
     val Z_SPLITS_KEY         = "geomesa.z.splits"
     val ATTR_SPLITS_KEY      = "geomesa.attr.splits"
@@ -83,6 +86,8 @@ object SimpleFeatureTypes {
     val USER_DATA_MAP_VALUE_TYPE = "valueclass"
   }
 
+  private val cache = new ConcurrentHashMap[(String, String), ImmutableSimpleFeatureType]()
+
   /**
     * Create a simple feature type from a specification. Extends DataUtilities.createType with
     * GeoMesa-specific functionality like list/map attributes, indexing options, etc.
@@ -112,6 +117,44 @@ object SimpleFeatureTypes {
     createFeatureType(namespace, name, parsed)
   }
 
+  /**
+    * Create a simple feature type from a specification. Extends DataUtilities.createType with
+    * GeoMesa-specific functionality like list/map attributes, indexing options, etc.
+    *
+    * This method can be more efficient that `createType`, as it will return a cached, immutable instance
+    *
+    * Note that immutable types will never be `equals` to a mutable type, due to specific class checking
+    * in the geotools implementation
+    *
+    * @param typeName type name - may include namespace
+    * @param spec specification
+    * @return
+    */
+  def createImmutableType(typeName: String, spec: String): SimpleFeatureType = {
+    var sft = cache.get((typeName, spec))
+    if (sft == null) {
+      sft = immutable(createType(typeName, spec)).asInstanceOf[ImmutableSimpleFeatureType]
+      cache.put((typeName, spec), sft)
+    }
+    sft
+  }
+
+  /**
+    * Create a simple feature type from a specification. Extends DataUtilities.createType with
+    * GeoMesa-specific functionality like list/map attributes, indexing options, etc.
+    *
+    * This method can be more efficient that `createType`, as it will return a cached, immutable instance
+    *
+    * Note that immutable types will never be `equals` to a mutable type, due to specific class checking
+    * in the geotools implementation
+    *
+    * @param namespace namespace
+    * @param name name
+    * @param spec specification
+    * @return
+    */
+  def createImmutableType(namespace: String, name: String, spec: String): SimpleFeatureType =
+    createImmutableType(if (namespace == null) { name } else { s"$namespace:$name" }, spec)
 
   /**
     * Parse a SimpleFeatureType spec from a typesafe Config
@@ -176,7 +219,7 @@ object SimpleFeatureTypes {
     if (includeUserData) { s"${encodeType(sft)}${encodeUserData(sft)}" } else { encodeType(sft) }
 
   def encodeDescriptor(sft: SimpleFeatureType, descriptor: AttributeDescriptor): String =
-    AttributeSpec(sft, descriptor).toSpec
+    SimpleFeatureSpec.attribute(sft, descriptor).toSpec
 
   def encodeUserData(sft: SimpleFeatureType): String = {
     val prefixes = sft.getUserDataPrefixes
@@ -210,6 +253,77 @@ object SimpleFeatureTypes {
                      includePrefix: Boolean = true,
                      json: Boolean = false): String =
     SimpleFeatureSpecConfig.toConfigString(sft, includeUserData, concise, includePrefix, json)
+
+  /**
+    * Creates an immutable copy of the simple feature type
+    *
+    * Note that immutable types will never be `equals` to a mutable type, due to specific class checking
+    * in the geotools implementation
+    *
+    * Note that some parts of the feature type may still be mutable - in particular AttributeType,
+    * GeometryType and SuperType are not used by geomesa so we don't bother with them. In addition,
+    * user data keys and values may be mutable objects, so while the user data map will not change,
+    * the values inside may
+    *
+    * @param sft simple feature type
+    * @param extraData additional user data to add to the simple feature type
+    * @return immutable copy of the simple feature type
+    */
+  def immutable(sft: SimpleFeatureType, extraData: java.util.Map[AnyRef, AnyRef] = null): SimpleFeatureType = {
+    sft match {
+      case immutable: ImmutableSimpleFeatureType if extraData == null || extraData.isEmpty => immutable
+      case _ =>
+        val schema = new java.util.ArrayList[AttributeDescriptor](sft.getAttributeCount)
+        var geom: GeometryDescriptor = null
+        var i = 0
+        while (i < sft.getAttributeCount) {
+          sft.getDescriptor(i) match {
+            case gd: GeometryDescriptor =>
+              val descriptor = new ImmutableGeometryDescriptor(gd.getType, gd.getName, gd.getMinOccurs,
+                gd.getMaxOccurs, gd.isNillable, gd.getDefaultValue, gd.getUserData)
+              if (gd == sft.getGeometryDescriptor) {
+                geom = descriptor
+              }
+              schema.add(descriptor)
+
+            case ad =>
+              schema.add(new ImmutableAttributeDescriptor(ad.getType, ad.getName, ad.getMinOccurs, ad.getMaxOccurs,
+                ad.isNillable, ad.getDefaultValue, ad.getUserData))
+          }
+          i += 1
+        }
+        val userData = Option(extraData).filterNot(_.isEmpty).map { data =>
+          val map = new java.util.HashMap[AnyRef, AnyRef](data.size() + sft.getUserData.size)
+          map.putAll(sft.getUserData)
+          map.putAll(data)
+          map
+        }
+
+        new ImmutableSimpleFeatureType(sft.getName, schema, geom, sft.isAbstract, sft.getRestrictions, sft.getSuper,
+          sft.getDescription, userData.getOrElse(sft.getUserData))
+    }
+  }
+
+  /**
+    * Creates a mutable copy of a simple feature type. If the feature type is already mutable,
+    * it is returned as is
+    *
+    * @param sft simple feature type
+    * @return
+    */
+  def mutable(sft: SimpleFeatureType): SimpleFeatureType = {
+    if (sft.isInstanceOf[ImmutableSimpleFeatureType] || sft.getAttributeDescriptors.asScala.exists(isImmutable)) {
+      // note: SimpleFeatureTypeBuilder copies attribute user data but not feature user data
+      val copy = SimpleFeatureTypeBuilder.copy(sft)
+      copy.getUserData.putAll(sft.getUserData)
+      copy
+    } else {
+      sft
+    }
+  }
+
+  private def isImmutable(d: AttributeDescriptor): Boolean =
+    d.isInstanceOf[ImmutableAttributeDescriptor] || d.isInstanceOf[ImmutableGeometryDescriptor]
 
   /**
     * Renames a simple feature type. Preserves user data

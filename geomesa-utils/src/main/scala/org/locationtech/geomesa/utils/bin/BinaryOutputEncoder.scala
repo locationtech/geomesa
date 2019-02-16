@@ -14,12 +14,13 @@ import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Geometry, LineString, Point}
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.{ByteArrayCallback, ByteStreamCallback}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.ToValues
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.AttributeSpec.ListAttributeSpec
-import org.locationtech.geomesa.utils.geotools.{SimpleFeatureSpecParser, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.ListAttributeSpec
+import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
+import org.locationtech.jts.geom.{Geometry, LineString, Point}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._

@@ -214,9 +214,6 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
       val transformSft = transform.getOrElse {
         throw new IllegalStateException("Must have a transform for attribute key plus value scan")
       }
-      // make sure we set table sharing - required for the iterator
-      // noinspection ScalaDeprecation
-      transformSft.setTableSharing(sft.isTableSharing)
       val iter = FilterTransformIterator.configure(indexSft, this, ecql, hints.getTransform, hints.getSampling)
       // add the attribute-level vis iterator if necessary
       val iters = visibilityIter(schema) ++ iter.toSeq :+ AttributeKeyValueIterator.configure(this, transformSft)

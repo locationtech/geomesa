@@ -21,6 +21,7 @@ import org.locationtech.geomesa.jobs.accumulo.index.{WriteIndexArgs, WriteIndexJ
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.utils.conf.IndexId
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{Configs, InternalConfigs}
 import org.locationtech.geomesa.utils.index.IndexMode
 
@@ -73,7 +74,7 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends R
 
     import scala.collection.JavaConversions._
 
-    val sft = ds.getSchema(params.featureName)
+    val sft = Option(ds.getSchema(params.featureName)).map(SimpleFeatureTypes.mutable).orNull
     require(sft != null, s"Schema '${params.featureName}' does not exist in the specified data store")
 
     val indices = {

@@ -90,6 +90,20 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 2.3.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Immutable Simple Feature Types
+------------------------------
+
+GeoMesa 2.3.0 returns immutable objects from calls to ``getSchema``. This allows for the re-use of SimpleFeatureType
+instances, which reduces overhead. In most cases, this will have no effect on end users, however note that mutable
+and immutable feature types will never be ``equals`` when compared directly.
+
+In order to update a schema, or if mutability is desired for some other reason, call
+``org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.mutable()`` to create a mutable copy. Java users
+can call ``org.locationtech.geomesa.utils.interop.SimpleFeatureTypes.mutable()`` instead.
+
 Version 2.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

@@ -276,6 +276,8 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     if (sft != null) {
       // back compatible check for index versions
       if (sft.getIndices.isEmpty) {
+        // make the sft temporarily mutable so we can update the keys
+        sft = SimpleFeatureTypes.mutable(sft)
         // back compatible check if user data wasn't encoded with the sft
         if (!sft.getUserData.containsKey(AccumuloDataStore.DeprecatedSchemaVersionKey)) {
           metadata.read(typeName, "dtgfield").foreach(sft.setDtgField)
