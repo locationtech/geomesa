@@ -74,7 +74,7 @@ object OrcSimpleFeatureInputFormat {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val query = new Query(sft.getTypeName, filter, transforms)
-    val q = QueryRunner.default.configureQuery(sft, query)
+    val q = QueryRunner.configureDefaultQuery(sft, query)
     val f = Option(q.getFilter).filter(_ != Filter.INCLUDE)
     val transform = q.getHints.getTransform
 

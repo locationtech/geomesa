@@ -41,6 +41,7 @@ import org.locationtech.geomesa.utils.cache.Ticker
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TABLE_SHARING_KEY
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.SHARING_PREFIX_KEY
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.zk.{ZookeeperLocking, ZookeeperMetadata}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -89,7 +90,7 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     }
   })
 
-  private val runner = new KafkaQueryRunner(caches, stats, Some(config.authProvider))
+  private val runner = new KafkaQueryRunner(this, caches)
 
   // migrate old schemas, if any
   if (!metadata.read("migration", "check").exists(_.toBoolean)) {
@@ -209,9 +210,9 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
   override def dispose(): Unit = {
     import scala.collection.JavaConversions._
     if (producerInitialized) {
-      producer.close()
+      CloseWithLogging(producer)
     }
-    caches.asMap.valuesIterator.foreach(_.close())
+    caches.asMap.valuesIterator.foreach(CloseWithLogging.apply)
     caches.invalidateAll()
     super.dispose()
   }

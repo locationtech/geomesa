@@ -12,7 +12,6 @@ package org.locationtech.geomesa.fs.storage.common
 import java.util.Collections
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Envelope
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.geotools.data.Query
@@ -23,6 +22,7 @@ import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
+import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -88,7 +88,7 @@ abstract class MetadataFileSystemStorage(conf: Configuration,
     // TODO ask the partition manager the geometry is fully covered?
 
     val sft = metadata.getSchema
-    val q = QueryRunner.default.configureQuery(sft, query)
+    val q = QueryRunner.configureDefaultQuery(sft, query)
     val filter = Option(q.getFilter).filter(_ != Filter.INCLUDE)
     val transform = q.getHints.getTransform
 

@@ -10,19 +10,18 @@ package org.locationtech.geomesa.kafka.index
 
 import com.github.benmanes.caffeine.cache.LoadingCache
 import org.locationtech.geomesa.index.planning.LocalQueryRunner
-import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.kafka.data.KafkaCacheLoader
-import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
+import org.locationtech.geomesa.kafka.data.{KafkaCacheLoader, KafkaDataStore}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class KafkaQueryRunner(caches: LoadingCache[String, KafkaCacheLoader],
-                       stats: GeoMesaStats,
-                       authProvider: Option[AuthorizationsProvider])
-    extends LocalQueryRunner(stats, authProvider) {
+class KafkaQueryRunner(ds: KafkaDataStore, caches: LoadingCache[String, KafkaCacheLoader])
+    extends LocalQueryRunner(ds.stats, Option(ds.config.authProvider)) {
 
   override protected def name: String = "Kafka"
+
+  override protected val interceptors: QueryInterceptorFactory = ds.interceptors
 
   override protected def features(sft: SimpleFeatureType, filter: Option[Filter]): CloseableIterator[SimpleFeature] =
     CloseableIterator(caches.get(sft.getTypeName).cache.query(filter.getOrElse(Filter.INCLUDE)))

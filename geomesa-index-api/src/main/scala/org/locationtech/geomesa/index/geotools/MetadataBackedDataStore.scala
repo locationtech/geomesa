@@ -19,6 +19,7 @@ import org.geotools.feature.{FeatureTypes, NameImpl}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
+import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY, TABLE_SHARING_KEY}
@@ -41,6 +42,8 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
 
   // TODO: GEOMESA-2360 - Remove global axis order hint from MetadataBackedDataStore
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
+
+  protected [geomesa] val interceptors = QueryInterceptorFactory(this)
 
   // hooks to allow extended functionality
 
@@ -353,7 +356,10 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     *
     * @see org.geotools.data.DataAccess#dispose()
     */
-  override def dispose(): Unit = CloseWithLogging(metadata)
+  override def dispose(): Unit = {
+    CloseWithLogging(metadata)
+    CloseWithLogging(interceptors)
+  }
 
   // end methods from org.geotools.data.DataStore
 

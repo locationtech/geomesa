@@ -54,6 +54,7 @@ object SimpleFeatureTypes {
     val FID_UUID_KEY         = "geomesa.fid.uuid"
     val FID_UUID_ENCODED_KEY = "geomesa.fid.uuid-encoded"
     val TABLE_PARTITIONING   = "geomesa.table.partition"
+    val QUERY_INTERCEPTORS   = "geomesa.query.interceptors"
   }
 
   private [geomesa] object InternalConfigs {
