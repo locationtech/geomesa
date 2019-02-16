@@ -141,7 +141,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         consumer must not(beNull)
         producer must not(beNull)
         try {
-          val sft = SimpleFeatureTypes.createType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.foo='bar'")
+          val sft = SimpleFeatureTypes.createImmutableType("kafka", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.foo='bar'")
           val topic = s"${producer.config.catalog}-${sft.getTypeName}".replaceAll("/", "-")
           producer.createSchema(sft)
           foreach(Seq(producer, consumer)) { ds =>

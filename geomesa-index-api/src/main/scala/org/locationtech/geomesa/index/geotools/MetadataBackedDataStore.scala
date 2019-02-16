@@ -116,14 +116,16 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     * This method uses distributed locking to ensure a schema is only created once.
     *
     * @see org.geotools.data.DataAccess#createSchema(org.opengis.feature.type.FeatureType)
-    * @param sft type to create
+    * @param schema type to create
     */
-  override def createSchema(sft: SimpleFeatureType): Unit = {
-    if (getSchema(sft.getTypeName) == null) {
+  override def createSchema(schema: SimpleFeatureType): Unit = {
+    if (getSchema(schema.getTypeName) == null) {
       val lock = acquireCatalogLock()
       try {
         // check a second time now that we have the lock
-        if (getSchema(sft.getTypeName) == null) {
+        if (getSchema(schema.getTypeName) == null) {
+          // ensure that we have a mutable type so we can set user data
+          val sft = SimpleFeatureTypes.mutable(schema)
           // inspect and update the simple feature type for various components
           // do this before anything else so that any modifications will be in place
           GeoMesaSchemaValidator.validate(sft)
@@ -181,8 +183,12 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
    * @param typeName feature type name
    * @return feature type, or null if it does not exist
    */
-  override def getSchema(typeName: String): SimpleFeatureType =
-    metadata.read(typeName, ATTRIBUTES_KEY).map(SimpleFeatureTypes.createType(config.namespace.orNull, typeName, _)).orNull
+  override def getSchema(typeName: String): SimpleFeatureType = {
+    metadata.read(typeName, ATTRIBUTES_KEY) match {
+      case None => null
+      case Some(spec) => SimpleFeatureTypes.createImmutableType(config.namespace.orNull, typeName, spec)
+    }
+  }
 
   /**
     * Allows the following modifications to the schema:
@@ -209,12 +215,12 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     *
     * @see org.geotools.data.DataAccess#updateSchema(org.opengis.feature.type.Name, org.opengis.feature.type.FeatureType)
     * @param typeName simple feature type name
-    * @param sft new simple feature type
+    * @param schema new simple feature type
     */
-  override def updateSchema(typeName: Name, sft: SimpleFeatureType): Unit = {
+  override def updateSchema(typeName: Name, schema: SimpleFeatureType): Unit = {
     // validate type name has not changed
-    if (typeName.getLocalPart != sft.getTypeName) {
-      val msg = s"Updating the name of a schema is not allowed: '$typeName' changed to '${sft.getTypeName}'"
+    if (typeName.getLocalPart != schema.getTypeName) {
+      val msg = s"Updating the name of a schema is not allowed: '$typeName' changed to '${schema.getTypeName}'"
       throw new UnsupportedOperationException(msg)
     }
 
@@ -228,23 +234,25 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
       }
 
       // validate that default geometry has not changed
-      if (sft.getGeomField != previousSft.getGeomField) {
+      if (schema.getGeomField != previousSft.getGeomField) {
         throw new UnsupportedOperationException("Changing the default geometry is not supported")
       }
 
       // Check that unmodifiable user data has not changed
       MetadataBackedDataStore.unmodifiableUserdataKeys.foreach { key =>
-        if (sft.userData[Any](key) != previousSft.userData[Any](key)) {
+        if (schema.userData[Any](key) != previousSft.userData[Any](key)) {
           throw new UnsupportedOperationException(s"Updating '$key' is not supported")
         }
       }
 
       // Check that the rest of the schema has not changed (columns, types, etc)
       val previousColumns = previousSft.getAttributeDescriptors
-      val currentColumns = sft.getAttributeDescriptors
+      val currentColumns = schema.getAttributeDescriptors
       if (previousColumns.toSeq != currentColumns.take(previousColumns.length)) {
         throw new UnsupportedOperationException("Updating schema columns is not allowed")
       }
+
+      val sft = SimpleFeatureTypes.mutable(schema)
 
       preSchemaUpdate(sft, previousSft)
 

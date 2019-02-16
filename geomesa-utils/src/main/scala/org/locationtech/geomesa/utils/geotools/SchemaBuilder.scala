@@ -10,8 +10,9 @@ package org.locationtech.geomesa.utils.geotools
 
 import com.google.common.primitives.Primitives
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
-import org.locationtech.geomesa.utils.geotools.AttributeSpec.{ListAttributeSpec, MapAttributeSpec}
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder.{AbstractSchemaBuilder, AttributeBuilder, UserDataBuilder}
+import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec
+import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.{ListAttributeSpec, MapAttributeSpec}
 import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
@@ -273,7 +274,7 @@ object SchemaBuilder {
       * @param ad attribute descriptor
       * @return schema builder for chaining additional calls
       */
-    def addAttribute(ad: AttributeDescriptor): A = add(AttributeSpec(null, ad).toSpec)
+    def addAttribute(ad: AttributeDescriptor): A = add(SimpleFeatureSpec.attribute(null, ad).toSpec)
 
     /**
       * Add feature-level user data

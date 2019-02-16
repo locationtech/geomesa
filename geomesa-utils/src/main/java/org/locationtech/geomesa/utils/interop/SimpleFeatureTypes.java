@@ -19,4 +19,8 @@ public class SimpleFeatureTypes {
     public static SimpleFeatureType createType(String name, String spec) {
         return SimpleFeatureTypes$.MODULE$.createType(name, spec);
     }
+
+    public static SimpleFeatureType mutable(SimpleFeatureType sft) {
+        return SimpleFeatureTypes$.MODULE$.mutable(sft);
+    }
 }

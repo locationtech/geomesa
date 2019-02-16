@@ -23,7 +23,7 @@ import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, Stat
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
+import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.iterators.SortedMergeIterator
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat, TopK}
@@ -175,10 +175,10 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[DataStore]) extends
         CloseableIterator(reader)
       } else {
         // the store just returned normal features, do the arrow processing here
-        schema.getUserData.putAll(sft.getUserData) // copy default dtg, etc if necessary
+        val copy = SimpleFeatureTypes.immutable(schema, sft.getUserData) // copy default dtg, etc if necessary
         // note: we don't need to pass in the transform or filter, as the transform should have already been
         // applied and the dictionaries calculated up front (if needed)
-        LocalQueryRunner.transform(schema, CloseableIterator(reader), None, hints, None)
+        LocalQueryRunner.transform(copy, CloseableIterator(reader), None, hints, None)
       }
     }
 
@@ -195,8 +195,8 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[DataStore]) extends
         CloseableIterator(reader)
       } else {
         // the store just returned regular features, do the density processing here
-        schema.getUserData.putAll(sft.getUserData) // copy default dtg, etc if necessary
-        LocalQueryRunner.transform(schema, CloseableIterator(reader), None, hints, None)
+        val copy = SimpleFeatureTypes.immutable(schema, sft.getUserData) // copy default dtg, etc if necessary
+        LocalQueryRunner.transform(copy, CloseableIterator(reader), None, hints, None)
       }
     }
   }
@@ -212,8 +212,8 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[DataStore]) extends
         CloseableIterator(reader)
       } else {
         // the store just returned regular features, do the stats processing here
-        schema.getUserData.putAll(sft.getUserData) // copy default dtg, etc if necessary
-        LocalQueryRunner.transform(schema, CloseableIterator(reader), None, hints, None)
+        val copy = SimpleFeatureTypes.immutable(schema, sft.getUserData) // copy default dtg, etc if necessary
+        LocalQueryRunner.transform(copy, CloseableIterator(reader), None, hints, None)
       }
     }
     StatsScan.reduceFeatures(sft, hints)(results)
@@ -229,8 +229,8 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[DataStore]) extends
         CloseableIterator(reader)
       } else {
         // the store just returned regular features, do the bin processing here
-        schema.getUserData.putAll(sft.getUserData) // copy default dtg, etc if necessary
-        LocalQueryRunner.transform(schema, CloseableIterator(reader), None, hints, None)
+        val copy = SimpleFeatureTypes.immutable(schema, sft.getUserData) // copy default dtg, etc if necessary
+        LocalQueryRunner.transform(copy, CloseableIterator(reader), None, hints, None)
       }
     }
   }

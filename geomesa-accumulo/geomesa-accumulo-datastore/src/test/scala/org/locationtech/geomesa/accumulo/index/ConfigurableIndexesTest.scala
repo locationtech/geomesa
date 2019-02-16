@@ -76,9 +76,10 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
 
     "add another empty index" >> {
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-      sft.setIndices(sft.getIndices :+ IndexId(Z2Index.name, Z2Index.version, Seq("geom"), IndexMode.ReadWrite))
-      ds.updateSchema(sftName, sft)
-      val indices = ds.manager.indices(sft)
+      val updated = SimpleFeatureTypes.mutable(sft)
+      updated.setIndices(sft.getIndices :+ IndexId(Z2Index.name, Z2Index.version, Seq("geom"), IndexMode.ReadWrite))
+      ds.updateSchema(sftName, updated)
+      val indices = ds.manager.indices(updated)
       indices must haveLength(2)
       indices.map(_.name) must containTheSameElementsAs(Seq(Z3Index.name, Z2Index.name))
       forall(indices) { i =>

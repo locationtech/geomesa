@@ -33,7 +33,7 @@ class SimpleFeatureArrowFileTest extends Specification {
 
   val fileCount = new AtomicInteger(0)
 
-  val sft = SimpleFeatureTypes.createType("test", "name:String,foo:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createImmutableType("test", "name:String,foo:String,age:Int,dtg:Date,*geom:Point:srid=4326")
   val lineSft = SimpleFeatureTypes.createType("test", "name:String,team:String,age:Int,weight:Int,dtg:Date,*geom:LineString:srid=4326")
 
   val features0 = (0 until 10).map { i =>
