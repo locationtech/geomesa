@@ -128,6 +128,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithDataStore {
       val proxy = new ProxyIdFunction()
       features.map(proxy.evaluate(_).toString) must containAllOf(ids)
 
+      // TODO GEOMESA-2562 test multiple proxyIds in one query
       val callback = new Query(sftName, ECQL.toFilter(s"$filter AND proxyId() = '${ids.head}'"))
       val callbackResults = SelfClosingIterator(ds.getFeatureReader(callback, Transaction.AUTO_COMMIT)).toList
       callbackResults must haveLength(1)

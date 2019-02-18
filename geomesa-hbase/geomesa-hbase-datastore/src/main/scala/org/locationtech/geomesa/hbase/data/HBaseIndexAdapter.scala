@@ -233,11 +233,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         val filters = {
           // if there is a coprocessorConfig it handles filter/transform
           val cqlFilter = if (coprocessorConfig.isDefined || (ecql.isEmpty && transform.isEmpty)) { Seq.empty } else {
-            Seq((CqlTransformFilter.Priority, CqlTransformFilter(schema, ecql, transform)))
+            Seq((CqlTransformFilter.Priority, CqlTransformFilter(schema, strategy.index, ecql, transform)))
           }
 
           // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
-          val indexFilter = strategy.filter.index match {
+          val indexFilter = strategy.index match {
             case _: Z3Index =>
               strategy.values.toSeq.map { case v: Z3IndexValues =>
                 (Z3HBaseFilter.Priority, Z3HBaseFilter(Z3Filter(v), index.keySpace.sharding.length))
