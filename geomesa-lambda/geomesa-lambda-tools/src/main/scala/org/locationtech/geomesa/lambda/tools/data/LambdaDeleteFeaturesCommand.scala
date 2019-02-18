@@ -17,5 +17,5 @@ class LambdaDeleteFeaturesCommand extends DeleteFeaturesCommand[LambdaDataStore]
   override val params = new LambdaDeleteFeaturesParams
 }
 
-@Parameters(commandDescription = "Delete features from a table in GeoMesa. Does not delete any tables or schema information.")
+@Parameters(commandDescription = "Delete features from a GeoMesa schema")
 class LambdaDeleteFeaturesParams extends DeleteFeaturesParams with LambdaDataStoreParams

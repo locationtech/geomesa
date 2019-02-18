@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.lambda.data
 
 import com.github.benmanes.caffeine.cache.LoadingCache
-import org.locationtech.geomesa.index.stats.{GeoMesaStats, StatUpdater}
+import org.locationtech.geomesa.index.stats.GeoMesaStats
+import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.opengis.feature.simple.SimpleFeatureType

@@ -25,7 +25,8 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
-import org.locationtech.geomesa.index.stats.{DistributedRunnableStats, GeoMesaStats, UnoptimizedRunnableStats}
+import org.locationtech.geomesa.index.stats.GeoMesaStats
+import org.locationtech.geomesa.index.stats.MetadataBackedStats.RunnableStats
 import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
@@ -48,22 +49,11 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
 
   override val adapter: HBaseIndexAdapter = new HBaseIndexAdapter(this)
 
-  override val stats: GeoMesaStats =
-    if (config.remoteFilter) { new DistributedRunnableStats(this) } else { new UnoptimizedRunnableStats(this) }
+  override val stats: GeoMesaStats = new RunnableStats(this)
 
   // zookeeper locking
   override protected val mock: Boolean = false
   override protected val zookeepers: String = ZKConfig.getZKQuorumServersString(connection.getConfiguration)
-
-  override def delete(): Unit = {
-    val tables = getTypeNames.flatMap(getAllIndexTableNames)
-    WithClose(connection.getAdmin) { admin =>
-      (tables.distinct :+ config.catalog).map(TableName.valueOf).par.foreach { table =>
-        admin.disableTable(table)
-        admin.deleteTable(table)
-      }
-    }
-  }
 
   override def getQueryPlan(query: Query, index: Option[String], explainer: Explainer): Seq[HBaseQueryPlan] =
     super.getQueryPlan(query, index, explainer).asInstanceOf[Seq[HBaseQueryPlan]]

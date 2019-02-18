@@ -93,6 +93,13 @@ Compatibility Matrix
 Version 2.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
+Default Query Planning Type
+---------------------------
+
+GeoMesa 2.3.0 changes the default query planning type from stat-based to heuristic-based. This will only affect the
+Accumulo data store, as other stores have not implemented statistics. To enable stat-based query planning, refer
+to :ref:`query_planning_hint`.
+
 Immutable Simple Feature Types
 ------------------------------
 

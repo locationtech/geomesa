@@ -13,6 +13,7 @@ Quick Starts
     geomesa-quickstart-accumulo
     geomesa-quickstart-cassandra
     geomesa-quickstart-kafka
+    geomesa-quickstart-redis
     geomesa-quickstart-fsds
     geomesa-quickstart-kudu
     geomesa-quickstart-lambda

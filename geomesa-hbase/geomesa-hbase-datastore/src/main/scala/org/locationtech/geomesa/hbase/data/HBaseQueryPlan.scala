@@ -55,7 +55,6 @@ object HBaseQueryPlan {
   def explain(plan: HBaseQueryPlan, explainer: Explainer, prefix: String): Unit = {
     explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getSimpleName}")
     explainer(s"Tables: ${plan.tables.mkString(", ")}")
-    explainer(s"Filter: ${plan.filter.toString}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
     explainer(s"Scans (${plan.scans.size}): ${plan.scans.take(5).map(rangeToString).mkString(", ")}")
     explainer(s"Column families: ${plan.scans.headOption.flatMap(r => Option(r.getFamilies)).getOrElse(Array.empty).map(Bytes.toString).mkString(",")}")

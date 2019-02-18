@@ -17,5 +17,5 @@ class AccumuloRemoveSchemaCommand extends RemoveSchemaCommand[AccumuloDataStore]
   override val params = new AccumuloRemoveSchemaParams
 }
 
-@Parameters(commandDescription = "Remove a schema and associated features from a GeoMesa catalog")
+@Parameters(commandDescription = "Remove a schema and all associated features")
 class AccumuloRemoveSchemaParams extends RemoveSchemaParams with AccumuloDataStoreParams

@@ -17,5 +17,5 @@ class AccumuloDeleteFeaturesCommand extends DeleteFeaturesCommand[AccumuloDataSt
   override val params = new AccumuloDeleteFeaturesParams
 }
 
-@Parameters(commandDescription = "Delete features from a table in GeoMesa. Does not delete any tables or schema information.")
+@Parameters(commandDescription = "Delete features from a GeoMesa schema")
 class AccumuloDeleteFeaturesParams extends DeleteFeaturesParams with AccumuloDataStoreParams

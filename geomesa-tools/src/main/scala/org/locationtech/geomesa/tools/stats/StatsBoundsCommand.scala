@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.tools.stats
 
-import org.locationtech.jts.geom.Geometry
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
+import org.locationtech.jts.geom.Geometry
 import org.opengis.filter.Filter
 
 trait StatsBoundsCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreCommand[DS] {

@@ -41,7 +41,7 @@ class XZ2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, 
 
   override val attributes: Seq[String] = Seq(geomField)
 
-  override val indexKeyByteLength: Int = 8
+  override val indexKeyByteLength: Right[(Array[Byte], Int, Int) => Int, Int] = Right(8 + sharding.length)
 
   override val sharing: Array[Byte] = Array.empty
 

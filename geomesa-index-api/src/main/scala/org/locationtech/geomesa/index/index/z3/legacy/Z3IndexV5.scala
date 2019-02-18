@@ -62,6 +62,9 @@ object Z3IndexV5 {
       }
     }
 
+    override val indexKeyByteLength: Right[(Array[Byte], Int, Int) => Int, Int] =
+      Right(10 + sharing.length + sharding.length)
+
     override def toIndexKey(writable: WritableFeature,
                             tier: Array[Byte],
                             id: Array[Byte],

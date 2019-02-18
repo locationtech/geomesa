@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets
 import java.util.Date
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
-import org.locationtech.jts.geom.{Envelope, Point}
 import org.apache.arrow.memory.RootAllocator
 import org.geotools.data._
 import org.geotools.filter.text.ecql.ECQL
@@ -35,6 +34,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
+import org.locationtech.jts.geom.{Envelope, Point}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
@@ -91,7 +91,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithDataS
   ).map(toFilter)
 
   val filtersB = Seq(
-    ("bbox(geom,45.4,54.9,45.8,55.1) AND age >= 50", 5 to 8),
+    ("bbox(geom,45.41,54.9,45.8,55.1) AND age IS NOT NULL", 5 to 8),
     ("age >= 50 AND name IN ('name1', 'name2')", Seq.empty)
   ).map(toFilter)
 
@@ -101,7 +101,7 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithDataS
     ("bbox(geom,45.4,54.9,45.8,55.1) and height < 67", 4 to 6),
     ("age >= 50 and height < 67", 5 to 6),
     ("bbox(geom,45.4,54.9,45.8,55.1) AND name IN ('name5', 'name6') and height < 67", 5 to 6),
-    ("bbox(geom,45.4,54.9,45.8,55.1) AND age >= 50 and height < 67", 5 to 6),
+    ("bbox(geom,45.41,54.9,45.8,55.1) AND age IS NOT NULL and height < 67", 5 to 6),
     ("age >= 50 AND name IN ('name1', 'name2') and height < 67", Seq.empty)
   ).map(toFilter)
 

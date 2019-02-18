@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index
 
 import com.google.common.primitives.UnsignedBytes
-import org.geotools.data.{Query, Transaction}
+import org.geotools.data.Query
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
@@ -21,12 +21,13 @@ import org.locationtech.geomesa.index.api.{WritableFeature, _}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
+import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.geomesa.utils.stats.{SeqStat, Stat}
+import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -39,7 +40,7 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
 
   override val adapter: TestIndexAdapter = new TestIndexAdapter
 
-  override val stats: GeoMesaStats = new TestStats(this)
+  override val stats: GeoMesaStats = new TestStats(this, new InMemoryMetadata[Stat]())
 
   override def getQueryPlan(query: Query, index: Option[String], explainer: Explainer): Seq[TestQueryPlan] =
     super.getQueryPlan(query, index, explainer).asInstanceOf[Seq[TestQueryPlan]]
@@ -180,18 +181,17 @@ object TestGeoMesaDataStore {
     override val namespace: Option[String] = None
   }
 
-  class TestStats(override protected val ds: TestGeoMesaDataStore) extends MetadataBackedStats {
-
-    override private [geomesa] val metadata = new InMemoryMetadata[Stat]
-
-    override protected val generateStats = true
-
-    override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
-      val stat = Stat(sft, stats)
-      SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).foreach(stat.observe)
-      stat match {
-        case s: SeqStat => s.stats.asInstanceOf[Seq[T]]
-        case s: T => Seq(s)
+  class TestStats(ds: TestGeoMesaDataStore, metadata: GeoMesaMetadata[Stat])
+      extends MetadataBackedStats(ds, metadata, true) {
+    override protected def write(typeName: String, stats: Seq[WritableStat]): Unit = {
+      synchronized {
+        stats.foreach { case WritableStat(key, stat, merge) =>
+          if (merge) {
+            metadata.insert(typeName, key, metadata.read(typeName, key, cache = false).map(_ + stat).getOrElse(stat))
+          } else {
+            metadata.insert(typeName, key, stat)
+          }
+        }
       }
     }
   }

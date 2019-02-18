@@ -124,7 +124,7 @@ class SingleRowAccumuloMetadata[T](metadata: AccumuloBackedMetadata[T]) {
         scanner.setRange(SingleRowAccumuloMetadata.getRange(typeName))
         scanner.iterator.foreach { entry =>
           val key = entry.getKey.getColumnFamily.toString
-          metadata.insert(typeName, key, metadata.serializer.deserialize(typeName, key, entry.getValue.get))
+          metadata.insert(typeName, key, metadata.serializer.deserialize(typeName, entry.getValue.get))
           // delete for the old entry
           val delete = new Mutation(entry.getKey.getRow)
           delete.putDelete(entry.getKey.getColumnFamily, entry.getKey.getColumnQualifier)

@@ -34,6 +34,7 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
+import org.locationtech.geomesa.index.stats.MetadataBackedStats.StatsMetadataSerializer
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
@@ -69,7 +70,9 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   private val statsTable = s"${config.catalog}_stats"
 
-  override val stats = new AccumuloGeoMesaStats(this, statsTable, config.generateStats)
+  private val statsMetadata = new AccumuloBackedMetadata(connector, statsTable, new StatsMetadataSerializer(this))
+
+  override val stats = new AccumuloGeoMesaStats(this, statsMetadata, statsTable, config.generateStats)
 
   // If on a secured cluster, create a thread to periodically renew Kerberos tgt
   private val kerberosTgtRenewer: Option[ScheduledExecutorService] = try {
@@ -265,7 +268,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
         try {
           if (oldMetadata.getFeatureTypes.contains(typeName)) {
             oldMetadata.migrate(typeName)
-            new SingleRowAccumuloMetadata[Stat](stats.metadata).migrate(typeName)
+            new SingleRowAccumuloMetadata[Stat](statsMetadata).migrate(typeName)
           }
         } finally {
           lock.release()

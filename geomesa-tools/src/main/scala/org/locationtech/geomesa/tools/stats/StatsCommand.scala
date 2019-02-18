@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.stats
 
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.tools.{CatalogParam, OptionalCqlFilterParam, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools.{OptionalCqlFilterParam, RequiredTypeNameParam}
 import org.opengis.feature.simple.SimpleFeatureType
 
 object StatsCommand {

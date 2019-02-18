@@ -20,6 +20,6 @@ class CassandraGetTypeNamesCommand extends GetTypeNamesCommand[CassandraDataStor
 }
 
 object CassandraGetTypeNamesCommand {
-  @Parameters(commandDescription = "List GeoMesa feature types for a given catalog")
+  @Parameters(commandDescription = "List the feature types for a given catalog")
   class GetTypeNamesParams extends CassandraDataStoreParams
 }

@@ -11,15 +11,15 @@ package org.locationtech.geomesa.index.metadata
 import java.nio.charset.StandardCharsets
 
 trait MetadataSerializer[T] {
-  def serialize(typeName: String, key: String, value: T): Array[Byte]
-  def deserialize(typeName: String, key: String, value: Array[Byte]): T
+  def serialize(typeName: String, value: T): Array[Byte]
+  def deserialize(typeName: String, value: Array[Byte]): T
 }
 
 object MetadataStringSerializer extends MetadataSerializer[String] {
-  def serialize(typeName: String, key: String, value: String): Array[Byte] = {
+  def serialize(typeName: String, value: String): Array[Byte] = {
     if (value == null) Array.empty else value.getBytes(StandardCharsets.UTF_8)
   }
-  def deserialize(typeName: String, key: String, value: Array[Byte]): String = {
+  def deserialize(typeName: String, value: Array[Byte]): String = {
     if (value.isEmpty) null else new String(value, StandardCharsets.UTF_8)
   }
 }

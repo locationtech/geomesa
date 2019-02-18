@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.stats
 
+import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -36,12 +37,11 @@ object NoopStats extends GeoMesaStats {
   override def clearStats(sft: SimpleFeatureType): Unit = {}
 
   override def close(): Unit = {}
-}
 
-
-object NoopStatUpdater extends StatUpdater {
-  override def add(sf: SimpleFeature): Unit = {}
-  override def remove(sf: SimpleFeature): Unit = {}
-  override def flush(): Unit = {}
-  override def close(): Unit = {}
+  object NoopStatUpdater extends StatUpdater {
+    override def add(sf: SimpleFeature): Unit = {}
+    override def remove(sf: SimpleFeature): Unit = {}
+    override def flush(): Unit = {}
+    override def close(): Unit = {}
+  }
 }

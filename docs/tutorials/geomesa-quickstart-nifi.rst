@@ -69,6 +69,7 @@ This will build several processors:
 - ``PutGeoMesaAccumulo`` Ingest data into a GeoMesa Accumulo store
 - ``PutGeoMesaHBase`` Ingest data into a GeoMesa HBase store
 - ``PutGeoMesaKafka`` Ingest data into a GeoMesa Kafka store
+- ``PutGeoMesaRedis`` Ingest data into a GeoMesa Redis store
 - ``PutGeoMesaFileSystem`` Ingest data into a GeoMesa FileSystem store
 - ``PutGeoTools`` Ingest data into an arbitrary GeoTools store
 - ``ConvertToGeoAvro`` Convert data into Avro data files

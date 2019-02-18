@@ -70,6 +70,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
 
     def getStrategies(filter: Filter, transforms: Option[Array[String]], explain: Explainer): Seq[FilterStrategy] = {
       val query = transforms.map(new Query(sftName, filter, _)).getOrElse(new Query(sftName, filter))
+      query.getHints.put(QueryHints.COST_EVALUATION, CostEvaluation.Stats)
       ds.getQueryPlan(query, explainer = explain).map(_.filter)
     }
 

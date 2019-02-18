@@ -8,7 +8,9 @@
 
 package org.locationtech.geomesa.lambda.stream.stats
 
-import org.locationtech.geomesa.index.stats.{GeoMesaStats, NoopStatUpdater, StatUpdater}
+import org.locationtech.geomesa.index.stats.GeoMesaStats
+import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
+import org.locationtech.geomesa.index.stats.NoopStats.NoopStatUpdater
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.utils.stats.{MinMax, SeqStat, Stat}
 import org.opengis.feature.simple.SimpleFeatureType

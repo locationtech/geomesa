@@ -17,5 +17,5 @@ class LambdaRemoveSchemaCommand extends RemoveSchemaCommand[LambdaDataStore] wit
   override val params = new LambdaRemoveSchemaParams
 }
 
-@Parameters(commandDescription = "Remove a schema and associated features from a GeoMesa catalog")
+@Parameters(commandDescription = "Remove a schema and all associated features")
 class LambdaRemoveSchemaParams extends RemoveSchemaParams with LambdaDataStoreParams
