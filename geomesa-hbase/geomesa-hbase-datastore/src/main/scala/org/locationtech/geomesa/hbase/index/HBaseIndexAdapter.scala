@@ -116,7 +116,7 @@ trait HBaseIndexAdapter extends HBaseFeatureIndexType
       val filters = if (coprocessorConfig.isDefined || (ecql.isEmpty && transform.isEmpty)) {
         Seq.empty
       } else {
-        Seq((CqlTransformFilter.Priority, CqlTransformFilter(schema, ecql, transform)))
+        Seq((CqlTransformFilter.Priority, CqlTransformFilter(schema, filter.index, ecql, transform)))
       }
 
       ScanConfig(ranges, colFamily, filters, coprocessorConfig, toFeatures)
