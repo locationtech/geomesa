@@ -14,9 +14,9 @@ import org.locationtech.geomesa.kudu.tools.export.KuduExportCommand
 import org.locationtech.geomesa.kudu.tools.ingest.KuduIngestCommand
 import org.locationtech.geomesa.kudu.tools.stats._
 import org.locationtech.geomesa.kudu.tools.status._
-import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
+import org.locationtech.geomesa.tools.export.{ConvertCommand, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.status._
-import org.locationtech.geomesa.tools.{Command, ConvertCommand, Runner}
+import org.locationtech.geomesa.tools.{Command, Runner}
 
 object KuduRunner extends Runner {
 
