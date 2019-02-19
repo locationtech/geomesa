@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.filter.expression
 
+import org.geotools.referencing.GeodeticCalculator
+import org.locationtech.geomesa.filter.GeometryProcessing
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.operation.distance.DistanceOp
-import org.geotools.referencing.GeodeticCalculator
-import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.filter.FilterVisitor
 import org.opengis.filter.MultiValuedFilter.MatchAction
 import org.opengis.filter.expression.{Expression, Literal}
@@ -35,7 +35,7 @@ object FastDWithin {
   class DWithinLiteral(exp1: Expression, exp2: Literal, distance: Double, units: String) extends DWithin {
     private val geometry = exp2.evaluate(null).asInstanceOf[Geometry]
     private val envelope = geometry.getEnvelopeInternal
-    private val meters = distance * FilterHelper.metersMultiplier(units)
+    private val meters = distance * GeometryProcessing.metersMultiplier(units)
     private val (minDegrees, maxDegrees) = GeometryUtils.distanceDegrees(geometry, meters)
 
     override def evaluate(obj: AnyRef): Boolean = {
