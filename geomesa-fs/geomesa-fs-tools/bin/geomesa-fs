@@ -81,11 +81,6 @@ for home in ${hadoopDirs[*]}; do
   fi
 done
 
-# For zookeeper only include the single root jar
-if [[ -d "${ZOOKEEPER_HOME}" ]]; then
-  ZOOKEEPER_JAR="$(find -L $ZOOKEEPER_HOME -maxdepth 1 -type f -name *zookeeper*jar)"
-fi
-
 # Geomesa tools setup completed, below we parse user arguments
 #
 # configure runs the geomesa configuration, sets both the ${geomesa.dist.foobar} and PATH vars
@@ -95,7 +90,7 @@ fi
 if  [[ $1 = configure ]]; then
   geomesaConfigure
 else
-  CLASSPATH="$GEOMESA_CP:$HADOOP_CP:${ZOOKEEPER_JAR}"
+  CLASSPATH="$GEOMESA_CP:$HADOOP_CP"
   if [[ $1 = scala-console ]]; then
     geomesaScalaConsole ${CLASSPATH} ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS}
   elif [[ $1 = classpath ]]; then
