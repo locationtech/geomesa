@@ -48,10 +48,7 @@ class DelimitedExportImportTest extends Specification {
       override def libjarsPaths: Iterator[() => Seq[File]] = Iterator.empty
       override def connection: Map[String, String] = Map(DataStoreRegistration.param.key -> key)
     }
-    command.setConsole(new AnyRef {
-      def readLine(): String = "y" // accept prompt to use inferred schema
-      def readPassword(): Array[Char] = Array.empty
-    })
+    command.params.force = true
 
     try {
       op(command)
