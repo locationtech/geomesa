@@ -50,7 +50,6 @@ class ShapefileConverterTest extends Specification {
           |     { name = "area", transform = "add(shp('ALAND'),shp('AWATER'))" },
           |     { name = "geom", transform = "shp('the_geom')" },
           |   ]
-          |   options = { verbose = true }
           | }
         """.stripMargin)
 

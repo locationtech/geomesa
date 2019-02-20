@@ -36,9 +36,6 @@ class EnrichmentCacheTest extends Specification {
           |         }
           |      }
           |   }
-          |   options = {
-          |     verbose = true
-          |   }
           |   fields = [
           |     { name = "id",     transform = "toString($0)"      }
           |     { name = "keytolookup", transform = "cacheLookup('test', $id, 'name')"   }
@@ -82,9 +79,6 @@ class EnrichmentCacheTest extends Specification {
           |         columns = ["id", "name", "age"]
           |         id-field = "id"
           |      }
-          |   }
-          |   options = {
-          |     verbose = true
           |   }
           |   fields = [
           |     { name = "id",     transform = "toString($0)"      }
