@@ -9,22 +9,23 @@ These commands are used to query and export simple features. Required parameters
 The convert command is used to directly transform data in one format into another, without ingesting them
 into GeoMesa. For example, it could be used to convert CSV files to GeoJSON.
 
-======================== =========================================================
-Argument                 Description
-======================== =========================================================
-``-C, --converter``      The GeoMesa converter used to create ``SimpleFeature``\ s
-``-s, --spec``           The ``SimpleFeatureType`` specification to create
-``-f, --feature-name``   The name of the schema
-``-q, --cql``            CQL filter to select features to export
-``-m, --max-features``   Limit the number of features exported
-``-F, --output-format``  Output format used for export
-``-o, --output``         Output to a file instead of standard out
-``--input-format``       File format of input files (shp, csv, tsv, avro, etc)
-``--hints``              Query hints used to modify the query
-``--gzip``               Level of gzip compression to use for output, from 1-9
-``--no-header``          Don't export the type header, for CSV and TSV formats
-``--force``              Force execution without prompt
-======================== =========================================================
+========================== ===================================================================================
+Argument                   Description
+========================== ===================================================================================
+``-f, --feature-name``     The name of the schema
+``-s, --spec``             The ``SimpleFeatureType`` specification to create
+``-C, --converter``        The GeoMesa converter used to create ``SimpleFeature``\ s
+``--converter-error-mode`` Override the error mode defined by the converter
+``-q, --cql``              CQL filter to select features to export
+``-m, --max-features``     Limit the number of features exported
+``-F, --output-format``    Output format used for export
+``-o, --output``           Output to a file instead of standard out
+``--input-format``         File format of input files (shp, csv, tsv, avro, etc)
+``--hints``                Query hints used to modify the query
+``--gzip``                 Level of gzip compression to use for output, from 1-9
+``--no-header``            Don't export the type header, for CSV and TSV formats
+``--force``                Force execution without prompt
+========================== ===================================================================================
 
 See :ref:`cli_export` and :ref:`cli_ingest` for a description of the arguments.
 

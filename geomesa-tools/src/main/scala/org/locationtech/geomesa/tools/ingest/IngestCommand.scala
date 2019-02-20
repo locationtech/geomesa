@@ -10,10 +10,10 @@ package org.locationtech.geomesa.tools.ingest
 
 import java.io.{File, FileWriter, PrintWriter}
 import java.nio.charset.StandardCharsets
-import java.util.Locale
+import java.util.{Collections, Locale}
 
 import com.beust.jcommander.{Parameter, ParameterException}
-import com.typesafe.config.{Config, ConfigRenderOptions}
+import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.{FilenameUtils, IOUtils}
 import org.geotools.data.DataStore
@@ -33,8 +33,8 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.util.{Success, Try}
 import scala.util.control.NonFatal
+import scala.util.{Success, Try}
 
 trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with InteractiveCommand with LazyLogging {
 
@@ -126,7 +126,7 @@ object IngestCommand extends LazyLogging {
 
   // @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
   trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam with OptionalForceParam
-      with OptionalConverterConfigParam with OptionalInputFormatParam with DistributedRunParam {
+      with ConverterConfigParam with OptionalInputFormatParam with DistributedRunParam {
     @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
     var threads: Integer = 1
 
@@ -170,10 +170,11 @@ object IngestCommand extends LazyLogging {
     * @param toStore hook to data store for loading schemas by name
     * @return None if user declines inferred result, otherwise the loaded/inferred result
     */
-  def getSftAndConverter(params: TypeNameParam with FeatureSpecParam with ConverterConfigParam with OptionalForceParam,
-                         inputs: Seq[String],
-                         format: Option[DataFormat],
-                         toStore: Option[() => DataStore]): Try[Option[(SimpleFeatureType, Config)]] = Try {
+  def getSftAndConverter(
+      params: TypeNameParam with FeatureSpecParam with ConverterConfigParam with OptionalForceParam,
+      inputs: Seq[String],
+      format: Option[DataFormat],
+      toStore: Option[() => DataStore]): Try[Option[(SimpleFeatureType, Config)]] = Try {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
     // try to load the sft, first check for an existing schema, then load from the params/environment
@@ -245,6 +246,11 @@ object IngestCommand extends LazyLogging {
       throw new ParameterException("SimpleFeatureType name and/or specification argument is required")
     } else if (converter == null) {
       throw new ParameterException("Converter config argument is required")
+    }
+
+    if (params.errorMode != null) {
+      val opts = ConfigValueFactory.fromMap(Collections.singletonMap("error-mode", params.errorMode.toString))
+      converter = ConfigFactory.empty().withValue("options", opts).withFallback(converter)
     }
 
     Some((sft, converter))

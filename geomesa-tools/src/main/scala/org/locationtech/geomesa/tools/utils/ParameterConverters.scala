@@ -13,6 +13,7 @@ import java.util.Date
 import com.beust.jcommander.ParameterException
 import com.beust.jcommander.converters.BaseConverter
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.convert.Modes.ErrorMode
 import org.locationtech.geomesa.tools.utils.DataFormats.DataFormat
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.text.DurationParsing
@@ -100,6 +101,14 @@ object ParameterConverters {
         case NonFatal(e) => throw new ParameterException(getErrorString(value, s"format: $e"))
       }
     }
+  }
 
+  class ErrorModeConverter(name: String) extends BaseConverter[ErrorMode](name) {
+    override def convert(value: String): ErrorMode = {
+      ErrorMode.values.find(_.toString.equalsIgnoreCase(value)).getOrElse {
+        throw new ParameterException(s"Invalid error mode '$value'. Valid values are " +
+            ErrorMode.values.map(_.toString).mkString("'", "', '", "'"))
+      }
+    }
   }
 }

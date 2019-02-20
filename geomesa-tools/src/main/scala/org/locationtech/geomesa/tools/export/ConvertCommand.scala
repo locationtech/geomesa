@@ -22,7 +22,7 @@ import org.locationtech.geomesa.tools.export.ConvertCommand.ConvertParameters
 import org.locationtech.geomesa.tools.export.formats._
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.utils.DataFormats._
-import org.locationtech.geomesa.tools.{OptionalConverterConfigParam, OptionalFeatureSpecParam, OptionalInputFormatParam, OptionalTypeNameParam, _}
+import org.locationtech.geomesa.tools.{OptionalFeatureSpecParam, OptionalInputFormatParam, OptionalTypeNameParam, _}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
@@ -99,7 +99,7 @@ object ConvertCommand extends LazyLogging {
 
   @Parameters(commandDescription = "Convert files using GeoMesa's internal converter framework")
   class ConvertParameters extends FileExportParams with OptionalTypeNameParam with OptionalFeatureSpecParam
-      with OptionalConverterConfigParam with OptionalInputFormatParam with OptionalForceParam
+      with ConverterConfigParam with OptionalInputFormatParam with OptionalForceParam
 
   def getExporter(params: ConvertParameters, features: => CloseableIterator[SimpleFeature]): FeatureExporter = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
