@@ -144,16 +144,23 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     } catch {
       case NonFatal(e) =>
         ec.counter.incFailure()
-        val values = if (!options.verbose) { "" } else {
-          // head is the whole record
-          s" using values:\n${rawValues.headOption.orNull}\n[${rawValues.drop(1).mkString(", ")}]"
+
+        def msg(verbose: Boolean): String = {
+          val field = if (i < requiredFieldsCount) { s" '${requiredFields(i).name}'" } else { "" }
+          val values = if (!verbose) { "" } else {
+            // head is the whole record
+            s" using values:\n${rawValues.headOption.orNull}\n[${rawValues.drop(1).mkString(", ")}]"
+          }
+          s"Failed to evaluate field$field on line ${ec.counter.getLineCount}$values"
         }
-        val field = if (i < requiredFieldsCount) { s" '${requiredFields(i).name}'" } else { "" }
-        val msg = s"Failed to evaluate field$field on line ${ec.counter.getLineCount}$values"
+
         options.errorMode match {
-          case ErrorMode.RaiseErrors => throw new IOException(msg, e)
-          case ErrorMode.SkipBadRecords => if (options.verbose) { logger.debug(msg, e) } else { logger.debug(msg) }
+          case ErrorMode.RaiseErrors => throw new IOException(msg(true), e)
+          case ErrorMode.SkipBadRecords if logger.underlying.isDebugEnabled => logger.underlying.debug(msg(true), e)
+          case ErrorMode.SkipBadRecords if logger.underlying.isInfoEnabled => logger.underlying.info(msg(false))
+          case _ => // no-op
         }
+
         return CloseableIterator.empty
     }
 
@@ -254,13 +261,13 @@ object AbstractConverter {
     * @param parseMode parse mode
     * @param errorMode error mode
     * @param encoding file/stream encoding
-    * @param verbose verbose
     */
-  case class BasicOptions(validators: SimpleFeatureValidator,
-                          parseMode: ParseMode,
-                          errorMode: ErrorMode,
-                          encoding: Charset,
-                          verbose: Boolean) extends ConverterOptions
+  case class BasicOptions(
+      validators: SimpleFeatureValidator,
+      parseMode: ParseMode,
+      errorMode: ErrorMode,
+      encoding: Charset
+    ) extends ConverterOptions
 
   /**
     * Determines the fields that are actually used for the conversion

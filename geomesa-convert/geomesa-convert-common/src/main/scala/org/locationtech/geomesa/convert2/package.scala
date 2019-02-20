@@ -35,6 +35,5 @@ package object convert2 {
     def parseMode: ParseMode
     def errorMode: ErrorMode
     def encoding: Charset
-    def verbose: Boolean
   }
 }

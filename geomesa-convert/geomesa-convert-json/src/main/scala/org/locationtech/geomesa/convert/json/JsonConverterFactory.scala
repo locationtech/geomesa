@@ -125,8 +125,8 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
 
         val jsonConfig = JsonConfig(typeToProcess, featurePath, idField, Map.empty, Map.empty)
         val fieldConfig = fields :+ geomField
-        val options = BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(),
-          StandardCharsets.UTF_8, verbose = true)
+        val options =
+          BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
 
         val config = configConvert.to(jsonConfig)
             .withFallback(fieldConvert.to(fieldConfig))
