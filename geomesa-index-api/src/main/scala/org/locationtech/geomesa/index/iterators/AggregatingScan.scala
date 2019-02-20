@@ -34,7 +34,6 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
 
   private var reusableSf: KryoBufferSimpleFeature = _
   private var reusableTransformSf: TransformSimpleFeature = _
-  private var getId: (Array[Byte], Int, Int, SimpleFeature) => String = _
   private var hasTransform: Boolean = _
 
   override def init(options: Map[String, String]): Unit = {
@@ -46,13 +45,9 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
     }
 
     // noinspection ScalaDeprecation
-    if (index.serializedWithId) {
-      reusableSf = IteratorCache.serializer(spec, SerializationOptions.none).getReusableFeature
-      getId = (_, _, _, _) => reusableSf.getID
-    } else {
-      reusableSf = IteratorCache.serializer(spec, SerializationOptions.withoutId).getReusableFeature
-      getId = index.getIdFromRow _
-    }
+    val kryo = if (index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
+    reusableSf = IteratorCache.serializer(spec, kryo).getReusableFeature
+    reusableSf.setIdParser(index.getIdFromRow(_, _, _, null))
 
     val transform = options.get(TransformDefsOpt)
     val transformSchema = options.get(TransformSchemaOpt)
@@ -101,8 +96,8 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
 
   private def setValues(row: Array[Byte], rowOffset: Int, rowLength: Int,
                         value: Array[Byte], valueOffset: Int, valueLength: Int): Unit = {
+    reusableSf.setIdBuffer(row, rowOffset, rowLength)
     reusableSf.setBuffer(value, valueOffset, valueLength)
-    reusableSf.setId(getId(row, rowOffset, rowLength, reusableSf))
   }
 
   // returns true if there is more data to read

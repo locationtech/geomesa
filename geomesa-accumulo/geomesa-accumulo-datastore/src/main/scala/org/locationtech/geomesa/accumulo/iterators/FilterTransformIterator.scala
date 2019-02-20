@@ -42,7 +42,6 @@ class FilterTransformIterator extends SortedKeyValueIterator[Key, Value] with Sa
   var filter: SimpleFeature => Boolean = _
 
   var reusableSf: KryoBufferSimpleFeature = _
-  var setId: () => Unit = _
   var hasTransform: Boolean = _
 
   override def init(src: SortedKeyValueIterator[Key, Value],
@@ -62,8 +61,9 @@ class FilterTransformIterator extends SortedKeyValueIterator[Key, Value] with Sa
       }
     }
     // noinspection ScalaDeprecation
-    val kryoOptions = if (index.serializedWithId) SerializationOptions.none else SerializationOptions.withoutId
-    reusableSf = IteratorCache.serializer(spec, kryoOptions).getReusableFeature
+    val kryo = if (index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
+    reusableSf = IteratorCache.serializer(spec, kryo).getReusableFeature
+    reusableSf.setIdParser(index.getIdFromRow(_, _, _, null))
 
     val transform = Option(options.get(TransformDefsOpt))
     val transformSchema = Option(options.get(TransformSchemaOpt))
@@ -81,14 +81,6 @@ class FilterTransformIterator extends SortedKeyValueIterator[Key, Value] with Sa
       case (Some(c), None)    => c.evaluate
       case (None, Some(s))    => s
       case (Some(c), Some(s)) => sf => c.evaluate(sf) && s(sf)
-    }
-
-    // noinspection ScalaDeprecation
-    setId = if (index.serializedWithId || cql.isEmpty) { () => {} } else {
-      () => {
-        val row = source.getTopKey.getRow()
-        reusableSf.setId(index.getIdFromRow(row.getBytes, 0, row.getLength, reusableSf))
-      }
     }
   }
 
@@ -116,7 +108,9 @@ class FilterTransformIterator extends SortedKeyValueIterator[Key, Value] with Sa
     var found = false
     while (!found && source.hasTop) {
       reusableSf.setBuffer(source.getTopValue.get())
-      setId()
+      val row = source.getTopKey.getRowData
+      reusableSf.setIdBuffer(row.getBackingArray, row.offset(), row.length())
+
       if (filter(reusableSf)) {
         found = true
       } else {
