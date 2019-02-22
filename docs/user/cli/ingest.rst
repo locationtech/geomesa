@@ -30,22 +30,23 @@ The converter framework is extensible via Java SPI, to allow support for custom 
 
 See :ref:`data_migration` for details on how the export/import commands can be used to move data between clusters.
 
-====================== =========================================================
-Argument               Description
-====================== =========================================================
-``-c, --catalog *``    The catalog table containing schema metadata
-``-C, --converter``    The GeoMesa converter used to create ``SimpleFeature``\ s
-``-s, --spec``         The ``SimpleFeatureType`` specification to create
-``-f, --feature-name`` The name of the schema
-``-t, --threads``      Number of parallel threads used
-``--input-format``     Format of input files (csv, tsv, avro, shp, json, etc)
-``--no-tracking``      This application closes when ingest job is submitted. Useful for launching jobs with a script.
-``--run-mode``         Must be one of ``local``, ``distributed``, or ``distributedcombine``
-``--split-max-size``   Maximum size of a split in bytes (distributed jobs)
-``--src-list``         Input files are text files with lists of files, one per line, to ingest.
-``--force``            Suppress any confirmation prompts
-``<files>...``         Input files to ingest
-====================== =========================================================
+========================== ==================================================================================================
+Argument                   Description
+========================== ==================================================================================================
+``-c, --catalog *``        The catalog table containing schema metadata
+``-f, --feature-name``     The name of the schema
+``-s, --spec``             The ``SimpleFeatureType`` specification to create
+``-C, --converter``        The GeoMesa converter used to create ``SimpleFeature``\ s
+``--converter-error-mode`` Override the error mode defined by the converter
+``-t, --threads``          Number of parallel threads used
+``--input-format``         Format of input files (csv, tsv, avro, shp, json, etc)
+``--no-tracking``          This application closes when ingest job is submitted. Useful for launching jobs with a script
+``--run-mode``             Must be one of ``local``, ``distributed``, or ``distributedcombine``
+``--split-max-size``       Maximum size of a split in bytes (distributed jobs)
+``--src-list``             Input files are text files with lists of files, one per line, to ingest
+``--force``                Suppress any confirmation prompts
+``<files>...``             Input files to ingest
+========================== ==================================================================================================
 
 The ``--converter`` argument may be any of the following:
 
@@ -62,6 +63,9 @@ mode, using schema inference to generate the converter. The converter definition
 satisfaction, then used for the entire data set with a distributed ingest.
 
 See :ref:`cli_converter_conf` for more details on specifying the converter.
+
+The ``converter-error-mode`` argument may be used to override the error mode defined in the converter. It must be
+one of ``skip-bad-records`` or ``raise-errors``.
 
 If the ``--feature-name`` is specified and the schema already exists, then ``--spec`` is not required. Likewise,
 if a converter is not defined, the schema will be inferred alongside the converter. Otherwise, ``--spec`` may be
