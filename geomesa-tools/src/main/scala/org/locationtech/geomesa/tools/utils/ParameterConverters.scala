@@ -14,7 +14,8 @@ import com.beust.jcommander.ParameterException
 import com.beust.jcommander.converters.BaseConverter
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.Modes.ErrorMode
-import org.locationtech.geomesa.tools.utils.DataFormats.DataFormat
+import org.locationtech.geomesa.tools.export.formats.ExportFormats
+import org.locationtech.geomesa.tools.export.formats.ExportFormats.ExportFormat
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.text.DurationParsing
 import org.opengis.filter.Filter
@@ -57,12 +58,12 @@ object ParameterConverters {
     }
   }
 
-  class DataFormatConverter(name: String) extends BaseConverter[DataFormat](name) {
-    override def convert(value: String): DataFormat = {
+  class ExportFormatConverter(name: String) extends BaseConverter[ExportFormat](name) {
+    override def convert(value: String): ExportFormat = {
       try {
-        DataFormats.values.find(_.toString.equalsIgnoreCase(value)).getOrElse {
+        ExportFormats.values.find(_.toString.equalsIgnoreCase(value)).getOrElse {
           throw new ParameterException(s"Invalid format '$value'. Valid values are " +
-              DataFormats.values.map(_.toString.toLowerCase).mkString("'", "', '", "'"))
+          ExportFormats.values.map(_.toString.toLowerCase).mkString("'", "', '", "'"))
         }
       } catch {
         case NonFatal(e) => throw new ParameterException(getErrorString(value, s"format: $e"))

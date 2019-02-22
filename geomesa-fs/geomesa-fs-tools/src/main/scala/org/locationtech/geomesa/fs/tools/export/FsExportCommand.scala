@@ -15,7 +15,8 @@ import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.export.FsExportCommand.FsExportParams
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
-import org.locationtech.geomesa.tools.export.{ExportCommand, ExportParams}
+import org.locationtech.geomesa.tools.export.ExportCommand
+import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 
 class FsExportCommand extends ExportCommand[FileSystemDataStore] with FsDataStoreCommand {
 

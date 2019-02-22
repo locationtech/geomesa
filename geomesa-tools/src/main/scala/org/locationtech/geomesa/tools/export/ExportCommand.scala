@@ -11,7 +11,7 @@ package org.locationtech.geomesa.tools.export
 import java.io._
 import java.util.zip.{Deflater, GZIPOutputStream}
 
-import com.beust.jcommander.ParameterException
+import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.{DataStore, Query}
@@ -20,12 +20,15 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
+import org.locationtech.geomesa.index.planning.QueryRunner
+import org.locationtech.geomesa.tools._
+import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
+import org.locationtech.geomesa.tools.export.formats.ExportFormats.ExportFormat
+import org.locationtech.geomesa.tools.export.formats.FileSystemExporter.{OrcFileSystemExporter, ParquetFileSystemExporter}
 import org.locationtech.geomesa.tools.export.formats.{BinExporter, NullExporter, ShapefileExporter, _}
-import org.locationtech.geomesa.tools.utils.DataFormats
-import org.locationtech.geomesa.tools.utils.DataFormats._
-import org.locationtech.geomesa.tools.{Command, DataStoreCommand, OptionalIndexParam, TypeNameParam}
+import org.locationtech.geomesa.tools.utils.ParameterConverters.ExportFormatConverter
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose}
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -39,7 +42,7 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
 
   override def execute(): Unit = {
     def complete(count: Option[Long], time: Long): Unit =
-      Command.user.info(s"Feature export complete to ${Option(params.file).map(_.getPath).getOrElse("standard out")} " +
+      Command.user.info(s"Feature export complete to ${Option(params.file).getOrElse("standard out")} " +
           s"in ${time}ms${count.map(" for " + _ + " features").getOrElse("")}")
 
     profile(complete _)(withDataStore(export))
@@ -47,9 +50,10 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
 
   protected def export(ds: DS): Option[Long] = {
     import ExportCommand._
-    import org.locationtech.geomesa.tools.utils.DataFormats._
+    import org.locationtech.geomesa.tools.export.formats.ExportFormats._
 
-    val (query, attributes) = createQuery(getSchema(ds), params.outputFormat, params)
+    val format = getOutputFormat(params)
+    val query = createQuery(getSchema(ds), format, params)
 
     val features = try { getFeatures(ds, query) } catch {
       case NonFatal(e) =>
@@ -57,19 +61,30 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
             "that all arguments are correct", e)
     }
 
-    lazy val avroCompression = Option(params.gzip).map(_.toInt).getOrElse(Deflater.DEFAULT_COMPRESSION)
-    val exporter = params.outputFormat match {
-      case Csv | Tsv => new DelimitedExporter(getWriter(params), params.outputFormat, attributes, !params.noHeader)
-      case Shp       => new ShapefileExporter(checkShpFile(params))
-      case Json      => new GeoJsonExporter(getWriter(params))
-      case Gml | Xml => new GmlExporter(createOutputStream(params.file, params.gzip))
-      case Avro      => new AvroExporter(createOutputStream(params.file, null), avroCompression)
-      case Arrow     => new ArrowExporter(query.getHints, createOutputStream(params.file, params.gzip), ArrowExporter.queryDictionaries(ds, query))
-      case Bin       => new BinExporter(query.getHints, createOutputStream(params.file, params.gzip))
-      case Leaflet   => new LeafletMapExporter(params)
-      case Null      => NullExporter
+    // noinspection ComparingUnrelatedTypes
+    lazy val fids = !Option(query.getHints.get(QueryHints.ARROW_INCLUDE_FID)).contains(java.lang.Boolean.FALSE)
+    lazy val dictionaries = ArrowExporter.queryDictionaries(ds, query)
+    lazy val avroCompression = if (params.gzip == null) { Deflater.DEFAULT_COMPRESSION } else {
+      val compression = params.gzip.toInt
+      params.gzip = null // disable compressing the output stream, as it's handled by the avro writer
+      compression
+    }
+
+    val exporter = format match {
+      case Arrow          => new ArrowExporter(query.getHints, createOutputStream(params), dictionaries)
+      case Avro           => new AvroExporter(avroCompression, createOutputStream(params))
+      case Bin            => new BinExporter(query.getHints, createOutputStream(params))
+      case Csv            => DelimitedExporter.csv(createWriter(params), !params.noHeader, fids)
+      case GeoJson | Json => new GeoJsonExporter(createWriter(params))
+      case Gml | Xml      => new GmlExporter(createOutputStream(params))
+      case Html | Leaflet => new LeafletMapExporter(params)
+      case Null           => NullExporter
+      case Orc            => new OrcFileSystemExporter(ensureOutputFile(params, format))
+      case Parquet        => new ParquetFileSystemExporter(ensureOutputFile(params, format))
+      case Shp            => new ShapefileExporter(new File(ensureOutputFile(params, format)))
+      case Tsv            => DelimitedExporter.tsv(createWriter(params), !params.noHeader, fids)
       // shouldn't happen unless someone adds a new format and doesn't implement it here
-      case _         => throw new UnsupportedOperationException(s"Format ${params.outputFormat} can't be exported")
+      case _ => throw new UnsupportedOperationException(s"Format $format can't be exported")
     }
 
     try {
@@ -93,9 +108,17 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS] with MethodPro
 
 object ExportCommand extends LazyLogging {
 
-  def createQuery(toSft: => SimpleFeatureType,
-                  fmt: DataFormat,
-                  params: ExportParams): (Query, Option[ExportAttributes]) = {
+  import scala.collection.JavaConverters._
+
+  /**
+    * Create the query to execute
+    *
+    * @param toSft lazy simple feature type
+    * @param fmt export format
+    * @param params parameters
+    * @return
+    */
+  def createQuery(toSft: => SimpleFeatureType, fmt: ExportFormat, params: ExportParams): Query = {
     val typeName = Option(params).collect { case p: TypeNameParam => p.featureName }.orNull
     val filter = Option(params.cqlFilter).getOrElse(Filter.INCLUDE)
     lazy val sft = toSft // only evaluate it once
@@ -114,57 +137,119 @@ object ExportCommand extends LazyLogging {
       ViewParams.setHints(query)
     }
 
-    if (fmt == DataFormats.Arrow) {
+    if (fmt == ExportFormats.Arrow) {
       query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
-    } else if (fmt == DataFormats.Bin) {
+    } else if (fmt == ExportFormats.Bin) {
       // if not specified in hints, set it here to trigger the bin query
       if (!query.getHints.containsKey(QueryHints.BIN_TRACK)) {
         query.getHints.put(QueryHints.BIN_TRACK, "id")
       }
     }
 
-    val attributes = {
-      import scala.collection.JavaConversions._
-      val provided = Option(params.attributes).collect { case a if !a.isEmpty => a.toSeq }.orElse {
-        if (fmt == DataFormats.Bin) { Some(BinAggregatingScan.propertyNames(query.getHints, sft)) } else { None }
-      }
-      if (fmt == DataFormats.Shp) {
-        val attributes = provided.map(ShapefileExporter.replaceGeom(sft, _)).getOrElse(ShapefileExporter.modifySchema(sft))
-        Some(ExportAttributes(attributes, fid = true))
+    val attributes: Array[String] = {
+      val provided = Option(params.attributes).collect { case a if !a.isEmpty => a.asScala }
+      if (fmt == ExportFormats.Bin) {
+        provided.getOrElse(BinAggregatingScan.propertyNames(query.getHints, sft)).toArray
+      } else if (fmt == ExportFormats.Shp) {
+        provided.map(ShapefileExporter.replaceGeom(sft, _)).getOrElse(ShapefileExporter.modifySchema(sft)).toArray
       } else {
-        provided.map { p =>
-          val (id, attributes) = p.partition(_.equalsIgnoreCase("id"))
-          ExportAttributes(attributes, id.nonEmpty)
+        provided match {
+          case None => null
+          case Some(p) =>
+            val (id, attributes) = p.partition(_.equalsIgnoreCase("id"))
+            if (id.isEmpty && !query.getHints.containsKey(QueryHints.ARROW_INCLUDE_FID)) {
+              query.getHints.put(QueryHints.ARROW_INCLUDE_FID, java.lang.Boolean.FALSE)
+            }
+            attributes.toArray
         }
       }
     }
 
-    query.setPropertyNames(attributes.map(_.names.toArray).orNull)
+    query.setPropertyNames(attributes)
 
     logger.debug(s"Applying CQL filter ${ECQL.toCQL(filter)}")
-    logger.debug(s"Applying transform ${Option(query.getPropertyNames).map(_.mkString(",")).orNull}")
+    logger.debug(s"Applying transform ${Option(attributes).map(_.mkString(",")).orNull}")
 
-    (query, attributes)
+    QueryRunner.configureDefaultQuery(sft, query)
   }
 
-  def createOutputStream(file: File, compress: Integer): OutputStream = {
-    val out = Option(file).map(new FileOutputStream(_)).getOrElse(System.out)
-    val compressed = if (compress == null) { out } else new GZIPOutputStream(out) {
-      `def`.setLevel(compress) // hack to access the protected deflate level
+  /**
+    * Create an output stream to write to the given file
+    *
+    * @param params parameters
+    * @return
+    */
+  def createOutputStream(params: ExportParams): OutputStream = {
+    val out = if (params.file == null) {
+      System.out
+    } else if (PathUtils.isRemote(params.file)) {
+      PathUtils.getUrl(params.file).openConnection().getOutputStream
+    } else {
+      new FileOutputStream(new File(params.file))
+    }
+    val compressed = if (params.gzip == null) { out } else {
+      // hack to access the protected deflate level
+      new GZIPOutputStream(out) { `def`.setLevel(params.gzip) }
     }
     new BufferedOutputStream(compressed)
   }
 
-  def getWriter(params: FileExportParams): Writer = new OutputStreamWriter(createOutputStream(params.file, params.gzip))
+  /**
+    * Create an output writer
+    *
+    * @param params parameters
+    * @return
+    */
+  def createWriter(params: ExportParams): Writer = new OutputStreamWriter(createOutputStream(params))
 
-  def getWriter(file: File, compress: Integer): Writer = new OutputStreamWriter(createOutputStream(file, compress))
-
-  def checkShpFile(params: FileExportParams): File = {
+  /**
+    * Ensure that an output file is specified
+    *
+    * @param params parameters
+    * @param format output format (used for error message)
+    * @return
+    */
+  def ensureOutputFile(params: ExportParams, format: ExportFormat): String = {
     if (params.file != null) { params.file } else {
-      throw new ParameterException("Error: -o or --output for file-based output is required for " +
-          "shapefile export (stdout not supported for shape files)")
+      throw new ParameterException(s"Error: Output format '$format' requires file-based output, please use --output")
     }
   }
 
-  case class ExportAttributes(names: Seq[String], fid: Boolean)
+  /**
+    * Gets the output format to use
+    *
+    * @param params parameters
+    * @return
+    */
+  def getOutputFormat(params: ExportParams): ExportFormat = {
+    def direct: Option[ExportFormat] = Option(params.outputFormat)
+    def file: Option[ExportFormat] = Option(params.file).flatMap { f =>
+      val ext = PathUtils.getUncompressedExtension(f)
+      ExportFormats.values.find(_.toString.equalsIgnoreCase(ext))
+    }
+    direct.orElse(file).getOrElse(ExportFormats.Csv)
+  }
+
+  /**
+    * Export parameters
+    */
+  trait ExportParams extends OptionalCqlFilterParam with QueryHintsParams {
+    @Parameter(names = Array("-o", "--output"), description = "Output to a file instead of std out")
+    var file: String = _
+
+    @Parameter(names = Array("--gzip"), description = "Level of gzip compression to apply to output, from 1-9")
+    var gzip: Integer = _
+
+    @Parameter(names = Array("-F", "--output-format"), description = "File format of output files (csv|tsv|gml|json|shp|avro|leaflet|orc|parquet|arrow)", required = false, converter = classOf[ExportFormatConverter])
+    var outputFormat: ExportFormat = _
+
+    @Parameter(names = Array("--no-header"), description = "Export as a delimited text format (csv|tsv) without a type header", required = false)
+    var noHeader: Boolean = false
+
+    @Parameter(names = Array("-m", "--max-features"), description = "Maximum number of features to return. default: Unlimited")
+    var maxFeatures: Integer = _
+
+    @Parameter(names = Array("-a", "--attributes"), description = "Attributes from feature to export (comma-separated)...Comma-separated expressions with each in the format attribute[=filter_function_expression]|derived-attribute=filter_function_expression|'id'. 'id' will export the feature ID, filter_function_expression is an expression of filter function applied to attributes, literals and filter functions, i.e. can be nested")
+    var attributes: java.util.List[String] = _
+  }
 }

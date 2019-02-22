@@ -11,12 +11,10 @@ package org.locationtech.geomesa.utils.io.fs
 import java.io.{File, FileInputStream, InputStream}
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.concurrent.atomic.AtomicBoolean
 
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.LocalFileHandle
-import org.locationtech.geomesa.utils.stats.CountingInputStream
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try

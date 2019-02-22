@@ -151,7 +151,7 @@ trait ConverterConfigParam {
   @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter")
   var config: String = _
 
-  @Parameter(names = Array("--converter-error-mode"), description = "Override the converter error mode - ", converter = classOf[ErrorModeConverter])
+  @Parameter(names = Array("--converter-error-mode"), description = "Override the converter error mode - 'skip-bad-records' or 'raise-errors'", converter = classOf[ErrorModeConverter])
   var errorMode: ErrorMode = _
 }
 
