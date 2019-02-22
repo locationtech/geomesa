@@ -39,11 +39,11 @@ class DateIndexKeySpace(val sft: SimpleFeatureType, dtgField: String)
 
   override val attributes: Seq[String] = Seq(dtgField)
 
-  override val indexKeyByteLength: Int = 8
-
   override val sharing: Array[Byte] = Empty
 
   override val sharding: ShardStrategy = NoShardStrategy
+
+  override val indexKeyByteLength: Right[(Array[Byte], Int, Int) => Int, Int] = Right(8)
 
   override def toIndexKey(writable: WritableFeature,
                           tier: Array[Byte],

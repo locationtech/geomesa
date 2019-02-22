@@ -20,6 +20,6 @@ class FsGetTypeNamesCommand extends GetTypeNamesCommand[FileSystemDataStore] wit
 }
 
 object FsGetTypeNamesCommand {
-  @Parameters(commandDescription = "List GeoMesa feature type for a given Fs resource")
+  @Parameters(commandDescription = "List the feature types for a given root path")
   class FsGetTypeNamesParams extends FsParams
 }

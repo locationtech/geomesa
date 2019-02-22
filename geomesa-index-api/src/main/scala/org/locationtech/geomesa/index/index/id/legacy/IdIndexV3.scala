@@ -36,17 +36,9 @@ object IdIndexV3 {
 
   class IdIndexKeySpaceV3(sft: SimpleFeatureType, override val sharing: Array[Byte]) extends IdIndexKeySpace(sft) {
 
-    private val rangePrefixes = {
-      if (sharding.length == 0 && sharing.isEmpty) {
-        Seq.empty
-      } else if (sharing.isEmpty) {
-        sharding.shards
-      } else if (sharding.length == 0) {
-        Seq(sharing)
-      } else {
-        sharding.shards.map(ByteArrays.concat(sharing, _))
-      }
-    }
+    private val rangePrefixes = if (sharing.isEmpty) { Seq.empty } else { Seq(sharing) }
+
+    override val indexKeyByteLength: Right[(Array[Byte], Int, Int) => Int, Int] = Right(sharing.length)
 
     override def toIndexKey(writable: WritableFeature,
                             tier: Array[Byte],

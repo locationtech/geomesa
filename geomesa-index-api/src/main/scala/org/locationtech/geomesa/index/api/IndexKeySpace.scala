@@ -37,11 +37,12 @@ trait IndexKeySpace[T, U] {
   def attributes: Seq[String]
 
   /**
-    * Length of an index key
+    * Length of an index key. If static (general case), will return a Right with the length. If dynamic,
+    * will return Left with a function to determine the length from a given (row, offset, length)
     *
     * @return
     */
-  def indexKeyByteLength: Int
+  def indexKeyByteLength: Either[(Array[Byte], Int, Int) => Int, Int]
 
   /**
     * Table sharing

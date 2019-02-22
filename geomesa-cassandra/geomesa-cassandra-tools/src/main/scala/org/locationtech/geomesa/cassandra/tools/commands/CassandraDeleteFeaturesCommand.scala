@@ -20,6 +20,6 @@ class CassandraDeleteFeaturesCommand extends DeleteFeaturesCommand[CassandraData
 }
 
 object CassandraDeleteFeaturesCommand {
-  @Parameters(commandDescription = "Delete features from a table in GeoMesa. Does not delete any tables or schema information.")
+  @Parameters(commandDescription = "Delete features from a GeoMesa schema")
   class CassandraDeleteFeaturesParams extends DeleteFeaturesParams with CassandraDataStoreParams
 }

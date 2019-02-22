@@ -15,29 +15,27 @@ import com.google.common.collect.ImmutableSortedSet
 import com.google.common.util.concurrent.MoreExecutors
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.io.Text
-import org.geotools.data.{Query, Transaction}
 import org.locationtech.geomesa.accumulo.data.{AccumuloBackedMetadata, _}
-import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.stats.MetadataBackedStats.KeyAndStat
+import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
+import org.locationtech.geomesa.index.stats.MetadataBackedStats.{MetadataStatUpdater, WritableStat}
+import org.locationtech.geomesa.index.stats.NoopStats.NoopStatUpdater
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 
 /**
  * Tracks stats via entries stored in metadata.
  */
-class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val generateStats: Boolean)
-    extends MetadataBackedStats {
+class AccumuloGeoMesaStats(
+    ds: AccumuloDataStore,
+    metadata: AccumuloBackedMetadata[Stat],
+    statsTable: String,
+    generateStats: Boolean
+  ) extends MetadataBackedStats(ds, metadata, generateStats) {
 
   import AccumuloGeoMesaStats._
-
-  override private [geomesa] val metadata =
-    new AccumuloBackedMetadata(ds.connector, statsTable, new StatsMetadataSerializer(ds))
 
   private val compactionScheduled = new AtomicBoolean(false)
   private val lastCompaction = new AtomicLong(0L)
@@ -61,32 +59,8 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
 
   compactor.run() // schedule initial compaction
 
-  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
-    val query = new Query(sft.getTypeName, filter)
-    query.getHints.put(QueryHints.STATS_STRING, stats)
-    query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
-
-    try {
-      val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-      val result = try {
-        // stats should always return exactly one result, even if there are no features in the table
-        StatsScan.decodeStat(sft)(reader.next.getAttribute(0).asInstanceOf[String])
-      } finally {
-        reader.close()
-      }
-      result match {
-        case s: SeqStat => s.stats.asInstanceOf[Seq[T]]
-        case s => Seq(s).asInstanceOf[Seq[T]]
-      }
-    } catch {
-      case e: Exception =>
-        logger.error(s"Error running stats query with stats '$stats' and filter '${filterToString(filter)}'", e)
-        Seq.empty
-    }
-  }
-
   override def statUpdater(sft: SimpleFeatureType): StatUpdater =
-    if (generateStats) new MetadataStatUpdater(this, sft, Stat(sft, buildStatsFor(sft))) else NoopStatUpdater
+    if (generateStats) new AccumuloStatUpdater(this, sft, Stat(sft, buildStatsFor(sft))) else NoopStatUpdater
 
   override def close(): Unit = {
     super.close()
@@ -94,13 +68,21 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
     synchronized(scheduledCompaction.cancel(false))
   }
 
-  override protected def writeAuthoritative(typeName: String, toWrite: Seq[KeyAndStat]): Unit = {
-    // due to accumulo issues with combiners, deletes and compactions, we have to:
-    // 1) delete the existing data; 2) compact the table; 3) insert the new value
-    // see: https://issues.apache.org/jira/browse/ACCUMULO-2232
-    toWrite.foreach(ks => metadata.remove(typeName, ks.key))
-    compact()
-    toWrite.foreach(ks => metadata.insert(typeName, ks.key, ks.stat))
+  override protected def write(typeName: String, stats: Seq[WritableStat]): Unit = {
+    val (merge, overwrite) = stats.partition(_.merge)
+    merge.foreach { s =>
+      metadata.insert(typeName, s.key, s.stat)
+      // invalidate the cache as we would need to reload from accumulo for the combiner to take effect
+      metadata.invalidateCache(typeName, s.key)
+    }
+    if (overwrite.nonEmpty) {
+      // due to accumulo issues with combiners, deletes and compactions, we have to:
+      // 1) delete the existing data; 2) compact the table; 3) insert the new value
+      // see: https://issues.apache.org/jira/browse/ACCUMULO-2232
+      overwrite.foreach(s => metadata.remove(typeName, s.key))
+      compact()
+      overwrite.foreach(s => metadata.insert(typeName, s.key, s.stat))
+    }
   }
 
   /**

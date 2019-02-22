@@ -82,7 +82,7 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
       new CacheLoader[(String, String), Option[T]] {
         override def load(k: (String, String)): Option[T] = {
           if (!tableExists.get) { None } else {
-            scanValue(k._1, k._2).map(serializer.deserialize(k._1, k._2, _))
+            scanValue(k._1, k._2).map(serializer.deserialize(k._1, _))
           }
         }
       }
@@ -110,7 +110,7 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
     def noCache: Seq[(String, T)] = {
       WithClose(scanValues(Some(ScanQuery(typeName, Option(prefix))))) { iter =>
         iter.map { case (t, k, v) =>
-          val value = serializer.deserialize(t, k, v)
+          val value = serializer.deserialize(t, v)
           metaDataCache.put((t, k), Option(value))
           k -> value
         }.toSeq
@@ -139,7 +139,7 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
     ensureTableExists()
     val strings = kvPairs.map { case (k, v) =>
       metaDataCache.put((typeName, k), Option(v)) // note: side effect in map
-      (k, serializer.serialize(typeName, k, v))
+      (k, serializer.serialize(typeName, v))
     }
     write(typeName, strings.toSeq)
   }

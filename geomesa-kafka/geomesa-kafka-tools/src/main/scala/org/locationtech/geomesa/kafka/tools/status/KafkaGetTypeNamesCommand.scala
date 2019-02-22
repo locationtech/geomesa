@@ -19,6 +19,6 @@ class KafkaGetTypeNamesCommand extends GetTypeNamesCommand[KafkaDataStore] with 
 }
 
 object KafkaGetTypeNamesCommand {
-  @Parameters(commandDescription = "List GeoMesa feature types for a given zk path")
+  @Parameters(commandDescription = "List the feature types for a given zookeeper path")
   class GetTypeNamesParams extends StatusDataStoreParams
 }

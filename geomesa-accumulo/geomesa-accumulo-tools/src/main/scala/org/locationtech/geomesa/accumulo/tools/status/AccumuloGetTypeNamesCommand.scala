@@ -19,6 +19,6 @@ class AccumuloGetTypeNamesCommand extends GetTypeNamesCommand[AccumuloDataStore]
 }
 
 object AccumuloGetTypeNamesCommand {
-  @Parameters(commandDescription = "List GeoMesa feature types for a given catalog")
+  @Parameters(commandDescription = "List the feature types for a given catalog")
   class GetTypeNamesParams extends AccumuloDataStoreParams
 }

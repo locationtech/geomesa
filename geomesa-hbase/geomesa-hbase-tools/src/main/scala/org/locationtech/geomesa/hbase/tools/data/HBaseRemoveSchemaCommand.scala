@@ -20,6 +20,6 @@ class HBaseRemoveSchemaCommand extends RemoveSchemaCommand[HBaseDataStore] with 
 }
 
 object HBaseRemoveSchemaCommand {
-  @Parameters(commandDescription = "Remove a schema and associated features from a GeoMesa catalog")
+  @Parameters(commandDescription = "Remove a schema and all associated features")
   class HBaseRemoveSchemaParams extends RemoveSchemaParams with HBaseParams with RemoteFilterNotUsedParam
 }

@@ -72,6 +72,8 @@ GeoMesa NiFi contains several processors:
 +--------------------------+-------------------------------------------------------------------------------------------+
 | ``PutGeoMesaKafka``      | Ingest data into a GeoMesa Kafka datastore with a GeoMesa converter or from geoavro       |
 +--------------------------+-------------------------------------------------------------------------------------------+
+| ``PutGeoMesaRedis``      | Ingest data into a GeoMesa Redis datastore with a GeoMesa converter or from geoavro       |
++--------------------------+-------------------------------------------------------------------------------------------+
 | ``PutGeoTools``          | Ingest data into an arbitrary GeoTools datastore using a GeoMesa converter or avro        |
 +--------------------------+-------------------------------------------------------------------------------------------+
 | ``ConvertToGeoAvro``     | Use a GeoMesa converter to create geoavro                                                 |
@@ -152,6 +154,13 @@ Kafka-backed GeoMesa datastore. This processor supports Kafka 0.9
 and newer. To use this processor first add it to the workspace and open
 the properties tab of its configuration. For a description
 of the connection properties, see :ref:`kafka_parameters`.
+
+PutGeoMesaRedis
+~~~~~~~~~~~~~~~
+
+The ``PutGeoMesaRedis`` processor is used for ingesting data into a Redis-backed GeoMesa datastore. To use this
+processor first add it to the workspace and open the properties tab of its configuration. For a description
+of the connection properties, see :ref:`redis_parameters`.
 
 PutGeoTools
 ~~~~~~~~~~~

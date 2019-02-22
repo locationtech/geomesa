@@ -12,13 +12,21 @@ import java.time.{Instant, ZoneOffset}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.data.{DataStore, Query, Transaction}
 import org.locationtech.geomesa.curve.BinnedTime
+import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
-import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, MetadataSerializer}
+import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, MetadataSerializer, NoOpMetadata}
+import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
+import org.locationtech.geomesa.index.stats.NoopStats.NoopStatUpdater
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -30,14 +38,10 @@ import scala.util.control.NonFatal
 /**
  * Tracks stats via entries stored in metadata
  */
-trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with LazyLogging {
+abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat], update: Boolean)
+    extends GeoMesaStats with StatsBasedEstimator with LazyLogging {
 
   import MetadataBackedStats._
-
-  private [geomesa] def metadata: GeoMesaMetadata[Stat]
-
-  protected def ds: HasGeoMesaMetadata[String]
-  protected def generateStats: Boolean
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
     if (exact) {
@@ -136,14 +140,41 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
     writeStat(new SeqStat(sft, stats), sft, merge = false)
 
     // update our last run time
-    val date = GeoToolsDateFormat.format(Instant.now().atZone(ZoneOffset.UTC))
-    ds.metadata.insert(sft.getTypeName, GeoMesaMetadata.STATS_GENERATION_KEY, date)
+    ds match {
+      case hm: HasGeoMesaMetadata[String] =>
+        val date = GeoToolsDateFormat.format(Instant.now().atZone(ZoneOffset.UTC))
+        hm.metadata.insert(sft.getTypeName, GeoMesaMetadata.STATS_GENERATION_KEY, date)
+      case _ => // no-op
+    }
 
     stats
   }
 
+  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
+    val query = new Query(sft.getTypeName, filter)
+    query.getHints.put(QueryHints.STATS_STRING, stats)
+    query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
+
+    try {
+      WithClose(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) { reader =>
+        // stats should always return exactly one result, even if there are no features in the table
+        val result = if (reader.hasNext) { reader.next.getAttribute(0).asInstanceOf[String] } else {
+          throw new IllegalStateException("Stats scan didn't return any rows")
+        }
+        StatsScan.decodeStat(sft)(result) match {
+          case s: SeqStat => s.stats.asInstanceOf[Seq[T]]
+          case s => Seq(s).asInstanceOf[Seq[T]]
+        }
+      }
+    } catch {
+      case e: Exception =>
+        logger.error(s"Error running stats query with stats '$stats' and filter '${filterToString(filter)}'", e)
+        Seq.empty
+    }
+  }
+
   override def statUpdater(sft: SimpleFeatureType): StatUpdater =
-    if (generateStats) new MetadataStatUpdater(this, sft, Stat(sft, buildStatsFor(sft))) else NoopStatUpdater
+    if (update) new MetadataStatUpdater(this, sft, Stat(sft, buildStatsFor(sft))) else NoopStatUpdater
 
   override def clearStats(sft: SimpleFeatureType): Unit = metadata.delete(sft.getTypeName)
 
@@ -157,55 +188,44 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
     * @param sft simple feature type
     * @param merge merge with the existing stat - otherwise overwrite
     */
-  protected [stats] def writeStat(stat: Stat, sft: SimpleFeatureType, merge: Boolean): Unit = {
-    val typeName = sft.getTypeName
-    val toWrite = getKeysAndStatsForWrite(stat, sft)
+  private [stats] def writeStat(stat: Stat, sft: SimpleFeatureType, merge: Boolean): Unit =
+    write(sft.getTypeName, getStatsForWrite(stat, sft, merge))
 
-    if (merge) {
-      writeMerge(typeName, toWrite)
-    } else {
-      writeAuthoritative(typeName, toWrite)
-    }
-  }
-
-  protected def writeMerge(typeName: String, toWrite: Seq[KeyAndStat]): Unit = {
-    toWrite.foreach { ks =>
-      metadata.insert(typeName, ks.key, ks.stat)
-      // invalidate the cache as we would need to reload from accumulo for the combiner to take effect
-      metadata.invalidateCache(typeName, ks.key)
-    }
-  }
-
-  protected def writeAuthoritative(typeName: String, toWrite: Seq[KeyAndStat]): Unit = {
-    toWrite.foreach(ks => metadata.insert(typeName, ks.key, ks.stat))
-  }
+  /**
+    * Write stats
+    *
+    * @param typeName simple feature type name
+    * @param stats stats to write
+    */
+  protected def write(typeName: String, stats: Seq[WritableStat]): Unit
 
   /**
     * Gets keys and stats to write. Some stats end up getting split for writing.
     *
     * @param stat stat to write
     * @param sft simple feature type
+    * @param merge merge or overwrite existing stats
     * @return metadata keys and split stats
     */
-  protected def getKeysAndStatsForWrite(stat: Stat, sft: SimpleFeatureType): Seq[KeyAndStat] = {
+  private def getStatsForWrite(stat: Stat, sft: SimpleFeatureType, merge: Boolean): Seq[WritableStat] = {
     stat match {
-      case s: SeqStat      => s.stats.flatMap(getKeysAndStatsForWrite(_, sft))
-      case s: CountStat    => Seq(KeyAndStat(countKey(), s))
-      case s: MinMax[_]    => Seq(KeyAndStat(minMaxKey(s.property), s))
-      case s: TopK[_]      => Seq(KeyAndStat(topKKey(s.property), s))
-      case s: Histogram[_] => Seq(KeyAndStat(histogramKey(s.property), s))
+      case s: SeqStat      => s.stats.flatMap(getStatsForWrite(_, sft, merge))
+      case s: CountStat    => Seq(WritableStat(countKey(), s, merge))
+      case s: MinMax[_]    => Seq(WritableStat(minMaxKey(s.property), s, merge))
+      case s: TopK[_]      => Seq(WritableStat(topKKey(s.property), s, merge))
+      case s: Histogram[_] => Seq(WritableStat(histogramKey(s.property), s, merge))
 
       case s: Frequency[_] =>
         if (s.dtg.isEmpty) {
-          Seq(KeyAndStat(frequencyKey(s.property), s))
+          Seq(WritableStat(frequencyKey(s.property), s, merge))
         } else {
           // split up the frequency and store by week
-          s.splitByTime.map { case (b, f) => KeyAndStat(frequencyKey(s.property, b), f) }
+          s.splitByTime.map { case (b, f) => WritableStat(frequencyKey(s.property, b), f, merge) }
         }
 
       case s: Z3Histogram  =>
         // split up the z3 histogram and store by week
-        s.splitByTime.map { case (b, z) => KeyAndStat(histogramKey(s.geom, s.dtg, b), z) }
+        s.splitByTime.map { case (b, z) => WritableStat(histogramKey(s.geom, s.dtg, b), z, merge) }
 
       case _ => throw new NotImplementedError("Only Count, Frequency, MinMax, TopK and Histogram stats are tracked")
     }
@@ -319,54 +339,6 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
   }
 }
 
-/**
-  * Stores stats as metadata entries
-  *
-  * @param stats persistence
-  * @param sft simple feature type
-  * @param statFunction creates stats for tracking new features - this will be re-created on flush,
-  *                     so that our bounds are more accurate
-  */
-class MetadataStatUpdater(stats: MetadataBackedStats, sft: SimpleFeatureType, statFunction: => Stat)
-    extends StatUpdater with LazyLogging {
-
-  private var stat: Stat = statFunction
-
-  override def add(sf: SimpleFeature): Unit = stat.observe(sf)
-
-  override def remove(sf: SimpleFeature): Unit = stat.unobserve(sf)
-
-  override def close(): Unit = {
-    if (!stat.isEmpty) {
-      stats.writeStat(stat, sft, merge = true)
-    }
-  }
-
-  override def flush(): Unit = {
-    if (!stat.isEmpty) {
-      stats.writeStat(stat, sft, merge = true)
-    }
-    // reload the tracker - for long-held updaters, this will refresh the histogram ranges
-    stat = statFunction
-  }
-}
-
-class StatsMetadataSerializer(ds: GeoMesaDataStore[_]) extends MetadataSerializer[Stat] {
-
-  private val sfts = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
-
-  private def serializer(typeName: String) = {
-    val sft = sfts.synchronized(sfts.getOrElseUpdate(typeName, ds.getSchema(typeName)))
-    StatSerializer(sft) // retrieves a cached value
-  }
-
-  override def serialize(typeName: String, key: String, value: Stat): Array[Byte] =
-    serializer(typeName).serialize(value)
-
-  override def deserialize(typeName: String, key: String, value: Array[Byte]): Stat =
-    serializer(typeName).deserialize(value, immutable = true)
-}
-
 object MetadataBackedStats {
 
   val CountKey           = "stats-count"
@@ -399,5 +371,96 @@ object MetadataBackedStats {
   private [stats] def histogramKey(geom: String, dtg: String, timeBin: Short): String =
     histogramKey(s"$geom-$dtg-$timeBin")
 
-  case class KeyAndStat(key: String, stat: Stat)
+  case class WritableStat(key: String, stat: Stat, merge: Boolean)
+
+  /**
+    * Runnable stats implementation, doesn't persist stat values
+    *
+    * @param ds datastore
+    */
+  class RunnableStats(ds: DataStore with HasGeoMesaMetadata[String])
+      extends MetadataBackedStats(ds, new NoOpMetadata[Stat], false) {
+    override protected def write(typeName: String, stats: Seq[WritableStat]): Unit = {}
+  }
+
+  /**
+    * Allows for running of stats against data stores that don't support stat queries
+    *
+    * @param ds datastore
+    */
+  class UnoptimizedRunnableStats(ds: DataStore) extends MetadataBackedStats(ds, new NoOpMetadata[Stat], false) {
+
+    override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
+      val stat = Stat(sft, stats)
+      val query = new Query(sft.getTypeName, filter)
+      try {
+        WithClose(CloseableIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))) { reader =>
+          reader.foreach(stat.observe)
+        }
+        stat match {
+          case s: SeqStat => s.stats.asInstanceOf[Seq[T]]
+          case s => Seq(s).asInstanceOf[Seq[T]]
+        }
+      } catch {
+        case e: Exception =>
+          logger.error(s"Error running stats query with stats '$stats' and filter '${filterToString(filter)}'", e)
+          Seq.empty
+      }
+    }
+
+    override protected def write(typeName: String, stats: Seq[WritableStat]): Unit = {}
+  }
+
+  /**
+    * Stat serializer
+    *
+    * @param ds datastore
+    */
+  class StatsMetadataSerializer(ds: GeoMesaDataStore[_]) extends MetadataSerializer[Stat] {
+
+    private val sfts = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
+
+    private def serializer(typeName: String) = {
+      val sft = sfts.synchronized(sfts.getOrElseUpdate(typeName, ds.getSchema(typeName)))
+      StatSerializer(sft) // retrieves a cached value
+    }
+
+    override def serialize(typeName: String, value: Stat): Array[Byte] =
+      serializer(typeName).serialize(value)
+
+    override def deserialize(typeName: String, value: Array[Byte]): Stat =
+      serializer(typeName).deserialize(value, immutable = true)
+  }
+
+  /**
+    * Stores stats as metadata entries
+    *
+    * @param stats persistence
+    * @param sft simple feature type
+    * @param statFunction creates stats for tracking new features - this will be re-created on flush,
+    *                     so that our bounds are more accurate
+    */
+  class MetadataStatUpdater(stats: MetadataBackedStats, sft: SimpleFeatureType, statFunction: => Stat)
+      extends StatUpdater with LazyLogging {
+
+    private var stat: Stat = statFunction
+
+    override def add(sf: SimpleFeature): Unit = stat.observe(sf)
+
+    override def remove(sf: SimpleFeature): Unit = stat.unobserve(sf)
+
+    override def close(): Unit = {
+      if (!stat.isEmpty) {
+        stats.writeStat(stat, sft, merge = true)
+      }
+    }
+
+    override def flush(): Unit = {
+      if (!stat.isEmpty) {
+        stats.writeStat(stat, sft, merge = true)
+      }
+      // reload the tracker - for long-held updaters, this will refresh the histogram ranges
+      stat = statFunction
+    }
+  }
 }

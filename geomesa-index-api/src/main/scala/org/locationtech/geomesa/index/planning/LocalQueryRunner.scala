@@ -12,7 +12,6 @@ import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.util.Date
 
-import org.locationtech.jts.geom.Envelope
 import org.geotools.data.Query
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
@@ -20,7 +19,6 @@ import org.locationtech.geomesa.arrow.io.{DeltaWriter, DictionaryBuildingWriter}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
-import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryHook
 import org.locationtech.geomesa.index.stats.GeoMesaStats
@@ -32,6 +30,7 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, SimpleFeatureOrdering, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.stats.{Stat, TopK}
+import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -45,11 +44,8 @@ import org.opengis.filter.Filter
 abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[AuthorizationsProvider])
     extends QueryRunner {
 
-  import LocalQueryRunner.{authVisibilityCheck, noAuthVisibilityCheck, transform}
+  import LocalQueryRunner.transform
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-
-  private val isVisible: (SimpleFeature, Seq[Array[Byte]]) => Boolean =
-    if (authProvider.isDefined) { authVisibilityCheck } else { noAuthVisibilityCheck }
 
   protected def name: String
 
@@ -63,10 +59,6 @@ abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[Author
   protected def features(sft: SimpleFeatureType, filter: Option[Filter]): CloseableIterator[SimpleFeature]
 
   override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): CloseableIterator[SimpleFeature] = {
-    import scala.collection.JavaConversions._
-
-    val auths = authProvider.map(_.getAuthorizations.map(_.getBytes(StandardCharsets.UTF_8))).getOrElse(Seq.empty)
-
     val query = configureQuery(sft, original)
 
     explain.pushLevel(s"$name query: '${sft.getTypeName}' ${org.locationtech.geomesa.filter.filterToString(query.getFilter)}")
@@ -78,7 +70,8 @@ abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[Author
     explain.popLevel()
 
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
-    val iter = features(sft, filter).filter(isVisible(_, auths))
+    val visible = LocalQueryRunner.visible(authProvider)
+    val iter = features(sft, filter).filter(visible.apply)
 
     val hook = Some(ArrowDictionaryHook(stats, filter))
     val result = transform(sft, iter, query.getHints.getTransform, query.getHints, hook)
@@ -105,10 +98,24 @@ abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[Author
 }
 
 object LocalQueryRunner {
-
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
+  import scala.collection.JavaConversions._
+
   case class ArrowDictionaryHook(stats: GeoMesaStats, filter: Option[Filter])
+
+  /**
+    * Filter to checking visibilities
+    *
+    * @param provider auth provider, if any
+    * @return
+    */
+  def visible(provider: Option[AuthorizationsProvider]): SimpleFeature => Boolean = {
+    provider match {
+      case None    => noAuthVisibilityCheck
+      case Some(p) => authVisibilityCheck(_, p.getAuthorizations.map(_.getBytes(StandardCharsets.UTF_8)))
+    }
+  }
 
   /**
     * Transform plain features into the appropriate return type, based on the hints
@@ -404,10 +411,9 @@ object LocalQueryRunner {
     * cause the check to fail, so we can skip parsing
     *
     * @param f simple feature to check
-    * @param ignored not used
     * @return true if feature is visible without any authorizations, otherwise false
     */
-  private def noAuthVisibilityCheck(f: SimpleFeature, ignored: Seq[Array[Byte]]): Boolean = {
+  private def noAuthVisibilityCheck(f: SimpleFeature): Boolean = {
     val vis = SecurityUtils.getVisibility(f)
     vis == null || vis.isEmpty
   }

@@ -8,15 +8,18 @@
 
 package org.locationtech.geomesa.accumulo.data.stats
 
+import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.stats.MetadataBackedStats
 import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class StatsCombinerTest extends TestWithDataStore {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -28,21 +31,21 @@ class StatsCombinerTest extends TestWithDataStore {
     addFeatures(Seq(ScalaSimpleFeature.create(sft, "1", "name1", "2017-01-01T01:00:00.000Z", "POINT (41 55)")))
   }
 
+  // gets a new data store so that we don't read any cached values
+  def statCount(): Option[Long] = {
+    val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
+    try { ds.stats.getCount(sft, Filter.INCLUDE, exact = false) } finally { ds.dispose() }
+  }
+
   "StatsCombiner" should {
     "add/remove configured combiners" in {
-      ds.stats.getCount(sft, Filter.INCLUDE, exact = false) must beSome(2L)
-
+      statCount() must beSome(2L)
       ds.stats.removeStatCombiner(ds.connector, sft)
-      ds.stats.metadata.invalidateCache(sftName, MetadataBackedStats.CountKey)
-
       // the exact behavior here doesn't matter, it's just to verify that the combiner is not enabled
       // in this case, it will just return the first row
-      ds.stats.getCount(sft, Filter.INCLUDE, exact = false) must beSome(1L)
-
+      statCount() must beSome(1L)
       ds.stats.configureStatCombiner(ds.connector, sft)
-      ds.stats.metadata.invalidateCache(sftName, MetadataBackedStats.CountKey)
-
-      ds.stats.getCount(sft, Filter.INCLUDE, exact = false) must beSome(2L)
+      statCount() must beSome(2L)
     }
   }
 }

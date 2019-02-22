@@ -20,6 +20,7 @@ User Manual
    bigtable/index
    cassandra/index
    kafka/index
+   redis/index
    filesystem/index
    kudu/index
    lambda/index

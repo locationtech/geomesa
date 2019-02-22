@@ -18,5 +18,5 @@ class ArrowGetTypeNamesCommand extends GetTypeNamesCommand[ArrowDataStore] with 
   override val params = new ArrowGetTypeNamesParams()
 }
 
-@Parameters(commandDescription = "List GeoMesa feature type for a given Arrow resource")
+@Parameters(commandDescription = "List the feature type for a given Arrow resource")
 class ArrowGetTypeNamesParams extends UrlParam

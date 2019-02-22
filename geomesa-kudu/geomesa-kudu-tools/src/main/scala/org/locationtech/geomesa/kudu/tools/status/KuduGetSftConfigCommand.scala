@@ -20,6 +20,6 @@ class KuduGetSftConfigCommand extends GetSftConfigCommand[KuduDataStore] with Ku
 }
 
 object KuduGetSftConfigCommand {
-  @Parameters(commandDescription = "Get the SimpleFeatureType of a feature")
+  @Parameters(commandDescription = "Get the SimpleFeatureType definition of a schema")
   class KuduGetSftConfigParameters extends GetSftConfigParams with KuduParams
 }

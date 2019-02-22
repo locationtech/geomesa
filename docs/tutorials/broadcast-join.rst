@@ -275,7 +275,7 @@ This does make use of a few helper functions for setting the color and popup con
        layer.bindPopup(feature.properties.popupContent);
     }
 
-Afterwards, this simple HTML will load a leaflet with the data.
+Afterwards, this simple HTML will load a Leaflet map with the data.
 
 .. code-block:: html
 

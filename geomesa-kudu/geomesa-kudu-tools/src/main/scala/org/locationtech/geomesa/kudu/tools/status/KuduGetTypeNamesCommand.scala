@@ -20,6 +20,6 @@ class KuduGetTypeNamesCommand extends GetTypeNamesCommand[KuduDataStore] with Ku
 }
 
 object KuduGetTypeNamesCommand {
-  @Parameters(commandDescription = "List GeoMesa feature types for a given catalog")
+  @Parameters(commandDescription = "List the feature types for a given catalog")
   class GetTypeNamesParams extends KuduParams
 }

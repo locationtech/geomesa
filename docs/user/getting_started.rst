@@ -5,7 +5,7 @@ The first step to getting started with GeoMesa is to choose a persistent storage
 by your target environment, but if not there are several options available.
 
 If you want a near real-time view of streaming data, then consider using
-:doc:`Kafka </tutorials/geomesa-quickstart-kafka>`.
+:doc:`Kafka </tutorials/geomesa-quickstart-kafka>` or :doc:`Redis </tutorials/geomesa-quickstart-redis>`.
 
 Otherwise, you can get similar functionality through :doc:`HBase </tutorials/geomesa-quickstart-hbase>`,
 :doc:`Accumulo </tutorials/geomesa-quickstart-accumulo>`, :doc:`Cassandra </tutorials/geomesa-quickstart-cassandra>`,
