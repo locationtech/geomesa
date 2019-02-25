@@ -14,13 +14,11 @@ import org.locationtech.jts.geom.Geometry
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeature
 
-class XZ2Scheme(bits: Int, geom: String, leaf: Boolean) extends SpatialScheme(bits, geom, leaf) {
+case class XZ2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialScheme(bits, geom) {
 
   private val xz2 = XZ2SFC((bits / 2).asInstanceOf[Short])
 
-  override def getName: String = XZ2Scheme.Name
-
-  override def getPartition(feature: SimpleFeature): String = {
+  override def getPartitionName(feature: SimpleFeature): String = {
     val geometry = feature.getAttribute(geom).asInstanceOf[Geometry]
     val envelope = geometry.getEnvelopeInternal
     xz2.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY).formatted(format)
@@ -37,9 +35,8 @@ object XZ2Scheme {
 
   val Name = "xz2"
 
-  class XZ2PartitionSchemeFactory extends SpatialPartitionSchemeFactory {
-    override val Name: String = XZ2Scheme.Name
-    override def buildPartitionScheme(bits: Int, geom: String, leaf: Boolean): SpatialScheme =
-      new XZ2Scheme(bits, geom, leaf)
+  class XZ2PartitionSchemeFactory extends SpatialPartitionSchemeFactory(Name) {
+    override def buildPartitionScheme(bits: Int, geom: String, geomIndex: Int): SpatialScheme =
+      XZ2Scheme(bits, geom, geomIndex)
   }
 }

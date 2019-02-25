@@ -15,7 +15,7 @@ import java.util.concurrent.{CountDownLatch, Executors}
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
-import org.locationtech.geomesa.fs.FileSystemDataStore
+import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
@@ -54,32 +54,30 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
 
     val storage = ds.storage(params.featureName)
 
-    val allPartitions = storage.getPartitions.asScala
-
-    val toCompact = if (params.partitions.isEmpty) { allPartitions } else {
-      val filtered = allPartitions.filterNot(p => params.partitions.contains(p.name))
+    val toCompact = if (params.partitions.isEmpty) { storage.getPartitions } else {
+      val filtered = params.partitions.asScala.flatMap(storage.metadata.getPartition)
       if (filtered.lengthCompare(params.partitions.size()) != 0) {
-        val unmatched = params.partitions.asScala.filterNot(name => allPartitions.exists(_.name == name))
+        val unmatched = params.partitions.asScala.filterNot(name => filtered.exists(_.name == name))
         throw new ParameterException(s"Partition(s) ${unmatched.mkString(", ")} cannot be found in metadata")
       }
       filtered
     }
 
     val mode = Option(params.mode).getOrElse {
-      if (PathUtils.isRemote(storage.getMetadata.getRoot.toString)) { RunModes.Distributed } else { RunModes.Local }
+      if (PathUtils.isRemote(storage.context.root.toString)) { RunModes.Distributed } else { RunModes.Local }
     }
 
     Command.user.info(s"Compacting ${toCompact.size} partitions in ${mode.toString.toLowerCase(Locale.US)} mode")
 
     val start = System.currentTimeMillis()
-
-    val statusCallback = new PrintProgress(System.err, TextTools.buildString(' ', 60), '\u003d', '\u003e', '\u003e')
+    val status = new PrintProgress(System.err, TextTools.buildString(' ', 60), '\u003d', '\u003e', '\u003e')
 
     mode match {
       case RunModes.Local =>
         val total = toCompact.length
         val latch = new CountDownLatch(total)
         val executor = Executors.newFixedThreadPool(math.max(1, math.min(params.threads, total)))
+
         try {
           toCompact.foreach { p =>
             executor.submit(
@@ -87,7 +85,7 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
                 override def run(): Unit = {
                   try {
                     logger.info(s"Compacting ${p.name}")
-                    storage.compact(p.name)
+                    storage.compact(Some(p.name))
                   } catch {
                     case NonFatal(e) => logger.error(s"Error processing partition '${p.name}':", e)
                   } finally {
@@ -103,25 +101,24 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
 
         while (latch.getCount > 0) {
           Thread.sleep(1000)
-          statusCallback("", 1f - latch.getCount.toFloat / total, Seq.empty, done = false)
+          status("", 1f - latch.getCount.toFloat / total, Seq.empty, done = false)
         }
-        statusCallback("", 1f, Seq.empty, done = true)
+        status("", 1f, Seq.empty, done = true)
         Command.user.info("Compacting metadata")
-        storage.getMetadata.compact()
+        storage.metadata.compact(None, math.max(1, params.threads))
         Command.user.info(s"Local compaction complete in ${TextTools.getTime(start)}")
 
       case RunModes.Distributed =>
-        val encoding = storage.getMetadata.getEncoding
-        val job = if (encoding == ParquetFileSystemStorage.ParquetEncoding) {
+        val encoding = storage.metadata.encoding
+        val job = if (ParquetFileSystemStorage.Encoding.equalsIgnoreCase(encoding)) {
           new ParquetCompactionJob()
-        } else if (encoding == OrcFileSystemStorage.OrcEncoding) {
+        } else if (OrcFileSystemStorage.Encoding.equalsIgnoreCase(encoding)) {
           new OrcCompactionJob()
         } else {
           throw new ParameterException(s"Compaction is not supported for encoding '$encoding'")
         }
         val tempDir = Option(params.tempDir).map(t => new Path(t))
-        val (success, failed) = job.run(connection, params.featureName, toCompact, tempDir,
-          libjarsFileName, libjarsSearchPath, statusCallback)
+        val (success, failed) = job.run(storage, toCompact, tempDir, libjarsFileName, libjarsSearchPath, status)
         Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
         Command.user.info(IngestCommand.getStatInfo(success, failed, "Compacted"))
 

@@ -9,16 +9,17 @@
 package org.locationtech.geomesa.fs.storage.common.jobs
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.mapred.InvalidJobConfException
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFormat}
 import org.apache.hadoop.mapreduce.security.TokenCache
-import org.locationtech.geomesa.fs.storage.common.StorageMetadata.{EnvelopeConfig, PartitionAction, PartitionConfig}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata}
+import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, StorageMetadataFactory}
 import org.locationtech.geomesa.fs.storage.common.jobs.PartitionOutputFormat.{PartitionState, SingleFileOutputFormat}
-import org.locationtech.geomesa.fs.storage.common.{PartitionScheme, StorageMetadata}
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils
+import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.opengis.feature.simple.SimpleFeature
 
 /**
@@ -26,7 +27,7 @@ import org.opengis.feature.simple.SimpleFeature
   *
   * @param delegate underlying output format for a single file
   */
-abstract class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputFormat[Void, SimpleFeature] {
+class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputFormat[Void, SimpleFeature] {
 
   override def getRecordWriter(context: TaskAttemptContext): RecordWriter[Void, SimpleFeature] =
     new PartitionSchemeRecordWriter(context)
@@ -50,17 +51,22 @@ abstract class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends O
 
     import StorageConfiguration.Counters.{Features, Group}
 
-    private val sft = StorageConfiguration.getSft(context.getConfiguration)
-    private val scheme = PartitionScheme.extractFromSft(sft).get
-    private val encoding = StorageConfiguration.getEncoding(context.getConfiguration)
+    // note: don't invoke 'reload' - the metadata may not have any partition data, but we only use it for writing
+    private val metadata = {
+      val conf = context.getConfiguration
+      val root = StorageConfiguration.getRootPath(conf)
+      val fsc = FileSystemContext(FileContext.getFileContext(root.toUri, conf), conf, root)
+      StorageMetadataFactory.load(fsc).getOrElse {
+        throw new IllegalArgumentException(s"No storage defined under path '$root'")
+      }
+    }
     private val fileType = StorageConfiguration.getFileType(context.getConfiguration)
-    private val fc = FileContext.getFileContext(context.getConfiguration)
 
     private val counter = context.getCounter(Group, Features)
     private val cache = scala.collection.mutable.Map.empty[String, PartitionState]
 
     override def write(key: Void, value: SimpleFeature): Unit = {
-      val partition = scheme.getPartition(value)
+      val partition = metadata.scheme.getPartitionName(value)
       val state = cache.getOrElseUpdate(partition, createWriter(partition))
       state.writer.write(key, value)
       val geom = value.getDefaultGeometry.asInstanceOf[Geometry]
@@ -75,22 +81,19 @@ abstract class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends O
       cache.foreach { case (partition, state) =>
         logger.debug(s"Closing writer for $partition")
         state.writer.close(context)
-        StorageMetadata.writePartitionConfig(fc, state.root,
-          PartitionConfig(partition, PartitionAction.Add, Set(state.file), state.count,
-            EnvelopeConfig(state.bounds), System.currentTimeMillis()))
+        val meta = PartitionMetadata(partition, Seq(state.file), PartitionBounds(state.bounds), state.count)
+        metadata.addPartition(meta)
       }
+      CloseWithLogging(metadata)
     }
 
-    protected def getRootPath(context: TaskAttemptContext): Path =
-      delegate.getOutputCommitter(context).asInstanceOf[FileOutputCommitter].getWorkPath
-
     private def createWriter(partition: String): PartitionState = {
-      val root = getRootPath(context)
+      val root = delegate.getOutputCommitter(context).asInstanceOf[FileOutputCommitter].getWorkPath
       // TODO combine this with the same code in ParquetFileSystemStorage
-      val file = StorageUtils.nextFile(root, partition, scheme.isLeafStorage, encoding, fileType)
-      logger.debug(s"Creating ${scheme.getName} scheme record writer at path $file")
+      val file = StorageUtils.nextFile(root, partition, metadata.leafStorage, metadata.encoding, fileType)
+      logger.debug(s"Creating record writer at path $file")
       // noinspection LanguageFeature
-      new PartitionState(root, file.getName, delegate.getRecordWriter(context, file))
+      PartitionState(root, file.getName, delegate.getRecordWriter(context, file))
     }
   }
 }
@@ -101,7 +104,7 @@ object PartitionOutputFormat {
     def getRecordWriter(context: TaskAttemptContext, file: Path): RecordWriter[Void, SimpleFeature]
   }
 
-  private class PartitionState(val root: Path, val file: String, val writer: RecordWriter[Void, SimpleFeature]) {
+  private case class PartitionState(root: Path, file: String, writer: RecordWriter[Void, SimpleFeature]) {
     var count = 0L
     val bounds = new Envelope()
   }

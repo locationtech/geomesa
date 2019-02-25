@@ -8,38 +8,22 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
-import java.util.{Collections, Optional}
-
-import org.locationtech.geomesa.fs.storage.api.{FilterPartitions, PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
+import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 object FlatScheme extends PartitionScheme {
 
-  val Name = "flat"
+  override val depth: Int = 0
 
-  override def getName: String = Name
+  override def getPartitionName(feature: SimpleFeature): String = ""
 
-  override def getPartition(feature: SimpleFeature): String = ""
-
-  override def getFilterPartitions(filter: Filter): Optional[java.util.List[FilterPartitions]] =
-    Optional.of(Collections.singletonList(new FilterPartitions(filter, Collections.singletonList(""), false)))
-
-  override def getMaxDepth: Int = 0
-
-  override def isLeafStorage: Boolean = true
-
-  override def getOptions: java.util.Map[String, String] = Collections.emptyMap()
+  override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] =
+    Some(Seq(SimplifiedFilter(filter, Seq(""), partial = false)))
 
   class FlatPartitionSchemeFactory extends PartitionSchemeFactory {
-    override def load(name: String,
-                      sft: SimpleFeatureType,
-                      options: java.util.Map[String, String]): Optional[PartitionScheme] = {
-      if (name == Name) {
-        Optional.of(FlatScheme)
-      } else {
-        Optional.empty()
-      }
-    }
+    override def load(sft: SimpleFeatureType, config: NamedOptions): Option[PartitionScheme] =
+      if (config.name.equalsIgnoreCase("flat")) { Some(FlatScheme) } else { None }
   }
 }

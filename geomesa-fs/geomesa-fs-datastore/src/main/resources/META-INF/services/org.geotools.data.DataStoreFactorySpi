@@ -1,2 +1,2 @@
-org.locationtech.geomesa.fs.FileSystemDataStoreFactory
+org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory
 

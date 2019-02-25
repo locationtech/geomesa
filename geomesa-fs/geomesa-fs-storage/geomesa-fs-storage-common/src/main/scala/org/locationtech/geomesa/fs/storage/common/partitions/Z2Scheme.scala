@@ -14,14 +14,12 @@ import org.locationtech.jts.geom.Point
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeature
 
-class Z2Scheme(bits: Int, geom: String, leaf: Boolean) extends SpatialScheme(bits, geom, leaf) {
+case class Z2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialScheme(bits, geom) {
 
   private val z2 = new Z2SFC(bits / 2)
 
-  override def getName: String = Z2Scheme.Name
-
-  override def getPartition(feature: SimpleFeature): String = {
-    val pt = feature.getAttribute(geom).asInstanceOf[Point]
+  override def getPartitionName(feature: SimpleFeature): String = {
+    val pt = feature.getAttribute(geomIndex).asInstanceOf[Point]
     z2.index(pt.getX, pt.getY).z.formatted(format)
   }
 
@@ -34,9 +32,8 @@ object Z2Scheme {
 
   val Name = "z2"
 
-  class Z2PartitionSchemeFactory extends SpatialPartitionSchemeFactory {
-    override val Name: String = Z2Scheme.Name
-    override def buildPartitionScheme(bits: Int, geom: String, leaf: Boolean): SpatialScheme =
-      new Z2Scheme(bits, geom, leaf)
+  class Z2PartitionSchemeFactory extends SpatialPartitionSchemeFactory(Name) {
+    override def buildPartitionScheme(bits: Int, geom: String, geomIndex: Int): SpatialScheme =
+      Z2Scheme(bits, geom, geomIndex)
   }
 }

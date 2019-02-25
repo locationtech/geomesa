@@ -11,8 +11,7 @@ package org.locationtech.geomesa.fs.storage.common.utils
 import java.util.concurrent.TimeUnit
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
-import org.apache.hadoop.fs.{FileContext, FileStatus, Path}
-import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.RemoteIterator
+import org.apache.hadoop.fs.{FileContext, FileStatus, Path, RemoteIterator}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 /**
@@ -58,10 +57,11 @@ object PathCache {
     * @param status file status, if available
     * @param list directory contents, if available
     */
-  def register(fc: FileContext,
-               path: Path,
-               status: Option[FileStatus] = None,
-               list: Option[Stream[FileStatus]] = None): Unit = {
+  def register(
+      fc: FileContext,
+      path: Path,
+      status: Option[FileStatus] = None,
+      list: Option[Stream[FileStatus]] = None): Unit = {
     pathCache.put((fc, path), java.lang.Boolean.TRUE)
     status.foreach(statusCache.put((fc, path), _))
     list.foreach(listCache.put((fc, path), _))
@@ -72,9 +72,15 @@ object PathCache {
     *
     * @param fc file context
     * @param path path
+    * @param reload reload the file status from the underlying file system before checking
     * @return
     */
-  def exists(fc: FileContext, path: Path): Boolean = pathCache.get((fc, path)).booleanValue()
+  def exists(fc: FileContext, path: Path, reload: Boolean = false): Boolean = {
+    if (reload) {
+      invalidate(fc, path)
+    }
+    pathCache.get((fc, path)).booleanValue()
+  }
 
   /**
     * Gets the file status for a path
@@ -102,4 +108,11 @@ object PathCache {
     */
   def invalidate(fc: FileContext, path: Path): Unit =
     Seq(pathCache, statusCache, listCache).foreach(_.invalidate((fc, path)))
+
+  object RemoteIterator {
+    def apply[T](iter: RemoteIterator[T]): Iterator[T] = new Iterator[T] {
+      override def hasNext: Boolean = iter.hasNext
+      override def next(): T = iter.next
+    }
+  }
 }

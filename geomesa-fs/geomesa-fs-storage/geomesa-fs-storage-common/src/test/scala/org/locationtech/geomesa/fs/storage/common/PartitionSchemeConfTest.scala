@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.fs.storage.common
 
-import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, SpatialScheme}
+import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, Z2Scheme}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -40,24 +40,22 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
         """.stripMargin
 
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val scheme = PartitionScheme(sft, ConfigFactory.parseString(conf))
-
-      scheme must not(beNull)
+      val scheme = PartitionSchemeFactory.load(sft, StorageSerialization.deserialize(conf))
       scheme must beAnInstanceOf[CompositeScheme]
     }
 
     "load, serialize, deserialize" >> {
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-      val scheme = PartitionScheme.apply(sft, "daily,z2-2bit")
+      val options = NamedOptions("daily,z2-2bit")
+      val scheme = PartitionSchemeFactory.load(sft, options)
       scheme must beAnInstanceOf[CompositeScheme]
 
-      val schemeStr = PartitionScheme.toConfig(scheme).root().render(ConfigRenderOptions.concise)
-
-      val scheme2 = PartitionScheme.apply(sft, ConfigFactory.parseString(schemeStr))
-      scheme2 must beAnInstanceOf[CompositeScheme]
+      val schemeStr = StorageSerialization.serialize(options)
+      val scheme2 = PartitionSchemeFactory.load(sft, StorageSerialization.deserialize(schemeStr))
+      scheme2 mustEqual scheme
     }
 
-    "load dtg, geom, step, and leaf defaults" >> {
+    "load dtg, geom, and step defaults" >> {
       val conf =
         """
           | {
@@ -71,17 +69,11 @@ class PartitionSchemeConfTest extends Specification with AllExpectations {
         """.stripMargin
 
       val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,foo:Date,*bar:Point:srid=4326")
-      val scheme = PartitionScheme(sft, ConfigFactory.parseString(conf))
-
-      scheme must not(beNull)
+      val scheme = PartitionSchemeFactory.load(sft, StorageSerialization.deserialize(conf))
       scheme must beAnInstanceOf[CompositeScheme]
-
-      scheme.isLeafStorage must beTrue
-      val opts = scheme.getOptions
-      opts.get(SpatialScheme.Config.GeomAttribute) mustEqual "bar"
-      opts.get(DateTimeScheme.Config.DtgAttribute) mustEqual "foo"
-      opts.get(DateTimeScheme.Config.StepOpt).toInt mustEqual 1
-      opts.get(SpatialScheme.Config.LeafStorage).toBoolean must beTrue
+      scheme.asInstanceOf[CompositeScheme].schemes must haveLength(2)
+      scheme.asInstanceOf[CompositeScheme].schemes must
+          contain(beAnInstanceOf[DateTimeScheme], beAnInstanceOf[Z2Scheme]).copy(checkOrder = true)
     }
   }
 }

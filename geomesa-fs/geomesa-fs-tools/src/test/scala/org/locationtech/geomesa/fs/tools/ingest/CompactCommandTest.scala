@@ -9,22 +9,19 @@
 package org.locationtech.geomesa.fs.tools.ingest
 
 import java.nio.file.{Files, Path}
-import java.time.temporal.ChronoUnit
 
-import org.locationtech.jts.geom._
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.geotools.data.{DataStore, DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.FileSystemFeatureStore
-import org.locationtech.geomesa.fs.storage.common.PartitionScheme
-import org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme
+import org.locationtech.geomesa.fs.data.FileSystemFeatureStore
 import org.locationtech.geomesa.fs.tools.compact.CompactCommand
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -34,6 +31,9 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class CompactCommandTest extends Specification with BeforeAfterAll {
+
+  import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
+
   sequential
 
   var cluster: MiniDFSCluster = _
@@ -51,7 +51,7 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
 
   val sft: SimpleFeatureType = SimpleFeatureTypes.createType(typeName, "name:String,age:Int,dtg:Date," +
     "*geom:MultiLineString:srid=4326,pt:Point,line:LineString,poly:Polygon,mpt:MultiPoint,mline:MultiLineString,mpoly:MultiPolygon")
-  PartitionScheme.addToSft(sft, new DateTimeScheme(DateTimeScheme.Formats.Daily.format, ChronoUnit.DAYS, 1, "dtg", false))
+  sft.setScheme("daily")
 
   val features: Seq[ScalaSimpleFeature] = Seq.tabulate(10) { i =>
     ScalaSimpleFeature.create(sft, s"$i", s"test$i", 100 + i, s"2017-06-0${5 + (i % 3)}T04:03:02.0001Z", s"MULTILINESTRING((0 0, 10 10.$i))",
@@ -109,7 +109,7 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
       }
 
       fs.getCount(Query.ALL) mustEqual 20
-      fs.asInstanceOf[FileSystemFeatureStore].storage.getMetadata.getPartitions.map(_.files().size).sum mustEqual 6
+      fs.asInstanceOf[FileSystemFeatureStore].storage.metadata.getPartitions().map(_.files.size).sum mustEqual 6
     }
 
     "Compaction command should run successfully" in {
@@ -124,6 +124,8 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
     "After compacting should be fewer files" in {
       val ds = getDataStore
       val fs = ds.getFeatureSource(typeName)
+      val metadata = fs.asInstanceOf[FileSystemFeatureStore].storage.metadata
+      metadata.reload() // invalidate the cached values, which aren't updated by the compaction job
 
       val iter = fs.getFeatures.features
       while (iter.hasNext) {
@@ -131,7 +133,8 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
         feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
         featureHasProperGeometries(feat) mustEqual true
       }
-      fs.asInstanceOf[FileSystemFeatureStore].storage.getMetadata.getPartitions.map(_.files().size).sum mustEqual 3
+      fs.getCount(Query.ALL) mustEqual 20
+      metadata.getPartitions().map(_.files.size).sum mustEqual 3
     }
   }
 

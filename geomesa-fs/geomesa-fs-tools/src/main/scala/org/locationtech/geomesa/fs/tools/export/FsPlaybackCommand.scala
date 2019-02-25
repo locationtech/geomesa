@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.fs.tools.export
 
 import com.beust.jcommander.Parameters
-import org.locationtech.geomesa.fs.FileSystemDataStore
-import org.locationtech.geomesa.fs.FileSystemDataStoreFactory.FileSystemDataStoreParams
+import org.locationtech.geomesa.fs.data.FileSystemDataStore
+import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.export.FsExportCommand.OptionalQueryThreads
@@ -22,9 +22,8 @@ class FsPlaybackCommand extends PlaybackCommand[FileSystemDataStore] with FsData
 
   override val params = new FsPlaybackParams
 
-  override def connection: Map[String, String] = {
+  override def connection: Map[String, String] =
     super.connection + (FileSystemDataStoreParams.ReadThreadsParam.getName -> params.threads.toString)
-  }
 }
 
 object FsPlaybackCommand {

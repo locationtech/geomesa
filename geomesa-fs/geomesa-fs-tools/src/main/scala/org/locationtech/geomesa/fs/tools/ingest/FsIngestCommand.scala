@@ -13,10 +13,10 @@ import java.io.File
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.config.Config
 import org.apache.hadoop.fs.Path
-import org.locationtech.geomesa.fs.FileSystemDataStore
+import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
-import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{OptionalEncodingParam, FsParams, OptionalSchemeParams}
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, OptionalEncodingParam, OptionalSchemeParams}
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
 import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{OrcConverterJob, ParquetConverterJob}
 import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.FsIngestParams
@@ -58,9 +58,9 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
         val tmpPath = Option(params.tempDir).map(new Path(_))
         val wait = params.waitForCompletion
         val newJob = params.encoding match {
-          case OrcFileSystemStorage.OrcEncoding =>
+          case OrcFileSystemStorage.Encoding =>
             () => new OrcConverterJob(connection, sft, converter, inputs, libjarsFile, libjarsPaths, reducers, tmpPath)
-          case ParquetFileSystemStorage.ParquetEncoding =>
+          case ParquetFileSystemStorage.Encoding =>
             () => new ParquetConverterJob(connection, sft, converter, inputs, libjarsFile, libjarsPaths, reducers, tmpPath)
           case _ => throw new ParameterException(s"Ingestion is not supported for encoding '${params.encoding}'")
         }

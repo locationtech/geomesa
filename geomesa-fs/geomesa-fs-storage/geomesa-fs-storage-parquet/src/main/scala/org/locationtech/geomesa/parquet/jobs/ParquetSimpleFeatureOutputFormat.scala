@@ -17,7 +17,7 @@ import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFo
 import org.apache.hadoop.mapreduce.{JobContext, OutputCommitter, TaskAttemptContext}
 import org.apache.parquet.hadoop.util.ContextUtil
 import org.apache.parquet.hadoop.{ParquetOutputCommitter, ParquetOutputFormat}
-import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
+import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.parquet.jobs.ParquetSimpleFeatureOutputFormat.ParquetMultiFileOutputCommitter
 import org.opengis.feature.simple.SimpleFeature
 
@@ -31,7 +31,7 @@ class ParquetSimpleFeatureOutputFormat extends ParquetOutputFormat[SimpleFeature
   override def getOutputCommitter(context: TaskAttemptContext): OutputCommitter = {
     if (committer == null) {
       val output = FileOutputFormat.getOutputPath(context)
-      val extension = s".${StorageConfiguration.getFileExtension(context.getConfiguration)}"
+      val extension = s".${ParquetFileSystemStorage.FileExtension}"
       committer = new ParquetMultiFileOutputCommitter(extension, output, context)
     }
     committer

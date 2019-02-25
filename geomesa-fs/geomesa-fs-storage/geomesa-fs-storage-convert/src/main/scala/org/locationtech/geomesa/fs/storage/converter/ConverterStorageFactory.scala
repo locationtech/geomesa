@@ -8,79 +8,30 @@
 
 package org.locationtech.geomesa.fs.storage.converter
 
-import java.util.Optional
-import java.util.regex.Pattern
-
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
 import org.locationtech.geomesa.convert.{ConfArgs, ConverterConfigResolver}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemStorageFactory}
-import org.locationtech.geomesa.fs.storage.common.{StorageMetadata, PartitionScheme}
-import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.fs.storage.api._
+import org.locationtech.geomesa.fs.storage.converter.ConverterStorageFactory.{ConverterConfigParam, ConverterNameParam}
 
 class ConverterStorageFactory extends FileSystemStorageFactory with LazyLogging {
 
-  import ConverterStorageFactory._
+  override val encoding: String = "converter"
 
-  import scala.collection.JavaConverters._
-
-  override def getEncoding: String = "converter"
-
-  override def load(fc: FileContext,
-                    conf: Configuration,
-                    root: Path): Optional[FileSystemStorage] = {
-    if (Option(conf.get(ConverterPathParam)).exists(_ != root.getName) || StorageMetadata.load(fc, root).isDefined) {
-      Optional.empty()
-    } else {
-      try {
-        val sft = {
-          val sftArg = Option(conf.get(SftConfigParam))
-              .orElse(Option(conf.get(SftNameParam)))
-              .getOrElse(throw new IllegalArgumentException(s"Must provide either simple feature type config or name"))
-          SftArgResolver.getArg(SftArgs(sftArg, null)) match {
-            case Left(e) => throw new IllegalArgumentException("Could not load SimpleFeatureType with provided parameters", e)
-            case Right(schema) => schema
-          }
-        }
-
-        val converter = {
-          val convertArg = Option(conf.get(ConverterConfigParam))
-              .orElse(Option(conf.get(ConverterNameParam)))
-              .getOrElse(throw new IllegalArgumentException(s"Must provide either converter config or name"))
-          val converterConfig = ConverterConfigResolver.getArg(ConfArgs(convertArg)) match {
-            case Left(e) => throw new IllegalArgumentException("Could not load Converter with provided parameters", e)
-            case Right(c) => c
-          }
-          SimpleFeatureConverter(sft, converterConfig)
-        }
-
-        val partitionScheme = {
-          val partitionSchemeName =
-            Option(conf.get(PartitionSchemeParam))
-                .getOrElse(throw new IllegalArgumentException(s"Must provide partition scheme name"))
-          val partitionSchemeOpts =
-            conf.getValByRegex(Pattern.quote(PartitionOptsPrefix) + ".*").asScala.map {
-              case (k, v) => k.substring(PartitionOptsPrefix.length) -> v
-            }
-          PartitionScheme(sft, partitionSchemeName, partitionSchemeOpts.asJava)
-        }
-
-        Optional.of(new ConverterStorage(fc, root, sft, converter, partitionScheme))
-      } catch {
-        case e: IllegalArgumentException => logger.warn(s"Couldn't create converter storage: $e", e); Optional.empty()
+  override def apply(context: FileSystemContext, metadata: StorageMetadata): FileSystemStorage = {
+    val converter = {
+      val convertArg = Option(context.conf.get(ConverterConfigParam))
+          .orElse(Option(context.conf.get(ConverterNameParam)))
+          .getOrElse(throw new IllegalArgumentException(s"Must provide either converter config or name"))
+      val converterConfig = ConverterConfigResolver.getArg(ConfArgs(convertArg)) match {
+        case Left(e) => throw new IllegalArgumentException("Could not load Converter with provided parameters", e)
+        case Right(c) => c
       }
+      SimpleFeatureConverter(metadata.sft, converterConfig)
     }
+    new ConverterStorage(context, metadata, converter)
   }
 
-  override def create(fc: FileContext,
-                      conf: Configuration,
-                      root: Path,
-                      sft: SimpleFeatureType): FileSystemStorage = {
-    throw new NotImplementedError("Converter FS is read only")
-  }
 }
 
 object ConverterStorageFactory {
@@ -89,7 +40,7 @@ object ConverterStorageFactory {
   val ConverterPathParam   = "fs.options.converter.path"
   val SftNameParam         = "fs.options.sft.name"
   val SftConfigParam       = "fs.options.sft.conf"
+  val LeafStorageParam     = "fs.options.leaf-storage"
   val PartitionSchemeParam = "fs.partition-scheme.name"
-
   val PartitionOptsPrefix  = "fs.partition-scheme.opts."
 }

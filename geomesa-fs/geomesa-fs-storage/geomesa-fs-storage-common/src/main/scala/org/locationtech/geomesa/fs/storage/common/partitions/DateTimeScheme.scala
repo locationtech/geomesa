@@ -11,24 +11,23 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 import java.time.format.DateTimeFormatter
 import java.time.temporal.{ChronoUnit, TemporalAdjusters}
 import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.{Collections, Date, Optional}
+import java.util.Date
 
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.api.{FilterPartitions, PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
+import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
 
-class DateTimeScheme(fmtStr: String,
-                     stepUnit: ChronoUnit,
-                     step: Int,
-                     dtg: String,
-                     leaf: Boolean) extends PartitionScheme {
+case class DateTimeScheme(format: String, stepUnit: ChronoUnit, step: Int, dtg: String, dtgIndex: Int)
+    extends PartitionScheme {
 
   import ChronoUnit._
 
-  private val fmt = DateTimeFormatter.ofPattern(fmtStr)
+  private val fmt = DateTimeFormatter.ofPattern(format)
 
   // note: `truncatedTo` is only valid up to DAYS, other units require additional steps
   private val truncate: ZonedDateTime => ZonedDateTime = stepUnit match {
@@ -47,22 +46,24 @@ class DateTimeScheme(fmtStr: String,
       dt => ZonedDateTime.parse(fmt.format(dt), fmt) // fall back to format and re-parse
   }
 
-  override def getName: String = DateTimeScheme.Name
+  // TODO This may not be the best way to calculate max depth...
+  // especially if we are going to use other separators
+  override val depth: Int = format.count(_ == '/')
 
-  override def getPartition(feature: SimpleFeature): String =
-    fmt.format(feature.getAttribute(dtg).asInstanceOf[Date].toInstant.atZone(ZoneOffset.UTC))
+  override def getPartitionName(feature: SimpleFeature): String =
+    fmt.format(feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant.atZone(ZoneOffset.UTC))
 
-  override def getFilterPartitions(filter: Filter): Optional[java.util.List[FilterPartitions]] = {
+  override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
     val bounds = FilterHelper.extractIntervals(filter, dtg, handleExclusiveBounds = false)
     if (bounds.disjoint) {
-      Optional.of(Collections.emptyList())
+      Some(Seq.empty)
     } else if (bounds.isEmpty || !bounds.forall(_.isBoundedBothSides)) {
-      Optional.empty()
+      None
     } else {
       // there should be no duplicates in covered partitions, as our bounds will not overlap,
       // but there may be multiple partial intersects with a given partition
-      val covered = new java.util.ArrayList[String]()
-      val partial = new java.util.HashSet[String]()
+      val covered = ListBuffer.empty[String]
+      val intersecting = ListBuffer.empty[String]
 
       bounds.values.foreach { bound =>
         // note: we verified both sides are bounded above
@@ -83,16 +84,16 @@ class DateTimeScheme(fmtStr: String,
 
         if (steps == 0) {
           if (coveringFirst && coveringLast) {
-            covered.add(fmt.format(start))
+            covered += fmt.format(start)
           } else {
-            partial.add(fmt.format(start))
+            intersecting += fmt.format(start)
           }
         } else {
           // add the first partition
           if (coveringFirst) {
-            covered.add(fmt.format(start))
+            covered += fmt.format(start)
           } else {
-            partial.add(fmt.format(start))
+            intersecting += fmt.format(start)
           }
 
           @tailrec
@@ -100,12 +101,12 @@ class DateTimeScheme(fmtStr: String,
             if (step == steps) {
               // last partition
               if (coveringLast) {
-                covered.add(fmt.format(current))
+                covered += fmt.format(current)
               } else {
-                partial.add(fmt.format(current))
+                intersecting += fmt.format(current)
               }
             } else {
-              covered.add(fmt.format(current))
+              covered += fmt.format(current)
               addSteps(step + 1, current.plus(1, stepUnit))
             }
           }
@@ -114,49 +115,27 @@ class DateTimeScheme(fmtStr: String,
         }
       }
 
-      val result = new java.util.ArrayList[FilterPartitions](2)
+      val result = Seq.newBuilder[SimplifiedFilter]
 
-      if (!covered.isEmpty) {
+      if (covered.nonEmpty) {
         import org.locationtech.geomesa.filter.{andOption, isTemporalFilter, partitionSubFilters}
 
         // remove the temporal filter that we've already accounted for in our covered partitions
         val coveredFilter = andOption(partitionSubFilters(filter, isTemporalFilter(_, dtg))._2)
-        result.add(new FilterPartitions(coveredFilter.getOrElse(Filter.INCLUDE), covered, false))
+        result += SimplifiedFilter(coveredFilter.getOrElse(Filter.INCLUDE), covered.result, partial = false)
       }
-      if (!partial.isEmpty) {
-        result.add(new FilterPartitions(filter, new java.util.ArrayList(partial), false))
+      if (intersecting.nonEmpty) {
+        result += SimplifiedFilter(filter, intersecting.distinct.result, partial = false)
       }
 
-      Optional.of(result)
+      partition match {
+        case None => Some(result.result)
+        case Some(p) =>
+          val matched = result.result.find(_.partitions.contains(p))
+          Some(matched.map(_.copy(partitions = Seq(p))).toSeq)
+      }
     }
   }
-
-  // TODO This may not be the best way to calculate max depth...
-  // especially if we are going to use other separators
-  override def getMaxDepth: Int = fmtStr.count(_ == '/')
-
-  override def isLeafStorage: Boolean = leaf
-
-  override def getOptions: java.util.Map[String, String] = {
-    import DateTimeScheme.Config._
-
-    import scala.collection.JavaConverters._
-
-    Map(
-      DtgAttribute      -> dtg,
-      DateTimeFormatOpt -> fmtStr,
-      StepUnitOpt       -> stepUnit.toString,
-      StepOpt           -> step.toString,
-      LeafStorage       -> leaf.toString
-    ).asJava
-  }
-
-  override def equals(other: Any): Boolean = other match {
-    case that: DateTimeScheme => that.getOptions.equals(getOptions)
-    case _ => false
-  }
-
-  override def hashCode(): Int = getOptions.hashCode()
 }
 
 object DateTimeScheme {
@@ -168,7 +147,6 @@ object DateTimeScheme {
     val StepUnitOpt      : String = "step-unit"
     val StepOpt          : String = "step"
     val DtgAttribute     : String = "dtg-attribute"
-    val LeafStorage      : String = LeafStorageConfig
   }
 
   object Formats {
@@ -190,36 +168,28 @@ object DateTimeScheme {
   }
 
   class DateTimePartitionSchemeFactory extends PartitionSchemeFactory {
-    override def load(name: String,
-                      sft: SimpleFeatureType,
-                      options: java.util.Map[String, String]): Optional[PartitionScheme] = {
+    override def load(sft: SimpleFeatureType, config: NamedOptions): Option[PartitionScheme] = {
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-      lazy val leaf = Option(options.get(Config.LeafStorage)).forall(java.lang.Boolean.parseBoolean)
-      lazy val step = Option(options.get(Config.StepOpt)).map(_.toInt).getOrElse(1)
-      lazy val dtg = {
-        val field = Option(options.get(Config.DtgAttribute)).orElse(sft.getDtgField).getOrElse {
-          throw new IllegalArgumentException(s"DateTime scheme requires valid attribute '${Config.DtgAttribute}'")
-        }
-        if (sft.indexOf(field) == -1) {
-          throw new IllegalArgumentException(s"Attribute '$field' does not exist in simple feature type ${sft.getTypeName}")
-        }
-        field
+      lazy val step = config.options.get(Config.StepOpt).map(_.toInt).getOrElse(1)
+      lazy val dtg = config.options.get(Config.DtgAttribute).orElse(sft.getDtgField).getOrElse {
+        throw new IllegalArgumentException(s"DateTime scheme requires valid attribute '${Config.DtgAttribute}'")
+      }
+      lazy val dtgIndex = Some(sft.indexOf(dtg)).filter(_ != -1).getOrElse {
+        throw new IllegalArgumentException(s"Attribute '$dtg' does not exist in feature type ${sft.getTypeName}")
       }
 
-      if (name == Name) {
-        val unit = Option(options.get(Config.StepUnitOpt)).map(c => ChronoUnit.valueOf(c.toUpperCase)).getOrElse {
+      if (config.name == Name) {
+        val unit = config.options.get(Config.StepUnitOpt).map(c => ChronoUnit.valueOf(c.toUpperCase)).getOrElse {
           throw new IllegalArgumentException(s"DateTime scheme requires valid unit '${Config.StepUnitOpt}'")
         }
-        val format = Option(options.get(Config.DateTimeFormatOpt)).getOrElse {
-          throw new IllegalArgumentException(s"DateTime scheme requires valid format '${Config.DateTimeFormatOpt}'")
-        }
+        val format = config.options.getOrElse(Config.DateTimeFormatOpt,
+          throw new IllegalArgumentException(s"DateTime scheme requires valid format '${Config.DateTimeFormatOpt}'"))
         require(!format.endsWith("/"), "Format cannot end with a slash")
 
-        Optional.of(new DateTimeScheme(format, unit, step, dtg, leaf))
+        Some(DateTimeScheme(format, unit, step, dtg, dtgIndex))
       } else {
-        import org.locationtech.geomesa.utils.conversions.JavaConverters._
-        Formats(name).map(f => new DateTimeScheme(f.format, f.unit, step, dtg, leaf)).asJava
+        Formats(config.name).map(f => DateTimeScheme(f.format, f.unit, step, dtg, dtgIndex))
       }
     }
   }

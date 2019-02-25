@@ -1,7 +1,7 @@
-FileSystem Datastore Example
-============================
+FileSystem Data Store Example
+=============================
 
-In this simple example we will ingest a small CSV into a local filesystem datastore partitioned by an daily,z2-2bit
+In this simple example we will ingest a small CSV into a local filesystem data store partitioned by an daily,z2-2bit
 scheme. To begin, start by untaring the geomesa-fs distribution. Inside this distribution you will find an examples
 folder which contains an example csv file that we will ingest:
 
@@ -77,7 +77,7 @@ We can verify our ingest by running an export:
     23623,23623,Harry,20,2015-05-06T00:00:00.000Z,POINT (-100.236523 23)
     INFO  Feature export complete to standard out in 1676ms for 3 features
 
-Now lets inpsect the filesystem to see what it looks like:
+Now lets inspect the filesystem to see what it looks like:
 
 .. code-block:: bash
 

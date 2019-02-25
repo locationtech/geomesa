@@ -13,54 +13,27 @@ import java.util.concurrent.{Executors, LinkedBlockingQueue, TimeUnit}
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.FileSystemReader
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
 
-import scala.annotation.tailrec
 import scala.util.control.NonFatal
 
 object FileSystemThreadedReader {
 
-  def apply(readers: Iterator[(FileSystemPathReader, Iterator[Path])], threads: Int): FileSystemReader = {
+  def apply(
+      readers: Iterator[(FileSystemPathReader, Iterator[Path])],
+      threads: Int): CloseableIterator[SimpleFeature] = {
     if (threads < 2) {
-      new SingleThreadedFileSystemReader(readers)
+      CloseableIterator(readers).flatMap { case (factory, paths) => CloseableIterator(paths).flatMap(factory.read) }
     } else {
       new MultiThreadedFileSystemReader(readers, threads)
     }
   }
 
-  class SingleThreadedFileSystemReader(readers: Iterator[(FileSystemPathReader, Iterator[Path])])
-      extends FileSystemReader {
-
-    private val iters = readers.flatMap { case (factory, paths) => paths.map(factory.read) }
-    private var iter: CloseableIterator[SimpleFeature] = CloseableIterator.empty
-
-    @tailrec
-    override final def hasNext: Boolean = {
-      iter.hasNext || {
-        CloseWithLogging(iter)
-        if (!iters.hasNext) {
-          iter = CloseableIterator.empty
-          false
-        } else {
-          iter = iters.next
-          hasNext
-        }
-      }
-    }
-
-    override def next(): SimpleFeature = iter.next()
-    override def close(): Unit = iter.close()
-    override def close(wait: Long, unit: TimeUnit): Boolean = {
-      close()
-      true
-    }
-  }
-
   class MultiThreadedFileSystemReader(readers: Iterator[(FileSystemPathReader, Iterator[Path])], threads: Int)
-      extends FileSystemReader with StrictLogging {
+      extends CloseableIterator[SimpleFeature] with StrictLogging {
 
     private val es = Executors.newFixedThreadPool(threads)
 
@@ -131,10 +104,5 @@ object FileSystemThreadedReader {
     }
 
     override def close(): Unit = es.shutdownNow()
-
-    override def close(wait: Long, unit: TimeUnit): Boolean = {
-      close()
-      es.awaitTermination(wait, unit)
-    }
   }
 }

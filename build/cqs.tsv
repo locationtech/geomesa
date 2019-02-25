@@ -132,9 +132,10 @@ org.apache.camel:camel-core	2.15.1	compile
 org.apache.camel:camel-scala	2.15.1	compile
 org.apache.commons:commons-compress	1.18	compile
 org.apache.commons:commons-csv	1.5	compile
+org.apache.commons:commons-dbcp2	2.6.0	compile
 org.apache.commons:commons-lang3	3.7	compile
 org.apache.commons:commons-math	2.2	compile
-org.apache.commons:commons-pool2	2.4.2	compile
+org.apache.commons:commons-pool2	2.6.1	compile
 org.apache.commons:commons-text	1.4	compile
 org.apache.commons:commons-vfs2	2.1	compile
 org.apache.curator:curator-client	4.0.1	compile

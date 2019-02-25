@@ -17,12 +17,12 @@
 package org.locationtech.geomesa.fs.tools.data
 
 import com.beust.jcommander.{ParameterException, Parameters}
-import org.locationtech.geomesa.fs.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.common.conf.{PartitionSchemeArgResolver, SchemeArgs}
-import org.locationtech.geomesa.fs.storage.common.{Encodings, PartitionScheme}
+import org.locationtech.geomesa.fs.data.FileSystemDataStore
+import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, OptionalEncodingParam, OptionalSchemeParams}
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand.FsCreateSchemaParams
+import org.locationtech.geomesa.fs.tools.utils.PartitionSchemeArgResolver
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
 import org.opengis.feature.simple.SimpleFeatureType
@@ -46,31 +46,28 @@ object FsCreateSchemaCommand {
       extends CreateSchemaParams with FsParams with OptionalEncodingParam with OptionalSchemeParams
 
   def setOptions(sft: SimpleFeatureType, params: OptionalEncodingParam with OptionalSchemeParams): Unit = {
-    import org.locationtech.geomesa.fs.storage.common.partitions.LeafStorageConfig
+    import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
 
     val errors = ListBuffer.empty[String]
 
     if (params.scheme == null) {
-      if (PartitionScheme.extractFromSft(sft).isEmpty) {
+      if (sft.getUserData.get(StorageKeys.SchemeKey) == null) {
         errors += "--partition-scheme"
       }
     } else {
-      val scheme = PartitionSchemeArgResolver.getArg(SchemeArgs(params.scheme, sft)) match {
+      PartitionSchemeArgResolver.resolve(sft, params.scheme) match {
         case Left(e) => throw new ParameterException(e)
-        case Right(s) if s.isLeafStorage == params.leafStorage => s
-        case Right(s) =>
-          val opts = s.getOptions.asScala.updated(LeafStorageConfig, params.leafStorage.toString).toMap
-          PartitionScheme.apply(sft, s.getName, opts.asJava)
+        case Right(s) => sft.setScheme(s.name, s.options)
       }
-      PartitionScheme.addToSft(sft, scheme)
     }
+    sft.setLeafStorage(params.leafStorage)
 
     if (params.encoding == null) {
-      if (Encodings.getEncoding(sft).isEmpty) {
+      if (sft.getUserData.get(StorageKeys.EncodingKey) == null) {
         errors += "--encoding, -e"
       }
     } else {
-      Encodings.setEncoding(sft, params.encoding)
+      sft.setEncoding(params.encoding)
     }
 
     if (errors.nonEmpty) {

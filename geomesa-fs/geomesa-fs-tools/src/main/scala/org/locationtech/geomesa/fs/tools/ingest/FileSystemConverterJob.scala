@@ -20,9 +20,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.fs.FileSystemDataStoreFactory.FileSystemDataStoreParams
-import org.locationtech.geomesa.fs.FileSystemStorageManager
-import org.locationtech.geomesa.fs.storage.api.PartitionScheme
+import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams
+import org.locationtech.geomesa.fs.data.FileSystemStorageManager
+import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcStorageConfiguration
@@ -34,16 +34,17 @@ import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.StatusCallb
 import org.locationtech.geomesa.tools.ingest.DistributedConverterIngest.ConverterIngestJob
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-abstract class FileSystemConverterJob(dsParams: Map[String, String],
-                                      sft: SimpleFeatureType,
-                                      converterConfig: Config,
-                                      paths: Seq[String],
-                                      libjarsFile: String,
-                                      libjarsPaths: Iterator[() => Seq[File]],
-                                      reducers: Int,
-                                      tmpPath: Option[Path])
-    extends ConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths)
-        with StorageConfiguration with LazyLogging {
+abstract class FileSystemConverterJob(
+    dsParams: Map[String, String],
+    sft: SimpleFeatureType,
+    converterConfig: Config,
+    paths: Seq[String],
+    libjarsFile: String,
+    libjarsPaths: Iterator[() => Seq[File]],
+    reducers: Int,
+    tmpPath: Option[Path]
+  ) extends ConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths)
+    with StorageConfiguration with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -72,10 +73,11 @@ abstract class FileSystemConverterJob(dsParams: Map[String, String],
     val manager = FileSystemStorageManager(fc, job.getConfiguration,
       new Path(FileSystemDataStoreParams.PathParam.lookup(dsParams.asJava)))
 
-    root = manager.storage(sft.getTypeName).map(_.getMetadata.getRoot).getOrElse {
+    val storage = manager.storage(sft.getTypeName).getOrElse {
       throw new IllegalArgumentException(s"Could not load metadata for ${sft.getTypeName} at " +
           FileSystemDataStoreParams.PathParam.lookup(dsParams.asJava))
     }
+    root = storage.context.root
     qualifiedTempPath = tmpPath.map(fc.makeQualified)
 
     qualifiedTempPath.foreach { tp =>
@@ -85,8 +87,7 @@ abstract class FileSystemConverterJob(dsParams: Map[String, String],
       }
     }
 
-    StorageConfiguration.setSft(job.getConfiguration, sft)
-    StorageConfiguration.setPath(job.getConfiguration, root.toUri.toString)
+    StorageConfiguration.setRootPath(job.getConfiguration, root)
     StorageConfiguration.setFileType(job.getConfiguration, FileType.Written)
 
     FileOutputFormat.setOutputPath(job, qualifiedTempPath.getOrElse(root))
@@ -136,17 +137,22 @@ object FileSystemConverterJob {
     type Context = Mapper[LongWritable, SimpleFeature, Text, BytesWritable]#Context
 
     private var serializer: KryoFeatureSerializer = _
-    private var partitionScheme: PartitionScheme = _
+    private var metadata: StorageMetadata = _
+    private var scheme: PartitionScheme = _
 
     var mapped: Counter = _
     var written: Counter = _
     var failed: Counter = _
 
     override def setup(context: Context): Unit = {
-      super.setup(context)
-      val sft = StorageConfiguration.getSft(context.getConfiguration)
-      serializer = KryoFeatureSerializer(sft, SerializationOptions.none)
-      partitionScheme = org.locationtech.geomesa.fs.storage.common.PartitionScheme.extractFromSft(sft).get
+      val root = StorageConfiguration.getRootPath(context.getConfiguration)
+      val fc = FileContext.getFileContext(root.toUri, context.getConfiguration)
+      // note: we don't call `reload` (to get the partition metadata) as we aren't using it
+      metadata = StorageMetadataFactory.load(FileSystemContext(fc, context.getConfiguration, root)).getOrElse {
+        throw new IllegalArgumentException(s"Could not load storage instance at path $root")
+      }
+      serializer = KryoFeatureSerializer(metadata.sft, SerializationOptions.none)
+      scheme = metadata.scheme
 
       mapped = context.getCounter(GeoMesaOutputFormat.Counters.Group, "mapped")
       written = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
@@ -157,7 +163,7 @@ object FileSystemConverterJob {
       // partitionKey is important because this needs to be correct for the parquet file
       try {
         mapped.increment(1)
-        val partitionKey = new Text(partitionScheme.getPartition(sf))
+        val partitionKey = new Text(scheme.getPartitionName(sf))
         context.write(partitionKey, new BytesWritable(serializer.serialize(sf)))
         written.increment(1)
       } catch {
@@ -166,9 +172,13 @@ object FileSystemConverterJob {
           failed.increment(1)
       }
     }
+
+    override def cleanup(context: Context): Unit = metadata.close()
   }
 
   class DummyReducer extends Reducer[Text, BytesWritable, Void, SimpleFeature] {
+
+    import scala.collection.JavaConverters._
 
     type Context = Reducer[Text, BytesWritable, Void, SimpleFeature]#Context
 
@@ -176,15 +186,19 @@ object FileSystemConverterJob {
     private var reduced: Counter = _
 
     override def setup(context: Context): Unit = {
-      super.setup(context)
-      val sft = StorageConfiguration.getSft(context.getConfiguration)
-      serializer = KryoFeatureSerializer(sft, SerializationOptions.none)
+      val root = StorageConfiguration.getRootPath(context.getConfiguration)
+      val fc = FileContext.getFileContext(root.toUri, context.getConfiguration)
+      // note: we don't call `reload` (to get the partition metadata) as we aren't using it
+      val metadata = StorageMetadataFactory.load(FileSystemContext(fc, context.getConfiguration, root)).getOrElse {
+        throw new IllegalArgumentException(s"Could not load storage instance at path $root")
+      }
+      serializer = KryoFeatureSerializer(metadata.sft, SerializationOptions.none)
       reduced = context.getCounter(GeoMesaOutputFormat.Counters.Group, "reduced")
+      metadata.close()
     }
 
     override def reduce(key: Text, values: Iterable[BytesWritable], context: Context): Unit = {
-      import scala.collection.JavaConversions._
-      values.foreach { bw =>
+      values.asScala.foreach { bw =>
         context.write(null, serializer.deserialize(bw.getBytes))
         reduced.increment(1)
       }
