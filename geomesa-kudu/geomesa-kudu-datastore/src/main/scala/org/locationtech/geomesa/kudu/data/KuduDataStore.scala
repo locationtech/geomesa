@@ -14,7 +14,8 @@ import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
-import org.locationtech.geomesa.index.stats.{DistributedRunnableStats, GeoMesaStats}
+import org.locationtech.geomesa.index.stats.GeoMesaStats
+import org.locationtech.geomesa.index.stats.MetadataBackedStats.RunnableStats
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
 import org.locationtech.geomesa.kudu._
 import org.locationtech.geomesa.kudu.data.KuduDataStoreFactory.KuduDataStoreConfig
@@ -30,7 +31,7 @@ class KuduDataStore(val client: KuduClient, override val config: KuduDataStoreCo
 
   override val adapter: KuduIndexAdapter = new KuduIndexAdapter(this)
 
-  override val stats: GeoMesaStats = new DistributedRunnableStats(this)
+  override val stats: GeoMesaStats = new RunnableStats(this)
 
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {

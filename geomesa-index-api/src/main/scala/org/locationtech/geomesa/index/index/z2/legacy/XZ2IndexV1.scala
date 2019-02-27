@@ -51,6 +51,9 @@ object XZ2IndexV1 {
       }
     }
 
+    override val indexKeyByteLength: Right[(Array[Byte], Int, Int) => Int, Int] =
+      Right(8 + sharing.length + sharding.length)
+
     override def toIndexKey(writable: WritableFeature,
                             tier: Array[Byte],
                             id: Array[Byte],

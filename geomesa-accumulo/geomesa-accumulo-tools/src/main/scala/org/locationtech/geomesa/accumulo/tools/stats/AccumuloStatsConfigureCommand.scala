@@ -23,7 +23,7 @@ class AccumuloStatsConfigureCommand extends StatsConfigureCommand[AccumuloDataSt
   override val params = new AccumuloStatsConfigureParams
 
   override protected def list(ds: AccumuloDataStore): Unit = {
-    val configured = StatsCombiner.list(ds.connector, ds.stats.metadata.catalog).map { case (k, v) => s"$k -> $v" }
+    val configured = StatsCombiner.list(ds.connector, s"${ds.config.catalog}_stats").map { case (k, v) => s"$k -> $v" }
     Command.user.info(s"Configured stats iterator: ${configured.mkString("\n  ", "\n  ", "")}")
   }
 

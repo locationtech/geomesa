@@ -14,14 +14,14 @@ import java.util.regex.Pattern
 
 import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{Parameter, ParameterException}
+import org.locationtech.geomesa.convert.Modes.ErrorMode
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.tools.DistributedRunParam.ModeConverter
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
-import org.locationtech.geomesa.tools.utils.ParameterConverters.{FilterConverter, HintConverter}
+import org.locationtech.geomesa.tools.utils.ParameterConverters.{ErrorModeConverter, FilterConverter, HintConverter}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
-import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 /**
@@ -148,19 +148,11 @@ trait OptionalInputFormatParam extends InputFilesParam {
 }
 
 trait ConverterConfigParam {
-  def config: String
-}
-
-trait OptionalConverterConfigParam extends ConverterConfigParam {
-  @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter",
-    required = false)
+  @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter")
   var config: String = _
-}
 
-trait RequiredConverterConfigParam extends ConverterConfigParam {
-  @Parameter(names = Array("-C", "--converter"), description = "GeoMesa converter specification as a config string, file name, or name of an available converter",
-    required = true)
-  var config: String = _
+  @Parameter(names = Array("--converter-error-mode"), description = "Override the converter error mode - ", converter = classOf[ErrorModeConverter])
+  var errorMode: ErrorMode = _
 }
 
 object IndexParam {

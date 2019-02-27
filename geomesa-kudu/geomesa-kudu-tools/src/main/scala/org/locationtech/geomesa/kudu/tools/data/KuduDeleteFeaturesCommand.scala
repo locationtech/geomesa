@@ -20,6 +20,6 @@ class KuduDeleteFeaturesCommand extends DeleteFeaturesCommand[KuduDataStore] wit
 }
 
 object KuduDeleteFeaturesCommand {
-  @Parameters(commandDescription = "Delete features from a table in GeoMesa. Does not delete any tables or schema information.")
+  @Parameters(commandDescription = "Delete features from a GeoMesa schema")
   class KuduDeleteFeaturesParams extends DeleteFeaturesParams with KuduParams
 }

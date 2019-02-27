@@ -21,6 +21,8 @@ import org.locationtech.geomesa.utils.index.ByteArrays.{OneByteArray, ZeroByteAr
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.util.Try
+
 /**
   * Attribute index with tiering based on the default date and geom. All attributes share a single table
   *
@@ -46,9 +48,6 @@ class AttributeIndexV7 protected (ds: GeoMesaDataStore[_],
 
   override val keySpace: AttributeIndexKeySpace =
     new AttributeIndexKeySpaceV7(sft, sft.getTableSharingBytes, AttributeShardStrategy(sft), attribute)
-
-  // exclude feature byte and 2 index bytes and shard bytes
-  override protected lazy val rowValueOffset: Int = keySpace.sharing.length + 2 + keySpace.sharding.length
 }
 
 object AttributeIndexV7 {
@@ -60,6 +59,7 @@ object AttributeIndexV7 {
       extends AttributeIndexKeySpace(sft, sharding, attributeField) {
 
     private val idxBytes = AttributeIndexKey.indexToBytes(fieldIndex)
+
     private val rangePrefixes = {
       if (sharing.isEmpty) {
         sharding.shards
@@ -69,6 +69,10 @@ object AttributeIndexV7 {
         sharding.shards.map(ByteArrays.concat(sharing, _))
       }
     }
+
+    override val indexKeyByteLength: Left[(Array[Byte], Int, Int) => Int, Int] =
+      Left((row, offset, _) =>
+        row.indexOf(ByteArrays.ZeroByte, offset + sharding.length + sharing.length + 2) + 1 - offset)
 
     override def toIndexKey(writable: WritableFeature,
                             tier: Array[Byte],
@@ -157,6 +161,15 @@ object AttributeIndexV7 {
       } else {
         getStandardRangeBytes(ranges, rangePrefixes)
       }
+    }
+
+    override def decodeRowValue(row: Array[Byte], offset: Int, length: Int): Try[AnyRef] = Try {
+      // start of the encoded value
+      // exclude feature byte and 2 index bytes and shard bytes
+      val valueStart = offset + sharding.length + sharing.length + 2
+      // null byte indicates end of value
+      val valueEnd = math.min(row.indexOf(ByteArrays.ZeroByte, valueStart), offset + length)
+      decodeValue(new String(row, valueStart, valueEnd - valueStart, StandardCharsets.UTF_8))
     }
 
     override protected def lower(key: AttributeIndexKey, prefix: Boolean = false): Array[Byte] = {

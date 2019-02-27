@@ -29,7 +29,7 @@ class IdIndexKeySpace(val sft: SimpleFeatureType) extends IndexKeySpace[Set[Arra
 
   // note: technically this doesn't match the index key, but it's only
   // used for extracting the feature ID so it works out
-  override val indexKeyByteLength: Int = 0
+  override val indexKeyByteLength: Right[(Array[Byte], Int, Int) => Int, Int] = Right(0)
 
   override val sharing: Array[Byte] = Empty
 

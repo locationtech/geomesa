@@ -17,7 +17,7 @@ Choice of Backing Storage
 -------------------------
 
 This tutorial will work with several different back-ends. For simplicity, the rest of the tutorial will assume
-the use of HBase. Alternatively, you may use Accumulo, Cassandra, or the GeoMesa FileSystem DataStore. If not
+the use of HBase. Alternatively, you may use Accumulo, Cassandra, Redis, or the GeoMesa FileSystem DataStore. If not
 using HBase, the commands in the rest of the tutorial will vary slightly.
 
 Prerequisites

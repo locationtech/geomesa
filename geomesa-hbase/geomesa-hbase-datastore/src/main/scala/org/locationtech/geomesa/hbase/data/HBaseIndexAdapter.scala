@@ -221,7 +221,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
           Some(CoprocessorConfig(options, HBaseArrowAggregator.bytesToFeatures, reduce))
         } else if (hints.isStatsQuery) {
           val options = HBaseStatsAggregator.configure(schema, index, ecql, hints)
-          val reduce = StatsScan.reduceFeatures(returnSchema, hints)(_)
+          val reduce = StatsScan.reduceFeatures(returnSchema, hints) _
           Some(CoprocessorConfig(options, HBaseStatsAggregator.bytesToFeatures, reduce))
         } else if (hints.isBinQuery) {
           val options = HBaseBinAggregator.configure(schema, index, ecql, hints)

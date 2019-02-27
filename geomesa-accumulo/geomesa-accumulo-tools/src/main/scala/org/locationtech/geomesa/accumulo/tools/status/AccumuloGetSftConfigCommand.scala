@@ -19,7 +19,7 @@ class AccumuloGetSftConfigCommand extends GetSftConfigCommand[AccumuloDataStore]
 }
 
 object AccumuloGetSftConfigCommand {
-  @Parameters(commandDescription = "Get the SimpleFeatureType of a feature")
+  @Parameters(commandDescription = "Get the SimpleFeatureType definition of a schema")
   class AccumuloGetSftConfigParameters extends AccumuloDataStoreParams with GetSftConfigParams
 }
 

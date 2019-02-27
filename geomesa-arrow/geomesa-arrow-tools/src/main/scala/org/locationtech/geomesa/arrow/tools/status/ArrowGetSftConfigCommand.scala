@@ -17,5 +17,5 @@ class ArrowGetSftConfigCommand extends GetSftConfigCommand[ArrowDataStore] with 
   override val params = new ArrowGetSftConfigParameters
 }
 
-@Parameters(commandDescription = "Get the SimpleFeatureType of a feature")
+@Parameters(commandDescription = "Get the SimpleFeatureType definition of a schema")
 class ArrowGetSftConfigParameters extends UrlParam with GetSftConfigParams

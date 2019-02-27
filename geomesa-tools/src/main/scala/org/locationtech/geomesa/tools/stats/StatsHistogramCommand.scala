@@ -9,13 +9,13 @@
 package org.locationtech.geomesa.tools.stats
 
 import com.beust.jcommander.Parameter
-import org.locationtech.jts.geom.{Geometry, Point}
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.stats.{Histogram, MinMax, Stat}
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 

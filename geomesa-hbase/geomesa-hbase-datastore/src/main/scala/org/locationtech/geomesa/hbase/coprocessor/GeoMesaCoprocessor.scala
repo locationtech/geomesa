@@ -149,6 +149,7 @@ object GeoMesaCoprocessor extends LazyLogging {
         calls.remove(future)
 
         if (controller.failed()) {
+          logger.error(s"Controller failed with error:\n${controller.errorText()}")
           throw new IOException(controller.errorText())
         }
 

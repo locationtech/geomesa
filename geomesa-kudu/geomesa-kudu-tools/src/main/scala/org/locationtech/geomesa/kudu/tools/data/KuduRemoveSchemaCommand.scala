@@ -20,6 +20,6 @@ class KuduRemoveSchemaCommand extends RemoveSchemaCommand[KuduDataStore] with Ku
 }
 
 object KuduRemoveSchemaCommand {
-  @Parameters(commandDescription = "Remove a schema and associated features from a GeoMesa catalog")
+  @Parameters(commandDescription = "Remove a schema and all associated features")
   class KuduRemoveSchemaParams extends RemoveSchemaParams with KuduParams
 }

@@ -55,12 +55,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 
   protected val tableNameKey: String = GeoMesaFeatureIndex.baseTableNameKey(name, attributes, version)
 
-  // note: needs to be lazy to prevent instantiation errors in subclasses
-  protected lazy val idFromRow: IdFromRow = {
-    val tieredKey = tieredKeySpace.map(_.indexKeyByteLength).getOrElse(0)
-    val start = keySpace.sharing.length + keySpace.sharding.length + keySpace.indexKeyByteLength + tieredKey
-    new IdFromRow(sft, start)
-  }
+  // note: needs to be lazy to allow subclasses to define keyspace
+  protected lazy val idFromRow: IdFromRow = IdFromRow(sft, keySpace, tieredKeySpace)
 
   /**
     * Unique (for the given sft) identifier string for this index.
@@ -210,6 +206,18 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     */
   def getIdFromRow(row: Array[Byte], offset: Int, length: Int, feature: SimpleFeature): String =
     idFromRow(row, offset, length, feature)
+
+  /**
+    * Gets the offset (start) of the feature id from a row. All indices are assumed to encode the
+    * feature ID into the row key.
+    *
+    * @param row row bytes
+    * @param offset offset into the row bytes to the first valid byte for this row
+    * @param length number of valid bytes for this row
+    * @return
+    */
+  def getIdOffset(row: Array[Byte], offset: Int, length: Int): Int =
+    idFromRow.start(row, offset, length)
 
   /**
     * Gets options for a 'simple' filter, where each OR is on a single attribute, e.g.
@@ -431,10 +439,95 @@ object GeoMesaFeatureIndex {
   def idFromBytes(sft: SimpleFeatureType): (Array[Byte], Int, Int, SimpleFeature) => String =
     if (sft.isUuidEncoded) { uuidFromBytes } else { stringFromBytes }
 
-  class IdFromRow(sft: SimpleFeatureType, idOffset: Int) {
-    private val idFromBytes = GeoMesaFeatureIndex.idFromBytes(sft)
-    def apply(row: Array[Byte], offset: Int, length: Int, feature: SimpleFeature): String =
-      idFromBytes(row, offset + idOffset, length - idOffset, feature)
+  /**
+    * Trait for parsing feature ids out of row keys
+    */
+  sealed trait IdFromRow {
+
+    /**
+      * Return the id from the given row
+      *
+      * @param row row value as bytes
+      * @param offset start of the row in the byte array
+      * @param length length of the row in the byte array
+      * @param feature a simple feature used to cache the feature id, optional (may be null)
+      * @return the feature id
+      */
+    def apply(row: Array[Byte], offset: Int, length: Int, feature: SimpleFeature): String
+
+    /**
+      * Return the start index of the id in the row
+      *
+      * @param row row value as bytes
+      * @param offset start of the row in the byte array
+      * @param length length of the row in the byte array
+      * @return the start of the id in the row, relative to the row offset
+      */
+    def start(row: Array[Byte], offset: Int, length: Int): Int
+  }
+
+  object IdFromRow {
+
+    def apply(
+        sft: SimpleFeatureType,
+        keySpace: IndexKeySpace[_, _],
+        tieredKeySpace: Option[IndexKeySpace[_, _]]): IdFromRow = {
+      val tieredLength = tieredKeySpace.map(_.indexKeyByteLength).getOrElse(Right(0))
+      (keySpace.indexKeyByteLength, tieredLength) match {
+        case (Right(i), Right(j)) =>
+          new FixedIdFromRow(idFromBytes(sft), i + j)
+
+        case (Right(i), Left(j)) =>
+          val dynamic: (Array[Byte], Int, Int) => Int = (row, offset, length) => i + j(row, offset + i, length - i)
+          new DynamicIdFromRow(idFromBytes(sft), dynamic)
+
+        case (Left(i), Right(j)) =>
+          val dynamic: (Array[Byte], Int, Int) => Int = (row, offset, length) => i(row, offset, length - j) + j
+          new DynamicIdFromRow(idFromBytes(sft), dynamic)
+
+        case (Left(i), Left(j))   =>
+          val dynamic: (Array[Byte], Int, Int) => Int =
+            (row, offset, length) => {
+              val first = i(row, offset, length)
+              j(row, offset + first, length - first)
+            }
+          new DynamicIdFromRow(idFromBytes(sft), dynamic)
+      }
+    }
+
+    /**
+      * Id is always at a fixed offset into the row
+      *
+      * @param idFromBytes deserialization for the feature id
+      * @param prefix the length of the fixed prefix preceding the feature id bytes
+      */
+    final class FixedIdFromRow(idFromBytes: (Array[Byte], Int, Int, SimpleFeature) => String, prefix: Int)
+        extends IdFromRow {
+
+      override def apply(row: Array[Byte], offset: Int, length: Int, feature: SimpleFeature): String =
+        idFromBytes(row, offset + prefix, length - prefix, feature)
+
+      override def start(row: Array[Byte], offset: Int, length: Int): Int = prefix
+    }
+
+    /**
+      * Id is dynamically located in the row
+      *
+      * @param idFromBytes deserialization of the feature id
+      * @param prefix a function to find the length of the prefix preceding the feature id bytes
+      */
+    final class DynamicIdFromRow(
+        idFromBytes: (Array[Byte], Int, Int, SimpleFeature) => String,
+        prefix: (Array[Byte], Int, Int) => Int
+      ) extends IdFromRow {
+
+      override def apply(row: Array[Byte], offset: Int, length: Int, feature: SimpleFeature): String = {
+        val prefix = this.prefix(row, offset, length)
+        idFromBytes(row, offset + prefix, length - prefix, feature)
+      }
+
+      override def start(row: Array[Byte], offset: Int, length: Int): Int = prefix(row, offset, length)
+    }
   }
 
   private def uuidToBytes(id: String): Array[Byte] = {

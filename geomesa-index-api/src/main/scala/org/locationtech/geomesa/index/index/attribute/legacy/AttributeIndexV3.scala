@@ -56,11 +56,11 @@ object AttributeIndexV3 {
 
     override val attributes: Seq[String] = Seq(dtgField)
 
-    override val indexKeyByteLength: Int = 12
-
     override val sharing: Array[Byte] = Array.empty
 
     override val sharding: ShardStrategy = NoShardStrategy
+
+    override val indexKeyByteLength: Right[(Array[Byte], Int, Int) => Int, Int] = Right(12)
 
     override def toIndexKey(writable: WritableFeature,
                             tier: Array[Byte],

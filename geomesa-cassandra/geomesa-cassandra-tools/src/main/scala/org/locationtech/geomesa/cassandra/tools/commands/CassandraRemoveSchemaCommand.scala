@@ -20,6 +20,6 @@ class CassandraRemoveSchemaCommand  extends RemoveSchemaCommand[CassandraDataSto
 }
 
 object CassandraRemoveSchemaCommand {
-  @Parameters(commandDescription = "Remove a schema and associated features from a GeoMesa catalog")
+  @Parameters(commandDescription = "Remove a schema and all associated features")
   class CassandraRemoveSchemaParams extends RemoveSchemaParams with CassandraDataStoreParams
 }

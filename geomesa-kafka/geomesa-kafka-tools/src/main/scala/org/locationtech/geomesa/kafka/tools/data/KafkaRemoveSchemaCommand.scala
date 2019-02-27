@@ -19,6 +19,6 @@ class KafkaRemoveSchemaCommand extends RemoveSchemaCommand[KafkaDataStore] with 
 }
 
 object KafkaRemoveSchemaCommand {
-  @Parameters(commandDescription = "Remove a schema and associated features from a GeoMesa zk path")
+  @Parameters(commandDescription = "Remove a schema and all associated features")
   class KafkaRemoveSchemaParams extends RemoveSchemaParams with StatusDataStoreParams
 }

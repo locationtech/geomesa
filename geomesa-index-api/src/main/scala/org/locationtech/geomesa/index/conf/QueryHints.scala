@@ -99,7 +99,7 @@ object QueryHints {
     def getCostEvaluation: CostEvaluation = {
       Option(hints.get(COST_EVALUATION).asInstanceOf[CostEvaluation])
           .orElse(QueryProperties.QueryCostType.option.flatMap(t => CostEvaluation.values.find(_.toString.equalsIgnoreCase(t))))
-          .getOrElse(CostEvaluation.Stats)
+          .getOrElse(CostEvaluation.Index)
     }
     def isSkipReduce: Boolean = Option(hints.get(Internal.SKIP_REDUCE).asInstanceOf[java.lang.Boolean]).exists(_.booleanValue())
     def isBinQuery: Boolean = hints.containsKey(BIN_TRACK)

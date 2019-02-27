@@ -20,6 +20,6 @@ class HBaseDeleteFeaturesCommand extends DeleteFeaturesCommand[HBaseDataStore] w
 }
 
 object HBaseDeleteFeaturesCommand {
-  @Parameters(commandDescription = "Delete features from a table in GeoMesa. Does not delete any tables or schema information.")
+  @Parameters(commandDescription = "Delete features from a GeoMesa schema")
   class HBaseDeleteFeaturesParams extends DeleteFeaturesParams with HBaseParams with RemoteFilterNotUsedParam
 }

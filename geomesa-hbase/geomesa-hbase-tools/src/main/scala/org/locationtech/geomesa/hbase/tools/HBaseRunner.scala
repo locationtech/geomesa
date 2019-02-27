@@ -14,9 +14,9 @@ import org.locationtech.geomesa.hbase.tools.export.{HBaseExportCommand, HBasePla
 import org.locationtech.geomesa.hbase.tools.ingest.{HBaseBulkIngestCommand, HBaseBulkLoadCommand, HBaseIngestCommand}
 import org.locationtech.geomesa.hbase.tools.stats._
 import org.locationtech.geomesa.hbase.tools.status._
-import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
+import org.locationtech.geomesa.tools.export.{ConvertCommand, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.status._
-import org.locationtech.geomesa.tools.{Command, ConvertCommand, Runner}
+import org.locationtech.geomesa.tools.{Command, Runner}
 
 object HBaseRunner extends Runner {
 

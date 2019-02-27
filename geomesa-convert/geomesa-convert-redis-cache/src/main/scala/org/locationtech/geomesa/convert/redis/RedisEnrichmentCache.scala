@@ -16,8 +16,8 @@ import java.util.concurrent.TimeUnit
 import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.{EnrichmentCache, EnrichmentCacheFactory}
+import redis.clients.jedis.util.JedisURIHelper
 import redis.clients.jedis.{Jedis, JedisPool}
-import redis.clients.util.JedisURIHelper
 
 import scala.util.Try
 

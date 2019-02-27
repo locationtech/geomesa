@@ -20,6 +20,6 @@ class HBaseGetTypeNamesCommand extends GetTypeNamesCommand[HBaseDataStore] with 
 }
 
 object HBaseGetTypeNamesCommand {
-  @Parameters(commandDescription = "List GeoMesa feature types for a given catalog")
+  @Parameters(commandDescription = "List the feature types for a given catalog")
   class GetTypeNamesParams extends HBaseParams with ToggleRemoteFilterParam
 }

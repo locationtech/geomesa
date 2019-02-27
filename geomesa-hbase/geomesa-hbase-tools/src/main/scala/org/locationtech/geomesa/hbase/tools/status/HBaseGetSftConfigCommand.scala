@@ -20,6 +20,6 @@ class HBaseGetSftConfigCommand extends GetSftConfigCommand[HBaseDataStore] with 
 }
 
 object HBaseGetSftConfigCommand {
-  @Parameters(commandDescription = "Get the SimpleFeatureType of a feature")
+  @Parameters(commandDescription = "Get the SimpleFeatureType definition of a schema")
   class HBaseGetSftConfigParameters extends GetSftConfigParams with HBaseParams with ToggleRemoteFilterParam
 }

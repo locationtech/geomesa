@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.index.attribute
 
 import java.nio.charset.StandardCharsets
+import java.util.{Collections, Locale}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
@@ -22,6 +23,8 @@ import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.index.ByteArrays.{OneByteArray, ZeroByteArray}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+
+import scala.util.Try
 
 /**
   * Attribute index key
@@ -41,6 +44,17 @@ class AttributeIndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStra
   private val descriptor = sft.getDescriptor(fieldIndex)
   private val binding = if (isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
 
+  protected val decodeValue: String => AnyRef = {
+    val alias = binding.getSimpleName.toLowerCase(Locale.US)
+    if (isList) {
+      // Note that for collection types, only a single entry of the collection will be decoded - this is
+      // because the collection entries have been broken up into multiple rows
+      encoded => Collections.singletonList(AttributeIndexKey.decode(alias, encoded))
+    } else {
+      AttributeIndexKey.decode(alias, _)
+    }
+  }
+
   require(AttributeIndexKey.encodable(binding),
     s"Indexing is not supported for field $attributeField of type ${binding.getName} - supported types are: " +
         AttributeIndexKey.lexicoders.map(_.getName).mkString(", "))
@@ -49,8 +63,7 @@ class AttributeIndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStra
 
   override val sharing: Array[Byte] = Array.empty
 
-  override def indexKeyByteLength: Int =
-    throw new IllegalArgumentException("Attribute key space has variable length index keys")
+  override val indexKeyByteLength: Left[(Array[Byte], Int, Int) => Int, Int] = Left(idOffset)
 
   override def toIndexKey(writable: WritableFeature,
                           tier: Array[Byte],
@@ -190,6 +203,21 @@ class AttributeIndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStra
     values.forall(v => v.values.isEmpty || !v.values.precise)
   }
 
+  /**
+    * Decodes an attribute value out of row string
+    *
+    * @param row row bytes
+    * @param offset offset into the row bytes
+    * @param length length of the row bytes, from the offset
+    * @return
+    */
+  def decodeRowValue(row: Array[Byte], offset: Int, length: Int): Try[AnyRef] = Try {
+    val valueStart = offset + sharding.length // start of the encoded value
+    // null byte indicates end of value
+    val valueEnd = math.min(row.indexOf(ByteArrays.ZeroByte, valueStart), offset + length)
+    decodeValue(new String(row, valueStart, valueEnd - valueStart, StandardCharsets.UTF_8))
+  }
+
   protected def getTieredRangeBytes(ranges: Iterator[ScanRange[AttributeIndexKey]],
                                     prefixes: Seq[Array[Byte]]): Iterator[ByteRange] = {
     import org.locationtech.geomesa.utils.index.ByteArrays.concat
@@ -311,6 +339,10 @@ class AttributeIndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStra
       Some(ByteArrays.concat(key.value.getBytes(StandardCharsets.UTF_8), ZeroByteArray))
     }
   }
+
+  // null byte indicates end of value
+  private def idOffset(row: Array[Byte], offset: Int, length: Int): Int =
+    row.indexOf(ByteArrays.ZeroByte, offset + sharding.length) + 1 - offset
 }
 
 object AttributeIndexKeySpace extends IndexKeySpaceFactory[AttributeIndexValues[Any], AttributeIndexKey] {

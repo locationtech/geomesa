@@ -11,13 +11,13 @@ package org.locationtech.geomesa.index.stats
 import java.time.ZonedDateTime
 import java.util.Date
 
-import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.curve.{BinnedTime, Z2SFC, Z3SFC}
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.stats._
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
@@ -29,7 +29,7 @@ trait StatsBasedEstimator {
 
   stats: GeoMesaStats =>
 
-  import CountEstimator.ZHistogramPrecision
+  import StatsBasedEstimator.{ErrorThresholds, ZHistogramPrecision}
   import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
   /**
@@ -41,7 +41,7 @@ trait StatsBasedEstimator {
     */
   protected def estimateCount(sft: SimpleFeatureType, filter: Filter): Option[Long] = {
     // TODO currently we don't consider if the dates are actually ANDed with everything else
-    CountEstimator.extractDates(sft, filter) match {
+    StatsBasedEstimator.extractDates(sft, filter) match {
       case None => Some(0L) // disjoint dates
       case Some(Bounds(lo, hi)) => estimateCount(sft, filter, lo.value, hi.value)
     }
@@ -391,7 +391,7 @@ trait StatsBasedEstimator {
       // frequency estimates will never return less than the actual number, but will often return more
       // frequency has ~0.5% error rate based on the total number of features in the data set
       // we adjust the raw estimate based on the absolute error rate
-      import CountEstimator.ErrorThresholds
+
       val absoluteError = math.floor(freq.size * freq.eps)
       val counts = if (absoluteError < 1.0) { values.map(freq.count) } else {
         values.map { v =>
@@ -440,12 +440,12 @@ trait StatsBasedEstimator {
   }
 }
 
-object CountEstimator {
+object StatsBasedEstimator {
 
   // we only need enough precision to cover the number of bins (e.g. 2^n == bins), plus 2 for unused bits
   val ZHistogramPrecision: Int = math.ceil(math.log(GeoMesaStats.MaxHistogramSize) / math.log(2)).toInt + 2
 
-  val ErrorThresholds = Seq(0.1, 0.3, 0.5, 0.7, 0.9, 1.0)
+  val ErrorThresholds: Seq[Double] = Seq(0.1, 0.3, 0.5, 0.7, 0.9, 1.0)
 
   /**
     * Extracts date bounds from a filter. None is used to indicate a disjoint date range, otherwise

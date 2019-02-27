@@ -183,12 +183,12 @@ Visualize Data With Leaflet
 .. warning::
 
     To successfully run this command you must have a computer that is connected to the internet
-    in order to access external leaflet resources.
+    in order to access external Leaflet resources.
 
 
 The ``export`` command is a part of the GeoMesa Kudu command-line tools. In order to use the command,
 ensure you have the command-line tools installed as described in :ref:`setting_up_kudu_commandline`.
-The ``export`` command provides the ``leaflet`` format which will export the features to a leaflet map
+The ``export`` command provides the ``leaflet`` format which will export the features to a Leaflet map
 that you can open in your web browser. To produce the map, run the following command from the GeoMesa
 Kudu tools distribution directory:
 

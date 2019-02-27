@@ -21,6 +21,6 @@ class CassandraGetSftConfigCommand extends GetSftConfigCommand[CassandraDataStor
 }
 
 object CassandraGetSftConfigCommand {
-  @Parameters(commandDescription = "Get the SimpleFeatureType of a feature")
+  @Parameters(commandDescription = "Get the SimpleFeatureType definition of a schema")
   class CassandraGetSftConfigParameters extends GetSftConfigParams with CassandraDataStoreParams
 }

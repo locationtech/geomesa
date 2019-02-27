@@ -9,21 +9,23 @@ These commands are used to query and export simple features. Required parameters
 The convert command is used to directly transform data in one format into another, without ingesting them
 into GeoMesa. For example, it could be used to convert CSV files to GeoJSON.
 
-======================== =========================================================
-Argument                 Description
-======================== =========================================================
-``-C, --converter *``    The GeoMesa converter used to create ``SimpleFeature``\ s
-``-s, --spec *``         The ``SimpleFeatureType`` specification to create
-``-f, --feature-name``   The name of the schema
-``-q, --cql``            CQL filter to select features to export
-``-m, --max-features``   Limit the number of features exported
-``-F, --output-format``  Output format used for export
-``-o, --output``         Output to a file instead of standard out
-``--hints``              Query hints used to modify the query
-``--index``              Specific index used to run the query
-``--no-header``          Don't export the type header, for CSV and TSV formats
-``--gzip``               Level of gzip compression to use for output, from 1-9
-======================== =========================================================
+========================== ===================================================================================
+Argument                   Description
+========================== ===================================================================================
+``-f, --feature-name``     The name of the schema
+``-s, --spec``             The ``SimpleFeatureType`` specification to create
+``-C, --converter``        The GeoMesa converter used to create ``SimpleFeature``\ s
+``--converter-error-mode`` Override the error mode defined by the converter
+``-q, --cql``              CQL filter to select features to export
+``-m, --max-features``     Limit the number of features exported
+``-F, --output-format``    Output format used for export
+``-o, --output``           Output to a file instead of standard out
+``--input-format``         File format of input files (shp, csv, tsv, avro, etc)
+``--hints``                Query hints used to modify the query
+``--gzip``                 Level of gzip compression to use for output, from 1-9
+``--no-header``            Don't export the type header, for CSV and TSV formats
+``--force``                Force execution without prompt
+========================== ===================================================================================
 
 See :ref:`cli_export` and :ref:`cli_ingest` for a description of the arguments.
 
@@ -100,12 +102,12 @@ The ``--output-format`` argument defines the encoding used for export. Currently
 * ``geojson``, ``json``
 * ``gml`` `Geography Markup Language <http://www.opengeospatial.org/standards/gml>`_
 * ``shp`` ESRI Shapefile
-* ``leaflet`` Export data to a leaflet map and open in the default browser, if possible
+* ``leaflet`` Export data to a Leaflet map and open in the default browser, if possible
 * ``null`` suppress output entirely
 
 .. note::
 
-    The leaflet format is intended for testing and small scale data exploration and visualization only. For production
+    The Leaflet format is intended for testing and small scale data exploration and visualization only. For production
     map generation it is highly recommended to use GeoServer. Additionally, the resulting file from this command
     requires the use of an online browser to open in order to access online resources.
 

@@ -15,9 +15,9 @@ import org.locationtech.geomesa.fs.tools.export.{FsExportCommand, FsPlaybackComm
 import org.locationtech.geomesa.fs.tools.ingest.{FsIngestCommand, ManageMetadataCommand}
 import org.locationtech.geomesa.fs.tools.stats._
 import org.locationtech.geomesa.fs.tools.status._
-import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
+import org.locationtech.geomesa.tools.export.{ConvertCommand, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.status._
-import org.locationtech.geomesa.tools.{Command, ConvertCommand, Runner}
+import org.locationtech.geomesa.tools.{Command, Runner}
 
 object FsRunner extends Runner {
 

@@ -62,7 +62,7 @@ class AttributeKeyValueIterator extends SortedKeyValueIterator[Key, Value] with 
   override def getTopValue: Value = {
     val serializedSf = source.getTopValue.get()
     val row = source.getTopKey.getRow
-    val value = index.decodeRowValue(row.getBytes, 0, row.getLength).map { value =>
+    val value = index.keySpace.decodeRowValue(row.getBytes, 0, row.getLength).map { value =>
       val sf = serializer.deserialize(serializedSf)
       sf.setAttribute(attribute, value)
       serializer.serialize(sf)

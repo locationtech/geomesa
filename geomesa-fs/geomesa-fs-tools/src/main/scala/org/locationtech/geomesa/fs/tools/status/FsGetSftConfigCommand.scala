@@ -20,6 +20,6 @@ class FsGetSftConfigCommand extends GetSftConfigCommand[FileSystemDataStore] wit
 }
 
 object FsGetSftConfigCommand {
-  @Parameters(commandDescription = "Get the SimpleFeatureType of a feature")
+  @Parameters(commandDescription = "Get the SimpleFeatureType definition of a schema")
   class FsGetSftConfigParameters extends FsParams with GetSftConfigParams
 }

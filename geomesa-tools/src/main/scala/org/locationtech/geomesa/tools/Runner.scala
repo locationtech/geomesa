@@ -21,7 +21,7 @@ import scala.util.control.NonFatal
 trait Runner extends LazyLogging {
 
   def name: String
-  def environmentErrorInfo(): Option[String] = { None }
+  def environmentErrorInfo(): Option[String] = None
 
   def main(args: Array[String]): Unit = {
     try {
