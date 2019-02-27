@@ -30,7 +30,7 @@ package object filter {
   implicit val ff: FilterFactory2 = CommonFactoryFinder.getFilterFactory2
 
   object FilterProperties {
-    val GeometryProcessing = SystemProperty("geomesa.geometry.processing", "jts")
+    val GeometryProcessing = SystemProperty("geomesa.geometry.processing", "spatial4j")
   }
 
   def filterToString(filter: Filter): String = Try(ECQL.toCQL(filter)).getOrElse(filter.toString)

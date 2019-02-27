@@ -52,11 +52,11 @@ object GeometryProcessing extends GeometryProcessing with LazyLogging {
   private val SafeGeomString = "gm-safe"
 
   private val processor = FilterProperties.GeometryProcessing.get match {
-    case p if p.equalsIgnoreCase("jts")  => JtsStrategy
+    case p if p.equalsIgnoreCase("spatial4j")  => Spatial4jStrategy
     case p if p.equalsIgnoreCase("none") => NoneStrategy
     case p =>
-      logger.warn(s"Invalid value for '${FilterProperties.GeometryProcessing.property}', using default (JTS): $p")
-      JtsStrategy
+      logger.warn(s"Invalid value for '${FilterProperties.GeometryProcessing.property}', using default (spatial4j): $p")
+      Spatial4jStrategy
   }
 
   override def process(op: BinarySpatialOperator, sft: SimpleFeatureType, factory: FilterFactory2): Filter =
@@ -151,7 +151,7 @@ object GeometryProcessing extends GeometryProcessing with LazyLogging {
     }
   }
 
-  private object JtsStrategy extends AbstractGeometryProcessing {
+  private object Spatial4jStrategy extends AbstractGeometryProcessing {
     override protected def split(geom: Geometry, op: BinarySpatialOperator): Geometry = {
       // add waypoints if needed so that IDL is handled correctly
       val waypoints = if (op.isInstanceOf[BBOX]) { FilterHelper.addWayPointsToBBOX(geom) } else { geom }

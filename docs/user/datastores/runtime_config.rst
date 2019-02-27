@@ -101,16 +101,16 @@ geomesa.geometry.processing
 +++++++++++++++++++++++++++
 
 This property controls how query geometries will be handled with respect to the anti-meridian. Acceptable values are
-one of ``jts`` or ``none``. ``jts`` (the default) will use the JTS library, which will interpret a geometry with a
-segment spanning more than 180 degrees of longitude as being inverted around the anti-meridian. To prevent a geometry
-from being inverted, add way-points every 180 degrees. ``none`` will interpret geometries literally. In this case,
-to query around the anti-meridian, use an OR filter or a geometry collection.
+one of ``spatial4j`` or ``none``. ``spatial4j`` (the default) will use the Spatial4J library, which will interpret a
+geometry with a segment spanning more than 180 degrees of longitude as being inverted around the anti-meridian. To
+prevent a geometry from being inverted, add way-points every 180 degrees. ``none`` will interpret geometries
+literally. In this case, to query around the anti-meridian, use an OR filter or a geometry collection.
 
 As an example, the following filters both specify a 2-degree area around the anti-meridian:
 
 .. code-block:: java
 
-  // jts processing
+  // spatial4j processing
   "intersects(geom, 'POLYGON((-179 90, 179 90, 179 -90, -179 -90, -179 90))')"
   // no processing
   "intersects(geom, 'MULTIPOLYGON(((-179 90, -180 90, -180 -90, -179 -90, -179 90)),((179 90, 180 90, 180 -90, 179 -90, 179 90)))')"
@@ -119,7 +119,7 @@ While the following filters both specify a 358-degree globe-spanning polygon:
 
 .. code-block:: java
 
-  // jts processing
+  // spatial4j processing
   "intersects(geom, 'POLYGON((-179 90, 0 90, 179 90, 179 -90, 0 -90, -179 -90, -179 90))')"
   // no processing
   "intersects(geom, 'POLYGON((-179 90, 179 90, 179 -90, -179 -90, -179 90))')"
