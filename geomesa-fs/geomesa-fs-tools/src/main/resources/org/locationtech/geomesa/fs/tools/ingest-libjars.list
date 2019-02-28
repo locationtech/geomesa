@@ -6,6 +6,7 @@ commons-lang3
 commons-pool
 commons-text
 config
+core
 curator-client
 curator-framework
 curator-recipes
@@ -13,6 +14,7 @@ geomesa
 gson
 gt
 hive
+hsqldb
 joda
 json4s-ast
 json4s-core
