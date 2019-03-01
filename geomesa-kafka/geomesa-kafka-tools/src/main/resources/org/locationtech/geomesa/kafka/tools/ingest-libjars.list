@@ -5,6 +5,7 @@ commons-lang3
 commons-pool
 commons-text
 config
+core
 curator-client
 curator-framework
 curator-recipes
