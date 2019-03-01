@@ -60,7 +60,7 @@ class SpatialRDD(rdd: RDD[SimpleFeature], sft: SimpleFeatureType) extends RDD[Si
   GeoMesaSparkKryoRegistrator.register(sft)
 
   private val sft_name = sft.getTypeName
-  private val sft_spec = SimpleFeatureTypes.encodeType(sft)
+  private val sft_spec = SimpleFeatureTypes.encodeType(sft, true)
 
   @transient lazy val schema = SimpleFeatureTypes.createType(sft_name, sft_spec)
 
