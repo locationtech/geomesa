@@ -14,7 +14,6 @@ geomesa
 gson
 gt
 hive
-hsqldb
 joda
 json4s-ast
 json4s-core
