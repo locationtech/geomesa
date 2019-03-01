@@ -5,6 +5,7 @@ commons-lang3
 commons-pool
 commons-text
 config
+core
 geomesa
 gson
 gt
