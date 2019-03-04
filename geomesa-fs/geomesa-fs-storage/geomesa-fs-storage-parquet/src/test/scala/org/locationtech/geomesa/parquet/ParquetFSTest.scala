@@ -12,7 +12,6 @@ package org.locationtech.geomesa.parquet
 import java.nio.file.Files
 import java.time.temporal.ChronoUnit
 
-import org.locationtech.jts.geom.{Coordinate, Point}
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
@@ -26,6 +25,7 @@ import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, D
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.jts.geom.{Coordinate, Point}
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -73,7 +73,7 @@ class ParquetFSTest extends Specification with AllExpectations {
           writer.close()
         }
 
-      WithClose(fsStorage.getReader(partitions.take(1), new Query("test", ECQL.toFilter("name = 'first'")))) { reader =>
+      WithClose(fsStorage.getPartitionReader(new Query("test", ECQL.toFilter("name = 'first'")), partitions.head)) { reader =>
         val features = reader.toList
         features must haveSize(1)
         features.head.getAttribute("name") mustEqual "first"
@@ -82,7 +82,7 @@ class ParquetFSTest extends Specification with AllExpectations {
         features.head.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
       }
 
-      WithClose(fsStorage.getReader(partitions.slice(2, 3), new Query("test", ECQL.toFilter("name = 'third'")))) { reader =>
+      WithClose(fsStorage.getPartitionReader(new Query("test", ECQL.toFilter("name = 'third'")), partitions(2))) { reader =>
         val features = reader.toList
         features must haveSize(1)
         features.head.getAttribute("name") mustEqual "third"
@@ -94,7 +94,7 @@ class ParquetFSTest extends Specification with AllExpectations {
       val transform = new Query("test", ECQL.toFilter("name = 'third'"), Array("dtg", "geom"))
       QueryPlanner.setQueryTransforms(transform, sft)
 
-      WithClose(fsStorage.getReader(partitions.slice(2, 3), transform)) { reader =>
+      WithClose(fsStorage.getPartitionReader(transform, partitions(2))) { reader =>
         val features = reader.toList
         features must haveSize(1)
         features.head.getFeatureType.getAttributeDescriptors.map(_.getLocalName) mustEqual Seq("dtg", "geom")

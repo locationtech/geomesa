@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 
 import java.util.{Collections, Optional}
 
-import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.api.{FilterPartitions, PartitionScheme, PartitionSchemeFactory}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -22,7 +22,8 @@ object FlatScheme extends PartitionScheme {
 
   override def getPartition(feature: SimpleFeature): String = ""
 
-  override def getPartitions(filter: Filter): java.util.List[String] = Collections.singletonList("")
+  override def getFilterPartitions(filter: Filter): Optional[java.util.List[FilterPartitions]] =
+    Optional.of(Collections.singletonList(new FilterPartitions(filter, Collections.singletonList(""), false)))
 
   override def getMaxDepth: Int = 0
 

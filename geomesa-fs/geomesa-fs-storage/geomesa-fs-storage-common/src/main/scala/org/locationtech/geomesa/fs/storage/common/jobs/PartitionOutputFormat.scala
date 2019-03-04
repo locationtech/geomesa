@@ -73,7 +73,7 @@ abstract class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends O
 
     override def close(context: TaskAttemptContext): Unit = {
       cache.foreach { case (partition, state) =>
-        logger.info(s"Closing writer for $partition")
+        logger.debug(s"Closing writer for $partition")
         state.writer.close(context)
         StorageMetadata.writePartitionConfig(fc, state.root,
           PartitionConfig(partition, PartitionAction.Add, Set(state.file), state.count,
@@ -88,7 +88,7 @@ abstract class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends O
       val root = getRootPath(context)
       // TODO combine this with the same code in ParquetFileSystemStorage
       val file = StorageUtils.nextFile(root, partition, scheme.isLeafStorage, encoding, fileType)
-      logger.info(s"Creating ${scheme.getName} scheme record writer at path $file")
+      logger.debug(s"Creating ${scheme.getName} scheme record writer at path $file")
       // noinspection LanguageFeature
       new PartitionState(root, file.getName, delegate.getRecordWriter(context, file))
     }

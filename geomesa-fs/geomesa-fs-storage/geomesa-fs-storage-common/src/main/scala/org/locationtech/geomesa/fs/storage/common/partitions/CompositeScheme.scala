@@ -10,7 +10,7 @@ package org.locationtech.geomesa.fs.storage.common.partitions
 
 import java.util.Optional
 
-import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.api.{FilterPartitions, PartitionScheme, PartitionSchemeFactory}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -28,8 +28,31 @@ class CompositeScheme(schemes: Seq[PartitionScheme]) extends PartitionScheme {
 
   override def getPartition(feature: SimpleFeature): String = schemes.map(_.getPartition(feature)).mkString("/")
 
-  override def getPartitions(filter: Filter): java.util.List[String] =
-    schemes.map(_.getPartitions(filter).asScala).reduce((a, b) => for (i <- a; j <-b) yield { s"$i/$j" }).asJava
+  override def getFilterPartitions(filter: Filter): Optional[java.util.List[FilterPartitions]] = {
+    val head = schemes.head.getFilterPartitions(filter)
+    if (!head.isPresent) { head } else {
+      val reduced = schemes.tail.foldLeft(head.get.asScala) { (results, scheme) =>
+        results.flatMap { result =>
+          if (result.partial()) {
+            // we haven't matched one of our tiers, so we can't keep building up partition paths
+            Seq(result)
+          } else {
+            val tiers = scheme.getFilterPartitions(result.filter).orElse(null)
+            if (tiers == null) {
+              Seq(new FilterPartitions(result.filter(), result.partitions(), true))
+            } else {
+              val prefixes = result.partitions().asScala
+              tiers.asScala.map { tier =>
+                val paths = prefixes.flatMap(prefix => tier.partitions.asScala.map(t => s"$prefix/$t"))
+                new FilterPartitions(tier.filter, paths.asJava, false)
+              }
+            }
+          }
+        }
+      }
+      Optional.of(reduced.asJava)
+    }
+  }
 
   override def getMaxDepth: Int = schemes.map(_.getMaxDepth).sum
 

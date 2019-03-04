@@ -16,7 +16,7 @@ import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
-import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{EncodingParam, FsParams, SchemeParams}
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{OptionalEncodingParam, FsParams, OptionalSchemeParams}
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
 import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{OrcConverterJob, ParquetConverterJob}
 import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.FsIngestParams
@@ -80,7 +80,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStor
 object FsIngestCommand {
 
   @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-  class FsIngestParams extends IngestParams with FsParams with EncodingParam with SchemeParams with TempDirParam {
+  class FsIngestParams extends IngestParams with FsParams with OptionalEncodingParam with OptionalSchemeParams with TempDirParam {
     @Parameter(names = Array("--num-reducers"), description = "Num reducers (required for distributed ingest)", required = false)
     var reducers: java.lang.Integer = _
   }

@@ -20,7 +20,6 @@ import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.{FileSystemStorage, FileSystemWriter}
-import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -91,15 +90,13 @@ class FileSystemFeatureStore(val storage: FileSystemStorage,
   override def buildFeatureType(): SimpleFeatureType = sft
 
   override def getBoundsInternal(query: Query): ReferencedEnvelope = {
-    import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelope}
+    import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
+    val envelope = new ReferencedEnvelope(CRS_EPSG_4326)
     val partitions = storage.getPartitions(query.getFilter).iterator
-    if (!partitions.hasNext) { wholeWorldEnvelope } else {
-      val envelope = new ReferencedEnvelope(CRS_EPSG_4326)
-      while (partitions.hasNext) {
-        envelope.expandToInclude(partitions.next.bounds())
-      }
-      envelope
+    while (partitions.hasNext) {
+      envelope.expandToInclude(partitions.next.bounds())
     }
+    envelope
   }
 
   override def getCountInternal(query: Query): Int = {
@@ -112,16 +109,17 @@ class FileSystemFeatureStore(val storage: FileSystemStorage,
   }
 
   override def getReaderInternal(original: Query): FeatureReader[SimpleFeatureType, SimpleFeature] = {
+    import org.locationtech.geomesa.index.conf.QueryHints._
+
     val query = new Query(original)
     // The type name can sometimes be empty such as Query.ALL
     query.setTypeName(sft.getTypeName)
 
-    // Set Transforms if present
-    import org.locationtech.geomesa.index.conf.QueryHints._
-    QueryPlanner.setQueryTransforms(query, sft)
+    val iter = new FileSystemFeatureIterator(storage, query, readThreads)
+
+    // transforms will be set after getting the iterator
     val transformSft = query.getHints.getTransformSchema.getOrElse(sft)
 
-    val iter = new FileSystemFeatureIterator(storage, query, readThreads)
     // note: DelegateSimpleFeatureIterator will close the iterator by checking that it implements Closeable
     new DelegateSimpleFeatureReader(transformSft, new DelegateSimpleFeatureIterator(iter))
   }

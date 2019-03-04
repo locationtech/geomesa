@@ -30,7 +30,7 @@ import org.opengis.filter.Filter
   * @param fileMetadata metadata
   */
 class ParquetFileSystemStorage(conf: Configuration, fileMetadata: StorageMetadata)
-    extends MetadataFileSystemStorage(conf, fileMetadata) {
+    extends MetadataFileSystemStorage(fileMetadata) {
 
   override protected val extension: String = FileExtension
 

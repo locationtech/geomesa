@@ -12,6 +12,7 @@ import java.util.{Date, UUID}
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter.Bounds.Bound
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -103,6 +104,52 @@ class BoundsTest extends Specification {
       Bounds.intersection(Bounds(exclusive, Bound.unbounded), Bounds(inclusive, Bound.unbounded)) must beSome(Bounds(exclusive, Bound.unbounded))
       Bounds.intersection(Bounds(Bound.unbounded, inclusive), Bounds(Bound.unbounded, exclusive)) must beSome(Bounds(Bound.unbounded, exclusive))
       Bounds.intersection(Bounds(Bound.unbounded, exclusive), Bounds(Bound.unbounded, inclusive)) must beSome(Bounds(Bound.unbounded, exclusive))
+    }
+
+    "cover" >> {
+      val range = Bounds(
+        Bound(Some(FastConverter.convert("2019-01-01T00:00:00.000Z", classOf[Date])), inclusive = true),
+        Bound(Some(FastConverter.convert("2019-01-01T00:53:00.000Z", classOf[Date])), inclusive = false))
+
+      range.covers(range) must beTrue
+
+      foreach(Seq("2019-01-01T01:00:00.000Z", "2019-01-01T02:00:00.000Z")) { date =>
+        val bounds = Bounds(
+          Bound(Some(FastConverter.convert("2019-01-01T00:00:00.000Z", classOf[Date])), inclusive = true),
+          Bound(Some(FastConverter.convert(date, classOf[Date])), inclusive = false))
+        bounds.covers(range) must beTrue
+        range.covers(bounds) must beFalse
+      }
+
+      foreach(Seq("2019-01-01T00:30:00.000Z", "2019-01-01T00:45:00.000Z")) { date =>
+        val bounds = Bounds(
+          Bound(Some(FastConverter.convert("2019-01-01T00:00:00.000Z", classOf[Date])), inclusive = true),
+          Bound(Some(FastConverter.convert(date, classOf[Date])), inclusive = false))
+        bounds.covers(range) must beFalse
+        range.covers(bounds) must beTrue
+      }
+    }
+
+    "intersect" >> {
+      val range = Bounds[Integer](Bound(Some(0), inclusive = true), Bound(Some(10), inclusive = true))
+
+      foreach(Seq(5 -> 15, 0 -> 10, 10 -> 20)) { case (lo, hi) =>
+        val bound = Bounds[Integer](Bound(Some(lo), inclusive = true), Bound(Some(hi), inclusive = true))
+        range.intersects(bound) must beTrue
+        bound.intersects(range) must beTrue
+      }
+
+      foreach(Seq(-10 -> -1, 15 -> 25)) { case (lo, hi) =>
+        val bound = Bounds[Integer](Bound(Some(lo), inclusive = true), Bound(Some(hi), inclusive = true))
+        range.intersects(bound) must beFalse
+        bound.intersects(range) must beFalse
+      }
+
+      foreach(Seq(-10 -> 0, 10 -> 20)) { case (lo, hi) =>
+        val bound = Bounds[Integer](Bound(Some(lo), inclusive = false), Bound(Some(hi), inclusive = false))
+        range.intersects(bound) must beFalse
+        bound.intersects(range) must beFalse
+      }
     }
   }
 }

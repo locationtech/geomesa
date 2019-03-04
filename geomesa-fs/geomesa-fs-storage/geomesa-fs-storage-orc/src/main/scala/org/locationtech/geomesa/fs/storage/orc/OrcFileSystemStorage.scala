@@ -30,7 +30,7 @@ import org.opengis.filter.Filter
   * @param metadata metadata
   */
 class OrcFileSystemStorage(conf: Configuration, metadata: StorageMetadata)
-    extends MetadataFileSystemStorage(conf, metadata) with LazyLogging {
+    extends MetadataFileSystemStorage(metadata) with LazyLogging {
 
   override protected def extension: String = OrcFileSystemStorage.FileExtension
 

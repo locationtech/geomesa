@@ -497,6 +497,23 @@ object FilterHelper {
     Some(FilterValues(Seq(Bounds.everything[T]), precise = false))
   }
 
+  /**
+    * Extract property names from a filter. If a schema is available,
+    * prefer `propertyNames(Filter, SimpleFeatureType)` as that will handle
+    * things like default geometry bboxes
+    *
+    * @param filter filter
+    * @return unique property names referenced in the filter, in sorted order
+    */
+  def propertyNames(filter: Filter): Seq[String] = propertyNames(filter, null)
+
+  /**
+    * Extract property names from a filter
+    *
+    * @param filter filter
+    * @param sft simple feature type
+    * @return unique property names referenced in the filter, in sorted order
+    */
   def propertyNames(filter: Filter, sft: SimpleFeatureType): Seq[String] =
     DataUtilities.attributeNames(filter, sft).toSeq.distinct.sorted
 

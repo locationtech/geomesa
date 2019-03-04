@@ -52,6 +52,49 @@ case class Bounds[T](lower: Bound[T], upper: Bound[T]) {
     */
   def isEquals: Boolean = !isRange
 
+  /**
+    * Does this bounds cover the other bounds?
+    *
+    * @param other other bounds
+    * @return
+    */
+  def covers(other: Bounds[T]): Boolean = {
+    // if the end is unbounded, it will always cover, so use .forall
+    // if the end is bounded and other.end is unbounded, then it will never cover, so use .exists on the inner check
+    // if both end and other.end are bounded, then compare them
+    upper.value.forall { up =>
+      other.upper.value.exists { oup =>
+        val c = oup.asInstanceOf[Comparable[Any]].compareTo(up)
+        c < 0 || (c == 0 && (upper.inclusive || other.upper.exclusive))
+      }
+    } && lower.value.forall { lo =>
+      other.lower.value.exists { olo =>
+        val c = olo.asInstanceOf[Comparable[Any]].compareTo(lo)
+        c > 0 || (c == 0 && (lower.inclusive || other.lower.exclusive))
+      }
+    }
+  }
+
+  /**
+    * Does this bounds intersect the other bounds?
+    *
+    * @param other other bounds
+    * @return
+    */
+  def intersects(other: Bounds[T]): Boolean = {
+    // if `largerLowerBound` or `smallerUpperBound` return None, then both this and other are unbounded
+    // on the same end, so they by definition overlap - so use .forall
+    val largerLowerBound = Bounds.largerLowerBound(lower, other.lower)
+    largerLowerBound.value.forall { lo =>
+      val smallerUpperBound = Bounds.smallerUpperBound(upper, other.upper)
+      smallerUpperBound.value.forall { up =>
+        // if largerLowerBound bound is smaller than smallerUpperBound, then they overlap
+        val c = lo.asInstanceOf[Comparable[Any]].compareTo(up)
+        c < 0 || (c == 0 && largerLowerBound.inclusive && smallerUpperBound.inclusive)
+      }
+    }
+  }
+
   override def toString: String = {
     (if (lower.inclusive) { "[" } else { "(" }) + lower.value.getOrElse("-\u221E") + "," +
       upper.value.getOrElse("+\u221E") + (if (upper.inclusive) { "]" } else { ")" })

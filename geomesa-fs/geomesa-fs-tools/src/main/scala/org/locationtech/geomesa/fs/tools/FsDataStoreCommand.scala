@@ -45,28 +45,28 @@ object FsDataStoreCommand {
     @Parameter(names = Array("--path", "-p"), description = "Path to root of filesystem datastore", required = true)
     var path: String = _
 
-    @Parameter(names = Array("--config"), description = "Configuration properties, in the form k=v", required = false, variableArity = true)
+    @Parameter(names = Array("--config"), description = "Configuration properties, in the form k=v", variableArity = true)
     var configuration: java.util.List[String] = _
   }
 
-  trait EncodingParam {
-    @Parameter(names = Array("--encoding", "-e"), description = "Encoding (parquet, orc, converter, etc)", validateValueWith = classOf[EncodingValidator], required = true)
-    var encoding: String = _
-  }
-
   trait PartitionParam {
-    @Parameter(names = Array("--partitions"), description = "Partitions to operate on (if empty all partitions will be used)", required = false, variableArity = true)
+    @Parameter(names = Array("--partitions"), description = "Partitions to operate on (if empty all partitions will be used)", variableArity = true)
     var partitions: java.util.List[String] = new util.ArrayList[String]()
   }
 
-  trait SchemeParams {
-    @Parameter(names = Array("--partition-scheme"), description = "PartitionScheme typesafe config string or file", required = true)
+  trait OptionalEncodingParam {
+    @Parameter(names = Array("--encoding", "-e"), description = "Encoding (parquet, orc, converter, etc)", validateValueWith = classOf[EncodingValidator])
+    var encoding: String = _
+  }
+
+  trait OptionalSchemeParams {
+    @Parameter(names = Array("--partition-scheme"), description = "PartitionScheme typesafe config string or file")
     var scheme: java.lang.String = _
 
-    @Parameter(names = Array("--leaf-storage"), description = "Use Leaf Storage for Partition Scheme", required = false, arity = 1)
+    @Parameter(names = Array("--leaf-storage"), description = "Use Leaf Storage for Partition Scheme", arity = 1)
     var leafStorage: java.lang.Boolean = true
 
-    @Parameter(names = Array("--storage-opt"), variableArity = true, description = "Additional storage opts (k=v)", required = false, converter = classOf[KeyValueConverter])
+    @Parameter(names = Array("--storage-opt"), variableArity = true, description = "Additional storage opts (k=v)", converter = classOf[KeyValueConverter])
     var storageOpts: java.util.List[(String, String)] = new java.util.ArrayList[(String, String)]()
   }
 

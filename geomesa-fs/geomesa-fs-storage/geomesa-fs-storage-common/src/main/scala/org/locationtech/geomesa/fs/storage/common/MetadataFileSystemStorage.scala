@@ -10,11 +10,12 @@
 package org.locationtech.geomesa.fs.storage.common
 
 import java.util.Collections
+import java.util.concurrent.TimeUnit
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.geotools.data.Query
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.MetadataFileSystemStorage.WriterCallback
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
@@ -33,8 +34,7 @@ import scala.collection.mutable.ListBuffer
   *
   * @param metadata metadata
   */
-abstract class MetadataFileSystemStorage(conf: Configuration,
-                                         metadata: org.locationtech.geomesa.fs.storage.api.StorageMetadata)
+abstract class MetadataFileSystemStorage(metadata: org.locationtech.geomesa.fs.storage.api.StorageMetadata)
     extends FileSystemStorage with MethodProfiling with LazyLogging {
 
   import scala.collection.JavaConverters._
@@ -49,29 +49,6 @@ abstract class MetadataFileSystemStorage(conf: Configuration,
 
   override def getMetadata: org.locationtech.geomesa.fs.storage.api.StorageMetadata = metadata
 
-  override def getPartitions: java.util.List[PartitionMetadata] = metadata.getPartitions
-
-  override def getPartitions(filter: Filter): java.util.List[PartitionMetadata] = {
-    // Get the partitions from the partition scheme
-    // if the result is empty, then scan all partitions
-    // TODO: can we short-circuit if the query is outside the bounds
-    val all = getPartitions
-    if (filter == Filter.INCLUDE) { all } else {
-      val coveringPartitions = new java.util.HashSet(metadata.getPartitionScheme.getPartitions(filter))
-      if (!coveringPartitions.isEmpty) {
-        val iter = all.iterator()
-        while (iter.hasNext) {
-          if (!coveringPartitions.contains(iter.next.name)) {
-            iter.remove()
-          }
-        }
-      }
-      all
-    }
-  }
-
-  override def getPartition(feature: SimpleFeature): String = metadata.getPartitionScheme.getPartition(feature)
-
   override def getWriter(partition: String): FileSystemWriter = {
     val leaf = metadata.getPartitionScheme.isLeafStorage
     val dataPath = StorageUtils.nextFile(metadata.getRoot, partition, leaf, extension, FileType.Written)
@@ -79,26 +56,130 @@ abstract class MetadataFileSystemStorage(conf: Configuration,
     createWriter(metadata.getSchema, dataPath, new AddCallback(partition, dataPath))
   }
 
-  override def getReader(partitions: java.util.List[String], query: Query): FileSystemReader =
-    getReader(partitions, query, 1)
-
-  override def getReader(partitions: java.util.List[String], query: Query, threads: Int): FileSystemReader = {
+  override def getReader(original: Query, threads: Int): FileSystemReader = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    // TODO ask the partition manager the geometry is fully covered?
+    val sft = metadata.getSchema
+    val query = QueryRunner.configureDefaultQuery(sft, original)
+    val transform = query.getHints.getTransform
+
+    logger.debug(s"Running query '${query.getTypeName}' ${ECQL.toCQL(query.getFilter)}")
+    logger.debug(s"  Original filter: ${ECQL.toCQL(original.getFilter)}")
+    logger.debug(s"  Transforms: " + query.getHints.getTransformDefinition.map { t =>
+      if (t.isEmpty) { "empty" } else { t } }.getOrElse("none"))
+
+    val scheme = metadata.getPartitionScheme
+    val filters = scheme.getFilterPartitions(Option(query.getFilter).getOrElse(Filter.INCLUDE)).orElse(null)
+
+    val readers = if (filters == null) {
+      val partitions = metadata.getPartitions
+      val paths = partitions.iterator.asScala.flatMap(p => getFilePaths(p.name).asScala)
+      val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
+      val reader = createReader(sft, filter, transform)
+      logger.debug(s"  Threading the read of ${partitions.size} partitions with $threads reader threads")
+      logger.debug(s"  Reading ${partitions.size} partitions with filter: " +
+          filter.map(ECQL.toCQL).getOrElse("INCLUDE"))
+      logger.trace(s"  Filter: ${filter.map(ECQL.toCQL).getOrElse("INCLUDE")} Partitions: " +
+          partitions.asScala.mkString(", "))
+      Iterator.single(reader -> paths)
+    } else {
+      logger.debug(s"  Threading the read of ${filters.asScala.map(_.partitions.size).sum} partitions with " +
+          s"$threads reader threads")
+      filters.asScala.iterator.flatMap { fp =>
+        val paths = fp.partitions.iterator.asScala.flatMap(p => getFilePaths(p).asScala)
+        if (paths.isEmpty) { Iterator.empty } else {
+          val filter = Option(fp.filter).filter(_ != Filter.INCLUDE)
+          val reader = createReader(sft, filter, transform)
+          logger.debug(s"  Reading ${fp.partitions.size} partitions with filter: " +
+              filter.map(ECQL.toCQL).getOrElse("INCLUDE"))
+          logger.trace(s"  Filter: ${filter.map(ECQL.toCQL).getOrElse("INCLUDE")} Partitions: " +
+              fp.partitions.asScala.mkString(", "))
+          Iterator.single(reader -> paths)
+        }
+      }
+    }
+
+    if (readers.isEmpty) {
+      MetadataFileSystemStorage.EmptyReader
+    } else {
+      FileSystemThreadedReader(readers, threads)
+    }
+  }
+
+  override def getPartitionReader(original: Query, partition: String, threads: Int): FileSystemReader = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+    import org.locationtech.geomesa.utils.conversions.JavaConverters._
+
+    logger.debug(s"Threading the read of 1 partitions with $threads reader threads")
+
+    val paths = getFilePaths(partition).iterator.asScala
+
+    if (paths.isEmpty) {
+      MetadataFileSystemStorage.EmptyReader
+    } else {
+      val sft = metadata.getSchema
+      val query = QueryRunner.configureDefaultQuery(sft, original)
+      val queryFilter = Option(query.getFilter)
+      val transform = query.getHints.getTransform
+
+      val scheme = metadata.getPartitionScheme
+      // TODO is there a way to avoid calculating all partitions up front?
+      val filters = scheme.getFilterPartitions(queryFilter.getOrElse(Filter.INCLUDE))
+      val filter = filters.asScala.flatMap[Filter] { fps =>
+        fps.asScala.collectFirst { case fp if fp.partitions().contains(partition) => fp.filter }
+      }
+      val reader = createReader(sft, filter.orElse(queryFilter).filter(_ != Filter.INCLUDE), transform)
+      FileSystemThreadedReader(Iterator.single(reader -> paths), threads)
+    }
+  }
+
+  @deprecated
+  override def getReader(partitions: java.util.List[String], original: Query, threads: Int): FileSystemReader = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val sft = metadata.getSchema
-    val q = QueryRunner.configureDefaultQuery(sft, query)
-    val filter = Option(q.getFilter).filter(_ != Filter.INCLUDE)
-    val transform = q.getHints.getTransform
+    val query = QueryRunner.configureDefaultQuery(sft, original)
+    val transform = query.getHints.getTransform
 
-    val paths = partitions.iterator.asScala.flatMap(getFilePaths(_).asScala)
+    logger.debug(s"Running query '${query.getTypeName}' ${ECQL.toCQL(query.getFilter)}")
+    logger.debug(s"  Original filter: ${ECQL.toCQL(original.getFilter)}")
+    logger.debug(s"  Transforms: " + query.getHints.getTransformDefinition.map { t =>
+      if (t.isEmpty) { "empty" } else { t } }.getOrElse("none"))
+    logger.debug(s"  Threading the read of ${partitions.size} partitions with $threads reader threads")
 
-    val reader = createReader(sft, filter, transform)
+    val scheme = metadata.getPartitionScheme
+    val filters = scheme.getFilterPartitions(Option(query.getFilter).getOrElse(Filter.INCLUDE))
+    val readers = if (filters.isPresent) {
+      filters.get.asScala.iterator.flatMap { fp =>
+        val paths = fp.partitions.iterator.asScala.flatMap { partition =>
+          if (partitions.contains(partition)) { getFilePaths(partition).asScala } else { Iterator.empty }
+        }
+        if (paths.isEmpty) { Iterator.empty } else {
+          val filter = Option(fp.filter).filter(_ != Filter.INCLUDE)
+          val reader = createReader(sft, filter, transform)
+          logger.debug(s"  Reading ${fp.partitions.size} partitions with filter: " +
+              filter.map(ECQL.toCQL).getOrElse("INCLUDE"))
+          logger.trace(s"  Filter: ${filter.map(ECQL.toCQL).getOrElse("INCLUDE")} Partitions: " +
+              fp.partitions.asScala.mkString(", "))
+          Iterator.single(reader -> paths)
+        }
+      }
+    } else {
+      val paths = partitions.iterator.asScala.flatMap(p => getFilePaths(p).asScala)
+      val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
+      val reader = createReader(sft, filter, transform)
+      logger.debug(s"  Reading ${partitions.size} partitions with filter: " +
+          filter.map(ECQL.toCQL).getOrElse("INCLUDE"))
+      logger.trace(s"  Filter: ${filter.map(ECQL.toCQL).getOrElse("INCLUDE")} Partitions: " +
+          partitions.asScala.mkString(", "))
+      Iterator.single(reader -> paths)
+    }
 
-    logger.debug(s"Threading the read of ${partitions.size} partitions with $threads reader threads")
-
-    FileSystemThreadedReader(reader, paths, threads)
+    if (readers.isEmpty) {
+      MetadataFileSystemStorage.EmptyReader
+    } else {
+      FileSystemThreadedReader(readers, threads)
+    }
   }
 
   override def getFilePaths(partition: String): java.util.List[Path] = {
@@ -122,8 +203,6 @@ abstract class MetadataFileSystemStorage(conf: Configuration,
     }
   }
 
-  override def compact(partition: String): Unit = compact(partition, 1)
-
   override def compact(partition: String, threads: Int): Unit = {
     val toCompact = getFilePaths(partition).asScala
 
@@ -140,7 +219,7 @@ abstract class MetadataFileSystemStorage(conf: Configuration,
       var written = 0L
 
       val reader = createReader(sft, None, None)
-      def threaded = FileSystemThreadedReader(reader, toCompact.toIterator, threads)
+      def threaded = FileSystemThreadedReader(Iterator.single(reader -> toCompact.toIterator), threads)
       val callback = new CompactCallback(partition, dataPath, toCompact)
 
       WithClose(createWriter(sft, dataPath, callback), threaded) { case (writer, features) =>
@@ -189,7 +268,15 @@ abstract class MetadataFileSystemStorage(conf: Configuration,
 }
 
 object MetadataFileSystemStorage {
+
   trait WriterCallback {
     def onClose(count: Long, bounds: Envelope): Unit
+  }
+
+  object EmptyReader extends FileSystemReader {
+    override def next(): SimpleFeature = throw new NoSuchElementException
+    override def hasNext: Boolean = false
+    override def close(): Unit = {}
+    override def close(wait: Long, unit: TimeUnit): Boolean = true
   }
 }

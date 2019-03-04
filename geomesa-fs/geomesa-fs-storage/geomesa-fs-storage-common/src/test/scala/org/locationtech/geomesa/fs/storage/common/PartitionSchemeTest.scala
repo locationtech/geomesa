@@ -13,7 +13,6 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.Date
 
-import org.locationtech.jts.geom.Coordinate
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
@@ -21,12 +20,16 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, XZ2Scheme, Z2Scheme}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Coordinate
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
 
 @RunWith(classOf[JUnitRunner])
 class PartitionSchemeTest extends Specification with AllExpectations {
+
+  import scala.collection.JavaConverters._
 
   sequential
 
@@ -137,14 +140,28 @@ class PartitionSchemeTest extends Specification with AllExpectations {
 
     "return correct date partitions" >> {
       val ps = new DateTimeScheme("yyyy/DDD/HH", ChronoUnit.HOURS, 1, "dtg", true)
-      val covering = ps.getPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
-      covering.size() mustEqual 24
+      val filter = ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-03T01:55:00.000Z'")
+      val covering = ps.getFilterPartitions(filter)
+      covering.isPresent must beTrue
+      covering.get.size() mustEqual 2
+      covering.get.map(_.filter) must containTheSameElementsAs(Seq(Filter.INCLUDE, filter))
+      foreach(covering.get)(_.partial must beFalse)
+      covering.get.find(_.filter == Filter.INCLUDE).map(_.partitions.size) must beSome(1)
+      covering.get.find(_.filter != Filter.INCLUDE).map(_.partitions.size) must beSome(1)
     }
 
     "2 bit datetime z2 partition" >> {
       val ps = new Z2Scheme(2, "geom", true)
-      val covering = ps.getPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
-      covering.size() mustEqual 4
+      val filters = Seq(
+        "dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'",
+        "bbox(geom,-179,-89,179,89)")
+      foreach(filters) { filter =>
+        val covering = ps.getFilterPartitions(ECQL.toFilter(filter))
+        covering.isPresent must beTrue
+        covering.get.size() mustEqual 1
+        covering.get.get(0).partial must beFalse
+        covering.get.get(0).partitions().size() mustEqual 4
+      }
     }
 
     "2 bit z2 with date" >> {
@@ -152,25 +169,47 @@ class PartitionSchemeTest extends Specification with AllExpectations {
         new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, "dtg", true),
         new Z2Scheme(2, "geom", true)
       ))
-      val covering = ps.getPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
-      covering.size() mustEqual 24 * 4
+      val covering = ps.getFilterPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
+      covering.isPresent must beTrue
+      covering.get.size() mustEqual 1
+      covering.get.get(0).filter() mustEqual Filter.INCLUDE
+      covering.get.get(0).partial must beFalse
+      covering.get.get(0).partitions.size() mustEqual 24 * 4
     }
 
     "2 bit with filter" >> {
       val ps = new Z2Scheme(2, "geom", true)
-      ps.getPartitions(ECQL.toFilter("bbox(geom, -180, -90, 180, 90, 'EPSG:4326')")).size mustEqual 4
-      ps.getPartitions(ECQL.toFilter("bbox(geom, -1, -1, 1, 1, 'EPSG:4326')")).size mustEqual 4
-      ps.getPartitions(ECQL.toFilter("bbox(geom, -10, 5, 10, 6, 'EPSG:4326')")).size mustEqual 2
+      val filters = Seq(
+        ("bbox(geom, -180, -90, 180, 90)", 4),
+        ("bbox(geom, -1, -1, 1, 1)", 4),
+        ("bbox(geom, -10, 5, 10, 6)", 2)
+      )
+      foreach(filters) { case (filter, count) =>
+        val covering = ps.getFilterPartitions(ECQL.toFilter(filter))
+        covering.isPresent must beTrue
+        covering.get.size() mustEqual 1
+        covering.get.get(0).partial must beFalse
+        covering.get.get(0).partitions.size() mustEqual count
+      }
     }
 
     "4 bit with filter" >> {
       val ps = new Z2Scheme(4, "geom", true)
-      ps.getPartitions(ECQL.toFilter("bbox(geom, -180, -90, 180, 90, 'EPSG:4326')")).size mustEqual 16
-      ps.getPartitions(ECQL.toFilter("bbox(geom, -1, -1, 1, 1, 'EPSG:4326')")).size mustEqual 4
-      ps.getPartitions(ECQL.toFilter("bbox(geom, -10, 5, 10, 6, 'EPSG:4326')")).size mustEqual 2
-      ps.getPartitions(ECQL.toFilter("bbox(geom, -90, 5, 90, 6, 'EPSG:4326')")).size mustEqual 3
-      ps.getPartitions(ECQL.toFilter("bbox(geom, -90.000000001, 5, 90, 6, 'EPSG:4326')")).size mustEqual 4
-      ps.getPartitions(ECQL.toFilter("bbox(geom, -90.000000001, 5, 180, 6, 'EPSG:4326')")).size mustEqual 4
+      val filters = Seq(
+        ("bbox(geom, -180, -90, 180, 90)", 16),
+        ("bbox(geom, -1, -1, 1, 1)", 4),
+        ("bbox(geom, -10, 5, 10, 6)", 2),
+        ("bbox(geom, -90, 5, 90, 6)", 3),
+        ("bbox(geom, -90.000000001, 5, 90, 6)", 4),
+        ("bbox(geom, -90.000000001, 5, 180, 6)", 4)
+      )
+      foreach(filters) { case (filter, count) =>
+        val covering = ps.getFilterPartitions(ECQL.toFilter(filter))
+        covering.isPresent must beTrue
+        covering.get.size() mustEqual 1
+        covering.get.get(0).partial must beFalse
+        covering.get.get(0).partitions.size() mustEqual count
+      }
     }
 
     "date time test" >> {
@@ -178,26 +217,42 @@ class PartitionSchemeTest extends Specification with AllExpectations {
         new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, "dtg", true),
         new Z2Scheme(2, "geom", true)
       ))
-      val covering = ps.getPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
-      covering.size mustEqual 96
+      val covering = ps.getFilterPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
+      covering.isPresent must beTrue
+      covering.get.size() mustEqual 1
+      covering.get.get(0).partial must beFalse
+      covering.get.get(0).partitions.size mustEqual 96
       // TODO actually test the resulting values...
     }
 
     "composite scheme test hourly,z2-2bit" >> {
       val ps = PartitionScheme.apply(sft, "hourly,z2-2bit")
       ps must beAnInstanceOf[CompositeScheme]
-      val covering = ps.getPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
-      covering.size() mustEqual 24 * 4
+      val covering = ps.getFilterPartitions(ECQL.toFilter("dtg >= '2016-08-03T00:00:00.000Z' and dtg < '2016-08-04T00:00:00.000Z'"))
+      covering.isPresent must beTrue
+      covering.get.size() mustEqual 1
+      covering.get.get(0).partial must beFalse
+      covering.get.get(0).partitions.size() mustEqual 24 * 4
     }
 
     "handle edge boundaries" >> {
       val dtScheme = new DateTimeScheme("yyyy/yyyyMMdd", ChronoUnit.DAYS, 1, "dtg", true)
-      val twoDays = dtScheme.getPartitions(ECQL.toFilter("dtg > '2017-01-02' and dtg < '2017-01-04T00:00:00.000Z'"))
-      twoDays.size mustEqual 2
-      twoDays.toSeq must containTheSameElementsAs((2 to 3).map(i => f"2017/201701$i%02d"))
-      val threeDays = dtScheme.getPartitions(ECQL.toFilter("dtg >= '2017-01-02' and dtg <= '2017-01-04T00:00:00.001Z'"))
-      threeDays.size mustEqual 3
-      threeDays.toSeq must containTheSameElementsAs((2 to 4).map(i => f"2017/201701$i%02d"))
+      val exclusive = ECQL.toFilter("dtg > '2017-01-02' and dtg < '2017-01-04T00:00:00.000Z'")
+      val twoDays = dtScheme.getFilterPartitions(exclusive)
+      twoDays.isPresent must beTrue
+      twoDays.get.size mustEqual 2
+      twoDays.get.map(_.filter) must containTheSameElementsAs(Seq(Filter.INCLUDE, exclusive))
+      foreach(twoDays.get)(_.partial must beFalse)
+      twoDays.get.find(_.filter == Filter.INCLUDE).map(_.partitions.asScala) must beSome(Seq("2017/20170103"))
+      twoDays.get.find(_.filter != Filter.INCLUDE).map(_.partitions.asScala) must beSome(Seq("2017/20170102"))
+      val inclusive = ECQL.toFilter("dtg >= '2017-01-02' and dtg <= '2017-01-04T00:00:00.001Z'")
+      val threeDays = dtScheme.getFilterPartitions(inclusive)
+      threeDays.isPresent must beTrue
+      threeDays.get.size mustEqual 2
+      threeDays.get.map(_.filter) must containTheSameElementsAs(Seq(Filter.INCLUDE, inclusive))
+      foreach(threeDays.get)(_.partial must beFalse)
+      threeDays.get.find(_.filter == Filter.INCLUDE).map(_.partitions.asScala) must beSome(containTheSameElementsAs(Seq("2017/20170102", "2017/20170103")))
+      threeDays.get.find(_.filter != Filter.INCLUDE).map(_.partitions.asScala) must beSome(Seq("2017/20170104"))
     }
   }
 }
