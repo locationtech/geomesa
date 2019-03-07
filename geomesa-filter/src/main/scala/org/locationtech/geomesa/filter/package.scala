@@ -12,6 +12,7 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.filter.expression.AttributeExpression
 import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.{Expression, Function, Literal, PropertyName}
@@ -27,6 +28,10 @@ package object filter {
   //  'namespace' and 'function' calls.
   // As such, we can get away with using a shared Filter Factory.
   implicit val ff: FilterFactory2 = CommonFactoryFinder.getFilterFactory2
+
+  object FilterProperties {
+    val GeometryProcessing = SystemProperty("geomesa.geometry.processing", "spatial4j")
+  }
 
   def filterToString(filter: Filter): String = Try(ECQL.toCQL(filter)).getOrElse(filter.toString)
   def filterToString(filter: Option[Filter]): String = filter.map(filterToString).getOrElse("None")
