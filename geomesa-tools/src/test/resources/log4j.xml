@@ -19,6 +19,12 @@
     <category name="org.apache.hadoop">
         <priority value="warn"/>
     </category>
+    <category name="org.apache.orc">
+        <priority value="warn"/>
+    </category>
+    <category name="org.apache.parquet">
+        <priority value="warn"/>
+    </category>
     <category name="hsqldb">
         <priority value="warn"/>
     </category>

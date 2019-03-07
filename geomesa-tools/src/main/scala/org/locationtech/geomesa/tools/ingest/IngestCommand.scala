@@ -25,8 +25,7 @@ import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
-import org.locationtech.geomesa.tools.utils.DataFormats.DataFormat
-import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats, Prompt}
+import org.locationtech.geomesa.tools.utils.{CLArgResolver, Prompt}
 import org.locationtech.geomesa.utils.geotools.{ConfigSftParsing, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
@@ -71,7 +70,7 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
       }
     }
 
-    val mode = if (format.contains(DataFormats.Shp)) {
+    val mode = if (format.contains("shp")) {
       // shapefiles have to be ingested locally, as we need access to the related files
       if (Option(params.mode).exists(_ != RunModes.Local)) {
         Command.user.warn("Forcing run mode to local for shapefile ingestion")
@@ -147,16 +146,18 @@ object IngestCommand extends LazyLogging {
     *
     * @param params params
     * @param files input files
-    * @return
+    * @return input format, as a lower-case string
     */
-  def getDataFormat(params: OptionalInputFormatParam, files: Seq[String]): Option[DataFormat] = {
-    val fromParam = Option(params.format).flatMap(f => DataFormats.values.find(_.toString.equalsIgnoreCase(f)))
-    def fromFile: Option[DataFormat] = files.flatMap(DataFormats.fromFileName(_).right.toOption).headOption
-    // back compatible check for 'geojson' as a format (instead, just use 'json')
-    def geojson: Option[DataFormat] =
-      if ("geojson".equalsIgnoreCase(params.format)) { Some(DataFormats.Json) } else { None }
-
-    fromParam.orElse(fromFile).orElse(geojson)
+  def getDataFormat(params: OptionalInputFormatParam, files: Seq[String]): Option[String] = {
+    val raw = if (params.format != null) { Some(params.format) } else {
+      val exts = files.iterator.map(PathUtils.getUncompressedExtension).filter(_.nonEmpty)
+      if (exts.hasNext) { Some(exts.next) } else { None }
+    }
+    raw.map {
+      case r if r.equalsIgnoreCase("gml")     => "xml"
+      case r if r.equalsIgnoreCase("geojson") => "json"
+      case r => r.toLowerCase(Locale.US)
+    }
   }
 
   /**
@@ -173,7 +174,7 @@ object IngestCommand extends LazyLogging {
   def getSftAndConverter(
       params: TypeNameParam with FeatureSpecParam with ConverterConfigParam with OptionalForceParam,
       inputs: Seq[String],
-      format: Option[DataFormat],
+      format: Option[String],
       toStore: Option[() => DataStore]): Try[Option[(SimpleFeatureType, Config)]] = Try {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
@@ -193,9 +194,9 @@ object IngestCommand extends LazyLogging {
       }
       val (inferredSft, inferredConverter) = {
         val opt = format match {
-          case None => SimpleFeatureConverter.infer(() => file.open, Option(sft))
-          case Some(DataFormats.Shp) => ShapefileConverterFactory.infer(file.path, Option(sft))
-          case Some(fmt) => TypeAwareInference.infer(fmt.toString.toLowerCase(Locale.US), () => file.open, Option(sft))
+          case None        => SimpleFeatureConverter.infer(() => file.open, Option(sft))
+          case Some("shp") => ShapefileConverterFactory.infer(file.path, Option(sft))
+          case Some(fmt)   => TypeAwareInference.infer(fmt, () => file.open, Option(sft))
         }
         opt.getOrElse {
           throw new ParameterException("Could not determine converter from inputs - please specify a converter")

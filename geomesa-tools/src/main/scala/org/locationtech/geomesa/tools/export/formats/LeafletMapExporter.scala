@@ -12,23 +12,24 @@ import java.io._
 
 import com.beust.jcommander.ParameterException
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Geometry
 import org.geotools.geojson.feature.FeatureJSON
 import org.locationtech.geomesa.tools.Command.user
-import org.locationtech.geomesa.tools.export.formats.LeafletMapExporter.{SimpleCoordinate, _}
-import org.locationtech.geomesa.tools.export.{ExportCommand, FileExportParams}
+import org.locationtech.geomesa.tools.export.ExportCommand
+import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
+import org.locationtech.geomesa.tools.export.formats.LeafletMapExporter.SimpleCoordinate
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
 import scala.io.Source
 
-class LeafletMapExporter(params: FileExportParams) extends FeatureExporter with LazyLogging {
+class LeafletMapExporter(params: ExportParams) extends FeatureExporter with LazyLogging {
 
   Option(params.maxFeatures) match {
     case Some(limit) =>
-      if (limit > MaxFeatures) {
+      if (limit > LeafletMapExporter.MaxFeatures) {
         val warn = "The Leaflet map may exhibit performance issues displaying large numbers of features. " +
             "Instead, consider using GeoServer for map rendering. Would you like to continue anyway (y/n)? "
         if (!Prompt.confirm(warn)) {
@@ -37,13 +38,15 @@ class LeafletMapExporter(params: FileExportParams) extends FeatureExporter with 
       }
 
     case None =>
-      user.debug(s"Limiting max features to $MaxFeatures")
-      params.maxFeatures = MaxFeatures
+      user.debug(s"Limiting max features to ${LeafletMapExporter.MaxFeatures}")
+      params.maxFeatures = LeafletMapExporter.MaxFeatures
   }
 
   if (params.gzip != null) {
     user.warn("Ignoring gzip parameter for Leaflet export")
   }
+
+  LeafletMapExporter.setDestination(params)
 
   private val json = new FeatureJSON()
   private val coordMap = scala.collection.mutable.Map.empty[SimpleCoordinate, Int]
@@ -52,12 +55,11 @@ class LeafletMapExporter(params: FileExportParams) extends FeatureExporter with 
   private var featureInfo = ""
   private var totalCount = 0L
 
-  private val indexFile = getDestination(Option(params.file).getOrElse(new File(sys.props("user.dir"))))
-  private val indexWriter = ExportCommand.getWriter(indexFile, null)
+  private val indexWriter = ExportCommand.createWriter(params)
 
   override def start(sft: SimpleFeatureType): Unit = {
-    featureInfo = getFeatureInfo(sft)
-    indexWriter.write(indexHead)
+    featureInfo = LeafletMapExporter.getFeatureInfo(sft)
+    indexWriter.write(LeafletMapExporter.IndexHead)
     indexWriter.write("""var points = {"type":"FeatureCollection","features":[""")
   }
 
@@ -70,7 +72,7 @@ class LeafletMapExporter(params: FileExportParams) extends FeatureExporter with 
         indexWriter.write(",")
       }
       json.writeFeature(feature, indexWriter)
-      storeFeature(feature, coordMap)
+      LeafletMapExporter.storeFeature(feature, coordMap)
       count += 1L
     }
     indexWriter.flush()
@@ -83,7 +85,7 @@ class LeafletMapExporter(params: FileExportParams) extends FeatureExporter with 
     indexWriter.write("]};\n\n")
     indexWriter.write(featureInfo)
     // Write Heatmap Data
-    val values = normalizeValues(coordMap)
+    val values = LeafletMapExporter.normalizeValues(coordMap)
     first = true
     indexWriter.write("""var heat = L.heatLayer([""" + "\n")
     values.foreach { case (coord, weight) =>
@@ -95,21 +97,19 @@ class LeafletMapExporter(params: FileExportParams) extends FeatureExporter with 
       indexWriter.write(s"""        [${coord.y}, ${coord.x}, $weight]""")
     }
     indexWriter.write("\n    ], {radius: 25});\n\n")
-    indexWriter.write(indexTail)
+    indexWriter.write(LeafletMapExporter.IndexTail)
     indexWriter.close()
 
     if (totalCount < 1) {
       user.warn("No features were exported - the map will not render correctly")
     }
-    user.info(s"Leaflet html exported to: ${indexFile.getAbsolutePath}")
+    user.info(s"Leaflet html exported to: ${new File(params.file).getAbsolutePath}")
   }
 }
 
 object LeafletMapExporter {
 
-  val MaxFeatures = 10000
-
-  lazy val Array(indexHead, indexTail) = {
+  lazy private val Template: Array[String] = {
     WithClose(getClass.getClassLoader.getResourceAsStream("leaflet/index.html")) { is =>
       val indexArray = Source.fromInputStream(is).mkString.split("\\|codegen\\|")
       require(indexArray.length == 2, "Malformed index.html, unable to render map")
@@ -117,29 +117,30 @@ object LeafletMapExporter {
     }
   }
 
+  lazy val IndexHead: String = Template.head
+  lazy val IndexTail: String  = Template.last
+
+  val MaxFeatures = 10000
+
   /**
-    * Handle both files and directories that could exist or not
+    * Sets the 'file' in params to an output html file. Handles both files and directories that could exist or not
     *
-    * @param path file parameter
+    * @param params parameters
     * @return
     */
-  def getDestination(path: File): File = {
-    if (path.exists()) {
-      if (path.isDirectory) {
-        getDestination(new File(path, "index.html"))
-      } else if (path.canWrite) {
-        path
-      } else {
-        throw new IOException(s"Can't write to ${path.getAbsolutePath}, please check file permissions")
-      }
-    } else if (path.getName.contains(".")) {
-      // this will throw an exception if we don't have permissions
-      Option(path.getParentFile).foreach(_.mkdirs())
-      path.createNewFile()
-      path
+  def setDestination(params: ExportParams): Unit = {
+    val file = new File(Option(params.file).getOrElse(sys.props("user.dir")))
+    val destination = if (file.isDirectory || (!file.exists && file.getName.indexOf(".") == -1)) {
+      new File(file, "index.html")
     } else {
-      getDestination(new File(path, "index.html"))
+      file
     }
+    if (!destination.exists()) {
+      // this will throw an exception if we don't have permissions
+      Option(destination.getParentFile).foreach(_.mkdirs())
+      destination.createNewFile()
+    }
+    params.file = destination.getAbsolutePath
   }
 
   def getFeatureInfo(sft: SimpleFeatureType): String = {

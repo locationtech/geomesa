@@ -18,12 +18,10 @@ import org.geotools.data.{DataStore, DataUtilities, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.tools.DataStoreRegistration
-import org.locationtech.geomesa.tools.export.ExportCommand.ExportAttributes
-import org.locationtech.geomesa.tools.export.formats.DelimitedExporter
+import org.locationtech.geomesa.tools.export.formats.ExportFormats.ExportFormat
+import org.locationtech.geomesa.tools.export.formats.{DelimitedExporter, ExportFormats}
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
-import org.locationtech.geomesa.tools.utils.DataFormats
-import org.locationtech.geomesa.tools.utils.DataFormats._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -33,8 +31,6 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class DelimitedExportImportTest extends Specification {
-
-  import scala.collection.JavaConverters._
 
   private val counter = new AtomicInteger(0)
 
@@ -57,11 +53,13 @@ class DelimitedExportImportTest extends Specification {
     }
   }
 
-  def export(sft: SimpleFeatureType, features: Iterator[SimpleFeature], format: DataFormat): String = {
+  def export(sft: SimpleFeatureType, features: Iterator[SimpleFeature], format: ExportFormat): String = {
     val writer = new StringWriter()
-    val attributes = sft.getAttributeDescriptors.asScala.map(_.getLocalName)
     // exclude feature ID since the inferred ingestion just treats it as another column
-    val export = new DelimitedExporter(writer, format, Some(ExportAttributes(attributes, fid = false)), true)
+    val export = format match {
+      case ExportFormats.Csv => DelimitedExporter.csv(writer, withHeader = true, includeIds = false)
+      case ExportFormats.Tsv => DelimitedExporter.tsv(writer, withHeader = true, includeIds = false)
+    }
     export.start(sft)
     export.export(features)
     export.close()
@@ -78,7 +76,7 @@ class DelimitedExportImportTest extends Specification {
         ScalaSimpleFeature.create(sft, "id2", "name2", "2016-01-02T00:00:00.000Z", "POINT(0 2)")
       )
 
-      foreach(Seq(DataFormats.Tsv, DataFormats.Csv)) { format =>
+      foreach(Seq(ExportFormats.Tsv, ExportFormats.Csv)) { format =>
         val path = Files.createTempFile(getClass.getSimpleName, "." + format.toString.toLowerCase(Locale.US))
         val file = new File(path.toAbsolutePath.toString)
         try {

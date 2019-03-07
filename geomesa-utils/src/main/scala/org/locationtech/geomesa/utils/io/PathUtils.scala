@@ -20,6 +20,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream, BZip2Utils}
 import org.apache.commons.compress.compressors.gzip.GzipUtils
 import org.apache.commons.compress.compressors.xz.{XZCompressorInputStream, XZUtils}
+import org.apache.commons.io.FilenameUtils
 import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.{FileSystemDelegate, HadoopDelegate, LocalDelegate}
@@ -39,8 +40,10 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
 
   private val factorySet = new AtomicBoolean(false)
 
-  // Make sure that the Hadoop URL Factory is configured.
-  def configureURLFactory(): Unit = {
+  /**
+    * Ensure that the Hadoop URL Factory is configured, so that urls staring with hdfs:// can be parsed
+    */
+  private def configureURLFactory(): Unit = {
     if (factorySet.compareAndSet(false, true)) {
       try { // Calling this method twice in the same JVM causes a java.lang.Error
         URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory)
@@ -52,8 +55,11 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
     }
   }
 
+  override def interpretPath(path: String): Seq[FileHandle] = chooseDelegate(path).interpretPath(path)
+
   /**
     * Checks to see if the path uses a URL pattern and then if it is *not* file://
+    *
     * @param path Input resource path
     * @return     Whether or not the resource is remote.
     */
@@ -82,8 +88,32 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
     }
   }
 
-  override def interpretPath(path: String): Seq[FileHandle] = chooseDelegate(path).interpretPath(path)
+  /**
+    * Returns the file extension, minus any compression that may be present
+    *
+    * @param path file path
+    * @return
+    */
+  def getUncompressedExtension(path: String): String = {
+    val name = if (GzipUtils.isCompressedFilename(path)) {
+      GzipUtils.getUncompressedFilename(path)
+    } else if (XZUtils.isCompressedFilename(path)) {
+      XZUtils.getUncompressedFilename(path)
+    } else if (BZip2Utils.isCompressedFilename(path)) {
+      BZip2Utils.getUncompressedFilename(path)
+    } else {
+      path
+    }
+    FilenameUtils.getExtension(name)
+  }
 
+  /**
+    * Wrap the input stream in a decompressor, if the file is compressed
+    *
+    * @param is input stream
+    * @param filename filename (used to determine compression)
+    * @return
+    */
   def handleCompression(is: InputStream, filename: String): InputStream = {
     if (GzipUtils.isCompressedFilename(filename)) {
       new GZIPInputStream(new BufferedInputStream(is))
@@ -96,7 +126,12 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
     }
   }
 
-  def deleteRecursively(f: Path): Unit = Files.walkFileTree(f, new DeleteFileVisitor)
+  /**
+    * Delete a path, including all children
+    *
+    * @param path path
+    */
+  def deleteRecursively(path: Path): Unit = Files.walkFileTree(path, new DeleteFileVisitor)
 
   private def chooseDelegate(path: String): FileSystemDelegate =
     if (hadoopAvailable && uriRegex.matcher(path).matches()) { hadoopDelegate } else { localDelegate }

@@ -13,37 +13,28 @@ import java.time.{Instant, ZoneOffset}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Geometry
-import org.apache.commons.csv.{CSVFormat, QuoteMode}
-import org.locationtech.geomesa.tools.export.ExportCommand.ExportAttributes
-import org.locationtech.geomesa.tools.utils.DataFormats
-import org.locationtech.geomesa.tools.utils.DataFormats._
+import org.apache.commons.csv.{CSVFormat, CSVPrinter, QuoteMode}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class DelimitedExporter(writer: Writer, format: DataFormat, attributes: Option[ExportAttributes], withHeader: Boolean)
+class DelimitedExporter(printer: CSVPrinter, withHeader: Boolean, includeIds: Boolean)
     extends FeatureExporter with LazyLogging {
 
-  import scala.collection.JavaConversions._
+  import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 
-  private val printer = format match {
-    case DataFormats.Csv => CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL).print(writer)
-    case DataFormats.Tsv => CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL).print(writer)
-  }
-
-  private val withId = attributes.forall(_.fid)
-  private var names: Seq[String] = _
+  import scala.collection.JavaConverters._
 
   override def start(sft: SimpleFeatureType): Unit = {
-    names = attributes.map(_.names).getOrElse(sft.getAttributeDescriptors.map(_.getLocalName))
-
     // write out a header line
     if (withHeader) {
-      if (withId) {
+      if (includeIds) {
         printer.print("id")
       }
-      names.foreach(name => printer.print(SimpleFeatureTypes.encodeDescriptor(sft, sft.getDescriptor(name))))
+      sft.getAttributeDescriptors.asScala.foreach { descriptor =>
+        printer.print(SimpleFeatureTypes.encodeDescriptor(sft, descriptor))
+      }
       printer.println()
       printer.flush()
     }
@@ -52,11 +43,14 @@ class DelimitedExporter(writer: Writer, format: DataFormat, attributes: Option[E
   override def export(features: Iterator[SimpleFeature]): Option[Long] = {
     var count = 0L
     features.foreach { sf =>
-      if (withId) {
+      if (includeIds) {
         printer.print(sf.getID)
       }
-      // retrieve values by name, index doesn't always correspond correctly due to geometry being added back in
-      names.foreach(name => printer.print(stringify(sf.getAttribute(name))))
+      var i = 0
+      while (i < sf.getAttributeCount) {
+        printer.print(stringify(sf.getAttribute(i)))
+        i += 1
+      }
       printer.println()
 
       count += 1
@@ -73,17 +67,25 @@ class DelimitedExporter(writer: Writer, format: DataFormat, attributes: Option[E
 
   override def close(): Unit = printer.close()
 
-  private def stringify(o: Any): String = {
-    import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
-    o match {
-      case null                   => ""
-      case g: Geometry            => WKTUtils.write(g)
-      case d: Date                => GeoToolsDateFormat.format(Instant.ofEpochMilli(d.getTime).atZone(ZoneOffset.UTC))
-      case l: java.util.List[_]   => l.map(stringify).mkString(",")
-      case m: java.util.Map[_, _] => m.map { case (k, v) => s"${stringify(k)}->${stringify(v)}"}.mkString(",")
-      case _                      => o.toString
-    }
+  private def stringify(obj: Any): String = obj match {
+    case null                   => ""
+    case g: Geometry            => WKTUtils.write(g)
+    case d: Date                => GeoToolsDateFormat.format(Instant.ofEpochMilli(d.getTime).atZone(ZoneOffset.UTC))
+    case l: java.util.List[_]   => l.asScala.map(stringify).mkString(",")
+    case m: java.util.Map[_, _] => m.asScala.map { case (k, v) => s"${stringify(k)}->${stringify(v)}"}.mkString(",")
+    case _                      => obj.toString
   }
 }
 
+object DelimitedExporter {
 
+  def csv(writer: Writer, withHeader: Boolean, includeIds: Boolean = true): DelimitedExporter = {
+    val printer = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL).print(writer)
+    new DelimitedExporter(printer, withHeader, includeIds)
+  }
+
+  def tsv(writer: Writer, withHeader: Boolean, includeIds: Boolean = true): DelimitedExporter = {
+    val printer = CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL).print(writer)
+    new DelimitedExporter(printer, withHeader, includeIds)
+  }
+}

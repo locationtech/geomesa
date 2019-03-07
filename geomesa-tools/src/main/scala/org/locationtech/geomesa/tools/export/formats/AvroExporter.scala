@@ -14,7 +14,7 @@ import org.locationtech.geomesa.features.avro.AvroDataFileWriter
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class AvroExporter(os: OutputStream, compression: Int) extends FeatureExporter {
+class AvroExporter(compression: Int, os: OutputStream) extends FeatureExporter {
 
   private var writer: AvroDataFileWriter = _
 

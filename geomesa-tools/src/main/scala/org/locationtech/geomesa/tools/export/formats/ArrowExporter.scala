@@ -36,7 +36,7 @@ class ArrowExporter(hints: Hints, os: OutputStream, queryDictionaries: => Map[St
 
   private var writer: SimpleFeatureArrowFileWriter = _
 
-  private var doExport: (Iterator[SimpleFeature]) => Option[Long] = _
+  private var doExport: Iterator[SimpleFeature] => Option[Long] = _
 
   override def start(sft: SimpleFeatureType): Unit = {
     this.sft = sft
@@ -142,7 +142,7 @@ object ArrowExporter {
     }
 
     if (dictionaryFields.isEmpty) { Map.empty } else {
-      // TODO could do a stats query?
+      // if we're hitting this, we can't do a stats query as we're not dealing with a geomesa store
       val dictionaryQuery = new Query(query.getTypeName, query.getFilter)
       dictionaryQuery.setPropertyNames(dictionaryFields)
       val map = dictionaryFields.map(f => f -> scala.collection.mutable.HashSet.empty[AnyRef]).toMap
