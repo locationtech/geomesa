@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.fs.storage.api;
 
 import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.filter.Filter;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public interface PartitionScheme {
 
@@ -32,14 +32,29 @@ public interface PartitionScheme {
      */
     String getPartition(SimpleFeature feature);
 
+    @Deprecated
+    default List<String> getPartitions(Filter filter) {
+        // default implementation provides API compatibility but will throw an error if invoked
+        throw new AbstractMethodError();
+    }
+
     /**
-     * Return a list of partitions that the system needs to query
-     * in order to satisfy a filter predicate
+     * Return a list of modified filters and partitions. Each filter will have been simplified to
+     * remove any predicates that are implicitly true for the associated partitions
+     *
+     * If the filter does not constrain partitions at all, then an empty option will be returned,
+     * indicating all partitions must be searched. If the filter excludes all potential partitions,
+     * then an empty list of partitions will be returned
+     *
+     * Note that this operation is based solely on the partition scheme, so may return partitions
+     * that do not actually exist in a given storage instance
      *
      * @param filter filter
-     * @return list of partitions that may have results from the filter
+     * @return list of simplified filters and partitions
      */
-    List<String> getPartitions(Filter filter);
+    default Optional<List<FilterPartitions>> getFilterPartitions(Filter filter) {
+        return Optional.empty();
+    }
 
     /**
      *

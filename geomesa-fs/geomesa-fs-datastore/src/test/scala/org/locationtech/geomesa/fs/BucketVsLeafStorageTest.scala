@@ -56,10 +56,6 @@ class BucketVsLeafStorageTest extends Specification {
       new ScalaSimpleFeature(sft, "3", Array("fourth", date("2016-01-04"), gf.createPoint(new Coordinate(-5, -5)))) // z2 = 0
     )
 
-    def addFeatures(sft: SimpleFeatureType) =
-      ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
-        .addFeatures(new ListFeatureCollection(sft, features(sft)))
-
     def toList(sfi: SimpleFeatureIterator): List[SimpleFeature] = SelfClosingIterator(sfi).toList
 
     "store data in leaves" >> {
@@ -153,7 +149,6 @@ class BucketVsLeafStorageTest extends Specification {
         }
         CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features).toList.size mustEqual 8
       }
-
     }
 
     "store data in buckets" >> {
@@ -251,7 +246,6 @@ class BucketVsLeafStorageTest extends Specification {
         }
         CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features).toList.size mustEqual 8
       }
-
     }
 
     step {

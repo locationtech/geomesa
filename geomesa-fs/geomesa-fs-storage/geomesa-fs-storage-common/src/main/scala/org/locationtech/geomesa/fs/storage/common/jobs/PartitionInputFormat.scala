@@ -72,7 +72,7 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
         val storage = FileSystemStorageFactory.factory(encoding).load(fc, conf, path).get
 
         val query = new Query(sft.getTypeName, Filter.INCLUDE)
-        reader = storage.getReader(Seq(partitionInputSplit.getName), query)
+        reader = storage.getPartitionReader(query, partitionInputSplit.getName)
       }
 
       // TODO look at how the ParquetInputFormat provides progress and utilize something similar

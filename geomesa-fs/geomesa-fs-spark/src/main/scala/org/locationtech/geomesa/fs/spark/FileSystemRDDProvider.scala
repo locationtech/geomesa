@@ -13,6 +13,7 @@ import java.io.Serializable
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.Path
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.hadoop.mapreduce.{InputFormat, Job}
 import org.apache.parquet.hadoop.ParquetInputFormat
@@ -29,6 +30,7 @@ import org.locationtech.geomesa.parquet.{FilterConverter, ParquetFileSystemStora
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 
 class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 
@@ -39,31 +41,52 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
                    sc: SparkContext,
                    params: Map[String, String],
                    query: Query): SpatialRDD = {
-    import scala.collection.JavaConversions._
+    import scala.collection.JavaConverters._
 
-    val ds = DataStoreFinder.getDataStore(params).asInstanceOf[FileSystemDataStore]
+    val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]
     try {
       val sft = ds.getSchema(query.getTypeName)
 
       val storage = ds.storage(query.getTypeName)
-      val inputPaths = storage.getPartitions(query.getFilter).flatMap(p => storage.getFilePaths(p.name))
 
-      val rdd = if (inputPaths.isEmpty) { sc.emptyRDD[SimpleFeature] } else {
+      // split up the job by the filters required for each partition group
+      val filters = storage.getPartitionsForQuery(query.getFilter).asScala.flatMap { fp =>
+        val paths = fp.partitions.asScala.flatMap(storage.getFilePaths(_).asScala)
+        if (paths.isEmpty) { Seq.empty } else {
+          Seq(fp.filter -> paths)
+        }
+      }
+
+      def runQuery(filter: Filter, paths: Seq[Path]): RDD[SimpleFeature] = {
         // note: file input format requires a job object, but conf gets copied in job object creation,
         // so we have to copy the file paths back out
         val job = Job.getInstance(conf)
 
         // Note we have to copy all the conf twice?
-        FileInputFormat.setInputPaths(job, inputPaths: _*)
+        FileInputFormat.setInputPaths(job, paths: _*)
         conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
 
+        val q = new Query(query)
+        q.setFilter(filter)
+
         val inputFormat = storage.getMetadata.getEncoding match {
-          case OrcFileSystemStorage.OrcEncoding => configureOrc(conf, sft, query)
-          case ParquetFileSystemStorage.ParquetEncoding => configureParquet(conf, sft, query)
+          case OrcFileSystemStorage.OrcEncoding => configureOrc(conf, sft, q)
+          case ParquetFileSystemStorage.ParquetEncoding => configureParquet(conf, sft, q)
           case e => throw new RuntimeException(s"Not implemented for encoding '$e'")
         }
 
         sc.newAPIHadoopRDD(conf, inputFormat, classOf[Void], classOf[SimpleFeature]).map(_._2)
+      }
+
+      val rdd = if (filters.isEmpty) {
+        logger.debug("Reading 0 partitions")
+        sc.emptyRDD[SimpleFeature]
+      } else {
+        val rdds = filters.map { case (filter, partitions) =>
+          logger.debug(s"Reading ${partitions.length} partitions with filter: $filter")
+          runQuery(filter, partitions)
+        }
+        rdds.reduceLeft(_ union _)
       }
       SpatialRDD(rdd, sft)
     } finally {

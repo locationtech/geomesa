@@ -75,7 +75,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
 
         val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
 
-        val doTest = testQuery(storage, sft, partitions) _
+        val doTest = testQuery(storage, sft) _
 
         foreach(transformsList) { transforms =>
           doTest("INCLUDE", transforms, features)
@@ -156,7 +156,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
 
         val transformsList = Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))
 
-        val doTest: (String, Array[String], Seq[SimpleFeature]) => MatchResult[Any] = testQuery(storage, sft, partitions) _
+        val doTest = testQuery(storage, sft) _
 
         foreach(transformsList) { transforms =>
           doTest("INCLUDE", transforms, features)
@@ -175,7 +175,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
     }
   }
 
-  def withTestDir[R](code: (Path) => R): R = {
+  def withTestDir[R](code: Path => R): R = {
     val file = new Path(Files.createTempDirectory("gm-orc-test").toUri)
     try { code(file) } finally {
       file.getFileSystem(new Configuration).delete(file, true)
@@ -183,8 +183,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
   }
 
   def testQuery(storage: FileSystemStorage,
-                sft: SimpleFeatureType,
-                partitions: Seq[String])
+                sft: SimpleFeatureType)
                (filter: String,
                 transforms: Array[String],
                 results: Seq[SimpleFeature]): MatchResult[Any] = {
@@ -192,7 +191,7 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
 
     val query = new Query(sft.getTypeName, ECQL.toFilter(filter), transforms)
     val features = {
-      val iter = SelfClosingIterator(storage.getReader(partitions, query))
+      val iter = SelfClosingIterator(storage.getReader(query))
       // note: need to copy features in iterator as same object is re-used
       iter.map(ScalaSimpleFeature.copy).toList
     }

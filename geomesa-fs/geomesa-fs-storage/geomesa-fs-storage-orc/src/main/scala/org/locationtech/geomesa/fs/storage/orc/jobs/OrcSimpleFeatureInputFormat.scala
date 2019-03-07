@@ -88,9 +88,9 @@ object OrcSimpleFeatureInputFormat {
     }
 
     val options = OrcFileSystemReader.readOptions(sft, f, transform)
-    options.pushDown.foreach { case (sargs, cols) => OrcInputFormat.setSearchArgument(conf, sargs, cols) }
-    // TODO no way to set Orc.include cols?
-    options.columns.foreach(c => conf.set(ReadColumnsConfig, c.map(sft.indexOf).mkString(",")))
+    options.pushDown.foreach { case (sargs, names) => OrcInputFormat.setSearchArgument(conf, sargs, names) }
+    val cols = options.columns.map(_.toSeq.map(sft.indexOf)).getOrElse(Range(0, sft.getAttributeCount))
+    conf.set(ReadColumnsConfig, cols.mkString(","))
   }
 
   def getFilter(conf: Configuration, sft: SimpleFeatureType): Option[Filter] =

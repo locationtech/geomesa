@@ -9,14 +9,16 @@
 package org.locationtech.geomesa.fs.storage.common.partitions
 
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
+import java.time.temporal.{ChronoUnit, TemporalAdjusters}
 import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.{Date, Optional}
+import java.util.{Collections, Date, Optional}
 
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.api.{PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.fs.storage.api.{FilterPartitions, PartitionScheme, PartitionSchemeFactory}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import scala.annotation.tailrec
 
 class DateTimeScheme(fmtStr: String,
                      stepUnit: ChronoUnit,
@@ -24,28 +26,109 @@ class DateTimeScheme(fmtStr: String,
                      dtg: String,
                      leaf: Boolean) extends PartitionScheme {
 
-  private val MinDateTime = ZonedDateTime.of(0, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)
-  private val MaxDateTime = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 999000000, ZoneOffset.UTC)
+  import ChronoUnit._
 
   private val fmt = DateTimeFormatter.ofPattern(fmtStr)
+
+  // note: `truncatedTo` is only valid up to DAYS, other units require additional steps
+  private val truncate: ZonedDateTime => ZonedDateTime = stepUnit match {
+    case NANOS | MICROS | MILLIS | SECONDS | MINUTES | HOURS | DAYS =>
+      dt => dt.truncatedTo(stepUnit)
+
+    case MONTHS =>
+      val adjuster = TemporalAdjusters.firstDayOfMonth()
+      dt => dt.`with`(adjuster).truncatedTo(DAYS)
+
+    case YEARS =>
+      val adjuster = TemporalAdjusters.firstDayOfYear()
+      dt => dt.`with`(adjuster).truncatedTo(DAYS)
+
+    case _ =>
+      dt => ZonedDateTime.parse(fmt.format(dt), fmt) // fall back to format and re-parse
+  }
 
   override def getName: String = DateTimeScheme.Name
 
   override def getPartition(feature: SimpleFeature): String =
     fmt.format(feature.getAttribute(dtg).asInstanceOf[Date].toInstant.atZone(ZoneOffset.UTC))
 
-  override def getPartitions(filter: Filter): java.util.List[String] = {
-    import scala.collection.JavaConverters._
+  override def getFilterPartitions(filter: Filter): Optional[java.util.List[FilterPartitions]] = {
+    val bounds = FilterHelper.extractIntervals(filter, dtg, handleExclusiveBounds = false)
+    if (bounds.disjoint) {
+      Optional.of(Collections.emptyList())
+    } else if (bounds.isEmpty || !bounds.forall(_.isBoundedBothSides)) {
+      Optional.empty()
+    } else {
+      // there should be no duplicates in covered partitions, as our bounds will not overlap,
+      // but there may be multiple partial intersects with a given partition
+      val covered = new java.util.ArrayList[String]()
+      val partial = new java.util.HashSet[String]()
 
-    val bounds = FilterHelper.extractIntervals(filter, dtg, handleExclusiveBounds = true)
-    val intervals = bounds.values.map { b =>
-      (b.lower.value.getOrElse(MinDateTime), b.upper.value.getOrElse(MaxDateTime))
+      bounds.values.foreach { bound =>
+        // note: we verified both sides are bounded above
+        val lower = bound.lower.value.get
+        val upper = bound.upper.value.get
+        val start = truncate(lower)
+        // `stepUnit.between` claims to be upper endpoint exclusive, but doesn't seem to be...
+        // if exclusive end, subtract one milli so we don't search the whole next partition if it's on the endpoint
+        // note: we only support millisecond resolution
+        val end = truncate(if (bound.upper.inclusive) { upper } else { upper.minus(1, MILLIS) })
+        val steps = stepUnit.between(start, end).toInt
+
+        // do our endpoints match the partition boundary, or do we need to apply a filter to the first/last partition?
+        val coveringFirst = bound.lower.inclusive && lower == start
+        val coveringLast =
+          (bound.upper.exclusive && upper == end.plus(1, stepUnit)) ||
+            (bound.upper.inclusive && !upper.isBefore(end.plus(1, stepUnit).minus(1, MILLIS)))
+
+        if (steps == 0) {
+          if (coveringFirst && coveringLast) {
+            covered.add(fmt.format(start))
+          } else {
+            partial.add(fmt.format(start))
+          }
+        } else {
+          // add the first partition
+          if (coveringFirst) {
+            covered.add(fmt.format(start))
+          } else {
+            partial.add(fmt.format(start))
+          }
+
+          @tailrec
+          def addSteps(step: Int, current: ZonedDateTime): Unit = {
+            if (step == steps) {
+              // last partition
+              if (coveringLast) {
+                covered.add(fmt.format(current))
+              } else {
+                partial.add(fmt.format(current))
+              }
+            } else {
+              covered.add(fmt.format(current))
+              addSteps(step + 1, current.plus(1, stepUnit))
+            }
+          }
+
+          addSteps(1, start.plus(1, stepUnit))
+        }
+      }
+
+      val result = new java.util.ArrayList[FilterPartitions](2)
+
+      if (!covered.isEmpty) {
+        import org.locationtech.geomesa.filter.{andOption, isTemporalFilter, partitionSubFilters}
+
+        // remove the temporal filter that we've already accounted for in our covered partitions
+        val coveredFilter = andOption(partitionSubFilters(filter, isTemporalFilter(_, dtg))._2)
+        result.add(new FilterPartitions(coveredFilter.getOrElse(Filter.INCLUDE), covered, false))
+      }
+      if (!partial.isEmpty) {
+        result.add(new FilterPartitions(filter, new java.util.ArrayList(partial), false))
+      }
+
+      Optional.of(result)
     }
-
-    intervals.flatMap { case (start, end) =>
-      val count = stepUnit.between(start, end).toInt + 1
-      Seq.tabulate(count)(i => fmt.format(start.plus(step * i, stepUnit)))
-    }.asJava
   }
 
   // TODO This may not be the best way to calculate max depth...
@@ -81,11 +164,11 @@ object DateTimeScheme {
   val Name = "datetime"
 
   object Config {
-    val DateTimeFormatOpt   = "datetime-format"
-    val StepUnitOpt         = "step-unit"
-    val StepOpt             = "step"
-    val DtgAttribute        = "dtg-attribute"
-    val LeafStorage: String = SpatialPartitionSchemeConfig.LeafStorage
+    val DateTimeFormatOpt: String = "datetime-format"
+    val StepUnitOpt      : String = "step-unit"
+    val StepOpt          : String = "step"
+    val DtgAttribute     : String = "dtg-attribute"
+    val LeafStorage      : String = LeafStorageConfig
   }
 
   object Formats {

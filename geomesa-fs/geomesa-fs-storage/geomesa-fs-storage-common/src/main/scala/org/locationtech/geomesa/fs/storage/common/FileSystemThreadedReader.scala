@@ -23,18 +23,18 @@ import scala.util.control.NonFatal
 
 object FileSystemThreadedReader {
 
-  def apply(factory: FileSystemPathReader, paths: Iterator[Path], threads: Int): FileSystemReader = {
+  def apply(readers: Iterator[(FileSystemPathReader, Iterator[Path])], threads: Int): FileSystemReader = {
     if (threads < 2) {
-      new SingleThreadedFileSystemReader(factory, paths)
+      new SingleThreadedFileSystemReader(readers)
     } else {
-      new MultiThreadedFileSystemReader(factory, paths, threads)
+      new MultiThreadedFileSystemReader(readers, threads)
     }
   }
 
-  class SingleThreadedFileSystemReader(factory: FileSystemPathReader, paths: Iterator[Path])
+  class SingleThreadedFileSystemReader(readers: Iterator[(FileSystemPathReader, Iterator[Path])])
       extends FileSystemReader {
 
-    private val iters = paths.map(factory.read)
+    private val iters = readers.flatMap { case (factory, paths) => paths.map(factory.read) }
     private var iter: CloseableIterator[SimpleFeature] = CloseableIterator.empty
 
     @tailrec
@@ -59,7 +59,7 @@ object FileSystemThreadedReader {
     }
   }
 
-  class MultiThreadedFileSystemReader(factory: FileSystemPathReader, paths: Iterator[Path], threads: Int)
+  class MultiThreadedFileSystemReader(readers: Iterator[(FileSystemPathReader, Iterator[Path])], threads: Int)
       extends FileSystemReader with StrictLogging {
 
     private val es = Executors.newFixedThreadPool(threads)
@@ -70,26 +70,28 @@ object FileSystemThreadedReader {
 
     private var current: SimpleFeature = _
 
-    paths.foreach { file =>
-      val runnable = new Runnable {
-        override def run(): Unit = {
-          var count = 0
-          try {
-            logger.debug(s"Reading file $file")
-            WithClose(factory.read(file)) { reader =>
-              while (reader.hasNext) {
-                // need to copy the feature as it can be re-used
-                queue.put(ScalaSimpleFeature.copy(reader.next()))
-                count += 1
+    readers.foreach { case (reader, paths) =>
+      paths.foreach { path =>
+        val runnable = new Runnable {
+          override def run(): Unit = {
+            var count = 0
+            try {
+              logger.debug(s"Reading file $path")
+              WithClose(reader.read(path)) { features =>
+                while (features.hasNext) {
+                  // need to copy the feature as it can be re-used
+                  queue.put(ScalaSimpleFeature.copy(features.next()))
+                  count += 1
+                }
               }
+              logger.debug(s"File $path produced $count records")
+            } catch {
+              case NonFatal(e) => logger.error(s"Error reading file $path", e)
             }
-            logger.debug(s"File $file produced $count records")
-          } catch {
-            case NonFatal(e) => logger.error(s"Error reading file $file", e)
           }
         }
+        es.submit(runnable)
       }
-      es.submit(runnable)
     }
     es.shutdown()
 
