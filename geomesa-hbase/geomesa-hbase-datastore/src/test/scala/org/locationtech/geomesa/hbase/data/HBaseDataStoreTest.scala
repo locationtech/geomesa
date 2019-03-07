@@ -18,6 +18,7 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.filter.function.ProxyIdFunction
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties, SchemaProperties}
@@ -97,6 +98,9 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
               testQuery(ds, typeName, "attr = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, Seq(toAdd(5)))
               testQuery(ds, typeName, "name < 'name5'", transforms, toAdd.take(5))
               testQuery(ds, typeName, "name = 'name5'", transforms, Seq(toAdd(5)))
+              testQuery(ds, typeName, s"bbox(geom,39,49,50,60) AND dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z AND (proxyId() = ${ProxyIdFunction.proxyId("0")})", transforms, toAdd.take(1))
+              // TODO GEOMESA-2562
+              //   testQuery(ds, typeName, s"bbox(geom,39,49,50,60) AND dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z AND (proxyId() = ${ProxyIdFunction.proxyId("0")} OR proxyId() = ${ProxyIdFunction.proxyId("1")})", transforms, toAdd.take(2))
 
               // this query should be blocked
               testQuery(ds, typeName, "INCLUDE", transforms, toAdd) must throwA[RuntimeException]
