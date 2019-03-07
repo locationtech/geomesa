@@ -44,82 +44,84 @@ private class PredicateParser extends ExpressionParser {
   def predicate: Rule1[Predicate] = rule("predicate") { pred ~ EOI }
 
   private def pred: Rule1[Predicate] = rule("pred") {
-    and | or | not | comparison
+    whitespace ~ (and | or | grouped) ~ whitespace
+  }
+
+  private def grouped: Rule1[Predicate] = rule("simple") {
+    whitespace ~ (andFn | orFn | not | comparison | ("(" ~ and ~ ")") | ("(" ~ or ~ ")")) ~ whitespace
+  }
+
+  private def andFn: Rule1[Predicate] = rule("andFn") {
+    ("and(" ~ pred ~ "," ~ oneOrMore(pred, ",") ~ ")") ~~> { (head, tail) => And(head, tail) }
   }
 
   private def and: Rule1[Predicate] = rule("and") {
-    ("and(" ~ pred ~ "," ~ whitespace ~ pred ~ ")") ~~> { (left, right) => And(left, right) }
+    (grouped ~ "&&" ~ oneOrMore(grouped, "&&")) ~~> { (head, tail) => And(head, tail) }
+  }
+
+  private def orFn: Rule1[Predicate] = rule("orFn") {
+    ("or(" ~ pred ~ "," ~ oneOrMore(pred, ",") ~ ")") ~~> { (head, tail) => Or(head, tail) }
   }
 
   private def or: Rule1[Predicate] = rule("or") {
-    ("or(" ~ pred ~ "," ~ whitespace ~ pred ~ ")") ~~> { (left, right) => Or(left, right) }
+    (grouped ~ "||" ~ oneOrMore(grouped, "||")) ~~> { (head, tail) => Or(head, tail) }
   }
 
   private def not: Rule1[Predicate] = rule("not") {
-    ("not(" ~ pred ~ ")") ~~> { (p) => Not(p) }
+    (("not(" | "!(") ~ pred ~ ")") ~~> { p => Not(p) }
   }
 
   private def comparison: Rule1[Predicate] = rule {
-    stringCompare | intCompare | longCompare | floatCompare | doubleCompare | booleanCompare
+    compareFn | booleanCompare | compare
   }
 
-  private def stringCompare: Rule1[Predicate] = rule {
-    ("str" ~ comparisonType ~ "(" ~ expr ~ "," ~ whitespace ~ expr ~ ")") ~~> {
-      (comp, left, right) => binaryComparison[String](comp, left, right)
+  private def compare: Rule1[Predicate] = rule {
+    (expr ~ whitespace ~ op ~ whitespace ~ expr) ~~> {
+      (left, comp, right) => comp match {
+        case "==" => BinaryEquals(left, right)
+        case "!=" => BinaryNotEquals(left, right)
+        case "<"  => BinaryLessThan(left, right)
+        case "<=" => BinaryLessThanOrEquals(left, right)
+        case ">"  => BinaryGreaterThan(left, right)
+        case ">=" => BinaryGreaterThanOrEquals(left, right)
+      }
     }
   }
 
-  private def intCompare: Rule1[Predicate] = rule {
-    (("integer" | "int") ~ comparisonType ~ "(" ~ expr ~ "," ~ whitespace ~ expr ~ ")") ~~> {
-      (comp, left, right) => binaryComparison[Integer](comp, left, right)
+  private def op: Rule1[String] = rule {
+    ("==" | "!=" | "<=" | "<"  | ">=" | ">") ~> { s => s}
+  }
+
+  private def compareFn: Rule1[Predicate] = rule {
+    (compareFnName ~ comparisonType ~ "(" ~ expr ~ "," ~ whitespace ~ expr ~ ")") ~~> {
+      (comp, left, right) => comp match {
+        case Eq   => BinaryEquals(left, right)
+        case LT   => BinaryLessThan(left, right)
+        case GT   => BinaryGreaterThan(left, right)
+        case LTEq => BinaryLessThanOrEquals(left, right)
+        case GTEq => BinaryGreaterThanOrEquals(left, right)
+        case NEq  => BinaryNotEquals(left, right)
+      }
     }
   }
 
-  private def longCompare: Rule1[Predicate] = rule {
-    ("long" ~ comparisonType ~ "(" ~ expr ~ "," ~ whitespace ~ expr ~ ")") ~~> {
-      (comp, left, right) => binaryComparison[java.lang.Long](comp, left, right)
-    }
-  }
-
-  private def floatCompare: Rule1[Predicate] = rule {
-    ("float" ~ comparisonType ~ "(" ~ expr ~ "," ~ whitespace ~ expr ~ ")") ~~> {
-      (comp, left, right) => binaryComparison[java.lang.Float](comp, left, right)
-    }
-  }
-
-  private def doubleCompare: Rule1[Predicate] = rule {
-    ("double" ~ comparisonType ~ "(" ~ expr ~ "," ~ whitespace ~ expr ~ ")") ~~> {
-      (comp, left, right) => binaryComparison[java.lang.Double](comp, left, right)
-    }
+  private def compareFnName: Rule0 = rule {
+    "str" | "integer" | "int" | "long" | "float" | "double"
   }
 
   private def booleanCompare: Rule1[Predicate] = rule {
     (("boolean" | "bool") ~ comparisonType ~ "(" ~ expr ~ "," ~ whitespace ~ expr ~ ")") ~~> {
       (comp, left, right) => comp match {
-        case Eq  => BinaryEquals[java.lang.Boolean](left, right)
-        case NEq => BinaryNotEquals[java.lang.Boolean](left, right)
+        case Eq  => BinaryEquals(left, right)
+        case NEq => BinaryNotEquals(left, right)
         case _ => throw new ParsingException(s"Invalid boolean comparison operator: $comp")
       }
     }
   }
 
   private def comparisonType: Rule1[Comparisons] = rule {
-    (Eq.toString | LTEq.toString | GTEq.toString | LT.toString | GT.toString | NEq.toString ) ~> {
-      (s) => Comparisons.withName(s)
-    }
-  }
-
-  private def binaryComparison[T](comp: Comparisons,
-                                  left: Expression,
-                                  right: Expression)
-                                 (implicit ordering: Ordering[T]): Predicate = {
-    comp match {
-      case Eq   => BinaryEquals[T](left, right)
-      case LT   => BinaryLessThan[T](left, right)
-      case GT   => BinaryGreaterThan[T](left, right)
-      case LTEq => BinaryLessThanOrEquals[T](left, right)
-      case GTEq => BinaryGreaterThanOrEquals[T](left, right)
-      case NEq  => BinaryNotEquals[T](left, right)
+    (Eq.toString | LTEq.toString | GTEq.toString | LT.toString | GT.toString | NEq.toString) ~> {
+      s => Comparisons.withName(s)
     }
   }
 }

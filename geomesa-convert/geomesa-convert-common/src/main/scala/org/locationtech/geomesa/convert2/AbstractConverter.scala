@@ -42,7 +42,7 @@ import scala.util.control.NonFatal
   */
 abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: ConverterOptions]
   (val sft: SimpleFeatureType, val config: C, val fields: Seq[F], val options: O)
-    extends SimpleFeatureConverter with LazyLogging {
+    extends SimpleFeatureConverter with ParsingConverter[T] with LazyLogging {
 
   private val requiredFields: Array[Field] =
     AbstractConverter.requiredFields(sft, fields, config.userData.values.toSeq ++ config.idField.toSeq)
@@ -76,14 +76,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     }
   }
 
-  /**
-    * Convert parsed values into simple features
-    *
-    * @param values parsed values, from `parse`
-    * @param ec evaluation context
-    * @return
-    */
-  def convert(values: CloseableIterator[T], ec: EvaluationContext): CloseableIterator[SimpleFeature] =
+  override def convert(values: CloseableIterator[T], ec: EvaluationContext): CloseableIterator[SimpleFeature] =
     this.values(values, ec).flatMap(convert(_, ec))
 
   /**

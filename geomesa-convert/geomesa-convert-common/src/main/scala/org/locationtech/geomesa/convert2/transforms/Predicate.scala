@@ -18,34 +18,45 @@ object Predicate {
 
   def apply(e: String): Predicate = PredicateParser.parse(e)
 
-  class BinaryPredicate[T](left: Expression, right: Expression, compare: (T, T) => Boolean) extends Predicate {
+  case class BinaryEquals(left: Expression, right: Expression) extends Predicate {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
-      compare(left.eval(args).asInstanceOf[T], right.eval(args).asInstanceOf[T])
+      left.eval(args) == right.eval(args)
   }
 
-  class BinaryLogicPredicate(l: Predicate, r: Predicate, f: (Boolean, Boolean) => Boolean) extends Predicate {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean = f(l.eval(args), r.eval(args))
+  case class BinaryNotEquals(left: Expression, right: Expression) extends Predicate {
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
+      left.eval(args) != right.eval(args)
   }
 
-  case class BinaryEquals[T](left: Expression, right: Expression) extends BinaryPredicate[T](left, right, _ == _)
+  case class BinaryLessThan(left: Expression, right: Expression) extends Predicate {
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
+      left.eval(args).asInstanceOf[Comparable[Any]].compareTo(right.eval(args)) < 0
+  }
 
-  case class BinaryNotEquals[T](left: Expression, right: Expression) extends BinaryPredicate[T](left, right, _ != _)
+  case class BinaryLessThanOrEquals(left: Expression, right: Expression) extends Predicate {
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
+      left.eval(args).asInstanceOf[Comparable[Any]].compareTo(right.eval(args)) <= 0
+  }
 
-  case class BinaryLessThan[T](left: Expression, right: Expression)(implicit ordering: Ordering[T])
-      extends BinaryPredicate[T](left, right, ordering.lt)
+  case class BinaryGreaterThan(left: Expression, right: Expression) extends Predicate {
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
+      left.eval(args).asInstanceOf[Comparable[Any]].compareTo(right.eval(args)) > 0
+  }
 
-  case class BinaryLessThanOrEquals[T](left: Expression, right: Expression)(implicit ordering: Ordering[T])
-      extends BinaryPredicate[T](left, right, ordering.lteq)
+  case class BinaryGreaterThanOrEquals(left: Expression, right: Expression) extends Predicate {
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
+      left.eval(args).asInstanceOf[Comparable[Any]].compareTo(right.eval(args)) >= 0
+  }
 
-  case class BinaryGreaterThan[T](left: Expression, right: Expression)(implicit ordering: Ordering[T])
-      extends BinaryPredicate[T](left, right, ordering.gt)
+  case class And(clause: Predicate, clauses: Seq[Predicate]) extends Predicate {
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
+      clause.eval(args) && clauses.forall(_.eval(args))
+  }
 
-  case class BinaryGreaterThanOrEquals[T](left: Expression, right: Expression)(implicit ordering: Ordering[T])
-      extends BinaryPredicate[T](left, right, ordering.gteq)
-
-  case class And(left: Predicate, right: Predicate) extends BinaryLogicPredicate(left, right, _ && _)
-
-  case class Or(l: Predicate, r: Predicate) extends BinaryLogicPredicate(l, r, _ || _)
+  case class Or(clause: Predicate, clauses: Seq[Predicate])  extends Predicate {
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean =
+      clause.eval(args) || clauses.exists(_.eval(args))
+  }
 
   case class Not(p: Predicate) extends Predicate {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean = !p.eval(args)

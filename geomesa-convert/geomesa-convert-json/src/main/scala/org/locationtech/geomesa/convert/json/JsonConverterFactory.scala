@@ -37,7 +37,7 @@ import scala.util.control.NonFatal
 
 class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonConfig, JsonField, BasicOptions] {
 
-  override protected val typeToProcess = "json"
+  override protected val typeToProcess: String = JsonConverterFactory.TypeToProcess
 
   override protected implicit def configConvert: ConverterConfigConvert[JsonConfig] = JsonConfigConvert
   override protected implicit def fieldConvert: FieldConvert[JsonField] = JsonFieldConvert
@@ -144,6 +144,8 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
 }
 
 object JsonConverterFactory {
+
+  val TypeToProcess = "json"
 
   object JsonConfigConvert extends ConverterConfigConvert[JsonConfig] with OptionConvert {
 

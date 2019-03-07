@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.convert2.simplefeature
 
 import com.typesafe.config.Config
-import com.typesafe.scalalogging.StrictLogging
+import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory._
 import org.locationtech.geomesa.convert2.simplefeature.FeatureToFeatureConverterFactory.{FeatureToFeatureConfig, FeatureToFeatureConfigConvert}
@@ -22,7 +22,7 @@ import pureconfig.error.ConfigReaderFailures
 
 import scala.util.control.NonFatal
 
-class FeatureToFeatureConverterFactory extends SimpleFeatureConverterFactory {
+class FeatureToFeatureConverterFactory extends SimpleFeatureConverterFactory with LazyLogging {
 
   import FeatureToFeatureConverterFactory.TypeToProcess
 
@@ -38,7 +38,7 @@ class FeatureToFeatureConverterFactory extends SimpleFeatureConverterFactory {
   override def apply(sft: SimpleFeatureType, conf: Config): Option[SimpleFeatureConverter] = {
     if (!conf.hasPath("type") || !conf.getString("type").equalsIgnoreCase(TypeToProcess)) { None } else {
       val (config, fields, opts) = try {
-        val c = AbstractConverterFactory.standardDefaults(conf)
+        val c = AbstractConverterFactory.standardDefaults(conf, logger)
         val config = pureconfig.loadConfigOrThrow[FeatureToFeatureConfig](c)
         val fields = pureconfig.loadConfigOrThrow[Seq[BasicField]](c)
         val opts = pureconfig.loadConfigOrThrow[BasicOptions](c)

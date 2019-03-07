@@ -26,6 +26,7 @@ details.
     shp
     fixed_width
     jdbc
+    composite
     cache
     premade/index
     function_overview

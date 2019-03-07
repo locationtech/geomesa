@@ -57,7 +57,7 @@ class JsonConverter(sft: SimpleFeatureType, config: JsonConfig, fields: Seq[Json
 
 object JsonConverter extends GeoJsonParsing {
 
-  private val JsonConfiguration =
+  private [json] val JsonConfiguration =
     Configuration.builder()
         .jsonProvider(new GsonJsonProvider)
         .options(com.jayway.jsonpath.Option.DEFAULT_PATH_LEAF_TO_NULL)
@@ -148,7 +148,7 @@ object JsonConverter extends GeoJsonParsing {
     * @param encoding encoding
     * @param counter counter
     */
-  class JsonIterator private [JsonConverter] (is: InputStream, encoding: Charset, counter: Counter)
+  class JsonIterator private [json] (is: InputStream, encoding: Charset, counter: Counter)
       extends CloseableIterator[JsonElement] {
 
     private val parser = new JsonParser()
