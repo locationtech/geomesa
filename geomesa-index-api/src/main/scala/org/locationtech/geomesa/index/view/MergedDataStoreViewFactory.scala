@@ -13,9 +13,11 @@ import java.awt.RenderingHints
 import com.typesafe.config._
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi, DataStoreFinder}
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
+import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -53,7 +55,7 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
     val namespace = NamespaceParam.lookupOpt(params)
     val nsConfig = namespace.map(ConfigValueFactory.fromAnyRef)
 
-    val stores = Seq.newBuilder[DataStore]
+    val stores = Seq.newBuilder[(DataStore, Option[Filter])]
     stores.sizeHint(configs.length)
 
     try {
@@ -62,14 +64,20 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
             config.root().render(ConfigRenderOptions.concise().setFormatted(true)))
         // inject the namespace into the underlying stores
         val storeParams = nsConfig.map(config.withValue(NamespaceParam.key, _)).getOrElse(config).root().unwrapped()
+        val filter = try {
+          StoreFilterParam.lookupOpt(storeParams.asInstanceOf[java.util.Map[String, Serializable]]).map(ECQL.toFilter)
+        } catch {
+          case NonFatal(e) =>
+            throw new IllegalArgumentException(s"Invalid store filter '${storeParams.get(StoreFilterParam.key)}'", e)
+        }
         Try(DataStoreFinder.getDataStore(storeParams)) match {
           case Success(null)  => throw error
-          case Success(store) => stores += store
+          case Success(store) => stores += store -> filter
           case Failure(e)     => throw error.initCause(e)
         }
       }
     } catch {
-      case NonFatal(e) => stores.result.foreach(_.dispose()); throw e
+      case NonFatal(e) => stores.result.foreach(_._1.dispose()); throw e
     }
 
     new MergedDataStoreView(stores.result, namespace)
@@ -90,6 +98,8 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 
   override val DisplayName: String = "Merged DataStore View (GeoMesa)"
   override val Description: String = "A merged, read-only view of multiple data stores"
+
+  val StoreFilterParam = new GeoMesaParam[String]("geomesa.merged.store.filter")
 
   val ConfigLoaderParam: Option[GeoMesaParam[String]] = {
     val loaders = ServiceLoader.load[MergedViewConfigLoader]().map(_.getClass.getName)
