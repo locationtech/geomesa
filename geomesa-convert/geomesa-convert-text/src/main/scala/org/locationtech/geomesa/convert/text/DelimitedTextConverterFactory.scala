@@ -81,7 +81,7 @@ class DelimitedTextConverterFactory
           }
 
           val options = DelimitedTextOptions(None, CharNotSpecified, CharNotSpecified, None,
-            SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8, verbose = true)
+            SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
 
           val config = configConvert.to(converterConfig)
               .withFallback(fieldConvert.to(fields))
@@ -144,12 +144,12 @@ object DelimitedTextConverterFactory {
   }
 
   object DelimitedTextOptionsConvert extends ConverterOptionsConvert[DelimitedTextOptions] {
-    override protected def decodeOptions(cur: ConfigObjectCursor,
-                                         validators: SimpleFeatureValidator,
-                                         parseMode: ParseMode,
-                                         errorMode: ErrorMode,
-                                         encoding: Charset,
-                                         verbose: Boolean): Either[ConfigReaderFailures, DelimitedTextOptions] = {
+    override protected def decodeOptions(
+        cur: ConfigObjectCursor,
+        validators: SimpleFeatureValidator,
+        parseMode: ParseMode,
+        errorMode: ErrorMode,
+        encoding: Charset): Either[ConfigReaderFailures, DelimitedTextOptions] = {
       def option[T](key: String, reader: ConfigReader[T]): Either[ConfigReaderFailures, Option[T]] = {
         val value = cur.atKeyOrUndefined(key)
         if (value.isUndefined) { Right(None) } else { reader.from(value).right.map(Option.apply) }
@@ -176,7 +176,7 @@ object DelimitedTextConverterFactory {
         escape    <- optionalChar("escape").right
         delimiter <- option("delimiter", PrimitiveConvert.charConfigReader).right
       } yield {
-        DelimitedTextOptions(skipLines, quote, escape, delimiter, validators, parseMode, errorMode, encoding, verbose)
+        DelimitedTextOptions(skipLines, quote, escape, delimiter, validators, parseMode, errorMode, encoding)
       }
     }
 

@@ -111,12 +111,12 @@ object XmlConverterFactory {
   }
 
   object XmlOptionsConvert extends ConverterOptionsConvert[XmlOptions] {
-    override protected def decodeOptions(cur: ConfigObjectCursor,
-                                         validators: SimpleFeatureValidator,
-                                         parseMode: ParseMode,
-                                         errorMode: ErrorMode,
-                                         encoding: Charset,
-                                         verbose: Boolean): Either[ConfigReaderFailures, XmlOptions] = {
+    override protected def decodeOptions(
+        cur: ConfigObjectCursor,
+        validators: SimpleFeatureValidator,
+        parseMode: ParseMode,
+        errorMode: ErrorMode,
+        encoding: Charset): Either[ConfigReaderFailures, XmlOptions] = {
       def parse[T](key: String, values: Iterable[T]): Either[ConfigReaderFailures, T] = {
         cur.atKey(key).right.flatMap { value =>
           value.asString.right.flatMap { string =>
@@ -133,7 +133,7 @@ object XmlConverterFactory {
       for {
         lineMode <- parse("line-mode", LineMode.values).right
       } yield {
-        XmlOptions(validators, parseMode, errorMode, lineMode, encoding, verbose)
+        XmlOptions(validators, parseMode, errorMode, lineMode, encoding)
       }
     }
 

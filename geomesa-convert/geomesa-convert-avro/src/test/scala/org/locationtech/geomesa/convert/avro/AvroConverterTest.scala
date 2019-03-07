@@ -110,7 +110,6 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
           |   schema-file = "/schema.avsc"
           |   sft         = "testsft"
           |   id-field    = "md5($0)"
-          |   options = { verbose = true }
           |   fields = [
           |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
           |     { name = "dtg",  transform = "date('yyyy-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },
@@ -147,7 +146,6 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
           |   sft         = "testsft"
           |   schema      = "embedded"
           |   id-field    = "md5($0)"
-          |   options = { verbose = true }
           |   fields = [
           |     { name = "tobj", transform = "avroPath($1, '/content$type=TObj')" },
           |     { name = "dtg",  transform = "date('yyyy-MM-dd', avroPath($tobj, '/kvmap[$k=dtg]/v'))" },

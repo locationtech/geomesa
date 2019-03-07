@@ -135,11 +135,11 @@ To configure the parse mode use add an option to your converter's typesafe confi
 Logging
 ~~~~~~~
 
-To view validation logs you can enable debug level logging on the packages ``org.locationtech.geomesa.convert``
-and ``org.locationtech.geomesa.convert2``.
+To view validation logs you can enable info or debug level logging on the packages
+``org.locationtech.geomesa.convert`` and ``org.locationtech.geomesa.convert2``.
 
-By default, logging will just show the field that failed. To show the entire record, along with the stack trace,
-you can set ``options.verbose = true``.
+When logging is enabled at the info level, it will just show the field that failed. When enabled at the debug
+level, it will show the entire record, along with the stack trace.
 
 Transactional Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

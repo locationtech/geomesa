@@ -168,10 +168,11 @@ object XmlConverter extends StrictLogging {
     }
   }
 
-  case class XmlOptions(validators: SimpleFeatureValidator,
-                        parseMode: ParseMode,
-                        errorMode: ErrorMode,
-                        lineMode: LineMode,
-                        encoding: Charset,
-                        verbose: Boolean) extends ConverterOptions
+  case class XmlOptions(
+      validators: SimpleFeatureValidator,
+      parseMode: ParseMode,
+      errorMode: ErrorMode,
+      lineMode: LineMode,
+      encoding: Charset
+    ) extends ConverterOptions
 }

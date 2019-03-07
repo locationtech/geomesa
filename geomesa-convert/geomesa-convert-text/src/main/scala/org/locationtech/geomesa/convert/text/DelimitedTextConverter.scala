@@ -175,21 +175,24 @@ object DelimitedTextConverter {
   // check quoted before default - if values are quoted, we don't want the quotes to be captured as part of the value
   private [text] val inferences = Seq(Formats.Tabs, Formats.Quoted, Formats.Default)
 
-  case class DelimitedTextConfig(`type`: String,
-                                 format: String,
-                                 idField: Option[Expression],
-                                 caches: Map[String, Config],
-                                 userData: Map[String, Expression]) extends ConverterConfig
+  case class DelimitedTextConfig(
+      `type`: String,
+      format: String,
+      idField: Option[Expression],
+      caches: Map[String, Config],
+      userData: Map[String, Expression]
+    ) extends ConverterConfig
 
-  case class DelimitedTextOptions(skipLines: Option[Int],
-                                  quote: OptionalChar,
-                                  escape: OptionalChar,
-                                  delimiter: Option[Char],
-                                  validators: SimpleFeatureValidator,
-                                  parseMode: ParseMode,
-                                  errorMode: ErrorMode,
-                                  encoding: Charset,
-                                  verbose: Boolean) extends ConverterOptions
+  case class DelimitedTextOptions(
+      skipLines: Option[Int],
+      quote: OptionalChar,
+      escape: OptionalChar,
+      delimiter: Option[Char],
+      validators: SimpleFeatureValidator,
+      parseMode: ParseMode,
+      errorMode: ErrorMode,
+      encoding: Charset
+    ) extends ConverterOptions
 
   sealed trait OptionalChar {
     def foreach[U](f: Character => U): Unit

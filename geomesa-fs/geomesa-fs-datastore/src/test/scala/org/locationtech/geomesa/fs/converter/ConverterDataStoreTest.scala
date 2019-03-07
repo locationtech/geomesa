@@ -110,7 +110,6 @@ class ConverterDataStoreTest extends Specification {
           |      type   = "delimited-text",
           |      format = "CSV",
           |      options {
-          |        verbose = true
           |        skip-lines = 0
           |      },
           |      id-field = "toString($name)",

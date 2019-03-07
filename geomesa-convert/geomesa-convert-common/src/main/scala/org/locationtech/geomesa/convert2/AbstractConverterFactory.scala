@@ -187,13 +187,13 @@ object AbstractConverterFactory {
     */
   implicit object BasicOptionsConvert extends ConverterOptionsConvert[BasicOptions] {
 
-    override protected def decodeOptions(cur: ConfigObjectCursor,
-                                         validators: SimpleFeatureValidator,
-                                         parseMode: ParseMode,
-                                         errorMode: ErrorMode,
-                                         encoding: Charset,
-                                         verbose: Boolean): Either[ConfigReaderFailures, BasicOptions] = {
-      Right(BasicOptions(validators, parseMode, errorMode, encoding, verbose))
+    override protected def decodeOptions(
+        cur: ConfigObjectCursor,
+        validators: SimpleFeatureValidator,
+        parseMode: ParseMode,
+        errorMode: ErrorMode,
+        encoding: Charset): Either[ConfigReaderFailures, BasicOptions] = {
+      Right(BasicOptions(validators, parseMode, errorMode, encoding))
     }
 
     override protected def encodeOptions(options: BasicOptions, base: java.util.Map[String, AnyRef]): Unit = {}
@@ -342,12 +342,12 @@ object AbstractConverterFactory {
     */
   abstract class ConverterOptionsConvert[O <: ConverterOptions] extends ConfigConvert[O] {
 
-    protected def decodeOptions(cur: ConfigObjectCursor,
-                                validators: SimpleFeatureValidator,
-                                parseMode: ParseMode,
-                                errorMode: ErrorMode,
-                                encoding: Charset,
-                                verbose: Boolean): Either[ConfigReaderFailures, O]
+    protected def decodeOptions(
+        cur: ConfigObjectCursor,
+        validators: SimpleFeatureValidator,
+        parseMode: ParseMode,
+        errorMode: ErrorMode,
+        encoding: Charset): Either[ConfigReaderFailures, O]
 
     protected def encodeOptions(options: O, base: java.util.Map[String, AnyRef]): Unit
 
@@ -390,13 +390,16 @@ object AbstractConverterFactory {
         }
       }
 
+      if (cur.atKey("verbose").isRight) {
+        logger.warn("'verbose' option is deprecated - please use logging levels instead")
+      }
+
       for {
         validators <- cur.atKey("validators").right.flatMap(_.asListCursor).right.flatMap(mergeValidators).right
         parseMode  <- parse("parse-mode", ParseMode.values).right
         errorMode  <- parse("error-mode", ErrorMode.values).right
         encoding   <- cur.atKey("encoding").right.flatMap(_.asString).right.map(Charset.forName).right
-        verbose    <- cur.atKey("verbose").right.flatMap(PrimitiveConvert.booleanConfigReader.from).right
-        options    <- decodeOptions(cur, validators, parseMode, errorMode, encoding, verbose).right
+        options    <- decodeOptions(cur, validators, parseMode, errorMode, encoding).right
       } yield {
         options
       }
@@ -407,7 +410,6 @@ object AbstractConverterFactory {
       map.put("parse-mode", options.parseMode.toString)
       map.put("error-mode", options.errorMode.toString)
       map.put("encoding", options.encoding.name)
-      map.put("verbose", Boolean.box(options.verbose))
       options.validators match {
         // use unapplySeq to extract names
         case SimpleFeatureValidator(names@_*) => map.put("validators", names.asJava)
