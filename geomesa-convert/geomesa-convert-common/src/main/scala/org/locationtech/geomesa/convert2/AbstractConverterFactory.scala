@@ -84,7 +84,7 @@ abstract class AbstractConverterFactory[S <: AbstractConverter[_, C, F, O]: Clas
   protected def withDefaults(conf: Config): Config = AbstractConverterFactory.standardDefaults(conf, logger)
 }
 
-object AbstractConverterFactory {
+object AbstractConverterFactory extends LazyLogging {
 
   import scala.collection.JavaConverters._
 

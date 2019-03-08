@@ -114,8 +114,27 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     */
   private def convert(rawValues: Array[Any], ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
     val sf = new ScalaSimpleFeature(sft, "")
-    var i = 0
 
+    def failure(field: String, e: Throwable): CloseableIterator[SimpleFeature] = {
+      ec.counter.incFailure()
+      def msg(verbose: Boolean): String = {
+        val values = if (!verbose) { "" } else {
+          // head is the whole record
+          s" using values:\n${rawValues.headOption.orNull}\n[${rawValues.drop(1).mkString(", ")}]"
+        }
+        s"Failed to evaluate field '$field' on line ${ec.counter.getLineCount}$values"
+      }
+
+      options.errorMode match {
+        case ErrorMode.RaiseErrors => throw new IOException(msg(true), e)
+        case ErrorMode.SkipBadRecords if logger.underlying.isDebugEnabled => logger.underlying.debug(msg(true), e)
+        case ErrorMode.SkipBadRecords if logger.underlying.isInfoEnabled => logger.underlying.info(msg(false))
+        case _ => // no-op
+      }
+      CloseableIterator.empty
+    }
+
+    var i = 0
     try {
       ec.clear()
       while (i < requiredFieldsCount) {
@@ -127,34 +146,22 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
         }
         i += 1
       }
-
-      // if no id builder, empty feature id will be replaced with an auto-gen one
-      config.idField.foreach { expr =>
-        sf.setId(expr.eval(rawValues)(ec).asInstanceOf[String])
-        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      }
-      config.userData.foreach { case (k, v) => sf.getUserData.put(k, v.eval(rawValues)(ec).asInstanceOf[AnyRef]) }
     } catch {
-      case NonFatal(e) =>
-        ec.counter.incFailure()
+      case NonFatal(e) => return failure(requiredFields(i).name, e)
+    }
 
-        def msg(verbose: Boolean): String = {
-          val field = if (i < requiredFieldsCount) { s" '${requiredFields(i).name}'" } else { "" }
-          val values = if (!verbose) { "" } else {
-            // head is the whole record
-            s" using values:\n${rawValues.headOption.orNull}\n[${rawValues.drop(1).mkString(", ")}]"
-          }
-          s"Failed to evaluate field$field on line ${ec.counter.getLineCount}$values"
-        }
+    // if no id builder, empty feature id will be replaced with an auto-gen one
+    config.idField.foreach { expr =>
+      try { sf.setId(expr.eval(rawValues)(ec).asInstanceOf[String]) } catch {
+        case NonFatal(e) => return failure("feature id", e)
+      }
+      sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    }
 
-        options.errorMode match {
-          case ErrorMode.RaiseErrors => throw new IOException(msg(true), e)
-          case ErrorMode.SkipBadRecords if logger.underlying.isDebugEnabled => logger.underlying.debug(msg(true), e)
-          case ErrorMode.SkipBadRecords if logger.underlying.isInfoEnabled => logger.underlying.info(msg(false))
-          case _ => // no-op
-        }
-
-        return CloseableIterator.empty
+    config.userData.foreach { case (k, v) =>
+      try { sf.getUserData.put(k, v.eval(rawValues)(ec).asInstanceOf[AnyRef]) } catch {
+        case NonFatal(e) => return failure(s"user-data:$k", e)
+      }
     }
 
     val error = options.validators.validate(sf)
