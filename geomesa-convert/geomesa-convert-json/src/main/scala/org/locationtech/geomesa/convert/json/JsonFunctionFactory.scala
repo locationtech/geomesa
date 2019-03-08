@@ -28,11 +28,11 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     Seq(jsonToString, jsonListParser, jsonMapParser, mapToJson, jsonPath)
 
   @deprecated("use toString")
-  private val jsonToString = TransformerFunction("jsonToString", "json2string") { args =>
+  private val jsonToString = TransformerFunction.pure("jsonToString", "json2string") { args =>
     args(0).toString
   }
 
-  private val jsonPath: TransformerFunction = new NamedTransformerFunction(Array("jsonPath")) {
+  private val jsonPath: TransformerFunction = new NamedTransformerFunction(Array("jsonPath"), pure = true) {
     private val cache = new ConcurrentHashMap[Any, JsonPath]()
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       var path = cache.get(args(0))
@@ -61,7 +61,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     }
   }
 
-  private val jsonListParser = TransformerFunction("jsonList") { args =>
+  private val jsonListParser = TransformerFunction.pure("jsonList") { args =>
     val array = args(1).asInstanceOf[JsonArray]
     if (array.isJsonNull) { null } else {
       val clazz = determineClazz(args(0).asInstanceOf[String])
@@ -77,7 +77,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     }
   }
 
-  private val jsonMapParser = TransformerFunction("jsonMap") { args =>
+  private val jsonMapParser = TransformerFunction.pure("jsonMap") { args =>
     val kClass = determineClazz(args(0).asInstanceOf[String])
     val vClass = determineClazz(args(1).asInstanceOf[String])
     val map = args(2).asInstanceOf[JsonObject]
@@ -93,7 +93,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     }
   }
 
-  private val mapToJson = TransformerFunction("map2Json", "mapToJson") { args =>
+  private val mapToJson = TransformerFunction.pure("map2Json", "mapToJson") { args =>
 
     import org.json4s.JsonDSL._
     import org.json4s.native.JsonMethods._

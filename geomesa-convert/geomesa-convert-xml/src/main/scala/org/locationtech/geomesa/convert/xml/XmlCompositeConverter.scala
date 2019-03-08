@@ -6,26 +6,31 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.convert.json
+package org.locationtech.geomesa.convert.xml
 
 import java.io.InputStream
 import java.nio.charset.Charset
 
-import com.google.gson.JsonElement
 import org.locationtech.geomesa.convert.EvaluationContext
-import org.locationtech.geomesa.convert.Modes.ErrorMode
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, LineMode}
+import org.locationtech.geomesa.convert.xml.XmlConverter.DocParser
 import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.convert2.{AbstractCompositeConverter, ParsingConverter}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeatureType
+import org.w3c.dom.Element
 
-class JsonCompositeConverter(
+class XmlCompositeConverter(
     sft: SimpleFeatureType,
+    xsd: Option[String],
     encoding: Charset,
+    lineMode: LineMode,
     errorMode: ErrorMode,
-    delegates: Seq[(Predicate, ParsingConverter[JsonElement])]
-  ) extends AbstractCompositeConverter(sft, errorMode, delegates) {
+    delegates: Seq[(Predicate, ParsingConverter[Element])]
+  ) extends AbstractCompositeConverter[Element](sft, errorMode, delegates) {
 
-  override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[JsonElement] =
-    new JsonConverter.JsonIterator(is, encoding, ec.counter)
+  private val parser = new DocParser(xsd)
+
+  override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[Element] =
+    XmlConverter.iterator(parser, is, encoding, lineMode, ec.counter)
 }

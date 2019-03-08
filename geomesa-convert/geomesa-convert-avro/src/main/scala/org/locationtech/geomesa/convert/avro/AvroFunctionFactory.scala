@@ -23,21 +23,21 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
   private val avroPath = new AvroPathFn()
 
   // parses a list encoded by the geomesa avro writer
-  private val binaryList = TransformerFunction("avroBinaryList") { args =>
+  private val binaryList = TransformerFunction.pure("avroBinaryList") { args =>
     AvroSimpleFeatureUtils.decodeList(ByteBuffer.wrap(args(0).asInstanceOf[Array[Byte]]))
   }
 
   // parses a map encoded by the geomesa avro writer
-  private val binaryMap = TransformerFunction("avroBinaryMap") { args =>
+  private val binaryMap = TransformerFunction.pure("avroBinaryMap") { args =>
     AvroSimpleFeatureUtils.decodeMap(ByteBuffer.wrap(args(0).asInstanceOf[Array[Byte]]))
   }
 
   // parses a uuid encoded by the geomesa avro writer
-  private val binaryUuid = TransformerFunction("avroBinaryUuid") { args =>
+  private val binaryUuid = TransformerFunction.pure("avroBinaryUuid") { args =>
     AvroSimpleFeatureUtils.decodeUUID(ByteBuffer.wrap(args(0).asInstanceOf[Array[Byte]]))
   }
 
-  class AvroPathFn extends NamedTransformerFunction(Seq("avroPath")) {
+  class AvroPathFn extends NamedTransformerFunction(Seq("avroPath"), pure = true) {
     private var path: AvroPath = _
     override def getInstance: AvroPathFn = new AvroPathFn()
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {

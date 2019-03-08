@@ -13,11 +13,45 @@ import java.util.ServiceLoader
 import org.locationtech.geomesa.convert.EvaluationContext
 
 trait TransformerFunction {
+
+  /**
+    * The unique names used to reference this function
+    *
+    * Generally a function should have one name, but we keep old names around for back-compatibility
+    *
+    * @return
+    */
   def names: Seq[String]
+
+  /**
+    * Evaluate the function
+    *
+    * @param args arguments
+    * @param ctx evalution context
+    * @return
+    */
   def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any
-  // some transformers cache arguments that don't change, override getInstance in order
-  // to return a new transformer that can cache args
+
+  /**
+    * Returns an uninitialized instance of this function
+    *
+    * If the function caches state about its current context, this function should return an instance
+    * without any state. Stateless functions can generally just return themselves
+    *
+    * @return
+    */
   def getInstance: TransformerFunction = this
+
+  /**
+    * Is the a 'pure' function? Pure functions a) given the same inputs, always return the same result, and
+    * b) do not have any observable side effects. In the context of converters, it also does not rely on the
+    * evaluation context.
+    *
+    * If the function is pure, it may be optimized out if e.g. all its inputs are literals
+    *
+    * @return
+    */
+  def pure: Boolean = false
 }
 
 object TransformerFunction {
@@ -42,5 +76,12 @@ object TransformerFunction {
     }
   }
 
-  abstract class NamedTransformerFunction(override val names: Seq[String]) extends TransformerFunction
+  def pure(n: String*)(f: Array[Any] => Any): TransformerFunction = {
+    new NamedTransformerFunction(n, pure = true) {
+      override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = f(args)
+    }
+  }
+
+  abstract class NamedTransformerFunction(override val names: Seq[String], override val pure: Boolean = false)
+      extends TransformerFunction
 }

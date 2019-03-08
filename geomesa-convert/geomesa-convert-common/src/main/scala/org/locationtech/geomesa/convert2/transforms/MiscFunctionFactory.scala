@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
-import org.locationtech.geomesa.convert.{EvaluationContext, TransformerFn}
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 
 class MiscFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFunction] = Seq(lineNumber, withDefault)
 
-  private val withDefault = TransformerFn("withDefault") { args =>
+  private val withDefault = TransformerFunction.pure("withDefault") { args =>
     if (args(0) == null) { args(1) } else { args(0) }
   }
 

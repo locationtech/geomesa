@@ -10,13 +10,14 @@ package org.locationtech.geomesa.convert.text
 
 import java.io._
 import java.nio.charset.{Charset, StandardCharsets}
+import java.util.Locale
 
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, CSVRecord, QuoteMode}
 import org.geotools.factory.GeoTools
 import org.geotools.util.Converters
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
-import org.locationtech.geomesa.convert.text.DelimitedTextConverter.{CsvIterator, DelimitedTextConfig, DelimitedTextOptions}
+import org.locationtech.geomesa.convert.text.DelimitedTextConverter.{DelimitedTextConfig, DelimitedTextOptions}
 import org.locationtech.geomesa.convert.{Counter, EvaluationContext, SimpleFeatureValidator}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
 import org.locationtech.geomesa.convert2._
@@ -35,17 +36,10 @@ class DelimitedTextConverter(sft: SimpleFeatureType,
                              options: DelimitedTextOptions)
     extends AbstractConverter[CSVRecord, DelimitedTextConfig, BasicField, DelimitedTextOptions](sft, config, fields, options) {
 
-  private val format = {
-    var format = DelimitedTextConverter.formats.getOrElse(config.format.toUpperCase,
-      throw new IllegalArgumentException(s"Unknown delimited text format '${config.format}'"))
-    options.quote.foreach(c => format = format.withQuote(c))
-    options.escape.foreach(c => format = format.withEscape(c))
-    options.delimiter.foreach(c => format = format.withDelimiter(c))
-    format
-  }
+  private val format = DelimitedTextConverter.createFormat(config.format, options)
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[CSVRecord] =
-    new CsvIterator(format, is, options.encoding, options.skipLines.getOrElse(0), ec.counter)
+    DelimitedTextConverter.iterator(format, is, options.encoding, options.skipLines.getOrElse(0), ec.counter)
 
   override protected def values(parsed: CloseableIterator[CSVRecord],
                                 ec: EvaluationContext): CloseableIterator[Array[Any]] = {
@@ -90,6 +84,41 @@ object DelimitedTextConverter {
     val QuotedQuoteEscape: CSVFormat = CSVFormat.DEFAULT.withEscape('"').withQuoteMode(QuoteMode.ALL)
     val QuotedMinimal    : CSVFormat = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL)
     val TabsQuotedMinimal: CSVFormat = CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL)
+  }
+
+  /**
+    * Create a csv format for parsing
+    *
+    * @param name format name
+    * @param options configuration options
+    * @return
+    */
+  def createFormat(name: String, options: DelimitedTextOptions): CSVFormat = {
+    var format = formats.getOrElse(name.toUpperCase(Locale.US),
+      throw new IllegalArgumentException(s"Unknown delimited text format '$name'"))
+    options.quote.foreach(c => format = format.withQuote(c))
+    options.escape.foreach(c => format = format.withEscape(c))
+    options.delimiter.foreach(c => format = format.withDelimiter(c))
+    format
+  }
+
+  /**
+    * Creates a csv iterator over an input stream
+    *
+    * @param format parsing format
+    * @param is input stream
+    * @param encoding charset
+    * @param skip number of header lines to skip
+    * @param counter counter
+    * @return
+    */
+  def iterator(
+      format: CSVFormat,
+      is: InputStream,
+      encoding: Charset,
+      skip: Int,
+      counter: Counter): CloseableIterator[CSVRecord] = {
+    new CsvIterator(format, is, encoding, skip, counter)
   }
 
   /**
@@ -217,11 +246,8 @@ object DelimitedTextConverter {
     * @param skip skip lines up front, used for e.g. headers
     * @param counter counter
     */
-  class CsvIterator private [DelimitedTextConverter] (format: CSVFormat,
-                                                      is: InputStream,
-                                                      encoding: Charset,
-                                                      skip: Int,
-                                                      counter: Counter) extends CloseableIterator[CSVRecord] {
+  private class CsvIterator(format: CSVFormat, is: InputStream, encoding: Charset, skip: Int, counter: Counter)
+      extends CloseableIterator[CSVRecord] {
 
     private val parser = format.parse(new InputStreamReader(is, encoding))
     private val records = parser.iterator()

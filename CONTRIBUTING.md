@@ -40,7 +40,7 @@ GeoMesa uses JIRA to track ongoing development and issues:
 Building
 --------
 
-See the instructinos in README.md.
+See the instructions in the main README.
 
 Contributing
 ------------

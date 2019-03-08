@@ -6,42 +6,48 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.convert.json
+package org.locationtech.geomesa.convert.xml
 
-import com.google.gson.JsonElement
-import com.typesafe.config.{Config, ConfigValueFactory}
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
+import org.locationtech.geomesa.convert.xml.XmlConverter.{XmlConfig, XmlOptions}
+import org.locationtech.geomesa.convert.xml.XmlConverterFactory.XmlConfigConvert
+import org.locationtech.geomesa.convert2.AbstractConverterFactory.ConverterConfigConvert
 import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, ParsingConverter, SimpleFeatureConverter, SimpleFeatureConverterFactory}
 import org.opengis.feature.simple.SimpleFeatureType
+import org.w3c.dom.Element
 import pureconfig.ConfigConvert
 
 import scala.util.control.NonFatal
 
-class JsonCompositeConverterFactory extends SimpleFeatureConverterFactory with LazyLogging {
+class XmlCompositeConverterFactory extends SimpleFeatureConverterFactory with LazyLogging {
 
-  import JsonCompositeConverterFactory.TypeToProcess
+  import XmlCompositeConverterFactory.TypeToProcess
 
   import scala.collection.JavaConverters._
 
   override def apply(sft: SimpleFeatureType, conf: Config): Option[SimpleFeatureConverter] = {
     if (!conf.hasPath("type") || conf.getString("type") != TypeToProcess) { None } else {
-      val defaults = AbstractConverterFactory.standardDefaults(conf, logger)
+      val defaults =
+        AbstractConverterFactory.standardDefaults(conf, logger)
+            .withFallback(ConfigFactory.load("xml-converter-defaults"))
       try {
-        implicit val convert: ConfigConvert[BasicOptions] = AbstractConverterFactory.BasicOptionsConvert
-        val options = pureconfig.loadConfigOrThrow[BasicOptions](defaults)
-        val typeToProcess = ConfigValueFactory.fromAnyRef(JsonConverterFactory.TypeToProcess)
+        implicit val configConvert: ConverterConfigConvert[XmlConfig] = XmlConfigConvert
+        implicit val optionsConvert: ConfigConvert[XmlOptions] = XmlConverterFactory.XmlOptionsConvert
+        val xsd = pureconfig.loadConfigOrThrow[XmlConfig](defaults).xsd
+        val options = pureconfig.loadConfigOrThrow[XmlOptions](defaults)
+        val typeToProcess = ConfigValueFactory.fromAnyRef(XmlConverterFactory.TypeToProcess)
         val delegates = defaults.getConfigList("converters").asScala.map { base =>
           val conf = base.withFallback(defaults).withValue("type", typeToProcess)
           val converter = SimpleFeatureConverter(sft, conf) match {
-            case c: ParsingConverter[JsonElement] => c
-            case c => throw new IllegalArgumentException(s"Expected JsonConverter but got: $c")
+            case c: ParsingConverter[Element] => c
+            case c => throw new IllegalArgumentException(s"Expected XmlConverter but got: $c")
           }
           val predicate = Predicate(conf.getString("predicate"))
           (predicate, converter)
         }
-        Some(new JsonCompositeConverter(sft, options.encoding, options.errorMode, delegates))
+        Some(new XmlCompositeConverter(sft, xsd, options.encoding, options.lineMode, options.errorMode, delegates))
       } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid configuration: ${e.getMessage}")
       }
@@ -49,6 +55,6 @@ class JsonCompositeConverterFactory extends SimpleFeatureConverterFactory with L
   }
 }
 
-object JsonCompositeConverterFactory {
-  val TypeToProcess = "composite-json"
+object XmlCompositeConverterFactory {
+  val TypeToProcess = "composite-xml"
 }

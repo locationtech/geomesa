@@ -12,31 +12,31 @@ class MathFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFunction] = Seq(add, subtract, multiply, divide, mean, min, max)
 
-  private val add = TransformerFunction("add") { args =>
+  private val add = TransformerFunction.pure("add") { args =>
     var s: Double = 0.0
     args.foreach(s += parseDouble(_))
     s
   }
 
-  private val multiply = TransformerFunction("multiply") { args =>
+  private val multiply = TransformerFunction.pure("multiply") { args =>
     var s: Double = 1.0
     args.foreach(s *= parseDouble(_))
     s
   }
 
-  private val subtract = TransformerFunction("subtract") { args =>
+  private val subtract = TransformerFunction.pure("subtract") { args =>
     var s: Double = parseDouble(args(0))
     args.drop(1).foreach(s -= parseDouble(_))
     s
   }
 
-  private val divide = TransformerFunction("divide") { args =>
+  private val divide = TransformerFunction.pure("divide") { args =>
     var s: Double = parseDouble(args(0))
     args.drop(1).foreach(s /= parseDouble(_))
     s
   }
 
-  private val mean = TransformerFunction("mean") { args =>
+  private val mean = TransformerFunction.pure("mean") { args =>
     if (args.length == 0) { 0d } else {
       var count = 0d
       args.map(parseDouble).foreach(d => count += d)
@@ -44,18 +44,17 @@ class MathFunctionFactory extends TransformerFunctionFactory {
     }
   }
 
-  private val min = TransformerFunction("min") { args =>
+  private val min = TransformerFunction.pure("min") { args =>
     var min = java.lang.Double.POSITIVE_INFINITY
     args.map(parseDouble).foreach(d => if (min > d) { min = d })
     min
   }
 
-  private val max = TransformerFunction("max") { args =>
+  private val max = TransformerFunction.pure("max") { args =>
     var max = java.lang.Double.NEGATIVE_INFINITY
     args.map(parseDouble).foreach(d => if (max < d) { max = d })
     max
   }
-
 
   private def parseDouble(v: Any): Double = {
     v match {

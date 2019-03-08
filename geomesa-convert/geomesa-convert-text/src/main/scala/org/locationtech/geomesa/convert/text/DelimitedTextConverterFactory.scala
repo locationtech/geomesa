@@ -33,7 +33,7 @@ class DelimitedTextConverterFactory
     extends AbstractConverterFactory[DelimitedTextConverter, DelimitedTextConfig, BasicField, DelimitedTextOptions]
       with org.locationtech.geomesa.convert.SimpleFeatureConverterFactory[String] {
 
-  override protected val typeToProcess = "delimited-text"
+  override protected val typeToProcess: String = DelimitedTextConverterFactory.TypeToProcess
 
   override protected implicit def configConvert: ConverterConfigConvert[DelimitedTextConfig] = DelimitedTextConfigConvert
   override protected implicit def fieldConvert: FieldConvert[BasicField] = BasicFieldConvert
@@ -123,6 +123,8 @@ class DelimitedTextConverterFactory
 }
 
 object DelimitedTextConverterFactory {
+
+  val TypeToProcess = "delimited-text"
 
   object DelimitedTextConfigConvert extends ConverterConfigConvert[DelimitedTextConfig] {
 
