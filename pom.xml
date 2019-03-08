@@ -490,7 +490,24 @@
                 <!-- match dependency version used by gt-referencing for convenience -->
                 <version>0.26</version>
             </dependency>
-            <dependency>
+	    <dependency>
+                <groupId>org.geotools</groupId>
+                <artifactId>gt-epsg-wkt</artifactId>
+                <version>${gt.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>jgridshift</groupId>
+                        <artifactId>jgridshift</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+	    <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-epsg-hsql</artifactId>
                 <version>${gt.version}</version>
