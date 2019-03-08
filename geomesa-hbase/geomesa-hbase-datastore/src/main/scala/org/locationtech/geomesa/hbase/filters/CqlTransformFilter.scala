@@ -97,6 +97,7 @@ object CqlTransformFilter extends StrictLogging {
     }
 
     val feature = KryoFeatureSerializer(sft, SerializationOptions.withoutId).getReusableFeature
+    feature.setIdParser(index.getIdFromRow(_, _, _, null))
     transform.foreach { case (tdefs, tsft) => feature.setTransforms(tdefs, tsft) }
 
     val delegate = filter match {
@@ -227,6 +228,7 @@ object CqlTransformFilter extends StrictLogging {
           throw new DeserializationException("No filter or transform defined")
         } else {
           val index = deserializeIndex(sft, spec, bytes, offset + 4)
+          feature.setIdParser(index.getIdFromRow(_, _, _, null))
           new FilterDelegate(sft, index, feature, cql)
         }
       } else {
@@ -241,6 +243,8 @@ object CqlTransformFilter extends StrictLogging {
         feature.setTransforms(tdefs, tsft)
 
         val index = deserializeIndex(sft, spec, bytes, offset + tsftLength)
+        feature.setIdParser(index.getIdFromRow(_, _, _, null))
+
         if (cql == null) {
           new TransformDelegate(sft, index, feature)
         } else {
@@ -318,7 +322,7 @@ object CqlTransformFilter extends StrictLogging {
 
     override def filterKeyValue(v: Cell): ReturnCode = {
       try {
-        feature.setId(index.getIdFromRow(v.getRowArray, v.getRowOffset, v.getRowLength, null))
+        feature.setIdBuffer(v.getRowArray, v.getRowOffset, v.getRowLength)
         feature.setBuffer(v.getValueArray, v.getValueOffset, v.getValueLength)
         if (filt.evaluate(feature)) { ReturnCode.INCLUDE } else { ReturnCode.SKIP }
       } catch {
@@ -350,7 +354,7 @@ object CqlTransformFilter extends StrictLogging {
 
     override def filterKeyValue(v: Cell): ReturnCode = {
       try {
-        feature.setId(index.getIdFromRow(v.getRowArray, v.getRowOffset, v.getRowLength, null))
+        feature.setIdBuffer(v.getRowArray, v.getRowOffset, v.getRowLength)
         feature.setBuffer(v.getValueArray, v.getValueOffset, v.getValueLength)
         ReturnCode.INCLUDE
       } catch {
@@ -389,7 +393,7 @@ object CqlTransformFilter extends StrictLogging {
 
     override def filterKeyValue(v: Cell): ReturnCode = {
       try {
-        feature.setId(index.getIdFromRow(v.getRowArray, v.getRowOffset, v.getRowLength, null))
+        feature.setIdBuffer(v.getRowArray, v.getRowOffset, v.getRowLength)
         feature.setBuffer(v.getValueArray, v.getValueOffset, v.getValueLength)
         if (filt.evaluate(feature)) { ReturnCode.INCLUDE } else { ReturnCode.SKIP }
       } catch {

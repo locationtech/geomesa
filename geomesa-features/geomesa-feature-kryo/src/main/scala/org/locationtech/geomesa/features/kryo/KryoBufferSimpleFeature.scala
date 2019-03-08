@@ -13,6 +13,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption._
+import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature.{IdParser, WithIdParser}
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
@@ -37,7 +38,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   private var offset: Int = _
   private var length: Int = _
 
-  private val input = new Input
+  private val input = new Input()
   private val offsets = Array.ofDim[Int](sft.getAttributeCount)
   private var startOfOffsets: Int = -1
   private var missingAttributes: Boolean = false
@@ -45,7 +46,7 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   private var userData: java.util.Map[AnyRef, AnyRef] = _
   private var userDataOffset: Int = -1
 
-  private var id: String = ""
+  private val idParser = if (options.withoutId) { new IdParser() } else { new WithIdParser(input) }
 
   private var transforms: String = _
   private var transformSchema: SimpleFeatureType = _
@@ -113,8 +114,39 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
     userDataOffset = input.position()
   }
 
-  def setId(id: String): Unit = this.id = id
+  /**
+    * Sets the serialized bytes containing the feature ID (i.e. the row key)
+    *
+    * @param bytes bytes
+    */
+  def setIdBuffer(bytes: Array[Byte]): Unit = setIdBuffer(bytes, 0, bytes.length)
 
+  /**
+    * Sets the serialized bytes containing the feature ID (i.e. the row key)
+    *
+    * @param bytes bytes
+    * @param offset offset into the byte array of valid bytes
+    * @param length number of valid bytes to read from the byte array
+    */
+  def setIdBuffer(bytes: Array[Byte], offset: Int, length: Int): Unit = {
+    idParser.buffer = bytes
+    idParser.offset = offset
+    idParser.length = length
+  }
+
+  /**
+    * Sets the parser for reading feature ids out of the id buffer
+    *
+    * @param parse parse method
+    */
+  def setIdParser(parse: (Array[Byte], Int, Int) => String): Unit = idParser.parse = parse
+
+  /**
+    * Sets the transform to be applied to this feature
+    *
+    * @param transforms transform definition, per geotools format
+    * @param transformSchema schema that results from applying the transform
+    */
   def setTransforms(transforms: String, transformSchema: SimpleFeatureType): Unit = {
     this.transforms = transforms
     this.transformSchema = transformSchema
@@ -219,13 +251,8 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
   override def getFeatureType: SimpleFeatureType = sft
   override def getName: Name = sft.getName
 
-  override def getIdentifier: FeatureId = new ImmutableFeatureId(getID)
-  override def getID: String = {
-    if (options.withoutId) { id } else {
-      input.setPosition(5)
-      input.readString()
-    }
-  }
+  override def getID: String = idParser.id()
+  override def getIdentifier: FeatureId = new ImmutableFeatureId(idParser.id())
 
   override def getAttribute(name: Name): AnyRef = getAttribute(name.getLocalPart)
   override def getAttribute(name: String): Object = {
@@ -285,5 +312,22 @@ class KryoBufferSimpleFeature(sft: SimpleFeatureType,
 }
 
 object KryoBufferSimpleFeature {
+
   val longReader: Input => AnyRef = KryoFeatureDeserialization.matchReader(Seq(ObjectType.LONG))
+
+  private class IdParser {
+    var parse: (Array[Byte], Int, Int) => String = _
+    var buffer: Array[Byte] = _
+    var offset: Int = 0
+    var length: Int = 0
+
+    def id(): String = parse(buffer, offset, length)
+  }
+
+  private class WithIdParser(input: Input) extends IdParser {
+    override def id(): String = {
+      input.setPosition(5)
+      input.readString()
+    }
+  }
 }
