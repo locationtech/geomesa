@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.conf.ArgResolver
-import org.locationtech.geomesa.utils.io.PathUtils
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
 import scala.util.control.NonFatal
 
@@ -41,7 +41,7 @@ object ConverterConfigResolver extends ArgResolver[Config, ConfArgs] with LazyLo
     }
   }
 
-  override val parseMethodList: List[(ConfArgs) => ResEither] = List[ConfArgs => ResEither](
+  override val parseMethodList: List[ConfArgs => ResEither] = List[ConfArgs => ResEither](
     getLoadedConf,
     parseFile,
     parseString
@@ -69,15 +69,22 @@ object ConverterConfigResolver extends ArgResolver[Config, ConfArgs] with LazyLo
 
   private [ConverterConfigResolver] def parseFile(args: ConfArgs): ResEither = {
     try {
-      val is = PathUtils.interpretPath(args.config).headOption.map(_.open).getOrElse {
+      val handle = PathUtils.interpretPath(args.config).headOption.getOrElse {
         throw new RuntimeException(s"Could not read file at ${args.config}")
       }
-      val reader = new InputStreamReader(is, StandardCharsets.UTF_8)
-      val confs = SimpleConverterConfigParser.parseConf(ConfigFactory.parseReader(reader, parseOpts))
-      if (confs.size > 1) {
-        logger.warn(s"Found more than one SFT conf in arg '${args.config}'")
+      WithClose(handle.open) { is =>
+        if (is.hasNext) {
+          val reader = new InputStreamReader(is.next._2, StandardCharsets.UTF_8)
+          val confs = SimpleConverterConfigParser.parseConf(ConfigFactory.parseReader(reader, parseOpts))
+          if (confs.size > 1) {
+            logger.warn(s"Found more than one SFT conf in arg '${args.config}'")
+          }
+          Right(confs.values.head)
+        } else {
+          throw new RuntimeException(s"Could not read file at ${args.config}")
+        }
       }
-      Right(confs.values.head)
+
     } catch {
       case NonFatal(e) => Left((s"Unable to parse config from file ${args.config}", e, PATH))
     }
