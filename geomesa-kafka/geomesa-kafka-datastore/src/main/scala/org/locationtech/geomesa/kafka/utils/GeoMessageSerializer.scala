@@ -79,9 +79,10 @@ object GeoMessageSerializer {
     * @param `lazy` use lazy deserialization
     * @return
     */
-  def apply(sft: SimpleFeatureType,
-            serialization: SerializationType = SerializationType.KRYO,
-            `lazy`: Boolean = false): GeoMessageSerializer = {
+  def apply(
+      sft: SimpleFeatureType,
+      serialization: SerializationType = SerializationType.KRYO,
+      `lazy`: Boolean = false): GeoMessageSerializer = {
     val kryoBuilder = KryoFeatureSerializer.builder(sft).withoutId.withUserData.immutable
     val avroBuilder = AvroFeatureSerializer.builder(sft).withoutId.withUserData.immutable
     val kryoSerializer = if (`lazy`) { kryoBuilder.`lazy`.build() } else { kryoBuilder.build() }
@@ -89,7 +90,7 @@ object GeoMessageSerializer {
     val (serializer, version) = serialization match {
       case SerializationType.KRYO => (kryoSerializer, KryoVersion)
       case SerializationType.AVRO => (avroSerializer, AvroVersion)
-      case _ => throw new NotImplementedError(s"Unexpected serialization type $serialization")
+      case _ => throw new NotImplementedError(s"Unhandled serialization type '$serialization'")
     }
     new GeoMessageSerializer(sft, serializer, kryoSerializer, avroSerializer, version)
   }
@@ -127,13 +128,18 @@ object GeoMessageSerializer {
 
     override def close(): Unit = {}
   }
+
+  class GeoMessageSerializerFactory {
+    def apply(sft: SimpleFeatureType, serialization: SerializationType, `lazy`: Boolean): GeoMessageSerializer =
+      GeoMessageSerializer.apply(sft, serialization, `lazy`)
+  }
 }
 
 /**
   * Serializes `GeoMessage`s
   *
   * @param sft simple feature type being serialized
-  * @param serializer serializer used for writing messages
+  * @param serializer serializer used for reading or writing messages
   * @param kryo kryo serializer used for deserializing kryo messages
   * @param avro avro serializer used for deserializing avro messages
   * @param version version byte corresponding to the serializer type
@@ -168,9 +174,14 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
     *
     * @param key the serialized message key
     * @param value the serialized message body
+    * @param timestamp the kafka message timestamp
     * @return the deserialized message
     */
-  def deserialize(key: Array[Byte], value: Array[Byte], headers: Map[String, Array[Byte]] = Map.empty): GeoMessage = {
+  def deserialize(
+      key: Array[Byte],
+      value: Array[Byte],
+      headers: Map[String, Array[Byte]] = Map.empty,
+      timestamp: Long = System.currentTimeMillis()): GeoMessage = {
     try {
       headers.get(GeoMessageSerializer.VersionHeader) match {
         case Some(h) if h.length == 1 && h(0) == GeoMessageSerializer.KryoVersion => deserialize(key, value, kryo)

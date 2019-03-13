@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 import java.util.{Collections, Date}
-import java.{io, util}
 
 import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.AdminUtils
@@ -242,7 +241,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         val provider = new AuthorizationsProvider() {
           import scala.collection.JavaConversions._
           override def getAuthorizations: java.util.List[String] = auths.toList
-          override def configure(params: util.Map[String, io.Serializable]): Unit = {}
+          override def configure(params: java.util.Map[String, java.io.Serializable]): Unit = {}
         }
         val params = if (cqEngine) {
           Map("kafka.index.cqengine" -> "geom:default,name:unique")

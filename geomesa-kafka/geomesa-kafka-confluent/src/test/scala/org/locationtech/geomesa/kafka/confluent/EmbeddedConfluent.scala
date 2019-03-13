@@ -6,17 +6,19 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.kafka
+package org.locationtech.geomesa.kafka.confluent
 
 import java.io.Closeable
 
+import io.confluent.kafka.schemaregistry.RestApp
 import kafka.server.KafkaConfig
 import kafka.utils.TestUtils
 import kafka.zk.EmbeddedZookeeper
+import org.apache.curator.test.InstanceSpec
 import org.apache.kafka.common.network.ListenerName
 import org.locationtech.geomesa.utils.io.PathUtils
 
-class EmbeddedKafka extends Closeable {
+class EmbeddedConfluent extends Closeable {
 
   private val zookeeper = new EmbeddedZookeeper()
 
@@ -32,14 +34,15 @@ class EmbeddedKafka extends Closeable {
     TestUtils.createServer(new KafkaConfig(config))
   }
 
+  private val schemaRegistryApp = new RestApp(InstanceSpec.getRandomPort, zookeepers, "_schemas")
+  schemaRegistryApp.start()
+
   val brokers = s"127.0.0.1:${server.boundPort(ListenerName.normalised("PLAINTEXT"))}"
 
-  // for kafka 1.0.0:
-  // import org.apache.kafka.common.network.ListenerName
-  // import org.apache.kafka.common.security.auth.SecurityProtocol
-  // val brokers = s"127.0.0.1:${server.socketServer.boundPort(ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT))}"
+  val schemaRegistryUrl: String = schemaRegistryApp.restConnect
 
   override def close(): Unit = {
+    try { schemaRegistryApp.stop() } catch { case e: Throwable => }
     try { server.shutdown() } catch { case _: Throwable => }
     try { zookeeper.shutdown() } catch { case _: Throwable => }
     PathUtils.deleteRecursively(logs.toPath)
