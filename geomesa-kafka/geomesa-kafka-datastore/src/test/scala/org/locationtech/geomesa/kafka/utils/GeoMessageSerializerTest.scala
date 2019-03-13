@@ -22,7 +22,9 @@ import org.specs2.runner.JUnitRunner
 class GeoMessageSerializerTest extends Specification {
 
   private val sft = SimpleFeatureTypes.createType("KafkaGeoMessageTest", "name:String,*geom:Point:srid=4326")
-  private val serializers = SerializationType.values.toSeq.map(GeoMessageSerializer(sft, _))
+  //currently filtering out confluent as it's read-only
+  private val serializers = SerializationType.values.filterNot(_ == SerializationType.CONFLUENT)
+                                             .toSeq.map(GeoMessageSerializer(sft, _, None))
   private val feature = ScalaSimpleFeature.create(sft, "test_id", "foo", "POINT(1 -1)")
 
   "GeoMessageSerializer" should {

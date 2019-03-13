@@ -9,11 +9,13 @@
 package org.locationtech.geomesa.kafka.data
 
 import java.io.IOException
+import java.net.URL
 import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
 import java.util.{Collections, Properties, UUID}
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
+import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient
 import kafka.admin.AdminUtils
 import kafka.utils.ZkUtils
 import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener
@@ -33,6 +35,7 @@ import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter}
 import org.locationtech.geomesa.kafka.index._
+import org.locationtech.geomesa.kafka.utils.ConfluentMetadata
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessagePartitioner
 import org.locationtech.geomesa.kafka.{AdminUtilsVersions, KafkaConsumerVersions}
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
@@ -56,7 +59,11 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
   import KafkaDataStore.{MetadataPath, TopicKey}
 
   override val metadata: GeoMesaMetadata[String] =
-    new ZookeeperMetadata(s"${config.catalog}/$MetadataPath", config.zookeepers, MetadataStringSerializer)
+    if (config.schemaRegistryUrl.isDefined) {
+      new ConfluentMetadata(new CachedSchemaRegistryClient(config.schemaRegistryUrl.get.toExternalForm, 100))
+    } else {
+      new ZookeeperMetadata(s"${config.catalog}/$MetadataPath", config.zookeepers, MetadataStringSerializer)
+    }
 
   override val stats: GeoMesaStats = new RunnableStats(this)
 
@@ -85,8 +92,10 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
         val consumers = KafkaDataStore.consumers(config, topic)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
         val laz = config.indices.lazyDeserialization
+        val ser = config.serialization
+        val regUrl = config.schemaRegistryUrl
         val initialLoad = config.consumers.readBack.isDefined
-        new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, laz, initialLoad, config.indices.eventTime)
+        new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, laz, ser, regUrl, initialLoad, config.indices.eventTime)
       }
     }
   })
@@ -356,7 +365,7 @@ object KafkaDataStore extends LazyLogging {
       topics: TopicConfig,
       serialization: SerializationType,
       indices: IndexConfig,
-      looseBBox: Boolean,
+      schemaRegistryUrl: Option[URL],looseBBox: Boolean,
       authProvider: AuthorizationsProvider,
       audit: Option[(AuditWriter, AuditProvider, String)],
       namespace: Option[String]) extends NamespaceConfig

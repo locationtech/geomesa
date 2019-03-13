@@ -11,13 +11,18 @@ package org.locationtech.geomesa.kafka.data
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
-import java.util.{Collections, Date}
-import java.{io, util}
+import java.util.{Collections, Date, Properties}
+import java.{util, io => jio}
 
 import com.typesafe.scalalogging.LazyLogging
+import io.confluent.kafka.serializers.KafkaAvroSerializer
 import kafka.admin.AdminUtils
+import org.apache.avro.Schema
+import org.apache.avro.generic.{GenericData, GenericRecord}
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
+import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
+import org.apache.kafka.common.serialization.StringSerializer
 import org.geotools.data._
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
@@ -25,6 +30,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.confluent.ConfluentFeatureSerializer
 import org.locationtech.geomesa.index.metadata.CachedLazyMetadata
 import org.locationtech.geomesa.kafka.EmbeddedKafka
 import org.locationtech.geomesa.kafka.ExpirationMocking.{ScheduledExpiry, WrappedRunnable}
@@ -123,6 +129,49 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       } finally {
         ds2.dispose()
       }
+    }
+
+    "read schemas from confluent schema registry" >> {
+      val topic = "confluent-test"
+      val producerProps = new Properties()
+      producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.brokers)
+      producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer])
+      producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[KafkaAvroSerializer])
+      producerProps.put("schema.registry.url", kafka.schemaRegistryUrl)
+      val producer = new KafkaProducer[String, GenericRecord](producerProps)
+
+      val key = "confluentTestKey"
+      val userSchema =
+        """{
+          |  "type":"record",
+          |  "name":"myrecord",
+          |  "fields":[
+          |    {"name":"f1","type":["null","string"]},
+          |    {"name":"f2","type":"string"}
+          |  ]
+          |}""".stripMargin
+      val parser = new Schema.Parser()
+      val schema = parser.parse(userSchema)
+      val avroRecord = new GenericData.Record(schema)
+      avroRecord.put("f1", "value1")
+      avroRecord.put("f2", "POINT(10 20)")
+
+      val record = new ProducerRecord[String, GenericRecord](topic, 0, 1540486908L, key, avroRecord)
+      producer.send(record)
+
+      val confluentStoreProps = Map("kafka.serialization.type" -> "confluent",
+        "kafka.schema.registry.url" -> kafka.schemaRegistryUrl)
+      val kds = getStore(zkPath = "", consumers = 1, confluentStoreProps)
+      val fs = kds.getFeatureSource(topic) // start the consumer polling
+      eventually(40, 100.millis)(SelfClosingIterator(fs.getFeatures.features).toArray.length mustEqual 1)
+      val feature = fs.getFeatures.features.next()
+      feature.getID mustEqual key
+      feature.getAttribute("f1") mustEqual "value1"
+      feature.getAttribute("f2") mustEqual "POINT(10 20)"
+      feature.getAttribute(ConfluentFeatureSerializer.dateAttributeName).asInstanceOf[Date].getTime mustEqual 1540486908L
+      val point = feature.getAttribute(ConfluentFeatureSerializer.geomAttributeName).asInstanceOf[Point]
+      point.getX mustEqual 10
+      point.getY mustEqual 20
     }
 
     "allow schemas to be created and deleted" >> {
@@ -242,7 +291,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         val provider = new AuthorizationsProvider() {
           import scala.collection.JavaConversions._
           override def getAuthorizations: java.util.List[String] = auths.toList
-          override def configure(params: util.Map[String, io.Serializable]): Unit = {}
+          override def configure(params: util.Map[String, jio.Serializable]): Unit = {}
         }
         val params = if (cqEngine) {
           Map("kafka.index.cqengine" -> "geom:default,name:unique")
