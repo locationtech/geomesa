@@ -169,10 +169,6 @@ abstract class MetadataFileSystemStorage(conf: Configuration,
 
       logger.debug(s"Compacted $written records into file $dataPath")
     }
-
-    logger.debug("Compacting metadata")
-
-    metadata.compact(partition)
   }
 
   class AddCallback(partition: String, file: Path) extends WriterCallback {
