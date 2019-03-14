@@ -39,8 +39,14 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   override def createNewDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore =
     createDataStore(params)
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore =
-    new KafkaDataStore(KafkaDataStoreFactory.buildConfig(params))
+  override def createDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore = {
+    val ds = new KafkaDataStore(KafkaDataStoreFactory.buildConfig(params))
+    if (!LazyLoad.lookup(params)) {
+      ds.startAllConsumers()
+    }
+    ds
+  }
+
 
   override def getDisplayName: String = KafkaDataStoreFactory.DisplayName
 
@@ -83,6 +89,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreFactoryParams.IndexResolutionY,
       KafkaDataStoreFactoryParams.IndexTiers,
       KafkaDataStoreFactoryParams.EventTimeOrdering,
+      KafkaDataStoreFactoryParams.LazyLoad,
       KafkaDataStoreFactoryParams.LazyFeatures,
       KafkaDataStoreFactoryParams.AuditQueries,
       KafkaDataStoreFactoryParams.LooseBBox,
@@ -267,6 +274,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val IndexTiers        = new GeoMesaParam[String]("kafka.index.tiers", "Number and size (in degrees) and of tiers to use when indexing geometries with extents", default = SizeSeparatedBucketIndex.DefaultTiers.map { case (x, y) => s"$x:$y"}.mkString(","))
     val CqEngineIndices   = new GeoMesaParam[String]("kafka.index.cqengine", "Use CQEngine for indexing individual attributes. Specify as `name:type`, delimited by commas, where name is an attribute and type is one of `default`, `navigable`, `radix`, `unique`, `hash` or `geometry`", deprecatedKeys = Seq("kafka.cache.cqengine.indices"))
     val EventTimeOrdering = new GeoMesaParam[java.lang.Boolean]("kafka.cache.event-time.ordering", "Instead of message time, determine feature ordering based on event time data", default = Boolean.box(false))
+    val LazyLoad          = new GeoMesaParam[java.lang.Boolean]("kafka.consumer.start-on-demand", "Start consuming a topic only when that feature type is first requested. This can reduce load if some layers are never queried", default = Boolean.box(true))
     val LazyFeatures      = new GeoMesaParam[java.lang.Boolean]("kafka.serialization.lazy", "Use lazy deserialization of features. This may improve processing load at the expense of slightly slower query times", default = Boolean.box(true))
     val LooseBBox         = GeoMesaDataStoreFactory.LooseBBoxParam
     val AuditQueries      = GeoMesaDataStoreFactory.AuditQueriesParam
