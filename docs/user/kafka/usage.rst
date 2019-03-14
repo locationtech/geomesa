@@ -43,6 +43,8 @@ Parameter                            Type    Description
 ``kafka.zk.path``                    String  Zookeeper discoverable path, can be used to effectively namespace feature types
 ``kafka.producer.config``            String  Configuration options for kafka producer, in Java properties
                                              format. See `Producer Configs <http://kafka.apache.org/documentation.html#producerconfigs>`_
+``kafka.producer.clear``             Boolean Send a 'clear' message on startup. This will cause clients to ignore any data that was in the
+                                             topic prior to startup
 ``kafka.consumer.config``            String  Configuration options for kafka consumer, in Java properties
                                              format. See `New Consumer Configs <http://kafka.apache.org/documentation.html#newconsumerconfigs>`_
 ``kafka.consumer.read-back``         String  On start up, read messages that were written within this time frame (vs ignore old messages), e.g.
@@ -50,8 +52,8 @@ Parameter                            Type    Description
                                              all existing messages are processed. However, feature listeners will still be invoked as normal.
                                              See :ref:`kafka_initial_load`
 ``kafka.consumer.count``             Integer Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)
-``kafka.producer.clear``             Boolean Send a 'clear' message on startup. This will cause clients to ignore any data that was in the
-                                             topic prior to startup
+``kafka.consumer.start-on-demand``   Boolean Start consuming a topic only when that feature type is first requested. This can reduce load if some
+                                             layers are never queried
 ``kafka.topic.partitions``           Integer Number of partitions to use in new kafka topics
 ``kafka.topic.replication``          Integer Replication factor to use in new kafka topics
 ``kafka.serialization.type``         String  Internal serialization format to use for kafka messages. Must be one of ``kryo`` or ``avro``

@@ -99,6 +99,12 @@ class KafkaDataStore(val config: KafkaDataStoreConfig)
     metadata.insert("migration", "check", "true")
   }
 
+  /**
+    * Start consuming from all topics. Consumers are normally only started for a simple feature type
+    * when it is first queried - this will start them immediately.
+    */
+  def startAllConsumers(): Unit = getTypeNames.foreach(caches.get)
+
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
     // note: kafka doesn't allow slashes in topic names
