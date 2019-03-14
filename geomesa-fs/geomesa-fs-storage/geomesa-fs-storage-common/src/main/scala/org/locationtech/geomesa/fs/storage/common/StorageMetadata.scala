@@ -29,6 +29,7 @@ import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.{ConfigConvert, ConfigWriter}
 
+import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 
 /**
@@ -111,43 +112,45 @@ class StorageMetadata private (fc: FileContext,
   override def compact(): Unit = {
     val (paths, merged) = loadMergedConfigs()
     paths.foreach(fc.delete(_, false))
-    merged.foreach(StorageMetadata.writePartitionConfig(fc, root, _))
+    StorageMetadata.writeCompactedConfig(fc, root, CompactedConfig(merged))
   }
 
   override def compact(partition: String): Unit = {
-    val (paths, merged) = loadMergedConfig(partition)
-    paths.foreach(fc.delete(_, false))
-    merged.foreach(StorageMetadata.writePartitionConfig(fc, root, _))
-  }
-
-  override def reload(): Unit = loadMergedConfigs()
-
-  private def loadMergedConfig(partition: String): (Seq[Path], Option[PartitionConfig]) = {
-    val paths = Seq.newBuilder[Path]
-    val configs = Seq.newBuilder[PartitionConfig]
+    val paths = ListBuffer.empty[Path] // the paths to the updates for this partition
+    val configs = ListBuffer.empty[PartitionConfig] // the update configs for this partition
     StorageMetadata.listPartitionConfigs(fc, root, Option(partition)).foreach { path =>
       StorageMetadata.readPartitionConfig(fc, path).filter(_.name == partition).foreach { config =>
         paths += path
         configs += config
       }
     }
-    val merged = StorageMetadata.mergePartitionConfigs(configs.result)
+    val merged = StorageMetadata.mergePartitionConfigs(configs)
+    // read the compacted storage, but don't modify the compacted file
+    val compacted = StorageMetadata.readCompactedConfig(fc, root).filter(_.name == partition) match {
+      case p if p.isEmpty => merged
+      case p => StorageMetadata.mergePartitionConfigs(p ++ merged.toSeq)
+    }
 
     synchronized {
-      merged.filter(_.files.nonEmpty) match {
-      case None => partitions.remove(partition)
-      case Some(m) =>
-        partitions.put(partition,
-          new PartitionMetadata(m.name, m.files.toSeq.asJava, m.count, m.envelope.toEnvelope))
+      compacted.filter(_.files.nonEmpty) match {
+        case None => partitions.remove(partition)
+        case Some(m) =>
+          partitions.put(partition,
+            new PartitionMetadata(m.name, m.files.toSeq.asJava, m.count, m.envelope.toEnvelope))
       }
     }
 
-    (paths.result, merged)
+    // delete the old files and write the merged updates (minus compacted baseline)
+    paths.foreach(fc.delete(_, false))
+    merged.foreach(StorageMetadata.writePartitionConfig(fc, root, _))
   }
+
+  override def reload(): Unit = loadMergedConfigs()
 
   private def loadMergedConfigs(): (Seq[Path], Seq[PartitionConfig]) = {
     val paths = StorageMetadata.listPartitionConfigs(fc, root)
-    val configs = paths.flatMap(StorageMetadata.readPartitionConfig(fc, _))
+    val configs = StorageMetadata.readCompactedConfig(fc, root) ++
+        paths.flatMap(StorageMetadata.readPartitionConfig(fc, _))
     val merged = configs.groupBy(_.name).values.toSeq.flatMap(StorageMetadata.mergePartitionConfigs)
 
     synchronized {
@@ -169,13 +172,15 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
 
   private val MetadataDirectory = "metadata"
 
-  private val MetadataPath = s"$MetadataDirectory/storage.json"
+  private val JsonPathSuffix = ".json"
+
+  private val MetadataPath = s"$MetadataDirectory/storage$JsonPathSuffix"
 
   private val UpdateFilePrefix = "update-"
 
   private val UpdatePathPrefix = s"$MetadataDirectory/$UpdateFilePrefix"
 
-  private val JsonPathSuffix = ".json"
+  private val CompactedPath = s"$MetadataDirectory/compacted$JsonPathSuffix"
 
   private val options = ConfigRenderOptions.concise().setFormatted(true)
 
@@ -265,6 +270,29 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
   }
 
   /**
+    * Write metadata for a single partition operation to disk
+    *
+    * @param fc file context
+    * @param root root path
+    * @param config partition config
+    */
+  private def writeCompactedConfig(fc: FileContext, root: Path, config: CompactedConfig): Unit = {
+    val data = profile("Serialized compacted partition configuration") {
+      ConfigWriter[CompactedConfig].to(config).render(options)
+    }
+    profile("Persisted compacted partition configuration") {
+      val file = new Path(root, CompactedPath)
+      val flags = java.util.EnumSet.of(CreateFlag.CREATE, CreateFlag.OVERWRITE)
+      WithClose(fc.create(file, flags, CreateOpts.createParent)) { out =>
+        out.writeBytes(data)
+        out.hflush()
+        out.hsync()
+      }
+      PathCache.invalidate(fc, file)
+    }
+  }
+
+  /**
     * Read and parse a partition metadata file
     *
     * @param fc file context
@@ -283,6 +311,31 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
       }
     } catch {
       case NonFatal(e) => logger.error(s"Error reading config at path $file:", e); None
+    }
+  }
+
+  /**
+    * Read and parse a partition metadata file
+    *
+    * @param fc file context
+    * @param root root path
+    * @return
+    */
+  private def readCompactedConfig(fc: FileContext, root: Path): Seq[PartitionConfig] = {
+    val file = new Path(root, CompactedPath)
+    try {
+      if (!PathCache.exists(fc, file)) { Seq.empty } else {
+        val config = profile("Loaded compacted partition configuration") {
+          WithClose(new InputStreamReader(fc.open(file))) { in =>
+            ConfigFactory.parseReader(in, ConfigParseOptions.defaults().setSyntax(ConfigSyntax.JSON))
+          }
+        }
+        profile("Parsed compacted partition configuration") {
+          pureconfig.loadConfigOrThrow[CompactedConfig](config).partitions
+        }
+      }
+    } catch {
+      case NonFatal(e) => logger.error(s"Error reading config at path $file:", e); Seq.empty
     }
   }
 
@@ -411,16 +464,20 @@ object StorageMetadata extends MethodProfiling with LazyLogging {
 
   case class StorageConfig(featureType: Config, partitionScheme: Config, encoding: String)
 
+  case class CompactedConfig(partitions: Seq[PartitionConfig])
+
   case class PartitionConfig(name: String, action: PartitionAction, files: Set[String], count: Long,
                              envelope: EnvelopeConfig, timestamp: Long) {
     def add(other: PartitionConfig): PartitionConfig = {
       require(action == PartitionAction.Add, "Can't aggregate into non-add actions")
-      PartitionConfig(name, action, files ++ other.files, count + other.count, envelope.merge(other.envelope), timestamp)
+      val ts = math.max(timestamp, other.timestamp)
+      PartitionConfig(name, action, files ++ other.files, count + other.count, envelope.merge(other.envelope), ts)
     }
 
     def remove(other: PartitionConfig): PartitionConfig = {
       require(action == PartitionAction.Add, "Can't aggregate into non-add actions")
-      PartitionConfig(name, action, files -- other.files, math.max(0L, count - other.count), envelope, timestamp)
+      val ts = math.max(timestamp, other.timestamp)
+      PartitionConfig(name, action, files -- other.files, count - other.count, envelope, ts)
     }
   }
 

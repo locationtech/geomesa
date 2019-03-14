@@ -73,9 +73,6 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
 
     val start = System.currentTimeMillis()
 
-    // compact metadata up-front, that will save us listing redundant metadata files for each partition
-    storage.getMetadata.compact()
-
     val statusCallback = new PrintProgress(System.err, TextTools.buildString(' ', 60), '\u003d', '\u003e', '\u003e')
 
     mode match {
@@ -109,6 +106,8 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
           statusCallback("", 1f - latch.getCount.toFloat / total, Seq.empty, done = false)
         }
         statusCallback("", 1f, Seq.empty, done = true)
+        Command.user.info("Compacting metadata")
+        storage.getMetadata.compact()
         Command.user.info(s"Local compaction complete in ${TextTools.getTime(start)}")
 
       case RunModes.Distributed =>
