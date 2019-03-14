@@ -1,6 +1,10 @@
 GeoMesa Blob Store
 ==================
 
+.. warning::
+
+  The GeoMesa Blob Store is deprecated and will be removed in a future version.
+
 The GeoMesa Blob Store is found in ``geomesa-blobstore`` in the source distribution.
 
 The ``GeoMesaIndexedBlobStore`` is an interface that describes the

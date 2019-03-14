@@ -23,6 +23,7 @@ import info.ganglia.gmetric4j.gmetric.GMetric.UDPAddressingMode
 import org.locationtech.geomesa.metrics.reporters.{DelimitedFileReporter, AccumuloReporter}
 import org.slf4j.LoggerFactory
 
+@deprecated("Will be removed without replacement")
 object MetricsConfig extends LazyLogging {
 
   val ConfigPath = "geomesa.metrics.reporters"

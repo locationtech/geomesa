@@ -30,6 +30,7 @@ import scala.language.implicitConversions
 /**
  * Reporter for dropwizard metrics that will write to accumulo
  */
+@deprecated("Will be removed without replacement")
 object AccumuloReporter {
 
   object Keys {

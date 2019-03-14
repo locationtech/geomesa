@@ -31,6 +31,7 @@ import org.opengis.feature.simple.SimpleFeature
 import scala.collection.JavaConverters._
 
 @InterfaceStability.Unstable
+@deprecated("Will be removed without replacement")
 abstract class BaseBigTableIndex[T](protected val ds: GeoMesaDataStore[_],
                                     name: String,
                                     serde: ValueSerializer[T],

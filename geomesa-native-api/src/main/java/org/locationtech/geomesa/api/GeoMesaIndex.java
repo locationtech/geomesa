@@ -20,6 +20,7 @@ import java.util.Map;
  * @param <T>
  */
 @InterfaceStability.Unstable
+@Deprecated
 public interface GeoMesaIndex<T> {
 
     IndexType[] supportedIndexes();

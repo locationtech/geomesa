@@ -179,7 +179,7 @@ Due to licensing, GeoServer-specific code related to GeoMesa is maintained in a 
 `repository <https://github.com/geomesa/geomesa-geoserver/>`__. It can be downloaded from Maven
 central, or built from source.
 
-It is required for Arrow output and raster stores in GeoServer, among other things.
+It is required for Arrow output in GeoServer, among other things.
 
 Once obtained, the GeoServer modules can be installed by copying ``geomesa-gs-*.jar`` into
 the GeoServer ``lib`` directory.

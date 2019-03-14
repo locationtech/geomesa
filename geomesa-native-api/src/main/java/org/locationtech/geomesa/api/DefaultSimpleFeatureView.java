@@ -16,6 +16,7 @@ import org.opengis.feature.type.AttributeDescriptor;
 import java.util.Date;
 import java.util.List;
 
+@Deprecated
 public class DefaultSimpleFeatureView<T> implements SimpleFeatureView<T> {
 
     @Override

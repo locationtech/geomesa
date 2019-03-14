@@ -21,6 +21,7 @@ import java.util.Date;
  * Represents a query to GeoMesa
  */
 @InterfaceStability.Unstable
+@Deprecated
 public class GeoMesaQuery {
 
     private Filter filter = Filter.INCLUDE;

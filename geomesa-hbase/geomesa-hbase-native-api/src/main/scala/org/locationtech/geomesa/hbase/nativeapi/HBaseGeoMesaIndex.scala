@@ -18,6 +18,7 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 @InterfaceStability.Unstable
+@deprecated("Will be removed without replacement")
 class HBaseGeoMesaIndex[T](override protected val ds: HBaseDataStore,
                            name: String,
                            serde: ValueSerializer[T],
@@ -27,6 +28,7 @@ class HBaseGeoMesaIndex[T](override protected val ds: HBaseDataStore,
 }
 
 @InterfaceStability.Unstable
+@deprecated("Will be removed without replacement")
 object HBaseGeoMesaIndex {
   def build[T](name: String,
                remote: Boolean,

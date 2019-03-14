@@ -11,6 +11,7 @@ package org.locationtech.geomesa.api;
 import org.apache.hadoop.classification.InterfaceStability;
 
 @InterfaceStability.Unstable
+@Deprecated
 public enum IndexType {
     SPATIAL,
     SPATIOTEMPORAL,

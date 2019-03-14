@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 
 @InterfaceStability.Unstable
+@Deprecated
 public interface SimpleFeatureView<T> {
 
     void populate(SimpleFeature f, T t, String id, byte[] payload, Geometry geom, Date dtg);

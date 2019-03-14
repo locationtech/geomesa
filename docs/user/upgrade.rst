@@ -111,6 +111,16 @@ In order to update a schema, or if mutability is desired for some other reason, 
 ``org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.mutable()`` to create a mutable copy. Java users
 can call ``org.locationtech.geomesa.utils.interop.SimpleFeatureTypes.mutable()`` instead.
 
+Deprecated Modules
+------------------
+
+The following modules have been deprecated, and be removed in a future version:
+
+* GeoMesa Raster
+* GeoMesa Native API
+* GeoMesa Blob Store
+* GeoMesa Metrics
+
 Version 2.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

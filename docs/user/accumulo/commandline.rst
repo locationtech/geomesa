@@ -240,6 +240,10 @@ Argument                 Description
 ``ingest-raster``
 ^^^^^^^^^^^^^^^^^
 
+.. warning::
+
+  GeoMesa raster support is deprecated and will be removed in a future version.
+
 Ingest one or more raster image files into Geomesa. Input files, GeoTIFF or DTED, should be located
 on the local file system.
 
