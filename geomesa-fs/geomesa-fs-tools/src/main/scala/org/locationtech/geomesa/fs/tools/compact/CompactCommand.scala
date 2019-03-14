@@ -68,15 +68,14 @@ class CompactCommand extends FsDataStoreCommand with LazyLogging {
 
     Command.user.info(s"Compacting ${toCompact.size} partitions in ${mode.toString.toLowerCase(Locale.US)} mode")
 
-    // compact metadata up-front, that will save us listing redundant metadata files for each partition
-    storage.getMetadata.compact()
-
     mode match {
       case RunModes.Local =>
         toCompact.par.foreach { p =>
           logger.info(s"Compacting ${p.name}")
           storage.compact(p.name)
         }
+        Command.user.info("Compacting metadata")
+        storage.getMetadata.compact()
 
       case RunModes.Distributed =>
         val encoding = storage.getMetadata.getEncoding
