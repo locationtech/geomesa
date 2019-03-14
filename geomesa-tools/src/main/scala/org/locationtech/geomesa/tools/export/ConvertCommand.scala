@@ -145,9 +145,10 @@ object ConvertCommand extends LazyLogging {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     def convert(): CloseableIterator[SimpleFeature] = CloseableIterator(files).flatMap { file =>
-      ec.setInputFilePath(file.path)
-      val is = PathUtils.handleCompression(file.open, file.path)
-      converter.process(is, ec)
+      file.open.flatMap { case (name, is) =>
+        ec.setInputFilePath(name.getOrElse(file.path))
+        converter.process(is, ec)
+      }
     }
 
     def filter(iter: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] =

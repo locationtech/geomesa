@@ -8,13 +8,17 @@
 
 package org.locationtech.geomesa.utils.io.fs
 
-import java.io.{File, FileInputStream, InputStream}
+import java.io._
 import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.Locale
 
-import org.locationtech.geomesa.utils.io.WithClose
+import org.apache.commons.compress.archivers.ArchiveStreamFactory
+import org.apache.commons.compress.archivers.zip.ZipFile
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
-import org.locationtech.geomesa.utils.io.fs.LocalDelegate.LocalFileHandle
+import org.locationtech.geomesa.utils.io.fs.LocalDelegate.{LocalFileHandle, LocalTarHandle, LocalZipHandle}
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
@@ -26,7 +30,11 @@ class LocalDelegate extends FileSystemDelegate {
   override def interpretPath(path: String): Seq[FileHandle] = {
     val firstWildcard = path.indexOf('*')
     if (firstWildcard == -1) {
-      Seq(new LocalFileHandle(new File(path)))
+      val file = new File(path)
+      if (file.isDirectory) {
+        throw new IllegalArgumentException(s"Input file is a directory: ${file.getAbsolutePath}")
+      }
+      Seq(createHandle(file))
     } else {
       // find the base directory to search from based on the non-wildcard prefix
       val lastSep = path.length - 1 - path.reverse.indexOf('/', path.length - firstWildcard - 1)
@@ -37,7 +45,12 @@ class LocalDelegate extends FileSystemDelegate {
       }
       if (glob.indexOf('/') == -1 && !glob.contains("**")) {
         // we can just look in the current directory
-        WithClose(Files.newDirectoryStream(basepath, glob))(_.asScala.map(s => new LocalFileHandle(s.toFile)).toList)
+        WithClose(Files.newDirectoryStream(basepath, glob)) { stream =>
+          stream.asScala.toList.flatMap{ p =>
+            val file = p.toFile
+            if (file.isDirectory) { Nil } else { List(createHandle(file)) }
+          }
+        }
       } else {
         // we have to walk the file tree
         val matcher = FileSystems.getDefault.getPathMatcher("glob:" + glob)
@@ -45,7 +58,7 @@ class LocalDelegate extends FileSystemDelegate {
         val visitor = new SimpleFileVisitor[Path] {
           override def visitFile(file: Path, attributes: BasicFileAttributes): FileVisitResult = {
             if (matcher.matches(file) && attributes.isRegularFile && !attributes.isDirectory) {
-              result.append(new LocalFileHandle(file.toFile))
+              result += createHandle(file.toFile)
             }
             FileVisitResult.CONTINUE
           }
@@ -55,26 +68,52 @@ class LocalDelegate extends FileSystemDelegate {
       }
     }
   }
+
+  private def createHandle(file: File): FileHandle = {
+    import ArchiveStreamFactory.{JAR, TAR, ZIP}
+    PathUtils.getUncompressedExtension(file.getName).toLowerCase(Locale.US) match {
+      case TAR       => new LocalTarHandle(file)
+      case ZIP | JAR => new LocalZipHandle(file)
+      case _         => new LocalFileHandle(file)
+    }
+  }
 }
 
 object LocalDelegate {
 
+  private val factory = new ArchiveStreamFactory()
+
   class LocalFileHandle(file: File) extends FileHandle {
     override def path: String = file.getAbsolutePath
     override def length: Long = file.length()
-    override def open: InputStream = new FileInputStream(file)
+    override def open: CloseableIterator[(Option[String], InputStream)] = {
+      val is = PathUtils.handleCompression(new FileInputStream(file), file.getName)
+      CloseableIterator.single(None -> is, is.close())
+    }
+  }
+
+  class LocalZipHandle(file: File) extends LocalFileHandle(file) {
+    override def open: CloseableIterator[(Option[String], InputStream)] =
+      new ZipFileIterator(new ZipFile(file), file.getAbsolutePath)
+  }
+
+  class LocalTarHandle(file: File) extends LocalFileHandle(file) {
+    override def open: CloseableIterator[(Option[String], InputStream)] = {
+      val uncompressed = PathUtils.handleCompression(new FileInputStream(file), file.getName)
+      val archive = factory.createArchiveInputStream(ArchiveStreamFactory.TAR, uncompressed)
+      new ArchiveFileIterator(archive, file.getAbsolutePath)
+    }
   }
 
   class StdInHandle extends FileHandle {
     override def path: String = "<stdin>"
     override def length: Long = Try(System.in.available().toLong).getOrElse(0L) // .available will throw if stream is closed
-    override def open: InputStream = System.in
+    override def open: CloseableIterator[(Option[String], InputStream)] = CloseableIterator.single(None -> System.in)
   }
 
   object StdInHandle {
     // avoid hanging if there isn't any input
     def available(): Option[FileHandle] = if (isAvailable) { Some(new StdInHandle) } else { None }
-
     def isAvailable: Boolean = System.in.available() > 0
   }
 }

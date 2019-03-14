@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.ingest
 
-import java.io.{File, FileWriter, PrintWriter}
+import java.io.{File, FileWriter, InputStream, PrintWriter}
 import java.nio.charset.StandardCharsets
 import java.util.{Collections, Locale}
 
@@ -26,12 +26,14 @@ import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, Prompt}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{ConfigSftParsing, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
-import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose}
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 import scala.util.{Success, Try}
 
@@ -51,10 +53,14 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
     }
 
     val inputs = if (params.srcList) {
-      val lists = if (params.files.isEmpty) { StdInHandle.available().toSeq } else {
-        params.files.asScala.flatMap(PathUtils.interpretPath)
+      val lists = if (params.files.isEmpty) { StdInHandle.available().toList } else {
+        params.files.asScala.flatMap(PathUtils.interpretPath).toList
       }
-      lists.flatMap(file => WithClose(IOUtils.lineIterator(file.open, StandardCharsets.UTF_8))(_.asScala.toList))
+      lists.flatMap { file =>
+        WithClose(file.open) { iter =>
+          iter.flatMap { case (_, is) => IOUtils.lineIterator(is, StandardCharsets.UTF_8).asScala }.toList
+        }
+      }
     } else {
       params.files.asScala
     }
@@ -150,7 +156,7 @@ object IngestCommand extends LazyLogging {
     */
   def getDataFormat(params: OptionalInputFormatParam, files: Seq[String]): Option[String] = {
     val raw = if (params.format != null) { Some(params.format) } else {
-      val exts = files.iterator.map(PathUtils.getUncompressedExtension).filter(_.nonEmpty)
+      val exts = files.iterator.flatMap(PathUtils.interpretPath).map(_.format).filter(_.nonEmpty)
       if (exts.hasNext) { Some(exts.next) } else { None }
     }
     raw.map {
@@ -192,17 +198,26 @@ object IngestCommand extends LazyLogging {
       val file = inputs.iterator.flatMap(PathUtils.interpretPath).headOption.getOrElse {
         throw new ParameterException("Parameter <files> did not evaluate to anything that could be read")
       }
-      val (inferredSft, inferredConverter) = {
+      val opened = ListBuffer.empty[CloseableIterator[InputStream]]
+      def open(): InputStream = {
+        val streams = file.open.map(_._2)
+        opened += streams
+        if (streams.hasNext) { streams.next } else {
+          throw new ParameterException("Parameter <files> did not evaluate to anything that could be read")
+        }
+      }
+      val (inferredSft, inferredConverter) = try {
         val opt = format match {
-          case None        => SimpleFeatureConverter.infer(() => file.open, Option(sft))
+          case None        => SimpleFeatureConverter.infer(open, Option(sft))
           case Some("shp") => ShapefileConverterFactory.infer(file.path, Option(sft))
-          case Some(fmt)   => TypeAwareInference.infer(fmt, () => file.open, Option(sft))
+          case Some(fmt)   => TypeAwareInference.infer(fmt, open, Option(sft))
         }
         opt.getOrElse {
           throw new ParameterException("Could not determine converter from inputs - please specify a converter")
         }
+      } finally {
+        CloseWithLogging(opened)
       }
-
       val renderOptions = ConfigRenderOptions.concise().setFormatted(true)
       var inferredSftString: Option[String] = None
 

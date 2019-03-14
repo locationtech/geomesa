@@ -9,9 +9,14 @@
 package org.locationtech.geomesa.jobs.mapreduce
 
 import java.io.{Closeable, InputStream}
+import java.util.Locale
 
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.commons.compress.archivers.ArchiveStreamFactory
+import org.apache.commons.compress.archivers.zip.ZipFile
+import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
+import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{Path, Seekable}
 import org.apache.hadoop.io.LongWritable
@@ -25,8 +30,10 @@ import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.ConverterInputFormat.{ConverterKey, RetypeKey}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.io.fs.{ArchiveFileIterator, ZipFileIterator}
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -39,8 +46,8 @@ class ConverterInputFormat extends FileStreamInputFormat {
 
 object ConverterInputFormat {
 
-  lazy val converterInputFormat: ConverterInputFormat = new ConverterInputFormat
-  def apply(): ConverterInputFormat = converterInputFormat
+  // note: we can get away with a single instance b/c m/r doesn't end up sharing it
+  lazy private [mapreduce] val instance = new ConverterInputFormat
 
   object Counters {
     val Group     = "org.locationtech.geomesa.jobs.convert"
@@ -75,16 +82,16 @@ class ConverterCombineInputFormat extends CombineFileInputFormat[LongWritable, S
 class CombineFileStreamRecordReaderWrapper(split: CombineFileSplit,
                                            ctx: TaskAttemptContext,
                                            idx: java.lang.Integer)
-  extends CombineFileRecordReaderWrapper[LongWritable, SimpleFeature](
-    ConverterInputFormat(), split, ctx, idx)
-
-
+  extends CombineFileRecordReaderWrapper[LongWritable, SimpleFeature](ConverterInputFormat.instance, split, ctx, idx)
 
 class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
 
-  override def createIterator(stream: InputStream with Seekable,
-                              filePath: Path,
-                              context: TaskAttemptContext): Iterator[SimpleFeature] with Closeable = {
+  import scala.collection.JavaConverters._
+
+  override def createIterator(
+      stream: InputStream with Seekable,
+      filePath: Path,
+      context: TaskAttemptContext): Iterator[SimpleFeature] with Closeable = {
 
     val confStr   = context.getConfiguration.get(ConverterKey)
     val conf      = ConfigFactory.parseString(confStr)
@@ -114,19 +121,38 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
       val params = EvaluationContext.inputFileParam(filePath.toString)
       converter.createEvaluationContext(params, counter = new MapReduceCounter)
     }
-    val raw = converter.process(stream, ec)
+
+    val streams: CloseableIterator[(Option[String], InputStream)] =
+      PathUtils.getUncompressedExtension(filePath.getName).toLowerCase(Locale.US) match {
+        case ArchiveStreamFactory.TAR =>
+          val archive = new ArchiveStreamFactory().createArchiveInputStream(ArchiveStreamFactory.TAR, stream)
+          new ArchiveFileIterator(archive, filePath.toString)
+
+        case ArchiveStreamFactory.ZIP | ArchiveStreamFactory.JAR =>
+          // we have to read the bytes into memory to get random access reads
+          // note: stream is closed in super class
+          val bytes = new SeekableInMemoryByteChannel(IOUtils.toByteArray(stream))
+          new ZipFileIterator(new ZipFile(bytes), filePath.toString)
+
+        case _ =>
+          CloseableIterator.single(None -> stream, stream.close())
+      }
+
+    val all = streams.flatMap { case (name, is) =>
+      ec.setInputFilePath(name.getOrElse(filePath.toString))
+      converter.process(is, ec)
+    }
     val iter = filter match {
-      case Some(f) => raw.filter(f.evaluate)
-      case None    => raw
+      case Some(f) => all.filter(f.evaluate)
+      case None    => all
     }
 
-    import scala.collection.JavaConversions._
     val featureReader = if (retypedSpec != null) {
       val retypedSft = SimpleFeatureTypes.createType(sft.getTypeName, retypedSpec)
-      val reader = new DelegateSimpleFeatureReader(sft, new DelegateSimpleFeatureIterator(iter))
+      val reader = new DelegateSimpleFeatureReader(sft, new DelegateSimpleFeatureIterator(iter.asJava))
       new ReTypeFeatureReader(reader, retypedSft)
     } else {
-      new DelegateSimpleFeatureReader(sft, new DelegateSimpleFeatureIterator(iter))
+      new DelegateSimpleFeatureReader(sft, new DelegateSimpleFeatureIterator(iter.asJava))
     }
 
     logger.info(s"Initialized record reader on split ${filePath.toString} with " +

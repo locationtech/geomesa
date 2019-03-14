@@ -180,6 +180,7 @@ org.geotools:gt-coverage	20.0	compile
 org.geotools:gt-cql	20.0	compile
 org.geotools:gt-data	20.0	compile
 org.geotools:gt-epsg-hsql	20.0	compile
+org.geotools:gt-epsg-wkt	20.0	compile
 org.geotools:gt-geojson	20.0	compile
 org.geotools:gt-geotiff	20.0	compile
 org.geotools:gt-grid	20.0	compile

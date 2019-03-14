@@ -82,13 +82,13 @@ object FileStreamInputFormat {
  */
 abstract class FileStreamRecordReader() extends RecordReader[LongWritable, SimpleFeature] with LazyLogging {
 
-  private var dec: Decompressor = null
-  private var stream: InputStream with Seekable = null
-  private var iter: Iterator[SimpleFeature] with Closeable = null
+  private var dec: Decompressor = _
+  private var stream: InputStream with Seekable = _
+  private var iter: Iterator[SimpleFeature] with Closeable = _
   private var length: Float = 0
 
   private val curKey = new LongWritable(0)
-  private var curValue: SimpleFeature = null
+  private var curValue: SimpleFeature = _
 
   def createIterator(stream: InputStream with Seekable,
                      filePath: Path,

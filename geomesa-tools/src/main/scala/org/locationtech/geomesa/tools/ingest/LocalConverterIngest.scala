@@ -25,8 +25,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
-import org.locationtech.geomesa.utils.stats.CountingInputStream
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose}
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -84,30 +83,30 @@ class LocalConverterIngest(
 
           var fw: FeatureWriter[SimpleFeatureType, SimpleFeature] = null
 
-          // count the raw bytes read from the file, as that's what we based our total on
-          val countingStream = new CountingInputStream(file.open)
-          val is = PathUtils.handleCompression(countingStream, file.path)
           try {
-            val features = LocalConverterIngest.this.features(converter.process(is, ec))
-            if (features.hasNext) {
-              fw = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
-            }
-            features.foreach { sf =>
-              FeatureUtils.copyToWriter(fw, sf, useProvidedFid = true)
-              try {
-                fw.write()
-                written.incrementAndGet()
-              } catch {
-                case NonFatal(e) =>
-                  logger.error(s"Failed to write '${DataUtilities.encodeFeature(sf)}'", e)
-                  failed.incrementAndGet()
+            WithClose(file.open) { streams =>
+              streams.foreach { case (name, is) =>
+                ec.setInputFilePath(name.getOrElse(file.path))
+                val features = LocalConverterIngest.this.features(converter.process(is, ec))
+                if (fw == null && features.hasNext) {
+                  fw = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
+                }
+                features.foreach { sf =>
+                  FeatureUtils.copyToWriter(fw, sf, useProvidedFid = true)
+                  try {
+                    fw.write()
+                    written.incrementAndGet()
+                  } catch {
+                    case NonFatal(e) =>
+                      logger.error(s"Failed to write '${DataUtilities.encodeFeature(sf)}'", e)
+                      failed.incrementAndGet()
+                  }
+                }
               }
-              bytesRead.addAndGet(countingStream.getCount)
-              countingStream.resetCount()
             }
           } finally {
             converters.returnObject(converter)
-            CloseWithLogging(is)
+            bytesRead.addAndGet(file.length)
             if (fw != null) {
               fw.close() // allow exception to propagate
             }

@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets
 import com.typesafe.config.ConfigFactory
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme
 import org.locationtech.geomesa.utils.conf.ArgResolver
-import org.locationtech.geomesa.utils.io.PathUtils
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
@@ -37,7 +37,7 @@ object PartitionSchemeArgResolver extends ArgResolver[PartitionScheme, SchemeArg
     }
   }
 
-  override val parseMethodList: Seq[(SchemeArgs) => ResEither] = List[SchemeArgs => ResEither](
+  override val parseMethodList: Seq[SchemeArgs => ResEither] = List[SchemeArgs => ResEither](
     getNamedScheme,
     parseFile,
     parseString
@@ -62,12 +62,18 @@ object PartitionSchemeArgResolver extends ArgResolver[PartitionScheme, SchemeArg
 
   private [PartitionSchemeArgResolver] def parseFile(args: SchemeArgs): ResEither = {
     try {
-      val is = PathUtils.interpretPath(args.scheme).headOption.map(_.open).getOrElse {
+      val handle = PathUtils.interpretPath(args.scheme).headOption.getOrElse {
         throw new RuntimeException(s"Could not read file at ${args.scheme}")
       }
-      val reader = new InputStreamReader(is, StandardCharsets.UTF_8)
-      val conf = ConfigFactory.parseReader(reader, parseOpts)
-      Right(org.locationtech.geomesa.fs.storage.common.PartitionScheme.apply(args.sft, conf))
+      WithClose(handle.open) { is =>
+        if (is.hasNext) {
+          val reader = new InputStreamReader(is.next._2, StandardCharsets.UTF_8)
+          val conf = ConfigFactory.parseReader(reader, parseOpts)
+          Right(org.locationtech.geomesa.fs.storage.common.PartitionScheme.apply(args.sft, conf))
+        } else {
+          throw new RuntimeException(s"Could not read file at ${args.scheme}")
+        }
+      }
     } catch {
       case NonFatal(e) => Left((s"Unable to load scheme from file ${args.scheme}", e, PATH))
     }

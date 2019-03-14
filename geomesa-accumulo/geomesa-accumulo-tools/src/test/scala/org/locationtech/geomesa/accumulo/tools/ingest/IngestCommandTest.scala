@@ -118,6 +118,63 @@ class IngestCommandTest extends Specification {
       features.size mustEqual 0
     }
 
+    "ingest from tar files" >> {
+      val id = nextId
+
+      val confFile = new File(this.getClass.getClassLoader.getResource("examples/example1-csv.conf").getFile)
+      val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.tar").getFile)
+
+      val args = baseArgs ++ Array("--catalog", id, "--converter", confFile.getPath, "-s", confFile.getPath, dataFile.getPath)
+      args.length mustEqual 17
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
+      command.execute()
+
+      val features = command.withDataStore { ds =>
+        SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures.features).toList
+      }
+      features.size mustEqual 5
+      features.map(_.get[String]("name")) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus", "Ron", "Ginny"))
+    }
+
+    "ingest from zip files" >> {
+      val id = nextId
+
+      val confFile = new File(this.getClass.getClassLoader.getResource("examples/example1-csv.conf").getFile)
+      val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.zip").getFile)
+
+      val args = baseArgs ++ Array("--catalog", id, "--converter", confFile.getPath, "-s", confFile.getPath, dataFile.getPath)
+      args.length mustEqual 17
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
+      command.execute()
+
+      val features = command.withDataStore { ds =>
+        SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures.features).toList
+      }
+      features.size mustEqual 5
+      features.map(_.get[String]("name")) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus", "Ron", "Ginny"))
+    }
+
+    "ingest from tgz files" >> {
+      val id = nextId
+
+      val confFile = new File(this.getClass.getClassLoader.getResource("examples/example1-csv.conf").getFile)
+      val dataFile = new File(this.getClass.getClassLoader.getResource("examples/example1.tgz").getFile)
+
+      val args = baseArgs ++ Array("--catalog", id, "--converter", confFile.getPath, "-s", confFile.getPath, dataFile.getPath)
+      args.length mustEqual 17
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
+      command.execute()
+
+      val features = command.withDataStore { ds =>
+        SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures.features).toList
+      }
+      features.size mustEqual 5
+      features.map(_.get[String]("name")) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus", "Ron", "Ginny"))
+    }
+
     "work with mock with provided ZK and instance and default accumulo passwords!" >> {
       val id = nextId
 
