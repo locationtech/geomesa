@@ -21,11 +21,14 @@ htrace_core_version="4.1.0-incubating"
 # These should match up to what the hadoop version desires
 guava_version="11.0.2"
 com_log_version="1.1.3"
-aws_sdk_version="1.7.4"
+aws_sdk_version="1.10.6"
 commons_config_version="1.6"
 
 # this should match the parquet desired version
 snappy_version="1.1.1.6"
+
+#joda-time required for aws sdk
+joda_time_version="2.8.1"
 
 # Load common functions and setup
 if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
@@ -44,7 +47,9 @@ declare -a urls=(
   "${base_url}org/apache/hadoop/hadoop-common/${hadoop_version}/hadoop-common-${hadoop_version}.jar"
   "${base_url}org/apache/hadoop/hadoop-hdfs/${hadoop_version}/hadoop-hdfs-${hadoop_version}.jar"
   "${base_url}org/apache/hadoop/hadoop-aws/${hadoop_version}/hadoop-aws-${hadoop_version}.jar"
-  "${base_url}com/amazonaws/aws-java-sdk/${aws_sdk_version}/aws-java-sdk-${aws_sdk_version}.jar"
+  "${base_url}com/amazonaws/aws-java-sdk-core/${aws_sdk_version}/aws-java-sdk-core-${aws_sdk_version}.jar"
+  "${base_url}com/amazonaws/aws-java-sdk-s3/${aws_sdk_version}/aws-java-sdk-s3-${aws_sdk_version}.jar"
+  "${base_url}joda-time/joda-time/${joda_time_version}/joda-time-${joda_time_version}.jar"
   "${base_url}org/xerial/snappy/snappy-java/${snappy_version}/snappy-java-${snappy_version}.jar"
   "${base_url}commons-configuration/commons-configuration/${commons_config_version}/commons-configuration-${commons_config_version}.jar"
   "${base_url}commons-logging/commons-logging/${com_log_version}/commons-logging-${com_log_version}.jar"
