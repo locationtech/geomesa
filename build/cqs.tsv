@@ -262,8 +262,8 @@ org.apache.hadoop:hadoop-mapreduce-client-common	2.6.4	provided
 org.apache.hadoop:hadoop-mapreduce-client-core	2.6.4	provided
 org.apache.hadoop:hadoop-yarn-api	2.6.4	provided
 org.apache.hadoop:hadoop-yarn-common	2.6.4	provided
-org.apache.kafka:kafka_2.11	2.1.0	provided
-org.apache.kafka:kafka-clients	2.1.0	provided
+org.apache.kafka:kafka_2.11	2.1.1	provided
+org.apache.kafka:kafka-clients	2.1.1	provided
 org.apache.spark:spark-catalyst_2.11	2.3.1	provided
 org.apache.spark:spark-core_2.11	2.3.1	provided
 org.apache.spark:spark-sql_2.11	2.3.1	provided
@@ -283,8 +283,8 @@ org.apache.cassandra:cassandra-all	3.0.0	test
 org.apache.curator:curator-test	2.7.1	test
 org.apache.hadoop:hadoop-minicluster	2.6.4	test
 org.apache.hbase:hbase-testing-util	1.3.1	test
-org.apache.kafka:kafka_2.11	test:2.1.0	test
-org.apache.kafka:kafka-clients	test:2.1.0	test
+org.apache.kafka:kafka_2.11	test:2.1.1	test
+org.apache.kafka:kafka-clients	test:2.1.1	test
 org.cassandraunit:cassandra-unit	2.2.2.1	test
 org.codehaus.groovy:groovy-jsr223	2.4.5	test
 org.geotools:gt-geometry	20.0	test

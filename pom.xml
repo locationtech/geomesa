@@ -98,7 +98,7 @@
         <hbase.guava.version>12.0.1</hbase.guava.version>
         <cassandra.version>3.0.0</cassandra.version>
         <cassandra.guava.version>18.0</cassandra.guava.version>
-        <kafka.version>2.1.0</kafka.version> <!-- also supports: 2.0.0, 1.1.1, 1.0.2, 0.10.2.1, 0.9.0.1 -->
+        <kafka.version>2.1.1</kafka.version> <!-- also supports: 2.0.0, 1.1.1, 1.0.2, 0.10.2.1, 0.9.0.1 -->
         <confluent.version>5.1.0</confluent.version>
         <zkclient.version>0.10</zkclient.version> <!-- corresponding versions: 0.10, 0.10, 0.10, 0.7 -->
         <kafka.jopt.version>5.0.4</kafka.jopt.version> <!-- corresponding versions: 5.0.4, 5.0.4, 4.9, 3.2 -->
