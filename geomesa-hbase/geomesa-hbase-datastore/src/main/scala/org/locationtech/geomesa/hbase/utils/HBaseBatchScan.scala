@@ -12,33 +12,37 @@ import java.util.concurrent._
 
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
+import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
-class HBaseBatchScan(connection: Connection, tableName: TableName, ranges: Seq[Scan], threads: Int, buffer: Int)
-    extends {
-      // use early initialization to ensure table is open before scans kick off
-      private val table = connection.getTable(tableName)
-    } with AbstractBatchScan[Scan, Result](ranges, threads, buffer) {
+private class HBaseBatchScan(table: Table, ranges: Seq[Scan], threads: Int, buffer: Int)
+    extends AbstractBatchScan[Scan, Result](ranges, threads, buffer, HBaseBatchScan.Sentinel) {
+
+  override protected def scan(range: Scan, out: BlockingQueue[Result]): Unit = {
+    val scan = table.getScanner(range)
+    try {
+      var result = scan.next()
+      while (result != null) {
+        out.put(result)
+        result = scan.next()
+      }
+    } finally {
+      scan.close()
+    }
+  }
 
   override def close(): Unit = {
     super.close()
     table.close()
   }
-
-  override protected def singletonSentinel: Result = HBaseBatchScan.Sentinel
-
-  override protected def scan(range: Scan, out: BlockingQueue[Result]): Unit = {
-    import scala.collection.JavaConversions._
-
-    val scan = table.getScanner(range)
-    try {
-      scan.iterator.foreach(out.put)
-    } finally {
-      scan.close()
-    }
-  }
 }
 
 object HBaseBatchScan {
+
   private val Sentinel = new Result
+  private val BufferSize = HBaseSystemProperties.ScanBufferSize.toInt.get
+
+  def apply(connection: Connection, table: TableName, ranges: Seq[Scan], threads: Int): CloseableIterator[Result] =
+    new HBaseBatchScan(connection.getTable(table), ranges, threads, BufferSize).start()
 }
