@@ -71,7 +71,7 @@ object KuduQueryPlan {
 
       if (numThreads > 1 || tables.lengthCompare(1) > 0) {
         CloseableIterator(tables.iterator).flatMap { table =>
-          val scan = new KuduBatchScan(ds.client, table, adapter.columns, ranges, predicates, numThreads, 1000)
+          val scan = KuduBatchScan(ds.client, table, adapter.columns, ranges, predicates, numThreads)
           adapter.adapt(scan.flatMap(_.iterator.asScala))
         }
       } else {

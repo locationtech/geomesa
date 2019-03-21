@@ -18,6 +18,7 @@ package object hbase {
     val WalDurability = SystemProperty("geomesa.hbase.wal.durability")
     val ScannerCaching = SystemProperty("geomesa.hbase.client.scanner.caching.size")
     val ScannerBlockCaching = SystemProperty("geomesa.hbase.query.block.caching.enabled", "true")
+    val ScanBufferSize = SystemProperty("geomesa.hbase.scan.buffer", "100000")
     val TableAvailabilityTimeout = SystemProperty("geomesa.hbase.table.availability.timeout", "30 minutes")
   }
 }

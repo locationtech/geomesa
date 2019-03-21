@@ -58,5 +58,5 @@ case class StatementPlan(filter: FilterStrategy,
     extends CassandraQueryPlan {
 
   override def scan(ds: CassandraDataStore): CloseableIterator[SimpleFeature] =
-    rowsToFeatures(new CassandraBatchScan(ds.session, ranges, numThreads, 100000))
+    rowsToFeatures(CassandraBatchScan(ds.session, ranges, numThreads))
 }
