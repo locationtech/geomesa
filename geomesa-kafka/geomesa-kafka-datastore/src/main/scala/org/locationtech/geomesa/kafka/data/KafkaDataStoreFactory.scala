@@ -18,7 +18,9 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
+import org.locationtech.geomesa.index.metadata.MetadataStringSerializer
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
+import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.GeoMessageSerializerFactory
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -27,6 +29,7 @@ import org.locationtech.geomesa.utils.cache.Ticker
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
+import org.locationtech.geomesa.utils.zk.ZookeeperMetadata
 
 import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
@@ -40,13 +43,14 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
     createDataStore(params)
 
   override def createDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore = {
-    val ds = new KafkaDataStore(KafkaDataStoreFactory.buildConfig(params))
+    val config = KafkaDataStoreFactory.buildConfig(params)
+    val meta = new ZookeeperMetadata(s"${config.catalog}/$MetadataPath", config.zookeepers, MetadataStringSerializer)
+    val ds = new KafkaDataStore(config, meta, new GeoMessageSerializerFactory())
     if (!LazyLoad.lookup(params)) {
       ds.startAllConsumers()
     }
     ds
   }
-
 
   override def getDisplayName: String = KafkaDataStoreFactory.DisplayName
 
@@ -96,8 +100,11 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreFactoryParams.Authorizations
     )
 
-  override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
-    KafkaDataStoreFactoryParams.Brokers.exists(params) && KafkaDataStoreFactoryParams.Zookeepers.exists(params)
+  override def canProcess(params: java.util.Map[String, Serializable]): Boolean = {
+    KafkaDataStoreFactoryParams.Brokers.exists(params) &&
+        KafkaDataStoreFactoryParams.Zookeepers.exists(params) &&
+        !params.containsKey("kafka.schema.registry.url") // defer to confluent data store
+  }
 
   def buildConfig(params: java.util.Map[String, Serializable]): KafkaDataStoreConfig = {
     import KafkaDataStoreFactoryParams._

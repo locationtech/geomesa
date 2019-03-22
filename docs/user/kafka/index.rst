@@ -37,3 +37,4 @@ To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quick
    index_config
    data
    feature_events
+   confluent

@@ -67,3 +67,5 @@ By default, message bodies are serialized with a custom Kryo serializer. For Jav
 in the ``geomesa-feature-kryo_2.11`` module through Maven. Alternatively, producers can be configured to send
 Avro-encoded messages through the ``kafka.serialization.type`` data store parameter. Avro libraries exist in many
 languages, and Avro messages follow a defined schema that allows for cross-platform parsing.
+
+If you are using the Confluent platform to manage Kafka, please see :ref:`confluent_kds`.
