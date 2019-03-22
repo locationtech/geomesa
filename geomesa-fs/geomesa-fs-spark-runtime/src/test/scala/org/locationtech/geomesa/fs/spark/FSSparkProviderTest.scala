@@ -9,24 +9,20 @@
 package org.locationtech.geomesa.fs.spark
 
 import java.nio.file.{Files, Path}
-import java.time.temporal.ChronoUnit
-import java.util.Collections
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom._
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.apache.spark.sql.{DataFrame, SQLContext, SQLTypes, SparkSession}
 import org.geotools.data.{DataStore, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.FileSystemDataStoreFactory
-import org.locationtech.geomesa.fs.storage.common.PartitionScheme
-import org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme
+import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -36,6 +32,8 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class FSSparkProviderTest extends Specification with BeforeAfterAll with LazyLogging {
+
+  import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
 
   sequential
 
@@ -67,7 +65,7 @@ class FSSparkProviderTest extends Specification with BeforeAfterAll with LazyLog
     val ds = dsf.createDataStore(params)
 
     val sft = SparkSQLTestUtils.ChicagoSpec
-    PartitionScheme.addToSft(sft, PartitionScheme(sft, "z2", Collections.singletonMap("z2-resolution", "8")))
+    sft.setScheme("z2-8bits")
     ds.createSchema(sft)
 
     SparkSQLTestUtils.ingestChicago(ds)
@@ -148,7 +146,8 @@ class FSSparkProviderTest extends Specification with BeforeAfterAll with LazyLog
 
       val sft: SimpleFeatureType = SimpleFeatureTypes.createType(typeName, "name:String,age:Int,dtg:Date," +
         "*geom:MultiLineString:srid=4326,pt:Point,line:LineString,poly:Polygon,mpt:MultiPoint,mline:MultiLineString,mpoly:MultiPolygon")
-      PartitionScheme.addToSft(sft, new DateTimeScheme(DateTimeScheme.Formats.Daily.format, ChronoUnit.DAYS, 1, "dtg", false))
+      sft.setScheme("daily")
+      sft.setLeafStorage(false)
 
       val features: Seq[ScalaSimpleFeature] = Seq.tabulate(10) { i =>
         ScalaSimpleFeature.create(sft, s"$i", s"test$i", 100 + i, s"2017-06-0${5 + (i % 3)}T04:03:02.0001Z", s"MULTILINESTRING((0 0, 10 10.$i))",

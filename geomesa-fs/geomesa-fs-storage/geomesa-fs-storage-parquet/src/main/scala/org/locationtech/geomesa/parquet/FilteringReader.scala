@@ -14,7 +14,7 @@ import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
 import org.apache.parquet.hadoop.ParquetReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.common.FileSystemPathReader
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.parquet.jobs.SimpleFeatureReadSupport
 import org.locationtech.geomesa.utils.collection.CloseableIterator

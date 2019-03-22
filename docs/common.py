@@ -100,7 +100,7 @@ rst_epilog = """
 
 .. |maven_version| replace:: 3.5.2 or later
 
-.. |geoserver_version| replace:: 2.12.x
+.. |geoserver_version| replace:: 2.14.x
 
 .. |geotools_version| replace:: 18.x
 

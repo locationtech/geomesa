@@ -21,6 +21,8 @@ here are FileSystem-specific.
 Commands
 --------
 
+.. _fsds_compact_command:
+
 ``compact``
 ^^^^^^^^^^^
 
@@ -78,13 +80,16 @@ All data and metadata will be stored in the filesystem under the hierarchy of th
 Argument                 Description
 ======================== =============================================================
 ``-p, --path *``         The filesystem root path used to store data
-``-e, --encoding *``     The encoding used for the underlying files. Implementations are provided for ``parquet`` and ``orc``.
-``--partition-scheme *`` Common partition scheme name (e.g. daily, z2) or path to a file containing a scheme config
+``-e, --encoding``       The encoding used for the underlying files. Implementations are provided for ``parquet`` and ``orc``.
+``--partition-scheme``   Common partition scheme name (e.g. daily, z2) or path to a file containing a scheme config
 ``--num-reducers``       Number of reducers to use (required for distributed ingest)
 ``--leaf-storage``       Use leaf storage
 ``--temp-path``          Path to a temp directory used for working files
 ``--storage-opt``        Additional storage options, as ``key=value``
 ======================== =============================================================
+
+If the schema does not already exist, then ``--encoding`` and ``--partition-scheme`` are required, otherwise
+they may be omitted.
 
 The ``--partition-scheme`` argument should be the well-known name of a provided partition scheme, or the name
 of a file containing a partition scheme. See :ref:`fsds_partition_schemes` for more information.
@@ -93,44 +98,7 @@ The ``--num-reducers`` should generally be set to half the number of partitions.
 
 The ``--temp-path`` argument may be useful when working with ``s3`` data, as ``s3`` is slow to write to.
 
-Example
-~~~~~~~
-
-Lets say that we have all our data for 2016 stored in an S3 bucket::
-
-    $ geomesa-fs ingest \
-       -p 's3a://mybucket/datastores/test' \
-       -e parquet \
-       --partition-scheme daily,z2-2bits \
-       -s s3a://mybucket/schemas/my-config.conf \
-       -C s3a://mybucket/schemas/my-config.conf \
-       --temp-dir hdfs://namenode:port/tmp/gm/1 \
-       --num-reducers 20 \
-       's3a://mybucket/data/2016/*'
-
-After ingest we expect to see a file structure with metadata and parquet files in S3 for our type named "myfeature"::
-
-    aws s3 ls --recursive s3://mybucket/datastores/test
-
-    datastores/test/myfeature/schema.sft
-    datastores/test/myfeature/metadata
-    datastores/test/myfeature/2016/01/01/0/0000.parquet
-    datastores/test/myfeature/2016/01/01/2/0000.parquet
-    datastores/test/myfeature/2016/01/01/3/0000.parquet
-    datastores/test/myfeature/2016/01/02/0/0000.parquet
-    datastores/test/myfeature/2016/01/02/1/0000.parquet
-    datastores/test/myfeature/2016/01/02/3/0000.parquet
-
-Two metadata files (``schema.sft`` and ``metadata``) store information about the schema, partition scheme, and list of
-files that have been created. Note that the list of created files allows the datastore to quickly compute available
-files to avoid possibly expensive directly listings against the filesystem. You may need to run ``update-metadata``
-if you decide to insert new files.
-
-Notice that the bucket "directory structure" includes year, month, day and then a 0,1,2,3 representing a quadrant of the
-Z2 Space Filling Curve with 2bit resolution (i.e. 0 = lower left, 1 = lower right, 2 = upper left, 3 = upper right).
-Note that in our example January 1st and 2nd both do not have all four quadrants represented. This means that the input
-dataset for that day didn't have any data in that region of the world. If additional data were ingested, the directory
-and a corresponding file would be created.
+.. _fsds_manage_metadata_command:
 
 ``manage-metadata``
 ^^^^^^^^^^^^^^^^^^^

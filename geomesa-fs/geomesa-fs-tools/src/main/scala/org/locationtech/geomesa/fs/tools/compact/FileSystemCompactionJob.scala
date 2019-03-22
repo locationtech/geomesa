@@ -15,11 +15,10 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
-import org.geotools.data.DataStoreFinder
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.fs.FileSystemDataStore
-import org.locationtech.geomesa.fs.storage.api.PartitionMetadata
-import org.locationtech.geomesa.fs.storage.common.jobs.{PartitionInputFormat, StorageConfiguration}
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
+import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcStorageConfiguration
 import org.locationtech.geomesa.fs.tools.compact.FileSystemCompactionJob.CompactionMapper
@@ -33,104 +32,87 @@ import org.opengis.feature.simple.SimpleFeature
 
 trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
 
-  def run(dsParams: Map[String, String],
-          typeName: String,
-          partitions: Seq[PartitionMetadata],
-          tempPath: Option[Path],
-          libjarsFile: String,
-          libjarsPaths: Iterator[() => Seq[File]],
-          statusCallback: StatusCallback): (Long, Long) = {
+  def run(
+      storage: FileSystemStorage,
+      partitions: Seq[PartitionMetadata],
+      tempPath: Option[Path],
+      libjarsFile: String,
+      libjarsPaths: Iterator[() => Seq[File]],
+      statusCallback: StatusCallback): (Long, Long) = {
 
-    import scala.collection.JavaConversions._
+    val job = Job.getInstance(new Configuration(storage.context.conf), "GeoMesa Storage Compaction")
 
-    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
-    try {
-      val sft = ds.getSchema(typeName)
+    setLibJars(job, libjarsFile, libjarsPaths)
+    job.setJarByClass(this.getClass)
 
-      val job = Job.getInstance(new Configuration, "GeoMesa Storage Compaction")
+    // InputFormat and Mappers
+    job.setInputFormatClass(classOf[PartitionInputFormat])
+    job.setMapperClass(classOf[CompactionMapper])
 
-      setLibJars(job, libjarsFile, libjarsPaths)
-      job.setJarByClass(this.getClass)
+    // No reducers - Mapper will read/write its own things
+    job.setNumReduceTasks(0)
 
-      // InputFormat and Mappers
-      job.setInputFormatClass(classOf[PartitionInputFormat])
-      job.setMapperClass(classOf[CompactionMapper])
+    job.setMapOutputKeyClass(classOf[Void])
+    job.setMapOutputValueClass(classOf[SimpleFeature])
+    job.setOutputKeyClass(classOf[Void])
+    job.setOutputValueClass(classOf[SimpleFeature])
 
-      // No reducers - Mapper will read/write its own things
-      job.setNumReduceTasks(0)
+    val qualifiedTempPath = tempPath.map(storage.context.fc.makeQualified)
 
-      job.setMapOutputKeyClass(classOf[Void])
-      job.setMapOutputValueClass(classOf[SimpleFeature])
-      job.setOutputKeyClass(classOf[Void])
-      job.setOutputValueClass(classOf[SimpleFeature])
+    StorageConfiguration.setRootPath(job.getConfiguration, storage.context.root)
+    StorageConfiguration.setPartitions(job.getConfiguration, partitions.map(_.name).toArray)
+    StorageConfiguration.setFileType(job.getConfiguration, FileType.Compacted)
 
-      val storage = ds.storage(sft.getTypeName)
-      val metadata = storage.getMetadata
-      val root = metadata.getRoot
+    FileOutputFormat.setOutputPath(job, qualifiedTempPath.getOrElse(storage.context.root))
 
-      val qualifiedTempPath = tempPath.map(metadata.getFileContext.makeQualified)
+    // MapReduce options
+    job.getConfiguration.set("mapred.map.tasks.speculative.execution", "false")
+    job.getConfiguration.set("mapreduce.job.user.classpath.first", "true")
 
-      StorageConfiguration.setSft(job.getConfiguration, sft)
-      StorageConfiguration.setPath(job.getConfiguration, root.toUri.toString)
-      StorageConfiguration.setEncoding(job.getConfiguration, metadata.getEncoding)
-      StorageConfiguration.setPartitions(job.getConfiguration, partitions.map(_.name).toArray)
-      StorageConfiguration.setFileType(job.getConfiguration, FileType.Compacted)
+    configureOutput(storage.metadata.sft, job)
 
-      FileOutputFormat.setOutputPath(job, qualifiedTempPath.getOrElse(root))
+    // save the existing files so we can delete them afterwards
+    val existingDataFiles = partitions.map(p => (p, storage.getFilePaths(p.name).toList)).toList
 
-      // MapReduce options
-      job.getConfiguration.set("mapred.map.tasks.speculative.execution", "false")
-      job.getConfiguration.set("mapreduce.job.user.classpath.first", "true")
+    Command.user.info("Submitting job - please wait...")
+    job.submit()
+    Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
 
-      configureOutput(sft, job)
+    def mapCounters = Seq(("mapped", written(job)), ("failed", failed(job)))
 
-      // Save the existing files so we can delete them afterwards
-      // Be sure to filter this based on the input partitions
-      val existingDataFiles = partitions.map(p => (p, storage.getFilePaths(p.name))).toList
-
-      Command.user.info("Submitting job - please wait...")
-      job.submit()
-      Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
-
-      def mapCounters = Seq(("mapped", written(job)), ("failed", failed(job)))
-
-      while (!job.isComplete) {
-        Thread.sleep(1000)
-        if (job.getStatus.getState != JobStatus.State.PREP) {
-          val mapProgress = job.mapProgress()
-          if (mapProgress < 1f) {
-            statusCallback("Map: ", mapProgress, mapCounters, done = false)
-          }
+    while (!job.isComplete) {
+      Thread.sleep(1000)
+      if (job.getStatus.getState != JobStatus.State.PREP) {
+        val mapProgress = job.mapProgress()
+        if (mapProgress < 1f) {
+          statusCallback("Map: ", mapProgress, mapCounters, done = false)
         }
       }
-      statusCallback("Map: ", job.mapProgress(), mapCounters, done = true)
-      statusCallback.reset()
-
-      val counterResult = (written(job), failed(job))
-
-      if (!job.isSuccessful) {
-        Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
-      } else {
-        val copied = qualifiedTempPath.forall { tp =>
-          StorageJobUtils.distCopy(tp, root,  statusCallback)
-        }
-        if (copied) {
-          Command.user.info("Removing old files")
-          val fc = metadata.getFileContext
-          existingDataFiles.foreach { case (partition, files) =>
-            files.foreach(fc.delete(_, false))
-            storage.getMetadata.removePartition(partition)
-            Command.user.info(s"Removed ${TextTools.getPlural(files.size, "file")} in partition ${partition.name}")
-          }
-          Command.user.info("Compacting metadata")
-          storage.getMetadata.compact()
-        }
-      }
-
-      counterResult
-    } finally {
-      ds.dispose()
     }
+    statusCallback("Map: ", job.mapProgress(), mapCounters, done = true)
+    statusCallback.reset()
+
+    val counterResult = (written(job), failed(job))
+
+    if (!job.isSuccessful) {
+      Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
+    } else {
+      val copied = qualifiedTempPath.forall { tp =>
+        StorageJobUtils.distCopy(tp, storage.context.root,  statusCallback)
+      }
+      if (copied) {
+        Command.user.info("Removing old files")
+        existingDataFiles.foreach { case (partition, files) =>
+          files.foreach(storage.context.fc.delete(_, false))
+          storage.metadata.removePartition(partition)
+          Command.user.info(s"Removed ${TextTools.getPlural(files.size, "file")} in partition ${partition.name}")
+        }
+        Command.user.info("Compacting metadata")
+        storage.metadata.compact(None, 4)
+      }
+    }
+
+    counterResult
   }
 
   private def written(job: Job): Long =

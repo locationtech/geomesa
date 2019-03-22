@@ -138,8 +138,13 @@ depending on geometry type) and ID indices will all be created, as well as any a
 
 To configure the indices, you may set a user data value in your simple feature type. The user data key is
 ``geomesa.indices.enabled``, and it should contain a comma-delimited list containing a subset of index
-identifiers, as specified in :ref:`index_overview`. In addition to specifying the indices, you may optionally
-specify the exact attributes that will be used in the index, by appending them with ``:``\ s after the index name.
+identifiers, as specified in :ref:`index_overview`.
+
+In addition to specifying which types of indices to create, you may optionally specify the exact attributes that will
+be used in each index, by appending them with ``:``\ s after the index name. The following example shows two index
+configurations. The first configuration has a single Z3 index that includes the default attributes. The second
+configuration has two Z3 indices on different geometries, as well as an attribute index on name which includes
+a secondary index on dtg.
 
 .. code-block:: java
 
@@ -148,9 +153,10 @@ specify the exact attributes that will be used in the index, by appending them w
     String spec = "name:String,dtg:Date,*start:Point:srid=4326,end:Point:srid=4326";
     SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
     // enable a default z3 index on start + dtg
-    sft1.getUserData().put("geomesa.indices.enabled", "z3");
-    // enable a z3 index on start + dtg, end + dtg, and an attribute index on name with a secondary index on dtg
-    sft1.getUserData().put("geomesa.indices.enabled", "z3:start:dtg,z3:end:dtg,attr:name:dtg");
+    sft.getUserData().put("geomesa.indices.enabled", "z3");
+    // alternatively, enable a z3 index on start + dtg, end + dtg, and an attribute index on
+    // name with a secondary index on dtg. note that this overrides the previous configuration
+    sft.getUserData().put("geomesa.indices.enabled", "z3:start:dtg,z3:end:dtg,attr:name:dtg");
 
 See :ref:`set_sft_options` for details on setting user data. If you are using the GeoMesa ``SchemaBuilder``,
 you may instead call the ``indexes`` methods:

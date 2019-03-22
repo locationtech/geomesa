@@ -9,11 +9,12 @@
 package org.locationtech.geomesa.fs.tools
 
 import java.util
+import java.util.ServiceLoader
 
 import com.beust.jcommander.{IValueValidator, Parameter, ParameterException}
-import org.locationtech.geomesa.fs.FileSystemDataStore
-import org.locationtech.geomesa.fs.FileSystemDataStoreFactory.FileSystemDataStoreParams
-import org.locationtech.geomesa.fs.storage.common.FileSystemStorageFactory
+import org.locationtech.geomesa.fs.data.FileSystemDataStore
+import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.tools.DataStoreCommand
 import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
@@ -40,6 +41,8 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
 }
 
 object FsDataStoreCommand {
+
+  import scala.collection.JavaConverters._
 
   trait FsParams {
     @Parameter(names = Array("--path", "-p"), description = "Path to root of filesystem datastore", required = true)
@@ -72,12 +75,10 @@ object FsDataStoreCommand {
 
   class EncodingValidator extends IValueValidator[String] {
     override def validate(name: String, value: String): Unit = {
-      try {
-        FileSystemStorageFactory.factory(value)
-      } catch {
-        case _: IllegalArgumentException =>
-          throw new ParameterException(s"$value is not a valid encoding for parameter $name." +
-              s"Available encodings are: ${FileSystemStorageFactory.factories().map(_.getEncoding).mkString(", ")}")
+      val encodings = ServiceLoader.load(classOf[FileSystemStorageFactory]).asScala.map(_.encoding).toList
+      if (!encodings.exists(_.equalsIgnoreCase(value))) {
+        throw new ParameterException(s"$value is not a valid encoding for parameter $name." +
+            s"Available encodings are: ${encodings.mkString(", ")}")
       }
     }
   }

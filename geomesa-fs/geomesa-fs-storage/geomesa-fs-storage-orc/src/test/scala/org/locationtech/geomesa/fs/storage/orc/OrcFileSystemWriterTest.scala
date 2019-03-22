@@ -10,14 +10,12 @@ package org.locationtech.geomesa.fs.storage.orc
 
 import java.io.File
 import java.nio.file.Files
-import java.util.Collections
 
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.Path
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.common.PartitionScheme
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
@@ -27,10 +25,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class OrcFileSystemWriterTest extends Specification {
 
-  lazy val fc = FileContext.getFileContext(new Configuration())
-  val encoding = "parquet"
   val sft = SimpleFeatureTypes.createType("orc-test", "name:String,age:Int,dtg:Date,*geom:LineString:srid=4326")
-  val scheme = PartitionScheme(sft, "z2-2bit", Collections.emptyMap())
 
   val features = Seq(
     ScalaSimpleFeature.create(sft, "0", "name0", "0", "2017-01-01T00:00:00.000Z", "LINESTRING (10 0, 5 0)"),

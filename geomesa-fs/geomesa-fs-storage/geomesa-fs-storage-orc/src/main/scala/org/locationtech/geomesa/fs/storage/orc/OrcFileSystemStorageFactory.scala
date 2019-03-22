@@ -8,20 +8,18 @@
 
 package org.locationtech.geomesa.fs.storage.orc
 
-import org.apache.hadoop.conf.Configuration
 import org.apache.orc.OrcConf
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
-import org.locationtech.geomesa.fs.storage.common.{StorageMetadata, FileSystemStorageFactory}
+import org.locationtech.geomesa.fs.storage.api._
 
 class OrcFileSystemStorageFactory extends FileSystemStorageFactory {
 
-  override def getEncoding: String = OrcFileSystemStorage.OrcEncoding
+  override def encoding: String = OrcFileSystemStorage.Encoding
 
-  override protected def load(conf: Configuration, metadata: StorageMetadata): FileSystemStorage = {
-    if (conf.get(OrcConf.USE_ZEROCOPY.getAttribute) == null &&
-          conf.get(OrcConf.USE_ZEROCOPY.getHiveConfName) == null) {
-      OrcConf.USE_ZEROCOPY.setBoolean(conf, true)
+  override def apply(context: FileSystemContext, metadata: StorageMetadata): FileSystemStorage = {
+    if (context.conf.get(OrcConf.USE_ZEROCOPY.getAttribute) == null &&
+        context.conf.get(OrcConf.USE_ZEROCOPY.getHiveConfName) == null) {
+      OrcConf.USE_ZEROCOPY.setBoolean(context.conf, true)
     }
-    new OrcFileSystemStorage(conf, metadata)
+    new OrcFileSystemStorage(context, metadata)
   }
 }

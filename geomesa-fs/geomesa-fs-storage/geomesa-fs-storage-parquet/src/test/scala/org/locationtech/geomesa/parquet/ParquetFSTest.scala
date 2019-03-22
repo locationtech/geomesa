@@ -10,7 +10,6 @@
 package org.locationtech.geomesa.parquet
 
 import java.nio.file.Files
-import java.time.temporal.ChronoUnit
 
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.conf.Configuration
@@ -20,12 +19,12 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.common.PartitionScheme
-import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, Z2Scheme}
+import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions}
+import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.jts.geom.{Coordinate, Point}
+import org.locationtech.jts.geom.Point
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -44,26 +43,22 @@ class ParquetFSTest extends Specification with AllExpectations {
   val tempDir = Files.createTempDirectory("geomesa")
   val fc = FileContext.getFileContext(tempDir.toUri)
 
-  val parquetFactory = new ParquetFileSystemStorageFactory
-
   val conf = new Configuration()
   conf.set("parquet.compression", "gzip")
 
-  val scheme = new CompositeScheme(Seq(
-    new DateTimeScheme("yyy/DDD/HH", ChronoUnit.HOURS, 1, "dtg", false),
-    new Z2Scheme(10, "geom", false)
-  ))
-  PartitionScheme.addToSft(sft, scheme)
+  val context = FileSystemContext(fc, conf, new Path(tempDir.toUri))
+  val metadata =
+    new FileBasedMetadataFactory()
+        .create(context, Map.empty, Metadata(sft, "parquet", NamedOptions("hourly,z2-2bits"), leafStorage = true))
+  val fsStorage = new ParquetFileSystemStorageFactory().apply(context, metadata)
 
-  val fsStorage = parquetFactory.create(fc, conf, new Path(tempDir.toUri), sft)
-
-  val sf1 = new ScalaSimpleFeature(sft, "1", Array("first", Integer.valueOf(100), new java.util.Date, gf.createPoint(new Coordinate(25.236263, 27.436734))))
-  val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, Integer.valueOf(200), new java.util.Date, gf.createPoint(new Coordinate(67.2363, 55.236))))
-  val sf3 = new ScalaSimpleFeature(sft, "3", Array("third", Integer.valueOf(300), new java.util.Date, gf.createPoint(new Coordinate(73.0, 73.0))))
+  val sf1 = ScalaSimpleFeature.create(sft, "1", "first", 100, new java.util.Date, "POINT (25.236263 27.436734)")
+  val sf2 = ScalaSimpleFeature.create(sft, "2", null, 200, new java.util.Date, "POINT (67.2363 55.236)")
+  val sf3 = ScalaSimpleFeature.create(sft, "3", "third", 300, new java.util.Date, "POINT (73.0 73.0)")
 
   "ParquetFileSystemStorage" should {
     "write and read features" >> {
-      val partitions = List(sf1, sf2, sf3).map(fsStorage.getPartition)
+      val partitions = List(sf1, sf2, sf3).map(fsStorage.metadata.scheme.getPartitionName)
       List[SimpleFeature](sf1, sf2, sf3)
         .zip(partitions)
         .groupBy(_._2)
@@ -73,7 +68,7 @@ class ParquetFSTest extends Specification with AllExpectations {
           writer.close()
         }
 
-      WithClose(fsStorage.getPartitionReader(new Query("test", ECQL.toFilter("name = 'first'")), partitions.head)) { reader =>
+      WithClose(fsStorage.getReader(new Query("test", ECQL.toFilter("name = 'first'")), partitions.headOption)) { reader =>
         val features = reader.toList
         features must haveSize(1)
         features.head.getAttribute("name") mustEqual "first"
@@ -82,7 +77,7 @@ class ParquetFSTest extends Specification with AllExpectations {
         features.head.getDefaultGeometry.asInstanceOf[Point].getY mustEqual 27.436734
       }
 
-      WithClose(fsStorage.getPartitionReader(new Query("test", ECQL.toFilter("name = 'third'")), partitions(2))) { reader =>
+      WithClose(fsStorage.getReader(new Query("test", ECQL.toFilter("name = 'third'")), Some(partitions(2)))) { reader =>
         val features = reader.toList
         features must haveSize(1)
         features.head.getAttribute("name") mustEqual "third"
@@ -94,7 +89,7 @@ class ParquetFSTest extends Specification with AllExpectations {
       val transform = new Query("test", ECQL.toFilter("name = 'third'"), Array("dtg", "geom"))
       QueryPlanner.setQueryTransforms(transform, sft)
 
-      WithClose(fsStorage.getPartitionReader(transform, partitions(2))) { reader =>
+      WithClose(fsStorage.getReader(transform, Some(partitions(2)))) { reader =>
         val features = reader.toList
         features must haveSize(1)
         features.head.getFeatureType.getAttributeDescriptors.map(_.getLocalName) mustEqual Seq("dtg", "geom")

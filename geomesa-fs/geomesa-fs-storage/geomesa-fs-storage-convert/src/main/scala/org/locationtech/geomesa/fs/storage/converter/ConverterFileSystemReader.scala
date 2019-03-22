@@ -12,18 +12,19 @@ import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
-import org.locationtech.geomesa.fs.storage.common.FileSystemPathReader
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-class ConverterFileSystemReader(fc: FileContext,
-                                converter: SimpleFeatureConverter,
-                                filter: Option[Filter],
-                                transform: Option[(String, SimpleFeatureType)])
-    extends FileSystemPathReader with StrictLogging {
+class ConverterFileSystemReader(
+    fc: FileContext,
+    converter: SimpleFeatureConverter,
+    filter: Option[Filter],
+    transform: Option[(String, SimpleFeatureType)]
+  ) extends FileSystemPathReader with StrictLogging {
 
   override def read(path: Path): CloseableIterator[SimpleFeature] = {
     logger.debug(s"Opening file $path")

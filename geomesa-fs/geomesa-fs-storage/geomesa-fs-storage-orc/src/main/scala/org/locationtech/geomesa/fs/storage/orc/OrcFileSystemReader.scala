@@ -16,7 +16,7 @@ import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.fs.storage.common.FileSystemPathReader
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.orc.utils.{OrcAttributeReader, OrcSearchArguments}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

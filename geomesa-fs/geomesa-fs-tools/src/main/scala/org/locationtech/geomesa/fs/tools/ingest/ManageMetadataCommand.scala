@@ -12,12 +12,12 @@ import java.util
 
 import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
-import org.locationtech.jts.geom.Envelope
-import org.locationtech.geomesa.fs.storage.api.PartitionMetadata
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.ingest.ManageMetadataCommand.{CompactCommand, ManageMetadataParams, RegisterCommand, UnregisterCommand}
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam, Runner}
+import org.locationtech.jts.geom.Envelope
 
 import scala.util.control.NonFatal
 
@@ -39,11 +39,11 @@ object ManageMetadataCommand {
     override val params = new CompactParams
 
     override def execute(): Unit = withDataStore { ds =>
-      val metadata = ds.storage(params.featureName).getMetadata
-      metadata.compact()
-      val partitions = metadata.getPartitions.asScala
+      val metadata = ds.storage(params.featureName).metadata
+      metadata.compact(None, params.threads)
+      val partitions = metadata.getPartitions()
       Command.user.info(s"Compacted metadata into ${partitions.length} partitions consisting of " +
-          s"${partitions.map(_.files().size()).sum} files")
+          s"${partitions.map(_.files.size).sum} files")
     }
   }
 
@@ -53,17 +53,17 @@ object ManageMetadataCommand {
     override val params = new RegisterParams
 
     override def execute(): Unit = withDataStore { ds =>
-      val metadata = ds.storage(params.featureName).getMetadata
+      val metadata = ds.storage(params.featureName).metadata
       val count = Option(params.count).map(_.longValue()).getOrElse(0L)
       val bounds = new Envelope
       Option(params.bounds).foreach { case (xmin, ymin, xmax, ymax) =>
         bounds.expandToInclude(xmin, ymin)
         bounds.expandToInclude(xmax, ymax)
       }
-      metadata.addPartition(new PartitionMetadata(params.partition, params.files, count, bounds))
-      val partition = metadata.getPartition(params.partition)
-      Command.user.info(s"Registered ${params.files.size} new files. Updated partition: ${partition.files().size} " +
-          s"files containing ${partition.count()} known features")
+      metadata.addPartition(PartitionMetadata(params.partition, params.files.asScala, PartitionBounds(bounds), count))
+      val partition = metadata.getPartition(params.partition).getOrElse(PartitionMetadata("", Seq.empty, None, 0L))
+      Command.user.info(s"Registered ${params.files.size} new files. Updated partition: ${partition.files.size} " +
+          s"files containing ${partition.count} known features")
     }
   }
 
@@ -73,12 +73,12 @@ object ManageMetadataCommand {
     override val params = new UnregisterParams
 
     override def execute(): Unit = withDataStore { ds =>
-      val metadata = ds.storage(params.featureName).getMetadata
+      val metadata = ds.storage(params.featureName).metadata
       val count = Option(params.count).map(_.longValue()).getOrElse(0L)
-      metadata.removePartition(new PartitionMetadata(params.partition, params.files, count, new Envelope))
-      val partition = metadata.getPartition(params.partition)
-      Command.user.info(s"Unregistered ${params.files.size} files. Updated partition: ${partition.files().size} " +
-          s"files containing ${partition.count()} known features")
+      metadata.removePartition(PartitionMetadata(params.partition, params.files.asScala, None, count))
+      val partition = metadata.getPartition(params.partition).getOrElse(PartitionMetadata("", Seq.empty, None, 0L))
+      Command.user.info(s"Unregistered ${params.files.size} files. Updated partition: ${partition.files.size} " +
+          s"files containing ${partition.count} known features")
     }
   }
 
@@ -86,7 +86,10 @@ object ManageMetadataCommand {
   class ManageMetadataParams
 
   @Parameters(commandDescription = "Compact the metadata for a storage instance")
-  class CompactParams extends FsParams with RequiredTypeNameParam
+  class CompactParams extends FsParams with RequiredTypeNameParam {
+    @Parameter(names = Array("-t", "--threads"), description = "Number of threads to use for compaction")
+    var threads: Integer = 4
+  }
 
   @Parameters(commandDescription = "Register new data files with a storage instance")
   class RegisterParams extends FsParams with RequiredTypeNameParam {

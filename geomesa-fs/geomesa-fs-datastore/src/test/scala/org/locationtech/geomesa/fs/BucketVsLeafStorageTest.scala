@@ -9,11 +9,9 @@
 package org.locationtech.geomesa.fs
 
 import java.nio.file.Files
-import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.stream.Collectors
 
-import org.locationtech.jts.geom.Coordinate
 import org.apache.commons.io.FileUtils
 import org.geotools.data.DataStoreFinder
 import org.geotools.data.collection.ListFeatureCollection
@@ -22,10 +20,10 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.common.PartitionScheme
-import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, Z2Scheme}
+import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Coordinate
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -34,6 +32,8 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class BucketVsLeafStorageTest extends Specification {
+
+  import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
 
   sequential
 
@@ -61,12 +61,13 @@ class BucketVsLeafStorageTest extends Specification {
     "store data in leaves" >> {
 
       "in one scheme" >> {
-        val sft = mkSft("leaf-one")
-        val scheme = new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, "dtg", true)
-        PartitionScheme.addToSft(sft, scheme)
+        val typeName = "leaf-one"
+        val sft = mkSft(typeName)
+        sft.setScheme("daily")
         ds.createSchema(sft)
         ds.getTypeNames.length mustEqual 1
-        ds.getTypeNames.head mustEqual "leaf-one"
+        ds.getTypeNames.head mustEqual typeName
+        ds.storage(typeName).metadata.leafStorage must beTrue
         ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
           .addFeatures(new ListFeatureCollection(sft, features(sft).take(2)))
 
@@ -112,14 +113,12 @@ class BucketVsLeafStorageTest extends Specification {
       }
 
       "in two schemes" >> {
-        val sft = mkSft("leaf-two")
-        val scheme = new CompositeScheme(Seq(
-          new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, "dtg", true),
-          new Z2Scheme(2, "geom", true))
-        )
-        PartitionScheme.addToSft(sft, scheme)
+        val typeName = "leaf-two"
+        val sft = mkSft(typeName)
+        sft.setScheme("daily,z2-2bits")
         ds.createSchema(sft)
-        ds.getTypeNames.toSeq must contain("leaf-two")
+        ds.getTypeNames.toSeq must contain(typeName)
+        ds.storage(typeName).metadata.leafStorage must beTrue
         ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
           .addFeatures(new ListFeatureCollection(sft, features(sft)))
 
@@ -153,11 +152,13 @@ class BucketVsLeafStorageTest extends Specification {
 
     "store data in buckets" >> {
       "in one scheme" >> {
-        val sft = mkSft("bucket-one")
-        val scheme = new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, "dtg", false)
-        PartitionScheme.addToSft(sft, scheme)
+        val typeName = "bucket-one"
+        val sft = mkSft(typeName)
+        sft.setScheme("daily")
+        sft.setLeafStorage(false)
         ds.createSchema(sft)
-        ds.getTypeNames.toSeq must contain("bucket-one")
+        ds.getTypeNames.toSeq must contain(typeName)
+        ds.storage(typeName).metadata.leafStorage must beFalse
         ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
           .addFeatures(new ListFeatureCollection(sft, features(sft).take(2)))
 
@@ -206,13 +207,11 @@ class BucketVsLeafStorageTest extends Specification {
       "with two schemes" >> {
         val typeName = "bucket-two"
         val sft = mkSft(typeName)
-        val scheme = new CompositeScheme(Seq(
-          new DateTimeScheme("yyyy/MM/dd", ChronoUnit.DAYS, 1, "dtg", false),
-          new Z2Scheme(2, "geom", false))
-        )
-        PartitionScheme.addToSft(sft, scheme)
+        sft.setScheme("daily,z2-2bits")
+        sft.setLeafStorage(false)
         ds.createSchema(sft)
         ds.getTypeNames.toSeq must contain(typeName)
+        ds.storage(typeName).metadata.leafStorage must beFalse
         ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
           .addFeatures(new ListFeatureCollection(sft, features(sft)))
 
@@ -232,7 +231,7 @@ class BucketVsLeafStorageTest extends Specification {
         ds.getFeatureSource(sft.getTypeName).asInstanceOf[SimpleFeatureStore]
           .addFeatures(new ListFeatureCollection(sft, features(sft)))
 
-        Seq(
+        forall(Seq(
           "2016/01/01/2/W[0-9a-f]{32}\\.parquet",
           "2016/01/02/3/W[0-9a-f]{32}\\.parquet",
           "2016/01/03/1/W[0-9a-f]{32}\\.parquet",
@@ -241,10 +240,17 @@ class BucketVsLeafStorageTest extends Specification {
           "2016/01/02/3/W[0-9a-f]{32}\\.parquet",
           "2016/01/03/1/W[0-9a-f]{32}\\.parquet",
           "2016/01/04/0/W[0-9a-f]{32}\\.parquet"
-        ).map(fp.toString + "/" + _).forall { f =>
+        ).map(fp.toString + "/" + _)) { f =>
           Files.walk(fp).collect(Collectors.toList()).count(_.toString.matches(f)) mustEqual 2
         }
         CloseableIterator(ds.getFeatureSource(sft.getTypeName).getFeatures.features).toList.size mustEqual 8
+      }
+
+      "support deprecated leaf-storage config" >> {
+        val sft = mkSft("bucket-three")
+        sft.setScheme("daily", Map("leaf-storage" -> "false"))
+        ds.createSchema(sft)
+        ds.storage("bucket-three").metadata.leafStorage must beFalse
       }
     }
 

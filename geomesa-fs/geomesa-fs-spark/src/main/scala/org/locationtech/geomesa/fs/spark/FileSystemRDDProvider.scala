@@ -20,10 +20,10 @@ import org.apache.parquet.hadoop.ParquetInputFormat
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreFactory}
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcSimpleFeatureInputFormat
-import org.locationtech.geomesa.fs.{FileSystemDataStore, FileSystemDataStoreFactory}
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.parquet.jobs.{ParquetSimpleFeatureInputFormat, SimpleFeatureReadSupport}
 import org.locationtech.geomesa.parquet.{FilterConverter, ParquetFileSystemStorage}
@@ -34,15 +34,16 @@ import org.opengis.filter.Filter
 
 class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
     new FileSystemDataStoreFactory().canProcess(params)
 
-  override def rdd(conf: Configuration,
-                   sc: SparkContext,
-                   params: Map[String, String],
-                   query: Query): SpatialRDD = {
-    import scala.collection.JavaConverters._
-
+  override def rdd(
+      conf: Configuration,
+      sc: SparkContext,
+      params: Map[String, String],
+      query: Query): SpatialRDD = {
     val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]
     try {
       val sft = ds.getSchema(query.getTypeName)
@@ -50,8 +51,8 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
       val storage = ds.storage(query.getTypeName)
 
       // split up the job by the filters required for each partition group
-      val filters = storage.getPartitionsForQuery(query.getFilter).asScala.flatMap { fp =>
-        val paths = fp.partitions.asScala.flatMap(storage.getFilePaths(_).asScala)
+      val filters = storage.getPartitionFilters(query.getFilter).flatMap { fp =>
+        val paths = fp.partitions.flatMap(storage.getFilePaths)
         if (paths.isEmpty) { Seq.empty } else {
           Seq(fp.filter -> paths)
         }
@@ -69,9 +70,9 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
         val q = new Query(query)
         q.setFilter(filter)
 
-        val inputFormat = storage.getMetadata.getEncoding match {
-          case OrcFileSystemStorage.OrcEncoding => configureOrc(conf, sft, q)
-          case ParquetFileSystemStorage.ParquetEncoding => configureParquet(conf, sft, q)
+        val inputFormat = storage.metadata.encoding match {
+          case OrcFileSystemStorage.Encoding => configureOrc(conf, sft, q)
+          case ParquetFileSystemStorage.Encoding => configureParquet(conf, sft, q)
           case e => throw new RuntimeException(s"Not implemented for encoding '$e'")
         }
 

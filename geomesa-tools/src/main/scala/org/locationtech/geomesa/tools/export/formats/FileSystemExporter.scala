@@ -11,7 +11,7 @@ package org.locationtech.geomesa.tools.export.formats
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
-import org.locationtech.geomesa.fs.storage.api.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemWriter
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage.ParquetFileSystemWriter

@@ -3,128 +3,131 @@
 Partition Schemes
 =================
 
-Partition Schemes can be defined using a JSON/typesafe configuration or by a common name. By default these schemes all
-utilize "leaf storage" with a one up sequence number. This allows for appending data when it arrives out of order.
+Partition schemes define how data is stored on the filesystem. The scheme is important because it determines how
+the data is queried. When evaluating a query filter, the partition scheme is leveraged to prune data files that
+do not match the filter. There are three main types of partition schemes provided: spatial, temporal and attribute.
 
-Several commonly used schemes are available and can be referenced by name rather than config:
+The partition scheme must be provided when creating a schema. The scheme is defined by a well-known name
+and a map of configuration options. See :ref:`partition_scheme_config` for details on how to specify a partition
+scheme.
 
-* **minute** - ``yyyy/MM/dd/HH/mm``
-* **hourly** - ``yyyy/MM/dd/HH``
-* **daily** - ``yyyy/MM/dd``
-* **weekly** - ``yyyy/ww``
-* **monthly** - ``yyyy/MM``
-* **julian-minute** - ``yyyy/DDD/HH/mm``
-* **julian-hourly** - ``yyyy/DDD/HH``
-* **julian-daily** - ``yyyy/DDD``
+Composite Schemes
+-----------------
 
-Common geometry schemes are:
+Composite schemes are hierarchical combinations of other schemes. A composite scheme is named by concatenating
+the names of the constituent schemes, separated with commas, e.g. ``hourly,z2-2bits``. The configuration
+options for each child scheme should be merged into a single configuration for the composite scheme.
 
-* z2-2bit
-* z2-4bit
+Temporal Schemes
+----------------
 
-Common combined schemes are created by using a comma. For example:
+Temporal schemes lay out data based on a Java
+`DateTime format string <https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html>`__,
+separated by forward slashes, which is used to build a directory structure. All temporal schemes support the
+following common configuration option:
 
-* hourly,z2-2bit
-* julian-daily,z2-2bit
+* ``dtg-attribute`` - The name of a ``Date``\ -type attribute from the SimpleFeatureType to use for partitioning data.
+  If not specified, the default date attribute is used.
 
-Leaf vs Bucket Storage
-----------------------
+Date-Time Scheme
+^^^^^^^^^^^^^^^^
 
-As previously mentioned, the default storage mode is leaf storage. Leaf storage means that the last component of the
-partition scheme is the prefix of the parquet file name. A sequence number is then appended to the filename before the
-file extension. For example, a partition scheme of ``yyyy/MM/dd`` would produce the storage path
-``2016/01/01_0000.parquet`` for the first file created for the partition ``2016/01/01``. The next file (created by a
-new ingest process) for the same partition would result in a file named ``2016/01/01_0001.parquet`` and then
-``2016/01/01_0002.parquet`` and so on.
+**Name:** ``datetime``
 
-By contrast, bucket storage uses a directory for the final component of the scheme. For our partition example above
-the storage paths would be ``2016/01/01/0001.parquet``, ``2016/01/01/0002.parquet``, and ``2016/01/01/0003.parquet``.
+**Configuration:**
 
-Leaf storage results in less directory overhead for filesystems such as S3.
+* ``datetime-format`` - A Java `DateTime format string <https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html>`__,
+  separated by forward slashes, which will be used to build a directory structure. For example, ``yyyy/MM/dd``.
+* ``step-unit`` - A ``java.time.temporal.ChronoUnit`` defining how to increment the leaf of the partition scheme
+* ``step`` - The amount to increment the leaf of the partition scheme. If not specified, defaults to ``1``
 
-JSON Configuration
-------------------
+The date-time scheme provides a fully customizable temporal scheme.
 
-You can manually configure the datetime and z2 geometry schemes using typesafe and json configuration.
+Hourly Scheme
+^^^^^^^^^^^^^
 
-Common Options
-``````````````
+**Name:** ``hourly``
 
-* **scheme** - The names of the partition schemes separated by commas
-* **leaf-storage** - Defines if the partition scheme are files or directories. Default: ``true``
+The hourly scheme partitions data by the hour, using the layout ``yyyy/MM/dd/HH``.
 
-  * **true** - The right most component of the scheme will be a file with a sequence number
-  * **false** - The rightmost component of the scheme is a directory with sequence files
+Minute Scheme
+^^^^^^^^^^^^^
 
-DateTime Configuration
-``````````````````````
+**Name:** ``minute``
 
-The datetime scheme is indicated by the key ``name = "datetime"`` and uses the following options:
+The minute scheme partitions data by the minute, using the layout ``yyyy/MM/dd/HH/mm``.
 
-* **datetime-format** - A Java DateTime format string separated by forward slashes which will be used to build a
-  directory structure. Examples are:
+Daily Scheme
+^^^^^^^^^^^^
 
-  * **yyyy/DDD/HH** - year, Julian Date, hour layout
-  * **yyyy/MM/dd** - year, month, day layout
-  * **yyyy/MM/dd/HH** - year, month, day, hour layout
+**Name:** ``daily``
 
-* **step-unit** - A ``java.time.temporal.ChronoUnit`` defining how to increment the leaf of the partition scheme
-* **step** - The step amount to increment the leaf of the partition scheme. Default: ``1``
-* **dtg-attribute** - The datetime attribute from the SimpleFeature to use for partitioning data. Defaults to the
-  default dtg attribute of the SimpleFeatureType
+The daily scheme partitions data by the day, using the layout ``yyyy/MM/dd``.
 
-.. code-block:: json
+Weekly Scheme
+^^^^^^^^^^^^^
 
-    {
-      "scheme" : "datetime,z2",
-      "options" : {
-        "datetime-format" : "yyyy/MM/dd/HH",
-        "step-unit" : "HOURS",
-        "step" : "1",
-        "dtg-attribute" : "dtg",
-        "leaf-storage" : true
-      }
-    }
+**Name:** ``weekly``
 
-Z2 Configuration
-````````````````
+The weekly scheme partitions data by the week, using the layout ``yyyy/ww``.
 
-The z2 scheme is indicate by the key ``name = "z2"`` and uses the following options:
+Monthly Scheme
+^^^^^^^^^^^^^^
 
+**Name:** ``monthly``
 
-* **geom-attribute** - The geometry attribute from the SimpleFeature to use for partitioning data. Defaults to the
-  default dtg value of the SimpleFeatureType
-* **z2-resolution** - The number of bits to use for z indexing.
+The monthly scheme partitions data by the month, using the layout ``yyyy/MM``.
 
+Julian Schemes
+^^^^^^^^^^^^^^
 
-.. code-block:: json
+**Names:** ``julian-minute``, ``julian-hourly``, ``julian-daily``
 
-    {
-      "scheme" : "z2",
-      "options" : {
-        "geom-attribute" : "geom",
-        "z2-resolution" : 2,
-        "leaf-storage" : false
-      }
-    }
+Julian schemes partition data by Julian day, instead of month/day. They use the patterns ``yyyy/DDD/HH/mm``,
+``yyyy/DDD/HH``, and ``yyyy/DDD`` respectively
 
-Combined DateTime and Z2 Configuration
-``````````````````````````````````````
+Spatial Schemes
+---------------
 
-The datetime-z2 scheme is indicated by the key ``name = "datetime,z2"`` and uses the combined options
-from the datetime and z2 schemes.
+Spatial schemes lay out data based on a space-filling curve. All spatial schemes support the following common
+configuration option:
 
-.. code-block:: json
+* ``geom-attribute`` - The name of a ``Geometry``\ -type attribute from the SimpleFeatureType to use for
+  partitioning data. If not specified, the default geometry is used.
 
-    {
-      "scheme" : "datetime,z2",
-      "options" : {
-        "datetime-format" : "yyyy/MM/dd/HH",
-        "step-unit" : "HOURS",
-        "step" : 1,
-        "dtg-attribute" : "dtg",
-        "geom-attribute" : "geom",
-        "z2-resolution" : 2,
-        "leaf-storage" : true
-      }
-    }
+Z2 Scheme
+^^^^^^^^^
+
+**Name:** ``z2``
+
+**Configuration:**
+
+* ``z2-resolution`` - The number of bits of precision to use for z indexing. Must be a power of 2.
+
+The Z2 scheme uses a Z2 space-filling curve, and can only be used with Point-type geometries. Instead of specifying
+the resolution as a configuration option, it may be specified in the name, as ``z2-<n>bits``, where ``<n>`` is
+replaced with the Z2 resolution, e.g. ``z2-2bits``.
+
+XZ2 Scheme
+^^^^^^^^^^
+
+**Name:** ``xz2``
+
+**Configuration:**
+
+* ``xz2-resolution`` - The number of bits of precision to use for z indexing. Must be a power of 2.
+
+The XZ2 scheme uses an XZ2 space-filling curve, and can be used with any geometry type. Instead of specifying
+the resolution as a configuration option, it may be specified in the name, as ``xz2-<n>bits``, where ``<n>`` is
+replaced with the XZ2 resolution, e.g. ``xz2-2bits``.
+
+Attribute Schemes
+-----------------
+
+Attribute schemes lay out data based on a lexicoded attribute value.
+
+**Name:** ``attribute``
+
+**Configuration:**
+
+* ``partitioned-attribute`` - The name of an attribute from the SimpleFeatureType to use for partitioning data.

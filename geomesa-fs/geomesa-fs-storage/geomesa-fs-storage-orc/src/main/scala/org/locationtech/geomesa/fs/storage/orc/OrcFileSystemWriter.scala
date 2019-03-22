@@ -10,9 +10,9 @@ package org.locationtech.geomesa.fs.storage.orc
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
-import org.apache.orc.storage.ql.exec.vector.VectorizedRowBatch
 import org.apache.orc.OrcFile
-import org.locationtech.geomesa.fs.storage.api.FileSystemWriter
+import org.apache.orc.storage.ql.exec.vector.VectorizedRowBatch
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.orc.utils.OrcAttributeWriter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
