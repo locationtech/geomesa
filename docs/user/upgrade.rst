@@ -114,7 +114,7 @@ can call ``org.locationtech.geomesa.utils.interop.SimpleFeatureTypes.mutable()``
 Deprecated Modules
 ------------------
 
-The following modules have been deprecated, and be removed in a future version:
+The following modules have been deprecated, and will be removed in a future version:
 
 * GeoMesa Raster
 * GeoMesa Native API
