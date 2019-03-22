@@ -59,7 +59,7 @@ case class StatementPlan(filter: CassandraFilterStrategyType,
   override val hasDuplicates: Boolean = false
 
   override def scan(ds: CassandraDataStore): CloseableIterator[SimpleFeature] = {
-    val results = new CassandraBatchScan(ds.session, ranges, numThreads, 100000)
+    val results = CassandraBatchScan(ds.session, ranges, numThreads)
     SelfClosingIterator(entriesToFeatures(results), results.close())
   }
 }
