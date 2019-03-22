@@ -83,7 +83,7 @@
         <!-- These are compiled and pass CQs and should be compatible with recommended versions -->
         <!-- to compile against Accumulo 1.8.0, use the accumulo-1.8 profile -->
         <accumulo.version>1.7.2</accumulo.version>
-        <zookeeper.version>3.4.5</zookeeper.version>
+        <zookeeper.version>3.4.10</zookeeper.version>
         <thrift.version>0.9.1</thrift.version>
         <hadoop.version>2.5.2</hadoop.version>
         <spark.version>2.0.0</spark.version>
@@ -94,6 +94,7 @@
         <kafka.08.version>0.8.2.1</kafka.08.version>
         <kafka.09.version>0.9.0.1</kafka.09.version>
         <kafka.10.version>0.10.0.1</kafka.10.version>
+        <kafka.21.version>2.1.1</kafka.21.version>
         <arrow.version>0.6.0</arrow.version>
         <netty.version>4.0.41.Final</netty.version>
 
@@ -114,8 +115,8 @@
 
         <!-- logging properties - we expect logging jars to be provided -->
         <!-- 1.7.x is for hadoop 2 and accumulo 1.5.x -->
-        <slf4j.version>1.7.5</slf4j.version>
-        <scalalogging.version>3.1.0</scalalogging.version>
+        <slf4j.version>1.7.25</slf4j.version>
+        <scalalogging.version>3.8.0</scalalogging.version>
         <log4j.version>1.2.17</log4j.version>
 
         <junit.version>4.12</junit.version>
@@ -1693,6 +1694,11 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kafka-21-datastore_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-kafka-08-tools_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -1704,6 +1710,11 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-kafka-10-tools_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kafka-21-tools_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -2142,13 +2153,18 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
-                <artifactId>curator-recipes</artifactId>
-                <version>2.7.1</version>
+                <artifactId>curator-client</artifactId>
+                <version>4.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
-                <artifactId>curator-client</artifactId>
-                <version>2.7.1</version>
+                <artifactId>curator-framework</artifactId>
+                <version>4.0.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.curator</groupId>
+                <artifactId>curator-recipes</artifactId>
+                <version>4.0.1</version>
             </dependency>
             <dependency>
                 <groupId>org.codehaus.janino</groupId>
@@ -2761,6 +2777,7 @@
                     <configuration>
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
+                            <validHeader>build/copyright/ccri-2018.txt</validHeader>
                             <validHeader>build/copyright/ccri-2017.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
@@ -2770,7 +2787,7 @@
                             <validHeader>build/copyright/ccri-dstl-copyright-2016.txt</validHeader>
                         </validHeaders>
                         <properties>
-                            <year>2017</year>
+                            <year>2019</year>
                             <owner>Commonwealth Computer Research, Inc.</owner>
                         </properties>
                         <headerDefinitions>

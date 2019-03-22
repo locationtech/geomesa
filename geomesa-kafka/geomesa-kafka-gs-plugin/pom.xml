@@ -20,6 +20,7 @@
         <module>geomesa-kafka-08-gs-plugin</module>
         <module>geomesa-kafka-09-gs-plugin</module>
         <module>geomesa-kafka-10-gs-plugin</module>
+        <module>geomesa-kafka-21-gs-plugin</module>
     </modules>
 
     <dependencyManagement>

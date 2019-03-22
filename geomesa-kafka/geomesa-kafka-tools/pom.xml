@@ -28,6 +28,7 @@
         <module>geomesa-kafka-08-tools</module>
         <module>geomesa-kafka-09-tools</module>
         <module>geomesa-kafka-10-tools</module>
+        <module>geomesa-kafka-21-tools</module>
     </modules>
 
 </project>

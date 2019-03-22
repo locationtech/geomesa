@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+    <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.EnhancedPatternLayout">
+            <param name="ConversionPattern" value="[%d{HH:mm:ss,SSS}] %5p %c{1}: %m%n"/>
+        </layout>
+    </appender>
+
+    <category name="org.locationtech.geomesa.kafka21">
+        <priority value="info"/>
+    </category>
+
+    <category name="kafka">
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.kafka">
+        <priority value="error"/>
+    </category>
+    <category name="org.I0Itec">
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.zookeeper">
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.curator">
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.hadoop">
+        <priority value="error"/>
+    </category>
+    <category name="hsqldb">
+        <priority value="warn"/>
+    </category>
+
+    <root>
+        <priority value="info"/>
+        <appender-ref ref="CONSOLE" />
+    </root>
+</log4j:configuration>
+

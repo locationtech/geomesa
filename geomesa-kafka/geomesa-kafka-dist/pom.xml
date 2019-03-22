@@ -28,6 +28,7 @@
         <module>geomesa-kafka-08-dist</module>
         <module>geomesa-kafka-09-dist</module>
         <module>geomesa-kafka-10-dist</module>
+        <module>geomesa-kafka-21-dist</module>
     </modules>
 
     <dependencies>
