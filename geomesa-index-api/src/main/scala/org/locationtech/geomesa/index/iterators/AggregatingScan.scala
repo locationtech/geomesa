@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.iterators
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.TransformSimpleFeature
@@ -17,8 +18,10 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import scala.util.control.NonFatal
+
 trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
-    extends SamplingIterator with ConfiguredScan {
+    extends SamplingIterator with ConfiguredScan with LazyLogging {
 
   import AggregatingScan.Configuration._
 
@@ -78,14 +81,18 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
     // noinspection LanguageFeature
     result.clear()
     while (hasNextData && notFull(result)) {
-      nextData(setValues)
-      if (validateFeature(reusableSf)) {
-        // write the record to our aggregated results
-        if (hasTransform) {
-          aggregateResult(reusableTransformSf, result)
-        } else {
-          aggregateResult(reusableSf, result)
+      try {
+        nextData(setValues)
+        if (validateFeature(reusableSf)) {
+          // write the record to our aggregated results
+          if (hasTransform) {
+            aggregateResult(reusableTransformSf, result)
+          } else {
+            aggregateResult(reusableSf, result)
+          }
         }
+      } catch {
+        case NonFatal(e) => logger.error("Error aggregating value:", e)
       }
     }
     // noinspection LanguageFeature
