@@ -16,6 +16,7 @@ import org.apache.hadoop.classification.InterfaceStability;
  * @param <T>
  */
 @InterfaceStability.Unstable
+@Deprecated
 public interface ValueSerializer<T> {
 
     byte[] toBytes(T t);

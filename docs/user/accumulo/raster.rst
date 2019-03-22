@@ -3,6 +3,10 @@
 GeoMesa Raster
 ==============
 
+.. warning::
+
+  GeoMesa raster support is deprecated and will be removed in a future version.
+
 The Raster support in GeoMesa (the ``geomesa-accumulo/geomesa-accumulo-raster`` module)
 is currently limited in scope and has a few important caveats that are noted here.
 

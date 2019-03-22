@@ -1,6 +1,10 @@
 GeoMesa Native API
 ==================
 
+.. warning::
+
+  The GeoMesa Native API is deprecated and will be removed in a future version.
+
 The GeoMesa Native API (``geomesa-native-api`` in the source distribution) is for developers who prefer not to use GeoTools interfaces and just want to geo index their
 data.  It exposes a simple interface for persisting and querying GeoMesa as well as a simple integration point with
 Geoserver in cases where OGC access is still desired.

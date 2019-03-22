@@ -18,6 +18,7 @@ import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 @InterfaceStability.Unstable
+@deprecated("Will be removed without replacement")
 class AccumuloGeoMesaIndex[T](override protected val ds: AccumuloDataStore,
                               name: String,
                               serde: ValueSerializer[T],
@@ -28,6 +29,7 @@ class AccumuloGeoMesaIndex[T](override protected val ds: AccumuloDataStore,
 }
 
 @InterfaceStability.Unstable
+@deprecated("Will be removed without replacement")
 object AccumuloGeoMesaIndex {
   def build[T](name: String,
                connector: Connector,

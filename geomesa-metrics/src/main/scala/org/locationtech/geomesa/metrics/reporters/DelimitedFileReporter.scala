@@ -24,6 +24,7 @@ import scala.language.implicitConversions
  * Reporter for dropwizard metrics that will write to delimited files. In contrast to the
  * dropwizard CSVReporter, allows for either CSV or TSV files and for aggregating metrics by type.
  */
+@deprecated("Will be removed without replacement")
 object DelimitedFileReporter {
 
   val gaugeCols = Array(("value", "%s"))

@@ -21,6 +21,7 @@ import org.locationtech.geomesa.metrics.config.MetricsConfig
 /**
  * Filter that will track request metrics, aggregated based on url patterns.
  */
+@deprecated("Will be removed without replacement")
 class AggregatedMetricsFilter extends Filter with LazyLogging {
 
   import AggregatedMetricsFilter.{LayerParameters, createMetrics}

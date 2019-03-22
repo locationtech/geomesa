@@ -13,6 +13,7 @@ import javax.servlet.http.{HttpServletResponseWrapper, HttpServletResponse}
 /**
  * Exposes the servlet response so we can track it. Copied from dropwizard metrics-servlet.
  */
+@deprecated("Will be removed without replacement")
 class StatusExposingServletResponse(response: HttpServletResponse)
     extends HttpServletResponseWrapper(response) {
 
