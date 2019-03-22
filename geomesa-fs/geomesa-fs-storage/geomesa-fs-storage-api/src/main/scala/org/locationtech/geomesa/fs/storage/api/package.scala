@@ -26,7 +26,7 @@ package object api {
     * @param conf configuration
     * @param root root path
     */
-  case class FileSystemContext(fc: FileContext, conf: Configuration, root: Path)
+  case class FileSystemContext(fc: FileContext, conf: Configuration, root: Path, namespace: Option[String] = None)
 
   /**
     * Identifier plus configuration

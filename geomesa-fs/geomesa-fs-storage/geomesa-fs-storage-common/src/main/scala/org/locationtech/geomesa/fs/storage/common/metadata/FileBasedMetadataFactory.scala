@@ -58,14 +58,15 @@ class FileBasedMetadataFactory extends StorageMetadataFactory {
   }
 
   override def create(context: FileSystemContext, config: Map[String, String], meta: Metadata): StorageMetadata = {
-    val Metadata(sft, encoding, _, leaf) = meta
+    val Metadata(_, encoding, _, leaf) = meta
+    val sft = namespaced(meta.sft, context.namespace)
     // load the partition scheme first in case it fails
     val scheme = PartitionSchemeFactory.load(sft, meta.scheme)
     MetadataJson.writeMetadata(context, NamedOptions(name, config))
     FileBasedMetadataFactory.write(context.fc, context.root, meta)
     val directory = new Path(context.root, FileBasedMetadataFactory.MetadataDirectory)
     val loader = new MetadataLoader(new FileBasedMetadata(context.fc, directory, sft, encoding, scheme, leaf))
-    FileBasedMetadataFactory.cache.put(context.root.toUri.toString, loader)
+    FileBasedMetadataFactory.cache.put(FileBasedMetadataFactory.key(context), loader)
     loader.reference()
   }
 }
@@ -79,20 +80,24 @@ object FileBasedMetadataFactory extends MethodProfiling with LazyLogging {
 
   private val cache = new ConcurrentHashMap[String, MetadataLoader]()
 
+  private def key(context: FileSystemContext): String =
+    context.namespace.map(ns => s"$ns:${context.root.toUri}").getOrElse(context.root.toUri.toString)
+
   private def cached(context: FileSystemContext): Option[MetadataLoader] = {
     val loader = new java.util.function.Function[String, MetadataLoader]() {
-      override def apply(t: String): MetadataLoader = {
+      override def apply(ignored: String): MetadataLoader = {
         val file = new Path(context.root, StoragePath)
         if (!PathCache.exists(context.fc, file)) { null } else {
           val directory = new Path(context.root, MetadataDirectory)
           val meta = WithClose(context.fc.open(file))(MetadataSerialization.deserialize)
-          val Metadata(sft, encoding, _, leaf) = meta
+          val leaf = meta.leafStorage
+          val sft = namespaced(meta.sft, context.namespace)
           val scheme = PartitionSchemeFactory.load(sft, meta.scheme)
-          new MetadataLoader(new FileBasedMetadata(context.fc, directory, sft, encoding, scheme, leaf))
+          new MetadataLoader(new FileBasedMetadata(context.fc, directory, sft, meta.encoding, scheme, leaf))
         }
       }
     }
-    Option(cache.computeIfAbsent(context.root.toUri.toString, loader))
+    Option(cache.computeIfAbsent(key(context), loader))
   }
 
   /**

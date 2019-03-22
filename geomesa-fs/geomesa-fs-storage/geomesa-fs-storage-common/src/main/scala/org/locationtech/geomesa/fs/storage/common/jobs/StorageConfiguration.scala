@@ -32,7 +32,8 @@ object StorageConfiguration {
   val SftSpecKey    = "geomesa.fs.sft.spec"
 
   def setSft(conf: Configuration, sft: SimpleFeatureType): Unit = {
-    conf.set(SftNameKey, sft.getTypeName)
+    val name = Option(sft.getName.getNamespaceURI).map(ns => s"$ns:${sft.getTypeName}").getOrElse(sft.getTypeName)
+    conf.set(SftNameKey, name)
     conf.set(SftSpecKey, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
   }
   def getSft(conf: Configuration): SimpleFeatureType =

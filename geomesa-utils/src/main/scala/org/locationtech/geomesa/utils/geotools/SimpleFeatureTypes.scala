@@ -336,7 +336,10 @@ object SimpleFeatureTypes {
   def renameSft(sft: SimpleFeatureType, newName: String): SimpleFeatureType = {
     val builder = new SimpleFeatureTypeBuilder()
     builder.init(sft)
-    builder.setName(newName)
+    newName.indexOf(':') match {
+      case -1 => builder.setName(newName)
+      case i  => builder.setNamespaceURI(newName.substring(0, i)); builder.setName(newName.substring(i + 1))
+    }
     val renamed = builder.buildFeatureType()
     renamed.getUserData.putAll(sft.getUserData)
     renamed

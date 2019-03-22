@@ -28,12 +28,12 @@ class FilteringReader(conf: Configuration,
                       gtFilter: org.opengis.filter.Filter,
                       transform: Option[(String, SimpleFeatureType)]) extends FileSystemPathReader with LazyLogging {
 
-  private val createFeature: (SimpleFeature) => (SimpleFeature) = transform match {
-    case None => (f) => f
+  private val createFeature: SimpleFeature => SimpleFeature = transform match {
+    case None => f => f
     case Some((_, tsft)) =>
       import scala.collection.JavaConversions._
       val transformIndices = tsft.getAttributeDescriptors.map(d => sft.indexOf(d.getLocalName)).toArray
-      (f) => {
+      f => {
         val attributes = transformIndices.map(f.getAttribute)
         new ScalaSimpleFeature(tsft, f.getID, attributes, f.getUserData)
       }
