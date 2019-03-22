@@ -121,7 +121,7 @@ object RedisQueryPlan {
         }
         resultsToFeatures(result.result.iterator.flatMap(_.get.iterator().asScala))
       } else {
-        val results = new RedisBatchScan(ds.connection, table, ranges, ds.config.queryThreads, 100000)
+        val results = RedisBatchScan(ds.connection, table, ranges, ds.config.queryThreads)
         SelfClosingIterator(resultsToFeatures(results), results.close())
       }
     }

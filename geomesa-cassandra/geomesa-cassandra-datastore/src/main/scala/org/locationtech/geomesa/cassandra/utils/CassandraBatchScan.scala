@@ -13,19 +13,21 @@ import java.util.concurrent._
 
 import com.datastax.driver.core._
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
-class CassandraBatchScan(session: Session, ranges: Seq[Statement], threads: Int, buffer: Int)
-    extends AbstractBatchScan[Statement, Row](ranges, threads, buffer) {
+private class CassandraBatchScan(session: Session, ranges: Seq[Statement], threads: Int, buffer: Int)
+    extends AbstractBatchScan[Statement, Row](ranges, threads, buffer, CassandraBatchScan.Sentinel) {
 
-  import scala.collection.JavaConverters._
-
-  override protected def singletonSentinel: Row = CassandraBatchScan.Sentinel
-
-  override protected def scan(range: Statement, out: BlockingQueue[Row]): Unit =
-    session.execute(range).asScala.foreach(out.put)
+  override protected def scan(range: Statement, out: BlockingQueue[Row]): Unit = {
+    val results = session.execute(range).iterator()
+    while (results.hasNext) {
+      out.put(results.next)
+    }
+  }
 }
 
 object CassandraBatchScan {
+
   private val Sentinel: Row = new AbstractGettableData(ProtocolVersion.NEWEST_SUPPORTED) with Row {
     override def getIndexOf(name: String): Int = -1
     override def getColumnDefinitions: ColumnDefinitions = null
@@ -37,4 +39,7 @@ object CassandraBatchScan {
     override def getName(i: Int): String = null
     override def getCodecRegistry: CodecRegistry = null
   }
+
+  def apply(session: Session, ranges: Seq[Statement], threads: Int): CloseableIterator[Row] =
+    new CassandraBatchScan(session, ranges, threads, 100000).start()
 }

@@ -12,16 +12,17 @@ import java.util.concurrent.BlockingQueue
 
 import org.locationtech.geomesa.index.api.BoundedByteRange
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import redis.clients.jedis.JedisPool
 
-class RedisBatchScan(
+private class RedisBatchScan(
     connection: JedisPool,
     table: Array[Byte],
     ranges: Seq[BoundedByteRange],
     threads: Int,
     buffer: Int
-  ) extends AbstractBatchScan[BoundedByteRange, Array[Byte]](ranges, threads, buffer) {
+  ) extends AbstractBatchScan[BoundedByteRange, Array[Byte]](ranges, threads, buffer, RedisBatchScan.Sentinel) {
 
   override protected def scan(range: BoundedByteRange, out: BlockingQueue[Array[Byte]]): Unit = {
     val iter = WithClose(connection.getResource)(_.zrangeByLex(table, range.lower, range.upper)).iterator()
@@ -29,10 +30,16 @@ class RedisBatchScan(
       out.put(iter.next())
     }
   }
-
-  override protected def singletonSentinel: Array[Byte] = RedisBatchScan.Sentinel
 }
 
 object RedisBatchScan {
+
   private val Sentinel = new Array[Byte](0)
+
+  def apply(
+      connection: JedisPool,
+      table: Array[Byte],
+      ranges: Seq[BoundedByteRange],
+      threads: Int): CloseableIterator[Array[Byte]] =
+    new RedisBatchScan(connection, table, ranges, threads, 100000).start()
 }
