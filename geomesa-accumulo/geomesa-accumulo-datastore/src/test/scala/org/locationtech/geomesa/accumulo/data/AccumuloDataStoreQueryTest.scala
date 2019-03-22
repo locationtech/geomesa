@@ -270,8 +270,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val ns = "mytestns"
       val typeName = "namespacetest"
 
-      val sft = SimpleFeatureTypes.createType(typeName, "geom:Point:srid=4326")
-      val sftWithNs = SimpleFeatureTypes.createType(ns, typeName, "geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(typeName, "name:String,geom:Point:srid=4326")
+      val sftWithNs = SimpleFeatureTypes.createType(ns, typeName, "name:String,geom:Point:srid=4326")
 
       ds.createSchema(sftWithNs)
 
@@ -282,6 +282,23 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val name = dsWithNs.getSchema(typeName).getName
       name.getNamespaceURI mustEqual "ns0"
       name.getLocalPart mustEqual typeName
+
+      val sf = ScalaSimpleFeature.create(sft, "fid-1", "name1", "POINT(45 49)")
+      addFeature(sft, sf)
+
+      val queries = Seq(
+        new Query(typeName),
+        new Query(typeName, ECQL.toFilter("bbox(geom,40,45,50,55)")),
+        new Query(typeName, Filter.INCLUDE, Array("geom")),
+        new Query(typeName, ECQL.toFilter("bbox(geom,40,45,50,55)"), Array("geom"))
+      )
+      foreach(queries) { query =>
+        val reader = dsWithNs.getFeatureReader(query, Transaction.AUTO_COMMIT)
+        reader.getFeatureType.getName mustEqual name
+        val features = SelfClosingIterator(reader).toList
+        features.map(_.getID) mustEqual Seq(sf.getID)
+        features.head.getFeatureType.getName mustEqual name
+      }
     }
 
     "handle cql functions" in {

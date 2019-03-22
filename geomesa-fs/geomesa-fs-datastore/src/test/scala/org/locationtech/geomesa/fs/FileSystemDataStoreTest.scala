@@ -23,6 +23,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -122,6 +123,23 @@ class FileSystemDataStoreTest extends Specification {
 
         val results = SelfClosingIterator(ds.getFeatureReader(new Query(format), Transaction.AUTO_COMMIT)).toList
         results must containTheSameElementsAs(features)
+
+        val dsWithNs = DataStoreFinder.getDataStore(Map("fs.path" -> dir.getPath, "fs.read-threads" -> "4", "namespace" -> "ns0"))
+        val name = dsWithNs.getSchema(sft.getTypeName).getName
+        name.getNamespaceURI mustEqual "ns0"
+        name.getLocalPart mustEqual sft.getTypeName
+
+        val queries = Seq(
+          new Query(sft.getTypeName),
+          new Query(sft.getTypeName, Filter.INCLUDE, Array("geom"))
+        )
+        foreach(queries) { query =>
+          val reader = dsWithNs.getFeatureReader(query, Transaction.AUTO_COMMIT)
+          reader.getFeatureType.getName mustEqual name
+          val features = SelfClosingIterator(reader).toList
+          features must not(beEmpty)
+          foreach(features)(_.getFeatureType.getName mustEqual name)
+        }
       }
     }
 

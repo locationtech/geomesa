@@ -10,10 +10,22 @@ package org.locationtech.geomesa.fs.storage.common
 
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata}
 import org.locationtech.geomesa.fs.storage.common.metadata.PartitionAction.PartitionAction
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Envelope
+import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.ConfigConvert
 
 package object metadata {
+
+  /**
+    * Creates a new simple feature type with the namespace in the simple feature type name
+    *
+    * @param sft simple feature type
+    * @param namespace optional namespace
+    * @return
+    */
+  def namespaced(sft: SimpleFeatureType, namespace: Option[String]): SimpleFeatureType =
+    namespace.map(ns => SimpleFeatureTypes.renameSft(sft, s"$ns:${sft.getTypeName}")).getOrElse(sft)
 
   /**
     * Merge configs for a single partition into a single aggregate config

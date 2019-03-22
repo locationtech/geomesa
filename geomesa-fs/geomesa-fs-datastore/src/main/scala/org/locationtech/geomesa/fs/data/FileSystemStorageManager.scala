@@ -28,7 +28,7 @@ import scala.util.control.NonFatal
   * @param conf configuration
   * @param root root path for the data store
   */
-class FileSystemStorageManager private (fc: FileContext, conf: Configuration, root: Path)
+class FileSystemStorageManager private (fc: FileContext, conf: Configuration, root: Path, namespace: Option[String])
     extends MethodProfiling with LazyLogging {
 
   import scala.collection.JavaConverters._
@@ -46,15 +46,6 @@ class FileSystemStorageManager private (fc: FileContext, conf: Configuration, ro
         .orElse(Some(defaultPath(typeName)).filter(PathCache.exists(fc, _)).flatMap(loadPath)) // check expected (default) path
         .orElse(loadAll().find(_.metadata.sft.getTypeName == typeName)) // check other paths until we find it
   }
-
-  /**
-    * Gets the storage under a given path, if any
-    *
-    * @param path root path for the storage
-    * @return
-    */
-  def storage(path: Path): Option[FileSystemStorage] =
-    cache.collectFirst { case (_, (p, storage)) if p == path => storage }.orElse(loadPath(path))
 
   /**
     * Gets all storages under the root path
@@ -109,7 +100,7 @@ class FileSystemStorageManager private (fc: FileContext, conf: Configuration, ro
       logger.debug(s"${ if (storage.isDefined) "Loaded" else "No" } storage at path '$path' in ${time}ms")
 
     profile(complete _) {
-      val context = FileSystemContext(fc, conf, path)
+      val context = FileSystemContext(fc, conf, path, namespace)
       StorageMetadataFactory.load(context).map { meta =>
         try {
           val storage = FileSystemStorageFactory(context, meta)
@@ -127,9 +118,9 @@ class FileSystemStorageManager private (fc: FileContext, conf: Configuration, ro
 object FileSystemStorageManager {
 
   private val cache = Caffeine.newBuilder().build(
-    new CacheLoader[(FileContext, Configuration, Path), FileSystemStorageManager]() {
-      override def load(key: (FileContext, Configuration, Path)): FileSystemStorageManager =
-        new FileSystemStorageManager(key._1, key._2, key._3)
+    new CacheLoader[(FileContext, Configuration, Path, Option[String]), FileSystemStorageManager]() {
+      override def load(key: (FileContext, Configuration, Path, Option[String])): FileSystemStorageManager =
+        new FileSystemStorageManager(key._1, key._2, key._3, key._4)
     }
   )
 
@@ -141,5 +132,6 @@ object FileSystemStorageManager {
     * @param root data store root path
     * @return
     */
-  def apply(fc: FileContext, conf: Configuration, root: Path): FileSystemStorageManager = cache.get((fc, conf, root))
+  def apply(fc: FileContext, conf: Configuration, root: Path, namespace: Option[String]): FileSystemStorageManager =
+    cache.get((fc, conf, root, namespace))
 }

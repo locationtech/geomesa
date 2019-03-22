@@ -71,7 +71,7 @@ abstract class FileSystemConverterJob(
 
     val fc = FileContext.getFileContext(job.getConfiguration)
     val manager = FileSystemStorageManager(fc, job.getConfiguration,
-      new Path(FileSystemDataStoreParams.PathParam.lookup(dsParams.asJava)))
+      new Path(FileSystemDataStoreParams.PathParam.lookup(dsParams.asJava)), None)
 
     val storage = manager.storage(sft.getTypeName).getOrElse {
       throw new IllegalArgumentException(s"Could not load metadata for ${sft.getTypeName} at " +

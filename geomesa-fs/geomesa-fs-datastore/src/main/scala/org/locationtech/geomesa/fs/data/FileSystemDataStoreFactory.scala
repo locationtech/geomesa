@@ -54,9 +54,9 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
     val readThreads = ReadThreadsParam.lookup(params)
     val writeTimeout = WriteTimeoutParam.lookup(params)
 
-    val ds = new FileSystemDataStore(fc, conf, path, readThreads, writeTimeout, encoding)
-    NamespaceParam.lookupOpt(params).foreach(ds.setNamespaceURI)
-    ds
+    val namespace = NamespaceParam.lookupOpt(params)
+
+    new FileSystemDataStore(fc, conf, path, readThreads, writeTimeout, encoding, namespace)
   }
 
   override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore =

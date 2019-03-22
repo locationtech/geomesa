@@ -13,7 +13,6 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.Query
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
-import org.geotools.feature.NameImpl
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadata
@@ -35,19 +34,20 @@ class FileSystemDataStore(
     root: Path,
     readThreads: Int,
     writeTimeout: Duration,
-    defaultEncoding: Option[String]
+    defaultEncoding: Option[String],
+    namespace: Option[String]
   ) extends ContentDataStore with HasGeoMesaStats with HasGeoMesaMetadata[String] with LazyLogging {
 
-  private val manager = FileSystemStorageManager(fc, conf, root)
+  namespace.foreach(setNamespaceURI)
+
+  private val manager = FileSystemStorageManager(fc, conf, root, namespace)
 
   override val metadata: GeoMesaMetadata[String] = new NoOpMetadata[String]
   override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
   override def createTypeNames(): java.util.List[Name] = {
     val names = new java.util.ArrayList[Name]()
-    manager.storages().foreach { storage =>
-      names.add(new NameImpl(getNamespaceURI, storage.metadata.sft.getTypeName))
-    }
+    manager.storages().foreach(storage => names.add(storage.metadata.sft.getName))
     names
   }
 
@@ -80,7 +80,7 @@ class FileSystemDataStore(
         }
 
         val path = manager.defaultPath(sft.getTypeName)
-        val context = FileSystemContext(fc, conf, path)
+        val context = FileSystemContext(fc, conf, path, namespace)
 
         val metadata = StorageMetadataFactory.create(context, meta, Metadata(sft, encoding, scheme, leafStorage))
         try { manager.register(path, FileSystemStorageFactory(context, metadata)) } catch {
