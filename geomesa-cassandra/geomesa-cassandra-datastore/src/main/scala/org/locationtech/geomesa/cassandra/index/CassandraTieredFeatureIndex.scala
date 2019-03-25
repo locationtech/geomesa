@@ -94,7 +94,9 @@ trait CassandraTieredFeatureIndex[T, U] extends CassandraFeatureIndex[T, U] {
       val values = keySpace.getIndexValues(sft, primary, explain)
       val keyRanges = keySpace.getRanges(values)
 
-      val splits = shardStrategy(sft).shards.map(b => RowRange(CassandraFeatureIndex.ShardColumn, b(0), b(0)))
+      val splits = shardStrategy(sft).shards.map { b =>
+        RowRange(CassandraFeatureIndex.ShardColumn, b(0), b(0), startInclusive = true, endInclusive = true)
+      }
 
       // TODO it would probably be better to make this a (range OR range) AND tieredRanges
       // instead of (range AND tieredRanges) OR (range AND tieredRanges)

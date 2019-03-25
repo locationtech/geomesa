@@ -60,10 +60,18 @@ object CassandraFeatureIndex extends CassandraIndexManagerType {
         }
       } else {
         if (c.start != null) {
-          select.where(QueryBuilder.gte(c.column.name, c.start))
+          if (c.startInclusive) {
+            select.where(QueryBuilder.gte(c.column.name, c.start))
+          } else {
+            select.where(QueryBuilder.gt(c.column.name, c.start))
+          }
         }
         if (c.end != null) {
-          select.where(QueryBuilder.lt(c.column.name, c.end))
+          if (c.endInclusive) {
+            select.where(QueryBuilder.lte(c.column.name, c.end))
+          } else {
+            select.where(QueryBuilder.lt(c.column.name, c.end))
+          }
         }
       }
     }
@@ -205,7 +213,9 @@ trait CassandraFeatureIndex[T, U] extends CassandraFeatureIndexType with ClientS
 
       case Some(values) =>
         val ranges = keySpace.getRanges(values)
-        val splits = shardStrategy(sft).shards.map(b => RowRange(CassandraFeatureIndex.ShardColumn, b(0), b(0)))
+        val splits = shardStrategy(sft).shards.map { b =>
+          RowRange(CassandraFeatureIndex.ShardColumn, b(0), b(0), startInclusive = true, endInclusive = true)
+        }
 
         if (splits.isEmpty) {
           ranges.map(toRowRanges(sft, _))
