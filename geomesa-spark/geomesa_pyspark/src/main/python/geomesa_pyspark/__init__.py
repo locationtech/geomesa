@@ -34,7 +34,7 @@ def configure(jars=[], packages=[], files=[], spark_home=None, spark_master='yar
     assert spark_master is 'yarn', 'only yarn master is supported with this release'
 
     import pyspark
-    import types
+    import geomesa_pyspark.types
 
     # Need differential behavior based for <= Spark 2.0.x, Spark 2.1.0
     #  is the fist release to provide the module __version__ attribute
@@ -109,3 +109,7 @@ def zip_package(package_path, zip_path):
                 full_path = os.path.join(root, file)
                 archive_path = full_path[path_offset:]
                 writer.write(full_path, archive_path)
+
+
+def init_sql(spark):
+    spark._jvm.org.apache.spark.sql.SQLTypes.init(spark._jwrapped)

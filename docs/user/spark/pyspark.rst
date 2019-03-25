@@ -83,6 +83,14 @@ data frame.
     where st_contains(st_makeBBOX(-72.0, 40.0, -71.0, 41.0), geom)
     """).show()
 
+Geomesa PySpark can also be used in the absence of a Geomesa data store.  Registering user-defined types and functions
+can be done manually by invoking ``geomesa_pyspark.init_sql()`` on the Spark session object:
+
+.. code-block:: python
+
+    geomesa_pyspark.init_sql(spark)
+
+
 You can terminate the Spark job on YARN using ``spark.stop()``.
 
 Jupyter
