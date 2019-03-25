@@ -22,7 +22,10 @@ object AttributeColumnMapper {
   private val cache = Caffeine.newBuilder().build(
     new CacheLoader[Integer, AttributeColumnMapper]() {
       override def load(shards: Integer): AttributeColumnMapper = {
-        new AttributeColumnMapper(Seq.tabulate(shards)(i => ColumnSelect(CassandraColumnMapper.ShardColumn, i, i)))
+        val mappers = Seq.tabulate(shards) { i =>
+          ColumnSelect(CassandraColumnMapper.ShardColumn, i, i, startInclusive = true, endInclusive = true)
+        }
+        new AttributeColumnMapper(mappers)
       }
     }
   )
@@ -59,18 +62,18 @@ class AttributeColumnMapper(shards: Seq[ColumnSelect]) extends CassandraColumnMa
 
   override def select(range: ScanRange[_], tieredKeyRanges: Seq[ByteRange]): Seq[RowSelect] = {
     val primary = range.asInstanceOf[ScanRange[AttributeIndexKey]] match {
-      case SingleRowRange(row)   => Seq(ColumnSelect(Value, row.value, row.value))
-      case BoundedRange(lo, hi)  => Seq(ColumnSelect(Value, lo.value, hi.value))
-      case LowerBoundedRange(lo) => Seq(ColumnSelect(Value, lo.value, null))
-      case UpperBoundedRange(hi) => Seq(ColumnSelect(Value, null, hi.value))
-      case PrefixRange(prefix)   => Seq(ColumnSelect(Value, prefix.value, prefix.value + "zzzz")) // TODO ?
+      case SingleRowRange(row)   => Seq(ColumnSelect(Value, row.value, row.value, startInclusive = true, endInclusive = true))
+      case BoundedRange(lo, hi)  => Seq(ColumnSelect(Value, lo.value, hi.value, lo.inclusive, hi.inclusive))
+      case LowerBoundedRange(lo) => Seq(ColumnSelect(Value, lo.value, null, lo.inclusive, endInclusive = false))
+      case UpperBoundedRange(hi) => Seq(ColumnSelect(Value, null, hi.value, startInclusive = false, hi.inclusive))
+      case PrefixRange(prefix)   => Seq(ColumnSelect(Value, prefix.value, prefix.value + "zzzz", prefix.inclusive, endInclusive = false)) // TODO ?
       case UnboundedRange(empty) => Seq.empty
       case _ => throw new IllegalArgumentException(s"Unexpected range type $range")
     }
     val clause = if (tieredKeyRanges.isEmpty) { primary } else {
       val minTier = ByteRange.min(tieredKeyRanges)
       val maxTier = ByteRange.max(tieredKeyRanges)
-      primary :+ ColumnSelect(Secondary, ByteBuffer.wrap(minTier), ByteBuffer.wrap(maxTier))
+      primary :+ ColumnSelect(Secondary, ByteBuffer.wrap(minTier), ByteBuffer.wrap(maxTier), startInclusive = true, endInclusive = true)
     }
     if (clause.isEmpty) { Seq(RowSelect(clause)) } else {
       shards.map(s => RowSelect(clause.+:(s)))
