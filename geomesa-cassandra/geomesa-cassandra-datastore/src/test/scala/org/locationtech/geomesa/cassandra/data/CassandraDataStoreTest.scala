@@ -187,6 +187,30 @@ class CassandraDataStoreTest extends Specification {
       }
     }
 
+    "handle bounds exclusivity" in {
+      val typeName = "testquerybounds"
+
+      ds.getSchema(typeName) must beNull
+
+      ds.createSchema(SimpleFeatureTypes.createType(typeName, "dtg:Date,*geom:Point:srid=4326"))
+
+      val sft = ds.getSchema(typeName)
+
+      val feature = ScalaSimpleFeature.create(sft, "0", "2019-03-18T00:00:00.000Z", "POINT (-122.32876 47.75205)")
+      feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+
+      val ids = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+          .addFeatures(new ListFeatureCollection(sft, Array[SimpleFeature](feature)))
+      ids.asScala.map(_.getID) mustEqual Seq("0")
+
+      val filter = ECQL.toFilter("dtg = '2019-03-18T00:00:00.000Z' AND " +
+          "bbox(geom, -122.33072251081467,47.75143951177597,-122.32643097639084,47.753048837184906)")
+
+      val query = new Query(typeName, filter)
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+      results mustEqual Seq(feature)
+    }
+
     "work with polys" in {
       val typeName = "testpolys"
 

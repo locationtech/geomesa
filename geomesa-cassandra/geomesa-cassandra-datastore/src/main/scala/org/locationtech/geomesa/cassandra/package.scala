@@ -29,7 +29,7 @@ package object cassandra {
 
   case class NamedColumn(name: String, i: Int, cType: String, jType: Class[_], partition: Boolean = false)
   case class RowValue(column: NamedColumn, value: AnyRef)
-  case class RowRange(column: NamedColumn, start: Any, end: Any)
+  case class RowRange(column: NamedColumn, start: Any, end: Any, startInclusive: Boolean, endInclusive: Boolean)
   case class CassandraRow(table: String, values: Seq[RowValue])
 
   object CassandraSystemProperties {
