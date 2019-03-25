@@ -58,11 +58,11 @@ trait CassandraZ2Index extends CassandraFeatureIndex[Z2IndexValues, Long]
 
   override protected def toRowRanges(sft: SimpleFeatureType, range: ScanRange[Long]): Seq[RowRange] = {
     range match {
-      case BoundedRange(lo, hi)  => Seq(RowRange(ZValue, lo, hi))
+      case BoundedRange(lo, hi)  => Seq(RowRange(ZValue, lo, hi, startInclusive = true, endInclusive = true))
       case UnboundedRange(_)     => Seq.empty
-      case SingleRowRange(row)   => Seq(RowRange(ZValue, row, row))
-      case LowerBoundedRange(lo) => Seq(RowRange(ZValue, lo, null))
-      case UpperBoundedRange(hi) => Seq(RowRange(ZValue, null, hi))
+      case SingleRowRange(row)   => Seq(RowRange(ZValue, row, row, startInclusive = true, endInclusive = true))
+      case LowerBoundedRange(lo) => Seq(RowRange(ZValue, lo, null, startInclusive = true, endInclusive = false))
+      case UpperBoundedRange(hi) => Seq(RowRange(ZValue, null, hi, startInclusive = false, endInclusive = true))
       case PrefixRange(_)        => Seq.empty // not supported
       case _ => throw new IllegalArgumentException(s"Unexpected range type $range")
     }

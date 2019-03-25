@@ -59,11 +59,11 @@ case object CassandraIdIndex extends CassandraFeatureIndex[Set[Array[Byte]], Arr
     def toId(bytes: Array[Byte]): String = idFromBytes(bytes, 0, bytes.length, null)
 
     range match {
-      case SingleRowRange(row)   => val id = toId(row); Seq(RowRange(FeatureId, id, id))
+      case SingleRowRange(row)   => val id = toId(row); Seq(RowRange(FeatureId, id, id, startInclusive = true, endInclusive = true))
       case UnboundedRange(_)     => Seq.empty
-      case BoundedRange(lo, hi)  => Seq(RowRange(FeatureId, toId(lo), toId(hi)))
-      case LowerBoundedRange(lo) => Seq(RowRange(FeatureId, toId(lo), null))
-      case UpperBoundedRange(hi) => Seq(RowRange(FeatureId, null, toId(hi)))
+      case BoundedRange(lo, hi)  => Seq(RowRange(FeatureId, toId(lo), toId(hi), startInclusive = true, endInclusive = true))
+      case LowerBoundedRange(lo) => Seq(RowRange(FeatureId, toId(lo), null, startInclusive = true, endInclusive = false))
+      case UpperBoundedRange(hi) => Seq(RowRange(FeatureId, null, toId(hi), startInclusive = false, endInclusive = true))
       case PrefixRange(_)        => Seq.empty // not supported
       case _ => throw new IllegalArgumentException(s"Unexpected range type $range")
     }

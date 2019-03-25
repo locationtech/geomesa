@@ -60,12 +60,32 @@ trait CassandraZ3Index extends CassandraFeatureIndex[Z3IndexValues, Z3IndexKey]
 
   override protected def toRowRanges(sft: SimpleFeatureType, range: ScanRange[Z3IndexKey]): Seq[RowRange] = {
     range match {
-      case BoundedRange(lo, hi)  => Seq(RowRange(Period, lo.bin, hi.bin), RowRange(ZValue, lo.z, hi.z))
-      case UnboundedRange(_)     => Seq.empty
-      case SingleRowRange(row)   => Seq(RowRange(Period, row.bin, row.bin), RowRange(ZValue, row.z, row.z))
-      case LowerBoundedRange(lo) => Seq(RowRange(Period, lo.bin, null), RowRange(ZValue, lo.z, null))
-      case UpperBoundedRange(hi) => Seq(RowRange(Period, null, hi.bin), RowRange(ZValue, null, hi.z))
-      case PrefixRange(_)        => Seq.empty // not supported
+      case BoundedRange(lo, hi) =>
+        val binRange = RowRange(Period, lo.bin, hi.bin, startInclusive = true, endInclusive = true)
+        val zRange = RowRange(ZValue, lo.z, hi.z, startInclusive = true, endInclusive = true)
+        Seq(binRange, zRange)
+
+      case UnboundedRange(_) =>
+        Seq.empty
+
+      case SingleRowRange(row) =>
+        val binRange = RowRange(Period, row.bin, row.bin, startInclusive = true, endInclusive = true)
+        val zRange = RowRange(ZValue, row.z, row.z, startInclusive = true, endInclusive = true)
+        Seq(binRange, zRange)
+
+      case LowerBoundedRange(lo) =>
+        val binRange = RowRange(Period, lo.bin, null, startInclusive = true, endInclusive = false)
+        val zRange = RowRange(ZValue, lo.z, null, startInclusive = true, endInclusive = false)
+        Seq(binRange, zRange)
+
+      case UpperBoundedRange(hi) =>
+        val binRange = RowRange(Period, null, hi.bin, startInclusive = false, endInclusive = true)
+        val zRange = RowRange(ZValue, null, hi.z, startInclusive = false, endInclusive = true)
+        Seq(binRange, zRange)
+
+      case PrefixRange(_) =>
+        Seq.empty // not supported
+
       case _ => throw new IllegalArgumentException(s"Unexpected range type $range")
     }
   }
