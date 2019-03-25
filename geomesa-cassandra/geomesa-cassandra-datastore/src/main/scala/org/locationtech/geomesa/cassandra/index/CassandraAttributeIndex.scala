@@ -83,32 +83,42 @@ trait CassandraAttributeIndex extends CassandraTieredFeatureIndex[AttributeIndex
     range match {
       case SingleRowRange(row) =>
         val i = Short.box(row.i)
-        Seq(RowRange(Index, i, i), RowRange(Value, row.value, row.value))
+        val indexRange = RowRange(Index, i, i, startInclusive = true, endInclusive = true)
+        val valueRange = RowRange(Value, row.value, row.value, startInclusive = true, endInclusive = true)
+        Seq(indexRange, valueRange)
 
       case BoundedRange(lo, hi) =>
         val i = Short.box(lo.i) // note: should be the same for upper and lower
-        Seq(RowRange(Index, i, i), RowRange(Value, lo.value, hi.value))
+        val indexRange = RowRange(Index, i, i, startInclusive = true, endInclusive = true)
+        val valueRange = RowRange(Value, lo.value, hi.value, lo.inclusive, hi.inclusive)
+        Seq(indexRange, valueRange)
 
       case LowerBoundedRange(lo) =>
         val i = Short.box(lo.i)
-        Seq(RowRange(Index, i, i), RowRange(Value, lo.value, null))
+        val indexRange = RowRange(Index, i, i, startInclusive = true, endInclusive = true)
+        val valueRange = RowRange(Value, lo.value, null, lo.inclusive, endInclusive = false)
+        Seq(indexRange, valueRange)
 
       case UpperBoundedRange(hi) =>
         val i = Short.box(hi.i)
-        Seq(RowRange(Index, i, i), RowRange(Value, null, hi.value))
+        val indexRange = RowRange(Index, i, i, startInclusive = true, endInclusive = true)
+        val valueRange = RowRange(Value, null, hi.value, startInclusive = false, hi.inclusive)
+        Seq(indexRange, valueRange)
 
       case PrefixRange(prefix) =>
         val i = Short.box(prefix.i)
-        Seq(RowRange(Index, i, i), RowRange(Value, prefix.value, prefix.value + "zzzz")) // TODO ?
+        val indexRange = RowRange(Index, i, i, startInclusive = true, endInclusive = true)
+        val valueRange = RowRange(Value, prefix.value, prefix.value + "zzzz", startInclusive = true, endInclusive = false) // TODO ?
+        Seq(indexRange, valueRange)
 
       case UnboundedRange(empty) =>
         val i = Short.box(empty.i)
-        Seq(RowRange(Index, i, i))
+        Seq(RowRange(Index, i, i, startInclusive = true, endInclusive = true))
 
       case _ => throw new IllegalArgumentException(s"Unexpected range type $range")
     }
   }
 
   override protected def toTieredRowRange(lower: Array[Byte], upper: Array[Byte]): RowRange =
-    RowRange(Secondary, ByteBuffer.wrap(lower), ByteBuffer.wrap(upper))
+    RowRange(Secondary, ByteBuffer.wrap(lower), ByteBuffer.wrap(upper), startInclusive = true, endInclusive = true)
 }
