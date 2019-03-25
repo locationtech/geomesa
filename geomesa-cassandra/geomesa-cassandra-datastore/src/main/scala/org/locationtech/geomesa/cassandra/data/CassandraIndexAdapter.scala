@@ -123,15 +123,31 @@ object CassandraIndexAdapter {
     criteria.foreach { c =>
       if (c.start == null) {
         if (c.end != null) {
-          select.where(QueryBuilder.lt(c.column.name, c.end))
+          if (c.endInclusive) {
+            select.where(QueryBuilder.lte(c.column.name, c.end))
+          } else {
+            select.where(QueryBuilder.lt(c.column.name, c.end))
+          }
         }
       } else if (c.end == null) {
-        select.where(QueryBuilder.gte(c.column.name, c.start))
+        if (c.startInclusive) {
+          select.where(QueryBuilder.gte(c.column.name, c.start))
+        } else {
+          select.where(QueryBuilder.gt(c.column.name, c.start))
+        }
       } else if (c.start == c.end) {
         select.where(QueryBuilder.eq(c.column.name, c.start))
       } else {
-        select.where(QueryBuilder.gte(c.column.name, c.start))
-        select.where(QueryBuilder.lt(c.column.name, c.end))
+        if (c.startInclusive) {
+          select.where(QueryBuilder.gte(c.column.name, c.start))
+        } else {
+          select.where(QueryBuilder.gt(c.column.name, c.start))
+        }
+        if (c.endInclusive) {
+          select.where(QueryBuilder.lte(c.column.name, c.end))
+        } else {
+          select.where(QueryBuilder.lt(c.column.name, c.end))
+        }
       }
     }
     select

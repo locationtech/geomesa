@@ -20,7 +20,10 @@ object Z2ColumnMapper {
   private val cache = Caffeine.newBuilder().build(
     new CacheLoader[Integer, Z2ColumnMapper]() {
       override def load(shards: Integer): Z2ColumnMapper = {
-        new Z2ColumnMapper(Seq.tabulate(shards)(i => ColumnSelect(CassandraColumnMapper.ShardColumn, i, i)))
+        val mappers = Seq.tabulate(shards) { i =>
+          ColumnSelect(CassandraColumnMapper.ShardColumn, i, i, startInclusive = true, endInclusive = true)
+        }
+        new Z2ColumnMapper(mappers)
       }
     }
   )
@@ -54,11 +57,11 @@ class Z2ColumnMapper(shards: Seq[ColumnSelect]) extends CassandraColumnMapper {
 
   override def select(range: ScanRange[_], tieredKeyRanges: Seq[ByteRange]): Seq[RowSelect] = {
     val clause = range match {
-      case BoundedRange(lo, hi)  => Seq(ColumnSelect(ZValue, lo, hi))
+      case BoundedRange(lo, hi)  => Seq(ColumnSelect(ZValue, lo, hi, startInclusive = true, endInclusive = true))
       case UnboundedRange(_)     => Seq.empty
-      case SingleRowRange(row)   => Seq(ColumnSelect(ZValue, row, row))
-      case LowerBoundedRange(lo) => Seq(ColumnSelect(ZValue, lo, null))
-      case UpperBoundedRange(hi) => Seq(ColumnSelect(ZValue, null, hi))
+      case SingleRowRange(row)   => Seq(ColumnSelect(ZValue, row, row, startInclusive = true, endInclusive = true))
+      case LowerBoundedRange(lo) => Seq(ColumnSelect(ZValue, lo, null, startInclusive = true, endInclusive = false))
+      case UpperBoundedRange(hi) => Seq(ColumnSelect(ZValue, null, hi, startInclusive = false, endInclusive = true))
       case PrefixRange(_)        => Seq.empty // not supported
       case _ => throw new IllegalArgumentException(s"Unexpected range type $range")
     }

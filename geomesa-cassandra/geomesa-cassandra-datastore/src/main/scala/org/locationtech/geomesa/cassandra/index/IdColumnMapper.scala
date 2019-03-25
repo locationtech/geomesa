@@ -50,11 +50,11 @@ class IdColumnMapper(idFromBytes: (Array[Byte], Int, Int, SimpleFeature) => Stri
 
   override def select(range: ScanRange[_], tieredKeyRanges: Seq[ByteRange]): Seq[RowSelect] = {
     range.asInstanceOf[ScanRange[Array[Byte]]] match {
-      case SingleRowRange(row)   => val id = toId(row); Seq(RowSelect(Seq(ColumnSelect(FeatureId, id, id))))
+      case SingleRowRange(row)   => val id = toId(row); Seq(RowSelect(Seq(ColumnSelect(FeatureId, id, id, startInclusive = true, endInclusive = true))))
       case UnboundedRange(_)     => Seq(RowSelect(Seq.empty))
-      case BoundedRange(lo, hi)  => Seq(RowSelect(Seq(ColumnSelect(FeatureId, toId(lo), toId(hi)))))
-      case LowerBoundedRange(lo) => Seq(RowSelect(Seq(ColumnSelect(FeatureId, toId(lo), null))))
-      case UpperBoundedRange(hi) => Seq(RowSelect(Seq(ColumnSelect(FeatureId, null, toId(hi)))))
+      case BoundedRange(lo, hi)  => Seq(RowSelect(Seq(ColumnSelect(FeatureId, toId(lo), toId(hi), startInclusive = true, endInclusive = true))))
+      case LowerBoundedRange(lo) => Seq(RowSelect(Seq(ColumnSelect(FeatureId, toId(lo), null, startInclusive = true, endInclusive = false))))
+      case UpperBoundedRange(hi) => Seq(RowSelect(Seq(ColumnSelect(FeatureId, null, toId(hi), startInclusive = false, endInclusive = true))))
       case PrefixRange(_)        => Seq.empty // not supported
       case _ => throw new IllegalArgumentException(s"Unexpected range type $range")
     }

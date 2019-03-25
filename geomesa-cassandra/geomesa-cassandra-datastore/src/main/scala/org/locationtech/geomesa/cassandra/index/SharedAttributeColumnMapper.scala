@@ -45,34 +45,44 @@ object SharedAttributeColumnMapper extends CassandraColumnMapper {
     val primary = range.asInstanceOf[ScanRange[AttributeIndexKey]] match {
       case SingleRowRange(row) =>
         val i = Short.box(row.i)
-        Seq(ColumnSelect(Index, i, i), ColumnSelect(Value, row.value, row.value))
+        val indexSelect = ColumnSelect(Index, i, i, startInclusive = true, endInclusive = true)
+        val valueSelect = ColumnSelect(Value, row.value, row.value, startInclusive = true, endInclusive = true)
+        Seq(indexSelect, valueSelect)
 
       case BoundedRange(lo, hi) =>
         val i = Short.box(lo.i) // note: should be the same for upper and lower
-        Seq(ColumnSelect(Index, i, i), ColumnSelect(Value, lo.value, hi.value))
+        val indexSelect = ColumnSelect(Index, i, i, startInclusive = true, endInclusive = true)
+        val valueSelect = ColumnSelect(Value, lo.value, hi.value, lo.inclusive, hi.inclusive)
+        Seq(indexSelect, valueSelect)
 
       case LowerBoundedRange(lo) =>
         val i = Short.box(lo.i)
-        Seq(ColumnSelect(Index, i, i), ColumnSelect(Value, lo.value, null))
+        val indexSelect = ColumnSelect(Index, i, i, startInclusive = true, endInclusive = true)
+        val valueSelect = ColumnSelect(Value, lo.value, null, lo.inclusive, endInclusive = false)
+        Seq(indexSelect, valueSelect)
 
       case UpperBoundedRange(hi) =>
         val i = Short.box(hi.i)
-        Seq(ColumnSelect(Index, i, i), ColumnSelect(Value, null, hi.value))
+        val indexSelect = ColumnSelect(Index, i, i, startInclusive = true, endInclusive = true)
+        val valueSelect = ColumnSelect(Value, null, hi.value, startInclusive = false, hi.inclusive)
+        Seq(indexSelect, valueSelect)
 
       case PrefixRange(prefix) =>
         val i = Short.box(prefix.i)
-        Seq(ColumnSelect(Index, i, i), ColumnSelect(Value, prefix.value, prefix.value + "zzzz")) // TODO ?
+        val indexSelect = ColumnSelect(Index, i, i, startInclusive = true, endInclusive = true)
+        val valueSelect = ColumnSelect(Value, prefix.value, s"${prefix.value}zzzz", prefix.inclusive, endInclusive = false) // TODO ?
+        Seq(indexSelect, valueSelect)
 
       case UnboundedRange(empty) =>
         val i = Short.box(empty.i)
-        Seq(ColumnSelect(Index, i, i))
+        Seq(ColumnSelect(Index, i, i, startInclusive = true, endInclusive = true))
 
       case _ => throw new IllegalArgumentException(s"Unexpected range type $range")
     }
     val clause = if (tieredKeyRanges.isEmpty) { primary } else {
       val minTier = ByteRange.min(tieredKeyRanges)
       val maxTier = ByteRange.max(tieredKeyRanges)
-      primary :+ ColumnSelect(Secondary, ByteBuffer.wrap(minTier), ByteBuffer.wrap(maxTier))
+      primary :+ ColumnSelect(Secondary, ByteBuffer.wrap(minTier), ByteBuffer.wrap(maxTier), startInclusive = true, endInclusive = true)
     }
     Seq(RowSelect(clause))
   }

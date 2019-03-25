@@ -22,7 +22,10 @@ object Z3ColumnMapper {
   private val cache = Caffeine.newBuilder().build(
     new CacheLoader[Integer, Z3ColumnMapper]() {
       override def load(shards: Integer): Z3ColumnMapper = {
-        new Z3ColumnMapper(Seq.tabulate(shards)(i => ColumnSelect(CassandraColumnMapper.ShardColumn, i, i)))
+        val mappers = Seq.tabulate(shards) { i =>
+          ColumnSelect(CassandraColumnMapper.ShardColumn, i, i, startInclusive = true, endInclusive = true)
+      }
+        new Z3ColumnMapper(mappers)
       }
     }
   )
@@ -57,12 +60,32 @@ class Z3ColumnMapper(shards: Seq[ColumnSelect]) extends CassandraColumnMapper {
 
   override def select(range: ScanRange[_], tieredKeyRanges: Seq[ByteRange]): Seq[RowSelect] = {
     val clause = range.asInstanceOf[ScanRange[Z3IndexKey]] match {
-      case BoundedRange(lo, hi)  => Seq(ColumnSelect(Period, lo.bin, hi.bin), ColumnSelect(ZValue, lo.z, hi.z))
-      case UnboundedRange(_)     => Seq.empty
-      case SingleRowRange(row)   => Seq(ColumnSelect(Period, row.bin, row.bin), ColumnSelect(ZValue, row.z, row.z))
-      case LowerBoundedRange(lo) => Seq(ColumnSelect(Period, lo.bin, null), ColumnSelect(ZValue, lo.z, null))
-      case UpperBoundedRange(hi) => Seq(ColumnSelect(Period, null, hi.bin), ColumnSelect(ZValue, null, hi.z))
-      case PrefixRange(_)        => Seq.empty // not supported
+      case BoundedRange(lo, hi) =>
+        val binSelect = ColumnSelect(Period, lo.bin, hi.bin, startInclusive = true, endInclusive = true)
+        val zSelect = ColumnSelect(ZValue, lo.z, hi.z, startInclusive = true, endInclusive = true)
+        Seq(binSelect, zSelect)
+
+      case UnboundedRange(_) =>
+        Seq.empty
+
+      case SingleRowRange(row) =>
+        val binSelect = ColumnSelect(Period, row.bin, row.bin, startInclusive = true, endInclusive = true)
+        val zSelect = ColumnSelect(ZValue, row.z, row.z, startInclusive = true, endInclusive = true)
+        Seq(binSelect, zSelect)
+
+      case LowerBoundedRange(lo) =>
+        val binSelect = ColumnSelect(Period, lo.bin, null, startInclusive = true, endInclusive = false)
+        val zSelect = ColumnSelect(ZValue, lo.z, null, startInclusive = true, endInclusive = false)
+        Seq(binSelect, zSelect)
+
+      case UpperBoundedRange(hi) =>
+        val binSelect = ColumnSelect(Period, null, hi.bin, startInclusive = false, endInclusive = true)
+        val zSelect = ColumnSelect(ZValue, null, hi.z, startInclusive = false, endInclusive = true)
+        Seq(binSelect, zSelect)
+
+      case PrefixRange(_) =>
+        Seq.empty // not supported
+
       case _ => throw new IllegalArgumentException(s"Unexpected range type $range")
     }
     if (clause.isEmpty) { Seq(RowSelect(clause)) } else {

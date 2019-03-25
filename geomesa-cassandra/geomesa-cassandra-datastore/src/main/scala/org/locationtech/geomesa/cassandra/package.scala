@@ -15,7 +15,7 @@ package object cassandra {
 
   case class NamedColumn(name: String, i: Int, cType: String, jType: Class[_], partition: Boolean = false)
 
-  case class ColumnSelect(column: NamedColumn, start: Any, end: Any)
+  case class ColumnSelect(column: NamedColumn, start: Any, end: Any, startInclusive: Boolean, endInclusive: Boolean)
   case class RowSelect(clauses: Seq[ColumnSelect])
 
   object CassandraSystemProperties {
