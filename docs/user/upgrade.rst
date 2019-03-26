@@ -111,6 +111,16 @@ In order to update a schema, or if mutability is desired for some other reason, 
 ``org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.mutable()`` to create a mutable copy. Java users
 can call ``org.locationtech.geomesa.utils.interop.SimpleFeatureTypes.mutable()`` instead.
 
+FileSystem Storage API Changes
+------------------------------
+
+The FileSystem Storage API is still considered beta-level software, and has been updated in this release. The
+DataStore API has not changed, however the internal class interfaces have changed in this release, potentially
+requiring changes in user code.
+
+In addition, the format used to store metadata files has been updated, so older versions of GeoMesa will not be
+able to read metadata created with this version.
+
 Deprecated Modules
 ------------------
 
