@@ -15,6 +15,7 @@
     <modules>
         <module>geomesa-convert-all</module>
         <module>geomesa-convert-avro</module>
+        <module>geomesa-convert-avro-schema-registry</module>
         <module>geomesa-convert-common</module>
         <module>geomesa-convert-fixedwidth</module>
         <module>geomesa-convert-jdbc</module>
