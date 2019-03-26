@@ -24,7 +24,7 @@ the providers outlined in :ref:`spatial_rdd_providers`.
     pip3 install geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-$VERSION.tar.gz
     cp  geomesa-accumulo/geomesa-accumulo-spark-runtime/target/geomesa-accumulo-spark-runtime_2.11-$VERSION.jar /path/to/
 
-Using Geomesa PySpark
+Using GeoMesa PySpark
 ^^^^^^^^^^^^^^^^^^^^^
 
 You may then access Spark using a Yarn master by default. Importantly, because of the way the ``geomesa_pyspark``
@@ -82,6 +82,14 @@ data frame.
     from tbl
     where st_contains(st_makeBBOX(-72.0, 40.0, -71.0, 41.0), geom)
     """).show()
+
+GeoMesa PySpark can also be used in the absence of a GeoMesa data store.  Registering user-defined types and functions
+can be done manually by invoking ``geomesa_pyspark.init_sql()`` on the Spark session object:
+
+.. code-block:: python
+
+    geomesa_pyspark.init_sql(spark)
+
 
 You can terminate the Spark job on YARN using ``spark.stop()``.
 
