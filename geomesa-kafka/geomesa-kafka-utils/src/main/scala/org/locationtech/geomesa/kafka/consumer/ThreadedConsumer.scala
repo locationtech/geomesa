@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.kafka.consumer
 
 import java.io.Closeable
+import java.time.Duration
 import java.util.concurrent.{ExecutorService, Executors, TimeUnit}
 
 import com.typesafe.scalalogging.LazyLogging
@@ -18,17 +19,17 @@ import org.apache.kafka.common.errors.{InterruptException, WakeupException}
 
 import scala.util.control.NonFatal
 
-trait ThreadedConsumer extends Closeable with LazyLogging {
+abstract class ThreadedConsumer(
+    consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
+    frequency: Duration,
+    closeConsumers: Boolean = true
+  ) extends Closeable with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  protected val consumers: Seq[Consumer[Array[Byte], Array[Byte]]]
-  protected val topic: String
-  protected val frequency: Long
-
-  protected def closeConsumers: Boolean = true
-
   protected def consume(record: ConsumerRecord[Array[Byte], Array[Byte]]): Unit
+
+  private lazy val topics = consumers.flatMap(_.subscription().asScala).distinct
 
   private val executor: ExecutorService = Executors.newFixedThreadPool(consumers.length)
 
@@ -53,7 +54,7 @@ trait ThreadedConsumer extends Closeable with LazyLogging {
       executor.execute(new ConsumerRunnable(c, frequency, String.format(format, Int.box(i))))
       i += 1
     }
-    logger.debug(s"Started $i consumer(s) on topic $topic")
+    logger.debug(s"Started $i consumer(s) on topic ${topics.mkString(", ")}")
   }
 
   override def close(): Unit = {
@@ -62,7 +63,8 @@ trait ThreadedConsumer extends Closeable with LazyLogging {
     executor.awaitTermination(Long.MaxValue, TimeUnit.SECONDS)
   }
 
-  class ConsumerRunnable(consumer: Consumer[Array[Byte], Array[Byte]], frequency: Long, id: String) extends Runnable {
+  class ConsumerRunnable(consumer: Consumer[Array[Byte], Array[Byte]], frequency: Duration, id: String)
+      extends Runnable {
 
     private var errorCount = 0
 
@@ -89,10 +91,10 @@ trait ThreadedConsumer extends Closeable with LazyLogging {
             case NonFatal(e) =>
               if (errorCount < 300) {
                 errorCount += 1
-                logger.warn(s"Consumer [$id] error receiving message from topic $topic:", e)
+                logger.warn(s"Consumer [$id] error receiving message from topic ${topics.mkString(", ")}:", e)
                 Thread.sleep(1000)
               } else {
-                logger.error(s"Consumer [$id] shutting down due to too many errors from topic $topic:", e)
+                logger.error(s"Consumer [$id] shutting down due to too many errors from topic ${topics.mkString(", ")}:", e)
                 throw e
               }
           }
