@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.lambda.stream.kafka
 
+import java.time.Duration
+
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
@@ -26,11 +28,12 @@ import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
   * @param serializer feature serializer
   * @param cache shared state
   */
-class KafkaCacheLoader(override protected val consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
-                       override protected val topic: String,
-                       override protected val frequency: Long,
-                       serializer: KryoFeatureSerializer,
-                       cache: WritableFeatureCache) extends ThreadedConsumer {
+class KafkaCacheLoader(
+    consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
+    topic: String,
+    frequency: Long,
+    serializer: KryoFeatureSerializer,
+    cache: WritableFeatureCache) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency)) {
 
   startConsumers()
 

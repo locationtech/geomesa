@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.kafka.data
 
 import java.io.Closeable
+import java.time.Duration
 import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Executors}
@@ -100,13 +101,13 @@ object KafkaCacheLoader {
   class KafkaCacheLoaderImpl(
       sft: SimpleFeatureType,
       override val cache: KafkaFeatureCache,
-      override protected val consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
-      override protected val topic: String,
-      override protected val frequency: Long,
+      consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
+      topic: String,
+      frequency: Long,
       serializer: GeoMessageSerializer,
       doInitialLoad: Boolean,
       initialLoadConfig: Option[EventTimeConfig]
-    ) extends ThreadedConsumer with KafkaCacheLoader {
+    ) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency)) with KafkaCacheLoader {
 
     try { classOf[ConsumerRecord[Any, Any]].getMethod("timestamp") } catch {
       case _: NoSuchMethodException => logger.warn("This version of Kafka doesn't support timestamps, using system time")
@@ -157,13 +158,15 @@ object KafkaCacheLoader {
     * @param serializer message serializer
     * @param toLoad main cache loader, used for callback when bulk loading is done
     */
-  private class InitialLoader(sft: SimpleFeatureType,
-                              override protected val consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
-                              override protected val topic: String,
-                              override protected val frequency: Long,
-                              serializer: GeoMessageSerializer,
-                              eventTime: Option[EventTimeConfig],
-                              toLoad: KafkaCacheLoaderImpl) extends ThreadedConsumer with Runnable {
+  private class InitialLoader(
+      sft: SimpleFeatureType,
+      consumers: Seq[Consumer[Array[Byte], Array[Byte]]],
+      topic: String,
+      frequency: Long,
+      serializer: GeoMessageSerializer,
+      eventTime: Option[EventTimeConfig],
+      toLoad: KafkaCacheLoaderImpl
+  ) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency), false) with Runnable {
 
     private val cache = KafkaFeatureCache.nonIndexing(sft, eventTime)
 
@@ -171,8 +174,6 @@ object KafkaCacheLoader {
     private val offsets = new ConcurrentHashMap[Int, Long]()
     private var latch: CountDownLatch = _
     private val done = new AtomicBoolean(false)
-
-    override protected def closeConsumers: Boolean = false
 
     override protected def consume(record: ConsumerRecord[Array[Byte], Array[Byte]]): Unit = {
       if (done.get) { toLoad.consume(record) } else {
