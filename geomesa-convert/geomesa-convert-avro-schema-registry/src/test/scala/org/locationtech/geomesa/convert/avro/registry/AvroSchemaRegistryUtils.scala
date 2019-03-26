@@ -11,8 +11,8 @@ package org.locationtech.geomesa.convert.avro.registry
 import java.io.ByteArrayOutputStream
 
 import org.apache.avro.Schema.Parser
-import org.apache.avro.generic.{GenericDatumReader, GenericDatumWriter, GenericRecord, GenericRecordBuilder}
-import org.apache.avro.io.{DecoderFactory, EncoderFactory}
+import org.apache.avro.generic.{GenericDatumWriter, GenericRecord, GenericRecordBuilder}
+import org.apache.avro.io.EncoderFactory
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -84,5 +84,4 @@ trait AvroSchemaRegistryUtils {
 
   baos.close()
   val bytes = baos.toByteArray
-
 }

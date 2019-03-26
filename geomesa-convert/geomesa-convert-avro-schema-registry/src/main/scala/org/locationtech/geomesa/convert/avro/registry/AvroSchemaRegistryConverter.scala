@@ -13,16 +13,12 @@ import java.nio.ByteBuffer
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.config.Config
-import org.apache.avro.Schema
-import org.apache.avro.Schema.Parser
+import com.typesafe.scalalogging.LazyLogging
+import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient
+import io.confluent.kafka.serializers.KafkaAvroDeserializer
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.apache.avro.io.DecoderFactory
-import org.apache.commons.httpclient.HttpClient
-import org.apache.commons.httpclient.methods.GetMethod
-import org.json4s.JObject
-import org.json4s.JsonAST.JString
-import org.json4s.native.JsonMethods.parse
-import org.locationtech.geomesa.convert.avro.registry.AvroSchemaRegistryConverter.{GenericRecordSchemaRegistryIterator, SchemaRegistryReader, _}
+import org.locationtech.geomesa.convert.avro.registry.AvroSchemaRegistryConverter.{AvroSchemaRegistryConfig, GenericRecordSchemaRegistryIterator}
 import org.locationtech.geomesa.convert.{Counter, EvaluationContext}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression
@@ -33,18 +29,24 @@ import org.opengis.feature.simple.SimpleFeatureType
 class AvroSchemaRegistryConverter(sft: SimpleFeatureType, config: AvroSchemaRegistryConfig, fields: Seq[BasicField], options: BasicOptions)
   extends AbstractConverter[GenericRecord, AvroSchemaRegistryConfig, BasicField, BasicOptions](sft, config, fields, options) {
 
+  private val schemaRegistryClient = new CachedSchemaRegistryClient(config.schemaRegistry, 100)
+
+  private val kafkaAvroDeserializer = new ThreadLocal[KafkaAvroDeserializer]() {
+    override def initialValue(): KafkaAvroDeserializer = new KafkaAvroDeserializer(schemaRegistryClient)
+  }
+
   // Create schema registry reader from URL string and create Avro reader cache
   private val schemaRegistryConfig: LoadingCache[Integer, GenericDatumReader[GenericRecord]] =
-    getReaderCache(new SchemaRegistryReader(config.schemaRegistry))
+    getReaderCache(kafkaAvroDeserializer)
 
   // Create Avro reader cache to map schema ID to GenericDatumReader
-  def getReaderCache(schemaRegistry: SchemaRegistryReader): LoadingCache[Integer, GenericDatumReader[GenericRecord]] = {
+  def getReaderCache(deserializer: ThreadLocal[KafkaAvroDeserializer]): LoadingCache[Integer, GenericDatumReader[GenericRecord]] = {
     Caffeine
       .newBuilder()
       .build(
         new CacheLoader[Integer, GenericDatumReader[GenericRecord]] {
           override def load(id: Integer): GenericDatumReader[GenericRecord] = {
-            schemaRegistry.getAvroReaderFromId(id)
+            new GenericDatumReader[GenericRecord](deserializer.get.getById(id))
           }
         }
       )
@@ -86,7 +88,7 @@ object AvroSchemaRegistryConverter {
   class GenericRecordSchemaRegistryIterator private [AvroSchemaRegistryConverter] (is: InputStream,
                                                                      readerCache: LoadingCache[Integer, GenericDatumReader[GenericRecord]],
                                                                      counter: Counter)
-    extends CloseableIterator[GenericRecord] {
+    extends CloseableIterator[GenericRecord] with LazyLogging{
 
     private val decoder = DecoderFactory.get.binaryDecoder(is, null)
     private var record: GenericRecord = _
@@ -108,28 +110,5 @@ object AvroSchemaRegistryConverter {
     }
 
     override def close(): Unit = is.close()
-  }
-
-  class SchemaRegistryReader(baseURL: String) {
-
-    private val httpClient = new HttpClient
-
-    private val SCHEMA_PATH = "/schemas/ids/"
-
-
-    def getAvroReaderFromId(id: Int): GenericDatumReader[GenericRecord] = {
-      val schema = getSchemaFromID(id)
-      new GenericDatumReader[GenericRecord](schema)
-    }
-
-    private def getSchemaFromID(id: Int): Schema = {
-      val url = baseURL + SCHEMA_PATH + id
-      val method = new GetMethod(url)
-      val request = httpClient.executeMethod(method)
-      val response = method.getResponseBody
-
-      val JString(schemaString) = parse(new String(response)).asInstanceOf[JObject].obj.head._2
-      new Parser().parse(schemaString)
-    }
   }
 }

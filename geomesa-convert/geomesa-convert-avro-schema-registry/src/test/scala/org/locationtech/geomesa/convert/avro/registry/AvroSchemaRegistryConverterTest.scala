@@ -8,19 +8,13 @@
 
 package org.locationtech.geomesa.convert.avro.registry
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.io.ByteArrayInputStream
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
-import com.google.common.hash.Hashing
-import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.avro.file.DataFileWriter
-import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.avro.AvroDataFileWriter
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.mortbay.jetty.{Handler, Request, Server}
@@ -44,44 +38,7 @@ class AvroSchemaRegistryConverterTest extends Specification with AvroSchemaRegis
         request.asInstanceOf[Request].setHandled(true)
         response.getWriter.write(
           """
-            |{
-            |"schema":
-            |"{
-            |  \"namespace\": \"org.locationtech\",
-            |  \"type\": \"record\",
-            |  \"name\": \"CompositeMessage\",
-            |  \"fields\": [
-            |    { \"name\": \"content\",
-            |      \"type\": [
-            |         {
-            |           \"name\": \"TObj\",
-            |           \"type\": \"record\",
-            |           \"fields\": [
-            |             {
-            |               \"name\": \"kvmap\",
-            |               \"type\": {
-            |                  \"type\": \"array\",
-            |                  \"items\": {
-            |                    \"name\": \"kvpair\",
-            |                    \"type\": \"record\",
-            |                    \"fields\": [
-            |                      { \"name\": \"k\", \"type\": \"string\" },
-            |                      { \"name\": \"v\", \"type\": [\"string\", \"double\", \"int\", \"null\"] }
-            |                    ]
-            |                  }
-            |               }
-            |             }
-            |           ]
-            |         },
-            |         {
-            |            \"name\": \"OtherObject\",
-            |            \"type\": \"record\",
-            |            \"fields\": [{ \"name\": \"id\", \"type\": \"int\"}]
-            |         }
-            |      ]
-            |   }
-            |  ]
-            |}"}
+            |{"schema":"{\"namespace\": \"org.locationtech\",\"type\": \"record\",\"name\": \"CompositeMessage\",\"fields\": [{ \"name\": \"content\",\"type\": [{\"name\": \"TObj\",\"type\": \"record\",\"fields\": [{\"name\": \"kvmap\",\"type\": {\"type\": \"array\",\"items\": {\"name\": \"kvpair\",\"type\": \"record\",\"fields\": [{ \"name\": \"k\", \"type\": \"string\" },{ \"name\": \"v\", \"type\": [\"string\", \"double\", \"int\", \"null\"] }]}}}]},{\"name\": \"OtherObject\",\"type\": \"record\",\"fields\": [{ \"name\": \"id\", \"type\": \"int\"}]}]}]}"}
           """.stripMargin
         )
       }
@@ -94,46 +51,7 @@ class AvroSchemaRegistryConverterTest extends Specification with AvroSchemaRegis
         request.asInstanceOf[Request].setHandled(true)
         response.getWriter.write(
           """
-            |{
-            |"schema":
-            |"{
-            |  \"namespace\": \"org.locationtech2\",
-            |  \"type\": \"record\",
-            |  \"name\": \"CompositeMessage\",
-            |  \"fields\": [
-            |    { \"name\": \"content\",
-            |      \"type\": [
-            |         {
-            |           \"name\": \"TObj\",
-            |           \"type\": \"record\",
-            |           \"fields\": [
-            |             {
-            |               \"name\": \"kvmap\",
-            |               \"type\": {
-            |                  \"type\": \"array\",
-            |                  \"items\": {
-            |                    \"name\": \"kvpair\",
-            |                    \"type\": \"record\",
-            |                    \"fields\": [
-            |                      { \"name\": \"k\", \"type\": \"string\" },
-            |                      { \"name\": \"v\", \"type\": [\"string\", \"double\", \"int\", \"null\"] },
-            |                      { \"name\": \"extra\", \"type\": [\"null\", \"string\"], \"default\": null }
-            |
-            |                    ]
-            |                  }
-            |               }
-            |             }
-            |           ]
-            |         },
-            |         {
-            |            \"name\": \"OtherObject\",
-            |            \"type\": \"record\",
-            |            \"fields\": [{ \"name\": \"id\", \"type\": \"int\"}]
-            |         }
-            |      ]
-            |    }
-            |  ]
-            |}"}
+            |{"schema":"{\"namespace\": \"org.locationtech2\",\"type\": \"record\",\"name\": \"CompositeMessage\",\"fields\": [{ \"name\": \"content\",\"type\": [{\"name\": \"TObj\",\"type\": \"record\",\"fields\": [{\"name\": \"kvmap\",\"type\": {\"type\": \"array\",\"items\": {\"name\": \"kvpair\",\"type\": \"record\",\"fields\": [{ \"name\": \"k\", \"type\": \"string\" },{ \"name\": \"v\", \"type\": [\"string\", \"double\", \"int\", \"null\"] },{ \"name\": \"extra\", \"type\": [\"null\", \"string\"], \"default\": null }]}}}]},{\"name\": \"OtherObject\",\"type\": \"record\",\"fields\": [{ \"name\": \"id\", \"type\": \"int\"}]}]}]}"}
           """.stripMargin
         )
       }
