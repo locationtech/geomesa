@@ -54,8 +54,11 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
   private val tableOps = ds.connector.tableOperations()
 
   // noinspection ScalaDeprecation
-  override def createTable(index: GeoMesaFeatureIndex[_, _], table: String, splits: => Seq[Array[Byte]]): Unit = {
-
+  override def createTable(
+      index: GeoMesaFeatureIndex[_, _],
+      partition: Option[String],
+      splits: => Seq[Array[Byte]]): Unit = {
+    val table = index.configureTableName(partition) // writes table name to metadata
     // create table if it doesn't exist
     val created = if (ds.connector.isInstanceOf[org.apache.accumulo.core.client.mock.MockConnector]) {
       // we need to synchronize creation of tables in mock accumulo as it's not thread safe

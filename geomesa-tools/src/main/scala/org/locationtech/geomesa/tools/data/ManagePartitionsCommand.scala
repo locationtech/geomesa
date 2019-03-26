@@ -73,7 +73,7 @@ object ManagePartitionsCommand {
     override protected def modify(ds: DS, sft: SimpleFeatureType, partition: TablePartition, p: String): Unit = {
       Command.user.info(s"Adding partition '$p'")
       ds.manager.indices(sft, mode = IndexMode.Write).par.foreach { index =>
-        ds.adapter.createTable(index, index.configureTableName(Some(p)), index.getSplits(Some(p)))
+        ds.adapter.createTable(index, Some(p), index.getSplits(Some(p)))
       }
     }
   }

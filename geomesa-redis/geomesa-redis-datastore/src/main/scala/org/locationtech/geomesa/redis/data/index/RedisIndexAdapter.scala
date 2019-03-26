@@ -38,7 +38,10 @@ import scala.util.control.NonFatal
 class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore] with StrictLogging {
 
   // each 'table' is a sorted set - they are created automatically when you insert values
-  override def createTable(index: GeoMesaFeatureIndex[_, _], table: String, splits: => Seq[Array[Byte]]): Unit = {}
+  override def createTable(
+      index: GeoMesaFeatureIndex[_, _],
+      partition: Option[String],
+      splits: => Seq[Array[Byte]]): Unit = index.configureTableName(partition) // writes table name to metadata
 
   override def deleteTables(tables: Seq[String]): Unit =
     WithClose(ds.connection.getResource)(_.del(tables: _*))

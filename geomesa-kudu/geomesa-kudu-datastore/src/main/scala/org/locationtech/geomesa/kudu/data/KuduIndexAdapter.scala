@@ -34,7 +34,11 @@ class KuduIndexAdapter(ds: KuduDataStore) extends IndexAdapter[KuduDataStore] {
 
   import scala.collection.JavaConverters._
 
-  override def createTable(index: GeoMesaFeatureIndex[_, _], table: String, splits: => Seq[Array[Byte]]): Unit = {
+  override def createTable(
+      index: GeoMesaFeatureIndex[_, _],
+      partition: Option[String],
+      splits: => Seq[Array[Byte]]): Unit = {
+    val table = index.configureTableName(partition) // writes table name to metadata
     if (!ds.client.tableExists(table)) {
       val mapper = KuduColumnMapper(index)
 

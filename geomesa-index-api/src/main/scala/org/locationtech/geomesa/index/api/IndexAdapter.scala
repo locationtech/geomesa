@@ -29,10 +29,10 @@ trait IndexAdapter[DS <: GeoMesaDataStore[DS]] {
     * Create a table
     *
     * @param index index
-    * @param table table name
+    * @param partition table partition
     * @param splits splits
     */
-  def createTable(index: GeoMesaFeatureIndex[_, _], table: String, splits: => Seq[Array[Byte]]): Unit
+  def createTable(index: GeoMesaFeatureIndex[_, _], partition: Option[String], splits: => Seq[Array[Byte]]): Unit
 
   /**
     * Delete a table

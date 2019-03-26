@@ -300,6 +300,15 @@ class CassandraDataStoreTest extends Specification {
 
       ds.getSchema(typeName) must beNull
     }
+
+    "support long attribute names" in {
+      val long = "testsftverylongnaaaaaaaaaaammmmmmmeeeeeeeee"
+      val spec = s"$long:String:index=true,dtg:Date,*geom:Point:srid=4326"
+      foreach(Seq("testnames", long)) { typeName =>
+        ds.getSchema(typeName) must beNull
+        ds.createSchema(SimpleFeatureTypes.createType(typeName, spec)) must not(throwAn[Exception])
+      }
+    }
   }
 
   def testQuery(ds: CassandraDataStore,
