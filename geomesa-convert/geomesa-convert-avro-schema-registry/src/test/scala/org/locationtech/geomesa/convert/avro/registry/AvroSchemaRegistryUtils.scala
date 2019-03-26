@@ -85,8 +85,4 @@ trait AvroSchemaRegistryUtils {
   baos.close()
   val bytes = baos.toByteArray
 
-//  val datumReader = new GenericDatumReader[GenericRecord](schema)
-//  val decoder = DecoderFactory.get().binaryDecoder(bytes, null)
-//  val gr = datumReader.read(null, decoder)
-
 }
