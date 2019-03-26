@@ -58,8 +58,13 @@ object TestGeoMesaDataStore {
 
     private val tables = scala.collection.mutable.Map.empty[String, scala.collection.mutable.SortedSet[SingleRowKeyValue[_]]]
 
-    override def createTable(index: GeoMesaFeatureIndex[_, _], table: String, splits: => Seq[Array[Byte]]): Unit =
+    override def createTable(
+        index: GeoMesaFeatureIndex[_, _],
+        partition: Option[String],
+        splits: => Seq[Array[Byte]]): Unit = {
+      val table = index.configureTableName(partition) // writes table name to metadata
       tables.put(table, scala.collection.mutable.SortedSet.empty[SingleRowKeyValue[_]](ordering))
+    }
 
     override def deleteTables(tables: Seq[String]): Unit = tables.foreach(this.tables.remove)
 

@@ -186,9 +186,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
       if (writer == null) {
         // reconfigure the partition each time - this should be idempotent, and block
         // until it is fully created (which may happen in some other thread)
-        indices.par.foreach { index =>
-          ds.adapter.createTable(index, index.configureTableName(Some(p)), index.getSplits(Some(p)))
-        }
+        indices.par.foreach(index => ds.adapter.createTable(index, Some(p), index.getSplits(Some(p))))
         writer = ds.adapter.createWriter(sft, indices, Some(p))
         cache.put(p, writer)
       }

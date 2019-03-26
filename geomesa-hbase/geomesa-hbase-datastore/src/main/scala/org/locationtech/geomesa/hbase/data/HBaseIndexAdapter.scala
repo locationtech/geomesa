@@ -56,7 +56,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
   import scala.collection.JavaConverters._
 
-  override def createTable(index: GeoMesaFeatureIndex[_, _], table: String, splits: => Seq[Array[Byte]]): Unit = {
+  override def createTable(
+      index: GeoMesaFeatureIndex[_, _],
+      partition: Option[String],
+      splits: => Seq[Array[Byte]]): Unit = {
+    val table = index.configureTableName(partition) // writes table name to metadata
     val name = TableName.valueOf(table)
 
     WithClose(ds.connection.getAdmin) { admin =>
