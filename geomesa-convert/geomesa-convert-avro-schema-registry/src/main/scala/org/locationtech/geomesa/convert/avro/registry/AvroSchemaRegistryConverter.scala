@@ -34,9 +34,8 @@ class AvroSchemaRegistryConverter(sft: SimpleFeatureType, config: AvroSchemaRegi
   extends AbstractConverter[GenericRecord, AvroSchemaRegistryConfig, BasicField, BasicOptions](sft, config, fields, options) {
 
   // Create schema registry reader from URL string and create Avro reader cache
-  private val schemaRegistryConfig: Option[LoadingCache[Integer, GenericDatumReader[GenericRecord]]] = config.schemaRegistry match {
-    case Some(s) => Some(getReaderCache(new SchemaRegistryReader(s)))
-  }
+  private val schemaRegistryConfig: LoadingCache[Integer, GenericDatumReader[GenericRecord]] =
+    getReaderCache(new SchemaRegistryReader(config.schemaRegistry))
 
   // Create Avro reader cache to map schema ID to GenericDatumReader
   def getReaderCache(schemaRegistry: SchemaRegistryReader): LoadingCache[Integer, GenericDatumReader[GenericRecord]] = {
@@ -52,9 +51,7 @@ class AvroSchemaRegistryConverter(sft: SimpleFeatureType, config: AvroSchemaRegi
   }
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[GenericRecord] = {
-    schemaRegistryConfig match {
-      case Some(s)                  => new GenericRecordSchemaRegistryIterator(is, s, ec.counter)
-    }
+    new GenericRecordSchemaRegistryIterator(is, schemaRegistryConfig, ec.counter)
   }
 
   override protected def values(parsed: CloseableIterator[GenericRecord],
@@ -70,7 +67,7 @@ object AvroSchemaRegistryConverter {
   private val SCHEMA_ID_LENGTH = 4
 
   case class AvroSchemaRegistryConfig(`type`: String,
-                        schemaRegistry: Option[String],
+                        schemaRegistry: String,
                         idField: Option[Expression],
                         caches: Map[String, Config],
                         userData: Map[String, Expression]) extends ConverterConfig

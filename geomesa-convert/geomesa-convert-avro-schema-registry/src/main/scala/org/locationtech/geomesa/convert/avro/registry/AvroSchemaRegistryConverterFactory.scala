@@ -39,7 +39,7 @@ object AvroSchemaRegistryConverterFactory {
                                         userData: Map[String, Expression]): Either[ConfigReaderFailures, AvroSchemaRegistryConfig] = {
 
       for {
-        schemaRegistry <- optional(cur, "schema-registry").right
+        schemaRegistry <- cur.atKey("schema-registry").right.flatMap(_.asString).right
       } yield {
         AvroSchemaRegistryConfig(`type`, schemaRegistry, idField, caches, userData)
       }
