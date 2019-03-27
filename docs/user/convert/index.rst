@@ -23,6 +23,7 @@ details.
     json
     xml
     avro
+    avro_schema_registry
     shp
     fixed_width
     jdbc
