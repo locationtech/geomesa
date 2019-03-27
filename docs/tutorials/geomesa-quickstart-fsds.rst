@@ -195,10 +195,10 @@ FSDS tools distribution directory:
 
 .. code:: bash
 
-    bin/geomesa-fs export         \
-        --output-format leaflet   \
+    bin/geomesa-fs export               \
+        --feature-name gdelt-quickstart \
+        --output-format leaflet         \
         --path /tmp/fsds/
-
 
 Where the connection parameters are the same you used above during the quickstart. To view the map simply
 open the url provided by the command in your web browser. If you click the menu in the upper right of the
