@@ -21,7 +21,10 @@ abstract class FastPropertyName(name: String) extends PropertyName with Expressi
 
   override def getNamespaceContext: NamespaceSupport = null
 
-  override def evaluate[T](obj: AnyRef, target: Class[T]): T = FastConverter.convert(evaluate(obj), target)
+  override def evaluate[T](obj: AnyRef, target: Class[T]): T = {
+    val result = evaluate(obj)
+    if (target == null) { result.asInstanceOf[T] } else { FastConverter.convert(result, target) }
+  }
 
   override def accept(visitor: ExpressionVisitor, extraData: AnyRef): AnyRef = visitor.visit(this, extraData)
 

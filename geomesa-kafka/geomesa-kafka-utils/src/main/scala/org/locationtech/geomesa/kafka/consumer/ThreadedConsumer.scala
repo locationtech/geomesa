@@ -16,6 +16,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord, OffsetAndMetadata, OffsetCommitCallback}
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.{InterruptException, WakeupException}
+import org.locationtech.geomesa.kafka.KafkaConsumerVersions
 
 import scala.util.control.NonFatal
 
@@ -73,7 +74,7 @@ abstract class ThreadedConsumer(
         var interrupted = false
         while (open && !interrupted) {
           try {
-            val result = consumer.poll(frequency)
+            val result = KafkaConsumerVersions.poll(consumer, frequency)
             lazy val topics = result.partitions.asScala.map(tp => s"[${tp.topic}:${tp.partition}]").mkString(",")
             logger.debug(s"Consumer [$id] poll received ${result.count()} records for $topics")
             if (!result.isEmpty) {

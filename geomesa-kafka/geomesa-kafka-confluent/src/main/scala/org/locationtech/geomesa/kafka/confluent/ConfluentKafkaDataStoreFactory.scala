@@ -13,11 +13,9 @@ import java.io.Serializable
 import java.net.URL
 
 import com.typesafe.scalalogging.LazyLogging
-import io.confluent.kafka.schemaregistry.client.CachedSchemaRegistryClient
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
-import org.locationtech.geomesa.kafka.confluent.ConfluentGeoMessageSerializer.ConfluentGeoMessageSerializerFactory
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
 import org.locationtech.geomesa.kafka.data.{KafkaDataStore, KafkaDataStoreFactory}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -31,9 +29,8 @@ class ConfluentKafkaDataStoreFactory extends DataStoreFactorySpi {
   override def createDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore = {
     val config = KafkaDataStoreFactory.buildConfig(params)
     val url = ConfluentKafkaDataStoreFactory.SchemaRegistryUrl.lookup(params)
-    val metadata = new ConfluentMetadata(new CachedSchemaRegistryClient(url.toExternalForm, 100))
-    val serialization = new ConfluentGeoMessageSerializerFactory(url)
-    new KafkaDataStore(config, metadata, serialization)
+    // keep confluent classes off the classpath for the data store factory so that it can be loaded via SPI
+    ConfluentKafkaDataStore(config, url)
   }
 
   override def getDisplayName: String = ConfluentKafkaDataStoreFactory.DisplayName
