@@ -15,7 +15,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <avro.version>1.8.2</avro.version>
+        <avro.version>${confluent.avro.version}</avro.version>
     </properties>
 
     <dependencies>
