@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.utils.text
 
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+
 import java.time._
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 import java.time.temporal.{ChronoField, TemporalAccessor, TemporalQuery}
@@ -119,7 +121,7 @@ object DateParsing {
   def format(value: ZonedDateTime, format: DateTimeFormatter = format): String = value.format(format)
 
   def formatDate(value: Date, format: DateTimeFormatter = format): String =
-    ZonedDateTime.ofInstant(value.toInstant, ZoneOffset.UTC).format(format)
+    ZonedDateTime.ofInstant(toInstant(value), ZoneOffset.UTC).format(format)
 
   def formatInstant(value: Instant, format: DateTimeFormatter = format): String =
     ZonedDateTime.ofInstant(value, ZoneOffset.UTC).format(format)

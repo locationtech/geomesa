@@ -19,6 +19,8 @@ import org.apache.commons.codec.binary.Hex
 import org.apache.commons.csv.{CSVFormat, CSVParser, CSVPrinter}
 import org.opengis.feature.simple.SimpleFeatureType
 
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+
 object StringSerialization extends LazyLogging {
 
   private val dateFormat: DateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
@@ -37,7 +39,7 @@ object StringSerialization extends LazyLogging {
     val printer = new CSVPrinter(sb, CSVFormat.DEFAULT)
     map.foreach { case (k, v) =>
       val strings = v.headOption match {
-        case Some(_: Date) => v.map(d => ZonedDateTime.ofInstant(d.asInstanceOf[Date].toInstant, ZoneOffset.UTC).format(dateFormat))
+        case Some(_: Date) => v.map(d => ZonedDateTime.ofInstant(toInstant(d.asInstanceOf[Date]), ZoneOffset.UTC).format(dateFormat))
         case _ => v
       }
       printer.print(k)
