@@ -17,7 +17,9 @@ import org.locationtech.jts.geom.Geometry
 import org.apache.commons.text.StringEscapeUtils
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.utils.geotools._
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConverters._
@@ -150,7 +152,7 @@ object Stat {
   }
   private val DateSerializer = new JsonSerializer[Date] {
     def serialize(d: Date, t: Type, jsc: JsonSerializationContext): JsonElement =
-      new JsonPrimitive(GeoToolsDateFormat.format(d.toInstant))
+      new JsonPrimitive(GeoToolsDateFormat.format(toInstant(d)))
   }
   private val DoubleSerializer = new JsonSerializer[jDouble]() {
     def serialize(double: jDouble, t: Type, jsc: JsonSerializationContext): JsonElement = double match {
@@ -342,7 +344,7 @@ object Stat {
     val toString: (Any) => String = if (classOf[Geometry].isAssignableFrom(clas)) {
       (v) => WKTUtils.write(v.asInstanceOf[Geometry])
     } else if (clas == classOf[Date]) {
-      (v) => GeoToolsDateFormat.format(v.asInstanceOf[Date].toInstant)
+      (v) => GeoToolsDateFormat.format(toInstant(v.asInstanceOf[Date]))
     } else {
       (v) => v.toString
     }

@@ -23,6 +23,7 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable.NumericRange
@@ -240,10 +241,10 @@ class InterpolatedGapFill(tubeFeatures: SimpleFeatureCollection,
         //If the distance between points is greater than the buffer distance, segment the line
         //So that no segment is larger than the buffer. This ensures that each segment has an
         //times and distance. Also ensure that features do not share a time value.
-        val timeDiffMillis = t2.toInstant.toEpochMilli - t1.toInstant.toEpochMilli
+        val timeDiffMillis = toInstant(t2).toEpochMilli - toInstant(t1).toEpochMilli
         val segCount = (dist / bufferDistance).toInt
         val segDuration = timeDiffMillis / segCount
-        val timeSteps = NumericRange.inclusive(t1.toInstant.toEpochMilli, t2.toInstant.toEpochMilli, segDuration)
+        val timeSteps = NumericRange.inclusive(toInstant(t1).toEpochMilli, toInstant(t2).toEpochMilli, segDuration)
         if (dist > bufferDistance && timeSteps.lengthCompare(1) > 0) {
           val heading = calc.getAzimuth
           var segStep = new Coordinate(p1.getX, p1.getY, 0)
