@@ -30,6 +30,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.MatchResult
 
@@ -98,7 +99,7 @@ class HBasePartitioningTest extends HBaseTest with LazyLogging {
           ds.metadata.insert(sft.getTypeName, index.tableNameKey(Some("foo")), table)
         }
         def zonedDateTime(sf: SimpleFeature) =
-          ZonedDateTime.ofInstant(sf.getAttribute("dtg").asInstanceOf[Date].toInstant, ZoneOffset.UTC)
+          ZonedDateTime.ofInstant(toInstant(sf.getAttribute("dtg").asInstanceOf[Date]), ZoneOffset.UTC)
         TablePartition(ds, sft).get.asInstanceOf[TimePartition].register("foo", zonedDateTime(toAdd(8)), zonedDateTime(toAdd(9)))
 
         // verify the table was adopted

@@ -20,6 +20,7 @@ import org.locationtech.geomesa.tools.utils.ParameterConverters.IntervalConverte
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.StringSerialization
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
@@ -92,7 +93,7 @@ object ManagePartitionsCommand {
       }
       val (start, end) = {
         val (s, e) = new IntervalConverter("value").convert(params.value)
-        (ZonedDateTime.ofInstant(s.toInstant, ZoneOffset.UTC), ZonedDateTime.ofInstant(e.toInstant, ZoneOffset.UTC))
+        (ZonedDateTime.ofInstant(toInstant(s), ZoneOffset.UTC), ZonedDateTime.ofInstant(toInstant(e), ZoneOffset.UTC))
       }
       val tables = params.tables.asScala
 
