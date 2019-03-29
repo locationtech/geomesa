@@ -12,12 +12,15 @@ import java.time.Instant
 import java.util.Date
 
 /**
-  * use for converting date .
+  * Date utilities
   */
 object DateUtils {
 
   /**
     * Converts this {@code Date} object to an {@code Instant}.
+    *
+    * Note: we can't use Date.toInstant, as java.sql.Date does not implement that method
+    *
     * @param date
     * @return
     */
