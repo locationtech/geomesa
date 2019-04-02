@@ -15,11 +15,10 @@ import java.util.Collections
 import com.typesafe.config.{Config, ConfigFactory, ConfigObject, ConfigValueFactory}
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
-import org.locationtech.geomesa.convert.SimpleFeatureValidator.{HasDtgValidator, HasGeoValidator}
-import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{ConverterConfigConvert, ConverterOptionsConvert, FieldConvert}
 import org.locationtech.geomesa.convert2.transforms.Expression
+import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator.{HasDtgValidatorFactory, HasGeoValidatorFactory}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -63,7 +62,6 @@ abstract class AbstractConverterFactory[S <: AbstractConverter[_, C, F, O]: Clas
       } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid configuration: ${e.getMessage}")
       }
-      opts.validators.init(sft)
       val args = Array(classOf[SimpleFeatureType], implicitly[ClassTag[C]].runtimeClass,
         classOf[Seq[F]], implicitly[ClassTag[O]].runtimeClass)
       val constructor = implicitly[ClassTag[S]].runtimeClass.getConstructor(args: _*)
@@ -131,7 +129,7 @@ object AbstractConverterFactory extends LazyLogging {
     if (conf.hasPath("options.validating")) {
       logger.warn(s"Using deprecated validation key 'validating'")
       val validators = if (conf.getBoolean("options.validating")) {
-        ConfigValueFactory.fromIterable(Seq(HasGeoValidator.name, HasDtgValidator.name).asJava)
+        ConfigValueFactory.fromIterable(Seq(HasGeoValidatorFactory.Name, HasDtgValidatorFactory.Name).asJava)
       } else {
         ConfigValueFactory.fromIterable(Collections.emptyList())
       }
@@ -189,7 +187,7 @@ object AbstractConverterFactory extends LazyLogging {
 
     override protected def decodeOptions(
         cur: ConfigObjectCursor,
-        validators: SimpleFeatureValidator,
+        validators: Seq[String],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, BasicOptions] = {
@@ -344,7 +342,7 @@ object AbstractConverterFactory extends LazyLogging {
 
     protected def decodeOptions(
         cur: ConfigObjectCursor,
-        validators: SimpleFeatureValidator,
+        validators: Seq[String],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, O]
@@ -368,14 +366,9 @@ object AbstractConverterFactory extends LazyLogging {
 
     private def optionsFrom(cur: ConfigObjectCursor): Either[ConfigReaderFailures, O] = {
 
-      def mergeValidators(cur: ConfigListCursor): Either[ConfigReaderFailures, SimpleFeatureValidator] = {
-        val strings = cur.list.foldLeft[Either[ConfigReaderFailures, Seq[String]]](Right(Seq.empty)) {
+      def mergeValidators(cur: ConfigListCursor): Either[ConfigReaderFailures, Seq[String]] = {
+        cur.list.foldLeft[Either[ConfigReaderFailures, Seq[String]]](Right(Seq.empty)) {
           case (seq, v) => for { s <- seq.right; string <- v.asString.right } yield { s :+ string }
-        }
-        strings.right.flatMap { s =>
-          try { Right(SimpleFeatureValidator(s)) } catch {
-            case NonFatal(e) => cur.failed(CannotConvert(cur.value.toString, "SimpleFeatureValidator", e.getMessage))
-          }
         }
       }
 
@@ -410,10 +403,7 @@ object AbstractConverterFactory extends LazyLogging {
       map.put("parse-mode", options.parseMode.toString)
       map.put("error-mode", options.errorMode.toString)
       map.put("encoding", options.encoding.name)
-      options.validators match {
-        // use unapplySeq to extract names
-        case SimpleFeatureValidator(names@_*) => map.put("validators", names.asJava)
-      }
+      map.put("validators", options.validators.asJava)
       encodeOptions(options, map)
       map
     }

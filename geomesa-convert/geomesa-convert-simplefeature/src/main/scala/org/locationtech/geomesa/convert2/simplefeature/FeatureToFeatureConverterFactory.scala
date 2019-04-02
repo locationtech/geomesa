@@ -46,7 +46,6 @@ class FeatureToFeatureConverterFactory extends SimpleFeatureConverterFactory wit
       } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid configuration: ${e.getMessage}")
       }
-      opts.validators.init(sft)
 
       val inputSft = SimpleFeatureTypeLoader.sftForName(config.inputSft).getOrElse {
         throw new IllegalArgumentException(s"Could not load input sft ${config.inputSft}")

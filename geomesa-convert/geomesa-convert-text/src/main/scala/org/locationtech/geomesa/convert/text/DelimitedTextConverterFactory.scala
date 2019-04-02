@@ -13,14 +13,15 @@ import java.nio.charset.{Charset, StandardCharsets}
 
 import com.typesafe.config.Config
 import org.apache.commons.io.IOUtils
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.SimpleFeatureConverters.SimpleFeatureConverterWrapper
-import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter._
 import org.locationtech.geomesa.convert.text.DelimitedTextConverterFactory.{DelimitedTextConfigConvert, DelimitedTextOptionsConvert}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, PrimitiveConvert}
 import org.locationtech.geomesa.convert2.transforms.Expression
+import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -101,7 +102,9 @@ class DelimitedTextConverterFactory
   override def canProcess(conf: Config): Boolean =
     conf.hasPath("type") && conf.getString("type").equalsIgnoreCase(typeToProcess)
 
-  override def buildConverter(sft: SimpleFeatureType, conf: Config): SimpleFeatureConverter[String] = {
+  override def buildConverter(
+      sft: SimpleFeatureType,
+      conf: Config): org.locationtech.geomesa.convert.SimpleFeatureConverter[String] = {
     val converter = apply(sft, conf).orNull.asInstanceOf[DelimitedTextConverter]
     if (converter == null) {
       throw new IllegalStateException("Could not create converter - did you call canProcess()?")
@@ -148,7 +151,7 @@ object DelimitedTextConverterFactory {
   object DelimitedTextOptionsConvert extends ConverterOptionsConvert[DelimitedTextOptions] {
     override protected def decodeOptions(
         cur: ConfigObjectCursor,
-        validators: SimpleFeatureValidator,
+        validators: Seq[String],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, DelimitedTextOptions] = {

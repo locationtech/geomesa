@@ -35,7 +35,7 @@ package object convert2 {
   }
 
   trait ConverterOptions {
-    def validators: SimpleFeatureValidator
+    def validators: Seq[String]
     def parseMode: ParseMode
     def errorMode: ErrorMode
     def encoding: Charset

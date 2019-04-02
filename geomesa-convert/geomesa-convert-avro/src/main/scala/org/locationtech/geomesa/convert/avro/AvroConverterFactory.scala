@@ -15,14 +15,14 @@ import com.typesafe.config.Config
 import org.apache.avro.Schema
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
+import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.avro.AvroConverter._
 import org.locationtech.geomesa.convert.avro.AvroConverterFactory.AvroConfigConvert
-import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
-import org.locationtech.geomesa.convert.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert}
 import org.locationtech.geomesa.convert2.TypeInference.{FunctionTransform, InferredType}
 import org.locationtech.geomesa.convert2.transforms.Expression
+import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.features.avro._
 import org.locationtech.geomesa.features.serialization.ObjectType
