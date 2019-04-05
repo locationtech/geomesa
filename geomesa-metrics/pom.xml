@@ -13,7 +13,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <metrics.version>3.1.2</metrics.version>
     </properties>
 
     <dependencyManagement>

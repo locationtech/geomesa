@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert2.validators
 
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
@@ -21,7 +22,7 @@ class SimpleFeatureValidatorTest extends Specification {
 
   "SimpleFeatureValidator" should {
     "allow custom SPI loading" in {
-      val custom = SimpleFeatureValidator(sft, Seq("custom"))
+      val custom = SimpleFeatureValidator(sft, Seq("custom"), ConverterMetrics.empty)
       custom must not(beNull)
       custom.validate(null) must beNull
       SimpleFeatureValidatorTest.errors.set("foo")
@@ -32,7 +33,7 @@ class SimpleFeatureValidatorTest extends Specification {
       }
     }
     "allow custom SPI loading with options" in {
-      val custom = SimpleFeatureValidator(sft, Seq("custom(foo,bar,baz)"))
+      val custom = SimpleFeatureValidator(sft, Seq("custom(foo,bar,baz)"), ConverterMetrics.empty)
       custom must not(beNull)
       custom.validate(null) mustEqual "foo,bar,baz"
       SimpleFeatureValidatorTest.errors.set("foo")
@@ -43,7 +44,7 @@ class SimpleFeatureValidatorTest extends Specification {
       }
     }
     "allow custom SPI loading of deprecated v1 validators" in {
-      val custom = SimpleFeatureValidator(sft, Seq("custom-v1"))
+      val custom = SimpleFeatureValidator(sft, Seq("custom-v1"), ConverterMetrics.empty)
       custom must not(beNull)
       custom.validate(null) must beNull
       SimpleFeatureValidatorTest.errors.set("foo")
@@ -54,7 +55,7 @@ class SimpleFeatureValidatorTest extends Specification {
       }
     }
     "allow custom SPI loading of deprecated v1 validators with options" in {
-      val custom = SimpleFeatureValidator(sft, Seq("custom-v1(foo,bar,baz)"))
+      val custom = SimpleFeatureValidator(sft, Seq("custom-v1(foo,bar,baz)"), ConverterMetrics.empty)
       custom must not(beNull)
       custom.validate(null) mustEqual "foo,bar,baz"
       SimpleFeatureValidatorTest.errors.set("foo")
@@ -79,8 +80,10 @@ object SimpleFeatureValidatorTest {
   // src/test/resources/META-INF/services/org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorFactory
   class CustomValidatorFactory extends SimpleFeatureValidatorFactory {
     override def name: String = "custom"
-    override def apply(sft: SimpleFeatureType, config: Option[String]): SimpleFeatureValidator =
-      new CustomValidator(config)
+    override def apply(
+        sft: SimpleFeatureType,
+        metrics: ConverterMetrics,
+        config: Option[String]): SimpleFeatureValidator = new CustomValidator(config)
   }
 
   // v1 deprecated validators for back compatibility tests

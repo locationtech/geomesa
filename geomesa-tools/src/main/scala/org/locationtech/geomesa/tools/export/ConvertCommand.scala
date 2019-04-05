@@ -75,10 +75,10 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
         WithClose(ConvertCommand.getExporter(params, output, query.getHints)) { exporter =>
           exporter.start(query.getHints.getReturnSft)
           val count = WithClose(ConvertCommand.convertFeatures(files, converter, ec, query))(exporter.export)
-          val records = ec.counter.getLineCount - (if (params.noHeader) { 0 } else { params.files.size })
+          val records = ec.line - (if (params.noHeader) { 0 } else { params.files.size })
           Command.user.info(s"Converted ${getPlural(records, "line")} "
-              + s"with ${getPlural(ec.counter.getSuccess, "success", "successes")} "
-              + s"and ${getPlural(ec.counter.getFailure, "failure")}")
+              + s"with ${getPlural(ec.success.getCount, "success", "successes")} "
+              + s"and ${getPlural(ec.failure.getCount, "failure")}")
           count
         }
       }

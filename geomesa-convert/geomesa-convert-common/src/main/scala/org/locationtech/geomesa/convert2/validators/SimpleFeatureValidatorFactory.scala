@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.convert2.validators
 
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait SimpleFeatureValidatorFactory {
@@ -23,6 +24,8 @@ trait SimpleFeatureValidatorFactory {
     * Create a validator for the given feature typ
     *
     * @param sft simple feature type
+    * @param metrics metrics registry for reporting validation
+    * @param config optional configuration string
     */
-  def apply(sft: SimpleFeatureType, config: Option[String]): SimpleFeatureValidator
+  def apply(sft: SimpleFeatureType, metrics: ConverterMetrics, config: Option[String]): SimpleFeatureValidator
 }

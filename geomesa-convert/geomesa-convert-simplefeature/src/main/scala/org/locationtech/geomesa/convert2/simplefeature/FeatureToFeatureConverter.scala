@@ -28,11 +28,13 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * @param fields converter fields
   * @param options converter options
   */
-class FeatureToFeatureConverter(sft: SimpleFeatureType,
-                                config: FeatureToFeatureConfig,
-                                fields: Seq[BasicField],
-                                options: BasicOptions)
-    extends AbstractConverter[SimpleFeature, FeatureToFeatureConfig, BasicField, BasicOptions](sft, config, fields, options)  {
+class FeatureToFeatureConverter(
+    sft: SimpleFeatureType,
+    config: FeatureToFeatureConfig,
+    fields: Seq[BasicField],
+    options: BasicOptions
+  ) extends AbstractConverter[SimpleFeature, FeatureToFeatureConfig, BasicField, BasicOptions](
+    sft, config, fields, options)  {
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] =
     throw new NotImplementedError()
@@ -41,7 +43,7 @@ class FeatureToFeatureConverter(sft: SimpleFeatureType,
                                 ec: EvaluationContext): CloseableIterator[Array[Any]] = {
     var array = Array.empty[Any]
     parsed.map { feature =>
-      ec.counter.incLineCount()
+      ec.line += 1
       if (feature.getAttributeCount + 1 != array.length) {
         array = Array.ofDim(feature.getAttributeCount + 1)
       }

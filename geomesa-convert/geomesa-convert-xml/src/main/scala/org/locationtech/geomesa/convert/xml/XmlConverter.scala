@@ -50,7 +50,7 @@ class XmlConverter(sft: SimpleFeatureType, config: XmlConfig, fields: Seq[XmlFie
   // TODO GEOMESA-1039 more efficient InputStream processing for multi mode
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[Element] =
-    XmlConverter.iterator(parser, is, options.encoding, options.lineMode, ec.counter)
+    XmlConverter.iterator(parser, is, options.encoding, options.lineMode, ec)
 
   override protected def values(
       parsed: CloseableIterator[Element],
@@ -109,14 +109,14 @@ object XmlConverter extends StrictLogging {
       is: InputStream,
       encoding: Charset,
       mode: LineMode,
-      counter: Counter): CloseableIterator[Element] = {
+      ec: EvaluationContext): CloseableIterator[Element] = {
 
     // detect and exclude the BOM if it exists
     val bis = new BOMInputStream(is)
     if (mode == LineMode.Single) {
       val lines = IOUtils.lineIterator(bis, encoding)
       val elements = lines.asScala.flatMap { line =>
-        counter.incLineCount()
+        ec.line += 1
         if (TextTools.isWhitespace(line)) { Iterator.empty } else {
           Iterator.single(parser.parse(new StringReader(line)))
         }
@@ -124,7 +124,7 @@ object XmlConverter extends StrictLogging {
       CloseableIterator(elements, lines.close())
     } else {
       val reader = new InputStreamReader(bis, encoding)
-      CloseableIterator.fill(1, reader.close()) { counter.incLineCount(); parser.parse(reader) }
+      CloseableIterator.fill(1, reader.close()) { ec.line += 1; parser.parse(reader) }
     }
   }
 
@@ -132,14 +132,16 @@ object XmlConverter extends StrictLogging {
   // they can also include xpath functions to manipulate the result
   // feature path can be any xpath that resolves to a node set (or a single node)
 
-  case class XmlConfig(`type`: String,
-                       xpathFactory: String,
-                       xmlNamespaces: Map[String, String],
-                       xsd: Option[String],
-                       featurePath: Option[String],
-                       idField: Option[Expression],
-                       caches: Map[String, Config],
-                       userData: Map[String, Expression]) extends ConverterConfig
+  case class XmlConfig(
+      `type`: String,
+      xpathFactory: String,
+      xmlNamespaces: Map[String, String],
+      xsd: Option[String],
+      featurePath: Option[String],
+      idField: Option[Expression],
+      caches: Map[String, Config],
+      userData: Map[String, Expression]
+    ) extends ConverterConfig
 
   sealed trait XmlField extends Field {
     def compile(xpath: XPath): Unit
@@ -165,6 +167,7 @@ object XmlConverter extends StrictLogging {
 
   case class XmlOptions(
       validators: Seq[String],
+      reporters: Map[String, Config],
       parseMode: ParseMode,
       errorMode: ErrorMode,
       lineMode: LineMode,

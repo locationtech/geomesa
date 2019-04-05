@@ -10,8 +10,10 @@ package org.locationtech.geomesa.convert
 
 import java.io.InputStream
 
+import com.codahale.metrics
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.Transformers.Predicate
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -80,8 +82,8 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(P
         toEval(0) = is.next()
         val i = predsWithIndex.find(evalPred).map(_._2).getOrElse(-1)
         val res = if (i == -1) {
-          ec.counter.incLineCount()
-          ec.counter.incFailure()
+          ec.line += 1
+          ec.failure.inc()
           Iterator.empty
         } else {
           indexedConverters(i).processInput(Iterator(toEval(0).asInstanceOf[I]), ec)
@@ -114,9 +116,11 @@ case class CompositeEvaluationContext(contexts: IndexedSeq[EvaluationContext]) e
   override def get(i: Int): Any = current.get(i)
   override def set(i: Int, v: Any): Unit = current.set(i, v)
   override def indexOf(n: String): Int = current.indexOf(n)
-  override def counter: Counter = current.counter
-
   override def clear(): Unit = contexts.foreach(_.clear())
-
-  override def getCache(k: String): EnrichmentCache = current.getCache(k)
+  override def cache: Map[String, EnrichmentCache] = current.cache
+  override def metrics: ConverterMetrics = current.metrics
+  override def success: com.codahale.metrics.Counter = current.success
+  override def failure: com.codahale.metrics.Counter = current.failure
+  // noinspection ScalaDeprecation
+  override def counter: Counter = current.counter
 }

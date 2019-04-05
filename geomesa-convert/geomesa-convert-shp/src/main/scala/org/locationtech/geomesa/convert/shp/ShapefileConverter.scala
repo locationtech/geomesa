@@ -13,7 +13,7 @@ import java.util.Collections
 
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
-import org.locationtech.geomesa.convert.{Counter, EnrichmentCache, EvaluationContext}
+import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
 import org.locationtech.geomesa.convert2.AbstractConverter
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -27,9 +27,18 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
 
   import org.locationtech.geomesa.convert.shp.ShapefileFunctionFactory.{InputSchemaKey, InputValuesKey}
 
-  override def createEvaluationContext(globalParams: Map[String, Any],
-                                       caches: Map[String, EnrichmentCache],
-                                       counter: Counter): EvaluationContext = {
+  override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext = {
+    // inject placeholders for shapefile attributes into the evaluation context
+    // used for accessing shapefile properties by name in ShapefileFunctionFactory
+    val shpParams = Map(InputSchemaKey -> Array.empty[String], InputValuesKey -> Array.empty[Any])
+    super.createEvaluationContext(globalParams ++ shpParams)
+  }
+
+  // noinspection ScalaDeprecation
+  override def createEvaluationContext(
+      globalParams: Map[String, Any],
+      caches: Map[String, EnrichmentCache],
+      counter: org.locationtech.geomesa.convert.Counter): EvaluationContext = {
     // inject placeholders for shapefile attributes into the evaluation context
     // used for accessing shapefile properties by name in ShapefileFunctionFactory
     val shpParams = Map(InputSchemaKey -> Array.empty[String], InputValuesKey -> Array.empty[Any])
@@ -67,7 +76,7 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
       logger.warn(s"Shapefile does not have CRS info")
     }
 
-    val reader = CloseableIterator(ds.getFeatureSource.getReader(q)).map { f => ec.counter.incLineCount(); f }
+    val reader = CloseableIterator(ds.getFeatureSource.getReader(q)).map { f => ec.line += 1; f }
 
     CloseableIterator(reader, { CloseWithLogging(reader); ds.dispose() })
   }

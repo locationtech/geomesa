@@ -20,6 +20,8 @@
         <module>geomesa-convert-fixedwidth</module>
         <module>geomesa-convert-jdbc</module>
         <module>geomesa-convert-json</module>
+        <module>geomesa-convert-metrics-ganglia</module>
+        <module>geomesa-convert-metrics-graphite</module>
         <module>geomesa-convert-osm</module>
         <module>geomesa-convert-redis-cache</module>
         <module>geomesa-convert-scripting</module>

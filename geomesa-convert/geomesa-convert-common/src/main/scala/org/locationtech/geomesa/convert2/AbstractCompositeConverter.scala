@@ -10,10 +10,12 @@ package org.locationtech.geomesa.convert2
 
 import java.io.InputStream
 
+import com.codahale.metrics.Counter
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.Modes.ErrorMode
-import org.locationtech.geomesa.convert.{Counter, EnrichmentCache, EvaluationContext}
+import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
 import org.locationtech.geomesa.convert2.AbstractCompositeConverter.CompositeEvaluationContext
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.transforms.Predicate
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -34,11 +36,15 @@ abstract class AbstractCompositeConverter[T](
 
   override def targetSft: SimpleFeatureType = sft
 
-  override def createEvaluationContext(globalParams: Map[String, Any],
+  override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
+    new CompositeEvaluationContext(converters.map(_.createEvaluationContext(globalParams)))
+
+  // noinspection ScalaDeprecation
+  override def createEvaluationContext(
+      globalParams: Map[String, Any],
       caches: Map[String, EnrichmentCache],
-      counter: Counter): EvaluationContext = {
-    val contexts = converters.map(_.createEvaluationContext(globalParams, caches, counter))
-    new CompositeEvaluationContext(contexts.toIndexedSeq)
+      counter: org.locationtech.geomesa.convert.Counter): EvaluationContext = {
+    new CompositeEvaluationContext(converters.map(_.createEvaluationContext(globalParams, caches, counter)))
   }
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
@@ -62,11 +68,11 @@ abstract class AbstractCompositeConverter[T](
         }
         i += 1
       }
-      ec.counter.incFailure()
+      ec.failure.inc()
       CloseableIterator.empty
     }
 
-    new ErrorHandlingIterator(parse(is, ec), errorMode, ec.counter).flatMap(eval)
+    new ErrorHandlingIterator(parse(is, ec), errorMode, ec.failure).flatMap(eval)
   }
 
   override def close(): Unit = converters.foreach(CloseWithLogging.apply)
@@ -83,8 +89,12 @@ object AbstractCompositeConverter {
     override def get(i: Int): Any = current.get(i)
     override def set(i: Int, v: Any): Unit = current.set(i, v)
     override def indexOf(n: String): Int = current.indexOf(n)
-    override def counter: Counter = current.counter
-    override def getCache(k: String): EnrichmentCache = current.getCache(k)
     override def clear(): Unit = contexts.foreach(_.clear())
+    override def cache: Map[String, EnrichmentCache] = current.cache
+    override def metrics: ConverterMetrics = current.metrics
+    override def success: Counter = current.success
+    override def failure: Counter = current.failure
+    // noinspection ScalaDeprecation
+    override def counter: org.locationtech.geomesa.convert.Counter = current.counter
   }
 }

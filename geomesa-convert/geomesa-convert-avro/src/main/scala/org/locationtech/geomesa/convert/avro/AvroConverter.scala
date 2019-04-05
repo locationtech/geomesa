@@ -17,8 +17,8 @@ import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericDatumWriter, GenericRecord}
 import org.apache.avro.io.{DecoderFactory, EncoderFactory}
 import org.codehaus.jackson.node.TextNode
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.avro.AvroConverter._
-import org.locationtech.geomesa.convert.{Counter, EvaluationContext}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.transforms.Expression.Column
@@ -44,10 +44,10 @@ class AvroConverter(sft: SimpleFeatureType, config: AvroConfig, fields: Seq[Basi
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[GenericRecord] = {
     schema match {
-      case Some(s) if requiresBytes => new GenericRecordBytesIterator(new CopyingInputStream(is), s, ec.counter)
-      case Some(s)                  => new GenericRecordIterator(is, s, ec.counter)
-      case None    if requiresBytes => new FileStreamBytesIterator(is, ec.counter)
-      case None                     => new FileStreamIterator(is, ec.counter)
+      case Some(s) if requiresBytes => new GenericRecordBytesIterator(new CopyingInputStream(is), s, ec)
+      case Some(s)                  => new GenericRecordIterator(is, s, ec)
+      case None    if requiresBytes => new FileStreamBytesIterator(is, ec)
+      case None                     => new FileStreamIterator(is, ec)
     }
   }
 
@@ -86,11 +86,13 @@ object AvroConverter {
     updated
   }
 
-  case class AvroConfig(`type`: String,
-                        schema: SchemaConfig,
-                        idField: Option[Expression],
-                        caches: Map[String, Config],
-                        userData: Map[String, Expression]) extends ConverterConfig
+  case class AvroConfig(
+      `type`: String,
+      schema: SchemaConfig,
+      idField: Option[Expression],
+      caches: Map[String, Config],
+      userData: Map[String, Expression]
+    ) extends ConverterConfig
 
   sealed trait SchemaConfig
 
@@ -105,9 +107,9 @@ object AvroConverter {
     *
     * @param is input stream
     * @param schema schema
-    * @param counter counter
+    * @param ec evaluation context
     */
-  class GenericRecordIterator private [AvroConverter] (is: InputStream, schema: Schema, counter: Counter)
+  class GenericRecordIterator private [AvroConverter] (is: InputStream, schema: Schema, ec: EvaluationContext)
       extends CloseableIterator[GenericRecord] {
 
     private val reader = new GenericDatumReader[GenericRecord](schema)
@@ -117,7 +119,7 @@ object AvroConverter {
     override def hasNext: Boolean = !decoder.isEnd
 
     override def next(): GenericRecord = {
-      counter.incLineCount()
+      ec.line += 1
       record = reader.read(record, decoder)
       record
     }
@@ -131,9 +133,9 @@ object AvroConverter {
     *
     * @param is input stream
     * @param schema schema
-    * @param counter counter
+    * @param ec evaluation context
     */
-  class GenericRecordBytesIterator private [AvroConverter] (is: CopyingInputStream, schema: Schema, counter: Counter)
+  class GenericRecordBytesIterator private [AvroConverter] (is: CopyingInputStream, schema: Schema, ec: EvaluationContext)
       extends CloseableIterator[GenericRecord] {
 
     private val reader = new GenericDatumReader[GenericRecord](schema, addBytes(schema))
@@ -143,7 +145,7 @@ object AvroConverter {
     override def hasNext: Boolean = !decoder.isEnd
 
     override def next(): GenericRecord = {
-      counter.incLineCount()
+      ec.line += 1
       record = reader.read(record, decoder)
       // parse out the bytes read and set them in the record
       // check to see if the decoder buffered some bytes that weren't actually used
@@ -159,9 +161,9 @@ object AvroConverter {
     * Reads avro records from an avro file, with the schema embedded
     *
     * @param is input
-    * @param counter counter
+    * @param ec evaluation context
     */
-  class FileStreamIterator private [AvroConverter] (is: InputStream, counter: Counter)
+  class FileStreamIterator private [AvroConverter] (is: InputStream, ec: EvaluationContext)
       extends CloseableIterator[GenericRecord] {
 
     private val stream = new DataFileStream(is, new GenericDatumReader[GenericRecord]())
@@ -170,7 +172,7 @@ object AvroConverter {
     override def hasNext: Boolean = stream.hasNext
 
     override def next(): GenericRecord = {
-      counter.incLineCount()
+      ec.line += 1
       record = stream.next(record)
       record
     }
@@ -183,9 +185,9 @@ object AvroConverter {
     * each record in a special `__bytes__` field
     *
     * @param is input
-    * @param counter counter
+    * @param ec evaluation context
     */
-  class FileStreamBytesIterator private [AvroConverter] (is: InputStream, counter: Counter)
+  class FileStreamBytesIterator private [AvroConverter] (is: InputStream, ec: EvaluationContext)
       extends CloseableIterator[GenericRecord] {
 
     private val reader = new GenericDatumReader[GenericRecord]()
@@ -204,7 +206,7 @@ object AvroConverter {
     override def hasNext: Boolean = stream.hasNext
 
     override def next(): GenericRecord = {
-      counter.incLineCount()
+      ec.line += 1
       record = stream.next(record)
       // regenerate the bytes read and set them in the record
       out.reset()

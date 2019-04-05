@@ -8,17 +8,13 @@
 
 package org.locationtech.geomesa.convert.shp
 
-import java.nio.charset.StandardCharsets
-
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.shapefile.ShapefileDataStore
-import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
 import org.locationtech.geomesa.convert2.AbstractConverterFactory._
 import org.locationtech.geomesa.convert2.transforms.Expression.Column
-import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
@@ -74,12 +70,10 @@ object ShapefileConverterFactory extends LazyLogging {
       }
 
       val shpConfig = BasicConfig(TypeToProcess, Some(Column(0)), Map.empty, Map.empty)
-      val options =
-        BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
 
       val config = BasicConfigConvert.to(shpConfig)
           .withFallback(BasicFieldConvert.to(fields))
-          .withFallback(BasicOptionsConvert.to(options))
+          .withFallback(BasicOptionsConvert.to(BasicOptions.default))
           .toConfig
 
       Some((sft.getOrElse(ds.getSchema), config))

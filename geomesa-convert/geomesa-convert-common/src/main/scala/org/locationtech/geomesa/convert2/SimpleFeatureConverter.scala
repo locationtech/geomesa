@@ -12,7 +12,7 @@ import java.io.{Closeable, InputStream}
 import java.util.ServiceLoader
 
 import com.typesafe.config.Config
-import com.typesafe.scalalogging.StrictLogging
+import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.locationtech.geomesa.convert
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -23,7 +23,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 /**
   * Converts input streams into simple features
   */
-trait SimpleFeatureConverter extends Closeable {
+trait SimpleFeatureConverter extends Closeable with LazyLogging {
 
   /**
     * Result feature type
@@ -40,11 +40,26 @@ trait SimpleFeatureConverter extends Closeable {
   def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): CloseableIterator[SimpleFeature]
 
   /**
+    * Create a context used for local state while processing
+    *
+    * @param globalParams global key-values to make accessible through the evaluation context
+    * @return
+    */
+  def createEvaluationContext(globalParams: Map[String, Any] = Map.empty): EvaluationContext = {
+    logger.warn(s"createEvaluationContext not implemented, using deprecated method: ${getClass.getName}")
+    // noinspection ScalaDeprecation
+    createEvaluationContext(globalParams, Map.empty, new DefaultCounter)
+  }
+
+  /**
     * Creates a context used for processing
     */
-  def createEvaluationContext(globalParams: Map[String, Any] = Map.empty,
-                              caches: Map[String, EnrichmentCache] = Map.empty,
-                              counter: Counter = new DefaultCounter): EvaluationContext = {
+  // noinspection ScalaDeprecation
+  @deprecated
+  def createEvaluationContext(
+      globalParams: Map[String, Any],
+      caches: Map[String, EnrichmentCache],
+      counter: Counter): EvaluationContext = {
     val keys = globalParams.keys.toIndexedSeq
     val values = keys.map(globalParams.apply).toArray
     EvaluationContext(keys, values, counter, caches)
@@ -133,6 +148,9 @@ object SimpleFeatureConverter extends StrictLogging {
 
     override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] =
       converter.process(is, ec)
+
+    override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
+      converter.createEvaluationContext(globalParams, new DefaultCounter)
 
     override def createEvaluationContext(globalParams: Map[String, Any],
                                          caches: Map[String, EnrichmentCache],

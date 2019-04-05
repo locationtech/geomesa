@@ -15,15 +15,15 @@ import java.util.Collections
 import com.google.common.hash.Hashing
 import com.google.common.io.Resources
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
-import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.apache.commons.csv.CSVFormat
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.{DefaultCounter, SimpleFeatureConverters}
+import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -345,15 +345,14 @@ class DelimitedTextConverterTest extends Specification {
         WithClose(SimpleFeatureConverter(wktSft, trueConf)) { converter =>
           converter must not(beNull)
 
-          val counter = new DefaultCounter
-          val ec = converter.createEvaluationContext(counter = counter)
+          val ec = converter.createEvaluationContext()
           val stream = new ByteArrayInputStream(trueData.getBytes(StandardCharsets.UTF_8))
           val res = WithClose(converter.process(stream, ec))(_.toList)
           res.length mustEqual 2
 
-          counter.getLineCount mustEqual 3
-          counter.getSuccess mustEqual 2
-          counter.getFailure mustEqual 0
+          ec.line mustEqual 3
+          ec.success.getCount mustEqual 2
+          ec.failure.getCount mustEqual 0
 
           val geoFac = new GeometryFactory()
           res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))
@@ -369,14 +368,13 @@ class DelimitedTextConverterTest extends Specification {
         WithClose(SimpleFeatureConverter(wktSft, falseConf)) { converter =>
           converter must not(beNull)
 
-          val counter = new DefaultCounter
-          val ec = converter.createEvaluationContext(counter = counter)
+          val ec = converter.createEvaluationContext()
           val res = WithClose(converter.process(new ByteArrayInputStream(falseData.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
           res.length mustEqual 2
 
-          counter.getLineCount mustEqual 2
-          counter.getSuccess mustEqual 2
-          counter.getFailure mustEqual 0
+          ec.line mustEqual 2
+          ec.success.getCount mustEqual 2
+          ec.failure.getCount mustEqual 0
 
           val geoFac = new GeometryFactory()
           res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))
@@ -394,14 +392,13 @@ class DelimitedTextConverterTest extends Specification {
         WithClose(SimpleFeatureConverter(wktSft, falseConf)) { converter =>
           converter must not(beNull)
 
-          val counter = new DefaultCounter
-          val ec = converter.createEvaluationContext(counter = counter)
+          val ec = converter.createEvaluationContext()
           val res = WithClose(converter.process(new ByteArrayInputStream(falseData.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
           res.length mustEqual 2
 
-          counter.getLineCount mustEqual 5
-          counter.getSuccess mustEqual 2
-          counter.getFailure mustEqual 0
+          ec.line mustEqual 5
+          ec.success.getCount mustEqual 2
+          ec.failure.getCount mustEqual 0
 
           val geoFac = new GeometryFactory()
           res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))

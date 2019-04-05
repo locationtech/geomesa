@@ -27,9 +27,10 @@ import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.feature.collection.DelegateSimpleFeatureIterator
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert.EvaluationContext.DelegatingEvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
-import org.locationtech.geomesa.jobs.mapreduce.ConverterInputFormat.{ConverterKey, RetypeKey}
+import org.locationtech.geomesa.jobs.mapreduce.ConverterInputFormat.{ConverterKey, Counters, RetypeKey}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.fs.{ArchiveFileIterator, ZipFileIterator}
@@ -100,26 +101,12 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
     val filter    = GeoMesaConfigurator.getFilter(context.getConfiguration).map(ECQL.toFilter)
     val retypedSpec = context.getConfiguration.get(RetypeKey)
 
-    class MapReduceCounter extends org.locationtech.geomesa.convert.Counter {
-      import ConverterInputFormat.{Counters => C}
-
-      // Global counters for the entire job
-      override def incSuccess(i: Long): Unit   = context.getCounter(C.Group, C.Converted).increment(i)
-      override def getSuccess: Long            = context.getCounter(C.Group, C.Converted).getValue
-
-      override def incFailure(i: Long): Unit   = context.getCounter(C.Group, C.Failed).increment(i)
-      override def getFailure: Long            = context.getCounter(C.Group, C.Failed).getValue
-
-      // Line counts are local to file not global
-      private var c: Long = 0
-      override def incLineCount(i: Long = 1): Unit = c += i
-      override def getLineCount: Long              = c
-      override def setLineCount(i: Long): Unit     = c = i
-    }
-
     val ec = {
-      val params = EvaluationContext.inputFileParam(filePath.toString)
-      converter.createEvaluationContext(params, counter = new MapReduceCounter)
+      // global success/failure counters for the entire job
+      val success = new MapReduceCounter(context.getCounter(Counters.Group, Counters.Converted))
+      val failure = new MapReduceCounter(context.getCounter(Counters.Group, Counters.Failed))
+      val delegate = converter.createEvaluationContext(EvaluationContext.inputFileParam(filePath.toString))
+      new DelegatingEvaluationContext(delegate)(success, failure)
     }
 
     val streams: CloseableIterator[(Option[String], InputStream)] =
@@ -167,5 +154,13 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
         CloseWithLogging(converter)
       }
     }
+  }
+
+  class MapReduceCounter(counter: Counter) extends com.codahale.metrics.Counter {
+    override def inc(): Unit = counter.increment(1)
+    override def inc(n: Long): Unit = counter.increment(n)
+    override def dec(): Unit = counter.increment(-1)
+    override def dec(n: Long): Unit = counter.increment(-1 * n)
+    override def getCount: Long = counter.getValue
   }
 }

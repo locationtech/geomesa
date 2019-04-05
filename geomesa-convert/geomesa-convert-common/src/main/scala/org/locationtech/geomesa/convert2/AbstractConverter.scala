@@ -9,13 +9,14 @@
 package org.locationtech.geomesa.convert2
 
 import java.io.{IOException, InputStream}
-import java.nio.charset.Charset
+import java.nio.charset.{Charset, StandardCharsets}
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
-import org.locationtech.geomesa.convert.{Counter, EnrichmentCache, EvaluationContext, EvaluationContextImpl}
+import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -53,27 +54,30 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 
   private val requiredFieldsIndices: Array[Int] = requiredFields.map(f => sft.indexOf(f.name))
 
-  private val validators = SimpleFeatureValidator(sft, options.validators)
+  private val metrics = ConverterMetrics(sft, options.reporters)
 
-  private val configCaches = config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
+  private val validators = SimpleFeatureValidator(sft, options.validators, metrics)
+
+  private val caches = config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
 
   override def targetSft: SimpleFeatureType = sft
 
-  override def createEvaluationContext(globalParams: Map[String, Any],
-                                       caches: Map[String, EnrichmentCache],
-                                       counter: Counter): EvaluationContext = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
+  override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
+    EvaluationContext(requiredFields.map(_.name), globalParams, caches, metrics)
 
-    val globalKeys = globalParams.keys.toSeq
-    val names = requiredFields.map(_.name) ++ globalKeys
-    val values = Array.ofDim[Any](names.length)
-    // note, globalKeys are maintained even through EvaluationContext.clear()
-    globalKeys.foreachIndex { case (k, i) => values(requiredFieldsCount + i) = globalParams(k) }
-    new EvaluationContextImpl(names, values, counter, configCaches ++ caches)
+  // noinspection ScalaDeprecation
+  override def createEvaluationContext(
+      globalParams: Map[String, Any],
+      caches: Map[String, EnrichmentCache],
+      counter: org.locationtech.geomesa.convert.Counter): EvaluationContext = {
+    logger.warn("Using deprecated evaluation context - metrics will not be registered correctly")
+    val keys = requiredFields.map(_.name) ++ globalParams.keys
+    val values = keys.map(key => globalParams.get(key).orNull)
+    EvaluationContext(keys, values, counter, this.caches ++ caches)
   }
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
-    val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec.counter), ec)
+    val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec.failure), ec)
     options.parseMode match {
       case ParseMode.Incremental => converted
       case ParseMode.Batch => CloseableIterator(converted.to[ListBuffer].iterator, converted.close())
@@ -120,13 +124,13 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     val sf = new ScalaSimpleFeature(sft, "")
 
     def failure(field: String, e: Throwable): CloseableIterator[SimpleFeature] = {
-      ec.counter.incFailure()
+      ec.failure.inc()
       def msg(verbose: Boolean): String = {
         val values = if (!verbose) { "" } else {
           // head is the whole record
           s" using values:\n${rawValues.headOption.orNull}\n[${rawValues.drop(1).mkString(", ")}]"
         }
-        s"Failed to evaluate field '$field' on line ${ec.counter.getLineCount}$values"
+        s"Failed to evaluate field '$field' on line ${ec.line}$values"
       }
 
       options.errorMode match {
@@ -170,11 +174,11 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 
     val error = validators.validate(sf)
     if (error == null) {
-      ec.counter.incSuccess()
+      ec.success.inc()
       CloseableIterator.single(sf)
     } else {
-      ec.counter.incFailure()
-      val msg = s"Invalid SimpleFeature on line ${ec.counter.getLineCount}: $error"
+      ec.failure.inc()
+      val msg = s"Invalid SimpleFeature on line ${ec.line}: $error"
       options.errorMode match {
         case ErrorMode.SkipBadRecords => logger.debug(msg)
         case ErrorMode.RaiseErrors => throw new IOException(msg)
@@ -183,7 +187,10 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     }
   }
 
-  override def close(): Unit = configCaches.foreach { case (_, cache) => CloseWithLogging(cache) }
+  override def close(): Unit = {
+    caches.foreach { case (_, cache) => CloseWithLogging(cache) }
+    CloseWithLogging(metrics)
+  }
 }
 
 object AbstractConverter {
@@ -206,25 +213,37 @@ object AbstractConverter {
     * @param caches caches
     * @param userData user data expressions
     */
-  case class BasicConfig(`type`: String,
-                         idField: Option[Expression],
-                         caches: Map[String, Config],
-                         userData: Map[String, Expression]) extends ConverterConfig
+  case class BasicConfig(
+      `type`: String,
+      idField: Option[Expression],
+      caches: Map[String, Config],
+      userData: Map[String, Expression]
+    ) extends ConverterConfig
 
   /**
     * Basic converter options implementation, useful if a converter doesn't have additional options
     *
     * @param validators validator
+    * @param reporters metric reporters
     * @param parseMode parse mode
     * @param errorMode error mode
     * @param encoding file/stream encoding
     */
   case class BasicOptions(
       validators: Seq[String],
+      reporters: Map[String, Config],
       parseMode: ParseMode,
       errorMode: ErrorMode,
       encoding: Charset
     ) extends ConverterOptions
+
+  object BasicOptions {
+    // keep as a function to pick up system property changes
+    def default: BasicOptions = {
+      val validators = SimpleFeatureValidator.default
+      BasicOptions(validators, Map.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
+    }
+  }
 
   /**
     * Determines the fields that are actually used for the conversion

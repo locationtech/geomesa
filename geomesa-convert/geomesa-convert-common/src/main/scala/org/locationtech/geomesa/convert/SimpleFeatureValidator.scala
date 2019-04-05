@@ -199,11 +199,12 @@ object SimpleFeatureValidator extends LazyLogging {
     * @param geom geom index
     */
   private class Z2Validator(geom: Int) extends Validator {
+    private val envelope = wholeWorldEnvelope
     override def validate(sf: SimpleFeature): String = {
       val g = sf.getAttribute(geom).asInstanceOf[Geometry]
       if (g == null) {
         Errors.GeomNull
-      } else if (!wholeWorldEnvelope.contains(g.getEnvelopeInternal)) {
+      } else if (!envelope.contains(g.getEnvelopeInternal)) {
         Errors.GeomBounds
       } else {
         null
@@ -220,6 +221,7 @@ object SimpleFeatureValidator extends LazyLogging {
     * @param maxDate max z3 date
     */
   private class Z3Validator(geom: Int, dtg: Int, minDate: Date, maxDate: Date) extends Validator {
+    private val envelope = wholeWorldEnvelope
     private val dateBefore = s"date is before minimum indexable date ($minDate)"
     private val dateAfter = s"date is after maximum indexable date ($maxDate)"
 
@@ -236,7 +238,7 @@ object SimpleFeatureValidator extends LazyLogging {
         } else {
           Errors.GeomNull
         }
-      } else if (!wholeWorldEnvelope.contains(g.getEnvelopeInternal)) {
+      } else if (!envelope.contains(g.getEnvelopeInternal)) {
         if (d == null) {
           s"${Errors.GeomBounds}, ${Errors.DateNull}"
         } else if (d.before(minDate)) {
