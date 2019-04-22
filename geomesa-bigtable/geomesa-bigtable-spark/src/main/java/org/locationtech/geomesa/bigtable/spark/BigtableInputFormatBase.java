@@ -25,7 +25,7 @@
  */
 package org.locationtech.geomesa.bigtable.spark;
 
-import com.google.bigtable.v2.RowSet;
+import com.google.bigtable.repackaged.com.google.bigtable.v2.RowSet;
 import com.google.cloud.bigtable.hbase.BigtableExtendedScan;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

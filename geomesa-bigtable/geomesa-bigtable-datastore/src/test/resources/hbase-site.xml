@@ -5,20 +5,12 @@
   </property>
   <property>
     <name>google.bigtable.instance.id</name>
-    <value>testing-instance</value>
+    <value>[INSTANCE-ID]</value>
   </property>
   <property>
     <name>google.bigtable.project.id</name>
-    <value>first-bigtable-dashboard</value>
+    <value>[PROJECT-ID]</value>
   </property>
-  <!--<property>-->
-    <!--<name>google.bigtable.instance.id</name>-->
-    <!--<value>[INSTANCE-ID]</value>-->
-  <!--</property>-->
-  <!--<property>-->
-    <!--<name>google.bigtable.project.id</name>-->
-    <!--<value>[PROJECT-ID]</value>-->
-  <!--</property>-->
   <!-- default hbase value is 1200000, bigtable requires < 300000 -->
   <property>
     <name>hbase.client.operation.timeout</name>
