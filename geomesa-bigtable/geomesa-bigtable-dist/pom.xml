@@ -80,12 +80,12 @@
 
         <dependency>
             <groupId>com.google.cloud.bigtable</groupId>
-            <artifactId>bigtable-hbase-1.3</artifactId>
+            <artifactId>bigtable-hbase-1.x-hadoop</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.google.cloud.bigtable</groupId>
-            <artifactId>bigtable-hbase-mapreduce</artifactId>
+            <artifactId>bigtable-hbase-1.x-mapreduce</artifactId>
             <scope>compile</scope>
         </dependency>
 
