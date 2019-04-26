@@ -10,11 +10,13 @@ package org.locationtech.geomesa.parquet
 
 import java.util.Date
 
-import org.apache.parquet.filter2.predicate.Operators
-import org.geotools.factory.CommonFactoryFinder
+import org.apache.parquet.filter2.predicate.{FilterPredicate, Operators}
+import org.apache.parquet.io.api.Binary
+import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 import org.specs2.specification.AllExpectations
@@ -22,58 +24,97 @@ import org.specs2.specification.AllExpectations
 @RunWith(classOf[JUnitRunner])
 class FilterConverterTest extends Specification with AllExpectations {
 
-  sequential
+  val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+
+  def convert(filter: String): (Option[FilterPredicate], Option[Filter]) =
+    FilterConverter.convert(sft, ECQL.toFilter(filter))
+
+  def flatten(and: Operators.And): Seq[FilterPredicate] = {
+    val remaining = scala.collection.mutable.Queue[FilterPredicate](and)
+    val result = Seq.newBuilder[FilterPredicate]
+    while (remaining.nonEmpty) {
+      remaining.dequeue() match {
+        case a: Operators.And => remaining ++= Seq(a.getLeft, a.getRight)
+        case f => result += f
+      }
+    }
+    result.result()
+  }
 
   "FilterConverter" should {
-    val ff = CommonFactoryFinder.getFilterFactory2
-    val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-    val conv = new FilterConverter(sft)
-
     "convert geo filter to min/max x/y" >> {
-      val pfilter = conv.convert(ff.bbox("geom", -24.0, -25.0, -18.0, -19.0, "EPSG:4326"))._1.get
-      pfilter must beAnInstanceOf[Operators.And]
-      // TODO extract the rest of the AND filters to test
-      val last = pfilter.asInstanceOf[Operators.And].getRight.asInstanceOf[Operators.LtEq[java.lang.Double]]
-      last.getValue mustEqual -19.0
-      last.getColumn.getColumnPath.toDotString mustEqual "geom.y"
+      val (pFilter, gFilter) = convert("bbox(geom, -24.0, -25.0, -18.0, -19.0)")
+      gFilter must beNone
+      pFilter must beSome(beAnInstanceOf[Operators.And])
+      val clauses = flatten(pFilter.get.asInstanceOf[Operators.And])
+      clauses must haveLength(4)
+
+      val xmin = clauses.collectFirst {
+        case c: Operators.GtEq[java.lang.Double] if c.getColumn.getColumnPath.toDotString == "geom.x" => c
+      }
+      val ymin = clauses.collectFirst {
+        case c: Operators.GtEq[java.lang.Double] if c.getColumn.getColumnPath.toDotString == "geom.y" => c
+      }
+      val xmax = clauses.collectFirst {
+        case c: Operators.LtEq[java.lang.Double] if c.getColumn.getColumnPath.toDotString == "geom.x" => c
+      }
+      val ymax = clauses.collectFirst {
+        case c: Operators.LtEq[java.lang.Double] if c.getColumn.getColumnPath.toDotString == "geom.y" => c
+      }
+
+      xmin.map(_.getValue.doubleValue()) must beSome(-24.0)
+      ymin.map(_.getValue.doubleValue()) must beSome(-25.0)
+      xmax.map(_.getValue.doubleValue()) must beSome(-18.0)
+      ymax.map(_.getValue.doubleValue()) must beSome(-19.0)
     }
 
     "convert dtg ranges to long ranges" >> {
-      val pfilter = conv.convert(ff.between(ff.property("dtg"), ff.literal("2017-01-01T00:00:00.000Z"), ff.literal("2017-01-05T00:00:00.000Z")))._1.get
-      pfilter must beAnInstanceOf[Operators.And]
-      val and = pfilter.asInstanceOf[Operators.And]
-      and.getLeft.asInstanceOf[Operators.GtEq[java.lang.Long]].getColumn.getColumnPath.toDotString mustEqual "dtg"
-      and.getLeft.asInstanceOf[Operators.GtEq[java.lang.Long]].getValue mustEqual Converters.convert("2017-01-01T00:00:00.000Z", classOf[Date]).getTime
+      val (pFilter, gFilter) = convert("dtg BETWEEN '2017-01-01T00:00:00.000Z' AND '2017-01-05T00:00:00.000Z'")
+      gFilter must beNone
+      pFilter must beSome(beAnInstanceOf[Operators.And])
+      val clauses = flatten(pFilter.get.asInstanceOf[Operators.And])
+      clauses must haveLength(2)
 
-      and.getRight.asInstanceOf[Operators.LtEq[java.lang.Long]].getColumn.getColumnPath.toDotString mustEqual "dtg"
-      and.getRight.asInstanceOf[Operators.LtEq[java.lang.Long]].getValue mustEqual Converters.convert("2017-01-05T00:00:00.000Z", classOf[Date]).getTime
-    }
+      val lt = clauses.collectFirst {
+        case c: Operators.LtEq[java.lang.Long] if c.getColumn.getColumnPath.toDotString == "dtg" => c
+      }
+      val gt = clauses.collectFirst {
+        case c: Operators.GtEq[java.lang.Long] if c.getColumn.getColumnPath.toDotString == "dtg" => c
+      }
 
-    "ignore dtg column for now for filter augmentation" >> {
-      val f = ff.between(ff.property("dtg"), ff.literal("2017-01-01T00:00:00.000Z"), ff.literal("2017-01-05T00:00:00.000Z"))
-      val res = conv.convert(f)
-      res._2 mustEqual f
+      lt.map(_.getValue.longValue()) must beSome(Converters.convert("2017-01-05T00:00:00.000Z", classOf[Date]).getTime)
+      gt.map(_.getValue.longValue()) must beSome(Converters.convert("2017-01-01T00:00:00.000Z", classOf[Date]).getTime)
     }
 
     "augment property equals column" >> {
-      import scala.collection.JavaConversions._
-      val f = ff.and(List[org.opengis.filter.Filter](
-        ff.greaterOrEqual(ff.property("dtg"), ff.literal("2017-01-01T00:00:00.000Z")),
-        ff.lessOrEqual(ff.property("dtg"), ff.literal("2017-01-05T00:00:00.000Z")),
-        ff.equals(ff.property("name"), ff.literal("foo"))))
-      val res = conv.convert(f)
-      val expectedAug = ff.and(
-        List[org.opengis.filter.Filter](
-          ff.greaterOrEqual(ff.property("dtg"), ff.literal("2017-01-01T00:00:00.000Z")),
-          ff.lessOrEqual(ff.property("dtg"), ff.literal("2017-01-05T00:00:00.000Z")),
-          org.opengis.filter.Filter.INCLUDE))
-      res._2 mustEqual expectedAug
+      val (pFilter, gFilter) =
+        convert("name = 'foo' AND dtg BETWEEN '2017-01-01T00:00:00.000Z' AND '2017-01-05T00:00:00.000Z'")
+      gFilter must beNone
+      pFilter must beSome(beAnInstanceOf[Operators.And])
+      val clauses = flatten(pFilter.get.asInstanceOf[Operators.And])
+      clauses must haveLength(3)
+
+      val eq = clauses.collectFirst {
+        case c: Operators.Eq[Binary] if c.getColumn.getColumnPath.toDotString == "name" => c
+      }
+      val lt = clauses.collectFirst {
+        case c: Operators.LtEq[java.lang.Long] if c.getColumn.getColumnPath.toDotString == "dtg" => c
+      }
+      val gt = clauses.collectFirst {
+        case c: Operators.GtEq[java.lang.Long] if c.getColumn.getColumnPath.toDotString == "dtg" => c
+      }
+
+      eq.map(_.getValue) must beSome(Binary.fromString("foo"))
+      lt.map(_.getValue.longValue()) must beSome(Converters.convert("2017-01-05T00:00:00.000Z", classOf[Date]).getTime)
+      gt.map(_.getValue.longValue()) must beSome(Converters.convert("2017-01-01T00:00:00.000Z", classOf[Date]).getTime)
     }
 
     "query with an int" >> {
-      val f = ff.equals(ff.property("age"), ff.literal(20))
-      val res = conv.convert(f)
-      success
+      val (pFilter, gFilter) = convert("age = 20")
+      gFilter must beNone
+      pFilter must beSome(beAnInstanceOf[Operators.Eq[java.lang.Integer]])
+      pFilter.get.asInstanceOf[Operators.Eq[java.lang.Integer]].getColumn.getColumnPath.toDotString mustEqual "age"
+      pFilter.get.asInstanceOf[Operators.Eq[java.lang.Integer]].getValue.intValue() mustEqual 20
     }
   }
 }

@@ -167,7 +167,6 @@ object OrcFileSystemStorage {
       case ObjectType.DOUBLE  => TypeDescription.createDouble()
       case ObjectType.BOOLEAN => TypeDescription.createBoolean()
       case ObjectType.BYTES   => TypeDescription.createBinary()
-      case ObjectType.JSON    => TypeDescription.createString()
       case ObjectType.UUID    => TypeDescription.createString()
       case _ => throw new IllegalArgumentException(s"Unexpected simple object type $binding")
     }

@@ -19,9 +19,13 @@ object ObjectType extends Enumeration {
 
   type ObjectType = Value
 
-  val STRING, INT, LONG, FLOAT, DOUBLE, BOOLEAN, DATE, UUID, GEOMETRY, LIST, MAP, BYTES, JSON = Value
+  val STRING, INT, LONG, FLOAT, DOUBLE, BOOLEAN, DATE, UUID, GEOMETRY, LIST, MAP, BYTES = Value
 
+  // geometry sub-types
   val POINT, LINESTRING, POLYGON, MULTIPOINT, MULTILINESTRING, MULTIPOLYGON, GEOMETRY_COLLECTION = Value
+
+  // string sub-types
+  val JSON = Value
 
   /**
     * @see selectType(clazz: Class[_], metadata: java.util.Map[_, _])
@@ -51,7 +55,7 @@ object ObjectType extends Enumeration {
   def selectType(clazz: Class[_], metadata: jMap[_, _] = jCollections.emptyMap()): Seq[ObjectType] = {
     clazz match {
       case c if classOf[java.lang.String].isAssignableFrom(c) =>
-        if (metadata.get(OPT_JSON) == "true") { Seq(JSON) } else { Seq(STRING) }
+        if (metadata.get(OPT_JSON) == "true") { Seq(STRING, JSON) } else { Seq(STRING) }
       case c if classOf[java.lang.Integer].isAssignableFrom(c) => Seq(INT)
       case c if classOf[java.lang.Long].isAssignableFrom(c) => Seq(LONG)
       case c if classOf[java.lang.Float].isAssignableFrom(c) => Seq(FLOAT)

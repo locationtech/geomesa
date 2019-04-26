@@ -145,7 +145,6 @@ object ArrowAttributeReader {
           case ObjectType.LIST     => new ArrowListReader(vector.asInstanceOf[ListVector], bindings(1), encoding)
           case ObjectType.MAP      => new ArrowMapReader(vector.asInstanceOf[StructVector], bindings(1), bindings(2), encoding)
           case ObjectType.BYTES    => new ArrowByteReader(vector.asInstanceOf[VarBinaryVector])
-          case ObjectType.JSON     => new ArrowStringReader(vector.asInstanceOf[VarCharVector])
           case ObjectType.UUID     => new ArrowUuidReader(vector.asInstanceOf[FixedSizeListVector])
           case _ => throw new IllegalArgumentException(s"Unexpected object type ${bindings.head}")
         }

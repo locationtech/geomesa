@@ -39,6 +39,9 @@ object StorageConfiguration {
   def getSft(conf: Configuration): SimpleFeatureType =
     SimpleFeatureTypes.createType(conf.get(SftNameKey), conf.get(SftSpecKey))
 
+  def getSftName(conf: Configuration): String = conf.get(SftNameKey)
+  def getSftSpec(conf: Configuration): String = conf.get(SftSpecKey)
+
   def setRootPath(conf: Configuration, path: Path): Unit = conf.set(PathKey, path.toString)
   def getRootPath(conf: Configuration): Path = new Path(conf.get(PathKey))
 

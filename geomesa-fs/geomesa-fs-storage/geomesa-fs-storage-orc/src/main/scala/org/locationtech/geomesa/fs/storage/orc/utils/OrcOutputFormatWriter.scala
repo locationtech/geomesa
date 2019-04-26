@@ -43,7 +43,6 @@ object OrcOutputFormatWriter {
         case ObjectType.DOUBLE   => new DoubleOutputFormatWriter(col, i)
         case ObjectType.BOOLEAN  => new BooleanOutputFormatWriter(col, i)
         case ObjectType.BYTES    => new BytesOutputFormatWriter(col, i)
-        case ObjectType.JSON     => new StringOutputFormatWriter(col, i)
         case ObjectType.UUID     => new UuidOutputFormatWriter(col, i)
         case ObjectType.LIST     => new ListOutputFormatWriter(col, i, bindings(1), description)
         case ObjectType.MAP      => new MapOutputFormatWriter(col, i, bindings(1), bindings(2), description)
@@ -589,7 +588,6 @@ object OrcOutputFormatWriter {
       case ObjectType.DOUBLE   => new SetOutputFormatDouble {}
       case ObjectType.BOOLEAN  => new SetOutputFormatBoolean {}
       case ObjectType.BYTES    => new SetOutputFormatBytes {}
-      case ObjectType.JSON     => new SetOutputFormatString {}
       case ObjectType.UUID     => new SetOutputFormatUuid {}
       case _ => throw new IllegalArgumentException(s"Unexpected object type $binding")
     }
