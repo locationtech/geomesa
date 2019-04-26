@@ -50,7 +50,7 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
         logger.trace("Configured Hadoop URL Factory.")
       } catch {
         case _: Throwable =>
-          logger.warn("Could not register Hadoop URL Factory.  Some filesystems may not be available.")
+          logger.warn("Could not register Hadoop URL Factory. Some filesystems may not be available.")
       }
     }
   }
@@ -74,7 +74,7 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
     */
   def getUrl(path: String): URL = {
     try {
-      if (isRemote(path)) {
+      if (uriRegex.matcher(path).matches()) {
         // we need to add the hadoop url factories to the JVM to support hdfs, S3, or wasb
         // we only want to call this once per jvm or it will throw an error
         configureURLFactory()

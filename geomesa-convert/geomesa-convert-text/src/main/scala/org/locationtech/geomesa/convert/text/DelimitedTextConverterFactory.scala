@@ -40,7 +40,13 @@ class DelimitedTextConverterFactory
   override protected implicit def fieldConvert: FieldConvert[BasicField] = BasicFieldConvert
   override protected implicit def optsConvert: ConverterOptionsConvert[DelimitedTextOptions] = DelimitedTextOptionsConvert
 
-  override def infer(is: InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] = {
+  override def infer(is: InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] =
+    infer(is, sft, None)
+
+  override def infer(
+      is: InputStream,
+      sft: Option[SimpleFeatureType],
+      path: Option[String]): Option[(SimpleFeatureType, Config)] = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.{RichIterator, RichTraversableLike}
 
     import scala.collection.JavaConverters._

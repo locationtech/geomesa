@@ -41,7 +41,13 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
   override protected implicit def fieldConvert: FieldConvert[JsonField] = JsonFieldConvert
   override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
 
-  override def infer(is: InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] = {
+  override def infer(is: InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] =
+    infer(is, sft, None)
+
+  override def infer(
+      is: InputStream,
+      sft: Option[SimpleFeatureType],
+      path: Option[String]): Option[(SimpleFeatureType, Config)] = {
     try {
       val reader = new JsonReader(new InputStreamReader(is, StandardCharsets.UTF_8))
       reader.setLenient(true)

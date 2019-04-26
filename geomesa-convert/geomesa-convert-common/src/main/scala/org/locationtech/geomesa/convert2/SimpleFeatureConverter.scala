@@ -9,12 +9,12 @@
 package org.locationtech.geomesa.convert2
 
 import java.io.{Closeable, InputStream}
-import java.util.ServiceLoader
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.locationtech.geomesa.convert
 import org.locationtech.geomesa.convert._
+import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
 import org.locationtech.geomesa.utils.io.WithClose
@@ -79,13 +79,10 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
 
 object SimpleFeatureConverter extends StrictLogging {
 
-  import scala.collection.JavaConverters._
-
-  val factories: List[SimpleFeatureConverterFactory] =
-    ServiceLoader.load(classOf[SimpleFeatureConverterFactory]).asScala.toList
+  val factories: List[SimpleFeatureConverterFactory] = ServiceLoader.load[SimpleFeatureConverterFactory]()
 
   // noinspection ScalaDeprecation
-  private val factoriesV1 = ServiceLoader.load(classOf[convert.SimpleFeatureConverterFactory[_]]).asScala.toList
+  private val factoriesV1 = ServiceLoader.load[convert.SimpleFeatureConverterFactory[_]]()
 
   logger.debug(s"Found ${factories.size + factoriesV1.size} factories: " +
       (factories ++ factoriesV1).map(_.getClass.getName).mkString(", "))
@@ -98,15 +95,12 @@ object SimpleFeatureConverter extends StrictLogging {
     * @return
     */
   def apply(sft: SimpleFeatureType, config: Config): SimpleFeatureConverter = {
-    val converters = factories.iterator.flatMap(_.apply(sft, config))
-    if (converters.hasNext) { converters.next } else {
-      val convertersV1 = factoriesV1.iterator.filter(_.canProcess(config)).map(_.buildConverter(sft, config))
-      if (convertersV1.hasNext) {
-        val v1 = convertersV1.next
-        logger.warn(s"Wrapping deprecated converter of class ${v1.getClass.getName}, converter will not be closed")
-        new SimpleFeatureConverterWrapper(v1)
-      } else {
-        throw new IllegalArgumentException(s"Cannot find factory for ${sft.getTypeName}")
+    factories.toStream.flatMap(_.apply(sft, config)).headOption.getOrElse {
+      factoriesV1.toStream.filter(_.canProcess(config)).map(_.buildConverter(sft, config)).headOption match {
+        case None => throw new IllegalArgumentException(s"Cannot find factory for ${sft.getTypeName}")
+        case Some(v1) =>
+          logger.warn(s"Wrapping deprecated converter of class ${v1.getClass.getName}, converter will not be closed")
+          new SimpleFeatureConverterWrapper(v1)
       }
     }
   }
@@ -146,9 +140,12 @@ object SimpleFeatureConverter extends StrictLogging {
     * @param sft simple feature type, if known
     * @return
     */
-  def infer(is: () => InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] = {
+  def infer(
+      is: () => InputStream,
+      sft: Option[SimpleFeatureType],
+      path: Option[String] = None): Option[(SimpleFeatureType, Config)] = {
     factories.foldLeft[Option[(SimpleFeatureType, Config)]](None) { (res, f) =>
-      res.orElse(WithClose(is())(in => f.infer(in, sft)))
+      res.orElse(WithClose(is())(in => f.infer(in, sft, path)))
     }
   }
 

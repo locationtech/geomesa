@@ -10,90 +10,126 @@ package org.locationtech.geomesa.convert.avro
 
 import java.nio.ByteBuffer
 
-import org.apache.avro.generic.{GenericData, GenericEnumSymbol, GenericFixed, GenericRecord}
+import org.apache.avro.generic.{GenericArray, GenericEnumSymbol, GenericFixed, GenericRecord}
 import org.apache.avro.util.Utf8
-
-import scala.collection.JavaConversions._
-import scala.util.parsing.combinator.RegexParsers
+import org.locationtech.geomesa.utils.text.BasicParser
+import org.parboiled.errors.ParsingException
+import org.parboiled.scala.parserunners.{BasicParseRunner, ReportingParseRunner}
 
 sealed trait AvroPath {
-  def eval(record: AnyRef): Option[AnyRef]
+  def eval(record: Any): Option[Any]
 }
 
-object AvroPath extends RegexParsers {
+object AvroPath extends BasicParser {
 
-  def apply(path: String): AvroPath = build(path)
+  type AvroPredicate = GenericRecord => Boolean
 
-  type Predicate[T] = T => Boolean
+  private val Parser = new AvroPathParser()
 
-  case class PathExpr(field: String, pred: Predicate[GenericRecord] = _ => true) extends AvroPath {
-    override def eval(record: AnyRef): Option[AnyRef] = {
-      record match {
-        case gr: GenericRecord =>
-          gr.get(field) match {
-            case x: GenericRecord     => Some(x).filter(pred)
-            case x: Utf8              => Some(x.toString)
-            case x: ByteBuffer        => Option(getArray(x))
-            case x: GenericFixed      => Option(x.bytes())
-            case x: GenericEnumSymbol => Option(x.toString)
-            case x                    => Option(x)
-          }
+  def apply(path: String): AvroPath = parse(path)
 
-        case _ => Option(record)
-      }
+  @throws(classOf[ParsingException])
+  def parse(path: String, report: Boolean = true): AvroPath = {
+    if (path == null) {
+      throw new IllegalArgumentException("Invalid path string: null")
+    }
+    val runner = if (report) { ReportingParseRunner(Parser.path) } else { BasicParseRunner(Parser.path) }
+    val parsing = runner.run(path)
+    parsing.result.getOrElse(throw new ParsingException(s"Error parsing avro path: $path"))
+  }
+
+  private def convert(record: Any): Any = {
+    record match {
+      case x: Utf8              => x.toString
+      case x: ByteBuffer        => convertBytes(x)
+      case x: GenericFixed      => x.bytes()
+      case x: GenericEnumSymbol => x.toString
+      case x: GenericArray[Any] => convertList(x)
+      case x                    => x
     }
   }
 
-  case class UnionTypeFilter(n: String) extends Predicate[GenericRecord] {
-    override def apply(v1: GenericRecord): Boolean = v1.getSchema.getName.equals(n)
-  }
-
-  case class ArrayRecordExpr(pred: Predicate[GenericRecord]) extends AvroPath {
-    override def eval(r: AnyRef): Option[AnyRef] = r match {
-      case a: GenericData.Array[GenericRecord] => a.find(pred)
-    }
-  }
-
-  case class CompositeExpr(se: Seq[AvroPath]) extends AvroPath {
-    override def eval(r: AnyRef): Option[AnyRef] = r match {
-      case gr: GenericRecord => se.foldLeft[Option[AnyRef]](Some(gr))((acc, AvroPath) => acc.flatMap(AvroPath.eval))
-      case _ => None
-    }
-  }
-
-  private def build(s: String): AvroPath = parse(rep1(avroPath), s) match {
-    case Success(t, _) => if (t.lengthCompare(1) == 0) { t.head } else { CompositeExpr(t) }
-    case _ => null
-  }
-
-  private def avroPath = schemaTypeName | arrayRecord | pathExpr
-
-  private def fieldName = "[A-Za-z0-9_]*".r
-  private def field = "$" ~> fieldName
-  private def pathExpr = "/" ~> fieldName ^^ {
-    f => PathExpr(f)
-  }
-
-  private def schemaTypeName = (pathExpr <~ "$type=") ~ "[A-Za-z0-9_]+".r ^^ {
-    case pe ~ stn => pe.copy(pred = UnionTypeFilter(stn))
-  }
-
-  private def arrayRecord = ("[$" ~> fieldName) ~ ("=" ~> "[A-Za-z0-9_]+".r) <~ "]" ^^ {
-    case fn ~ fv =>
-      ArrayRecordExpr(
-        (gr) => gr.get(fn) match {
-          case utf8string: Utf8 => utf8string.toString.equals(fv)
-          case x => x.equals(fv)
-        })
-    case _ => ArrayRecordExpr(_ => false)
-  }
-
-  private def getArray(x: ByteBuffer): Array[Byte] = {
+  private def convertBytes(x: ByteBuffer): Array[Byte] = {
     val start = x.position
     val length = x.limit - start
     val bytes = Array.ofDim[Byte](length)
     x.get(bytes, 0, length)
     x.position(start)
     bytes
+  }
+
+  private def convertList(list: java.util.List[Any]): java.util.List[Any] = {
+    val result = new java.util.ArrayList[Any](list.size())
+    val iter = list.iterator()
+    while (iter.hasNext) {
+      result.add(convert(iter.next()))
+    }
+    result
+  }
+
+  case class PathExpr(field: String, predicate: AvroPredicate) extends AvroPath {
+    override def eval(record: Any): Option[Any] = {
+      record match {
+        case gr: GenericRecord =>
+          gr.get(field) match {
+            case x: GenericRecord => Some(x).filter(predicate)
+            case x                => Option(convert(x))
+          }
+
+        case _ => None
+      }
+    }
+  }
+
+  case class ArrayRecordExpr(field: String, matched: String) extends AvroPath {
+
+    import scala.collection.JavaConverters._
+
+    override def eval(r: Any): Option[Any] = r match {
+      case a: java.util.List[GenericRecord] => a.asScala.find(predicate)
+      case _ => None
+    }
+
+    private def predicate(record: GenericRecord): Boolean = {
+      record.get(field) match {
+        case x: Utf8 => x.toString == matched
+        case x       => x == matched
+      }
+    }
+  }
+
+  case class CompositeExpr(se: Seq[AvroPath]) extends AvroPath {
+    override def eval(r: Any): Option[Any] = r match {
+      case gr: GenericRecord => se.foldLeft[Option[Any]](Some(gr))((result, current) => result.flatMap(current.eval))
+      case _ => None
+    }
+  }
+
+  case class UnionTypeFilter(n: String) extends AvroPredicate {
+    override def apply(v1: GenericRecord): Boolean = v1.getSchema.getName == n
+  }
+
+  class AvroPathParser extends BasicParser {
+
+    import org.parboiled.scala._
+
+    // full simple feature spec
+    def path: Rule1[AvroPath] = rule("Path") {
+      oneOrMore(pathExpression | arrayRecord) ~ EOI ~~> {
+        paths => if (paths.lengthCompare(1) == 0) { paths.head } else { CompositeExpr(paths) }
+      }
+    }
+
+    private def pathExpression: Rule1[PathExpr] = rule("PathExpression") {
+      "/" ~ unquotedString ~ optional("$type=" ~ unquotedString) ~~> {
+        (field, typed) => PathExpr(field, typed.map(UnionTypeFilter.apply).getOrElse(_ => true))
+      }
+    }
+
+    private def arrayRecord: Rule1[ArrayRecordExpr] = rule("ArrayRecord") {
+      ("[$" ~ unquotedString ~ "=" ~ unquotedString ~ "]") ~~> {
+        (field, matched) => ArrayRecordExpr(field, matched)
+      }
+    }
   }
 }

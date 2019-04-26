@@ -236,12 +236,12 @@ object SimpleFeatureWriteSupport {
   class PointAttributeWriter(name: String, index: Int) extends AttributeWriter[Point](name, index) {
     override def write(consumer: RecordConsumer, value: Point): Unit = {
       consumer.startGroup()
-      consumer.startField("x", 0)
+      consumer.startField(SimpleFeatureParquetSchema.GeometryColumnX, 0)
       consumer.addDouble(value.getX)
-      consumer.endField("x", 0)
-      consumer.startField("y", 1)
+      consumer.endField(SimpleFeatureParquetSchema.GeometryColumnX, 0)
+      consumer.startField(SimpleFeatureParquetSchema.GeometryColumnY, 1)
       consumer.addDouble(value.getY)
-      consumer.endField("y", 1)
+      consumer.endField(SimpleFeatureParquetSchema.GeometryColumnY, 1)
       consumer.endGroup()
     }
   }
@@ -249,20 +249,20 @@ object SimpleFeatureWriteSupport {
   class LineStringAttributeWriter(name: String, index: Int) extends AttributeWriter[LineString](name, index) {
     override def write(consumer: RecordConsumer, value: LineString): Unit = {
       consumer.startGroup()
-      consumer.startField("x", 0)
+      consumer.startField(SimpleFeatureParquetSchema.GeometryColumnX, 0)
       var i = 0
       while (i < value.getNumPoints) {
         consumer.addDouble(value.getCoordinateN(i).x)
         i += 1
       }
-      consumer.endField("x", 0)
-      consumer.startField("y", 1)
+      consumer.endField(SimpleFeatureParquetSchema.GeometryColumnX, 0)
+      consumer.startField(SimpleFeatureParquetSchema.GeometryColumnY, 1)
       i = 0
       while (i < value.getNumPoints) {
         consumer.addDouble(value.getCoordinateN(i).y)
         i += 1
       }
-      consumer.endField("y", 1)
+      consumer.endField(SimpleFeatureParquetSchema.GeometryColumnY, 1)
       consumer.endGroup()
     }
   }
@@ -270,20 +270,20 @@ object SimpleFeatureWriteSupport {
   class MultiPointAttributeWriter(name: String, index: Int) extends AttributeWriter[MultiPoint](name, index) {
     override def write(consumer: RecordConsumer, value: MultiPoint): Unit = {
       consumer.startGroup()
-      consumer.startField("x", 0)
+      consumer.startField(SimpleFeatureParquetSchema.GeometryColumnX, 0)
       var i = 0
       while (i < value.getNumPoints) {
         consumer.addDouble(value.getGeometryN(i).asInstanceOf[Point].getX)
         i += 1
       }
-      consumer.endField("x", 0)
-      consumer.startField("y", 1)
+      consumer.endField(SimpleFeatureParquetSchema.GeometryColumnX, 0)
+      consumer.startField(SimpleFeatureParquetSchema.GeometryColumnY, 1)
       i = 0
       while (i < value.getNumPoints) {
         consumer.addDouble(value.getGeometryN(i).asInstanceOf[Point].getY)
         i += 1
       }
-      consumer.endField("y", 1)
+      consumer.endField(SimpleFeatureParquetSchema.GeometryColumnY, 1)
       consumer.endGroup()
     }
   }
@@ -297,7 +297,7 @@ object SimpleFeatureWriteSupport {
       val lines = this.lines(value)
       consumer.startGroup()
 
-      consumer.startField("x", 0)
+      consumer.startField(SimpleFeatureParquetSchema.GeometryColumnX, 0)
       consumer.startGroup()
       consumer.startField("list", 0)
       lines.foreach { line =>
@@ -307,9 +307,9 @@ object SimpleFeatureWriteSupport {
       }
       consumer.endField("list", 0)
       consumer.endGroup()
-      consumer.endField("x", 0)
+      consumer.endField(SimpleFeatureParquetSchema.GeometryColumnX, 0)
 
-      consumer.startField("y", 1)
+      consumer.startField(SimpleFeatureParquetSchema.GeometryColumnY, 1)
       consumer.startGroup()
       consumer.startField("list", 0)
       lines.foreach { line =>
@@ -319,7 +319,7 @@ object SimpleFeatureWriteSupport {
       }
       consumer.endField("list", 0)
       consumer.endGroup()
-      consumer.endField("y", 1)
+      consumer.endField(SimpleFeatureParquetSchema.GeometryColumnY, 1)
 
       consumer.endGroup()
     }
@@ -348,7 +348,7 @@ object SimpleFeatureWriteSupport {
       }
       consumer.startGroup()
 
-      consumer.startField("x", 0)
+      consumer.startField(SimpleFeatureParquetSchema.GeometryColumnX, 0)
       consumer.startGroup()
       consumer.startField("list", 0)
       polys.foreach { lines =>
@@ -368,9 +368,9 @@ object SimpleFeatureWriteSupport {
       }
       consumer.endField("list", 0)
       consumer.endGroup()
-      consumer.endField("x", 0)
+      consumer.endField(SimpleFeatureParquetSchema.GeometryColumnX, 0)
 
-      consumer.startField("y", 1)
+      consumer.startField(SimpleFeatureParquetSchema.GeometryColumnY, 1)
       consumer.startGroup()
       consumer.startField("list", 0)
       polys.foreach { lines =>
@@ -390,7 +390,7 @@ object SimpleFeatureWriteSupport {
       }
       consumer.endField("list", 0)
       consumer.endGroup()
-      consumer.endField("y", 1)
+      consumer.endField(SimpleFeatureParquetSchema.GeometryColumnY, 1)
 
       consumer.endGroup()
     }

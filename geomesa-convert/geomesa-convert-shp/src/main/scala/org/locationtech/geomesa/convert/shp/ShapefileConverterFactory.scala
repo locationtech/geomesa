@@ -8,9 +8,12 @@
 
 package org.locationtech.geomesa.convert.shp
 
+import java.io.InputStream
+
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.shapefile.ShapefileDataStore
+import org.locationtech.geomesa.convert.shp.ShapefileConverterFactory.TypeToProcess
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory
 import org.locationtech.geomesa.convert2.AbstractConverterFactory._
@@ -22,69 +25,69 @@ import scala.util.control.NonFatal
 class ShapefileConverterFactory
   extends AbstractConverterFactory[ShapefileConverter, BasicConfig, BasicField, BasicOptions] {
 
-  override protected val typeToProcess: String = ShapefileConverterFactory.TypeToProcess
-
-  override protected implicit def configConvert: ConverterConfigConvert[BasicConfig] = BasicConfigConvert
-
-  override protected implicit def fieldConvert: FieldConvert[BasicField] = BasicFieldConvert
-
-  override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
-}
-
-object ShapefileConverterFactory extends LazyLogging {
-
   import org.locationtech.geomesa.utils.conversions.ScalaImplicits._
 
   import scala.collection.JavaConverters._
 
-  val TypeToProcess: String = "shp"
+  override protected val typeToProcess: String = ShapefileConverterFactory.TypeToProcess
 
-  /**
-    * Inferring a shapefile converter requires the path, so can't use the normal API method in
-    * SimpleFeatureConverterFactory
-    *
-    * @param path path to a .shp file
-    * @param sft simple feature type being used, if any
-    * @return
-    */
-  def infer(path: String, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] = {
-    var ds: ShapefileDataStore = null
-    try {
-      ds = ShapefileConverter.getDataStore(path)
-      val fields = sft match {
-        case None =>
-          ds.getSchema.getAttributeDescriptors.asScala.mapWithIndex { case (d, i) =>
-            BasicField(d.getLocalName, Some(Column(i + 1)))
-          }
+  override protected implicit def configConvert: ConverterConfigConvert[BasicConfig] = BasicConfigConvert
+  override protected implicit def fieldConvert: FieldConvert[BasicField] = BasicFieldConvert
+  override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
 
-        case Some(s) =>
-          // map the attributes whose name match the shapefile
-          val descriptors = ds.getSchema.getAttributeDescriptors.asScala
-          s.getAttributeDescriptors.asScala.flatMap { d =>
-            val name = d.getLocalName
-            var i = descriptors.indexWhere(_.getLocalName.equalsIgnoreCase(name))
-            if (i == -1) { Seq.empty } else {
-              Seq(BasicField(name, Some(Column(i + 1))))
+  override def infer(is: InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] =
+    infer(is, sft, None)
+
+  override def infer(
+      is: InputStream,
+      sft: Option[SimpleFeatureType],
+      path: Option[String]): Option[(SimpleFeatureType, Config)] = {
+
+    is.close() // we don't use the input stream, just close it
+
+    path.flatMap { url =>
+      var ds: ShapefileDataStore = null
+      try {
+        ds = ShapefileConverter.getDataStore(url)
+        val fields = sft match {
+          case None =>
+            ds.getSchema.getAttributeDescriptors.asScala.mapWithIndex { case (d, i) =>
+              BasicField(d.getLocalName, Some(Column(i + 1)))
             }
-          }
-      }
 
-      val shpConfig = BasicConfig(TypeToProcess, Some(Column(0)), Map.empty, Map.empty)
+          case Some(s) =>
+            // map the attributes whose name match the shapefile
+            val descriptors = ds.getSchema.getAttributeDescriptors.asScala
+            s.getAttributeDescriptors.asScala.flatMap { d =>
+              val name = d.getLocalName
+              val i = descriptors.indexWhere(_.getLocalName.equalsIgnoreCase(name))
+              if (i == -1) { Seq.empty } else {
+                Seq(BasicField(name, Some(Column(i + 1))))
+              }
+            }
+        }
 
-      val config = BasicConfigConvert.to(shpConfig)
-          .withFallback(BasicFieldConvert.to(fields))
-          .withFallback(BasicOptionsConvert.to(BasicOptions.default))
-          .toConfig
+        val shpConfig = BasicConfig(TypeToProcess, Some(Column(0)), Map.empty, Map.empty)
 
-      Some((sft.getOrElse(ds.getSchema), config))
-    } catch {
-      case NonFatal(e) =>
-        logger.debug(s"Could not infer Shapefile converter from path '$path':", e)
-        None
-    } finally {
-      if (ds != null) {
-        ds.dispose()
+        val config = BasicConfigConvert.to(shpConfig)
+            .withFallback(BasicFieldConvert.to(fields))
+            .withFallback(BasicOptionsConvert.to(BasicOptions.default))
+            .toConfig
+
+        Some((sft.getOrElse(ds.getSchema), config))
+      } catch {
+        case NonFatal(e) =>
+          logger.debug(s"Could not infer Shapefile converter from path '$path':", e)
+          None
+      } finally {
+        if (ds != null) {
+          ds.dispose()
+        }
       }
     }
   }
+}
+
+object ShapefileConverterFactory extends LazyLogging {
+  val TypeToProcess: String = "shp"
 }
