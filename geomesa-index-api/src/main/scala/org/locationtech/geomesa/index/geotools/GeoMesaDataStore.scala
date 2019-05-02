@@ -22,7 +22,6 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.VersionKey
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
-import org.locationtech.geomesa.index.metadata.GeoMesaMetadata.ATTRIBUTES_KEY
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
@@ -304,8 +303,22 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (sft == null) {
       throw new IOException(s"Schema '${query.getTypeName}' has not been initialized. Please call 'createSchema' first.")
     }
-    GeoMesaFeatureReader(sft, query, queryPlanner, config.queryTimeout, config.audit)
+    if (transaction != Transaction.AUTO_COMMIT) {
+      logger.warn("Ignoring transaction - not supported")
+    }
+    getFeatureReader(sft, query)
   }
+
+  /**
+    * Internal method to get a feature reader without reloading the simple feature type. We don't expose this
+    * widely as we want to ensure that the sft has been loaded from our catalog
+    *
+    * @param sft simple feature type
+    * @param query query
+    * @return
+    */
+  private [geotools] def getFeatureReader(sft: SimpleFeatureType, query: Query): GeoMesaFeatureReader =
+    GeoMesaFeatureReader(sft, query, queryPlanner, config.queryTimeout, config.audit)
 
   /**
    * Create a general purpose writer that is capable of updates and deletes.
@@ -326,7 +339,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (transaction != Transaction.AUTO_COMMIT) {
       logger.warn("Ignoring transaction - not supported")
     }
-    GeoMesaFeatureWriter(this, sft, manager.indices(sft, mode = IndexMode.Write), Some(filter))
+    getFeatureWriter(sft, Some(filter))
   }
 
   /**
@@ -345,8 +358,19 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (transaction != Transaction.AUTO_COMMIT) {
       logger.warn("Ignoring transaction - not supported")
     }
-    GeoMesaFeatureWriter(this, sft, manager.indices(sft, mode = IndexMode.Write), None)
+    getFeatureWriter(sft, None)
   }
+
+  /**
+    * Internal method to get a feature writer without reloading the simple feature type. We don't expose this
+    * widely as we want to ensure that the sft has been loaded from our catalog
+    *
+    * @param sft simple feature type
+    * @param filter if defined, will do an updating write, otherwise will do an appending write
+    * @return
+    */
+  private [geotools] def getFeatureWriter(sft: SimpleFeatureType, filter: Option[Filter]): FlushableFeatureWriter =
+    GeoMesaFeatureWriter(this, sft, manager.indices(sft, mode = IndexMode.Write), filter)
 
   /**
     * Writes to the specified indices
@@ -386,9 +410,10 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
    * @param index hint on the index to use to satisfy the query
    * @return query plans
    */
-  def getQueryPlan(query: Query,
-                   index: Option[String] = None,
-                   explainer: Explainer = new ExplainLogging): Seq[QueryPlan[DS]] = {
+  def getQueryPlan(
+      query: Query,
+      index: Option[String] = None,
+      explainer: Explainer = new ExplainLogging): Seq[QueryPlan[DS]] = {
     require(query.getTypeName != null, "Type name is required in the query")
     val sft = getSchema(query.getTypeName)
     if (sft == null) {

@@ -39,20 +39,19 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
     val fids = new java.util.ArrayList[FeatureId](collection.size())
     val errors = ArrayBuffer.empty[Throwable]
 
-    WithClose(collection.features, getDataStore.getFeatureWriterAppend(sft.getTypeName, transaction)) {
-      case (features, writer) =>
-        while (features.hasNext) {
-          try {
-            val toWrite = FeatureUtils.copyToWriter(writer, features.next())
-            writer.write()
-            fids.add(toWrite.getIdentifier)
-          } catch {
-            // validation errors in indexing will throw an IllegalArgumentException
-            // make the caller handle other errors, which are likely related to the underlying database,
-            // as we wouldn't know which features were actually written or not due to write buffering
-            case e: IllegalArgumentException => errors.append(e)
-          }
+    WithClose(collection.features, writer(None)) { case (features, writer) =>
+      while (features.hasNext) {
+        try {
+          val toWrite = FeatureUtils.copyToWriter(writer, features.next())
+          writer.write()
+          fids.add(toWrite.getIdentifier)
+        } catch {
+          // validation errors in indexing will throw an IllegalArgumentException
+          // make the caller handle other errors, which are likely related to the underlying database,
+          // as we wouldn't know which features were actually written or not due to write buffering
+          case e: IllegalArgumentException => errors.append(e)
         }
+      }
     }
 
     if (errors.isEmpty) { fids } else {
@@ -66,7 +65,7 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
   override def setFeatures(reader: FeatureReader[SimpleFeatureType, SimpleFeature]): Unit = {
     removeFeatures(Filter.INCLUDE)
     try {
-      WithClose(ds.getFeatureWriterAppend(sft.getTypeName, transaction)) { writer =>
+      WithClose(writer(None)) { writer =>
         while (reader.hasNext) {
           FeatureUtils.copyToWriter(writer, reader.next())
           writer.write()
@@ -99,7 +98,7 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
     attributes.foreach(a => require(sft.getDescriptor(a) != null, s"$a is not an attribute of ${sft.getName}"))
     require(attributes.length == values.length, "Modified names and values don't match")
 
-    WithClose(ds.getFeatureWriter(sft.getTypeName, filter, transaction)) { writer =>
+    WithClose(writer(Some(filter))) { writer =>
       while (writer.hasNext) {
         val sf = writer.next()
         var i = 0
@@ -132,7 +131,7 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
         gm.stats.clearStats(sft)
 
       case _ =>
-        WithClose(ds.getFeatureWriter(sft.getTypeName, filter, transaction)) { writer =>
+        WithClose(writer(Some(filter))) { writer =>
           while (writer.hasNext) {
             writer.next()
             writer.remove()
@@ -143,8 +142,19 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
 
   override def setTransaction(transaction: Transaction): Unit = {
     require(transaction != null, "Transaction can't be null - did you mean Transaction.AUTO_COMMIT?")
+    if (ds.isInstanceOf[GeoMesaDataStore[_]] && transaction != Transaction.AUTO_COMMIT) {
+      logger.warn("Ignoring transaction - not supported")
+    }
     this.transaction = transaction
   }
 
   override def getTransaction: Transaction = transaction
+
+  private def writer(filter: Option[Filter]): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
+    ds match {
+      case gm: GeoMesaDataStore[_] => gm.getFeatureWriter(sft, filter)
+      case _ if filter.isEmpty => ds.getFeatureWriterAppend(sft.getTypeName, transaction)
+      case _ => ds.getFeatureWriter(sft.getTypeName, filter.get, transaction)
+    }
+  }
 }
