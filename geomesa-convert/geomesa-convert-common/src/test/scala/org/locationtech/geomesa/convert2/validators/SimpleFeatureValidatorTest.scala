@@ -74,6 +74,7 @@ object SimpleFeatureValidatorTest {
 
   class CustomValidator(val config: Option[String]) extends SimpleFeatureValidator {
     override def validate(sf: SimpleFeature): String = Option(errors.get).orElse(config).orNull
+    override def close(): Unit = {}
   }
 
   // note: registered in

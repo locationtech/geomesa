@@ -8,13 +8,16 @@
 
 package org.locationtech.geomesa.convert2.validators
 
+import java.io.Closeable
+
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-trait SimpleFeatureValidator {
+trait SimpleFeatureValidator extends Closeable {
 
   /**
     * Validate a feature
@@ -90,6 +93,7 @@ object SimpleFeatureValidator extends LazyLogging {
           new SimpleFeatureValidator() {
             private val validator = factory.validator(sft, config)
             override def validate(sf: SimpleFeature): String = validator.validate(sf)
+            override def close(): Unit = {}
           }
         }
       }
@@ -112,5 +116,6 @@ object SimpleFeatureValidator extends LazyLogging {
       }
       error
     }
+    override def close(): Unit = CloseWithLogging(validators)
   }
 }

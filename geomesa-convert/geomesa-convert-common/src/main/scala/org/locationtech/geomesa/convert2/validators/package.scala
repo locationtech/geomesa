@@ -28,10 +28,12 @@ package object validators {
         error
       }
     }
+    override def close(): Unit = {}
   }
 
   object NoValidator extends SimpleFeatureValidator {
     override def validate(sf: SimpleFeature): String = null
+    override def close(): Unit = {}
   }
 
   object Errors {

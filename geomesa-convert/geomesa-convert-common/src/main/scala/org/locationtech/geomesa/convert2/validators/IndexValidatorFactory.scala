@@ -97,6 +97,8 @@ object IndexValidatorFactory extends LazyLogging {
         null
       }
     }
+
+    override def close(): Unit = {}
   }
 
   /**
@@ -139,6 +141,8 @@ object IndexValidatorFactory extends LazyLogging {
         error.substring(6) // trim off leading 'null, '
       }
     }
+
+    override def close(): Unit = {}
   }
 
   class ZIndexValidatorFactory extends IndexValidatorFactory {
