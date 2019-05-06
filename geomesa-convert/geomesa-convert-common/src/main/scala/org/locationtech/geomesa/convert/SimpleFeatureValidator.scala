@@ -17,6 +17,7 @@ import org.locationtech.geomesa.utils.geotools.wholeWorldEnvelope
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+@deprecated("use org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator")
 trait SimpleFeatureValidator {
 
   /**
@@ -35,12 +36,13 @@ trait SimpleFeatureValidator {
   def validate(sf: SimpleFeature): String
 }
 
+@deprecated("use org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator")
 object SimpleFeatureValidator extends LazyLogging {
 
   import scala.collection.JavaConverters._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  val property = SystemProperty("geomesa.converter.validators", IndexValidator.name)
+  val property = org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator.DefaultValidators
 
   def default: SimpleFeatureValidator = apply(property.get.split(","))
 
@@ -86,6 +88,7 @@ object SimpleFeatureValidator extends LazyLogging {
   /**
     * Factory for validators
     */
+  @deprecated("use org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorFactory")
   trait ValidatorFactory {
     def name: String
     def validator(sft: SimpleFeatureType, config: Option[String]): Validator
@@ -94,6 +97,7 @@ object SimpleFeatureValidator extends LazyLogging {
   /**
     * Simplified validator interface for delegating
     */
+  @deprecated("use org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator")
   trait Validator {
 
     /**

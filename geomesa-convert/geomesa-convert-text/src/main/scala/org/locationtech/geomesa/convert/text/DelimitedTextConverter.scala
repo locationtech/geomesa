@@ -18,7 +18,7 @@ import org.geotools.factory.GeoTools
 import org.geotools.util.Converters
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter.{DelimitedTextConfig, DelimitedTextOptions}
-import org.locationtech.geomesa.convert.{Counter, EvaluationContext, SimpleFeatureValidator}
+import org.locationtech.geomesa.convert.{Counter, EvaluationContext}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
 import org.locationtech.geomesa.convert2._
 import org.locationtech.geomesa.convert2.transforms.Expression
@@ -217,7 +217,7 @@ object DelimitedTextConverter {
       quote: OptionalChar,
       escape: OptionalChar,
       delimiter: Option[Char],
-      validators: SimpleFeatureValidator,
+      validators: Seq[String],
       parseMode: ParseMode,
       errorMode: ErrorMode,
       encoding: Charset

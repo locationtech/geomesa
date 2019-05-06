@@ -19,7 +19,8 @@ import org.geotools.factory.Hints
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.tools.AccumuloRunner
-import org.locationtech.geomesa.convert.{Modes, SimpleFeatureValidator}
+import org.locationtech.geomesa.convert.Modes
+import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -201,7 +202,7 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
 
     // In this test, the third record has a null date.  The system property turns off the error check.
     "index null dates via override" in {
-      SimpleFeatureValidator.property.threadLocalValue.set("has-geo")
+      SimpleFeatureValidator.DefaultValidators.threadLocalValue.set("has-geo")
       val args = baseArgs ++ Array("--feature-name", "nullDates3", shpFileWithNullDates.getAbsolutePath)
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
@@ -223,7 +224,7 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
             beSome((features.head.getAttribute("dtg"), featuresWithNulls.last.getAttribute("dtg"), 3L))
         }
       } finally {
-        SimpleFeatureValidator.property.threadLocalValue.remove()
+        SimpleFeatureValidator.DefaultValidators.threadLocalValue.remove()
       }
     }
 

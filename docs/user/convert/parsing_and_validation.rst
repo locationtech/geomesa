@@ -22,7 +22,7 @@ There are three validators provided for use with GeoMesa converters:
   the relevant GeoMesa Z-Index implementations (i.e. Z2, Z3, XZ2, XZ3)
 
 Additional validators may be loaded through Java SPI by by implementing
-``org.locationtech.geomesa.convert.SimpleFeatureValidator$ValidatorFactory`` and including a special service
+``org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorFactory`` and including a special service
 descriptor file. See below for additional information.
 
 By default the ``index`` validator is enabled. This is suitable for most use cases, as it will choose the appropriate
@@ -41,15 +41,28 @@ Custom Validators
 ^^^^^^^^^^^^^^^^^
 
 Custom validators may be loaded through Java SPI by by implementing
-``org.locationtech.geomesa.convert.SimpleFeatureValidator$ValidatorFactory``, shown below. Note that validators
+``org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorFactory``, shown below. Note that validators
 must be registered through a special service descriptor file.
 
 .. code-block:: scala
 
-  trait ValidatorFactory {
+  trait SimpleFeatureValidatorFactory {
+
+    /**
+      * Well-known name of this validator, for specifying the validator to use
+      *
+      * @return
+      */
     def name: String
-    def validator(sft: SimpleFeatureType, config: Option[String]): Validator
+
+    /**
+      * Create a validator for the given feature typ
+      *
+      * @param sft simple feature type
+      */
+    def apply(sft: SimpleFeatureType, config: Option[String]): SimpleFeatureValidator
   }
+
 
 When specifying validators in a converter config, the ``name`` of the factory must match the ``validators`` string.
 Any additional arguments may be specified in parentheses, which will be passed to the ``validator`` method.
@@ -63,11 +76,13 @@ For example::
 
 .. code-block:: scala
 
-  class MyCustomValidator extends ValidatorFactory {
+  import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorFactory
+
+  class MyCustomValidator extends SimpleFeatureValidatorFactory {
 
     override val name: String = "my-custom-validator"
 
-    override def validator(sft: SimpleFeatureType, config: Option[String]): Validator = {
+    override def validator(sft: SimpleFeatureType, config: Option[String]): SimpleFeatureValidator = {
       if (config.exists(_.contains("optionA"))) {
         // handle option a
       } else {
@@ -77,7 +92,7 @@ For example::
   }
 
 See the GeoMesa
-`unit tests <https://github.com/locationtech/geomesa/blob/master/geomesa-convert/geomesa-convert-common/src/test/scala/org/locationtech/geomesa/convert/SimpleFeatureValidatorTest.scala>`__
+`unit tests <https://github.com/locationtech/geomesa/blob/master/geomesa-convert/geomesa-convert-common/src/test/scala/org/locationtech/geomesa/convert2/validators/SimpleFeatureValidatorTest.scala>`__
 for a sample implementation.
 
 For more details on implementing a service provider, see the

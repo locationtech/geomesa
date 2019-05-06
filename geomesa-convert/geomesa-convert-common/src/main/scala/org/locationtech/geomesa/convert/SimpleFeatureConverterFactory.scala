@@ -85,7 +85,7 @@ object ValidationMode extends Enumeration {
 }
 
 case class ConvertParseOpts(parseMode: ParseMode,
-                            validator: SimpleFeatureValidator,
+                            validators: Seq[String],
                             validationMode: ValidationMode,
                             verbose: Boolean)
 
@@ -160,33 +160,29 @@ abstract class AbstractSimpleFeatureConverterFactory[I] extends SimpleFeatureCon
   protected def getParsingOptions(conf: Config, sft: SimpleFeatureType): ConvertParseOpts = {
     val verbose = if (conf.hasPath(StandardOption.VerboseOpt.path)) conf.getBoolean(StandardOption.VerboseOpt.path) else false
     val opts = ConvertParseOpts(getParseMode(conf), getValidator(conf, sft), getValidationMode(conf), verbose = verbose)
-    lazy val SimpleFeatureValidator(validators@_*) = opts.validator // unapplySeq to extract names
-    logger.info(s"Using ParseMode ${opts.parseMode} with error mode ${opts.validationMode} and validator ${validators.mkString(", ")}")
+    logger.info(s"Using ParseMode ${opts.parseMode} with error mode ${opts.validationMode} and " +
+        s"validator ${opts.validators.mkString(", ")}")
     opts
   }
 
   // noinspection ScalaDeprecation
-  protected def getValidator(conf: Config, sft: SimpleFeatureType): SimpleFeatureValidator = {
-    val validators: Seq[String] =
-      if (conf.hasPath(StandardOption.Validating.path) && conf.hasPath(StandardOption.ValidatorsOpt.path)) {
-        // This is when you have the old deprecated key...
-        throw new IllegalArgumentException(s"Converter should not have both ${StandardOption.Validating.path}(deprecated) and " +
-          s"${StandardOption.ValidatorsOpt.path} config keys")
-      } else if (conf.hasPath(StandardOption.ValidatorsOpt.path)) {
-        conf.getStringList(StandardOption.ValidatorsOpt.path)
-      } else if (conf.hasPath(StandardOption.Validating.path)) {
-        logger.warn(s"Using deprecated validation key ${StandardOption.Validating.path}")
-        if (conf.getBoolean(StandardOption.Validating.path)) {
-          Seq("has-geo", "has-dtg")
-        } else {
-          Seq("none")
-        }
-      } else {
+  protected def getValidator(conf: Config, sft: SimpleFeatureType): Seq[String] = {
+    if (conf.hasPath(StandardOption.Validating.path) && conf.hasPath(StandardOption.ValidatorsOpt.path)) {
+      // This is when you have the old deprecated key...
+      throw new IllegalArgumentException(s"Converter should not have both ${StandardOption.Validating.path}(deprecated) and " +
+        s"${StandardOption.ValidatorsOpt.path} config keys")
+    } else if (conf.hasPath(StandardOption.ValidatorsOpt.path)) {
+      conf.getStringList(StandardOption.ValidatorsOpt.path)
+    } else if (conf.hasPath(StandardOption.Validating.path)) {
+      logger.warn(s"Using deprecated validation key ${StandardOption.Validating.path}")
+      if (conf.getBoolean(StandardOption.Validating.path)) {
         Seq("has-geo", "has-dtg")
+      } else {
+        Seq("none")
       }
-    val validator = SimpleFeatureValidator(validators)
-    validator.init(sft)
-    validator
+    } else {
+      Seq("has-geo", "has-dtg")
+    }
   }
 
   protected def getParseMode(conf: Config): ParseMode =
@@ -314,9 +310,10 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
   def fromInputType(i: I, ec: EvaluationContext): Iterator[Array[Any]]
   def parseOpts: ConvertParseOpts
 
-  protected val validate: (SimpleFeature, EvaluationContext) => SimpleFeature =
+  protected lazy val validate: (SimpleFeature, EvaluationContext) => SimpleFeature = {
+    val validators = org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator(targetSFT, parseOpts.validators)
     (sf: SimpleFeature, ec: EvaluationContext) => {
-      val error = parseOpts.validator.validate(sf)
+      val error = validators.validate(sf)
       if (error == null) { sf } else {
         val msg = s"Invalid SimpleFeature on line ${ec.counter.getLineCount}: $error"
         if (parseOpts.validationMode == ValidationMode.RaiseErrors) {
@@ -327,6 +324,7 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
         }
       }
     }
+  }
 
   protected val requiredFields: IndexedSeq[Field] = {
     import SimpleFeatureConverter.{addDependencies, topologicalOrder}

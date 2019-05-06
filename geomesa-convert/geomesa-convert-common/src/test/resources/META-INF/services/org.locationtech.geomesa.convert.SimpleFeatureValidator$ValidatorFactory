@@ -1,1 +1,1 @@
-org.locationtech.geomesa.convert.SimpleFeatureValidatorTest$CustomValidatorFactory
+org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorTest$CustomValidatorFactoryV1

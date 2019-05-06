@@ -15,10 +15,12 @@ import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
-import org.locationtech.geomesa.convert._
+import org.locationtech.geomesa.convert.{Counter, EnrichmentCache, EvaluationContext, EvaluationContextImpl}
 import org.locationtech.geomesa.convert2.transforms.Expression
+import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
@@ -50,6 +52,8 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   private val requiredFieldsCount: Int = requiredFields.length
 
   private val requiredFieldsIndices: Array[Int] = requiredFields.map(f => sft.indexOf(f.name))
+
+  private val validators = SimpleFeatureValidator(sft, options.validators)
 
   private val configCaches = config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
 
@@ -164,7 +168,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
       }
     }
 
-    val error = options.validators.validate(sf)
+    val error = validators.validate(sf)
     if (error == null) {
       ec.counter.incSuccess()
       CloseableIterator.single(sf)
@@ -179,7 +183,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     }
   }
 
-  override def close(): Unit = configCaches.foreach(_._2.close())
+  override def close(): Unit = configCaches.foreach { case (_, cache) => CloseWithLogging(cache) }
 }
 
 object AbstractConverter {
@@ -216,7 +220,7 @@ object AbstractConverter {
     * @param encoding file/stream encoding
     */
   case class BasicOptions(
-      validators: SimpleFeatureValidator,
+      validators: Seq[String],
       parseMode: ParseMode,
       errorMode: ErrorMode,
       encoding: Charset
