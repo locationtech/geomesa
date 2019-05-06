@@ -16,11 +16,11 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool}
 import org.apache.commons.pool2.{BasePooledObjectFactory, PooledObject}
 import org.geotools.data.{DataStore, DataUtilities, FeatureWriter, Transaction}
-import org.locationtech.geomesa.convert.{DefaultCounter, EvaluationContext}
+import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert.EvaluationContext.DelegatingEvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.StatusCallback
-import org.locationtech.geomesa.tools.ingest.LocalConverterIngest.LocalIngestCounter
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
@@ -74,12 +74,21 @@ class LocalConverterIngest(
 
     val bytesRead = new AtomicLong(0L)
 
+    // keep track of failure at a global level, keep line counts and success local
+    val globalFailures = new com.codahale.metrics.Counter {
+      override def inc(): Unit = failed.incrementAndGet()
+      override def inc(n: Long): Unit = failed.addAndGet(n)
+      override def dec(): Unit = failed.decrementAndGet()
+      override def dec(n: Long): Unit = failed.addAndGet(-1 * n)
+      override def getCount: Long = failed.get()
+    }
+
     class LocalIngestWorker(file: FileHandle) extends Runnable {
       override def run(): Unit = {
         try {
           val converter = converters.borrowObject()
-          val counter = new LocalIngestCounter(failed)
-          val ec = converter.createEvaluationContext(EvaluationContext.inputFileParam(file.path), counter = counter)
+          val delegate = converter.createEvaluationContext(EvaluationContext.inputFileParam(file.path))
+          val ec = new DelegatingEvaluationContext(delegate)(failure = globalFailures)
 
           var fw: FeatureWriter[SimpleFeatureType, SimpleFeature] = null
 
@@ -178,13 +187,5 @@ class LocalConverterIngest(
     if (errors.get > 0) {
       Command.user.warn("Some files caused errors, ingest counts may not be accurate")
     }
-  }
-}
-
-object LocalConverterIngest {
-  // keep track of failure at a global level, keep line counts and success local
-  class LocalIngestCounter(failed: AtomicLong) extends DefaultCounter {
-    override def incFailure(i: Long): Unit = failed.getAndAdd(i)
-    override def getFailure: Long          = failed.get()
   }
 }

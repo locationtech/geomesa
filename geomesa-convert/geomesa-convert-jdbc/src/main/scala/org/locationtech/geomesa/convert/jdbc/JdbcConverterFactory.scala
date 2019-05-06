@@ -33,11 +33,12 @@ object JdbcConverterFactory {
 
   object JdbcConfigConvert extends ConverterConfigConvert[JdbcConfig] {
 
-    override protected def decodeConfig(cur: ConfigObjectCursor,
-                                        `type`: String,
-                                        idField: Option[Expression],
-                                        caches: Map[String, Config],
-                                        userData: Map[String, Expression]): Either[ConfigReaderFailures, JdbcConfig] = {
+    override protected def decodeConfig(
+        cur: ConfigObjectCursor,
+        `type`: String,
+        idField: Option[Expression],
+        caches: Map[String, Config],
+        userData: Map[String, Expression]): Either[ConfigReaderFailures, JdbcConfig] = {
       for { conn <- cur.atKey("connection").right.flatMap(_.asString).right } yield {
         JdbcConfig(`type`, conn, idField, caches, userData)
       }

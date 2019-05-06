@@ -32,7 +32,7 @@ class FixedWidthConverter(sft: SimpleFeatureType,
       override def hasNext: Boolean = lines.hasNext
 
       override def next(): String = {
-        ec.counter.incLineCount()
+        ec.line += 1
         lines.next
       }
 

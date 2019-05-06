@@ -10,10 +10,11 @@ package org.locationtech.geomesa
 
 import java.nio.charset.Charset
 
+import com.codahale.metrics.Counter
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
-import org.locationtech.geomesa.convert.{Counter, EvaluationContext, SimpleFeatureValidator}
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
@@ -36,6 +37,7 @@ package object convert2 {
 
   trait ConverterOptions {
     def validators: Seq[String]
+    def reporters: Map[String, Config]
     def parseMode: ParseMode
     def errorMode: ErrorMode
     def encoding: Charset
@@ -67,7 +69,7 @@ package object convert2 {
           }
         } catch {
           case NonFatal(e) =>
-            counter.incFailure()
+            counter.inc()
             mode match {
               case ErrorMode.SkipBadRecords => logger.warn("Failed parsing input: ", e)
               case ErrorMode.RaiseErrors => throw e

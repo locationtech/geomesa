@@ -16,7 +16,7 @@ import com.google.common.hash.Hashing
 import org.apache.commons.codec.binary.Base64
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.{EvaluationContext, EvaluationContextImpl}
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
@@ -442,7 +442,8 @@ class ExpressionTest extends Specification {
       }
     }
     "handle named values" >> {
-      val ctx = EvaluationContext(IndexedSeq(null, "foo", null), Array[Any](null, "bar", null), null, Map.empty)
+      val ctx = EvaluationContext(Seq(null, "foo", null))
+      ctx.set(1, "bar")
       val exp = Expression("capitalize($foo)")
       exp.eval(Array(null))(ctx) must be equalTo "Bar"
     }
@@ -629,7 +630,9 @@ class ExpressionTest extends Specification {
       exp.eval(Array("", "18", null)) mustEqual null
     }
     "return null for non-existing fields" >> {
-      val fieldsCtx = new EvaluationContextImpl(IndexedSeq("foo", "bar"), Array("5", "10"), null, Map.empty)
+      val fieldsCtx = EvaluationContext(Seq("foo", "bar"))
+      fieldsCtx.set(0, "5")
+      fieldsCtx.set(1, "10")
       Expression("$b").eval(Array())(fieldsCtx) mustEqual null
       Expression("$bar").eval(Array())(fieldsCtx) mustEqual "10"
     }

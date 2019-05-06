@@ -9,20 +9,17 @@
 package org.locationtech.geomesa.convert.avro
 
 import java.io.InputStream
-import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.Config
 import org.apache.avro.Schema
 import org.apache.avro.file.DataFileStream
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
-import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.avro.AvroConverter._
 import org.locationtech.geomesa.convert.avro.AvroConverterFactory.AvroConfigConvert
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert}
 import org.locationtech.geomesa.convert2.TypeInference.{FunctionTransform, InferredType}
 import org.locationtech.geomesa.convert2.transforms.Expression
-import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.features.avro._
 import org.locationtech.geomesa.features.serialization.ObjectType
@@ -173,12 +170,9 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
 
         val converterConfig = AvroConfig(typeToProcess, SchemaEmbedded, Some(id), Map.empty, userData)
 
-        val options =
-          BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
-
         val config = configConvert.to(converterConfig)
             .withFallback(fieldConvert.to(fields))
-            .withFallback(optsConvert.to(options))
+            .withFallback(optsConvert.to(BasicOptions.default))
             .toConfig
 
         Some((schema, config))
@@ -195,14 +189,16 @@ object AvroConverterFactory {
 
   object AvroConfigConvert extends ConverterConfigConvert[AvroConfig] with OptionConvert {
 
-    override protected def decodeConfig(cur: ConfigObjectCursor,
-                                        `type`: String,
-                                        idField: Option[Expression],
-                                        caches: Map[String, Config],
-                                        userData: Map[String, Expression]): Either[ConfigReaderFailures, AvroConfig] = {
+    override protected def decodeConfig(
+        cur: ConfigObjectCursor,
+        `type`: String,
+        idField: Option[Expression],
+        caches: Map[String, Config],
+        userData: Map[String, Expression]): Either[ConfigReaderFailures, AvroConfig] = {
 
-      def schemaOrFile(schema: Option[String],
-                       schemaFile: Option[String]): Either[ConfigReaderFailures, SchemaConfig] = {
+      def schemaOrFile(
+          schema: Option[String],
+          schemaFile: Option[String]): Either[ConfigReaderFailures, SchemaConfig] = {
         (schema, schemaFile) match {
           case (Some(s), None) if s.equalsIgnoreCase(SchemaEmbedded.name) => Right(SchemaEmbedded)
           case (Some(s), None) => Right(SchemaString(s))

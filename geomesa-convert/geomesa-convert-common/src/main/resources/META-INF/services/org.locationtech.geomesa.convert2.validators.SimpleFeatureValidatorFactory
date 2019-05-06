@@ -1,5 +1,5 @@
-org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator$HasDtgValidatorFactory
-org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator$HasGeoValidatorFactory
-org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator$IndexValidatorFactory
-org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator$NoneValidatorFactory
-org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator$ZIndexValidatorFactory
+org.locationtech.geomesa.convert2.validators.HasDtgValidatorFactory
+org.locationtech.geomesa.convert2.validators.HasGeoValidatorFactory
+org.locationtech.geomesa.convert2.validators.IndexValidatorFactory
+org.locationtech.geomesa.convert2.validators.NoneValidatorFactory
+org.locationtech.geomesa.convert2.validators.IndexValidatorFactory$ZIndexValidatorFactory

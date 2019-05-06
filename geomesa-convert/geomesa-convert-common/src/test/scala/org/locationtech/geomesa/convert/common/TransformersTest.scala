@@ -8,17 +8,17 @@
 
 package org.locationtech.geomesa.convert.common
 
-import java.time.{LocalDateTime, ZoneOffset}
 import java.time.format.DateTimeFormatter
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
 
 import com.google.common.hash.Hashing
-import org.locationtech.jts.geom._
 import org.apache.commons.codec.binary.Base64
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.{EvaluationContext, EvaluationContextImpl, Transformers}
+import org.locationtech.geomesa.convert.{Counter, EnrichmentCache, EvaluationContext, Transformers}
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -478,7 +478,7 @@ class TransformersTest extends Specification {
       }
 
       "handle named values" >> {
-        val ctx = EvaluationContext(IndexedSeq(null, "foo", null), Array[Any](null, "bar", null), null, Map.empty)
+        val ctx = EvaluationContext(IndexedSeq[String](null, "foo", null), Array[Any](null, "bar", null), null: Counter, Map.empty[String, EnrichmentCache])
         val exp = Transformers.parseTransform("capitalize($foo)")
         exp.eval(Array(null))(ctx) must be equalTo "Bar"
       }
@@ -799,7 +799,7 @@ class TransformersTest extends Specification {
     }
 
     "return null for non-existing fields" >> {
-      val fieldsCtx = new EvaluationContextImpl(IndexedSeq("foo", "bar"), Array("5", "10"), null, Map.empty)
+      val fieldsCtx = EvaluationContext(IndexedSeq("foo", "bar"), Array[Any]("5", "10"), null: Counter, Map.empty[String, EnrichmentCache])
       Transformers.parseTransform("$b").eval(Array())(fieldsCtx) mustEqual null
       Transformers.parseTransform("$bar").eval(Array())(fieldsCtx) mustEqual "10"
     }

@@ -18,7 +18,7 @@ import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{ConverterConfigConvert, ConverterOptionsConvert, FieldConvert}
 import org.locationtech.geomesa.convert2.transforms.Expression
-import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator.{HasDtgValidatorFactory, HasGeoValidatorFactory}
+import org.locationtech.geomesa.convert2.validators.{HasDtgValidatorFactory, HasGeoValidatorFactory}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -153,11 +153,12 @@ object AbstractConverterFactory extends LazyLogging {
     */
   implicit object BasicConfigConvert extends ConverterConfigConvert[BasicConfig] {
 
-    override protected def decodeConfig(cur: ConfigObjectCursor,
-                                        `type`: String,
-                                        idField: Option[Expression],
-                                        caches: Map[String, Config],
-                                        userData: Map[String, Expression]): Either[ConfigReaderFailures, BasicConfig] = {
+    override protected def decodeConfig(
+        cur: ConfigObjectCursor,
+        `type`: String,
+        idField: Option[Expression],
+        caches: Map[String, Config],
+        userData: Map[String, Expression]): Either[ConfigReaderFailures, BasicConfig] = {
       Right(BasicConfig(`type`, idField, caches, userData))
     }
 
@@ -188,10 +189,11 @@ object AbstractConverterFactory extends LazyLogging {
     override protected def decodeOptions(
         cur: ConfigObjectCursor,
         validators: Seq[String],
+        reporters: Map[String, Config],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, BasicOptions] = {
-      Right(BasicOptions(validators, parseMode, errorMode, encoding))
+      Right(BasicOptions(validators, reporters, parseMode, errorMode, encoding))
     }
 
     override protected def encodeOptions(options: BasicOptions, base: java.util.Map[String, AnyRef]): Unit = {}
@@ -203,13 +205,15 @@ object AbstractConverterFactory extends LazyLogging {
     *
     * @tparam C config class
     */
-  abstract class ConverterConfigConvert[C <: ConverterConfig] extends ConfigConvert[C] with ExpressionConvert {
+  abstract class ConverterConfigConvert[C <: ConverterConfig]
+      extends ConfigConvert[C] with ExpressionConvert with ConfigMapConvert {
 
-    protected def decodeConfig(cur: ConfigObjectCursor,
-                               `type`: String,
-                               idField: Option[Expression],
-                               caches: Map[String, Config],
-                               userData: Map[String, Expression]): Either[ConfigReaderFailures, C]
+    protected def decodeConfig(
+        cur: ConfigObjectCursor,
+        `type`: String,
+        idField: Option[Expression],
+        caches: Map[String, Config],
+        userData: Map[String, Expression]): Either[ConfigReaderFailures, C]
 
     protected def encodeConfig(config: C, base: java.util.Map[String, AnyRef]): Unit
 
@@ -219,7 +223,7 @@ object AbstractConverterFactory extends LazyLogging {
         typ      <- obj.atKey("type").right.flatMap(_.asString).right
         idField  <- idFieldFrom(obj.atKeyOrUndefined("id-field")).right
         userData <- userDataFrom(obj.atKeyOrUndefined("user-data")).right
-        caches   <- cachesFrom(obj.atKeyOrUndefined("caches")).right
+        caches   <- configsFrom(obj.atKeyOrUndefined("caches")).right
         config   <- decodeConfig(obj, typ, idField, caches, userData).right
       } yield {
         config
@@ -256,17 +260,6 @@ object AbstractConverterFactory extends LazyLogging {
           }
         }
         for { obj <- cur.asObjectCursor.right; data <- merge(obj).right } yield { data }
-      }
-    }
-
-    private def cachesFrom(cur: ConfigCursor): Either[ConfigReaderFailures, Map[String, Config]] = {
-      if (cur.isUndefined) { Right(Map.empty) } else {
-        def merge(cur: ConfigObjectCursor): Either[ConfigReaderFailures, Map[String, Config]] = {
-          cur.map.foldLeft[Either[ConfigReaderFailures, Map[String, Config]]](Right(Map.empty)) {
-            case (map, (k, v)) => for { m <- map.right; c <- v.asObjectCursor.right } yield { m + (k -> c.value.toConfig) }
-          }
-        }
-        for { obj <- cur.asObjectCursor.right; caches <- merge(obj).right } yield { caches }
       }
     }
   }
@@ -338,11 +331,12 @@ object AbstractConverterFactory extends LazyLogging {
     *
     * @tparam O options class
     */
-  abstract class ConverterOptionsConvert[O <: ConverterOptions] extends ConfigConvert[O] {
+  abstract class ConverterOptionsConvert[O <: ConverterOptions] extends ConfigConvert[O] with ConfigMapConvert {
 
     protected def decodeOptions(
         cur: ConfigObjectCursor,
         validators: Seq[String],
+        reporters: Map[String, Config],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, O]
@@ -389,10 +383,11 @@ object AbstractConverterFactory extends LazyLogging {
 
       for {
         validators <- cur.atKey("validators").right.flatMap(_.asListCursor).right.flatMap(mergeValidators).right
+        reporters  <- configsFrom(cur.atKeyOrUndefined("reporters")).right
         parseMode  <- parse("parse-mode", ParseMode.values).right
         errorMode  <- parse("error-mode", ErrorMode.values).right
         encoding   <- cur.atKey("encoding").right.flatMap(_.asString).right.map(Charset.forName).right
-        options    <- decodeOptions(cur, validators, parseMode, errorMode, encoding).right
+        options    <- decodeOptions(cur, validators, reporters, parseMode, errorMode, encoding).right
       } yield {
         options
       }
@@ -404,6 +399,9 @@ object AbstractConverterFactory extends LazyLogging {
       map.put("error-mode", options.errorMode.toString)
       map.put("encoding", options.encoding.name)
       map.put("validators", options.validators.asJava)
+      if (options.reporters.nonEmpty) {
+        map.put("reporters", options.reporters.map { case (k, v) => (k, v.root().unwrapped()) })
+      }
       encodeOptions(options, map)
       map
     }
@@ -434,6 +432,22 @@ object AbstractConverterFactory extends LazyLogging {
     }
   }
 
+  /**
+    * Convert named configs
+    */
+  trait ConfigMapConvert {
+    protected def configsFrom(cur: ConfigCursor): Either[ConfigReaderFailures, Map[String, Config]] = {
+      if (cur.isUndefined) { Right(Map.empty) } else {
+        def merge(cur: ConfigObjectCursor): Either[ConfigReaderFailures, Map[String, Config]] = {
+          cur.map.foldLeft[Either[ConfigReaderFailures, Map[String, Config]]](Right(Map.empty)) {
+            case (map, (k, v)) =>
+              for { m <- map.right; c <- v.asObjectCursor.right } yield { m + (k -> c.value.toConfig) }
+          }
+        }
+        for { obj <- cur.asObjectCursor.right; caches <- merge(obj).right } yield { caches }
+      }
+    }
+  }
   /**
     * Access to primitive converts
     */

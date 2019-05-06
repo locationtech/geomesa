@@ -82,7 +82,7 @@ class DelimitedTextConverterFactory
           }
 
           val options = DelimitedTextOptions(None, CharNotSpecified, CharNotSpecified, None,
-            SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
+            SimpleFeatureValidator.default, Map.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
 
           val config = configConvert.to(converterConfig)
               .withFallback(fieldConvert.to(fields))
@@ -131,27 +131,29 @@ object DelimitedTextConverterFactory {
 
   object DelimitedTextConfigConvert extends ConverterConfigConvert[DelimitedTextConfig] {
 
-    override protected def decodeConfig(cur: ConfigObjectCursor,
-                                        typ: String,
-                                        idField: Option[Expression],
-                                        caches: Map[String, Config],
-                                        userData: Map[String, Expression]): Either[ConfigReaderFailures, DelimitedTextConfig] = {
+    override protected def decodeConfig(
+        cur: ConfigObjectCursor,
+        typ: String,
+        idField: Option[Expression],
+        caches: Map[String, Config],
+        userData: Map[String, Expression]): Either[ConfigReaderFailures, DelimitedTextConfig] = {
       for { format <- cur.atKey("format").right.flatMap(_.asString).right } yield {
         DelimitedTextConfig(typ, format, idField, caches, userData)
       }
     }
 
-    override protected def encodeConfig(config: DelimitedTextConfig,
-                                        base: java.util.Map[String, AnyRef]): Unit = {
+    override protected def encodeConfig(
+        config: DelimitedTextConfig,
+        base: java.util.Map[String, AnyRef]): Unit = {
       base.put("format", config.format)
     }
-
   }
 
   object DelimitedTextOptionsConvert extends ConverterOptionsConvert[DelimitedTextOptions] {
     override protected def decodeOptions(
         cur: ConfigObjectCursor,
         validators: Seq[String],
+        reporters: Map[String, Config],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, DelimitedTextOptions] = {
@@ -181,7 +183,7 @@ object DelimitedTextConverterFactory {
         escape    <- optionalChar("escape").right
         delimiter <- option("delimiter", PrimitiveConvert.charConfigReader).right
       } yield {
-        DelimitedTextOptions(skipLines, quote, escape, delimiter, validators, parseMode, errorMode, encoding)
+        DelimitedTextOptions(skipLines, quote, escape, delimiter, validators, reporters, parseMode, errorMode, encoding)
       }
     }
 

@@ -32,5 +32,5 @@ class XmlCompositeConverter(
   private val parser = new DocParser(xsd)
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[Element] =
-    XmlConverter.iterator(parser, is, encoding, lineMode, ec.counter)
+    XmlConverter.iterator(parser, is, encoding, lineMode, ec)
 }

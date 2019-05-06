@@ -32,7 +32,7 @@ class JsonConverter(sft: SimpleFeatureType, config: JsonConfig, fields: Seq[Json
   private val featurePath = config.featurePath.map(JsonPath.compile(_))
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[JsonElement] =
-    new JsonIterator(is, options.encoding, ec.counter)
+    new JsonIterator(is, options.encoding, ec)
 
   override protected def values(parsed: CloseableIterator[JsonElement],
                                 ec: EvaluationContext): CloseableIterator[Array[Any]] = {
@@ -65,11 +65,13 @@ object JsonConverter extends GeoJsonParsing {
 
   private val LineRegex = """JsonReader at line (\d+)""".r
 
-  case class JsonConfig(`type`: String,
-                        featurePath: Option[String],
-                        idField: Option[Expression],
-                        caches: Map[String, Config],
-                        userData: Map[String, Expression]) extends ConverterConfig
+  case class JsonConfig(
+      `type`: String,
+      featurePath: Option[String],
+      idField: Option[Expression],
+      caches: Map[String, Config],
+      userData: Map[String, Expression]
+    ) extends ConverterConfig
 
   sealed trait JsonField extends Field
 
@@ -146,9 +148,9 @@ object JsonConverter extends GeoJsonParsing {
     *
     * @param is input
     * @param encoding encoding
-    * @param counter counter
+    * @param ec context
     */
-  class JsonIterator private [json] (is: InputStream, encoding: Charset, counter: Counter)
+  class JsonIterator private [json] (is: InputStream, encoding: Charset, ec: EvaluationContext)
       extends CloseableIterator[JsonElement] {
 
     private val parser = new JsonParser()
@@ -159,7 +161,7 @@ object JsonConverter extends GeoJsonParsing {
     override def next(): JsonElement = {
       val res = parser.parse(reader)
       // extract the line number, only accessible from reader.toString
-      LineRegex.findFirstMatchIn(reader.toString).foreach(m => counter.setLineCount(m.group(1).toLong))
+      LineRegex.findFirstMatchIn(reader.toString).foreach(m => ec.line = m.group(1).toLong)
       res
     }
 

@@ -27,5 +27,5 @@ class JsonCompositeConverter(
   ) extends AbstractCompositeConverter(sft, errorMode, delegates) {
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[JsonElement] =
-    new JsonConverter.JsonIterator(is, encoding, ec.counter)
+    new JsonConverter.JsonIterator(is, encoding, ec)
 }

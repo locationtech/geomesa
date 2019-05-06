@@ -70,11 +70,12 @@ object XmlConverterFactory {
 
     import scala.collection.JavaConverters._
 
-    override protected def decodeConfig(cur: ConfigObjectCursor,
-                                        `type`: String,
-                                        idField: Option[Expression],
-                                        caches: Map[String, Config],
-                                        userData: Map[String, Expression]): Either[ConfigReaderFailures, XmlConfig] = {
+    override protected def decodeConfig(
+        cur: ConfigObjectCursor,
+        `type`: String,
+        idField: Option[Expression],
+        caches: Map[String, Config],
+        userData: Map[String, Expression]): Either[ConfigReaderFailures, XmlConfig] = {
       for {
         provider   <- cur.atKey("xpath-factory").right.flatMap(_.asString).right
         namespace  <- cur.atKey("xml-namespaces").right.flatMap(_.asObjectCursor).right
@@ -118,6 +119,7 @@ object XmlConverterFactory {
     override protected def decodeOptions(
         cur: ConfigObjectCursor,
         validators: Seq[String],
+        reporters: Map[String, Config],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, XmlOptions] = {
@@ -137,7 +139,7 @@ object XmlConverterFactory {
       for {
         lineMode <- parse("line-mode", LineMode.values).right
       } yield {
-        XmlOptions(validators, parseMode, errorMode, lineMode, encoding)
+        XmlOptions(validators, reporters, parseMode, errorMode, lineMode, encoding)
       }
     }
 
