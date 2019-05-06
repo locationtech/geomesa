@@ -74,8 +74,12 @@ class GeoMesaFeatureCollection(private [geotools] val source: GeoMesaFeatureSour
   private def minMax(attribute: String, exact: Boolean): Option[(Any, Any)] =
     source.ds.stats.getAttributeBounds[Any](source.getSchema, attribute, query.getFilter, exact).map(_.bounds)
 
-  override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] =
-    source.ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+  override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = {
+    source.ds match {
+      case gm: GeoMesaDataStore[_] => gm.getFeatureReader(source.sft, query)
+      case ds => ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+    }
+  }
 
   override def getBounds: ReferencedEnvelope = source.getBounds(query)
 

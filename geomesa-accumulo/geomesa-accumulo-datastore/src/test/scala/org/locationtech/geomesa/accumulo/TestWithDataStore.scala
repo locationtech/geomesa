@@ -14,13 +14,12 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
-import org.geotools.factory.Hints
-import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -92,13 +91,12 @@ trait TestWithDataStore extends Specification {
    * Call to load the test features into the data store
    */
   def addFeatures(features: Seq[SimpleFeature]): Unit = {
-    val featureCollection = new DefaultFeatureCollection(sftName, sft)
-    features.foreach { f =>
-      f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      featureCollection.add(f)
+    WithClose(ds.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)) { writer =>
+      features.foreach { f =>
+        FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
+        writer.write()
+      }
     }
-    // write the feature to the store
-    fs.addFeatures(featureCollection)
   }
 
   def clearFeatures(): Unit = {
