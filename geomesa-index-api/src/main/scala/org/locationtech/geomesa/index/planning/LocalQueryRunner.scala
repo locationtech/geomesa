@@ -332,13 +332,13 @@ object LocalQueryRunner {
                              transform: Option[(String, SimpleFeatureType)],
                              query: String,
                              encode: Boolean): CloseableIterator[SimpleFeature] = {
-    val stat = Stat(sft, query)
-    val toObserve = transform match {
-      case None                => features
-      case Some((tdefs, tsft)) => projectionTransform(features, sft, tsft, tdefs, None)
+    val (statSft, toObserve) = transform match {
+      case None                => (sft, features)
+      case Some((tdefs, tsft)) => (tsft, projectionTransform(features, sft, tsft, tdefs, None))
     }
+    val stat = Stat(statSft, query)
     try { toObserve.foreach(stat.observe) } finally { toObserve.close() }
-    val encoded = if (encode) { StatsScan.encodeStat(sft)(stat) } else { stat.toJson }
+    val encoded = if (encode) { StatsScan.encodeStat(statSft)(stat) } else { stat.toJson }
     CloseableIterator(Iterator(new ScalaSimpleFeature(StatsScan.StatsSft, "stat", Array(encoded, GeometryUtils.zeroPoint))))
   }
 

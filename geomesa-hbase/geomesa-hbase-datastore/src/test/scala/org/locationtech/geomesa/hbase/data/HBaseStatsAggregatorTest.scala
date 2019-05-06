@@ -11,11 +11,10 @@ package org.locationtech.geomesa.hbase.data
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.data.{DataStoreFinder, Query}
+import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -42,11 +41,11 @@ class HBaseStatsAggregatorTest extends HBaseTest with LazyLogging {
   }
 
   lazy val params = Map(
-    ConnectionParam.getName -> connection,
-    HBaseCatalogParam.getName -> sftName)
+    HBaseDataStoreParams.ConnectionParam.key   -> connection,
+    HBaseDataStoreParams.HBaseCatalogParam.key -> sftName
+  )
 
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
-
 
   var sft: SimpleFeatureType = _
   var fs: SimpleFeatureStore = _
@@ -71,6 +70,20 @@ class HBaseStatsAggregatorTest extends HBaseTest with LazyLogging {
 
       val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
       minMaxStat.bounds mustEqual (0, 298)
+    }
+
+    "work with the MinMax stat for local queries" in {
+      val q = getQuery("MinMax(attr)")
+      val ds = DataStoreFinder.getDataStore(params + (HBaseDataStoreParams.RemoteFilteringParam.key -> "false"))
+      try {
+        val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+        results must haveLength(1)
+        val sf = results.head
+        val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
+        minMaxStat.bounds mustEqual (0, 298)
+      } finally {
+        ds.dispose()
+      }
     }
 
     "work with the IteratorStackCount stat" in {
