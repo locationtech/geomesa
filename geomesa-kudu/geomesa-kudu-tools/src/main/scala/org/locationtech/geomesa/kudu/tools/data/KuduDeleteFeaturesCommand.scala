@@ -13,7 +13,8 @@ import org.locationtech.geomesa.kudu.data.KuduDataStore
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand.KuduParams
 import org.locationtech.geomesa.kudu.tools.data.KuduDeleteFeaturesCommand.KuduDeleteFeaturesParams
-import org.locationtech.geomesa.tools.data.{DeleteFeaturesCommand, DeleteFeaturesParams}
+import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand
+import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand.DeleteFeaturesParams
 
 class KuduDeleteFeaturesCommand extends DeleteFeaturesCommand[KuduDataStore] with KuduDataStoreCommand {
   override val params = new KuduDeleteFeaturesParams

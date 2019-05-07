@@ -24,7 +24,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.spark.{DataStoreConnector, SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
-import org.locationtech.geomesa.utils.io.CloseQuietly
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
 
 class HBaseSpatialRDDProvider extends SpatialRDDProvider {
@@ -39,7 +39,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
           dsParams: Map[String, String],
           origQuery: Query): SpatialRDD = {
 
-    val ds = DataStoreConnector.loadingMap.get(dsParams).asInstanceOf[HBaseDataStore]
+    val ds = DataStoreConnector[HBaseDataStore](dsParams)
 
     // get the query plan to set up the iterators, ranges, etc
     lazy val sft = ds.getSchema(origQuery.getTypeName)
@@ -114,14 +114,9 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
     * @param writeTypeName
     */
   def save(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit = {
-    val ds = DataStoreConnector.loadingMap.get(writeDataStoreParams).asInstanceOf[HBaseDataStore]
-    try {
-      require(ds.getSchema(writeTypeName) != null,
-        "Feature type must exist before calling save.  Call createSchema on the DataStore first.")
-    } finally {
-      ds.dispose()
-    }
-
+    val ds = DataStoreConnector[HBaseDataStore](writeDataStoreParams)
+    require(ds.getSchema(writeTypeName) != null,
+      "Feature type must exist before calling save.  Call createSchema on the DataStore first.")
     unsafeSave(rdd, writeDataStoreParams, writeTypeName)
   }
 
@@ -136,16 +131,9 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
     */
   def unsafeSave(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit = {
     rdd.foreachPartition { iter =>
-      val ds = DataStoreConnector.loadingMap.get(writeDataStoreParams).asInstanceOf[HBaseDataStore]
-      val featureWriter = ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)
-      try {
-        iter.foreach { rawFeature =>
-          FeatureUtils.copyToWriter(featureWriter, rawFeature, useProvidedFid = true)
-          featureWriter.write()
-        }
-      } finally {
-        CloseQuietly(featureWriter)
-        ds.dispose()
+      val ds = DataStoreConnector[HBaseDataStore](writeDataStoreParams)
+      WithClose(ds.getFeatureWriterAppend(writeTypeName, Transaction.AUTO_COMMIT)) { writer =>
+        iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
       }
     }
   }

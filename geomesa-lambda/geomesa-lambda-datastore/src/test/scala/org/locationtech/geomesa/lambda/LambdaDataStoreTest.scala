@@ -130,8 +130,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
 
           WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
             features.foreach { feature =>
-              FeatureUtils.copyToWriter(writer, feature, useProvidedFid = true)
-              writer.write()
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
               clock.tick = clock.millis + 50
             }
           }

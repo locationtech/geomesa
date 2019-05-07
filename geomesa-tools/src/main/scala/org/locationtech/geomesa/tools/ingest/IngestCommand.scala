@@ -103,7 +103,7 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
     }
 
     // use .get to re-throw the exception if we fail
-    IngestCommand.getSftAndConverter(params, inputs, format, Some(loadDataStore)).get.foreach {
+    IngestCommand.getSftAndConverter(params, inputs, format, Some(this)).get.foreach {
       case (sft, converter) => createIngest(mode, sft, converter, inputs).run()
     }
   }
@@ -174,19 +174,19 @@ object IngestCommand extends LazyLogging {
     * @param params params
     * @param inputs input files
     * @param format input format
-    * @param toStore hook to data store for loading schemas by name
+    * @param command hook to data store for loading schemas by name
     * @return None if user declines inferred result, otherwise the loaded/inferred result
     */
   def getSftAndConverter(
       params: TypeNameParam with FeatureSpecParam with ConverterConfigParam with OptionalForceParam,
       inputs: Seq[String],
       format: Option[String],
-      toStore: Option[() => DataStore]): Try[Option[(SimpleFeatureType, Config)]] = Try {
+      command: Option[DataStoreCommand[_ <: DataStore]]): Try[Option[(SimpleFeatureType, Config)]] = Try {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
     // try to load the sft, first check for an existing schema, then load from the params/environment
     var sft: SimpleFeatureType =
-      Option(params.featureName).flatMap(n => toStore.flatMap(ds => Try(ds.apply().getSchema(n)).filter(_ != null).toOption))
+      Option(params.featureName).flatMap(n => command.flatMap(_.withDataStore(ds => Try(ds.getSchema(n)).filter(_ != null).toOption)))
           .orElse(Option(params.spec).flatMap(s => Option(CLArgResolver.getSft(s, params.featureName))))
           .orNull
 
@@ -223,7 +223,7 @@ object IngestCommand extends LazyLogging {
 
       if (sft == null) {
         val typeName = Option(params.featureName).getOrElse {
-          val existing = toStore.toSet[() => DataStore].flatMap(_.apply().getTypeNames)
+          val existing = command.toSet[DataStoreCommand[_ <: DataStore]].flatMap(_.withDataStore(_.getTypeNames))
           val fileName = Option(FilenameUtils.getBaseName(file.path))
           val base = fileName.map(_.trim.replaceAll("[^A-Za-z0-9]+", "_")).filterNot(_.isEmpty).getOrElse("geomesa")
           var name = base

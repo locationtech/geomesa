@@ -37,10 +37,6 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-spark-converter_${scala.binary.version}</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-spark-geotools_${scala.binary.version}</artifactId>
-        </dependency>
 
         <!-- Yarn (dist)-->
         <dependency>

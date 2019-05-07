@@ -13,20 +13,16 @@ import org.geotools.data.{DataStore, DataStoreFinder}
 
 /**
   * Caches accessing of DataStores.
-  *
-  * @param writeDataStoreParams
   */
-case class DataStoreConnector(writeDataStoreParams: Map[String, String]) {
-  @transient lazy val store: DataStore = DataStoreConnector.loadingMap.get(writeDataStoreParams)
-}
-
 object DataStoreConnector {
+
   import org.locationtech.geomesa.spark.CaseInsensitiveMapFix._
 
-  val loadingMap = Caffeine.newBuilder().build[Map[String, String], DataStore](
+  def apply[T <: DataStore](params: Map[String, String]): T = loadingMap.get(params).asInstanceOf[T]
+
+  private val loadingMap = Caffeine.newBuilder().build[Map[String, String], DataStore](
     new CacheLoader[Map[String, String], DataStore] {
-      override def load(key: Map[String, String]) = {
-        DataStoreFinder.getDataStore(key)
-      }
-    })
+      override def load(key: Map[String, String]): DataStore = DataStoreFinder.getDataStore(key)
+    }
+  )
 }

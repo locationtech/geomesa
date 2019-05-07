@@ -41,11 +41,7 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
 
     WithClose(collection.features, writer(None)) { case (features, writer) =>
       while (features.hasNext) {
-        try {
-          val toWrite = FeatureUtils.copyToWriter(writer, features.next())
-          writer.write()
-          fids.add(toWrite.getIdentifier)
-        } catch {
+        try { fids.add(FeatureUtils.write(writer, features.next()).getIdentifier) } catch {
           // validation errors in indexing will throw an IllegalArgumentException
           // make the caller handle other errors, which are likely related to the underlying database,
           // as we wouldn't know which features were actually written or not due to write buffering
@@ -67,8 +63,7 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
     try {
       WithClose(writer(None)) { writer =>
         while (reader.hasNext) {
-          FeatureUtils.copyToWriter(writer, reader.next())
-          writer.write()
+          FeatureUtils.write(writer, reader.next())
         }
       }
     } finally {

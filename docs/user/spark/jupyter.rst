@@ -95,9 +95,8 @@ GeoMesa version ``VERSION``:
     # (contains geomesa-accumulo-spark, geomesa-spark-core, geomesa-spark-sql, and dependencies)
     jars="file://$GEOMESA_ACCUMULO_HOME/dist/spark/geomesa-accumulo-spark-runtime_2.11-$VERSION.jar"
 
-    # uncomment to use the converter or GeoTools RDD providers
+    # uncomment to use the converter RDD provider
     #jars="$jars,file://$GEOMESA_ACCUMULO_HOME/lib/geomesa-spark-converter_2.11-$VERSION.jar"
-    #jars="$jars,file://$GEOMESA_ACCUMULO_HOME/lib/geomesa-spark-geotools_2.11-$VERSION.jar"
 
     # uncomment to work with shapefiles (requires $GEOMESA_ACCUMULO_HOME/bin/install-jai.sh)
     #jars="$jars,file://$GEOMESA_ACCUMULO_HOME/lib/jai_codec-1.1.3.jar"

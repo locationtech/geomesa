@@ -186,18 +186,14 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
           // initial write
           WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-            Seq(f0, f1).foreach { f =>
-              FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-              writer.write()
-            }
+            Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
           eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
 
           // update
           val f2 = ScalaSimpleFeature.create(sft, "sm", "smith2", 32, "2017-01-01T00:00:02.000Z", "POINT (2 2)")
           WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-            FeatureUtils.copyToWriter(writer, f2, useProvidedFid = true)
-            writer.write()
+            FeatureUtils.write(writer, f2, useProvidedFid = true)
           }
           eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f1, f2)))
 
@@ -260,10 +256,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
           // initial write
           WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-            Seq(f0, f1).foreach { f =>
-              FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-              writer.write()
-            }
+            Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
 
           // admin user
@@ -315,10 +308,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
           // initial write
           WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-            Seq(f0, f1).foreach { f =>
-              FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-              writer.write()
-            }
+            Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
           // check the cache directly
           eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
@@ -354,10 +344,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
         // initial write
         WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          Seq(f0, f1).foreach { f =>
-            FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-            writer.write()
-          }
+          Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
         eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
 
@@ -366,8 +353,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         try {
           // write the third feature
           WithClose(producer2.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-            FeatureUtils.copyToWriter(writer, f2, useProvidedFid = true)
-            writer.write()
+            FeatureUtils.write(writer, f2, useProvidedFid = true)
           }
           eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq mustEqual Seq(f2))
         } finally {

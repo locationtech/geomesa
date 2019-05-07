@@ -13,7 +13,8 @@ import org.locationtech.geomesa.cassandra.data.CassandraDataStore
 import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand
 import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand.CassandraDataStoreParams
 import org.locationtech.geomesa.cassandra.tools.commands.CassandraDeleteFeaturesCommand.CassandraDeleteFeaturesParams
-import org.locationtech.geomesa.tools.data.{DeleteFeaturesCommand, DeleteFeaturesParams}
+import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand
+import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand.DeleteFeaturesParams
 
 class CassandraDeleteFeaturesCommand extends DeleteFeaturesCommand[CassandraDataStore] with CassandraDataStoreCommand {
   override val params = new CassandraDeleteFeaturesParams

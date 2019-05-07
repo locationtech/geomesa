@@ -99,10 +99,7 @@ class MergedDataStoreViewTest extends Specification {
     Seq(h2Ds, accumuloDs).foreach { ds =>
       ds.createSchema(sft)
       WithClose(ds.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)) { writer =>
-        copied.take(5).foreach { copy =>
-          FeatureUtils.copyToWriter(writer, copy, useProvidedFid = true)
-          writer.write()
-        }
+        copied.take(5).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
       }
     }
 

@@ -10,12 +10,16 @@ package org.locationtech.geomesa.lambda.tools.data
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
+import org.locationtech.geomesa.lambda.tools.data.LambdaDeleteFeaturesCommand.LambdaDeleteFeaturesParams
 import org.locationtech.geomesa.lambda.tools.{LambdaDataStoreCommand, LambdaDataStoreParams}
-import org.locationtech.geomesa.tools.data.{DeleteFeaturesCommand, DeleteFeaturesParams}
+import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand
+import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand.DeleteFeaturesParams
 
 class LambdaDeleteFeaturesCommand extends DeleteFeaturesCommand[LambdaDataStore] with LambdaDataStoreCommand {
   override val params = new LambdaDeleteFeaturesParams
 }
 
-@Parameters(commandDescription = "Delete features from a GeoMesa schema")
-class LambdaDeleteFeaturesParams extends DeleteFeaturesParams with LambdaDataStoreParams
+object LambdaDeleteFeaturesCommand {
+  @Parameters(commandDescription = "Delete features from a GeoMesa schema")
+  class LambdaDeleteFeaturesParams extends DeleteFeaturesParams with LambdaDataStoreParams
+}

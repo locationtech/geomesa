@@ -86,10 +86,7 @@ class HBaseBackCompatibilityTest extends HBaseTest with LazyLogging  {
       try {
         ds.createSchema(sft)
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          features.foreach { f =>
-            FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-            writer.write()
-          }
+          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
       } finally {
         ds.dispose()
@@ -115,8 +112,7 @@ class HBaseBackCompatibilityTest extends HBaseTest with LazyLogging  {
       val featureToAdd = ScalaSimpleFeature.create(sft, "10", "name10", "10", "2016-01-01T00:30:00.000Z", "POINT(-110 45)")
 
       val writer = ds.getFeatureWriterAppend(name, Transaction.AUTO_COMMIT)
-      FeatureUtils.copyToWriter(writer, featureToAdd, useProvidedFid = true)
-      writer.write()
+      FeatureUtils.write(writer, featureToAdd, useProvidedFid = true)
       writer.close()
 
       // make sure we can read it back

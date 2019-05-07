@@ -32,6 +32,7 @@
         <module>geomesa-filter</module>
         <module>geomesa-fs</module>
         <module>geomesa-geojson</module>
+        <module>geomesa-gt</module>
         <module>geomesa-hbase</module>
         <module>geomesa-index-api</module>
         <module>geomesa-jobs</module>
@@ -569,6 +570,21 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-gt-tools_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-gt-spark_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-gt-spark-runtime_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-hbase-datastore_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -922,6 +938,16 @@
                         <artifactId>jai_core</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.geotools.jdbc</groupId>
+                <artifactId>gt-jdbc-postgis</artifactId>
+                <version>${gt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>42.2.2</version>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>

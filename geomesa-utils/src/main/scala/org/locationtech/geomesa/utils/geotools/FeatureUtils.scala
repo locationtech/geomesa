@@ -126,6 +126,23 @@ object FeatureUtils {
   }
 
   /**
+    * Write a feature to a feature writer
+    *
+    * @param writer feature writer
+    * @param sf feature to write
+    * @param useProvidedFid use provided fid
+    */
+  def write(
+      writer: FeatureWriter[SimpleFeatureType, SimpleFeature],
+      sf: SimpleFeature,
+      useProvidedFid: Boolean = false): SimpleFeature = {
+    val written = writer.next()
+    copyToFeature(written, sf, useProvidedFid)
+    writer.write()
+    written
+  }
+
+  /**
     *
     * @param sft simple feature type
     * @return

@@ -88,10 +88,8 @@ class HBasePartitioningTest extends HBaseTest with LazyLogging {
         // add the last two features to an alternate table and adopt them
         ds.createSchema(SimpleFeatureTypes.createType("testpartitionadoption", spec))
         WithClose(ds.getFeatureWriterAppend("testpartitionadoption", Transaction.AUTO_COMMIT)) { writer =>
-          FeatureUtils.copyToWriter(writer, toAdd(8), useProvidedFid = true)
-          writer.write()
-          FeatureUtils.copyToWriter(writer, toAdd(9), useProvidedFid = true)
-          writer.write()
+          FeatureUtils.write(writer, toAdd(8), useProvidedFid = true)
+          FeatureUtils.write(writer, toAdd(9), useProvidedFid = true)
         }
         // duplicates the logic in `org.locationtech.geomesa.tools.data.ManagePartitionsCommand.AdoptPartitionCommand`
         ds.manager.indices(ds.getSchema("testpartitionadoption")).foreach { index =>

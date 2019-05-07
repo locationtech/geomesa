@@ -19,7 +19,7 @@ import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.kudu.data.{KuduDataStore, KuduDataStoreFactory}
 import org.locationtech.geomesa.spark.{DataStoreConnector, SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
-import org.locationtech.geomesa.utils.io.CloseQuietly
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
 
 class KuduSpatialRDDProvider extends SpatialRDDProvider {
@@ -31,7 +31,7 @@ class KuduSpatialRDDProvider extends SpatialRDDProvider {
 
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    val ds = DataStoreConnector.loadingMap.get(params).asInstanceOf[KuduDataStore]
+    val ds = DataStoreConnector[KuduDataStore](params)
     // force loose bbox to be false
     query.getHints.put(QueryHints.LOOSE_BBOX, false)
 
@@ -55,14 +55,9 @@ class KuduSpatialRDDProvider extends SpatialRDDProvider {
   }
 
   override def save(rdd: RDD[SimpleFeature], params: Map[String, String], typeName: String): Unit = {
-    val ds = DataStoreConnector.loadingMap.get(params).asInstanceOf[KuduDataStore]
-    try {
-      require(ds.getSchema(typeName) != null,
-        "Feature type must exist before calling save. Call `createSchema` on the DataStore first.")
-    } finally {
-      ds.dispose()
-    }
-
+    val ds = DataStoreConnector[KuduDataStore](params)
+    require(ds.getSchema(typeName) != null,
+      "Feature type must exist before calling save. Call `createSchema` on the DataStore first.")
     unsafeSave(rdd, params, typeName)
   }
 
@@ -77,16 +72,9 @@ class KuduSpatialRDDProvider extends SpatialRDDProvider {
     */
   def unsafeSave(rdd: RDD[SimpleFeature], params: Map[String, String], typeName: String): Unit = {
     rdd.foreachPartition { iter =>
-      val ds = DataStoreConnector.loadingMap.get(params).asInstanceOf[KuduDataStore]
-      val featureWriter = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
-      try {
-        iter.foreach { rawFeature =>
-          FeatureUtils.copyToWriter(featureWriter, rawFeature, useProvidedFid = true)
-          featureWriter.write()
-        }
-      } finally {
-        CloseQuietly(featureWriter)
-        ds.dispose()
+      val ds = DataStoreConnector[KuduDataStore](params)
+      WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+        iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
       }
     }
   }

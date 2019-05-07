@@ -13,9 +13,6 @@ import java.time.Instant
 import java.util.{Date, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom._
-import org.locationtech.jts.index.strtree.{AbstractNode, Boundable, STRtree}
-import org.locationtech.jts.index.sweepline.{SweepLineIndex, SweepLineInterval, SweepLineOverlapAction}
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -34,6 +31,10 @@ import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineDataStore
 import org.locationtech.geomesa.spark.jts.util.WKTUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithStore
+import org.locationtech.jts.geom._
+import org.locationtech.jts.index.strtree.{AbstractNode, Boundable, STRtree}
+import org.locationtech.jts.index.sweepline.{SweepLineIndex, SweepLineInterval, SweepLineOverlapAction}
 import org.opengis.feature.`type`._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -74,20 +75,19 @@ class GeoMesaDataSource extends DataSourceRegister
     // TODO: Need different ways to retrieve sft
     //  GEOMESA-1643 Add method to lookup SFT to RDD Provider
     //  Below the details of the Converter RDD Provider and Providers which are backed by GT DSes are leaking through
-    val ds = DataStoreFinder.getDataStore(parameters)
-    val sft = if (ds != null) {
-      ds.getSchema(parameters(GEOMESA_SQL_FEATURE))
-    } else {
-      if (parameters.contains(GEOMESA_SQL_FEATURE) && parameters.contains("geomesa.sft")) {
+    val sft = WithStore(parameters) { ds =>
+      if (ds != null) {
+        ds.getSchema(parameters(GEOMESA_SQL_FEATURE))
+      } else if (parameters.contains(GEOMESA_SQL_FEATURE) && parameters.contains("geomesa.sft")) {
         SimpleFeatureTypes.createType(parameters(GEOMESA_SQL_FEATURE), parameters("geomesa.sft"))
       } else {
         SftArgResolver.getArg(SftArgs(parameters(GEOMESA_SQL_FEATURE), parameters(GEOMESA_SQL_FEATURE))) match {
           case Right(s) => s
           case Left(e) => throw new IllegalArgumentException("Could not resolve simple feature type", e)
         }
-
       }
     }
+
     logger.trace(s"Creating GeoMesa Relation with sft : $sft")
 
     val schema = sft2StructType(sft)
@@ -96,8 +96,7 @@ class GeoMesaDataSource extends DataSourceRegister
 
   // JNH: Q: Why doesn't this method have the call to SQLTypes.init(sqlContext)?
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String], schema: StructType): BaseRelation = {
-    val ds = DataStoreFinder.getDataStore(parameters)
-    val sft = ds.getSchema(parameters(GEOMESA_SQL_FEATURE))
+    val sft = WithStore(parameters)(_.getSchema(parameters(GEOMESA_SQL_FEATURE)))
     GeoMesaRelation(sqlContext, sft, schema, parameters)
   }
 
@@ -172,19 +171,16 @@ class GeoMesaDataSource extends DataSourceRegister
       if(fidIndex > -1) (row: Row) => row.getString(fidIndex)
       else _ => "%d%s".format(Instant.now().getEpochSecond, UUID.randomUUID().toString)
 
-
-    val ds = DataStoreFinder.getDataStore(parameters)
-    val schemaInDs = ds.getTypeNames.contains(newFeatureName)
-
-    if (schemaInDs) {
-      if (compare(ds.getSchema(newFeatureName),sft) != 0) {
-        throw new IllegalStateException(s"The schema of the RDD conflicts with schema:$newFeatureName in the data store")
+    WithStore(parameters) { ds =>
+      if (ds.getTypeNames.contains(newFeatureName)) {
+        if (compare(ds.getSchema(newFeatureName),sft) != 0) {
+          throw new IllegalStateException(s"The schema of the RDD conflicts with schema:$newFeatureName in the data store")
+        }
+      } else {
+        sft.getUserData.put("override.reserved.words", java.lang.Boolean.TRUE)
+        ds.createSchema(sft)
       }
-    } else {
-      sft.getUserData.put("override.reserved.words", java.lang.Boolean.TRUE)
-      ds.createSchema(sft)
     }
-
 
     val structType = if (data.queryExecution == null) {
       sft2StructType(sft)
@@ -192,16 +188,12 @@ class GeoMesaDataSource extends DataSourceRegister
       data.schema
     }
 
-    val rddToSave: RDD[SimpleFeature] = data.rdd.mapPartitions( iterRow => {
-      val innerDS = DataStoreFinder.getDataStore(parameters)
-      val sft = innerDS.getSchema(newFeatureName)
+    val rddToSave: RDD[SimpleFeature] = data.rdd.mapPartitions { iterRow =>
+      val sft = WithStore(parameters)(_.getSchema(newFeatureName))
       val builder = new SimpleFeatureBuilder(sft)
-
       val nameMappings: List[(String, Int)] = SparkUtils.getSftRowNameMappings(sft, structType)
-      iterRow.map { r =>
-        SparkUtils.row2Sf(nameMappings, r, builder, fidFn(r))
-      }
-    })
+      iterRow.map(r => SparkUtils.row2Sf(nameMappings, r, builder, fidFn(r)))
+    }
 
     GeoMesaSpark(parameters).save(rddToSave, parameters, newFeatureName)
 
