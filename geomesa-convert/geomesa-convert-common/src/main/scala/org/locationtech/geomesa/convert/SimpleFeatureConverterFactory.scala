@@ -310,22 +310,9 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
   def fromInputType(i: I, ec: EvaluationContext): Iterator[Array[Any]]
   def parseOpts: ConvertParseOpts
 
-  protected lazy val validate: (SimpleFeature, EvaluationContext) => SimpleFeature = {
-    val validators =
-      org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator(targetSFT, parseOpts.validators, ConverterMetrics.empty)
-    (sf: SimpleFeature, ec: EvaluationContext) => {
-      val error = validators.validate(sf)
-      if (error == null) { sf } else {
-        val msg = s"Invalid SimpleFeature on line ${ec.line}: $error"
-        if (parseOpts.validationMode == ValidationMode.RaiseErrors) {
-          throw new IOException(msg)
-        } else {
-          logger.debug(msg)
-          null
-        }
-      }
-    }
-  }
+  private lazy val validators =
+      org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator(
+        targetSFT, parseOpts.validators, ConverterMetrics.empty)
 
   protected val requiredFields: IndexedSeq[Field] = {
     import SimpleFeatureConverter.{addDependencies, topologicalOrder}
@@ -348,6 +335,19 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
 
   protected val requiredFieldsCount: Int = requiredFields.length
   protected val requiredFieldsIndices: IndexedSeq[Int] = requiredFields.map(f => targetSFT.indexOf(f.name))
+
+  protected def validate(sf: SimpleFeature, ec: EvaluationContext): SimpleFeature = {
+    val error = validators.validate(sf)
+    if (error == null) { sf } else {
+      val msg = s"Invalid SimpleFeature on line ${ec.line}: $error"
+      if (parseOpts.validationMode == ValidationMode.RaiseErrors) {
+        throw new IOException(msg)
+      } else {
+        logger.debug(msg)
+        null
+      }
+    }
+  }
 
   /**
    * Convert input values into a simple feature with attributes
@@ -443,7 +443,10 @@ trait ToSimpleFeatureConverter[I] extends SimpleFeatureConverter[I] with LazyLog
     }
   }
 
-  override def close(): Unit = caches.values.foreach(CloseWithLogging.apply)
+  override def close(): Unit = {
+    CloseWithLogging(caches.values)
+    CloseWithLogging(validators)
+  }
 }
 
 @deprecated("Replaced with org.locationtech.geomesa.convert2.AbstractConverter")

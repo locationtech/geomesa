@@ -23,13 +23,14 @@ trait SafeClose {
 
   def apply(c1: AnyCloseable, c2: AnyCloseable): Option[Throwable] = apply(Seq(c1, c2))
 
-  def apply(cs: Seq[AnyCloseable]): Option[Throwable] = {
-    val errors = cs.flatMap(c => apply(c))
-    if (errors.isEmpty) { None } else {
-      val e = errors.head
-      errors.tail.foreach(e.addSuppressed)
-      Some(e)
+  def apply(cs: Iterable[AnyCloseable]): Option[Throwable] = {
+    var error: Throwable = null
+    cs.foreach { c =>
+      apply(c).foreach { e =>
+        if (error == null) { error = e } else { error.addSuppressed(e) }
+      }
     }
+    Option(error)
   }
 }
 

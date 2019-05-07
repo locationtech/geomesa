@@ -188,8 +188,9 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   }
 
   override def close(): Unit = {
-    caches.foreach { case (_, cache) => CloseWithLogging(cache) }
+    CloseWithLogging(caches.values)
     CloseWithLogging(metrics)
+    CloseWithLogging(validators)
   }
 }
 
