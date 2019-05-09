@@ -12,7 +12,7 @@ import java.lang.ref.SoftReference
 
 import com.jayway.jsonpath.Option.{ALWAYS_RETURN_LIST, DEFAULT_PATH_LEAF_TO_NULL, SUPPRESS_EXCEPTIONS}
 import com.jayway.jsonpath.{Configuration, JsonPath}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature

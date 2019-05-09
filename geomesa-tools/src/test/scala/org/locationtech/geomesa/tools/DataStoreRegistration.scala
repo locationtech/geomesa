@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
-import org.geotools.factory.FactoryIteratorProvider
+import org.geotools.util.factory.FactoryIteratorProvider
 
 /**
   * This class allows us to pass a concrete datastore instance through SPI loading, which is useful for testing
@@ -36,7 +36,7 @@ object DataStoreRegistration {
     val add = dataStores.isEmpty
     dataStores.put(key, ds)
     if (add) {
-      org.geotools.factory.GeoTools.addFactoryIteratorProvider(provider)
+      org.geotools.util.factory.GeoTools.addFactoryIteratorProvider(provider)
     }
   }
 
@@ -49,7 +49,7 @@ object DataStoreRegistration {
   def unregister(key: String, ds: DataStore): Unit = synchronized {
     require(ds.eq(dataStores.remove(key)), s"Multiple datastores registered under key $key")
     if (dataStores.isEmpty) {
-      org.geotools.factory.GeoTools.removeFactoryIteratorProvider(provider)
+      org.geotools.util.factory.GeoTools.removeFactoryIteratorProvider(provider)
     }
   }
 

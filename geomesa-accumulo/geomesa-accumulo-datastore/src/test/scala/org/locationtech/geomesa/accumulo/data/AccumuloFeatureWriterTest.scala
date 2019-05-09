@@ -15,7 +15,7 @@ import org.apache.accumulo.core.client.BatchWriterConfig
 import org.apache.accumulo.core.data.{Range => aRange}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data._
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL

@@ -14,7 +14,7 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.jts.geom.{Geometry, Point}
 import org.geotools.data.{DataStore, FeatureWriter, Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.geojson.geom.GeometryJSON
 import org.json4s.native.JsonMethods._
 import org.json4s.{JObject, _}

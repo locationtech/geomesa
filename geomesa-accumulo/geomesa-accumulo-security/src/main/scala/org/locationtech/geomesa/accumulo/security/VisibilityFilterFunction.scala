@@ -11,7 +11,8 @@ package org.locationtech.geomesa.accumulo.security
 import java.nio.charset.StandardCharsets
 
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility, VisibilityEvaluator}
-import org.geotools.factory.{CommonFactoryFinder, GeoTools}
+import org.geotools.util.factory.GeoTools
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.FunctionExpressionImpl
 import org.geotools.filter.capability.FunctionNameImpl
 import org.locationtech.geomesa.security

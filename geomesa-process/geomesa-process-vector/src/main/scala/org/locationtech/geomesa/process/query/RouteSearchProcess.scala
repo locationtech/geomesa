@@ -19,7 +19,7 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator,
 import org.geotools.feature.collection.DecoratingSimpleFeatureCollection
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.GeodeticCalculator
-import org.geotools.util.NullProgressListener
+import org.geotools.data.util.NullProgressListener
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.{ff, orFilters}
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}

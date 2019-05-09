@@ -12,7 +12,7 @@ import java.time._
 import java.time.format.DateTimeFormatter
 import java.util.{Date, UUID}
 
-import org.geotools.factory.GeoTools
+import org.geotools.util.factory.GeoTools
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.converters.ScalaCollectionsConverterFactory.{ListToListConverter, MapToMapConverter}
 import org.specs2.mutable.Specification

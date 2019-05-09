@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.data
 import java.util.{Collections, Date}
 
 import org.geotools.data._
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL

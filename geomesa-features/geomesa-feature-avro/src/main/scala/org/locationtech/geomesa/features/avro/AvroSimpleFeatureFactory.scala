@@ -10,7 +10,8 @@ package org.locationtech.geomesa.features.avro
 
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.util.factory.Hints
 import org.geotools.feature.AbstractFeatureFactoryImpl
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.identity.FeatureIdImpl

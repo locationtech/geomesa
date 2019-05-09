@@ -12,10 +12,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-common_${scala.binary.version}</artifactId>
         </dependency>

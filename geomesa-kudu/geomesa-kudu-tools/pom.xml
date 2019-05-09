@@ -20,6 +20,10 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-kudu-datastore_2.11</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-fs-storage-convert_${scala.binary.version}</artifactId>
+        </dependency>
         <!--<dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-kudu-jobs_2.11</artifactId>
@@ -31,6 +35,10 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-epsg-wkt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
         </dependency>
 
         <!-- test deps -->

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.geotools
 
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{DataStore, Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTS
 import org.geotools.referencing.CRS

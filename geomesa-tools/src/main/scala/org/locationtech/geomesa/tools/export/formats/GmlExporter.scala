@@ -10,8 +10,8 @@ package org.locationtech.geomesa.tools.export.formats
 
 import java.io.OutputStream
 
-import org.geotools.GML
-import org.geotools.GML.Version
+import org.geotools.wfs.GML
+import org.geotools.wfs.GML.Version
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.store.ReTypingFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder

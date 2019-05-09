@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.tools.export.formats.ExportFormats
 import org.locationtech.geomesa.tools.export.formats.ExportFormats.ExportFormat

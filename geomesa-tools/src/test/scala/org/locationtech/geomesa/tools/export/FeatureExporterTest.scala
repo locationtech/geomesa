@@ -13,7 +13,7 @@ import java.util.Date
 import java.util.zip.Deflater
 
 import org.geotools.data.DataUtilities
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.features.avro.AvroDataFileReader

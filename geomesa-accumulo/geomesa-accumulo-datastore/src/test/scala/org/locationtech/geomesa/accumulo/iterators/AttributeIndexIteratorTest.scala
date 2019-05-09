@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.{Collections, Date, TimeZone}
 
 import org.geotools.data.Query
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith

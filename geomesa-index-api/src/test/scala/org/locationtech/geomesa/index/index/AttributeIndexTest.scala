@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.index
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.junit.runner.RunWith

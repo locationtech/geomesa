@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.features.serialization
 
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 
 /** Maintains Key -> String and String -> Key mappings */
 object HintKeySerialization {

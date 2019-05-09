@@ -11,7 +11,7 @@ package org.locationtech.geomesa.kudu.result
 import java.nio.ByteBuffer
 
 import org.apache.kudu.client.RowResult
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.ByteBuffers.ExpandingByteBuffer

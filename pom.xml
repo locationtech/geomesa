@@ -70,8 +70,8 @@
         <scala.xml.version>1.0.6</scala.xml.version>
         <scala.parsers.version>1.0.6</scala.parsers.version>
 
-        <geoserver.version>2.14.2</geoserver.version>
-        <gt.version>20.0</gt.version>
+        <geoserver.version>2.15.1</geoserver.version>
+        <gt.version>21.1</gt.version>
         <jaiext.version>1.1.1</jaiext.version>
         <jts.version>1.16.0</jts.version>
         <avro.version>1.7.5</avro.version> <!-- see also confluent.avro.version -->
@@ -912,16 +912,9 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-data</artifactId>
+                <groupId>org.geotools.xsd</groupId>
+                <artifactId>gt-xsd-wfs</artifactId>
                 <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -1035,18 +1028,6 @@
                         <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
                         <artifactId>*</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-api</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

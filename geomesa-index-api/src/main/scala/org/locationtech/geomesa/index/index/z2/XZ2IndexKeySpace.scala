@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.index.z2
 
 import org.locationtech.jts.geom.{Geometry, Point}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.XZ2SFC
 import org.locationtech.geomesa.filter.{FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory

@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets
 import java.util.{Collections, Locale}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues, filterToString}
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
 import org.locationtech.geomesa.index.api.ShardStrategy.AttributeShardStrategy

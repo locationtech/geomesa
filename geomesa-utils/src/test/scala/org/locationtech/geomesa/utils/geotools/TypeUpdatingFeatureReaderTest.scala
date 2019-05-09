@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils

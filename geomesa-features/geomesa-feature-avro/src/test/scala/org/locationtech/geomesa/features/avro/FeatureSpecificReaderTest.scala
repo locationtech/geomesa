@@ -17,7 +17,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.jts.geom.{LineString, Point, Polygon}
 import org.apache.avro.io.{DecoderFactory, EncoderFactory}
 import org.geotools.data.DataUtilities
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.{Assert, Test}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions

@@ -176,10 +176,8 @@ org.eclipse.xsd:org.eclipse.xsd	2.12.0	compile
 org.ejml:ejml-core	0.34	compile
 org.ejml:ejml-ddense	0.34	compile
 org.gdal:gdal	2.0.0	compile
-org.geotools:gt-api	20.0	compile
 org.geotools:gt-coverage	20.0	compile
 org.geotools:gt-cql	20.0	compile
-org.geotools:gt-data	20.0	compile
 org.geotools:gt-epsg-hsql	20.0	compile
 org.geotools:gt-epsg-wkt	20.0	compile
 org.geotools:gt-geojson	20.0	compile

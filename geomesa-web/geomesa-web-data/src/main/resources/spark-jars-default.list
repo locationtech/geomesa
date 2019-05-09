@@ -28,10 +28,8 @@ geomesa-security
 geomesa-utils
 geomesa-web-data
 geomesa-z3
-gt-api
 gt-coverage
 gt-cql
-gt-data
 gt-grid
 gt-imageio-ext-gdal
 gt-main

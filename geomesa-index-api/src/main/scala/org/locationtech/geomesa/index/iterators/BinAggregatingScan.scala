@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.iterators
 import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Date
 
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{ByteBufferResult, ResultCallback}
 import org.locationtech.geomesa.index.utils.bin.BinSorter

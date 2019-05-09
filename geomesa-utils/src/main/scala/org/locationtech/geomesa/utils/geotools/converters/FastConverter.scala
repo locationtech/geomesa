@@ -11,7 +11,7 @@ package org.locationtech.geomesa.utils.geotools.converters
 import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.StrictLogging
-import org.geotools.factory.GeoTools
+import org.geotools.util.factory.GeoTools
 import org.geotools.util.{Converter, Converters}
 
 import scala.util.control.NonFatal
