@@ -30,6 +30,7 @@ import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineDataStore
 import org.locationtech.geomesa.spark.jts.util.WKTUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -101,62 +102,64 @@ class GeoMesaDataSource extends DataSourceRegister
     GeoMesaRelation(sqlContext, sft, schema, parameters)
   }
 
-  private def sft2StructType(sft: SimpleFeatureType) = {
-    val fields = sft.getAttributeDescriptors.flatMap { ad => ad2field(ad) }.toList
-    StructType(StructField("__fid__", DataTypes.StringType, nullable =false) :: fields)
-  }
-
   def structType2SFT(struct: StructType, name: String): SimpleFeatureType = {
-    import java.{lang => jl}
-    val fields = struct.fields
-
     val builder = new SimpleFeatureTypeBuilder
-
-    fields.filter( _.name != "__fid__").foreach {
-      field =>
-        field.dataType match {
-          case DataTypes.BooleanType => builder.add(field.name, classOf[jl.Boolean])
-          case DataTypes.DateType => builder.add(field.name, classOf[java.util.Date])
-          case DataTypes.FloatType => builder.add(field.name, classOf[jl.Float])
-          case DataTypes.IntegerType => builder.add(field.name, classOf[jl.Integer])
-          case DataTypes.DoubleType => builder.add(field.name, classOf[jl.Double])
-          case DataTypes.StringType => builder.add(field.name, classOf[jl.String])
-          case DataTypes.LongType   => builder.add(field.name, classOf[jl.Long])
-          case DataTypes.TimestampType => builder.add(field.name, classOf[java.util.Date])
-
-          case JTSTypes.PointTypeInstance => builder.add(field.name, classOf[org.locationtech.jts.geom.Point])
-          case JTSTypes.LineStringTypeInstance => builder.add(field.name, classOf[org.locationtech.jts.geom.LineString])
-          case JTSTypes.PolygonTypeInstance  => builder.add(field.name, classOf[org.locationtech.jts.geom.Polygon])
-          case JTSTypes.MultipolygonTypeInstance  => builder.add(field.name, classOf[org.locationtech.jts.geom.MultiPolygon])
-          case JTSTypes.GeometryTypeInstance => builder.add(field.name, classOf[org.locationtech.jts.geom.Geometry])
-        }
-    }
     builder.setName(name)
+
+    struct.fields.filter( _.name != "__fid__").foreach { field =>
+      val binding = field.dataType match {
+        case DataTypes.StringType              => classOf[java.lang.String]
+        case DataTypes.DateType                => classOf[java.util.Date]
+        case DataTypes.TimestampType           => classOf[java.util.Date]
+        case DataTypes.IntegerType             => classOf[java.lang.Integer]
+        case DataTypes.LongType                => classOf[java.lang.Long]
+        case DataTypes.FloatType               => classOf[java.lang.Float]
+        case DataTypes.DoubleType              => classOf[java.lang.Double]
+        case DataTypes.BooleanType             => classOf[java.lang.Boolean]
+        case JTSTypes.PointTypeInstance        => classOf[org.locationtech.jts.geom.Point]
+        case JTSTypes.LineStringTypeInstance   => classOf[org.locationtech.jts.geom.LineString]
+        case JTSTypes.PolygonTypeInstance      => classOf[org.locationtech.jts.geom.Polygon]
+        case JTSTypes.MultipolygonTypeInstance => classOf[org.locationtech.jts.geom.MultiPolygon]
+        case JTSTypes.GeometryTypeInstance     => classOf[org.locationtech.jts.geom.Geometry]
+      }
+      builder.add(field.name, binding)
+    }
+
     builder.buildFeatureType()
   }
 
+  private def sft2StructType(sft: SimpleFeatureType): StructType = {
+    val fields = sft.getAttributeDescriptors.flatMap(ad2field).toList
+    StructType(StructField("__fid__", DataTypes.StringType, nullable =false) :: fields)
+  }
+
   private def ad2field(ad: AttributeDescriptor): Option[StructField] = {
-    import java.{lang => jl}
-    val dt = ad.getType.getBinding match {
-      case t if t == classOf[jl.Double]                       => DataTypes.DoubleType
-      case t if t == classOf[jl.Float]                        => DataTypes.FloatType
-      case t if t == classOf[jl.Integer]                      => DataTypes.IntegerType
-      case t if t == classOf[jl.String]                       => DataTypes.StringType
-      case t if t == classOf[jl.Boolean]                      => DataTypes.BooleanType
-      case t if t == classOf[jl.Long]                         => DataTypes.LongType
-      case t if t == classOf[java.util.Date]                  => DataTypes.TimestampType
+    val bindings = Try(ObjectType.selectType(ad)).getOrElse(Seq.empty)
+    val dt = bindings.head match {
+      case ObjectType.STRING   => DataTypes.StringType
+      case ObjectType.INT      => DataTypes.IntegerType
+      case ObjectType.LONG     => DataTypes.LongType
+      case ObjectType.FLOAT    => DataTypes.FloatType
+      case ObjectType.DOUBLE   => DataTypes.DoubleType
+      case ObjectType.BOOLEAN  => DataTypes.BooleanType
+      case ObjectType.DATE     => DataTypes.TimestampType
+      case ObjectType.UUID     => null // not supported
+      case ObjectType.BYTES    => null // not supported
+      case ObjectType.LIST     => null // not supported
+      case ObjectType.MAP      => null // not supported
+      case ObjectType.GEOMETRY =>
+        bindings.last match {
+          case ObjectType.POINT               => JTSTypes.PointTypeInstance
+          case ObjectType.LINESTRING          => JTSTypes.LineStringTypeInstance
+          case ObjectType.POLYGON             => JTSTypes.PolygonTypeInstance
+          case ObjectType.MULTIPOINT          => JTSTypes.MultiPointTypeInstance
+          case ObjectType.MULTILINESTRING     => JTSTypes.MultiLineStringTypeInstance
+          case ObjectType.MULTIPOLYGON        => JTSTypes.MultipolygonTypeInstance
+          case ObjectType.GEOMETRY_COLLECTION => JTSTypes.GeometryTypeInstance
+          case _                              => JTSTypes.GeometryTypeInstance
+        }
 
-      case t if t == classOf[org.locationtech.jts.geom.Point]            => JTSTypes.PointTypeInstance
-      case t if t == classOf[org.locationtech.jts.geom.MultiPoint]       => JTSTypes.MultiPointTypeInstance
-      case t if t == classOf[org.locationtech.jts.geom.LineString]       => JTSTypes.LineStringTypeInstance
-      case t if t == classOf[org.locationtech.jts.geom.MultiLineString]  => JTSTypes.MultiLineStringTypeInstance
-      case t if t == classOf[org.locationtech.jts.geom.Polygon]          => JTSTypes.PolygonTypeInstance
-      case t if t == classOf[org.locationtech.jts.geom.MultiPolygon]     => JTSTypes.MultipolygonTypeInstance
-
-      case t if      classOf[Geometry].isAssignableFrom(t)    => JTSTypes.GeometryTypeInstance
-
-      // NB:  List and Map types are not supported.
-      case _                                                  => null
+      case _ => logger.warn(s"Unexpected bindings for descriptor $ad: ${bindings.mkString(", ")}"); null
     }
     Option(dt).map(StructField(ad.getLocalName, _))
   }
