@@ -31,12 +31,12 @@ trait TablePartition {
 
   /**
     * Gets the partitions that intersect a given filter. If partitions can't be determined, (e.g. if the filter
-    * doesn't have a predicate on the partition), then an empty seq is returned
+    * doesn't have a predicate on the partition), then an empty option is returned
     *
     * @param filter filter
-    * @return partitions, or an empty seq representing all partitions
+    * @return partitions, or an empty option representing all partitions
     */
-  def partitions(filter: Filter): Seq[String]
+  def partitions(filter: Filter): Option[Seq[String]]
 
   /**
     * Convert from a partition back to a partition-able value
