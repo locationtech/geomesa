@@ -172,12 +172,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     * @return
     */
   def getTablesForQuery(filter: Option[Filter]): Seq[String] = {
-    val partitions = filter.toSeq.flatMap(f => TablePartition(ds, sft).toSeq.flatMap(_.partitions(f)))
-    if (partitions.isEmpty) {
-      getTableNames(None)
-    } else {
+    val partitioned = for { f <- filter; tp <- TablePartition(ds, sft); partitions <- tp.partitions(f) } yield {
       partitions.flatMap(p => getTableNames(Some(p)))
     }
+    partitioned.getOrElse(getTableNames(None))
   }
 
   /**
