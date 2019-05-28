@@ -17,8 +17,8 @@ import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.conf.partition.TimePartition.CustomPartitionCache
 import org.locationtech.geomesa.index.metadata.{CachedLazyMetadata, GeoMesaMetadata, HasGeoMesaMetadata}
-import org.locationtech.geomesa.utils.text.DateParsing
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+import org.locationtech.geomesa.utils.text.DateParsing
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -60,13 +60,18 @@ class TimePartition(metadata: GeoMesaMetadata[String], typeName: String, dtg: St
     f"${toBin(ZonedDateTime.ofInstant(toInstant(date), ZoneOffset.UTC))}%05d" // a short should fit into 5 digits
   }
 
-  override def partitions(filter: Filter): Seq[String] = {
+  override def partitions(filter: Filter): Option[Seq[String]] = {
     val intervals = FilterHelper.extractIntervals(filter, dtg)
-    if (intervals.isEmpty || !intervals.forall(_.isBoundedBothSides)) { Seq.empty } else {
+    if (intervals.disjoint) {
+      Some(Seq.empty)
+    } else if (intervals.isEmpty || !intervals.forall(_.isBoundedBothSides)) {
+      None
+    } else {
       val bins = intervals.values.flatMap(i => Range.inclusive(toBin(i.lower.value.get), toBin(i.upper.value.get)))
-      bins.distinct.map(b => f"$b%05d") ++ cache.customPartitions().collect {
+      val names = bins.distinct.map(b => f"$b%05d") ++ cache.customPartitions().collect {
         case (p, start, end) if overlaps(intervals, start, end) => p
       }
+      Some(names)
     }
   }
 
