@@ -22,7 +22,7 @@ import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
-import org.locationtech.geomesa.parquet.jobs.SimpleFeatureReadSupport
+import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
@@ -30,6 +30,9 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class ListMapTest extends Specification {
+
+  import scala.collection.JavaConverters._
+
   sequential
 
   //TODO test things other than lists of strings
@@ -56,9 +59,9 @@ class ListMapTest extends Specification {
         val d2 = java.util.Date.from(Instant.parse("2017-01-02T00:00:00Z"))
         val d3 = java.util.Date.from(Instant.parse("2017-01-03T00:00:00Z"))
 
-        val sf = new ScalaSimpleFeature(sft, "1", Array(List("a", "b", "c"), d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
+        val sf = new ScalaSimpleFeature(sft, "1", Array(List("a", "b", "c").asJava, d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
         val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
-        val sf3 = new ScalaSimpleFeature(sft, "3", Array(List.empty[String], d3, gf.createPoint(new Coordinate(73.0, 73.0))))
+        val sf3 = new ScalaSimpleFeature(sft, "3", Array(List.empty[String].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
         writer.write(sf)
         writer.write(sf2)
         writer.write(sf3)
@@ -123,9 +126,9 @@ class ListMapTest extends Specification {
         val d2 = java.util.Date.from(Instant.parse("2017-01-02T00:00:00Z"))
         val d3 = java.util.Date.from(Instant.parse("2017-01-03T00:00:00Z"))
 
-        val sf = new ScalaSimpleFeature(sft, "1", Array(Map("a" -> "1", "b" -> "2", "c" -> "3"), d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
+        val sf = new ScalaSimpleFeature(sft, "1", Array(Map("a" -> "1", "b" -> "2", "c" -> "3").asJava, d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
         val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
-        val sf3 = new ScalaSimpleFeature(sft, "3", Array(Map.empty[String,String], d3, gf.createPoint(new Coordinate(73.0, 73.0))))
+        val sf3 = new ScalaSimpleFeature(sft, "3", Array(Map.empty[String,String].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
         writer.write(sf)
         writer.write(sf2)
         writer.write(sf3)
@@ -194,9 +197,9 @@ class ListMapTest extends Specification {
         val u2 = UUID.fromString("00000000-0000-2222-0000-000000000000")
         val u3 = UUID.fromString("00000000-0000-3333-0000-000000000000")
 
-        val sf = new ScalaSimpleFeature(sft, "1", Array(List(u1, u2),Map[Int, Double](1 -> 2.0, 3 -> 6.0), d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
+        val sf = new ScalaSimpleFeature(sft, "1", Array(List(u1, u2).asJava,Map[Int, Double](1 -> 2.0, 3 -> 6.0).asJava, d1, gf.createPoint(new Coordinate(25.236263, 27.436734))))
         val sf2 = new ScalaSimpleFeature(sft, "2", Array(null, null, d2, gf.createPoint(new Coordinate(67.2363, 55.236))))
-        val sf3 = new ScalaSimpleFeature(sft, "3", Array(List.empty[UUID],Map.empty[Int, Double], d3, gf.createPoint(new Coordinate(73.0, 73.0))))
+        val sf3 = new ScalaSimpleFeature(sft, "3", Array(List.empty[UUID].asJava,Map.empty[Int, Double].asJava, d3, gf.createPoint(new Coordinate(73.0, 73.0))))
         writer.write(sf)
         writer.write(sf2)
         writer.write(sf3)

@@ -107,7 +107,11 @@ object KryoFeatureSerialization {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
     bindings.head match {
       case ObjectType.STRING =>
-        (o: Output, v: AnyRef) => o.writeString(v.asInstanceOf[String]) // write string supports nulls
+        if (bindings.last == ObjectType.JSON) {
+          (o: Output, v: AnyRef) => KryoJsonSerialization.serialize(o, v.asInstanceOf[String])
+        } else {
+          (o: Output, v: AnyRef) => o.writeString(v.asInstanceOf[String]) // write string supports nulls
+        }
       case ObjectType.INT =>
         val w = (o: Output, v: AnyRef) => o.writeInt(v.asInstanceOf[Int])
         writeNullable(w)
@@ -141,8 +145,6 @@ object KryoFeatureSerialization {
           case precision: GeometryPrecision.TwkbPrecision =>
             (o: Output, v: AnyRef) => KryoGeometrySerialization.serialize(o, v.asInstanceOf[Geometry], precision)
         }
-      case ObjectType.JSON =>
-        (o: Output, v: AnyRef) => KryoJsonSerialization.serialize(o, v.asInstanceOf[String])
       case ObjectType.LIST =>
         val valueWriter = matchWriter(bindings.drop(1), descriptor)
         (o: Output, v: AnyRef) => {

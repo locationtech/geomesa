@@ -60,7 +60,6 @@ object OrcAttributeReader {
           case ObjectType.DOUBLE   => new DoubleReader(batch.cols(col).asInstanceOf[DoubleColumnVector], i)
           case ObjectType.BOOLEAN  => new BooleanReader(batch.cols(col).asInstanceOf[LongColumnVector], i)
           case ObjectType.BYTES    => new BytesReader(batch.cols(col).asInstanceOf[BytesColumnVector], i)
-          case ObjectType.JSON     => new StringReader(batch.cols(col).asInstanceOf[BytesColumnVector], i)
           case ObjectType.UUID     => new UuidReader(batch.cols(col).asInstanceOf[BytesColumnVector], i)
           case ObjectType.LIST     => new ListReader(batch.cols(col).asInstanceOf[ListColumnVector], i, bindings(1))
           case ObjectType.MAP      => new MapReader(batch.cols(col).asInstanceOf[MapColumnVector], i, bindings(1), bindings(2))
@@ -553,7 +552,6 @@ object OrcAttributeReader {
       case ObjectType.DOUBLE   => new GetVectorDouble { override val vector: DoubleColumnVector = vec.asInstanceOf[DoubleColumnVector] }
       case ObjectType.BOOLEAN  => new GetVectorBoolean { override val vector: LongColumnVector = vec.asInstanceOf[LongColumnVector] }
       case ObjectType.BYTES    => new GetVectorBytes { override val vector: BytesColumnVector = vec.asInstanceOf[BytesColumnVector] }
-      case ObjectType.JSON     => new GetVectorString { override val vector: BytesColumnVector = vec.asInstanceOf[BytesColumnVector] }
       case ObjectType.UUID     => new GetVectorUuid { override val vector: BytesColumnVector = vec.asInstanceOf[BytesColumnVector] }
       case _ => throw new IllegalArgumentException(s"Unexpected object type $binding")
     }

@@ -79,7 +79,6 @@ object KuduColumnAdapter {
       case ObjectType.DATE     => DateColumnAdapter(name, config)
       case ObjectType.UUID     => UuidColumnAdapter(name, config)
       case ObjectType.BYTES    => BytesColumnAdapter(name, config)
-      case ObjectType.JSON     => StringColumnAdapter(name, config)
       case ObjectType.LIST     => KryoColumnAdapter(name, bindings, descriptor, config)
       case ObjectType.MAP      => KryoColumnAdapter(name, bindings, descriptor, config)
       case ObjectType.GEOMETRY =>

@@ -93,7 +93,7 @@ object KryoFeatureDeserialization extends LazyLogging {
 
   private [geomesa] def matchReader(bindings: Seq[ObjectType]): Input => AnyRef = {
     bindings.head match {
-      case ObjectType.STRING   => StringReader
+      case ObjectType.STRING   => if (bindings.last == ObjectType.JSON) KryoJsonSerialization.deserializeAndRender else StringReader
       case ObjectType.INT      => IntReader
       case ObjectType.LONG     => LongReader
       case ObjectType.FLOAT    => FloatReader
@@ -101,7 +101,6 @@ object KryoFeatureDeserialization extends LazyLogging {
       case ObjectType.DATE     => DateReader
       case ObjectType.UUID     => UuidReader
       case ObjectType.GEOMETRY => KryoGeometrySerialization.deserialize
-      case ObjectType.JSON     => KryoJsonSerialization.deserializeAndRender
       case ObjectType.BYTES    => BytesReader
       case ObjectType.BOOLEAN  => BooleanReader
       case ObjectType.LIST     => new ListReader(matchReader(bindings.drop(1)))
