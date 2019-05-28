@@ -112,7 +112,6 @@
                                     <exclude>com.esotericsoftware.kryo:*</exclude>
                                     <exclude>org.ow2.asm:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
-                                    <exclude>org.json4s:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>
@@ -155,6 +154,11 @@
                                 <relocation>
                                     <pattern>com.esotericsoftware.kryo</pattern>
                                     <shadedPattern>org.locationtech.geomesa.fs.shaded.com.esotericsoftware.kryo</shadedPattern>
+                                </relocation>
+                                <!-- spark needs json4s to use the jsonpath function -->
+                                <relocation>
+                                    <pattern>org.json4s</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.fs.shaded.org.json4s</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
