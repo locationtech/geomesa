@@ -50,7 +50,7 @@ you will need to copy the appropriate JARs into the tools ``lib`` folder.
     into the class path. Use the ``geomesa-gt classpath`` command in order to see what JARs are being used.
 
 
-Due to licensing restrictions, dependencies for shape file support must be separately installed. Do this with the
+Due to licensing restrictions, dependencies for shapefile support must be separately installed. Do this with the
 following commands:
 
 .. code-block:: bash
