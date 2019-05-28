@@ -92,7 +92,6 @@
                                     <exclude>org.ow2.asm:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
                                     <exclude>io.netty:*</exclude>
-                                    <exclude>org.json4s:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>
@@ -109,12 +108,17 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.hbase.shaded.com.google.common</shadedPattern>
+                                    <shadedPattern>org.locationtech.geomesa.kudu.shaded.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.apache.commons.codec</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.hbase.shaded.org.apache.commons.codec
+                                    <shadedPattern>org.locationtech.geomesa.kudu.shaded.org.apache.commons.codec
                                     </shadedPattern>
+                                </relocation>
+                                <!-- spark needs json4s to use the jsonpath function -->
+                                <relocation>
+                                    <pattern>org.json4s</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.kudu.shaded.org.json4s</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
