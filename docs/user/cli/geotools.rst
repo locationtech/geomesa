@@ -91,7 +91,9 @@ General Arguments
 Most commands require you to specify the connection to your data store. Parameters can be passed in using the
 ``--param`` argument, which can be repeated in order to specify multiple parameters. Alternatively, the ``--params``
 argument can be used to specify a Java properties file containing the parameters. This may be useful for
-simplifying the command invocation, or to hide sensitive parameters from bash history and process lists.
+simplifying the command invocation, or to hide sensitive parameters from bash history and process lists. If both
+``--param`` and ``--params`` are used, then parameters specified directly will take precedence over ones from the
+properties file.
 
 For example, to connect to a Postgis data store, you may use the following command:
 
