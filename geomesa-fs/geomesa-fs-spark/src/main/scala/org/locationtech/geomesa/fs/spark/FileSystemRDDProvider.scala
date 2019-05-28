@@ -25,7 +25,8 @@ import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcSimpleFeatureInputFormat
 import org.locationtech.geomesa.index.planning.QueryPlanner
-import org.locationtech.geomesa.parquet.jobs.{ParquetSimpleFeatureInputFormat, SimpleFeatureReadSupport}
+import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport
+import org.locationtech.geomesa.parquet.jobs.ParquetSimpleFeatureInputFormat
 import org.locationtech.geomesa.parquet.{FilterConverter, ParquetFileSystemStorage}
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
@@ -140,9 +141,9 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
     conf.set("parquet.filter.dictionary.enabled", "true")
 
     // push-down Parquet predicates and remaining gt-filter
-    val (parquetFilter, modifiedGT) = new FilterConverter(sft).convert(query.getFilter)
+    val (parquetFilter, modifiedGT) = FilterConverter.convert(sft, query.getFilter)
     parquetFilter.foreach(ParquetInputFormat.setFilterPredicate(conf, _))
-    ParquetSimpleFeatureInputFormat.setGeoToolsFilter(conf, modifiedGT)
+    ParquetSimpleFeatureInputFormat.setGeoToolsFilter(conf, modifiedGT.getOrElse(Filter.INCLUDE))
 
     // @see org.apache.parquet.hadoop.ParquetInputFormat.setReadSupportClass(org.apache.hadoop.mapred.JobConf, java.lang.Class<?>)
     conf.set(ParquetInputFormat.READ_SUPPORT_CLASS, classOf[SimpleFeatureReadSupport].getName)
