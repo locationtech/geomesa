@@ -19,6 +19,9 @@ details.
 
     common
     parsing_and_validation
+    cache
+    usage_tools
+    usage_code
     delimited_text
     json
     xml
@@ -28,10 +31,7 @@ details.
     fixed_width
     jdbc
     composite
-    cache
     premade/index
     function_overview
     function_usage
-    usage_tools
-    usage_runtime
     extending

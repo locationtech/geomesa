@@ -25,6 +25,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   */
 trait SimpleFeatureConverter extends Closeable with LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   /**
     * Result feature type
     */
@@ -52,7 +54,16 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
   }
 
   /**
-    * Creates a context used for processing
+    * Java API for `createEvaluationContext`
+    *
+    * @param globalParams global params, accessible in the converter for each input
+    * @return
+    */
+  final def createEvaluationContext(globalParams: java.util.Map[String, Any]): EvaluationContext =
+    createEvaluationContext(globalParams.asScala.toMap)
+
+  /**
+    * Creates a context used for local state while processing
     */
   // noinspection ScalaDeprecation
   @deprecated
