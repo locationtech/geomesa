@@ -1,7 +1,7 @@
 .. _installing_sft_and_converter_definitions:
 
-Using SFT and Converter Definitions with Command-Line Tools
------------------------------------------------------------
+Using Converters with the Command-Line Tools
+--------------------------------------------
 
 The GeoMesa binary distributions ship with prepackaged feature type and
 converter definitions for common data types including Twitter, GeoNames, T-drive, and
@@ -91,4 +91,4 @@ Once the converter and SFT are registered, it can be used to ingest the
 
 .. code-block:: shell
 
-    $ geomesa-accumulo ingest -u <user> -p <pass> -i <instance> -z <zookeepers> -s renegades -C renegades-csv  example.csv
+    $ geomesa-accumulo ingest -u <user> -p <pass> -i <instance> -z <zookeepers> -s renegades -C renegades-csv example.csv
