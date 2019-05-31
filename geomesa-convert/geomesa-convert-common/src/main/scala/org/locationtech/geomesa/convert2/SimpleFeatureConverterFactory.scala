@@ -32,7 +32,7 @@ trait SimpleFeatureConverterFactory extends LazyLogging {
     * @param sft simple feature type, if known ahead of time
     * @return
     */
-  @deprecated("Use infer(InputStream, Option[String], Option[SimpleFeatureType]")
+  @deprecated("Use infer(InputStream, Option[SimpleFeatureType], Option[String])")
   def infer(is: InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] = None
 
   /**
