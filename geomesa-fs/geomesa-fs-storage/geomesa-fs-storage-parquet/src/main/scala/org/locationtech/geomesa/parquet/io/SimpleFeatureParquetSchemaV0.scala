@@ -42,8 +42,8 @@ object SimpleFeatureParquetSchemaV0 {
     val builder = bindings.head match {
       case ObjectType.GEOMETRY =>
         Types.buildGroup(Repetition.REQUIRED)
-            .primitive(PrimitiveTypeName.DOUBLE, Repetition.REQUIRED).named("x")
-            .primitive(PrimitiveTypeName.DOUBLE, Repetition.REQUIRED).named("y")
+            .primitive(PrimitiveTypeName.DOUBLE, Repetition.REQUIRED).named(SimpleFeatureParquetSchema.GeometryColumnX)
+            .primitive(PrimitiveTypeName.DOUBLE, Repetition.REQUIRED).named(SimpleFeatureParquetSchema.GeometryColumnY)
 
       case ObjectType.DATE    => Types.primitive(PrimitiveTypeName.INT64, Repetition.OPTIONAL)
       case ObjectType.STRING  => Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL).as(OriginalType.UTF8)

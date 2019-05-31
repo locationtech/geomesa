@@ -13,6 +13,7 @@ import java.nio.ByteBuffer
 import java.util.{Date, UUID}
 
 import org.apache.hadoop.conf.Configuration
+import org.apache.parquet.hadoop.api.ReadSupport.ReadContext
 import org.apache.parquet.hadoop.api.{InitContext, ReadSupport}
 import org.apache.parquet.io.api._
 import org.apache.parquet.schema.MessageType
@@ -30,12 +31,12 @@ class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {
 
   private var schema: SimpleFeatureParquetSchema = _
 
-  override def init(context: InitContext): ReadSupport.ReadContext = {
+  override def init(context: InitContext): ReadContext = {
     schema = SimpleFeatureParquetSchema.read(context).getOrElse {
       throw new IllegalArgumentException("Could not extract SimpleFeatureType from read context")
     }
     // ensure that our read schema matches the geomesa parquet version
-    new ReadSupport.ReadContext(schema.schema, schema.metadata)
+    new ReadContext(schema.schema, schema.metadata)
   }
 
   override def prepareForRead(
@@ -48,6 +49,40 @@ class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {
 }
 
 object SimpleFeatureReadSupport {
+
+  /**
+    * Zip x and y values into coordinates
+    *
+    * @param x x values
+    * @param y corresponding y values
+    * @return
+    */
+  def zip(x: Array[Double], y: Array[Double]): Array[Coordinate] = {
+    val result = Array.ofDim[Coordinate](x.length)
+    var i = 0
+    while (i < result.length) {
+      result(i) = new Coordinate(x(i), y(i))
+      i += 1
+    }
+    result
+  }
+
+  /**
+    * Zip x and y values into coordinates
+    *
+    * @param x x values
+    * @param y corresponding y values
+    * @return
+    */
+  def zip(x: java.util.List[Double], y: java.util.List[Double]): Array[Coordinate] = {
+    val result = Array.ofDim[Coordinate](x.size)
+    var i = 0
+    while (i < result.length) {
+      result(i) = new Coordinate(x.get(i), y.get(i))
+      i += 1
+    }
+    result
+  }
 
   class SimpleFeatureRecordMaterializer(schema: SimpleFeatureParquetSchema)
       extends RecordMaterializer[SimpleFeature] {
@@ -124,8 +159,8 @@ object SimpleFeatureReadSupport {
       case ObjectType.FLOAT    => new FloatConverter(i, callback)
       case ObjectType.BOOLEAN  => new BooleanConverter(i, callback)
       case ObjectType.BYTES    => new BytesConverter(i, callback)
-      case ObjectType.LIST     => new ListConverter(i, bindings.drop(1), callback)
-      case ObjectType.MAP      => new MapConverter(i, bindings.drop(1), callback)
+      case ObjectType.LIST     => new ListConverter(bindings(1), i, callback)
+      case ObjectType.MAP      => new MapConverter(bindings(1), bindings(2), i, callback)
       case ObjectType.UUID     => new UuidConverter(i, callback)
       case _ => throw new IllegalArgumentException(s"Can't deserialize field of type ${bindings.head}")
     }
@@ -181,12 +216,12 @@ object SimpleFeatureReadSupport {
     override def addBinary(value: Binary): Unit = callback.set(index, value.getBytes)
   }
 
-  class ListConverter(index: Int, binding: Seq[ObjectType], callback: Settable) extends GroupConverter {
+  class ListConverter(binding: ObjectType, index: Int, callback: Settable) extends GroupConverter {
 
     private var list: java.util.List[AnyRef] = _
 
     private val group: GroupConverter = new GroupConverter {
-      private val converter = attribute(binding, 0, (value: AnyRef) => list.add(value))
+      private val converter = attribute(Seq(binding), 0, (value: AnyRef) => list.add(value))
       override def getConverter(fieldIndex: Int): Converter = converter // better only be one field (0)
       override def start(): Unit = {}
       override def end(): Unit = {}
@@ -197,15 +232,16 @@ object SimpleFeatureReadSupport {
     override def end(): Unit = callback.set(index, list)
   }
 
-  class MapConverter(index: Int, bindings: Seq[ObjectType], callback: Settable) extends GroupConverter {
+  class MapConverter(keyBinding: ObjectType, valueBinding: ObjectType, index: Int, callback: Settable)
+      extends GroupConverter {
 
     private var map: java.util.Map[AnyRef, AnyRef] = _
 
     private val group: GroupConverter = new GroupConverter {
       private var k: AnyRef = _
       private var v: AnyRef = _
-      private val keyConverter = attribute(bindings.slice(0, 1), 0, (value: AnyRef) => k = value)
-      private val valueConverter = attribute(bindings.drop(1), 1, (value: AnyRef) => v = value)
+      private val keyConverter = attribute(Seq(keyBinding), 0, (value: AnyRef) => k = value)
+      private val valueConverter = attribute(Seq(valueBinding), 1, (value: AnyRef) => v = value)
 
       override def getConverter(fieldIndex: Int): Converter =
         if (fieldIndex == 0) { keyConverter } else { valueConverter }
@@ -428,22 +464,5 @@ object SimpleFeatureReadSupport {
     override def getConverter(fieldIndex: Int): GroupConverter = group
     override def start(): Unit = polys.clear()
     override def end(): Unit = {}
-  }
-
-  /**
-    * Zip x and y values into coordinates
-    *
-    * @param x x values
-    * @param y corresponding y values
-    * @return
-    */
-  private def zip(x: Array[Double], y: Array[Double]): Array[Coordinate] = {
-    val result = Array.ofDim[Coordinate](x.length)
-    var i = 0
-    while (i < result.length) {
-      result(i) = new Coordinate(x(i), y(i))
-      i += 1
-    }
-    result
   }
 }

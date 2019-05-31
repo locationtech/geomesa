@@ -27,6 +27,7 @@ details.
     xml
     avro
     avro_schema_registry
+    parquet
     shp
     fixed_width
     jdbc

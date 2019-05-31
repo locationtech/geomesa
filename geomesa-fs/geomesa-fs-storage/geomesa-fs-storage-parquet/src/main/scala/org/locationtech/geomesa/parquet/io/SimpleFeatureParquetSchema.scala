@@ -45,6 +45,14 @@ case class SimpleFeatureParquetSchema(sft: SimpleFeatureType, schema: MessageTyp
     StorageConfiguration.SftSpecKey -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
     SchemaVersionKey                -> CurrentSchemaVersion.toString // note: this may not be entirely accurate, but we don't write older versions
   ).asJava
+
+  /**
+    * Gets the name of the parquet field for the given simple feature type attribute
+    *
+    * @param i index of the sft attribute
+    * @return
+    */
+  def field(i: Int): String = schema.getFields.get(i).getName
 }
 
 object SimpleFeatureParquetSchema {
@@ -56,6 +64,9 @@ object SimpleFeatureParquetSchema {
   val SchemaVersionKey = "geomesa.parquet.version"
 
   val CurrentSchemaVersion = 1
+
+  val GeometryColumnX = "x"
+  val GeometryColumnY = "y"
 
   /**
     * Extract the simple feature type from a parquet read context. The read context
@@ -107,14 +118,6 @@ object SimpleFeatureParquetSchema {
   }
 
   /**
-    * Gets the parquet field name used in the schema for a given attribute descriptor
-    *
-    * @param ad descriptor
-    * @return
-    */
-  def name(ad: AttributeDescriptor): String = StringSerialization.alphaNumericSafeString(ad.getLocalName)
-
-  /**
     * Determine the appropriate versioned schema
     *
     * @param metadata read metadata, which should include the projected simple feature type and version info
@@ -162,7 +165,7 @@ object SimpleFeatureParquetSchema {
       case ObjectType.MAP      => Binding(bindings(1)).key(bindings(2))
       case p                   => Binding(p).primitive()
     }
-    builder.named(name(descriptor))
+    builder.named(StringSerialization.alphaNumericSafeString(descriptor.getLocalName))
   }
 
   /**
@@ -176,33 +179,33 @@ object SimpleFeatureParquetSchema {
     binding match {
       case ObjectType.POINT =>
         group.id(GeometryBytes.TwkbPoint)
-            .required(PrimitiveTypeName.DOUBLE).named("x")
-            .required(PrimitiveTypeName.DOUBLE).named("y")
+            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
+            .required(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
 
       case ObjectType.LINESTRING =>
         group.id(GeometryBytes.TwkbLineString)
-            .repeated(PrimitiveTypeName.DOUBLE).named("x")
-            .repeated(PrimitiveTypeName.DOUBLE).named("y")
+            .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
+            .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
 
       case ObjectType.MULTIPOINT =>
         group.id(GeometryBytes.TwkbMultiPoint)
-            .repeated(PrimitiveTypeName.DOUBLE).named("x")
-            .repeated(PrimitiveTypeName.DOUBLE).named("y")
+            .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
+            .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
 
       case ObjectType.POLYGON =>
         group.id(GeometryBytes.TwkbPolygon)
-            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named("x")
-            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named("y")
+            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
+            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
 
       case ObjectType.MULTILINESTRING =>
         group.id(GeometryBytes.TwkbMultiLineString)
-            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named("x")
-            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named("y")
+            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
+            .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
 
       case ObjectType.MULTIPOLYGON =>
         group.id(GeometryBytes.TwkbMultiPolygon)
-            .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named("x")
-            .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named("y")
+            .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
+            .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
 
       case ObjectType.GEOMETRY_COLLECTION =>
         throw new NotImplementedError("Geometry collections are not supported")

@@ -38,7 +38,7 @@ abstract class AbstractConverterFactory[S <: AbstractConverter[_, C, F, O]: Clas
                                         C <: ConverterConfig: ClassTag,
                                         F <: Field,
                                         O <: ConverterOptions: ClassTag]
-    extends SimpleFeatureConverterFactory with LazyLogging {
+    extends SimpleFeatureConverterFactory {
 
   /**
     * The converter to use is identified by the 'type' field in the config, e.g. 'xml' or 'json'

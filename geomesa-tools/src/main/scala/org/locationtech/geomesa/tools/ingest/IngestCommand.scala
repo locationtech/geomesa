@@ -208,9 +208,8 @@ object IngestCommand extends LazyLogging {
       }
       val (inferredSft, inferredConverter) = try {
         val opt = format match {
-          case None        => SimpleFeatureConverter.infer(open, Option(sft))
-          case Some("shp") => ShapefileConverterFactory.infer(file.path, Option(sft))
-          case Some(fmt)   => TypeAwareInference.infer(fmt, open, Option(sft))
+          case None      => SimpleFeatureConverter.infer(open, Option(sft), Option(file.path))
+          case Some(fmt) => TypeAwareInference.infer(fmt, open, Option(sft), Option(file.path))
         }
         opt.getOrElse {
           throw new ParameterException("Could not determine converter from inputs - please specify a converter")
