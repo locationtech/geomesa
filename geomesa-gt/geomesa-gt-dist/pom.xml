@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <parent>
+        <groupId>org.locationtech.geomesa</groupId>
+        <artifactId>geomesa-gt_2.11</artifactId>
+        <version>2.4.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+
+    <artifactId>geomesa-gt-dist_2.11</artifactId>
+    <name>GeoMesa GeoTools Distribution</name>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <gmtools.dist.name>GEOMESA_GEOTOOLS</gmtools.dist.name> <!-- used in tools filtering -->
+    </properties>
+
+    <dependencies>
+
+        <!-- Spark (dist)-->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-gt-spark-runtime_${scala.binary.version}</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-spark-converter_${scala.binary.version}</artifactId>
+        </dependency>
+
+        <!-- GeoServer Plugins (dist) -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-process-wps_${scala.binary.version}</artifactId>
+        </dependency>
+
+        <!-- Tools (bin,lib,etc)-->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-gt-tools_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
+            <classifier>data</classifier>
+        </dependency>
+
+        <!-- additional deps to manage in for deploying to lib dir-->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-utils_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-feature-all_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.clearspring.analytics</groupId>
+            <artifactId>stream</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-opengis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.json4s</groupId>
+            <artifactId>json4s-native_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang.modules</groupId>
+            <artifactId>scala-xml_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- manage these out from the libdir -->
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-compiler</artifactId>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>python</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa_pyspark</artifactId>
+                    <version>${project.version}</version>
+                    <type>tar.gz</type>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>binary-assembly</id>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <attach>true</attach>
+                            <finalName>geomesa-gt_${scala.binary.version}-${project.version}</finalName>
+                            <tarLongFileMode>posix</tarLongFileMode>
+                            <descriptors>
+                                <descriptor>src/main/assemblies/binary-release.xml</descriptor>
+                            </descriptors>
+                            <delimiters>
+                                <delimiter>%%</delimiter>
+                            </delimiters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

@@ -101,9 +101,8 @@ class LocalConverterIngest(
                   fw = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
                 }
                 features.foreach { sf =>
-                  FeatureUtils.copyToWriter(fw, sf, useProvidedFid = true)
                   try {
-                    fw.write()
+                    FeatureUtils.write(fw, sf, useProvidedFid = true)
                     written.incrementAndGet()
                   } catch {
                     case NonFatal(e) =>

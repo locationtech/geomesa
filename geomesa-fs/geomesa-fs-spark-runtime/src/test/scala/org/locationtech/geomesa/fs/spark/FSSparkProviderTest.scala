@@ -157,10 +157,7 @@ class FSSparkProviderTest extends Specification with BeforeAfterAll with LazyLog
       val ds = dsf.createDataStore(params)
       ds.createSchema(sft)
       WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
-        features.foreach { feature =>
-          FeatureUtils.copyToWriter(writer, feature, useProvidedFid = true)
-          writer.write()
-        }
+        features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
       }
 
       df = spark.read

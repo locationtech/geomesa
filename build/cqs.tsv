@@ -36,6 +36,7 @@ commons-cli:commons-cli	1.2	compile
 commons-codec:commons-codec	1.9	compile
 commons-collections:commons-collections	3.2.2	compile
 commons-configuration:commons-configuration	1.6	compile
+commons-dbcp:commons-dbcp	1.4	compile
 commons-digester:commons-digester	1.8	compile
 commons-httpclient:commons-httpclient	3.1	compile
 commons-io:commons-io	2.5	compile
@@ -186,6 +187,7 @@ org.geotools:gt-geojson	20.0	compile
 org.geotools:gt-geotiff	20.0	compile
 org.geotools:gt-grid	20.0	compile
 org.geotools:gt-imageio-ext-gdal	20.0	compile
+org.geotools:gt-jdbc	20.0	compile
 org.geotools:gt-main	20.0	compile
 org.geotools:gt-metadata	20.0	compile
 org.geotools:gt-opengis	20.0	compile
@@ -196,6 +198,7 @@ org.geotools:gt-render	20.0	compile
 org.geotools:gt-shapefile	20.0	compile
 org.geotools:gt-transform	20.0	compile
 org.geotools:gt-xml	20.0	compile
+org.geotools.jdbc:gt-jdbc-postgis	20.0	compile
 org.geotools.ogc:net.opengis.fes	20.0	compile
 org.geotools.ogc:net.opengis.ows	20.0	compile
 org.geotools.ogc:net.opengis.wfs	20.0	compile
@@ -227,6 +230,7 @@ org.mortbay.jetty:jetty-util	6.1.26	compile
 org.objenesis:objenesis	1.0	compile
 org.parboiled:parboiled-core	1.1.7	compile
 org.parboiled:parboiled-scala_2.11	1.1.7	compile
+org.postgresql:postgresql	42.2.2	compile
 org.scala-lang.modules:scala-parser-combinators_2.11	1.0.6	compile
 org.scala-lang.modules:scala-xml_2.11	1.0.6	compile
 org.scala-lang:scala-library	2.11.7	compile

@@ -68,10 +68,7 @@ class FileSystemDataStoreTest extends Specification {
         ds.createSchema(sft)
 
         WithClose(ds.getFeatureWriterAppend(format, Transaction.AUTO_COMMIT)) { writer =>
-          features.foreach { feature =>
-            FeatureUtils.copyToWriter(writer, feature, useProvidedFid = true)
-            writer.write()
-          }
+          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
 
         // metadata

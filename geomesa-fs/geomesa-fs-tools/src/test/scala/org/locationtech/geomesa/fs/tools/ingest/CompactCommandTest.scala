@@ -88,10 +88,7 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
 
   def writeFeature(ds: DataStore, feats: Seq[ScalaSimpleFeature]): Unit = {
     WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
-      feats.foreach { feature =>
-        FeatureUtils.copyToWriter(writer, feature, useProvidedFid = true)
-        writer.write()
-      }
+      feats.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
     }
   }
 

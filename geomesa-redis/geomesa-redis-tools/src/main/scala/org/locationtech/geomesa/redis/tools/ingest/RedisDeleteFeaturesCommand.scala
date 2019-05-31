@@ -13,7 +13,8 @@ import org.locationtech.geomesa.redis.data.RedisDataStore
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand.RedisDataStoreParams
 import org.locationtech.geomesa.redis.tools.ingest.RedisDeleteFeaturesCommand.RedisDeleteFeaturesParams
-import org.locationtech.geomesa.tools.data.{DeleteFeaturesCommand, DeleteFeaturesParams}
+import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand
+import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand.DeleteFeaturesParams
 
 class RedisDeleteFeaturesCommand extends DeleteFeaturesCommand[RedisDataStore] with RedisDataStoreCommand {
   override val params = new RedisDeleteFeaturesParams

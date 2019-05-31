@@ -21,6 +21,10 @@ from the ``geomesa`` Accumulo table:
 
 .. code-block:: scala
 
+    import org.apache.hadoop.conf.Configuration
+    import org.geotools.data.Query
+    import org.locationtech.geomesa.spark.GeoMesaSpark
+
     val params = Map(
       "accumulo.instance.id" -> "mycloud",
       "accumulo.user"        -> "user",
@@ -61,6 +65,10 @@ from the ``geomesa`` HBase table:
 
 .. code-block:: scala
 
+    import org.apache.hadoop.conf.Configuration
+    import org.geotools.data.Query
+    import org.locationtech.geomesa.spark.GeoMesaSpark
+
     val params = Map("hbase.zookeepers" -> "zoo1,zoo2,zoo3", "hbase.catalog" -> "geomesa")
     val query = new Query("gdelt")
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
@@ -82,6 +90,10 @@ to the ``rdd()`` method. For example, to load an ``RDD`` of features of type ``g
 from an s3 bucket:
 
 .. code-block:: scala
+
+    import org.apache.hadoop.conf.Configuration
+    import org.geotools.data.Query
+    import org.locationtech.geomesa.spark.GeoMesaSpark
 
     val params = Map("fs.path" -> "s3a://mybucket/geomesa/datastore")
     val query = new Query("gdelt")
@@ -112,6 +124,11 @@ converter, the following Scala code can be used to load this data into an ``RDD`
 
 .. code-block:: scala
 
+    import com.typesafe.config.ConfigFactory
+    import org.apache.hadoop.conf.Configuration
+    import org.geotools.data.Query
+    import org.locationtech.geomesa.spark.GeoMesaSpark
+
     val exampleConf = ConfigFactory.load("example.conf").root().render()
     val params = Map(
       "geomesa.converter"        -> exampleConf,
@@ -135,31 +152,36 @@ details.
 GeoTools RDD Provider
 ^^^^^^^^^^^^^^^^^^^^^
 
-``GeoToolsSpatialRDDProvider`` is provided by the ``geomesa-spark-geotools`` module.
+``GeoToolsSpatialRDDProvider`` is provided by the ``geomesa-gt-spark`` module.
 
 ``GeoToolsSpatialRDDProvider`` generates and saves ``RDD``\ s of features stored in
 a generic GeoTools ``DataStore``. The configuration parameters passed are the same as
 those passed to ``DataStoreFinder.getDataStore()`` to create the data store of interest,
 plus a required boolean parameter called "geotools" to indicate to the SPI to load
-``GeoToolsSpatialRDDProvider``. For example, the `CSVDataStore`_ described in the
-`GeoTools ContentDataStore tutorial`_ takes a single parameter called "file". To use
-this data store with GeoMesa Spark, do the following:
+``GeoToolsSpatialRDDProvider``. For example, to use the `Postgis DataStore`_ with
+GeoMesa Spark, do the following:
 
 .. code-block:: scala
 
+    import org.apache.hadoop.conf.Configuration
+    import org.geotools.data.Query
+    import org.locationtech.geomesa.spark.GeoMesaSpark
+
     val params = Map(
       "geotools" -> "true",
-      "file"     -> "locations.csv")
+      "dbtype"   -> "postgis",
+      "host"     -> "localhost",
+      "user"     -> "postgres",
+      "passwd"   -> "postgres",
+      "port"     -> "5432",
+      "database" -> "example")
     val query = new Query("locations")
     val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, query)
 
-.. _GeoTools ContentDataStore tutorial: http://docs.geotools.org/latest/userguide/tutorial/datastore/index.html
-
-.. _CSVDataStore: http://docs.geotools.org/latest/userguide/tutorial/datastore/read.html
+.. _Postgis DataStore: http://docs.geotools.org/stable/userguide/library/jdbc/postgis.html
 
 The name of the feature type to access in the data store is passed as the type name of the
-query passed to the ``rdd()`` method. In the example of the `CSVDataStore`_, this is the
-basename of the filename passed as an argument.
+query passed to the ``rdd()`` method. In the example above, this is "locations".
 
 .. warning::
 

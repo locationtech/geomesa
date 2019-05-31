@@ -20,6 +20,7 @@ overview of the commands available for most back-ends.
     logging
     filesystems
     console
+    geotools
 
 Specific back-end implementations are described in the following chapters:
 
@@ -30,3 +31,4 @@ Specific back-end implementations are described in the following chapters:
  * :doc:`/user/kafka/commandline`
  * :doc:`/user/lambda/commandline`
  * :doc:`/user/filesystem/commandline`
+ * :doc:`/user/cli/geotools`

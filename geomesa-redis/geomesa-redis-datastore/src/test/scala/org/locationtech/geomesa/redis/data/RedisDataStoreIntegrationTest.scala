@@ -65,10 +65,7 @@ class RedisDataStoreIntegrationTest extends Specification {
         ds.getSchema(sft.getTypeName) mustEqual sft
 
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-          features.foreach { feature =>
-            FeatureUtils.copyToWriter(writer, feature, useProvidedFid = true)
-            writer.write()
-          }
+          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
 
         foreach(filters) { filter =>

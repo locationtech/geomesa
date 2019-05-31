@@ -11,7 +11,6 @@ package org.locationtech.geomesa.fs.spark
 import java.io.Serializable
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
@@ -30,6 +29,7 @@ import org.locationtech.geomesa.parquet.jobs.ParquetSimpleFeatureInputFormat
 import org.locationtech.geomesa.parquet.{FilterConverter, ParquetFileSystemStorage}
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
+import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -97,26 +97,16 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
   }
 
   override def save(rdd: RDD[SimpleFeature], params: Map[String, String], typeName: String): Unit = {
-    import scala.collection.JavaConversions._
-    val ds = DataStoreFinder.getDataStore(params).asInstanceOf[FileSystemDataStore]
-    try {
+    WithStore(params) {ds =>
       require(ds.getSchema(typeName) != null,
         "Feature type must exist before calling save. Call createSchema on the DataStore first.")
-    } finally {
-      ds.dispose()
     }
 
     rdd.foreachPartition { iter =>
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[FileSystemDataStore]
-      val featureWriter = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
-      try {
-        iter.foreach { rawFeature =>
-          FeatureUtils.copyToWriter(featureWriter, rawFeature, useProvidedFid = true)
-          featureWriter.write()
+      WithStore(params) { ds =>
+        WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+          iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
-      } finally {
-        IOUtils.closeQuietly(featureWriter)
-        ds.dispose()
       }
     }
   }
