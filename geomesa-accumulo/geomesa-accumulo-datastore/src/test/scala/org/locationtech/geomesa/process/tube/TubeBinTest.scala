@@ -11,7 +11,7 @@ package org.locationtech.geomesa.process.tube
 import org.locationtech.jts.geom.GeometryCollection
 import org.apache.log4j.Logger
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory

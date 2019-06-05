@@ -12,7 +12,7 @@ import java.util.UUID
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.serialization.GenericMapSerialization
 import org.locationtech.jts.geom.{Geometry, LineString, Point, Polygon}
 

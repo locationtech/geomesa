@@ -10,7 +10,8 @@ package org.locationtech.geomesa.tools.export
 
 import java.io.ByteArrayOutputStream
 
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory

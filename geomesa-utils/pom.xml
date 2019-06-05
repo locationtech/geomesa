@@ -66,19 +66,11 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
             <artifactId>gt-cql</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-grid</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-data</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>

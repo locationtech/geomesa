@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore

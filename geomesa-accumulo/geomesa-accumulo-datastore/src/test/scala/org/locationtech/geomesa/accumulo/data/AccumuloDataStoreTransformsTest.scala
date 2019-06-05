@@ -13,7 +13,7 @@ import java.util.Date
 import org.locationtech.jts.geom.Point
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL

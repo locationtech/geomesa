@@ -14,7 +14,7 @@ import java.util
 import java.util.zip.Deflater
 
 import org.apache.avro.file.DataFileStream
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions

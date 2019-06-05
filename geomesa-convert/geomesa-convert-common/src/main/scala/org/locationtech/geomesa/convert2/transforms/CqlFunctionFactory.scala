@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.convert2.transforms
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.util.factory.Hints
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 

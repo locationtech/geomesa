@@ -18,7 +18,7 @@ import kafka.admin.AdminUtils
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.geotools.data._
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder

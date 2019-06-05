@@ -13,7 +13,7 @@ import java.util
 import java.util.{Date, ServiceLoader}
 
 import org.locationtech.jts.geom.Geometry
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.blob.api.FileHandler
 import org.locationtech.geomesa.blob.api.GeoMesaBlobStoreSFT._

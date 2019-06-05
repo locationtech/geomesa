@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
 import java.util.Date
 
 import org.geotools.data.Query
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
 import org.locationtech.geomesa.arrow.io.{DeltaWriter, DictionaryBuildingWriter}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector

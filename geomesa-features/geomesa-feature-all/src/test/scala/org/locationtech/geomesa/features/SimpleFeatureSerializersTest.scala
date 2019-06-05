@@ -10,7 +10,7 @@ package org.locationtech.geomesa.features
 
 import java.util.UUID
 
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.avro.{AvroFeatureDeserializer, AvroFeatureSerializer, AvroSimpleFeatureFactory, ProjectingAvroFeatureDeserializer}

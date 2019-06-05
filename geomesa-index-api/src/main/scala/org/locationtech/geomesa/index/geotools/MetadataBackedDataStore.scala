@@ -14,7 +14,7 @@ import java.util.{List => jList}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureWriter}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.{FeatureTypes, NameImpl}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._

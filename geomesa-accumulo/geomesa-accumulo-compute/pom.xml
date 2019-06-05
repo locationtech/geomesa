@@ -96,10 +96,6 @@
             <groupId>com.clearspring.analytics</groupId>
             <artifactId>stream</artifactId>
         </dependency>
-        <dependency>
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
-        </dependency>
 
         <!-- test dependencies -->
         <dependency>

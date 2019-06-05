@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.commons.codec.binary.Base64
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.StatsScan

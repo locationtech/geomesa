@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.IOUtils
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.Transformers._
 import org.locationtech.geomesa.convert.ValidationMode.ValidationMode

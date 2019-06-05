@@ -9,7 +9,8 @@
 
 package org.locationtech.geomesa.filter.factory
 
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.expression.{FastPropertyName, OrHashEquality, OrSequentialEquality}

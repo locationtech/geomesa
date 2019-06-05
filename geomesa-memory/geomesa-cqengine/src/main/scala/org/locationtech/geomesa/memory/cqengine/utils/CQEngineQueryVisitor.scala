@@ -15,11 +15,12 @@ import com.googlecode.cqengine.attribute.Attribute
 import com.googlecode.cqengine.query.Query
 import com.googlecode.cqengine.query.simple.All
 import com.googlecode.cqengine.{query => cqquery}
-import org.locationtech.jts.geom.Geometry
 import org.geotools.filter.LikeToRegexConverter
 import org.geotools.filter.visitor.AbstractFilterVisitor
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.memory.cqengine.query.{GeoToolsFilterQuery, Intersects => CQIntersects}
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 import org.opengis.filter.expression.Literal
@@ -291,7 +292,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     val name = getAttribute(filter)
     val attribute: Attribute[SimpleFeature, Any] = lookup.lookup[Any](name)
     val value: Any = Iterator(filter.getExpression1, filter.getExpression2).collect {
-      case lit: Literal => lit.evaluate(null, attribute.getAttributeType)
+      case lit: Literal => FastConverter.evaluate(lit, attribute.getAttributeType)
     }.headOption.getOrElse {
       throw new RuntimeException(s"Can't parse not equal to values ${filterToString(filter)}")
     }

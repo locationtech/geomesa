@@ -12,6 +12,7 @@ import java.util.{Collections, Date}
 
 import org.geotools.filter.visitor.{DuplicatingFilterVisitor, ExpressionTypeVisitor, IsStaticExpressionVisitor}
 import org.locationtech.geomesa.filter.{FilterHelper, GeometryProcessing}
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
@@ -328,7 +329,7 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
 
   private def bind(e: Expression, extraData: AnyRef, target: Class[_]): Expression = {
     if (e.isInstanceOf[Literal]) {
-      val bound = e.evaluate(null, target)
+      val bound = FastConverter.convert(e.evaluate(null), target)
       if (bound != null) {
         return getFactory(extraData).literal(bound)
       }
@@ -338,11 +339,12 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
 
   private def bind(e: Expression, extraData: AnyRef, target: Class[_], fallback: Class[_]): Expression = {
     if (e.isInstanceOf[Literal]) {
-      var bound = e.evaluate(null, target)
+      val lit = e.evaluate(null)
+      var bound = FastConverter.convert(lit, target)
       if (bound != null) {
         return getFactory(extraData).literal(bound)
       }
-      bound = e.evaluate(null, fallback)
+      bound = FastConverter.convert(lit, fallback)
       if (bound != null) {
         return getFactory(extraData).literal(bound)
       }

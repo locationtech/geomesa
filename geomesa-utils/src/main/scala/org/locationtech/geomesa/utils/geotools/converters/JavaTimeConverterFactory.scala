@@ -12,7 +12,7 @@ import java.time._
 import java.time.temporal.{ChronoField, TemporalAccessor}
 import java.util.Date
 
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.util.{Converter, ConverterFactory}
 import org.locationtech.geomesa.utils.text.DateParsing
 

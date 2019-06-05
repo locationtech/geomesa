@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.Parameters
 import org.geotools.data.Query
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore

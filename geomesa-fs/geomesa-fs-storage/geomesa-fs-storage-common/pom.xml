@@ -40,10 +40,6 @@
             <artifactId>pureconfig_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-data</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-dbcp2</artifactId>
             <exclusions>

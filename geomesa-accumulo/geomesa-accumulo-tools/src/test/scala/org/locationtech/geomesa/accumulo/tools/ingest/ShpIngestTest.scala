@@ -15,7 +15,7 @@ import java.util.Date
 import org.geotools.data.shapefile.ShapefileDataStoreFactory
 import org.geotools.data.store.ReprojectingFeatureCollection
 import org.geotools.data.{DataStore, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.tools.AccumuloRunner

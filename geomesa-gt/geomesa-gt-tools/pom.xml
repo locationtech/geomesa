@@ -71,11 +71,6 @@
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
         </dependency>
-        <dependency>
-            <!-- 'works with' due to license issues -->
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
-        </dependency>
 
         <!-- test deps -->
         <dependency>

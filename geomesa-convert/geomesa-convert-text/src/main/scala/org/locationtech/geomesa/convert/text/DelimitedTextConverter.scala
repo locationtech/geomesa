@@ -14,7 +14,7 @@ import java.util.Locale
 
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, CSVRecord, QuoteMode}
-import org.geotools.factory.GeoTools
+import org.geotools.util.factory.GeoTools
 import org.geotools.util.Converters
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}

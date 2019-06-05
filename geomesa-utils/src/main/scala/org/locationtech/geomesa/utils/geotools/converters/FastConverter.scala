@@ -11,8 +11,10 @@ package org.locationtech.geomesa.utils.geotools.converters
 import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.StrictLogging
-import org.geotools.factory.GeoTools
+import org.geotools.data.util.InterpolationConverterFactory
+import org.geotools.util.factory.GeoTools
 import org.geotools.util.{Converter, Converters}
+import org.opengis.filter.expression.Expression
 
 import scala.util.control.NonFatal
 
@@ -24,7 +26,11 @@ object FastConverter extends StrictLogging {
 
   import scala.collection.JavaConverters._
 
-  private val factories = Converters.getConverterFactories(GeoTools.getDefaultHints).asScala.toArray
+  private val factories = Converters.getConverterFactories(GeoTools.getDefaultHints).asScala.toArray.filter {
+    // exclude jai-related factories as it's not usually on the classpath
+    case _: InterpolationConverterFactory => false
+    case _ => true
+  }
 
   private val cache = new ConcurrentHashMap[(Class[_], Class[_]), Array[Converter]]
 
@@ -73,6 +79,16 @@ object FastConverter extends StrictLogging {
 
     null.asInstanceOf[T]
   }
+
+  /**
+    * Evaluate and convert an expression
+    *
+    * @param expression expression to evaluate
+    * @param binding type to convert to
+    * @tparam T type binding
+    * @return converted value, or null if it could not be converted
+    */
+  def evaluate[T](expression: Expression, binding: Class[T]): T = convert(expression.evaluate(null), binding)
 
   private object IdentityConverter extends Converter {
     override def convert[T](source: Any, target: Class[T]): T = source.asInstanceOf[T]

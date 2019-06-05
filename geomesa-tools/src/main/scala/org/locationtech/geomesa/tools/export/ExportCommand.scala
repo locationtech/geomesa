@@ -15,7 +15,7 @@ import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.{DataStore, Query}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams

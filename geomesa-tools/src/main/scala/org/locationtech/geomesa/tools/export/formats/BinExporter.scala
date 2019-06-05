@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.export.formats
 
 import java.io.OutputStream
 
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

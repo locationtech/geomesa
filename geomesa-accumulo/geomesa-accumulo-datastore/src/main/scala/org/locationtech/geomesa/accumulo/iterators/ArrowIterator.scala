@@ -12,7 +12,7 @@ import java.util.Map.Entry
 
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.ArrowEncodedSft
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, QueryPlan}

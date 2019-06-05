@@ -32,10 +32,6 @@
         <artifactId>geomesa-convert-all_${scala.binary.version}</artifactId>
       </dependency>
       <dependency>
-        <groupId>org.geotools</groupId>
-        <artifactId>gt-data</artifactId>
-      </dependency>
-      <dependency>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-common</artifactId>
       </dependency>

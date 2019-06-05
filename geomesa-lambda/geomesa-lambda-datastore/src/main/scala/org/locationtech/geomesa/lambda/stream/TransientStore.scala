@@ -10,7 +10,7 @@ package org.locationtech.geomesa.lambda.stream
 
 import java.io.Closeable
 
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.lambda.stream.stats.TransientStats

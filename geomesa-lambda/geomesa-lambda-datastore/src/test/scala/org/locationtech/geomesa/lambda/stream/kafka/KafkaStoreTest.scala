@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.AdminUtils
 import org.geotools.data.memory.MemoryDataStore
 import org.geotools.data.{DataUtilities, Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.lambda.InMemoryOffsetManager
 import org.locationtech.geomesa.lambda.LambdaTestRunnerTest.{LambdaTest, TestClock}
