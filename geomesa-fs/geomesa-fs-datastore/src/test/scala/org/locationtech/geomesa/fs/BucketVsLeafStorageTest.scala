@@ -8,8 +8,7 @@
 
 package org.locationtech.geomesa.fs
 
-import java.nio.file.Files
-import java.util.Date
+import java.nio.file.{Files, Path}
 import java.util.stream.Collectors
 
 import org.apache.commons.io.FileUtils
@@ -17,13 +16,11 @@ import org.geotools.data.DataStoreFinder
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureIterator, SimpleFeatureStore}
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.jts.geom.Coordinate
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -37,26 +34,29 @@ class BucketVsLeafStorageTest extends Specification {
 
   sequential
 
+  var tempDir: Path = _
+
+  def mkSft(name: String) =  SimpleFeatureTypes.createType(name, "attr:String,dtg:Date,*geom:Point:srid=4326")
+  def ds = DataStoreFinder.getDataStore(Map(
+    "fs.path" -> tempDir.toFile.getPath,
+    "fs.encoding" -> "parquet",
+    "fs.config" -> "parquet.compression=gzip"
+  )).asInstanceOf[FileSystemDataStore]
+
+  def features(sft: SimpleFeatureType) = List(
+    ScalaSimpleFeature.create(sft, "1", "first",  "2016-01-01", "POINT (-5 5)"), // z2 = 2
+    ScalaSimpleFeature.create(sft, "2", "second", "2016-01-02", "POINT (5 5)"),  // z2 = 3
+    ScalaSimpleFeature.create(sft, "3", "third",  "2016-01-03", "POINT (5 -5)"), // z2 = 1
+    ScalaSimpleFeature.create(sft, "3", "fourth", "2016-01-04", "POINT (-5 -5)") // z2 = 0
+  )
+
+  def toList(sfi: SimpleFeatureIterator): List[SimpleFeature] = SelfClosingIterator(sfi).toList
+
+  step {
+    tempDir = Files.createTempDirectory("geomesa")
+  }
+
   "DataStores" should {
-    val tempDir = Files.createTempDirectory("geomesa")
-    val gf = JTSFactoryFinder.getGeometryFactory
-    def mkSft(name: String) =  SimpleFeatureTypes.createType(name, "attr:String,dtg:Date,*geom:Point:srid=4326")
-    def ds = DataStoreFinder.getDataStore(Map(
-        "fs.path" -> tempDir.toFile.getPath,
-        "fs.encoding" -> "parquet",
-        "fs.config" -> "parquet.compression=gzip"
-      )).asInstanceOf[FileSystemDataStore]
-
-    def date(str: String) = Converters.convert(str, classOf[Date])
-
-    def features(sft: SimpleFeatureType) = List(
-      new ScalaSimpleFeature(sft, "1", Array("first",  date("2016-01-01"), gf.createPoint(new Coordinate(-5, 5)))), // z2 = 2
-      new ScalaSimpleFeature(sft, "2", Array("second", date("2016-01-02"), gf.createPoint(new Coordinate(5, 5)))),  // z2 = 3
-      new ScalaSimpleFeature(sft, "3", Array("third",  date("2016-01-03"), gf.createPoint(new Coordinate(5, -5)))), // z2 = 1
-      new ScalaSimpleFeature(sft, "3", Array("fourth", date("2016-01-04"), gf.createPoint(new Coordinate(-5, -5)))) // z2 = 0
-    )
-
-    def toList(sfi: SimpleFeatureIterator): List[SimpleFeature] = SelfClosingIterator(sfi).toList
 
     "store data in leaves" >> {
 
@@ -253,10 +253,9 @@ class BucketVsLeafStorageTest extends Specification {
         ds.storage("bucket-three").metadata.leafStorage must beFalse
       }
     }
+  }
 
-    step {
-      FileUtils.deleteDirectory(tempDir.toFile)
-    }
-
+  step {
+    FileUtils.deleteDirectory(tempDir.toFile)
   }
 }

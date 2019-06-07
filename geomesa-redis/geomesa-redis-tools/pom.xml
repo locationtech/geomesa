@@ -54,18 +54,18 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-epsg-hsql</artifactId>
+            <artifactId>gt-epsg-wkt</artifactId>
         </dependency>
         <dependency>
             <!-- needed in the lib dir -->
             <groupId>org.scala-lang.modules</groupId>
             <artifactId>scala-xml_${scala.binary.version}</artifactId>
         </dependency>
-        <dependency>
-            <!-- 'works with' due to license issues -->
+        <!--<dependency>
+            &lt;!&ndash; 'works with' due to license issues &ndash;&gt;
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
-        </dependency>
+        </dependency>-->
 
         <!-- provided deps -->
         <dependency>

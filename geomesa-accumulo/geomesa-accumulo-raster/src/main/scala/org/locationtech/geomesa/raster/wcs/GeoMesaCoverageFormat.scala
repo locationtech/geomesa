@@ -10,7 +10,7 @@ package org.locationtech.geomesa.raster.wcs
 
 import org.geotools.coverage.grid.io.AbstractGridFormat
 import org.geotools.coverage.grid.io.AbstractGridFormat._
-import org.geotools.factory.{GeoTools, Hints}
+import org.geotools.util.factory.{GeoTools, Hints}
 import org.geotools.parameter.{DefaultParameterDescriptorGroup, ParameterGroup}
 import org.opengis.coverage.grid.Format
 import org.opengis.parameter.GeneralParameterDescriptor

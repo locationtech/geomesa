@@ -12,7 +12,7 @@ import java.io.File
 import java.util.{Date, UUID}
 
 import com.typesafe.config.{Config, ConfigFactory}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature

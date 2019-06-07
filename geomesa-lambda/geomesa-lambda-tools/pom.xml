@@ -108,11 +108,6 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-epsg-wkt</artifactId>
         </dependency>
-        <dependency>
-            <!-- 'works with' due to license issues -->
-            <groupId>javax.media</groupId>
-            <artifactId>jai_core</artifactId>
-        </dependency>
 
         <!-- test deps -->
         <dependency>

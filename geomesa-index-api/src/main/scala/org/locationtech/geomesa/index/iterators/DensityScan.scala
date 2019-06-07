@@ -11,8 +11,8 @@ import java.awt.image.BufferedImage
 
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.jts.geom._
-import org.geotools.factory.Hints
-import org.geotools.factory.Hints.ClassKey
+import org.geotools.util.factory.Hints
+import org.geotools.util.factory.Hints.ClassKey
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureSerialization}
 import org.locationtech.geomesa.filter.FilterHelper

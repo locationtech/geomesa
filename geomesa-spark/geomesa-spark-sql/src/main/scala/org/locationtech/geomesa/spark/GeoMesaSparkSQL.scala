@@ -24,7 +24,8 @@ import org.apache.spark.sql.types.{DataTypes, StructField, StructType, Timestamp
 import org.apache.spark.storage.StorageLevel
 import org.geotools.data.DataUtilities.compare
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.serialization.ObjectType

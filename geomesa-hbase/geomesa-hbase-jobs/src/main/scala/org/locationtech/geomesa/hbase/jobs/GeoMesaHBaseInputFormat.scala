@@ -16,7 +16,7 @@ import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.{MultiTableInputFormat, TableInputFormat}
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseIndexAdapter}
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaFeatureIndexFactory}

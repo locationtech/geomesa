@@ -13,7 +13,7 @@ import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.coverage.grid.io.{AbstractGridCoverage2DReader, GridFormatFinder}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreParams => dsp}
 import org.locationtech.geomesa.raster.data.AccumuloRasterStore
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams

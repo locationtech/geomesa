@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.index
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.hadoop.io.Text
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinFunction, JoinPlan}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloIndexAdapter, AccumuloQueryPlan}

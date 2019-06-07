@@ -14,7 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.jts.geom.Point
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder

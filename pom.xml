@@ -71,9 +71,8 @@
         <scala.xml.version>1.0.6</scala.xml.version>
         <scala.parsers.version>1.0.6</scala.parsers.version>
 
-        <geoserver.version>2.14.2</geoserver.version>
-        <gt.version>20.0</gt.version>
-        <jaiext.version>1.1.1</jaiext.version>
+        <gt.version>21.1</gt.version>
+        <geoserver.version>2.15.1</geoserver.version>
         <jts.version>1.16.0</jts.version>
         <avro.version>1.7.5</avro.version> <!-- see also confluent.avro.version -->
         <parquet.version>1.9.0</parquet.version>
@@ -895,6 +894,13 @@
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-shapefile</artifactId>
                 <version>${gt.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_core</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -933,8 +939,8 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-data</artifactId>
+                <groupId>org.geotools.jdbc</groupId>
+                <artifactId>gt-jdbc-postgis</artifactId>
                 <version>${gt.version}</version>
                 <exclusions>
                     <exclusion>
@@ -943,11 +949,6 @@
                         <artifactId>jai_core</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools.jdbc</groupId>
-                <artifactId>gt-jdbc-postgis</artifactId>
-                <version>${gt.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.postgresql</groupId>
@@ -1071,18 +1072,6 @@
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
-                <artifactId>gt-api</artifactId>
-                <version>${gt.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
                 <artifactId>gt-jdbc</artifactId>
                 <version>${gt.version}</version>
                 <exclusions>
@@ -1139,6 +1128,11 @@
                     </exclusion>
                     <exclusion>
                         <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_imageio</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
                         <groupId>it.geosolutions.imageio-ext</groupId>
                         <artifactId>*</artifactId>
                     </exclusion>
@@ -1177,6 +1171,25 @@
                 <groupId>org.geotools.xsd</groupId>
                 <artifactId>gt-xsd-core</artifactId>
                 <version>${gt.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.geotools.xsd</groupId>
+                <artifactId>gt-xsd-wfs</artifactId>
+                <version>${gt.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_core</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -1287,366 +1300,6 @@
                         <!-- excluded due to license issues -->
                         <groupId>javax.media</groupId>
                         <artifactId>jai_core</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.affine</groupId>
-                <artifactId>jt-affine</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.algebra</groupId>
-                <artifactId>jt-algebra</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.bandcombine</groupId>
-                <artifactId>jt-bandcombine</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.bandmerge</groupId>
-                <artifactId>jt-bandmerge</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.bandselect</groupId>
-                <artifactId>jt-bandselect</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.binarize</groupId>
-                <artifactId>jt-binarize</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.border</groupId>
-                <artifactId>jt-border</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.buffer</groupId>
-                <artifactId>jt-buffer</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.classifier</groupId>
-                <artifactId>jt-classifier</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.colorconvert</groupId>
-                <artifactId>jt-colorconvert</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.colorindexer</groupId>
-                <artifactId>jt-colorindexer</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.crop</groupId>
-                <artifactId>jt-crop</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.errordiffusion</groupId>
-                <artifactId>jt-errordiffusion</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.format</groupId>
-                <artifactId>jt-format</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.imagefunction</groupId>
-                <artifactId>jt-imagefunction</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.iterators</groupId>
-                <artifactId>jt-iterators</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.lookup</groupId>
-                <artifactId>jt-lookup</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.mosaic</groupId>
-                <artifactId>jt-mosaic</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.nullop</groupId>
-                <artifactId>jt-nullop</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.orderdither</groupId>
-                <artifactId>jt-orderdither</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.piecewise</groupId>
-                <artifactId>jt-piecewise</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.rescale</groupId>
-                <artifactId>jt-rescale</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.rlookup</groupId>
-                <artifactId>jt-rlookup</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.scale</groupId>
-                <artifactId>jt-scale</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.stats</groupId>
-                <artifactId>jt-stats</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.translate</groupId>
-                <artifactId>jt-translate</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.utilities</groupId>
-                <artifactId>jt-utilities</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.vectorbin</groupId>
-                <artifactId>jt-vectorbin</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.warp</groupId>
-                <artifactId>jt-warp</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.jaiext.zonal</groupId>
-                <artifactId>jt-zonal</artifactId>
-                <version>${jaiext.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <!-- excluded due to license issues -->
-                        <groupId>javax.media</groupId>
-                        <artifactId>jai_codec</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.utils.geotools.converters
 
-import org.geotools.factory.Hints
-import org.geotools.factory.Hints.Key
+import org.geotools.util.factory.Hints
+import org.geotools.util.factory.Hints.Key
 import org.geotools.util.{Converter, ConverterFactory}
 
 /**

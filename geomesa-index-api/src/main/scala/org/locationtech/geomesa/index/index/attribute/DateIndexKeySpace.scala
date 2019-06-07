@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.index.attribute
 import java.time.ZonedDateTime
 import java.util.Date
 
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
 import org.locationtech.geomesa.index.api.ShardStrategy.NoShardStrategy

@@ -12,7 +12,7 @@ import java.lang.{Boolean => jBoolean}
 import java.util.Locale
 
 import org.geotools.data.{DataUtilities, FeatureWriter}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

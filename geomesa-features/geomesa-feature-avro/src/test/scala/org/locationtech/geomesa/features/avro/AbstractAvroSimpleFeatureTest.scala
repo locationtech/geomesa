@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.UUID
 
 import org.locationtech.jts.geom.{Point, Polygon}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
 import org.locationtech.geomesa.utils.geohash.GeohashUtils

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.process.knn
 import java.util.Date
 
 import org.geotools.data.{DataStoreFinder, Query}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL

@@ -18,6 +18,7 @@ import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionL
 import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.jts.geom._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
@@ -61,7 +62,7 @@ object FilterHelper {
         case SpatialOpOrder.PropertyFirst => !p.flipped
         case SpatialOpOrder.LiteralFirst  => p.flipped
       }
-      ordered && Option(p.literal.evaluate(null, classOf[Geometry])).exists(isWholeWorld)
+      ordered && Option(FastConverter.evaluate(p.literal, classOf[Geometry])).exists(isWholeWorld)
     }
   }
 
@@ -220,7 +221,7 @@ object FilterHelper {
       case f: PropertyIsEqualTo =>
         checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
           case e: PropertyLiteral =>
-            Option(e.literal.evaluate(null, binding)).map { lit =>
+            Option(FastConverter.evaluate(e.literal, binding)).map { lit =>
               val bound = Bound(Some(lit), inclusive = true)
               FilterValues(Seq(Bounds(bound, bound)))
             }
@@ -233,8 +234,8 @@ object FilterHelper {
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
           if (prop != attribute) { FilterValues.empty } else {
             // note that between is inclusive
-            val lower = Bound(Option(f.getLowerBoundary.evaluate(null, binding)), inclusive = true)
-            val upper = Bound(Option(f.getUpperBoundary.evaluate(null, binding)), inclusive = true)
+            val lower = Bound(Option(FastConverter.evaluate(f.getLowerBoundary, binding)), inclusive = true)
+            val upper = Bound(Option(FastConverter.evaluate(f.getUpperBoundary, binding)), inclusive = true)
             FilterValues(Seq(Bounds(lower, upper)))
           }
         } catch {
@@ -246,7 +247,7 @@ object FilterHelper {
       case f: During if classOf[Date].isAssignableFrom(binding) =>
         checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
           case e: PropertyLiteral =>
-            Option(e.literal.evaluate(null, classOf[Period])).map { p =>
+            Option(FastConverter.evaluate(e.literal, classOf[Period])).map { p =>
               // note that during is exclusive
               val lower = Bound(Option(p.getBeginning.getPosition.getDate.asInstanceOf[T]), inclusive = false)
               val upper = Bound(Option(p.getEnding.getPosition.getDate.asInstanceOf[T]), inclusive = false)
@@ -259,7 +260,7 @@ object FilterHelper {
       case f: PropertyIsGreaterThan =>
         checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
           case e: PropertyLiteral =>
-            Option(e.literal.evaluate(null, binding)).map { lit =>
+            Option(FastConverter.evaluate(e.literal, binding)).map { lit =>
               val bound = Bound(Some(lit), inclusive = false)
               val (lower, upper) = if (e.flipped) { (Bound.unbounded[T], bound) } else { (bound, Bound.unbounded[T]) }
               FilterValues(Seq(Bounds(lower, upper)))
@@ -271,7 +272,7 @@ object FilterHelper {
       case f: PropertyIsGreaterThanOrEqualTo =>
         checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
           case e: PropertyLiteral =>
-            Option(e.literal.evaluate(null, binding)).map { lit =>
+            Option(FastConverter.evaluate(e.literal, binding)).map { lit =>
               val bound = Bound(Some(lit), inclusive = true)
               val (lower, upper) = if (e.flipped) { (Bound.unbounded[T], bound) } else { (bound, Bound.unbounded[T]) }
               FilterValues(Seq(Bounds(lower, upper)))
@@ -283,7 +284,7 @@ object FilterHelper {
       case f: PropertyIsLessThan =>
         checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
           case e: PropertyLiteral =>
-            Option(e.literal.evaluate(null, binding)).map { lit =>
+            Option(FastConverter.evaluate(e.literal, binding)).map { lit =>
               val bound = Bound(Some(lit), inclusive = false)
               val (lower, upper) = if (e.flipped) { (bound, Bound.unbounded[T]) } else { (Bound.unbounded[T], bound) }
               FilterValues(Seq(Bounds(lower, upper)))
@@ -295,7 +296,7 @@ object FilterHelper {
       case f: PropertyIsLessThanOrEqualTo =>
         checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
           case e: PropertyLiteral =>
-            Option(e.literal.evaluate(null, binding)).map { lit =>
+            Option(FastConverter.evaluate(e.literal, binding)).map { lit =>
               val bound = Bound(Some(lit), inclusive = true)
               val (lower, upper) = if (e.flipped) { (bound, Bound.unbounded[T]) } else { (Bound.unbounded[T], bound) }
               FilterValues(Seq(Bounds(lower, upper)))
@@ -307,7 +308,7 @@ object FilterHelper {
       case f: Before =>
         checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
           case e: PropertyLiteral =>
-            Option(e.literal.evaluate(null, binding)).map { lit =>
+            Option(FastConverter.evaluate(e.literal, binding)).map { lit =>
               // note that before is exclusive
               val bound = Bound(Some(lit), inclusive = false)
               val (lower, upper) = if (e.flipped) { (bound, Bound.unbounded[T]) } else { (Bound.unbounded[T], bound) }
@@ -320,7 +321,7 @@ object FilterHelper {
       case f: After =>
         checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap {
           case e: PropertyLiteral =>
-            Option(e.literal.evaluate(null, binding)).map { lit =>
+            Option(FastConverter.evaluate(e.literal, binding)).map { lit =>
               // note that after is exclusive
               val bound = Bound(Some(lit), inclusive = false)
               val (lower, upper) = if (e.flipped) { (Bound.unbounded[T], bound) } else { (bound, Bound.unbounded[T]) }
@@ -395,7 +396,7 @@ object FilterHelper {
 
       case f: TEquals =>
         checkOrder(f.getExpression1, f.getExpression2).filter(_.name == attribute).flatMap { prop =>
-          Option(prop.literal.evaluate(null, binding)).map { lit =>
+          Option(FastConverter.evaluate(prop.literal, binding)).map { lit =>
             val bound = Bound(Some(lit), inclusive = true)
             FilterValues(Seq(Bounds(bound, bound)))
           }

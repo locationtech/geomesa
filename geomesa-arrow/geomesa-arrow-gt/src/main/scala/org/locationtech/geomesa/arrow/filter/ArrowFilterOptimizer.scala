@@ -11,16 +11,15 @@ package org.locationtech.geomesa.arrow.filter
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Coordinate, Polygon}
-import org.geotools.filter.visitor.BindingFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader.{ArrowDateReader, ArrowLineStringReader, ArrowPointReader}
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, ArrowDictionaryReader, GeometryVector}
 import org.locationtech.geomesa.filter.checkOrderUnsafe
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.locationtech.jts.geom.{Coordinate, Polygon}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
 import org.opengis.filter.expression.PropertyName
@@ -71,7 +70,7 @@ object ArrowFilterOptimizer extends LazyLogging {
   private def rewriteBBox(filter: BBOX, sft: SimpleFeatureType): Filter = {
     if (sft.isPoints || sft.isLines) {
       val props = checkOrderUnsafe(filter.getExpression1, filter.getExpression2)
-      val bbox = props.literal.evaluate(null).asInstanceOf[Polygon].getEnvelopeInternal
+      val bbox = FastConverter.evaluate(props.literal, classOf[Polygon]).getEnvelopeInternal
       val attrIndex = sft.indexOf(props.name)
       if (sft.isPoints) {
         ArrowPointBBox(attrIndex, bbox.getMinX, bbox.getMinY, bbox.getMaxX, bbox.getMaxY)
@@ -86,7 +85,7 @@ object ArrowFilterOptimizer extends LazyLogging {
   private def rewriteDuring(filter: During, sft: SimpleFeatureType): Filter = {
     val props = checkOrderUnsafe(filter.getExpression1, filter.getExpression2)
     val attrIndex = sft.indexOf(props.name)
-    val period = props.literal.evaluate(null, classOf[Period])
+    val period = FastConverter.evaluate(props.literal, classOf[Period])
     val lower = period.getBeginning.getPosition.getDate.getTime
     val upper = period.getEnding.getPosition.getDate.getTime
     ArrowDuring(attrIndex, lower, upper)
@@ -96,8 +95,8 @@ object ArrowFilterOptimizer extends LazyLogging {
     val attribute = filter.getExpression.asInstanceOf[PropertyName].getPropertyName
     val attrIndex = sft.indexOf(attribute)
     if (sft.getDescriptor(attrIndex).getType.getBinding != classOf[Date]) { filter } else {
-      val lower = filter.getLowerBoundary.evaluate(null, classOf[Date]).getTime
-      val upper = filter.getUpperBoundary.evaluate(null, classOf[Date]).getTime
+      val lower = FastConverter.evaluate(filter.getLowerBoundary, classOf[Date]).getTime
+      val upper = FastConverter.evaluate(filter.getUpperBoundary, classOf[Date]).getTime
       ArrowBetweenDate(attrIndex, lower, upper)
     }
   }

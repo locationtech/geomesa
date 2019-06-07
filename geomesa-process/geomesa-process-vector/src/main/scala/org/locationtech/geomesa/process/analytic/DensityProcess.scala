@@ -15,7 +15,7 @@ import org.geotools.coverage.CoverageFactoryFinder
 import org.geotools.coverage.grid.GridCoverage2D
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.factory.GeoTools
+import org.geotools.util.factory.GeoTools
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}

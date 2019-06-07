@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.coverage.CoverageFactoryFinder
 import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader
 import org.geotools.coverage.grid.{GridCoverage2D, GridEnvelope2D}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.geometry.GeneralEnvelope
 import org.geotools.util.Utilities
 import org.locationtech.geomesa.raster.data.{AccumuloRasterStore, GeoMesaCoverageQueryParams}

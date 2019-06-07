@@ -15,6 +15,7 @@ import org.geotools.filter.spatial.BBOXImpl
 import org.locationtech.geomesa.filter.FilterHelper.trimToWorld
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.GeometryUtils.distanceDegrees
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.jts.geom.{Geometry, GeometryCollection}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.spatial._
@@ -103,7 +104,7 @@ object GeometryProcessing extends GeometryProcessing with LazyLogging {
 
     override def process(op: BinarySpatialOperator, sft: SimpleFeatureType, factory: FilterFactory2): Filter = {
       val prop = org.locationtech.geomesa.filter.checkOrderUnsafe(op.getExpression1, op.getExpression2)
-      val geom = prop.literal.evaluate(null, classOf[Geometry])
+      val geom = FastConverter.evaluate(prop.literal, classOf[Geometry])
       if (geom.getUserData == SafeGeomString) {
         op // we've already visited this geom once
       } else {
@@ -139,7 +140,7 @@ object GeometryProcessing extends GeometryProcessing with LazyLogging {
       val geometry = for {
         prop <- checkOrder(op.getExpression1, op.getExpression2)
         if prop.name == null || prop.name == attribute
-        geom <- Option(prop.literal.evaluate(null, classOf[Geometry]))
+        geom <- Option(FastConverter.evaluate(prop.literal, classOf[Geometry]))
       } yield {
         val buffered = op match {
           case f: DWithin => geom.buffer(distanceDegrees(geom, f.getDistance * metersMultiplier(f.getDistanceUnits))._2)

@@ -14,7 +14,7 @@ import org.apache.accumulo.core.security.Authorizations
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
@@ -158,7 +158,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithDataStore {
       callbackResults must haveLength(2)
       proxy.evaluate(callbackResults.head) mustEqual ids.head
       proxy.evaluate(callbackResults.last) mustEqual ids.last
-    }.pendingUntilFixed("GEOMESA-2562")
+    }
   }
 
   step {

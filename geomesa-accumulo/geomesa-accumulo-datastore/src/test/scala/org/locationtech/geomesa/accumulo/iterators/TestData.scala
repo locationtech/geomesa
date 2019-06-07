@@ -17,7 +17,7 @@ import org.apache.accumulo.core.data.Value
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.DataStore
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureStore}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.locationtech.geomesa.accumulo.index.IndexValueEncoder
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory

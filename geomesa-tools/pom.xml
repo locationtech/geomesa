@@ -73,6 +73,10 @@
             <artifactId>gt-xml</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.geotools.xsd</groupId>
+            <artifactId>gt-xsd-wfs</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-epsg-wkt</artifactId>
         </dependency>
@@ -94,11 +98,11 @@
             <artifactId>log4j</artifactId>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <!-- 'works with' due to license issues -->
+        <!--<dependency>
+            &lt;!&ndash; 'works with' due to license issues &ndash;&gt;
             <groupId>javax.media</groupId>
             <artifactId>jai_core</artifactId>
-        </dependency>
+        </dependency>-->
 
         <!-- provided dependencies -->
         <dependency>

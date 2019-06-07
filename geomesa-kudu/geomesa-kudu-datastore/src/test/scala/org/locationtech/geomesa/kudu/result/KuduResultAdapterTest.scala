@@ -12,7 +12,7 @@ import java.util.Date
 
 import org.apache.kudu.client.RowResult
 import org.geotools.data.{DataUtilities, Query}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
