@@ -58,7 +58,9 @@ package object index {
     abstract override def deleteTableNames(partition: Option[String]): Seq[String] = {
       val deleted = super.deleteTableNames(partition)
       if (partition.isEmpty) {
-        ds.metadata.scan(sft.getTypeName, fallbackTableNameKey).foreach(k => ds.metadata.remove(sft.getTypeName, k._1))
+        ds.metadata.scan(sft.getTypeName, fallbackTableNameKey, cache = false).foreach { case (k, _) =>
+          ds.metadata.remove(sft.getTypeName, k)
+        }
       }
       deleted
     }
