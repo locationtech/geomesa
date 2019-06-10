@@ -11,7 +11,6 @@ package org.locationtech.geomesa.index.metadata
 import java.nio.charset.StandardCharsets
 
 import org.locationtech.geomesa.index.metadata.CachedLazyBinaryMetadata.decodeRow
-import org.locationtech.geomesa.index.metadata.CachedLazyMetadata.ScanQuery
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.util.control.NonFatal
@@ -39,16 +38,22 @@ trait CachedLazyBinaryMetadata[T] extends CachedLazyMetadata[T] {
   override protected def scanValue(typeName: String, key: String): Option[Array[Byte]] =
     scanValue(encodeRow(typeName, key))
 
-  override protected def scanValues(query: Option[ScanQuery]): CloseableIterator[(String, String, Array[Byte])] = {
-    val prefix = query.map(q => encodeRow(q.typeName, q.prefix.getOrElse("")))
-    scanRows(prefix).flatMap { case (row, value) =>
-      try {
-        val (typeName, key) = decodeRow(row, typeNameSeparator)
-        Iterator.single((typeName, key, value))
-      } catch {
+  override protected def scanValues(typeName: String, prefix: String): CloseableIterator[(String, Array[Byte])] = {
+    scanRows(Some(encodeRow(typeName, prefix))).flatMap { case (row, value) =>
+      try { CloseableIterator.single((decodeRow(row, typeNameSeparator)._2, value)) } catch {
         case NonFatal(_) =>
           logger.warn(s"Ignoring unexpected row in catalog table: ${new String(row, StandardCharsets.UTF_8)}")
-          Iterator.empty
+          CloseableIterator.empty
+      }
+    }
+  }
+
+  override protected def scanKeys(): CloseableIterator[(String, String)] = {
+    scanRows(None).flatMap { case (row, _) =>
+      try { CloseableIterator.single(decodeRow(row, typeNameSeparator)) } catch {
+        case NonFatal(_) =>
+          logger.warn(s"Ignoring unexpected row in catalog table: ${new String(row, StandardCharsets.UTF_8)}")
+          CloseableIterator.empty
       }
     }
   }

@@ -116,8 +116,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
   def deleteTableNames(partition: Option[String] = None): Seq[String] = {
     val tables = getTableNames(partition)
     partition match {
-      case None => ds.metadata.scan(sft.getTypeName, tableNameKey).foreach(k => ds.metadata.remove(sft.getTypeName, k._1))
       case Some(p) => ds.metadata.remove(sft.getTypeName, s"$tableNameKey.$p")
+      case None =>
+        ds.metadata.scan(sft.getTypeName, tableNameKey, cache = false).foreach { case (k, _) =>
+          ds.metadata.remove(sft.getTypeName, k)
+        }
     }
     tables
   }

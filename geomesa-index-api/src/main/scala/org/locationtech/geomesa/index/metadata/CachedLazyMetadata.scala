@@ -10,9 +10,8 @@ package org.locationtech.geomesa.index.metadata
 
 import java.util.concurrent.TimeUnit
 
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
+import com.github.benmanes.caffeine.cache.{Cache, CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.index.metadata.CachedLazyMetadata.ScanQuery
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, IsSynchronized, MaybeSynchronized, NotSynchronized}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.WithClose
@@ -24,6 +23,8 @@ import org.locationtech.geomesa.utils.io.WithClose
   * @tparam T type param
   */
 trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   protected def serializer: MetadataSerializer[T]
 
@@ -66,33 +67,60 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   /**
     * Reads row keys from the underlying table
     *
-    * @param query row key prefix
-    * @return matching tuples of (typeName, key, value)
+    * @param typeName simple feature type name
+    * @param prefix scan prefix, or empty string for all values
+    * @return matching tuples of (key, value)
     */
-  protected def scanValues(query: Option[ScanQuery]): CloseableIterator[(String, String, Array[Byte])]
+  protected def scanValues(typeName: String, prefix: String = ""): CloseableIterator[(String, Array[Byte])]
+
+  /**
+    * Reads all row keys from the underlying table
+    *
+    * @return matching tuples of (typeName, key)
+    */
+  protected def scanKeys(): CloseableIterator[(String, String)]
 
   // only synchronize if table doesn't exist - otherwise it's ready only and we can avoid synchronization
   private val tableExists: MaybeSynchronized[Boolean] =
     if (checkIfTableExists) { new NotSynchronized(true) } else { new IsSynchronized(false) }
 
+  private val expiry = CachedLazyMetadata.Expiry.toDuration.get.toMillis
+
   // cache for our metadata - invalidate every 10 minutes so we keep things current
-  private val metaDataCache = {
-    val expiry = CachedLazyMetadata.Expiry.toDuration.get.toMillis
+  private val metaDataCache =
     Caffeine.newBuilder().expireAfterWrite(expiry, TimeUnit.MILLISECONDS).build(
       new CacheLoader[(String, String), Option[T]] {
-        override def load(k: (String, String)): Option[T] = {
+        override def load(typeNameAndKey: (String, String)): Option[T] = {
           if (!tableExists.get) { None } else {
-            scanValue(k._1, k._2).map(serializer.deserialize(k._1, _))
+            val (typeName, key) = typeNameAndKey
+            scanValue(typeName, key).map(serializer.deserialize(typeName, _))
           }
         }
       }
     )
-  }
+
+  // keep a separate cache for scan queries vs point lookups, so that the point lookups don't cache
+  // partial values for a scan result
+  private val metaDataScanCache =
+    Caffeine.newBuilder().expireAfterWrite(expiry, TimeUnit.MILLISECONDS).build(
+      new CacheLoader[(String, String), Seq[(String, T)]] {
+        override def load(typeNameAndPrefix: (String, String)): Seq[(String, T)] = {
+          if (!tableExists.get) { Seq.empty } else {
+            val (typeName, prefix) = typeNameAndPrefix
+            WithClose(scanValues(typeName, prefix)) { iter =>
+              val builder = Seq.newBuilder[(String, T)]
+              iter.foreach { case (k, v) => builder += k -> serializer.deserialize(typeName, v) }
+              builder.result()
+            }
+          }
+        }
+      }
+    )
 
   override def getFeatureTypes: Array[String] = {
     if (!tableExists.get) { Array.empty } else {
-      WithClose(scanValues(None)) { keys =>
-        keys.collect { case (typeName, key, _) if key == GeoMesaMetadata.ATTRIBUTES_KEY => typeName }.toArray
+      WithClose(scanKeys()) { keys =>
+        keys.collect { case (typeName, key) if key == GeoMesaMetadata.ATTRIBUTES_KEY => typeName }.toArray
       }
     }
   }
@@ -105,32 +133,10 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   }
 
   override def scan(typeName: String, prefix: String, cache: Boolean): Seq[(String, T)] = {
-    import scala.collection.JavaConverters._
-
-    def noCache: Seq[(String, T)] = {
-      WithClose(scanValues(Some(ScanQuery(typeName, Option(prefix))))) { iter =>
-        iter.map { case (t, k, v) =>
-          val value = serializer.deserialize(t, v)
-          metaDataCache.put((t, k), Option(value))
-          k -> value
-        }.toSeq
-      }
+    if (!cache) {
+      metaDataScanCache.invalidate((typeName, prefix))
     }
-
-    if (!tableExists.get) {
-      Seq.empty
-    } else if (cache) {
-      val result = metaDataCache.asMap().asScala.flatMap { case ((t, k), value) =>
-        if (t == typeName && k.startsWith(prefix)) {
-          value.map(v => k -> v)
-        } else {
-          Seq.empty
-        }
-      }
-      if (result.nonEmpty) { result.toSeq } else { noCache }
-    } else {
-      noCache
-    }
+    metaDataScanCache.get((typeName, prefix))
   }
 
   override def insert(typeName: String, key: String, value: T): Unit = insert(typeName, Map(key -> value))
@@ -142,42 +148,56 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
       (k, serializer.serialize(typeName, v))
     }
     write(typeName, strings.toSeq)
+    invalidate(metaDataScanCache, typeName)
   }
 
-  override def invalidateCache(typeName: String, key: String): Unit = metaDataCache.invalidate((typeName, key))
+  override def invalidateCache(typeName: String, key: String): Unit = {
+    metaDataCache.invalidate((typeName, key))
+    invalidate(metaDataScanCache, typeName)
+  }
 
   override def remove(typeName: String, key: String): Unit = {
     if (tableExists.get) {
       delete(typeName, Seq(key))
       // also remove from the cache
       metaDataCache.invalidate((typeName, key))
+      invalidate(metaDataScanCache, typeName)
     } else {
       logger.debug(s"Trying to delete '$typeName:$key' but table does not exist")
     }
   }
 
   override def delete(typeName: String): Unit = {
-    import scala.collection.JavaConversions._
-
     if (tableExists.get) {
-      WithClose(scanValues(Some(ScanQuery(typeName)))) { keys =>
+      WithClose(scanValues(typeName)) { keys =>
         if (keys.nonEmpty) {
-          delete(typeName, keys.map(_._2).toSeq)
+          delete(typeName, keys.map(_._1).toSeq)
         }
       }
     } else {
       logger.debug(s"Trying to delete type '$typeName' but table does not exist")
     }
-    metaDataCache.asMap.keys.foreach(k => if (k._1 == typeName) { metaDataCache.invalidate(k) })
+    Seq(metaDataCache, metaDataScanCache).foreach(invalidate(_, typeName))
   }
 
   // checks that the table is already created, and creates it if not
   def ensureTableExists(): Unit = tableExists.set(true, false, createTable())
+
+  /**
+    * Invalidate all keys for the given feature type
+    *
+    * @param cache cache to invalidate
+    * @param typeName feature type name
+    */
+  private def invalidate(cache: Cache[(String, String), _], typeName: String): Unit = {
+    cache.asMap.asScala.keys.foreach { k =>
+      if (k._1 == typeName) {
+        cache.invalidate(k)
+      }
+    }
+  }
 }
 
 object CachedLazyMetadata {
-
   val Expiry = SystemProperty("geomesa.metadata.expiry", "10 minutes")
-
-  case class ScanQuery(typeName: String, prefix: Option[String] = None)
 }
