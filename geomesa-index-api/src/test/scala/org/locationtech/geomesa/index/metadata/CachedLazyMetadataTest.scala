@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.index.metadata
 
 import java.nio.charset.StandardCharsets
-import java.util.Collections
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.junit.runner.RunWith
@@ -22,6 +21,7 @@ import org.specs2.runner.JUnitRunner
 class CachedLazyMetadataTest extends Specification {
 
   "CachedLazyMetadata" should {
+
     "handle invalid rows in getTypeNames" in {
       val metadata = new TestCachedLazyMetadata
       metadata.getFeatureTypes mustEqual Array.empty
@@ -34,13 +34,27 @@ class CachedLazyMetadataTest extends Specification {
       metadata.insert("baz", "baz", "baz")
       metadata.getFeatureTypes mustEqual Array("bar", "baz")
     }
+
+    "cache scan results correctly" in {
+      val metadata = new TestCachedLazyMetadata
+      metadata.insert("foo", "p.1", "v1")
+      metadata.scan("foo", "p.", cache = true) mustEqual Seq("p.1" -> "v1")
+      metadata.insert("foo", "p.2", "v2")
+      metadata.scan("foo", "p.", cache = true) mustEqual Seq("p.1" -> "v1", "p.2" -> "v2")
+      metadata.invalidateCache("foo", "p.1")
+      metadata.invalidateCache("foo", "p.2")
+      metadata.scan("foo", "p.", cache = true) mustEqual Seq("p.1" -> "v1", "p.2" -> "v2")
+      metadata.invalidateCache("foo", "p.1")
+      metadata.invalidateCache("foo", "p.2")
+      metadata.readRequired("foo", "p.2") mustEqual "v2"
+      metadata.scan("foo", "p.", cache = true) mustEqual Seq("p.1" -> "v1", "p.2" -> "v2")
+    }
   }
 
   class TestCachedLazyMetadata extends CachedLazyBinaryMetadata[String] {
 
     lazy val tableExists = new AtomicBoolean(false)
-    lazy val data =
-      Collections.synchronizedMap(new java.util.TreeMap[Array[Byte], Array[Byte]](ByteArrays.ByteOrdering))
+    lazy val data = new java.util.TreeMap[Array[Byte], Array[Byte]](ByteArrays.ByteOrdering)
 
     override protected def serializer: MetadataSerializer[String] = MetadataStringSerializer
 
@@ -58,11 +72,11 @@ class CachedLazyMetadataTest extends Specification {
     override protected def scanRows(prefix: Option[Array[Byte]]): CloseableIterator[(Array[Byte], Array[Byte])] = {
       import scala.collection.JavaConverters._
       prefix match {
-        case None => CloseableIterator(data.asScala.toIterator)
+        case None => CloseableIterator(data.entrySet().iterator.asScala.map(e => e.getKey -> e.getValue))
         case Some(p) =>
-          val filtered = data.asScala.toIterator.flatMap { case (k, v) =>
-            if (p.length <= k.length && java.util.Arrays.equals(p, k.take(p.length))) {
-              Iterator.single(k -> v)
+          val filtered = data.entrySet().iterator.asScala.flatMap { e =>
+            if (p.length <= e.getKey.length && java.util.Arrays.equals(p, e.getKey.take(p.length))) {
+              Iterator.single(e.getKey -> e.getValue)
             } else {
               Iterator.empty
             }
