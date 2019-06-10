@@ -54,13 +54,14 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
   }
 
   override protected def scanValues(typeName: String, prefix: String): CloseableIterator[(String, Array[Byte])] = {
-    val select = QueryBuilder.select("key", "value").from(catalog)
-    select.where(QueryBuilder.eq("sft", typeName))
-    val values = session.execute(select).all().iterator.map { row =>
+    val select = QueryBuilder.select("key", "value").from(catalog).where(QueryBuilder.eq("sft", typeName))
+    val iter = session.execute(select).all().iterator.map { row =>
       (row.getString("key"), row.getString("value").getBytes(StandardCharsets.UTF_8))
     }
-    if (prefix == null || prefix.isEmpty) { CloseableIterator(values) } else {
-      CloseableIterator(values.filter(_._2.startsWith(prefix)))
+    if (prefix == null || prefix.isEmpty) {
+      CloseableIterator(iter)
+    } else {
+      CloseableIterator(iter.filter { case (k, _) => k.startsWith(prefix) })
     }
   }
 
