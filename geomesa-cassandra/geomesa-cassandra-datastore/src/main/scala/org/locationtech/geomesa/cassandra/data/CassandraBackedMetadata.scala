@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets
 
 import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.QueryBuilder
-import org.locationtech.geomesa.index.metadata.CachedLazyMetadata.ScanQuery
 import org.locationtech.geomesa.index.metadata._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
@@ -54,16 +53,21 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
     }
   }
 
-  override protected def scanValues(query: Option[ScanQuery]): CloseableIterator[(String, String, Array[Byte])] = {
-    val select = QueryBuilder.select("sft", "key", "value").from(catalog)
-    query.foreach(q => select.where(QueryBuilder.eq("sft", q.typeName)))
+  override protected def scanValues(typeName: String, prefix: String): CloseableIterator[(String, Array[Byte])] = {
+    val select = QueryBuilder.select("key", "value").from(catalog)
+    select.where(QueryBuilder.eq("sft", typeName))
     val values = session.execute(select).all().iterator.map { row =>
-      (row.getString("sft"), row.getString("key"), row.getString("value").getBytes(StandardCharsets.UTF_8))
+      (row.getString("key"), row.getString("value").getBytes(StandardCharsets.UTF_8))
     }
-    query.flatMap(_.prefix) match {
-      case None => CloseableIterator(values)
-      case Some(prefix) => CloseableIterator(values.filter(_._2.startsWith(prefix)))
+    if (prefix == null || prefix.isEmpty) { CloseableIterator(values) } else {
+      CloseableIterator(values.filter(_._2.startsWith(prefix)))
     }
+  }
+
+  override protected def scanKeys(): CloseableIterator[(String, String)] = {
+    val select = QueryBuilder.select("sft", "key").from(catalog)
+    val values = session.execute(select).all().iterator.map(row => (row.getString("sft"), row.getString("key")))
+    CloseableIterator(values)
   }
 
   override def close(): Unit = {} // session gets closed by datastore dispose
