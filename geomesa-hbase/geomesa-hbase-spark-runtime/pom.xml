@@ -166,7 +166,6 @@
                                     <exclude>org.ow2.asm:*</exclude>
                                     <exclude>org.scala-lang:*</exclude>
                                     <exclude>io.netty:*</exclude>
-                                    <exclude>org.json4s:*</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>
@@ -193,13 +192,18 @@
                                 <!-- spark also includes shapeless, relocate to avoid version conflicts -->
                                 <relocation>
                                     <pattern>shapeless</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.accumulo.shaded.shapeless</shadedPattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shaded.shapeless</shadedPattern>
                                 </relocation>
                                 <!-- Databricks uses an old version of scalalogging, include it to allow us to run on databricks clusters -->
                                 <relocation>
                                     <pattern>com.typesafe.scalalogging</pattern>
                                     <shadedPattern>org.locationtech.geomesa.hbase.shaded.com.typesafe.scalalogging
                                     </shadedPattern>
+                                </relocation>
+                                <!-- spark needs json4s to use the jsonpath function -->
+                                <relocation>
+                                    <pattern>org.json4s</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.hbase.shaded.org.json4s</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
