@@ -9,13 +9,12 @@
 package org.locationtech.geomesa.jupyter
 
 object L {
-  import org.locationtech.jts.geom._
   import org.apache.commons.text.CharacterPredicates.ASCII_ALPHA_NUMERALS
   import org.apache.commons.text.{RandomStringGenerator, StringEscapeUtils}
   import org.apache.spark.sql._
-  import org.geotools.feature.simple.SimpleFeatureBuilder
   import org.geotools.geojson.geom.GeometryJSON
   import org.locationtech.geomesa.spark.{GeoMesaDataSource, SparkUtils}
+  import org.locationtech.jts.geom._
   import org.opengis.feature.`type`.AttributeDescriptor
   import org.opengis.feature.simple.SimpleFeature
 
@@ -145,10 +144,9 @@ object L {
     extends GeoRenderable with DataFrameLayer {
     private val dfc = df.collect() // expensive operation
     private val sft = new GeoMesaDataSource().structType2SFT(df.schema, "sft")
-    private val builder = new SimpleFeatureBuilder(sft)
     // expensive map operation
-    private val nameMappings = SparkUtils.getSftRowNameMappings(sft, df.schema)
-    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(nameMappings, r, builder, r.getAs[String](idField))).toSeq
+    private val mappings = SparkUtils.sftToRowMappings(sft, df.schema)
+    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(sft, mappings, r, r.getAs[String](idField))).toSeq
     private val sftLayer = SimpleFeatureLayerNonPoint(sftSeq, style)
     override def render: String = sftLayer.render
   }
@@ -157,10 +155,9 @@ object L {
     extends GeoRenderable with DataFrameLayer {
     private val dfc = df.collect() // expensive operation
     private val sft = new GeoMesaDataSource().structType2SFT(df.schema, "sft")
-    private val builder = new SimpleFeatureBuilder(sft)
     // expensive map operation
-    private val nameMappings = SparkUtils.getSftRowNameMappings(sft, df.schema)
-    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(nameMappings, r, builder, r.getAs[String](idField))).toSeq
+    private val mappings = SparkUtils.sftToRowMappings(sft, df.schema)
+    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(sft, mappings, r, r.getAs[String](idField))).toSeq
     private val sftLayer = SimpleFeatureLayerPoint(sftSeq, style, radius)
     override def render: String = sftLayer.render
   }
