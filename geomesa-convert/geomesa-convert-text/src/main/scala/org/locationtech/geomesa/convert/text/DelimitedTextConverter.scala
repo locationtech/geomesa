@@ -202,7 +202,7 @@ object DelimitedTextConverter {
   )
 
   // check quoted before default - if values are quoted, we don't want the quotes to be captured as part of the value
-  private [text] val inferences = Seq(Formats.Tabs, Formats.Quoted, Formats.Default)
+  private [text] val inferences = Stream(Formats.Tabs, Formats.Quoted, Formats.Default)
 
   case class DelimitedTextConfig(
       `type`: String,
