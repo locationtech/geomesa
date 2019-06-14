@@ -79,10 +79,10 @@ heatmap from the query result. See :ref:`gdelt_heatmaps` for more information.
     .. code-tab:: scala
 
         import org.geotools.data.Transaction
-        import org.geotools.geometry.jts.ReferencedEnvelope.ReferencedEnvelope
+        import org.geotools.geometry.jts.ReferencedEnvelope
         import org.geotools.referencing.CRS
-        import org.locationtech.geomesa.accumulo.iterators.DensityIterator
         import org.locationtech.geomesa.index.conf.QueryHints
+        import org.locationtech.geomesa.index.iterators.DensityScan
 
         val bounds = new ReferencedEnvelope(-120.0, -110.0, 45.0, 55.0, CRS.decode("EPSG:4326"))
         query.getHints.put(QueryHints.DENSITY_BBOX, bounds)
@@ -90,17 +90,19 @@ heatmap from the query result. See :ref:`gdelt_heatmaps` for more information.
         query.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
 
         val reader = dataStore.getFeatureReader(query, Transaction.AUTO_COMMIT)
-
-        val decode = KryoLazyDensityIterator.decodeResult(bounds, 500, 500)
-
-        while (reader.hasNext) {
+        try {
+          val decode = DensityScan.decodeResult(bounds, 500, 500)
+          while (reader.hasNext) {
             val pts = decode(reader.next())
             while (pts.hasNext) {
-                val (x, y, weight) = pts.next()
-                // do something with the cell
+              val (x, y, weight) = pts.next()
+              // do something with the cell
             }
+          }
+        } finally {
+          reader.close()
         }
-        reader.close()
+
 
 .. _statistical_queries:
 
