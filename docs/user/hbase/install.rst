@@ -281,7 +281,7 @@ Installing GeoMesa HBase in GeoServer
 
 .. warning::
 
-    GeoMesa 2.2.0 and later require GeoServer 2.14.0 or later. GeoMesa 2.1.0 and earlier require GeoServer 2.12.5.
+    See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
 
 The HBase GeoServer plugin is bundled by default in a GeoMesa binary distribution. To install, extract
 ``$GEOMESA_HBASE_HOME/dist/gs-plugins/geomesa-hbase-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
