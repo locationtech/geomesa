@@ -156,7 +156,7 @@ object TestGeoMesaDataStore {
 
     private var i = 0
 
-    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
+    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
       i = 0
       values.foreach {
         case kv: SingleRowKeyValue[_] => tables(i).add(kv); i += 1

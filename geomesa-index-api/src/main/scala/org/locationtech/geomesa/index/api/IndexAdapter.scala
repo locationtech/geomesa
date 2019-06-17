@@ -91,8 +91,9 @@ object IndexAdapter {
       * validating that all of the indices can index it successfully
       *
       * @param feature feature
+      * @param update true if this is an update to an existing feature
       */
-    def write(feature: SimpleFeature): Unit = {
+    def write(feature: SimpleFeature, update: Boolean): Unit = {
       val writable = wrapper.wrap(feature)
 
       i = 0
@@ -102,7 +103,7 @@ object IndexAdapter {
         i +=1
       }
 
-      write(writable, values)
+      write(writable, values, update)
     }
 
     /**
@@ -128,8 +129,9 @@ object IndexAdapter {
       *
       * @param feature feature being written
       * @param values derived values, one per index
+      * @param update true if this is an update to an existing feature
       */
-    protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit
+    protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit
 
     /**
       * Delete values derived from the feature

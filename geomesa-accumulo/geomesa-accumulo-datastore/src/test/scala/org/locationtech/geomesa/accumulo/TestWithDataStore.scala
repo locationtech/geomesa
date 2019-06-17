@@ -92,10 +92,7 @@ trait TestWithDataStore extends Specification {
    */
   def addFeatures(features: Seq[SimpleFeature]): Unit = {
     WithClose(ds.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)) { writer =>
-      features.foreach { f =>
-        FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-        writer.write()
-      }
+      features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
     }
   }
 

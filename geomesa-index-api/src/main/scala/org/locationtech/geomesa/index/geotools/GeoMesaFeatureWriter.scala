@@ -45,11 +45,11 @@ trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWrit
 
   protected def getWriter(feature: SimpleFeature): IndexWriter
 
-  protected def writeFeature(feature: SimpleFeature): Unit = {
+  protected def writeFeature(feature: SimpleFeature, update: Boolean = false): Unit = {
     // see if there's a suggested ID to use for this feature, else create one based on the feature
     val writable = GeoMesaFeatureWriter.featureWithFid(sft, feature)
     // `write` will calculate all mutations up front in case the feature is not valid, so we don't write partial entries
-    try { getWriter(writable).write(writable) } catch {
+    try { getWriter(writable).write(writable, update) } catch {
       case NonFatal(e) =>
         val attributes = s"${writable.getID}:${writable.getAttributes.asScala.mkString("|")}"
         throw new IllegalArgumentException(s"Error indexing feature '$attributes'", e)
@@ -266,7 +266,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
       // comparison of feature ID and attributes - doesn't consider concrete class used
       if (!ScalaSimpleFeature.equalIdAndAttributes(live, original)) {
         removeFeature(original)
-        writeFeature(live)
+        writeFeature(live, update = true)
       }
       original = null
       live = null
