@@ -351,6 +351,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
       // comparison of feature ID and attributes - doesn't consider concrete class used
       if (!ScalaSimpleFeature.equalIdAndAttributes(live, original)) {
         removeFeature(original)
+        flush() // ensure the remove is written so we don't get key collisions with the insert
         writeFeature(live)
       }
       original = null
