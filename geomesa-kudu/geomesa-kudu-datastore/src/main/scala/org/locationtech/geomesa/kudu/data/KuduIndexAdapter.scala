@@ -145,7 +145,7 @@ object KuduIndexAdapter {
 
     private var i = 0
 
-    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
+    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
       val kf = feature.asInstanceOf[KuduWritableFeature]
 
       i = 0
