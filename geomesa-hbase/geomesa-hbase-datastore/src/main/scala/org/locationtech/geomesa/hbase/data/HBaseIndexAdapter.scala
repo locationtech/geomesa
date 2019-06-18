@@ -479,7 +479,9 @@ object HBaseIndexAdapter extends LazyLogging {
 
     override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
       if (update) {
-        flush() // for updates, ensure that our timestamps don't clobber each other
+        // for updates, ensure that our timestamps don't clobber each other
+        flush()
+        Thread.sleep(1)
       }
       i = 0
       while (i < values.length) {
