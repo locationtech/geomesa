@@ -354,7 +354,9 @@ object AccumuloIndexAdapter {
 
     override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
       if (timestamps && update) {
-        multiWriter.flush() // for updates, ensure that our timestamps don't clobber each other
+        // for updates, ensure that our timestamps don't clobber each other
+        multiWriter.flush()
+        Thread.sleep(1)
       }
       i = 0
       while (i < values.length) {
