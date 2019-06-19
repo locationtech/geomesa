@@ -8,7 +8,7 @@ how to work with the GeoMesa GeoServer plugins.
 
 .. warning::
 
-    GeoMesa 2.2.0 and later require GeoServer 2.14.0 or later. GeoMesa 2.1.0 and earlier require GeoServer 2.12.5.
+    GeoMesa 2.2.x and 2.3.x require GeoServer 2.14.x. GeoMesa 2.1.x and earlier require GeoServer 2.12.x.
 
 Installation
 ------------

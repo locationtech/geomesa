@@ -144,7 +144,7 @@ GeoMesa will no longer work with older versions of GeoTools and GeoServer.
 
 .. warning::
 
-  GeoMesa 2.2.0 requires GeoTools 20.0 or later and GeoServer 2.14 or later.
+  GeoMesa 2.2.0 requires GeoTools 20.x and GeoServer 2.14.x.
 
 Accumulo DataStore GeoServer Installation
 -----------------------------------------
