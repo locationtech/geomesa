@@ -1,6 +1,11 @@
 Deploying GeoMesa HBase on Cloudera CDH 5.X
 ===========================================
 
+.. warning::
+
+  Ensure that the CDH version you are using contains a compatible version of HBase. As of this writing,
+  the latest CDH release is 5.16.x containing HBase 1.2, which is no longer supported by GeoMesa.
+
 - Download and extract the GeoMesa HBase distribution, as detailed in :ref:`setting_up_hbase_commandline`. In the
   following steps, ``GEOMESA_HBASE_HOME`` refers to the extracted directory ``geomesa-hbase_2.11-$VERSION/``.
 
