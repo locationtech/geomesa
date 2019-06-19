@@ -12,6 +12,7 @@ import java.io.{ByteArrayInputStream, InputStream, StringReader}
 import java.nio.charset.{Charset, StandardCharsets}
 
 import com.typesafe.config.Config
+import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.SimpleFeatureConverters.SimpleFeatureConverterWrapper
@@ -20,9 +21,13 @@ import org.locationtech.geomesa.convert.text.DelimitedTextConverter._
 import org.locationtech.geomesa.convert.text.DelimitedTextConverterFactory.{DelimitedTextConfigConvert, DelimitedTextOptionsConvert}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicFieldConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, PrimitiveConvert}
+import org.locationtech.geomesa.convert2.TypeInference.FunctionTransform
 import org.locationtech.geomesa.convert2.transforms.Expression
+import org.locationtech.geomesa.convert2.transforms.Expression.{LiteralNull, TryExpression}
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
 import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.{ConfigObjectCursor, ConfigReader}
@@ -33,6 +38,8 @@ class DelimitedTextConverterFactory
     extends AbstractConverterFactory[DelimitedTextConverter, DelimitedTextConfig, BasicField, DelimitedTextOptions]
       with org.locationtech.geomesa.convert.SimpleFeatureConverterFactory[String] {
 
+  import scala.collection.JavaConverters._
+
   override protected val typeToProcess: String = DelimitedTextConverterFactory.TypeToProcess
 
   override protected implicit def configConvert: ConverterConfigConvert[DelimitedTextConfig] = DelimitedTextConfigConvert
@@ -40,59 +47,119 @@ class DelimitedTextConverterFactory
   override protected implicit def optsConvert: ConverterOptionsConvert[DelimitedTextOptions] = DelimitedTextOptionsConvert
 
   override def infer(is: InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.{RichIterator, RichTraversableLike}
-
-    import scala.collection.JavaConverters._
 
     val sampleSize = AbstractConverterFactory.inferSampleSize
     val lines = IOUtils.lineIterator(is, StandardCharsets.UTF_8.displayName).asScala.take(sampleSize).toSeq
     // if only a single line, assume that it isn't actually delimited text
     if (lines.lengthCompare(2) < 0) { None } else {
-      val results = DelimitedTextConverter.inferences.iterator.flatMap { format =>
-        // : Seq[List[String]]
-        val rows = lines.flatMap { line =>
-          Try(format.parse(new StringReader(line)).iterator().next.iterator.asScala.toList).toOption
-        }
-        val counts = rows.map(_.length).distinct
-        // try to verify that we actually have a delimited file
-        // ensure that some lines parsed, that there were at most 3 different col counts, and that there were at least 2 cols
-        if (counts.isEmpty || counts.lengthCompare(3) > 0 || counts.max < 2) { Iterator.empty } else {
-          val names = sft match {
-            case Some(s) =>
-              s.getAttributeDescriptors.asScala.map(_.getLocalName)
+      magic(lines, sft).orElse(DelimitedTextConverter.inferences.flatMap(infer(_, lines, sft)).headOption)
+    }
+  }
 
-            case None =>
-              val firstRowTypes = TypeInference.infer(Seq(rows.head))
-              if (firstRowTypes.exists(_.typed != ObjectType.STRING)) { Seq.empty } else {
-                // assume the first row is headers
-                rows.head.map(_.replaceAll("[^A-Za-z0-9]+", "_"))
-              }
+  private def infer(
+      format: CSVFormat,
+      lines: Seq[String],
+      sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] = {
+    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableLike
+
+    // : Seq[List[String]]
+    val rows = lines.flatMap { line =>
+      Try(format.parse(new StringReader(line)).iterator().next.iterator.asScala.toList).toOption
+    }
+    val counts = rows.map(_.length).distinct
+    // try to verify that we actually have a delimited file
+    // ensure that some lines parsed, that there were at most 3 different col counts, and that there were at least 2 cols
+    if (counts.isEmpty || counts.lengthCompare(3) > 0 || counts.max < 2) { None } else {
+      val names = sft match {
+        case Some(s) =>
+          s.getAttributeDescriptors.asScala.map(_.getLocalName)
+
+        case None =>
+          val firstRowTypes = TypeInference.infer(Seq(rows.head))
+          if (firstRowTypes.exists(_.typed != ObjectType.STRING)) { Seq.empty } else {
+            // assume the first row is headers
+            rows.head.map(_.replaceAll("[^A-Za-z0-9]+", "_"))
           }
-          val types = TypeInference.infer(rows.drop(1), names)
-          val schema =
-            sft.filter(AbstractConverterFactory.validateInferredType(_, types.map(_.typed)))
-                .getOrElse(TypeInference.schema("inferred-delimited-text", types))
+      }
+      val types = TypeInference.infer(rows.drop(1), names)
+      val schema =
+        sft.filter(AbstractConverterFactory.validateInferredType(_, types.map(_.typed)))
+            .getOrElse(TypeInference.schema("inferred-delimited-text", types))
 
-          val converterConfig = DelimitedTextConfig(typeToProcess, formats.find(_._2 == format).get._1,
-            Some(Expression("md5(string2bytes($0))")), Map.empty, Map.empty)
+      val converterConfig = DelimitedTextConfig(typeToProcess, formats.find(_._2 == format).get._1,
+        Some(Expression("md5(string2bytes($0))")), Map.empty, Map.empty)
 
-          val fields = schema.getAttributeDescriptors.asScala.mapWithIndex { case (d, i) =>
-            BasicField(d.getLocalName, Some(Expression(types(i).transform(i + 1)))) // 0 is the whole record
-          }
-
-          val options = DelimitedTextOptions(None, CharNotSpecified, CharNotSpecified, None,
-            SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
-
-          val config = configConvert.to(converterConfig)
-              .withFallback(fieldConvert.to(fields))
-              .withFallback(optsConvert.to(options))
-              .toConfig
-
-          Iterator.single((schema, config))
-        }
+      val fields = schema.getAttributeDescriptors.asScala.mapWithIndex { case (d, i) =>
+        BasicField(d.getLocalName, Some(Expression(types(i).transform(i + 1)))) // 0 is the whole record
       }
 
-      results.headOption
+      val options = DelimitedTextOptions(None, CharNotSpecified, CharNotSpecified, None,
+        SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
+
+      val config = configConvert.to(converterConfig)
+          .withFallback(fieldConvert.to(fields))
+          .withFallback(optsConvert.to(options))
+          .toConfig
+
+      Some((schema, config))
+    }
+  }
+
+  private def magic(lines: Seq[String], sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] = {
+    if (!lines.head.startsWith("id,")) { None } else {
+      val attempt = Try {
+        val spec = WithClose(Formats.QuotedMinimal.parse(new StringReader(lines.head.drop(3)))) { result =>
+          result.iterator().next.asScala.mkString(",")
+        }
+        val schema = SimpleFeatureTypes.createType("", spec)
+
+        val converterConfig = DelimitedTextConfig(typeToProcess,
+          formats.find(_._2 == Formats.QuotedMinimal).get._1, Some(Expression("$1")), Map.empty, Map.empty)
+
+        var i = 1 // 0 is the whole record, 1 is the id
+        val fields = schema.getAttributeDescriptors.asScala.map { d =>
+          val bindings = ObjectType.selectType(d)
+          val transform = bindings.head match {
+            case ObjectType.STRING   => TypeInference.IdentityTransform
+            case ObjectType.INT      => TypeInference.CastToInt
+            case ObjectType.LONG     => TypeInference.CastToLong
+            case ObjectType.FLOAT    => TypeInference.CastToFloat
+            case ObjectType.DOUBLE   => TypeInference.CastToDouble
+            case ObjectType.BOOLEAN  => TypeInference.CastToBoolean
+            case ObjectType.DATE     => FunctionTransform("datetime(", ")")
+            case ObjectType.UUID     => TypeInference.IdentityTransform
+            case ObjectType.LIST     => FunctionTransform(s"parseList('${bindings(1)}',", ")")
+            case ObjectType.MAP      => FunctionTransform(s"parseMap('${bindings(1)}->${bindings(2)}',", ")")
+            case ObjectType.BYTES    => TypeInference.IdentityTransform
+            case ObjectType.GEOMETRY =>
+              bindings.drop(1).headOption.getOrElse(ObjectType.GEOMETRY) match {
+                case ObjectType.POINT               => FunctionTransform("point(", ")")
+                case ObjectType.LINESTRING          => FunctionTransform("linestring(", ")")
+                case ObjectType.POLYGON             => FunctionTransform("polygon(", ")")
+                case ObjectType.MULTIPOINT          => FunctionTransform("multipoint(", ")")
+                case ObjectType.MULTILINESTRING     => FunctionTransform("multilinestring(", ")")
+                case ObjectType.MULTIPOLYGON        => FunctionTransform("multipolygon(", ")")
+                case ObjectType.GEOMETRY_COLLECTION => FunctionTransform("geometrycollection(", ")")
+                case _                              => FunctionTransform("geometry(", ")")
+              }
+
+            case _ => throw new IllegalStateException(s"Unexpected binding: $bindings")
+          }
+          i += 1
+          BasicField(d.getLocalName, Some(TryExpression(Expression(transform.apply(i)), LiteralNull)))
+        }
+
+        val options = DelimitedTextOptions(Some(1), CharNotSpecified, CharNotSpecified, None,
+          SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
+
+        val config = configConvert.to(converterConfig)
+            .withFallback(fieldConvert.to(fields))
+            .withFallback(optsConvert.to(options))
+            .toConfig
+
+        (sft.getOrElse(schema), config)
+      }
+      attempt.toOption
     }
   }
 
