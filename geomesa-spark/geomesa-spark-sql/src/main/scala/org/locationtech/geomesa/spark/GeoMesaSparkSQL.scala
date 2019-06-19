@@ -9,13 +9,9 @@
 package org.locationtech.geomesa.spark
 
 import java.sql.Timestamp
-import java.time.Instant
-import java.util.{Date, UUID}
+import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom._
-import org.locationtech.jts.index.strtree.{AbstractNode, Boundable, STRtree}
-import org.locationtech.jts.index.sweepline.{SweepLineIndex, SweepLineInterval, SweepLineOverlapAction}
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
@@ -25,16 +21,20 @@ import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.sources.{Filter, _}
 import org.apache.spark.sql.types.{DataTypes, StructField, StructType, TimestampType}
 import org.apache.spark.storage.StorageLevel
-import org.geotools.data.DataUtilities.compare
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.data._
 import org.geotools.factory.{CommonFactoryFinder, Hints}
-import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineDataStore
 import org.locationtech.geomesa.spark.jts.util.WKTUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.uuid.TimeSortedUuidGenerator
+import org.locationtech.jts.geom._
+import org.locationtech.jts.index.strtree.{AbstractNode, Boundable, STRtree}
+import org.locationtech.jts.index.sweepline.{SweepLineIndex, SweepLineInterval, SweepLineOverlapAction}
 import org.opengis.feature.`type`._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -65,7 +65,10 @@ import org.locationtech.geomesa.spark.GeoMesaSparkSQL._
 class GeoMesaDataSource extends DataSourceRegister
   with RelationProvider with SchemaRelationProvider with CreatableRelationProvider
   with LazyLogging {
+
   import CaseInsensitiveMapFix._
+
+  import scala.collection.JavaConverters._
 
   override def shortName(): String = "geomesa"
 
@@ -77,7 +80,9 @@ class GeoMesaDataSource extends DataSourceRegister
     //  Below the details of the Converter RDD Provider and Providers which are backed by GT DSes are leaking through
     val ds = DataStoreFinder.getDataStore(parameters)
     val sft = if (ds != null) {
-      ds.getSchema(parameters(GEOMESA_SQL_FEATURE))
+      try { ds.getSchema(parameters(GEOMESA_SQL_FEATURE)) } finally {
+        ds.dispose()
+      }
     } else {
       if (parameters.contains(GEOMESA_SQL_FEATURE) && parameters.contains("geomesa.sft")) {
         SimpleFeatureTypes.createType(parameters(GEOMESA_SQL_FEATURE), parameters("geomesa.sft"))
@@ -86,7 +91,6 @@ class GeoMesaDataSource extends DataSourceRegister
           case Right(s) => s
           case Left(e) => throw new IllegalArgumentException("Could not resolve simple feature type", e)
         }
-
       }
     }
     logger.trace(s"Creating GeoMesa Relation with sft : $sft")
@@ -98,7 +102,11 @@ class GeoMesaDataSource extends DataSourceRegister
   // JNH: Q: Why doesn't this method have the call to SQLTypes.init(sqlContext)?
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String], schema: StructType): BaseRelation = {
     val ds = DataStoreFinder.getDataStore(parameters)
-    val sft = ds.getSchema(parameters(GEOMESA_SQL_FEATURE))
+    val sft = try { ds.getSchema(parameters(GEOMESA_SQL_FEATURE)) } finally {
+      if (ds != null) {
+        ds.dispose()
+      }
+    }
     GeoMesaRelation(sqlContext, sft, schema, parameters)
   }
 
@@ -170,45 +178,52 @@ class GeoMesaDataSource extends DataSourceRegister
 
     // reuse the __fid__ if available for joins,
     // otherwise use a random id prefixed with the current time
-    val fidIndex = data.schema.fields.indexWhere(_.name == "__fid__")
-    val fidFn: Row => String =
-      if(fidIndex > -1) (row: Row) => row.getString(fidIndex)
-      else _ => "%d%s".format(Instant.now().getEpochSecond, UUID.randomUUID().toString)
-
+    val fidFn: Row => String = data.schema.fields.indexWhere(_.name == "__fid__") match {
+      case -1 => _ => TimeSortedUuidGenerator.createUuid().toString
+      case i  => r => r.getString(i)
+    }
 
     val ds = DataStoreFinder.getDataStore(parameters)
-    val schemaInDs = ds.getTypeNames.contains(newFeatureName)
-
-    if (schemaInDs) {
-      if (compare(ds.getSchema(newFeatureName),sft) != 0) {
-        throw new IllegalStateException(s"The schema of the RDD conflicts with schema:$newFeatureName in the data store")
+    try {
+      if (ds.getTypeNames.contains(newFeatureName)) {
+        val existing = ds.getSchema(newFeatureName)
+          if (!compatible(existing, sft)) {
+          throw new IllegalStateException("The dataframe is not compatible with the existing schema in the datastore:" +
+                  s"\n  Dataframe schema: ${SimpleFeatureTypes.encodeType(sft)}" +
+                  s"\n  Datastore schema: ${SimpleFeatureTypes.encodeType(existing)}")
+        }
+      } else {
+        sft.getUserData.put("override.reserved.words", java.lang.Boolean.TRUE)
+        ds.createSchema(sft)
       }
-    } else {
-      sft.getUserData.put("override.reserved.words", java.lang.Boolean.TRUE)
-      ds.createSchema(sft)
+    } finally {
+      if (ds != null) {
+        ds.dispose()
+      }
     }
 
-
-    val structType = if (data.queryExecution == null) {
-      sft2StructType(sft)
-    } else {
-      data.schema
-    }
+    val structType = if (data.queryExecution == null) { sft2StructType(sft) } else { data.schema }
 
     val rddToSave: RDD[SimpleFeature] = data.rdd.mapPartitions( iterRow => {
       val innerDS = DataStoreFinder.getDataStore(parameters)
-      val sft = innerDS.getSchema(newFeatureName)
-      val builder = new SimpleFeatureBuilder(sft)
-
-      val nameMappings: List[(String, Int)] = SparkUtils.getSftRowNameMappings(sft, structType)
-      iterRow.map { r =>
-        SparkUtils.row2Sf(nameMappings, r, builder, fidFn(r))
+      val sft = try { innerDS.getSchema(newFeatureName) } finally {
+        innerDS.dispose()
       }
+      val mappings = SparkUtils.sftToRowMappings(sft, structType)
+      iterRow.map(r => SparkUtils.row2Sf(sft, mappings, r, fidFn(r)))
     })
 
     GeoMesaSpark(parameters).save(rddToSave, parameters, newFeatureName)
 
     GeoMesaRelation(sqlContext, sft, data.schema, parameters)
+  }
+
+  // are schemas compatible? we're flexible with order, but require the same number, names and types
+  private def compatible(sft: SimpleFeatureType, dataframe: SimpleFeatureType): Boolean = {
+    sft.getAttributeCount == dataframe.getAttributeCount && sft.getAttributeDescriptors.asScala.forall { ad =>
+      val df = dataframe.getDescriptor(ad.getLocalName)
+      df != null && ad.getType.getBinding.isAssignableFrom(df.getType.getBinding)
+    }
   }
 }
 
@@ -761,21 +776,24 @@ object SparkUtils {
   }
 
   // Since each attribute's corresponding index in the Row is fixed. Compute the mapping once
-  def getSftRowNameMappings(sft: SimpleFeatureType, schema: StructType): List[(String, Int)] = {
-    sft.getAttributeDescriptors.map{ ad =>
-      val name = ad.getLocalName
-      (name, schema.fieldIndex(ad.getLocalName))
-    }.toList
-  }
+  def sftToRowMappings(sft: SimpleFeatureType, schema: StructType): Seq[(Int, Int)] =
+    Seq.tabulate(sft.getAttributeCount)(i => i -> schema.fieldIndex(sft.getDescriptor(i).getLocalName))
 
-  def row2Sf(nameMappings: List[(String, Int)], row: Row, builder: SimpleFeatureBuilder, id: String): SimpleFeature = {
-    builder.reset()
-    nameMappings.foreach{ case (name, index) =>
-      builder.set(name, row.getAs[Object](index))
-    }
-
-    builder.userData(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-    builder.buildFeature(id)
+  /**
+    * Convert a dataframe row to a simple feature
+    *
+    * @param sft simple feature type
+    * @param mappings sft attribute -> row index
+    * @param row row
+    * @param id feature id
+    * @return
+    */
+  def row2Sf(sft: SimpleFeatureType, mappings: Seq[(Int, Int)], row: Row, id: String): SimpleFeature = {
+    val userData = new java.util.HashMap[AnyRef, AnyRef](1)
+    userData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+    val feature = new ScalaSimpleFeature(sft, id, null, userData)
+    mappings.foreach { case (to, from) => feature.setAttributeNoConvert(to, row.getAs[Object](from)) }
+    feature
   }
 }
 
