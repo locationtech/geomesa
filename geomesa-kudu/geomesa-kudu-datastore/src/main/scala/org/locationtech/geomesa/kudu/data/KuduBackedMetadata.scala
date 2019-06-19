@@ -14,7 +14,6 @@ import org.apache.kudu.ColumnSchema.Encoding
 import org.apache.kudu.client.KuduPredicate.ComparisonOp
 import org.apache.kudu.client.{CreateTableOptions, KuduClient, KuduPredicate}
 import org.apache.kudu.{ColumnSchema, Schema, Type}
-import org.locationtech.geomesa.index.metadata.CachedLazyMetadata.ScanQuery
 import org.locationtech.geomesa.index.metadata._
 import org.locationtech.geomesa.kudu.utils.ColumnConfiguration
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -23,13 +22,15 @@ import org.locationtech.geomesa.utils.io.WithClose
 class KuduBackedMetadata[T](val client: KuduClient, val catalog: String, val serializer: MetadataSerializer[T])
     extends CachedLazyMetadata[T] {
 
+  import org.locationtech.geomesa.kudu.utils.RichKuduClient.RichScanner
+
+  import scala.collection.JavaConverters._
+
   lazy private val table = client.openTable(catalog)
 
   override protected def checkIfTableExists: Boolean = client.tableExists(catalog)
 
   override protected def createTable(): Unit = {
-    import scala.collection.JavaConverters._
-
     val sftCol = new ColumnSchema.ColumnSchemaBuilder("type", Type.STRING)
         .encoding(Encoding.PREFIX_ENCODING)
         .compressionAlgorithm(ColumnConfiguration.compression())
@@ -92,7 +93,6 @@ class KuduBackedMetadata[T](val client: KuduClient, val catalog: String, val ser
 
   override protected def scanValue(typeName: String, key: String): Option[Array[Byte]] = {
     import KuduPredicate.newComparisonPredicate
-    import org.locationtech.geomesa.kudu.utils.RichKuduClient.RichScanner
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
     val scanner = client.newScannerBuilder(table)
@@ -103,23 +103,21 @@ class KuduBackedMetadata[T](val client: KuduClient, val catalog: String, val ser
     WithClose(scanner.iterator)(_.headOption.map(_.getBinaryCopy(0)))
   }
 
-  override protected def scanValues(query: Option[ScanQuery]): CloseableIterator[(String, String, Array[Byte])] = {
+  override protected def scanValues(typeName: String, prefix: String): CloseableIterator[(String, Array[Byte])] = {
     import KuduPredicate.newComparisonPredicate
-    import org.locationtech.geomesa.kudu.utils.RichKuduClient.RichScanner
-
-    import scala.collection.JavaConverters._
 
     val builder = client.newScannerBuilder(table).setProjectedColumnIndexes(Seq[Integer](0, 1, 2).asJava)
-    query.foreach { q =>
-      builder.addPredicate(newComparisonPredicate(table.getSchema.getColumnByIndex(0), ComparisonOp.EQUAL, q.typeName))
-    }
+    builder.addPredicate(newComparisonPredicate(table.getSchema.getColumnByIndex(0), ComparisonOp.EQUAL, typeName))
 
-    val iter = builder.build().iterator.map(r => (r.getString(0), r.getString(1), r.getBinaryCopy(2)))
-
-    query.flatMap(_.prefix) match {
-      case None => iter
-      case Some(p) => iter.filter(_._2.startsWith(p))
+    val iter = builder.build().iterator.map(r => (r.getString(1), r.getBinaryCopy(2)))
+    if (prefix == null || prefix.isEmpty) { iter } else {
+      iter.filter(_._2.startsWith(prefix))
     }
+  }
+
+  override protected def scanKeys(): CloseableIterator[(String, String)] = {
+    val builder = client.newScannerBuilder(table).setProjectedColumnIndexes(Seq[Integer](0, 1).asJava)
+    builder.build().iterator.map(r => (r.getString(0), r.getString(1)))
   }
 
   override def close(): Unit = {} // client gets closed by datastore dispose
