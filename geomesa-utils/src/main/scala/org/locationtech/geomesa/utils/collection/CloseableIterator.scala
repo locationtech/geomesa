@@ -41,7 +41,7 @@ object CloseableIterator {
   def apply(iter: FeatureIterator[SimpleFeature]): CloseableIterator[SimpleFeature] =
     new CloseableFeatureIterator(iter)
 
-  def single[A](elem: => A, close: => Unit = Unit): CloseableIterator[A] =
+  def single[A](elem: A, close: => Unit = Unit): CloseableIterator[A] =
     new CloseableSingleIterator(elem, close)
 
   def fill[A](length: Int, close: => Unit = Unit)(elem: => A): CloseableIterator[A] =
