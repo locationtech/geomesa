@@ -51,7 +51,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
 
   import scala.collection.JavaConverters._
 
-  val queryPlanner: QueryPlanner[DS] = new QueryPlanner[DS](this)
+  val queryPlanner: QueryPlanner[DS] = new QueryPlanner(this)
 
   val manager: IndexManager = new IndexManager(this)
 

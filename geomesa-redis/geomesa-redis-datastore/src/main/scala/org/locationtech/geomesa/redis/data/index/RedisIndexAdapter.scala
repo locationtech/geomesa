@@ -14,14 +14,14 @@ import java.nio.charset.StandardCharsets
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
+import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{WritableFeature, _}
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.planning.LocalQueryRunner
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryHook
-import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.RedisIndexWriter
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
+import org.locationtech.geomesa.redis.data.index.RedisIndexAdapter.{RedisIndexWriter, RedisResultsToFeatures}
 import org.locationtech.geomesa.redis.data.index.RedisQueryPlan.{EmptyPlan, ZLexPlan}
-import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -66,30 +66,17 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
         byteRanges.map(RedisIndexAdapter.toRedisRange)
       }
 
-      val serializer = KryoFeatureSerializer.builder(strategy.index.sft).`lazy`.withUserData.withoutId.build()
-      val idFromBytes = GeoMesaFeatureIndex.idFromBytes(strategy.index.sft)
-
-      val visible = LocalQueryRunner.visible(Some(ds.config.authProvider))
-      val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
-      val transform: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] =
-        LocalQueryRunner.transform(strategy.index.sft, _, hints.getTransform, hints, hook)
-
-      val resultsToFeatures = (results: CloseableIterator[Array[Byte]]) => {
-        val features = results.map { bytes =>
-          // parse out the feature id and the serialized value from the concatenated row + value
-          val idStart = strategy.index.getIdOffset(bytes, 0, bytes.length)
-          val idLength = ByteArrays.readShort(bytes, idStart)
-          val id = idFromBytes(bytes, idStart + 2, idLength, null)
-          val valueStart = idStart + idLength + 2
-          serializer.deserialize(id, bytes, valueStart, bytes.length - valueStart)
-        }
-        ecql match {
-          case None    => transform(features.filter(visible))
-          case Some(e) => transform(features.filter(f => visible(f) && e.evaluate(f)))
-        }
+      val results = new RedisResultsToFeatures(strategy.index, strategy.index.sft)
+      val reducer = {
+        val visible = Some(LocalQueryRunner.visible(Some(ds.config.authProvider)))
+        val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
+        new LocalTransformReducer(strategy.index.sft, ecql, visible, hints.getTransform, hints, hook)
       }
+      val sort = hints.getSortFields
+      val max = hints.getMaxFeatures
+      val project = hints.getProjection
 
-      ZLexPlan(filter, tables, ranges, ds.config.pipeline, ecql, resultsToFeatures)
+      ZLexPlan(filter, tables, ranges, ds.config.pipeline, ecql, results, Some(reducer), sort, max, project)
     }
   }
 
@@ -183,6 +170,26 @@ object RedisIndexAdapter extends LazyLogging {
       ByteArrays.writeShort(row.length.toShort, rangeEnd, 1)
       rangeEnd(0) = RedisIndexAdapter.ExclusiveRangePrefix
       BoundedByteRange(rangeStart, rangeEnd)
+  }
+
+  class RedisResultsToFeatures(_index: GeoMesaFeatureIndex[_, _], _sft: SimpleFeatureType)
+      extends IndexResultsToFeatures[Array[Byte]](_index, _sft) {
+
+    private var idSerializer: (Array[Byte], Int, Int, SimpleFeature) => String = _
+
+    override def apply(result: Array[Byte]): SimpleFeature = {
+      // parse out the feature id and the serialized value from the concatenated row + value
+      val idStart = index.getIdOffset(result, 0, result.length)
+      val idLength = ByteArrays.readShort(result, idStart)
+      val id = idSerializer(result, idStart + 2, idLength, null)
+      val valueStart = idStart + idLength + 2
+      serializer.deserialize(id, result, valueStart, result.length - valueStart)
+    }
+
+    override protected def createSerializer: KryoFeatureSerializer = {
+      idSerializer = GeoMesaFeatureIndex.idFromBytes(index.sft)
+      KryoFeatureSerializer.builder(index.sft).`lazy`.withUserData.withoutId.build()
+    }
   }
 
   /**

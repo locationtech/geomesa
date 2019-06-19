@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.tools.export
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, StringWriter}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import java.nio.charset.StandardCharsets
 import java.util.Date
 import java.util.zip.Deflater
 
@@ -17,7 +18,7 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.features.avro.AvroDataFileReader
-import org.locationtech.geomesa.tools.export.formats.{AvroExporter, DelimitedExporter, ShapefileExporter}
+import org.locationtech.geomesa.tools.export.formats.{AvroExporter, DelimitedExporter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
@@ -44,13 +45,13 @@ class FeatureExporterTest extends Specification {
   "DelimitedExport" should {
     "properly export to CSV" >> {
       val features = createFeatures("DelimitedExportTest")
-      val writer = new StringWriter()
-      val export = DelimitedExporter.csv(writer, withHeader = true, includeIds = true)
+      val os = new ByteArrayOutputStream()
+      val export = DelimitedExporter.csv(os, null, withHeader = true, includeIds = true)
       export.start(features.head.getFeatureType)
       export.export(features.iterator)
       export.close()
 
-      val result = writer.toString.split("\r\n")
+      val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n")
       result must haveLength(2)
       val (header, data) = (result(0), result(1))
 
@@ -62,45 +63,15 @@ class FeatureExporterTest extends Specification {
       // simulate a projecting read
       val sft = SimpleFeatureTypes.createType("DelimitedExportTest", "name:String,dtg:Date")
       val features = createFeatures("DelimitedExportTest").map(DataUtilities.reType(sft, _))
-      val writer = new StringWriter()
-      val export = DelimitedExporter.csv(writer, withHeader = false, includeIds = false)
+      val os = new ByteArrayOutputStream()
+      val export = DelimitedExporter.csv(os, null, withHeader = false, includeIds = false)
       export.start(sft)
       export.export(features.iterator)
       export.close()
 
-      val result = writer.toString.split("\r\n")
+      val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n")
       result must haveLength(1)
       result(0) mustEqual "myname,1970-01-01T00:00:00.000Z"
-    }
-  }
-
-  "Shapefile Export" should {
-
-    val sft = SimpleFeatureTypes.createType("Shp", "name:String,geom:Point:srid=4326,dtg:Date")
-
-    "transform 'geom' to 'the_geom' when asking for just 'geom'" >> {
-      ShapefileExporter.replaceGeom(sft, Seq("geom")) mustEqual Seq("the_geom=geom")
-    }
-
-    "transform 'geom' in the attributes string when another attribute follows" >> {
-      ShapefileExporter.replaceGeom(sft, Seq("geom", "name")) mustEqual Seq("the_geom=geom","name")
-    }
-
-    "transform 'geom' in the attributes string when it follows another attribute" >> {
-      ShapefileExporter.replaceGeom(sft, Seq("name", "geom")) mustEqual Seq("name","the_geom=geom")
-    }
-
-    "transform 'geom' in the attributes string when it is between two attributes" >> {
-      ShapefileExporter.replaceGeom(sft, Seq("name", "geom", "dtg")) mustEqual Seq("name","the_geom=geom","dtg")
-    }
-
-    "NOT transform 'the_geom' in the attributes string" >> {
-      ShapefileExporter.replaceGeom(sft, Seq("the_geom")) mustEqual Seq("the_geom")
-    }
-
-    "NOT transform an incorrect transform in the query" >> {
-      ShapefileExporter.replaceGeom(sft, Seq("name", "geom=the_geom", "dtg")) mustEqual
-          Seq("name", "geom=the_geom", "dtg", "the_geom=geom")
     }
   }
 
@@ -109,7 +80,7 @@ class FeatureExporterTest extends Specification {
     "properly export to avro" >> {
       val features = createFeatures("AvroExportTest", 10)
       val os = new ByteArrayOutputStream()
-      val export = new AvroExporter(Deflater.NO_COMPRESSION, os)
+      val export = new AvroExporter(os, null, Some(Deflater.NO_COMPRESSION))
       export.start(features.head.getFeatureType)
       export.export(features.iterator)
       export.close()
@@ -132,7 +103,7 @@ class FeatureExporterTest extends Specification {
 
       val uncompressed :: compressed :: Nil = List(Deflater.NO_COMPRESSION, Deflater.DEFAULT_COMPRESSION).map { c =>
         val os = new ByteArrayOutputStream()
-        val export = new AvroExporter(c, os)
+        val export = new AvroExporter(os, null, Option(c))
         export.start(features.head.getFeatureType)
         export.export(features.iterator)
         export.close()

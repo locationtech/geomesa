@@ -17,7 +17,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.{Counter, Job, Mapper}
 import org.apache.hadoop.util.{Tool, ToolRunner}
-import org.geotools.data.{DataStoreFinder, Query}
+import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo.data._
 import org.locationtech.geomesa.accumulo.index.JoinIndex
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
@@ -25,60 +25,144 @@ import org.locationtech.geomesa.index.api.{MultiRowKeyValue, SingleRowKeyValue, 
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.jobs._
+import org.locationtech.geomesa.jobs.accumulo.index.AttributeIndexJob.{AttributeIndexArgs, AttributeMapper}
 import org.locationtech.geomesa.jobs.accumulo.{AccumuloJobUtils, GeoMesaArgs, InputDataStoreArgs, InputFeatureArgs}
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaAccumuloInputFormat
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.WithStore
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
-import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
 object AttributeIndexJob {
 
+  import scala.collection.JavaConverters._
+
   final val IndexAttributes = "--geomesa.index.attributes"
   final val IndexCoverage = "--geomesa.index.coverage"
 
-  protected [index] val AttributesKey = "org.locationtech.geomesa.attributes"
+  private val AttributesKey = "org.locationtech.geomesa.attributes"
+  private val TypeNameKey   = "org.locationtech.geomesa.attributes.type"
 
   def main(args: Array[String]): Unit = {
     val result = ToolRunner.run(new AttributeIndexJob(), args)
     System.exit(result)
   }
-}
 
-class AttributeIndexArgs(args: Array[String]) extends GeoMesaArgs(args) with InputFeatureArgs with InputDataStoreArgs {
+  private def setAttributes(conf: Configuration, attributes: Seq[String]): Unit =
+    conf.set(AttributesKey, attributes.mkString(","))
+  private def getAttributes(conf: Configuration): Seq[String] = conf.get(AttributesKey).split(",")
 
-  @Parameter(names = Array(AttributeIndexJob.IndexAttributes), description = "Attributes to index", variableArity = true, required = true)
-  var attributes: java.util.List[String] = new java.util.ArrayList[String]()
+  private def setTypeName(conf: Configuration, typeName: String): Unit = conf.set(TypeNameKey, typeName)
+  private def getTypeName(conf: Configuration): String = conf.get(TypeNameKey)
 
-  @Parameter(names = Array(AttributeIndexJob.IndexCoverage), description = "Type of index (join or full)")
-  var coverage: String = _
+  class AttributeIndexArgs(args: Array[String]) extends GeoMesaArgs(args) with InputFeatureArgs with InputDataStoreArgs {
 
-  override def unparse(): Array[String] = {
-    val attrs = if (attributes == null || attributes.isEmpty) {
-      Array.empty[String]
-    } else {
-      attributes.flatMap(n => Seq(AttributeIndexJob.IndexAttributes, n)).toArray
+    @Parameter(names = Array(AttributeIndexJob.IndexAttributes), description = "Attributes to index", variableArity = true, required = true)
+    var attributes: java.util.List[String] = new java.util.ArrayList[String]()
+
+    @Parameter(names = Array(AttributeIndexJob.IndexCoverage), description = "Type of index (join or full)")
+    var coverage: String = _
+
+    override def unparse(): Array[String] = {
+      val attrs = if (attributes == null || attributes.isEmpty) {
+        Array.empty[String]
+      } else {
+        attributes.asScala.flatMap(n => Seq(AttributeIndexJob.IndexAttributes, n)).toArray
+      }
+      val cov = if (coverage == null) {
+        Array.empty[String]
+      } else {
+        Array(AttributeIndexJob.IndexCoverage, coverage)
+      }
+      Array.concat(super[InputFeatureArgs].unparse(), super[InputDataStoreArgs].unparse(), attrs, cov)
     }
-    val cov = if (coverage == null) {
-      Array.empty[String]
-    } else {
-      Array(AttributeIndexJob.IndexCoverage, coverage)
+  }
+
+  class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
+
+    type Context = Mapper[Text, SimpleFeature, Text, Mutation]#Context
+
+    private var counter: Counter = _
+
+    // TODO GEOMESA-2545 have a standardized writer that returns mutations instead of using a batch writer
+
+    private var wrapper: FeatureWrapper = _
+    private var converters: Seq[(WriteConverter[_], Int)] = _
+    private var colFamilyMappings: IndexedSeq[Array[Byte] => Array[Byte]] = _
+    private var defaultVis: ColumnVisibility = _
+    private var tables: SimpleFeature => IndexedSeq[Text] = _
+
+    override protected def setup(context: Context): Unit = {
+      counter = context.getCounter("org.locationtech.geomesa", "attributes-written")
+      WithStore[AccumuloDataStore](GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)) { ds =>
+        val sft = SimpleFeatureTypes.mutable(ds.getSchema(getTypeName(context.getConfiguration)))
+        val attributes = getAttributes(context.getConfiguration).toSet
+        val indices = ds.manager.indices(sft, IndexMode.Write).filter { i =>
+          (i.name == AttributeIndex.name || i.name == JoinIndex.name) &&
+              i.attributes.headOption.exists(attributes.contains)
+        }
+        wrapper = AccumuloWritableFeature.wrapper(sft, WritableFeature.wrapper(sft, ds.adapter.groups))
+        converters = indices.map(_.createConverter()).zipWithIndex
+        colFamilyMappings = indices.map(AccumuloIndexAdapter.mapColumnFamily).toIndexedSeq
+        defaultVis = new ColumnVisibility(ds.config.defaultVisibilities)
+        tables = TablePartition(ds, sft) match {
+          case Some(tp) =>
+            val tables = scala.collection.mutable.Map.empty[String, IndexedSeq[Text]]
+            f => {
+              // create the new partition table if needed, which also writes the metadata for it
+              val partition = tp.partition(f)
+              tables.getOrElseUpdate(partition,
+                indices.map(i => new Text(i.configureTableName(Some(partition)))).toIndexedSeq)
+            }
+
+          case None =>
+            val names = indices.map(i => new Text(i.getTableNames(None).head)).toIndexedSeq
+            _ => names
+        }
+      }
     }
-    Array.concat(super[InputFeatureArgs].unparse(),
-                 super[InputDataStoreArgs].unparse(),
-                 attrs,
-                 cov)
+
+    override protected def cleanup(context: Context): Unit = {}
+
+    override def map(key: Text, value: SimpleFeature, context: Context): Unit = {
+      val writable = wrapper.wrap(value)
+      val out = tables(value)
+      converters.foreach { case (converter, i) =>
+        converter.convert(writable) match {
+          case SingleRowKeyValue(row, _, _, _, _, _, vals) =>
+            val mutation = new Mutation(row)
+            vals.foreach { v =>
+              val vis = if (v.vis.isEmpty) { defaultVis } else { new ColumnVisibility(v.vis) }
+              mutation.put(colFamilyMappings(i)(v.cf), v.cq, vis, v.value)
+            }
+            context.write(out(i), mutation)
+
+          case MultiRowKeyValue(rows, _, _, _, _, _, vals) =>
+            rows.foreach { row =>
+              val mutation = new Mutation(row)
+              vals.foreach { v =>
+                val vis = if (v.vis.isEmpty) { defaultVis } else { new ColumnVisibility(v.vis) }
+                mutation.put(colFamilyMappings(i)(v.cf), v.cq, vis, v.value)
+              }
+              context.write(out(i), mutation)
+            }
+        }
+      }
+      counter.increment(converters.length)
+    }
   }
 }
 
 class AttributeIndexJob extends Tool {
 
-  private var conf: Configuration = new Configuration
+  import scala.collection.JavaConverters._
+
+  private var conf: Configuration = new Configuration()
 
   override def run(args: Array[String]): Int = {
     val parsedArgs = new AttributeIndexArgs(args)
@@ -86,7 +170,7 @@ class AttributeIndexJob extends Tool {
 
     val typeName   = parsedArgs.inFeature
     val dsInParams = parsedArgs.inDataStore
-    val attributes = parsedArgs.attributes
+    val attributes = parsedArgs.attributes.asScala
 
     val coverage = Option(parsedArgs.coverage).map { c =>
       try { IndexCoverage.withName(c) } catch {
@@ -95,9 +179,8 @@ class AttributeIndexJob extends Tool {
     }.getOrElse(IndexCoverage.FULL)
 
     // validation and initialization - ensure the types exist before launching distributed job
-    val ds = DataStoreFinder.getDataStore(dsInParams).asInstanceOf[AccumuloDataStore]
-    require(ds != null, "The specified input data store could not be created - check your job parameters")
-    try {
+    WithStore[AccumuloDataStore](dsInParams) { ds =>
+      require(ds != null, "The specified input data store could not be created - check your job parameters")
       var sft = Option(ds.getSchema(typeName)).map(SimpleFeatureTypes.mutable).orNull
       require(sft != null, s"The schema '$typeName' does not exist in the input data store")
 
@@ -119,7 +202,7 @@ class AttributeIndexJob extends Tool {
 
       AccumuloJobUtils.setLibJars(job.getConfiguration)
 
-      job.setJarByClass(SchemaCopyJob.getClass)
+      job.setJarByClass(AttributeIndexJob.getClass)
       job.setMapperClass(classOf[AttributeMapper])
       job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
       job.setOutputFormatClass(classOf[AccumuloOutputFormat])
@@ -127,10 +210,11 @@ class AttributeIndexJob extends Tool {
       job.setMapOutputValueClass(classOf[Mutation])
       job.setNumReduceTasks(0)
 
-      // TODO we could use GeoMesaOutputFormat with indices
-      val query = new Query(sft.getTypeName, Filter.INCLUDE)
-      GeoMesaAccumuloInputFormat.configure(job, dsInParams, query)
-      job.getConfiguration.set(AttributeIndexJob.AttributesKey, attributes.mkString(","))
+      val plan = AccumuloJobUtils.getSingleQueryPlan(ds, new Query(sft.getTypeName, Filter.INCLUDE))
+      GeoMesaAccumuloInputFormat.configure(job, dsInParams.asJava, plan)
+      GeoMesaConfigurator.setDataStoreOutParams(job.getConfiguration, dsInParams)
+      AttributeIndexJob.setAttributes(job.getConfiguration, attributes)
+      AttributeIndexJob.setTypeName(job.getConfiguration, sft.getTypeName)
 
       AccumuloOutputFormat.setConnectorInfo(job, parsedArgs.inUser, new PasswordToken(parsedArgs.inPassword.getBytes))
       // use deprecated method to work with both 1.5/1.6
@@ -140,88 +224,10 @@ class AttributeIndexJob extends Tool {
       val result = job.waitForCompletion(true)
 
       if (result) { 0 } else { 1 }
-    } finally {
-      ds.dispose()
     }
   }
 
   override def getConf: Configuration = conf
 
   override def setConf(conf: Configuration): Unit = this.conf = conf
-}
-
-class AttributeMapper extends Mapper[Text, SimpleFeature, Text, Mutation] {
-
-  type Context = Mapper[Text, SimpleFeature, Text, Mutation]#Context
-
-  private var counter: Counter = _
-
-  // TODO GEOMESA-2545 have a standardized writer that returns mutations instead of using a batch writer
-
-  private var wrapper: FeatureWrapper = _
-  private var converters: Seq[(WriteConverter[_], Int)] = _
-  private var colFamilyMappings: IndexedSeq[Array[Byte] => Array[Byte]] = _
-  private var defaultVis: ColumnVisibility = _
-  private var tables: SimpleFeature => IndexedSeq[Text] = _
-
-  override protected def setup(context: Context): Unit = {
-    counter = context.getCounter("org.locationtech.geomesa", "attributes-written")
-    val dsParams = GeoMesaConfigurator.getDataStoreInParams(context.getConfiguration)
-    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
-    val sft = SimpleFeatureTypes.mutable(ds.getSchema(GeoMesaConfigurator.getFeatureType(context.getConfiguration)))
-    val attributes = context.getConfiguration.get(AttributeIndexJob.AttributesKey).split(",").toSet
-    val indices = ds.manager.indices(sft, IndexMode.Write).filter { i =>
-      (i.name == AttributeIndex.name || i.name == JoinIndex.name) &&
-            i.attributes.headOption.exists(attributes.contains)
-    }
-    wrapper = AccumuloWritableFeature.wrapper(sft, WritableFeature.wrapper(sft, ds.adapter.groups))
-    converters = indices.map(_.createConverter()).zipWithIndex
-    colFamilyMappings = indices.map(AccumuloIndexAdapter.mapColumnFamily).toIndexedSeq
-    defaultVis = new ColumnVisibility(ds.config.defaultVisibilities)
-    tables = TablePartition(ds, sft) match {
-      case Some(tp) =>
-        val tables = scala.collection.mutable.Map.empty[String, IndexedSeq[Text]]
-        f => {
-          // create the new partition table if needed, which also writes the metadata for it
-          val partition = tp.partition(f)
-          tables.getOrElseUpdate(partition,
-            indices.map(i => new Text(i.configureTableName(Some(partition)))).toIndexedSeq)
-        }
-
-      case None =>
-        val names = indices.map(i => new Text(i.getTableNames(None).head)).toIndexedSeq
-        f => names
-    }
-
-    ds.dispose()
-  }
-
-  override protected def cleanup(context: Context): Unit = {}
-
-  override def map(key: Text, value: SimpleFeature, context: Context): Unit = {
-    val writable = wrapper.wrap(value)
-    val out = tables(value)
-    converters.foreach { case (converter, i) =>
-      converter.convert(writable) match {
-        case SingleRowKeyValue(row, _, _, _, _, _, vals) =>
-          val mutation = new Mutation(row)
-          vals.foreach { v =>
-            val vis = if (v.vis.isEmpty) { defaultVis } else { new ColumnVisibility(v.vis) }
-            mutation.put(colFamilyMappings(i)(v.cf), v.cq, vis, v.value)
-          }
-          context.write(out(i), mutation)
-
-        case MultiRowKeyValue(rows, _, _, _, _, _, vals) =>
-          rows.foreach { row =>
-            val mutation = new Mutation(row)
-            vals.foreach { v =>
-              val vis = if (v.vis.isEmpty) { defaultVis } else { new ColumnVisibility(v.vis) }
-              mutation.put(colFamilyMappings(i)(v.cf), v.cq, vis, v.value)
-            }
-            context.write(out(i), mutation)
-          }
-      }
-    }
-    counter.increment(converters.length)
-  }
 }

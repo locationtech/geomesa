@@ -1,0 +1,9 @@
+accumulo-core
+accumulo-fate
+accumulo-start
+accumulo-trace
+curator-client
+curator-framework
+curator-recipes
+htrace
+libthrift

@@ -13,13 +13,16 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce.{Counter, Job, Mapper}
 import org.apache.hadoop.util.{Tool, ToolRunner}
-import org.geotools.data.{DataStoreFinder, Query}
+import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.jobs._
 import org.locationtech.geomesa.jobs.accumulo._
+import org.locationtech.geomesa.jobs.accumulo.index.SchemaCopyJob.SchemaCopyArgs
+import org.locationtech.geomesa.jobs.accumulo.index.WriteIndexJob.PassThroughMapper
 import org.locationtech.geomesa.jobs.mapreduce.{GeoMesaAccumuloInputFormat, GeoMesaOutputFormat}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConversions._
@@ -32,23 +35,57 @@ import scala.collection.JavaConversions._
  * etc can be leveraged for old data.
  */
 object SchemaCopyJob {
+
+  private val CopySchemaNameKey = "org.locationtech.geomesa.copy.name"
+  private val CopySchemaSpecKey = "org.locationtech.geomesa.copy.spec"
+
   def main(args: Array[String]): Unit = {
     val result = ToolRunner.run(new SchemaCopyJob, args)
     System.exit(result)
   }
-}
 
-class SchemaCopyArgs(args: Array[String]) extends GeoMesaArgs(args)
-    with InputFeatureArgs with InputDataStoreArgs with InputCqlArgs
-    with OutputFeatureOptionalArgs with OutputDataStoreArgs {
+  private def setCopySchema(conf: Configuration, sft: SimpleFeatureType): Unit = {
+    conf.set(CopySchemaNameKey, sft.getTypeName)
+    conf.set(CopySchemaSpecKey, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
+  }
 
-  override def unparse(): Array[String] = {
-    Array.concat(super[InputFeatureArgs].unparse(),
-                 super[InputDataStoreArgs].unparse(),
-                 super[InputCqlArgs].unparse(),
-                 super[OutputFeatureOptionalArgs].unparse(),
-                 super[OutputDataStoreArgs].unparse()
-    )
+  private def getCopySchema(conf: Configuration): SimpleFeatureType =
+    SimpleFeatureTypes.createType(conf.get(CopySchemaNameKey), conf.get(CopySchemaSpecKey))
+
+  class SchemaCopyArgs(args: Array[String]) extends GeoMesaArgs(args)
+      with InputFeatureArgs with InputDataStoreArgs with InputCqlArgs
+      with OutputFeatureOptionalArgs with OutputDataStoreArgs {
+
+    override def unparse(): Array[String] = {
+      Array.concat(super[InputFeatureArgs].unparse(),
+        super[InputDataStoreArgs].unparse(),
+        super[InputCqlArgs].unparse(),
+        super[OutputFeatureOptionalArgs].unparse(),
+        super[OutputDataStoreArgs].unparse()
+      )
+    }
+  }
+
+  class CopyMapper extends Mapper[Text, SimpleFeature, Text, SimpleFeature] {
+
+    type Context = Mapper[Text, SimpleFeature, Text, SimpleFeature]#Context
+
+    private val text: Text = new Text
+    private var counter: Counter = _
+
+    private var sftOut: SimpleFeatureType = _
+
+    override protected def setup(context: Context): Unit = {
+      counter = context.getCounter("org.locationtech.geomesa", "features-written")
+      sftOut = getCopySchema(context.getConfiguration)
+    }
+
+    override protected def cleanup(context: Context): Unit = {}
+
+    override def map(key: Text, value: SimpleFeature, context: Context) {
+      context.write(text, ScalaSimpleFeature.copy(sftOut, value))
+      counter.increment(1)
+    }
   }
 }
 
@@ -68,43 +105,32 @@ class SchemaCopyJob extends Tool {
     val filter      = Option(parsedArgs.inCql).getOrElse("INCLUDE")
 
     // validation and initialization - ensure the types exist before launching distributed job
-    val sftIn = {
-      val dsIn = DataStoreFinder.getDataStore(dsInParams)
+    val (sftIn, plan) = WithStore[AccumuloDataStore](dsOutParams) { dsIn =>
       require(dsIn != null, "The specified input data store could not be created - check your job parameters")
-      try {
-        val sft = dsIn.getSchema(featureIn)
-        require(sft != null, s"The feature '$featureIn' does not exist in the input data store")
-        sft
-      } finally {
-        dsIn.dispose()
-      }
-    }
-    val sftOut = {
-      val dsOut = DataStoreFinder.getDataStore(dsOutParams)
-      require(dsOut != null, "The specified output data store could not be created - check your job parameters")
-      try {
-        var sft = dsOut.getSchema(featureOut)
-        if (sft == null) {
-          // update the feature name
-          if (featureOut == featureIn) {
-            sft = sftIn
-          } else {
-            sft = SimpleFeatureTypes.createType(featureOut, SimpleFeatureTypes.encodeType(sftIn))
-          }
-          // create the schema in the output datastore
-          dsOut.createSchema(sft)
-          dsOut.getSchema(featureOut)
-        } else {
-          sft
-        }
-      } finally {
-        dsOut.dispose()
-      }
+      val sft = dsIn.getSchema(featureIn)
+      require(sft != null, s"The feature '$featureIn' does not exist in the input data store")
+      val plan = AccumuloJobUtils.getSingleQueryPlan(dsIn, new Query(sft.getTypeName, ECQL.toFilter(filter)))
+      (sft, plan)
     }
 
+    val sftOut = WithStore[AccumuloDataStore](dsOutParams) { dsOut =>
+      require(dsOut != null, "The specified output data store could not be created - check your job parameters")
+      var sft = dsOut.getSchema(featureOut)
+      if (sft != null) { sft } else {
+        // update the feature name
+        if (featureOut == featureIn) {
+          sft = sftIn
+        } else {
+          sft = SimpleFeatureTypes.createType(featureOut, SimpleFeatureTypes.encodeType(sftIn))
+        }
+        // create the schema in the output datastore
+        dsOut.createSchema(sft)
+        dsOut.getSchema(featureOut)
+      }
+    }
     require(sftOut != null, "Could not create output type - check your job parameters")
 
-    val conf = new Configuration
+    val conf = new Configuration()
     val job = Job.getInstance(conf, s"GeoMesa Schema Copy '${sftIn.getTypeName}' to '${sftOut.getTypeName}'")
 
     job.setJarByClass(SchemaCopyJob.getClass)
@@ -115,11 +141,9 @@ class SchemaCopyJob extends Tool {
     job.setMapOutputValueClass(classOf[ScalaSimpleFeature])
     job.setNumReduceTasks(0)
 
-    val query = new Query(sftIn.getTypeName, ECQL.toFilter(filter))
-    GeoMesaAccumuloInputFormat.configure(job, dsInParams, query)
-
-    GeoMesaOutputFormat.configureDataStore(job, dsOutParams)
-    GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, sftOut.getTypeName)
+    GeoMesaAccumuloInputFormat.configure(job, dsInParams, plan)
+    GeoMesaOutputFormat.setOutput(job.getConfiguration, dsOutParams, sftOut)
+    SchemaCopyJob.setCopySchema(job.getConfiguration, sftOut)
 
     val result = job.waitForCompletion(true)
 
@@ -129,31 +153,6 @@ class SchemaCopyJob extends Tool {
   override def getConf: Configuration = conf
 
   override def setConf(conf: Configuration): Unit = this.conf = conf
-}
 
-class CopyMapper extends Mapper[Text, SimpleFeature, Text, SimpleFeature] {
 
-  type Context = Mapper[Text, SimpleFeature, Text, SimpleFeature]#Context
-
-  private val text: Text = new Text
-  private var counter: Counter = null
-
-  private var sftOut: SimpleFeatureType = null
-
-  override protected def setup(context: Context): Unit = {
-    counter = context.getCounter("org.locationtech.geomesa", "features-written")
-    val dsParams = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
-    val ds = DataStoreFinder.getDataStore(dsParams)
-    sftOut = ds.getSchema(GeoMesaConfigurator.getFeatureTypeOut(context.getConfiguration))
-    ds.dispose()
-  }
-
-  override protected def cleanup(context: Context): Unit = {
-
-  }
-
-  override def map(key: Text, value: SimpleFeature, context: Context) {
-    context.write(text, new ScalaSimpleFeature(sftOut, value.getID, value.getAttributes.toArray))
-    counter.increment(1)
-  }
 }

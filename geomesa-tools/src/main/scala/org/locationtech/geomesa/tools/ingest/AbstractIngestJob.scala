@@ -18,21 +18,22 @@ import org.apache.hadoop.mapreduce.{Job, JobStatus, Mapper}
 import org.geotools.data.DataUtilities
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.{GeoMesaOutputFormat, JobWithLibJars}
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.StatusCallback
 import org.locationtech.geomesa.tools.ingest.AbstractIngestJob.IngestMapper
-import org.opengis.feature.simple.SimpleFeature
+import org.locationtech.geomesa.tools.utils.StatusCallback
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
  * Abstract class that handles configuration and tracking of the remote job
  */
-abstract class AbstractIngestJob(dsParams: Map[String, String],
-                                 typeName: String,
-                                 paths: Seq[String],
-                                 libjarsFile: String,
-                                 libjarsPaths: Iterator[() => Seq[File]]) extends JobWithLibJars {
+abstract class AbstractIngestJob(
+    dsParams: Map[String, String],
+    sft: SimpleFeatureType,
+    paths: Seq[String],
+    libjarsFiles: Seq[String],
+    libjarsPaths: Iterator[() => Seq[File]]
+  ) extends JobWithLibJars {
 
   def inputFormatClass: Class[_ <: FileInputFormat[_, SimpleFeature]]
 
@@ -44,7 +45,7 @@ abstract class AbstractIngestJob(dsParams: Map[String, String],
 
     val job = Job.getInstance(new Configuration, "GeoMesa Tools Ingest")
 
-    setLibJars(job, libjarsFile, libjarsPaths)
+    setLibJars(job, libjarsFiles, libjarsPaths)
 
     configureJob(job)
 
@@ -110,8 +111,7 @@ abstract class AbstractIngestJob(dsParams: Map[String, String],
 
     FileInputFormat.setInputPaths(job, paths.mkString(","))
 
-    GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, typeName)
-    GeoMesaOutputFormat.configureDataStore(job, dsParams)
+    GeoMesaOutputFormat.setOutput(job.getConfiguration, dsParams, sft)
   }
 }
 

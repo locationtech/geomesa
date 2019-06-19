@@ -16,43 +16,90 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.referencing.crs.CoordinateReferenceSystem
 
-class Reprojection private (sft: SimpleFeatureType, transformer: Option[GeometryCoordinateSequenceTransformer]) {
-  def reproject(feature: SimpleFeature): SimpleFeature = {
-    val values = Array.tabulate(sft.getAttributeCount) { i =>
-      feature.getAttribute(i) match {
-        case g: Geometry => transformer.map(_.transform(g)).getOrElse(g)
-        case a => a
-      }
-    }
-    val result = ScalaSimpleFeature.create(sft, feature.getID, values: _*)
-    result.getUserData.putAll(feature.getUserData)
-    result
-  }
+/**
+  * Reproject the geometries in a simple feature to a different CRS
+  */
+trait Reprojection {
+  def apply(feature: SimpleFeature): SimpleFeature
 }
 
 object Reprojection {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-  def apply(query: Query): Option[Reprojection] = {
-    val sft = query.getHints.getReturnSft
-    if (sft.getGeometryDescriptor == null) { None } else {
-      val native = sft.getGeometryDescriptor.getCoordinateReferenceSystem
-      val source = Option(query.getCoordinateSystem).getOrElse(native)
-      val target = Option(query.getCoordinateSystemReproject).getOrElse(native)
+  /**
+    * Create a reprojection function
+    *
+    * @param returnSft simple feature type being returned
+    * @param crs crs information from a query
+    * @return
+    */
+  def apply(returnSft: SimpleFeatureType, crs: QueryReferenceSystems): Reprojection = {
+    if (crs.target != crs.user) {
+      val transformer = new GeometryCoordinateSequenceTransformer
+      transformer.setMathTransform(CRS.findMathTransform(crs.user, crs.target, true))
+      val transformed = FeatureTypes.transform(returnSft, crs.target) // note: drops user data
+      new TransformReprojection(SimpleFeatureTypes.immutable(transformed, returnSft.getUserData), transformer)
+    } else if (crs.user != crs.native) {
+      val transformed = FeatureTypes.transform(returnSft, crs.user) // note: drops user data
+      new UserReprojection(SimpleFeatureTypes.immutable(transformed, returnSft.getUserData))
+    } else {
+      throw new IllegalArgumentException(s"Trying to reproject to the same CRS: $crs")
+    }
+  }
 
-      if (target != source) {
-        val transformer = new GeometryCoordinateSequenceTransformer
-        transformer.setMathTransform(CRS.findMathTransform(source, target, true))
-        val reprojected = SimpleFeatureTypes.immutable(FeatureTypes.transform(sft, target), sft.getUserData)
-        Some(new Reprojection(reprojected, Some(transformer)))
-      } else if (source != native) {
-        val reprojected = SimpleFeatureTypes.immutable(FeatureTypes.transform(sft, source), sft.getUserData)
-        Some(new Reprojection(reprojected, None))
-      } else {
-        None
+  /**
+    * Holds query projection info
+    *
+    * @param native native crs of the data
+    * @param user user crs for the query (data will be treated as this crs but without any transform)
+    * @param target target crs for the query (data will be transformed to this crs)
+    */
+  case class QueryReferenceSystems(
+      native: CoordinateReferenceSystem,
+      user: CoordinateReferenceSystem,
+      target: CoordinateReferenceSystem)
+
+  object QueryReferenceSystems {
+    def apply(query: Query): Option[QueryReferenceSystems] = {
+      Option(query.getHints.getReturnSft.getGeometryDescriptor).flatMap { descriptor =>
+        val native = descriptor.getCoordinateReferenceSystem
+        val source = Option(query.getCoordinateSystem).getOrElse(native)
+        val target = Option(query.getCoordinateSystemReproject).getOrElse(native)
+        if (target == source && source == native) { None } else {
+          Some(QueryReferenceSystems(native, source, target))
+        }
       }
     }
+  }
+
+  /**
+    * Applies a geometric transform to any geometry attributes
+    *
+    * @param sft simple feature type being projected to
+    * @param transformer transformer
+    */
+  private class TransformReprojection(sft: SimpleFeatureType, transformer: GeometryCoordinateSequenceTransformer)
+      extends Reprojection {
+    override def apply(feature: SimpleFeature): SimpleFeature = {
+      val values = Array.tabulate(sft.getAttributeCount) { i =>
+        feature.getAttribute(i) match {
+          case g: Geometry => transformer.transform(g)
+          case a => a
+        }
+      }
+      new ScalaSimpleFeature(sft, feature.getID, values, feature.getUserData)
+    }
+  }
+
+  /**
+    * Changes the defined crs but does not do any actual geometric transforms
+    *
+    * @param sft simple feature type being projected to
+    */
+  private class UserReprojection(sft: SimpleFeatureType) extends Reprojection {
+    override def apply(feature: SimpleFeature): SimpleFeature = ScalaSimpleFeature.copy(sft, feature)
   }
 }

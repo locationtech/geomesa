@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.arrow.tools.ingest
 
-import java.io.File
-
 import com.beust.jcommander.{ParameterException, Parameters}
 import org.locationtech.geomesa.arrow.data.ArrowDataStore
-import org.locationtech.geomesa.arrow.tools.{ArrowDataStoreCommand, UrlParam}
+import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
+import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
+import org.locationtech.geomesa.arrow.tools.ingest.ArrowIngestCommand.ArrowIngestParams
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.utils.io.PathUtils
@@ -20,10 +20,6 @@ import org.locationtech.geomesa.utils.io.PathUtils
 class ArrowIngestCommand extends IngestCommand[ArrowDataStore] with ArrowDataStoreCommand {
 
   override val params = new ArrowIngestParams()
-
-  override val libjarsFile: String = ""
-
-  override def libjarsPaths: Iterator[() => Seq[File]] = Iterator.empty
 
   override def execute(): Unit = {
     import scala.collection.JavaConversions._
@@ -34,5 +30,7 @@ class ArrowIngestCommand extends IngestCommand[ArrowDataStore] with ArrowDataSto
   }
 }
 
-@Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
-class ArrowIngestParams extends IngestParams with UrlParam
+object ArrowIngestCommand {
+  @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
+  class ArrowIngestParams extends IngestParams with UrlParam
+}

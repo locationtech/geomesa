@@ -11,6 +11,7 @@ package org.locationtech.geomesa.hbase.jobs
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.client.Put
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
@@ -20,7 +21,6 @@ import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
-import org.geotools.data.DataStoreFinder
 import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStore, HBaseIndexAdapter}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{MultiRowKeyValue, SingleRowKeyValue, WritableFeature, WriteConverter}
@@ -28,6 +28,7 @@ import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.control.NonFatal
@@ -37,7 +38,6 @@ import scala.util.control.NonFatal
   */
 class HBaseIndexFileMapper extends Mapper[Writable, SimpleFeature, ImmutableBytesWritable, Put] with LazyLogging {
 
-  private var ds: HBaseDataStore = _
   private var sft: SimpleFeatureType = _
   private var wrapper: FeatureWrapper = _
   private var writer: WriteConverter[_] = _
@@ -49,16 +49,15 @@ class HBaseIndexFileMapper extends Mapper[Writable, SimpleFeature, ImmutableByte
   private val bytes = new ImmutableBytesWritable
 
   override def setup(context: HBaseIndexFileMapper.MapContext): Unit = {
-    import scala.collection.JavaConversions._
-    val params = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
-    ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
-    require(ds != null, "Could not find data store - check your configuration and hbase-site.xml")
-    sft = ds.getSchema(GeoMesaConfigurator.getFeatureTypeOut(context.getConfiguration))
-    require(sft != null, "Could not find schema - check your configuration")
-    wrapper = WritableFeature.wrapper(sft, ds.adapter.groups)
-    writer = GeoMesaConfigurator.getIndicesOut(context.getConfiguration) match {
-      case Some(Seq(idx)) => ds.manager.index(sft, idx, IndexMode.Write).createConverter()
-      case _ => throw new IllegalArgumentException("Could not find write index - check your configuration")
+    WithStore[HBaseDataStore](GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)) { ds =>
+      require(ds != null, "Could not find data store - check your configuration and hbase-site.xml")
+      sft = ds.getSchema(HBaseIndexFileMapper.getTypeName(context.getConfiguration))
+      require(sft != null, "Could not find schema - check your configuration")
+      wrapper = WritableFeature.wrapper(sft, ds.adapter.groups)
+      writer = GeoMesaConfigurator.getIndicesOut(context.getConfiguration) match {
+        case Some(Seq(idx)) => ds.manager.index(sft, idx, IndexMode.Write).createConverter()
+        case _ => throw new IllegalArgumentException("Could not find write index - check your configuration")
+      }
     }
 
     features = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
@@ -66,7 +65,7 @@ class HBaseIndexFileMapper extends Mapper[Writable, SimpleFeature, ImmutableByte
     failed = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
   }
 
-  override def cleanup(context: HBaseIndexFileMapper.MapContext): Unit = ds.dispose()
+  override def cleanup(context: HBaseIndexFileMapper.MapContext): Unit = {}
 
   override def map(key: Writable, value: SimpleFeature, context: HBaseIndexFileMapper.MapContext): Unit = {
     // TODO create a common writer that will create mutations without writing them
@@ -116,6 +115,11 @@ object HBaseIndexFileMapper {
 
   type MapContext = Mapper[Writable, SimpleFeature, ImmutableBytesWritable, Put]#Context
 
+  private val TypeNameKey   = "org.locationtech.geomesa.hbase.type"
+
+  private def setTypeName(conf: Configuration, typeName: String): Unit = conf.set(TypeNameKey, typeName)
+  private def getTypeName(conf: Configuration): String = conf.get(TypeNameKey)
+
   /**
     * Sets mapper class, reducer class, output format and associated options
     *
@@ -125,15 +129,14 @@ object HBaseIndexFileMapper {
     * @param index index table to write
     * @param output output path for HFiles
     */
-  def configure(job: Job,
-                params: Map[String, String],
-                typeName: String,
-                index: String,
-                output: Path): Unit = {
-    import scala.collection.JavaConversions._
-    val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
-    require(ds != null, s"Could not find data store with provided parameters ${params.mkString(",")}")
-    try {
+  def configure(
+      job: Job,
+      params: Map[String, String],
+      typeName: String,
+      index: String,
+      output: Path): Unit = {
+    WithStore[HBaseDataStore](params) { ds =>
+      require(ds != null, s"Could not find data store with provided parameters ${params.mkString(",")}")
       val sft = ds.getSchema(typeName)
       require(sft != null, s"Schema $typeName does not exist, please create it first")
       require(!TablePartition.partitioned(sft), "Writing to partitioned tables is not currently supported")
@@ -145,8 +148,9 @@ object HBaseIndexFileMapper {
       val table = ds.connection.getTable(tableName)
 
       GeoMesaConfigurator.setDataStoreOutParams(job.getConfiguration, params)
-      GeoMesaConfigurator.setFeatureTypeOut(job.getConfiguration, typeName)
-      GeoMesaConfigurator.setIndicesOut(job.getConfiguration, Seq(idx))
+      GeoMesaConfigurator.setIndicesOut(job.getConfiguration, Seq(idx.identifier))
+      GeoMesaConfigurator.setSerialization(job.getConfiguration, sft)
+      setTypeName(job.getConfiguration, sft.getTypeName)
       FileOutputFormat.setOutputPath(job, output)
 
       // this defaults to /user/<user>/hbase-staging, which generally doesn't exist...
@@ -169,8 +173,6 @@ object HBaseIndexFileMapper {
       val libjars = job.getConfiguration.get("tmpjars")
       HFileOutputFormat2.configureIncrementalLoad(job, table, ds.connection.getRegionLocator(tableName))
       job.getConfiguration.set("tmpjars", libjars)
-    } finally {
-      ds.dispose()
     }
   }
 }

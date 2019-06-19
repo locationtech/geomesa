@@ -20,9 +20,9 @@ import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
-import org.locationtech.geomesa.index.iterators.BinAggregatingScan.ByteBufferResult
+import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{BinResultsToFeatures, ByteBufferResult}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodingOptions}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -37,6 +37,7 @@ class BinAggregatingIterator extends BaseAggregatingIterator[ByteBufferResult] w
 
 object BinAggregatingIterator extends LazyLogging {
 
+  import BinaryOutputEncoder.BinEncodedSft
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   val DEFAULT_PRIORITY = 25
@@ -65,28 +66,16 @@ object BinAggregatingIterator extends LazyLogging {
   }
 
   /**
-   * Adapts the iterator to create simple features.
-   * WARNING - the same feature is re-used and mutated - the iterator stream should be operated on serially.
-   */
-  def kvsToFeatures(): Entry[Key, Value] => SimpleFeature = {
-    val sf = new ScalaSimpleFeature(BinaryOutputEncoder.BinEncodedSft, "")
-    sf.setAttribute(1, GeometryUtils.zeroPoint)
-    e: Entry[Key, Value] => {
-      sf.setAttribute(BIN_ATTRIBUTE_INDEX, e.getValue.get())
-      sf
-    }
-  }
-
-  /**
    * Fallback for when we can't use the aggregating iterator (for example, if the features are avro encoded).
    * Instead, do bin conversion in client.
    *
    * Only encodes one bin (or one bin line) per feature
    */
-  def nonAggregatedKvsToFeatures(sft: SimpleFeatureType,
-                                 index: GeoMesaFeatureIndex[_, _],
-                                 hints: Hints,
-                                 serializationType: SerializationType): Entry[Key, Value] => SimpleFeature = {
+  def nonAggregatedKvsToFeatures(
+      sft: SimpleFeatureType,
+      index: GeoMesaFeatureIndex[_, _],
+      hints: Hints,
+      serializationType: SerializationType): Entry[Key, Value] => SimpleFeature = {
 
     // don't use return sft from query hints, as it will be bin_sft
     val returnSft = hints.getTransformSchema.getOrElse(sft)
@@ -104,7 +93,7 @@ object BinAggregatingIterator extends LazyLogging {
       e: Entry[Key, Value] => {
         val deserialized = deserializer.deserialize(e.getValue.get())
         val values = Array[AnyRef](encoder.encode(deserialized), GeometryUtils.zeroPoint)
-        new ScalaSimpleFeature(BinaryOutputEncoder.BinEncodedSft, deserialized.getID, values)
+        new ScalaSimpleFeature(BinEncodedSft, deserialized.getID, values)
       }
     } else {
       val deserializer = SimpleFeatureDeserializers(returnSft, serializationType, SerializationOptions.withoutId)
@@ -114,8 +103,15 @@ object BinAggregatingIterator extends LazyLogging {
         val id = index.getIdFromRow(row.getBytes, 0, row.getLength, deserialized)
         deserialized.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
         val values = Array[AnyRef](encoder.encode(deserialized), GeometryUtils.zeroPoint)
-        new ScalaSimpleFeature(BinaryOutputEncoder.BinEncodedSft, deserialized.getID, values)
+        new ScalaSimpleFeature(BinEncodedSft, deserialized.getID, values)
       }
     }
+  }
+
+  /**
+    * Adapts the iterator to create simple features
+    */
+  class AccumuloBinResultsToFeatures extends BinResultsToFeatures[Entry[Key, Value]] {
+    override protected def bytes(result: Entry[Key, Value]): Array[Byte] = result.getValue.get()
   }
 }

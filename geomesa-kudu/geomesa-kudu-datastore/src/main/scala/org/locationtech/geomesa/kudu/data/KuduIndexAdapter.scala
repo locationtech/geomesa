@@ -92,6 +92,8 @@ class KuduIndexAdapter(ds: KuduDataStore) extends IndexAdapter[KuduDataStore] {
   // kudu operates better with lower range numbers compared to e.g. accumulo
 
   override def createQueryPlan(strategy: QueryStrategy): KuduQueryPlan = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
     val QueryStrategy(filter, _, keyRanges, tieredKeyRanges, _, hints, _) = strategy
     val index = filter.index
 
@@ -108,7 +110,12 @@ class KuduIndexAdapter(ds: KuduDataStore) extends IndexAdapter[KuduDataStore] {
 
       val adapter = KuduResultAdapter(index.sft, auths, ecql, hints)
 
-      ScanPlan(filter, tables, ranges, predicates, ecql, adapter, ds.config.queryThreads)
+      val sort = hints.getSortFields
+      val max = hints.getMaxFeatures
+      val project = hints.getProjection
+      val threads = ds.config.queryThreads
+
+      ScanPlan(filter, tables, ranges, predicates, ecql, adapter, sort, max, project, threads)
     }
   }
 

@@ -134,7 +134,14 @@ trait FileSystemStorage extends Compactable with Closeable {
 }
 
 object FileSystemStorage {
+
   trait FileSystemWriter extends Closeable with Flushable {
+
+    /**
+      * Write a feature
+      *
+      * @param feature feature
+      */
     def write(feature: SimpleFeature): Unit
   }
 }

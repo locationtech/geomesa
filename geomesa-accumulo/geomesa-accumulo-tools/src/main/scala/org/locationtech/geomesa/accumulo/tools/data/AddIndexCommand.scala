@@ -17,7 +17,8 @@ import org.locationtech.geomesa.accumulo.tools.data.AddIndexCommand.AddIndexPara
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaFeatureIndexFactory}
 import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
-import org.locationtech.geomesa.jobs.accumulo.index.{WriteIndexArgs, WriteIndexJob}
+import org.locationtech.geomesa.jobs.accumulo.index.WriteIndexJob
+import org.locationtech.geomesa.jobs.accumulo.index.WriteIndexJob.WriteIndexArgs
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.utils.conf.IndexId
@@ -100,12 +101,12 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends R
     if (toDisable.nonEmpty) {
       if (!Prompt.confirm("The following index versions will be replaced: " +
         toDisable.map { case (n, o) => s"[$o] by [${GeoMesaFeatureIndex.identifier(n)}]" }.mkString(", ") +
-        "Continue? (y/n): ")) {
+        "Continue (y/n)? ")) {
         return
       }
     }
     if (!Prompt.confirm("If you are ingesting streaming data, you will be required to restart " +
-      "the streaming ingestion when prompted. Continue? (y/n): ")) {
+      "the streaming ingestion when prompted. Continue (y/n)? ")) {
       return
     }
 

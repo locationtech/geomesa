@@ -46,16 +46,45 @@ object ScalaSimpleFeature {
 
   import scala.collection.JavaConverters._
 
+  /**
+    * Copy the feature. This is a shallow copy, in that the attributes and user data values will be shared
+    * between the two features
+    *
+    * @param in feature to copy
+    * @return
+    */
   def copy(in: SimpleFeature): ScalaSimpleFeature = copy(in.getFeatureType, in)
 
+  /**
+    * Copy the feature, with a new feature type. Attributes are copied by index and not converted, so the new
+    * feature type must have a compatible schema.
+    *
+    * This is a shallow copy, in that the attributes and user data values will be shared between the two features
+    *
+    * @param sft new simple feature type
+    * @param in feature to copy
+    * @return
+    */
   def copy(sft: SimpleFeatureType, in: SimpleFeature): ScalaSimpleFeature =
     new ScalaSimpleFeature(sft, in.getID, in.getAttributes.toArray, new java.util.HashMap[AnyRef, AnyRef](in.getUserData))
 
+  /**
+    * Copy the feature with a new feature type. Attributes will be copied by name, and converted
+    * as necessary. As compared to `copy`, the new feature type does not have to have a compatible schema.
+    *
+    * If the feature already has the desired feature type, it will be returned as-is and not copied.
+    *
+    * This is a shallow copy, in that the attributes and user data values will be shared between the two features
+    *
+    * @param sft new feature type
+    * @param in feature to copy
+    * @return
+    */
   def retype(sft: SimpleFeatureType, in: SimpleFeature): SimpleFeature = {
     if (sft == in.getFeatureType) { in } else {
       val out = new ScalaSimpleFeature(sft, in.getID)
       sft.getAttributeDescriptors.asScala.foreachIndex { case (d, i) =>
-        out.setAttributeNoConvert(i, in.getAttribute(d.getLocalName))
+        out.setAttribute(i, in.getAttribute(d.getLocalName))
       }
       out.getUserData.putAll(in.getUserData)
       out
@@ -66,8 +95,13 @@ object ScalaSimpleFeature {
   def create(sft: SimpleFeatureType, in: SimpleFeature): ScalaSimpleFeature = copy(sft, in)
 
   /**
-   * Creates a simple feature, converting the values to the appropriate type
-   */
+    * Creates a simple feature, converting the values to the appropriate type
+    *
+    * @param sft simple feature type
+    * @param id feature id
+    * @param values attributes values, corresponding to the feature type. types will be converted as necessary
+    * @return
+    */
   def create(sft: SimpleFeatureType, id: String, values: Any*): ScalaSimpleFeature = {
     val sf = new ScalaSimpleFeature(sft, id)
     var i = 0

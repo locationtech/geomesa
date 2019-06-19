@@ -87,6 +87,8 @@ case class ArrowAdapter(sft: SimpleFeatureType,
     base.map(_.name) ++ props
   }
 
+  override def result: SimpleFeatureType = org.locationtech.geomesa.arrow.ArrowEncodedSft
+
   override def adapt(results: CloseableIterator[RowResult]): CloseableIterator[SimpleFeature] = {
     val dictionaries = config.dictionaryFields
 
@@ -98,18 +100,18 @@ case class ArrowAdapter(sft: SimpleFeatureType,
         case None => new BatchAggregate(arrowSft, dicts, encoding)
         case Some((sort, reverse)) => new SortingBatchAggregate(arrowSft, dicts, encoding, sort, reverse)
       }
-      val reduce = ArrowScan.mergeBatches(arrowSft, dicts, encoding, config.batchSize, config.sort) _
+      val reduce = new ArrowScan.BatchReducer(arrowSft, dicts, encoding, config.batchSize, config.sort)
       (aggregate, reduce)
     } else if (config.multiFile) {
       val aggregate = config.sort match {
         case None => new MultiFileAggregate(arrowSft, dictionaries, encoding)
         case Some((sort, reverse)) => new MultiFileSortingAggregate(arrowSft, dictionaries, encoding, sort, reverse)
       }
-      val reduce = ArrowScan.mergeFiles(arrowSft, dictionaries, encoding, config.sort) _
+      val reduce = new ArrowScan.FileReducer(arrowSft, dictionaries, encoding, config.sort)
       (aggregate, reduce)
     } else {
       val aggregate = new DeltaAggregate(arrowSft, dictionaries, encoding, config.sort, config.batchSize)
-      val reduce = ArrowScan.mergeDeltas(arrowSft, dictionaries, encoding, config.batchSize, config.sort) _
+      val reduce = new ArrowScan.DeltaReducer(arrowSft, dictionaries, encoding, config.batchSize, config.sort)
       (aggregate, reduce)
     }
 
@@ -126,7 +128,7 @@ case class ArrowAdapter(sft: SimpleFeatureType,
 
     aggregator.init(config.batchSize)
 
-    val arrows = new Iterator[SimpleFeature] {
+    val arrows: Iterator[SimpleFeature] = new Iterator[SimpleFeature] {
       private val sf = ArrowScan.resultFeature()
 
       override def hasNext: Boolean = features.hasNext

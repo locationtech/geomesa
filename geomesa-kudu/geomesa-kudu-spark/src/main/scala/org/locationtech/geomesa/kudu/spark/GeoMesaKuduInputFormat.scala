@@ -36,6 +36,7 @@ import org.locationtech.geomesa.kudu.spark.GeoMesaKuduInputFormat.{GeoMesaKuduIn
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
@@ -113,10 +114,10 @@ class GeoMesaKuduInputFormat extends InputFormat[NullWritable, SimpleFeature] wi
 
   override def setConf(conf: Configuration): Unit = {
     this.conf = new Configuration(conf)
-    this.params = GeoMesaConfigurator.getDataStoreInParams(conf)
-    this.typeName = GeoMesaConfigurator.getFeatureType(conf)
+    this.params = GeoMesaKuduInputFormat.getDataStoreParams(conf)
+    this.typeName = GeoMesaKuduInputFormat.getTypeName(conf)
     this.filter = GeoMesaConfigurator.getFilter(conf)
-    this.properties = GeoMesaConfigurator.getPropertyNames(conf).getOrElse(Query.ALL_NAMES)
+    this.properties = GeoMesaKuduInputFormat.getPropertyNames(conf).getOrElse(Query.ALL_NAMES)
   }
 
   override def getConf: Configuration = conf
@@ -124,20 +125,39 @@ class GeoMesaKuduInputFormat extends InputFormat[NullWritable, SimpleFeature] wi
 
 object GeoMesaKuduInputFormat extends LazyLogging {
 
-  import scala.collection.JavaConverters._
-
   private val dnsCache = new ConcurrentHashMap[String, String]()
 
   def configure(conf: Configuration, params: Map[String, String], query: Query): Unit = {
-    GeoMesaConfigurator.setDataStoreInParams(conf, params)
-    GeoMesaConfigurator.setFeatureType(conf, query.getTypeName)
+    setDataStoreParams(conf, params)
+    setTypeName(conf, query.getTypeName)
+    setPropertyNames(conf, query.getPropertyNames)
     Option(query.getFilter).filter(_ != Filter.INCLUDE).foreach(f => GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(f)))
-    GeoMesaConfigurator.setPropertyNames(conf, query.getPropertyNames)
+
 
     // TODO
     //    conf.setLong(KuduTableInputFormat.OPERATION_TIMEOUT_MS_KEY, operationTimeoutMs)
     //    conf.setBoolean(KuduTableInputFormat.SCAN_CACHE_BLOCKS, cacheBlocks)
     //    conf.setBoolean(KuduTableInputFormat.FAULT_TOLERANT_SCAN, isFaultTolerant)
+  }
+
+  def setDataStoreParams(conf: Configuration, params: Map[String, String]): Unit =
+    conf.set("org.locationtech.geomesa.kudu.ds", StringSerialization.encodeMap(params))
+  def getDataStoreParams(conf: Configuration): Map[String, String] =
+    StringSerialization.decodeMap(conf.get("org.locationtech.geomesa.kudu.ds"))
+
+  def setTypeName(conf: Configuration, typeName: String): Unit =
+    conf.set("org.locationtech.geomesa.kudu.sft", typeName)
+  def getTypeName(conf: Configuration): String = conf.get("org.locationtech.geomesa.kudu.sft")
+
+  def setPropertyNames(conf: Configuration, properties: Array[String]): Unit = {
+    if (properties != null && properties.nonEmpty) {
+      conf.set("org.locationtech.geomesa.kudu.props", StringSerialization.encodeSeq(properties))
+    }
+  }
+  def getPropertyNames(conf: Configuration): Option[Array[String]] = {
+    Option(conf.get("org.locationtech.geomesa.kudu.props")).collect {
+      case s if s.nonEmpty => StringSerialization.decodeSeq(s).toArray
+    }
   }
 
   /**
@@ -262,6 +282,8 @@ object GeoMesaKuduInputFormat extends LazyLogging {
   class GeoMesaKuduRecordReader(params: Map[String, String])
       extends RecordReader[NullWritable, SimpleFeature] with LazyLogging {
 
+    import scala.collection.JavaConverters._
+
     private val key = NullWritable.get()
 
     private var client: KuduClient = _
@@ -270,7 +292,7 @@ object GeoMesaKuduInputFormat extends LazyLogging {
 
     override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = {
       import org.locationtech.geomesa.kudu.utils.RichKuduClient.RichScanner
-      val params = GeoMesaConfigurator.getDataStoreInParams(context.getConfiguration)
+      val params = GeoMesaKuduInputFormat.getDataStoreParams(context.getConfiguration)
       client = KuduDataStoreFactory.buildClient(params.asJava.asInstanceOf[java.util.Map[String, java.io.Serializable]])
       scanner = split match {
         case s: GeoMesaKuduInputSplit => s.adapter.adapt(s.scanner(client).iterator)

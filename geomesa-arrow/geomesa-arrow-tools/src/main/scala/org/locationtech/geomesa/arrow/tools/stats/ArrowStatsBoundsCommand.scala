@@ -10,11 +10,14 @@ package org.locationtech.geomesa.arrow.tools.stats
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.arrow.data.ArrowDataStore
-import org.locationtech.geomesa.arrow.tools.{ArrowDataStoreCommand, UrlParam}
+import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
+import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
+import org.locationtech.geomesa.arrow.tools.stats.ArrowStatsBoundsCommand.ArrowStatsBoundsParams
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.stats.{StatsBoundsCommand, StatsBoundsParams}
 
 class ArrowStatsBoundsCommand extends StatsBoundsCommand[ArrowDataStore] with ArrowDataStoreCommand {
+
   override val params = new ArrowStatsBoundsParams
 
   override def execute(): Unit = {
@@ -23,5 +26,7 @@ class ArrowStatsBoundsCommand extends StatsBoundsCommand[ArrowDataStore] with Ar
   }
 }
 
-@Parameters(commandDescription = "Calculate bounds on attributes in a GeoMesa feature type")
-class ArrowStatsBoundsParams extends StatsBoundsParams with UrlParam with RequiredTypeNameParam
+object ArrowStatsBoundsCommand {
+  @Parameters(commandDescription = "Calculate bounds on attributes in a GeoMesa feature type")
+  class ArrowStatsBoundsParams extends StatsBoundsParams with UrlParam with RequiredTypeNameParam
+}

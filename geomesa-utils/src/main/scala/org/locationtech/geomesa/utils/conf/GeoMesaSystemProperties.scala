@@ -18,7 +18,7 @@ object GeoMesaSystemProperties extends LazyLogging {
 
   case class SystemProperty(property: String, default: String = null) {
 
-    val threadLocalValue = new ThreadLocal[String]()
+    val threadLocalValue = new InheritableThreadLocal[String]()
 
     def set(value: String): Unit = System.setProperty(property, value)
 
@@ -42,10 +42,11 @@ object GeoMesaSystemProperties extends LazyLogging {
     }
 
     def toBytes: Option[Long] = option.flatMap { value =>
-      val bytes = Suffixes.Memory.bytes(value)
-      if (bytes.nonEmpty) { bytes } else {
-        logger.warn(s"Invalid duration for property $property: $value")
-        Option(default).flatMap(Suffixes.Memory.bytes)
+      Suffixes.Memory.bytes(value) match {
+        case Success(b) => Some(b)
+        case Failure(e) =>
+          logger.warn(s"Invalid bytes for property $property=$value: $e")
+          Option(default).flatMap(Suffixes.Memory.bytes(_).toOption)
       }
     }
 
@@ -64,6 +65,24 @@ object GeoMesaSystemProperties extends LazyLogging {
         case Failure(_) =>
           logger.warn(s"Invalid long for property $property: $value")
           Option(default).map(_.toLong)
+      }
+    }
+
+    def toFloat: Option[Float] = option.flatMap { value =>
+      Try(value.toFloat) match {
+        case Success(v) => Some(v)
+        case Failure(_) =>
+          logger.warn(s"Invalid float for property $property: $value")
+          Option(default).map(_.toFloat)
+      }
+    }
+
+    def toDouble: Option[Double] = option.flatMap { value =>
+      Try(value.toDouble) match {
+        case Success(v) => Some(v)
+        case Failure(_) =>
+          logger.warn(s"Invalid double for property $property: $value")
+          Option(default).map(_.toDouble)
       }
     }
 

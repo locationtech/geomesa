@@ -12,8 +12,10 @@ import org.locationtech.jts.geom.Envelope
 import org.geotools.util.factory.Hints
 import org.geotools.util.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.referencing.CRS
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
+import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.sort.{SortBy, SortOrder}
@@ -62,33 +64,36 @@ object QueryHints {
   val LAMBDA_QUERY_PERSISTENT  = new ClassKey(classOf[java.lang.Boolean])
   val LAMBDA_QUERY_TRANSIENT   = new ClassKey(classOf[java.lang.Boolean])
 
+  def sortReadableString(sort: Seq[(String, Boolean)]): String =
+    sort.map { case (f, r) => s"$f ${if (r) "DESC" else "ASC" }"}.mkString(", ")
+
   // internal hints that shouldn't be set directly by users
   object Internal {
     val RETURN_SFT       = new ClassKey(classOf[SimpleFeatureType])
     val TRANSFORMS       = new ClassKey(classOf[String])
     val TRANSFORM_SCHEMA = new ClassKey(classOf[SimpleFeatureType])
     val SORT_FIELDS      = new ClassKey(classOf[String])
+    val REPROJECTION     = new ClassKey(classOf[String])
     val MAX_FEATURES     = new ClassKey(classOf[java.lang.Integer])
     val SKIP_REDUCE      = new ClassKey(classOf[java.lang.Boolean])
 
     def toSortHint(sortBy: Array[SortBy]): String = {
-      val hints = sortBy.map {
-        case SortBy.NATURAL_ORDER => ":false"
-        case SortBy.REVERSE_ORDER => ":true"
-        case sb =>
-          val name = Option(sb.getPropertyName).map(_.getPropertyName).getOrElse("")
-          s"$name:${sb.getSortOrder == SortOrder.DESCENDING}"
+      val strings = sortBy.flatMap { sb =>
+        val prop = sb.getPropertyName
+        Seq(if (prop == null) { "" } else { prop.getPropertyName }, s"${sb.getSortOrder == SortOrder.DESCENDING}")
       }
-      hints.mkString(",")
+      StringSerialization.encodeSeq(strings)
     }
 
-    def fromSortHint(hint: String): Seq[(String, Boolean)] = {
-      hint.split(",").toSeq.map { h =>
-        h.split(":") match {
-          case Array(field, reverse) => (field, reverse.toBoolean)
-          case _ => throw new IllegalArgumentException(s"Invalid sort field, expected 'name:reverse' but got '$h'")
-        }
-      }
+    def fromSortHint(hint: String): Seq[(String, Boolean)] =
+      StringSerialization.decodeSeq(hint).grouped(2).toSeq.map { case Seq(f, r) => (f, r.toBoolean) }
+
+    def toProjectionHint(crs: QueryReferenceSystems): String =
+      StringSerialization.encodeSeq(Seq(crs.native, crs.user, crs.target).map(CRS.toSRS))
+
+    def fromProjectionHint(hint: String): QueryReferenceSystems = {
+      val Seq(native, user, target) = StringSerialization.decodeSeq(hint).map(CRS.decode)
+      QueryReferenceSystems(native, user, target)
     }
   }
 
@@ -156,8 +161,8 @@ object QueryHints {
     }
     def getSortFields: Option[Seq[(String, Boolean)]] =
       Option(hints.get(Internal.SORT_FIELDS).asInstanceOf[String]).map(Internal.fromSortHint).filterNot(_.isEmpty)
-    def getSortReadableString: String =
-      getSortFields.map(_.map { case (f, r) => s"$f ${if (r) "DESC" else "ASC" }"}.mkString(", ")).getOrElse("none")
+    def getProjection: Option[QueryReferenceSystems] =
+      Option(hints.get(Internal.REPROJECTION).asInstanceOf[String]).map(Internal.fromProjectionHint)
     def getMaxFeatures: Option[Int] = Option(hints.get(Internal.MAX_FEATURES).asInstanceOf[Integer]).map(_.intValue())
     def isExactCount: Option[Boolean] = Option(hints.get(EXACT_COUNT)).map(_.asInstanceOf[Boolean])
     def isLambdaQueryPersistent: Boolean =

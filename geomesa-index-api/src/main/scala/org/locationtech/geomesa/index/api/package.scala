@@ -14,7 +14,10 @@ import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.{andOption, filterToString}
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.index.ByteArrays
+import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.filter.Filter
+
+import scala.util.control.NonFatal
 
 package object api {
 
@@ -325,4 +328,54 @@ package object api {
   case class LowerBoundedRange[T](lower: T) extends ScanRange[T]
   case class UpperBoundedRange[T](upper: T) extends ScanRange[T]
   case class UnboundedRange[T](empty: T) extends ScanRange[T]
+
+  /**
+    * Trait for simple serialization that can be defined using a Map of strings. Implementations must have
+    * a zero-arg constructor to allow for instantiation via reflection
+    */
+  trait SerializableState {
+
+    /**
+      * Initialize an instance after deserialization
+      *
+      * @param state state
+      */
+    def init(state: Map[String, String]): Unit
+
+    /**
+      * The state used to serialize this instance
+      *
+      * @return
+      */
+    def state: Map[String, String]
+  }
+
+  object SerializableState {
+
+    /**
+      * Serialize an object
+      *
+      * @param obj object to serialize
+      * @return
+      */
+    def serialize(obj: SerializableState): String =
+      s"${obj.getClass.getName},${StringSerialization.encodeMap(obj.state)}"
+
+    /**
+      * Deserialize a serialized object
+      *
+      * @param serialized serialized object
+      * @return
+      */
+    def deserialize[T <: SerializableState](serialized: String): T = {
+      try {
+        val i = serialized.indexOf(',')
+        val instance = Class.forName(serialized.substring(0, i)).newInstance().asInstanceOf[T]
+        instance.init(StringSerialization.decodeMap(serialized.substring(i + 1)))
+        instance
+      } catch {
+        case NonFatal(e) => throw new RuntimeException(s"Deserialize error for: $serialized", e)
+      }
+    }
+  }
 }

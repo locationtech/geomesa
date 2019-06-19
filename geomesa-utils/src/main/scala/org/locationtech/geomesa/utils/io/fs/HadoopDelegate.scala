@@ -8,16 +8,17 @@
 
 package org.locationtech.geomesa.utils.io.fs
 
-import java.io.InputStream
+import java.io.{IOException, InputStream, OutputStream}
 import java.util.Locale
 
 import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.commons.io.IOUtils
-import org.apache.hadoop.fs.{FileStatus, FileSystem, Path, PathFilter}
+import org.apache.hadoop.fs.Options.CreateOpts
+import org.apache.hadoop.fs._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
+import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.{CreateMode, FileHandle}
 import org.locationtech.geomesa.utils.io.fs.HadoopDelegate.{HadoopFileHandle, HadoopTarHandle, HadoopZipHandle}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
@@ -28,6 +29,7 @@ import scala.collection.mutable.ListBuffer
   */
 class HadoopDelegate extends FileSystemDelegate {
 
+  import ArchiveStreamFactory.{JAR, TAR, ZIP}
   import HadoopDelegate.HiddenFileFilter
   import org.apache.hadoop.fs.{LocatedFileStatus, Path}
 
@@ -35,14 +37,21 @@ class HadoopDelegate extends FileSystemDelegate {
   // use the same property as FileInputFormat
   private val recursive = conf.getBoolean("mapreduce.input.fileinputformat.input.dir.recursive", false)
 
+  override def getHandle(path: String): FileHandle = {
+    val p = new Path(path)
+    val fc = FileContext.getFileContext(p.toUri, conf)
+    PathUtils.getUncompressedExtension(p.getName).toLowerCase(Locale.US) match {
+      case TAR       => new HadoopTarHandle(fc, p)
+      case ZIP | JAR => new HadoopZipHandle(fc, p)
+      case _         => new HadoopFileHandle(fc, p)
+    }
+  }
+
   // based on logic from hadoop FileInputFormat
   override def interpretPath(path: String): Seq[FileHandle] = {
-    import ArchiveStreamFactory.{JAR, TAR, ZIP}
-
     val p = new Path(path)
-    // TODO close filesystem?
-    val fs = p.getFileSystem(conf)
-    val files = fs.globStatus(p, HiddenFileFilter)
+    val fc = FileContext.getFileContext(p.toUri, conf)
+    val files = fc.util.globStatus(p, HiddenFileFilter)
 
     if (files == null) {
       throw new IllegalArgumentException(s"Input path does not exist: $path")
@@ -57,7 +66,7 @@ class HadoopDelegate extends FileSystemDelegate {
       val file = remaining.dequeue()
       if (file.isDirectory) {
         if (recursive) {
-          val children = fs.listLocatedStatus(file.getPath)
+          val children = fc.listLocatedStatus(file.getPath)
           val iter = new Iterator[LocatedFileStatus] {
             override def hasNext: Boolean = children.hasNext
             override def next(): LocatedFileStatus = children.next
@@ -66,9 +75,9 @@ class HadoopDelegate extends FileSystemDelegate {
         }
       } else {
         PathUtils.getUncompressedExtension(file.getPath.getName).toLowerCase(Locale.US) match {
-          case TAR       => result += new HadoopTarHandle(file, fs)
-          case ZIP | JAR => result += new HadoopZipHandle(file, fs)
-          case _         => result += new HadoopFileHandle(file, fs)
+          case TAR       => result += new HadoopTarHandle(fc, file.getPath)
+          case ZIP | JAR => result += new HadoopZipHandle(fc, file.getPath)
+          case _         => result += new HadoopFileHandle(fc, file.getPath)
         }
       }
     }
@@ -88,30 +97,62 @@ object HadoopDelegate {
     }
   }
 
-  class HadoopFileHandle(file: FileStatus, fs: FileSystem) extends FileHandle {
-    override def path: String = file.getPath.toString
-    override def length: Long = file.getLen
+  class HadoopFileHandle(fc: FileContext, file: Path) extends FileHandle {
+
+    override def path: String = file.toString
+
+    override def exists: Boolean = fc.util.exists(file)
+
+    override def length: Long = if (exists) { fc.getFileStatus(file).getLen } else { 0L }
+
     override def open: CloseableIterator[(Option[String], InputStream)] = {
-      val is = PathUtils.handleCompression(fs.open(file.getPath), file.getPath.getName)
+      val is = PathUtils.handleCompression(fc.open(file), file.getName)
       CloseableIterator.single(None -> is, is.close())
     }
+
+    override def write(mode: CreateMode, createParents: Boolean): OutputStream = {
+      mode.validate()
+      val flags = java.util.EnumSet.noneOf(classOf[CreateFlag])
+      if (mode.append) {
+        flags.add(CreateFlag.APPEND)
+      } else if (mode.overwrite) {
+        flags.add(CreateFlag.OVERWRITE)
+      }
+      if (mode.create) {
+        flags.add(CreateFlag.CREATE)
+      }
+      val ops = if (createParents) { CreateOpts.createParent() } else { CreateOpts.donotCreateParent() }
+      fc.create(file, flags, ops) // TODO do we need to hsync/hflush?
+    }
+
+    override def delete(recursive: Boolean): Unit = {
+      if (!fc.delete(file, recursive)) {
+        throw new IOException(s"Could not delete file: $path")
+      }
+    }
   }
 
-  class HadoopZipHandle(file: FileStatus, fs: FileSystem) extends HadoopFileHandle(file, fs) {
+  class HadoopZipHandle(fc: FileContext, file: Path) extends HadoopFileHandle(fc, file) {
     override def open: CloseableIterator[(Option[String], InputStream)] = {
       // we have to read the bytes into memory to get random access reads
-      val bytes = WithClose(PathUtils.handleCompression(fs.open(file.getPath), file.getPath.getName)) { is =>
+      val bytes = WithClose(PathUtils.handleCompression(fc.open(file), file.getName)) { is =>
         IOUtils.toByteArray(is)
       }
-      new ZipFileIterator(new ZipFile(new SeekableInMemoryByteChannel(bytes)), file.getPath.toString)
+      new ZipFileIterator(new ZipFile(new SeekableInMemoryByteChannel(bytes)), file.toString)
     }
+
+    override def write(mode: CreateMode, createParents: Boolean): OutputStream =
+      factory.createArchiveOutputStream(ArchiveStreamFactory.ZIP, super.write(mode, createParents))
   }
 
-  class HadoopTarHandle(file: FileStatus, fs: FileSystem) extends HadoopFileHandle(file, fs) {
+  class HadoopTarHandle(fc: FileContext, file: Path) extends HadoopFileHandle(fc, file) {
     override def open: CloseableIterator[(Option[String], InputStream)] = {
-      val uncompressed = PathUtils.handleCompression(fs.open(file.getPath), file.getPath.getName)
+      val uncompressed = PathUtils.handleCompression(fc.open(file), file.getName)
       val archive = factory.createArchiveInputStream(ArchiveStreamFactory.TAR, uncompressed)
-      new ArchiveFileIterator(archive, file.getPath.toString)
+      new ArchiveFileIterator(archive, file.toString)
     }
+
+    override def write(mode: CreateMode, createParents: Boolean): OutputStream =
+      factory.createArchiveOutputStream(ArchiveStreamFactory.TAR, super.write(mode, createParents))
   }
 }

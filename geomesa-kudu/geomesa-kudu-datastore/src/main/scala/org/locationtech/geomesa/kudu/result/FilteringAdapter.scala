@@ -40,6 +40,8 @@ case class FilteringAdapter(sft: SimpleFeatureType, auths: Seq[Array[Byte]], ecq
   override val columns: Seq[String] =
     Seq(FeatureIdAdapter.name, VisibilityAdapter.name) ++ schema.schema.map(_.getName)
 
+  override def result: SimpleFeatureType = sft
+
   override def adapt(results: CloseableIterator[RowResult]): CloseableIterator[SimpleFeature] = {
     results.flatMap { row =>
       val vis = VisibilityAdapter.readFromRow(row)

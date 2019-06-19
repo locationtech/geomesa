@@ -11,8 +11,8 @@ package org.locationtech.geomesa.tools.export
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils
 import org.locationtech.geomesa.tools._
+import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand.GenerateAvroSchemaParams
 import org.locationtech.geomesa.tools.utils.CLArgResolver
-import org.locationtech.geomesa.utils.geotools.SftArgResolver
 
 class GenerateAvroSchemaCommand extends Command {
 
@@ -26,5 +26,7 @@ class GenerateAvroSchemaCommand extends Command {
   }
 }
 
-@Parameters(commandDescription = "Generate an Avro schema from a SimpleFeatureType")
-class GenerateAvroSchemaParams extends RequiredFeatureSpecParam with OptionalTypeNameParam
+object GenerateAvroSchemaCommand {
+  @Parameters(commandDescription = "Generate an Avro schema from a SimpleFeatureType")
+  class GenerateAvroSchemaParams extends RequiredFeatureSpecParam with OptionalTypeNameParam
+}

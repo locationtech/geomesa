@@ -82,8 +82,8 @@ folder. To install JARs, use the script provided with the distribution:
     $ bin/install-hadoop.sh lib
 
 If you installed JARs for any additional data stores, you will need to add them to the Hadoop libjars path
-by modifying the file ``org/locationtech/geomesa/geotools/tools/ingest-libjars.list`` inside the
-``lib/geomesa-gt-tools_2.11-$VERSION.jar`` JAR.
+by modifying the file ``org/locationtech/geomesa/geotools/tools/gt-libjars.list`` inside the JAR
+``lib/geomesa-gt-tools_2.11-$VERSION.jar``.
 
 General Arguments
 -----------------

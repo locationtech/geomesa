@@ -8,12 +8,13 @@
 
 package org.locationtech.geomesa.arrow.tools
 
-import java.io.File
-import java.net.{MalformedURLException, URL}
-
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.locationtech.geomesa.arrow.data.{ArrowDataStore, ArrowDataStoreFactory}
+import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
 import org.locationtech.geomesa.tools.DataStoreCommand
+import org.locationtech.geomesa.utils.io.PathUtils
+
+import scala.util.control.NonFatal
 
 /**
  * Abstract class for commands that have a pre-existing catalog
@@ -23,24 +24,19 @@ trait ArrowDataStoreCommand extends DataStoreCommand[ArrowDataStore] {
   override def params: UrlParam
 
   override def connection: Map[String, String] = {
-    val url = if (params.url.matches("""\w+://.*""")) {
-      try {
-        new URL(params.url)
-      } catch {
-        case e: MalformedURLException => throw new ParameterException(s"Invalid URL ${params.url}: ", e)
-      }
-    } else {
-      try {
-        new File(params.url).toURI.toURL
-      } catch {
-        case e: MalformedURLException => throw new ParameterException(s"Invalid URL ${params.url}: ", e)
-      }
+    val url = try { PathUtils.getUrl(params.url) } catch {
+      case NonFatal(e) => throw new ParameterException(s"Invalid URL ${params.url}: $e", e)
     }
     Map(ArrowDataStoreFactory.UrlParam.getName -> url.toString)
   }
 }
 
-trait UrlParam {
-  @Parameter(names = Array("--url", "-u"), description = "URL for an Arrow resource, or path to an arrow file", required = true)
-  var url: String = _
+object ArrowDataStoreCommand {
+  trait UrlParam {
+    @Parameter(
+      names = Array("--url", "-u"),
+      description = "URL for an Arrow resource, or path to an arrow file",
+      required = true)
+    var url: String = _
+  }
 }

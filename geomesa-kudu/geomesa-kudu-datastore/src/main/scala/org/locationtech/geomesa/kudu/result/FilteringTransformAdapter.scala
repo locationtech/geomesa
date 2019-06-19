@@ -63,6 +63,8 @@ case class FilteringTransformAdapter(sft: SimpleFeatureType,
   override val columns: Seq[String] =
     Seq(FeatureIdAdapter.name, VisibilityAdapter.name) ++ schema.schema(attributes).map(_.getName)
 
+  override def result: SimpleFeatureType = tsft
+
   override def adapt(results: CloseableIterator[RowResult]): CloseableIterator[SimpleFeature] = {
     results.flatMap { row =>
       val vis = VisibilityAdapter.readFromRow(row)

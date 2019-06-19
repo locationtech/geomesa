@@ -34,19 +34,19 @@ trait AgeOffCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     } else if (params.set) {
       if (params.dtgField == null) {
         val confirm = Prompt.confirm(s"Configuring ingest-time-based age-off for schema '${params.featureName}' " +
-            s"with expiry ${params.expiry}. Continue? (y/n): ")
+            s"with expiry ${params.expiry}. Continue (y/n)? ")
         if (confirm) {
           withDataStore(set(_, params.featureName, params.expiry))
         }
       } else {
         val confirm = Prompt.confirm(s"Configuring attribute-based age-off for schema '${params.featureName}' " +
-            s"on field '${params.dtgField}' with expiry ${params.expiry}. Continue? (y/n): ")
+            s"on field '${params.dtgField}' with expiry ${params.expiry}. Continue (y/n)? ")
         if (confirm) {
           withDataStore(set(_, params.featureName, params.dtgField, params.expiry))
         }
       }
     } else {
-      val confirm = Prompt.confirm(s"Removing age-off for schema '${params.featureName}'. Continue? (y/n): ")
+      val confirm = Prompt.confirm(s"Removing age-off for schema '${params.featureName}'. Continue (y/n)? ")
       if (confirm) {
         withDataStore(remove(_, params.featureName))
       }

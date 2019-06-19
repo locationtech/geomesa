@@ -21,7 +21,9 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 /**
   * Export to a FileSystem data store format
   */
-abstract class FileSystemExporter extends FeatureExporter {
+abstract class FileSystemExporter(path: String) extends FeatureExporter {
+
+  private lazy val handle = PathUtils.getHandle(path)
 
   private var writer: FileSystemWriter = _
 
@@ -41,6 +43,8 @@ abstract class FileSystemExporter extends FeatureExporter {
     Some(i)
   }
 
+  override def bytes: Long = handle.length
+
   override def close(): Unit = {
     if (writer != null) {
       writer.close()
@@ -50,7 +54,7 @@ abstract class FileSystemExporter extends FeatureExporter {
 
 object FileSystemExporter extends LazyLogging {
 
-  class ParquetFileSystemExporter(path: String) extends FileSystemExporter {
+  class ParquetFileSystemExporter(path: String) extends FileSystemExporter(path) {
     override protected def createWriter(sft: SimpleFeatureType): FileSystemWriter = {
       val conf = new Configuration()
       StorageConfiguration.setSft(conf, sft)
@@ -64,7 +68,7 @@ object FileSystemExporter extends LazyLogging {
     }
   }
 
-  class OrcFileSystemExporter(path: String) extends FileSystemExporter {
+  class OrcFileSystemExporter(path: String) extends FileSystemExporter(path) {
     override protected def createWriter(sft: SimpleFeatureType): FileSystemWriter = {
       // use PathUtils.getUrl to handle local files, otherwise default can be in hdfs
       new OrcFileSystemWriter(sft, new Configuration(), new Path(PathUtils.getUrl(path).toURI))

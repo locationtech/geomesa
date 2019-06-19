@@ -16,7 +16,7 @@ import org.geotools.data.{DataStore, DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore
-import org.locationtech.geomesa.fs.tools.compact.CompactCommand
+import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -110,10 +110,10 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
     }
 
     "Compaction command should run successfully" in {
-      val command = new CompactCommand()
+      val command = new FsCompactCommand()
       command.params.featureName = typeName
       command.params.path = directory
-      command.params.mode = RunModes.Distributed
+      command.params.runMode = RunModes.Distributed.toString
       command.execute()
       success
     }

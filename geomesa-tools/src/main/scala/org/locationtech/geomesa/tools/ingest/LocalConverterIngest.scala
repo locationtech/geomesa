@@ -20,7 +20,7 @@ import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.EvaluationContext.DelegatingEvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.StatusCallback
+import org.locationtech.geomesa.tools.utils.StatusCallback
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle

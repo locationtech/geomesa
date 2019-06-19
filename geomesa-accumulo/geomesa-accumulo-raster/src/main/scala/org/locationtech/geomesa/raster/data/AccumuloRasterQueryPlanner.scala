@@ -87,7 +87,7 @@ object AccumuloRasterQueryPlanner extends LazyLogging {
 
       // TODO: WCS: setup a CFPlanner to match against a list of strings
       // ticket is GEOMESA-559
-      Some(BatchScanPlan(null, null, rows, Seq(cfg), None, null, None, -1))
+      Some(BatchScanPlan(null, null, rows, Seq(cfg), None, null, None, None, None, None, -1))
     }
   }
 

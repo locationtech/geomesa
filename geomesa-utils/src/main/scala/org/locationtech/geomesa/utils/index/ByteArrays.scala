@@ -198,6 +198,18 @@ object ByteArrays {
   }
 
   /**
+    * Allocates a new array of length four and writes the int to it
+    *
+    * @param int value to encode
+    * @return
+    */
+  def toBytes(int: Int): Array[Byte] = {
+    val result = Array.ofDim[Byte](4)
+    writeInt(int, result)
+    result
+  }
+
+  /**
     * Allocates a new array of length eight and writes the long to it
     *
     * @param long value to encode

@@ -37,7 +37,6 @@ class AuthenticationTest extends Specification {
     // Only test ingest, other commands use the same Accumulo Parameters anyway
     val cmd = Array("ingest")
 
-
     "fail without user" >> {
       val authArgs = Array("")
       val args = cmd ++ authArgs ++ Array("--instance", "instance", "--zookeepers", "zoo", "--mock", "--catalog", "z", "--converter", converter, "-s", sft, dataFile.getPath)

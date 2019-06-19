@@ -14,12 +14,8 @@ import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.regex.Pattern
-import java.util.zip.GZIPInputStream
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.compress.compressors.bzip2.{BZip2CompressorInputStream, BZip2Utils}
-import org.apache.commons.compress.compressors.gzip.GzipUtils
-import org.apache.commons.compress.compressors.xz.{XZCompressorInputStream, XZUtils}
 import org.apache.commons.io.FilenameUtils
 import org.apache.hadoop.fs.FsUrlStreamHandlerFactory
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
@@ -56,6 +52,8 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
   }
 
   override def interpretPath(path: String): Seq[FileHandle] = chooseDelegate(path).interpretPath(path)
+
+  override def getHandle(path: String): FileHandle = chooseDelegate(path).getHandle(path)
 
   /**
     * Checks to see if the path uses a URL pattern and then if it is *not* file://
@@ -94,17 +92,30 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
     * @param path file path
     * @return
     */
-  def getUncompressedExtension(path: String): String = {
-    val name = if (GzipUtils.isCompressedFilename(path)) {
-      GzipUtils.getUncompressedFilename(path)
-    } else if (XZUtils.isCompressedFilename(path)) {
-      XZUtils.getUncompressedFilename(path)
-    } else if (BZip2Utils.isCompressedFilename(path)) {
-      BZip2Utils.getUncompressedFilename(path)
-    } else {
-      path
+  def getUncompressedExtension(path: String): String =
+    FilenameUtils.getExtension(CompressionUtils.getUncompressedFilename(path))
+
+  /**
+    * Gets the base file name and the extension. Useful for adding unique ids to a common file name,
+    * while preserving the extension
+    *
+    * @param path path
+    * @param includeDot if true, the '.' will be preserved in the extension, otherwise it will be dropped
+    * @return (base name including path prefix, extension)
+    */
+  def getBaseNameAndExtension(path: String, includeDot: Boolean = true): (String, String) = {
+    def dotIndex(base: Int): Int = if (includeDot) { base } else { base + 1}
+    val split = FilenameUtils.indexOfExtension(path)
+    if (split == -1) { (path, "") } else {
+      val withoutExtension = path.substring(0, split)
+      // look for file names like 'foo.tar.gz'
+      val secondSplit = FilenameUtils.indexOfExtension(withoutExtension)
+      if (secondSplit != -1 && CompressionUtils.isCompressedFilename(path)) {
+        (path.substring(0, secondSplit), path.substring(dotIndex(secondSplit)))
+      } else {
+        (withoutExtension, path.substring(dotIndex(split)))
+      }
     }
-    FilenameUtils.getExtension(name)
   }
 
   /**
@@ -115,14 +126,10 @@ object PathUtils extends FileSystemDelegate with LazyLogging {
     * @return
     */
   def handleCompression(is: InputStream, filename: String): InputStream = {
-    if (GzipUtils.isCompressedFilename(filename)) {
-      new GZIPInputStream(new BufferedInputStream(is))
-    } else if (BZip2Utils.isCompressedFilename(filename)) {
-      new BZip2CompressorInputStream(new BufferedInputStream(is))
-    } else if (XZUtils.isCompressedFilename(filename)) {
-      new XZCompressorInputStream(new BufferedInputStream(is))
-    } else {
-      new BufferedInputStream(is)
+    val buffered = new BufferedInputStream(is)
+    CompressionUtils.Utils.find(_.isCompressedFilename(filename)) match {
+      case None => buffered
+      case Some(utils) => utils.compress(buffered)
     }
   }
 

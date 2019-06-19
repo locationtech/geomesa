@@ -12,11 +12,14 @@ import java.nio.{ByteBuffer, ByteOrder}
 import java.util.Date
 
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{ByteBufferResult, ResultCallback}
 import org.locationtech.geomesa.index.utils.bin.BinSorter
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.bin.{BinaryOutputCallback, BinaryOutputEncoder}
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -181,5 +184,33 @@ object BinAggregatingScan {
       val buffer = result.ensureCapacity(24)
       put(buffer, trackId, lat, lon, dtg, label)
     }
+  }
+
+  /**
+    * Converts bin results to features
+    *
+    * @tparam T result type
+    */
+  abstract class BinResultsToFeatures[T] extends ResultsToFeatures[T] {
+
+    override def init(state: Map[String, String]): Unit = {}
+
+    override def state: Map[String, String] = Map.empty
+
+    override def schema: SimpleFeatureType = BinaryOutputEncoder.BinEncodedSft
+
+    override def apply(result: T): SimpleFeature =
+      new ScalaSimpleFeature(BinaryOutputEncoder.BinEncodedSft, "", Array(bytes(result), GeometryUtils.zeroPoint))
+
+    protected def bytes(result: T): Array[Byte]
+
+    def canEqual(other: Any): Boolean = other.isInstanceOf[BinResultsToFeatures[T]]
+
+    override def equals(other: Any): Boolean = other match {
+      case that: BinResultsToFeatures[T] if that.canEqual(this) => true
+      case _ => false
+    }
+
+    override def hashCode(): Int = schema.hashCode()
   }
 }

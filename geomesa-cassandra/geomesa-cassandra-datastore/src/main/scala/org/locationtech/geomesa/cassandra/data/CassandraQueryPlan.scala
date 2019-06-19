@@ -11,17 +11,25 @@ package org.locationtech.geomesa.cassandra.data
 
 import com.datastax.driver.core.{Row, Statement}
 import org.locationtech.geomesa.cassandra.utils.CassandraBatchScan
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
 sealed trait CassandraQueryPlan extends QueryPlan[CassandraDataStore] {
 
+  override type Results = Row
+
   def tables: Seq[String]
   def ranges: Seq[Statement]
   def numThreads: Int
+
+  /**
+    * Note: filter is applied in entriesToFeatures, this is just for explain logging
+    * @return
+    */
   def clientSideFilter: Option[Filter]
 
   override def explain(explainer: Explainer, prefix: String): Unit =
@@ -45,18 +53,28 @@ case class EmptyPlan(filter: FilterStrategy) extends CassandraQueryPlan {
   override val ranges: Seq[Statement] = Seq.empty
   override val numThreads: Int = 0
   override val clientSideFilter: Option[Filter] = None
-  override def scan(ds: CassandraDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
+  override val resultsToFeatures: ResultsToFeatures[Row] = ResultsToFeatures.empty
+  override val reducer: Option[FeatureReducer] = None
+  override val sort: Option[Seq[(String, Boolean)]] = None
+  override val maxFeatures: Option[Int] = None
+  override val projection: Option[QueryReferenceSystems] = None
+  override def scan(ds: CassandraDataStore): CloseableIterator[Row] = CloseableIterator.empty
 }
 
-case class StatementPlan(filter: FilterStrategy,
-                         tables: Seq[String],
-                         ranges: Seq[Statement],
-                         numThreads: Int,
-                          // note: filter is applied in entriesToFeatures, this is just for explain logging
-                         clientSideFilter: Option[Filter],
-                         rowsToFeatures: CloseableIterator[Row] => CloseableIterator[SimpleFeature])
-    extends CassandraQueryPlan {
+case class StatementPlan(
+    filter: FilterStrategy,
+    tables: Seq[String],
+    ranges: Seq[Statement],
+    numThreads: Int,
+    // note: filter is applied in entriesToFeatures, this is just for explain logging
+    clientSideFilter: Option[Filter],
+    resultsToFeatures: ResultsToFeatures[Row],
+    reducer: Option[FeatureReducer],
+    sort: Option[Seq[(String, Boolean)]],
+    maxFeatures: Option[Int],
+    projection: Option[QueryReferenceSystems]
+  ) extends CassandraQueryPlan {
 
-  override def scan(ds: CassandraDataStore): CloseableIterator[SimpleFeature] =
-    rowsToFeatures(CassandraBatchScan(ds.session, ranges, numThreads))
+  override def scan(ds: CassandraDataStore): CloseableIterator[Row] =
+    CassandraBatchScan(ds.session, ranges, numThreads)
 }

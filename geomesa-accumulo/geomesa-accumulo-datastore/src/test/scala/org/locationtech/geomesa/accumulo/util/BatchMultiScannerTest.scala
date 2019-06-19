@@ -54,7 +54,7 @@ class BatchMultiScannerTest extends TestWithDataStore {
 
     val bms = new BatchMultiScanner(ds.connector, attrScanner, jp, qp.join.get._1, ds.auths, 5, batchSize)
 
-    val retrieved = bms.iterator.map(jp.entriesToFeatures).toList
+    val retrieved = bms.iterator.map(jp.resultsToFeatures.apply).toList
     forall(retrieved)(_.getAttribute(attr) mustEqual value)
 
     retrieved.size

@@ -11,7 +11,8 @@ package org.locationtech.geomesa.arrow.tools.stats
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
-import org.locationtech.geomesa.arrow.tools.UrlParam
+import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
+import org.locationtech.geomesa.arrow.tools.stats.ArrowStatsHistogramCommand.ArrowStatsHistogramParams
 import org.locationtech.geomesa.tools.stats.{StatsHistogramCommand, StatsHistogramParams}
 
 class ArrowStatsHistogramCommand extends StatsHistogramCommand[ArrowDataStore] with ArrowDataStoreCommand {
@@ -24,5 +25,7 @@ class ArrowStatsHistogramCommand extends StatsHistogramCommand[ArrowDataStore] w
   }
 }
 
-@Parameters(commandDescription = "Calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
-class ArrowStatsHistogramParams extends StatsHistogramParams with UrlParam
+object ArrowStatsHistogramCommand {
+  @Parameters(commandDescription = "Calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
+  class ArrowStatsHistogramParams extends StatsHistogramParams with UrlParam
+}

@@ -1,10 +1,18 @@
 /***********************************************************************
- * Crown Copyright (c) 2017-2019 Dstl
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
+
+/***********************************************************************
+  * Crown Copyright (c) 2017-2019 Dstl
+  * All rights reserved. This program and the accompanying materials
+  * are made available under the terms of the Apache License, Version 2.0
+  * which accompanies this distribution and is available at
+  * http://www.opensource.org/licenses/apache2.0.php.
+  ***********************************************************************/
 
 
 package org.locationtech.geomesa.jobs.accumulo.export
@@ -24,9 +32,9 @@ import org.opengis.feature.simple.SimpleFeature
 import scala.collection.JavaConversions._
 
 /**
- * Class to export features to HDFS. Currently just writes SFTs as plain text using toString.
- *
- */
+  * Class to export features to HDFS. Currently just writes SFTs as plain text using toString.
+  */
+@deprecated("Use geomesa-tools export job")
 object ExportFeaturesJob {
   def main(args: Array[String]): Unit = {
     val result = ToolRunner.run(new ExportFeaturesJob, args)
@@ -34,6 +42,7 @@ object ExportFeaturesJob {
   }
 }
 
+@deprecated("Use geomesa-tools export job")
 class ExportFeaturesArgs(args: Array[String]) extends GeoMesaArgs(args)
     with InputFeatureArgs with InputDataStoreArgs with InputCqlArgs
     with OutputHdfsArgs {
@@ -47,6 +56,7 @@ class ExportFeaturesArgs(args: Array[String]) extends GeoMesaArgs(args)
   }
 }
 
+@deprecated("Use geomesa-tools export job")
 class ExportFeaturesJob extends Tool {
 
   private var conf: Configuration = new Configuration

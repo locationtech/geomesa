@@ -80,7 +80,7 @@ class GeoMesaDataSource extends DataSourceRegister
     // TODO: Need different ways to retrieve sft
     //  GEOMESA-1643 Add method to lookup SFT to RDD Provider
     //  Below the details of the Converter RDD Provider and Providers which are backed by GT DSes are leaking through
-    val sft = WithStore(parameters) { ds =>
+    val sft = WithStore[DataStore](parameters) { ds =>
       if (ds != null) {
         ds.getSchema(parameters(GEOMESA_SQL_FEATURE))
       } else if (parameters.contains(GEOMESA_SQL_FEATURE) && parameters.contains("geomesa.sft")) {
@@ -101,7 +101,7 @@ class GeoMesaDataSource extends DataSourceRegister
 
   // JNH: Q: Why doesn't this method have the call to SQLTypes.init(sqlContext)?
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String], schema: StructType): BaseRelation = {
-    val sft = WithStore(parameters)(_.getSchema(parameters(GEOMESA_SQL_FEATURE)))
+    val sft = WithStore[DataStore](parameters)(_.getSchema(parameters(GEOMESA_SQL_FEATURE)))
     GeoMesaRelation(sqlContext, sft, schema, parameters)
   }
 
@@ -178,7 +178,7 @@ class GeoMesaDataSource extends DataSourceRegister
       case i  => r => r.getString(i)
     }
 
-    WithStore(parameters) { ds =>
+    WithStore[DataStore](parameters) { ds =>
       if (ds.getTypeNames.contains(newFeatureName)) {
         val existing = ds.getSchema(newFeatureName)
         if (!compatible(existing, sft)) {
@@ -196,7 +196,7 @@ class GeoMesaDataSource extends DataSourceRegister
     val structType = if (data.queryExecution == null) { sft2StructType(sft) } else { data.schema }
 
     val rddToSave: RDD[SimpleFeature] = data.rdd.mapPartitions { iterRow =>
-      val sft = WithStore(parameters)(_.getSchema(newFeatureName))
+      val sft = WithStore[DataStore](parameters)(_.getSchema(newFeatureName))
       val mappings = SparkUtils.sftToRowMappings(sft, structType)
       iterRow.map(r => SparkUtils.row2Sf(sft, mappings, r, fidFn(r)))
     }

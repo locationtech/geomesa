@@ -22,7 +22,7 @@ import org.locationtech.geomesa.utils.io.ByteBuffers.ExpandingByteBuffer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
-  * Converts rows to simple features without any filtering or tranforming
+  * Converts rows to simple features without any filtering or transforming
   *
   * @param sft simple feature type
   * @param auths authorizations
@@ -34,6 +34,8 @@ case class DirectAdapter(sft: SimpleFeatureType, auths: Seq[Array[Byte]]) extend
 
   override val columns: Seq[String] =
     Seq(FeatureIdAdapter.name, VisibilityAdapter.name) ++ schema.schema.map(_.getName)
+
+  override def result: SimpleFeatureType = sft
 
   override def adapt(results: CloseableIterator[RowResult]): CloseableIterator[SimpleFeature] = {
     results.flatMap { row =>

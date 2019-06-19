@@ -8,13 +8,16 @@
 
 package org.locationtech.geomesa.hbase.tools
 
+import java.io.File
 import java.util.Collections
 
 import com.beust.jcommander.Parameter
 import org.apache.hadoop.hbase.HConstants
+import org.apache.hadoop.hbase.client.Connection
 import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStore, HBaseDataStoreParams}
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.HBaseParams
-import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, OptionalZookeepersParam}
+import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, DistributedCommand, OptionalZookeepersParam}
+import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
 /**
  * Abstract class for commands that have a pre-existing catalog
@@ -28,7 +31,6 @@ trait HBaseDataStoreCommand extends DataStoreCommand[HBaseDataStore] {
     val zk = if (params.zookeepers != null) { params.zookeepers } else {
       HBaseConnectionPool.getConfiguration(Collections.emptyMap()).get(HConstants.ZOOKEEPER_QUORUM)
     }
-
     Map(
       HBaseDataStoreParams.ZookeeperParam.getName       -> zk,
       HBaseDataStoreParams.HBaseCatalogParam.getName    -> params.catalog,
@@ -40,6 +42,20 @@ trait HBaseDataStoreCommand extends DataStoreCommand[HBaseDataStore] {
 }
 
 object HBaseDataStoreCommand {
+
+  trait HBaseDistributedCommand extends HBaseDataStoreCommand with DistributedCommand {
+
+    // TODO need to pass hbase-site.xml around
+    abstract override def libjarsFiles: Seq[String] =
+      Seq("org/locationtech/geomesa/hbase/tools/hbase-libjars.list") ++ super.libjarsFiles
+
+    abstract override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
+      () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_HBASE_HOME", "lib"),
+      () => ClassPathUtils.getJarsFromEnvironment("HBASE_HOME"),
+      () => ClassPathUtils.getJarsFromClasspath(classOf[HBaseDataStore]),
+      () => ClassPathUtils.getJarsFromClasspath(classOf[Connection])
+    ) ++ super.libjarsPaths
+  }
 
   trait HBaseParams extends CatalogParam with OptionalZookeepersParam with RemoteFilterParam {
     @Parameter(names = Array("--secure"), description = "Enable HBase security (visibilities)")

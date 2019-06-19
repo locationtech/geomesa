@@ -8,37 +8,30 @@
 
 package org.locationtech.geomesa.jobs.mapreduce
 
-import java.io.File
+import java.io.{File, IOException}
 import java.nio.charset.StandardCharsets
 
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.mapreduce.Job
 import org.locationtech.geomesa.jobs.JobUtils
-import org.locationtech.geomesa.utils.classpath.ClassPathUtils
+import org.locationtech.geomesa.utils.io.WithClose
 
 import scala.util.control.NonFatal
 
 trait JobWithLibJars {
 
-  def setLibJars(job: Job, fileName: String, searchPath: Iterator[() => Seq[File]]): Unit =
-    JobUtils.setLibJars(job.getConfiguration, readLibJars(fileName), defaultSearchPath ++ searchPath)
+  import scala.collection.JavaConverters._
 
-  private def defaultSearchPath: Iterator[() => Seq[File]] =
-    Iterator(
-      () => ClassPathUtils.getJarsFromClasspath(getClass),
-      () => ClassPathUtils.getFilesFromSystemProperty("geomesa.convert.scripts.path")
-    )
+  def setLibJars(job: Job, fileNames: Seq[String], searchPath: Iterator[() => Seq[File]]): Unit =
+    JobUtils.setLibJars(job.getConfiguration, fileNames.flatMap(readLibJars), searchPath)
 
   private def readLibJars(file: String): Seq[String] = {
-    val is = getClass.getClassLoader.getResourceAsStream(file)
     try {
-      import scala.collection.JavaConversions._
-      IOUtils.readLines(is, StandardCharsets.UTF_8)
+      WithClose(getClass.getClassLoader.getResourceAsStream(file)) { is =>
+        IOUtils.readLines(is, StandardCharsets.UTF_8).asScala
+      }
     } catch {
-      case NonFatal(e) => throw new Exception("Error reading ingest libjars", e)
-    } finally {
-      IOUtils.closeQuietly(is)
+      case NonFatal(e) => throw new IOException(s"Error reading ingest libjars '$file'", e)
     }
   }
-
 }
