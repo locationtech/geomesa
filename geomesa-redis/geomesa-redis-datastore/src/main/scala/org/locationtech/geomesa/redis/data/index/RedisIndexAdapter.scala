@@ -221,7 +221,7 @@ object RedisIndexAdapter extends LazyLogging {
 
     private val errors = ArrayBuffer.empty[Throwable]
 
-    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
+    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
       i = 0
       while (i < values.length) {
         val insert = inserts(i)

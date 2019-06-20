@@ -332,6 +332,8 @@ object AccumuloIndexAdapter {
                             wrapper: FeatureWrapper,
                             partition: Option[String]) extends IndexWriter(indices, wrapper) {
 
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
     private val multiWriter = ds.connector.createMultiTableBatchWriter(GeoMesaBatchWriterConfig())
     private val writers = indices.toArray.map { index =>
       val table = index.getTableNames(partition) match {
@@ -342,6 +344,7 @@ object AccumuloIndexAdapter {
     }
 
     private val colFamilyMappings = indices.map(mapColumnFamily).toArray
+    private val timestamps = indices.exists(i => !i.sft.isLogicalTime)
 
     // cache our vis to avoid the re-parsing done in the ColumnVisibility constructor
     private val defaultVisibility = new ColumnVisibility(ds.config.defaultVisibilities)
@@ -349,7 +352,12 @@ object AccumuloIndexAdapter {
 
     private var i = 0
 
-    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
+    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
+      if (timestamps && update) {
+        // for updates, ensure that our timestamps don't clobber each other
+        multiWriter.flush()
+        Thread.sleep(1)
+      }
       i = 0
       while (i < values.length) {
         values(i) match {

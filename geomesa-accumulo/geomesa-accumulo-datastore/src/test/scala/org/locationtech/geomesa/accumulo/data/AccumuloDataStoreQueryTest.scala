@@ -11,15 +11,15 @@ package org.locationtech.geomesa.accumulo.data
 import java.util.{Collections, Date}
 
 import org.geotools.data._
-import org.geotools.util.factory.Hints
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.Converters
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
-import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{EmptyPlan, JoinPlan}
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.EmptyPlan
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -260,6 +260,14 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val query = new Query(defaultSft.getTypeName, filter)
       val features = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).toList
       features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
+    }
+
+    "exclude start/end times in before/after filters" in {
+      val after = new Query(defaultSft.getTypeName,ECQL.toFilter("dtg AFTER 2010-05-07T12:30:00.000Z"))
+      SelfClosingIterator(ds.getFeatureReader(after, Transaction.AUTO_COMMIT)).toList must beEmpty
+
+      val before = new Query(defaultSft.getTypeName,ECQL.toFilter("dtg BEFORE 2010-05-07T12:30:00.000Z"))
+      SelfClosingIterator(ds.getFeatureReader(before, Transaction.AUTO_COMMIT)).toList must beEmpty
     }
 
     "handle requests with namespaces" in {

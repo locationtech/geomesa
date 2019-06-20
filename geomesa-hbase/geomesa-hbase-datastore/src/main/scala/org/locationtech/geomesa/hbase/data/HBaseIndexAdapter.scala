@@ -477,7 +477,12 @@ object HBaseIndexAdapter extends LazyLogging {
 
     private var i = 0
 
-    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
+    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
+      if (update) {
+        // for updates, ensure that our timestamps don't clobber each other
+        flush()
+        Thread.sleep(1)
+      }
       i = 0
       while (i < values.length) {
         val mutator = mutators(i)
