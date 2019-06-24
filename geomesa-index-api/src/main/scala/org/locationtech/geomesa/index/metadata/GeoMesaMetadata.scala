@@ -49,6 +49,14 @@ trait GeoMesaMetadata[T] extends Closeable {
   def remove(typeName: String, key: String): Unit
 
   /**
+    * Delete multiple keys at once - may be more efficient than single deletes
+    *
+    * @param typeName simple feature type name
+    * @param keys keys
+    */
+  def remove(typeName: String, keys: Seq[String]): Unit
+
+  /**
    * Reads a value
    *
    * @param typeName simple feature type name

@@ -88,6 +88,12 @@ front, so estimates will cause problems. To force GeoMesa to calculate the exact
 set, you may set this property to ``true``. You may also override this behavior on a per-query basis
 by using the query hint ``org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT``.
 
+geomesa.ingest.local.batch.size
++++++++++++++++++++++++++++++++
+
+Controls the batch size for local ingests via the command-line tools. By default, feature writers will be
+flushed every 20,000 features.
+
 geomesa.metadata.expiry
 +++++++++++++++++++++++
 

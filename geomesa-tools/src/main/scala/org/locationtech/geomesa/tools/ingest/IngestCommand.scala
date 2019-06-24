@@ -23,6 +23,7 @@ import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, DataFormats, Prompt}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.{ConfigSftParsing, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -191,6 +192,10 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
         Command.user.error(s"Error trying to persist inferred schema: $e")
     }
   }
+}
+
+object IngestCommand {
+  val LocalBatchSize = SystemProperty("geomesa.ingest.local.batch.size", "20000")
 }
 
 // @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
