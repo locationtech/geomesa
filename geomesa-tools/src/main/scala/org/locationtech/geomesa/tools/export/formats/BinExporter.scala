@@ -11,14 +11,16 @@ package org.locationtech.geomesa.tools.export.formats
 import java.io.OutputStream
 
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class BinExporter(hints: Hints, os: OutputStream) extends FeatureExporter {
+class BinExporter(os: OutputStream, counter: ByteCounter, hints: Hints) extends ByteCounterExporter(counter) {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
+  private val label = hints.getBinLabelField.isDefined
   private var encoder: Option[BinaryOutputEncoder] = None
 
   override def start(sft: SimpleFeatureType): Unit = {
@@ -46,7 +48,7 @@ class BinExporter(hints: Hints, os: OutputStream) extends FeatureExporter {
           os.write(bytes)
           numBytes += bytes.length
         }
-        numBytes / (if (hints.getBinLabelField.isEmpty) { 16 } else { 24 })
+        numBytes / (if (label) { 24 } else { 16 })
     }
     os.flush()
     Some(count)

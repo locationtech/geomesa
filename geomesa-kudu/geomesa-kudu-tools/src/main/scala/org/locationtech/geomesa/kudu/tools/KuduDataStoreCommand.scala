@@ -8,10 +8,14 @@
 
 package org.locationtech.geomesa.kudu.tools
 
+import java.io.File
+
 import com.beust.jcommander.Parameter
+import org.apache.kudu.client.KuduClient
 import org.locationtech.geomesa.kudu.data.{KuduDataStore, KuduDataStoreFactory}
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand.KuduParams
-import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, PasswordParams}
+import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, DistributedCommand, PasswordParams}
+import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
 /**
  * Abstract class for Kudu commands
@@ -33,6 +37,18 @@ trait KuduDataStoreCommand extends DataStoreCommand[KuduDataStore] {
 }
 
 object KuduDataStoreCommand {
+
+  trait KuduDistributedCommand extends KuduDataStoreCommand with DistributedCommand {
+
+    abstract override def libjarsFiles: Seq[String] =
+      Seq("org/locationtech/geomesa/kudu/tools/kudu-libjars.list") ++ super.libjarsFiles
+
+    abstract override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
+      () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_KUDU_HOME", "lib"),
+      () => ClassPathUtils.getJarsFromClasspath(classOf[KuduDataStore]),
+      () => ClassPathUtils.getJarsFromClasspath(classOf[KuduClient])
+    ) ++ super.libjarsPaths
+  }
 
   trait KuduParams extends CatalogParam with PasswordParams {
     @Parameter(names = Array("-M", "--master"), description = "Kudu master server", required = true)

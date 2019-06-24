@@ -65,6 +65,8 @@ case class DensityAdapter(sft: SimpleFeatureType,
     if (requiresFid) { Seq(FeatureIdAdapter.name, VisibilityAdapter.name) } else { Seq(VisibilityAdapter.name) } ++
         schema.schema(attributes).map(_.getName)
 
+  override def result: SimpleFeatureType = DensityScan.DensitySft
+
   override def adapt(results: CloseableIterator[RowResult]): CloseableIterator[SimpleFeature] = {
     val grid = new GridSnap(envelope, width, height)
     val result = scala.collection.mutable.Map.empty[(Int, Int), Double].withDefaultValue(0d)

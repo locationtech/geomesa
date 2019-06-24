@@ -9,16 +9,14 @@
 package org.locationtech.geomesa.tools
 
 import java.util
-import java.util.Locale
 import java.util.regex.Pattern
 
-import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.locationtech.geomesa.convert.Modes.ErrorMode
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
-import org.locationtech.geomesa.tools.DistributedRunParam.ModeConverter
+import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{ErrorModeConverter, FilterConverter, HintConverter}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
@@ -46,6 +44,10 @@ trait RequiredTypeNameParam extends TypeNameParam {
 
 trait OptionalTypeNameParam extends TypeNameParam {
   @Parameter(names = Array("-f", "--feature-name"), description = "Simple Feature Type name on which to operate")
+  var featureName: String = _
+}
+
+trait ProvidedTypeNameParam extends TypeNameParam {
   var featureName: String = _
 }
 
@@ -144,7 +146,7 @@ trait InputFilesParam {
 
 trait OptionalInputFormatParam extends InputFilesParam {
   @Parameter(names = Array("--input-format"), description = "File format of input files (shp, csv, tsv, avro, etc). Optional, auto-detection will be attempted")
-  var format: String = _
+  var inputFormat: String = _
 }
 
 trait ConverterConfigParam {
@@ -223,24 +225,47 @@ trait IndicesParam {
 }
 
 trait DistributedRunParam {
-  @Parameter(names = Array("--run-mode"), description = "Run locally or on a cluster", required = false, converter = classOf[ModeConverter])
-  var mode: RunMode = _
+
+  @Parameter(names = Array("--run-mode"), description = "Run locally or on a cluster", required = false)
+  var runMode: String = _
+
+  lazy val mode: Option[RunMode] = {
+    Option(runMode).map {
+      case m if m.equalsIgnoreCase(RunModes.Local.toString) => RunModes.Local
+      case m if m.equalsIgnoreCase(RunModes.Distributed.toString) => RunModes.Distributed
+      case m if m.equalsIgnoreCase("distributedcombine") =>
+        DistributedRunParam.this match {
+          case p: DistributedCombineParam =>
+            Command.user.warn("Using deprecated run-mode 'DistributedCombine' - please use --combine-inputs instead")
+            p.combineInputs = true
+            RunModes.Distributed
+
+          case _ => throw invalid()
+        }
+
+      case _ => throw invalid()
+    }
+  }
+
+  private def invalid(): ParameterException =
+    new ParameterException(s"Invalid --run-mode '$runMode': valid values are 'local' or 'distributed'")
 }
 
 object DistributedRunParam {
   object RunModes extends Enumeration {
     type RunMode = Value
-    val Distributed, DistributedCombine, Local = Value
+    val Distributed, Local = Value
   }
+}
 
-  class ModeConverter(name: String) extends BaseConverter[RunMode](name) {
-    override def convert(value: String): RunMode = {
-      Option(value).flatMap(v => RunModes.values.find(_.toString.equalsIgnoreCase(v))).getOrElse {
-        val error = s"run-mode. Valid values are: ${RunModes.values.map(_.toString.toLowerCase(Locale.US)).mkString(", ")}"
-        throw new ParameterException(getErrorString(value, error))
-      }
-    }
-  }
+trait DistributedCombineParam {
+  @Parameter(
+    names = Array("--combine-inputs"),
+    description = "Combine multiple input files into a single input split (distributed jobs)")
+  var combineInputs: Boolean = false
+
+  @Parameter(names = Array("--split-max-size"), description = "Maximum size of a split in bytes (distributed jobs)")
+  var maxSplitSize: Integer = _
 }
 
 trait OutputPathParam {

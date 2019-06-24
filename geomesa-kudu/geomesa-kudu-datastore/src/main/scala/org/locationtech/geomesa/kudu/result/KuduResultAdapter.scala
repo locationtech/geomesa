@@ -31,6 +31,13 @@ trait KuduResultAdapter {
   def columns: Seq[String]
 
   /**
+    * Result simple feature type
+    *
+    * @return
+    */
+  def result: SimpleFeatureType
+
+  /**
     * Convert raw rows into result simple features
     *
     * @param results rows
@@ -134,6 +141,7 @@ object KuduResultAdapter {
 
   object EmptyAdapter extends KuduResultAdapter {
     override val columns: Seq[String] = Seq.empty
+    override val result: SimpleFeatureType = null
     override def adapt(results: CloseableIterator[RowResult]): CloseableIterator[SimpleFeature] =
       CloseableIterator.empty
   }

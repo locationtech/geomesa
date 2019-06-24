@@ -10,13 +10,13 @@ package org.locationtech.geomesa.hbase
 
 import java.io._
 
-import org.apache.hadoop.hbase.Coprocessor
+import org.apache.hadoop.hbase.{Cell, Coprocessor}
 import org.apache.hadoop.hbase.client.Scan
 import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.apache.hadoop.hbase.protobuf.generated.ClientProtos
 import org.geotools.data.Base64
-import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.index.api.QueryPlan.FeatureReducer
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.JavaConversions._
@@ -67,7 +67,8 @@ package object coprocessor {
     }
   }
 
-  case class CoprocessorConfig(options: Map[String, String],
-                               bytesToFeatures: Array[Byte] => SimpleFeature,
-                               reduce: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = i => i)
+  case class CoprocessorConfig(
+      options: Map[String, String],
+      bytesToFeatures: Array[Byte] => SimpleFeature,
+      reduce: Option[FeatureReducer] = None)
 }

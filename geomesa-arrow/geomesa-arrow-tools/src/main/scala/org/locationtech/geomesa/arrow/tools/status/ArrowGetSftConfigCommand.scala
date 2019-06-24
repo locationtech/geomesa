@@ -10,12 +10,16 @@ package org.locationtech.geomesa.arrow.tools.status
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.arrow.data.ArrowDataStore
-import org.locationtech.geomesa.arrow.tools.{ArrowDataStoreCommand, UrlParam}
+import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
+import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
+import org.locationtech.geomesa.arrow.tools.status.ArrowGetSftConfigCommand.ArrowGetSftConfigParameters
 import org.locationtech.geomesa.tools.status.{GetSftConfigCommand, GetSftConfigParams}
 
 class ArrowGetSftConfigCommand extends GetSftConfigCommand[ArrowDataStore] with ArrowDataStoreCommand {
   override val params = new ArrowGetSftConfigParameters
 }
 
-@Parameters(commandDescription = "Get the SimpleFeatureType definition of a schema")
-class ArrowGetSftConfigParameters extends UrlParam with GetSftConfigParams
+object ArrowGetSftConfigCommand {
+  @Parameters(commandDescription = "Get the SimpleFeatureType definition of a schema")
+  class ArrowGetSftConfigParameters extends UrlParam with GetSftConfigParams
+}

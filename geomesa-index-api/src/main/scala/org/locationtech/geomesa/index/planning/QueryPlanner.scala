@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.index.planning
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Geometry
 import org.geotools.data.Query
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
@@ -23,15 +22,19 @@ import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, DensityScan}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
+import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, Reprojection}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, StatParser}
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.expression.PropertyName
+import org.opengis.filter.sort.SortOrder
 
 import scala.collection.JavaConverters._
 
@@ -59,26 +62,42 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
   }
 
   override def runQuery(sft: SimpleFeatureType, query: Query, explain: Explainer): CloseableIterator[SimpleFeature] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableLike
-
     val plans = getQueryPlans(sft, query, None, explain)
-    var iterator = SelfClosingIterator(plans.iterator).flatMap(p => p.scan(ds))
+
+    var iterator = SelfClosingIterator(plans.iterator).flatMap(p => p.scan(ds).map(p.resultsToFeatures.apply))
 
     if (!query.getHints.isSkipReduce) {
-      // note: reduce must be the same across query plans
-      val reduce = plans.headOption.flatMap(_.reduce)
-      require(plans.tailOption.forall(_.reduce == reduce), "Reduce must be the same in all query plans")
-      reduce.foreach(r => iterator = r(iterator))
+      plans.headOption.flatMap(_.reducer).foreach { reducer =>
+        require(plans.tail.forall(_.reducer.contains(reducer)), "Reduce must be the same in all query plans")
+        iterator = reducer.apply(iterator)
+      }
     }
 
-    query.getHints.getSortFields.foreach { sort =>
+    plans.headOption.flatMap(_.sort).foreach { sort =>
+      require(plans.tail.forall(_.sort.contains(sort)), "Sort must be the same in all query plans")
       iterator = new SortingSimpleFeatureIterator(iterator, sort)
     }
 
-    Reprojection(query) match {
-      case None    => iterator
-      case Some(r) => iterator.map(r.reproject)
+    plans.headOption.flatMap(_.maxFeatures).foreach { maxFeatures =>
+      require(plans.tail.forall(_.maxFeatures.contains(maxFeatures)),
+        "Max features must be the same in all query plans")
+      if (query.getHints.getReturnSft == BinaryOutputEncoder.BinEncodedSft) {
+        // bin queries pack multiple records into each feature
+        // to count the records, we have to count the total bytes coming back, instead of the number of features
+        val label = query.getHints.getBinLabelField.isDefined
+        iterator = new BinaryOutputEncoder.FeatureLimitingIterator(iterator, maxFeatures, label)
+      } else {
+        iterator = iterator.take(maxFeatures)
+      }
     }
+
+    plans.headOption.flatMap(_.projection).foreach { projection =>
+      require(plans.tail.forall(_.projection.contains(projection)), "Projection must be the same in all query plans")
+      val project = Reprojection(query.getHints.getReturnSft, projection)
+      iterator = iterator.map(project.apply)
+    }
+
+    iterator
   }
 
   /**
@@ -90,10 +109,11 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
     * @param output planning explanation output
     * @return
     */
-  protected def getQueryPlans(sft: SimpleFeatureType,
-                              original: Query,
-                              requested: Option[String],
-                              output: Explainer): Seq[QueryPlan[DS]] = {
+  protected def getQueryPlans(
+      sft: SimpleFeatureType,
+      original: Query,
+      requested: Option[String],
+      output: Explainer): Seq[QueryPlan[DS]] = {
     import org.locationtech.geomesa.filter.filterToString
 
     profile(time => output(s"Query planning took ${time}ms")) {
@@ -107,7 +127,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
       output(s"Hints: bin[${hints.isBinQuery}] arrow[${hints.isArrowQuery}] density[${hints.isDensityQuery}] " +
           s"stats[${hints.isStatsQuery}] " +
           s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
-      output(s"Sort: ${query.getHints.getSortReadableString}")
+      output(s"Sort: ${query.getHints.getSortFields.map(QueryHints.sortReadableString).getOrElse("none")}")
       output(s"Transforms: ${query.getHints.getTransformDefinition.map(t => if (t.isEmpty) { "empty" } else { t }).getOrElse("none")}")
 
       output.pushLevel("Strategy selection:")
@@ -136,6 +156,8 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
 
 object QueryPlanner extends LazyLogging {
 
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
   private [planning] val threadedHints = new SoftThreadLocal[Map[AnyRef, AnyRef]]
 
   object CostEvaluation extends Enumeration {
@@ -155,8 +177,6 @@ object QueryPlanner extends LazyLogging {
    * @return
    */
   def setQueryTransforms(query: Query, sft: SimpleFeatureType): Unit = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
     // even if a transform is not specified, some queries only use a subset of attributes
     // specify them here so that it's easier to pick the best column group later
     def transformsFromQueryType: Seq[String] = {
@@ -181,13 +201,10 @@ object QueryPlanner extends LazyLogging {
       }
     }
 
-    val properties = Option(query.getPropertyNames).map(_.toSeq)
-      .filter(_ != sft.getAttributeDescriptors.asScala.map(_.getLocalName))
-      .orElse(Some(transformsFromQueryType).filter(_.nonEmpty))
-
-    query.setProperties(Query.ALL_PROPERTIES)
-
-    properties.foreach { props =>
+    Option(query.getPropertyNames).map(_.toSeq)
+        .filter(_ != sft.getAttributeDescriptors.asScala.map(_.getLocalName))
+        .orElse(Some(transformsFromQueryType).filter(_.nonEmpty))
+        .foreach { props =>
       val (transforms, derivedSchema) = buildTransformSFT(sft, props)
       query.getHints.put(QueryHints.Internal.TRANSFORMS, transforms)
       query.getHints.put(QueryHints.Internal.TRANSFORM_SCHEMA, derivedSchema)
@@ -202,19 +219,64 @@ object QueryPlanner extends LazyLogging {
   }
 
   /**
-    * Sets query hints for sorting and clears sortBy
+    * Sets query hints for sorting
     *
     * @param sft sft
     * @param query query
     */
   def setQuerySort(sft: SimpleFeatureType, query: Query): Unit = {
     val sortBy = query.getSortBy
-    if (sortBy != null) {
-      val hint = QueryHints.Internal.toSortHint(sortBy)
-      if (hint.nonEmpty) {
-        query.getHints.put(QueryHints.Internal.SORT_FIELDS, hint)
+    if (sortBy != null && sortBy.nonEmpty) {
+      val hints = query.getHints
+      if (hints.isArrowQuery) {
+        if (sortBy.lengthCompare(1) > 0) {
+          throw new IllegalArgumentException("Arrow queries only support sort by a single field: " +
+              sortBy.mkString(", "))
+        } else if (sortBy.head.getPropertyName == null) {
+          throw new IllegalArgumentException("Arrow queries only support sort by properties: " +
+              sortBy.mkString(", "))
+        }
+        val field = sortBy.head.getPropertyName.getPropertyName
+        val reverse = sortBy.head.getSortOrder == SortOrder.DESCENDING
+        hints.getArrowSort.foreach { case (f, r) =>
+          if (f != field || r != reverse) {
+            throw new IllegalArgumentException(s"Query sort does not match Arrow hints sort: " +
+                s"${sortBy.mkString(", ")} != $f:${if (r) "DESC" else "ASC"}")
+          }
+        }
+        hints.put(QueryHints.ARROW_SORT_FIELD, field)
+        hints.put(QueryHints.ARROW_SORT_REVERSE, reverse)
+      } else if (hints.isBinQuery) {
+        val dtg = hints.getBinDtgField.orElse(sft.getDtgField).orNull
+        if (dtg == null ||
+            sortBy.map(s => Option(s.getPropertyName).map(_.getPropertyName).orNull).toSeq != Seq(dtg)) {
+          throw new IllegalArgumentException("BIN queries only support sort by a date-type field: " +
+              sortBy.mkString(", "))
+        }
+        if (sortBy.head.getSortOrder == SortOrder.DESCENDING) {
+          throw new IllegalArgumentException("BIN queries only support sort in ASCENDING order: " +
+              sortBy.mkString(", "))
+        }
+        if (hints.get(QueryHints.BIN_SORT) != null && !hints.isBinSorting) {
+          throw new IllegalArgumentException("Query sort order contradicts BIN sorting hint: " +
+              sortBy.mkString(", "))
+        }
+        hints.put(QueryHints.BIN_SORT, java.lang.Boolean.TRUE)
+      } else {
+        hints.put(QueryHints.Internal.SORT_FIELDS, QueryHints.Internal.toSortHint(sortBy))
       }
-      query.setSortBy(null)
+    }
+  }
+
+  /**
+    * Sets query hints for reprojection
+    *
+    * @param sft sft
+    * @param query query
+    */
+  def setProjection(sft: SimpleFeatureType, query: Query): Unit = {
+    QueryReferenceSystems(query).foreach { crs =>
+      query.getHints.put(QueryHints.Internal.REPROJECTION, QueryHints.Internal.toProjectionHint(crs))
     }
   }
 

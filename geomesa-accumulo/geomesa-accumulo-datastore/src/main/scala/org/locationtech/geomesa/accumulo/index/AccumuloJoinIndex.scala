@@ -8,27 +8,33 @@
 
 package org.locationtech.geomesa.accumulo.index
 
+import java.util.Map.Entry
+
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.hadoop.io.Text
 import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinFunction, JoinPlan}
+import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.AccumuloResultsToFeatures
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan._
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloIndexAdapter, AccumuloQueryPlan}
+import org.locationtech.geomesa.accumulo.iterators.ArrowIterator.AccumuloArrowResultsToFeatures
+import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator.AccumuloBinResultsToFeatures
+import org.locationtech.geomesa.accumulo.iterators.DensityIterator.AccumuloDensityResultsToFeatures
+import org.locationtech.geomesa.accumulo.iterators.StatsIterator.AccumuloStatsResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter.{FilterHelper, andOption, partitionPrimarySpatials, partitionPrimaryTemporals}
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey, AttributeIndexValues}
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.planning.LocalQueryRunner
-import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryHook
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.stats.{Cardinality, Stat}
 import org.opengis.feature.`type`.AttributeDescriptor
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 import scala.util.Try
@@ -104,11 +110,16 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
                       hints: Hints,
                       numThreads: Int): AccumuloQueryPlan = {
 
+    lazy val sort = hints.getSortFields
+    lazy val max = hints.getMaxFeatures
+    lazy val project = hints.getProjection
+
     // for queries that don't require a join, creates a regular batch scan plan
-    def plan(iters: Seq[IteratorSetting],
-             kvsToFeatures: java.util.Map.Entry[Key, Value] => SimpleFeature,
-             reduce: Option[CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature]]) =
-      BatchScanPlan(filter, tables, ranges, iters, colFamily, kvsToFeatures, reduce, numThreads)
+    def plan(
+        iters: Seq[IteratorSetting],
+        kvsToFeatures: ResultsToFeatures[Entry[Key, Value]],
+        reduce: Option[FeatureReducer]) =
+      BatchScanPlan(filter, tables, ranges, iters, colFamily, kvsToFeatures, reduce, sort, max, project, numThreads)
 
     val transform = hints.getTransformSchema
 
@@ -120,8 +131,7 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
           supportsFilter(ecql)) {
         val iter = BinAggregatingIterator.configure(indexSft, this, ecql, hints)
         val iters = visibilityIter(indexSft) :+ iter
-        val kvsToFeatures = BinAggregatingIterator.kvsToFeatures()
-        plan(iters, kvsToFeatures, None)
+        plan(iters, new AccumuloBinResultsToFeatures(), None)
       } else {
         // have to do a join against the record table
         createJoinPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
@@ -131,7 +141,7 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
       if (canUseIndexSchema(ecql, transform)) {
         val (iter, reduce) = ArrowIterator.configure(indexSft, this, ds.stats, filter.filter, ecql, hints)
         val iters = visibilityIter(indexSft) :+ iter
-        plan(iters, ArrowIterator.kvsToFeatures(), Some(reduce))
+        plan(iters, new AccumuloArrowResultsToFeatures(), Some(reduce))
       } else if (canUseIndexSchemaPlusKey(ecql, transform)) {
         val transformSft = transform.getOrElse {
           throw new IllegalStateException("Must have a transform for attribute key plus value scan")
@@ -145,7 +155,7 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
         // finally apply the arrow iterator on the resulting features
         val (iter, reduce) = ArrowIterator.configure(transformSft, this, ds.stats, None, None, hints)
         val iters = visibilityIter(indexSft) ++ Seq(filterTransformIter, rowValueIter, iter)
-        plan(iters, ArrowIterator.kvsToFeatures(), Some(reduce))
+        plan(iters, new AccumuloArrowResultsToFeatures(), Some(reduce))
       } else {
         // have to do a join against the record table
         createJoinPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
@@ -178,8 +188,7 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
         } else {
           visIter :+ DensityIterator.configure(indexSft, this, ecql, hints)
         }
-        val kvsToFeatures = DensityIterator.kvsToFeatures()
-        plan(iters, kvsToFeatures, None)
+        plan(iters, new AccumuloDensityResultsToFeatures(), None)
       } else {
         // have to do a join against the record table
         createJoinPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
@@ -189,9 +198,8 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
       if (Try(Stat(indexSft, hints.getStatsQuery)).isSuccess && supportsFilter(ecql)) {
         val iter = StatsIterator.configure(indexSft, this, ecql, hints)
         val iters = visibilityIter(indexSft) :+ iter
-        val kvsToFeatures = StatsIterator.kvsToFeatures()
-        val reduce = Some(StatsScan.reduceFeatures(indexSft, hints)(_))
-        plan(iters, kvsToFeatures, reduce)
+        val reduce = Some(StatsScan.StatsReducer(indexSft, hints))
+        plan(iters, new AccumuloStatsResultsToFeatures(), reduce)
       } else {
         // have to do a join against the record table
         createJoinPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
@@ -207,8 +215,8 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
       // add the attribute-level vis iterator if necessary
       val iters = visibilityIter(schema) ++ iter.toSeq
       // need to use transform to convert key/values
-      val kvsToFeatures = AccumuloIndexAdapter.entriesToFeatures(this, transformSft)
-      plan(iters, kvsToFeatures, None)
+      val toFeatures = AccumuloResultsToFeatures(this, transformSft)
+      plan(iters, toFeatures, None)
     } else if (canUseIndexSchemaPlusKey(ecql, transform)) {
       // we can use the index PLUS the value
       val transformSft = transform.getOrElse {
@@ -218,8 +226,8 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
       // add the attribute-level vis iterator if necessary
       val iters = visibilityIter(schema) ++ iter.toSeq :+ AttributeKeyValueIterator.configure(this, transformSft)
       // need to use transform to convert key/values
-      val kvsToFeatures = AccumuloIndexAdapter.entriesToFeatures(this, transformSft)
-      plan(iters, kvsToFeatures, None)
+      val toFeatures = AccumuloResultsToFeatures(this, transformSft)
+      plan(iters, toFeatures, None)
     } else {
       // have to do a join against the record table
       createJoinPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
@@ -269,11 +277,9 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
         Seq(KryoVisibilityRowEncoder.configure(recordSchema)) ++ recordIter
       }
     }
-    val kvsToFeatures = AccumuloIndexAdapter.entriesToFeatures(recordIndex, resultSft)
-    val reduce: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] = {
-      val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
-      LocalQueryRunner.transform(resultSft, _, None, hints, hook)
-    }
+    val toFeatures = AccumuloResultsToFeatures(recordIndex, resultSft)
+    val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
+    val reducer = new LocalTransformReducer(resultSft, None, None, None, hints, hook)
 
     val recordTables = recordIndex.getTablesForQuery(filter.filter)
     val recordThreads = ds.asInstanceOf[AccumuloDataStore].config.recordThreads
@@ -289,8 +295,8 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
       }
     }
 
-    val joinQuery = BatchScanPlan(filter, recordTables, Seq.empty, recordIterators, recordColFamily, kvsToFeatures,
-      Some(reduce), recordThreads)
+    val joinQuery = BatchScanPlan(filter, recordTables, Seq.empty, recordIterators, recordColFamily, toFeatures,
+      Some(reducer), hints.getSortFields, hints.getMaxFeatures, hints.getProjection, recordThreads)
 
     val attributeIters = visibilityIter(indexSft) ++
         FilterTransformIterator.configure(indexSft, this, stFilter, None, hints.getSampling).toSeq

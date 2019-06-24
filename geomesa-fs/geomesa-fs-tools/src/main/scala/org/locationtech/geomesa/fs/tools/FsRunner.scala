@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.fs.tools
 
 import com.beust.jcommander.JCommander
-import org.locationtech.geomesa.fs.tools.compact.CompactCommand
+import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
 import org.locationtech.geomesa.fs.tools.export.{FsExportCommand, FsPlaybackCommand}
 import org.locationtech.geomesa.fs.tools.ingest.{FsIngestCommand, ManageMetadataCommand}
@@ -40,7 +40,7 @@ object FsRunner extends Runner {
     new ClasspathCommand,
     new ConfigureCommand,
     new ScalaConsoleCommand,
-    new CompactCommand,
+    new FsCompactCommand,
     new FsGetPartitionsCommand,
     new FsGetFilesCommand,
     new FsStatsBoundsCommand,

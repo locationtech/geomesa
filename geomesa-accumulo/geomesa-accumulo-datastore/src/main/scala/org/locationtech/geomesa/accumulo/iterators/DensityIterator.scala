@@ -14,12 +14,10 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan
-import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.index.iterators.DensityScan.{DensityResult, DensityResultsToFeatures}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 /**
@@ -45,17 +43,9 @@ object DensityIterator extends LazyLogging {
   }
 
   /**
-   * Adapts the iterator to create simple features.
-   * WARNING - the same feature is re-used and mutated - the iterator stream should be operated on serially.
-   */
-  def kvsToFeatures(): Entry[Key, Value] => SimpleFeature = {
-    val sf = new ScalaSimpleFeature(DensityScan.DensitySft, "")
-    sf.setAttribute(0, GeometryUtils.zeroPoint)
-    e: Entry[Key, Value] => {
-      // Return value in user data so it's preserved when passed through a RetypingFeatureCollection
-      sf.getUserData.put(DensityScan.DensityValueKey, e.getValue.get())
-      sf
-    }
+    * Adapts the iterator to create simple features
+    */
+  class AccumuloDensityResultsToFeatures extends DensityResultsToFeatures[Entry[Key, Value]] {
+    override protected def bytes(result: Entry[Key, Value]): Array[Byte] = result.getValue.get
   }
-
 }

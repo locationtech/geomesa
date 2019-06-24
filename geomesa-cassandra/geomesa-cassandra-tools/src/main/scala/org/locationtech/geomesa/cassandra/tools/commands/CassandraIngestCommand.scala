@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.cassandra.tools.commands
 
-import java.io.File
-
 import com.beust.jcommander.{ParameterException, Parameters}
 import org.locationtech.geomesa.cassandra.data.CassandraDataStore
 import org.locationtech.geomesa.cassandra.tools.CassandraDataStoreCommand
@@ -24,10 +22,6 @@ import scala.collection.JavaConversions._
 class CassandraIngestCommand extends IngestCommand[CassandraDataStore] with CassandraDataStoreCommand {
 
   override val params = new CassandraIngestParams
-
-  override def libjarsFile: String = ""
-
-  override def libjarsPaths: Iterator[() => Seq[File]] = Iterator[() => Seq[File]]()
 
   override def execute(): Unit = {
     if (params.files.exists(PathUtils.isRemote)) {

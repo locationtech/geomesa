@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.fs.tools
 
+import java.io.File
 import java.util
 import java.util.ServiceLoader
 
@@ -16,8 +17,9 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
-import org.locationtech.geomesa.tools.DataStoreCommand
 import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
+import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
+import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.io.PathUtils
 
 /**
@@ -43,6 +45,17 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
 object FsDataStoreCommand {
 
   import scala.collection.JavaConverters._
+
+  trait FsDistributedCommand extends FsDataStoreCommand with DistributedCommand {
+
+    abstract override def libjarsFiles: Seq[String] =
+      Seq("org/locationtech/geomesa/fs/tools/fs-libjars.list") ++ super.libjarsFiles
+
+    abstract override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
+      () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_FS_HOME", "lib"),
+      () => ClassPathUtils.getJarsFromClasspath(classOf[FileSystemDataStore])
+    ) ++ super.libjarsPaths
+  }
 
   trait FsParams {
     @Parameter(names = Array("--path", "-p"), description = "Path to root of filesystem datastore", required = true)

@@ -30,8 +30,8 @@ import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{DummyRed
 import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.StatusCallback
 import org.locationtech.geomesa.tools.ingest.DistributedConverterIngest.ConverterIngestJob
+import org.locationtech.geomesa.tools.utils.StatusCallback
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 abstract class FileSystemConverterJob(
@@ -39,11 +39,11 @@ abstract class FileSystemConverterJob(
     sft: SimpleFeatureType,
     converterConfig: Config,
     paths: Seq[String],
-    libjarsFile: String,
+    libjarsFiles: Seq[String],
     libjarsPaths: Iterator[() => Seq[File]],
     reducers: Int,
     tmpPath: Option[Path]
-  ) extends ConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths)
+  ) extends ConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths)
     with StorageConfiguration with LazyLogging {
 
   import scala.collection.JavaConverters._
@@ -113,11 +113,11 @@ object FileSystemConverterJob {
       sft: SimpleFeatureType,
       converterConfig: Config,
       paths: Seq[String],
-      libjarsFile: String,
+      libjarsFiles: Seq[String],
       libjarsPaths: Iterator[() => Seq[File]],
       reducers: Int,
       tmpPath: Option[Path]
-    ) extends FileSystemConverterJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths, reducers, tmpPath)
+    ) extends FileSystemConverterJob(dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, tmpPath)
           with ParquetStorageConfiguration
 
   class OrcConverterJob(
@@ -125,11 +125,11 @@ object FileSystemConverterJob {
       sft: SimpleFeatureType,
       converterConfig: Config,
       paths: Seq[String],
-      libjarsFile: String,
+      libjarsFiles: Seq[String],
       libjarsPaths: Iterator[() => Seq[File]],
       reducers: Int,
       tmpPath: Option[Path]
-    ) extends FileSystemConverterJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths, reducers, tmpPath)
+    ) extends FileSystemConverterJob(dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, tmpPath)
           with OrcStorageConfiguration
 
   class FsIngestMapper extends Mapper[LongWritable, SimpleFeature, Text, BytesWritable] with LazyLogging {

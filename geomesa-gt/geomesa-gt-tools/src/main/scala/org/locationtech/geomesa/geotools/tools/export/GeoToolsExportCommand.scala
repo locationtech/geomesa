@@ -10,14 +10,13 @@ package org.locationtech.geomesa.geotools.tools.export
 
 import com.beust.jcommander.Parameters
 import org.geotools.data.DataStore
-import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand
-import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand.GeoToolsDataStoreParams
+import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand.{GeoToolsDataStoreParams, GeoToolsDistributedCommand}
 import org.locationtech.geomesa.geotools.tools.export.GeoToolsExportCommand.GeoToolsExportParams
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.export.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 
-class GeoToolsExportCommand extends ExportCommand[DataStore] with GeoToolsDataStoreCommand {
+class GeoToolsExportCommand extends ExportCommand[DataStore] with GeoToolsDistributedCommand {
   override val params: GeoToolsExportParams = new GeoToolsExportParams
 }
 

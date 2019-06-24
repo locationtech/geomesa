@@ -10,63 +10,127 @@ package org.locationtech.geomesa.accumulo.tools.ingest
 
 import java.io.File
 import java.nio.file.{Files, Path}
-import java.util.Date
+import java.util.{Collections, Date}
 
-import org.geotools.data.shapefile.ShapefileDataStoreFactory
+import org.geotools.data.Transaction
+import org.geotools.data.shapefile.ShapefileDataStore
 import org.geotools.data.store.ReprojectingFeatureCollection
-import org.geotools.data.{DataStore, Transaction}
 import org.geotools.util.factory.Hints
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.tools.AccumuloRunner
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.convert.Modes
-import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
-import org.specs2.mutable.Specification
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose, WithStore}
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.BeforeAfterAll
-
-import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class ShpIngestTest extends Specification with BeforeAfterAll {
+class ShpIngestTest extends TestWithDataStore {
 
   sequential
 
   // note: shpfile always puts geom first
-  val schema = SimpleFeatureTypes.createType("shpingest", "*geom:Point:srid=4326,age:Integer,dtg:Date")
+  override val spec: String = "*geom:Point:srid=4326,age:Integer,dtg:Date"
 
   val features = Seq(
-    ScalaSimpleFeature.create(schema, "1", "POINT(1.0 1.5)", 1, "2011-01-01T00:00:00.000Z"),
-    ScalaSimpleFeature.create(schema, "2", "POINT(2.0 2.5)", 2, "2012-01-01T00:00:00.000Z")
+    ScalaSimpleFeature.create(sft, "1", "POINT(1.0 1.5)", 1, "2011-01-01T00:00:00.000Z"),
+    ScalaSimpleFeature.create(sft, "2", "POINT(2.0 2.5)", 2, "2012-01-01T00:00:00.000Z")
   )
 
   val featuresWithNulls = features ++ Seq(
-    ScalaSimpleFeature.create(schema, "3", "POINT(3.0 1.5)", 3, null),
-    ScalaSimpleFeature.create(schema, "4", "POINT(4.0 2.5)", 4, "2013-01-01T00:00:00.000Z")
+    ScalaSimpleFeature.create(sft, "3", "POINT(3.0 1.5)", 3, null),
+    ScalaSimpleFeature.create(sft, "4", "POINT(4.0 2.5)", 4, "2013-01-01T00:00:00.000Z")
   )
 
-  val baseArgs = Array[String]("ingest", "--zookeepers", "zoo", "--mock", "--instance", "mycloud", "--user", "myuser",
-    "--password", "mypassword", "--catalog", "testshpingestcatalog", "--force")
+  def connectedCommand(file: String): AccumuloIngestCommand = {
+    val command = new AccumuloIngestCommand()
+    command.params.user        = mockUser
+    command.params.instance    = mockInstanceId
+    command.params.zookeepers  = mockZookeepers
+    command.params.password    = mockPassword
+    command.params.catalog     = catalog
+    command.params.mock        = true
+    command.params.force       = true
+    command.params.files       = Collections.singletonList(new File(dir.toFile, s"$file.shp").getAbsolutePath)
+    command
+  }
+
+  val shpFile = "shpingest"
+  val shpFileToReproject = "shpingest32631"
+  val shpFileToReproject2 = "shpingest4269"
+  val shpFileWithNullDates = "shpingestNullDates"
 
   var dir: Path = _
-  var shpFile: File = _
-  var shpFileToReproject: File = _
-  var shpFileToReproject2: File = _
-  var shpFileWithNullDates: File = _
+
+  step {
+    dir = Files.createTempDirectory("gm-shp-ingest-test")
+
+    def params(name: String) = Map("url" -> new File(dir.toFile, s"$name.shp").toURI.toURL)
+
+    val initialFeatures = WithStore[ShapefileDataStore](params(shpFile)) { store =>
+      store.createSchema(sft)
+      WithClose(store.getFeatureWriterAppend(Transaction.AUTO_COMMIT)) { writer =>
+        features.foreach { feature =>
+          val toWrite = writer.next()
+          toWrite.setAttributes(feature.getAttributes)
+          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+          toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
+          writer.write()
+        }
+      }
+      store.getFeatureSource().getFeatures
+    }
+
+    WithStore[ShapefileDataStore](params(shpFileToReproject)) { store =>
+      val projectedFeatures = new ReprojectingFeatureCollection(initialFeatures, CRS.decode("EPSG:32631"))
+      store.createSchema(projectedFeatures.getSchema)
+      WithClose(store.getFeatureWriterAppend(Transaction.AUTO_COMMIT)) { writer =>
+        SelfClosingIterator(projectedFeatures.features()).foreach { feature =>
+          val toWrite = writer.next()
+          toWrite.setAttributes(feature.getAttributes)
+          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+          toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
+          writer.write()
+        }
+      }
+    }
+
+    WithStore[ShapefileDataStore](params(shpFileToReproject2)) { store =>
+      val projectedFeatures = new ReprojectingFeatureCollection(initialFeatures, CRS.decode("EPSG:4269"))
+      store.createSchema(projectedFeatures.getSchema)
+      WithClose(store.getFeatureWriterAppend(Transaction.AUTO_COMMIT)) { writer =>
+        SelfClosingIterator(projectedFeatures.features()).foreach { feature =>
+          val toWrite = writer.next()
+          toWrite.setAttributes(feature.getAttributes)
+          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+          toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
+          writer.write()
+        }
+      }
+    }
+
+    WithStore[ShapefileDataStore](params(shpFileWithNullDates)) { store =>
+      store.createSchema(sft)
+      WithClose(store.getFeatureWriterAppend(Transaction.AUTO_COMMIT)) { writer =>
+        featuresWithNulls.foreach { feature =>
+          val toWrite = writer.next()
+          toWrite.setAttributes(feature.getAttributes)
+          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+          toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
+          writer.write()
+        }
+      }
+    }
+  }
 
   "ShpIngest" should {
-
     "should properly ingest a shapefile" in {
-      val args = baseArgs :+ shpFile.getAbsolutePath
+      connectedCommand(shpFile).execute()
 
-      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
-      command.execute()
+      ds.stats.generateStats(ds.getSchema(shpFile)) // re-gen stats to invalidate cache
 
-      val fs = command.withDataStore(_.getFeatureSource("shpingest"))
+      val fs = ds.getFeatureSource(shpFile)
 
       SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
@@ -76,19 +140,18 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       bounds.getMinY mustEqual 1.5
       bounds.getMaxY mustEqual 2.5
 
-      command.withDataStore { ds =>
-        ds.stats.getAttributeBounds[Date](ds.getSchema(schema.getTypeName), "dtg").map(_.tuple) must
-            beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
-      }
+      ds.stats.getAttributeBounds[Date](ds.getSchema(shpFile), "dtg").map(_.tuple) must
+          beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
     }
 
     "should support renaming the feature type" in {
-      val args = baseArgs ++ Array("--feature-name", "changed", shpFile.getAbsolutePath)
-
-      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
+      val command = connectedCommand(shpFile)
+      command.params.featureName = "changed"
       command.execute()
 
-      val fs = command.withDataStore(_.getFeatureSource("changed"))
+      ds.stats.generateStats(ds.getSchema("changed")) // re-gen stats to invalidate cache
+
+      val fs = ds.getFeatureSource("changed")
 
       SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
@@ -98,19 +161,16 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       bounds.getMinY mustEqual 1.5
       bounds.getMaxY mustEqual 2.5
 
-      command.withDataStore { ds =>
-        ds.stats.getAttributeBounds[Date](ds.getSchema("changed"), "dtg").map(_.tuple) must
-            beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
-      }
+      ds.stats.getAttributeBounds[Date](ds.getSchema("changed"), "dtg").map(_.tuple) must
+          beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
     }
 
     "reproject to 4326 automatically on ingest" in {
-      val args = baseArgs :+ shpFileToReproject.getAbsolutePath
+      connectedCommand(shpFileToReproject).execute()
 
-      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
-      command.execute()
+      ds.stats.generateStats(ds.getSchema(shpFileToReproject)) // re-gen stats to invalidate cache
 
-      val fs = command.withDataStore(_.getFeatureSource("shpingest32631"))
+      val fs = ds.getFeatureSource(shpFileToReproject)
 
       SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
@@ -120,19 +180,16 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       bounds.getMinY must beCloseTo(1.5, 0.0001)
       bounds.getMaxY must beCloseTo(2.5, 0.0001)
 
-      command.withDataStore { ds =>
-        ds.stats.getAttributeBounds[Date](ds.getSchema(schema.getTypeName), "dtg").map(_.tuple) must
-          beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
-      }
+      ds.stats.getAttributeBounds[Date](ds.getSchema(shpFileToReproject), "dtg").map(_.tuple) must
+        beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
     }
 
     "reproject to 4326 automatically on ingest with flipped inputs" in {
-      val args = baseArgs :+ shpFileToReproject2.getAbsolutePath
+      connectedCommand(shpFileToReproject2).execute()
 
-      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
-      command.execute()
+      ds.stats.generateStats(ds.getSchema(shpFileToReproject2)) // re-gen stats to invalidate cache
 
-      val fs = command.withDataStore(_.getFeatureSource("shpingest4269"))
+      val fs = ds.getFeatureSource(shpFileToReproject2)
 
       SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
@@ -142,19 +199,16 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       bounds.getMinY must beCloseTo(1.5, 0.0001)
       bounds.getMaxY must beCloseTo(2.5, 0.0001)
 
-      command.withDataStore { ds =>
-        ds.stats.getAttributeBounds[Date](ds.getSchema(schema.getTypeName), "dtg").map(_.tuple) must
-          beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
-      }
+      ds.stats.getAttributeBounds[Date](ds.getSchema(shpFileToReproject2), "dtg").map(_.tuple) must
+        beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
     }
 
     "skip records with null dates by default" in {
-      val args = baseArgs :+ shpFileWithNullDates.getAbsolutePath
+      connectedCommand(shpFileWithNullDates).execute()
 
-      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
-      command.execute()
+      ds.stats.generateStats(ds.getSchema(shpFileWithNullDates)) // re-gen stats to invalidate cache
 
-      val fs = command.withDataStore(_.getFeatureSource("shpingestNullDates"))
+      val fs = ds.getFeatureSource(shpFileWithNullDates)
 
       SelfClosingIterator(fs.getFeatures.features).toList must haveLength(3)
 
@@ -164,23 +218,24 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       bounds.getMinY mustEqual 1.5
       bounds.getMaxY mustEqual 2.5
 
-      command.withDataStore { ds =>
-        ds.stats.getAttributeBounds[Date](ds.getSchema(schema.getTypeName), "dtg").map(_.tuple) must
-          beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
-      }
+      ds.stats.getAttributeBounds[Date](ds.getSchema(shpFileWithNullDates), "dtg").map(_.tuple) must
+        beSome((features.head.getAttribute("dtg"), featuresWithNulls.last.getAttribute("dtg"), 3L))
     }
 
-    // In this test, the third record has a null date.  Raising an error stops the ingest.
-    "index null dates via override" in {
+    // In this test, the third record has a null date. Raising an error stops the ingest.
+    "raise error on null dates via override" in {
       Modes.ErrorMode.systemProperty.threadLocalValue.set("raise-errors")
+      try {
+        val command = connectedCommand(shpFileWithNullDates)
+        command.params.featureName = "nullDates2"
+        command.execute()
+      } finally {
+        Modes.ErrorMode.systemProperty.threadLocalValue.remove()
+      }
 
-      val args = baseArgs ++ Array("--feature-name", "nullDates2", shpFileWithNullDates.getAbsolutePath)
+      ds.stats.generateStats(ds.getSchema("nullDates2")) // re-gen stats to invalidate cache
 
-      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
-      command.execute()
-      System.clearProperty("converter.error.mode")
-
-      val fs = command.withDataStore(_.getFeatureSource("nullDates2"))
+      val fs = ds.getFeatureSource("nullDates2")
 
       SelfClosingIterator(fs.getFeatures.features).toList must haveLength(2)
 
@@ -190,135 +245,31 @@ class ShpIngestTest extends Specification with BeforeAfterAll {
       bounds.getMinY mustEqual 1.5
       bounds.getMaxY mustEqual 2.5
 
-      try {
-        command.withDataStore { ds =>
-          ds.stats.getAttributeBounds[Date](ds.getSchema("nullDates2"), "dtg").map(_.tuple) must
-            beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
-        }
-      } finally {
-        Modes.ErrorMode.systemProperty.threadLocalValue.remove()
-      }
-    }
-
-    // In this test, the third record has a null date.  The system property turns off the error check.
-    "index null dates via override" in {
-      SimpleFeatureValidator.DefaultValidators.threadLocalValue.set("has-geo")
-      val args = baseArgs ++ Array("--feature-name", "nullDates3", shpFileWithNullDates.getAbsolutePath)
-
-      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
-      command.execute()
-
-      val fs = command.withDataStore(_.getFeatureSource("nullDates3"))
-
-      SelfClosingIterator(fs.getFeatures.features).toList must haveLength(4)
-
-      val bounds = fs.getBounds
-      bounds.getMinX mustEqual 1.0
-      bounds.getMaxX mustEqual 4.0
-      bounds.getMinY mustEqual 1.5
-      bounds.getMaxY mustEqual 2.5
-
-      try {
-        command.withDataStore { ds =>
-          ds.stats.getAttributeBounds[Date](ds.getSchema("nullDates3"), "dtg").map(_.tuple) must
-            beSome((features.head.getAttribute("dtg"), featuresWithNulls.last.getAttribute("dtg"), 3L))
-        }
-      } finally {
-        SimpleFeatureValidator.DefaultValidators.threadLocalValue.remove()
-      }
+      ds.stats.getAttributeBounds[Date](ds.getSchema("nullDates2"), "dtg").map(_.tuple) must
+        beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
     }
 
     "index no data with null dates with batch parse mode and raise-errors via override" in {
       Modes.ErrorMode.systemProperty.threadLocalValue.set("raise-errors")
       Modes.ParseMode.systemProperty.threadLocalValue.set("batch")
 
-      val args = baseArgs ++ Array("--feature-name", "nullDates4", shpFileWithNullDates.getAbsolutePath)
-
-      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloIngestCommand]
-      command.execute()
-
       try {
-        val fs = command.withDataStore(_.getFeatureSource("nullDates4"))
-        SelfClosingIterator(fs.getFeatures.features).toList must haveLength(0)
+        val command = connectedCommand(shpFileWithNullDates)
+        command.params.featureName = "nullDates4"
+        command.execute()
       } finally {
         Modes.ErrorMode.systemProperty.threadLocalValue.remove()
         Modes.ParseMode.systemProperty.threadLocalValue.remove()
       }
+
+      val fs = ds.getFeatureSource("nullDates4")
+      SelfClosingIterator(fs.getFeatures.features).toList must haveLength(0)
     }
   }
 
-  override def beforeAll(): Unit = {
-    dir = Files.createTempDirectory("gm-shp-ingest-test")
-    shpFile = new File(dir.toFile, "shpingest.shp")
-    shpFileToReproject = new File(dir.toFile, "shpingest32631.shp")
-    shpFileToReproject2 = new File(dir.toFile, "shpingest4269.shp")
-    shpFileWithNullDates = new File(dir.toFile, "shpingestNullDates.shp")
-
-    val dsf = new ShapefileDataStoreFactory
-
-    val shpStore = dsf.createNewDataStore(Map("url" -> shpFile.toURI.toURL))
-    val shpStoreToReproject: DataStore = dsf.createNewDataStore(Map("url" -> shpFileToReproject.toURI.toURL))
-    val shpStoreToReproject2: DataStore = dsf.createNewDataStore(Map("url" -> shpFileToReproject2.toURI.toURL))
-    val shpStoreWithNullDates = dsf.createNewDataStore(Map("url" -> shpFileWithNullDates.toURI.toURL))
-
-    try {
-      shpStore.createSchema(schema)
-      WithClose(shpStore.getFeatureWriterAppend("shpingest", Transaction.AUTO_COMMIT)) { writer =>
-        features.foreach { feature =>
-          val toWrite = writer.next()
-          toWrite.setAttributes(feature.getAttributes)
-          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-          toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
-          writer.write()
-        }
-      }
-
-      val initialFeatures = shpStore.getFeatureSource("shpingest").getFeatures
-      val projectedFeatures = new ReprojectingFeatureCollection(initialFeatures, CRS.decode("EPSG:32631"))
-
-      shpStoreToReproject.createSchema(projectedFeatures.getSchema)
-      WithClose(shpStoreToReproject.getFeatureWriterAppend("shpingest32631", Transaction.AUTO_COMMIT)) { writer =>
-        CloseableIterator(projectedFeatures.features()).foreach { feature =>
-          val toWrite = writer.next()
-          toWrite.setAttributes(feature.getAttributes)
-          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-          toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
-          writer.write()
-        }
-      }
-
-      val projectedFeatures2 = new ReprojectingFeatureCollection(initialFeatures, CRS.decode("EPSG:4269"))
-
-      shpStoreToReproject2.createSchema(projectedFeatures2.getSchema)
-      WithClose(shpStoreToReproject2.getFeatureWriterAppend("shpingest4269", Transaction.AUTO_COMMIT)) { writer =>
-        CloseableIterator(projectedFeatures2.features()).foreach { feature =>
-          val toWrite = writer.next()
-          toWrite.setAttributes(feature.getAttributes)
-          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-          toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
-          writer.write()
-        }
-      }
-
-      shpStoreWithNullDates.createSchema(schema)
-      WithClose(shpStoreWithNullDates.getFeatureWriterAppend("shpingestNullDates", Transaction.AUTO_COMMIT)) { writer =>
-        featuresWithNulls.foreach { feature =>
-          val toWrite = writer.next()
-          toWrite.setAttributes(feature.getAttributes)
-          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-          toWrite.getUserData.put(Hints.PROVIDED_FID, feature.getID)
-          writer.write()
-        }
-      }
-
-
-    } finally {
-      shpStore.dispose()
-      shpStoreToReproject.dispose()
-      shpStoreToReproject2.dispose()
-      shpStoreWithNullDates.dispose()
+  step {
+    if (dir != null) {
+      PathUtils.deleteRecursively(dir)
     }
   }
-
-  override def afterAll(): Unit = PathUtils.deleteRecursively(dir)
 }

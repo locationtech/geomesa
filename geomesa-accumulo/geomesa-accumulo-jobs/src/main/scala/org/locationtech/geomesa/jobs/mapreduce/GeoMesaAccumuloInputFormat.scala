@@ -11,124 +11,191 @@ package org.locationtech.geomesa.jobs.mapreduce
 
 import java.io._
 import java.net.{URL, URLClassLoader}
+import java.nio.charset.StandardCharsets
+import java.util.AbstractMap.SimpleImmutableEntry
 import java.util.Collections
+import java.util.Map.Entry
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.impl.{AuthenticationTokenIdentifier, DelegationTokenImpl}
 import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase, RangeInputSplit}
 import org.apache.accumulo.core.client.security.tokens.{KerberosToken, PasswordToken}
-import org.apache.accumulo.core.client.{ClientConfiguration, ZooKeeperInstance}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
-import org.apache.commons.collections.map.CaseInsensitiveMap
 import org.apache.hadoop.io.{Text, Writable}
 import org.apache.hadoop.mapreduce._
-import org.apache.hadoop.security.token.Token
-import org.geotools.data.{DataStoreFinder, Query}
-import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.AccumuloProperties.AccumuloMapperProperties
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams, AccumuloQueryPlan}
+import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
-import org.locationtech.geomesa.utils.index.IndexMode
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.jobs.mapreduce.GeoMesaAccumuloInputFormat.{GeoMesaRecordReader, GroupedSplit}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.io.WithStore
+import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
-import scala.collection.JavaConversions._
 import scala.collection.mutable.ArrayBuffer
+
+/**
+  * Input format that allows processing of simple features from GeoMesa based on a CQL query
+  */
+class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with LazyLogging {
+
+  import scala.collection.JavaConverters._
+
+  private val delegate = new AccumuloInputFormat()
+
+  /**
+    * Gets splits for a job.
+    *
+    * Our delegated AccumuloInputFormat creates a split for each range - because we set a lot of ranges in
+    * geomesa, that creates too many mappers. Instead, we try to group the ranges by tservers. We use the
+    * location assignment of the tablets to tservers to determine the number of splits returned.
+    */
+  override def getSplits(context: JobContext): java.util.List[InputSplit] = {
+    val accumuloSplits = delegate.getSplits(context)
+    // Get the appropriate number of mapper splits using the following priority
+    // 1. Get splits from AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS (geomesa.mapreduce.splits.max)
+    // 2. Get splits from #tserver locations * AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER (geomesa.mapreduce.splits.tserver.max)
+    // 3. Get splits from AccumuloInputFormat.getSplits(context)
+    def positive(prop: SystemProperty): Option[Int] = {
+      val int = prop.toInt
+      if (int.exists(_ < 1)) {
+        throw new IllegalArgumentException(s"${prop.property} contains an invalid int: ${prop.get}")
+      }
+      int
+    }
+
+    val grpSplitsMax = positive(AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS)
+
+    lazy val grpSplitsPerTServer = positive(AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER).flatMap { perTS =>
+      val numLocations = accumuloSplits.asScala.flatMap(_.getLocations).distinct.length
+      if (numLocations < 1) { None } else { Some(numLocations * perTS) }
+    }
+
+    grpSplitsMax.orElse(grpSplitsPerTServer) match {
+      case Some(numberOfSplits) =>
+        logger.debug(s"Using desired splits with result of $numberOfSplits splits")
+        val splitSize: Int = math.ceil(accumuloSplits.size().toDouble / numberOfSplits).toInt
+        accumuloSplits.asScala.groupBy(_.getLocations.head).flatMap { case (location, splits) =>
+          splits.grouped(splitSize).map { group =>
+            val split = new GroupedSplit()
+            split.location = location
+            split.splits.append(group.asInstanceOf[scala.collection.Seq[RangeInputSplit]]: _*)
+            split.asInstanceOf[InputSplit]
+          }
+        }.toList.asJava
+
+      case None =>
+        logger.debug(s"Using default Accumulo Splits with ${accumuloSplits.size} splits")
+        accumuloSplits
+    }
+  }
+
+  override def createRecordReader(split: InputSplit, context: TaskAttemptContext): GeoMesaRecordReader = {
+    val toFeatures = GeoMesaConfigurator.getResultsToFeatures[Entry[Key, Value]](context.getConfiguration)
+    new GeoMesaRecordReader(toFeatures, delegate.createRecordReader(split, context))
+  }
+}
 
 object GeoMesaAccumuloInputFormat extends LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   val SYS_PROP_SPARK_LOAD_CP = "org.locationtech.geomesa.spark.load-classpath"
 
-  def configure(job: Job,
-                dsParams: Map[String, String],
-                featureTypeName: String,
-                filter: Option[String] = None,
-                transform: Option[Array[String]] = None): Unit = {
+  def configure(
+      job: Job,
+      dsParams: Map[String, String],
+      featureTypeName: String,
+      filter: Option[String] = None,
+      transform: Option[Array[String]] = None): Unit = {
     val ecql = filter.map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
-    val trans = transform.getOrElse(Query.ALL_NAMES)
-    val query = new Query(featureTypeName, ecql, trans)
-    configure(job, dsParams, query)
+    configure(job, dsParams, new Query(featureTypeName, ecql, transform.getOrElse(Query.ALL_NAMES)))
   }
 
   /**
-   * Configure the input format.
-   *
-   * This is a single method, as we have to calculate several things to pass to the underlying
-   * AccumuloInputFormat, and there is not a good hook to indicate when the config is finished.
-   */
-  def configure(job: Job, dsParams: Map[String, String], query: Query): Unit = {
+    * Configure the input format based on a query
+    *
+    * @param job job to configure
+    * @param params data store parameters
+    * @param query query
+    */
+  def configure(job: Job, params: Map[String, String], query: Query): Unit =
+    configure(job, params.asJava, query)
 
-    val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
-    assert(ds != null, "Invalid data store parameters")
+  /**
+    * Configure the input format based on a query
+    *
+    * @param job job to configure
+    * @param params data store parameters
+    * @param query query
+    */
+  def configure(job: Job, params: java.util.Map[String, _], query: Query): Unit = {
+    // get the query plan to set up the iterators, ranges, etc
+    val plan = WithStore[AccumuloDataStore](params) { ds =>
+      require(ds != null, "Invalid data store parameters")
+      AccumuloJobUtils.getSingleQueryPlan(ds, query)
+    }
+    configure(job, params, plan)
+  }
 
-    // Set Mock or Zookeeper instance
-    val instance = AccumuloDataStoreParams.InstanceIdParam.lookup(dsParams)
-    val zookeepers = AccumuloDataStoreParams.ZookeepersParam.lookup(dsParams)
-    val keytabPath = AccumuloDataStoreParams.KeytabPathParam.lookup(dsParams)
-    val mock = AccumuloDataStoreParams.MockParam.lookup(dsParams)
+  /**
+    * Configure the input format based on a query plan
+    *
+    * @param job job to configure
+    * @param params data store parameters
+    * @param plan query plan
+    */
+  def configure(job: Job, params: java.util.Map[String, _], plan: AccumuloQueryPlan): Unit = {
+    job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
 
-    if (mock) {
+    // set Mock or Zookeeper instance
+    val instance = AccumuloDataStoreParams.InstanceIdParam.lookup(params)
+    val zookeepers = AccumuloDataStoreParams.ZookeepersParam.lookup(params)
+    val keytabPath = AccumuloDataStoreParams.KeytabPathParam.lookup(params)
+
+    if (AccumuloDataStoreParams.MockParam.lookup(params)) {
       AbstractInputFormat.setMockInstance(job, instance)
     } else {
-      InputFormatBaseAdapter.setZooKeeperInstance(job, instance, zookeepers, keytabPath!=null)
+      InputFormatBaseAdapter.setZooKeeperInstance(job, instance, zookeepers, keytabPath != null)
     }
 
-    // Set connector info
-    val user = AccumuloDataStoreParams.UserParam.lookup(dsParams)
-    val password = AccumuloDataStoreParams.PasswordParam.lookup(dsParams)
-
-    val token = if (password != null) {
-      new PasswordToken(password.getBytes)
-    } else {
-      // Must be using Kerberos
-      // Note that setConnectorInfo will create a DelegationToken for us and add it to the Job credentials
-      new KerberosToken(user, new File(keytabPath), true)
+    // set connector info
+    val user = AccumuloDataStoreParams.UserParam.lookup(params)
+    val token = AccumuloDataStoreParams.PasswordParam.lookupOpt(params) match {
+      case Some(p) => new PasswordToken(p.getBytes(StandardCharsets.UTF_8))
+      case None    => new KerberosToken(user, new File(keytabPath), true) // must be using Kerberos
     }
 
+    // note: for Kerberos, this will create a DelegationToken for us and add it to the Job credentials
     InputFormatBaseAdapter.setConnectorInfo(job, user, token)
 
-    val auths = Option(AccumuloDataStoreParams.AuthsParam.lookup(dsParams))
-    auths.foreach(a => InputFormatBaseAdapter.setScanAuthorizations(job, new Authorizations(a.split(","): _*)))
-
-    val featureTypeName = query.getTypeName
-
-    // get the query plan to set up the iterators, ranges, etc
-    val queryPlan = AccumuloJobUtils.getSingleQueryPlan(ds, query)
+    AccumuloDataStoreParams.AuthsParam.lookupOpt(params).foreach { auths =>
+      InputFormatBaseAdapter.setScanAuthorizations(job, new Authorizations(auths.split(","): _*))
+    }
 
     // use the query plan to set the accumulo input format options
-    // note: we've ensured that there is only a single table in `getSingleQueryPlan`
-    InputFormatBase.setInputTableName(job, queryPlan.tables.head)
-    if (queryPlan.ranges.nonEmpty) {
-      InputFormatBase.setRanges(job, queryPlan.ranges)
+    require(plan.tables.lengthCompare(1) == 0, s"Can only query from a single table: ${plan.tables.mkString(", ")}")
+    InputFormatBase.setInputTableName(job, plan.tables.head)
+    if (plan.ranges.nonEmpty) {
+      InputFormatBase.setRanges(job, plan.ranges.asJava)
     }
-    queryPlan.columnFamily.foreach { colFamily =>
+    plan.columnFamily.foreach { colFamily =>
       InputFormatBase.fetchColumns(job, Collections.singletonList(new AccPair[Text, Text](colFamily, null)))
     }
-    queryPlan.iterators.foreach(InputFormatBase.addIterator(job, _))
+    plan.iterators.foreach(InputFormatBase.addIterator(job, _))
 
     InputFormatBase.setBatchScan(job, true)
 
-    // also set the datastore parameters so we can access them later
     val conf = job.getConfiguration
-
-    GeoMesaConfigurator.setSerialization(conf)
-    GeoMesaConfigurator.setTable(conf, queryPlan.tables.head)
-    GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
-    GeoMesaConfigurator.setFeatureType(conf, featureTypeName)
-    if (query.getFilter != Filter.INCLUDE) {
-      GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(query.getFilter))
-    }
-    query.getHints.getTransformSchema.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
-
-    ds.dispose()
+    GeoMesaConfigurator.setResultsToFeatures(conf, plan.resultsToFeatures)
+    plan.reducer.foreach(GeoMesaConfigurator.setReducer(conf, _))
+    plan.sort.foreach(GeoMesaConfigurator.setSorting(conf, _))
+    plan.projection.foreach(GeoMesaConfigurator.setProjection(conf, _))
   }
 
   /**
@@ -157,246 +224,81 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
           s"and ignored ${dupeUrls.length} that are already loaded")
     }
   }
-}
-
-/**
- * Input format that allows processing of simple features from GeoMesa based on a CQL query
- */
-class GeoMesaAccumuloInputFormat extends InputFormat[Text, SimpleFeature] with LazyLogging {
-
-  val delegate = new AccumuloInputFormat
-
-  var sft: SimpleFeatureType = _
-  var index: GeoMesaFeatureIndex[_, _] = _
-
-  private def init(context: JobContext): Unit = if (sft == null) {
-    val conf = context.getConfiguration
-    val params = new CaseInsensitiveMap(GeoMesaConfigurator.getDataStoreInParams(conf)).asInstanceOf[java.util.Map[String, String]]
-
-    // Extract password from params to see if we are using Kerberos or not
-    val password = AccumuloDataStoreParams.PasswordParam.lookup(params)
-
-    // Build a datastore depending on how we are authenticating
-    val ds = if (password!=null) {
-
-      // Accumulo password auth
-      DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
-
-    } else {
-      // Kerberos auth
-
-      // Look for a delegation token in the context credentials (for MapReduce)
-      val contextCredentialsToken = context.getCredentials.getAllTokens find (_.getKind.toString=="ACCUMULO_AUTH_TOKEN")
-      if (contextCredentialsToken.isDefined) {
-        logger.info("Found ACCUMULO_AUTH_TOKEN in context credentials")
-      } else {
-        logger.info("Could not find ACCUMULO_AUTH_TOKEN in context credentials, will look in configuration")
-      }
-
-      // Look for a delegation token in the configuration (for Spark on YARN)
-      val serialisedToken = context.getConfiguration.get("org.locationtech.geomesa.token")
-      val configToken = if (serialisedToken!=null) {
-        logger.info("Found ACCUMULO_AUTH_TOKEN serialised in configuration")
-        val t = new Token()
-        t.decodeFromUrlString(serialisedToken)
-        Some(t)
-      } else {
-        logger.warn("Could not find ACCUMULO_AUTH_TOKEN serialised in configuration. Continuing anyway...")
-        None
-      }
-
-      // Prefer token from context credentials over configuration
-      val hadoopWrappedToken = contextCredentialsToken  orElse configToken
-
-      // Unwrap token and build connector
-      hadoopWrappedToken match {
-        case Some(hwt) =>
-          val identifier = new AuthenticationTokenIdentifier
-          val token =  try {
-            // Convert to DelegationToken.
-            // See https://github.com/apache/accumulo/blob/f81a8ec7410e789d11941351d5899b8894c6a322/core/src/main/java/org/apache/accumulo/core/client/mapreduce/lib/impl/ConfiguratorBase.java#L485-L500
-            identifier.readFields(new DataInputStream(new ByteArrayInputStream(hwt.getIdentifier)))
-            new DelegationTokenImpl(hwt.getPassword, identifier)
-          } catch {
-            case e: IOException => throw new RuntimeException("Could not construct DelegationToken from JobContext credentials", e)
-          }
-
-          // Build connector
-          val instance = AccumuloDataStoreParams.InstanceIdParam.lookup(params)
-          val zookeepers = AccumuloDataStoreParams.ZookeepersParam.lookup(params)
-          val user = AccumuloDataStoreParams.UserParam.lookup(params)
-          val connector = new ZooKeeperInstance(new ClientConfiguration()
-            .withInstance(instance).withZkHosts(zookeepers).withSasl(true))
-            .getConnector(user, token)
-
-          // Add connector param and remove keytabPath param
-          val updatedParams = params + (AccumuloDataStoreParams.ConnectorParam.getName -> connector) - AccumuloDataStoreParams.KeytabPathParam.getName
-
-          // Get datastore using updated params
-          DataStoreFinder.getDataStore(new CaseInsensitiveMap(updatedParams).asInstanceOf[java.util.Map[_, _]]).asInstanceOf[AccumuloDataStore]
-
-        case _ => throw new IllegalArgumentException("Could not find Hadoop-wrapped Accumulo token in JobContext credentials or Hadoop configuration")
-      }
-    }
-
-    sft = ds.getSchema(GeoMesaConfigurator.getFeatureType(conf))
-    val tableName = GeoMesaConfigurator.getTable(conf)
-    index = ds.manager.indices(sft, IndexMode.Read).find(_.getTableNames(None).contains(tableName))
-        .getOrElse(throw new RuntimeException(s"Couldn't find input table $tableName"))
-    ds.dispose()
-  }
 
   /**
-   * Gets splits for a job.
-   *
-   * Our delegated AccumuloInputFormat creates a split for each range - because we set a lot of ranges in
-   * geomesa, that creates too many mappers. Instead, we try to group the ranges by tservers. We use the
-   * location assignment of the tablets to tservers to determine the number of splits returned.
-   */
-  override def getSplits(context: JobContext): java.util.List[InputSplit] = {
-    val accumuloSplits = delegate.getSplits(context)
-    // Get the appropriate number of mapper splits using the following priority
-    // 1. Get splits from AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS (geomesa.mapreduce.splits.max)
-    // 2. Get splits from #tserver locations * AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER (geomesa.mapreduce.splits.tserver.max)
-    // 3. Get splits from AccumuloInputFormat.getSplits(context)
-    val grpSplitsMax: Option[Int] = AccumuloMapperProperties.DESIRED_ABSOLUTE_SPLITS.option.flatMap { prop =>
-      try {
-        Some(prop.toInt).filter(_ > 0)
-      } catch {
-        case e: java.lang.NumberFormatException =>
-          throw new IllegalArgumentException(s"Unable to parse geomesa.mapreduce.splits.max = $prop contains an invalid Int.", e)
-      }
-    }
-
-    lazy val grpSplitsPerTServer: Option[Int] = AccumuloMapperProperties.DESIRED_SPLITS_PER_TSERVER.option match {
-      case Some(desiredSplits) =>
-        val numLocations = accumuloSplits.flatMap(_.getLocations).toArray.distinct.length
-        if (numLocations > 0) {
-          val splitsPerTServer = try {
-            val ds = desiredSplits.toInt
-            if (ds <= 0) throw new java.lang.NumberFormatException("Ints <= 0 are not allowed.")
-            ds
-          } catch {
-            case e: java.lang.NumberFormatException =>
-              throw new IllegalArgumentException(s"Unable to parse geomesa.mapreduce.splits.tserver.max = $desiredSplits contains an invalid Int.", e)
-          }
-          Some(numLocations * splitsPerTServer)
-        } else None
-      case None => None
-     }
-
-    grpSplitsMax.orElse(grpSplitsPerTServer) match {
-      case Some(numberOfSplits) =>
-        logger.debug(s"Using desired splits with result of $numberOfSplits splits")
-        val splitSize: Int = math.ceil(accumuloSplits.length.toDouble / numberOfSplits).toInt
-        accumuloSplits.groupBy(_.getLocations()(0)).flatMap{ case (location, splits) =>
-          splits.grouped(splitSize).map{ group =>
-            val split = new GroupedSplit
-            split.location = location
-            split.splits.append(group.map(_.asInstanceOf[RangeInputSplit]): _*)
-            split
-          }
-        }.toList
-      case None =>
-        logger.debug(s"Using default Accumulo Splits with ${accumuloSplits.length} splits")
-        accumuloSplits
-    }
-  }
-
-  override def createRecordReader(split: InputSplit, context: TaskAttemptContext): GeoMesaRecordReader = {
-    init(context)
-    val reader = delegate.createRecordReader(split, context)
-    val schema = GeoMesaConfigurator.getTransformSchema(context.getConfiguration).getOrElse(sft)
-    new GeoMesaRecordReader(schema, index, reader)
-  }
-}
-
-/**
-  * Record reader that delegates to accumulo record readers and transforms the key/values coming back into
-  * simple features.
-  *
-  * @param sft simple feature type
-  * @param index feature index
-  * @param reader delegate reader
-  */
-class GeoMesaRecordReader(sft: SimpleFeatureType, index: GeoMesaFeatureIndex[_, _], reader: RecordReader[Key, Value])
-    extends RecordReader[Text, SimpleFeature] {
-
-  private val serializer: KryoFeatureSerializer = {
-    val opts = if (index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
-    KryoFeatureSerializer(sft, opts)
-  }
-
-  private var currentFeature: SimpleFeature = _
-
-  override def initialize(split: InputSplit, context: TaskAttemptContext): Unit =
-    reader.initialize(split, context)
-
-  override def getProgress: Float = reader.getProgress
-
-  override def nextKeyValue(): Boolean = nextKeyValueInternal()
-
-  /**
-    * Get the next key value from the underlying reader, incrementing the reader when required
+    * Record reader that delegates to accumulo record readers and transforms the key/values coming back into
+    * simple features.
+    *
+    * @param toFeatures results to features
+    * @param reader delegate reader
     */
-  private def nextKeyValueInternal(): Boolean = {
-    if (reader.nextKeyValue()) {
-      currentFeature = serializer.deserialize(reader.getCurrentValue.get())
-      if (!index.serializedWithId) {
-        val row = reader.getCurrentKey.getRow
-        val id = index.getIdFromRow(row.getBytes, 0, row.getLength, currentFeature)
-        currentFeature.getIdentifier.asInstanceOf[FeatureIdImpl].setID(id)
+  class GeoMesaRecordReader(toFeatures: ResultsToFeatures[Entry[Key, Value]], reader: RecordReader[Key, Value])
+      extends RecordReader[Text, SimpleFeature] {
+
+    private val key = new Text()
+
+    private var currentFeature: SimpleFeature = _
+
+    override def initialize(split: InputSplit, context: TaskAttemptContext): Unit =
+      reader.initialize(split, context)
+
+    override def getProgress: Float = reader.getProgress
+
+    override def nextKeyValue(): Boolean = {
+      if (reader.nextKeyValue()) {
+        currentFeature = toFeatures.apply(new SimpleImmutableEntry(reader.getCurrentKey, reader.getCurrentValue))
+        key.set(currentFeature.getID)
+        true
+      } else {
+        false
       }
-      true
-    } else {
-      false
     }
+
+    override def getCurrentKey: Text = key
+
+    override def getCurrentValue: SimpleFeature = currentFeature
+
+    override def close(): Unit = reader.close()
   }
 
-  override def getCurrentValue: SimpleFeature = currentFeature
+  /**
+    * Input split that groups a series of RangeInputSplits. Has to implement Hadoop Writable, thus the vars and
+    * mutable state.
+    */
+  class GroupedSplit extends InputSplit with Writable {
 
-  override def getCurrentKey: Text = new Text(currentFeature.getID)
-
-  override def close(): Unit = reader.close()
-}
-
-/**
- * Input split that groups a series of RangeInputSplits. Has to implement Hadoop Writable, thus the vars and
- * mutable state.
- */
-class GroupedSplit extends InputSplit with Writable {
-
-  // if we're running in spark, we need to load the context classpath before anything else,
-  // otherwise we get classloading and serialization issues
-  sys.env.get(GeoMesaAccumuloInputFormat.SYS_PROP_SPARK_LOAD_CP).filter(_.toBoolean).foreach { _ =>
-    GeoMesaAccumuloInputFormat.ensureSparkClasspath()
-  }
-
-  private[mapreduce] var location: String = _
-  private[mapreduce] val splits: ArrayBuffer[RangeInputSplit] = ArrayBuffer.empty
-
-  override def getLength: Long = splits.foldLeft(0L)((l: Long, r: RangeInputSplit) => l + r.getLength)
-
-  override def getLocations: Array[String] = if (location == null) { Array.empty } else { Array(location) }
-
-  override def write(out: DataOutput): Unit = {
-    out.writeUTF(location)
-    out.writeInt(splits.length)
-    splits.foreach(_.write(out))
-  }
-
-  override def readFields(in: DataInput): Unit = {
-    location = in.readUTF()
-    splits.clear()
-    var i = 0
-    val size = in.readInt()
-    while (i < size) {
-      val split = new RangeInputSplit()
-      split.readFields(in)
-      splits.append(split)
-      i = i + 1
+    // if we're running in spark, we need to load the context classpath before anything else,
+    // otherwise we get classloading and serialization issues
+    if (sys.env.get(GeoMesaAccumuloInputFormat.SYS_PROP_SPARK_LOAD_CP).exists(_.toBoolean)) {
+      GeoMesaAccumuloInputFormat.ensureSparkClasspath()
     }
-  }
 
-  override def toString = s"mapreduce.GroupedSplit[$location](${splits.length})"
+    private [mapreduce] var location: String = _
+    private [mapreduce] val splits: ArrayBuffer[RangeInputSplit] = ArrayBuffer.empty
+
+    override def getLength: Long = splits.foldLeft(0L)((l: Long, r: RangeInputSplit) => l + r.getLength)
+
+    override def getLocations: Array[String] = if (location == null) { Array.empty } else { Array(location) }
+
+    override def write(out: DataOutput): Unit = {
+      out.writeUTF(location)
+      out.writeInt(splits.length)
+      splits.foreach(_.write(out))
+    }
+
+    override def readFields(in: DataInput): Unit = {
+      location = in.readUTF()
+      splits.clear()
+      var i = 0
+      val size = in.readInt()
+      while (i < size) {
+        val split = new RangeInputSplit()
+        split.readFields(in)
+        splits.append(split)
+        i = i + 1
+      }
+    }
+
+    override def toString = s"mapreduce.GroupedSplit[$location](${splits.length})"
+  }
 }

@@ -11,7 +11,8 @@ package org.locationtech.geomesa.tools.export
 import java.io.Closeable
 import java.util.Date
 
-import com.beust.jcommander.Parameter
+import com.beust.jcommander.{Parameter, ParameterException}
+import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.data.store.DataFeatureCollection
 import org.geotools.data.{DataStore, Query}
@@ -21,12 +22,16 @@ import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.tools.export.PlaybackCommand.PlaybackParams
+import org.locationtech.geomesa.tools.export.formats.FeatureExporter
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{DurationConverter, IntervalConverter}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.iterators.PlaybackIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.concurrent.duration.Duration
+import scala.util.control.NonFatal
 
 trait PlaybackCommand[DS <: DataStore] extends ExportCommand[DS] {
 
@@ -36,11 +41,10 @@ trait PlaybackCommand[DS <: DataStore] extends ExportCommand[DS] {
   override val name = "playback"
   override def params: PlaybackParams
 
-  override protected def getFeatures(ds: DS, query: Query): SimpleFeatureCollection = {
-    new DataFeatureCollection(GeoMesaFeatureCollection.nextId) {
+  override protected def export(ds: DS, query: Query, exporter: FeatureExporter): Option[Long] = {
+    val features: SimpleFeatureCollection = new DataFeatureCollection(GeoMesaFeatureCollection.nextId) {
 
       private val fs = ds.getFeatureSource(query.getTypeName)
-      // get transforms before calling getSchema, in case it's overwritten and replaced with query hints
       private val transform = query.getPropertyNames
       private val dtg = Option(params.dtg)
       private val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
@@ -89,7 +93,19 @@ trait PlaybackCommand[DS <: DataStore] extends ExportCommand[DS] {
         }
       }
     }
+
+    try {
+      exporter.start(features.getSchema)
+      WithClose(CloseableIterator(features.features()))(exporter.export)
+    } catch {
+      case NonFatal(e) =>
+        throw new RuntimeException("Could not execute export query. Please ensure " +
+            "that all arguments are correct", e)
+    }
   }
+
+  override final protected def configure(job: Job, ds: DS, query: Query): Unit =
+    throw new ParameterException("Distributed playback is not supported, please use --run-mode local")
 }
 
 object PlaybackCommand {

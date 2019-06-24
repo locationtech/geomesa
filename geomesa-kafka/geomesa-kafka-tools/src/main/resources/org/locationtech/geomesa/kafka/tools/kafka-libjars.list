@@ -1,0 +1,6 @@
+curator-client
+curator-framework
+curator-recipes
+kafka
+zk
+zookeeper

@@ -124,7 +124,6 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[(DataStore, Option[
 
     // handle any sorting here
     QueryPlanner.setQuerySort(sft, query)
-    ArrowScan.setSortHints(hints)
 
     val arrowSft = {
       // determine transforms but don't modify the original query and hints
@@ -157,11 +156,11 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[(DataStore, Option[
         providedDictionaries, cachedDictionaries)
       // set the merged dictionaries in the query where they'll be picked up by our delegates
       hints.setArrowDictionaryEncodedValues(dictionaries.map { case (k, v) => (k, v.iterator.toSeq) })
-      ArrowScan.mergeBatches(arrowSft, dictionaries, encoding, batchSize, sort) _
+      new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, batchSize, sort)
     } else if (hints.isArrowMultiFile) {
-      ArrowScan.mergeFiles(arrowSft, dictionaryFields, encoding, sort) _
+      new ArrowScan.FileReducer(arrowSft, dictionaryFields, encoding, sort)
     } else {
-      ArrowScan.mergeDeltas(arrowSft, dictionaryFields, encoding, batchSize, sort) _
+      new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, batchSize, sort)
     }
 
     // now that we have standardized dictionaries, we can query the delegate stores
@@ -219,7 +218,7 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[(DataStore, Option[
         LocalQueryRunner.transform(copy, CloseableIterator(reader), None, hints, None)
       }
     }
-    StatsScan.reduceFeatures(sft, hints)(results)
+    StatsScan.StatsReducer(sft, hints)(results)
   }
 
   private def binQuery(sft: SimpleFeatureType,

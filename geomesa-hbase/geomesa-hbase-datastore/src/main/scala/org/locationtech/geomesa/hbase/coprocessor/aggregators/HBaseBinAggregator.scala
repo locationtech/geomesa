@@ -8,22 +8,16 @@
 
 package org.locationtech.geomesa.hbase.coprocessor.aggregators
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
-import org.locationtech.geomesa.index.iterators.BinAggregatingScan.ByteBufferResult
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{BinResultsToFeatures, ByteBufferResult}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 class HBaseBinAggregator extends BinAggregatingScan with HBaseAggregator[ByteBufferResult]
 
 object HBaseBinAggregator {
-
-  def bytesToFeatures(bytes : Array[Byte]): SimpleFeature =
-    new ScalaSimpleFeature(BinaryOutputEncoder.BinEncodedSft, "", Array(bytes, GeometryUtils.zeroPoint))
 
   def configure(sft: SimpleFeatureType,
                 index: GeoMesaFeatureIndex[_, _],
@@ -42,5 +36,9 @@ object HBaseBinAggregator {
       hints.getBinBatchSize,
       hints.isBinSorting,
       hints.getSampling) + (GeoMesaCoprocessor.AggregatorClass -> classOf[HBaseBinAggregator].getName)
+  }
+
+  class HBaseBinResultsToFeatures extends BinResultsToFeatures[Array[Byte]] {
+    override protected def bytes(result: Array[Byte]): Array[Byte] = result
   }
 }

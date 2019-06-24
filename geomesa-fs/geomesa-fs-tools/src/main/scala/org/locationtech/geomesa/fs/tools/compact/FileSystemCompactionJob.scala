@@ -26,7 +26,7 @@ import org.locationtech.geomesa.fs.tools.ingest.StorageJobUtils
 import org.locationtech.geomesa.jobs.mapreduce.{GeoMesaOutputFormat, JobWithLibJars}
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.StatusCallback
+import org.locationtech.geomesa.tools.utils.StatusCallback
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.SimpleFeature
 
@@ -36,13 +36,13 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
       storage: FileSystemStorage,
       partitions: Seq[PartitionMetadata],
       tempPath: Option[Path],
-      libjarsFile: String,
+      libjarsFiles: Seq[String],
       libjarsPaths: Iterator[() => Seq[File]],
       statusCallback: StatusCallback): (Long, Long) = {
 
     val job = Job.getInstance(new Configuration(storage.context.conf), "GeoMesa Storage Compaction")
 
-    setLibJars(job, libjarsFile, libjarsPaths)
+    setLibJars(job, libjarsFiles, libjarsPaths)
     job.setJarByClass(this.getClass)
 
     // InputFormat and Mappers

@@ -16,7 +16,7 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.mapreduce.JobStatus
 import org.apache.hadoop.tools.{DistCp, DistCpOptions}
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.StatusCallback
+import org.locationtech.geomesa.tools.utils.StatusCallback
 
 object StorageJobUtils extends LazyLogging {
 

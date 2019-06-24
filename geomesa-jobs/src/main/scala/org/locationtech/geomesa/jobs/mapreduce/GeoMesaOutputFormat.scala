@@ -11,41 +11,18 @@ package org.locationtech.geomesa.jobs.mapreduce
 import java.io.IOException
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat
-import org.geotools.data.{DataStoreFinder, DataUtilities, FeatureWriter, Transaction}
+import org.geotools.data._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
+import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.GeoMesaRecordWriter
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.locationtech.geomesa.utils.io.CloseQuietly
+import org.locationtech.geomesa.utils.io.{CloseQuietly, WithStore}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
-import scala.collection.JavaConversions._
-
-object GeoMesaOutputFormat {
-
-  object Counters {
-    val Group   = "org.locationtech.geomesa.jobs.output"
-    val Written = "written"
-    val Failed  = "failed"
-  }
-
-  /**
-   * Configure the data store you will be writing to.
-   */
-  def configureDataStore(job: Job, dsParams: Map[String, String]): Unit = {
-    val ds = DataStoreFinder.getDataStore(dsParams)
-    assert(ds != null, "Invalid data store parameters")
-    ds.dispose()
-
-    // set the datastore parameters so we can access them later
-    val conf = job.getConfiguration
-    GeoMesaConfigurator.setDataStoreOutParams(conf, dsParams)
-    GeoMesaConfigurator.setSerialization(conf)
-  }
-}
 
 /**
   * Output format that writes simple features using GeoMesaDataStore's FeatureWriterAppend. Can write only
@@ -53,15 +30,19 @@ object GeoMesaOutputFormat {
   */
 class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
 
+  import scala.collection.JavaConverters._
+
   override def getRecordWriter(context: TaskAttemptContext): RecordWriter[Text, SimpleFeature] = {
-    val params  = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
+    val params = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
     val indices = GeoMesaConfigurator.getIndicesOut(context.getConfiguration)
     new GeoMesaRecordWriter(params, indices, context)
   }
 
   override def checkOutputSpecs(context: JobContext): Unit = {
-    val params = GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
-    if (!DataStoreFinder.getAvailableDataStores.exists(_.canProcess(params))) {
+    val params =
+      GeoMesaConfigurator.getDataStoreOutParams(context.getConfiguration)
+        .asJava.asInstanceOf[java.util.Map[String, java.io.Serializable]]
+    if (!DataStoreFinder.getAvailableDataStores.asScala.exists(_.canProcess(params))) {
       throw new IOException("Data store connection parameters are not set")
     }
   }
@@ -70,65 +51,92 @@ class GeoMesaOutputFormat extends OutputFormat[Text, SimpleFeature] {
     new NullOutputFormat[Text, SimpleFeature]().getOutputCommitter(context)
 }
 
-/**
- * Record writer for GeoMesa SimpleFeatures.
- *
- * Key is ignored. If the feature type for the given feature does not exist yet, it will be created.
- */
-class GeoMesaRecordWriter(params: Map[String, String], indices: Option[Seq[String]], context: TaskAttemptContext)
-    extends RecordWriter[Text, SimpleFeature] with LazyLogging {
+object GeoMesaOutputFormat {
 
-  private val ds = DataStoreFinder.getDataStore(params)
+  import scala.collection.JavaConverters._
 
-  private val sftCache    = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
-  private val writerCache = scala.collection.mutable.Map.empty[String, FeatureWriter[SimpleFeatureType, SimpleFeature]]
+  object Counters {
+    val Group   = "org.locationtech.geomesa.jobs.output"
+    val Written = "written"
+    val Failed  = "failed"
+  }
 
-  val written: Counter = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
-  val failed: Counter = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
+  /**
+    * Configure the data store you will be writing to
+    *
+    * @param conf conf
+    * @param params data store parameters
+    * @param sft simple feature type to write, must exist already in the store
+    * @param indices indices to write, or all indices
+    */
+  def setOutput(
+      conf: Configuration,
+      params: Map[String, String],
+      sft: SimpleFeatureType,
+      indices: Option[Seq[String]] = None): Unit = {
+    GeoMesaConfigurator.setDataStoreOutParams(conf, params)
+    GeoMesaConfigurator.setSerialization(conf, sft)
+    indices.foreach(GeoMesaConfigurator.setIndicesOut(conf, _))
+  }
 
-  override def write(key: Text, value: SimpleFeature): Unit = {
-    val sftName = value.getFeatureType.getTypeName
-    // TODO we shouldn't serialize the sft with each feature
-    // ensure that the type has been created if we haven't seen it before
-    val sft = sftCache.getOrElseUpdate(sftName, {
-      // schema operations are thread-safe
-      val existing = ds.getSchema(sftName)
-      if (existing == null) {
-        ds.createSchema(value.getFeatureType)
-        ds.getSchema(sftName)
-      } else {
-        existing
+  @deprecated("use setOutput")
+  def configureDataStore(job: Job, params: Map[String, String]): Unit = {
+    WithStore[DataStore](params) { ds =>
+      require(ds != null, "Invalid data store parameters")
+      GeoMesaConfigurator.setDataStoreOutParams(job.getConfiguration, params)
+      ds.getTypeNames.map(ds.getSchema).foreach(GeoMesaConfigurator.setSerialization(job.getConfiguration, _))
+    }
+  }
+
+  /**
+    * Record writer for GeoMesa datastores.
+    *
+    * All feature types must exist already in the datastore. The input key is ignored.
+    */
+  class GeoMesaRecordWriter(params: Map[String, String], indices: Option[Seq[String]], context: TaskAttemptContext)
+      extends RecordWriter[Text, SimpleFeature] with LazyLogging {
+
+    private val ds = DataStoreFinder.getDataStore(params.asJava)
+
+    private val writers = scala.collection.mutable.Map.empty[String, FeatureWriter[SimpleFeatureType, SimpleFeature]]
+
+    private val written = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
+    private val failed = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
+
+    override def write(key: Text, value: SimpleFeature): Unit = {
+      try {
+        val sftName = value.getFeatureType.getTypeName
+        val writer = writers.getOrElseUpdate(sftName, createWriter(sftName))
+        FeatureUtils.write(writer, value, useProvidedFid = true)
+        written.increment(1)
+      } catch {
+        case e: Exception =>
+          logger.error(s"Error writing feature '${DataUtilities.encodeFeature(value)}'", e)
+          failed.increment(1)
       }
-    })
-
-    val writer = writerCache.getOrElseUpdate(sftName, createWriter(sft))
-    try {
-      FeatureUtils.write(writer, value, useProvidedFid = true)
-      written.increment(1)
-    } catch {
-      case e: Exception =>
-        logger.error(s"Error writing feature '${DataUtilities.encodeFeature(value)}'", e)
-        failed.increment(1)
     }
-  }
 
-  private def createWriter(sft: SimpleFeatureType): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
-    ds match {
-      case gm: GeoMesaDataStore[_] =>
-        val i = indices match {
-          case Some(names) => names.map(gm.manager.index(sft, _, IndexMode.Write))
-          case None => gm.manager.indices(sft, mode = IndexMode.Write)
-        }
-        gm.getIndexWriterAppend(sft.getTypeName, i)
+    private def createWriter(typeName: String): FeatureWriter[SimpleFeatureType, SimpleFeature] = {
+      ds match {
+        case gm: GeoMesaDataStore[_] =>
+          val sft = gm.getSchema(typeName)
+          val i = indices match {
+            case Some(names) => names.map(gm.manager.index(sft, _, IndexMode.Write))
+            case None => gm.manager.indices(sft, mode = IndexMode.Write)
+          }
+          gm.getIndexWriterAppend(typeName, i)
 
-      case _ =>
-        indices.foreach(i => logger.warn(s"Ignoring index param '${i.mkString(",")}' for non-geomesa data store $ds"))
-        ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
+        case _ =>
+          indices.foreach { i =>
+            logger.warn(s"Ignoring index config '${i.mkString(",")}' for non-geomesa data store $ds")
+          }
+          ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
+      }
     }
-  }
 
-  override def close(context: TaskAttemptContext): Unit = {
-    writerCache.values.foreach(v => CloseQuietly(v))
-    ds.dispose()
+    override def close(context: TaskAttemptContext): Unit = {
+      writers.values.foreach(v => CloseQuietly(v))
+      ds.dispose()
+    }
   }
 }

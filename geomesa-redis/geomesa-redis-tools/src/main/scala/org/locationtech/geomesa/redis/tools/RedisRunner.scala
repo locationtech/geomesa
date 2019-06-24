@@ -13,6 +13,7 @@ import org.locationtech.geomesa.redis.tools.export.{RedisExplainCommand, RedisEx
 import org.locationtech.geomesa.redis.tools.ingest.{RedisDeleteFeaturesCommand, RedisIngestCommand}
 import org.locationtech.geomesa.redis.tools.schema._
 import org.locationtech.geomesa.redis.tools.stats._
+import org.locationtech.geomesa.tools.export.ConvertCommand
 import org.locationtech.geomesa.tools.status._
 import org.locationtech.geomesa.tools.{Command, Runner}
 
@@ -40,6 +41,7 @@ object RedisRunner extends Runner {
     new RedisStatsTopKCommand,
     new HelpCommand(this, jc),
     new ConfigureCommand,
+    new ConvertCommand,
     new ClasspathCommand,
     new ScalaConsoleCommand,
     new VersionCommand

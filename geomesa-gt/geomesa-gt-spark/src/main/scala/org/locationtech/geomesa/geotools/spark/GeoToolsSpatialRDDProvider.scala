@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.data.{DataStore, DataStoreFinder, Query, Transaction}
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
@@ -40,7 +40,7 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
       sc: SparkContext,
       params: Map[String, String],
       query: Query): SpatialRDD = {
-    WithStore(params) { ds =>
+    WithStore[DataStore](params) { ds =>
       val (sft, features) = WithClose(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) { reader =>
         (reader.getFeatureType, CloseableIterator(reader).toList)
       }
@@ -57,13 +57,13 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     * @param typeName simple feature type name
     */
   override def save(rdd: RDD[SimpleFeature], params: Map[String, String], typeName: String): Unit = {
-    WithStore(params) { ds =>
+    WithStore[DataStore](params) { ds =>
       require(ds != null, "Could not load data store with the provided parameters")
       require(ds.getSchema(typeName) != null, "Schema must exist before calling save - use `DataStore.createSchema`")
     }
 
     rdd.foreachPartition { iter =>
-      WithStore(params) { ds =>
+      WithStore[DataStore](params) { ds =>
         WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
           iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }

@@ -71,6 +71,8 @@ case class StatsAdapter(sft: SimpleFeatureType,
     if (requiresFid) { Seq(FeatureIdAdapter.name, VisibilityAdapter.name) } else { Seq(VisibilityAdapter.name) } ++
         schema.schema(attributes).map(_.getName)
 
+  override def result: SimpleFeatureType = StatsScan.StatsSft
+
   override def adapt(results: CloseableIterator[RowResult]): CloseableIterator[SimpleFeature] = {
     val stat = Stat(statSft, query)
 

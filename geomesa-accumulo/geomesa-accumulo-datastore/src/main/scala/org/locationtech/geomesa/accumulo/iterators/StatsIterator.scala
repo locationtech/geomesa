@@ -13,14 +13,12 @@ import java.util.Map.Entry
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
-import org.apache.commons.codec.binary.Base64
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.index.iterators.StatsScan.StatsResultsToFeatures
 import org.locationtech.geomesa.utils.stats._
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 /**
@@ -46,13 +44,10 @@ object StatsIterator extends LazyLogging {
     is
   }
 
-  def kvsToFeatures(): Entry[Key, Value] => SimpleFeature = {
-    val sf = new ScalaSimpleFeature(StatsScan.StatsSft, "")
-    sf.setAttribute(1, GeometryUtils.zeroPoint)
-    e: Entry[Key, Value] => {
-      // value is the already serialized stat
-      sf.setAttribute(0, Base64.encodeBase64URLSafeString(e.getValue.get()))
-      sf
-    }
+  /**
+    * Adapts the iterator to create simple features.
+    */
+  class AccumuloStatsResultsToFeatures extends StatsResultsToFeatures[Entry[Key, Value]] {
+    override protected def bytes(result: Entry[Key, Value]): Array[Byte] = result.getValue.get()
   }
 }

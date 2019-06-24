@@ -97,13 +97,13 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
   }
 
   override def save(rdd: RDD[SimpleFeature], params: Map[String, String], typeName: String): Unit = {
-    WithStore(params) {ds =>
+    WithStore[FileSystemDataStore](params) {ds =>
       require(ds.getSchema(typeName) != null,
         "Feature type must exist before calling save. Call createSchema on the DataStore first.")
     }
 
     rdd.foreachPartition { iter =>
-      WithStore(params) { ds =>
+      WithStore[FileSystemDataStore](params) { ds =>
         WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
           iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }

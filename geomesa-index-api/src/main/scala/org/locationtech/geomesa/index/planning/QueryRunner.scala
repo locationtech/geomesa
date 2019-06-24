@@ -81,6 +81,7 @@ trait QueryRunner {
 
     // set sorting in the query
     QueryPlanner.setQuerySort(sft, query)
+    QueryPlanner.setProjection(sft, query)
     QueryPlanner.setMaxFeatures(query)
 
     // add the bbox from the density query to the filter, if there is no more restrictive filter

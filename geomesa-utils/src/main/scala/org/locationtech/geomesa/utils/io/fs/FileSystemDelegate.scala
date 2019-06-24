@@ -8,16 +8,22 @@
 
 package org.locationtech.geomesa.utils.io.fs
 
-import java.io.InputStream
+import java.io.{InputStream, OutputStream}
 
-import org.apache.commons.compress.compressors.bzip2.BZip2Utils
-import org.apache.commons.compress.compressors.gzip.GzipUtils
-import org.apache.commons.compress.compressors.xz.XZUtils
-import org.apache.commons.io.FilenameUtils
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 
-trait FileSystemDelegate {
+trait FileSystemDelegate extends LazyLogging {
+
+  /**
+    * Get the handle for a given file, which may or may not exist
+    *
+    * @param path path
+    * @return
+    */
+  def getHandle(path: String): FileHandle
 
   /**
     * Expand wildcards, recurse into directories, etc
@@ -31,6 +37,39 @@ trait FileSystemDelegate {
 object FileSystemDelegate {
 
   /**
+    * Creation mode for files
+    *
+    * `Create` - file must not exist, else throw `FileAlreadyExists`
+    * `Overwrite` - existing file will be truncated, else throw `FileNotFoundException`
+    * `Append` - existing file will be appended, else throw `FileNotFoundException`
+    * `Create|Overwrite` - if file exists, create it, else truncate it
+    * `Create|Append` - if file exists, create it, else append it
+    * `CreateParents` - combined with `Create`, if parent folder does not exist, create it
+    */
+  object CreateMode {
+    val Create    : CreateMode = new CreateMode(0x01)
+    val Overwrite : CreateMode = new CreateMode(0x02)
+    val Append    : CreateMode = new CreateMode(0x04)
+  }
+
+  class CreateMode(val flag: Int) extends AnyVal {
+
+    def |(other: CreateMode): CreateMode = new CreateMode(flag | other.flag)
+
+    def create: Boolean = (flag & CreateMode.Create.flag) != 0
+    def append: Boolean = (flag & CreateMode.Append.flag) != 0
+    def overwrite: Boolean = (flag & CreateMode.Overwrite.flag) != 0
+
+    def validate(): Unit = {
+      if (append && overwrite) {
+        throw new IllegalArgumentException("Can't specify both append and overwrite")
+      } else if (!append && !overwrite && !create) {
+        throw new IllegalArgumentException("Must specify at least one of create, append or overwrite")
+      }
+    }
+  }
+
+  /**
     * Abstraction over a readable file
     */
   trait FileHandle {
@@ -40,18 +79,7 @@ object FileSystemDelegate {
       *
       * @return
       */
-    lazy val format: String = {
-      val name = if (GzipUtils.isCompressedFilename(path)) {
-        GzipUtils.getUncompressedFilename(path)
-      } else if (XZUtils.isCompressedFilename(path)) {
-        XZUtils.getUncompressedFilename(path)
-      } else if (BZip2Utils.isCompressedFilename(path)) {
-        BZip2Utils.getUncompressedFilename(path)
-      } else {
-        path
-      }
-      FilenameUtils.getExtension(name)
-    }
+    lazy val format: String = PathUtils.getUncompressedExtension(path)
 
     /**
       * Path to the underlying file represented by this object
@@ -59,6 +87,13 @@ object FileSystemDelegate {
       * @return
       */
     def path: String
+
+    /**
+      * Does the file exist or not
+      *
+      * @return
+      */
+    def exists: Boolean
 
     /**
       * File length (size), in bytes
@@ -76,5 +111,21 @@ object FileSystemDelegate {
       * @return
       */
     def open: CloseableIterator[(Option[String], InputStream)]
+
+    /**
+      * Open the file for writing
+      *
+      * @param mode write mode
+      * @param createParents if the file does not exist, create its parents. Note that this only makes sense
+      *                      with `CreateMode.Create`
+      */
+    def write(mode: CreateMode, createParents: Boolean = false): OutputStream
+
+    /**
+      * Delete the file
+      *
+      * @param recursive if the file is a directory, recursively delete its contents
+      */
+    def delete(recursive: Boolean = false): Unit
   }
 }

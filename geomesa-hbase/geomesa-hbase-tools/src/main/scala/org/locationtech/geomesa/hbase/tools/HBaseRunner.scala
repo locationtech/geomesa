@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.hbase.tools
 
 import com.beust.jcommander.JCommander
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.HBaseDistributedCommand
 import org.locationtech.geomesa.hbase.tools.data._
 import org.locationtech.geomesa.hbase.tools.export.{HBaseExportCommand, HBasePlaybackCommand}
 import org.locationtech.geomesa.hbase.tools.ingest.{HBaseBulkIngestCommand, HBaseBulkLoadCommand, HBaseIngestCommand}
@@ -30,10 +31,10 @@ object HBaseRunner extends Runner {
     new HBaseDeleteFeaturesCommand,
     new HBaseDescribeSchemaCommand,
     new HBaseExplainCommand,
-    new HBaseExportCommand,
+    new HBaseExportCommand with HBaseDistributedCommand,
     new HBaseGetSftConfigCommand,
     new HBaseGetTypeNamesCommand,
-    new HBaseIngestCommand,
+    new HBaseIngestCommand with HBaseDistributedCommand,
     new HBaseKeywordsCommand,
     new HBaseManagePartitionsCommand(this, jc),
     new HBasePlaybackCommand,

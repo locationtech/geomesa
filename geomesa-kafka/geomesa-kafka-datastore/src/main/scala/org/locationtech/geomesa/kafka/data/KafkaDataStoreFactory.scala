@@ -253,7 +253,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     private val DeprecatedConsistency = ConvertedParam[Duration, java.lang.Long]("consistencyCheck", v => Duration(v, "ms"))
     private val DeprecatedCleanup = new DeprecatedParam[Duration] {
       override val key = "cleanUpCache"
-      override def lookup(params: java.util.Map[String, _ <: Serializable], required: Boolean): Duration = {
+      override def lookup(params: java.util.Map[String, _], required: Boolean): Duration = {
         val param = new GeoMesaParam[java.lang.Boolean](key, default = false)
         if (!param.lookup(params)) { Duration.Inf } else {
           Duration(new GeoMesaParam[String]("cleanUpCachePeriod", default = "10s").lookup(params))

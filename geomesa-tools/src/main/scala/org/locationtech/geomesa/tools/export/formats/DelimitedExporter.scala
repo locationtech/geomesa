@@ -8,19 +8,21 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io.Writer
+import java.io.{OutputStream, OutputStreamWriter}
+import java.nio.charset.StandardCharsets
 import java.time.{Instant, ZoneOffset}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.csv.{CSVFormat, CSVPrinter, QuoteMode}
+import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class DelimitedExporter(printer: CSVPrinter, withHeader: Boolean, includeIds: Boolean)
-    extends FeatureExporter with LazyLogging {
+class DelimitedExporter(printer: CSVPrinter, counter: ByteCounter, withHeader: Boolean, includeIds: Boolean)
+    extends ByteCounterExporter(counter)  with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 
@@ -79,13 +81,29 @@ class DelimitedExporter(printer: CSVPrinter, withHeader: Boolean, includeIds: Bo
 
 object DelimitedExporter {
 
-  def csv(writer: Writer, withHeader: Boolean, includeIds: Boolean = true): DelimitedExporter = {
-    val printer = CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL).print(writer)
-    new DelimitedExporter(printer, withHeader, includeIds)
+  def csv(
+      os: OutputStream,
+      counter: ByteCounter,
+      withHeader: Boolean,
+      includeIds: Boolean = true): DelimitedExporter = {
+    apply(os, counter, CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL), withHeader, includeIds)
   }
 
-  def tsv(writer: Writer, withHeader: Boolean, includeIds: Boolean = true): DelimitedExporter = {
-    val printer = CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL).print(writer)
-    new DelimitedExporter(printer, withHeader, includeIds)
+  def tsv(
+      os: OutputStream,
+      counter: ByteCounter,
+      withHeader: Boolean,
+      includeIds: Boolean = true): DelimitedExporter = {
+    apply(os, counter, CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL), withHeader, includeIds)
+  }
+
+  def apply(
+      os: OutputStream,
+      counter: ByteCounter,
+      format: CSVFormat,
+      withHeader: Boolean,
+      includeIds: Boolean = true): DelimitedExporter = {
+    val printer = format.print(new OutputStreamWriter(os, StandardCharsets.UTF_8))
+    new DelimitedExporter(printer, counter, withHeader, includeIds)
   }
 }

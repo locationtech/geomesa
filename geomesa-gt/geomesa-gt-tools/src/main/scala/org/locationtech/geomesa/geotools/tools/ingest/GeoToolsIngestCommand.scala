@@ -8,26 +8,15 @@
 
 package org.locationtech.geomesa.geotools.tools.ingest
 
-import java.io.File
-
 import com.beust.jcommander.Parameters
 import org.geotools.data.DataStore
-import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand
-import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand.GeoToolsDataStoreParams
+import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand.{GeoToolsDataStoreParams, GeoToolsDistributedCommand}
 import org.locationtech.geomesa.geotools.tools.ingest.GeoToolsIngestCommand.GeoToolsIngestParams
 import org.locationtech.geomesa.tools.ingest.IngestCommand
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
-import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
-class GeoToolsIngestCommand extends IngestCommand[DataStore] with GeoToolsDataStoreCommand {
-
+class GeoToolsIngestCommand extends IngestCommand[DataStore] with GeoToolsDistributedCommand {
   override val params: GeoToolsIngestParams = new GeoToolsIngestParams()
-
-  override val libjarsFile: String = "org/locationtech/geomesa/geotools/tools/ingest-libjars.list"
-
-  override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
-    () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_GEOTOOLS_HOME")
-  )
 }
 
 object GeoToolsIngestCommand {

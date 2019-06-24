@@ -14,8 +14,9 @@ import java.util.Properties
 import com.beust.jcommander.{Parameter, ParameterException}
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.geotools.tools.GeoToolsDataStoreCommand.GeoToolsDataStoreParams
-import org.locationtech.geomesa.tools.DataStoreCommand
 import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
+import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
+import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
 /**
  * Abstract class for commands that have a pre-existing catalog
@@ -46,6 +47,16 @@ trait GeoToolsDataStoreCommand extends DataStoreCommand[DataStore] {
 }
 
 object GeoToolsDataStoreCommand {
+
+  trait GeoToolsDistributedCommand extends GeoToolsDataStoreCommand with DistributedCommand {
+
+    abstract override def libjarsFiles: Seq[String] =
+      Seq("org/locationtech/geomesa/geotools/tools/gt-libjars.list") ++ super.libjarsFiles
+
+    abstract override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
+      () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_GEOTOOLS_HOME", "lib")
+    ) ++ super.libjarsPaths
+  }
 
   trait GeoToolsDataStoreParams {
     @Parameter(

@@ -1,0 +1,8 @@
+hbase
+hbase-client
+hbase-protocol
+hbase-server
+htrace
+metrics-core-2
+metrics-core-3
+netty

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.geotools.data.DataStore
-import org.locationtech.geomesa.tools.utils.KeywordParamSplitter
+import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
@@ -58,10 +58,10 @@ trait KeywordsCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 @Parameters(commandDescription = "Add/Remove/List keywords on an existing schema")
 trait KeywordsParams extends RequiredTypeNameParam {
 
-  @Parameter(names = Array("-a", "--add"), description = "A keyword to add. Can be specified multiple times", splitter = classOf[KeywordParamSplitter])
+  @Parameter(names = Array("-a", "--add"), description = "A keyword to add. Can be specified multiple times", splitter = classOf[NoopParameterSplitter])
   var keywordsToAdd: java.util.List[String] = _
 
-  @Parameter(names = Array("-r", "--remove"), description = "A keyword to remove. Can be specified multiple times", splitter = classOf[KeywordParamSplitter])
+  @Parameter(names = Array("-r", "--remove"), description = "A keyword to remove. Can be specified multiple times", splitter = classOf[NoopParameterSplitter])
   var keywordsToRemove: java.util.List[String] = _
 
   @Parameter(names = Array("-l", "--list"), description = "List all keywords on the schema")

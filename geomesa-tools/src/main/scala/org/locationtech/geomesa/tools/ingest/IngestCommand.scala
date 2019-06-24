@@ -37,15 +37,14 @@ import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 import scala.util.{Success, Try}
 
-trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with InteractiveCommand with LazyLogging {
+trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with DistributedCommand with InteractiveCommand {
 
   import scala.collection.JavaConverters._
 
   override val name = "ingest"
   override def params: IngestParams
 
-  def libjarsFile: String
-  def libjarsPaths: Iterator[() => Seq[File]]
+  override def libjarsFiles: Seq[String] = Seq("org/locationtech/geomesa/tools/ingest-libjars.list")
 
   override def execute(): Unit = {
     if (params.files.isEmpty && !StdInHandle.isAvailable) {
@@ -78,14 +77,14 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
 
     val mode = if (format.contains("shp")) {
       // shapefiles have to be ingested locally, as we need access to the related files
-      if (Option(params.mode).exists(_ != RunModes.Local)) {
+      if (params.mode.exists(_ != RunModes.Local)) {
         Command.user.warn("Forcing run mode to local for shapefile ingestion")
       }
       RunModes.Local
     } else if (remote) {
-      Option(params.mode).getOrElse(RunModes.Distributed)
+      params.mode.getOrElse(RunModes.Distributed)
     } else {
-      if (Option(params.mode).exists(_ != RunModes.Local)) {
+      if (params.mode.exists(_ != RunModes.Local)) {
         throw new ParameterException("Input files must be in a distributed file system to run in distributed mode")
       }
       RunModes.Local
@@ -98,8 +97,8 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
     } else if (params.threads != 1) {
       throw new ParameterException("Threads can only be specified in local mode")
     }
-    if (params.maxSplitSize != null && mode != RunModes.DistributedCombine) {
-      throw new ParameterException("Split size can only be specified in distributed-combine mode")
+    if (params.maxSplitSize != null && !params.combineInputs) {
+      throw new ParameterException("--split-max-size can only be used with --combine-inputs")
     }
 
     // use .get to re-throw the exception if we fail
@@ -113,13 +112,13 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Interacti
       case RunModes.Local =>
         new LocalConverterIngest(connection, sft, converter, inputs, params.threads)
 
-      case RunModes.Distributed =>
-        new DistributedConverterIngest(connection, sft, converter, inputs, libjarsFile, libjarsPaths,
-          params.waitForCompletion)
-
-      case RunModes.DistributedCombine =>
-        new DistributedCombineConverterIngest(connection, sft, converter, inputs, libjarsFile, libjarsPaths,
+      case RunModes.Distributed if params.combineInputs =>
+        new DistributedCombineConverterIngest(connection, sft, converter, inputs, libjarsFiles, libjarsPaths,
           Option(params.maxSplitSize), params.waitForCompletion)
+
+      case RunModes.Distributed =>
+        new DistributedConverterIngest(connection, sft, converter, inputs, libjarsFiles, libjarsPaths,
+          params.waitForCompletion)
 
       case _ =>
         throw new NotImplementedError(s"Missing implementation for mode $mode")
@@ -131,12 +130,10 @@ object IngestCommand extends LazyLogging {
 
   // @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
   trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam with OptionalForceParam
-      with ConverterConfigParam with OptionalInputFormatParam with DistributedRunParam {
+      with ConverterConfigParam with OptionalInputFormatParam with DistributedRunParam with DistributedCombineParam {
+
     @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local ingest")
     var threads: Integer = 1
-
-    @Parameter(names = Array("--split-max-size"), description = "Maximum size of a split in bytes (distributed jobs)")
-    var maxSplitSize: Integer = _
 
     @Parameter(names = Array("--src-list"), description = "Input files are text files with lists of files, one per line, to ingest.")
     var srcList: Boolean = false
@@ -155,7 +152,7 @@ object IngestCommand extends LazyLogging {
     * @return input format, as a lower-case string
     */
   def getDataFormat(params: OptionalInputFormatParam, files: Seq[String]): Option[String] = {
-    val raw = if (params.format != null) { Some(params.format) } else {
+    val raw = if (params.inputFormat != null) { Some(params.inputFormat) } else {
       val exts = files.iterator.flatMap(PathUtils.interpretPath).map(_.format).filter(_.nonEmpty)
       if (exts.hasNext) { Some(exts.next) } else { None }
     }

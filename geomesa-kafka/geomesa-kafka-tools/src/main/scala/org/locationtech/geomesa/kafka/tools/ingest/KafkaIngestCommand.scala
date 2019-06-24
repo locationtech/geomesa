@@ -8,38 +8,26 @@
 
 package org.locationtech.geomesa.kafka.tools.ingest
 
-import java.io.File
-
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.config.Config
-import org.apache.kafka.clients.producer.Producer
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
+import org.locationtech.geomesa.kafka.tools.KafkaDataStoreCommand.KafkaDistributedCommand
+import org.locationtech.geomesa.kafka.tools.ProducerDataStoreParams
 import org.locationtech.geomesa.kafka.tools.ingest.KafkaIngestCommand.KafkaIngestParams
-import org.locationtech.geomesa.kafka.tools.{KafkaDataStoreCommand, ProducerDataStoreParams}
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
-import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.concurrent.duration.Duration
 
-class KafkaIngestCommand extends IngestCommand[KafkaDataStore] with KafkaDataStoreCommand {
+class KafkaIngestCommand extends IngestCommand[KafkaDataStore] with KafkaDistributedCommand {
 
   override val params = new KafkaIngestParams()
-
-  override val libjarsFile: String = "org/locationtech/geomesa/kafka/tools/ingest-libjars.list"
-
-  override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
-    () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_KAFKA_HOME"),
-    () => ClassPathUtils.getJarsFromEnvironment("KAFKA_HOME"),
-    () => ClassPathUtils.getJarsFromClasspath(classOf[KafkaDataStore]),
-    () => ClassPathUtils.getJarsFromClasspath(classOf[Producer[_, _]])
-  )
 
   // override to add delay in writing messages
   override protected def createIngest(

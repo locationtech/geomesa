@@ -10,17 +10,19 @@ package org.locationtech.geomesa.index.iterators
 import java.awt.image.BufferedImage
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom._
 import org.geotools.util.factory.Hints
 import org.geotools.util.factory.Hints.ClassKey
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureSerialization}
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap}
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
+import org.locationtech.jts.geom._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
@@ -174,6 +176,33 @@ object DensityScan extends LazyLogging {
       case _                                  => writeGeometry(geomIndex, grid)
     }
   }
+
+  abstract class DensityResultsToFeatures[T] extends ResultsToFeatures[T] {
+
+    override def init(state: Map[String, String]): Unit = {}
+
+    override def state: Map[String, String] = Map.empty
+
+    override def schema: SimpleFeatureType = DensityScan.DensitySft
+
+    override def apply(result: T): SimpleFeature = {
+      val sf = new ScalaSimpleFeature(DensityScan.DensitySft, "", Array(GeometryUtils.zeroPoint))
+      sf.getUserData.put(DensityScan.DensityValueKey, bytes(result))
+      sf
+    }
+
+    protected def bytes(result: T): Array[Byte]
+
+    def canEqual(other: Any): Boolean = other.isInstanceOf[DensityResultsToFeatures[T]]
+
+    override def equals(other: Any): Boolean = other match {
+      case that: DensityResultsToFeatures[T] if that.canEqual(this) => true
+      case _ => false
+    }
+
+    override def hashCode(): Int = schema.hashCode()
+  }
+
 
   /**
     * Gets the weight for a feature from a double attribute

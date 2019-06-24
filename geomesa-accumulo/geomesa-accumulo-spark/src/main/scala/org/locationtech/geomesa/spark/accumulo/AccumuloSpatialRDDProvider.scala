@@ -62,26 +62,21 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
         // note: we've ensured there is only one table per query plan, below
         InputConfigurator.setInputTableName(classOf[AccumuloInputFormat], conf, qp.tables.head)
         InputConfigurator.setRanges(classOf[AccumuloInputFormat], conf, qp.ranges)
-        qp.iterators.foreach(InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, _))
+        InputConfigurator.setBatchScan(classOf[AccumuloInputFormat], conf, true)
 
+        qp.iterators.foreach(InputConfigurator.addIterator(classOf[AccumuloInputFormat], conf, _))
         qp.columnFamily.foreach { colFamily =>
           val cf = Collections.singletonList(new AccPair[Text, Text](colFamily, null))
           InputConfigurator.fetchColumns(classOf[AccumuloInputFormat], conf, cf)
         }
-
-        InputConfigurator.setBatchScan(classOf[AccumuloInputFormat], conf, true)
-        InputConfigurator.setBatchScan(classOf[GeoMesaAccumuloInputFormat], conf, true)
-        GeoMesaConfigurator.setSerialization(conf)
-        GeoMesaConfigurator.setTable(conf, qp.tables.head)
-        GeoMesaConfigurator.setDataStoreInParams(conf, params)
-        GeoMesaConfigurator.setFeatureType(conf, sft.getTypeName)
-
+        GeoMesaConfigurator.setResultsToFeatures(conf, qp.resultsToFeatures)
+        qp.reducer.foreach(GeoMesaConfigurator.setReducer(conf, _))
         // set the secondary filter if it exists and is  not Filter.INCLUDE
-        qp.filter.secondary
-          .collect { case f if f != Filter.INCLUDE => f }
-          .foreach { f => GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(f)) }
-
-        transform.foreach(GeoMesaConfigurator.setTransformSchema(conf, _))
+        qp.filter.secondary.foreach { f =>
+          if (f != Filter.INCLUDE) {
+            GeoMesaConfigurator.setFilter(conf, ECQL.toCQL(f))
+          }
+        }
 
         // Configure Auths from DS
         val auths = AccumuloDataStoreParams.AuthsParam.lookupOpt(params)
@@ -180,18 +175,18 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     * Writes this RDD to a GeoMesa table.
     * The type must exist in the data store, and all of the features in the RDD must be of this type.
     *
-    * @param rdd
-    * @param params
-    * @param typeName
+    * @param rdd rdd
+    * @param params params
+    * @param typeName type name
     */
   def save(rdd: RDD[SimpleFeature], params: Map[String, String], typeName: String): Unit = {
-    WithStore(params) { ds =>
+    WithStore[AccumuloDataStore](params) { ds =>
       require(ds.getSchema(typeName) != null,
         "Feature type must exist before calling save. Call createSchema on the DataStore first.")
     }
 
     rdd.foreachPartition { iter =>
-      WithStore(params) { ds =>
+      WithStore[AccumuloDataStore](params) { ds =>
         WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
           iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }

@@ -141,13 +141,13 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
 
       var count = 0
       val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
-      while (reader.hasNext) { reader.next(); count += 1 }
+      while (reader.hasNext) { count += reader.next().getAttribute(0).asInstanceOf[Array[Byte]].length }
       reader.close()
 
-      count must beBetween(1, 20) // at batch size of 10 we should have less than 2 full batches
+      count mustEqual 10 * 16 // 16 bytes per bin record
     }
 
-    "be able to limit  features in bin results through geoserver" in {
+    "be able to limit features in bin results through geoserver" in {
       val query = new Query(sftName, filter)
       query.setMaxFeatures(10)
 
@@ -158,10 +158,10 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
 
       var count = 0
       val reader = collection.features()
-      while (reader.hasNext) { reader.next(); count += 1 }
+      while (reader.hasNext) { count += reader.next().getAttribute(0).asInstanceOf[Array[Byte]].length }
       reader.close()
 
-      count must beLessThan(20) // at batch size of 10 we should have less than 2 full batches
+      count mustEqual 10 * 16 // 16 bytes per bin record
     }
 
     "be able to limit features and collect stats" in {
@@ -189,10 +189,10 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
 
       var count = 0
       val reader = dataStoreWithAudit(events).getFeatureReader(query, Transaction.AUTO_COMMIT)
-      while (reader.hasNext) { reader.next(); count += 1 }
+      while (reader.hasNext) { count += reader.next().getAttribute(0).asInstanceOf[Array[Byte]].length }
       reader.close()
 
-      count must beLessThan(10)
+      count mustEqual 10 * 16 // 16 bytes per bin record
       events must haveLength(1)
       events.head must beAnInstanceOf[QueryEvent]
       events.head.asInstanceOf[QueryEvent].hits must beLessThan(20L)
@@ -212,24 +212,13 @@ class AccumuloFeatureReaderTest extends Specification with TestWithDataStore {
 
       var count = 0
       val reader = collection.features()
-      while (reader.hasNext) { reader.next(); count += 1 }
+      while (reader.hasNext) { count += reader.next().getAttribute(0).asInstanceOf[Array[Byte]].length }
       reader.close()
 
-      // the features that get returned depend on the ranges that get set up in accumulo,
-      // as each range will create a new bin iterator and return aggregated features for that range.
-      // Since each feature can have 0-10 bin records (based on the bin batch size hint), we
-      // don't know exactly how many features will get returned before the bin limit of 10
-      // (based on maxFeatures) is hit. But conservatively, if there is at least one feature
-      // that contains 2+ bin records, there will be less than 10 features.
-
-      count must beLessThan(10)
-
-      // in the stat tracking, the max bin records that can be returned is 19. This would be if
-      // the first feature had 9 records and then the second feature had 10 records, triggering the limit.
-
+      count mustEqual 10 * 16 // 16 bytes per bin record
       events must haveLength(1)
       events.head must beAnInstanceOf[QueryEvent]
-      events.head.asInstanceOf[QueryEvent].hits must beLessThan(20L)
+      events.head.asInstanceOf[QueryEvent].hits mustEqual 10L
     }
   }
 }

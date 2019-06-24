@@ -78,6 +78,8 @@ case class BinAdapter(sft: SimpleFeatureType,
     BinaryOutputEncoder(sft, opts)
   }
 
+  override def result: SimpleFeatureType = BinaryOutputEncoder.BinEncodedSft
+
   override def adapt(results: CloseableIterator[RowResult]): CloseableIterator[SimpleFeature] = {
     val sf = new ScalaSimpleFeature(BinaryOutputEncoder.BinEncodedSft, "", Array(null, GeometryUtils.zeroPoint))
 

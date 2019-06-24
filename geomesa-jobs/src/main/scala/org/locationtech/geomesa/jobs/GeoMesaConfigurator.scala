@@ -9,150 +9,128 @@
 
 package org.locationtech.geomesa.jobs
 
-import org.apache.commons.csv.{CSVFormat, CSVParser, CSVPrinter}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.serializer.WritableSerialization
-import org.apache.hadoop.mapreduce.Job
-import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
+import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.jobs.mapreduce.SimpleFeatureSerialization
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
-
-import scala.collection.JavaConversions._
 
 /**
  * Common place for setting and getting values out of the mapreduce config
  */
 object GeoMesaConfigurator {
 
-  private val prefix         = "org.locationtech.geomesa"
+  object Keys {
+    val Prefix: String = "org.locationtech.geomesa"
 
-  private val dsInParams     = s"$prefix.params.in."
-  private val dsOutParams    = s"$prefix.params.out."
-  private val dsInRegex      = dsInParams.replaceAll("\\.", "\\.") + ".+"
-  private val dsOutRegex     = dsOutParams.replaceAll("\\.", "\\.") + ".+"
-  private val dsInSubstring  = dsInParams.length
-  private val dsOutSubstring = dsOutParams.length
+    val DsOutParams    : String = s"$Prefix.out.params"
+    val IndicesOut     : String = s"$Prefix.out.indices"
 
-  private val filterKey        = s"$prefix.filter"
-  private val sftNameKey       = s"$prefix.sft"
-  private val sftKey           = s"$prefix.sft.schema"
-  private val tableKey         = s"$prefix.table"
-  private val transformsKey    = s"$prefix.transforms.schema"
-  private val transformNameKey = s"$prefix.transforms.name"
-  private val propertiesKey    = s"$prefix.transforms.props"
-  private val indexInKey       = s"$prefix.in.indices"
-  private val sftKeyOut        = s"$prefix.out.sft"
-  private val indicesOutKey    = s"$prefix.out.indices"
-  private val desiredSplits    = s"$prefix.mapreduce.split.count.strongHint"
-  private val serializersKey   = "io.serializations"
+    val SftNames       : String = s"$Prefix.sfts"
+    val Filter         : String = s"$Prefix.filter"
+    val ToFeatures     : String = s"$Prefix.to.features"
+    val FeatureReducer : String = s"$Prefix.reducer"
+    val Sorting        : String = s"$Prefix.sort"
+    val Projection     : String = s"$Prefix.reproject"
 
-  private val writableSerialization      = classOf[WritableSerialization].getName
-  private val simpleFeatureSerialization = classOf[SimpleFeatureSerialization].getName
+    val DesiredSplits  : String = s"$Prefix.mapreduce.split.count.strongHint"
+    val Serializers    : String = "io.serializations"
+  }
 
-  // set/get the connection parameters for an input format
-  def setDataStoreInParams(conf: Configuration, params: Map[String, String]): Unit =
-    params.foreach { case (key, value) => if (value != null) conf.set(s"$dsInParams$key", value) }
-  def getDataStoreInParams(job: Job): Map[String, String] =
-    getDataStoreInParams(job.getConfiguration)
-  def getDataStoreInParams(conf: Configuration): Map[String, String] =
-    conf.getValByRegex(dsInRegex).map { case (key, value) => (key.substring(dsInSubstring), value) }.toMap
+  private val WritableSerialization      = classOf[WritableSerialization].getName
+  private val SimpleFeatureSerialization = classOf[SimpleFeatureSerialization].getName
+  private val SerializationString        = s"$WritableSerialization,$SimpleFeatureSerialization"
 
   // set/get the connection parameters for an output format
   def setDataStoreOutParams(conf: Configuration, params: Map[String, String]): Unit =
-    params.foreach { case (key, value) => conf.set(s"$dsOutParams$key", value) }
-  def getDataStoreOutParams(job: Job): Map[String, String] =
-    getDataStoreOutParams(job.getConfiguration)
+    conf.set(Keys.DsOutParams, StringSerialization.encodeMap(params))
   def getDataStoreOutParams(conf: Configuration): Map[String, String] =
-    conf.getValByRegex(dsOutRegex).map { case (key, value) => (key.substring(dsOutSubstring), value) }.toMap
+    StringSerialization.decodeMap(conf.get(Keys.DsOutParams))
 
-  // set/get the feature type name
-  def setFeatureType(conf: Configuration, featureType: String): Unit =
-    conf.set(sftNameKey, featureType)
-  def getFeatureType(job: Job): String = getFeatureType(job.getConfiguration)
-  def getFeatureType(conf: Configuration): String = conf.get(sftNameKey)
-
-  // set/get the feature type
-  def setSchema(conf: Configuration, sft: SimpleFeatureType): Unit = {
-    conf.set(sftNameKey, sft.getTypeName)
-    conf.set(sftKey, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
-  }
-  def getSchema(job: Job): SimpleFeatureType = getSchema(job.getConfiguration)
-  def getSchema(conf: Configuration): SimpleFeatureType = {
-    val typeName = conf.get(sftNameKey)
-    val schema = conf.get(sftKey)
-    SimpleFeatureTypes.createType(typeName, schema)
-  }
-
-  // set/get the feature type name
-  def setFeatureTypeOut(conf: Configuration, featureType: String): Unit =
-    conf.set(sftKeyOut, featureType)
-  def getFeatureTypeOut(job: Job): String = getFeatureTypeOut(job.getConfiguration)
-  def getFeatureTypeOut(conf: Configuration): String = conf.get(sftKeyOut)
-
-  def setTable(conf: Configuration, featureType: String): Unit =
-    conf.set(tableKey, featureType)
-  def getTable(job: Job): String = getTable(job.getConfiguration)
-  def getTable(conf: Configuration): String = conf.get(tableKey)
-
-  def setIndexIn(conf: Configuration, index: GeoMesaFeatureIndex[_, _]): Unit =
-    conf.set(indexInKey, index.identifier)
-  def getIndexIn(job: Job): String = getIndexIn(job.getConfiguration)
-  def getIndexIn(conf: Configuration): String = conf.get(indexInKey)
-
-  def setIndicesOut(conf: Configuration, indices: Seq[GeoMesaFeatureIndex[_, _]]): Unit =
-    conf.set(indicesOutKey, indices.map(_.identifier).mkString(","))
-  def getIndicesOut(job: Job): Option[Seq[String]] = getIndicesOut(job.getConfiguration)
+  def setIndicesOut(conf: Configuration, indices: Seq[String]): Unit =
+    conf.set(Keys.IndicesOut, StringSerialization.encodeSeq(indices))
   def getIndicesOut(conf: Configuration): Option[Seq[String]] =
-    Option(conf.get(indicesOutKey)).map(_.split(","))
+    Option(conf.get(Keys.IndicesOut)).map(StringSerialization.decodeSeq)
 
   // set/get the cql filter
-  def setFilter(conf: Configuration, filter: String): Unit = conf.set(filterKey, filter)
-  def getFilter(job: Job): Option[String] = getFilter(job.getConfiguration)
-  def getFilter(conf: Configuration): Option[String] = Option(conf.get(filterKey))
+  def setFilter(conf: Configuration, filter: String): Unit = conf.set(Keys.Filter, filter)
+  def getFilter(conf: Configuration): Option[String] = Option(conf.get(Keys.Filter))
 
-  // set/get query transforms
-  def setTransformSchema(conf: Configuration, schema: SimpleFeatureType): Unit = {
-    conf.set(transformNameKey, schema.getTypeName)
-    conf.set(transformsKey, SimpleFeatureTypes.encodeType(schema))
+  def setResultsToFeatures(conf: Configuration, resultsToFeatures: ResultsToFeatures[_]): Unit = {
+    conf.set(Keys.ToFeatures, ResultsToFeatures.serialize(resultsToFeatures))
+    setSerialization(conf, resultsToFeatures.schema)
   }
-  def getTransformSchema(job: Job): Option[SimpleFeatureType] = getTransformSchema(job.getConfiguration)
-  def getTransformSchema(conf: Configuration): Option[SimpleFeatureType] =
-    for {
-      transformName   <- Option(conf.get(transformNameKey))
-      transformSchema <- Option(conf.get(transformsKey))
-    } yield {
-      SimpleFeatureTypes.createType(transformName, transformSchema)
-    }
+  def getResultsToFeatures[T](conf: Configuration): ResultsToFeatures[T] =
+    ResultsToFeatures.deserialize(conf.get(Keys.ToFeatures))
 
-  def setPropertyNames(conf: Configuration, properties: Array[String]): Unit = {
-    if (properties != null) {
-      val sb = new java.lang.StringBuilder
-      val printer = new CSVPrinter(sb, CSVFormat.DEFAULT)
-      properties.foreach(printer.print)
-      conf.set(propertiesKey, sb.toString)
+  def setReducer(conf: Configuration, reducer: FeatureReducer): Unit =
+    conf.set(Keys.FeatureReducer, FeatureReducer.serialize(reducer))
+  def getReducer(conf: Configuration): Option[FeatureReducer] =
+    Option(conf.get(Keys.FeatureReducer)).map(FeatureReducer.deserialize)
+
+  def setSorting(conf: Configuration, sort: Seq[(String, Boolean)]): Unit =
+    conf.set(Keys.Sorting, StringSerialization.encodeSeq(sort.flatMap { case (f, r) => Seq(f, r.toString) }))
+  def getSorting(conf: Configuration): Option[Seq[(String, Boolean)]] = {
+    Option(conf.get(Keys.Sorting)).map { s =>
+      StringSerialization.decodeSeq(s).grouped(2).map { case Seq(f, r) => (f, r.toBoolean) }.toList
     }
   }
-  def getPropertyNames(job: Job): Option[Array[String]] = getPropertyNames(job.getConfiguration)
-  def getPropertyNames(conf: Configuration): Option[Array[String]] =
-    Option(conf.get(propertiesKey)).flatMap { strings =>
-      val parser = CSVParser.parse(strings, CSVFormat.DEFAULT)
-      val iter = parser.iterator
-      if (iter.hasNext) { Some(iter.next.iterator.toArray[String]) } else { None }
+
+  def setProjection(conf: Configuration, crs: QueryReferenceSystems): Unit =
+    conf.set(Keys.Projection, QueryHints.Internal.toProjectionHint(crs))
+  def getProjection(conf: Configuration): Option[QueryReferenceSystems] =
+    Option(conf.get(Keys.Projection)).map(QueryHints.Internal.fromProjectionHint)
+
+  /**
+    * Configure serialization for a simple feature type
+    *
+    * @param conf conf
+    * @param sft simple feature type
+    */
+  def setSerialization(conf: Configuration, sft: SimpleFeatureType): Unit = {
+    // register the feature serializer
+    conf.get(Keys.Serializers) match {
+      case null => conf.set(Keys.Serializers, SerializationString)
+      case existing =>
+        if (!existing.contains(SimpleFeatureSerialization)) {
+          conf.set(Keys.Serializers, Seq(existing, SimpleFeatureSerialization).mkString(","))
+        }
     }
 
-  // add our simple feature serialization to the config
-  def setSerialization(conf: Configuration): Unit = {
-    val existing = conf.get(serializersKey)
-    val serializers = if (existing == null) {
-      serializationString
-    } else if (!existing.contains(simpleFeatureSerialization)) {
-      Seq(existing, simpleFeatureSerialization).mkString(",")
-    } else {
-      existing
+    // set the schema in the config
+    val spec = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+    // note: use the spec hash code to ensure that duplicate type names don't conflict
+    val key = s"${(sft.getTypeName + spec).hashCode}:${sft.getTypeName}"
+    // store the type name and hash under a common key for all types
+    conf.get(Keys.SftNames) match {
+      case null => conf.set(Keys.SftNames, key)
+      case encoded =>
+        val existing = StringSerialization.decodeSeq(encoded)
+        if (!existing.contains(key)) {
+          conf.set(Keys.SftNames, StringSerialization.encodeSeq(existing :+ key))
+        }
     }
-    conf.set(serializersKey, serializers)
+    // store the spec under the unique key
+    conf.set(s"${Keys.SftNames}.$key", spec)
   }
 
-  val serializationString: String = s"$writableSerialization,$simpleFeatureSerialization"
+  /**
+    * Get the simple feature types configured for serialization, keyed by hash code
+    *
+    * @param conf conf
+    * @return (unique string key for the type, unique hash code for the type, type)
+    */
+  def getSerialization(conf: Configuration): Seq[(String, Int, SimpleFeatureType)] = {
+    Option(conf.get(Keys.SftNames)).map(StringSerialization.decodeSeq).getOrElse(Seq.empty).map { key =>
+      val sep = key.indexOf(':')
+      val hash = key.substring(0, sep).toInt
+      val typeName = key.substring(sep + 1)
+      val spec = conf.get(s"${Keys.SftNames}.$key")
+      (key, hash, SimpleFeatureTypes.createType(typeName, spec))
+    }
+  }
 }

@@ -9,8 +9,10 @@
 package org.locationtech.geomesa.kudu.data
 
 import org.apache.kudu.client.{KuduPredicate, PartialRow}
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.kudu.result.KuduResultAdapter
 import org.locationtech.geomesa.kudu.result.KuduResultAdapter.EmptyAdapter
 import org.locationtech.geomesa.kudu.utils.KuduBatchScan
@@ -19,6 +21,9 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
 sealed trait KuduQueryPlan extends QueryPlan[KuduDataStore] {
+
+  override type Results = SimpleFeature
+
   def tables: Seq[String]
   def ranges: Seq[(Option[PartialRow], Option[PartialRow])]
   def predicates: Seq[KuduPredicate]
@@ -52,19 +57,33 @@ object KuduQueryPlan {
     override def ecql: Option[Filter] = None
     override def numThreads: Int = 0
     override def adapter: KuduResultAdapter = EmptyAdapter
+    override def resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.empty
+    override def reducer: Option[FeatureReducer] = None
+    override def sort: Option[Seq[(String, Boolean)]] = None
+    override def maxFeatures: Option[Int] = None
+    override def projection: Option[QueryReferenceSystems] = None
     override def scan(ds: KuduDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
   }
 
-  case class ScanPlan(filter: FilterStrategy,
-                      tables: Seq[String],
-                      ranges: Seq[(Option[PartialRow], Option[PartialRow])],
-                      predicates: Seq[KuduPredicate],
-                      // note: filter is applied in entriesToFeatures, this is just for explain logging
-                      ecql: Option[Filter],
-                      adapter: KuduResultAdapter,
-                      numThreads: Int) extends KuduQueryPlan {
+  case class ScanPlan(
+      filter: FilterStrategy,
+      tables: Seq[String],
+      ranges: Seq[(Option[PartialRow], Option[PartialRow])],
+      predicates: Seq[KuduPredicate],
+      // note: filter is applied in entriesToFeatures, this is just for explain logging
+      ecql: Option[Filter],
+      adapter: KuduResultAdapter,
+      sort: Option[Seq[(String, Boolean)]],
+      maxFeatures: Option[Int],
+      projection: Option[QueryReferenceSystems],
+      numThreads: Int
+    ) extends KuduQueryPlan {
 
     import scala.collection.JavaConverters._
+
+    // TODO results to features and reducing are done in the kudu result adapter
+    override val resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.identity(adapter.result)
+    override val reducer: Option[FeatureReducer] = None
 
     override def scan(ds: KuduDataStore): CloseableIterator[SimpleFeature] = {
       import org.locationtech.geomesa.kudu.utils.RichKuduClient.RichScanner

@@ -16,8 +16,8 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.jobs.mapreduce.{ConverterInputFormat, GeoMesaOutputFormat}
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.StatusCallback
 import org.locationtech.geomesa.tools.ingest.DistributedConverterIngest.ConverterIngestJob
+import org.locationtech.geomesa.tools.utils.StatusCallback
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -28,7 +28,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * @param sft simple feature type
   * @param converterConfig converter definition
   * @param inputs files to ingest
-  * @param libjarsFile file with list of jars needed for ingest
+  * @param libjarsFiles files with list of jars needed for ingest
   * @param libjarsPaths paths to search for libjars
   * @param waitForCompletion wait for the job to complete before returning
   */
@@ -37,7 +37,7 @@ class DistributedConverterIngest(
     sft: SimpleFeatureType,
     converterConfig: Config,
     inputs: Seq[String],
-    libjarsFile: String,
+    libjarsFiles: Seq[String],
     libjarsPaths: Iterator[() => Seq[File]],
     waitForCompletion: Boolean = true
   ) extends AbstractConverterIngest(dsParams, sft) {
@@ -52,7 +52,7 @@ class DistributedConverterIngest(
   }
 
   protected def createJob(): ConverterIngestJob =
-    new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFile, libjarsPaths)
+    new ConverterIngestJob(dsParams, sft, converterConfig, inputs, libjarsFiles, libjarsPaths)
 }
 
 object DistributedConverterIngest {
@@ -68,9 +68,9 @@ object DistributedConverterIngest {
       sft: SimpleFeatureType,
       converterConfig: Config,
       paths: Seq[String],
-      libjarsFile: String,
+      libjarsFiles: Seq[String],
       libjarsPaths: Iterator[() => Seq[File]]
-    ) extends AbstractIngestJob(dsParams, sft.getTypeName, paths, libjarsFile, libjarsPaths) {
+    ) extends AbstractIngestJob(dsParams, sft, paths, libjarsFiles, libjarsPaths) {
 
     import ConverterInputFormat.{Counters => ConvertCounters}
     import GeoMesaOutputFormat.{Counters => OutCounters}

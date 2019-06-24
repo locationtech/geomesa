@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.io.{IOException, Serializable, StringReader, StringWriter}
+import java.io.{IOException, StringReader, StringWriter}
 import java.util.{Collections, Properties}
 
 import com.typesafe.scalalogging.LazyLogging
@@ -83,7 +83,7 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
     * @param params parameter map
     * @return
     */
-  def exists(params: java.util.Map[String, _ <: Serializable]): Boolean =
+  def exists(params: java.util.Map[String, _]): Boolean =
     params.get(key) != null || deprecated.exists(params.get(_) != null)
 
   /**
@@ -101,7 +101,7 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
     * @param params parameter map
     * @return
     */
-  def lookup(params: java.util.Map[String, _ <: Serializable]): T = {
+  def lookup(params: java.util.Map[String, _]): T = {
     val value = if (params.containsKey(key)) {
       lookUp(params)
     } else if (deprecated.exists(params.containsKey)) {
@@ -133,7 +133,7 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
     * @param params parameter map
     * @return
     */
-  def lookupOpt(params: java.util.Map[String, _ <: Serializable]): Option[T] = Option(lookup(params))
+  def lookupOpt(params: java.util.Map[String, _]): Option[T] = Option(lookup(params))
 
   /**
     * Logs a warning about deprecated parameter keys
@@ -148,16 +148,14 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
 
 object GeoMesaParam {
 
-  import scala.collection.JavaConverters._
-
   trait DeprecatedParam[T <: AnyRef] {
     def key: String
-    def lookup(params: java.util.Map[String, _ <: Serializable], required: Boolean): T
+    def lookup(params: java.util.Map[String, _], required: Boolean): T
   }
 
   case class ConvertedParam[T <: AnyRef, U <: AnyRef](key: String, convert: U => T)(implicit ct: ClassTag[U])
       extends DeprecatedParam[T] {
-    override def lookup(params: java.util.Map[String, _ <: Serializable], required: Boolean): T = {
+    override def lookup(params: java.util.Map[String, _], required: Boolean): T = {
       val res = Option(new Param(key, ct.runtimeClass, "", required).lookUp(params).asInstanceOf[U]).map(convert)
       res.asInstanceOf[Option[AnyRef]].orNull.asInstanceOf[T] // scala compiler forces these casts...
     }

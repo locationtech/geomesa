@@ -8,12 +8,16 @@
 
 package org.locationtech.geomesa.bigtable.tools
 
+import java.io.File
+
+import org.apache.hadoop.hbase.client.Connection
 import org.locationtech.geomesa.bigtable.data.BigtableDataStoreFactory
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams
+import org.locationtech.geomesa.hbase.data.{HBaseDataStore, HBaseDataStoreParams}
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
+import org.locationtech.geomesa.tools.DistributedCommand
+import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
 trait BigtableDataStoreCommand extends HBaseDataStoreCommand {
-
   override def connection: Map[String, String] = {
     Map(
       BigtableDataStoreFactory.BigtableCatalogParam.getName -> params.catalog,
@@ -22,5 +26,20 @@ trait BigtableDataStoreCommand extends HBaseDataStoreCommand {
       HBaseDataStoreParams.EnableSecurityParam.getName      -> params.secure.toString,
       HBaseDataStoreParams.AuthsParam.getName               -> params.auths
     ).filter(_._2 != null)
+  }
+}
+
+object BigtableDataStoreCommand {
+
+  trait BigtableDistributedCommand extends BigtableDataStoreCommand with DistributedCommand {
+
+    abstract override def libjarsFiles: Seq[String] =
+      Seq("org/locationtech/geomesa/bigtable/tools/bigtable-libjars.list") ++ super.libjarsFiles
+
+    abstract override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
+      () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_BIGTABLE_HOME", "lib"),
+      () => ClassPathUtils.getJarsFromClasspath(classOf[HBaseDataStore]),
+      () => ClassPathUtils.getJarsFromClasspath(classOf[Connection])
+    ) ++ super.libjarsPaths
   }
 }
