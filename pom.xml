@@ -2021,23 +2021,23 @@
                 <version>3.6.2.Final</version>
             </dependency>
 
-            <!-- geoserver 2.14 spring version -->
+            <!-- geoserver 2.15 spring version -->
             <dependency>
                 <groupId>org.springframework</groupId>
                 <artifactId>spring-webmvc</artifactId>
-                <version>4.3.18.RELEASE</version>
+                <version>5.1.1.RELEASE</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-core</artifactId>
-                <version>4.2.7.RELEASE</version>
+                <version>5.1.1.RELEASE</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.springframework.security</groupId>
                 <artifactId>spring-security-web</artifactId>
-                <version>4.2.7.RELEASE</version>
+                <version>5.1.1.RELEASE</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>

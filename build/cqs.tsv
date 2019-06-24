@@ -274,8 +274,8 @@ org.apache.spark:spark-core_2.11	2.3.1	provided
 org.apache.spark:spark-sql_2.11	2.3.1	provided
 org.apache.spark:spark-yarn_2.11	2.3.1	provided
 org.scala-lang:scala-compiler	2.11.7	provided
-org.springframework.security:spring-security-core	4.2.7.RELEASE	provided
-org.springframework.security:spring-security-web	4.2.7.RELEASE	provided
+org.springframework.security:spring-security-core	5.1.1.RELEASE	provided
+org.springframework.security:spring-security-web	5.1.1.RELEASE	provided
 org.springframework:spring-web	4.3.18.RELEASE	provided
 
 io.confluent:kafka-schema-registry	5.1.0	test
