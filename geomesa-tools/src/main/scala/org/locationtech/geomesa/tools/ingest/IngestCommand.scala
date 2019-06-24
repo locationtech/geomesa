@@ -27,6 +27,7 @@ import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, Prompt}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.{ConfigSftParsing, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose}
@@ -127,6 +128,8 @@ trait IngestCommand[DS <: DataStore] extends DataStoreCommand[DS] with Distribut
 }
 
 object IngestCommand extends LazyLogging {
+
+  val LocalBatchSize = SystemProperty("geomesa.ingest.local.batch.size", "20000")
 
   // @Parameters(commandDescription = "Ingest/convert various file formats into GeoMesa")
   trait IngestParams extends OptionalTypeNameParam with OptionalFeatureSpecParam with OptionalForceParam

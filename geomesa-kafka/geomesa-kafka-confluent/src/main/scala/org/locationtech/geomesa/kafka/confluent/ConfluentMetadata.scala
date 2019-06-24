@@ -81,6 +81,7 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
   override def insert(typeName: String, key: String, value: String): Unit = {}
   override def insert(typeName: String, kvPairs: Map[String, String]): Unit = {}
   override def remove(typeName: String, key: String): Unit = {}
+  override def remove(typeName: String, keys: Seq[String]): Unit = {}
   override def delete(typeName: String): Unit = {}
 }
 
