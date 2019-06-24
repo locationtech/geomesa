@@ -185,7 +185,7 @@ we make use of GeoMesa's DataFrame to GeoJSON converter.
 
 .. code-block:: scala
 
-    import org.locationtech.geomesa.spark.jts.util.GeoJSONExtensions._
+    import org.locationtech.geomesa.spark.sql.GeoJSONExtensions._
     val geojsonDF = aggregateDF.toGeoJSON
 
 If the result can fit in memory, it can then be collected on the driver and written to a file. If not, each executor can
