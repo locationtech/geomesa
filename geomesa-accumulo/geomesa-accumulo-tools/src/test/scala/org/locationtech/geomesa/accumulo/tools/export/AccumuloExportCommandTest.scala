@@ -118,6 +118,16 @@ class AccumuloExportCommandTest extends TestWithDataStore {
         command.execute()
         readFeatures(format, file) mustEqual features
       }
+      // exclude BIN as we only support sort in ascending order
+      forall(formats.filter(_ != ExportFormat.Bin)) { format =>
+        val file = s"$out/${format.name}/sort-rev/out.${format.extensions.head}"
+        val command = connectedCommand()
+        command.params.file = file
+        command.params.sortFields = Collections.singletonList("dtg")
+        command.params.sortDescending = true
+        command.execute()
+        readFeatures(format, file) mustEqual features.reverse
+      }
     }
     "support max features" in {
       // note: arrow and bin use server side aggregation, so we can't get an exact feature limit

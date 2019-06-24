@@ -144,6 +144,17 @@ class ExportCommandTest extends Specification {
         }
         readFeatures(format, file) mustEqual features.reverse
       }
+      // exclude BIN as we only support sort in ascending order
+      forall(formats.filter(_ != ExportFormat.Bin)) { format =>
+        val file = s"$out/${format.name}/sort-rev/out.${format.extensions.head}"
+        withCommand { command =>
+          command.params.file = file
+          command.params.sortFields = Collections.singletonList("dtg")
+          command.params.sortDescending = true
+          command.execute()
+        }
+        readFeatures(format, file) mustEqual features
+      }
     }
     "support max features" in {
       forall(formats) { format =>
