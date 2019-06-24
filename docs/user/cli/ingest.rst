@@ -126,3 +126,6 @@ disabled in this case, and progress indicators may not be entirely accurate, as 
 For example::
 
     cat foo.csv | geomesa-accumulo ingest ...
+
+For local ingests, feature writers will be pooled and only flushed periodically. The frequency of flushes can be
+controlled via the system property ``geomesa.ingest.local.batch.size``, and defaults to every 20,000 features.

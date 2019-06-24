@@ -124,6 +124,12 @@ While the following filters both specify a 358-degree globe-spanning polygon:
   // no processing
   "intersects(geom, 'POLYGON((-179 90, 179 90, 179 -90, -179 -90, -179 90))')"
 
+geomesa.ingest.local.batch.size
++++++++++++++++++++++++++++++++
+
+Controls the batch size for local ingests via the command-line tools. By default, feature writers will be
+flushed every 20,000 features.
+
 geomesa.metadata.expiry
 +++++++++++++++++++++++
 
