@@ -127,7 +127,7 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
     import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 
     // calculate the stats we'll be gathering based on the simple feature type attributes
-    val statString = buildStatsFor(sft)
+    val statString = buildStatsFor(sft, bounds(sft))
 
     logger.debug(s"Calculating stats for ${sft.getTypeName}: $statString")
 
@@ -174,7 +174,7 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
   }
 
   override def statUpdater(sft: SimpleFeatureType): StatUpdater =
-    if (update) new MetadataStatUpdater(this, sft, Stat(sft, buildStatsFor(sft))) else NoopStatUpdater
+    if (update) { new MetadataStatUpdater(sft) } else { NoopStatUpdater }
 
   override def clearStats(sft: SimpleFeatureType): Unit = metadata.delete(sft.getTypeName)
 
@@ -252,9 +252,10 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
     * For any flagged attributes, we collect min/max and top-k
     *
     * @param sft simple feature type
+    * @param bounds lookup function for histogram bounds
     * @return stat string
     */
-  protected def buildStatsFor(sft: SimpleFeatureType): String = {
+  protected def buildStatsFor(sft: SimpleFeatureType, bounds: String => Option[MinMax[Any]]): String = {
     import GeoMesaStats._
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
@@ -306,13 +307,7 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
       // calculate the endpoints for the histogram
       // the histogram will expand as needed, but this is a starting point
       val (lower, upper, cardinality) = {
-        val mm = try {
-          readStat[MinMax[Any]](sft, minMaxKey(attribute))
-        } catch {
-          case NonFatal(e) =>
-            logger.error("Error reading existing stats - possibly the distributed runtime jar is not available", e)
-            None
-        }
+        val mm = bounds(attribute)
         val (min, max) = mm match {
           case None => defaultBounds(binding)
           // max has to be greater than min for the histogram bounds
@@ -336,6 +331,65 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
     }
 
     Stat.SeqStat(Seq(count) ++ minMax ++ topK ++ histograms ++ frequencies ++ z3Histogram)
+  }
+
+  /**
+    * Default lookup function for histogram bounds
+    *
+    * @param sft simple feature type
+    * @param attribute attribute
+    * @return
+    */
+  private def bounds(sft: SimpleFeatureType)(attribute: String): Option[MinMax[Any]] = {
+    try {
+      readStat[MinMax[Any]](sft, minMaxKey(attribute))
+    } catch {
+      case NonFatal(e) =>
+        logger.error("Error reading existing stats - possibly the distributed runtime jar is not available", e)
+        None
+    }
+  }
+
+  /**
+    * Stores stats as metadata entries
+    *
+    * @param sft simple feature type
+    */
+  class MetadataStatUpdater(sft: SimpleFeatureType) extends StatUpdater with LazyLogging {
+
+    private var stat: Stat = Stat(sft, buildStatsFor(sft, bounds(sft)))
+
+    override def add(sf: SimpleFeature): Unit = stat.observe(sf)
+
+    override def remove(sf: SimpleFeature): Unit = stat.unobserve(sf)
+
+    override def close(): Unit = {
+      if (!stat.isEmpty) {
+        writeStat(stat, sft, merge = true)
+      }
+    }
+
+    override def flush(): Unit = {
+      if (!stat.isEmpty) {
+        writeStat(stat, sft, merge = true)
+      }
+      // reload the tracker - for long-held updaters, this will refresh the histogram ranges
+      stat = Stat(sft, buildStatsFor(sft, localBounds))
+    }
+
+    /**
+      * Get the bounds we've seen so far in this updater, but don't re-load from Accumulo as that
+      * can be slow
+      *
+      * @param attribute attribute
+      * @return
+      */
+    private def localBounds(attribute: String): Option[MinMax[Any]] = {
+      stat match {
+        case s: SeqStat => s.stats.collectFirst { case m: MinMax[Any] if m.property == attribute => m }
+        case _ => logger.error(s"Expected to have a SeqStat but got: $stat"); None
+      }
+    }
   }
 }
 
@@ -430,37 +484,5 @@ object MetadataBackedStats {
 
     override def deserialize(typeName: String, value: Array[Byte]): Stat =
       serializer(typeName).deserialize(value, immutable = true)
-  }
-
-  /**
-    * Stores stats as metadata entries
-    *
-    * @param stats persistence
-    * @param sft simple feature type
-    * @param statFunction creates stats for tracking new features - this will be re-created on flush,
-    *                     so that our bounds are more accurate
-    */
-  class MetadataStatUpdater(stats: MetadataBackedStats, sft: SimpleFeatureType, statFunction: => Stat)
-      extends StatUpdater with LazyLogging {
-
-    private var stat: Stat = statFunction
-
-    override def add(sf: SimpleFeature): Unit = stat.observe(sf)
-
-    override def remove(sf: SimpleFeature): Unit = stat.unobserve(sf)
-
-    override def close(): Unit = {
-      if (!stat.isEmpty) {
-        stats.writeStat(stat, sft, merge = true)
-      }
-    }
-
-    override def flush(): Unit = {
-      if (!stat.isEmpty) {
-        stats.writeStat(stat, sft, merge = true)
-      }
-      // reload the tracker - for long-held updaters, this will refresh the histogram ranges
-      stat = statFunction
-    }
   }
 }

@@ -156,14 +156,16 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
     invalidate(metaDataScanCache, typeName)
   }
 
-  override def remove(typeName: String, key: String): Unit = {
+  override def remove(typeName: String, key: String): Unit = remove(typeName, Seq(key))
+
+  override def remove(typeName: String, keys: Seq[String]): Unit = {
     if (tableExists.get) {
-      delete(typeName, Seq(key))
+      delete(typeName, keys)
       // also remove from the cache
-      metaDataCache.invalidate((typeName, key))
+      keys.foreach(k => metaDataCache.invalidate((typeName, k)))
       invalidate(metaDataScanCache, typeName)
     } else {
-      logger.debug(s"Trying to delete '$typeName:$key' but table does not exist")
+      logger.debug(s"Trying to delete '$typeName: ${keys.mkString(", ")}' but table does not exist")
     }
   }
 
