@@ -13,7 +13,7 @@ object L {
   import org.apache.commons.text.{RandomStringGenerator, StringEscapeUtils}
   import org.apache.spark.sql._
   import org.geotools.geojson.geom.GeometryJSON
-  import org.locationtech.geomesa.spark.{GeoMesaDataSource, SparkUtils}
+  import org.locationtech.geomesa.spark.SparkUtils
   import org.locationtech.jts.geom._
   import org.opengis.feature.`type`.AttributeDescriptor
   import org.opengis.feature.simple.SimpleFeature
@@ -143,10 +143,10 @@ object L {
   case class DataFrameLayerNonPoint(df: DataFrame, idField: String, style: StyleOption)
     extends GeoRenderable with DataFrameLayer {
     private val dfc = df.collect() // expensive operation
-    private val sft = new GeoMesaDataSource().structType2SFT(df.schema, "sft")
+    private val sft = SparkUtils.createFeatureType("sft", df.schema)
     // expensive map operation
-    private val mappings = SparkUtils.sftToRowMappings(sft, df.schema)
-    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(sft, mappings, r, r.getAs[String](idField))).toSeq
+    private val mappings = SparkUtils.rowsToFeatures(sft, df.schema).copy(id = r => r.getAs[String](idField))
+    private val sftSeq = dfc.map(mappings.apply).toSeq
     private val sftLayer = SimpleFeatureLayerNonPoint(sftSeq, style)
     override def render: String = sftLayer.render
   }
@@ -154,10 +154,10 @@ object L {
   case class DataFrameLayerPoint(df: DataFrame, idField: String, style: StyleOption, radius: Double = 5.0)
     extends GeoRenderable with DataFrameLayer {
     private val dfc = df.collect() // expensive operation
-    private val sft = new GeoMesaDataSource().structType2SFT(df.schema, "sft")
+    private val sft = SparkUtils.createFeatureType("sft", df.schema)
     // expensive map operation
-    private val mappings = SparkUtils.sftToRowMappings(sft, df.schema)
-    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(sft, mappings, r, r.getAs[String](idField))).toSeq
+    private val mappings = SparkUtils.rowsToFeatures(sft, df.schema).copy(id = r => r.getAs[String](idField))
+    private val sftSeq = dfc.map(mappings.apply).toSeq
     private val sftLayer = SimpleFeatureLayerPoint(sftSeq, style, radius)
     override def render: String = sftLayer.render
   }

@@ -56,6 +56,7 @@ class RowGeoJSON(structType: StructType, geomOrdinal: Int) {
   }
 }
 
+@deprecated("Use org.locationtech.geomesa.spark.GeoJSONExtensions")
 object GeoJSONExtensions {
 
   implicit def geoJsonDataFrame(df: DataFrame): GeoJSONDataFrame = new GeoJSONDataFrame(df)
@@ -68,7 +69,8 @@ object GeoJSONExtensions {
     def toGeoJSON(geomOrdinal: Int): Dataset[String] = {
       df.mapPartitions { iter =>
         val rowGeoJSON = new RowGeoJSON(schema, geomOrdinal)
-        iter.map{ r => rowGeoJSON.toGeoJSON(r) }
+        val res = iter.map{ r => rowGeoJSON.toGeoJSON(r) }
+        res
       }
     }
 
