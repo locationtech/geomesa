@@ -17,7 +17,7 @@ import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.{AccumuloBackedMetadata, _}
 import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
-import org.locationtech.geomesa.index.stats.MetadataBackedStats.{MetadataStatUpdater, WritableStat}
+import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
 import org.locationtech.geomesa.index.stats.NoopStats.NoopStatUpdater
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.utils.stats._
@@ -60,7 +60,7 @@ class AccumuloGeoMesaStats(
   compactor.run() // schedule initial compaction
 
   override def statUpdater(sft: SimpleFeatureType): StatUpdater =
-    if (generateStats) new AccumuloStatUpdater(this, sft, Stat(sft, buildStatsFor(sft))) else NoopStatUpdater
+    if (generateStats) { new AccumuloStatUpdater(sft) } else { NoopStatUpdater }
 
   override def close(): Unit = {
     super.close()
@@ -70,18 +70,16 @@ class AccumuloGeoMesaStats(
 
   override protected def write(typeName: String, stats: Seq[WritableStat]): Unit = {
     val (merge, overwrite) = stats.partition(_.merge)
-    merge.foreach { s =>
-      metadata.insert(typeName, s.key, s.stat)
-      // invalidate the cache as we would need to reload from accumulo for the combiner to take effect
-      metadata.invalidateCache(typeName, s.key)
-    }
+    metadata.insert(typeName, merge.map(s => s.key -> s.stat).toMap)
+    // invalidate the cache as we would need to reload from accumulo for the combiner to take effect
+    merge.foreach(s => metadata.invalidateCache(typeName, s.key))
     if (overwrite.nonEmpty) {
       // due to accumulo issues with combiners, deletes and compactions, we have to:
       // 1) delete the existing data; 2) compact the table; 3) insert the new value
       // see: https://issues.apache.org/jira/browse/ACCUMULO-2232
-      overwrite.foreach(s => metadata.remove(typeName, s.key))
+      metadata.remove(typeName, overwrite.map(_.key))
       compact()
-      overwrite.foreach(s => metadata.insert(typeName, s.key, s.stat))
+      metadata.insert(typeName, overwrite.map(s => s.key -> s.stat).toMap)
     }
   }
 
@@ -118,33 +116,30 @@ class AccumuloGeoMesaStats(
   /**
     * Schedules a compaction for the stat table
     */
-  private [stats] def scheduleCompaction(): Unit = compactionScheduled.set(true)
+  private def scheduleCompaction(): Unit = compactionScheduled.set(true)
 
   /**
     * Performs a synchronous compaction of the stats table
     */
-  private def compact(): Unit = {
+  private [accumulo] def compact(wait: Boolean = true): Unit = {
     compactionScheduled.set(false)
-    ds.connector.tableOperations().compact(statsTable, null, null, true, true)
+    ds.connector.tableOperations().compact(statsTable, null, null, true, wait)
     lastCompaction.set(System.currentTimeMillis())
   }
-}
 
-/**
-  * Stores stats as metadata entries
-  *
-  * @param stats persistence
-  * @param sft simple feature type
-  * @param statFunction creates stats for tracking new features - this will be re-created on flush,
-  *                     so that our bounds are more accurate
-  */
-class AccumuloStatUpdater(stats: AccumuloGeoMesaStats, sft: SimpleFeatureType, statFunction: => Stat)
-    extends MetadataStatUpdater(stats, sft, statFunction) {
 
-  override def close(): Unit = {
-    super.close()
-    // schedule a compaction so our metadata doesn't stack up too much
-    stats.scheduleCompaction()
+  /**
+    * Stores stats as metadata entries
+    *
+    * @param sft simple feature type
+    */
+  class AccumuloStatUpdater(sft: SimpleFeatureType) extends MetadataStatUpdater(sft) {
+
+    override def close(): Unit = {
+      super.close()
+      // schedule a compaction so our metadata doesn't stack up too much
+      scheduleCompaction()
+    }
   }
 }
 
