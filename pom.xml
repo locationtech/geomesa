@@ -86,7 +86,7 @@
         <kryo.version>3.0.3</kryo.version>
         <arrow.version>0.10.0</arrow.version>
         <netty.version>4.1.17.Final</netty.version>
-        <metrics.version>3.1.2</metrics.version>
+        <metrics.version>3.2.6</metrics.version>
 
         <!-- environment-dependent versions -->
         <!-- These are compiled and pass CQs and should be compatible with recommended versions -->
