@@ -109,7 +109,7 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
   }
 
   override def statUpdater(sft: SimpleFeatureType): StatUpdater =
-    if (generateStats) new MetadataStatUpdater(this, sft, Stat(sft, buildStatsFor(sft))) else NoopStatUpdater
+    if (generateStats) { new AccumuloStatUpdater(sft) } else { NoopStatUpdater }
 
   override def close(): Unit = {
     super.close()
@@ -159,33 +159,30 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
   /**
     * Schedules a compaction for the stat table
     */
-  private [stats] def scheduleCompaction(): Unit = compactionScheduled.set(true)
+  private def scheduleCompaction(): Unit = compactionScheduled.set(true)
 
   /**
     * Performs a synchronous compaction of the stats table
     */
-  private def compact(): Unit = {
+  private [accumulo] def compact(wait: Boolean = true): Unit = {
     compactionScheduled.set(false)
-    ds.connector.tableOperations().compact(statsTable, null, null, true, true)
+    ds.connector.tableOperations().compact(statsTable, null, null, true, wait)
     lastCompaction.set(System.currentTimeMillis())
   }
-}
 
-/**
-  * Stores stats as metadata entries
-  *
-  * @param stats persistence
-  * @param sft simple feature type
-  * @param statFunction creates stats for tracking new features - this will be re-created on flush,
-  *                     so that our bounds are more accurate
-  */
-class AccumuloStatUpdater(stats: AccumuloGeoMesaStats, sft: SimpleFeatureType, statFunction: => Stat)
-    extends MetadataStatUpdater(stats, sft, statFunction) {
 
-  override def close(): Unit = {
-    super.close()
-    // schedule a compaction so our metadata doesn't stack up too much
-    stats.scheduleCompaction()
+  /**
+    * Stores stats as metadata entries
+    *
+    * @param sft simple feature type
+    */
+  class AccumuloStatUpdater(sft: SimpleFeatureType) extends MetadataStatUpdater(sft) {
+
+    override def close(): Unit = {
+      super.close()
+      // schedule a compaction so our metadata doesn't stack up too much
+      scheduleCompaction()
+    }
   }
 }
 

@@ -22,7 +22,7 @@ import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils}
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, PathUtils}
 import org.locationtech.geomesa.utils.stats.CountingInputStream
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -99,66 +99,7 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
     beforeRunTasks()
     Command.user.info("Running ingestion in local mode")
 
-    // Global failure shared between threads
-    val written = new AtomicLong(0)
-    val failed = new AtomicLong(0)
-    val errors = new AtomicInteger(0)
-
-    val bytesRead = new AtomicLong(0L)
-
-    class LocalIngestWorker(file: FileHandle) extends Runnable {
-      override def run(): Unit = {
-        try {
-          var fw: FeatureWriter[SimpleFeatureType, SimpleFeature] = null
-          val converter = createLocalConverter(file.path, failed)
-          // count the raw bytes read from the file, as that's what we based our total on
-          val countingStream = new CountingInputStream(file.open)
-          val is = PathUtils.handleCompression(countingStream, file.path)
-          try {
-            val features = converter.convert(is)
-            if (features.hasNext) {
-              fw = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
-            }
-            features.foreach { sf =>
-              val toWrite = fw.next()
-              toWrite.setAttributes(sf.getAttributes)
-              toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
-              toWrite.getUserData.putAll(sf.getUserData)
-              toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-              try {
-                fw.write()
-                written.incrementAndGet()
-              } catch {
-                case NonFatal(e) =>
-                  logger.error(s"Failed to write '${DataUtilities.encodeFeature(toWrite)}'", e)
-                  failed.incrementAndGet()
-              }
-              bytesRead.addAndGet(countingStream.getCount)
-              countingStream.resetCount()
-            }
-          } finally {
-            CloseWithLogging(converter)
-            CloseWithLogging(is)
-            if (fw != null) {
-              fw.close() // allow exception to propagate
-            }
-          }
-        } catch {
-          case e @ (_: ClassNotFoundException | _: NoClassDefFoundError) =>
-            // Rethrow exception so it can be caught by getting the future of this runnable in the main thread
-            // which will in turn cause the exception to be handled by org.locationtech.geomesa.tools.Runner
-            // Likely all threads will fail if a dependency is missing so it will terminate quickly
-            throw e
-
-          case NonFatal(e) =>
-            // Don't kill the entire program b/c this thread was bad! use outer try/catch
-            val msg = s"Fatal error running local ingest worker on ${file.path}"
-            Command.user.error(msg)
-            logger.error(msg, e)
-            errors.incrementAndGet()
-        }
-      }
-    }
+    val start = System.currentTimeMillis()
 
     // if inputs is empty, we've already validated that stdin has data to read
     val stdin = inputs.isEmpty
@@ -170,35 +111,115 @@ abstract class AbstractIngest(val dsParams: Map[String, String],
       files.length
     }
 
-    Command.user.info(s"Ingesting ${if (stdin) { "from stdin" } else { TextTools.getPlural(files.length, "file") }} " +
-        s"with ${TextTools.getPlural(threads, "thread")}")
+    // Global failure shared between threads
+    val written = new AtomicLong(0)
+    val failed = new AtomicLong(0)
+    val errors = new AtomicInteger(0)
 
-    val totalLength: () => Float = if (stdin) {
-      () => (bytesRead.get + files.map(_.length).sum).toFloat // re-evaluate each time as bytes are read from stdin
-    } else {
-      val length = files.map(_.length).sum.toFloat // only evaluate once
-      () => length
+    val bytesRead = new AtomicLong(0L)
+    val batch = IngestCommand.LocalBatchSize.toInt.getOrElse {
+      throw new IllegalArgumentException(
+        s"Invalid batch size for property ${IngestCommand.LocalBatchSize.property}: " +
+            IngestCommand.LocalBatchSize.get)
     }
 
-    def progress(): Float = bytesRead.get() / totalLength()
+    val writers = CloseablePool(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT), threads)
+    val batches = new ConcurrentHashMap[FeatureWriter[SimpleFeatureType, SimpleFeature], AtomicInteger]()
 
-    val start = System.currentTimeMillis()
-    val statusCallback = createCallback()
-    val es = Executors.newFixedThreadPool(threads)
-    val futures = files.map(f => es.submit(new LocalIngestWorker(f))).toList
-    es.shutdown()
+    try {
+      class LocalIngestWorker(file: FileHandle) extends Runnable {
+        override def run(): Unit = {
+          try {
+            val converter = createLocalConverter(file.path, failed)
+            // count the raw bytes read from the file, as that's what we based our total on
+            val countingStream = new CountingInputStream(file.open)
+            val is = PathUtils.handleCompression(countingStream, file.path)
+            try {
+              val features = converter.convert(is)
+              writers.borrow { writer =>
+                var count = batches.get(writer)
+                if (count == null) {
+                  count = new AtomicInteger()
+                  batches.put(writer, count)
+                }
+                features.foreach { sf =>
+                  val toWrite = writer.next()
+                  toWrite.setAttributes(sf.getAttributes)
+                  toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
+                  toWrite.getUserData.putAll(sf.getUserData)
+                  toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+                  try {
+                    writer.write()
+                    written.incrementAndGet()
+                    count.incrementAndGet()
+                  } catch {
+                    case NonFatal(e) =>
+                      logger.error(s"Failed to write '${DataUtilities.encodeFeature(toWrite)}'", e)
+                      failed.incrementAndGet()
+                  }
+                  if (count.get % batch == 0) {
+                    count.set(0)
+                    writer match {
+                      case f: Flushable => f.flush()
+                      case _ => // no-op
+                    }
+                  }
+                  bytesRead.addAndGet(countingStream.getCount)
+                  countingStream.resetCount()
+                }
+              }
+            } finally {
+              CloseWithLogging(converter)
+              CloseWithLogging(is)
+            }
+          } catch {
+            case e @ (_: ClassNotFoundException | _: NoClassDefFoundError) =>
+              // Rethrow exception so it can be caught by getting the future of this runnable in the main thread
+              // which will in turn cause the exception to be handled by org.locationtech.geomesa.tools.Runner
+              // Likely all threads will fail if a dependency is missing so it will terminate quickly
+              throw e
 
-    def counters = Seq(("ingested", written.get()), ("failed", failed.get()))
+            case NonFatal(e) =>
+              // Don't kill the entire program b/c this thread was bad! use outer try/catch
+              val msg = s"Fatal error running local ingest worker on ${file.path}"
+              Command.user.error(msg)
+              logger.error(msg, e)
+              errors.incrementAndGet()
+          }
+        }
+      }
 
-    while (!es.isTerminated) {
-      Thread.sleep(500)
-      statusCallback("", progress(), counters, done = false)
+      Command.user.info(s"Ingesting ${if (stdin) { "from stdin" } else { TextTools.getPlural(files.length, "file") }} " +
+          s"with ${TextTools.getPlural(threads, "thread")}")
+
+      val totalLength: () => Float = if (stdin) {
+        () => (bytesRead.get + files.map(_.length).sum).toFloat // re-evaluate each time as bytes are read from stdin
+      } else {
+        val length = files.map(_.length).sum.toFloat // only evaluate once
+        () => length
+      }
+
+      def progress(): Float = bytesRead.get() / totalLength()
+
+      val statusCallback = createCallback()
+      val es = Executors.newFixedThreadPool(threads)
+      val futures = files.map(f => es.submit(new LocalIngestWorker(f))).toList
+      es.shutdown()
+
+      def counters = Seq(("ingested", written.get()), ("failed", failed.get()))
+
+      while (!es.isTerminated) {
+        Thread.sleep(500)
+        statusCallback("", progress(), counters, done = false)
+      }
+      statusCallback("", progress(), counters, done = true)
+
+      // Get all futures so that we can propagate the logging up to the top level for handling
+      // in org.locationtech.geomesa.tools.Runner to catch missing dependencies
+      futures.foreach(_.get)
+    } finally {
+      CloseWithLogging(writers).foreach(_ => errors.incrementAndGet())
     }
-    statusCallback("", progress(), counters, done = true)
-
-    // Get all futures so that we can propagate the logging up to the top level for handling
-    // in org.locationtech.geomesa.tools.Runner to catch missing dependencies
-    futures.foreach(_.get)
 
     Command.user.info(s"Local ingestion complete in ${TextTools.getTime(start)}")
     if (files.lengthCompare(1) == 0) {
