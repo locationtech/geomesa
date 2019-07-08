@@ -127,7 +127,7 @@ object SimpleFeatureSpec {
     protected def builderHook(builder: AttributeTypeBuilder): Unit = {}
   }
 
-  import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions.{OPT_DEFAULT, OPT_INDEX, OPT_SRID}
+  import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions.{OptDefault, OptIndex, OptSrid}
 
   private val simpleOptionPattern = Pattern.compile("[a-zA-Z0-9_]+")
 
@@ -143,7 +143,7 @@ object SimpleFeatureSpec {
     if (simpleTypeMap.contains(binding.getSimpleName)) {
       SimpleAttributeSpec(name, binding, options)
     } else if (geometryTypeMap.contains(binding.getSimpleName)) {
-      val opts = if (sft != null && sft.getGeometryDescriptor == descriptor) { options + (OPT_DEFAULT -> "true") } else { options }
+      val opts = if (sft != null && sft.getGeometryDescriptor == descriptor) { options + (OptDefault -> "true") } else { options }
       GeomAttributeSpec(name, binding, opts)
     } else if (classOf[java.util.List[_]].isAssignableFrom(binding)) {
       val itemClass = Option(descriptor.getListType()).getOrElse(classOf[String])
@@ -168,34 +168,34 @@ object SimpleFeatureSpec {
     */
   case class GeomAttributeSpec(name: String, clazz: Class[_], options: Map[String, String]) extends AttributeSpec {
 
-    private val default = options.get(OPT_DEFAULT).exists(_.toBoolean)
+    private val default = options.get(OptDefault).exists(_.toBoolean)
 
     override def toSpec: String = if (default) { s"*${super.toSpec}" } else { super.toSpec }
 
     override def builderHook(builder: AttributeTypeBuilder): Unit = {
-      require(!options.get(OPT_SRID).exists(_.toInt != 4326),
-        s"Invalid SRID '${options(OPT_SRID)}'. Only 4326 is supported.")
+      require(!options.get(OptSrid).exists(_.toInt != 4326),
+        s"Invalid SRID '${options(OptSrid)}'. Only 4326 is supported.")
       builder.crs(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
     }
 
     // default geoms are indicated by the *
     // we don't allow attribute indexing for geometries
-    override protected def specOptions: Map[String, String] = options - OPT_DEFAULT - OPT_INDEX
-    override protected def configOptions: Map[String, String] = options - OPT_INDEX
-    override protected def descriptorOptions: Map[String, String] = options - OPT_INDEX
+    override protected def specOptions: Map[String, String] = options - OptDefault - OptIndex
+    override protected def configOptions: Map[String, String] = options - OptIndex
+    override protected def descriptorOptions: Map[String, String] = options - OptIndex
   }
 
   /**
     * List attribute
     */
   case class ListAttributeSpec(name: String, subClass: Class[_], options: Map[String, String]) extends AttributeSpec {
-    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs.USER_DATA_LIST_TYPE
+    import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs.UserDataListType
 
     override val clazz: Class[java.util.List[_]] = classOf[java.util.List[_]]
     override val getClassSpec = s"List[${typeEncode(subClass)}]"
 
-    override protected def specOptions: Map[String, String] = options - USER_DATA_LIST_TYPE
-    override protected def descriptorOptions: Map[String, String] = options + (USER_DATA_LIST_TYPE -> subClass.getName)
+    override protected def specOptions: Map[String, String] = options - UserDataListType
+    override protected def descriptorOptions: Map[String, String] = options + (UserDataListType -> subClass.getName)
   }
 
   /**
@@ -209,9 +209,9 @@ object SimpleFeatureSpec {
     override val getClassSpec = s"Map[${typeEncode(keyClass)},${typeEncode(valueClass)}]"
 
     override protected def specOptions: Map[String, String] =
-      options - USER_DATA_MAP_VALUE_TYPE - USER_DATA_MAP_KEY_TYPE
+      options - UserDataMapValueType - UserDataMapKeyType
     override protected def descriptorOptions: Map[String, String] =
-      options + (USER_DATA_MAP_KEY_TYPE -> keyClass.getName) + (USER_DATA_MAP_VALUE_TYPE -> valueClass.getName)
+      options + (UserDataMapKeyType -> keyClass.getName) + (UserDataMapValueType -> valueClass.getName)
   }
 
   private val typeEncode: Map[Class[_], String] = Map(

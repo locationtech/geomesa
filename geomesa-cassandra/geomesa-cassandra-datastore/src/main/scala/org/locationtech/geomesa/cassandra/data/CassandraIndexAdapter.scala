@@ -16,7 +16,7 @@ import java.util.UUID
 import com.datastax.driver.core.Row
 import com.datastax.driver.core.exceptions.AlreadyExistsException
 import com.datastax.driver.core.querybuilder.{QueryBuilder, Select}
-import com.typesafe.scalalogging.StrictLogging
+import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.locationtech.geomesa.cassandra.ColumnSelect
 import org.locationtech.geomesa.cassandra.data.CassandraIndexAdapter.{CassandraIndexWriter, CassandraResultsToFeatures}
 import org.locationtech.geomesa.cassandra.index.CassandraColumnMapper
@@ -49,12 +49,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
         builder ++= index.attributes.map(a => s"${index.sft.indexOf(a)}")
         builder += s"v${index.version}"
         val base = builder.result.mkString("_")
-        var name = partition.map(p => s"${base}_$p").getOrElse(base)
-        if (name.length > 48) {
-          logger.warn(s"Table name length exceeds Cassandra limit, falling back to UUID: $name")
-          // UUID is 32 chars - prefix with a letter as leading numbers throw errors
-          name = "gm_" + UUID.randomUUID().toString.replaceAllLiterally("-", "")
-        }
+        val name = CassandraIndexAdapter.safeTableName(partition.map(p => s"${base}_$p").getOrElse(base))
         ds.metadata.insert(index.sft.getTypeName, key, name)
         name
       }
@@ -74,6 +69,9 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
       }
     }
   }
+
+  override def renameTable(from: String, to: String): Unit =
+    throw new NotImplementedError("Cassandra does not support renaming tables")
 
   override def deleteTables(tables: Seq[String]): Unit = {
     tables.foreach { table =>
@@ -128,7 +126,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
     new CassandraIndexWriter(ds, indices, WritableFeature.wrapper(sft, groups), partition)
 }
 
-object CassandraIndexAdapter {
+object CassandraIndexAdapter extends LazyLogging {
 
   def statement(keyspace: String, table: String, criteria: Seq[ColumnSelect]): Select = {
     val select = QueryBuilder.select.all.from(keyspace, table)
@@ -163,6 +161,20 @@ object CassandraIndexAdapter {
       }
     }
     select
+  }
+
+  /**
+    * Gets a valid table name
+    *
+    * @param name desired name
+    * @return
+    */
+  def safeTableName(name: String): String = {
+    if (name.length <= 48) { name } else {
+      logger.warn(s"Table name length exceeds Cassandra limit, falling back to UUID: $name")
+      // UUID is 32 chars - prefix with a letter as leading numbers throw errors
+      "gm_" + UUID.randomUUID().toString.replaceAllLiterally("-", "")
+    }
   }
 
   class CassandraResultsToFeatures(_index: GeoMesaFeatureIndex[_, _], _sft: SimpleFeatureType)

@@ -6,11 +6,11 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.tools.data
+package org.locationtech.geomesa.accumulo.tools.ingest
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.tools.data.AccumuloDeleteFeaturesCommand.AccumuloDeleteFeaturesParams
+import org.locationtech.geomesa.accumulo.tools.ingest.AccumuloDeleteFeaturesCommand.AccumuloDeleteFeaturesParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand
 import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand.DeleteFeaturesParams

@@ -36,7 +36,7 @@ class SimpleFeatureVectorTest extends Specification {
   }
 
   val uuidSft = SimpleFeatureTypes.createType(sft.getTypeName,
-    SimpleFeatureTypes.encodeType(sft) + s";${Configs.FID_UUID_KEY}=true")
+    SimpleFeatureTypes.encodeType(sft) + s";${Configs.FidsAreUuids}=true")
 
   "SimpleFeatureVector" should {
     "set and get values" >> {

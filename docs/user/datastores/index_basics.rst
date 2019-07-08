@@ -1,3 +1,5 @@
+.. _index_basics:
+
 Index Basics
 ============
 
@@ -63,6 +65,11 @@ To index an attribute, add an ``index`` key to the attribute descriptor user dat
 Setting the user data can be done in multiple ways. See :ref:`set_sft_options` for more details.
 
 To prioritize certain attributes over others, see :ref:`attribute_cardinality`.
+
+.. warning::
+
+  List type attributes may be indexed, but querying a list-type index may result in duplicate results. If
+  duplicate results are a problem, users should implement their own de-duplication logic for list queries.
 
 .. _index_versioning:
 

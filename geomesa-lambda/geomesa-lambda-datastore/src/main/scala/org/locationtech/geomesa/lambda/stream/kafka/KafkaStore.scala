@@ -176,8 +176,9 @@ object KafkaStore {
     val Delete: Byte = 1
   }
 
-  def topic(ns: String, sft: SimpleFeatureType): String =
-    s"${ns}_${sft.getTypeName}".replaceAll("[^a-zA-Z0-9_\\-]", "_")
+  def topic(ns: String, sft: SimpleFeatureType): String = topic(ns, sft.getTypeName)
+
+  def topic(ns: String, typeName: String): String = s"${ns}_$typeName".replaceAll("[^a-zA-Z0-9_\\-]", "_")
 
   def withZk[T](zookeepers: String)(fn: ZkUtils => T): T = {
     val security = SystemProperty("geomesa.zookeeper.security.enabled").option.exists(_.toBoolean)

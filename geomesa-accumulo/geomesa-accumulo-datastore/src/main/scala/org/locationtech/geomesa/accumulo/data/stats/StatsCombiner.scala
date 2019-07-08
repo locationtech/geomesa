@@ -16,7 +16,7 @@ import org.apache.accumulo.core.iterators.{Combiner, IteratorEnvironment, Sorted
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.SingleRowAccumuloMetadata
 import org.locationtech.geomesa.accumulo.data.stats.AccumuloGeoMesaStats.CombinerName
-import org.locationtech.geomesa.index.metadata.CachedLazyBinaryMetadata
+import org.locationtech.geomesa.index.metadata.KeyValueStoreMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -51,7 +51,7 @@ class StatsCombiner extends Combiner with LazyLogging {
     val head = iter.next()
     if (!iter.hasNext) { head } else {
       val sftName = try {
-        CachedLazyBinaryMetadata.decodeRow(key.getRow.getBytes, separator)._1
+        KeyValueStoreMetadata.decodeRow(key.getRow.getBytes, separator)._1
       } catch {
         // back compatible check
         case NonFatal(_) => SingleRowAccumuloMetadata.getTypeName(key.getRow)

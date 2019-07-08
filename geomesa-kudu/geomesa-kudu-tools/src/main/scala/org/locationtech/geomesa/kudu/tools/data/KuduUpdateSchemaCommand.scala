@@ -12,15 +12,15 @@ import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.kudu.data.KuduDataStore
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand.KuduParams
-import org.locationtech.geomesa.kudu.tools.data.KuduDeleteFeaturesCommand.KuduDeleteFeaturesParams
-import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand
-import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand.DeleteFeaturesParams
+import org.locationtech.geomesa.kudu.tools.data.KuduUpdateSchemaCommand.KuduUpdateSchemaParams
+import org.locationtech.geomesa.tools.data.UpdateSchemaCommand
+import org.locationtech.geomesa.tools.data.UpdateSchemaCommand.UpdateSchemaParams
 
-class KuduDeleteFeaturesCommand extends DeleteFeaturesCommand[KuduDataStore] with KuduDataStoreCommand {
-  override val params = new KuduDeleteFeaturesParams
+class KuduUpdateSchemaCommand extends UpdateSchemaCommand[KuduDataStore] with KuduDataStoreCommand {
+  override val params = new KuduUpdateSchemaParams()
 }
 
-object KuduDeleteFeaturesCommand {
-  @Parameters(commandDescription = "Delete features from a GeoMesa schema")
-  class KuduDeleteFeaturesParams extends DeleteFeaturesParams with KuduParams
+object KuduUpdateSchemaCommand {
+  @Parameters(commandDescription = "Update a GeoMesa feature type")
+  class KuduUpdateSchemaParams extends UpdateSchemaParams with KuduParams
 }

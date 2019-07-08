@@ -42,7 +42,7 @@ class FileSystemDataStore(
 
   private val manager = FileSystemStorageManager(fc, conf, root, namespace)
 
-  override val metadata: GeoMesaMetadata[String] = new NoOpMetadata[String]
+  override val metadata: GeoMesaMetadata[String] = GeoMesaMetadata.empty
   override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
   override def createTypeNames(): java.util.List[Name] = {

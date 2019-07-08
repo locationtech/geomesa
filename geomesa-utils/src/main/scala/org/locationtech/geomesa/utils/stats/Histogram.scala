@@ -31,12 +31,15 @@ import scala.reflect.ClassTag
   * @param initialEndpoints lower/upper end of histogram
   * @tparam T a comparable type which must have a StatHelperFunctions type class
   */
-class Histogram[T] private [stats] (val sft: SimpleFeatureType,
-                                    val property: String,
-                                    initialBins: Int,
-                                    initialEndpoints: (T, T))
-                                   (implicit val defaults: MinMax.MinMaxDefaults[T],
-                                    ct: ClassTag[T]) extends Stat with LazyLogging {
+class Histogram[T](
+    val sft: SimpleFeatureType,
+    val property: String,
+    initialBins: Int,
+    initialEndpoints: (T, T)
+  )(
+    implicit val defaults: MinMax.MinMaxDefaults[T],
+    val ct: ClassTag[T]
+  ) extends Stat with LazyLogging {
 
   override type S = Histogram[T]
 

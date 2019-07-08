@@ -175,7 +175,7 @@ object TypeInference {
       spec.append(typ.name).append(':').append(typ.binding)
     }
     if (types.exists(_.typed == ObjectType.GEOMETRY)) {
-      spec.append(s";${SimpleFeatureTypes.Configs.MIXED_GEOMETRIES}=true")
+      spec.append(s";${SimpleFeatureTypes.Configs.MixedGeometries}=true")
     }
     SimpleFeatureTypes.createType(name, spec.toString())
   }

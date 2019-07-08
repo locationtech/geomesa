@@ -43,6 +43,9 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
       partition: Option[String],
       splits: => Seq[Array[Byte]]): Unit = index.configureTableName(partition) // writes table name to metadata
 
+  override def renameTable(from: String, to: String): Unit =
+    WithClose(ds.connection.getResource)(_.renamenx(from, to))
+
   override def deleteTables(tables: Seq[String]): Unit =
     WithClose(ds.connection.getResource)(_.del(tables: _*))
 

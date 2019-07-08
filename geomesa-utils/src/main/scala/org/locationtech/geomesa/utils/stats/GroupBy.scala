@@ -12,10 +12,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.reflect.ClassTag
 
-class GroupBy[T] private [stats] (val sft: SimpleFeatureType,
-                                  val property: String,
-                                  val stat: String)
-                                 (implicit val ct: ClassTag[T]) extends Stat {
+class GroupBy[T](val sft: SimpleFeatureType, val property: String, val stat: String)(implicit val ct: ClassTag[T])
+    extends Stat {
 
   override type S = GroupBy[T]
 

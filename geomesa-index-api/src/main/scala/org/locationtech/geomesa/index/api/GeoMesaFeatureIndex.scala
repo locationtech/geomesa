@@ -94,7 +94,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     partition.map(p => s"$tableNameKey.$p").getOrElse(tableNameKey)
 
   /**
-    * Create the initial index or a new partition
+    * Create the metadata entry for the initial index table or a new partition
     *
     * @param partition partition
     * @return table name

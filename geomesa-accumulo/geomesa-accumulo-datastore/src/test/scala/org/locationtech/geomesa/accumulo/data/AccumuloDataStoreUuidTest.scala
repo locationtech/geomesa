@@ -39,7 +39,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithDataStore {
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 
   override val spec =
-    s"name:String:index=true,age:Int:index=join,dtg:Date,*geom:Point:srid=4326;${Configs.FID_UUID_KEY}=true"
+    s"name:String:index=true,age:Int:index=join,dtg:Date,*geom:Point:srid=4326;${Configs.FidsAreUuids}=true"
 
   val features = (0 until 10).map { i =>
     val id = s"28a12c18-e5ae-4c04-ae7b-bf7cdbfaf23$i"

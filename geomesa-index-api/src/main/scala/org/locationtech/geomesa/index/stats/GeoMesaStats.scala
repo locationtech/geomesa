@@ -117,11 +117,17 @@ trait GeoMesaStats extends Closeable {
     * @param sft simple feature type
     */
   def clearStats(sft: SimpleFeatureType): Unit
+
+  /**
+    * Renames a schema and/or attributes
+    *
+    * @param sft simple feature type
+    * @param previous old feature type to migrate
+    */
+  def rename(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit
 }
 
 object GeoMesaStats {
-
-  import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
@@ -134,8 +140,9 @@ object GeoMesaStats {
   val MaxHistogramSize: Int = 10000 // with ~1B records ~100k records per bin and ~29 kb on disk
   val DefaultHistogramSize: Int = 1000
 
-  val StatClasses = Seq(classOf[Geometry], classOf[String], classOf[Integer],
-    classOf[jLong], classOf[jFloat], classOf[jDouble], classOf[Date])
+  val StatClasses: Seq[Class[_ <: AnyRef]] =
+    Seq(classOf[Geometry], classOf[String], classOf[Integer], classOf[java.lang.Long],
+      classOf[java.lang.Float], classOf[java.lang.Double], classOf[Date])
 
   /**
     * Get the default bounds for a range histogram
@@ -148,9 +155,9 @@ object GeoMesaStats {
     val default = binding match {
       case b if b == classOf[String]                  => ""
       case b if b == classOf[Integer]                 => 0
-      case b if b == classOf[jLong]                   => 0L
-      case b if b == classOf[jFloat]                  => 0f
-      case b if b == classOf[jDouble]                 => 0d
+      case b if b == classOf[java.lang.Long]          => 0L
+      case b if b == classOf[java.lang.Float]         => 0f
+      case b if b == classOf[java.lang.Double]        => 0d
       case b if classOf[Date].isAssignableFrom(b)     => new Date()
       case b if classOf[Geometry].isAssignableFrom(b) => GeometryUtils.zeroPoint
       case _ => throw new NotImplementedError(s"Can't handle binding of type $binding")
@@ -168,9 +175,9 @@ object GeoMesaStats {
     binding match {
       case c if c == classOf[String]              => 20   // number of characters we will compare
       case c if c == classOf[Integer]             => 1    // size of a 'bin'
-      case c if c == classOf[jLong]               => 1    // size of a 'bin'
-      case c if c == classOf[jFloat]              => 1000 // 10 ^ decimal places we'll keep
-      case c if c == classOf[jDouble]             => 1000 // 10 ^ decimal places we'll keep
+      case c if c == classOf[java.lang.Long]      => 1    // size of a 'bin'
+      case c if c == classOf[java.lang.Float]     => 1000 // 10 ^ decimal places we'll keep
+      case c if c == classOf[java.lang.Double]    => 1000 // 10 ^ decimal places we'll keep
       case c if classOf[Date].isAssignableFrom(c) => 1000 * 60 * 60 // size of a 'bin' - one hour
       case c => throw new NotImplementedError(s"Can't handle binding of type $c")
     }

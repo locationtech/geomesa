@@ -13,14 +13,14 @@ import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
-import org.locationtech.geomesa.index.metadata.{CachedLazyBinaryMetadata, GeoMesaMetadata, MetadataSerializer}
+import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, GeoMesaMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging}
 
-import scala.collection.JavaConversions._
-
 class AccumuloBackedMetadata[T](val connector: Connector, val catalog: String, val serializer: MetadataSerializer[T])
-    extends GeoMesaMetadata[T] with CachedLazyBinaryMetadata[T] {
+    extends KeyValueStoreMetadata[T] {
+
+  import scala.collection.JavaConverters._
 
   protected val config: BatchWriterConfig = GeoMesaBatchWriterConfig().setMaxMemory(10000L).setMaxWriteThreads(2)
 
@@ -40,6 +40,9 @@ class AccumuloBackedMetadata[T](val connector: Connector, val catalog: String, v
 
   override protected def createTable(): Unit = AccumuloVersion.createTableIfNeeded(connector, catalog)
 
+  override protected def createEmptyBackup(timestamp: String): AccumuloBackedMetadata[T] =
+    new AccumuloBackedMetadata(connector, s"${catalog}_${timestamp}_bak", serializer)
+
   override protected def write(rows: Seq[(Array[Byte], Array[Byte])]): Unit = {
     rows.foreach { case (k, v) =>
       val m = new Mutation(k)
@@ -50,7 +53,7 @@ class AccumuloBackedMetadata[T](val connector: Connector, val catalog: String, v
   }
 
   override protected def delete(rows: Seq[Array[Byte]]): Unit = {
-    val ranges = rows.map(r => Range.exact(new Text(r)))
+    val ranges = rows.map(r => Range.exact(new Text(r))).asJava
     val deleter = connector.createBatchDeleter(catalog, AccumuloVersion.getEmptyAuths, 1, config)
     deleter.setRanges(ranges)
     deleter.delete()
@@ -77,7 +80,7 @@ class AccumuloBackedMetadata[T](val connector: Connector, val catalog: String, v
     val range = prefix.map(p => Range.prefix(new Text(p))).getOrElse(new Range("", "~"))
     val scanner = connector.createScanner(catalog, AccumuloVersion.getEmptyAuths)
     scanner.setRange(range)
-    CloseableIterator(scanner.iterator.map(r => (r.getKey.getRow.copyBytes, r.getValue.get)), scanner.close())
+    CloseableIterator(scanner.iterator.asScala.map(r => (r.getKey.getRow.copyBytes, r.getValue.get)), scanner.close())
   }
 
   override def close(): Unit = synchronized {
@@ -94,6 +97,8 @@ class AccumuloBackedMetadata[T](val connector: Connector, val catalog: String, v
   */
 class SingleRowAccumuloMetadata[T](metadata: AccumuloBackedMetadata[T]) {
 
+  import scala.collection.JavaConverters._
+
   // if the table doesn't exist, we assume that we don't ever need to check it for old-encoded rows
   private val tableExists = metadata.connector.tableOperations().exists(metadata.catalog)
 
@@ -102,9 +107,9 @@ class SingleRowAccumuloMetadata[T](metadata: AccumuloBackedMetadata[T]) {
       val scanner = metadata.connector.createScanner(metadata.catalog, AccumuloVersion.getEmptyAuths)
       // restrict to just one cf so we only get 1 hit per feature
       // use attributes as it's the only thing that's been there through all geomesa versions
-      scanner.fetchColumnFamily(new Text(GeoMesaMetadata.ATTRIBUTES_KEY))
+      scanner.fetchColumnFamily(new Text(GeoMesaMetadata.AttributesKey))
       try {
-        scanner.map(e => SingleRowAccumuloMetadata.getTypeName(e.getKey.getRow)).toArray
+        scanner.iterator.asScala.map(e => SingleRowAccumuloMetadata.getTypeName(e.getKey.getRow)).toArray
       } finally {
         scanner.close()
       }
@@ -122,7 +127,7 @@ class SingleRowAccumuloMetadata[T](metadata: AccumuloBackedMetadata[T]) {
       val writer = metadata.connector.createBatchWriter(metadata.catalog, GeoMesaBatchWriterConfig())
       try {
         scanner.setRange(SingleRowAccumuloMetadata.getRange(typeName))
-        scanner.iterator.foreach { entry =>
+        scanner.iterator.asScala.foreach { entry =>
           val key = entry.getKey.getColumnFamily.toString
           metadata.insert(typeName, key, metadata.serializer.deserialize(typeName, entry.getValue.get))
           // delete for the old entry

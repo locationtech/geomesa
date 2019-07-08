@@ -193,7 +193,7 @@ class BinaryOutputEncoderTest extends Specification {
         builder.setName("binlinetest")
         builder.add("track", classOf[String])
         builder.add("dtg", classOf[java.sql.Timestamp])
-        builder.userData(SimpleFeatureTypes.AttributeConfigs.USER_DATA_LIST_TYPE, classOf[java.sql.Timestamp].getName)
+        builder.userData(SimpleFeatureTypes.AttributeConfigs.UserDataListType, classOf[java.sql.Timestamp].getName)
         builder.add("dates", classOf[java.util.List[java.sql.Timestamp]])
         builder.add("geom", classOf[LineString], org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
         builder.buildFeatureType()

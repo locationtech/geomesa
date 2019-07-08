@@ -10,8 +10,8 @@ package org.locationtech.geomesa.utils.geotools.sft
 
 import com.typesafe.config._
 import org.locationtech.geomesa.utils.geotools.ConfigSftParsing
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.KEYWORDS_DELIMITER
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.Keywords
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.KeywordsDelimiter
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec._
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -78,9 +78,9 @@ object SimpleFeatureSpecConfig {
     val updated = if (includeUserData) {
       val prefixes = sft.getUserDataPrefixes
       // special handling for keywords delimiter
-      val keywords = Map(KEYWORDS_KEY -> sft.getKeywords.asJava).filterNot(_._2.isEmpty)
+      val keywords = Map(Keywords -> sft.getKeywords.asJava).filterNot(_._2.isEmpty)
       val toConvert = keywords ++ sft.getUserData.asScala.collect {
-        case (k, v) if v != null && prefixes.exists(k.toString.startsWith) && k != KEYWORDS_KEY => (k.toString, v)
+        case (k, v) if v != null && prefixes.exists(k.toString.startsWith) && k != Keywords => (k.toString, v)
       }
       val userData = ConfigValueFactory.fromMap(toConvert.asJava)
       base.withValue(UserDataPath, userData)
@@ -144,7 +144,7 @@ object SimpleFeatureSpecConfig {
     val asMap = conf.entrySet().asScala.map(e => normalizeKey(e.getKey) -> e.getValue.unwrapped()).toMap
     asMap.filterKeys(!NonOptions.contains(_)).map {
       // Special case to handle adding keywords
-      case (KEYWORDS_KEY, v: java.util.List[String]) => KEYWORDS_KEY -> String.join(KEYWORDS_DELIMITER, v)
+      case (Keywords, v: java.util.List[String]) => Keywords -> String.join(KeywordsDelimiter, v)
       case (k, v: java.util.List[String]) => k -> String.join(",", v)
       case (k, v) => k -> s"$v"
     }

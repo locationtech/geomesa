@@ -109,10 +109,22 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
     }
   }
 
-  // noinspection ScalaDeprecation
+  override def renameTable(from: String, to: String): Unit = {
+    if (tableOps.exists(from)) {
+      // noinspection ScalaDeprecation
+      if (ds.connector.isInstanceOf[org.apache.accumulo.core.client.mock.MockConnector]) {
+        // we need to synchronize renaming tables in mock accumulo as it's not thread safe
+        ds.connector.synchronized(tableOps.rename(from, to))
+      } else {
+        tableOps.rename(from, to)
+      }
+    }
+  }
+
   override def deleteTables(tables: Seq[String]): Unit = {
     tables.par.foreach { table =>
       if (tableOps.exists(table)) {
+        // noinspection ScalaDeprecation
         if (ds.connector.isInstanceOf[org.apache.accumulo.core.client.mock.MockConnector]) {
           // we need to synchronize deleting of tables in mock accumulo as it's not thread safe
           ds.connector.synchronized(tableOps.delete(table))

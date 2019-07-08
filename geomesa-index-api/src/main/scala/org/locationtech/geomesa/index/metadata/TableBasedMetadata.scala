@@ -8,6 +8,10 @@
 
 package org.locationtech.geomesa.index.metadata
 
+import java.time.format.DateTimeFormatterBuilder
+import java.time.temporal.ChronoField
+import java.time.{Instant, ZoneOffset}
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 import com.github.benmanes.caffeine.cache.{Cache, CacheLoader, Caffeine}
@@ -15,18 +19,24 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, IsSynchronized, MaybeSynchronized, NotSynchronized}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.text.DateParsing
 
 /**
-  * Backs metadata with a cache to save repeated database reads. Underlying table will be lazily created
-  * when required.
+  * Metadata persisted in a database table. The underlying table will be lazily created when required.
+  * Metadata values are cached with a configurable timeout to save repeated database reads.
   *
   * @tparam T type param
   */
-trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
+trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  protected def serializer: MetadataSerializer[T]
+  /**
+    * Serializer
+    *
+    * @return
+    */
+  def serializer: MetadataSerializer[T]
 
   /**
     * Checks if the underlying table exists
@@ -39,6 +49,14 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
     * Creates the underlying table
     */
   protected def createTable(): Unit
+
+  /**
+    * Create an instance to use for backup
+    *
+    * @param timestamp formatted timestamp for the current time
+    * @return
+    */
+  protected def createEmptyBackup(timestamp: String): TableBasedMetadata[T]
 
   /**
     * Writes key/value pairs
@@ -84,7 +102,7 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   private val tableExists: MaybeSynchronized[Boolean] =
     if (checkIfTableExists) { new NotSynchronized(true) } else { new IsSynchronized(false) }
 
-  private val expiry = CachedLazyMetadata.Expiry.toDuration.get.toMillis
+  private val expiry = TableBasedMetadata.Expiry.toDuration.get.toMillis
 
   // cache for our metadata - invalidate every 10 minutes so we keep things current
   private val metaDataCache =
@@ -117,10 +135,23 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
       }
     )
 
+  private lazy val formatter =
+    new DateTimeFormatterBuilder()
+      .parseCaseInsensitive()
+      .appendValue(ChronoField.YEAR, 4)
+      .appendValue(ChronoField.MONTH_OF_YEAR, 2)
+      .appendValue(ChronoField.DAY_OF_MONTH, 2)
+      .appendLiteral('T')
+      .appendValue(ChronoField.HOUR_OF_DAY, 2)
+      .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
+      .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+      .toFormatter(Locale.US)
+      .withZone(ZoneOffset.UTC)
+
   override def getFeatureTypes: Array[String] = {
     if (!tableExists.get) { Array.empty } else {
       WithClose(scanKeys()) { keys =>
-        keys.collect { case (typeName, key) if key == GeoMesaMetadata.ATTRIBUTES_KEY => typeName }.toArray
+        keys.collect { case (typeName, key) if key == GeoMesaMetadata.AttributesKey => typeName }.toArray
       }
     }
   }
@@ -171,15 +202,30 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
 
   override def delete(typeName: String): Unit = {
     if (tableExists.get) {
-      WithClose(scanValues(typeName)) { keys =>
-        if (keys.nonEmpty) {
-          delete(typeName, keys.map(_._1).toSeq)
+      WithClose(scanValues(typeName)) { rows =>
+        if (rows.nonEmpty) {
+          delete(typeName, rows.map(_._1).toSeq)
         }
       }
     } else {
       logger.debug(s"Trying to delete type '$typeName' but table does not exist")
     }
     Seq(metaDataCache, metaDataScanCache).foreach(invalidate(_, typeName))
+  }
+
+  override def backup(typeName: String): Unit = {
+    if (tableExists.get) {
+      WithClose(scanValues(typeName)) { rows =>
+        if (rows.nonEmpty) {
+          WithClose(createEmptyBackup(DateParsing.formatInstant(Instant.now, formatter))) { metadata =>
+            metadata.ensureTableExists()
+            metadata.write(typeName, rows.toSeq)
+          }
+        }
+      }
+    } else {
+      logger.debug(s"Trying to back up type '$typeName' but table does not exist")
+    }
   }
 
   // checks that the table is already created, and creates it if not
@@ -200,6 +246,6 @@ trait CachedLazyMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   }
 }
 
-object CachedLazyMetadata {
+object TableBasedMetadata {
   val Expiry = SystemProperty("geomesa.metadata.expiry", "10 minutes")
 }

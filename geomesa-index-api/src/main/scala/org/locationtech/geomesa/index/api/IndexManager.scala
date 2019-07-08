@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.metadata.CachedLazyMetadata
+import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
@@ -29,7 +29,7 @@ class IndexManager(ds: GeoMesaDataStore[_]) {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  private val expiry = CachedLazyMetadata.Expiry.toDuration.get.toMillis
+  private val expiry = TableBasedMetadata.Expiry.toDuration.get.toMillis
 
   private val cache = Caffeine.newBuilder().expireAfterWrite(expiry, TimeUnit.MILLISECONDS).build(
     new CacheLoader[String, (Seq[GeoMesaFeatureIndex[_, _]], Map[String, GeoMesaFeatureIndex[_, _]])]() {

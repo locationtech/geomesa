@@ -108,7 +108,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       val sftWkb = SimpleFeatureTypes.createType("testTypeWkb", spec)
       // use a different name to avoid cached serializers
       val sftTwkb = SimpleFeatureTypes.createType("testTypeTwkb", spec)
-      sftTwkb.getAttributeDescriptors.foreach(_.getUserData.put(AttributeOptions.OPT_PRECISION, "6"))
+      sftTwkb.getAttributeDescriptors.foreach(_.getUserData.put(AttributeOptions.OptPrecision, "6"))
 
       val sf = new ScalaSimpleFeature(sftWkb, "fakeid")
       sf.setAttribute("a", "LINESTRING(0 2, 2 0, 8 6)")

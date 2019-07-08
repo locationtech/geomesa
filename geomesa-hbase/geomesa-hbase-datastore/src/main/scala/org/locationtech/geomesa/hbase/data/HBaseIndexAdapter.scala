@@ -10,7 +10,7 @@ package org.locationtech.geomesa.hbase.data
 
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
-import java.util.{Collections, Locale}
+import java.util.{Collections, Locale, UUID}
 
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.hadoop.fs.Path
@@ -47,6 +47,7 @@ import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionary
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging, WithClose}
+import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.control.NonFatal
@@ -69,10 +70,10 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         logger.debug(s"Creating table $name")
 
         val conf = admin.getConfiguration
-        val compression = Option(index.sft.getUserData.get(Configs.COMPRESSION_ENABLED)).collect {
+        val compression = Option(index.sft.getUserData.get(Configs.TableCompression)).collect {
           case e: String if e.toBoolean =>
             // note: all compression types in HBase are case-sensitive and lower-cased
-            val compressionType = index.sft.getUserData.get(Configs.COMPRESSION_TYPE) match {
+            val compressionType = index.sft.getUserData.get(Configs.TableCompressionType) match {
               case null => "gz"
               case t: String => t.toLowerCase(Locale.US)
             }
@@ -130,15 +131,23 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         }
       }
 
-      // wait for the table to come online
-      if (!admin.isTableAvailable(name)) {
-        val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
-        logger.debug(s"Waiting for table '$table' to become available with " +
-            s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
-        val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)
-        while (!admin.isTableAvailable(name) && stop.forall(_ > System.currentTimeMillis())) {
-          Thread.sleep(1000)
-        }
+      waitForTable(admin, name)
+    }
+  }
+
+  override def renameTable(from: String, to: String): Unit = {
+    WithClose(ds.connection.getAdmin) { admin =>
+      val existing = TableName.valueOf(from)
+      val renamed = TableName.valueOf(to)
+      if (admin.tableExists(existing)) {
+        // renaming in hbase requires creating a snapshot and using that to create the new table
+        val snapshot = StringSerialization.alphaNumericSafeString(UUID.randomUUID().toString)
+        admin.disableTable(existing)
+        admin.snapshot(snapshot, existing)
+        admin.cloneSnapshot(snapshot, renamed)
+        admin.deleteSnapshot(snapshot)
+        admin.deleteTable(existing)
+        waitForTable(admin, renamed)
       }
     }
   }
@@ -395,6 +404,24 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       Collections.shuffle(groupedScans)
 
       groupedScans.asScala
+    }
+  }
+
+  /**
+    * Waits for a table to come online after being created
+    *
+    * @param admin hbase admin
+    * @param table table name
+    */
+  private def waitForTable(admin: Admin, table: TableName): Unit = {
+    if (!admin.isTableAvailable(table)) {
+      val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
+      logger.debug(s"Waiting for table '$table' to become available with " +
+          s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
+      val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)
+      while (!admin.isTableAvailable(table) && stop.forall(_ > System.currentTimeMillis())) {
+        Thread.sleep(1000)
+      }
     }
   }
 }

@@ -20,9 +20,7 @@ import scala.reflect.ClassTag
   * @param property property name the enumeration is being made for
   * @tparam T some type T (which is restricted by the stat parser upstream of Histogram instantiation)
   */
-class EnumerationStat[T] private [stats] (val sft: SimpleFeatureType,
-                                          val property: String)
-                                         (implicit ct: ClassTag[T]) extends Stat {
+class EnumerationStat[T](val sft: SimpleFeatureType, val property: String)(implicit val ct: ClassTag[T]) extends Stat {
 
   override type S = EnumerationStat[T]
 

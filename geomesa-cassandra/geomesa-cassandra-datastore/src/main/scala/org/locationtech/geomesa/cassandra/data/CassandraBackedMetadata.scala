@@ -19,7 +19,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import scala.collection.JavaConversions._
 
 class CassandraBackedMetadata[T](val session: Session, val catalog: String, val serializer: MetadataSerializer[T])
-    extends CachedLazyMetadata[T] {
+    extends TableBasedMetadata[T] {
 
   override protected def checkIfTableExists: Boolean = {
     val m = session.getCluster.getMetadata
@@ -29,6 +29,11 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
 
   override protected def createTable(): Unit =
     session.execute(s"CREATE TABLE IF NOT EXISTS $catalog (sft text, key text, value text, PRIMARY KEY ((sft), key))")
+
+  override protected def createEmptyBackup(timestamp: String): CassandraBackedMetadata[T] = {
+    val table = CassandraIndexAdapter.safeTableName(s"${catalog}_${timestamp}_bak")
+    new CassandraBackedMetadata(session, table, serializer)
+  }
 
   override protected def write(typeName: String, rows: Seq[(String, Array[Byte])]): Unit = {
     rows.foreach { case (key, value) =>

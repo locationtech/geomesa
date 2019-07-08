@@ -15,11 +15,14 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, TypeNameParam}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.mutable.ArrayBuffer
 
 trait DescribeSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
+
+  import scala.collection.JavaConverters._
 
   override val name: String = "describe-schema"
 
@@ -43,14 +46,12 @@ trait DescribeSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
   protected def describe(ds: DS, sft: SimpleFeatureType, output: String => Unit): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
-    import scala.collection.JavaConversions._
-
     val indices = ds match {
       case gmds: GeoMesaDataStore[_] => gmds.manager.indices(sft)
       case _ => Seq.empty
     }
 
-    val namesAndDescriptions = sft.getAttributeDescriptors.map { descriptor =>
+    val namesAndDescriptions = sft.getAttributeDescriptors.asScala.map { descriptor =>
       val name = descriptor.getLocalName
       val description = ArrayBuffer.empty[String]
 
@@ -82,17 +83,16 @@ trait DescribeSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
     val userData = sft.getUserData
     if (!userData.isEmpty) {
-      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
       output("\nUser data:")
-      val namesAndValues = userData.map { case (k, v) =>
-        if (k == KEYWORDS_KEY) {
-          (KEYWORDS_KEY, sft.getKeywords.mkString("[\"", "\", \"", "\"]"))
+      val namesAndValues = userData.asScala.toSeq.map { case (k, v) =>
+        if (k == SimpleFeatureTypes.Configs.Keywords) {
+          (SimpleFeatureTypes.Configs.Keywords, sft.getKeywords.mkString("'", "', '", "'"))
         } else {
           (s"$k", s"$v")
         }
       }
       val maxName = namesAndValues.map(_._1.length).max
-      namesAndValues.toSeq.sortBy(_._1).foreach { case (n, v) =>
+      namesAndValues.sortBy(_._1).foreach { case (n, v) =>
         output(s"  ${n.padTo(maxName, ' ')} | $v")
       }
     }

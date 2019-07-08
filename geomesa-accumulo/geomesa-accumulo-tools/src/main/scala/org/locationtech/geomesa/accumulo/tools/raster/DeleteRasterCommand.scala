@@ -6,13 +6,12 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.tools.data
+package org.locationtech.geomesa.accumulo.tools.raster
 
 import com.beust.jcommander.Parameters
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.data.{Range => ARange}
+import org.locationtech.geomesa.accumulo.tools.raster.DeleteRasterCommand.DeleteRasterParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloConnectionParams, AccumuloRasterTableParam}
-import org.locationtech.geomesa.accumulo.tools.data.DeleteRasterCommand.DeleteRasterParams
 import org.locationtech.geomesa.raster.data.AccumuloRasterStore
 import org.locationtech.geomesa.tools.{Command, OptionalForceParam}
 

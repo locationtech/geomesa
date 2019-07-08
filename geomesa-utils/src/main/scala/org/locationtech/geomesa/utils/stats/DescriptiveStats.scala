@@ -15,8 +15,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.immutable.ListMap
 import scala.Array._
 
-class DescriptiveStats private [stats] (val sft: SimpleFeatureType,
-                                        val properties: Seq[String]) extends Stat with Serializable {
+class DescriptiveStats(val sft: SimpleFeatureType, val properties: Seq[String]) extends Stat with Serializable {
 
   override type S = DescriptiveStats
 

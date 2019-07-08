@@ -52,16 +52,5 @@ Bytes              byte[]                                         No
 
 Notes
 ^^^^^
-
-* Only a single geometry-type attribute may be indexed. It will be included in the primary spatial
-  and spatio-temporal indices.
-* The primary date-type attribute will be used in the spatio-temporal index. It may also be indexed
-  separately in an attribute index.
-* Non-geometry types (including dates) may be indexed as separate attribute indices. For details, see
-  :ref:`attribute_indices`.
+* For details on indexing, see :ref:`index_basics`.
 * Container types (List and Map) must be parameterized with non-container types from the above table.
-
-.. warning::
-
-  List types may be indexed, but querying a list type may result in duplicate results. If duplicate
-  results are a problem, users should implement their own de-duplication logic for list queries

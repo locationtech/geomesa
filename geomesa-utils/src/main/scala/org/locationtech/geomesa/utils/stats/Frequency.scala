@@ -39,14 +39,17 @@ import scala.reflect.ClassTag
   * @param ct class tag
   * @tparam T type parameter, should match the type binding of the attribute
   */
-class Frequency[T] private [stats] (val sft: SimpleFeatureType,
-                                    val property: String,
-                                    val dtg: Option[String],
-                                    val period: TimePeriod,
-                                    val precision: Int,
-                                    val eps: Double = 0.005,
-                                    val confidence: Double = 0.95)
-                                   (implicit ct: ClassTag[T]) extends Stat {
+class Frequency[T](
+    val sft: SimpleFeatureType,
+    val property: String,
+    val dtg: Option[String],
+    val period: TimePeriod,
+    val precision: Int,
+    val eps: Double = 0.005,
+    val confidence: Double = 0.95
+  )(
+    implicit val ct: ClassTag[T]
+  ) extends Stat {
 
   import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
