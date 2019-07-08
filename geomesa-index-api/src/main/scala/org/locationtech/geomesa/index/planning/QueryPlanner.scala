@@ -15,7 +15,6 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.{FunctionExpressionImpl, MathExpressionImpl}
 import org.geotools.process.vector.TransformProcess
 import org.geotools.process.vector.TransformProcess.Definition
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.QueryPlan
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
@@ -179,32 +178,32 @@ object QueryPlanner extends LazyLogging {
   def setQueryTransforms(query: Query, sft: SimpleFeatureType): Unit = {
     // even if a transform is not specified, some queries only use a subset of attributes
     // specify them here so that it's easier to pick the best column group later
-    def transformsFromQueryType: Seq[String] = {
+    def fromQueryType: Option[Seq[String]] = {
       val hints = query.getHints
       if (hints.isBinQuery) {
-        BinAggregatingScan.propertyNames(hints, sft)
+       Some(BinAggregatingScan.propertyNames(hints, sft))
       } else if (hints.isDensityQuery) {
-        DensityScan.propertyNames(hints, sft)
+        Some(DensityScan.propertyNames(hints, sft))
       } else if (hints.isStatsQuery) {
-        val props = StatParser.propertyNames(sft, hints.getStatsQuery)
-        if (props.nonEmpty) { props } else {
-          // some stats don't require explicit props (e.g. count), so just take a field that is likely
-          // to be available anyway
-          val prop = Option(sft.getGeomField)
-              .orElse(sft.getDtgField)
-              .orElse(FilterHelper.propertyNames(query.getFilter, sft).headOption)
-              .getOrElse(sft.getDescriptor(0).getLocalName)
-          Seq(prop)
-        }
+        Some(StatParser.propertyNames(sft, hints.getStatsQuery))
       } else {
-        Seq.empty
+        None
       }
     }
 
-    Option(query.getPropertyNames).map(_.toSeq)
-        .filter(_ != sft.getAttributeDescriptors.asScala.map(_.getLocalName))
-        .orElse(Some(transformsFromQueryType).filter(_.nonEmpty))
-        .foreach { props =>
+    // since we do sorting on the client, just add any sort-by attributes to the transform
+    // TODO GEOMESA-2655 we should sort and then transform back to the requested props, but it's complicated...
+    def withSort(props: Array[String]): Seq[String] = {
+      val names = props.map(p => if (p.contains('=')) { p.substring(0, p.indexOf('=')) } else { p })
+      props ++ Option(query.getSortBy).toSeq.flatMap { sort =>
+        sort.flatMap(s => Option(s.getPropertyName).flatMap(p => Option(p.getPropertyName).filterNot(names.contains)))
+      }
+    }
+
+    // ignore transforms that don't actually do anything
+    def noop(props: Seq[String]): Boolean = props == sft.getAttributeDescriptors.asScala.map(_.getLocalName)
+
+    Option(query.getPropertyNames).map(withSort).filterNot(noop).orElse(fromQueryType).foreach { props =>
       val (transforms, derivedSchema) = buildTransformSFT(sft, props)
       query.getHints.put(QueryHints.Internal.TRANSFORMS, transforms)
       query.getHints.put(QueryHints.Internal.TRANSFORM_SCHEMA, derivedSchema)
