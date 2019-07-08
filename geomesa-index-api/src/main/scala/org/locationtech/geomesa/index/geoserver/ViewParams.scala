@@ -13,8 +13,8 @@ import java.util.{Locale, Map => jMap}
 import com.google.common.collect.ImmutableBiMap
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
-import org.geotools.util.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
@@ -57,6 +57,7 @@ object ViewParams extends LazyLogging {
         case v: java.lang.Float    => Some(name -> v.toString)
         case v: ReferencedEnvelope => Some(name -> toString(v))
         case v: CostEvaluation     => Some(name -> v.toString)
+        case v: SimpleFeatureType  => Some(name -> SimpleFeatureTypes.serialize(v))
         case _ => logger.warn(s"Unhandled hint type for '$name'"); None
       }
     }
@@ -133,6 +134,7 @@ object ViewParams extends LazyLogging {
               case c if c == classOf[java.lang.Float]    => toFloat(key, value).foreach(setHint(hints, key, hint, _))
               case c if c == classOf[ReferencedEnvelope] => toEnvelope(key, value).foreach(setHint(hints, key, hint, _))
               case c if c == classOf[CostEvaluation]     => toCost(value).foreach(setHint(hints, key, hint, _))
+              case c if c == classOf[SimpleFeatureType]  => toFeatureType(key, value).foreach(setHint(hints, key, hint, _))
               case _ => logger.warn(s"Unhandled hint type for '$key'")
             }
           } catch {
@@ -201,6 +203,12 @@ object ViewParams extends LazyLogging {
   private def toBoolean(name: String, bool: String): Option[Boolean] = {
     try { Some(bool.toBoolean) } catch {
       case NonFatal(_) => logger.error(s"Ignoring invalid int type from view params: $name=$bool"); None
+    }
+  }
+
+  private def toFeatureType(name: String, sft: String): Option[SimpleFeatureType] = {
+    try { Some(SimpleFeatureTypes.deserialize(sft)) } catch {
+      case NonFatal(_) => logger.error(s"Ignoring invalid simple feature type from view params: $name=$sft"); None
     }
   }
 

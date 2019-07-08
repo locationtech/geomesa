@@ -18,6 +18,7 @@ import org.locationtech.geomesa.utils.geotools.NameableFeatureTypeFactory.Nameab
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{DefaultDtgField, IndexIgnoreDtg}
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.GeomAttributeSpec
 import org.locationtech.geomesa.utils.geotools.sft._
+import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.`type`.{AttributeDescriptor, FeatureTypeFactory, GeometryDescriptor}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.parboiled.errors.ParsingException
@@ -331,6 +332,26 @@ object SimpleFeatureTypes {
                      includePrefix: Boolean = true,
                      json: Boolean = false): String =
     SimpleFeatureSpecConfig.toConfigString(sft, includeUserData, concise, includePrefix, json)
+
+  /**
+    * Serializes a feature type to a single string
+    *
+    * @param sft feature type
+    * @return
+    */
+  def serialize(sft: SimpleFeatureType): String =
+    StringSerialization.encodeSeq(Seq(sft.getTypeName, encodeType(sft, includeUserData = true)))
+
+  /**
+    * Deserializes a serialized feature type string
+    *
+    * @param sft serialized feature type
+    * @return
+    */
+  def deserialize(sft: String): SimpleFeatureType = {
+    val Seq(name, spec) = StringSerialization.decodeSeq(sft)
+    SimpleFeatureTypes.createType(name, spec)
+  }
 
   /**
     * Creates an immutable copy of the simple feature type
