@@ -209,6 +209,8 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         val resultsToFeatures = new HBaseResultsToFeatures(index, schema)
         val arrowHook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
         // note: we assume visibility filtering is still done server-side as it's part of core hbase
+        // note: we use the full filter here, since we can't use the z3 server-side filter
+        // for some attribute queries we wouldn't need the full filter...
         val reducer = new LocalTransformReducer(schema, filter.filter, None, transform, hints, arrowHook)
         val sort = hints.getSortFields
         val max = hints.getMaxFeatures

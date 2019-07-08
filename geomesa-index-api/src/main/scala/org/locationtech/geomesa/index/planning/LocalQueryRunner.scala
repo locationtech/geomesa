@@ -12,15 +12,18 @@ import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.util.Date
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
+import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
 import org.locationtech.geomesa.arrow.io.{DeltaWriter, DictionaryBuildingWriter}
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector
+import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.index.api.QueryPlan.FeatureReducer
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryHook
 import org.locationtech.geomesa.index.stats.GeoMesaStats
@@ -141,24 +144,57 @@ object LocalQueryRunner {
   /**
     * Reducer for local transforms. Handles ecql and visibility filtering, transforms and analytic queries.
     *
-    * Not serializable, so will not work with m/r jobs.
-    *
     * @param sft simple feature type being queried
     * @param hints query hints
     * @param arrow stats hook and cql filter - used for dictionary building in certain arrow queries
     * @return
     */
   class LocalTransformReducer(
-      sft: SimpleFeatureType,
-      filter: Option[Filter],
-      visibility: Option[SimpleFeature => Boolean],
-      transform: Option[(String, SimpleFeatureType)],
-      hints: Hints,
-      arrow: Option[ArrowDictionaryHook] = None
-    ) extends FeatureReducer {
+      private var sft: SimpleFeatureType,
+      private var filter: Option[Filter],
+      private var visibility: Option[SimpleFeature => Boolean],
+      private var transform: Option[(String, SimpleFeatureType)],
+      private var hints: Hints,
+      private var arrow: Option[ArrowDictionaryHook] = None
+    ) extends FeatureReducer with LazyLogging {
 
-    override def init(state: Map[String, String]): Unit = throw new NotImplementedError()
-    override def state: Map[String, String] = throw new NotImplementedError()
+    def this() = this(null, null, None, null, null, None) // no-arg constructor required for serialization
+
+    override def init(state: Map[String, String]): Unit = {
+      sft = SimpleFeatureTypes.createType(state("name"), state("spec"))
+      filter = state.get("filt").filterNot(_.isEmpty).map(ECQL.toFilter)
+      hints = ViewParams.deserialize(state("hint"))
+      transform = for {
+        tdef <- state.get("tdef").filterNot(_.isEmpty)
+        tnam <- state.get("tnam").filterNot(_.isEmpty)
+        spec <- state.get("tsft").filterNot(_.isEmpty)
+      } yield {
+        (tdef, SimpleFeatureTypes.createType(tnam, spec))
+      }
+    }
+
+    override def state: Map[String, String] = {
+      if (visibility.isDefined) {
+        throw new NotImplementedError("Visibility filtering is not serializable")
+      } else if (hints.isArrowQuery) {
+        // check for conditions which require a dictionary lookup using the arrow hook, which is not serializable
+        val dictionaries = hints.getArrowDictionaryFields
+        lazy val provided = hints.getArrowDictionaryEncodedValues(sft)
+        if (dictionaries.nonEmpty && !dictionaries.forall(provided.contains) &&
+            (hints.isArrowDoublePass || hints.isArrowCachedDictionaries)) {
+          throw new NotImplementedError("Arrow dictionary lookup is not serializable")
+        }
+      }
+      Map(
+        "name" -> sft.getTypeName,
+        "spec" -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
+        "filt" -> filter.map(ECQL.toCQL).getOrElse(""),
+        "tdef" -> transform.map(_._1).getOrElse(""),
+        "tnam" -> transform.map(_._2.getTypeName).getOrElse(""),
+        "tsft" -> transform.map(t => SimpleFeatureTypes.encodeType(t._2, includeUserData = true)).getOrElse(""),
+        "hint" -> ViewParams.serialize(hints)
+      )
+    }
 
     override def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val filtered = (filter, visibility) match {
@@ -285,8 +321,11 @@ object LocalQueryRunner {
     if (hints.isArrowDoublePass ||
         dictionaryFields.forall(f => providedDictionaries.contains(f) || cachedDictionaries.contains(f))) {
       // we have all the dictionary values, or we will run a query to determine them up front
-      val dictionaries = ArrowScan.createDictionaries(stats, sft, filter, dictionaryFields,
-        providedDictionaries, cachedDictionaries)
+      // note: only invoke createDictionaries if needed, so we only get the arrow hook if needed
+      val dictionaries: Map[String, ArrowDictionary] =
+        if (dictionaryFields.isEmpty) { Map.empty } else {
+          ArrowScan.createDictionaries(stats, sft, filter, dictionaryFields, providedDictionaries, cachedDictionaries)
+        }
 
       val vector = SimpleFeatureVector.create(arrowSft, dictionaries, encoding)
       val batchWriter = new RecordBatchUnloader(vector)

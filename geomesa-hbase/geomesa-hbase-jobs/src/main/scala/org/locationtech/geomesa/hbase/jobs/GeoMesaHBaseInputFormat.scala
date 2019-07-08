@@ -22,8 +22,9 @@ import org.geotools.data.Query
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.ScanPlan
 import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStore}
 import org.locationtech.geomesa.hbase.jobs.GeoMesaHBaseInputFormat.GeoMesaHBaseRecordReader
-import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.SimpleFeature
 
@@ -45,11 +46,11 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Conf
 
   override def createRecordReader(
       split: InputSplit,
-      context: TaskAttemptContext): RecordReader[Text, SimpleFeature] = {
+      context: TaskAttemptContext
+    ): RecordReader[Text, SimpleFeature] = {
     val toFeatures = GeoMesaConfigurator.getResultsToFeatures[Result](context.getConfiguration)
-    val rr = delegate.createRecordReader(split, context)
-    // TODO GEOMESA-2300 support local filtering
-    new GeoMesaHBaseRecordReader(toFeatures, rr)
+    val reducer = GeoMesaConfigurator.getReducer(context.getConfiguration)
+    new GeoMesaHBaseRecordReader(toFeatures, reducer, delegate.createRecordReader(split, context))
   }
 
   override def setConf(conf: Configuration): Unit = {
@@ -117,31 +118,74 @@ object GeoMesaHBaseInputFormat {
     plan.projection.foreach(GeoMesaConfigurator.setProjection(conf, _))
   }
 
+  /**
+    * Record reader for simple features
+    *
+    * @param toFeatures converts results to features
+    * @param reducer feature reducer, if any
+    * @param reader underlying hbase reader
+    */
   class GeoMesaHBaseRecordReader(
       toFeatures: ResultsToFeatures[Result],
+      reducer: Option[FeatureReducer],
       reader: RecordReader[ImmutableBytesWritable, Result]
     ) extends RecordReader[Text, SimpleFeature] with LazyLogging {
 
+    private val features = {
+      val base = new RecordReaderIterator(reader, toFeatures)
+      reducer match {
+        case None => base
+        case Some(reduce) => reduce(base)
+      }
+    }
+
     private val key = new Text()
-    private var staged: SimpleFeature = _
+    private var value: SimpleFeature = _
 
     override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = reader.initialize(split, context)
 
     override def getProgress: Float = reader.getProgress
 
     override def nextKeyValue(): Boolean = {
-      if (reader.nextKeyValue()) {
-        staged = toFeatures(reader.getCurrentValue)
-        key.set(staged.getID)
+      if (features.hasNext) {
+        value = features.next
+        key.set(value.getID)
         true
       } else {
         false
       }
     }
 
-    override def getCurrentValue: SimpleFeature = staged
-
     override def getCurrentKey: Text = key
+
+    override def getCurrentValue: SimpleFeature = value
+
+    override def close(): Unit = features.close()
+  }
+
+  private class RecordReaderIterator(
+      reader: RecordReader[ImmutableBytesWritable, Result],
+      toFeatures: ResultsToFeatures[Result]
+    ) extends CloseableIterator[SimpleFeature] {
+
+    private var staged: SimpleFeature = _
+
+    override def hasNext: Boolean = {
+      staged != null || {
+        if (reader.nextKeyValue()) {
+          staged = toFeatures(reader.getCurrentValue)
+          true
+        } else {
+          false
+        }
+      }
+    }
+
+    override def next(): SimpleFeature = {
+      val res = staged
+      staged = null
+      res
+    }
 
     override def close(): Unit = reader.close()
   }
