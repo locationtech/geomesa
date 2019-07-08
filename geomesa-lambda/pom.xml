@@ -19,8 +19,8 @@
     </modules>
 
     <properties>
-        <kafka.version>${kafka.09.version}</kafka.version>
-        <zkclient.version>0.7</zkclient.version>
+        <kafka.version>${kafka.21.version}</kafka.version>
+        <zkclient.version>0.10</zkclient.version>
         <!-- 0.10 versions, for reference -->
         <!--
         <kafka.version>0.10.2.1</kafka.version>
@@ -68,6 +68,23 @@
                 <artifactId>zkclient</artifactId>
                 <version>${zkclient.version}</version>
                 <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.kafka</groupId>
+                <artifactId>kafka-clients</artifactId>
+                <version>${kafka.21.version}</version>
+                <classifier>test</classifier>
+                <scope>test</scope>
+                <exclusions>
+                    <exclusion>
+                        <artifactId>slf4j-log4j12</artifactId>
+                        <groupId>org.slf4j</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.xerial.snappy</groupId>
+                        <artifactId>snappy-java</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
