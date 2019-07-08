@@ -10,11 +10,6 @@ package org.locationtech.geomesa.hbase.tools
 
 import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.HBaseDistributedCommand
-import org.locationtech.geomesa.hbase.tools.data._
-import org.locationtech.geomesa.hbase.tools.export.{HBaseExportCommand, HBasePlaybackCommand}
-import org.locationtech.geomesa.hbase.tools.ingest.{HBaseBulkIngestCommand, HBaseBulkLoadCommand, HBaseIngestCommand}
-import org.locationtech.geomesa.hbase.tools.stats._
-import org.locationtech.geomesa.hbase.tools.status._
 import org.locationtech.geomesa.tools.export.{ConvertCommand, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.status._
 import org.locationtech.geomesa.tools.{Command, Runner}
@@ -24,27 +19,28 @@ object HBaseRunner extends Runner {
   override val name: String = "geomesa-hbase"
 
   override def createCommands(jc: JCommander): Seq[Command] = Seq(
-    new HBaseBulkIngestCommand,
-    new HBaseBulkLoadCommand,
-    new HBaseCreateSchemaCommand,
-    new HBaseDeleteCatalogCommand,
-    new HBaseDeleteFeaturesCommand,
-    new HBaseDescribeSchemaCommand,
-    new HBaseExplainCommand,
-    new HBaseExportCommand with HBaseDistributedCommand,
-    new HBaseGetSftConfigCommand,
-    new HBaseGetTypeNamesCommand,
-    new HBaseIngestCommand with HBaseDistributedCommand,
-    new HBaseKeywordsCommand,
-    new HBaseManagePartitionsCommand(this, jc),
-    new HBasePlaybackCommand,
-    new HBaseRemoveSchemaCommand,
-    new HBaseStatsAnalyzeCommand,
-    new HBaseStatsBoundsCommand,
-    new HBaseStatsCountCommand,
-    new HBaseStatsTopKCommand,
-    new HBaseStatsHistogramCommand,
-    new HBaseVersionRemoteCommand,
+    new data.HBaseCreateSchemaCommand,
+    new data.HBaseDeleteCatalogCommand,
+    new data.HBaseDeleteFeaturesCommand,
+    new data.HBaseManagePartitionsCommand(this, jc),
+    new data.HBaseRemoveSchemaCommand,
+    new data.HBaseUpdateSchemaCommand,
+    new export.HBaseExportCommand with HBaseDistributedCommand,
+    new export.HBasePlaybackCommand,
+    new ingest.HBaseBulkIngestCommand,
+    new ingest.HBaseBulkLoadCommand,
+    new ingest.HBaseIngestCommand with HBaseDistributedCommand,
+    new stats.HBaseStatsAnalyzeCommand,
+    new stats.HBaseStatsBoundsCommand,
+    new stats.HBaseStatsCountCommand,
+    new stats.HBaseStatsTopKCommand,
+    new stats.HBaseStatsHistogramCommand,
+    new status.HBaseDescribeSchemaCommand,
+    new status.HBaseExplainCommand,
+    new status.HBaseGetSftConfigCommand,
+    new status.HBaseGetTypeNamesCommand,
+    new status.HBaseKeywordsCommand,
+    new status.HBaseVersionRemoteCommand,
     // common commands, placeholders for script functions
     new ConvertCommand,
     new ConfigureCommand,

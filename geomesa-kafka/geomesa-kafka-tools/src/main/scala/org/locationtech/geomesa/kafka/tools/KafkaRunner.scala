@@ -21,14 +21,16 @@ object KafkaRunner extends Runner {
   override val name: String = "geomesa-kafka"
 
   override protected def createCommands(jc: JCommander): Seq[Command] = Seq(
-    new KafkaCreateSchemaCommand,
-    new KafkaRemoveSchemaCommand,
-    new KafkaListenCommand,
-    new KafkaExportCommand,
-    new KafkaIngestCommand,
-    new KafkaDescribeSchemaCommand,
-    new KafkaGetTypeNamesCommand,
-    new KafkaKeywordsCommand,
+    new data.KafkaCreateSchemaCommand,
+    new data.KafkaRemoveSchemaCommand,
+    new data.KafkaUpdateSchemaCommand,
+    new export.KafkaListenCommand,
+    new export.KafkaExportCommand,
+    new ingest.KafkaIngestCommand,
+    new status.KafkaDescribeSchemaCommand,
+    new status.KafkaGetTypeNamesCommand,
+    new status.KafkaKeywordsCommand,
+    // common commands, placeholders for script functions
     new HelpCommand(this, jc),
     new ConfigureCommand,
     new ClasspathCommand,

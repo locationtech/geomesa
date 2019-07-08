@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query}
-import org.locationtech.geomesa.index.metadata.CachedLazyMetadata
+import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
@@ -71,13 +71,13 @@ object QueryInterceptor extends LazyLogging {
 
       import scala.collection.JavaConverters._
 
-      private val expiry = CachedLazyMetadata.Expiry.toDuration.get.toMillis
+      private val expiry = TableBasedMetadata.Expiry.toDuration.get.toMillis
 
       private val loader =  new CacheLoader[String, Seq[QueryInterceptor]]() {
         override def load(key: String): Seq[QueryInterceptor] = QueryInterceptorFactoryImpl.this.load(key)
         override def reload(key: String, oldValue: Seq[QueryInterceptor]): Seq[QueryInterceptor] = {
           // only recreate the interceptors if they have changed
-          Option(ds.getSchema(key)).flatMap(s => Option(s.getUserData.get(Configs.QUERY_INTERCEPTORS))) match {
+          Option(ds.getSchema(key)).flatMap(s => Option(s.getUserData.get(Configs.QueryInterceptors))) match {
             case None if oldValue.isEmpty => oldValue
             case Some(classes) if classes == oldValue.map(_.getClass.getName).mkString(",") => oldValue
             case _ => oldValue.foreach(CloseWithLogging.apply); QueryInterceptorFactoryImpl.this.load(key)
@@ -97,7 +97,7 @@ object QueryInterceptor extends LazyLogging {
       private def load(typeName: String): Seq[QueryInterceptor] = {
         val sft = ds.getSchema(typeName)
         if (sft == null) { Seq.empty } else {
-          val classes = sft.getUserData.get(Configs.QUERY_INTERCEPTORS).asInstanceOf[String]
+          val classes = sft.getUserData.get(Configs.QueryInterceptors).asInstanceOf[String]
           if (classes == null || classes.isEmpty) { Seq.empty } else {
             classes.split(",").toSeq.flatMap { c =>
               var interceptor: QueryInterceptor = null

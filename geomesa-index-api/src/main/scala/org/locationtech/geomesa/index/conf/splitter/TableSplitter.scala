@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.index.conf.splitter
 
 import org.locationtech.geomesa.index.conf.TableSplitter
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{TABLE_SPLITTER, TABLE_SPLITTER_OPTS}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.{PARTITION_SPLITTER, PARTITION_SPLITTER_OPTS}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{TableSplitterClass, TableSplitterOpts}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.{PartitionSplitterClass, PartitionSplitterOpts}
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
@@ -21,12 +21,12 @@ object TableSplitter {
   def getSplits(sft: SimpleFeatureType, index: String, partition: Option[String] = None): Array[Array[Byte]] = {
     partition match {
       case None =>
-        val splitter = create(sft.getUserData.get(TABLE_SPLITTER).asInstanceOf[String])
-        splitter.getSplits(sft, index, sft.getUserData.get(TABLE_SPLITTER_OPTS).asInstanceOf[String])
+        val splitter = create(sft.getUserData.get(TableSplitterClass).asInstanceOf[String])
+        splitter.getSplits(sft, index, sft.getUserData.get(TableSplitterOpts).asInstanceOf[String])
 
       case Some(p) =>
-        val splitter = create(sft.getUserData.get(PARTITION_SPLITTER).asInstanceOf[String])
-        splitter.getSplits(sft, index, p, sft.getUserData.get(PARTITION_SPLITTER_OPTS).asInstanceOf[String])
+        val splitter = create(sft.getUserData.get(PartitionSplitterClass).asInstanceOf[String])
+        splitter.getSplits(sft, index, p, sft.getUserData.get(PartitionSplitterOpts).asInstanceOf[String])
     }
   }
 

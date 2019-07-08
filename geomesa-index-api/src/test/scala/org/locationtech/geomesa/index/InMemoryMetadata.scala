@@ -50,5 +50,7 @@ class InMemoryMetadata[T] extends GeoMesaMetadata[T] {
 
   override def invalidateCache(typeName: String, key: String): Unit = {}
 
+  override def backup(typeName: String): Unit = {}
+
   override def close(): Unit = {}
 }

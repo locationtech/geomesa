@@ -65,8 +65,13 @@ object TestGeoMesaDataStore {
         partition: Option[String],
         splits: => Seq[Array[Byte]]): Unit = {
       val table = index.configureTableName(partition) // writes table name to metadata
-      tables.put(table, scala.collection.mutable.SortedSet.empty[SingleRowKeyValue[_]](ordering))
+      if (!tables.contains(table)) {
+        tables.put(table, scala.collection.mutable.SortedSet.empty[SingleRowKeyValue[_]](ordering))
+      }
     }
+
+    override def renameTable(from: String, to: String): Unit =
+      tables.remove(from).foreach(tables.put(to, _))
 
     override def deleteTables(tables: Seq[String]): Unit = tables.foreach(this.tables.remove)
 

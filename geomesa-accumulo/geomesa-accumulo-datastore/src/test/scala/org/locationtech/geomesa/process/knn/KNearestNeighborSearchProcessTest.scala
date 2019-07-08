@@ -38,7 +38,7 @@ class KNearestNeighborSearchProcessTest extends Specification {
 
   val sftName = "geomesaKNNTestType"
   val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
-  sft.getUserData.put(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY, "dtg")
+  sft.getUserData.put(SimpleFeatureTypes.Configs.DefaultDtgField, "dtg")
 
   val ds = createStore
   ds.createSchema(sft)

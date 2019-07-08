@@ -31,7 +31,7 @@ class TablePartitionTest extends Specification {
   val ds = new TestGeoMesaDataStore(false)
 
   val sft = SimpleFeatureTypes.createType("table-partition-test", s"dtg:Date,*geom:Point:srid=4326;" +
-      s"${Configs.TABLE_PARTITIONING}=${TimePartition.Name}")
+      s"${Configs.TablePartitioning}=${TimePartition.Name}")
 
   val timeToBin = BinnedTime.timeToBin(sft.getZ3Interval)
 

@@ -151,7 +151,7 @@ class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Opt
     * @return last update
     */
   private def getLastUpdate: Instant = {
-    ds.metadata.read(sft.getTypeName, GeoMesaMetadata.STATS_GENERATION_KEY, cache = false) match {
+    ds.metadata.read(sft.getTypeName, GeoMesaMetadata.StatsGenerationKey, cache = false) match {
       case Some(dt) => Instant.from(GeoToolsDateFormat.parse(dt))
       case None     => Instant.ofEpochSecond(0)
     }
@@ -164,7 +164,7 @@ class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Opt
     */
   private def getUpdateInterval: Long =
     // note: default is 1440 minutes (one day)
-    ds.metadata.read(sft.getTypeName, GeoMesaMetadata.STATS_INTERVAL_KEY).map(_.toLong).getOrElse(1440)
+    ds.metadata.read(sft.getTypeName, GeoMesaMetadata.StatsIntervalKey).map(_.toLong).getOrElse(1440)
 
   private def lockKey: String = {
     val ca = StringSerialization.alphaNumericSafeString(ds.config.catalog)

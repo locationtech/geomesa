@@ -135,7 +135,7 @@ class TubeVisitor(val tubeFeatures: SimpleFeatureCollection,
     logger.debug("Visiting source type: "+source.getClass.getName)
 
     val geomProperty = ff.property(source.getSchema.getGeometryDescriptor.getName)
-    val dateProperty = ff.property(source.getSchema.getUserData.get(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY).asInstanceOf[String])
+    val dateProperty = ff.property(source.getSchema.getUserData.get(SimpleFeatureTypes.Configs.DefaultDtgField).asInstanceOf[String])
 
     logger.debug("Querying with date property: "+dateProperty)
     logger.debug("Querying with geometry property: "+geomProperty)

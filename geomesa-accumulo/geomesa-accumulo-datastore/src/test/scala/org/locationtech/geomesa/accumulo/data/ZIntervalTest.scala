@@ -25,7 +25,7 @@ class ZIntervalTest extends Specification with TestWithMultipleSfts {
 
   sequential
 
-  val key = SimpleFeatureTypes.Configs.Z3_INTERVAL_KEY
+  val key = SimpleFeatureTypes.Configs.IndexZ3Interval
   val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
 
   val filters = Seq(

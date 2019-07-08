@@ -16,6 +16,7 @@ import org.geotools.util.factory.GeoTools
 import org.geotools.util.{Converter, Converters}
 import org.opengis.filter.expression.Expression
 
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 /**
@@ -78,6 +79,20 @@ object FastConverter extends StrictLogging {
     logger.warn(s"Could not convert '$value' (of type ${value.getClass.getName}) to ${binding.getName}")
 
     null.asInstanceOf[T]
+  }
+
+  /**
+    * Convert the value into the given type, returning the default if it could not be converted or is null
+    *
+    * @param value value to convert
+    * @param default value to return if convert results in null
+    * @param ct class tag
+    * @tparam T type to convert to
+    * @return
+    */
+  def convertOrElse[T <: AnyRef](value: Any, default: => T)(implicit ct: ClassTag[T]): T = {
+    val attempt = convert(value, ct.runtimeClass.asInstanceOf[Class[T]])
+    if (attempt == null) { default } else { attempt }
   }
 
   /**

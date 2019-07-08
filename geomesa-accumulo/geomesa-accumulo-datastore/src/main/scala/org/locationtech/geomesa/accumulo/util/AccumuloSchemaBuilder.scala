@@ -59,7 +59,7 @@ object AccumuloSchemaBuilder {
       * @return attribute builder for chaining calls
       */
     def withJoinIndex(): AccumuloAttributeBuilder =
-      withOption(AttributeOptions.OPT_INDEX, IndexCoverage.JOIN.toString.toLowerCase(Locale.US))
+      withOption(AttributeOptions.OptIndex, IndexCoverage.JOIN.toString.toLowerCase(Locale.US))
 
     /**
       * Add a join index on the current attribute. This uses a reduced format to save disk space,
@@ -71,7 +71,7 @@ object AccumuloSchemaBuilder {
       * @return attribute builder for chaining calls
       */
     def withJoinIndex(cardinality: Cardinality): AccumuloAttributeBuilder =
-      withJoinIndex().withOption(AttributeOptions.OPT_CARDINALITY, cardinality.toString)
+      withJoinIndex().withOption(AttributeOptions.OptCardinality, cardinality.toString)
 
     /**
       * Adds a full (covering) index. Equivalent to `addIndex`
@@ -94,14 +94,14 @@ object AccumuloSchemaBuilder {
       *
       * @return attribute builder for chaining calls
       */
-    def withIndexValue(): AccumuloAttributeBuilder = withOption(AttributeOptions.OPT_INDEX_VALUE, "true")
+    def withIndexValue(): AccumuloAttributeBuilder = withOption(AttributeOptions.OptIndexValue, "true")
 
     /**
       * Enable tracking summary statistics for this attribute during ingest
       *
       * @return attribute builder for chaining calls
       */
-    def withStats(): AccumuloAttributeBuilder = withOption(AttributeOptions.OPT_STATS, "true")
+    def withStats(): AccumuloAttributeBuilder = withOption(AttributeOptions.OptStats, "true")
   }
 
   class AccumuloUserDataBuilder(parent: AccumuloSchemaBuilder, userData: StringBuilder)
@@ -128,6 +128,6 @@ object AccumuloSchemaBuilder {
       * @return user data builder for call chaining
       */
     def logicalTime(logical: Boolean): AccumuloUserDataBuilder =
-      userData(SimpleFeatureTypes.Configs.LOGICAL_TIME_KEY, logical.toString)
+      userData(SimpleFeatureTypes.Configs.TableLogicalTime, logical.toString)
   }
 }

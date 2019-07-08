@@ -195,7 +195,7 @@ class SftBuilderTest extends Specification {
         .point("foobar", default = true)
         .multiLineString("mls")
 
-      builder.getSpec mustEqual s"geom:Geometry:srid=4326,*foobar:Point:srid=4326:index=true:$OPT_INDEX_VALUE=true,mls:MultiLineString:srid=4326"
+      builder.getSpec mustEqual s"geom:Geometry:srid=4326,*foobar:Point:srid=4326:index=true:$OptIndexValue=true,mls:MultiLineString:srid=4326"
 
       val sft = builder.build("foobar")
       sft.getAttributeCount mustEqual 3

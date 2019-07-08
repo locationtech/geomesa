@@ -10,24 +10,25 @@ package org.locationtech.geomesa.index.metadata
 
 import java.nio.charset.StandardCharsets
 
-import org.locationtech.geomesa.index.metadata.CachedLazyBinaryMetadata.decodeRow
+import org.locationtech.geomesa.index.metadata.KeyValueStoreMetadata.decodeRow
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.util.control.NonFatal
 
 /**
-  * Backs metadata with a cache to save repeated database reads. Underlying table will be lazily created
-  * when required. Keys and values are both a single byte array
+  * Table-based metadata implementation for key-value stores. As with TableBasedMetadata, the metadata is
+  * persisted in a database table. The underlying table will be lazily created when required. Metadata values
+  * are cached with a configurable timeout to save repeated database reads.
   *
   * @tparam T type param
   */
-trait CachedLazyBinaryMetadata[T] extends CachedLazyMetadata[T] {
+trait KeyValueStoreMetadata[T] extends TableBasedMetadata[T] {
 
   // separator used between type names and keys
   val typeNameSeparator: Char = '~'
 
   def encodeRow(typeName: String, key: String): Array[Byte] =
-    CachedLazyBinaryMetadata.encodeRow(typeName, key, typeNameSeparator)
+    KeyValueStoreMetadata.encodeRow(typeName, key, typeNameSeparator)
 
   override protected def write(typeName: String, rows: Seq[(String, Array[Byte])]): Unit =
     write(rows.map { case (k, v) => (encodeRow(typeName, k), v) })
@@ -89,7 +90,7 @@ trait CachedLazyBinaryMetadata[T] extends CachedLazyMetadata[T] {
   protected def scanRows(prefix: Option[Array[Byte]]): CloseableIterator[(Array[Byte], Array[Byte])]
 }
 
-object CachedLazyBinaryMetadata {
+object KeyValueStoreMetadata {
 
   def encodeRow(typeName: String, key: String, separator: Char): Array[Byte] = {
     // escaped to %U+XXXX unicode since decodeRow splits by separator

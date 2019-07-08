@@ -67,7 +67,7 @@ class SchemaBuilderTest extends Specification {
 
       SchemaBuilder.builder()
         .addDate("foobar")
-        .userData(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY, "true")
+        .userData(SimpleFeatureTypes.Configs.DefaultDtgField, "true")
         .build("foobar").getDtgField must beSome("foobar")
 
       SchemaBuilder.builder()

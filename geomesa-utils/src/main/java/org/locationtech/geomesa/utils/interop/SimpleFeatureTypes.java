@@ -16,7 +16,7 @@ import scala.Option$;
 public class SimpleFeatureTypes {
 
     public final static String DEFAULT_DATE_KEY =
-            org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs$.MODULE$.DEFAULT_DATE_KEY();
+            org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs$.MODULE$.DefaultDtgField();
 
     public static SimpleFeatureType createType(String name, String spec) {
         return SimpleFeatureTypes$.MODULE$.createType(name, spec);

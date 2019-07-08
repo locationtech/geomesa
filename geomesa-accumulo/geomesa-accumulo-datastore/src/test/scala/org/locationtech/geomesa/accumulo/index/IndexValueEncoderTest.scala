@@ -29,7 +29,7 @@ class IndexValueEncoderTest extends Specification {
   import scala.collection.JavaConverters._
 
   val defaultSchema = "*geom:Point,dtg:Date,s:String,i:Int,d:Double,f:Float,u:UUID,l:List[String]"
-  val allSchema = s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String:$OPT_INDEX_VALUE=true,i:Int:$OPT_INDEX_VALUE=true,d:Double:$OPT_INDEX_VALUE=true,f:Float:$OPT_INDEX_VALUE=true,u:UUID:$OPT_INDEX_VALUE=true,l:List[String]"
+  val allSchema = s"*geom:Point:$OptIndexValue=true,dtg:Date:$OptIndexValue=true,s:String:$OptIndexValue=true,i:Int:$OptIndexValue=true,d:Double:$OptIndexValue=true,f:Float:$OptIndexValue=true,u:UUID:$OptIndexValue=true,l:List[String]"
   val id = "Feature0123456789"
   val geom = WKTUtils.read("POINT (-78.495356 38.075215)")
   val dt = new Date()
@@ -52,15 +52,15 @@ class IndexValueEncoderTest extends Specification {
       getIndexValueFields(sft) must containAllOf(Seq("geom"))
     }
     "allow custom fields to be set" in {
-      val sft = getSft(s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
+      val sft = getSft(s"*geom:Point:$OptIndexValue=true,dtg:Date:$OptIndexValue=true,s:String,i:Int:$OptIndexValue=true,d:Double,f:Float:$OptIndexValue=true,u:UUID,l:List[String]")
       getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg", "i", "f"))
     }
     "always include id,geom,dtg" in {
-      val sft = getSft(s"*geom:Point,dtg:Date,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
+      val sft = getSft(s"*geom:Point,dtg:Date,s:String,i:Int:$OptIndexValue=true,d:Double,f:Float:$OptIndexValue=true,u:UUID,l:List[String]")
       getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg", "i", "f"))
     }
     "not allow complex types" in {
-      val sft = getSft(s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,l:List[String]:$OPT_INDEX_VALUE=true")
+      val sft = getSft(s"*geom:Point:$OptIndexValue=true,dtg:Date:$OptIndexValue=true,l:List[String]:$OptIndexValue=true")
       getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg"))
     }
 

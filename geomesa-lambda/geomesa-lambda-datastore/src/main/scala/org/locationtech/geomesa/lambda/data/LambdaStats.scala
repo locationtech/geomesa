@@ -59,6 +59,8 @@ class LambdaStats(persistent: GeoMesaStats, transients: LoadingCache[String, Tra
 
   override def clearStats(sft: SimpleFeatureType): Unit = persistent.clearStats(sft)
 
+  override def rename(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = persistent.rename(sft, previous)
+
   // note: closed by closing the wrapping stores in LambdaDataStore.dispose()
   override def close(): Unit = {}
 

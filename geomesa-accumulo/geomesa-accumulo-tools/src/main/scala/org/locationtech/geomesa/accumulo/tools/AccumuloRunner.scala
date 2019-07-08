@@ -11,11 +11,6 @@ package org.locationtech.geomesa.accumulo.tools
 
 import com.beust.jcommander.{JCommander, ParameterException}
 import org.apache.accumulo.server.client.HdfsZooInstance
-import org.locationtech.geomesa.accumulo.tools.data._
-import org.locationtech.geomesa.accumulo.tools.export.{AccumuloExportCommand, AccumuloPlaybackCommand}
-import org.locationtech.geomesa.accumulo.tools.ingest.{AccumuloIngestCommand, IngestRasterCommand}
-import org.locationtech.geomesa.accumulo.tools.stats._
-import org.locationtech.geomesa.accumulo.tools.status._
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.export.{ConvertCommand, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.status._
@@ -31,33 +26,34 @@ object AccumuloRunner extends RunnerWithAccumuloEnvironment {
   override val name: String = "geomesa-accumulo"
 
   override def createCommands(jc: JCommander): Seq[Command] = Seq(
-    new AddAttributeIndexCommand,
-    new AddIndexCommand,
-    new AccumuloAgeOffCommand,
-    new AccumuloCompactCommand,
-    new AccumuloCreateSchemaCommand,
-    new AccumuloDeleteCatalogCommand,
-    new AccumuloDeleteFeaturesCommand,
-    new DeleteRasterCommand,
-    new AccumuloDescribeSchemaCommand,
-    new AccumuloExplainCommand,
-    new AccumuloExportCommand,
-    new AccumuloGetSftConfigCommand,
-    new AccumuloGetTypeNamesCommand,
-    new AccumuloIngestCommand,
-    new IngestRasterCommand,
-    new AccumuloKeywordsCommand,
-    new AccumuloManagePartitionsCommand(this, jc),
-    new AccumuloPlaybackCommand,
-    new AccumuloRemoveSchemaCommand,
-    new AccumuloStatsAnalyzeCommand,
-    new AccumuloStatsBoundsCommand,
-    new AccumuloStatsConfigureCommand,
-    new AccumuloStatsCountCommand,
-    new AccumuloStatsTopKCommand,
-    new AccumuloStatsHistogramCommand,
-    new TableConfCommand(this, jc),
-    new AccumuloVersionRemoteCommand,
+    new data.AccumuloAgeOffCommand,
+    new data.AccumuloCompactCommand,
+    new data.AccumuloManagePartitionsCommand(this, jc),
+    new data.AddAttributeIndexCommand,
+    new data.AddIndexCommand,
+    new data.TableConfCommand(this, jc),
+    new export.AccumuloExplainCommand,
+    new export.AccumuloExportCommand,
+    new export.AccumuloPlaybackCommand,
+    new ingest.AccumuloDeleteFeaturesCommand,
+    new ingest.AccumuloIngestCommand,
+    new raster.DeleteRasterCommand,
+    new raster.IngestRasterCommand,
+    new schema.AccumuloCreateSchemaCommand,
+    new schema.AccumuloDeleteCatalogCommand,
+    new schema.AccumuloRemoveSchemaCommand,
+    new schema.AccumuloUpdateSchemaCommand,
+    new status.AccumuloDescribeSchemaCommand,
+    new status.AccumuloGetSftConfigCommand,
+    new status.AccumuloGetTypeNamesCommand,
+    new status.AccumuloKeywordsCommand,
+    new status.AccumuloVersionRemoteCommand,
+    new stats.AccumuloStatsAnalyzeCommand,
+    new stats.AccumuloStatsBoundsCommand,
+    new stats.AccumuloStatsConfigureCommand,
+    new stats.AccumuloStatsCountCommand,
+    new stats.AccumuloStatsTopKCommand,
+    new stats.AccumuloStatsHistogramCommand,
     // common commands, placeholders for script functions
     new ConvertCommand,
     new ConfigureCommand,

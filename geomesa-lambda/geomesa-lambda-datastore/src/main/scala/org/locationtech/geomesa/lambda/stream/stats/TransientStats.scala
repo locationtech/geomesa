@@ -52,5 +52,7 @@ class TransientStats(store: TransientStore) extends GeoMesaStats {
 
   override def clearStats(sft: SimpleFeatureType): Unit = {}
 
+  override def rename(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {}
+
   override def close(): Unit = {}
 }

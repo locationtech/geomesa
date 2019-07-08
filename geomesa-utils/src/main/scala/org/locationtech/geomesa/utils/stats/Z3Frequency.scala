@@ -30,13 +30,15 @@ import scala.collection.immutable.ListMap
   * @param eps (epsilon) with probability at least @see confidence, estimates will be within eps * N
   * @param confidence percent - with probability at least confidence, estimates will be within @see eps * N
   */
-class Z3Frequency(val sft: SimpleFeatureType,
-                  val geom: String,
-                  val dtg: String,
-                  val period: TimePeriod,
-                  val precision: Int,
-                  val eps: Double = 0.005,
-                  val confidence: Double = 0.95) extends Stat with LazyLogging {
+class Z3Frequency(
+    val sft: SimpleFeatureType,
+    val geom: String,
+    val dtg: String,
+    val period: TimePeriod,
+    val precision: Int,
+    val eps: Double = 0.005,
+    val confidence: Double = 0.95
+  ) extends Stat with LazyLogging {
 
   override type S = Z3Frequency
 

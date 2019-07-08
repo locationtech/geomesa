@@ -12,11 +12,11 @@ import java.nio.charset.StandardCharsets
 
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
-import org.locationtech.geomesa.index.metadata.{CachedLazyBinaryMetadata, MetadataSerializer}
+import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 class ZookeeperMetadata[T](val namespace: String, val zookeepers: String, val serializer: MetadataSerializer[T])
-    extends CachedLazyBinaryMetadata[T] {
+    extends KeyValueStoreMetadata[T] {
 
   import org.locationtech.geomesa.utils.zk.ZookeeperMetadata.Root
 
@@ -30,6 +30,9 @@ class ZookeeperMetadata[T](val namespace: String, val zookeepers: String, val se
   override protected def checkIfTableExists: Boolean = true
 
   override protected def createTable(): Unit = {}
+
+  override protected def createEmptyBackup(timestamp: String): ZookeeperMetadata[T] =
+    new ZookeeperMetadata(s"${namespace}_${timestamp}_bak", zookeepers, serializer)
 
   override protected def write(rows: Seq[(Array[Byte], Array[Byte])]): Unit = {
     rows.foreach { case (row, value) =>
