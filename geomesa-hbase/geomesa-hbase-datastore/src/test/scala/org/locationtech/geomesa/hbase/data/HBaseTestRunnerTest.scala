@@ -32,6 +32,7 @@ class HBaseTestRunnerTest extends Specification with BeforeAfterAll with LazyLog
 
   // add new tests here
   val specs = Seq(
+    new HBaseAlterSchemaTest,
     new HBaseArrowTest,
     new HBaseBinAggregatorTest,
     new HBaseColumnGroupsTest,

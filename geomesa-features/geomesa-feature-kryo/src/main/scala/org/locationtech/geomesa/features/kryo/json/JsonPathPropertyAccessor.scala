@@ -151,7 +151,7 @@ object JsonPathPropertyAccessor {
       val builder = new AttributeTypeBuilder()
       builder.init(descriptor)
       val result = builder.buildDescriptor(descriptor.getLocalName)
-      result.getUserData.remove(SimpleFeatureTypes.AttributeOptions.OPT_JSON)
+      result.getUserData.remove(SimpleFeatureTypes.AttributeOptions.OptJson)
       result
     }
   }

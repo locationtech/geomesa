@@ -35,6 +35,14 @@ trait IndexAdapter[DS <: GeoMesaDataStore[DS]] {
   def createTable(index: GeoMesaFeatureIndex[_, _], partition: Option[String], splits: => Seq[Array[Byte]]): Unit
 
   /**
+    * Rename a table
+    *
+    * @param from current table name
+    * @param to new table name
+    */
+  def renameTable(from: String, to: String): Unit
+
+  /**
     * Delete a table
     *
     * @param tables table names

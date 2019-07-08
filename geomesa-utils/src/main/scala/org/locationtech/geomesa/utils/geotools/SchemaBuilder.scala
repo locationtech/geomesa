@@ -157,7 +157,7 @@ object SchemaBuilder {
       */
     def addDate(name: String, default: Boolean = false): A = {
       if (default) {
-        userData(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY, name)
+        userData(SimpleFeatureTypes.Configs.DefaultDtgField, name)
       }
       add(s"$name:Date")
     }
@@ -263,7 +263,7 @@ object SchemaBuilder {
       */
     def addMixedGeometry(name: String, default: Boolean = false): A = {
       if (default) {
-        userData(SimpleFeatureTypes.Configs.MIXED_GEOMETRIES, "true")
+        userData(SimpleFeatureTypes.Configs.MixedGeometries, "true")
       }
       add(geom(name, "Geometry", default))
     }
@@ -349,7 +349,7 @@ object SchemaBuilder {
       *
       * @return attribute builder for chaining calls
       */
-    def withIndex(): A = withOption(AttributeOptions.OPT_INDEX, "true")
+    def withIndex(): A = withOption(AttributeOptions.OptIndex, "true")
 
     /**
       * Add an index on the current attribute, to facilitate querying on that attribute
@@ -359,7 +359,7 @@ object SchemaBuilder {
       * @return attribute builder for chaining calls
       */
     def withIndex(cardinality: Cardinality): A =
-      withOptions(AttributeOptions.OPT_INDEX -> "true", AttributeOptions.OPT_CARDINALITY -> cardinality.toString)
+      withOptions(AttributeOptions.OptIndex -> "true", AttributeOptions.OptCardinality -> cardinality.toString)
 
     /**
       * Specify column groups for a particular attribute, to speed up querying for subsets of attributes
@@ -367,7 +367,7 @@ object SchemaBuilder {
       * @param groups column groups - preferably short strings (one character is best), case sensitive
       * @return
       */
-    def withColumnGroups(groups: String*): A = withOptions(AttributeOptions.OPT_COL_GROUPS -> groups.mkString(","))
+    def withColumnGroups(groups: String*): A = withOptions(AttributeOptions.OptColumnGroups -> groups.mkString(","))
 
     /**
       * Add any attribute-level option
@@ -414,7 +414,7 @@ object SchemaBuilder {
       * @param names names of the indices to enable (e.g. "z3", "id", etc)
       * @return user data builder for chaining calls
       */
-    def indices(names: List[String]): U = userData(Configs.ENABLED_INDICES, names.mkString(","))
+    def indices(names: List[String]): U = userData(Configs.EnabledIndices, names.mkString(","))
 
     /**
       * Disable indexing on the default date field. If the default date field has not been specified,
@@ -422,7 +422,7 @@ object SchemaBuilder {
       *
       * @return user data builder for chaining calls
       */
-    def disableDefaultDate(): U = userData(Configs.IGNORE_INDEX_DTG, "true")
+    def disableDefaultDate(): U = userData(Configs.IndexIgnoreDtg, "true")
 
     /**
       * Configure table splits for a schema
@@ -431,7 +431,7 @@ object SchemaBuilder {
       * @return user data builder for chaining calls
       */
     def splits(options: Map[String,String]): U =
-      userData(Configs.TABLE_SPLITTER_OPTS, options.map { case (k, v) => s"$k:$v" }.mkString(","))
+      userData(Configs.TableSplitterOpts, options.map { case (k, v) => s"$k:$v" }.mkString(","))
 
     /**
       * Specify the number of shards to use for the Z indices. Shards can provide distribution
@@ -442,7 +442,7 @@ object SchemaBuilder {
       * @param shards number of shards
       * @return user data builder for chaining calls
       */
-    def zShards(shards: Int): U = userData(Configs.Z_SPLITS_KEY, shards.toString)
+    def zShards(shards: Int): U = userData(Configs.IndexZShards, shards.toString)
 
     /**
       * Specify the number of shards to use for the attribute index. Shards can provide distribution
@@ -453,7 +453,7 @@ object SchemaBuilder {
       * @param shards number of shards
       * @return user data builder for chaining calls
       */
-    def attributeShards(shards: Int): U = userData(Configs.ATTR_SPLITS_KEY, shards.toString)
+    def attributeShards(shards: Int): U = userData(Configs.IndexAttributeShards, shards.toString)
 
     /**
       * Specifies that feature IDs are UUIDs. This can save space on disk, as a UUID can be serialized more
@@ -462,7 +462,7 @@ object SchemaBuilder {
       *
       * @return user data builder for chaining calls
       */
-    def uuidFeatureIds(): U = userData(Configs.FID_UUID_KEY, "true")
+    def uuidFeatureIds(): U = userData(Configs.FidsAreUuids, "true")
 
     /**
       * Sets the time interval used for binning dates in the Z3 and XZ3 indices
@@ -470,7 +470,7 @@ object SchemaBuilder {
       * @param interval time interval to use
       * @return user data builder for chaining calls
       */
-    def z3Interval(interval: TimePeriod): U = userData(Configs.Z3_INTERVAL_KEY, interval.toString)
+    def z3Interval(interval: TimePeriod): U = userData(Configs.IndexZ3Interval, interval.toString)
 
     /**
       * Set the precision of the XZ index (if used).
@@ -480,14 +480,14 @@ object SchemaBuilder {
       * @param precision precision
       * @return user data builder for chaining calls
       */
-    def xzPrecision(precision: Int): U = userData(Configs.XZ_PRECISION_KEY, precision.toString)
+    def xzPrecision(precision: Int): U = userData(Configs.IndexXzPrecision, precision.toString)
 
     /**
       * Enable date-based table partitioning
       *
       * @return user data builder for chainging calls
       */
-    def partitioned(): U = userData(Configs.TABLE_PARTITIONING, "time")
+    def partitioned(): U = userData(Configs.TablePartitioning, "time")
 
     /**
       * Add arbitrary user data values to the schema

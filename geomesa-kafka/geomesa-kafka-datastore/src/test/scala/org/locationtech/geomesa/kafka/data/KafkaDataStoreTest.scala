@@ -24,7 +24,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.metadata.CachedLazyMetadata
+import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.kafka.EmbeddedKafka
 import org.locationtech.geomesa.kafka.ExpirationMocking.{ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
@@ -126,7 +126,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
     "allow schemas to be created and deleted" >> {
       foreach(Seq(true, false)) { cqEngine =>
-        CachedLazyMetadata.Expiry.threadLocalValue.set("10ms")
+        TableBasedMetadata.Expiry.threadLocalValue.set("10ms")
         val (producer, consumer, _) = try {
           val params = if (cqEngine) {
             Map("kafka.index.cqengine" -> "geom:default,name:unique")
@@ -135,7 +135,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           }
           createStorePair("createdelete", params)
         } finally {
-          CachedLazyMetadata.Expiry.threadLocalValue.remove()
+          TableBasedMetadata.Expiry.threadLocalValue.remove()
         }
         consumer must not(beNull)
         producer must not(beNull)

@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index.stats
 
 import java.time.{Instant, ZoneOffset}
 import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query, Transaction}
@@ -17,11 +18,10 @@ import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, MetadataSerializer, NoOpMetadata}
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, MetadataSerializer, TableBasedMetadata}
 import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
 import org.locationtech.geomesa.index.stats.NoopStats.NoopStatUpdater
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -31,7 +31,6 @@ import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
-import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -42,6 +41,8 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
     extends GeoMesaStats with StatsBasedEstimator with LazyLogging {
 
   import MetadataBackedStats._
+
+  import scala.collection.JavaConverters._
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
     if (exact) {
@@ -69,7 +70,7 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
     val toRetrieve = if (attributes.nonEmpty) {
       attributes.filter(a => Option(sft.getDescriptor(a)).exists(GeoMesaStats.okForStats))
     } else {
-      sft.getAttributeDescriptors.filter(GeoMesaStats.okForStats).map(_.getLocalName)
+      sft.getAttributeDescriptors.asScala.collect { case d if GeoMesaStats.okForStats(d) => d.getLocalName }
     }
 
     val clas = ct.runtimeClass
@@ -143,7 +144,7 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
     ds match {
       case hm: HasGeoMesaMetadata[String] =>
         val date = GeoToolsDateFormat.format(Instant.now().atZone(ZoneOffset.UTC))
-        hm.metadata.insert(sft.getTypeName, GeoMesaMetadata.STATS_GENERATION_KEY, date)
+        hm.metadata.insert(sft.getTypeName, GeoMesaMetadata.StatsGenerationKey, date)
       case _ => // no-op
     }
 
@@ -177,6 +178,74 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
     if (update) { new MetadataStatUpdater(sft) } else { NoopStatUpdater }
 
   override def clearStats(sft: SimpleFeatureType): Unit = metadata.delete(sft.getTypeName)
+
+  override def rename(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+    val names: Map[String, String] = {
+      val local = previous.getAttributeDescriptors.asScala.map(_.getLocalName).zipWithIndex.toMap
+      local.flatMap { case (name, i) =>
+        val update = sft.getDescriptor(i).getLocalName
+        if (update == name) { Map.empty[String, String] } else { Map(name -> update) }
+      }
+    }
+
+    def rename(stat: Stat): Stat = {
+      val copy: Option[Stat] = stat match {
+        case _: CountStat =>
+          None
+
+        case s: MinMax[_] =>
+          names.get(s.property).map(n => new MinMax(sft, n)(s.defaults))
+
+        case s: TopK[_] =>
+          names.get(s.property).map(n => new TopK(sft, n))
+
+        case s: Histogram[AnyRef] =>
+          names.get(s.property).map(n => new Histogram(sft, n, s.length, (s.min, s.max))(s.defaults, s.ct))
+
+        case s: Frequency[_] =>
+          if ((Seq(s.property) ++ s.dtg).forall(n => !names.contains(n))) { None } else {
+            val name = names.getOrElse(s.property, s.property)
+            val dtg = s.dtg.map(d => names.getOrElse(d, d))
+            Some(new Frequency(sft, name, dtg, s.period, s.precision, s.eps, s.confidence)(s.ct))
+          }
+
+        case s: Z3Histogram =>
+          if (Seq(s.geom, s.dtg).forall(n => !names.contains(n))) { None } else {
+            val geom = names.getOrElse(s.geom, s.geom)
+            val dtg = names.getOrElse(s.dtg, s.dtg)
+            Some(new Z3Histogram(sft, geom, dtg, s.period, s.length))
+          }
+
+        case s: SeqStat =>
+          Some(new SeqStat(sft, s.stats.map(rename)))
+
+        case s =>
+          throw new NotImplementedError(s"Unexpected stat: $s")
+      }
+      copy.foreach(_ += stat)
+      copy.getOrElse(stat)
+    }
+
+    if (names.nonEmpty || sft.getTypeName != previous.getTypeName) {
+      val serializer =
+        Some(metadata)
+          .collect { case m: TableBasedMetadata[Stat] => m.serializer }
+          .collect { case s: StatsMetadataSerializer => s }
+
+      // we need to set the old feature type in the serializer cache to read back our current values
+      serializer.foreach(s => s.cache.put(previous.getTypeName, previous))
+      val old = try { metadata.scan(previous.getTypeName, "", cache = false).toList } finally {
+        serializer.foreach(s => s.cache.remove(previous.getTypeName)) // will re-load latest from data store
+      }
+      old.foreach { case (key, stat) =>
+        val renamed = getStatsForWrite(rename(stat), sft, merge = false)
+        write(sft.getTypeName, renamed)
+        if (sft.getTypeName != previous.getTypeName || !renamed.exists(_.key == key)) {
+          metadata.remove(previous.getTypeName, key)
+        }
+      }
+    }
+  }
 
   override def close(): Unit = metadata.close()
 
@@ -273,7 +342,7 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
     val indexedAttributes = indexedAttributesBuilder.result().distinct.filter { a =>
       !stAttributes.contains(a) && okForStats(sft.getDescriptor(a))
     }
-    val flaggedAttributes = sft.getAttributeDescriptors.collect {
+    val flaggedAttributes = sft.getAttributeDescriptors.asScala.collect {
       case d if d.isKeepStats && okForStats(d) => d.getLocalName
     }.filter(a => !stAttributes.contains(a) && !indexedAttributes.contains(a))
 
@@ -411,12 +480,10 @@ object MetadataBackedStats {
   private [stats] def topKKey(attribute: String): String = s"$TopKKeyPrefix-$attribute"
 
   // gets the key for storing a frequency attribute
-  private [stats] def frequencyKey(attribute: String): String =
-    s"$FrequencyKeyPrefix-$attribute"
+  private [stats] def frequencyKey(attribute: String): String = s"$FrequencyKeyPrefix-$attribute"
 
   // gets the key for storing a frequency attribute by time bin
-  private [stats] def frequencyKey(attribute: String, timeBin: Short): String =
-    frequencyKey(s"$attribute-$timeBin")
+  private [stats] def frequencyKey(attribute: String, timeBin: Short): String = frequencyKey(s"$attribute-$timeBin")
 
   // gets the key for storing a histogram
   private [stats] def histogramKey(attribute: String): String = s"$HistogramKeyPrefix-$attribute"
@@ -433,7 +500,7 @@ object MetadataBackedStats {
     * @param ds datastore
     */
   class RunnableStats(ds: DataStore with HasGeoMesaMetadata[String])
-      extends MetadataBackedStats(ds, new NoOpMetadata[Stat], false) {
+      extends MetadataBackedStats(ds, GeoMesaMetadata.empty[Stat], false) {
     override protected def write(typeName: String, stats: Seq[WritableStat]): Unit = {}
   }
 
@@ -442,7 +509,7 @@ object MetadataBackedStats {
     *
     * @param ds datastore
     */
-  class UnoptimizedRunnableStats(ds: DataStore) extends MetadataBackedStats(ds, new NoOpMetadata[Stat], false) {
+  class UnoptimizedRunnableStats(ds: DataStore) extends MetadataBackedStats(ds, GeoMesaMetadata.empty[Stat], false) {
 
     override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
       val stat = Stat(sft, stats)
@@ -470,13 +537,21 @@ object MetadataBackedStats {
     *
     * @param ds datastore
     */
-  class StatsMetadataSerializer(ds: GeoMesaDataStore[_]) extends MetadataSerializer[Stat] {
+  class StatsMetadataSerializer(ds: DataStore) extends MetadataSerializer[Stat] {
 
-    private val sfts = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
+    private [stats] val cache = new ConcurrentHashMap[String, SimpleFeatureType]()
 
-    private def serializer(typeName: String) = {
-      val sft = sfts.synchronized(sfts.getOrElseUpdate(typeName, ds.getSchema(typeName)))
-      StatSerializer(sft) // retrieves a cached value
+    private def serializer(typeName: String): StatSerializer = {
+      var sft = cache.get(typeName)
+      if (sft == null) {
+        sft = ds.getSchema(typeName)
+        if (sft == null) {
+          throw new RuntimeException(s"Trying to deserialize stats for type '$typeName' " +
+              "but it doesn't exist in the datastore")
+        }
+        cache.put(typeName, sft)
+      }
+      StatSerializer(sft) // note: retrieves a cached value
     }
 
     override def serialize(typeName: String, value: Stat): Array[Byte] =

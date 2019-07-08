@@ -16,9 +16,9 @@ import org.locationtech.geomesa.utils.geotools.{InitBuilder, SimpleFeatureTypes}
 class AccumuloSftBuilder extends InitBuilder[AccumuloSftBuilder] {
   def recordSplitter(clazz: String, splitOptions: Map[String,String]): AccumuloSftBuilder = {
     // note that SimpleFeatureTypes requires that splitter and splitter opts be ordered properly
-    userData(SimpleFeatureTypes.Configs.TABLE_SPLITTER, clazz)
+    userData(SimpleFeatureTypes.Configs.TableSplitterClass, clazz)
     if (splitOptions.nonEmpty) {
-      userData(SimpleFeatureTypes.Configs.TABLE_SPLITTER_OPTS, encodeMap(splitOptions, SepPart, SepEntry))
+      userData(SimpleFeatureTypes.Configs.TableSplitterOpts, encodeMap(splitOptions, SepPart, SepEntry))
     }
     this
   }

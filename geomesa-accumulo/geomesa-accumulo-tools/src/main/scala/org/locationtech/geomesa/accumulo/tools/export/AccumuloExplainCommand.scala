@@ -6,20 +6,19 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.tools.data
+package org.locationtech.geomesa.accumulo.tools.export
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.tools.data.AccumuloCreateSchemaCommand.AccumuloCreateSchemaParams
+import org.locationtech.geomesa.accumulo.tools.export.AccumuloExplainCommand.AccumuloExplainParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
-import org.locationtech.geomesa.tools.data.CreateSchemaCommand
-import org.locationtech.geomesa.tools.data.CreateSchemaCommand.CreateSchemaParams
+import org.locationtech.geomesa.tools.status.{ExplainCommand, ExplainParams}
 
-class AccumuloCreateSchemaCommand extends CreateSchemaCommand[AccumuloDataStore] with AccumuloDataStoreCommand {
-  override val params = new AccumuloCreateSchemaParams()
+class AccumuloExplainCommand extends ExplainCommand[AccumuloDataStore] with AccumuloDataStoreCommand {
+  override val params = new AccumuloExplainParams()
 }
 
-object AccumuloCreateSchemaCommand {
-  @Parameters(commandDescription = "Create a GeoMesa feature type")
-  class AccumuloCreateSchemaParams extends CreateSchemaParams with AccumuloDataStoreParams
+object AccumuloExplainCommand {
+  @Parameters(commandDescription = "Explain how a GeoMesa query will be executed")
+  class AccumuloExplainParams extends ExplainParams with AccumuloDataStoreParams
 }

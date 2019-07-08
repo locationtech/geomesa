@@ -36,6 +36,7 @@ object BigtableRunner extends Runner {
     new HBaseKeywordsCommand with BigtableDataStoreCommand,
     new HBaseGetTypeNamesCommand with BigtableDataStoreCommand,
     new HBaseRemoveSchemaCommand with BigtableDataStoreCommand,
+    new HBaseUpdateSchemaCommand with BigtableDataStoreCommand,
     new HBaseVersionRemoteCommand with BigtableDataStoreCommand,
     new VersionCommand,
     new HBaseGetSftConfigCommand with BigtableDataStoreCommand,

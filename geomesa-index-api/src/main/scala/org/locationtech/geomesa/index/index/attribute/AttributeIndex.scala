@@ -82,7 +82,7 @@ object AttributeIndex extends ConfiguredIndex {
 
   override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] = {
     sft.getAttributeDescriptors.asScala.flatMap { d =>
-      val index = d.getUserData.get(AttributeOptions.OPT_INDEX).asInstanceOf[String]
+      val index = d.getUserData.get(AttributeOptions.OptIndex).asInstanceOf[String]
       if (index != null &&
           (index.equalsIgnoreCase(IndexCoverage.FULL.toString) || java.lang.Boolean.valueOf(index)) &&
           AttributeIndexKey.encodable(d)) {

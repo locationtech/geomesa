@@ -32,6 +32,7 @@ object CassandraRunner extends Runner {
     new CassandraExportCommand,
     new CassandraPlaybackCommand,
     new CassandraExplainCommand,
+    new CassandraUpdateSchemaCommand,
     new ConfigureCommand,
     new ClasspathCommand,
     new ScalaConsoleCommand

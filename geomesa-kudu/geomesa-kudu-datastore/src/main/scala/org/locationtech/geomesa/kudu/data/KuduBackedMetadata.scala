@@ -20,7 +20,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 
 class KuduBackedMetadata[T](val client: KuduClient, val catalog: String, val serializer: MetadataSerializer[T])
-    extends CachedLazyMetadata[T] {
+    extends TableBasedMetadata[T] {
 
   import org.locationtech.geomesa.kudu.utils.RichKuduClient.RichScanner
 
@@ -61,6 +61,9 @@ class KuduBackedMetadata[T](val client: KuduClient, val catalog: String, val ser
 
     client.createTable(catalog, schema, options)
   }
+
+  override protected def createEmptyBackup(timestamp: String): KuduBackedMetadata[T] =
+    new KuduBackedMetadata(client, s"${catalog}_${timestamp}_bak", serializer)
 
   override protected def write(typeName: String, rows: Seq[(String, Array[Byte])]): Unit = {
     val session = client.newSession()

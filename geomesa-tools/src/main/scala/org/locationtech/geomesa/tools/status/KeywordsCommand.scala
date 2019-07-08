@@ -14,6 +14,7 @@ import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
+@deprecated("DescribeSchemaCommand, UpdateSchemaCommand")
 trait KeywordsCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override val name: String = "keywords"
@@ -26,6 +27,8 @@ trait KeywordsCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
     import scala.collection.JavaConversions._
+
+    Command.user.warn("This command is deprecated - please use 'describe-schema' and/or 'update-schema'")
 
     val sft = Option(ds.getSchema(params.featureName)).map(SimpleFeatureTypes.mutable).orNull
     if (sft == null) {

@@ -236,8 +236,8 @@ class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
 
 object GeoJsonGtIndex {
 
-  val IdPathKey  = s"${SimpleFeatureTypes.InternalConfigs.GEOMESA_PREFIX}json.id"
-  val DtgPathKey = s"${SimpleFeatureTypes.InternalConfigs.GEOMESA_PREFIX}json.dtg"
+  val IdPathKey  = s"${SimpleFeatureTypes.InternalConfigs.GeomesaPrefix}json.id"
+  val DtgPathKey = s"${SimpleFeatureTypes.InternalConfigs.GeomesaPrefix}json.dtg"
 
   private type ExtractGeometry = (JObject) => Geometry
   private type ExtractId = (JObject) => Option[String]
@@ -269,7 +269,7 @@ object GeoJsonGtIndex {
       spec.append(",dtg:Date")
     }
 
-    val mixedGeoms = if (points) { Seq.empty } else { Seq(s"${SimpleFeatureTypes.Configs.MIXED_GEOMETRIES}='true'") }
+    val mixedGeoms = if (points) { Seq.empty } else { Seq(s"${SimpleFeatureTypes.Configs.MixedGeometries}='true'") }
     val id = idPath.map(p => s"$IdPathKey='$p'")
     val dtg = dtgPath.map(p => s"$DtgPathKey='$p'")
 

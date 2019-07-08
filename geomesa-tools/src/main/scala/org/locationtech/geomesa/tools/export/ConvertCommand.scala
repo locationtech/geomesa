@@ -13,7 +13,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-import org.locationtech.geomesa.index.metadata.NoOpMetadata
+import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.planning.LocalQueryRunner
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryHook
 import org.locationtech.geomesa.index.stats.MetadataBackedStats
@@ -123,7 +123,7 @@ object ConvertCommand extends LazyLogging {
     def transform(iter: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
       import org.locationtech.geomesa.filter.filterToString
 
-      val stats: MetadataBackedStats = new MetadataBackedStats(null, new NoOpMetadata[Stat], false) {
+      val stats: MetadataBackedStats = new MetadataBackedStats(null, GeoMesaMetadata.empty, false) {
         override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, ignored: Filter): Seq[T] = {
           val stat = Stat(sft, stats)
           try {

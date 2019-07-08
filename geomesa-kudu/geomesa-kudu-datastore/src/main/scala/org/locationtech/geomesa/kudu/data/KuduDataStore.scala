@@ -35,25 +35,25 @@ class KuduDataStore(val client: KuduClient, override val config: KuduDataStoreCo
 
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
-    import Configs.TABLE_SPLITTER_OPTS
+    import Configs.TableSplitterOpts
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     // set table splitter options with a key that will be persisted, as we use it after table creation
-    Option(sft.getUserData.get(TABLE_SPLITTER_OPTS)).foreach(sft.getUserData.put(KuduSplitterOptions, _))
+    Option(sft.getUserData.get(TableSplitterOpts)).foreach(sft.getUserData.put(KuduSplitterOptions, _))
 
     // if not specified, only enable the z3 index and let kudu handle other predicates
-    if (!sft.getUserData.containsKey(SimpleFeatureTypes.Configs.ENABLED_INDICES) && sft.getDtgField.isDefined) {
+    if (!sft.getUserData.containsKey(SimpleFeatureTypes.Configs.EnabledIndices) && sft.getDtgField.isDefined) {
       if (sft.isPoints) {
-        sft.getUserData.put(SimpleFeatureTypes.Configs.ENABLED_INDICES, Z3Index.name)
+        sft.getUserData.put(SimpleFeatureTypes.Configs.EnabledIndices, Z3Index.name)
       } else if (sft.nonPoints) {
-        sft.getUserData.put(SimpleFeatureTypes.Configs.ENABLED_INDICES, XZ3Index.name)
+        sft.getUserData.put(SimpleFeatureTypes.Configs.EnabledIndices, XZ3Index.name)
       }
     }
 
     // suppress table partitioning, as it doesn't fit well with the kudu api, and kudu supports native partitioning
     if (TablePartition.partitioned(sft)) {
       logger.warn("Table partitioning is not supported - disabling")
-      sft.getUserData.remove(SimpleFeatureTypes.Configs.TABLE_PARTITIONING)
+      sft.getUserData.remove(SimpleFeatureTypes.Configs.TablePartitioning)
     }
 
     super.preSchemaCreate(sft)

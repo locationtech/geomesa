@@ -114,7 +114,7 @@ abstract class InitBuilder[T] {
   def attributeDescriptor(ad: AttributeDescriptor): T =
     append(ad.getLocalName, Opts(), ad.getType.getBinding.getCanonicalName)
 
-  def withIndexes(indexSuffixes: List[String]): T = userData(ENABLED_INDICES, indexSuffixes.mkString(","))
+  def withIndexes(indexSuffixes: List[String]): T = userData(EnabledIndices, indexSuffixes.mkString(","))
 
   def userData(key: String, value: String): T = {
     options.append(s"$key='$value'")
@@ -153,10 +153,10 @@ abstract class InitBuilder[T] {
     this.asInstanceOf[T]
   }
 
-  private def indexPart(index: Boolean) = if (index) Seq(s"$OPT_INDEX=true") else Seq.empty
-  private def stIndexPart(index: Boolean) = if (index) Seq(s"$OPT_INDEX_VALUE=true") else Seq.empty
+  private def indexPart(index: Boolean) = if (index) Seq(s"$OptIndex=true") else Seq.empty
+  private def stIndexPart(index: Boolean) = if (index) Seq(s"$OptIndexValue=true") else Seq.empty
   private def cardinalityPart(cardinality: Cardinality) = cardinality match {
-    case Cardinality.LOW | Cardinality.HIGH => Seq(s"$OPT_CARDINALITY=${cardinality.toString}")
+    case Cardinality.LOW | Cardinality.HIGH => Seq(s"$OptCardinality=${cardinality.toString}")
     case _ => Seq.empty
   }
 

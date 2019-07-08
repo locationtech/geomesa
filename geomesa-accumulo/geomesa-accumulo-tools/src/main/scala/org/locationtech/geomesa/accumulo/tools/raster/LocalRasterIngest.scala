@@ -14,7 +14,6 @@ import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date
 
 import org.geotools.coverage.grid.GridCoverage2D
-import org.locationtech.geomesa.accumulo.tools.ingest.IngestRasterCommand
 import org.locationtech.geomesa.raster.data.Raster
 import org.locationtech.geomesa.raster.index.RasterEntryDecoder.DecodedIndexValue
 import org.locationtech.geomesa.raster.util.RasterUtils

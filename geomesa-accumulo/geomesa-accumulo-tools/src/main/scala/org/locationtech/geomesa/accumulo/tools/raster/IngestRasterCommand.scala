@@ -6,13 +6,12 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.accumulo.tools.ingest
+package org.locationtech.geomesa.accumulo.tools.raster
 
 import java.io.File
 import java.util.Locale
 
 import com.beust.jcommander._
-import org.locationtech.geomesa.accumulo.tools.raster.LocalRasterIngest
 import org.locationtech.geomesa.accumulo.tools.{AccumuloConnectionParams, AccumuloRasterTableParam}
 import org.locationtech.geomesa.raster.util.RasterUtils.IngestRasterParams
 import org.locationtech.geomesa.tools.Command

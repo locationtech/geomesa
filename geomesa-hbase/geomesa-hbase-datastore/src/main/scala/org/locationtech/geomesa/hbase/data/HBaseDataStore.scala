@@ -127,7 +127,7 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
         require(id.version <= 5, s"Expected index version of 1-5 but got: $id")
         lazy val fields = if (id.version == 1) { dtg } else { geom ++ dtg }
         sft.getAttributeDescriptors.asScala.foreach { d =>
-          val index = d.getUserData.remove(AttributeOptions.OPT_INDEX).asInstanceOf[String]
+          val index = d.getUserData.remove(AttributeOptions.OptIndex).asInstanceOf[String]
           if (index == null || index.equalsIgnoreCase("false") || index.equalsIgnoreCase(IndexCoverage.NONE.toString)) {
             // no-op
           } else if (java.lang.Boolean.valueOf(index) || index.equalsIgnoreCase(IndexCoverage.FULL.toString) ||

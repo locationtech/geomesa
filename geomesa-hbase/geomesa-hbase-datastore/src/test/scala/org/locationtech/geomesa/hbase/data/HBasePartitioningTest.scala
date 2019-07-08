@@ -58,7 +58,7 @@ class HBasePartitioningTest extends HBaseTest with LazyLogging {
         ds.getSchema(typeName) must beNull
 
         ds.createSchema(SimpleFeatureTypes.createType(typeName,
-          s"$spec${Configs.TABLE_PARTITIONING}=${TimePartition.Name}"))
+          s"$spec${Configs.TablePartitioning}=${TimePartition.Name}"))
 
         val sft = ds.getSchema(typeName)
 

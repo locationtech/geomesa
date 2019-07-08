@@ -302,6 +302,9 @@ object MergedQueryRunner {
 
     override def clearStats(sft: SimpleFeatureType): Unit = stats.foreach(_._1.clearStats(sft))
 
+    override def rename(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit =
+      stats.foreach(_._1.rename(sft, previous))
+
     override def close(): Unit = stats.map(_._1).foreach(CloseWithLogging.apply)
   }
 

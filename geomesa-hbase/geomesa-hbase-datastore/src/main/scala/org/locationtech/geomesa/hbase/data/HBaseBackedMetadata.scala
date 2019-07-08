@@ -12,14 +12,14 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{HColumnDescriptor, HTableDescriptor, TableName}
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
-import org.locationtech.geomesa.index.metadata.{CachedLazyBinaryMetadata, MetadataSerializer}
+import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 
 import scala.collection.JavaConversions._
 
 class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val serializer: MetadataSerializer[T])
-    extends { private val table = connection.getTable(catalog) } with CachedLazyBinaryMetadata[T] {
+    extends { private val table = connection.getTable(catalog) } with KeyValueStoreMetadata[T] {
 
   import HBaseBackedMetadata._
 
@@ -34,6 +34,9 @@ class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val ser
       }
     }
   }
+
+  override protected def createEmptyBackup(timestamp: String): HBaseBackedMetadata[T] =
+    new HBaseBackedMetadata(connection, TableName.valueOf(s"${catalog}_${timestamp}_bak"), serializer)
 
   override protected def write(rows: Seq[(Array[Byte], Array[Byte])]): Unit =
     table.put(rows.map { case (r, v) => new Put(r).addColumn(ColumnFamily, ColumnQualifier, v) }.toList)

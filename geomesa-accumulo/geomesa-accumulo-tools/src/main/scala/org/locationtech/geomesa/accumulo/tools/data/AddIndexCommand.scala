@@ -62,7 +62,7 @@ object AddIndexCommand {
 
 class AddIndexCommandExecutor(override val params: AddIndexParameters) extends Runnable with AccumuloDataStoreCommand {
 
-  import org.locationtech.geomesa.index.metadata.GeoMesaMetadata.ATTRIBUTES_KEY
+  import org.locationtech.geomesa.index.metadata.GeoMesaMetadata.AttributesKey
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val name = ""
@@ -83,8 +83,8 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends R
       builder.init(sft)
       val copy = builder.buildFeatureType()
       copy.getUserData.putAll(sft.getUserData)
-      copy.getUserData.remove(InternalConfigs.INDEX_VERSIONS)
-      copy.getUserData.put(Configs.ENABLED_INDICES, params.indexNames.mkString(","))
+      copy.getUserData.remove(InternalConfigs.IndexVersions)
+      copy.getUserData.put(Configs.EnabledIndices, params.indexNames.mkString(","))
       GeoMesaFeatureIndexFactory.indices(copy)
     }
 
@@ -111,8 +111,8 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends R
     }
 
     // write a backup meta-data entry in case the process fails part-way
-    val backupKey = s"$ATTRIBUTES_KEY.bak"
-    ds.metadata.insert(sft.getTypeName, backupKey, ds.metadata.readRequired(sft.getTypeName, ATTRIBUTES_KEY))
+    val backupKey = s"$AttributesKey.bak"
+    ds.metadata.insert(sft.getTypeName, backupKey, ds.metadata.readRequired(sft.getTypeName, AttributesKey))
 
     val toKeep = sft.getIndices.filter(i => !toDisable.map(_._2).contains(i))
 
@@ -171,7 +171,7 @@ class AddIndexCommandExecutor(override val params: AddIndexParameters) extends R
           case "1" => setReadWrite()
           case "2" =>
             val bak = ds.metadata.readRequired(sft.getTypeName, backupKey)
-            ds.metadata.insert(sft.getTypeName, ATTRIBUTES_KEY, bak)
+            ds.metadata.insert(sft.getTypeName, AttributesKey, bak)
         }
       }
     }

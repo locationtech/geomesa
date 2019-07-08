@@ -22,6 +22,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.VersionKey
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
+import org.locationtech.geomesa.index.metadata.GeoMesaMetadata.AttributesKey
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
@@ -30,6 +31,7 @@ import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, IndexId, Semantic
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOptions, Configs, InternalConfigs}
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.stats.IndexCoverage
@@ -108,12 +110,13 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
 
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
-    import Configs.{TABLE_SPLITTER, TABLE_SPLITTER_OPTS}
-    import InternalConfigs.{PARTITION_SPLITTER, PARTITION_SPLITTER_OPTS}
+    import Configs.{TableSplitterClass, TableSplitterOpts}
+    import InternalConfigs.{PartitionSplitterClass, PartitionSplitterOpts}
 
     // check for old enabled indices and re-map them
+    // noinspection ScalaDeprecation
     SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.drop(1).find(sft.getUserData.containsKey).foreach { key =>
-      sft.getUserData.put(SimpleFeatureTypes.Configs.ENABLED_INDICES, sft.getUserData.remove(key))
+      sft.getUserData.put(SimpleFeatureTypes.Configs.EnabledIndices, sft.getUserData.remove(key))
     }
 
     // validate column groups
@@ -123,8 +126,8 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     // noinspection ScalaDeprecation
     if (sft.isTableSharing) {
       logger.warn("Table sharing is no longer supported - disabling table sharing")
-      sft.getUserData.remove(Configs.TABLE_SHARING_KEY)
-      sft.getUserData.remove(InternalConfigs.SHARING_PREFIX_KEY)
+      sft.getUserData.remove(Configs.TableSharing)
+      sft.getUserData.remove(InternalConfigs.TableSharingPrefix)
     }
 
     // configure the indices to use
@@ -141,13 +144,13 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     GeoMesaFeatureIndexFactory.create(this, sft, sft.getIndices)
 
     // remove the enabled indices after configuration so we don't persist them
-    sft.getUserData.remove(SimpleFeatureTypes.Configs.ENABLED_INDICES)
+    sft.getUserData.remove(SimpleFeatureTypes.Configs.EnabledIndices)
     // remove any 'index' flags in the attribute metadata, they have already been captured in the indices above
-    sft.getAttributeDescriptors.asScala.foreach(_.getUserData.remove(AttributeOptions.OPT_INDEX))
+    sft.getAttributeDescriptors.asScala.foreach(_.getUserData.remove(AttributeOptions.OptIndex))
 
     // for partitioned schemas, persist the table partitioning keys
     if (TablePartition.partitioned(sft)) {
-      Seq((TABLE_SPLITTER, PARTITION_SPLITTER), (TABLE_SPLITTER_OPTS, PARTITION_SPLITTER_OPTS)).foreach {
+      Seq((TableSplitterClass, PartitionSplitterClass), (TableSplitterOpts, PartitionSplitterOpts)).foreach {
         case (from, to) => Option(sft.getUserData.get(from)).foreach(sft.getUserData.put(to, _))
       }
     }
@@ -157,7 +160,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
   override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
     // check for attributes flagged 'index' and convert them to sft-level user data
     sft.getAttributeDescriptors.asScala.foreach { d =>
-      val index = d.getUserData.remove(AttributeOptions.OPT_INDEX).asInstanceOf[String]
+      val index = d.getUserData.remove(AttributeOptions.OptIndex).asInstanceOf[String]
       if (index == null || index.equalsIgnoreCase(IndexCoverage.NONE.toString) || index.equalsIgnoreCase("false")) {
         // no-op
       } else if (index.equalsIgnoreCase(IndexCoverage.FULL.toString) || java.lang.Boolean.valueOf(index)) {
@@ -196,13 +199,79 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
 
   // create the new index tables (if not using partitioned tables)
   override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
-    val old = previous.getIndices.map(GeoMesaFeatureIndex.identifier)
-    val added = manager.indices(sft).filterNot(i => old.contains(i.identifier))
-    if (TablePartition.partitioned(sft)) {
-      logger.debug(s"Delaying creation of partitioned indices ${added.map(_.identifier).mkString(", ")}")
+    val partitioned = TablePartition.partitioned(sft)
+
+    // check for column renaming
+    val colMap = previous.getAttributeDescriptors.asScala.zipWithIndex.toMap.flatMap { case (prev, i) =>
+      val cur = sft.getDescriptor(i)
+      if (prev.getLocalName != cur.getLocalName) {
+        Map(prev.getLocalName -> cur.getLocalName)
+      } else {
+        Map.empty[String, String]
+      }
+    }
+
+    val indices = sft.getIndices
+    val indexChange = colMap.nonEmpty && indices.exists(_.attributes.exists(colMap.contains))
+    if (indexChange) {
+      val updated = indices.map { i =>
+        if (!i.attributes.exists(colMap.contains)) { i } else {
+          val update = i.copy(attributes = i.attributes.map(a => colMap.getOrElse(a, a)))
+          // side-effect - rewrite the table name keys for the renamed cols
+          val old = manager.index(previous, GeoMesaFeatureIndex.identifier(i))
+          val index = GeoMesaFeatureIndexFactory.create(this, sft, Seq(update)).headOption.getOrElse {
+            throw new IllegalArgumentException(
+              s"Error configuring new feature index: ${GeoMesaFeatureIndex.identifier(update)}")
+          }
+          val partitions = if (!partitioned) { Seq(None) } else {
+            // have to use the old table name key but the new sft name for looking up the partitions
+            val tableNameKey = old.tableNameKey(Some(""))
+            val offset = tableNameKey.length
+            metadata.scan(sft.getTypeName, tableNameKey).map { case (k, _) => Some(k.substring(offset)) }
+          }
+          partitions.foreach { p =>
+            metadata.read(sft.getTypeName, old.tableNameKey(p)).foreach { v =>
+              metadata.insert(sft.getTypeName, index.tableNameKey(p), v)
+            }
+          }
+          update
+        }
+      }
+      sft.setIndices(updated.distinct)
+      metadata.insert(sft.getTypeName, AttributesKey, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
+    }
+
+    // configure any new indices
+    if (partitioned) {
+      logger.debug("Delaying creation of partitioned indices")
     } else {
-      logger.debug(s"Creating indices ${added.map(_.identifier).mkString(", ")}")
-      added.foreach(index => adapter.createTable(index, None, index.getSplits(None)))
+      logger.debug(s"Ensuring indices ${manager.indices(sft).map(_.identifier).mkString(", ")}")
+      manager.indices(sft).foreach(index => adapter.createTable(index, None, index.getSplits(None)))
+    }
+
+    // update stats
+    if (sft.getTypeName != previous.getTypeName || colMap.nonEmpty) {
+      stats.rename(sft, previous)
+    }
+
+    // rename tables to match the new sft name
+    if (sft.getTypeName != previous.getTypeName || indexChange) {
+      if (FastConverter.convertOrElse[java.lang.Boolean](sft.getUserData.get(Configs.UpdateRenameTables), false)) {
+        manager.indices(sft).foreach { index =>
+          val partitions = if (partitioned) { index.getPartitions.map(Option.apply) } else { Seq(None) }
+          partitions.foreach { partition =>
+            val key = index.tableNameKey(partition)
+            metadata.read(sft.getTypeName, key).foreach { table =>
+              metadata.remove(sft.getTypeName, key)
+              val renamed = index.configureTableName(partition)
+              if (renamed != table) {
+                logger.debug(s"Renaming table from '$table' to '$renamed'")
+                adapter.renameTable(table, renamed)
+              }
+            }
+          }
+        }
+      }
     }
   }
 
@@ -244,7 +313,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
           case NonFatal(e) =>
             throw new IllegalStateException(s"The schema ${sft.getTypeName} was written with a older " +
                 "version of GeoMesa that is no longer supported. You may continue to use an older client, or " +
-                s"manually edit the metadata for '${InternalConfigs.INDEX_VERSIONS}' to exclude the invalid indices.", e)
+                s"manually edit the metadata for '${InternalConfigs.IndexVersions}' to exclude the invalid indices.", e)
         }
       } else {
         // validate indices
@@ -266,7 +335,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
         case Left(e) => throw e
         case Right(version) =>
           version.foreach { v =>
-            val userData = Collections.singletonMap[AnyRef, AnyRef](InternalConfigs.REMOTE_VERSION, v.toString)
+            val userData = Collections.singletonMap[AnyRef, AnyRef](InternalConfigs.RemoteVersion, v.toString)
             sft = SimpleFeatureTypes.immutable(sft, userData)
           }
       }

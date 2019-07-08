@@ -188,7 +188,7 @@ class AttributeIndexJob extends Tool {
       attributes.foreach { a =>
         val descriptor = sft.getDescriptor(a)
         require(descriptor != null, s"Attribute '$a' does not exist in schema '$typeName'")
-        descriptor.getUserData.put(AttributeOptions.OPT_INDEX, coverage.toString)
+        descriptor.getUserData.put(AttributeOptions.OptIndex, coverage.toString)
       }
 
       // update the schema - this will create the table if it doesn't exist, and add splits

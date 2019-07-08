@@ -26,7 +26,7 @@ trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[D
 
     val sft = ds.getSchema(params.featureName)
 
-    def noStats = ds.metadata.read(sft.getTypeName, GeoMesaMetadata.STATS_GENERATION_KEY, cache = false).isEmpty
+    def noStats = ds.metadata.read(sft.getTypeName, GeoMesaMetadata.StatsGenerationKey, cache = false).isEmpty
 
     Command.user.info(s"Running stat analysis for feature type ${sft.getTypeName}...")
     val stats = if (noStats) {

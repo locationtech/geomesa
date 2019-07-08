@@ -11,6 +11,7 @@ package org.locationtech.geomesa.kudu.data
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.StrictLogging
+import org.apache.kudu.client.AlterTableOptions
 import org.apache.kudu.client.SessionConfiguration.FlushMode
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
@@ -52,6 +53,12 @@ class KuduIndexAdapter(ds: KuduDataStore) extends IndexAdapter[KuduDataStore] {
       }
 
       ds.client.createTable(table, mapper.tableSchema, options)
+    }
+  }
+
+  override def renameTable(from: String, to: String): Unit = {
+    if (ds.client.tableExists(from)) {
+      ds.client.alterTable(from, new AlterTableOptions().renameTable(to))
     }
   }
 

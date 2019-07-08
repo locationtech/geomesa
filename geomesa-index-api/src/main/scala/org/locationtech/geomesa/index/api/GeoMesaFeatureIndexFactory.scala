@@ -14,7 +14,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.DefaultFeatureIndexFactory
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.ENABLED_INDICES
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.EnabledIndices
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
@@ -66,7 +66,7 @@ object GeoMesaFeatureIndexFactory {
     * @return
     */
   def indices(sft: SimpleFeatureType): Seq[IndexId] = {
-    Option(sft.getUserData.get(ENABLED_INDICES).asInstanceOf[String]).filter(_.length > 0) match {
+    Option(sft.getUserData.get(EnabledIndices).asInstanceOf[String]).filter(_.length > 0) match {
       case None => factories.flatMap(_.indices(sft)).distinct
       case Some(enabled) =>
         enabled.split(",").flatMap { hint =>

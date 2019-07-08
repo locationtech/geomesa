@@ -15,6 +15,7 @@ import com.typesafe.config.Config
 import org.apache.commons.text.StringEscapeUtils
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.utils.geotools.NameableFeatureTypeFactory.NameableSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{DefaultDtgField, IndexIgnoreDtg}
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec.GeomAttributeSpec
 import org.locationtech.geomesa.utils.geotools.sft._
 import org.opengis.feature.`type`.{AttributeDescriptor, FeatureTypeFactory, GeometryDescriptor}
@@ -28,63 +29,139 @@ object SimpleFeatureTypes {
   import scala.collection.JavaConverters._
 
   object Configs {
-    val TABLE_SHARING_KEY    = "geomesa.table.sharing"
-    val DEFAULT_DATE_KEY     = "geomesa.index.dtg"
-    val IGNORE_INDEX_DTG     = "geomesa.ignore.dtg"
-    val VIS_LEVEL_KEY        = "geomesa.visibility.level"
-    val Z3_INTERVAL_KEY      = "geomesa.z3.interval"
-    val XZ_PRECISION_KEY     = "geomesa.xz.precision"
-    val TABLE_SPLITTER       = "table.splitter.class" // note: doesn't start with geomesa so we don't persist it
-    val TABLE_SPLITTER_OPTS  = "table.splitter.options"
-    val MIXED_GEOMETRIES     = "geomesa.mixed.geometries"
-    val RESERVED_WORDS       = "override.reserved.words" // note: doesn't start with geomesa so we don't persist it
-    val DEFAULT_DTG_JOIN     = "override.index.dtg.join"
-    val KEYWORDS_KEY         = "geomesa.keywords"
-    val ENABLED_INDICES      = "geomesa.indices.enabled"
+
+    // note: configs that don't start with 'geomesa' won't be persisted
+
+    val DefaultDtgField       = "geomesa.index.dtg"
+    val EnabledIndices        = "geomesa.indices.enabled"
+    val FidsAreUuids          = "geomesa.fid.uuid"
+    val FidsAreUuidEncoded    = "geomesa.fid.uuid-encoded"
+    val IndexAttributeShards  = "geomesa.attr.splits"
+    val IndexIdShards         = "geomesa.id.splits"
+    val IndexIgnoreDtg        = "geomesa.ignore.dtg"
+    val IndexVisibilityLevel  = "geomesa.visibility.level"
+    val IndexXzPrecision      = "geomesa.xz.precision"
+    val IndexZ3Interval       = "geomesa.z3.interval"
+    val IndexZShards          = "geomesa.z.splits"
+    val Keywords              = "geomesa.keywords"
+    val MixedGeometries       = "geomesa.mixed.geometries"
+    val OverrideDtgJoin       = "override.index.dtg.join"
+    val OverrideReservedWords = "override.reserved.words"
+    val QueryInterceptors     = "geomesa.query.interceptors"
+    val TableCompression      = "geomesa.table.compression.enabled"
+    val TableCompressionType  = "geomesa.table.compression.type" // valid: gz(default), snappy, lzo, bzip2, lz4, zstd
+    val TableLogicalTime      = "geomesa.logical.time"
+    val TablePartitioning     = "geomesa.table.partition"
+    val TableSharing          = "geomesa.table.sharing"
+    val TableSplitterClass    = "table.splitter.class"
+    val TableSplitterOpts     = "table.splitter.options"
+    val UpdateBackupMetadata  = "schema.update.backup.metadata"
+    val UpdateRenameTables    = "schema.update.rename.tables"
+
+    @deprecated("TableSharing")
+    val TABLE_SHARING_KEY: String = TableSharing
+    @deprecated("DtgDefaultField")
+    val DEFAULT_DATE_KEY: String = DefaultDtgField
+    @deprecated("DtgIgnoreField")
+    val IGNORE_INDEX_DTG: String = IndexIgnoreDtg
+    @deprecated("VisibilityLevel")
+    val VIS_LEVEL_KEY: String = IndexVisibilityLevel
+    @deprecated("Z3Interval")
+    val Z3_INTERVAL_KEY: String = IndexZ3Interval
+    @deprecated("XzPrecision")
+    val XZ_PRECISION_KEY: String = IndexXzPrecision
+    @deprecated("TableSplitterClass")
+    val TABLE_SPLITTER: String = TableSplitterClass
+    @deprecated("TableSplitterOpts")
+    val TABLE_SPLITTER_OPTS: String = TableSplitterOpts
+    @deprecated("MixedGeometries")
+    val MIXED_GEOMETRIES: String = MixedGeometries
+    @deprecated("ReservedWords")
+    val RESERVED_WORDS: String = OverrideReservedWords
+    @deprecated("DtgJoinOverride")
+    val DEFAULT_DTG_JOIN: String = OverrideDtgJoin
+    @deprecated("Keywords")
+    val KEYWORDS_KEY: String = Keywords
+    @deprecated("EnabledIndices")
+    val ENABLED_INDICES: String = EnabledIndices
     // keep around old values for back compatibility
-    val ENABLED_INDEX_OPTS   = Seq(ENABLED_INDICES, "geomesa.indexes.enabled", "table.indexes.enabled")
+    @deprecated("EnabledIndices")
+    val ENABLED_INDEX_OPTS: Seq[String] = Seq(EnabledIndices, "geomesa.indexes.enabled", "table.indexes.enabled")
+    @deprecated("ZIndexShards")
+    val Z_SPLITS_KEY: String = IndexZShards
+    @deprecated("AttributeIndexShards")
+    val ATTR_SPLITS_KEY: String = IndexAttributeShards
+    @deprecated("IdIndexShards")
+    val ID_SPLITS_KEY: String = IndexIdShards
+    @deprecated("LogicalTimestamps")
+    val LOGICAL_TIME_KEY: String = TableLogicalTime
+    @deprecated("TableCompression")
+    val COMPRESSION_ENABLED: String = TableCompression
+    @deprecated("TableCompressionType")
+    val COMPRESSION_TYPE: String = TableCompressionType
+    @deprecated("FidsAreUuids")
+    val FID_UUID_KEY: String = FidsAreUuids
+    @deprecated("FidsAreUuidEncoded")
+    val FID_UUID_ENCODED_KEY: String = FidsAreUuidEncoded
+    @deprecated("TablePartitioning")
+    val TABLE_PARTITIONING: String = TablePartitioning
+    @deprecated("QueryInterceptors")
+    val QUERY_INTERCEPTORS: String = QueryInterceptors
+
     @deprecated("GeoHash index is no longer supported")
-    val ST_INDEX_SCHEMA_KEY  = "geomesa.index.st.schema"
-    val Z_SPLITS_KEY         = "geomesa.z.splits"
-    val ATTR_SPLITS_KEY      = "geomesa.attr.splits"
-    val ID_SPLITS_KEY        = "geomesa.id.splits"
-    val LOGICAL_TIME_KEY     = "geomesa.logical.time"
-    val COMPRESSION_ENABLED  = "geomesa.table.compression.enabled"
-    val COMPRESSION_TYPE     = "geomesa.table.compression.type"  // valid: snappy, lzo, gz(default), bzip2, lz4, zstd
-    val FID_UUID_KEY         = "geomesa.fid.uuid"
-    val FID_UUID_ENCODED_KEY = "geomesa.fid.uuid-encoded"
-    val TABLE_PARTITIONING   = "geomesa.table.partition"
-    val QUERY_INTERCEPTORS   = "geomesa.query.interceptors"
+    val ST_INDEX_SCHEMA_KEY: String = "geomesa.index.st.schema"
   }
 
   private [geomesa] object InternalConfigs {
-    val GEOMESA_PREFIX          = "geomesa."
-    val SHARING_PREFIX_KEY      = "geomesa.table.sharing.prefix"
-    val USER_DATA_PREFIX        = "geomesa.user-data.prefix"
-    val INDEX_VERSIONS          = "geomesa.indices"
-    val PARTITION_SPLITTER      = "geomesa.splitter.class"
-    val PARTITION_SPLITTER_OPTS = "geomesa.splitter.opts"
-    val REMOTE_VERSION          = "gm.remote.version" // note: doesn't start with geomesa so we don't persist it
-    val KEYWORDS_DELIMITER      = "\u0000"
+    val GeomesaPrefix          = "geomesa."
+    val TableSharingPrefix     = "geomesa.table.sharing.prefix"
+    val UserDataPrefix         = "geomesa.user-data.prefix"
+    val IndexVersions          = "geomesa.indices"
+    val PartitionSplitterClass = "geomesa.splitter.class"
+    val PartitionSplitterOpts  = "geomesa.splitter.opts"
+    val RemoteVersion          = "gm.remote.version" // note: doesn't start with geomesa so we don't persist it
+    val KeywordsDelimiter      = "\u0000"
   }
 
   object AttributeOptions {
-    val OPT_DEFAULT      = "default"
-    val OPT_SRID         = "srid"
-    val OPT_INDEX_VALUE  = "index-value"
-    val OPT_INDEX        = "index"
-    val OPT_STATS        = "keep-stats"
-    val OPT_CARDINALITY  = "cardinality"
-    val OPT_COL_GROUPS   = "column-groups"
-    val OPT_CQ_INDEX     = "cq-index"
-    val OPT_JSON         = "json"
-    val OPT_PRECISION    = "precision"
+
+    val OptCardinality  = "cardinality"
+    val OptColumnGroups = "column-groups"
+    val OptCqIndex      = "cq-index"
+    val OptDefault      = "default"
+    val OptIndex        = "index"
+    val OptIndexValue   = "index-value"
+    val OptJson         = "json"
+    val OptPrecision    = "precision"
+    val OptSrid         = "srid"
+    val OptStats        = "keep-stats"
+
+    @deprecated("OptDefault")
+    val OPT_DEFAULT: String = OptDefault
+    @deprecated("OptSrid")
+    val OPT_SRID: String = OptSrid
+    @deprecated("OptIndexValue")
+    val OPT_INDEX_VALUE: String = OptIndexValue
+    @deprecated("OptIndex")
+    val OPT_INDEX: String = OptIndex
+    @deprecated("OptStats")
+    val OPT_STATS: String = OptStats
+    @deprecated("OptCardinality")
+    val OPT_CARDINALITY: String = OptCardinality
+    @deprecated("OptColumnGroups")
+    val OPT_COL_GROUPS: String = OptColumnGroups
+    @deprecated("OptCqIndex")
+    val OPT_CQ_INDEX: String = OptCqIndex
+    @deprecated("OptJson")
+    val OPT_JSON: String = OptJson
+    @deprecated("OptPrecision")
+    val OPT_PRECISION: String = OptPrecision
   }
 
   private [geomesa] object AttributeConfigs {
-    val USER_DATA_LIST_TYPE      = "subtype"
-    val USER_DATA_MAP_KEY_TYPE   = "keyclass"
-    val USER_DATA_MAP_VALUE_TYPE = "valueclass"
+    val UserDataListType     = "subtype"
+    val UserDataMapKeyType   = "keyclass"
+    val UserDataMapValueType = "valueclass"
   }
 
   private val cache = new ConcurrentHashMap[(String, String), ImmutableSimpleFeatureType]()
@@ -349,19 +426,18 @@ object SimpleFeatureTypes {
                                 name: String,
                                 spec: SimpleFeatureSpec,
                                 factory: Option[FeatureTypeFactory] = None): SimpleFeatureType = {
-    import AttributeOptions.OPT_DEFAULT
-    import Configs.{DEFAULT_DATE_KEY, IGNORE_INDEX_DTG}
+    import AttributeOptions.OptDefault
 
     val defaultGeom = {
       val geomAttributes = spec.attributes.collect { case g: GeomAttributeSpec => g }
-      geomAttributes.find(_.options.get(OPT_DEFAULT).exists(_.toBoolean))
+      geomAttributes.find(_.options.get(OptDefault).exists(_.toBoolean))
           .orElse(geomAttributes.headOption)
           .map(_.name)
     }
-    val defaultDate = if (spec.options.get(IGNORE_INDEX_DTG).exists(toBoolean)) { None } else {
+    val defaultDate = if (spec.options.get(IndexIgnoreDtg).exists(toBoolean)) { None } else {
       val dateAttributes = spec.attributes.filter(_.clazz.isAssignableFrom(classOf[Date]))
-      spec.options.get(DEFAULT_DATE_KEY).flatMap(dtg => dateAttributes.find(_.name == dtg))
-          .orElse(dateAttributes.find(_.options.get(OPT_DEFAULT).exists(_.toBoolean)))
+      spec.options.get(DefaultDtgField).flatMap(dtg => dateAttributes.find(_.name == dtg))
+          .orElse(dateAttributes.find(_.options.get(OptDefault).exists(_.toBoolean)))
           .orElse(dateAttributes.headOption)
           .map(_.name)
     }

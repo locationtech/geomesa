@@ -18,25 +18,25 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class CachedLazyMetadataTest extends Specification {
+class KeyValueStoreMetadataTest extends Specification {
 
   "CachedLazyMetadata" should {
 
     "handle invalid rows in getTypeNames" in {
-      val metadata = new TestCachedLazyMetadata
+      val metadata = new TestMetadata
       metadata.getFeatureTypes mustEqual Array.empty
       metadata.tableExists.set(true)
       metadata.data.put("foo".getBytes(StandardCharsets.UTF_8), "foo".getBytes(StandardCharsets.UTF_8))
       metadata.getFeatureTypes mustEqual Array.empty
-      metadata.insert("bar", GeoMesaMetadata.ATTRIBUTES_KEY, "bar")
+      metadata.insert("bar", GeoMesaMetadata.AttributesKey, "bar")
       metadata.insert("bar", "bar", "bar")
-      metadata.insert("baz", GeoMesaMetadata.ATTRIBUTES_KEY, "baz")
+      metadata.insert("baz", GeoMesaMetadata.AttributesKey, "baz")
       metadata.insert("baz", "baz", "baz")
       metadata.getFeatureTypes mustEqual Array("bar", "baz")
     }
 
     "cache scan results correctly" in {
-      val metadata = new TestCachedLazyMetadata
+      val metadata = new TestMetadata
       metadata.insert("foo", "p.1", "v1")
       metadata.scan("foo", "p.", cache = true) mustEqual Seq("p.1" -> "v1")
       metadata.insert("foo", "p.2", "v2")
@@ -51,16 +51,18 @@ class CachedLazyMetadataTest extends Specification {
     }
   }
 
-  class TestCachedLazyMetadata extends CachedLazyBinaryMetadata[String] {
+  class TestMetadata extends KeyValueStoreMetadata[String] {
 
     lazy val tableExists = new AtomicBoolean(false)
     lazy val data = new java.util.TreeMap[Array[Byte], Array[Byte]](ByteArrays.ByteOrdering)
 
-    override protected def serializer: MetadataSerializer[String] = MetadataStringSerializer
+    override def serializer: MetadataSerializer[String] = MetadataStringSerializer
 
     override protected def checkIfTableExists: Boolean = tableExists.get
 
     override protected def createTable(): Unit = tableExists.set(true)
+
+    override protected def createEmptyBackup(timestamp: String): TestMetadata = new TestMetadata()
 
     override protected def write(rows: Seq[(Array[Byte], Array[Byte])]): Unit =
       rows.foreach { case (k, v) => data.put(k, v) }

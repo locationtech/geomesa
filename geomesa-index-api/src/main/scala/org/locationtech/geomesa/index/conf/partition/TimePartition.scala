@@ -16,7 +16,7 @@ import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.conf.partition.TimePartition.CustomPartitionCache
-import org.locationtech.geomesa.index.metadata.{CachedLazyMetadata, GeoMesaMetadata, HasGeoMesaMetadata}
+import org.locationtech.geomesa.index.metadata.{TableBasedMetadata, GeoMesaMetadata, HasGeoMesaMetadata}
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.text.DateParsing
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -117,7 +117,7 @@ object TimePartition {
     */
   private class CustomPartitionCache(metadata: GeoMesaMetadata[String], typeName: String) {
 
-    private val expiry = CachedLazyMetadata.Expiry.toDuration.get.toMillis
+    private val expiry = TableBasedMetadata.Expiry.toDuration.get.toMillis
 
     private var partitions: Seq[(String, ZonedDateTime, ZonedDateTime)] = _
     private var reload = 0L
