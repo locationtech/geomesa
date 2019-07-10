@@ -58,6 +58,6 @@ else
       GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
       shift 1
     fi
-    java ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.kafka.tools.KafkaRunner "$@"
+    java ${GEOMESA_OPTS} ${CUSTOM_JAVA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.kafka.tools.KafkaRunner "$@"
   fi
 fi
