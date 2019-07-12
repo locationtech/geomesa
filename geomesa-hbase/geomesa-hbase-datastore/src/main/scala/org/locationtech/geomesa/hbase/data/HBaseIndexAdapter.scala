@@ -62,8 +62,8 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       index: GeoMesaFeatureIndex[_, _],
       partition: Option[String],
       splits: => Seq[Array[Byte]]): Unit = {
-    val table = index.configureTableName(partition) // writes table name to metadata
-    val name = TableName.valueOf(table)
+    // write table name to metadata
+    val name = TableName.valueOf(index.configureTableName(partition, tableNameLimit))
 
     WithClose(ds.connection.getAdmin) { admin =>
       if (!admin.tableExists(name)) {
@@ -287,7 +287,6 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
                             indices: Seq[GeoMesaFeatureIndex[_, _]],
                             partition: Option[String]): HBaseIndexWriter =
     new HBaseIndexWriter(ds, indices, WritableFeature.wrapper(sft, groups), partition)
-
 
   /**
     * Configure the hbase scan

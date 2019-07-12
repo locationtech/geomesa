@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets
 
 import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.QueryBuilder
+import org.locationtech.geomesa.index.api.IndexAdapter
 import org.locationtech.geomesa.index.metadata._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
@@ -31,7 +32,7 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
     session.execute(s"CREATE TABLE IF NOT EXISTS $catalog (sft text, key text, value text, PRIMARY KEY ((sft), key))")
 
   override protected def createEmptyBackup(timestamp: String): CassandraBackedMetadata[T] = {
-    val table = CassandraIndexAdapter.safeTableName(s"${catalog}_${timestamp}_bak")
+    val table = IndexAdapter.truncateTableName(s"${catalog}_${timestamp}_bak", CassandraIndexAdapter.TableNameLimit)
     new CassandraBackedMetadata(session, table, serializer)
   }
 

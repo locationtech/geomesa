@@ -263,7 +263,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
             val key = index.tableNameKey(partition)
             metadata.read(sft.getTypeName, key).foreach { table =>
               metadata.remove(sft.getTypeName, key)
-              val renamed = index.configureTableName(partition)
+              val renamed = index.configureTableName(partition, adapter.tableNameLimit)
               if (renamed != table) {
                 logger.debug(s"Renaming table from '$table' to '$renamed'")
                 adapter.renameTable(table, renamed)
