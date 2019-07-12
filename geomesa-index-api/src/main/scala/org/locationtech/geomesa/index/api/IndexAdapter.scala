@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.api
 
 import java.io.{Closeable, Flushable}
+import java.util.UUID
 
 import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
@@ -24,6 +25,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 trait IndexAdapter[DS <: GeoMesaDataStore[DS]] {
 
   val groups: ColumnGroups = new ColumnGroups
+
+  val tableNameLimit: Option[Int] = None
 
   /**
     * Create a table
@@ -71,6 +74,26 @@ trait IndexAdapter[DS <: GeoMesaDataStore[DS]] {
 }
 
 object IndexAdapter {
+
+  /**
+    * Checks a table name for a max limit. If the table name exceeds the limit, then it will be
+    * truncated and a UUID appended. Note that if the limit is less than 34 (one char prefix,
+    * an underscore separator, and 32 chars for a UUID), this method will throw an exception
+    *
+    * @param name desired name
+    * @param limit database limit on the length of a table name
+    * @return
+    */
+  @throws[IllegalArgumentException]("Limit does not fit a UUID (34 chars)")
+  def truncateTableName(name: String, limit: Int): String = {
+    if (name.lengthCompare(limit) <= 0) { name } else {
+      val offset = limit - 33
+      if (offset <= 0) {
+        throw new IllegalArgumentException(s"Limit is too small to fit a UUID, must be at least 34 chars: $limit")
+      }
+      s"${name.substring(0, offset)}_${UUID.randomUUID().toString.replaceAllLiterally("-", "")}"
+    }
+  }
 
   /**
     * Writes features to a particular back-end data store implementation

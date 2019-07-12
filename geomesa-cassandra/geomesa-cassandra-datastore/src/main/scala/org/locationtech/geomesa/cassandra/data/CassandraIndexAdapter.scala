@@ -11,7 +11,6 @@ package org.locationtech.geomesa.cassandra.data
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.util.UUID
 
 import com.datastax.driver.core.Row
 import com.datastax.driver.core.exceptions.AlreadyExistsException
@@ -30,38 +29,18 @@ import org.locationtech.geomesa.index.planning.LocalQueryRunner
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryHook
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[CassandraDataStore] with StrictLogging {
+
+  override val tableNameLimit: Option[Int] = Some(CassandraIndexAdapter.TableNameLimit)
 
   override def createTable(
       index: GeoMesaFeatureIndex[_, _],
       partition: Option[String],
       splits: => Seq[Array[Byte]]): Unit = {
-    // cassandra tables have a limit of 48 characters
-    // if we use the attribute names as per usual, we can exceed that, so we use the attribute number instead
-    val table = {
-      val key = index.tableNameKey(partition)
-      ds.metadata.read(index.sft.getTypeName, key).getOrElse {
-        val builder = Seq.newBuilder[String]
-        builder += ds.config.catalog
-        builder ++= Seq(index.sft.getTypeName, index.name).map(StringSerialization.alphaNumericSafeString)
-        builder ++= index.attributes.map(a => s"${index.sft.indexOf(a)}")
-        builder += s"v${index.version}"
-        val base = builder.result.mkString("_")
-        var name = partition.map(p => s"${base}_$p").getOrElse(base)
-        if (name.length > 48) {
-          logger.warn(s"Table name length exceeds Cassandra limit, falling back to UUID: $name")
-          // UUID is 32 chars - prefix with a letter as leading numbers throw errors
-          name = "gm_" + UUID.randomUUID().toString.replaceAllLiterally("-", "")
-        }
-        ds.metadata.insert(index.sft.getTypeName, key, name)
-        name
-      }
-    }
-
     val cluster = ds.session.getCluster
+    val table = index.configureTableName(partition, tableNameLimit) // writes metadata for table name
 
     if (cluster.getMetadata.getKeyspace(ds.session.getLoggedKeyspace).getTable(table) == null) {
       val columns = CassandraColumnMapper(index).columns
@@ -144,6 +123,8 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
 }
 
 object CassandraIndexAdapter {
+
+  val TableNameLimit = 48
 
   def statement(keyspace: String, table: String, criteria: Seq[ColumnSelect]): Select = {
     val select = QueryBuilder.select.all.from(keyspace, table)
