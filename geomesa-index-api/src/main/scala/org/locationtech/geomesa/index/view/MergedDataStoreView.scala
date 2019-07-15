@@ -8,17 +8,18 @@
 
 package org.locationtech.geomesa.index.view
 
-import java.io.IOException
-
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureReader, SimpleFeatureSource}
-import org.geotools.feature.{AttributeTypeBuilder, FeatureTypes, NameImpl}
+import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureReader
+import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
+import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
-import org.locationtech.geomesa.index.view.MergedQueryRunner.MergedStats
-import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
-import org.opengis.feature.`type`.{GeometryDescriptor, Name}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedStats
+import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.stats._
+import org.opengis.feature.`type`.Name
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 /**
@@ -28,71 +29,13 @@ import org.opengis.filter.Filter
   * @param namespace namespace
   */
 class MergedDataStoreView(val stores: Seq[(DataStore, Option[Filter])], namespace: Option[String] = None)
-    extends HasGeoMesaStats with ReadOnlyDataStore {
-
-  import scala.collection.JavaConverters._
+    extends MergedDataStoreSchemas(stores.map(_._1), namespace) with HasGeoMesaStats {
 
   require(stores.nonEmpty, "No delegate stores configured")
 
   private [view] val runner = new MergedQueryRunner(this, stores)
 
   override val stats: GeoMesaStats = new MergedStats(stores)
-
-  override def getTypeNames: Array[String] = stores.map(_._1.getTypeNames).reduceLeft(_ intersect _)
-
-  override def getNames: java.util.List[Name] =
-    java.util.Arrays.asList(getTypeNames.map(t => new NameImpl(namespace.orNull, t)): _*)
-
-  override def getSchema(name: Name): SimpleFeatureType = getSchema(name.getLocalPart)
-
-  override def getSchema(typeName: String): SimpleFeatureType = {
-    val schemas = stores.map(_._1.getSchema(typeName))
-
-    if (schemas.contains(null)) {
-      return null
-    }
-
-    lazy val fail = new IOException("Delegate schemas do not match: " +
-        schemas.map(SimpleFeatureTypes.encodeType).mkString(" :: "))
-
-    schemas.reduceLeft[SimpleFeatureType] { case (left, right) =>
-      if (left.getAttributeCount != right.getAttributeCount) {
-        throw fail
-      }
-      val builder = new SchemaBuilder()
-      val attribute = new AttributeTypeBuilder()
-
-      val leftDescriptors = left.getAttributeDescriptors.iterator()
-      val rightDescriptors = right.getAttributeDescriptors.iterator()
-
-      while (leftDescriptors.hasNext) {
-        val leftDescriptor = leftDescriptors.next
-        val rightDescriptor = rightDescriptors.next
-        if (leftDescriptor.getLocalName != rightDescriptor.getLocalName) {
-          throw fail
-        }
-        val leftBinding = leftDescriptor.getType.getBinding
-        val rightBinding = rightDescriptor.getType.getBinding
-        // determine a common binding if possible, for things like java.sql.TimeStamp vs java.util.Date
-        if (leftBinding == rightBinding || leftBinding.isAssignableFrom(rightBinding)) {
-          attribute.binding(leftBinding)
-        } else if (rightBinding.isAssignableFrom(leftBinding)) {
-          attribute.binding(rightBinding)
-        } else {
-          throw fail
-        }
-
-        // add the user data from each descriptor so the delegate stores have it if needed
-        leftDescriptor.getUserData.asScala.foreach { case (k, v) => attribute.userData(k, v) }
-        rightDescriptor.getUserData.asScala.foreach { case (k, v) => attribute.userData(k, v) }
-
-        Some(leftDescriptor).collect { case g: GeometryDescriptor => attribute.crs(g.getCoordinateReferenceSystem) }
-
-        builder.addAttribute(attribute.buildDescriptor(leftDescriptor.getLocalName))
-      }
-      builder.build(namespace.orNull, typeName)
-    }
-  }
 
   override def getFeatureSource(name: Name): SimpleFeatureSource = getFeatureSource(name.getLocalPart)
 
@@ -103,15 +46,122 @@ class MergedDataStoreView(val stores: Seq[(DataStore, Option[Filter])], namespac
 
   override def getFeatureReader(query: Query, transaction: Transaction): SimpleFeatureReader =
     GeoMesaFeatureReader(getSchema(query.getTypeName), query, runner, None, None)
+}
 
-  override def dispose(): Unit = stores.foreach(_._1.dispose())
+object MergedDataStoreView {
 
-  override def getInfo: ServiceInfo = {
-    val info = new DefaultServiceInfo()
-    info.setDescription(s"Features from ${getClass.getSimpleName}")
-    info.setSchema(FeatureTypes.DEFAULT_NAMESPACE)
-    info
+  class MergedStats(stores: Seq[(DataStore, Option[Filter])]) extends GeoMesaStats {
+
+    private val stats = stores.map {
+      case (s: HasGeoMesaStats, f) => (s.stats, f)
+      case (s, f) => (new UnoptimizedRunnableStats(s), f)
+    }
+
+    override val writer: GeoMesaStatWriter = new MergedStatWriter(stats.map(_._1.writer))
+
+    override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
+      // note: unlike most methods in this class, this will return if any of the merged stores provide a response
+      val counts = stats.flatMap { case (stat, f) => stat.getCount(sft, mergeFilter(filter, f), exact) }
+      counts.reduceLeftOption(_ + _)
+    }
+
+    override def getMinMax[T](
+        sft: SimpleFeatureType,
+        attribute: String,
+        filter: Filter,
+        exact: Boolean): Option[MinMax[T]] = {
+      // note: unlike most methods in this class, this will return if any of the merged stores provide a response
+      val bounds = stats.flatMap { case (stat, f) =>
+        stat.getMinMax[T](sft, attribute, mergeFilter(filter, f), exact)
+      }
+      bounds.reduceLeftOption(_ + _)
+    }
+
+    override def getEnumeration[T](
+        sft: SimpleFeatureType,
+        attribute: String,
+        filter: Filter,
+        exact: Boolean): Option[EnumerationStat[T]] = {
+      merge((stat, f) => stat.getEnumeration[T](sft, attribute, mergeFilter(filter, f), exact))
+    }
+
+    override def getFrequency[T](
+        sft: SimpleFeatureType,
+        attribute: String,
+        precision: Int,
+        filter: Filter,
+        exact: Boolean): Option[Frequency[T]] = {
+      merge((stat, f) => stat.getFrequency[T](sft, attribute, precision, mergeFilter(filter, f), exact))
+    }
+
+    override def getTopK[T](
+        sft: SimpleFeatureType,
+        attribute: String,
+        filter: Filter,
+        exact: Boolean): Option[TopK[T]] = {
+      merge((stat, f) => stat.getTopK[T](sft, attribute, mergeFilter(filter, f), exact))
+    }
+
+    override def getHistogram[T](
+        sft: SimpleFeatureType,
+        attribute: String,
+        bins: Int,
+        min: T,
+        max: T,
+        filter: Filter,
+        exact: Boolean): Option[Histogram[T]] = {
+      merge((stat, f) => stat.getHistogram[T](sft, attribute, bins, min, max, mergeFilter(filter, f), exact))
+    }
+
+    override def getZ3Histogram(
+        sft: SimpleFeatureType,
+        geom: String,
+        dtg: String,
+        period: TimePeriod,
+        bins: Int,
+        filter: Filter,
+        exact: Boolean): Option[Z3Histogram] = {
+      merge((stat, f) => stat.getZ3Histogram(sft, geom, dtg, period, bins, mergeFilter(filter, f), exact))
+    }
+
+    override def getStat[T <: Stat](
+        sft: SimpleFeatureType,
+        query: String,
+        filter: Filter,
+        exact: Boolean): Option[T] = {
+      merge((stat, f) => stat.getStat(sft, query, mergeFilter(filter, f), exact))
+    }
+
+    override def close(): Unit = CloseWithLogging(stats.map(_._1))
+
+    private def merge[T <: Stat](query: (GeoMesaStats, Option[Filter]) => Option[T]): Option[T] = {
+      // lazily evaluate each stat as we only return Some if all the child stores do
+      val head = query(stats.head._1, stats.head._2)
+      stats.tail.foldLeft(head) { case (result, (stat, filter)) =>
+        for { r <- result; n <- query(stat, filter) } yield { (r + n).asInstanceOf[T] }
+      }
+    }
   }
 
-  override def getLockingManager: LockingManager = null
+  class MergedStatWriter(writers: Seq[GeoMesaStatWriter]) extends GeoMesaStatWriter {
+    override def analyze(sft: SimpleFeatureType): Seq[Stat] = {
+      writers.map(_.analyze(sft)).reduceLeft[Seq[Stat]] { case (left, right) =>
+        left.zip(right).map { case (l, r) => l + r }
+      }
+    }
+
+    override def updater(sft: SimpleFeatureType): StatUpdater = new MergedStatUpdater(writers.map(_.updater(sft)))
+
+    override def rename(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit =
+      writers.foreach(_.rename(sft, previous))
+
+    override def clear(sft: SimpleFeatureType): Unit = writers.foreach(_.clear(sft))
+  }
+
+  class MergedStatUpdater(updaters: Seq[StatUpdater]) extends StatUpdater {
+    override def add(sf: SimpleFeature): Unit = updaters.foreach(_.add(sf))
+    override def remove(sf: SimpleFeature): Unit = updaters.foreach(_.remove(sf))
+    override def flush(): Unit = updaters.foreach(_.flush())
+    override def close(): Unit = CloseWithLogging(updaters)
+  }
 }

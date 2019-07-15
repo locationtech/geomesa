@@ -27,7 +27,7 @@ User Manual
    filesystem/index
    kudu/index
    lambda/index
-   merged_view
+   ds_views
    geojson
    blobstore
    native_api
