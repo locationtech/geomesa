@@ -37,7 +37,7 @@ Parameter                              Type    Description
 ``geomesa.query.threads``              Integer The number of threads to use per query (if not pipelining)
 ``geomesa.query.timeout``              String  The max time a query will be allowed to run before being killed. The
                                                timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``
-``geomesa.stats.generate``             Boolean Toggle collection of statistics
+``geomesa.stats.generate``             Boolean Toggle collection of statistics for newly created feature types
 ``geomesa.query.audit``                Boolean Audit queries being run. Queries will be written to a log file
 ``geomesa.query.loose-bounding-box``   Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
 ``geomesa.query.caching``              Boolean Toggle caching of results

@@ -13,10 +13,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.planning.LocalQueryRunner
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryHook
-import org.locationtech.geomesa.index.stats.MetadataBackedStats
+import org.locationtech.geomesa.index.stats.RunnableStats
 import org.locationtech.geomesa.tools.export.ConvertCommand.ConvertParameters
 import org.locationtech.geomesa.tools.export.ExportCommand.{ChunkedExporter, ExportOptions, ExportParams, Exporter}
 import org.locationtech.geomesa.tools.ingest.IngestCommand
@@ -25,7 +24,7 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, SeqStat, Stat}
+import org.locationtech.geomesa.utils.stats.{MethodProfiling, Stat}
 import org.locationtech.geomesa.utils.text.TextTools.getPlural
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -123,22 +122,18 @@ object ConvertCommand extends LazyLogging {
     def transform(iter: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
       import org.locationtech.geomesa.filter.filterToString
 
-      val stats: MetadataBackedStats = new MetadataBackedStats(null, GeoMesaMetadata.empty, false) {
-        override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, ignored: Filter): Seq[T] = {
-          val stat = Stat(sft, stats)
+      val stats = new RunnableStats(null) {
+        override protected def query[T <: Stat](sft: SimpleFeatureType, ignored: Filter, stats: String) : Option[T] = {
+          val stat = Stat(sft, stats).asInstanceOf[T]
           try {
             WithClose(limit(filter(convert())))(_.foreach(stat.observe))
-            stat match {
-              case s: SeqStat => s.stats.asInstanceOf[Seq[T]]
-              case s => Seq(s).asInstanceOf[Seq[T]]
-            }
+            Some(stat)
           } catch {
             case e: Exception =>
               logger.error(s"Error running stats query with stats '$stats' and filter '${filterToString(ignored)}'", e)
-              Seq.empty
+              None
           }
         }
-        override protected def write(typeName: String, stats: Seq[MetadataBackedStats.WritableStat]): Unit = {}
       }
       val hook = Some(ArrowDictionaryHook(stats, Option(query.getFilter).filter(_ != Filter.INCLUDE)))
       LocalQueryRunner.transform(converter.targetSft, iter, query.getHints.getTransform, query.getHints, hook)

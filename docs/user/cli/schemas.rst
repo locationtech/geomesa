@@ -175,6 +175,8 @@ Argument                 Description
 The schema can either be specified by name, or a regular expression can be used to delete
 multiple schemas at once.
 
+.. _cli_update_schema:
+
 ``update-schema``
 -----------------
 
@@ -198,6 +200,7 @@ Argument                 Description
 ``--rename``             Change the name of the feature type
 ``--rename-attribute``   Change the name of an existing attribute
 ``--add-attribute``      Add a new attribute (column) to the feature type
+``--enable-stats``       Enable or disable stats for the feature type
 ``--add-keyword``        Add a new keyword to the feature type user data
 ``--remove-keyword``     Delete an existing keyword from the feature type user data
 ``--rename-tables``      When renaming the feature type, update index tables to match
@@ -215,6 +218,9 @@ Columns should be defined in the standard GeoTools specification format, for exa
 See :ref:`attribute_types` for more information on column types. Any features that have already been written will
 have a ``null`` value for the new columns. When adding columns that are attribute-indexed, the index will initially
 be empty.
+
+The ``enable-stats`` parameter can be used to permanently enable or disable cached statistics for the feature type.
+See :ref:`stat_config` for more details on cached statistics.
 
 The ``--add-keyword`` and ``--remove-keyword`` parameters can be used to add and/or remove keywords in the
 user data of the schema. When adding a layer in GeoServer, the 'Keywords' section of the layer configuration page

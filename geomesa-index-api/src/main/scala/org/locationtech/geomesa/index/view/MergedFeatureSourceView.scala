@@ -120,7 +120,7 @@ class MergedFeatureSourceView(
     override def accepts(visitor: FeatureVisitor, progress: ProgressListener): Unit =
       visitor match {
         case v: BoundsVisitor =>
-          v.reset(ds.stats.getBounds(sft, query.getFilter))
+          v.reset(ds.stats.getBounds(sft, query.getFilter, exact = false))
 
         case v: MinVisitor if v.getExpression.isInstanceOf[PropertyName] =>
           val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName
@@ -144,7 +144,7 @@ class MergedFeatureSourceView(
       }
 
     private def minMax(attribute: String, exact: Boolean): Option[(Any, Any)] =
-      ds.stats.getAttributeBounds[Any](sft, attribute, query.getFilter, exact).map(_.bounds)
+      ds.stats.getMinMax[Any](sft, attribute, query.getFilter, exact).map(_.bounds)
 
     override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] =
       ds.getFeatureReader(query, Transaction.AUTO_COMMIT)

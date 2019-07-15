@@ -137,7 +137,7 @@ class GeoMesaDataStoreTest extends Specification {
           SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
         }
         ds.stats.getCount(sft) must beSome(1L)
-        ds.stats.getAttributeBounds[String](sft, "name", exact = false).map(_.max) must beSome("name0")
+        ds.stats.getMinMax[String](sft, "name", exact = false).map(_.max) must beSome("name0")
 
         // rename column
         Some(new SimpleFeatureTypeBuilder()).foreach { builder =>
@@ -161,7 +161,7 @@ class GeoMesaDataStoreTest extends Specification {
           SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
         }
         ds.stats.getCount(sft) must beSome(1L)
-        ds.stats.getAttributeBounds[String](sft, "names", exact = false).map(_.max) must beSome("name0")
+        ds.stats.getMinMax[String](sft, "names", exact = false).map(_.max) must beSome("name0")
 
         // rename type and column
         Some(new SimpleFeatureTypeBuilder()).foreach { builder =>
@@ -187,7 +187,7 @@ class GeoMesaDataStoreTest extends Specification {
           SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
         }
         ds.stats.getCount(sft) must beSome(1L)
-        ds.stats.getAttributeBounds[String](sft, "n", exact = false).map(_.max) must beSome("name0")
+        ds.stats.getMinMax[String](sft, "n", exact = false).map(_.max) must beSome("name0")
       }
     }
   }

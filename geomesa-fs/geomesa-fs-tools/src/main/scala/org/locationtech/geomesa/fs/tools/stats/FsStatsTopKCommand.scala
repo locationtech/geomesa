@@ -13,7 +13,8 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.stats.FsStatsTopKCommand.FsStatsTopKParams
-import org.locationtech.geomesa.tools.stats.{StatsTopKCommand, StatsTopKParams}
+import org.locationtech.geomesa.tools.stats.StatsTopKCommand
+import org.locationtech.geomesa.tools.stats.StatsTopKCommand.StatsTopKParams
 
 class FsStatsTopKCommand extends StatsTopKCommand[FileSystemDataStore] with FsDataStoreCommand {
   override val params = new FsStatsTopKParams

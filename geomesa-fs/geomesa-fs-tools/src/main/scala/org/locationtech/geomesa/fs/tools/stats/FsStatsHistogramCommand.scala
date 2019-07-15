@@ -13,7 +13,8 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.stats.FsStatsHistogramCommand.FsStatsHistogramParams
-import org.locationtech.geomesa.tools.stats.{StatsHistogramCommand, StatsHistogramParams}
+import org.locationtech.geomesa.tools.stats.StatsHistogramCommand
+import org.locationtech.geomesa.tools.stats.StatsHistogramCommand.StatsHistogramParams
 
 class FsStatsHistogramCommand extends StatsHistogramCommand[FileSystemDataStore] with FsDataStoreCommand {
   override val params = new FsStatsHistogramParams

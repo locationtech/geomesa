@@ -212,7 +212,7 @@ object TestGeoMesaDataStore {
   }
 
   class TestStats(ds: TestGeoMesaDataStore, metadata: GeoMesaMetadata[Stat])
-      extends MetadataBackedStats(ds, metadata, true) {
+      extends MetadataBackedStats(ds, metadata) {
     override protected def write(typeName: String, stats: Seq[WritableStat]): Unit = {
       synchronized {
         stats.foreach { case WritableStat(key, stat, merge) =>

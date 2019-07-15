@@ -86,7 +86,7 @@ object MinMaxProcess {
 
       source.getDataStore match {
         case ds: HasGeoMesaStats =>
-          resultCalc = ds.stats.getAttributeBounds[Any](source.getSchema, attribute, query.getFilter, !cached) match {
+          resultCalc = ds.stats.getMinMax[Any](source.getSchema, attribute, query.getFilter, !cached) match {
             case None     => createResult("{}")
             case Some(mm) => createResult(mm.toJson)
           }

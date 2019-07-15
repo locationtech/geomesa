@@ -10,12 +10,16 @@ package org.locationtech.geomesa.accumulo.tools.stats
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.tools.stats.AccumuloStatsHistogramCommand.AccumuloStatsHistogramParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
-import org.locationtech.geomesa.tools.stats.{StatsHistogramCommand, StatsHistogramParams}
+import org.locationtech.geomesa.tools.stats.StatsHistogramCommand
+import org.locationtech.geomesa.tools.stats.StatsHistogramCommand.StatsHistogramParams
 
 class AccumuloStatsHistogramCommand extends StatsHistogramCommand[AccumuloDataStore] with AccumuloDataStoreCommand {
   override val params = new AccumuloStatsHistogramParams
 }
 
-@Parameters(commandDescription = "View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
-class AccumuloStatsHistogramParams extends StatsHistogramParams with AccumuloDataStoreParams
+object AccumuloStatsHistogramCommand {
+  @Parameters(commandDescription = "View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
+  class AccumuloStatsHistogramParams extends StatsHistogramParams with AccumuloDataStoreParams
+}

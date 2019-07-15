@@ -222,7 +222,7 @@ GeoMesa datastores implement ``org.locationtech.geomesa.index.stats.HasGeoMesaSt
     def stats: org.locationtech.geomesa.index.stats.GeoMesaStats
 
 In addition to running queries, the ``GeoMesaStats`` interface can be used to retrieve cached stats.
-See :ref:`stat_attribute_config` for details on configuring cached stats.
+See :ref:`stat_config` for details on configuring cached stats.
 
 .. _arrow_encoding:
 

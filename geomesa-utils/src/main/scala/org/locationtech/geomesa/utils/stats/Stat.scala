@@ -364,7 +364,7 @@ object Stat {
     * @tparam T type of the value class
     * @return
     */
-  def destringifier[T](clas: Class[T]): String => T =
+  def destringifier[T](clas: Class[T]): String => T = {
     if (clas == classOf[String]) {
       s => if (s == "null") { null.asInstanceOf[T] } else { s.asInstanceOf[T] }
     } else if (clas == classOf[Integer]) {
@@ -386,17 +386,14 @@ object Stat {
     } else {
       throw new RuntimeException(s"Unexpected class binding for stat attribute: $clas")
     }
-}
+  }
 
-trait ImmutableStat extends Stat {
+  trait ImmutableStat extends Stat {
+    override def observe(sf: SimpleFeature): Unit = fail()
+    override def unobserve(sf: SimpleFeature): Unit = fail()
+    override def +=(other: S): Unit = fail()
+    override def clear(): Unit = fail()
 
-  override def observe(sf: SimpleFeature): Unit = fail()
-
-  override def unobserve(sf: SimpleFeature): Unit = fail()
-
-  override def +=(other: S): Unit = fail()
-
-  override def clear(): Unit = fail()
-
-  private def fail(): Unit = throw new RuntimeException("This stat is immutable")
+    private def fail(): Unit = throw new RuntimeException("This stat is immutable")
+  }
 }

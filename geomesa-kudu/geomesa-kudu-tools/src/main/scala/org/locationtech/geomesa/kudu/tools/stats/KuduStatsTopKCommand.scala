@@ -13,7 +13,8 @@ import org.locationtech.geomesa.kudu.data.KuduDataStore
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand.KuduParams
 import org.locationtech.geomesa.kudu.tools.stats.KuduStatsTopKCommand.KuduStatsTopKParams
-import org.locationtech.geomesa.tools.stats.{StatsTopKCommand, StatsTopKParams}
+import org.locationtech.geomesa.tools.stats.StatsTopKCommand
+import org.locationtech.geomesa.tools.stats.StatsTopKCommand.StatsTopKParams
 
 class KuduStatsTopKCommand extends StatsTopKCommand[KuduDataStore] with KuduDataStoreCommand {
   override val params = new KuduStatsTopKParams

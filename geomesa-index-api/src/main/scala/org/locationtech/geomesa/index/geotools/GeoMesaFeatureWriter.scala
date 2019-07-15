@@ -39,7 +39,7 @@ trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWrit
 
   private val exceptions: ArrayBuffer[Throwable] = ArrayBuffer.empty[Throwable]
 
-  protected val statUpdater: StatUpdater = ds.stats.statUpdater(sft)
+  protected val statUpdater: StatUpdater = ds.stats.writer.updater(sft)
 
   override def getFeatureType: SimpleFeatureType = sft
 

@@ -103,7 +103,6 @@ class Frequency[T](
     */
   def countDirect(value: String): Long = sketchMap.values.map(_.estimateCount(value)).sumOrElse(0L)
 
-
   /**
     * Gets the count for a given value, which has already been converted into a string. Useful
     * if you know the string key space ahead of time.

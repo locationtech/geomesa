@@ -10,12 +10,16 @@ package org.locationtech.geomesa.lambda.tools.stats
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
+import org.locationtech.geomesa.lambda.tools.stats.LambdaStatsCountCommand.LambdaStatsCountParams
 import org.locationtech.geomesa.lambda.tools.{LambdaDataStoreCommand, LambdaDataStoreParams}
-import org.locationtech.geomesa.tools.stats.{StatsCountCommand, StatsCountParams}
+import org.locationtech.geomesa.tools.stats.StatsCountCommand
+import org.locationtech.geomesa.tools.stats.StatsCountCommand.StatsCountParams
 
 class LambdaStatsCountCommand extends StatsCountCommand[LambdaDataStore] with LambdaDataStoreCommand {
   override val params = new LambdaStatsCountParams
 }
 
-@Parameters(commandDescription = "Estimate or calculate feature counts in a GeoMesa feature type")
-class LambdaStatsCountParams extends StatsCountParams with LambdaDataStoreParams
+object LambdaStatsCountCommand {
+  @Parameters(commandDescription = "Estimate or calculate feature counts in a GeoMesa feature type")
+  class LambdaStatsCountParams extends StatsCountParams with LambdaDataStoreParams
+}

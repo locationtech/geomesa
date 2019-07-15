@@ -13,7 +13,6 @@ import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.geotools.filter.text.ecql.ECQL
 import org.json4s.{DefaultFormats, Formats}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
-import org.locationtech.geomesa.tools.stats.StatsCommand
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.{Histogram, MinMax, Stat}
 import org.locationtech.geomesa.web.core.GeoMesaServletCatalog.GeoMesaLayerInfo
@@ -23,7 +22,6 @@ import org.scalatra.BadRequest
 import org.scalatra.json._
 import org.scalatra.swagger._
 
-import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
 
 class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScalatraServlet.DefaultRootPath)
@@ -120,14 +118,10 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
           case Some(attributesString) => attributesString.split(',')
           case None => Nil
         }
-        val attributes = StatsCommand.getAttributes(sft, userAttributes)
+        val attributes = org.locationtech.geomesa.tools.stats.getAttributes(sft, userAttributes)
 
-        val boundStatList = if (noCache) {
-          val statQuery = Stat.SeqStat(attributes.map(Stat.MinMax))
-          stats.runStats[MinMax[Any]](sft, statQuery, filter)
-        } else {
-          stats.getStats[MinMax[Any]](sft, attributes)
-        }
+        val statQuery = attributes.map(Stat.MinMax)
+        val boundStatList = stats.getSeqStat[MinMax[Any]](sft, statQuery, filter, noCache)
 
         val jsonBoundsList = attributes.map { attribute =>
           val out = boundStatList.find(_.property == attribute) match {
@@ -178,14 +172,14 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
           case Some(attributesString) => attributesString.split(',')
           case None => Nil
         }
-        val attributes = StatsCommand.getAttributes(sft, userAttributes)
+        val attributes = org.locationtech.geomesa.tools.stats.getAttributes(sft, userAttributes)
 
         val bins = params.get(GeoMesaStatsEndpoint.BinsParam).map(_.toInt)
 
         val histograms = if (noCache) {
           val bounds = scala.collection.mutable.Map.empty[String, (Any, Any)]
           attributes.foreach { attribute =>
-            stats.getStats[MinMax[Any]](sft, Seq(attribute)).headOption.foreach { b =>
+            stats.getStat[MinMax[Any]](sft, attribute).foreach { b =>
               bounds.put(attribute, if (b.min == b.max) Histogram.buffer(b.min) else b.bounds)
             }
           }
@@ -196,7 +190,7 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
 
             if (calculateBounds) {
               logger.debug("Calculating bounds...")
-              stats.runStats[MinMax[Any]](sft, Stat.SeqStat(noBounds.map(Stat.MinMax)), filter).foreach { mm =>
+              stats.getSeqStat[MinMax[Any]](sft, noBounds.map(Stat.MinMax), filter, exact = true).foreach { mm =>
                 bounds.put(mm.property, mm.bounds)
               }
             } else {
@@ -215,9 +209,9 @@ class GeoMesaStatsEndpoint(val swagger: Swagger, rootPath: String = GeoMesaScala
             val (lower, upper) = bounds(attribute)
             Stat.Histogram[Any](attribute, length, lower, upper)(ct)
           }
-          stats.runStats[Histogram[Any]](sft, Stat.SeqStat(queries), filter)
+          stats.getSeqStat[Histogram[Any]](sft, queries, filter, exact = true)
         } else {
-          stats.getStats[Histogram[Any]](sft, attributes).map {
+          stats.getSeqStat[Histogram[Any]](sft, attributes.map(Stat.Histogram(_, 0, null, null))).map {
             case histogram: Histogram[Any] if bins.forall(_ == histogram.length) => histogram
             case histogram: Histogram[Any] =>
               val descriptor = sft.getDescriptor(histogram.property)

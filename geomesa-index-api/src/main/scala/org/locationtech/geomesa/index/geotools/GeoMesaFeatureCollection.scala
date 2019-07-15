@@ -72,7 +72,7 @@ class GeoMesaFeatureCollection(private [geotools] val source: GeoMesaFeatureSour
     }
 
   private def minMax(attribute: String, exact: Boolean): Option[(Any, Any)] =
-    source.ds.stats.getAttributeBounds[Any](source.getSchema, attribute, query.getFilter, exact).map(_.bounds)
+    source.ds.stats.getMinMax[Any](source.getSchema, attribute, query.getFilter, exact).map(_.bounds)
 
   override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] = {
     source.ds match {

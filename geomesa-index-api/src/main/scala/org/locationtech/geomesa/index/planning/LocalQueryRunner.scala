@@ -313,9 +313,7 @@ object LocalQueryRunner {
     val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
     val cachedDictionaries: Map[String, TopK[AnyRef]] = if (!hints.isArrowCachedDictionaries) { Map.empty } else {
       val toLookup = dictionaryFields.filterNot(providedDictionaries.contains)
-      if (toLookup.isEmpty) { Map.empty } else {
-        stats.getStats[TopK[AnyRef]](sft, toLookup).map(k => k.property -> k).toMap
-      }
+      toLookup.flatMap(stats.getTopK[AnyRef](sft, _)).map(k => k.property -> k).toMap
     }
 
     if (hints.isArrowDoublePass ||

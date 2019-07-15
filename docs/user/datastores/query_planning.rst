@@ -33,9 +33,9 @@ Index Selection
 
 Since skipping rows entirely is much faster than reading and filtering them, the best query plan will generally
 be the one that scans the fewest rows. In other words, the best plan is the one that has the most selective
-primary filter. GeoMesa has two methods for determining the best index - cost-based, or heuristic-based. Cached
-statistics are used to estimate the cost when available; however the method used can be configured per-query.
-See :ref:`query_index_hint` and :ref:`query_planning_hint` for more information.
+primary filter. GeoMesa has two methods for determining the best index - cost-based, or heuristic-based. The
+method used can be configured per-query; see :ref:`query_index_hint` and :ref:`query_planning_hint` for more
+information.
 
 .. _stats_collected:
 
@@ -44,7 +44,8 @@ Cost-Based Strategy
 
 .. note::
 
-    Cached statistics, and thus cost-based query planning, are currently only implemented for the Accumulo data store
+    Cached statistics, and thus cost-based query planning, are currently only implemented for the Accumulo and
+    Redis data stores
 
 GeoMesa will collect stats during ingestion, and store them for use in query planning. The stats collected are:
 

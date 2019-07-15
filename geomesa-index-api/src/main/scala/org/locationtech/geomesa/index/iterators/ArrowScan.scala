@@ -165,7 +165,7 @@ object ArrowScan {
     val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
     val cachedDictionaries: Map[String, TopK[AnyRef]] = if (!hints.isArrowCachedDictionaries) { Map.empty } else {
       val toLookup = dictionaryFields.filterNot(providedDictionaries.contains)
-      stats.getStats[TopK[AnyRef]](sft, toLookup).map(k => k.property -> k).toMap
+      toLookup.flatMap(stats.getTopK[AnyRef](sft, _)).map(k => k.property -> k).toMap
     }
 
     if (hints.isArrowDoublePass ||
@@ -241,8 +241,9 @@ object ArrowScan {
           }
         } else {
           // if we have to run a query, might as well generate all values
-          val query = Stat.SeqStat(toLookup.map(Stat.Enumeration))
-          val enumerations = stats.runStats[EnumerationStat[String]](sft, query, filter.getOrElse(Filter.INCLUDE))
+          val queries = toLookup.map(Stat.Enumeration)
+          val filt = filter.getOrElse(Filter.INCLUDE)
+          val enumerations = stats.getSeqStat[EnumerationStat[String]](sft, queries, filt, exact = true)
           // enumerations should come back in the same order
           // this has been fixed, but previously we couldn't use the enumeration attribute
           // number b/c it might reflect a transform sft

@@ -16,9 +16,8 @@ import com.google.common.util.concurrent.MoreExecutors
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.{AccumuloBackedMetadata, _}
-import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
-import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
-import org.locationtech.geomesa.index.stats.NoopStats.NoopStatUpdater
+import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
+import org.locationtech.geomesa.index.stats.MetadataBackedStats.{StatsMetadataSerializer, WritableStat}
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.SimpleFeatureType
@@ -26,16 +25,15 @@ import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.JavaConversions._
 
 /**
- * Tracks stats via entries stored in metadata.
- */
-class AccumuloGeoMesaStats(
-    ds: AccumuloDataStore,
-    metadata: AccumuloBackedMetadata[Stat],
-    statsTable: String,
-    generateStats: Boolean
-  ) extends MetadataBackedStats(ds, metadata, generateStats) {
+  * Accumulo stats implementation handling table compactions
+  *
+  * @param ds ds
+  */
+class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMetadata[Stat])
+    extends MetadataBackedStats(ds, metadata) {
 
   import AccumuloGeoMesaStats._
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   private val compactionScheduled = new AtomicBoolean(false)
   private val lastCompaction = new AtomicLong(0L)
@@ -59,14 +57,43 @@ class AccumuloGeoMesaStats(
 
   compactor.run() // schedule initial compaction
 
-  override def statUpdater(sft: SimpleFeatureType): StatUpdater =
-    if (generateStats) { new AccumuloStatUpdater(sft) } else { NoopStatUpdater }
+  override val writer: GeoMesaStatWriter = new AccumuloMetadataStatWriter()
 
   override def close(): Unit = {
     super.close()
     running.set(false)
     synchronized(scheduledCompaction.cancel(false))
   }
+
+  /**
+    * Configures the stat combiner to sum stats dynamically.
+    *
+    * Note: should be called with a distributed lock on the stats table
+    *
+    * @param connector accumulo connector
+    * @param sft simple feature type
+    */
+  def configureStatCombiner(connector: Connector, sft: SimpleFeatureType): Unit = {
+    import MetadataBackedStats._
+
+    StatsCombiner.configure(sft, connector, metadata.table, metadata.typeNameSeparator.toString)
+
+    val keys = Seq(CountKey, BoundsKeyPrefix, TopKKeyPrefix, FrequencyKeyPrefix, HistogramKeyPrefix)
+    val splits = keys.map(k => new Text(metadata.encodeRow(sft.getTypeName, k)))
+    // noinspection RedundantCollectionConversion
+    connector.tableOperations().addSplits(metadata.table, ImmutableSortedSet.copyOf(splits.toIterable))
+  }
+
+  /**
+    * Remove the stats combiner for a simple feature type
+    *
+    * Note: should be called with a distributed lock on the stats table
+    *
+    * @param connector accumulo connector
+    * @param sft simple feature type
+    */
+  def removeStatCombiner(connector: Connector, sft: SimpleFeatureType): Unit =
+    StatsCombiner.remove(sft, connector, metadata.table, metadata.typeNameSeparator.toString)
 
   override protected def write(typeName: String, stats: Seq[WritableStat]): Unit = {
     val (merge, overwrite) = stats.partition(_.merge)
@@ -84,61 +111,40 @@ class AccumuloGeoMesaStats(
   }
 
   /**
-    * Configures the stat combiner to sum stats dynamically.
-    *
-    * Note: should be called with a distributed lock on the stats table
-    *
-    * @param connector accumulo connector
-    * @param sft simple feature type
-    */
-  def configureStatCombiner(connector: Connector, sft: SimpleFeatureType): Unit = {
-    import MetadataBackedStats._
-
-    StatsCombiner.configure(sft, connector, statsTable, metadata.typeNameSeparator.toString)
-
-    val keys = Seq(CountKey, BoundsKeyPrefix, TopKKeyPrefix, FrequencyKeyPrefix, HistogramKeyPrefix)
-    val splits = keys.map(k => new Text(metadata.encodeRow(sft.getTypeName, k)))
-    // noinspection RedundantCollectionConversion
-    connector.tableOperations().addSplits(statsTable, ImmutableSortedSet.copyOf(splits.toIterable))
-  }
-
-  /**
-    * Remove the stats combiner for a simple feature type
-    *
-    * Note: should be called with a distributed lock on the stats table
-    *
-    * @param connector accumulo connector
-    * @param sft simple feature type
-    */
-  def removeStatCombiner(connector: Connector, sft: SimpleFeatureType): Unit =
-    StatsCombiner.remove(sft, connector, statsTable, metadata.typeNameSeparator.toString)
-
-  /**
-    * Schedules a compaction for the stat table
-    */
-  private def scheduleCompaction(): Unit = compactionScheduled.set(true)
-
-  /**
     * Performs a synchronous compaction of the stats table
     */
   private [accumulo] def compact(wait: Boolean = true): Unit = {
     compactionScheduled.set(false)
-    ds.connector.tableOperations().compact(statsTable, null, null, true, wait)
+    ds.connector.tableOperations().compact(metadata.table, null, null, true, wait)
     lastCompaction.set(System.currentTimeMillis())
   }
 
+  class AccumuloMetadataStatWriter extends MetadataStatWriter {
+
+    override def rename(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+      // the stat combiner should still be configured for the old sft
+      // the call to super() will read the old rows and write new rows, but it doesn't read any
+      // new rows after writing them, so the combiner does not need to be correct yet
+      super.rename(sft, previous)
+      // now remove the old sft and configure the new one
+      removeStatCombiner(ds.connector, previous)
+      configureStatCombiner(ds.connector, sft)
+    }
+
+    override def updater(sft: SimpleFeatureType): StatUpdater =
+      if (sft.statsEnabled) { new AccumuloStatUpdater(sft) } else { NoopStatUpdater }
+  }
 
   /**
     * Stores stats as metadata entries
     *
-    * @param sft simple feature type
+    * @param sft SimpleFeatureType
     */
   class AccumuloStatUpdater(sft: SimpleFeatureType) extends MetadataStatUpdater(sft) {
-
     override def close(): Unit = {
       super.close()
       // schedule a compaction so our metadata doesn't stack up too much
-      scheduleCompaction()
+      compactionScheduled.set(true)
     }
   }
 }
@@ -147,6 +153,14 @@ object AccumuloGeoMesaStats {
 
   val CombinerName = "stats-combiner"
 
-  private [stats] val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(3))
-  sys.addShutdownHook(executor.shutdownNow())
+  def apply(ds: AccumuloDataStore): AccumuloGeoMesaStats = {
+    val table = s"${ds.config.catalog}_stats"
+    new AccumuloGeoMesaStats(ds, new AccumuloBackedMetadata(ds.connector, table, new StatsMetadataSerializer(ds)))
+  }
+
+  private [stats] val executor = {
+    val es = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(3))
+    sys.addShutdownHook(es.shutdownNow())
+    es
+  }
 }

@@ -615,28 +615,29 @@ Interceptors will be invoked in the order they are declared in the user data. In
 on the results of query interceptors, you can enable ``TRACE``-level logging on the class
 ``org.locationtech.geomesa.index.planning.QueryRunner$``.
 
-.. _stat_attribute_config:
+.. _stat_config:
 
 Configuring Cached Statistics
 -----------------------------
 
-GeoMesa allows for collecting summary statistics for attributes during ingest, which are then stored and
-available for instant querying. Hints are set on individual attributes using the key ``keep-stats``, as
-described in :ref:`attribute_options`.
+GeoMesa will collect and store summary statistics for attributes during ingest, which are then available for
+lookup and/or query planning. Stat generation can be enabled or disabled through the simple feature type
+user data using the key ``geomesa.stats.enable``. See :ref:`set_sft_options` for details on setting user data.
 
 .. note::
 
-    Cached statistics are currently only implemented for the Accumulo data store
+    Cached statistics are currently only implemented for the Accumulo and Redis data stores
 
-Stats are always collected for the default geometry, default date and any indexed attributes. See
-:ref:`stats_collected` for more details. In addition, any other attribute can be flagged for stats. This
-will cause the following stats to be collected for those attributes:
+If enabled, stats are always collected for the default geometry, default date and any indexed attributes. See
+:ref:`stats_collected` for more details. In addition, other attributes can be flagged for stats by using the key
+``keep-stats`` on individual attributes, as described in :ref:`attribute_options`. This will cause the following
+stats to be collected for those attributes:
 
 * Min/max (bounds)
 * Top-k
 
-Only attributes of the following types can be flagged for stats: ``String``, ``Integer``, ``Long``,
-``Float``, ``Double``, ``Date`` and ``Geometry``.
+Only attributes of type ``String``, ``Integer``, ``Long``, ``Float``, ``Double``, ``Date`` or ``Geometry`` can be
+flagged for stats.
 
 For example:
 
@@ -659,7 +660,7 @@ features), you must explicitly enable "mixed" indexing mode. All other geometry 
 ``LineString``, ``Polygon``, etc) are not affected.
 
 Mixed geometries must be declared when calling ``createSchema``. It may be specified through
-the simple feature type user data using the key ``geomesa.mixed.geometries``.  See :ref:`set_sft_options` for
+the simple feature type user data using the key ``geomesa.mixed.geometries``. See :ref:`set_sft_options` for
 details on setting user data.
 
 .. code-block:: java

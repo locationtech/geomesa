@@ -5,7 +5,7 @@ Analytic Commands
 
 These commands are used to analyze data sets. Required parameters are indicated with a ``*``.
 
-See :ref:`stat_attribute_config` for details on cached statistics.
+See :ref:`stat_config` for details on cached statistics.
 
 ``stats-bounds``
 ----------------
