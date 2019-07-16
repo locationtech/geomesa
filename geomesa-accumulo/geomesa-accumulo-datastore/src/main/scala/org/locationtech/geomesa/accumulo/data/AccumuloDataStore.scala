@@ -21,6 +21,7 @@ import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
+import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata.SingleRowAccumuloMetadata
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore.AccumuloDataStoreConfig
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
@@ -34,7 +35,6 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
-import org.locationtech.geomesa.index.stats.MetadataBackedStats.StatsMetadataSerializer
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
@@ -68,32 +68,29 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override val adapter: AccumuloIndexAdapter = new AccumuloIndexAdapter(this)
 
-  private val statsTable = s"${config.catalog}_stats"
-
-  private val statsMetadata = new AccumuloBackedMetadata(connector, statsTable, new StatsMetadataSerializer(this))
-
-  override val stats = new AccumuloGeoMesaStats(this, statsMetadata, statsTable, config.generateStats)
+  override val stats = AccumuloGeoMesaStats(this)
 
   // If on a secured cluster, create a thread to periodically renew Kerberos tgt
-  private val kerberosTgtRenewer: Option[ScheduledExecutorService] = try {
-    if (UserGroupInformation.isSecurityEnabled) {
-      val executor = Executors.newSingleThreadScheduledExecutor()
-      executor.scheduleAtFixedRate(
-        new Runnable {
-          def run(): Unit = {
-            try {
-              logger.info(s"Checking whether TGT needs renewing for ${UserGroupInformation.getCurrentUser}")
-              logger.debug(s"Logged in from keytab? ${UserGroupInformation.getCurrentUser.isFromKeytab}")
-              UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
-            } catch {
-              case NonFatal(e) => logger.warn("Error checking and renewing TGT", e)
-            }
+  private val kerberosTgtRenewer: Option[ScheduledExecutorService] = {
+    val enabled = try { UserGroupInformation.isSecurityEnabled } catch {
+      case e: Throwable => logger.error("Error checking for hadoop security", e); false
+    }
+    if (!enabled) { None } else {
+      val runnable = new Runnable {
+        override def run(): Unit = {
+          try {
+            logger.info(s"Checking whether TGT needs renewing for ${UserGroupInformation.getCurrentUser}")
+            logger.debug(s"Logged in from keytab? ${UserGroupInformation.getCurrentUser.isFromKeytab}")
+            UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
+          } catch {
+            case NonFatal(e) => logger.warn("Error checking and renewing TGT", e)
           }
-        }, 0, 10, TimeUnit.MINUTES)
+        }
+      }
+      val executor = Executors.newSingleThreadScheduledExecutor()
+      executor.scheduleAtFixedRate(runnable, 0, 10, TimeUnit.MINUTES)
       Some(executor)
-    } else { None }
-  } catch {
-    case e: Throwable => logger.error("Error checking for hadoop security", e); None
+    }
   }
 
   // some convenience operations
@@ -119,7 +116,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   }
 
   override def getAllTableNames(typeName: String): Seq[String] = {
-    val others = Seq(statsTable) ++ config.audit.map(_._1.asInstanceOf[AccumuloAuditService].table).toSeq
+    val others = Seq(stats.metadata.table) ++ config.audit.map(_._1.asInstanceOf[AccumuloAuditService].table).toSeq
     super.getAllTableNames(typeName) ++ others
   }
 
@@ -238,14 +235,20 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override protected def onSchemaCreated(sft: SimpleFeatureType): Unit = {
     super.onSchemaCreated(sft)
-    // configure the stats combining iterator on the table for this sft
-    stats.configureStatCombiner(connector, sft)
+    if (sft.statsEnabled) {
+      // configure the stats combining iterator on the table for this sft
+      stats.configureStatCombiner(connector, sft)
+    }
   }
 
   override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
     super.onSchemaUpdated(sft, previous)
-    // configure the stats combining iterator on the table for this sft
-    stats.configureStatCombiner(connector, sft)
+    if (previous.statsEnabled) {
+      stats.removeStatCombiner(connector, previous)
+    }
+    if (sft.statsEnabled) {
+      stats.configureStatCombiner(connector, sft)
+    }
   }
 
   override def getQueryPlan(query: Query, index: Option[String], explainer: Explainer): Seq[AccumuloQueryPlan] =
@@ -265,7 +268,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
         try {
           if (oldMetadata.getFeatureTypes.contains(typeName)) {
             oldMetadata.migrate(typeName)
-            new SingleRowAccumuloMetadata[Stat](statsMetadata).migrate(typeName)
+            new SingleRowAccumuloMetadata[Stat](stats.metadata).migrate(typeName)
           }
         } finally {
           lock.release()
@@ -309,7 +312,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
       }
 
       // back compatibility check for stat configuration
-      if (config.generateStats && metadata.read(typeName, GeoMesaMetadata.StatsGenerationKey).isEmpty) {
+      if (sft.statsEnabled && metadata.read(typeName, GeoMesaMetadata.StatsGenerationKey).isEmpty) {
         // configure the stats combining iterator - we only use this key for older data stores
         val configuredKey = "stats-configured"
         if (!metadata.read(typeName, configuredKey).contains("true")) {
@@ -323,7 +326,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
             lock.release()
           }
         }
-        // kick off asynchronous stats run for the existing data
+        // kick off asynchronous stats run for the existing data - this will set the stat date
         // this may get triggered more than once, but should only run one time
         val statsRunner = new StatsRunner(this)
         statsRunner.submit(sft)
@@ -336,7 +339,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override def dispose(): Unit = {
     super.dispose()
-    kerberosTgtRenewer.foreach( _.shutdown() )
+    kerberosTgtRenewer.foreach(_.shutdown())
   }
 }
 

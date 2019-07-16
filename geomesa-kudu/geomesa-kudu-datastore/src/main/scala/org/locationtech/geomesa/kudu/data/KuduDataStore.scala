@@ -14,8 +14,7 @@ import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
-import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.stats.MetadataBackedStats.RunnableStats
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, RunnableStats}
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
 import org.locationtech.geomesa.kudu._
 import org.locationtech.geomesa.kudu.data.KuduDataStoreFactory.KuduDataStoreConfig

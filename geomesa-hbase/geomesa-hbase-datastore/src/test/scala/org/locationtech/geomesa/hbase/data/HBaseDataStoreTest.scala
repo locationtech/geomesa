@@ -32,7 +32,7 @@ import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.{Filter, Id}
+import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 
 import scala.collection.JavaConversions._
@@ -99,9 +99,7 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
               testQuery(ds, typeName, "attr = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, Seq(toAdd(5)))
               testQuery(ds, typeName, "name < 'name5'", transforms, toAdd.take(5))
               testQuery(ds, typeName, "name = 'name5'", transforms, Seq(toAdd(5)))
-              testQuery(ds, typeName, s"bbox(geom,39,49,50,60) AND dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z AND (proxyId() = ${ProxyIdFunction.proxyId("0")})", transforms, toAdd.take(1))
-              // TODO GEOMESA-2562
-              //   testQuery(ds, typeName, s"bbox(geom,39,49,50,60) AND dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z AND (proxyId() = ${ProxyIdFunction.proxyId("0")} OR proxyId() = ${ProxyIdFunction.proxyId("1")})", transforms, toAdd.take(2))
+              testQuery(ds, typeName, s"bbox(geom,39,49,50,60) AND dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z AND (proxyId() = ${ProxyIdFunction.proxyId("0")} OR proxyId() = ${ProxyIdFunction.proxyId("1")})", transforms, toAdd.take(2))
 
               // this query should be blocked
               testQuery(ds, typeName, "INCLUDE", transforms, toAdd) must throwA[RuntimeException]
@@ -362,17 +360,8 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
     }
 
     if (count) {
-      query.getFilter match {
-        case _: Id =>
-          // id filters use estimated stats based on the filter itself
-          ds.getFeatureSource(query.getTypeName).getCount(query) mustEqual results.length
-          ds.getFeatureSource(query.getTypeName).getFeatures(query).size() mustEqual results.length
-
-        case _ =>
-          ds.getFeatureSource(query.getTypeName).getCount(query) mustEqual -1
-          ds.getFeatureSource(query.getTypeName).getFeatures(query).size() mustEqual 0
-      }
-
+      ds.getFeatureSource(query.getTypeName).getCount(query) mustEqual -1
+      ds.getFeatureSource(query.getTypeName).getFeatures(query).size() mustEqual 0
       query.getHints.put(QueryHints.EXACT_COUNT, true)
       ds.getFeatureSource(query.getTypeName).getFeatures(query).size() mustEqual results.length
     }

@@ -13,7 +13,8 @@ import org.locationtech.geomesa.kudu.data.KuduDataStore
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand.KuduParams
 import org.locationtech.geomesa.kudu.tools.stats.KuduStatsHistogramCommand.KuduStatsHistogramParams
-import org.locationtech.geomesa.tools.stats.{StatsHistogramCommand, StatsHistogramParams}
+import org.locationtech.geomesa.tools.stats.StatsHistogramCommand
+import org.locationtech.geomesa.tools.stats.StatsHistogramCommand.StatsHistogramParams
 
 class KuduStatsHistogramCommand extends StatsHistogramCommand[KuduDataStore] with KuduDataStoreCommand {
   override val params = new KuduStatsHistogramParams

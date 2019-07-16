@@ -14,7 +14,7 @@ import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.{Combiner, IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.accumulo.AccumuloVersion
-import org.locationtech.geomesa.accumulo.data.SingleRowAccumuloMetadata
+import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata.SingleRowAccumuloMetadata
 import org.locationtech.geomesa.accumulo.data.stats.AccumuloGeoMesaStats.CombinerName
 import org.locationtech.geomesa.index.metadata.KeyValueStoreMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

@@ -71,8 +71,7 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
 
   override def getBounds: ReferencedEnvelope = getBounds(new Query(sft.getTypeName, Filter.INCLUDE))
 
-  override def getBounds(query: Query): ReferencedEnvelope =
-    ds.stats.getBounds(getSchema, query.getFilter)
+  override def getBounds(query: Query): ReferencedEnvelope = ds.stats.getBounds(getSchema, query.getFilter)
 
   override def getQueryCapabilities: QueryCapabilities = GeoMesaQueryCapabilities
 

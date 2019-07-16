@@ -17,6 +17,7 @@ import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
 import org.locationtech.geomesa.utils.conf.{IndexId, SemanticVersion}
 import org.locationtech.geomesa.utils.geometry.GeometryPrecision
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.index.VisibilityLevel.VisibilityLevel
 import org.locationtech.geomesa.utils.stats.Cardinality._
@@ -217,6 +218,10 @@ object RichSimpleFeatureType {
         s"Invalid date field '$dtg' for schema $sft")
       sft.getUserData.put(DefaultDtgField, dtg)
     }
+
+    def statsEnabled: Boolean =
+      Option(sft.getUserData.get(StatsEnabled)).forall(FastConverter.convert(_, classOf[java.lang.Boolean]))
+    def setStatsEnabled(enabled: Boolean): Unit = sft.getUserData.put(StatsEnabled, enabled.toString)
 
     @deprecated("GeoHash index is not longer supported")
     def getStIndexSchema: String = null

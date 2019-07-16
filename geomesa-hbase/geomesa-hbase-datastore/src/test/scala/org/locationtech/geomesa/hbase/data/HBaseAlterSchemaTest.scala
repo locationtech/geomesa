@@ -58,7 +58,7 @@ class HBaseAlterSchemaTest extends HBaseTest {
           SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
         }
         ds.stats.getCount(sft, exact = true) must beSome(1L)
-        ds.stats.getAttributeBounds[String](sft, "name", exact = true).map(_.max) must beSome("name0")
+        ds.stats.getMinMax[String](sft, "name", exact = true).map(_.max) must beSome("name0")
 
         // rename column
         Some(new SimpleFeatureTypeBuilder()).foreach{ builder =>
@@ -82,7 +82,7 @@ class HBaseAlterSchemaTest extends HBaseTest {
           SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
         }
         ds.stats.getCount(sft, exact = true) must beSome(1L)
-        ds.stats.getAttributeBounds[String](sft, "names", exact = true).map(_.max) must beSome("name0")
+        ds.stats.getMinMax[String](sft, "names", exact = true).map(_.max) must beSome("name0")
       }
     }
   }

@@ -8,13 +8,19 @@
 
 package org.locationtech.geomesa.tools.stats
 
-import org.locationtech.jts.geom.Geometry
+import com.beust.jcommander.ParameterException
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
+import org.locationtech.geomesa.tools.stats.StatsAnalyzeCommand.StatsAnalyzeParams
 import org.locationtech.geomesa.tools.{CatalogParam, Command, DataStoreCommand, TypeNameParam}
 import org.locationtech.geomesa.utils.stats._
+import org.locationtech.jts.geom.Geometry
 
 trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[DS] {
+
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  import scala.collection.JavaConverters._
 
   override val name = "stats-analyze"
   override def params: StatsAnalyzeParams
@@ -22,9 +28,10 @@ trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[D
   override def execute(): Unit = withDataStore(analyze)
 
   private def analyze(ds: DS): Unit = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
     val sft = ds.getSchema(params.featureName)
+    if (sft == null) {
+      throw new ParameterException(s"Schema '${params.featureName}' does not exist")
+    }
 
     def noStats = ds.metadata.read(sft.getTypeName, GeoMesaMetadata.StatsGenerationKey, cache = false).isEmpty
 
@@ -38,9 +45,10 @@ trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[D
       }
       // sleep an additional bit so that the stat table gets configured
       Thread.sleep(1000)
-      ds.stats.getStats[CountStat](sft) ++ ds.stats.getStats[MinMax[Any]](sft)
+      val queries = sft.getAttributeDescriptors.asScala.map(d => Stat.MinMax(d.getLocalName))
+      ds.stats.getStat[CountStat](sft, Stat.Count()) ++ ds.stats.getSeqStat[MinMax[Any]](sft, queries)
     } else {
-      ds.stats.generateStats(sft)
+      ds.stats.writer.analyze(sft)
     }
 
     val strings = stats.collect {
@@ -65,5 +73,7 @@ trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[D
   }
 }
 
-// @Parameters(commandDescription = "Analyze statistics on a GeoMesa feature type")
-trait StatsAnalyzeParams extends CatalogParam with TypeNameParam
+object StatsAnalyzeCommand {
+  // @Parameters(commandDescription = "Analyze statistics on a GeoMesa feature type")
+  trait StatsAnalyzeParams extends CatalogParam with TypeNameParam
+}

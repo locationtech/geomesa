@@ -104,6 +104,17 @@ versions of GeoTools and GeoServer.
 
   GeoMesa 2.4.0 requires GeoTools 21.x and GeoServer 2.15.x.
 
+Configuration of Cached Statistics
+----------------------------------
+
+GeoMesa 2.4.0 moves the configuration of cached stats from a data store parameter (where it has to be set every time)
+to the feature type user data (where it is set once at schema creation, and only changed through explicit schema
+updates). See :ref:`stat_config` for more details.
+
+Feature types that were created in prior versions will continue to behave as before, with the configuration
+determined by the data store parameter each time. The configuration can be set permanently through
+the ``updateSchema`` data store method or the :ref:`cli_update_schema` CLI command.
+
 Version 2.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

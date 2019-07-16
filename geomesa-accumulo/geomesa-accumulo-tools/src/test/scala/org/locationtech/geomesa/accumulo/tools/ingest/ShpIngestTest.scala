@@ -140,7 +140,7 @@ class ShpIngestTest extends TestWithDataStore {
       bounds.getMinY mustEqual 1.5
       bounds.getMaxY mustEqual 2.5
 
-      ds.stats.getAttributeBounds[Date](ds.getSchema(shpFile), "dtg").map(_.tuple) must
+      ds.stats.getMinMax[Date](ds.getSchema(shpFile), "dtg").map(_.tuple) must
           beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
     }
 
@@ -161,7 +161,7 @@ class ShpIngestTest extends TestWithDataStore {
       bounds.getMinY mustEqual 1.5
       bounds.getMaxY mustEqual 2.5
 
-      ds.stats.getAttributeBounds[Date](ds.getSchema("changed"), "dtg").map(_.tuple) must
+      ds.stats.getMinMax[Date](ds.getSchema("changed"), "dtg").map(_.tuple) must
           beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
     }
 
@@ -180,7 +180,7 @@ class ShpIngestTest extends TestWithDataStore {
       bounds.getMinY must beCloseTo(1.5, 0.0001)
       bounds.getMaxY must beCloseTo(2.5, 0.0001)
 
-      ds.stats.getAttributeBounds[Date](ds.getSchema(shpFileToReproject), "dtg").map(_.tuple) must
+      ds.stats.getMinMax[Date](ds.getSchema(shpFileToReproject), "dtg").map(_.tuple) must
         beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
     }
 
@@ -199,7 +199,7 @@ class ShpIngestTest extends TestWithDataStore {
       bounds.getMinY must beCloseTo(1.5, 0.0001)
       bounds.getMaxY must beCloseTo(2.5, 0.0001)
 
-      ds.stats.getAttributeBounds[Date](ds.getSchema(shpFileToReproject2), "dtg").map(_.tuple) must
+      ds.stats.getMinMax[Date](ds.getSchema(shpFileToReproject2), "dtg").map(_.tuple) must
         beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
     }
 
@@ -218,7 +218,7 @@ class ShpIngestTest extends TestWithDataStore {
       bounds.getMinY mustEqual 1.5
       bounds.getMaxY mustEqual 2.5
 
-      ds.stats.getAttributeBounds[Date](ds.getSchema(shpFileWithNullDates), "dtg").map(_.tuple) must
+      ds.stats.getMinMax[Date](ds.getSchema(shpFileWithNullDates), "dtg").map(_.tuple) must
         beSome((features.head.getAttribute("dtg"), featuresWithNulls.last.getAttribute("dtg"), 3L))
     }
 
@@ -245,7 +245,7 @@ class ShpIngestTest extends TestWithDataStore {
       bounds.getMinY mustEqual 1.5
       bounds.getMaxY mustEqual 2.5
 
-      ds.stats.getAttributeBounds[Date](ds.getSchema("nullDates2"), "dtg").map(_.tuple) must
+      ds.stats.getMinMax[Date](ds.getSchema("nullDates2"), "dtg").map(_.tuple) must
         beSome((features.head.getAttribute("dtg"), features.last.getAttribute("dtg"), 2L))
     }
 

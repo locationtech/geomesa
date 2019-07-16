@@ -49,6 +49,7 @@ object SimpleFeatureTypes {
     val OverrideDtgJoin       = "override.index.dtg.join"
     val OverrideReservedWords = "override.reserved.words"
     val QueryInterceptors     = "geomesa.query.interceptors"
+    val StatsEnabled          = "geomesa.stats.enable"
     val TableCompression      = "geomesa.table.compression.enabled"
     val TableCompressionType  = "geomesa.table.compression.type" // valid: gz(default), snappy, lzo, bzip2, lz4, zstd
     val TableLogicalTime      = "geomesa.logical.time"
@@ -368,7 +369,9 @@ object SimpleFeatureTypes {
     * @param extraData additional user data to add to the simple feature type
     * @return immutable copy of the simple feature type
     */
-  def immutable(sft: SimpleFeatureType, extraData: java.util.Map[AnyRef, AnyRef] = null): SimpleFeatureType = {
+  def immutable(
+      sft: SimpleFeatureType,
+      extraData: java.util.Map[_ <: AnyRef, _ <: AnyRef] = null): SimpleFeatureType = {
     sft match {
       case immutable: ImmutableSimpleFeatureType if extraData == null || extraData.isEmpty => immutable
       case _ =>

@@ -13,7 +13,8 @@ import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
 import org.locationtech.geomesa.arrow.tools.stats.ArrowStatsCountCommand.ArrowStatsCountParams
-import org.locationtech.geomesa.tools.stats.{StatsCountCommand, StatsCountParams}
+import org.locationtech.geomesa.tools.stats.StatsCountCommand
+import org.locationtech.geomesa.tools.stats.StatsCountCommand.StatsCountParams
 
 class ArrowStatsCountCommand extends StatsCountCommand[ArrowDataStore] with ArrowDataStoreCommand {
 

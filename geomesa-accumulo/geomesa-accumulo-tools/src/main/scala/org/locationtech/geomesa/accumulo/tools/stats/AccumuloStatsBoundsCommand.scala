@@ -10,13 +10,17 @@ package org.locationtech.geomesa.accumulo.tools.stats
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.tools.stats.AccumuloStatsBoundsCommand.AccumuloStatsBoundsParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
-import org.locationtech.geomesa.tools.stats.{StatsBoundsCommand, StatsBoundsParams}
+import org.locationtech.geomesa.tools.stats.StatsBoundsCommand
+import org.locationtech.geomesa.tools.stats.StatsBoundsCommand.StatsBoundsParams
 
 class AccumuloStatsBoundsCommand extends StatsBoundsCommand[AccumuloDataStore] with AccumuloDataStoreCommand {
   override val params = new AccumuloStatsBoundsParams
 }
 
-@Parameters(commandDescription = "View or calculate bounds on attributes in a GeoMesa feature type")
-class AccumuloStatsBoundsParams extends StatsBoundsParams with AccumuloDataStoreParams with RequiredTypeNameParam
+object AccumuloStatsBoundsCommand {
+  @Parameters(commandDescription = "View or calculate bounds on attributes in a GeoMesa feature type")
+  class AccumuloStatsBoundsParams extends StatsBoundsParams with AccumuloDataStoreParams with RequiredTypeNameParam
+}

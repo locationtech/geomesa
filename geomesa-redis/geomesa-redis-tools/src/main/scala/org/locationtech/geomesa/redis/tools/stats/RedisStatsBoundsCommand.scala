@@ -14,7 +14,8 @@ import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand.RedisDataStoreParams
 import org.locationtech.geomesa.redis.tools.stats.RedisStatsBoundsCommand.RedisStatsBoundsParams
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
-import org.locationtech.geomesa.tools.stats.{StatsBoundsCommand, StatsBoundsParams}
+import org.locationtech.geomesa.tools.stats.StatsBoundsCommand
+import org.locationtech.geomesa.tools.stats.StatsBoundsCommand.StatsBoundsParams
 
 class RedisStatsBoundsCommand extends StatsBoundsCommand[RedisDataStore] with RedisDataStoreCommand {
   override val params = new RedisStatsBoundsParams

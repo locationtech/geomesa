@@ -135,7 +135,7 @@ class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Opt
               nextUpdate
             } else {
               // run the update - this updates the last update time too
-              ds.stats.generateStats(sft)
+              ds.stats.writer.analyze(sft)
               Instant.now(Clock.systemUTC()).plus(updateInterval, ChronoUnit.MINUTES)
             }
           } finally {

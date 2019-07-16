@@ -147,10 +147,10 @@ for details on partitioning.
 geomesa.query.cost.type
 +++++++++++++++++++++++
 
-This property controls how GeoMesa performs query planning. By default, GeoMesa will perform cost-based
-query planning using data statistics to determine the best index for a given query. As a fallback option,
-this property may be set to ``index`` to use heuristic-based query planning. This may also be overridden on a
-per-query basis using the query hint ``org.locationtech.geomesa.accumulo.index.QueryHints.COST_EVALUATION_KEY``
+This property controls how GeoMesa performs query planning. By default, GeoMesa uses heuristics to determine the
+best index for a given query. Alternatively, this property may be set to ``stats`` to use cached data statistics
+and cost-based query planning. This may also be overridden on a per-query basis using the query hint
+``org.locationtech.geomesa.accumulo.index.QueryHints.COST_EVALUATION_KEY``
 set to either ``org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation.Stats``
 or ``org.locationtech.geomesa.accumulo.index.QueryPlanner.CostEvaluation.Index``. See :ref:`query_planning`
 for more details on query planning strategies.
@@ -220,9 +220,10 @@ a comma-separated list of arbitrary URLs. For more information on defining types
 geomesa.stats.generate
 ++++++++++++++++++++++
 
-This property controls whether GeoMesa will generate statistics during ingestion. It is specified as a Boolean,
-``true`` or ``false``. This property will be used if a data store is not explicitly configured using the
-``geomesa.stats.enable`` data store parameter.
+This property controls whether GeoMesa will generate statistics for a given feature type during ingestion. It
+is specified as a Boolean, ``true`` or ``false``. This property will be used when a feature type is first created,
+if stats are not explicitly configured in the feature type user data or through the ``geomesa.stats.enable``
+data store parameter. See :ref:`stat_config` for details on configuring the feature type.
 
 geomesa.strategy.decider
 ++++++++++++++++++++++++

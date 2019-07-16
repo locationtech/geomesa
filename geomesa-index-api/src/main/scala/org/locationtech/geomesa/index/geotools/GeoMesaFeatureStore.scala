@@ -123,7 +123,7 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
             gm.adapter.clearTables(index.getTableNames(None), prefix)
           }
         }
-        gm.stats.clearStats(sft)
+        gm.stats.writer.clear(sft)
 
       case _ =>
         WithClose(writer(Some(filter))) { writer =>

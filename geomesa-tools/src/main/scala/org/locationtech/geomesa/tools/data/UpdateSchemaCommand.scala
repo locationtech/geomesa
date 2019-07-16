@@ -110,6 +110,11 @@ trait UpdateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
       prompts.append(s"\n  $number: Removing keywords: '${keywords.mkString("', '")}'")
     }
 
+    Option(params.enableStats).map(_.booleanValue()).foreach { enable =>
+      sft.setStatsEnabled(enable)
+      prompts.append(s"\n  $number: ${if (enable) { "En" } else { "Dis" }}abling stats")
+    }
+
     if (params.renameTables) {
       updated.getUserData.put(SimpleFeatureTypes.Configs.UpdateRenameTables, java.lang.Boolean.TRUE)
     }
@@ -158,6 +163,12 @@ object UpdateSchemaCommand {
       description = "Remove a keyword from the feature type user data",
       splitter = classOf[NoopParameterSplitter])
     var minusKeywords: java.util.List[String] = Collections.emptyList()
+
+    @Parameter(
+      names = Array("--enable-stats"),
+      description = "Enable or disable stats for the feature type",
+      arity = 1)
+    var enableStats: java.lang.Boolean = _
 
     @Parameter(
       names = Array("--rename-tables"),

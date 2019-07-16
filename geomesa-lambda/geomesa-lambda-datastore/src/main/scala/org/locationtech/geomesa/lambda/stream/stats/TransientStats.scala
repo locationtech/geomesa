@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.lambda.stream.stats
 
-import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.stats.GeoMesaStats.StatUpdater
-import org.locationtech.geomesa.index.stats.NoopStats.NoopStatUpdater
+import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, NoopStatWriter}
 import org.locationtech.geomesa.lambda.stream.TransientStore
-import org.locationtech.geomesa.utils.stats.{MinMax, SeqStat, Stat}
+import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -20,39 +20,85 @@ import scala.reflect.ClassTag
 
 class TransientStats(store: TransientStore) extends GeoMesaStats {
 
+  override val writer: GeoMesaStatWriter = NoopStatWriter
+
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] =
-    Some(store.read(Option(filter)).length)
+    Some(store.read(Option(filter).filter(_ != Filter.INCLUDE)).length)
 
-  override def getAttributeBounds[T](sft: SimpleFeatureType,
-                                     attribute: String,
-                                     filter: Filter,
-                                     exact: Boolean): Option[MinMax[T]] = {
-    val stat = Stat(store.sft, Stat.MinMax(attribute)).asInstanceOf[MinMax[T]]
-    store.read(Option(filter)).foreach(stat.observe)
-    Some(stat)
-  }
+  override def getMinMax[T](
+      sft: SimpleFeatureType,
+      attribute: String,
+      filter: Filter,
+      exact: Boolean): Option[MinMax[T]] = getStat[MinMax[T]](sft, Stat.MinMax(attribute), filter, exact = true)
 
-  override def getStats[T <: Stat](sft: SimpleFeatureType,
-                                   attributes: Seq[String] = Seq.empty,
-                                   options: Seq[Any] = Seq.empty)
-                                  (implicit ct: ClassTag[T]): Seq[T] = Seq.empty
-
-  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
-    val stat = Stat(store.sft, stats)
-    store.read(Option(filter)).foreach(stat.observe)
-    stat match {
-      case s: SeqStat => s.stats.asInstanceOf[Seq[T]]
-      case s          => Seq(s).asInstanceOf[Seq[T]]
+  override def getEnumeration[T](
+      sft: SimpleFeatureType,
+      attribute: String,
+      filter: Filter,
+      exact: Boolean): Option[EnumerationStat[T]] = {
+    if (!exact) { None } else {
+      getStat[EnumerationStat[T]](sft, Stat.Enumeration(attribute), filter, exact)
     }
   }
 
-  override def generateStats(sft: SimpleFeatureType): Seq[Stat] = Seq.empty
+  override def getFrequency[T](
+      sft: SimpleFeatureType,
+      attribute: String,
+      precision: Int,
+      filter: Filter,
+      exact: Boolean): Option[Frequency[T]] = {
+    if (!exact) { None } else {
+      getStat[Frequency[T]](sft, Stat.Frequency(attribute, precision), filter, exact)
+    }
+  }
 
-  override def statUpdater(sft: SimpleFeatureType): StatUpdater = NoopStatUpdater
+  override def getTopK[T](
+      sft: SimpleFeatureType,
+      attribute: String,
+      filter: Filter,
+      exact: Boolean): Option[TopK[T]] = {
+    if (!exact) { None } else {
+      getStat[TopK[T]](sft, Stat.TopK(attribute), filter, exact)
+    }
+  }
 
-  override def clearStats(sft: SimpleFeatureType): Unit = {}
+  override def getHistogram[T](
+      sft: SimpleFeatureType,
+      attribute: String,
+      bins: Int,
+      min: T,
+      max: T,
+      filter: Filter,
+      exact: Boolean): Option[Histogram[T]] = {
+    if (!exact) { None } else {
+      getStat[Histogram[T]](sft, Stat.Histogram(attribute, bins, min, max)(ClassTag(min.getClass)), filter, exact)
+    }
+  }
 
-  override def rename(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {}
+  override def getZ3Histogram(
+      sft: SimpleFeatureType,
+      geom: String,
+      dtg: String,
+      period: TimePeriod,
+      bins: Int,
+      filter: Filter,
+      exact: Boolean): Option[Z3Histogram] = {
+    if (!exact) { None } else {
+      getStat[Z3Histogram](sft, Stat.Z3Histogram(geom, dtg, period, bins), filter, exact)
+    }
+  }
+
+  override def getStat[T <: Stat](
+      sft: SimpleFeatureType,
+      query: String,
+      filter: Filter,
+      exact: Boolean): Option[T] = {
+    if (!exact) { None } else {
+      val stat = Stat(sft, query).asInstanceOf[T]
+      store.read(Option(filter).filter(_ != Filter.INCLUDE)).foreach(stat.observe)
+      Some(stat)
+    }
+  }
 
   override def close(): Unit = {}
 }

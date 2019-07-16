@@ -26,7 +26,7 @@ import scala.util.control.NonFatal
   * @param ds data store
   */
 class RedisGeoMesaStats(ds: RedisDataStore, metadata: RedisBackedMetadata[Stat])
-    extends MetadataBackedStats(ds, metadata, ds.config.generateStats) {
+    extends MetadataBackedStats(ds, metadata) {
 
   @volatile
   private var run = true
@@ -41,6 +41,17 @@ class RedisGeoMesaStats(ds: RedisDataStore, metadata: RedisBackedMetadata[Stat])
   private val es = java.util.concurrent.Executors.newScheduledThreadPool(2)
 
   es.submit(new Runnable() { override def run(): Unit = writeQueued() })
+
+  override protected def write(typeName: String, stats: Seq[WritableStat]): Unit = {
+    val queued = stats.forall { stat =>
+      val keyBytes = metadata.encodeRow(typeName, stat.key)
+      val serialized = metadata.serializer.serialize(typeName, stat.stat)
+      queue.offer(RedisStat(typeName, stat.key, keyBytes, stat.stat, serialized, stat.merge, 0))
+    }
+    if (!queued) {
+      logger.error(s"Could not queue stat for writing - queue size: ${queue.size()}")
+    }
+  }
 
   private def writeQueued(): Unit = {
     while (run) {
@@ -89,17 +100,6 @@ class RedisGeoMesaStats(ds: RedisDataStore, metadata: RedisBackedMetadata[Stat])
             errors += 1
           }
       }
-    }
-  }
-
-  override protected def write(typeName: String, stats: Seq[WritableStat]): Unit = {
-    val queued = stats.forall { stat =>
-      val keyBytes = metadata.encodeRow(typeName, stat.key)
-      val serialized = metadata.serializer.serialize(typeName, stat.stat)
-      queue.offer(RedisStat(typeName, stat.key, keyBytes, stat.stat, serialized, stat.merge, 0))
-    }
-    if (!queued) {
-      logger.error(s"Could not queue stat for writing - queue size: ${queue.size()}")
     }
   }
 

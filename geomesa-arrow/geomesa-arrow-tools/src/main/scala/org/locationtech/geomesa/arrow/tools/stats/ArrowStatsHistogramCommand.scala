@@ -13,7 +13,8 @@ import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
 import org.locationtech.geomesa.arrow.tools.stats.ArrowStatsHistogramCommand.ArrowStatsHistogramParams
-import org.locationtech.geomesa.tools.stats.{StatsHistogramCommand, StatsHistogramParams}
+import org.locationtech.geomesa.tools.stats.StatsHistogramCommand
+import org.locationtech.geomesa.tools.stats.StatsHistogramCommand.StatsHistogramParams
 
 class ArrowStatsHistogramCommand extends StatsHistogramCommand[ArrowDataStore] with ArrowDataStoreCommand {
 

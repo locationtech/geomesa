@@ -154,6 +154,11 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
         case (from, to) => Option(sft.getUserData.get(from)).foreach(sft.getUserData.put(to, _))
       }
     }
+
+    // set stats enabled based on the data store config if not explicitly set
+    if (!sft.getUserData.containsKey(SimpleFeatureTypes.Configs.StatsEnabled)) {
+      sft.setStatsEnabled(config.generateStats)
+    }
   }
 
   @throws(classOf[IllegalArgumentException])
@@ -250,8 +255,12 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     }
 
     // update stats
-    if (sft.getTypeName != previous.getTypeName || colMap.nonEmpty) {
-      stats.rename(sft, previous)
+    if (previous.statsEnabled) {
+      if (!sft.statsEnabled) {
+        stats.writer.clear(previous)
+      } else if (sft.getTypeName != previous.getTypeName || colMap.nonEmpty) {
+        stats.writer.rename(sft, previous)
+      }
     }
 
     // rename tables to match the new sft name
@@ -289,7 +298,9 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     } else {
       manager.indices(sft).par.foreach(index => adapter.deleteTables(index.deleteTableNames(None)))
     }
-    stats.clearStats(sft)
+    if (sft.statsEnabled) {
+      stats.writer.clear(sft)
+    }
   }
 
   // methods from org.geotools.data.DataStore
@@ -328,6 +339,12 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
                 "same GeoMesa jar versions across your entire workflow. For more information, see " +
                 "http://www.geomesa.org/documentation/user/installation_and_configuration.html#upgrading")
         }
+      }
+
+      // check for sft-level stats flag and set it if not present
+      if (!sft.getUserData.containsKey(SimpleFeatureTypes.Configs.StatsEnabled)) {
+        val extra = Collections.singletonMap(SimpleFeatureTypes.Configs.StatsEnabled, config.generateStats.toString)
+        sft = SimpleFeatureTypes.immutable(sft, extra)
       }
 
       // get the remote version if it's available, but don't wait for it

@@ -13,7 +13,8 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, ToggleRemoteFilterParam}
 import org.locationtech.geomesa.hbase.tools.stats.HBaseStatsHistogramCommand.HBaseStatsHistogramParams
-import org.locationtech.geomesa.tools.stats.{StatsHistogramCommand, StatsHistogramParams}
+import org.locationtech.geomesa.tools.stats.StatsHistogramCommand
+import org.locationtech.geomesa.tools.stats.StatsHistogramCommand.StatsHistogramParams
 
 class HBaseStatsHistogramCommand extends StatsHistogramCommand[HBaseDataStore] with HBaseDataStoreCommand {
   override val params = new HBaseStatsHistogramParams
