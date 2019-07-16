@@ -19,7 +19,6 @@ import org.apache.commons.io.{FilenameUtils, IOUtils}
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.convert.all.TypeAwareInference
-import org.locationtech.geomesa.convert.shp.ShapefileConverterFactory
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode

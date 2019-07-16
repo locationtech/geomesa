@@ -10,13 +10,16 @@ package org.locationtech.geomesa.convert2
 
 import java.io.{IOException, InputStream}
 import java.nio.charset.{Charset, StandardCharsets}
+import java.util.Date
 
+import com.codahale.metrics.Histogram
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
 import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics.SimpleGauge
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -48,6 +51,8 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   (val sft: SimpleFeatureType, val config: C, val fields: Seq[F], val options: O)
     extends SimpleFeatureConverter with ParsingConverter[T] with LazyLogging {
 
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
   private val requiredFields: Array[Field] = AbstractConverter.requiredFields(this)
 
   private val requiredFieldsCount: Int = requiredFields.length
@@ -77,15 +82,29 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   }
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
-    val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec.failure), ec)
+    val hist = ec.metrics.histogram("parse.nanos")
+    val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec.failure, hist), ec)
     options.parseMode match {
       case ParseMode.Incremental => converted
       case ParseMode.Batch => CloseableIterator(converted.to[ListBuffer].iterator, converted.close())
     }
   }
 
-  override def convert(values: CloseableIterator[T], ec: EvaluationContext): CloseableIterator[SimpleFeature] =
-    this.values(values, ec).flatMap(convert(_, ec))
+  override def convert(values: CloseableIterator[T], ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
+    val rate = ec.metrics.meter("rate")
+    val duration = ec.metrics.histogram("convert.nanos")
+    val dtgMetrics = sft.getDtgIndex.map { i =>
+      (i, ec.metrics.gauge[Date]("dtg.last"), ec.metrics.histogram("dtg.latency.millis"))
+    }
+
+    this.values(values, ec).flatMap { raw =>
+      rate.mark()
+      val start = System.nanoTime()
+      try { convert(raw, ec, dtgMetrics) } finally {
+        duration.update(System.nanoTime() - start)
+      }
+    }
+  }
 
   /**
     * Parse objects out of the input stream. This should be lazily evaluated, so that any exceptions occur
@@ -120,7 +139,10 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     * @param ec evaluation context
     * @return
     */
-  private def convert(rawValues: Array[Any], ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
+  private def convert(
+      rawValues: Array[Any],
+      ec: EvaluationContext,
+      dtgMetrics: Option[(Int, SimpleGauge[Date], Histogram)]): CloseableIterator[SimpleFeature] = {
     val sf = new ScalaSimpleFeature(sft, "")
 
     def failure(field: String, e: Throwable): CloseableIterator[SimpleFeature] = {
@@ -175,6 +197,13 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     val error = validators.validate(sf)
     if (error == null) {
       ec.success.inc()
+      dtgMetrics.foreach { case (index, dtg, latency) =>
+        val date = sf.getAttribute(index).asInstanceOf[Date]
+        if (date != null) {
+          dtg.set(date)
+          latency.update(System.currentTimeMillis() - date.getTime)
+        }
+      }
       CloseableIterator.single(sf)
     } else {
       ec.failure.inc()
@@ -234,7 +263,7 @@ object AbstractConverter {
     */
   case class BasicOptions(
       validators: Seq[String],
-      reporters: Map[String, Config],
+      reporters: Seq[Config],
       parseMode: ParseMode,
       errorMode: ErrorMode,
       encoding: Charset
@@ -244,7 +273,7 @@ object AbstractConverter {
     // keep as a function to pick up system property changes
     def default: BasicOptions = {
       val validators = SimpleFeatureValidator.default
-      BasicOptions(validators, Map.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
+      BasicOptions(validators, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
     }
   }
 
