@@ -39,6 +39,7 @@ import scala.util.control.NonFatal
   * @param config converter config
   * @param fields converter fields
   * @param options converter options
+  * @tparam T intermediate parsed values binding
   * @tparam C config binding
   * @tparam F field binding
   * @tparam O options binding
@@ -47,8 +48,7 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   (val sft: SimpleFeatureType, val config: C, val fields: Seq[F], val options: O)
     extends SimpleFeatureConverter with ParsingConverter[T] with LazyLogging {
 
-  private val requiredFields: Array[Field] =
-    AbstractConverter.requiredFields(sft, fields, config.userData.values.toSeq ++ config.idField.toSeq)
+  private val requiredFields: Array[Field] = AbstractConverter.requiredFields(this)
 
   private val requiredFieldsCount: Int = requiredFields.length
 
@@ -196,6 +196,8 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 
 object AbstractConverter {
 
+  import scala.collection.JavaConverters._
+
   type Dag = scala.collection.mutable.Map[Field, Set[Field]]
 
   /**
@@ -249,27 +251,35 @@ object AbstractConverter {
   /**
     * Determines the fields that are actually used for the conversion
     *
-    * @param sft simple feature type
-    * @param fields defined fields
-    * @param others other expressions (i.e. id field and user data)
+    * @param converter converter
+    * @tparam T intermediate parsed values binding
+    * @tparam C config binding
+    * @tparam F field binding
+    * @tparam O options binding
     * @return
     */
-  private def requiredFields(sft: SimpleFeatureType, fields: Seq[Field], others: Seq[Expression]): Array[Field] = {
-    import scala.collection.JavaConverters._
+  private def requiredFields[T, C <: ConverterConfig, F <: Field, O <: ConverterOptions](
+      converter: AbstractConverter[T, C, F, O]): Array[Field] = {
 
-    val fieldNameMap = fields.map(f => (f.name, f)).toMap
+    val fieldNameMap = converter.fields.map(f => f.name -> f).toMap
     val dag = scala.collection.mutable.Map.empty[Field, Set[Field]]
 
     // compute only the input fields that we need to deal with to populate the simple feature
-    sft.getAttributeDescriptors.asScala.foreach { ad =>
+    converter.sft.getAttributeDescriptors.asScala.foreach { ad =>
       fieldNameMap.get(ad.getLocalName).foreach(addDependencies(_, fieldNameMap, dag))
     }
 
     // add id field and user data deps - these will be evaluated last so we only need to add their deps
+    val others = converter.config.userData.values.toSeq ++ converter.config.idField.toSeq
     others.flatMap(_.dependencies(Set.empty, fieldNameMap)).foreach(addDependencies(_, fieldNameMap, dag))
 
     // use a topological ordering to ensure that dependencies are evaluated before the fields that require them
-    topologicalOrder(dag)
+    val ordered = topologicalOrder(dag)
+
+    // log warnings for missing/unused fields
+    checkMissingFields(converter, ordered.map(_.name))
+
+    ordered
   }
 
   /**
@@ -307,5 +317,30 @@ object AbstractConverter {
       }
     }
     res.toArray
+  }
+
+  /**
+    * Checks for missing/unused fields and logs warnings
+    *
+    * @param converter converter
+    * @param used fields used in the conversion
+    * @tparam T intermediate parsed values binding
+    * @tparam C config binding
+    * @tparam F field binding
+    * @tparam O options binding
+    */
+  private def checkMissingFields[T, C <: ConverterConfig, F <: Field, O <: ConverterOptions](
+      converter: AbstractConverter[T, C, F, O],
+      used: Seq[String]): Unit = {
+    val undefined = converter.sft.getAttributeDescriptors.asScala.map(_.getLocalName).diff(used)
+    if (undefined.nonEmpty) {
+      converter.logger.warn(s"'${converter.sft.getTypeName}' converter did not define fields for some attributes: " +
+          undefined.mkString(", "))
+    }
+    val unused = converter.fields.map(_.name).diff(used)
+    if (unused.nonEmpty) {
+      converter.logger.warn(s"'${converter.sft.getTypeName}' converter defined unused fields: " +
+          unused.mkString(", "))
+    }
   }
 }
