@@ -87,7 +87,11 @@ class ConverterMetrics(
     */
   def register[T <: Metric](id: String, metric: T): T = registry.register(s"$pre$id", metric)
 
-  override def close(): Unit = CloseWithLogging(reporters)
+  override def close(): Unit = {
+    // execute a final report before closing, for situations where the converter runs too quickly to report anything
+    reporters.foreach(_.report())
+    CloseWithLogging(reporters)
+  }
 }
 
 object ConverterMetrics {
