@@ -25,7 +25,7 @@ Using GeoMesa Stream
 --------------------
 
 Installing into GeoServer
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -   Clone GeoMesa from the source distribution found on `GitHub <https://github.com/locationtech/geomesa>`_.
 -   Use Maven to build the source distribution.
