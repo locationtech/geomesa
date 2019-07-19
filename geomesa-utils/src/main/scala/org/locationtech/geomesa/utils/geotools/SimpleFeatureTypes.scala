@@ -35,6 +35,7 @@ object SimpleFeatureTypes {
 
     val DefaultDtgField       = "geomesa.index.dtg"
     val EnabledIndices        = "geomesa.indices.enabled"
+    val FeatureExpiration     = "geomesa.feature.expiry"
     val FidsAreUuids          = "geomesa.fid.uuid"
     val FidsAreUuidEncoded    = "geomesa.fid.uuid-encoded"
     val IndexAttributeShards  = "geomesa.attr.splits"

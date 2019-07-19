@@ -43,6 +43,7 @@ package object data extends LazyLogging {
     val TransactionRetries = SystemProperty("geomesa.redis.tx.retry", "10")
     val TransactionPause   = SystemProperty("geomesa.redis.tx.pause", "100ms")
     val TransactionBackoff = SystemProperty("geomesa.redis.tx.backoff", "1,1,2,2,5,10,20")
+    val AgeOffInterval     = SystemProperty("geomesa.redis.age.off.interval", "10 minutes")
   }
 
   /**

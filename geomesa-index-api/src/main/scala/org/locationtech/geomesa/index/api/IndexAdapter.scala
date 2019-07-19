@@ -103,19 +103,7 @@ object IndexAdapter {
     }
   }
 
-  /**
-    * Writes features to a particular back-end data store implementation
-    *
-    * @param indices indices being written to
-    * @param wrapper creates writable feature
-    */
-  abstract class IndexWriter(val indices: Seq[GeoMesaFeatureIndex[_, _]], wrapper: FeatureWrapper)
-      extends Closeable with Flushable {
-
-    private val converters = indices.map(_.createConverter()).toArray
-    private val values = Array.ofDim[RowKeyValue[_]](indices.length)
-
-    private var i = 0
+  trait IndexWriter extends Closeable with Flushable {
 
     /**
       * Write the feature. This method should ensure that the feature is not partially written, by first
@@ -124,7 +112,33 @@ object IndexAdapter {
       * @param feature feature
       * @param update true if this is an update to an existing feature
       */
-    def write(feature: SimpleFeature, update: Boolean): Unit = {
+    def write(feature: SimpleFeature, update: Boolean): Unit
+
+    /**
+      * Delete the feature
+      *
+      * @param feature feature
+      */
+    def delete(feature: SimpleFeature): Unit
+  }
+
+  /**
+    * Writes features to a particular back-end data store implementation
+    *
+    * @param indices indices being written to
+    * @param wrapper creates writable feature
+    */
+  abstract class BaseIndexWriter[T <: WritableFeature](
+      val indices: Seq[GeoMesaFeatureIndex[_, _]],
+      wrapper: FeatureWrapper[T]
+    ) extends IndexWriter {
+
+    private val converters = indices.map(_.createConverter()).toArray
+    private val values = Array.ofDim[RowKeyValue[_]](indices.length)
+
+    private var i = 0
+
+    override def write(feature: SimpleFeature, update: Boolean): Unit = {
       val writable = wrapper.wrap(feature)
 
       i = 0
@@ -137,13 +151,8 @@ object IndexAdapter {
       write(writable, values, update)
     }
 
-    /**
-      * Delete the feature
-      *
-      * @param feature feature
-      */
-    def delete(feature: SimpleFeature): Unit = {
-      val writable = wrapper.wrap(feature)
+    override def delete(feature: SimpleFeature): Unit = {
+      val writable = wrapper.wrap(feature, delete = true)
 
       i = 0
       // we assume that all converters will pass as this feature was already written once
@@ -162,7 +171,7 @@ object IndexAdapter {
       * @param values derived values, one per index
       * @param update true if this is an update to an existing feature
       */
-    protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit
+    protected def write(feature: T, values: Array[RowKeyValue[_]], update: Boolean): Unit
 
     /**
       * Delete values derived from the feature
@@ -170,6 +179,6 @@ object IndexAdapter {
       * @param feature feature being deleted
       * @param values derived values, one per index
       */
-    protected def delete(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit
+    protected def delete(feature: T, values: Array[RowKeyValue[_]]): Unit
   }
 }

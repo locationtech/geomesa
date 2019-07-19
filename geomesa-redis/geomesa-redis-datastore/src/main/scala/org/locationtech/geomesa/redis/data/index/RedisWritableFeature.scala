@@ -13,6 +13,7 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, KeyValue, WritableFeature}
 import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.conf.FeatureExpiration
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -31,6 +32,14 @@ class RedisWritableFeature(
 
   import RedisWritableFeature.EmptyBytes
 
+  // id value without the 2 byte prefix indicating the id length
+  lazy val rawId: Array[Byte] = id.drop(2)
+
+  // calculate the age-off as a expiration timestamp, which we'll store as the sorted set score
+  // redis/java doubles should be able to exactly represent every Long value up to 9007199254740992L,
+  // which corresponds to the year 287396
+  lazy val ttl: Double = feature.getUserData.get(RedisAgeOff.TtlUserDataKey).asInstanceOf[java.lang.Long].toDouble
+
   // we don't use column families, column qualifiers or visibilities in the the rows
   override lazy val values: Seq[KeyValue] =
     Seq(KeyValue(EmptyBytes, EmptyBytes, EmptyBytes, serializer.serialize(feature)))
@@ -40,6 +49,8 @@ class RedisWritableFeature(
 
 object RedisWritableFeature {
 
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
   private val EmptyBytes = Array.empty[Byte]
 
   /**
@@ -48,7 +59,7 @@ object RedisWritableFeature {
     * @param sft simple feature type
     * @return
     */
-  def wrapper(sft: SimpleFeatureType): FeatureWrapper = {
+  def wrapper(sft: SimpleFeatureType): FeatureWrapper[RedisWritableFeature] = {
     val id: String => Array[Byte] = GeoMesaFeatureIndex.idToBytes(sft)
     // add the length of the feature id into the byte array so that we can decode it after the value is concatenated
     val idSerializer: String => Array[Byte] = fid => {
@@ -61,12 +72,15 @@ object RedisWritableFeature {
     }
     // we serialize with user data to store visibilities
     val serializer = KryoFeatureSerializer.builder(sft).withUserData.withoutId.build()
-    new RedisFeatureWrapper(serializer, idSerializer)
+    sft.getFeatureExpiration match {
+      case None => new RedisFeatureWrapper(serializer, idSerializer)
+      case Some(aging) => new RedisExpiringFeatureWrapper(serializer, idSerializer, aging)
+    }
   }
 
   class RedisFeatureWrapper(serializer: SimpleFeatureSerializer, idSerializer: String => Array[Byte])
-      extends FeatureWrapper {
-    override def wrap(feature: SimpleFeature): WritableFeature = {
+      extends FeatureWrapper[RedisWritableFeature] {
+    override def wrap(feature: SimpleFeature, delete: Boolean): RedisWritableFeature = {
       // remove all user data except visibilities
       // we need to keep visibilities for filtering, but don't want to store anything else,
       // as generally we don't store user data
@@ -77,6 +91,25 @@ object RedisWritableFeature {
         feature.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, visibility)
       }
       new RedisWritableFeature(feature, serializer, idSerializer)
+    }
+  }
+
+  class RedisExpiringFeatureWrapper(
+      serializer: SimpleFeatureSerializer,
+      idSerializer: String => Array[Byte],
+      aging: FeatureExpiration
+  ) extends RedisFeatureWrapper(serializer, idSerializer) {
+    override def wrap(feature: SimpleFeature, delete: Boolean): RedisWritableFeature = {
+      val ttl = if (delete) {
+        // use the existing ttl so our serialized key matches
+        feature.getUserData.get(RedisAgeOff.TtlUserDataKey)
+      } else {
+        Long.box(aging.expires(feature))
+      }
+      val wrapped = super.wrap(feature, delete)
+      // store ttl in the user data
+      feature.getUserData.put(RedisAgeOff.TtlUserDataKey, ttl)
+      wrapped
     }
   }
 }

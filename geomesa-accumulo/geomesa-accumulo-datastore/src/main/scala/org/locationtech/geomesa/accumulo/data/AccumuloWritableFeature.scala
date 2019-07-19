@@ -33,7 +33,9 @@ object AccumuloWritableFeature {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  def wrapper(sft: SimpleFeatureType, delegate: FeatureWrapper): FeatureWrapper = {
+  def wrapper(
+      sft: SimpleFeatureType,
+      delegate: FeatureWrapper[WritableFeature]): FeatureWrapper[AccumuloWritableFeature] = {
     val serializer = IndexValueEncoder(sft)
     if (sft.getVisibilityLevel == VisibilityLevel.Attribute) {
       new AccumuloAttributeLevelFeatureWrapper(delegate, serializer)
@@ -42,16 +44,20 @@ object AccumuloWritableFeature {
     }
   }
 
-  class AccumuloFeatureLevelFeatureWrapper(delegate: FeatureWrapper, serializer: SimpleFeatureSerializer)
-      extends FeatureWrapper {
-    override def wrap(feature: SimpleFeature): WritableFeature =
-      new AccumuloFeatureLevelFeature(delegate.wrap(feature), serializer)
+  class AccumuloFeatureLevelFeatureWrapper(
+      delegate: FeatureWrapper[WritableFeature],
+      serializer: SimpleFeatureSerializer
+    ) extends FeatureWrapper[AccumuloWritableFeature] {
+    override def wrap(feature: SimpleFeature, delete: Boolean): AccumuloWritableFeature =
+      new AccumuloFeatureLevelFeature(delegate.wrap(feature, delete), serializer)
   }
 
-  class AccumuloAttributeLevelFeatureWrapper(delegate: FeatureWrapper, serializer: SimpleFeatureSerializer)
-      extends FeatureWrapper {
-    override def wrap(feature: SimpleFeature): WritableFeature =
-      new AccumuloAttributeLevelFeature(delegate.wrap(feature), serializer)
+  class AccumuloAttributeLevelFeatureWrapper(
+      delegate: FeatureWrapper[WritableFeature],
+      serializer: SimpleFeatureSerializer
+    ) extends FeatureWrapper[AccumuloWritableFeature] {
+    override def wrap(feature: SimpleFeature, delete: Boolean): AccumuloWritableFeature =
+      new AccumuloAttributeLevelFeature(delegate.wrap(feature, delete), serializer)
   }
 
   class AccumuloFeatureLevelFeature(delegate: WritableFeature, serializer: SimpleFeatureSerializer)

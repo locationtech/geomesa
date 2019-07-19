@@ -15,7 +15,7 @@ import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringS
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.redis.data.RedisDataStore.RedisDataStoreConfig
-import org.locationtech.geomesa.redis.data.index.{RedisIndexAdapter, RedisQueryPlan}
+import org.locationtech.geomesa.redis.data.index.{RedisAgeOff, RedisIndexAdapter, RedisQueryPlan}
 import org.locationtech.geomesa.redis.data.util.{RedisBackedMetadata, RedisGeoMesaStats, RedisLocking}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
@@ -45,6 +45,8 @@ class RedisDataStore(val connection: JedisPool, override val config: RedisDataSt
 
   override val stats: GeoMesaStats = RedisGeoMesaStats(this)
 
+  private [redis] val aging = new RedisAgeOff(this)
+
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
     if (sft.getVisibilityLevel == VisibilityLevel.Attribute) {
@@ -65,11 +67,27 @@ class RedisDataStore(val connection: JedisPool, override val config: RedisDataSt
     super.preSchemaCreate(sft)
   }
 
+  override protected def onSchemaCreated(sft: SimpleFeatureType): Unit = {
+    super.onSchemaCreated(sft)
+    aging.add(sft)
+  }
+
+  override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+    super.onSchemaUpdated(sft, previous)
+    aging.update(sft, previous)
+  }
+
+  override protected def onSchemaDeleted(sft: SimpleFeatureType): Unit = {
+    super.onSchemaDeleted(sft)
+    aging.remove(sft)
+  }
+
   override def getQueryPlan(query: Query, index: Option[String], explainer: Explainer): Seq[RedisQueryPlan] =
     super.getQueryPlan(query, index, explainer).asInstanceOf[Seq[RedisQueryPlan]]
 
   override def dispose(): Unit = {
     CloseWithLogging(connection)
+    CloseWithLogging(aging)
     super.dispose()
   }
 }

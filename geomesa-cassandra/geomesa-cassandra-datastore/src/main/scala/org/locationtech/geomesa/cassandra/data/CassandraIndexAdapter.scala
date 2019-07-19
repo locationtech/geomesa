@@ -22,7 +22,7 @@ import org.locationtech.geomesa.cassandra.index.CassandraColumnMapper
 import org.locationtech.geomesa.cassandra.index.CassandraColumnMapper.{FeatureIdColumnName, SimpleFeatureColumnName}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
+import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
@@ -173,10 +173,12 @@ object CassandraIndexAdapter extends LazyLogging {
     }
   }
 
-  class CassandraIndexWriter(ds: CassandraDataStore,
-                             indices: Seq[GeoMesaFeatureIndex[_, _]],
-                             wrapper: FeatureWrapper,
-                             partition: Option[String]) extends IndexWriter(indices, wrapper) with StrictLogging {
+  class CassandraIndexWriter(
+      ds: CassandraDataStore,
+      indices: Seq[GeoMesaFeatureIndex[_, _]],
+      wrapper: FeatureWrapper[WritableFeature],
+      partition: Option[String]
+    ) extends BaseIndexWriter(indices, wrapper) with StrictLogging {
 
     private val mappers = indices.toArray.map { index =>
       val mapper = CassandraColumnMapper(index)
