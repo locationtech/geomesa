@@ -1,14 +1,13 @@
-Data Management
-===============
+Accumulo Index Configuration
+============================
 
-GeoMesa provides many ways to optimize your data storage. You can add additional indices to speed up
-certain queries, disable indices to speed up ingestion, pre-split tables for optimal data
-distribution and migrate data between tables or environments.
+GeoMesa exposes a variety of configuration options that can be used to customize and optimize a given installation.
+The Accumulo data store supports most of the general options described under :ref:`index_config`.
 
 .. _accumulo_attribute_indices:
 
-Accumulo Attribute Indices
---------------------------
+Attribute Indices
+-----------------
 
 See :ref:`attribute_indices` for an overview of attribute indices. The Accumulo data store extends the
 normal attribute indices with an additional 'join' format that stores less data.
@@ -37,10 +36,54 @@ be answered without joining against the record table. This is the only option fo
 To use a full index, the keyword ``full`` or ``true`` may be used when specifying an attribute
 index in the ``SimpleFeatureType``.
 
+.. _accumulo_feature_expiry:
+
+Feature Expiration
+------------------
+
+.. warning::
+
+  Any manually configured age-off iterators should be removed before setting feature expiration, as they may
+  not operate correctly due to the configuration name.
+
+The GeoMesa Accumulo data store supports setting a per-feature time-to-live. Expiration can be set in the
+``SimpleFeatureType`` user data, using the key ``geomesa.feature.expiry``. See :ref:`set_sft_options` for details
+on configuring the user data. Expiration can be set before calling ``createSchema``, or can be added to an existing
+schema by calling ``updateSchema``, which may cause currently ingested features to be expired.
+
+Expiration can be based on either ingest time or a feature attribute. To set expiration based on ingest time,
+specify a time-to-live as a duration string, e.g. ``24 hours`` or ``180 days``. To set expiration based on
+a feature attribute, specify the attribute along with a time-to-live in parentheses, e.g. ``dtg(24 hours)`` or
+``event-time(30 days)`` (where ``dtg`` and ``event-time`` are ``Date``-type attributes in the schema).
+
+.. warning::
+
+  Ingest-time expiration requires that logical timestamps are disabled in the schema. See
+  :ref:`logical_timestamps`, below.
+
+Feature expiration is implemented using an Accumulo filter. See :ref:`accumulo_age_off_command` for details
+on viewing or modifying existing filters.
+
+Statistics
+^^^^^^^^^^
+
+As features are aged off, summary data statistics will get out of date, which can degrade query planning. For
+manageable data sets, it is recommended to re-analyze statistics every so often, via the
+:ref:`accumulo_tools_stats_analyze` command. If the data set is too large for this to be feasible, then stats
+can instead be disabled completely via :ref:`stats_generate_config`.
+
+Forcing Deletion of Records
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The GeoMesa age-off iterators will not fully delete records until compactions occur. To force a true deletion of data
+on disk, you must manually compact a table or range. When compacting an entire table you should take care not to
+overwhelm your system. To facilitate this, you may use the GeoMesa Accumulo command-line :ref:`compact_command`
+command.
+
 .. _logical_timestamps:
 
-Accumulo Logical Timestamps
----------------------------
+Logical Timestamps
+------------------
 
 By default, GeoMesa index tables are created using Accumulo's logical time. This ensures that updates to a given
 simple feature will be ordered correctly, however it obscures the actual insert time for the underlying data

@@ -25,7 +25,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata.SingleRowAc
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore.AccumuloDataStoreConfig
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.iterators.ProjectVersionIterator
+import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator, ProjectVersionIterator}
 import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -38,6 +38,7 @@ import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringS
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
+import org.locationtech.geomesa.utils.conf.FeatureExpiration.{FeatureTimeExpiration, IngestTimeExpiration}
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -214,6 +215,19 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     }
   }
 
+  override protected def onSchemaCreated(sft: SimpleFeatureType): Unit = {
+    super.onSchemaCreated(sft)
+    if (sft.statsEnabled) {
+      // configure the stats combining iterator on the table for this sft
+      stats.configureStatCombiner(connector, sft)
+    }
+    sft.getFeatureExpiration.foreach {
+      case IngestTimeExpiration(ttl) => AgeOffIterator.set(this, sft, ttl)
+      case FeatureTimeExpiration(dtg, _, ttl) => DtgAgeOffIterator.set(this, sft, ttl, dtg)
+      case e => throw new IllegalArgumentException(s"Unexpected feature expiration: $e")
+    }
+  }
+
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
     // check for attributes flagged 'index=join' and convert them to sft-level user data
@@ -230,24 +244,33 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
       }
     }
 
-    super.preSchemaUpdate(sft, previous)
-  }
-
-  override protected def onSchemaCreated(sft: SimpleFeatureType): Unit = {
-    super.onSchemaCreated(sft)
-    if (sft.statsEnabled) {
-      // configure the stats combining iterator on the table for this sft
-      stats.configureStatCombiner(connector, sft)
+    // check any previous age-off - previously age-off wasn't tied to the sft metadata
+    if (!sft.isFeatureExpirationEnabled && !previous.isFeatureExpirationEnabled) {
+      // explicitly set age-off in the feature type if found
+      val configured = AgeOffIterator.expiry(this, previous).orElse(DtgAgeOffIterator.expiry(this, previous))
+      configured.foreach(sft.setFeatureExpiration)
     }
+
+    super.preSchemaUpdate(sft, previous)
   }
 
   override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
     super.onSchemaUpdated(sft, previous)
+
     if (previous.statsEnabled) {
       stats.removeStatCombiner(connector, previous)
     }
     if (sft.statsEnabled) {
       stats.configureStatCombiner(connector, sft)
+    }
+
+    AgeOffIterator.clear(this, previous)
+    DtgAgeOffIterator.clear(this, previous)
+
+    sft.getFeatureExpiration.foreach {
+      case IngestTimeExpiration(ttl) => AgeOffIterator.set(this, sft, ttl)
+      case FeatureTimeExpiration(dtg, _, ttl) => DtgAgeOffIterator.set(this, sft, ttl, dtg)
+      case e => throw new IllegalArgumentException(s"Unexpected feature expiration: $e")
     }
   }
 
