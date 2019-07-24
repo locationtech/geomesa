@@ -63,17 +63,19 @@ object FastConverter extends StrictLogging {
       cache.put((clas, binding), converters)
     }
 
-    converters.foreach { converter =>
+    var i = 0
+    while (i < converters.length) {
       try {
-        val result = converter.convert(value, binding)
+        val result = converters(i).convert(value, binding)
         if (result != null) {
           return result
         }
       } catch {
         case NonFatal(e) =>
           logger.trace(s"Error converting $value (of type ${value.getClass.getName}) " +
-            s"to ${binding.getName} using converter ${converter.getClass.getName}:", e)
+              s"to ${binding.getName} using converter ${converters(i).getClass.getName}:", e)
       }
+      i += 1
     }
 
     logger.warn(s"Could not convert '$value' (of type ${value.getClass.getName}) to ${binding.getName}")

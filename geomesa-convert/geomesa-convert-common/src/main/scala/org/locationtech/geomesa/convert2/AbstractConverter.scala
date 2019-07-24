@@ -60,6 +60,10 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
 
   private val caches = config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
 
+  private val idFieldConfig = config.idField.orNull
+
+  private val userDataConfig = config.userData.toArray
+
   override def targetSft: SimpleFeatureType = sft
 
   override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
@@ -159,17 +163,20 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     }
 
     // if no id builder, empty feature id will be replaced with an auto-gen one
-    config.idField.foreach { expr =>
-      try { sf.setId(expr.eval(rawValues)(ec).asInstanceOf[String]) } catch {
+    if (idFieldConfig != null) {
+      try { sf.setId(idFieldConfig.eval(rawValues)(ec).asInstanceOf[String]) } catch {
         case NonFatal(e) => return failure("feature id", e)
       }
       sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     }
 
-    config.userData.foreach { case (k, v) =>
+    i = 0
+    while (i < userDataConfig.length) {
+      val (k, v) = userDataConfig(i)
       try { sf.getUserData.put(k, v.eval(rawValues)(ec).asInstanceOf[AnyRef]) } catch {
         case NonFatal(e) => return failure(s"user-data:$k", e)
       }
+      i += 1
     }
 
     val error = validators.validate(sf)
