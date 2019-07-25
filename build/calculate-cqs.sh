@@ -7,7 +7,7 @@
 # 4. Any transitive provided or test dependencies can be disregarded for IP purposes
 
 rm build/cqs.tsv 2>/dev/null
-mvn dependency:tree > build/deps-raw
+mvn dependency:tree -Dstyle.color=never > build/deps-raw
 grep ':compile' build/deps-raw | grep -v 'omitted' | grep -v 'org.locationtech.geomesa' | sed -e 's/\[INFO\] //' -e 's/[\| +-]*//' -e 's/(.*)//' -e 's/ //g' -e 's/\(.*\):\(.*\):jar:\(.*\):\(\w*\)/\1:\2\t\3\t\4/' | sort | uniq > build/cqs.tsv
 echo "" >> build/cqs.tsv
 for cq in $(grep ':provided' build/deps-raw | grep '^\[INFO\] +-' | grep -v 'org.locationtech.geomesa' | sed -e 's/\[INFO\] +- //' -e 's/(.*)//' | sort | uniq); do
