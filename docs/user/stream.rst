@@ -21,11 +21,23 @@ Modules
 -  ``geomesa-stream-datastore`` - ``DataStore`` implementation
 -  ``geomesa-stream-gs-plugin`` - GeoServer hooks for stream sources
 
-Usage
------
+Using GeoMesa Stream
+--------------------
+
+Installing into GeoServer
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   Clone GeoMesa from the source distribution found on `GitHub <https://github.com/locationtech/geomesa>`_.
+-   Use Maven to build the source distribution.
+-   Copy ``geomesa-stream-gs-plugin_2.11-$VERSION-install.tar.gz`` from ``geomesa-stream/geomesa-stream-gs-plugin/target`` to GeoServer's ``/webapps/geoserver/WEB-INF/lib/ directory`` and untar it.
+-   In GeoServer, navigate to ``Stores`` under ``Data`` and click ``Add new Store``.
+-   ``SimpleFeature Stream Source`` should be visible under  ``Vector Data Sources``.
+
+Example Usage
+~~~~~~~~~~~~~
 
 To illustrate usage, assume we are processing a stream of Twitter data
-as a csv. The configuration in GeoServer is as follows:
+as a csv. The configuration in GeoServer, when creating a new ``SimpleFeature Stream Source``, is as follows:
 
 .. code-block:: javascript
 
@@ -42,7 +54,7 @@ as a csv. The configuration in GeoServer is as follows:
                        ]
                      }
       converter    = {
-                       id-field = "md5(string2bytes($0))"
+                       id-field = "md5(stringToBytes($0))"
                        type = "delimited-text"
                        format = "DEFAULT"
                        fields = [
@@ -56,7 +68,17 @@ as a csv. The configuration in GeoServer is as follows:
 
 This defines a stream source that will listen on port 5899 for csv
 messages that have the following columns: ``user``, ``msg``, ``lon``,
-``lat``, ``dtg``. To instantiate a ``DataStore`` for this type that
+``lat``, ``dtg``.
+
+Twitter csv messages sent to the defined port over tcp will be processed by GeoMesa and sent to GeoServer. A layer can be published from the newly created store to view the data.
+
+.. important::
+    The Apache Camel route used by GeoMesa Stream defines a consumer endpoint not a producer endpoint.
+
+Further Usage
+~~~~~~~~~~~~~
+
+To instantiate a ``DataStore`` for this type that
 keeps the last 30 seconds of tweets, use the following code.
 
 .. code-block:: scala

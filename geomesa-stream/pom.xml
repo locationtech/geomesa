@@ -12,7 +12,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <camel.version>2.15.1</camel.version>
+        <camel.version>2.17.1</camel.version>
     </properties>
 
     <modules>
