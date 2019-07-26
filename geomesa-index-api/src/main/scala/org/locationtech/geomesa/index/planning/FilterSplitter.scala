@@ -225,7 +225,13 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
   private def fullTableScanOption(filter: Filter, transform: Option[SimpleFeatureType]): FilterStrategy = {
     val secondary = if (filter == Filter.INCLUDE) { None } else { Some(filter) }
     // note: early return after we find a matching strategy
-    indices.foreach(_.getFilterStrategy(Filter.INCLUDE, transform, stats).foreach(i => return i.copy(secondary)))
+    val iter = indices.iterator
+    while (iter.hasNext) {
+      iter.next().getFilterStrategy(Filter.INCLUDE, transform, stats) match {
+        case None => // no-op
+        case Some(i) => return i.copy(secondary)
+      }
+    }
     throw new UnsupportedOperationException(s"Configured indices do not support the query ${filterToString(filter)}")
   }
 }

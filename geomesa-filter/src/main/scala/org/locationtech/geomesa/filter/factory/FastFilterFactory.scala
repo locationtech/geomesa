@@ -24,10 +24,10 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.MultiValuedFilter.MatchAction
+import org.opengis.filter._
 import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.spatial.DWithin
 import org.opengis.filter.temporal.{After, Before, During}
-import org.opengis.filter._
 import org.opengis.geometry.Geometry
 import org.xml.sax.helpers.NamespaceSupport
 
@@ -281,16 +281,19 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
 
     val props = scala.collection.mutable.HashSet.empty[String]
     val literals = scala.collection.immutable.HashSet.newBuilder[AnyRef]
-    literals.sizeHint(predicates)
+    literals.sizeHint(predicates.length)
 
-    predicates.foreach {
-      case p: PropertyIsEqualTo if p.getMatchAction == MatchAction.ANY && p.isMatchingCase =>
-        org.locationtech.geomesa.filter.checkOrder(p.getExpression1, p.getExpression2) match {
-          case Some(PropertyLiteral(name, lit, _)) if !props.add(name) || props.size == 1 => literals += lit.getValue
-          case _ => return super.or(filters.asInstanceOf[java.util.List[_]])
-        }
+    val iter = predicates.iterator
+    while (iter.hasNext) {
+      iter.next() match {
+        case p: PropertyIsEqualTo if p.getMatchAction == MatchAction.ANY && p.isMatchingCase =>
+          org.locationtech.geomesa.filter.checkOrder(p.getExpression1, p.getExpression2) match {
+            case Some(PropertyLiteral(name, lit, _)) if !props.add(name) || props.size == 1 => literals += lit.getValue
+            case _ => return super.or(filters.asInstanceOf[java.util.List[_]])
+          }
 
-      case _ => return super.or(filters.asInstanceOf[java.util.List[_]])
+        case _ => return super.or(filters.asInstanceOf[java.util.List[_]])
+      }
     }
 
     // if we've reached here, we have verified that all the child filters are equality matches on the same property
