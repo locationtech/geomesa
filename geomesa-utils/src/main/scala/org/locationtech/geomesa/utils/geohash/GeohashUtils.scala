@@ -364,14 +364,18 @@ object GeohashUtils
     val height = ur.getY - ll.getY
     require(width >= 0 && height >= 0, s"Wrong width $width and height $height of input bounding box, cannot process")
 
-    (60 to 0 by -5).foreach(prec => {
+    var prec = 60
+    while (prec >= 0) {
       val lonDelta = GeoHash.longitudeDeltaForPrecision(prec)
       val latDelta = GeoHash.latitudeDeltaForPrecision(prec)
       if (lonDelta >= width && latDelta >= height) {
         val geo = GeoHash(ll.getX, ll.getY, prec)
-        if (geo.bbox.covers(ur)) return Some(geo)
+        if (geo.bbox.covers(ur)) {
+          return Some(geo)
+        }
       }
-    })
+      prec -= 5
+    }
     None
   }
 
