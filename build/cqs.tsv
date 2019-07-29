@@ -130,8 +130,8 @@ org.apache.arrow:arrow-format	0.10.0	compile
 org.apache.arrow:arrow-memory	0.10.0	compile
 org.apache.arrow:arrow-vector	0.10.0	compile
 org.apache.avro:avro	1.7.5	compile
-org.apache.camel:camel-core	2.15.1	compile
-org.apache.camel:camel-scala	2.15.1	compile
+org.apache.camel:camel-core	2.24.1	compile
+org.apache.camel:camel-scala	2.24.1	compile
 org.apache.commons:commons-compress	1.18	compile
 org.apache.commons:commons-csv	1.5	compile
 org.apache.commons:commons-dbcp2	2.6.0	compile
@@ -283,7 +283,7 @@ io.confluent:kafka-schema-registry	tests:5.1.0	test
 junit:junit	4.12	test
 org.apache.accumulo:accumulo-test	1.8.1	test
 org.apache.arrow:arrow-vector	tests:0.10.0	test
-org.apache.camel:camel-netty4	2.15.1	test
+org.apache.camel:camel-netty4	2.24.1	test
 org.apache.cassandra:cassandra-all	3.0.0	test
 org.apache.curator:curator-test	2.7.1	test
 org.apache.hadoop:hadoop-minicluster	2.6.4	test
