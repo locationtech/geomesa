@@ -441,8 +441,3 @@ if [[ -n "$JAVA_LIBRARY_PATH" ]]; then
   GEOMESA_OPTS="${GEOMESA_OPTS} -Djava.library.path=${JAVA_LIBRARY_PATH}"
   export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_LIBRARY_PATH"
 fi
-
-# Configure Java Options this can be set in geomesa-env.
-if [[ -z "$CUSTOM_JAVA_OPTS" ]]; then
-  export CUSTOM_JAVA_OPTS="${JAVA_OPTS}"
-fi
