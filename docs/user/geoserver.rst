@@ -147,6 +147,16 @@ For massive queries, the standard 60 second timeout may be too short.
 
 .. |"Disable limits"| image:: _static/img/wms_limits.png
 
+Temp Directories
+^^^^^^^^^^^^^^^^
+
+GeoServer creates temporary directories for caching various files. Running in a multi-tenant environment
+can result in permission errors when different users try to write to the same directories. To avoid this,
+configure your application server with the following system properties::
+
+  -DEPSG-HSQL.directory=/tmp/$USER-hsql
+  -DGEOWEBCACHE_CACHE_DIR=/tmp/$USER-gwc
+
 .. _geoserver_explain_query:
 
 Logging Explain Query Planning
