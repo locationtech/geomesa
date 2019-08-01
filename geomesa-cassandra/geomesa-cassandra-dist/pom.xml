@@ -72,7 +72,7 @@
                         </goals>
                         <phase>package</phase>
                         <configuration>
-                            <attach>true</attach>
+                            <attach>${attach.installers}</attach>
                             <finalName>geomesa-cassandra_${scala.binary.version}-${project.version}</finalName>
                             <tarLongFileMode>posix</tarLongFileMode>
                             <descriptors>

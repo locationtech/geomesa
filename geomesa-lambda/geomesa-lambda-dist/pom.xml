@@ -124,7 +124,7 @@
                         </goals>
                         <phase>package</phase>
                         <configuration>
-                            <attach>true</attach>
+                            <attach>${attach.installers}</attach>
                             <tarLongFileMode>posix</tarLongFileMode>
                             <descriptors>
                                 <descriptor>src/main/assemblies/binary-release.xml</descriptor>

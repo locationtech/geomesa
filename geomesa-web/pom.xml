@@ -55,6 +55,7 @@
                                 <descriptors>
                                     <descriptor>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/assembly.xml</descriptor>
                                 </descriptors>
+                                <attach>${attach.installers}</attach>
                             </configuration>
                         </execution>
                     </executions>

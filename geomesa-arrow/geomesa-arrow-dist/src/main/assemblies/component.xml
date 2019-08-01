@@ -15,6 +15,18 @@
             </excludes>
         </dependencySet>
         <dependencySet>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <fileMode>0644</fileMode>
+            <useProjectArtifact>false</useProjectArtifact>
+            <useTransitiveDependencies>false</useTransitiveDependencies>
+            <useStrictFiltering>true</useStrictFiltering>
+            <includes>
+                <include>org.locationtech.geomesa:geomesa-arrow-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-process-wps*</include>
+            </includes>
+        </dependencySet>
+        <dependencySet>
             <outputDirectory>dist/converters</outputDirectory>
             <directoryMode>0755</directoryMode>
             <fileMode>0644</fileMode>

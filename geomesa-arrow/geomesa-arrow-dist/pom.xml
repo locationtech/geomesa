@@ -29,6 +29,26 @@
             <classifier>data</classifier>
         </dependency>
 
+        <!-- GeoServer Plugins -->
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-arrow-gs-plugin_${scala.binary.version}</artifactId>
+            <classifier>install</classifier>
+            <version>${project.version}</version>
+            <type>tar.gz</type>
+            <!-- Don't bring any any transitives of dist tar.gz files -->
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-process-wps_${scala.binary.version}</artifactId>
+        </dependency>
+
         <!-- additional deps to manage in for deploying to lib dir-->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -87,7 +107,7 @@
                         </goals>
                         <phase>package</phase>
                         <configuration>
-                            <attach>true</attach>
+                            <attach>${attach.installers}</attach>
                             <finalName>geomesa-arrow_${scala.binary.version}-${project.version}</finalName>
                             <tarLongFileMode>posix</tarLongFileMode>
                             <descriptors>
