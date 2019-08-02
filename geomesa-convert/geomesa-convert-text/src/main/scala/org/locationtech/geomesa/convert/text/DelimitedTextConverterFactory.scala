@@ -100,7 +100,7 @@ class DelimitedTextConverterFactory
       }
 
       val options = DelimitedTextOptions(None, CharNotSpecified, CharNotSpecified, None,
-        SimpleFeatureValidator.default, Map.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
+        SimpleFeatureValidator.default, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
 
       val config = configConvert.to(converterConfig)
           .withFallback(fieldConvert.to(fields))
@@ -156,7 +156,7 @@ class DelimitedTextConverterFactory
         }
 
         val options = DelimitedTextOptions(Some(1), CharNotSpecified, CharNotSpecified, None,
-          SimpleFeatureValidator.default, Map.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
+          SimpleFeatureValidator.default, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
 
         val config = configConvert.to(converterConfig)
             .withFallback(fieldConvert.to(fields))
@@ -225,7 +225,7 @@ object DelimitedTextConverterFactory {
     override protected def decodeOptions(
         cur: ConfigObjectCursor,
         validators: Seq[String],
-        reporters: Map[String, Config],
+        reporters: Seq[Config],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, DelimitedTextOptions] = {

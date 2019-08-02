@@ -220,7 +220,7 @@ object DelimitedTextConverter {
       escape: OptionalChar,
       delimiter: Option[Char],
       validators: Seq[String],
-      reporters: Map[String, Config],
+      reporters: Seq[Config],
       parseMode: ParseMode,
       errorMode: ErrorMode,
       encoding: Charset

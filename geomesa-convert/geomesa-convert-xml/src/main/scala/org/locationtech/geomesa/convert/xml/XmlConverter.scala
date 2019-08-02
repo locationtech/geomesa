@@ -167,7 +167,7 @@ object XmlConverter extends StrictLogging {
 
   case class XmlOptions(
       validators: Seq[String],
-      reporters: Map[String, Config],
+      reporters: Seq[Config],
       parseMode: ParseMode,
       errorMode: ErrorMode,
       lineMode: LineMode,

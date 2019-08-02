@@ -55,7 +55,10 @@ abstract class AbstractCompositeConverter[T](
     val args = Array.ofDim[Any](1)
     var i = 0
 
+    val routing = ec.metrics.histogram("predicate.eval.nanos")
+
     def eval(element: T): CloseableIterator[SimpleFeature] = {
+      val start = System.nanoTime()
       args(0) = element
       i = 0
       while (i < predicates.length) {
@@ -64,15 +67,18 @@ abstract class AbstractCompositeConverter[T](
           case NonFatal(e) => logger.warn(s"Error evaluating predicate $i: ", e); false
         }
         if (found) {
+          routing.update(System.nanoTime() - start) // note: invoke before executing the conversion
           return converters(i).convert(CloseableIterator.single(element), ec)
         }
         i += 1
       }
+      routing.update(System.nanoTime() - start)
       ec.failure.inc()
       CloseableIterator.empty
     }
 
-    new ErrorHandlingIterator(parse(is, ec), errorMode, ec.failure).flatMap(eval)
+    val hist = ec.metrics.histogram("parse.nanos")
+    new ErrorHandlingIterator(parse(is, ec), errorMode, ec.failure, hist).flatMap(eval)
   }
 
   override def close(): Unit = converters.foreach(CloseWithLogging.apply)

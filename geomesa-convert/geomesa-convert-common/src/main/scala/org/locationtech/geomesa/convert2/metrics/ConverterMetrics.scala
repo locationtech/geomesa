@@ -10,8 +10,10 @@ package org.locationtech.geomesa.convert2.metrics
 
 import java.io.Closeable
 
+import com.codahale.metrics.MetricRegistry.MetricSupplier
 import com.codahale.metrics._
 import com.typesafe.config.Config
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics.SimpleGauge
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
@@ -40,6 +42,16 @@ class ConverterMetrics(
     * @return
     */
   def counter(id: String): Counter = registry.counter(s"$pre$id")
+
+  /**
+    * Gets an updatable gauge
+    *
+    * @param id short identifier for hte metric being gauged
+    * @tparam T gauge type
+    * @return
+    */
+  def gauge[T](id: String): SimpleGauge[T] =
+    registry.gauge(s"$pre$id", ConverterMetrics.GaugeSupplier).asInstanceOf[SimpleGauge[T]]
 
   /**
     * Creates a prefixed histogram
@@ -75,12 +87,20 @@ class ConverterMetrics(
     */
   def register[T <: Metric](id: String, metric: T): T = registry.register(s"$pre$id", metric)
 
-  override def close(): Unit = CloseWithLogging(reporters)
+  override def close(): Unit = {
+    // execute a final report before closing, for situations where the converter runs too quickly to report anything
+    reporters.foreach(_.report())
+    CloseWithLogging(reporters)
+  }
 }
 
 object ConverterMetrics {
 
   val MetricsPrefix = SystemProperty("geomesa.convert.validators.prefix")
+
+  private val GaugeSupplier = new MetricSupplier[Gauge[_]] {
+    override def newMetric(): Gauge[_] = new SimpleGauge()
+  }
 
   /**
     * Creates an empty registry with no namespace or reporters
@@ -96,9 +116,24 @@ object ConverterMetrics {
     * @param reporters configs for metric reporters
     * @return
     */
-  def apply(sft: SimpleFeatureType, reporters: Map[String, Config]): ConverterMetrics = {
+  def apply(sft: SimpleFeatureType, reporters: Seq[Config]): ConverterMetrics = {
     val registry = new MetricRegistry()
-    val reps = reporters.values.map(ReporterFactory.apply(_, registry)).toList
+    val reps = reporters.map(ReporterFactory.apply(_, registry)).toList
     new ConverterMetrics(registry, MetricsPrefix.option, sft.getTypeName, reps)
+  }
+
+  /**
+    * Simple gauge that can be updated
+    *
+    * @tparam T value
+    */
+  class SimpleGauge[T] extends Gauge[T] {
+
+    @volatile
+    private var value: T = _
+
+    override def getValue: T = value
+
+    def set(value: T): Unit = this.value = value
   }
 }

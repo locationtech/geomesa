@@ -10,7 +10,7 @@ package org.locationtech.geomesa
 
 import java.nio.charset.Charset
 
-import com.codahale.metrics.Counter
+import com.codahale.metrics.{Counter, Histogram}
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
@@ -37,7 +37,7 @@ package object convert2 {
 
   trait ConverterOptions {
     def validators: Seq[String]
-    def reporters: Map[String, Config]
+    def reporters: Seq[Config]
     def parseMode: ParseMode
     def errorMode: ErrorMode
     def encoding: Charset
@@ -49,9 +49,14 @@ package object convert2 {
     * @param underlying wrapped iterator
     * @param mode error mode
     * @param counter counter for failures
+    * @param times histogram for tracking convert times
     */
-  class ErrorHandlingIterator[T](underlying: CloseableIterator[T], mode: ErrorMode, counter: Counter)
-      extends CloseableIterator[T] with LazyLogging {
+  class ErrorHandlingIterator[T](
+      underlying: CloseableIterator[T],
+      mode: ErrorMode,
+      counter: Counter,
+      times: Histogram
+    ) extends CloseableIterator[T] with LazyLogging {
 
     private var staged: T = _
     private var error = false
@@ -60,6 +65,7 @@ package object convert2 {
       if (error) { false } else {
         // make sure that we successfully read an underlying record, so that we can always return
         // a valid record in `next`, otherwise failures will get double counted
+        val start = System.nanoTime()
         try {
           if (underlying.hasNext) {
             staged = underlying.next
@@ -76,6 +82,8 @@ package object convert2 {
             }
             error = true
             false // usually parsing can't continue if there is an exception in the underlying read
+        } finally {
+          times.update(System.nanoTime() - start)
         }
       }
     }

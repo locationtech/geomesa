@@ -171,15 +171,15 @@ Metrics
 ~~~~~~~
 
 Converters use the `Dropwizard Metrics <https://metrics.dropwizard.io/>`__ library to register metrics on
-successful conversions, failed conversions, and validation errors. Metrics can be accessed through the converter
-evaluation context, or can be exposed through reporters configured in the converter options:
+successful conversions, failed conversions, validation errors, and processing rates. Metrics can be accessed
+through the converter evaluation context, or can be exposed through reporters configured in the converter options:
 
 ::
 
     geomesa.converters.myconverter {
       options {
-        reporters = {
-          logger = {
+        reporters = [
+          {
             type           = "slf4j"
             logger         = "com.example.MyConverter"
             level          = "INFO"
@@ -187,7 +187,7 @@ evaluation context, or can be exposed through reporters configured in the conver
             duration-units = "MILLISECONDS"
             interval       = "10 seconds"
           }
-        }
+        ]
       }
     }
 
@@ -201,16 +201,16 @@ by default. The reporters can be configured as follows:
 
     geomesa.converters.myconverter {
       options {
-        reporters = {
-          graphite = {
+        reporters = [
+          {
             type           = "graphite"
             url            = "localhost:9000"
             prefix         = "example"
             rate-units     = "SECONDS"
             duration-units = "MILLISECONDS"
             interval       = "10 seconds"
-          }
-          ganglia = {
+          },
+          {
             type            = "ganglia"
             group           = "example"
             port            = 8649
@@ -221,7 +221,7 @@ by default. The reporters can be configured as follows:
             duration-units  = "MILLISECONDS"
             interval        = "10 seconds"
           }
-        }
+        ]
       }
     }
 
