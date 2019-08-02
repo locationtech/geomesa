@@ -82,6 +82,8 @@ for home in ${hadoopDirs[*]}; do
   fi
 done
 
+CLASSPATH="$GEOMESA_CP:$HADOOP_CP"
+
 # Geomesa tools setup completed, below we parse user arguments
 #
 # configure | runs the geomesa configuration, sets both the ${geomesa.dist.foobar} and PATH vars
@@ -91,17 +93,22 @@ done
 if  [[ $1 = configure ]]; then
   geomesaConfigure
 else
-  CLASSPATH="$GEOMESA_CP:$HADOOP_CP"
-  if [[ $1 = scala-console ]]; then
-    geomesaScalaConsole ${CLASSPATH} ${CUSTOM_JAVA_OPTS} ${GEOMESA_OPTS}
-  elif [[ $1 = classpath ]]; then
-    for element in ${CLASSPATH//:/ } ; do
+  if [[ $1 = debug ]]; then
+    GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
+    shift 1
+  fi
+  if [[ $1 = classpath ]]; then
+    for element in ${CLASSPATH//:/ }; do
       echo ${element}
     done
+  elif [[ $1 = scala-console ]]; then
+    # scala console requires options to be passed in through java_opts
+    export JAVA_OPTS="${GEOMESA_OPTS} ${CUSTOM_JAVA_OPTS} ${JAVA_OPTS}"
+    geomesaScalaConsole ${CLASSPATH}
   else
-    if [[ $1 = debug ]]; then
-      GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
-      shift 1
+    if [[ -z "$CUSTOM_JAVA_OPTS" ]]; then
+      # if custom opts are not set, use global default
+      export CUSTOM_JAVA_OPTS="${JAVA_OPTS}"
     fi
     java ${GEOMESA_OPTS} ${CUSTOM_JAVA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.geotools.tools.GeoToolsRunner "$@"
   fi
