@@ -8,12 +8,15 @@
 
 package org.locationtech.geomesa.redis.data
 
+import java.util.{Collections, Date}
+
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -24,9 +27,11 @@ class RedisDataStoreIntegrationTest extends Specification {
 
   import scala.collection.JavaConverters._
 
+  sequential
+
   val url = "redis://localhost:6379"
 
-  val sft = SimpleFeatureTypes.createType("test", "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createImmutableType("test", "name:String:index=true,dtg:Date,*geom:Point:srid=4326")
 
   val features = Seq.tabulate(10) { i =>
     ScalaSimpleFeature.create(sft, i.toString, s"name$i", s"2019-01-03T0$i:00:00.000Z", s"POINT (-4$i 55)")
@@ -83,12 +88,104 @@ class RedisDataStoreIntegrationTest extends Specification {
 
         ds.stats.getCount(sft) must beSome(10L)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(-49, -40, 55, 55, CRS_EPSG_4326)
-
       } finally {
         ds.removeSchema(sft.getTypeName)
         ds.dispose()
       }
-      ok
+    }
+
+    "expire features based on ingest time" in {
+
+      skipped("Integration tests")
+
+      RedisSystemProperties.AgeOffInterval.set("5 seconds")
+
+      val sft = SimpleFeatureTypes.immutable(this.sft, Collections.singletonMap(Configs.FeatureExpiration, "10 seconds"))
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[RedisDataStore]
+      ds must not(beNull)
+
+      try {
+        ds.getSchema(sft.getTypeName) must beNull
+        ds.createSchema(sft)
+        ds.getSchema(sft.getTypeName) mustEqual sft
+
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+
+        foreach(filters) { filter =>
+          val expected = features.filter(filter.evaluate)
+          val query = new Query(sft.getTypeName, filter)
+          val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          result must containTheSameElementsAs(expected)
+        }
+
+        ds.stats.getCount(sft) must beSome(10L)
+        ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(-49, -40, 55, 55, CRS_EPSG_4326)
+
+        Thread.sleep(1000 * 20)
+
+        foreach(filters) { filter =>
+          val query = new Query(sft.getTypeName, filter)
+          val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          result must beEmpty
+        }
+
+        ds.stats.getCount(sft) must beSome(0L)
+      } finally {
+        RedisSystemProperties.AgeOffInterval.clear()
+        ds.removeSchema(sft.getTypeName)
+        ds.dispose()
+      }
+    }
+
+    "expire features based on attribute time" in {
+
+      skipped("Integration tests")
+
+      RedisSystemProperties.AgeOffInterval.set("5 seconds")
+
+      // age off the first feature, since they are one hour apart
+      val time = System.currentTimeMillis() + 10000L - features.head.getAttribute("dtg").asInstanceOf[Date].getTime
+
+      val sft = SimpleFeatureTypes.immutable(this.sft, Collections.singletonMap(Configs.FeatureExpiration, s"dtg($time ms)"))
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[RedisDataStore]
+      ds must not(beNull)
+
+      try {
+        ds.getSchema(sft.getTypeName) must beNull
+        ds.createSchema(sft)
+        ds.getSchema(sft.getTypeName) mustEqual sft
+
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+
+        foreach(filters) { filter =>
+          val expected = features.filter(filter.evaluate)
+          val query = new Query(sft.getTypeName, filter)
+          val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          result must containTheSameElementsAs(expected)
+        }
+
+        ds.stats.getCount(sft) must beSome(10L)
+        ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(-49, -40, 55, 55, CRS_EPSG_4326)
+
+        Thread.sleep(1000 * 20)
+
+        foreach(filters) { filter =>
+          val expected = features.drop(1).filter(filter.evaluate)
+          val query = new Query(sft.getTypeName, filter)
+          val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          result must containTheSameElementsAs(expected)
+        }
+
+        ds.stats.getCount(sft) must beSome(9L)
+      } finally {
+        RedisSystemProperties.AgeOffInterval.clear()
+        ds.removeSchema(sft.getTypeName)
+        ds.dispose()
+      }
     }
   }
 }

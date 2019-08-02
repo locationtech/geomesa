@@ -31,8 +31,6 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class FilterHelperTest extends Specification with LazyLogging {
 
-  import org.locationtech.geomesa.filter.ff
-
   val gf = JTSFactoryFinder.getGeometryFactory
 
   def dt2lit(dt: ZonedDateTime): Expression = ff.literal(Date.from(dt.toInstant))

@@ -39,7 +39,7 @@ import scala.util.control.NonFatal
 class HBaseIndexFileMapper extends Mapper[Writable, SimpleFeature, ImmutableBytesWritable, Put] with LazyLogging {
 
   private var sft: SimpleFeatureType = _
-  private var wrapper: FeatureWrapper = _
+  private var wrapper: FeatureWrapper[WritableFeature] = _
   private var writer: WriteConverter[_] = _
 
   private var features: Counter = _

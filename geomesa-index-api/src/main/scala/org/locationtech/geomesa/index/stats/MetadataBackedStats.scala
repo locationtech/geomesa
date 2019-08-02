@@ -47,7 +47,10 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
     if (exact) {
       query[CountStat](sft, filter, Stat.Count()).map(_.count)
     } else if (filter == Filter.INCLUDE) {
-      read[CountStat](sft, filter, countKey()).map(_.count)
+      // note: compared to the 'read' method, we want to return empty counts (indicating no features)
+      try { metadata.read(sft.getTypeName, countKey()).collect { case s: CountStat => s.count } } catch {
+        case NonFatal(e) => logger.error("Error reading existing stats:", e); None
+      }
     } else {
       estimateCount(sft, filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
     }

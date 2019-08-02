@@ -27,7 +27,7 @@ import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.conf.SemanticVersion.MinorOrdering
-import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, IndexId, SemanticVersion}
+import org.locationtech.geomesa.utils.conf.{FeatureExpiration, GeoMesaProperties, IndexId, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOptions, Configs, InternalConfigs}
@@ -159,6 +159,8 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (!sft.getUserData.containsKey(SimpleFeatureTypes.Configs.StatsEnabled)) {
       sft.setStatsEnabled(config.generateStats)
     }
+
+    sft.getFeatureExpiration // validate any configured age-off
   }
 
   @throws(classOf[IllegalArgumentException])
@@ -189,6 +191,8 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
         case NonFatal(e) => throw new IllegalArgumentException(s"Error configuring new feature index:", e)
       }
     }
+
+    sft.getFeatureExpiration // validate any configured age-off
   }
 
   // create the index tables (if not using partitioned tables)

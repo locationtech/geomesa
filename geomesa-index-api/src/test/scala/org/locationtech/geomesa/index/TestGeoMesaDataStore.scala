@@ -15,7 +15,7 @@ import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, Projecting
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore._
-import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
+import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{WritableFeature, _}
@@ -174,10 +174,11 @@ object TestGeoMesaDataStore {
     override def toString: String = s"TestRange(${start.mkString(":")}, ${end.mkString(":")}}"
   }
 
-  class TestIndexWriter(indices: Seq[GeoMesaFeatureIndex[_, _]],
-                        wrapper: FeatureWrapper,
-                        tables: Seq[scala.collection.mutable.SortedSet[SingleRowKeyValue[_]]])
-      extends IndexWriter(indices, wrapper) {
+  class TestIndexWriter(
+      indices: Seq[GeoMesaFeatureIndex[_, _]],
+      wrapper: FeatureWrapper[WritableFeature],
+      tables: Seq[scala.collection.mutable.SortedSet[SingleRowKeyValue[_]]]
+    ) extends BaseIndexWriter[WritableFeature](indices, wrapper) {
 
     private var i = 0
 

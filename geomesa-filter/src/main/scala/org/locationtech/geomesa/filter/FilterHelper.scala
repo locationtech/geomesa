@@ -39,6 +39,8 @@ object FilterHelper {
     private [FilterHelper] def log = logger
   }
 
+  val ff: FilterFactory2 = org.locationtech.geomesa.filter.ff
+
   @deprecated("Use org.locationtech.geomesa.filter.GeometryProcessing.process")
   def visitBinarySpatialOp(op: BinarySpatialOperator, sft: SimpleFeatureType, factory: FilterFactory2): Filter =
     GeometryProcessing.process(op, sft, factory)

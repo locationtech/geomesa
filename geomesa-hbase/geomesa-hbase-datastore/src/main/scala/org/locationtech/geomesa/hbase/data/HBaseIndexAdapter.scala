@@ -34,7 +34,7 @@ import org.locationtech.geomesa.hbase.coprocessor.aggregators.{HBaseArrowAggrega
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, EmptyPlan, ScanPlan}
 import org.locationtech.geomesa.hbase.filters.{CqlTransformFilter, Z2HBaseFilter, Z3HBaseFilter}
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
-import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
+import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWriter}
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{WritableFeature, _}
@@ -475,10 +475,12 @@ object HBaseIndexAdapter extends LazyLogging {
     * @param indices indices to write to
     * @param partition partition to write to
     */
-  class HBaseIndexWriter(ds: HBaseDataStore,
-                         indices: Seq[GeoMesaFeatureIndex[_, _]],
-                         wrapper: FeatureWrapper,
-                         partition: Option[String]) extends IndexWriter(indices, wrapper) {
+  class HBaseIndexWriter(
+      ds: HBaseDataStore,
+      indices: Seq[GeoMesaFeatureIndex[_, _]],
+      wrapper: FeatureWrapper[WritableFeature],
+      partition: Option[String]
+    ) extends BaseIndexWriter(indices, wrapper) {
 
     private val batchSize = HBaseSystemProperties.WriteBatchSize.toLong
 

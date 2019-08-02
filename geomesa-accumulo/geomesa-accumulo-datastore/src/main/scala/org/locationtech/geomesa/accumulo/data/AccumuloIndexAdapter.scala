@@ -27,7 +27,7 @@ import org.locationtech.geomesa.accumulo.iterators.DensityIterator.AccumuloDensi
 import org.locationtech.geomesa.accumulo.iterators.StatsIterator.AccumuloStatsResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
-import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
+import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
@@ -316,9 +316,9 @@ object AccumuloIndexAdapter {
   class AccumuloIndexWriter(
       ds: AccumuloDataStore,
       indices: Seq[GeoMesaFeatureIndex[_, _]],
-      wrapper: FeatureWrapper,
+      wrapper: FeatureWrapper[WritableFeature],
       partition: Option[String]
-    ) extends IndexWriter(indices, wrapper) {
+    ) extends BaseIndexWriter[WritableFeature](indices, wrapper) {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 

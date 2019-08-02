@@ -91,7 +91,7 @@ object AttributeIndexJob {
 
     // TODO GEOMESA-2545 have a standardized writer that returns mutations instead of using a batch writer
 
-    private var wrapper: FeatureWrapper = _
+    private var wrapper: FeatureWrapper[WritableFeature] = _
     private var converters: Seq[(WriteConverter[_], Int)] = _
     private var colFamilyMappings: IndexedSeq[Array[Byte] => Array[Byte]] = _
     private var defaultVis: ColumnVisibility = _

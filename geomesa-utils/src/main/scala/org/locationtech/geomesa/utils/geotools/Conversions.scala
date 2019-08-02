@@ -15,8 +15,9 @@ import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.geometry.DirectPosition2D
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
-import org.locationtech.geomesa.utils.conf.{IndexId, SemanticVersion}
+import org.locationtech.geomesa.utils.conf.{FeatureExpiration, IndexId, SemanticVersion}
 import org.locationtech.geomesa.utils.geometry.GeometryPrecision
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.index.VisibilityLevel.VisibilityLevel
@@ -308,6 +309,14 @@ object RichSimpleFeatureType {
     def setUuid(uuid: Boolean): Unit = sft.getUserData.put(FidsAreUuids, String.valueOf(uuid))
     def isUuid: Boolean = userData[String](FidsAreUuids).exists(java.lang.Boolean.parseBoolean)
     def isUuidEncoded: Boolean = isUuid && userData[String](FidsAreUuidEncoded).forall(java.lang.Boolean.parseBoolean)
+
+    def setFeatureExpiration(expiration: FeatureExpiration): Unit = {
+      val org.locationtech.geomesa.utils.conf.FeatureExpiration(string) = expiration
+      sft.getUserData.put(Configs.FeatureExpiration, string)
+    }
+    def getFeatureExpiration: Option[FeatureExpiration] =
+      userData[String](Configs.FeatureExpiration).map(org.locationtech.geomesa.utils.conf.FeatureExpiration.apply(sft, _))
+    def isFeatureExpirationEnabled: Boolean = sft.getUserData.containsKey(Configs.FeatureExpiration)
 
     @deprecated
     def setRemoteVersion(version: SemanticVersion): Unit = sft.getUserData.put(RemoteVersion, String.valueOf(version))
