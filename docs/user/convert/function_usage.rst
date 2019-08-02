@@ -327,6 +327,16 @@ Usage: ``secsToDate($1)``
 
 Example: ``secsToDate(1449675054)``
 
+dateToString
+^^^^^^^^^^^^
+
+Description: Formats a date as a string, based on a pattern as defined by Java's
+`DateTimeFormatter <https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html>`__.
+
+Usage: ``dateToString($pattern, $date)``
+
+Example: ``dateToString('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', now())``
+
 Geometry Functions
 ~~~~~~~~~~~~~~~~~~
 

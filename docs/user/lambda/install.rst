@@ -132,11 +132,8 @@ downloading and installing `the WPS plugin`_.
         export CATALINA_OPTS="-Xmx8g -XX:MaxPermSize=512M -Duser.timezone=UTC \
         -server -Djava.awt.headless=true"
 
-    The value of ``-Xmx`` should be as large as your system will permit; this
-    is especially important for the Kafka plugin. You
-    should also consider passing ``-DGEOWEBCACHE_CACHE_DIR=/tmp/$USER-gwc``
-    and ``-DEPSG-HSQL.directory=/tmp/$USER-hsql``
-    as well. Be sure to restart Tomcat for changes to take place.
+    The value of ``-Xmx`` should be as large as your system will permit. Be sure to restart
+    Tomcat for changes to take place.
 
 
 To install the GeoMesa Lambda data store as a GeoServer plugin, unpack the contents of the
