@@ -115,6 +115,15 @@ Feature types that were created in prior versions will continue to behave as bef
 determined by the data store parameter each time. The configuration can be set permanently through
 the ``updateSchema`` data store method or the :ref:`cli_update_schema` CLI command.
 
+Distribution of Installation Bundles
+------------------------------------
+
+As of GeoMesa 2.4.0, installation bundles (binary distribution and GeoServer plugin tar files) will no
+longer be hosted on Maven Central. They will continue to be available on
+`GitHub <https://github.com/locationtech/geomesa/releases>`__ and the
+`Locationtech Maven Repository <https://repo.locationtech.org/content/groups/releases>`__. Note that this only
+applies to large installation bundles; GeoMesa will continue to publish JAR files to Maven Central.
+
 Version 2.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
