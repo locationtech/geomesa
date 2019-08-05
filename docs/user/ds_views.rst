@@ -100,7 +100,7 @@ Store Configuration Provider
 
 As an alternative to specifying ``geomesa.merged.stores``, config loading can be delegated to a provider
 interface: ``org.locationtech.geomesa.index.view.MergedViewConfigLoader``. Implementations of this class
-must be made available via Java `SPI loading <http://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html>`__,
+must be made available via Java `SPI loading <http://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__,
 with a special descriptor defined in ``META-INF/services``. To use a config provider, use the parameter
 ``geomesa.merged.loader`` set to the full class name of the provider class. In GeoServer, available providers
 will be displayed in a selection list.
@@ -192,7 +192,7 @@ Custom Routing
 
 As an alternative to routing by attribute, routing can be delegated to a provider interface:
 ``org.locationtech.geomesa.index.view.RouteSelector``. Implementations of this class must be made available via
-Java `SPI loading <http://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html>`__, with a special
+Java `SPI loading <http://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__, with a special
 descriptor defined in ``META-INF/services``. To use a config provider, use the parameter
 ``geomesa.route.selector`` set to the full class name of the provider class. In GeoServer, available providers
 will be displayed in a selection list.
