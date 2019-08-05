@@ -10,8 +10,8 @@ package org.locationtech.geomesa.tools.data
 
 import org.geotools.data.DataStore
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.tools._
+import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand.DeleteFeaturesParams
 import org.opengis.filter.Filter
 
 trait DeleteFeaturesCommand[DS <: DataStore] extends DataStoreCommand[DS] {
@@ -33,5 +33,7 @@ trait DeleteFeaturesCommand[DS <: DataStore] extends DataStoreCommand[DS] {
   }
 }
 
-// @Parameters(commandDescription = "Delete features from a table in GeoMesa. Does not delete any tables or schema information.")
-trait DeleteFeaturesParams extends CatalogParam with RequiredTypeNameParam with OptionalCqlFilterParam
+object DeleteFeaturesCommand {
+  // @Parameters(commandDescription = "Delete features from a table in GeoMesa. Does not delete any tables or schema information.")
+  trait DeleteFeaturesParams extends RequiredTypeNameParam with OptionalCqlFilterParam
+}

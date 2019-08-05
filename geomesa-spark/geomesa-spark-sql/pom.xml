@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa-spark_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>2.3.0-SNAPSHOT</version>
+        <version>2.4.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -47,10 +47,6 @@
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
-            <artifactId>gt-data</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
             <artifactId>gt-geojson</artifactId>
         </dependency>
         <dependency>
@@ -86,8 +82,14 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-spark-geotools_${scala.binary.version}</artifactId>
+            <artifactId>geomesa-gt-spark_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- 'works with' due to license issues -->
+            <groupId>javax.media</groupId>
+            <artifactId>jai_core</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -8,8 +8,10 @@
 
 package org.locationtech.geomesa.tools.stats
 
+import com.beust.jcommander.ParameterException
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
+import org.locationtech.geomesa.tools.stats.StatsCountCommand.StatsCountParams
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.opengis.filter.Filter
 
@@ -22,6 +24,10 @@ trait StatsCountCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreC
 
   protected def count(ds: DS): Unit = {
     val sft = ds.getSchema(params.featureName)
+    if (sft == null) {
+      throw new ParameterException(s"Schema '${params.featureName}' does not exist")
+    }
+
     val filter = Option(params.cqlFilter).getOrElse(Filter.INCLUDE)
 
     if (params.exact) {
@@ -35,5 +41,7 @@ trait StatsCountCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreC
   }
 }
 
-// @Parameters(commandDescription = "Estimate or calculate feature counts in a GeoMesa feature type")
-trait StatsCountParams extends StatsParams
+object StatsCountCommand {
+  // @Parameters(commandDescription = "Estimate or calculate feature counts in a GeoMesa feature type")
+  trait StatsCountParams extends StatsParams
+}

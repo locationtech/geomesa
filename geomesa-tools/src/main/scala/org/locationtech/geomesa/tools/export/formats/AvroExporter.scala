@@ -9,16 +9,20 @@
 package org.locationtech.geomesa.tools.export.formats
 
 import java.io.OutputStream
+import java.util.zip.Deflater
 
 import org.locationtech.geomesa.features.avro.AvroDataFileWriter
+import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class AvroExporter(compression: Int, os: OutputStream) extends FeatureExporter {
+class AvroExporter(os: OutputStream, counter: ByteCounter, compression: Option[Int])
+    extends ByteCounterExporter(counter) {
 
   private var writer: AvroDataFileWriter = _
 
-  override def start(sft: SimpleFeatureType): Unit = writer = new AvroDataFileWriter(os, sft, compression)
+  override def start(sft: SimpleFeatureType): Unit =
+    writer = new AvroDataFileWriter(os, sft, compression.getOrElse(Deflater.DEFAULT_COMPRESSION))
 
   override def export(features: Iterator[SimpleFeature]): Option[Long] = {
     var count = 0L

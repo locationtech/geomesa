@@ -52,9 +52,9 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
   }
 
   override def read(typeName: String, key: String, cache: Boolean): Option[String] = {
-    if (key != GeoMesaMetadata.ATTRIBUTES_KEY) {
+    if (key != GeoMesaMetadata.AttributesKey) {
       logger.warn(s"Requested read on ConfluentMetadata with unsupported key $key. " +
-        s"ConfluentMetadata only supports ${GeoMesaMetadata.ATTRIBUTES_KEY}")
+        s"ConfluentMetadata only supports ${GeoMesaMetadata.AttributesKey}")
       None
     } else {
       if (!cache) {
@@ -65,9 +65,9 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
   }
 
   override def invalidateCache(typeName: String, key: String): Unit = {
-    if (key != GeoMesaMetadata.ATTRIBUTES_KEY) {
+    if (key != GeoMesaMetadata.AttributesKey) {
       logger.warn(s"Requested invalidate cache on ConfluentMetadata with unsupported key $key. " +
-        s"ConfluentMetadata only supports ${GeoMesaMetadata.ATTRIBUTES_KEY}")
+        s"ConfluentMetadata only supports ${GeoMesaMetadata.AttributesKey}")
     } else {
       topicSftCache.invalidate(typeName)
     }
@@ -81,7 +81,9 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
   override def insert(typeName: String, key: String, value: String): Unit = {}
   override def insert(typeName: String, kvPairs: Map[String, String]): Unit = {}
   override def remove(typeName: String, key: String): Unit = {}
+  override def remove(typeName: String, keys: Seq[String]): Unit = {}
   override def delete(typeName: String): Unit = {}
+  override def backup(typeName: String): Unit = {}
 }
 
 object ConfluentMetadata extends LazyLogging {

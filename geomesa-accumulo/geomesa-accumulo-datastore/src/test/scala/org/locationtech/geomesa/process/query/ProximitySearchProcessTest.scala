@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.process.query
 
 import org.locationtech.jts.geom.{Coordinate, Point}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder

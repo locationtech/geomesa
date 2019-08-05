@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2018 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,20 +8,29 @@
 
 package org.locationtech.geomesa.bigtable.data
 
+import java.util.UUID
+
 import com.google.cloud.bigtable.hbase.BigtableExtendedScan
 import com.google.common.collect.Lists
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.client.Scan
 import org.apache.hadoop.hbase.filter.{Filter => HFilter}
 import org.locationtech.geomesa.hbase.data.HBaseIndexAdapter
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.utils.text.StringSerialization
 
 class BigtableIndexAdapter(ds: BigtableDataStore) extends HBaseIndexAdapter(ds) {
 
   import scala.collection.JavaConverters._
 
-  override protected def configureScans(originalRanges: Seq[Scan],
-                                        colFamily: Array[Byte],
-                                        filters: Seq[HFilter],
-                                        coprocessor: Boolean): Seq[Scan] = {
+  // https://cloud.google.com/bigtable/quotas#limits-table-id
+  override val tableNameLimit: Option[Int] = Some(50)
+
+  override protected def configureScans(
+      originalRanges: Seq[Scan],
+      colFamily: Array[Byte],
+      filters: Seq[HFilter],
+      coprocessor: Boolean): Seq[Scan] = {
     if (filters.nonEmpty) {
       // bigtable does support some filters, but currently we only use custom filters that aren't supported
       throw new IllegalArgumentException(s"Bigtable doesn't support filters: ${filters.mkString(", ")}")

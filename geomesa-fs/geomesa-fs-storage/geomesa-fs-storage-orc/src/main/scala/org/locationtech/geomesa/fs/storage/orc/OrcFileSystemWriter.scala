@@ -11,7 +11,6 @@ package org.locationtech.geomesa.fs.storage.orc
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.orc.OrcFile
-import org.apache.orc.storage.ql.exec.vector.VectorizedRowBatch
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.orc.utils.OrcAttributeWriter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -22,8 +21,7 @@ class OrcFileSystemWriter(sft: SimpleFeatureType, config: Configuration, file: P
 
   private val options = OrcFile.writerOptions(config).setSchema(schema)
   private val writer = OrcFile.createWriter(file, options)
-
-  private val batch: VectorizedRowBatch = schema.createRowBatch()
+  private val batch = schema.createRowBatch()
 
   private val attributeWriter = OrcAttributeWriter(sft, batch)
 

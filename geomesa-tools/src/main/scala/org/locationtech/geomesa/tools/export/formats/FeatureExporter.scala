@@ -8,8 +8,9 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io.Closeable
+import java.io.{Closeable, OutputStream}
 
+import org.apache.commons.compress.utils.CountingOutputStream
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -35,4 +36,42 @@ trait FeatureExporter extends Closeable {
     * @return count of features exported, if available
     */
   def export(features: Iterator[SimpleFeature]): Option[Long]
+
+  /**
+    * Number of bytes written so far (including buffered output).
+    *
+    * Note that this may be expensive to calculate.
+    *
+    * @return
+    */
+  def bytes: Long
+}
+
+object FeatureExporter {
+
+  /**
+    * Counts bytes written so far
+    */
+  trait ByteCounter {
+    def bytes: Long
+  }
+
+  /**
+    * Counts bytes written to an output stream
+    *
+    * @param os stream
+    */
+  class OutputStreamCounter(os: OutputStream) extends ByteCounter {
+    val stream = new CountingOutputStream(os)
+    override def bytes: Long = stream.getBytesWritten
+  }
+
+  /**
+    * Feature exporter with a delegate byte counter
+    *
+    * @param counter counter
+    */
+  abstract class ByteCounterExporter(counter: ByteCounter) extends FeatureExporter {
+    override def bytes: Long = counter.bytes
+  }
 }

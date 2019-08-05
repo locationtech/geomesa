@@ -16,8 +16,8 @@ import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSo
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadata
-import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, NoOpMetadata}
-import org.locationtech.geomesa.index.stats.MetadataBackedStats.UnoptimizedRunnableStats
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata}
+import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
@@ -42,7 +42,7 @@ class FileSystemDataStore(
 
   private val manager = FileSystemStorageManager(fc, conf, root, namespace)
 
-  override val metadata: GeoMesaMetadata[String] = new NoOpMetadata[String]
+  override val metadata: GeoMesaMetadata[String] = GeoMesaMetadata.empty
   override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
   override def createTypeNames(): java.util.List[Name] = {

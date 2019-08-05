@@ -21,6 +21,7 @@ import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
+import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata.SingleRowAccumuloMetadata
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore.AccumuloDataStoreConfig
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
@@ -34,7 +35,6 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
-import org.locationtech.geomesa.index.stats.MetadataBackedStats.StatsMetadataSerializer
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
@@ -42,7 +42,7 @@ import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.DEFAULT_DTG_JOIN
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.OverrideDtgJoin
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
@@ -68,32 +68,29 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override val adapter: AccumuloIndexAdapter = new AccumuloIndexAdapter(this)
 
-  private val statsTable = s"${config.catalog}_stats"
-
-  private val statsMetadata = new AccumuloBackedMetadata(connector, statsTable, new StatsMetadataSerializer(this))
-
-  override val stats = new AccumuloGeoMesaStats(this, statsMetadata, statsTable, config.generateStats)
+  override val stats = AccumuloGeoMesaStats(this)
 
   // If on a secured cluster, create a thread to periodically renew Kerberos tgt
-  private val kerberosTgtRenewer: Option[ScheduledExecutorService] = try {
-    if (UserGroupInformation.isSecurityEnabled) {
-      val executor = Executors.newSingleThreadScheduledExecutor()
-      executor.scheduleAtFixedRate(
-        new Runnable {
-          def run(): Unit = {
-            try {
-              logger.info(s"Checking whether TGT needs renewing for ${UserGroupInformation.getCurrentUser}")
-              logger.debug(s"Logged in from keytab? ${UserGroupInformation.getCurrentUser.isFromKeytab}")
-              UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
-            } catch {
-              case NonFatal(e) => logger.warn("Error checking and renewing TGT", e)
-            }
+  private val kerberosTgtRenewer: Option[ScheduledExecutorService] = {
+    val enabled = try { UserGroupInformation.isSecurityEnabled } catch {
+      case e: Throwable => logger.error("Error checking for hadoop security", e); false
+    }
+    if (!enabled) { None } else {
+      val runnable = new Runnable {
+        override def run(): Unit = {
+          try {
+            logger.info(s"Checking whether TGT needs renewing for ${UserGroupInformation.getCurrentUser}")
+            logger.debug(s"Logged in from keytab? ${UserGroupInformation.getCurrentUser.isFromKeytab}")
+            UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
+          } catch {
+            case NonFatal(e) => logger.warn("Error checking and renewing TGT", e)
           }
-        }, 0, 10, TimeUnit.MINUTES)
+        }
+      }
+      val executor = Executors.newSingleThreadScheduledExecutor()
+      executor.scheduleAtFixedRate(runnable, 0, 10, TimeUnit.MINUTES)
       Some(executor)
-    } else { None }
-  } catch {
-    case e: Throwable => logger.error("Error checking for hadoop security", e); None
+    }
   }
 
   // some convenience operations
@@ -119,7 +116,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   }
 
   override def getAllTableNames(typeName: String): Seq[String] = {
-    val others = Seq(statsTable) ++ config.audit.map(_._1.asInstanceOf[AccumuloAuditService].table).toSeq
+    val others = Seq(stats.metadata.table) ++ config.audit.map(_._1.asInstanceOf[AccumuloAuditService].table).toSeq
     super.getAllTableNames(typeName) ++ others
   }
 
@@ -139,7 +136,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
       case id if id.name == AttributeIndex.name =>
         lazy val fields = if (id.version < 4) { dtg } else { geom ++ dtg }
         sft.getAttributeDescriptors.asScala.flatMap { d =>
-          val index = d.getUserData.remove(AttributeOptions.OPT_INDEX).asInstanceOf[String]
+          val index = d.getUserData.remove(AttributeOptions.OptIndex).asInstanceOf[String]
           if (index == null || index.equalsIgnoreCase(IndexCoverage.NONE.toString) || index.equalsIgnoreCase("false")) {
             Seq.empty
           } else if (index.equalsIgnoreCase(IndexCoverage.FULL.toString)) {
@@ -205,12 +202,12 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     // note: dtg should be set appropriately before calling this method
     sft.getDtgField.foreach { dtg =>
       if (sft.getIndices.exists(i => i.name == JoinIndex.name && i.attributes.headOption.contains(dtg))) {
-        if (!GeoMesaSchemaValidator.declared(sft, DEFAULT_DTG_JOIN)) {
+        if (!GeoMesaSchemaValidator.declared(sft, OverrideDtgJoin)) {
           throw new IllegalArgumentException("Trying to create a schema with a partial (join) attribute index " +
               s"on the default date field '$dtg'. This may cause whole-world queries with time bounds to be much " +
               "slower. If this is intentional, you may override this check by putting Boolean.TRUE into the " +
-              s"SimpleFeatureType user data under the key '$DEFAULT_DTG_JOIN' before calling createSchema, or by " +
-              s"setting the system property '$DEFAULT_DTG_JOIN' to 'true'. Otherwise, please either specify a " +
+              s"SimpleFeatureType user data under the key '$OverrideDtgJoin' before calling createSchema, or by " +
+              s"setting the system property '$OverrideDtgJoin' to 'true'. Otherwise, please either specify a " +
               "full attribute index or remove it entirely.")
         }
       }
@@ -221,9 +218,9 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
     // check for attributes flagged 'index=join' and convert them to sft-level user data
     sft.getAttributeDescriptors.asScala.foreach { d =>
-      val index = d.getUserData.get(AttributeOptions.OPT_INDEX).asInstanceOf[String]
+      val index = d.getUserData.get(AttributeOptions.OptIndex).asInstanceOf[String]
       if (index != null && index.equalsIgnoreCase(IndexCoverage.JOIN.toString)) {
-        d.getUserData.remove(AttributeOptions.OPT_INDEX) // remove it so it's not processed again
+        d.getUserData.remove(AttributeOptions.OptIndex) // remove it so it's not processed again
         val fields = Seq(d.getLocalName) ++ Option(sft.getGeomField) ++ sft.getDtgField.filter(_ != d.getLocalName)
         val attribute = IndexId(JoinIndex.name, JoinIndex.version, fields, IndexMode.ReadWrite)
         val existing = sft.getIndices.map(GeoMesaFeatureIndex.identifier)
@@ -238,14 +235,20 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override protected def onSchemaCreated(sft: SimpleFeatureType): Unit = {
     super.onSchemaCreated(sft)
-    // configure the stats combining iterator on the table for this sft
-    stats.configureStatCombiner(connector, sft)
+    if (sft.statsEnabled) {
+      // configure the stats combining iterator on the table for this sft
+      stats.configureStatCombiner(connector, sft)
+    }
   }
 
   override protected def onSchemaUpdated(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
     super.onSchemaUpdated(sft, previous)
-    // configure the stats combining iterator on the table for this sft
-    stats.configureStatCombiner(connector, sft)
+    if (previous.statsEnabled) {
+      stats.removeStatCombiner(connector, previous)
+    }
+    if (sft.statsEnabled) {
+      stats.configureStatCombiner(connector, sft)
+    }
   }
 
   override def getQueryPlan(query: Query, index: Option[String], explainer: Explainer): Seq[AccumuloQueryPlan] =
@@ -257,9 +260,6 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   // noinspection ScalaDeprecation
   override def getSchema(typeName: String): SimpleFeatureType = {
-    import GeoMesaMetadata.{ATTRIBUTES_KEY, STATS_GENERATION_KEY, VERSION_KEY}
-    import SimpleFeatureTypes.Configs.{ENABLED_INDEX_OPTS, ENABLED_INDICES}
-
     var sft = super.getSchema(typeName)
     if (sft == null) {
       // check for old-style metadata and re-write it if necessary
@@ -268,7 +268,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
         try {
           if (oldMetadata.getFeatureTypes.contains(typeName)) {
             oldMetadata.migrate(typeName)
-            new SingleRowAccumuloMetadata[Stat](statsMetadata).migrate(typeName)
+            new SingleRowAccumuloMetadata[Stat](stats.metadata).migrate(typeName)
           }
         } finally {
           lock.release()
@@ -285,7 +285,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
         if (!sft.getUserData.containsKey(AccumuloDataStore.DeprecatedSchemaVersionKey)) {
           metadata.read(typeName, "dtgfield").foreach(sft.setDtgField)
           sft.getUserData.put(AccumuloDataStore.DeprecatedSchemaVersionKey,
-            metadata.readRequired(typeName, VERSION_KEY))
+            metadata.readRequired(typeName, GeoMesaMetadata.VersionKey))
 
           // If no data is written, we default to 'false' in order to support old tables.
           if (metadata.read(typeName, "tables.sharing").exists(_.toBoolean)) {
@@ -297,8 +297,8 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
             sft.setTableSharing(false)
             sft.setTableSharingPrefix("")
           }
-          ENABLED_INDEX_OPTS.foreach { i =>
-            metadata.read(typeName, i).foreach(e => sft.getUserData.put(ENABLED_INDICES, e))
+          SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.foreach { i =>
+            metadata.read(typeName, i).foreach(e => sft.getUserData.put(SimpleFeatureTypes.Configs.EnabledIndices, e))
           }
         }
 
@@ -306,12 +306,13 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
         sft.setIndices(AccumuloDataStore.translateSchemaVersion(sft))
 
         // store the metadata and reload the sft again to validate indices
-        metadata.insert(typeName, ATTRIBUTES_KEY, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
+        val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+        metadata.insert(typeName, GeoMesaMetadata.AttributesKey, encoded)
         sft = super.getSchema(typeName)
       }
 
       // back compatibility check for stat configuration
-      if (config.generateStats && metadata.read(typeName, STATS_GENERATION_KEY).isEmpty) {
+      if (sft.statsEnabled && metadata.read(typeName, GeoMesaMetadata.StatsGenerationKey).isEmpty) {
         // configure the stats combining iterator - we only use this key for older data stores
         val configuredKey = "stats-configured"
         if (!metadata.read(typeName, configuredKey).contains("true")) {
@@ -325,7 +326,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
             lock.release()
           }
         }
-        // kick off asynchronous stats run for the existing data
+        // kick off asynchronous stats run for the existing data - this will set the stat date
         // this may get triggered more than once, but should only run one time
         val statsRunner = new StatsRunner(this)
         statsRunner.submit(sft)
@@ -338,7 +339,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override def dispose(): Unit = {
     super.dispose()
-    kerberosTgtRenewer.foreach( _.shutdown() )
+    kerberosTgtRenewer.foreach(_.shutdown())
   }
 }
 
@@ -398,7 +399,7 @@ object AccumuloDataStore extends LazyLogging {
     val z2 = geom.map(g => IndexId(Z2Index.name, -1, Seq(g), IndexMode.ReadWrite))
     val xz2 = geom.map(g => IndexId(XZ2Index.name, 1, Seq(g), IndexMode.ReadWrite))
     val attributes = sft.getAttributeDescriptors.asScala.flatMap { d =>
-      val index = d.getUserData.remove(AttributeOptions.OPT_INDEX).asInstanceOf[String]
+      val index = d.getUserData.remove(AttributeOptions.OptIndex).asInstanceOf[String]
       if (index == null || index.equalsIgnoreCase(IndexCoverage.NONE.toString) || index.equalsIgnoreCase("false")) {
         Seq.empty
       } else if (index.equalsIgnoreCase(IndexCoverage.FULL.toString)) {

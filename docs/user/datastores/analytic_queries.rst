@@ -79,10 +79,10 @@ heatmap from the query result. See :ref:`gdelt_heatmaps` for more information.
     .. code-tab:: scala
 
         import org.geotools.data.Transaction
-        import org.geotools.geometry.jts.ReferencedEnvelope.ReferencedEnvelope
+        import org.geotools.geometry.jts.ReferencedEnvelope
         import org.geotools.referencing.CRS
-        import org.locationtech.geomesa.accumulo.iterators.DensityIterator
         import org.locationtech.geomesa.index.conf.QueryHints
+        import org.locationtech.geomesa.index.iterators.DensityScan
 
         val bounds = new ReferencedEnvelope(-120.0, -110.0, 45.0, 55.0, CRS.decode("EPSG:4326"))
         query.getHints.put(QueryHints.DENSITY_BBOX, bounds)
@@ -90,17 +90,19 @@ heatmap from the query result. See :ref:`gdelt_heatmaps` for more information.
         query.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
 
         val reader = dataStore.getFeatureReader(query, Transaction.AUTO_COMMIT)
-
-        val decode = KryoLazyDensityIterator.decodeResult(bounds, 500, 500)
-
-        while (reader.hasNext) {
+        try {
+          val decode = DensityScan.decodeResult(bounds, 500, 500)
+          while (reader.hasNext) {
             val pts = decode(reader.next())
             while (pts.hasNext) {
-                val (x, y, weight) = pts.next()
-                // do something with the cell
+              val (x, y, weight) = pts.next()
+              // do something with the cell
             }
+          }
+        } finally {
+          reader.close()
         }
-        reader.close()
+
 
 .. _statistical_queries:
 
@@ -163,27 +165,30 @@ This hint is a string describing the stats to be collected. Each type of stat ha
 representation. Multiple stats can be collected at once by delimiting them with a semi-colon. Instead
 of constructing stat strings by hand, there are convenience methods in ``org.locationtech.geomesa.utils.stats.Stat``
 that will generate valid stat strings. Stat strings can be validated by trying to parse them with
-``org.locationtech.geomesa.utils.stats.Stat.apply``.
+``org.locationtech.geomesa.utils.stats.Stat.apply``. The implementing classes are contained in the package
+``org.locationtech.geomesa.utils.stats``.
 
 Stat strings are as follows:
 
-========================== =====================================
-Type                       Representation
-========================== =====================================
-count                      ``Count()``
-min/max                    ``MinMax("foo")``
-enumeration                ``Enumeration("foo")``
-top-k                      ``TopK("foo")``
-frequency                  ``Frequency("foo",<precision>)``
-frequency (by time period) ``Frequency("foo","dtg",<time period>,<precision>)``
-Z3 frequency               ``Z3Frequency("geom","dtg",<time period>,<precision>)``
-histogram                  ``Histogram("foo",<bins>,<min>,<max>)``
-Z3 histogram               ``Z3Histogram("geom","dtg",<time period>,<bins>)``
-descriptive statistics     ``DescriptiveStats("foo","bar")``
-========================== =====================================
+========================== =================== =======================================================
+Type                       Implementation      Representation
+========================== =================== =======================================================
+count                      CountStat           ``Count()``
+min/max                    MinMax              ``MinMax("foo")``
+enumeration                EnumerationStat     ``Enumeration("foo")``
+top-k                      TopK                ``TopK("foo")``
+frequency                  Frequency           ``Frequency("foo",<precision>)``
+frequency (by time period) Frequency           ``Frequency("foo","dtg",<time period>,<precision>)``
+Z3 frequency               Z3Frequency         ``Z3Frequency("geom","dtg",<time period>,<precision>)``
+histogram                  Histogram           ``Histogram("foo",<bins>,<min>,<max>)``
+Z3 histogram               Z3Histogram         ``Z3Histogram("geom","dtg",<time period>,<bins>)``
+descriptive statistics     DescriptiveStats    ``DescriptiveStats("foo","bar")``
+multiple stats             SeqStat             ``Count(),MinMax("foo")``
+grouped stats              GroupBy             ``GroupBy("foo",MinMax("bar"))``
+========================== =================== =======================================================
 
-In addition to the above, stats can be calculated on grouped values, using ``GroupBy``. For example,
-``GroupBy("foo",MinMax("bar"))``.
+As seen in the table above, multiple stats can be calculated at once through comma delimiting. In addition,
+stats can be calculated on grouped values by using ``GroupBy`` on a nested stat expression.
 
 The Z3 frequency and histogram are special stats that will operate on the Z3 value created from the geometry and date.
 
@@ -220,7 +225,7 @@ GeoMesa datastores implement ``org.locationtech.geomesa.index.stats.HasGeoMesaSt
     def stats: org.locationtech.geomesa.index.stats.GeoMesaStats
 
 In addition to running queries, the ``GeoMesaStats`` interface can be used to retrieve cached stats.
-See :ref:`stat_attribute_config` for details on configuring cached stats.
+See :ref:`stat_config` for details on configuring cached stats.
 
 .. _arrow_encoding:
 

@@ -10,10 +10,12 @@ package org.locationtech.geomesa.jobs.mapreduce
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
+import org.apache.hadoop.conf.Configuration
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeature
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, ScalaSimpleFeatureFactory}
+import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
@@ -25,21 +27,27 @@ class SimpleFeatureSerializationTest extends Specification {
   "SimpleFeatureSerialization" should {
 
     "support simple feature serialization" in {
-      val serialization = new SimpleFeatureSerialization
+      val serialization = new SimpleFeatureSerialization()
+      serialization.setConf(new Configuration())
       serialization.accept(classOf[ScalaSimpleFeature]) must beTrue
       serialization.accept(classOf[SimpleFeature]) must beTrue
       serialization.accept(classOf[AvroSimpleFeature]) must beTrue
       serialization.accept(classOf[SimpleFeatureImpl]) must beTrue
 
-      serialization.getSerializer(classOf[SimpleFeature]) must not beNull;
-      serialization.getDeserializer(classOf[SimpleFeature]) must not beNull;
+      serialization.getSerializer(classOf[SimpleFeature]) must not(beNull)
+      serialization.getDeserializer(classOf[SimpleFeature]) must not(beNull)
     }
 
     "serialize and deserialize a simple feature" in {
       val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
       val sf = ScalaSimpleFeatureFactory.buildFeature(sft, Seq("myname", "2014-01-10T00:00:00.000Z", "POINT(45 46)"), "fid-1")
 
-      val serialization = new SimpleFeatureSerialization
+      val conf = new Configuration()
+      GeoMesaConfigurator.setSerialization(conf, sft)
+
+      val serialization = new SimpleFeatureSerialization()
+      serialization.setConf(conf)
+
       val serializer = serialization.getSerializer(classOf[SimpleFeature])
       val deserializer = serialization.getDeserializer(classOf[SimpleFeature])
 
@@ -55,8 +63,8 @@ class SimpleFeatureSerializationTest extends Specification {
       val deserialized = deserializer.deserialize(null)
       deserializer.close()
 
-      deserialized mustEqual(sf)
-      deserialized.getFeatureType mustEqual(sft)
+      deserialized mustEqual sf
+      deserialized.getFeatureType mustEqual sft
     }
 
     "serialize and deserialize a simple feature with a long spec" in {
@@ -66,7 +74,12 @@ class SimpleFeatureSerializationTest extends Specification {
       val sf = ScalaSimpleFeatureFactory.buildFeature(sft, Seq("2014-01-10T00:00:00.000Z"), "fid-1")
       sf.setAttribute("geom", "POINT(45 46)")
 
-      val serialization = new SimpleFeatureSerialization
+      val conf = new Configuration()
+      GeoMesaConfigurator.setSerialization(conf, sft)
+
+      val serialization = new SimpleFeatureSerialization()
+      serialization.setConf(conf)
+
       val serializer = serialization.getSerializer(classOf[SimpleFeature])
       val deserializer = serialization.getDeserializer(classOf[SimpleFeature])
 
@@ -82,8 +95,8 @@ class SimpleFeatureSerializationTest extends Specification {
       val deserialized = deserializer.deserialize(null)
       deserializer.close()
 
-      deserialized mustEqual(sf)
-      deserialized.getFeatureType mustEqual(sft)
+      deserialized mustEqual sf
+      deserialized.getFeatureType mustEqual sft
     }
   }
 

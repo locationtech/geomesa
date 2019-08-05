@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.process.knn
 
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes

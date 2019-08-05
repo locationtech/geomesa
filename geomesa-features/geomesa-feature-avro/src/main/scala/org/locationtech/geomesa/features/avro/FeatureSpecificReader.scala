@@ -153,7 +153,6 @@ object FeatureSpecificReader {
           case ObjectType.LIST     => if (skip) { (_, in) => d.consumeList(in)     } else { d.setList(_, i, _)     }
           case ObjectType.MAP      => if (skip) { (_, in) => d.consumeMap(in)      } else { d.setMap(_, i, _)      }
           case ObjectType.BYTES    => if (skip) { (_, in) => d.consumeBytes(in)    } else { d.setBytes(_, i, _)    }
-          case ObjectType.JSON     => if (skip) { (_, in) => d.consumeString(in)   } else { d.setString(_, i, _)   }
           case b => throw new IllegalArgumentException(s"Unexpected attribute binding: $b")
         }
 

@@ -16,7 +16,7 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import org.locationtech.jts.geom.Geometry
 import org.apache.hadoop.classification.InterfaceStability
 import org.geotools.data.Transaction
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.curve.TimePeriod

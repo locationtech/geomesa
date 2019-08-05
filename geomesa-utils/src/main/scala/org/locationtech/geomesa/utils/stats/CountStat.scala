@@ -15,11 +15,9 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   *
   * @param sft simple feature type
   */
-class CountStat private [stats] (val sft: SimpleFeatureType) extends Stat {
+class CountStat(val sft: SimpleFeatureType, private [stats] var counter: Long = 0L) extends Stat {
 
   override type S = CountStat
-
-  private [stats] var counter: Long = 0L
 
   def count: Long = counter
 

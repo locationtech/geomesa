@@ -14,11 +14,11 @@ import java.util.Locale
 
 import com.typesafe.config.Config
 import org.apache.commons.csv.{CSVFormat, CSVRecord, QuoteMode}
-import org.geotools.factory.GeoTools
+import org.geotools.util.factory.GeoTools
 import org.geotools.util.Converters
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter.{DelimitedTextConfig, DelimitedTextOptions}
-import org.locationtech.geomesa.convert.{Counter, EvaluationContext, SimpleFeatureValidator}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
 import org.locationtech.geomesa.convert2._
 import org.locationtech.geomesa.convert2.transforms.Expression
@@ -30,16 +30,18 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.annotation.tailrec
 
-class DelimitedTextConverter(sft: SimpleFeatureType,
-                             config: DelimitedTextConfig,
-                             fields: Seq[BasicField],
-                             options: DelimitedTextOptions)
-    extends AbstractConverter[CSVRecord, DelimitedTextConfig, BasicField, DelimitedTextOptions](sft, config, fields, options) {
+class DelimitedTextConverter(
+    sft: SimpleFeatureType,
+    config: DelimitedTextConfig,
+    fields: Seq[BasicField],
+    options: DelimitedTextOptions
+  ) extends AbstractConverter[CSVRecord, DelimitedTextConfig, BasicField, DelimitedTextOptions](
+    sft, config, fields, options) {
 
   private val format = DelimitedTextConverter.createFormat(config.format, options)
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[CSVRecord] =
-    DelimitedTextConverter.iterator(format, is, options.encoding, options.skipLines.getOrElse(0), ec.counter)
+    DelimitedTextConverter.iterator(format, is, options.encoding, options.skipLines.getOrElse(0), ec)
 
   override protected def values(parsed: CloseableIterator[CSVRecord],
                                 ec: EvaluationContext): CloseableIterator[Array[Any]] = {
@@ -109,7 +111,7 @@ object DelimitedTextConverter {
     * @param is input stream
     * @param encoding charset
     * @param skip number of header lines to skip
-    * @param counter counter
+    * @param ec evalution context
     * @return
     */
   def iterator(
@@ -117,8 +119,8 @@ object DelimitedTextConverter {
       is: InputStream,
       encoding: Charset,
       skip: Int,
-      counter: Counter): CloseableIterator[CSVRecord] = {
-    new CsvIterator(format, is, encoding, skip, counter)
+      ec: EvaluationContext): CloseableIterator[CSVRecord] = {
+    new CsvIterator(format, is, encoding, skip, ec)
   }
 
   /**
@@ -202,7 +204,7 @@ object DelimitedTextConverter {
   )
 
   // check quoted before default - if values are quoted, we don't want the quotes to be captured as part of the value
-  private [text] val inferences = Seq(Formats.Tabs, Formats.Quoted, Formats.Default)
+  private [text] val inferences = Stream(Formats.Tabs, Formats.Quoted, Formats.Default)
 
   case class DelimitedTextConfig(
       `type`: String,
@@ -217,7 +219,8 @@ object DelimitedTextConverter {
       quote: OptionalChar,
       escape: OptionalChar,
       delimiter: Option[Char],
-      validators: SimpleFeatureValidator,
+      validators: Seq[String],
+      reporters: Seq[Config],
       parseMode: ParseMode,
       errorMode: ErrorMode,
       encoding: Charset
@@ -244,9 +247,9 @@ object DelimitedTextConverter {
     * @param is input
     * @param encoding encoding
     * @param skip skip lines up front, used for e.g. headers
-    * @param counter counter
+    * @param ec evaluation context
     */
-  private class CsvIterator(format: CSVFormat, is: InputStream, encoding: Charset, skip: Int, counter: Counter)
+  private class CsvIterator(format: CSVFormat, is: InputStream, encoding: Charset, skip: Int, ec: EvaluationContext)
       extends CloseableIterator[CSVRecord] {
 
     private val parser = format.parse(new InputStreamReader(is, encoding))
@@ -263,10 +266,10 @@ object DelimitedTextConverter {
         val line = parser.getCurrentLineNumber
         if (line == lastLine) {
           // commons-csv doesn't always increment the line count for the final line in a file...
-          counter.incLineCount()
+          ec.line += 1
           lastLine = line + 1
         } else {
-          counter.incLineCount(line - lastLine)
+          ec.line += (line - lastLine)
           lastLine = line
         }
         if (lastLine <= skip) {

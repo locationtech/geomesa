@@ -16,7 +16,6 @@ import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools._
-import org.locationtech.geomesa.utils.stats._
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeatureType
@@ -25,6 +24,14 @@ import org.opengis.filter.expression.PropertyName
 
 import scala.collection.JavaConversions._
 
+/**
+  * Estimate query counts based on cached stats.
+  *
+  * Although this trait only requires a generic GeoMesaStats implementation mixin, it has been written based
+  * on `MetadataBackedStats`. In particular, getCount(Filter.INCLUDE) is expected to look up the stat and
+  * not invoke any methods in this trait. Also, only Frequency and Z3Histograms are split out by time interval,
+  * so filters are only passed in when reading those two types.
+  */
 trait StatsBasedEstimator {
 
   stats: GeoMesaStats =>
@@ -40,41 +47,19 @@ trait StatsBasedEstimator {
     * @return estimated count, if available
     */
   protected def estimateCount(sft: SimpleFeatureType, filter: Filter): Option[Long] = {
-    // TODO currently we don't consider if the dates are actually ANDed with everything else
-    StatsBasedEstimator.extractDates(sft, filter) match {
-      case None => Some(0L) // disjoint dates
-      case Some(Bounds(lo, hi)) => estimateCount(sft, filter, lo.value, hi.value)
-    }
-  }
-
-  /**
-    * Estimates the count for a given filter, based off the per-attribute metadata we have stored
-    *
-    * @param sft simple feature type
-    * @param filter filter to apply - should have been run through QueryPlanFilterVisitor so all props are right
-    * @param loDate bounds on the dates to be queried, if any
-    * @param hiDate bounds on the dates to be queried, if any
-    * @return estimated count, if available
-    */
-  private def estimateCount(sft: SimpleFeatureType,
-                            filter: Filter,
-                            loDate: Option[Date],
-                            hiDate: Option[Date]): Option[Long] = {
-    import Filter.{EXCLUDE, INCLUDE}
-
     filter match {
-      case EXCLUDE => Some(0L)
-      case INCLUDE => stats.getStats[CountStat](sft).headOption.map(_.count)
+      case Filter.INCLUDE => getCount(sft)
+      case Filter.EXCLUDE => Some(0L)
 
-      case a: And  => estimateAndCount(sft, a, loDate, hiDate)
-      case o: Or   => estimateOrCount(sft, o, loDate, hiDate)
-      case n: Not  => estimateNotCount(sft, n, loDate, hiDate)
+      case a: And => estimateAndCount(sft, a)
+      case o: Or  => estimateOrCount(sft, o)
+      case n: Not => estimateNotCount(sft, n)
 
-      case i: Id   => Some(i.getIdentifiers.size)
-      case _       =>
+      case i: Id => Some(i.getIdentifiers.size)
+      case _ =>
         // single filter - equals, between, less than, etc
         val attribute = FilterHelper.propertyNames(filter, sft).headOption
-        attribute.flatMap(estimateAttributeCount(sft, filter, _, loDate, hiDate))
+        attribute.flatMap(estimateAttributeCount(sft, filter, _))
     }
   }
 
@@ -86,17 +71,12 @@ trait StatsBasedEstimator {
     *
     * @param sft simple feature type
     * @param filter AND filter
-    * @param loDate bounds on the dates to be queried, if any
-    * @param hiDate bounds on the dates to be queried, if any
     * @return estimated count, if available
     */
-  private def estimateAndCount(sft: SimpleFeatureType,
-                               filter: And,
-                               loDate: Option[Date],
-                               hiDate: Option[Date]): Option[Long] = {
+  private def estimateAndCount(sft: SimpleFeatureType, filter: And): Option[Long] = {
     val stCount = estimateSpatioTemporalCount(sft, filter)
     // note: we might over count if we get bbox1 AND bbox2, as we don't intersect them
-    val individualCounts = filter.getChildren.flatMap(estimateCount(sft, _, loDate, hiDate))
+    val individualCounts = filter.getChildren.flatMap(estimateCount(sft, _))
     (stCount ++ individualCounts).minOption
   }
 
@@ -105,19 +85,12 @@ trait StatsBasedEstimator {
     *
     * @param sft simple feature type
     * @param filter OR filter
-    * @param loDate bounds on the dates to be queried, if any
-    * @param hiDate bounds on the dates to be queried, if any
     * @return estimated count, if available
     */
-  private def estimateOrCount(sft: SimpleFeatureType,
-                              filter: Or,
-                              loDate: Option[Date],
-                              hiDate: Option[Date]): Option[Long] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
-
+  private def estimateOrCount(sft: SimpleFeatureType, filter: Or): Option[Long] = {
     // estimate for each child separately and sum
     // note that we might double count some values if the filter is complex
-    filter.getChildren.flatMap(estimateCount(sft, _, loDate, hiDate)).sumOption
+    filter.getChildren.flatMap(estimateCount(sft, _)).sumOption
   }
 
   /**
@@ -125,26 +98,21 @@ trait StatsBasedEstimator {
     *
     * @param sft simple feature type
     * @param filter filter
-    * @param loDate bounds on the dates to be queried, if any
-    * @param hiDate bounds on the dates to be queried, if any
     * @return count, if available
     */
-  private def estimateNotCount(sft: SimpleFeatureType,
-                               filter: Not,
-                               loDate: Option[Date],
-                               hiDate: Option[Date]): Option[Long] = {
+  private def estimateNotCount(sft: SimpleFeatureType, filter: Not): Option[Long] = {
     filter.getFilter match {
       case f: PropertyIsNull =>
         // special handling for 'is not null'
         f.getExpression match {
           case p: PropertyName => estimateRangeCount(sft, p.getPropertyName, Seq((None, None)))
-          case _ => estimateCount(sft, Filter.INCLUDE, None, None) // not something we can handle...
+          case _ => estimateCount(sft, Filter.INCLUDE) // not something we can handle...
         }
 
       case f =>
         for {
-          all <- estimateCount(sft, Filter.INCLUDE, None, None)
-          neg <- estimateCount(sft, f, loDate, hiDate)
+          all <- estimateCount(sft, Filter.INCLUDE)
+          neg <- estimateCount(sft, f)
         } yield {
           math.max(0, all - neg)
         }
@@ -168,7 +136,7 @@ trait StatsBasedEstimator {
       if geometries.nonEmpty
       intervals  =  FilterHelper.extractIntervals(filter, dateField)
       if intervals.nonEmpty
-      bounds     <- stats.getStats[MinMax[Date]](sft, Seq(dateField)).headOption
+      bounds     <- stats.getMinMax[Date](sft, dateField)
     } yield {
       if (geometries.disjoint || intervals.disjoint) { 0L } else {
         val inRangeIntervals = {
@@ -179,68 +147,49 @@ trait StatsBasedEstimator {
                 i.upper.value.forall(_.toInstant.toEpochMilli >= minTime)
           }
         }
-        estimateSpatioTemporalCount(sft, geomField, dateField, geometries.values, inRangeIntervals)
+        val period = sft.getZ3Interval
+        stats.getZ3Histogram(sft, geomField, dateField, period, 0, filter) match {
+          case None => 0L
+          case Some(histogram) =>
+            // time range for a chunk is 0 to 1 week (in seconds)
+            val sfc = Z3SFC(period)
+            val (tmin, tmax) = (sfc.time.min.toLong, sfc.time.max.toLong)
+            val xy = geometries.values.map(GeometryUtils.bounds)
+
+            def getIndices(t1: Long, t2: Long): Seq[Int] = {
+              val w = histogram.timeBins.head // z3 histogram bounds are fixed, so indices should be the same
+              val zs = sfc.ranges(xy, Seq((t1, t2)), ZHistogramPrecision)
+              zs.flatMap(r => histogram.directIndex(w, r.lower) to histogram.directIndex(w, r.upper))
+            }
+            lazy val middleIndices = getIndices(tmin, tmax)
+
+            // build up our indices by week so that we can deduplicate them afterwards
+            val timeBinsAndIndices = scala.collection.mutable.Map.empty[Short, Seq[Int]].withDefaultValue(Seq.empty)
+
+            val dateToBins = BinnedTime.dateToBinnedTime(period)
+            val boundsToDates = BinnedTime.boundsToIndexableDates(period)
+            val binnedTimes = inRangeIntervals.map { interval =>
+              val (lower, upper) = boundsToDates(interval.bounds)
+              val BinnedTime(lb, lt) = dateToBins(lower)
+              val BinnedTime(ub, ut) = dateToBins(upper)
+              (Range.inclusive(lb, ub).map(_.toShort), lt, ut)
+            }
+
+            // the z3 index breaks time into 1 week chunks, so create a range for each week in our range
+            binnedTimes.foreach { case (bins, lt, ut) =>
+              if (bins.length == 1) {
+                timeBinsAndIndices(bins.head) ++= getIndices(lt, ut)
+              } else {
+                val head +: middle :+ last = bins.toList
+                timeBinsAndIndices(head) ++= getIndices(lt, tmax)
+                timeBinsAndIndices(last) ++= getIndices(tmin, ut)
+                middle.foreach(m => timeBinsAndIndices(m) ++= middleIndices)
+              }
+            }
+
+            timeBinsAndIndices.map { case (b, indices) => indices.distinct.map(histogram.count(b, _)).sum }.sum
+        }
       }
-    }
-  }
-
-  /**
-    * Estimates counts based on a combination of spatial and temporal values.
-    *
-    * @param sft simple feature type
-    * @param geomField geometry attribute name for the simple feature type
-    * @param dateField date attribute name for the simple feature type
-    * @param geometries geometry to evaluate
-    * @param intervals intervals to evaluate
-    * @return
-    */
-  private def estimateSpatioTemporalCount(sft: SimpleFeatureType,
-                                          geomField: String,
-                                          dateField: String,
-                                          geometries: Seq[Geometry],
-                                          intervals: Seq[Bounds[ZonedDateTime]]): Long = {
-    val period = sft.getZ3Interval
-    val dateToBins = BinnedTime.dateToBinnedTime(period)
-    val boundsToDates = BinnedTime.boundsToIndexableDates(period)
-    val binnedTimes = intervals.map { interval =>
-      val (lower, upper) = boundsToDates(interval.bounds)
-      val BinnedTime(lb, lt) = dateToBins(lower)
-      val BinnedTime(ub, ut) = dateToBins(upper)
-      (Range.inclusive(lb, ub).map(_.toShort), lt, ut)
-    }
-    val allBins = binnedTimes.flatMap(_._1).distinct
-
-    stats.getStats[Z3Histogram](sft, Seq(geomField, dateField), allBins).headOption match {
-      case None => 0L
-      case Some(histogram) =>
-        // time range for a chunk is 0 to 1 week (in seconds)
-        val sfc = Z3SFC(period)
-        val (tmin, tmax) = (sfc.time.min.toLong, sfc.time.max.toLong)
-        val xy = geometries.map(GeometryUtils.bounds)
-
-        def getIndices(t1: Long, t2: Long): Seq[Int] = {
-          val w = histogram.timeBins.head // z3 histogram bounds are fixed, so indices should be the same
-          val zs = sfc.ranges(xy, Seq((t1, t2)), ZHistogramPrecision)
-          zs.flatMap(r => histogram.directIndex(w, r.lower) to histogram.directIndex(w, r.upper))
-        }
-        lazy val middleIndices = getIndices(tmin, tmax)
-
-        // build up our indices by week so that we can deduplicate them afterwards
-        val timeBinsAndIndices = scala.collection.mutable.Map.empty[Short, Seq[Int]].withDefaultValue(Seq.empty)
-
-        // the z3 index breaks time into 1 week chunks, so create a range for each week in our range
-        binnedTimes.foreach { case (bins, lt, ut) =>
-          if (bins.length == 1) {
-            timeBinsAndIndices(bins.head) ++= getIndices(lt, ut)
-          } else {
-            val head +: middle :+ last = bins.toList
-            timeBinsAndIndices(head) ++= getIndices(lt, tmax)
-            timeBinsAndIndices(last) ++= getIndices(tmin, ut)
-            middle.foreach(m => timeBinsAndIndices(m) ++= middleIndices)
-          }
-        }
-
-        timeBinsAndIndices.map { case (b, indices) => indices.distinct.map(histogram.count(b, _)).sum }.sum
     }
   }
 
@@ -250,21 +199,14 @@ trait StatsBasedEstimator {
     * @param sft simple feature type
     * @param filter filter
     * @param attribute attribute name to estimate
-    * @param loDate bounds on the dates to be queried, if any
-    * @param hiDate bounds on the dates to be queried, if any
     * @return count, if available
     */
-  private def estimateAttributeCount(sft: SimpleFeatureType,
-                                     filter: Filter,
-                                     attribute: String,
-                                     loDate: Option[Date],
-                                     hiDate: Option[Date]): Option[Long] = {
+  private def estimateAttributeCount(sft: SimpleFeatureType, filter: Filter, attribute: String): Option[Long] = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-    // noinspection ExistsEquals
     if (attribute == sft.getGeomField) {
       estimateSpatialCount(sft, filter)
-    } else if (sft.getDtgField.exists(_ == attribute)) {
+    } else if (sft.getDtgField.contains(attribute)) {
       estimateTemporalCount(sft, filter)
     } else {
       // we have an attribute filter
@@ -278,13 +220,13 @@ trait StatsBasedEstimator {
         if (bounds.disjoint) {
           Some(0L) // disjoint range
         } else if (!bounds.values.exists(_.isBounded)) {
-          estimateCount(sft, Filter.INCLUDE, loDate, hiDate) // inclusive filter
+          estimateCount(sft, Filter.INCLUDE) // inclusive filter
         } else {
           val boundsValues = bounds.values.map(b => (b.lower.value, b.upper.value))
           val (equalsBounds, rangeBounds) = boundsValues.partition { case (l, r) => l == r }
           val equalsCount = if (equalsBounds.isEmpty) { Some(0L) } else {
             // compare equals estimate with range estimate and take the smaller
-            val equals = estimateEqualsCount(sft, attribute, equalsBounds.map(_._1.get), loDate, hiDate)
+            val equals = estimateEqualsCount(sft, filter, attribute, equalsBounds.map(_._1.get))
             val range  = estimateRangeCount(sft, attribute, equalsBounds)
             (equals, range) match {
               case (Some(e), Some(r)) => Some(math.min(e, r))
@@ -308,15 +250,14 @@ trait StatsBasedEstimator {
     * @return estimated count, if available
     */
   private def estimateSpatialCount(sft: SimpleFeatureType, filter: Filter): Option[Long] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
-
     val geometries = FilterHelper.extractGeometries(filter, sft.getGeomField, sft.isPoints)
     if (geometries.isEmpty) {
       None
     } else if (geometries.disjoint) {
       Some(0L)
     } else {
-      stats.getStats[Histogram[Geometry]](sft, Seq(sft.getGeomField)).headOption.map { histogram =>
+      val zero = GeometryUtils.zeroPoint
+      stats.getHistogram[Geometry](sft, sft.getGeomField, 0, zero, zero).map { histogram =>
         val (zLo, zHi) = {
           val (xmin, ymin, _, _) = GeometryUtils.bounds(histogram.min)
           val (_, _, xmax, ymax) = GeometryUtils.bounds(histogram.max)
@@ -343,13 +284,11 @@ trait StatsBasedEstimator {
     * @return estimated count, if available
     */
   private def estimateTemporalCount(sft: SimpleFeatureType, filter: Filter): Option[Long] = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
-
     for {
       dateField <- sft.getDtgField
       intervals =  FilterHelper.extractIntervals(filter, dateField)
       if intervals.nonEmpty
-      histogram <- stats.getStats[Histogram[Date]](sft, Seq(dateField)).headOption
+      histogram <- stats.getHistogram[Date](sft, dateField, 0, new Date(), new Date())
     } yield {
       def inRange(interval: Bounds[ZonedDateTime]) = {
         interval.lower.value.forall(_.toInstant.toEpochMilli <= histogram.max.getTime) &&
@@ -373,21 +312,14 @@ trait StatsBasedEstimator {
     * @param sft simple feature type
     * @param attribute attribute to evaluate
     * @param values values to be estimated
-    * @param loDate bounds on the dates to be queried, if any
-    * @param hiDate bounds on the dates to be queried, if any
     * @return estimated count, if available.
     */
-  private def estimateEqualsCount(sft: SimpleFeatureType,
-                                  attribute: String,
-                                  values: Seq[Any],
-                                  loDate: Option[Date],
-                                  hiDate: Option[Date]): Option[Long] = {
-    val timeBins = for { d1  <- loDate; d2  <- hiDate } yield {
-      val timeToBin = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
-      Range.inclusive(timeToBin(d1.getTime).bin, timeToBin(d2.getTime).bin).map(_.toShort)
-    }
-    val options = timeBins.getOrElse(Seq.empty)
-    stats.getStats[Frequency[Any]](sft, Seq(attribute), options).headOption.map { freq =>
+  private def estimateEqualsCount(
+      sft: SimpleFeatureType,
+      filter: Filter,
+      attribute: String,
+      values: Seq[Any]): Option[Long] = {
+    stats.getFrequency[Any](sft, attribute, 0, filter).map { freq =>
       // frequency estimates will never return less than the actual number, but will often return more
       // frequency has ~0.5% error rate based on the total number of features in the data set
       // we adjust the raw estimate based on the absolute error rate
@@ -419,10 +351,11 @@ trait StatsBasedEstimator {
     * @param ranges ranges of values - may be unbounded (indicated by a None)
     * @return estimated count, if available
     */
-  private def estimateRangeCount(sft: SimpleFeatureType,
-                                 attribute: String,
-                                 ranges: Seq[(Option[Any], Option[Any])]): Option[Long] = {
-    stats.getStats[Histogram[Any]](sft, Seq(attribute)).headOption.map { histogram =>
+  private def estimateRangeCount(
+      sft: SimpleFeatureType,
+      attribute: String,
+      ranges: Seq[(Option[Any], Option[Any])]): Option[Long] = {
+    stats.getHistogram[Any](sft, attribute, 0, 0, 0).map { histogram =>
       val inRangeRanges = ranges.filter {
         case (None, None)         => true // inclusive filter
         case (Some(lo), None)     => histogram.defaults.min(lo, histogram.max) == lo

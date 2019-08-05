@@ -46,7 +46,6 @@ class FeatureToFeatureConverterFactory extends SimpleFeatureConverterFactory wit
       } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid configuration: ${e.getMessage}")
       }
-      opts.validators.init(sft)
 
       val inputSft = SimpleFeatureTypeLoader.sftForName(config.inputSft).getOrElse {
         throw new IllegalArgumentException(s"Could not load input sft ${config.inputSft}")
@@ -90,19 +89,22 @@ object FeatureToFeatureConverterFactory {
 
   private val InputSftPath = "input-sft"
 
-  case class FeatureToFeatureConfig(`type`: String,
-                                    inputSft: String,
-                                    idField: Option[Expression],
-                                    caches: Map[String, Config],
-                                    userData: Map[String, Expression]) extends ConverterConfig
+  case class FeatureToFeatureConfig(
+      `type`: String,
+      inputSft: String,
+      idField: Option[Expression],
+      caches: Map[String, Config],
+      userData: Map[String, Expression]
+    ) extends ConverterConfig
 
   object FeatureToFeatureConfigConvert extends ConverterConfigConvert[FeatureToFeatureConfig] with StrictLogging {
 
-    override protected def decodeConfig(cur: ConfigObjectCursor,
-                                        `type`: String,
-                                        idField: Option[Expression],
-                                        caches: Map[String, Config],
-                                        userData: Map[String, Expression]): Either[ConfigReaderFailures, FeatureToFeatureConfig] = {
+    override protected def decodeConfig(
+        cur: ConfigObjectCursor,
+        `type`: String,
+        idField: Option[Expression],
+        caches: Map[String, Config],
+        userData: Map[String, Expression]): Either[ConfigReaderFailures, FeatureToFeatureConfig] = {
       for { sftName <- cur.atKey(InputSftPath).right.flatMap(_.asString).right } yield {
         FeatureToFeatureConfig(`type`, sftName, idField, caches, userData)
       }

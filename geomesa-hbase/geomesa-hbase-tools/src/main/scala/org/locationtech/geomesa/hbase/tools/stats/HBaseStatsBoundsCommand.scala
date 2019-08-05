@@ -14,7 +14,8 @@ import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, ToggleRemoteFilterParam}
 import org.locationtech.geomesa.hbase.tools.stats.HBaseStatsBoundsCommand.HBaseStatsBoundsParams
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
-import org.locationtech.geomesa.tools.stats.{StatsBoundsCommand, StatsBoundsParams}
+import org.locationtech.geomesa.tools.stats.StatsBoundsCommand
+import org.locationtech.geomesa.tools.stats.StatsBoundsCommand.StatsBoundsParams
 
 class HBaseStatsBoundsCommand extends StatsBoundsCommand[HBaseDataStore] with HBaseDataStoreCommand {
   override val params = new HBaseStatsBoundsParams

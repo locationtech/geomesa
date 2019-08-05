@@ -12,6 +12,7 @@ package org.locationtech.geomesa.lambda.tools
 import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.accumulo.tools.RunnerWithAccumuloEnvironment
 import org.locationtech.geomesa.accumulo.tools.data._
+import org.locationtech.geomesa.accumulo.tools.export.AccumuloExplainCommand
 import org.locationtech.geomesa.accumulo.tools.stats._
 import org.locationtech.geomesa.accumulo.tools.status._
 import org.locationtech.geomesa.lambda.tools.data._

@@ -27,8 +27,7 @@ import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
-import org.locationtech.geomesa.index.stats.MetadataBackedStats.RunnableStats
-import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, RunnableStats}
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter}
@@ -40,8 +39,8 @@ import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.cache.Ticker
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TABLE_SHARING_KEY
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.SHARING_PREFIX_KEY
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TableSharing
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.TableSharingPrefix
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
@@ -115,8 +114,8 @@ class KafkaDataStore(
       case topic => logger.debug(s"Using user-defined topic [$topic]")
     }
     // remove table sharing as it's not relevant
-    sft.getUserData.remove(TABLE_SHARING_KEY)
-    sft.getUserData.remove(SHARING_PREFIX_KEY)
+    sft.getUserData.remove(TableSharing)
+    sft.getUserData.remove(TableSharingPrefix)
   }
 
   @throws(classOf[IllegalArgumentException])

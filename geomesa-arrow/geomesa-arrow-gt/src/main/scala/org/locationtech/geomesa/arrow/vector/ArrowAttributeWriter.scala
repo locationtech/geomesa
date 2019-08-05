@@ -223,9 +223,6 @@ object ArrowAttributeWriter {
           case ObjectType.BYTES =>
             new ArrowBytesWriter(toVector(MinorType.VARBINARY.getType, null, metadata))
 
-          case ObjectType.JSON =>
-            new ArrowStringWriter(toVector(MinorType.VARCHAR.getType, null, metadata))
-
           case ObjectType.UUID =>
             new ArrowStringWriter(toVector(MinorType.VARCHAR.getType, null, metadata))
 

@@ -11,12 +11,15 @@ package org.locationtech.geomesa.arrow.tools.status
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
-import org.locationtech.geomesa.arrow.tools.UrlParam
+import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
+import org.locationtech.geomesa.arrow.tools.status.ArrowGetTypeNamesCommand.ArrowGetTypeNamesParams
 import org.locationtech.geomesa.tools.status.GetTypeNamesCommand
 
 class ArrowGetTypeNamesCommand extends GetTypeNamesCommand[ArrowDataStore] with ArrowDataStoreCommand {
   override val params = new ArrowGetTypeNamesParams()
 }
 
-@Parameters(commandDescription = "List the feature type for a given Arrow resource")
-class ArrowGetTypeNamesParams extends UrlParam
+object ArrowGetTypeNamesCommand {
+  @Parameters(commandDescription = "List the feature type for a given Arrow resource")
+  class ArrowGetTypeNamesParams extends UrlParam
+}

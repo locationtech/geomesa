@@ -12,7 +12,7 @@ import java.util.UUID
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.serialization.GenericMapSerialization
 import org.locationtech.jts.geom.{Geometry, LineString, Point, Polygon}
 
@@ -45,19 +45,18 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
 
   private val baseClassLookups: Map[String, Class[_]] = baseClassMappings.filterNot(_._1.isPrimitive).map(_.swap)
 
+  private implicit val ordering: Ordering[(AnyRef, AnyRef)] = Ordering.by(_._1.toString)
+
   override def serialize(out: Output, javaMap: java.util.Map[AnyRef, AnyRef]): Unit = {
     import scala.collection.JavaConverters._
 
-    val map = javaMap.asScala
+    // write in sorted order to keep consistent output
+    val toWrite = scala.collection.mutable.SortedSet.empty[(AnyRef, AnyRef)]
 
-    // may not be able to write all entries - must pre-filter to know correct count
-    val skip = new java.util.HashSet[AnyRef]()
-    map.foreach { case (k, _) => if (k == null || !canSerialize(k)) { skip.add(k) } }
-
-    val toWrite = if (skip.isEmpty) { map } else {
-      logger.warn(s"Skipping serialization of entries: " +
-          map.collect { case (k, v) if skip.contains(k) => s"$k->$v" }.mkString("[", "],[", "]"))
-      map.filterNot { case (k, _) => skip.contains(k) }
+    javaMap.asScala.foreach { case (k, v) =>
+      if (k != null && canSerialize(k)) { toWrite += k -> v } else {
+        logger.warn(s"Skipping serialization of entry: $k -> $v")
+      }
     }
 
     out.writeInt(toWrite.size) // don't use positive optimized version for back compatibility

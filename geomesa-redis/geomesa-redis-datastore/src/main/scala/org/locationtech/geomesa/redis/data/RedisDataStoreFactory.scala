@@ -19,6 +19,7 @@ import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.redis.data.RedisDataStore.RedisDataStoreConfig
+import org.locationtech.geomesa.redis.data.index.RedisAgeOff
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
@@ -38,6 +39,7 @@ class RedisDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     val config = RedisDataStoreFactory.buildConfig(params)
     val ds = new RedisDataStore(connection, config)
     GeoMesaDataStore.initRemoteVersion(ds)
+    RedisAgeOff.init(ds)
     ds
   }
 

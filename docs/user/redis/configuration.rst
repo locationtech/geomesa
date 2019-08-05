@@ -6,6 +6,13 @@ Redis Data Store Configuration
 This section details Redis-specific configuration properties. For general properties,
 see :ref:`geomesa_site_xml`.
 
+geomesa.redis.age.off.interval
+++++++++++++++++++++++++++++++
+
+Sets how often features will be checked for expiration. The interval should be specified as a duration,
+for example ``1 hour`` or ``10 minutes``. By default, expiration will run every 10 minutes. See
+:ref:`redis_feature_expiry` for more details.
+
 geomesa.redis.tx.backoff
 ++++++++++++++++++++++++
 

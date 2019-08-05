@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.memory.cqengine.utils
 
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions.OPT_CQ_INDEX
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions.OptCqIndex
 import org.opengis.feature.simple.SimpleFeatureType
 
 object CQIndexType extends Enumeration {
@@ -36,7 +36,7 @@ object CQIndexType extends Enumeration {
     types.sizeHint(sft.getAttributeCount)
 
     sft.getAttributeDescriptors.asScala.foreach { descriptor =>
-      val opt = Option(descriptor.getUserData.get(OPT_CQ_INDEX).asInstanceOf[String])
+      val opt = Option(descriptor.getUserData.get(OptCqIndex).asInstanceOf[String])
       opt.map(CQIndexType.withName).filter(_ != NONE).foreach(t => types += descriptor.getLocalName -> t)
     }
 

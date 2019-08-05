@@ -18,8 +18,8 @@ import org.geotools.feature.NameImpl
 import org.geotools.util.URLs
 import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
-import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, NoOpMetadata}
-import org.locationtech.geomesa.index.stats.MetadataBackedStats.UnoptimizedRunnableStats
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata}
+import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.`type`.Name
@@ -50,7 +50,7 @@ class ArrowDataStore(val url: URL, caching: Boolean) extends ContentDataStore wi
 
   lazy val dictionaries: Map[String, ArrowDictionary] = reader.dictionaries
 
-  override val metadata: GeoMesaMetadata[String] = new NoOpMetadata()
+  override val metadata: GeoMesaMetadata[String] = GeoMesaMetadata.empty
   override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
   override def createFeatureSource(entry: ContentEntry): ContentFeatureSource = {

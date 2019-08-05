@@ -15,8 +15,8 @@ import org.apache.hadoop.hbase.TableName
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.ProxyIdFunction
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
@@ -29,9 +29,10 @@ import org.locationtech.geomesa.process.query.ProximitySearchProcess
 import org.locationtech.geomesa.process.tube.TubeSelectProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, SemanticVersion}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
-import org.opengis.filter.{Filter, Id}
+import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 
 import scala.collection.JavaConversions._
@@ -98,9 +99,7 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
               testQuery(ds, typeName, "attr = 'name5' and bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, Seq(toAdd(5)))
               testQuery(ds, typeName, "name < 'name5'", transforms, toAdd.take(5))
               testQuery(ds, typeName, "name = 'name5'", transforms, Seq(toAdd(5)))
-              testQuery(ds, typeName, s"bbox(geom,39,49,50,60) AND dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z AND (proxyId() = ${ProxyIdFunction.proxyId("0")})", transforms, toAdd.take(1))
-              // TODO GEOMESA-2562
-              //   testQuery(ds, typeName, s"bbox(geom,39,49,50,60) AND dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z AND (proxyId() = ${ProxyIdFunction.proxyId("0")} OR proxyId() = ${ProxyIdFunction.proxyId("1")})", transforms, toAdd.take(2))
+              testQuery(ds, typeName, s"bbox(geom,39,49,50,60) AND dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z AND (proxyId() = ${ProxyIdFunction.proxyId("0")} OR proxyId() = ${ProxyIdFunction.proxyId("1")})", transforms, toAdd.take(2))
 
               // this query should be blocked
               testQuery(ds, typeName, "INCLUDE", transforms, toAdd) must throwA[RuntimeException]
@@ -239,6 +238,48 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
       }
     }
 
+    "support updates" in {
+      val typeName = "test-updates"
+
+      val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
+      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      ds must not(beNull)
+
+      try {
+        ds.getSchema(typeName) must beNull
+
+        val spec = "name:String:index=true,age:Integer,dtg:Date,geom:Point:srid=4326"
+        ds.createSchema(SimpleFeatureTypes.createType(typeName, spec))
+        val sft = ds.getSchema(typeName)
+
+        val features = Seq(
+          ScalaSimpleFeature.create(sft, "fid1", "will", 56, "2014-01-02", "POINT(45.0 49.0)"),
+          ScalaSimpleFeature.create(sft, "fid2", "george", 33, "2014-01-02", "POINT(45.0 49.0)"),
+          ScalaSimpleFeature.create(sft, "fid3", "sue", 99, "2014-01-02", "POINT(45.0 49.0)"),
+          ScalaSimpleFeature.create(sft, "fid4", "karen", 50, "2014-01-02", "POINT(45.0 49.0)"),
+          ScalaSimpleFeature.create(sft, "fid5", "bob", 56, "2014-01-02", "POINT(45.0 49.0)")
+        )
+
+        WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+
+        val fs = ds.getFeatureSource(sft.getTypeName)
+        fs.modifyFeatures("age", Int.box(60), ECQL.toFilter("(age > 50 AND age < 99) OR (name = 'karen')"))
+
+        val expected = Seq(
+          ScalaSimpleFeature.create(sft, "fid1", "will", 60, "2014-01-02", "POINT(45.0 49.0)"),
+          ScalaSimpleFeature.create(sft, "fid4", "karen", 60, "2014-01-02", "POINT(45.0 49.0)"),
+          ScalaSimpleFeature.create(sft, "fid5", "bob", 60, "2014-01-02", "POINT(45.0 49.0)")
+        )
+
+        val result = SelfClosingIterator(fs.getFeatures(ECQL.toFilter("age = 60")).features).toList.sortBy(_.getID)
+        result mustEqual expected
+      } finally {
+        ds.dispose()
+      }
+    }
+
     "support table splits" in {
       val typeName = "testsplits"
 
@@ -319,17 +360,8 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
     }
 
     if (count) {
-      query.getFilter match {
-        case _: Id =>
-          // id filters use estimated stats based on the filter itself
-          ds.getFeatureSource(query.getTypeName).getCount(query) mustEqual results.length
-          ds.getFeatureSource(query.getTypeName).getFeatures(query).size() mustEqual results.length
-
-        case _ =>
-          ds.getFeatureSource(query.getTypeName).getCount(query) mustEqual -1
-          ds.getFeatureSource(query.getTypeName).getFeatures(query).size() mustEqual 0
-      }
-
+      ds.getFeatureSource(query.getTypeName).getCount(query) mustEqual -1
+      ds.getFeatureSource(query.getTypeName).getFeatures(query).size() mustEqual 0
       query.getHints.put(QueryHints.EXACT_COUNT, true)
       ds.getFeatureSource(query.getTypeName).getFeatures(query).size() mustEqual results.length
     }

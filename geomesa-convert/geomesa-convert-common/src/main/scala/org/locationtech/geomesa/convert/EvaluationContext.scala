@@ -8,26 +8,130 @@
 
 package org.locationtech.geomesa.convert
 
+import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
+
+/**
+  * Shared converter state
+  */
 trait EvaluationContext {
+
+  /**
+    * The current line being processed.
+    *
+    * This may be an actual line (e.g. a csv row), or a logical line (e.g. an avro record)
+    *
+    * @return
+    */
+  var line: Long = 0
+
+  /**
+    * Enrichment caches
+    *
+    * @return
+    */
+  def cache: Map[String, EnrichmentCache]
+
+  /**
+    * Metrics registry, accessible for tracking any custom values
+    *
+    * @return
+    */
+  def metrics: ConverterMetrics
+
+  /**
+    * Counter for tracking successes
+    *
+    * @return
+    */
+  def success: com.codahale.metrics.Counter
+
+  /**
+    * Counter for tracking failures
+    *
+    * @return
+    */
+  def failure: com.codahale.metrics.Counter
+
+  /**
+    * Get the current value for the given index
+    *
+    * @param i value index
+    * @return
+    */
   def get(i: Int): Any
-  def set(i: Int, v: Any): Unit
-  def indexOf(n: String): Int
+
+  /**
+    * Set the current value for the given index
+    *
+    * @param i value index
+    * @param value value
+    */
+  def set(i: Int, value: Any): Unit
+
+  /**
+    * Look up an index by name
+    *
+    * @param name name
+    * @return
+    */
+  def indexOf(name: String): Int
+
+  /**
+    * Clear any local (per-entry) state
+    */
   def clear(): Unit
+
+  // noinspection ScalaDeprecation
+  @deprecated("Use `success` `failure` or `line`")
   def counter: Counter
-  def getCache(k: String): EnrichmentCache
+
+  @deprecated("Use `cache`")
+  def getCache(k: String): EnrichmentCache = cache(k)
 }
 
-object EvaluationContext {
+object EvaluationContext extends LazyLogging {
 
   val InputFilePathKey = "inputFilePath"
 
-  def empty: EvaluationContext = apply(IndexedSeq.empty, Array.empty, new DefaultCounter, Map.empty)
+  /**
+    * Creates a new, empty evaluation context
+    *
+    * @return
+    */
+  def empty: EvaluationContext = new EvaluationContextImpl(Seq.empty, Map.empty, Map.empty, ConverterMetrics.empty)
 
-  def apply(names: IndexedSeq[String],
-            values: Array[Any],
-            counter: Counter,
-            caches: Map[String, EnrichmentCache]): EvaluationContext =
-    new EvaluationContextImpl(names, values, counter, caches)
+  /**
+    * Creates an evaluation context with the given fields
+    *
+    * @param localNames names of per-entry fields
+    * @param globalValues names and values of global fields
+    * @param caches enrichment caches
+    * @param metrics metrics
+    * @return
+    */
+  def apply(
+      localNames: Seq[String],
+      globalValues: Map[String, Any] = Map.empty,
+      caches: Map[String, EnrichmentCache] = Map.empty,
+      metrics: ConverterMetrics = ConverterMetrics.empty): EvaluationContext = {
+    new EvaluationContextImpl(localNames, globalValues, caches, metrics)
+  }
+
+  // noinspection ScalaDeprecation
+  @deprecated
+  def apply(
+      names: IndexedSeq[String],
+      values: Array[Any],
+      count: Counter,
+      caches: Map[String, EnrichmentCache]): EvaluationContext = {
+    logger.warn("Using deprecated evaluation context - counters and line numbers may be incorrect")
+    // check to see what global variables have been set
+    // global variables are at the end of the array
+    val globalValuesOffset = values.takeWhile(_ == null).length
+    val globalValues = names.zip(values).drop(globalValuesOffset).toMap
+    new EvaluationContextImpl(names.take(globalValuesOffset), globalValues, caches, ConverterMetrics.empty)
+  }
 
   /**
     * Gets a global parameter map containing the input file path
@@ -53,53 +157,71 @@ object EvaluationContext {
     }
   }
 
-}
+  /**
+    * Evaluation context implementation
+    *
+    * @param localNames per-entry variable names
+    * @param globalValues global variable name/values (global values are not cleared on `clear`)
+    * @param cache enrichment caches
+    * @param metrics metrics
+    */
+  class EvaluationContextImpl(
+      localNames: Seq[String],
+      globalValues: Map[String, Any],
+      val cache: Map[String, EnrichmentCache],
+      val metrics: ConverterMetrics) extends EvaluationContext {
 
-class EvaluationContextImpl(names: IndexedSeq[String],
-                            values: Array[Any],
-                            val counter: Counter,
-                            caches: Map[String, EnrichmentCache]) extends EvaluationContext {
+    private val localCount = localNames.length
+    // inject the input file path as a global key so there's always a spot for it in the array
+    private val names = localNames ++ (globalValues.keys.toSeq :+ EvaluationContext.InputFilePathKey).distinct
+    private val values = Array.tabulate[Any](names.length)(i => globalValues.get(names(i)).orNull)
 
-  // check to see what global variables have been set
-  // global variables are at the end of the array
-  private val globalValuesOffset = values.takeWhile(_ == null).length
+    override val success: com.codahale.metrics.Counter = metrics.counter("success")
+    override val failure: com.codahale.metrics.Counter = metrics.counter("failure")
 
-  def get(i: Int): Any = values(i)
-  def set(i: Int, v: Any): Unit = values(i) = v
-  def clear(): Unit = {
-    var i: Int = 0
-    while (i < globalValuesOffset) { values(i) = null; i += 1 }
+    override def indexOf(name: String): Int = names.indexOf(name)
+
+    override def get(i: Int): Any = values(i)
+    override def set(i: Int, value: Any): Unit = values(i) = value
+
+    override def clear(): Unit = {
+      var i = 0
+      while (i < localCount) {
+        values(i) = null
+        i += 1
+      }
+    }
+
+    // noinspection ScalaDeprecation
+    override lazy val counter: Counter = new Counter {
+      override def incSuccess(i: Long): Unit = success.inc(i)
+      override def getSuccess: Long = success.getCount
+      override def incFailure(i: Long): Unit = failure.inc(i)
+      override def getFailure: Long = failure.getCount
+      override def incLineCount(i: Long): Unit = line += i
+      override def getLineCount: Long = line
+      override def setLineCount(i: Long): Unit = line = i
+    }
   }
-  def indexOf(n: String): Int = names.indexOf(n)
 
-  override def getCache(k: String): EnrichmentCache = caches(k)
-}
-
-trait Counter {
-  def incSuccess(i: Long = 1): Unit
-  def getSuccess: Long
-
-  def incFailure(i: Long = 1): Unit
-  def getFailure: Long
-
-  // For things like Avro think of this as a recordCount as well
-  def incLineCount(i: Long = 1): Unit
-  def getLineCount: Long
-  def setLineCount(i: Long)
-}
-
-class DefaultCounter extends Counter {
-  private var s: Long = 0
-  private var f: Long = 0
-  private var c: Long = 0
-
-  override def incSuccess(i: Long = 1): Unit = s += i
-  override def getSuccess: Long = s
-
-  override def incFailure(i: Long = 1): Unit = f += i
-  override def getFailure: Long = f
-
-  override def incLineCount(i: Long = 1): Unit = c += i
-  override def getLineCount: Long = c
-  override def setLineCount(i: Long): Unit = c = i
+  /**
+    * Allows for override of success/failure counters
+    *
+    * @param delegate delegate context
+    * @param success success counter
+    * @param failure failure coutner
+    */
+  class DelegatingEvaluationContext(delegate: EvaluationContext)(
+      override val success: com.codahale.metrics.Counter = delegate.success,
+      override val failure: com.codahale.metrics.Counter = delegate.failure
+    ) extends EvaluationContext {
+    override def get(i: Int): Any = delegate.get(i)
+    override def set(i: Int, value: Any): Unit = delegate.set(i, value)
+    override def indexOf(name: String): Int = delegate.indexOf(name)
+    override def clear(): Unit = delegate.clear()
+    override def metrics: ConverterMetrics = delegate.metrics
+    override def cache: Map[String, EnrichmentCache] = delegate.cache
+    // noinspection ScalaDeprecation
+    override def counter: Counter = delegate.counter
+  }
 }

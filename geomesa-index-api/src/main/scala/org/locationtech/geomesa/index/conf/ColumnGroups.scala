@@ -16,7 +16,7 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureSerializer}
-import org.locationtech.geomesa.index.metadata.CachedLazyMetadata
+import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.index.planning.Transforms
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -137,6 +137,6 @@ object ColumnGroups {
 
   private val cache =
     Caffeine.newBuilder()
-        .expireAfterWrite(CachedLazyMetadata.Expiry.toDuration.get.toMillis, TimeUnit.MILLISECONDS)
+        .expireAfterWrite(TableBasedMetadata.Expiry.toDuration.get.toMillis, TimeUnit.MILLISECONDS)
         .build[String, IndexedSeq[(Array[Byte], SimpleFeatureType)]]()
 }

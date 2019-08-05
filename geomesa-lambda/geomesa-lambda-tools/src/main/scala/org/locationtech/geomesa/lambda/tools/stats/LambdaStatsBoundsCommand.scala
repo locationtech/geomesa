@@ -10,13 +10,17 @@ package org.locationtech.geomesa.lambda.tools.stats
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
+import org.locationtech.geomesa.lambda.tools.stats.LambdaStatsBoundsCommand.LambdaStatsBoundsParams
 import org.locationtech.geomesa.lambda.tools.{LambdaDataStoreCommand, LambdaDataStoreParams}
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
-import org.locationtech.geomesa.tools.stats.{StatsBoundsCommand, StatsBoundsParams}
+import org.locationtech.geomesa.tools.stats.StatsBoundsCommand
+import org.locationtech.geomesa.tools.stats.StatsBoundsCommand.StatsBoundsParams
 
 class LambdaStatsBoundsCommand extends StatsBoundsCommand[LambdaDataStore] with LambdaDataStoreCommand {
   override val params = new LambdaStatsBoundsParams
 }
 
-@Parameters(commandDescription = "View or calculate bounds on attributes in a GeoMesa feature type")
-class LambdaStatsBoundsParams extends StatsBoundsParams with LambdaDataStoreParams with RequiredTypeNameParam
+object LambdaStatsBoundsCommand {
+  @Parameters(commandDescription = "View or calculate bounds on attributes in a GeoMesa feature type")
+  class LambdaStatsBoundsParams extends StatsBoundsParams with LambdaDataStoreParams with RequiredTypeNameParam
+}

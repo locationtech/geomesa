@@ -16,7 +16,8 @@ import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper, FilterValues}
 import org.locationtech.geomesa.index.conf.partition.TimePartition.CustomPartitionCache
-import org.locationtech.geomesa.index.metadata.{CachedLazyMetadata, GeoMesaMetadata, HasGeoMesaMetadata}
+import org.locationtech.geomesa.index.metadata.{TableBasedMetadata, GeoMesaMetadata, HasGeoMesaMetadata}
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.text.DateParsing
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -56,16 +57,21 @@ class TimePartition(metadata: GeoMesaMetadata[String], typeName: String, dtg: St
 
   override def partition(feature: SimpleFeature): String = {
     val date = feature.getAttribute(dtgIndex).asInstanceOf[Date]
-    f"${toBin(ZonedDateTime.ofInstant(date.toInstant, ZoneOffset.UTC))}%05d" // a short should fit into 5 digits
+    f"${toBin(ZonedDateTime.ofInstant(toInstant(date), ZoneOffset.UTC))}%05d" // a short should fit into 5 digits
   }
 
-  override def partitions(filter: Filter): Seq[String] = {
+  override def partitions(filter: Filter): Option[Seq[String]] = {
     val intervals = FilterHelper.extractIntervals(filter, dtg)
-    if (intervals.isEmpty || !intervals.forall(_.isBoundedBothSides)) { Seq.empty } else {
+    if (intervals.disjoint) {
+      Some(Seq.empty)
+    } else if (intervals.isEmpty || !intervals.forall(_.isBoundedBothSides)) {
+      None
+    } else {
       val bins = intervals.values.flatMap(i => Range.inclusive(toBin(i.lower.value.get), toBin(i.upper.value.get)))
-      bins.distinct.map(b => f"$b%05d") ++ cache.customPartitions().collect {
+      val names = bins.distinct.map(b => f"$b%05d") ++ cache.customPartitions().collect {
         case (p, start, end) if overlaps(intervals, start, end) => p
       }
+      Some(names)
     }
   }
 
@@ -111,7 +117,7 @@ object TimePartition {
     */
   private class CustomPartitionCache(metadata: GeoMesaMetadata[String], typeName: String) {
 
-    private val expiry = CachedLazyMetadata.Expiry.toDuration.get.toMillis
+    private val expiry = TableBasedMetadata.Expiry.toDuration.get.toMillis
 
     private var partitions: Seq[(String, ZonedDateTime, ZonedDateTime)] = _
     private var reload = 0L

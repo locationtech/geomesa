@@ -13,14 +13,14 @@ import java.nio.charset.StandardCharsets
 
 import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.QueryBuilder
-import org.locationtech.geomesa.index.metadata.CachedLazyMetadata.ScanQuery
+import org.locationtech.geomesa.index.api.IndexAdapter
 import org.locationtech.geomesa.index.metadata._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.collection.JavaConversions._
 
 class CassandraBackedMetadata[T](val session: Session, val catalog: String, val serializer: MetadataSerializer[T])
-    extends CachedLazyMetadata[T] {
+    extends TableBasedMetadata[T] {
 
   override protected def checkIfTableExists: Boolean = {
     val m = session.getCluster.getMetadata
@@ -30,6 +30,11 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
 
   override protected def createTable(): Unit =
     session.execute(s"CREATE TABLE IF NOT EXISTS $catalog (sft text, key text, value text, PRIMARY KEY ((sft), key))")
+
+  override protected def createEmptyBackup(timestamp: String): CassandraBackedMetadata[T] = {
+    val table = IndexAdapter.truncateTableName(s"${catalog}_${timestamp}_bak", CassandraIndexAdapter.TableNameLimit)
+    new CassandraBackedMetadata(session, table, serializer)
+  }
 
   override protected def write(typeName: String, rows: Seq[(String, Array[Byte])]): Unit = {
     rows.foreach { case (key, value) =>
@@ -54,16 +59,22 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
     }
   }
 
-  override protected def scanValues(query: Option[ScanQuery]): CloseableIterator[(String, String, Array[Byte])] = {
-    val select = QueryBuilder.select("sft", "key", "value").from(catalog)
-    query.foreach(q => select.where(QueryBuilder.eq("sft", q.typeName)))
-    val values = session.execute(select).all().iterator.map { row =>
-      (row.getString("sft"), row.getString("key"), row.getString("value").getBytes(StandardCharsets.UTF_8))
+  override protected def scanValues(typeName: String, prefix: String): CloseableIterator[(String, Array[Byte])] = {
+    val select = QueryBuilder.select("key", "value").from(catalog).where(QueryBuilder.eq("sft", typeName))
+    val iter = session.execute(select).all().iterator.map { row =>
+      (row.getString("key"), row.getString("value").getBytes(StandardCharsets.UTF_8))
     }
-    query.flatMap(_.prefix) match {
-      case None => CloseableIterator(values)
-      case Some(prefix) => CloseableIterator(values.filter(_._2.startsWith(prefix)))
+    if (prefix == null || prefix.isEmpty) {
+      CloseableIterator(iter)
+    } else {
+      CloseableIterator(iter.filter { case (k, _) => k.startsWith(prefix) })
     }
+  }
+
+  override protected def scanKeys(): CloseableIterator[(String, String)] = {
+    val select = QueryBuilder.select("sft", "key").from(catalog)
+    val values = session.execute(select).all().iterator.map(row => (row.getString("sft"), row.getString("key")))
+    CloseableIterator(values)
   }
 
   override def close(): Unit = {} // session gets closed by datastore dispose

@@ -1,7 +1,7 @@
 <configuration>
   <property>
     <name>hbase.client.connection.impl</name>
-    <value>com.google.cloud.bigtable.hbase1_2.BigtableConnection</value>
+    <value>com.google.cloud.bigtable.hbase1_x.BigtableConnection</value>
   </property>
   <property>
     <name>google.bigtable.instance.id</name>

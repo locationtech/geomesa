@@ -28,7 +28,8 @@ import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.geotools.FeatureUtils
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -98,7 +99,20 @@ class LambdaDataStore(val persistence: DataStore,
     updateSchema(typeName.getLocalPart, featureType)
 
   override def updateSchema(typeName: String, featureType: SimpleFeatureType): Unit = {
-    CloseWithLogging(transients.get(typeName))
+    val transient = transients.get(typeName)
+    if (typeName != featureType.getTypeName) {
+      // ensure that we've loaded the entire kafka topic
+      logger.debug("Update schema: entering quiet period")
+      Thread.sleep(SystemProperty("geomesa.lambda.update.quiet.period", "10 seconds").toDuration.get.toMillis)
+      val toPersist = transient.read()
+      if (toPersist.nonEmpty) {
+        logger.debug("Update schema: persisting transient features")
+        WithClose(persistence.getFeatureWriter(typeName, Transaction.AUTO_COMMIT)) { writer =>
+          toPersist.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+      }
+    }
+    CloseWithLogging(transient)
     transients.invalidate(typeName)
     persistence.updateSchema(typeName, featureType)
   }

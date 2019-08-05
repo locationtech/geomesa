@@ -11,9 +11,12 @@ package org.locationtech.geomesa.utils.geotools.converters
 import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.StrictLogging
-import org.geotools.factory.GeoTools
+import org.geotools.data.util.InterpolationConverterFactory
+import org.geotools.util.factory.GeoTools
 import org.geotools.util.{Converter, Converters}
+import org.opengis.filter.expression.Expression
 
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 /**
@@ -24,7 +27,11 @@ object FastConverter extends StrictLogging {
 
   import scala.collection.JavaConverters._
 
-  private val factories = Converters.getConverterFactories(GeoTools.getDefaultHints).asScala.toArray
+  private val factories = Converters.getConverterFactories(GeoTools.getDefaultHints).asScala.toArray.filter {
+    // exclude jai-related factories as it's not usually on the classpath
+    case _: InterpolationConverterFactory => false
+    case _ => true
+  }
 
   private val cache = new ConcurrentHashMap[(Class[_], Class[_]), Array[Converter]]
 
@@ -56,23 +63,49 @@ object FastConverter extends StrictLogging {
       cache.put((clas, binding), converters)
     }
 
-    converters.foreach { converter =>
+    var i = 0
+    while (i < converters.length) {
       try {
-        val result = converter.convert(value, binding)
+        val result = converters(i).convert(value, binding)
         if (result != null) {
           return result
         }
       } catch {
         case NonFatal(e) =>
           logger.trace(s"Error converting $value (of type ${value.getClass.getName}) " +
-            s"to ${binding.getName} using converter ${converter.getClass.getName}:", e)
+              s"to ${binding.getName} using converter ${converters(i).getClass.getName}:", e)
       }
+      i += 1
     }
 
     logger.warn(s"Could not convert '$value' (of type ${value.getClass.getName}) to ${binding.getName}")
 
     null.asInstanceOf[T]
   }
+
+  /**
+    * Convert the value into the given type, returning the default if it could not be converted or is null
+    *
+    * @param value value to convert
+    * @param default value to return if convert results in null
+    * @param ct class tag
+    * @tparam T type to convert to
+    * @return
+    */
+  def convertOrElse[T <: AnyRef](value: Any, default: => T)(implicit ct: ClassTag[T]): T = {
+    val attempt = convert(value, ct.runtimeClass.asInstanceOf[Class[T]])
+    if (attempt == null) { default } else { attempt }
+  }
+
+  /**
+    * Evaluate and convert an expression
+    *
+    * @param expression expression to evaluate
+    * @param binding type to convert to
+    * @tparam T type binding
+    * @return converted value, or null if it could not be converted
+    */
+  def evaluate[T](expression: Expression, binding: Class[T]): T = convert(expression.evaluate(null), binding)
 
   private object IdentityConverter extends Converter {
     override def convert[T](source: Any, target: Class[T]): T = source.asInstanceOf[T]

@@ -59,12 +59,9 @@ class ArrowDataStoreTest extends Specification {
         caching.getSchema(sft.getTypeName) mustEqual sft
         caching.dispose() must not(throwAn[Exception])
 
-        var writer = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
-        features0.foreach { f =>
-          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-          writer.write()
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          features0.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
-        writer.close()
 
         caching = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> true))
 
@@ -79,12 +76,9 @@ class ArrowDataStoreTest extends Specification {
 
         caching.dispose() must not(throwAn[Exception])
 
-        writer = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
-        features1.foreach { f =>
-          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-          writer.write()
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          features1.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
-        writer.close()
 
         caching = DataStoreFinder.getDataStore(Map(UrlParam.key -> file, CachingParam.key -> true))
 

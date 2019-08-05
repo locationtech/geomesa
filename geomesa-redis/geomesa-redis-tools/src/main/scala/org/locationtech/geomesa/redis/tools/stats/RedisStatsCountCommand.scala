@@ -13,7 +13,8 @@ import org.locationtech.geomesa.redis.data.RedisDataStore
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand.RedisDataStoreParams
 import org.locationtech.geomesa.redis.tools.stats.RedisStatsCountCommand.RedisStatsCountParams
-import org.locationtech.geomesa.tools.stats.{StatsCountCommand, StatsCountParams}
+import org.locationtech.geomesa.tools.stats.StatsCountCommand
+import org.locationtech.geomesa.tools.stats.StatsCountCommand.StatsCountParams
 
 class RedisStatsCountCommand extends StatsCountCommand[RedisDataStore] with RedisDataStoreCommand {
   override val params = new RedisStatsCountParams

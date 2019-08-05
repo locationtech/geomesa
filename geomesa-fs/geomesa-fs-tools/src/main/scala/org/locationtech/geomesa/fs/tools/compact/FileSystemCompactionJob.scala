@@ -15,7 +15,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
@@ -26,7 +26,7 @@ import org.locationtech.geomesa.fs.tools.ingest.StorageJobUtils
 import org.locationtech.geomesa.jobs.mapreduce.{GeoMesaOutputFormat, JobWithLibJars}
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.StatusCallback
+import org.locationtech.geomesa.tools.utils.StatusCallback
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.SimpleFeature
 
@@ -36,13 +36,13 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
       storage: FileSystemStorage,
       partitions: Seq[PartitionMetadata],
       tempPath: Option[Path],
-      libjarsFile: String,
+      libjarsFiles: Seq[String],
       libjarsPaths: Iterator[() => Seq[File]],
       statusCallback: StatusCallback): (Long, Long) = {
 
     val job = Job.getInstance(new Configuration(storage.context.conf), "GeoMesa Storage Compaction")
 
-    setLibJars(job, libjarsFile, libjarsPaths)
+    setLibJars(job, libjarsFiles, libjarsPaths)
     job.setJarByClass(this.getClass)
 
     // InputFormat and Mappers

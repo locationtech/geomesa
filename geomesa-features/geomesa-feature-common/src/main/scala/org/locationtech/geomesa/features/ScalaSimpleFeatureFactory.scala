@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.features
 
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.util.factory.Hints
 import org.geotools.feature.AbstractFeatureFactoryImpl
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache

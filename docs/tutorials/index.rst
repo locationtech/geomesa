@@ -18,6 +18,13 @@ Quick Starts
     geomesa-quickstart-kudu
     geomesa-quickstart-lambda
     geomesa-quickstart-nifi
+
+Installation
+------------
+
+.. toctree::
+    :maxdepth: 1
+
     geodocker-geomesa/index
     geomesa-hbase-s3-on-aws
     geomesa-hbase-on-cdh

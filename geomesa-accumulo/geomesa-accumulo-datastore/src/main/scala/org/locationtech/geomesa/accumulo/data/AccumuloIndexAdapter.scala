@@ -17,16 +17,18 @@ import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
-import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.accumulo.AccumuloVersion
-import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.{AccumuloIndexWriter, ZIterPriority}
+import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.{AccumuloIndexWriter, AccumuloResultsToFeatures, ZIterPriority}
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, EmptyPlan}
 import org.locationtech.geomesa.accumulo.index.{AccumuloJoinIndex, JoinIndex}
+import org.locationtech.geomesa.accumulo.iterators.ArrowIterator.AccumuloArrowResultsToFeatures
+import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator.AccumuloBinResultsToFeatures
+import org.locationtech.geomesa.accumulo.iterators.DensityIterator.AccumuloDensityResultsToFeatures
+import org.locationtech.geomesa.accumulo.iterators.StatsIterator.AccumuloStatsResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
-import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
+import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
+import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.ColumnGroups
@@ -107,10 +109,22 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
     }
   }
 
-  // noinspection ScalaDeprecation
+  override def renameTable(from: String, to: String): Unit = {
+    if (tableOps.exists(from)) {
+      // noinspection ScalaDeprecation
+      if (ds.connector.isInstanceOf[org.apache.accumulo.core.client.mock.MockConnector]) {
+        // we need to synchronize renaming tables in mock accumulo as it's not thread safe
+        ds.connector.synchronized(tableOps.rename(from, to))
+      } else {
+        tableOps.rename(from, to)
+      }
+    }
+  }
+
   override def deleteTables(tables: Seq[String]): Unit = {
     tables.par.foreach { table =>
       if (tableOps.exists(table)) {
+        // noinspection ScalaDeprecation
         if (ds.connector.isInstanceOf[org.apache.accumulo.core.client.mock.MockConnector]) {
           // we need to synchronize deleting of tables in mock accumulo as it's not thread safe
           ds.connector.synchronized(tableOps.delete(table))
@@ -166,20 +180,21 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
         case _ =>
           val (iter, eToF, reduce) = if (strategy.hints.isBinQuery) {
             val iter = BinAggregatingIterator.configure(schema, index, ecql, hints)
-            (Seq(iter), BinAggregatingIterator.kvsToFeatures(), None)
+            (Seq(iter), new AccumuloBinResultsToFeatures(), None)
           } else if (strategy.hints.isArrowQuery) {
             val (iter, reduce) = ArrowIterator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
-            (Seq(iter), ArrowIterator.kvsToFeatures(), Some(reduce))
+            (Seq(iter), new AccumuloArrowResultsToFeatures(), Some(reduce))
           } else if (strategy.hints.isDensityQuery) {
             val iter = DensityIterator.configure(schema, index, ecql, hints)
-            (Seq(iter), DensityIterator.kvsToFeatures(), None)
+            (Seq(iter), new AccumuloDensityResultsToFeatures(), None)
           } else if (strategy.hints.isStatsQuery) {
             val iter = StatsIterator.configure(schema, index, ecql, hints)
-            val reduce = Some(StatsScan.reduceFeatures(schema, hints)(_))
-            (Seq(iter), StatsIterator.kvsToFeatures(), reduce)
+            val reduce = Some(StatsScan.StatsReducer(schema, hints))
+            (Seq(iter), new AccumuloStatsResultsToFeatures(), reduce)
           } else {
             val iter = FilterTransformIterator.configure(schema, index, ecql, hints).toSeq
-            (iter, AccumuloIndexAdapter.entriesToFeatures(index, hints.getReturnSft), None)
+            val toFeatures = AccumuloResultsToFeatures(index, hints.getReturnSft)
+            (iter, toFeatures, None)
           }
 
           // configure additional iterators based on the index
@@ -206,7 +221,11 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
 
           val iters = iter ++ indexIter ++ visIter
 
-          BatchScanPlan(filter, tables, ranges, iters, colFamily, eToF, reduce, numThreads)
+          val sort = hints.getSortFields
+          val max = hints.getMaxFeatures
+          val project = hints.getProjection
+
+          BatchScanPlan(filter, tables, ranges, iters, colFamily, eToF, reduce, sort, max, project, numThreads)
       }
     }
   }
@@ -287,39 +306,6 @@ object AccumuloIndexAdapter {
   }
 
   /**
-    * Turns accumulo results into simple features
-    *
-    * @param index feature index
-    * @param returnSft return simple feature type (transform, etc)
-    * @return
-    */
-  def entriesToFeatures(index: GeoMesaFeatureIndex[_, _],
-                        returnSft: SimpleFeatureType): Entry[Key, Value] => SimpleFeature = {
-    // Perform a projecting decode of the simple feature
-    if (index.serializedWithId) {
-      entriesToFeaturesWithId(KryoFeatureSerializer(returnSft))
-    } else {
-      entriesToFeatures(index, KryoFeatureSerializer(returnSft, SerializationOptions.withoutId))
-    }
-  }
-
-  private def entriesToFeatures(index: GeoMesaFeatureIndex[_, _],
-                                deserializer: KryoFeatureSerializer)
-                               (kv: Entry[Key, Value]): SimpleFeature = {
-    val sf = deserializer.deserialize(kv.getValue.get)
-    val row = kv.getKey.getRow
-    sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(index.getIdFromRow(row.getBytes, 0, row.getLength, sf))
-    applyVisibility(sf, kv.getKey)
-    sf
-  }
-
-  private def entriesToFeaturesWithId(deserializer: KryoFeatureSerializer)(kv: Entry[Key, Value]): SimpleFeature = {
-    val sf = deserializer.deserialize(kv.getValue.get)
-    applyVisibility(sf, kv.getKey)
-    sf
-  }
-
-  /**
     * Accumulo index writer implementation
     *
     * @param ds data store
@@ -327,10 +313,14 @@ object AccumuloIndexAdapter {
     * @param wrapper feature wrapper
     * @param partition partition to write to (if partitioned schema)
     */
-  class AccumuloIndexWriter(ds: AccumuloDataStore,
-                            indices: Seq[GeoMesaFeatureIndex[_, _]],
-                            wrapper: FeatureWrapper,
-                            partition: Option[String]) extends IndexWriter(indices, wrapper) {
+  class AccumuloIndexWriter(
+      ds: AccumuloDataStore,
+      indices: Seq[GeoMesaFeatureIndex[_, _]],
+      wrapper: FeatureWrapper[WritableFeature],
+      partition: Option[String]
+    ) extends BaseIndexWriter[WritableFeature](indices, wrapper) {
+
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     private val multiWriter = ds.connector.createMultiTableBatchWriter(GeoMesaBatchWriterConfig())
     private val writers = indices.toArray.map { index =>
@@ -342,6 +332,7 @@ object AccumuloIndexAdapter {
     }
 
     private val colFamilyMappings = indices.map(mapColumnFamily).toArray
+    private val timestamps = indices.exists(i => !i.sft.isLogicalTime)
 
     // cache our vis to avoid the re-parsing done in the ColumnVisibility constructor
     private val defaultVisibility = new ColumnVisibility(ds.config.defaultVisibilities)
@@ -349,7 +340,12 @@ object AccumuloIndexAdapter {
 
     private var i = 0
 
-    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
+    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
+      if (timestamps && update) {
+        // for updates, ensure that our timestamps don't clobber each other
+        multiWriter.flush()
+        Thread.sleep(1)
+      }
       i = 0
       while (i < values.length) {
         values(i) match {
@@ -436,6 +432,52 @@ object AccumuloIndexAdapter {
     override def flush(): Unit = multiWriter.flush()
 
     override def close(): Unit = multiWriter.close()
+  }
+
+  /**
+    * Accumulo entries to features
+    *
+    * @param _index index
+    * @param _sft simple feature type
+    */
+  abstract class AccumuloResultsToFeatures(_index: GeoMesaFeatureIndex[_, _], _sft: SimpleFeatureType)
+      extends IndexResultsToFeatures[Entry[Key, Value]](_index, _sft)
+
+  object AccumuloResultsToFeatures {
+
+    def apply(index: GeoMesaFeatureIndex[_, _], sft: SimpleFeatureType): AccumuloResultsToFeatures = {
+      if (index.serializedWithId) {
+        new AccumuloIndexWithIdResultsToFeatures(index, sft)
+      } else {
+        new AccumuloIndexResultsToFeatures(index, sft)
+      }
+    }
+
+    class AccumuloIndexResultsToFeatures(_index: GeoMesaFeatureIndex[_, _], _sft: SimpleFeatureType)
+        extends AccumuloResultsToFeatures(_index, _sft) {
+
+      def this() = this(null, null) // no-arg constructor required for serialization
+
+      override def apply(result: Entry[Key, Value]): SimpleFeature = {
+        val row = result.getKey.getRow
+        val id = index.getIdFromRow(row.getBytes, 0, row.getLength, null)
+        val sf = serializer.deserialize(id, result.getValue.get)
+        AccumuloIndexAdapter.applyVisibility(sf, result.getKey)
+        sf
+      }
+    }
+
+    class AccumuloIndexWithIdResultsToFeatures(_index: GeoMesaFeatureIndex[_, _], _sft: SimpleFeatureType)
+        extends AccumuloResultsToFeatures(_index, _sft) {
+
+      def this() = this(null, null) // no-arg constructor required for serialization
+
+      override def apply(result: Entry[Key, Value]): SimpleFeature = {
+        val sf = serializer.deserialize(result.getValue.get)
+        AccumuloIndexAdapter.applyVisibility(sf, result.getKey)
+        sf
+      }
+    }
   }
 
   /**

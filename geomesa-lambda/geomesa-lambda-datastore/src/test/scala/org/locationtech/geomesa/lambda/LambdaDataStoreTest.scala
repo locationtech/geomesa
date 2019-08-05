@@ -14,7 +14,7 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -130,8 +130,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
 
           WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
             features.foreach { feature =>
-              FeatureUtils.copyToWriter(writer, feature, useProvidedFid = true)
-              writer.write()
+              FeatureUtils.write(writer, feature, useProvidedFid = true)
               clock.tick = clock.millis + 50
             }
           }

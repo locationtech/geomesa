@@ -66,19 +66,26 @@ Argument                 Description
 ``-c, --catalog *``      The catalog table containing schema metadata
 ``-f, --feature-name *`` The name of the schema
 ``-q, --cql``            CQL filter to select features to export
-``-a, --attributes``     Specific attributes to export
+``-a, --attributes``     Comma-separated list of attributes to export
+``--attribute``          Complex attribute transforms to export
 ``-m, --max-features``   Limit the number of features exported
 ``-F, --output-format``  Output format used for export
 ``-o, --output``         Output to a file instead of standard out
+``--sort-by``            Sort by the specified attributes
+``--sort-descending``    Sort in descending order, instead of the default ascending order
 ``--hints``              Query hints used to modify the query
 ``--index``              Specific index used to run the query
-``--no-header``          Don't export the type header, for CSV and TSV formats
+``--no-header``          For CSV and TSV formats, suppress the normal column headers
 ``--gzip``               Level of gzip compression to use for output, from 1-9
+``--chunk-size``         Split the output into multiple files of the given size
+``--run-mode``           Run locally or as a distributed map/reduce job
+``--num-reducers``       Specify the number of reduces, when running in distributed mode
+``--force``              Force execution without prompts
 ======================== =========================================================
 
-
-The ``--attributes`` argument can be used to select a subset of attributes to export, or to transform
-the attributes using filter functions. A simple projection can be specified as a comma-delimited list::
+The ``--attributes`` and ``--attribute`` parameters can be used to select a subset of attributes to export, or
+to transform the returned attributes using filter functions. A simple projection can be specified as a
+comma-delimited list::
 
     --attributes name,age,geom
 
@@ -86,9 +93,11 @@ The feature ID can be specified along with other attribute names, with the reser
 
     --attributes id,name,age,geom
 
-Transforms can be accomplished by specifying transform functions::
+Transforms can be accomplished by using ``--attribute`` to specify transform functions. Note that compared to
+``--attributes``, only a single argument can be specified per parameter, and commas will not be interpreted as
+a delimiter::
 
-    --attributes id,name,name_transform=strConcat(name, 'foo')
+    --attribute id --attribute name --attribute "name_transform=strConcat(name, 'foo')"
 
 For a full list of transforms, see the GeoTools `documentation <http://docs.geotools.org/latest/userguide/library/main/function_list.html>`_.
 Note that not all functions work in transforms, however.
@@ -98,11 +107,13 @@ The ``--output-format`` argument defines the encoding used for export. Currently
 * ``arrow`` Apache Arrow streaming file format
 * ``avro`` Apache Avro format
 * ``bin`` Custom minimal binary encoding
-* ``csv``, ``tsv``
-* ``geojson``, ``json``
-* ``gml`` `Geography Markup Language <http://www.opengeospatial.org/standards/gml>`_
+* ``csv`` or ``tsv``
+* ``json``
+* ``gml`` or ``gml2`` `Geography Markup Language <http://www.opengeospatial.org/standards/gml>`_
+* ``html`` Export data to a Leaflet map and open in the default browser, if possible
+* ``orc`` Apache Orc files
+* ``parquet`` Apache Parquet files
 * ``shp`` ESRI Shapefile
-* ``leaflet`` Export data to a Leaflet map and open in the default browser, if possible
 * ``null`` suppress output entirely
 
 .. note::
@@ -111,8 +122,11 @@ The ``--output-format`` argument defines the encoding used for export. Currently
     map generation it is highly recommended to use GeoServer. Additionally, the resulting file from this command
     requires the use of an online browser to open in order to access online resources.
 
-The ``--output`` argument can be used to export to a file. By default, export data is written to the standard
-output stream.
+The ``--output`` argument can be used to export to a file. By default, export data is written to standard output.
+
+The ``--sort-by`` argument can be used to sort the output by one or more attributes. Note that for local exports,
+this will usually be done in-memory, so can be costly for large result sets. By default, output is sorted in
+ascending order; ``--sort-descending`` can be used to reverse the sort order.
 
 The ``--hints`` argument can be used to set query hints. Hints should be specified as ``key1=value1;key2=value2``, etc.
 Note that due to shell expansion, the hint string will likely need to be quoted. See :ref:`analytic_queries` for
@@ -126,6 +140,21 @@ have all index types.
 
 The ``--gzip`` argument can be used to compress the output through **gzip** encoding. It can be specified
 as a number between 1-9. Higher numbers indicate more compression, lower numbers indicate faster compression.
+
+The ``--chunk-size`` argument can be used to split the output into multiple smaller files. It is specified as
+a size in bytes, e.g. ``10MB``. Note that due to buffering and metadata, it is generally not feasible to hit
+the chunk size exactly. For finer control, the system property ``org.locationtech.geomesa.export.bytes-per-feature``
+can be used to set an initial number of bytes per feature as a float, i.e. ``5.5``. If exporting to multiple
+formats at once, the property  ``org.locationtech.geomesa.export.<name>.bytes-per-feature`` can also be used,
+where ``<name>`` corresponds to one of  the output formats mentioned above (e.g. ``json``, ``parquet``, etc).
+
+The ``--run-mode distributed`` argument can be used to specify a distributed map/reduce export, for data stores
+that support it. Distributed exports can be used for data migration or large-scale sorting. When running
+in distributed mode, the output file must be in a distributed filesystem (e.g. HDFS or S3). When sorting a
+distributed export, ``--num-reducers`` must be specified to set the number of reducer tasks.
+
+The ``--force`` argument can be used to suppress prompts, such as a prompt to overwrite an existing file. This
+should be used with care, as data loss can occur if you export to an existing directory.
 
 ``playback``
 ------------

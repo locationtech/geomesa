@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
@@ -30,6 +30,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.MatchResult
 
@@ -57,7 +58,7 @@ class HBasePartitioningTest extends HBaseTest with LazyLogging {
         ds.getSchema(typeName) must beNull
 
         ds.createSchema(SimpleFeatureTypes.createType(typeName,
-          s"$spec${Configs.TABLE_PARTITIONING}=${TimePartition.Name}"))
+          s"$spec${Configs.TablePartitioning}=${TimePartition.Name}"))
 
         val sft = ds.getSchema(typeName)
 
@@ -87,10 +88,8 @@ class HBasePartitioningTest extends HBaseTest with LazyLogging {
         // add the last two features to an alternate table and adopt them
         ds.createSchema(SimpleFeatureTypes.createType("testpartitionadoption", spec))
         WithClose(ds.getFeatureWriterAppend("testpartitionadoption", Transaction.AUTO_COMMIT)) { writer =>
-          FeatureUtils.copyToWriter(writer, toAdd(8), useProvidedFid = true)
-          writer.write()
-          FeatureUtils.copyToWriter(writer, toAdd(9), useProvidedFid = true)
-          writer.write()
+          FeatureUtils.write(writer, toAdd(8), useProvidedFid = true)
+          FeatureUtils.write(writer, toAdd(9), useProvidedFid = true)
         }
         // duplicates the logic in `org.locationtech.geomesa.tools.data.ManagePartitionsCommand.AdoptPartitionCommand`
         ds.manager.indices(ds.getSchema("testpartitionadoption")).foreach { index =>
@@ -98,7 +97,7 @@ class HBasePartitioningTest extends HBaseTest with LazyLogging {
           ds.metadata.insert(sft.getTypeName, index.tableNameKey(Some("foo")), table)
         }
         def zonedDateTime(sf: SimpleFeature) =
-          ZonedDateTime.ofInstant(sf.getAttribute("dtg").asInstanceOf[Date].toInstant, ZoneOffset.UTC)
+          ZonedDateTime.ofInstant(toInstant(sf.getAttribute("dtg").asInstanceOf[Date]), ZoneOffset.UTC)
         TablePartition(ds, sft).get.asInstanceOf[TimePartition].register("foo", zonedDateTime(toAdd(8)), zonedDateTime(toAdd(9)))
 
         // verify the table was adopted

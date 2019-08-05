@@ -31,6 +31,8 @@ class InMemoryMetadata[T] extends GeoMesaMetadata[T] {
     schemas.get(typeName).foreach(_.remove(key))
   }
 
+  override def remove(typeName: String, keys: Seq[String]): Unit = keys.foreach(remove(typeName, _))
+
   override def read(typeName: String, key: String, cache: Boolean): Option[T] = synchronized {
     schemas.get(typeName).flatMap(_.get(key))
   }
@@ -47,6 +49,8 @@ class InMemoryMetadata[T] extends GeoMesaMetadata[T] {
   }
 
   override def invalidateCache(typeName: String, key: String): Unit = {}
+
+  override def backup(typeName: String): Unit = {}
 
   override def close(): Unit = {}
 }

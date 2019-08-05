@@ -13,7 +13,7 @@ import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.geotools.util.NullProgressListener
+import org.geotools.data.util.NullProgressListener
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
@@ -86,7 +86,7 @@ object MinMaxProcess {
 
       source.getDataStore match {
         case ds: HasGeoMesaStats =>
-          resultCalc = ds.stats.getAttributeBounds[Any](source.getSchema, attribute, query.getFilter, !cached) match {
+          resultCalc = ds.stats.getMinMax[Any](source.getSchema, attribute, query.getFilter, !cached) match {
             case None     => createResult("{}")
             case Some(mm) => createResult(mm.toJson)
           }

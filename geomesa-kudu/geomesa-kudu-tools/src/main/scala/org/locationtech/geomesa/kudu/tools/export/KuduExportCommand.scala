@@ -10,14 +10,13 @@ package org.locationtech.geomesa.kudu.tools.export
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.kudu.data.KuduDataStore
-import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand
-import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand.KuduParams
+import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand.{KuduDistributedCommand, KuduParams}
 import org.locationtech.geomesa.kudu.tools.export.KuduExportCommand.KuduExportParams
 import org.locationtech.geomesa.tools.export.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.tools.{OptionalIndexParam, RequiredTypeNameParam}
 
-class KuduExportCommand extends ExportCommand[KuduDataStore] with KuduDataStoreCommand {
+class KuduExportCommand extends ExportCommand[KuduDataStore] with KuduDistributedCommand {
   override val params = new KuduExportParams
 }
 

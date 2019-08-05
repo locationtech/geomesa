@@ -13,7 +13,8 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, RemoteFilterNotUsedParam}
 import org.locationtech.geomesa.hbase.tools.data.HBaseDeleteFeaturesCommand.HBaseDeleteFeaturesParams
-import org.locationtech.geomesa.tools.data.{DeleteFeaturesCommand, DeleteFeaturesParams}
+import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand
+import org.locationtech.geomesa.tools.data.DeleteFeaturesCommand.DeleteFeaturesParams
 
 class HBaseDeleteFeaturesCommand extends DeleteFeaturesCommand[HBaseDataStore] with HBaseDataStoreCommand {
   override val params = new HBaseDeleteFeaturesParams

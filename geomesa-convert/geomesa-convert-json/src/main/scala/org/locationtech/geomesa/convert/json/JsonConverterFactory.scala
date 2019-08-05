@@ -18,8 +18,6 @@ import com.typesafe.config.Config
 import org.locationtech.geomesa.convert.json.GeoJsonParsing.GeoJsonFeature
 import org.locationtech.geomesa.convert.json.JsonConverter.{JsonField, _}
 import org.locationtech.geomesa.convert.json.JsonConverterFactory.{JsonConfigConvert, JsonFieldConvert}
-import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
-import org.locationtech.geomesa.convert.SimpleFeatureValidator
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicOptionsConvert, ConverterConfigConvert, ConverterOptionsConvert, FieldConvert, OptionConvert}
 import org.locationtech.geomesa.convert2.TypeInference.{IdentityTransform, InferredType}
@@ -43,7 +41,13 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
   override protected implicit def fieldConvert: FieldConvert[JsonField] = JsonFieldConvert
   override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
 
-  override def infer(is: InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] = {
+  override def infer(is: InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] =
+    infer(is, sft, None)
+
+  override def infer(
+      is: InputStream,
+      sft: Option[SimpleFeatureType],
+      path: Option[String]): Option[(SimpleFeatureType, Config)] = {
     try {
       val reader = new JsonReader(new InputStreamReader(is, StandardCharsets.UTF_8))
       reader.setLenient(true)
@@ -125,12 +129,10 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
 
         val jsonConfig = JsonConfig(typeToProcess, featurePath, idField, Map.empty, Map.empty)
         val fieldConfig = fields :+ geomField
-        val options =
-          BasicOptions(SimpleFeatureValidator.default, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
 
         val config = configConvert.to(jsonConfig)
             .withFallback(fieldConvert.to(fieldConfig))
-            .withFallback(optsConvert.to(options))
+            .withFallback(optsConvert.to(BasicOptions.default))
             .toConfig
 
         (schema, config)
@@ -149,11 +151,12 @@ object JsonConverterFactory {
 
   object JsonConfigConvert extends ConverterConfigConvert[JsonConfig] with OptionConvert {
 
-    override protected def decodeConfig(cur: ConfigObjectCursor,
-                                        `type`: String,
-                                        idField: Option[Expression],
-                                        caches: Map[String, Config],
-                                        userData: Map[String, Expression]): Either[ConfigReaderFailures, JsonConfig] = {
+    override protected def decodeConfig(
+        cur: ConfigObjectCursor,
+        `type`: String,
+        idField: Option[Expression],
+        caches: Map[String, Config],
+        userData: Map[String, Expression]): Either[ConfigReaderFailures, JsonConfig] = {
       for { path <- optional(cur, "feature-path").right } yield {
         JsonConfig(`type`, path, idField, caches, userData)
       }

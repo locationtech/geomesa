@@ -53,6 +53,7 @@ Date Functions
 -  ``dateHourMinuteSecondMillis``
 -  ``millisToDate``
 -  ``secsToDate``
+-  ``dateToString``
 
 Geometry Functions
 ~~~~~~~~~~~~~~~~~~

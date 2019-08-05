@@ -8,9 +8,13 @@
 
 package org.locationtech.geomesa.kafka.tools
 
+import java.io.File
+
+import org.apache.kafka.clients.producer.Producer
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
-import org.locationtech.geomesa.tools.DataStoreCommand
+import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
+import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 
 /**
   * Abstract class for commands that require a KafkaDataStore
@@ -32,5 +36,21 @@ trait KafkaDataStoreCommand extends DataStoreCommand[KafkaDataStore] {
       KafkaDataStoreFactoryParams.TopicReplication.getName -> params.replication.toString,
       KafkaDataStoreFactoryParams.ConsumerReadBack.getName -> readBack
     ).filter(_._2 != null)
+  }
+}
+
+object KafkaDataStoreCommand {
+
+  trait KafkaDistributedCommand extends KafkaDataStoreCommand with DistributedCommand {
+
+    abstract override def libjarsFiles: Seq[String] =
+      Seq("org/locationtech/geomesa/kafka/tools/kafka-libjars.list") ++ super.libjarsFiles
+
+    abstract override def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
+      () => ClassPathUtils.getJarsFromEnvironment("GEOMESA_KAFKA_HOME", "lib"),
+      () => ClassPathUtils.getJarsFromEnvironment("KAFKA_HOME"),
+      () => ClassPathUtils.getJarsFromClasspath(classOf[KafkaDataStore]),
+      () => ClassPathUtils.getJarsFromClasspath(classOf[Producer[_, _]])
+    ) ++ super.libjarsPaths
   }
 }

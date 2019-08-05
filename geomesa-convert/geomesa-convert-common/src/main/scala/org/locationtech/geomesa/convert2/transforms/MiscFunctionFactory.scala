@@ -20,6 +20,6 @@ class MiscFunctionFactory extends TransformerFunctionFactory {
   }
 
   private val lineNumber = new NamedTransformerFunction(Seq("lineNo", "lineNumber")) {
-    def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = ctx.counter.getLineCount
+    def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = ctx.line
   }
 }

@@ -12,13 +12,13 @@ import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{FilterList, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
-import org.locationtech.geomesa.hbase.coprocessor.CoprocessorConfig
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.index.PartitionParallelScan
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.opengis.feature.simple.SimpleFeature
 
 sealed trait HBaseQueryPlan extends QueryPlan[HBaseDataStore] {
 
@@ -82,52 +82,73 @@ object HBaseQueryPlan {
 
   // plan that will not actually scan anything
   case class EmptyPlan(filter: FilterStrategy) extends HBaseQueryPlan {
+    override type Results = Result
     override val tables: Seq[TableName] = Seq.empty
     override val ranges: Seq[Scan] = Seq.empty
     override val scans: Seq[Scan] = Seq.empty
-    override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
+    override val resultsToFeatures: ResultsToFeatures[Result] = ResultsToFeatures.empty
+    override val reducer: Option[FeatureReducer] = None
+    override val sort: Option[Seq[(String, Boolean)]] = None
+    override val maxFeatures: Option[Int] = None
+    override val projection: Option[QueryReferenceSystems] = None
+    override def scan(ds: HBaseDataStore): CloseableIterator[Result] = CloseableIterator.empty
   }
 
-  case class ScanPlan(filter: FilterStrategy,
-                      tables: Seq[TableName],
-                      ranges: Seq[Scan],
-                      scans: Seq[Scan],
-                      resultsToFeatures: CloseableIterator[Result] => CloseableIterator[SimpleFeature])
-      extends HBaseQueryPlan {
+  case class ScanPlan(
+      filter: FilterStrategy,
+      tables: Seq[TableName],
+      ranges: Seq[Scan],
+      scans: Seq[Scan],
+      resultsToFeatures: ResultsToFeatures[Result],
+      reducer: Option[FeatureReducer],
+      sort: Option[Seq[(String, Boolean)]],
+      maxFeatures: Option[Int],
+      projection: Option[QueryReferenceSystems]
+    ) extends HBaseQueryPlan {
 
-    override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
+    override type Results = Result
+
+    override def scan(ds: HBaseDataStore): CloseableIterator[Result] = {
       // note: we have to copy the ranges for each scan, except the last one (since it won't conflict at that point)
       val iter = tables.iterator
       val scans = iter.map(singleTableScan(ds, _, copyScans = iter.hasNext))
 
       if (PartitionParallelScan.toBoolean.contains(true)) {
         // kick off all the scans at once
-        scans.foldLeft(CloseableIterator.empty[SimpleFeature])(_ ++ _)
+        scans.foldLeft(CloseableIterator.empty[Result])(_ ++ _)
       } else {
         // kick off the scans sequentially as they finish
         SelfClosingIterator(scans).flatMap(s => s)
       }
     }
 
-    private def singleTableScan(ds: HBaseDataStore,
-                                table: TableName,
-                                copyScans: Boolean): CloseableIterator[SimpleFeature] = {
+    private def singleTableScan(
+        ds: HBaseDataStore,
+        table: TableName,
+        copyScans: Boolean): CloseableIterator[Result] = {
       val s = if (copyScans) { scans.map(new Scan(_)) } else { scans }
-      val results = HBaseBatchScan(ds.connection, table, s, ds.config.queryThreads)
-      SelfClosingIterator(resultsToFeatures(results), results.close())
+      HBaseBatchScan(ds.connection, table, s, ds.config.queryThreads)
     }
   }
 
-
-  case class CoprocessorPlan(filter: FilterStrategy,
-                             tables: Seq[TableName],
-                             ranges: Seq[Scan],
-                             scan: Scan,
-                             config: CoprocessorConfig) extends HBaseQueryPlan  {
+  case class CoprocessorPlan(
+      filter: FilterStrategy,
+      tables: Seq[TableName],
+      ranges: Seq[Scan],
+      scan: Scan,
+      coprocessorOptions: Map[String, String],
+      resultsToFeatures: ResultsToFeatures[Array[Byte]],
+      reducer: Option[FeatureReducer],
+      maxFeatures: Option[Int],
+      projection: Option[QueryReferenceSystems]
+    ) extends HBaseQueryPlan {
 
     import org.locationtech.geomesa.hbase.coprocessor._
 
+    override type Results = Array[Byte]
+
     override def scans: Seq[Scan] = Seq(scan)
+    override def sort: Option[Seq[(String, Boolean)]] = None // client side sorting is not relevant for coprocessors
 
     /**
       * Runs the query plain against the underlying database, returning the raw entries
@@ -135,29 +156,30 @@ object HBaseQueryPlan {
       * @param ds data store - provides connection object and metadata
       * @return
       */
-    override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = {
+    override def scan(ds: HBaseDataStore): CloseableIterator[Array[Byte]] = {
       // note: we have to copy the ranges for each scan, except the last one (since it won't conflict at that point)
       val iter = tables.iterator
       val scans = iter.map(singleTableScan(ds, _, copyScans = iter.hasNext))
 
       if (PartitionParallelScan.toBoolean.contains(true)) {
         // kick off all the scans at once
-        config.reduce(scans.foldLeft(CloseableIterator.empty[SimpleFeature])(_ ++ _))
+        scans.foldLeft(CloseableIterator.empty[Array[Byte]])(_ ++ _)
       } else {
         // kick off the scans sequentially as they finish
-        config.reduce(SelfClosingIterator(scans).flatMap(s => s))
+        SelfClosingIterator(scans).flatMap(s => s)
       }
     }
 
     override protected def explain(explainer: Explainer): Unit =
-      explainer("Coprocessor options: " + config.options.map(m => s"[${m._1}:${m._2}]").mkString(", "))
+      explainer("Coprocessor options: " + coprocessorOptions.map(m => s"[${m._1}:${m._2}]").mkString(", "))
 
-    private def singleTableScan(ds: HBaseDataStore,
-                                table: TableName,
-                                copyScans: Boolean): CloseableIterator[SimpleFeature] = {
+    private def singleTableScan(
+        ds: HBaseDataStore,
+        table: TableName,
+        copyScans: Boolean): CloseableIterator[Array[Byte]] = {
       val s = if (copyScans) { new Scan(scan) } else { scan }
-      GeoMesaCoprocessor.execute(ds.connection.getTable(table), s, config.options).collect {
-        case r if r.size() > 0 => config.bytesToFeatures(r.toByteArray)
+      GeoMesaCoprocessor.execute(ds.connection.getTable(table), s, coprocessorOptions).collect {
+        case r if r.size() > 0 => r.toByteArray
       }
     }
   }

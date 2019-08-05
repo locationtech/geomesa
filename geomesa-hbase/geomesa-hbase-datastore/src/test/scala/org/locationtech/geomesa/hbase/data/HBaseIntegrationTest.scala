@@ -10,7 +10,7 @@ package org.locationtech.geomesa.hbase.data
 
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature

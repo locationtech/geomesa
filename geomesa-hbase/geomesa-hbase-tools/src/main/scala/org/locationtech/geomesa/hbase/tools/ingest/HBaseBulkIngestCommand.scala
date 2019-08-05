@@ -15,20 +15,20 @@ import org.apache.hadoop.mapreduce.Job
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.jobs.HBaseIndexFileMapper
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.HBaseDistributedCommand
 import org.locationtech.geomesa.hbase.tools.ingest.HBaseBulkIngestCommand.HBaseBulkIngestParams
 import org.locationtech.geomesa.hbase.tools.ingest.HBaseIngestCommand.HBaseIngestParams
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
-import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.StatusCallback
 import org.locationtech.geomesa.tools.ingest.DistributedCombineConverterIngest.ConverterCombineIngestJob
 import org.locationtech.geomesa.tools.ingest.DistributedConverterIngest.ConverterIngestJob
 import org.locationtech.geomesa.tools.ingest._
+import org.locationtech.geomesa.tools.utils.StatusCallback
 import org.locationtech.geomesa.tools.{Command, OutputPathParam, RequiredIndexParam}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
-
-class HBaseBulkIngestCommand extends HBaseIngestCommand {
+class HBaseBulkIngestCommand extends HBaseIngestCommand with HBaseDistributedCommand {
 
   override val name = "bulk-ingest"
   override val params = new HBaseBulkIngestParams()
@@ -41,12 +41,12 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
       case RunModes.Local =>
         throw new IllegalArgumentException("Bulk ingest must be run in distributed mode")
 
-      case RunModes.Distributed =>
-        new DistributedConverterIngest(connection, sft, converter, inputs, libjarsFile, libjarsPaths,
-          params.waitForCompletion) with BulkConverterIngest {
+      case RunModes.Distributed if params.combineInputs =>
+        new DistributedCombineConverterIngest(connection, sft, converter, inputs, libjarsFiles, libjarsPaths,
+          Option(params.maxSplitSize), params.waitForCompletion) with BulkConverterIngest {
 
-          override protected def createJob(): ConverterIngestJob =
-            new ConverterIngestJob(connection, sft, converter, inputs, libjarsFile, libjarsPaths) {
+          override protected def createJob(): ConverterCombineIngestJob =
+            new ConverterCombineIngestJob(connection, sft, converter, inputs, Option(params.maxSplitSize), libjarsFiles, libjarsPaths) {
               override def configureJob(job: Job): Unit = {
                 super.configureJob(job)
                 HBaseIndexFileMapper.configure(job, connection, sft.getTypeName, index, new Path(params.outputPath))
@@ -54,12 +54,12 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand {
             }
         }
 
-      case RunModes.DistributedCombine =>
-        new DistributedCombineConverterIngest(connection, sft, converter, inputs, libjarsFile, libjarsPaths,
-          Option(params.maxSplitSize), params.waitForCompletion) with BulkConverterIngest {
+      case RunModes.Distributed =>
+        new DistributedConverterIngest(connection, sft, converter, inputs, libjarsFiles, libjarsPaths,
+          params.waitForCompletion) with BulkConverterIngest {
 
-          override protected def createJob(): ConverterCombineIngestJob =
-            new ConverterCombineIngestJob(connection, sft, converter, inputs, Option(params.maxSplitSize), libjarsFile, libjarsPaths) {
+          override protected def createJob(): ConverterIngestJob =
+            new ConverterIngestJob(connection, sft, converter, inputs, libjarsFiles, libjarsPaths) {
               override def configureJob(job: Job): Unit = {
                 super.configureJob(job)
                 HBaseIndexFileMapper.configure(job, connection, sft.getTypeName, index, new Path(params.outputPath))

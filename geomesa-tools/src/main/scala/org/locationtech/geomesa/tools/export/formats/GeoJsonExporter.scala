@@ -8,14 +8,17 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io.Writer
+import java.io.{OutputStream, OutputStreamWriter}
+import java.nio.charset.StandardCharsets
 
 import org.geotools.geojson.feature.FeatureJSON
+import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class GeoJsonExporter(writer: Writer) extends FeatureExporter {
+class GeoJsonExporter(os: OutputStream, counter: ByteCounter) extends ByteCounterExporter(counter) {
 
   private val json = new FeatureJSON()
+  private val writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)
 
   private var first = true
 
@@ -23,13 +26,15 @@ class GeoJsonExporter(writer: Writer) extends FeatureExporter {
 
   override def export(features: Iterator[SimpleFeature]): Option[Long] = {
     var count = 0L
-    features.foreach { feature =>
-      if (first) {
-        first = false
-      } else {
-        writer.write(",")
-      }
-      json.writeFeature(feature, writer)
+    if (first && features.hasNext) {
+      first = false
+      writer.write('\n')
+      json.writeFeature(features.next, writer)
+      count += 1L
+    }
+    while (features.hasNext) {
+      writer.write(",\n")
+      json.writeFeature(features.next, writer)
       count += 1L
     }
     writer.flush()
@@ -37,6 +42,9 @@ class GeoJsonExporter(writer: Writer) extends FeatureExporter {
   }
 
   override def close(): Unit  = {
+    if (!first) {
+      writer.write('\n')
+    }
     writer.write("]}\n")
     writer.close()
   }

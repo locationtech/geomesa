@@ -94,7 +94,7 @@ private class SimpleFeatureSpecParser extends BasicParser {
   // Valid specs can have attributes that look like the following:
   // "id:Integer:opt1=v1:opt2=v2,*geom:Geometry:srid=4326,ct:List[String],mt:Map[String,Double]"
 
-  import SimpleFeatureTypes.AttributeOptions.OPT_DEFAULT
+  import SimpleFeatureTypes.AttributeOptions.OptDefault
   import org.parboiled.scala._
 
   // full simple feature spec
@@ -118,7 +118,7 @@ private class SimpleFeatureSpecParser extends BasicParser {
   private def geometryAttribute: Rule1[AttributeSpec] = rule("GeometryAttribute") {
     (default ~ name ~ geometryType ~ attributeOptions) ~~> {
       (default, name, geom, opts) => {
-        GeomAttributeSpec(name, geom, opts + (OPT_DEFAULT -> default.getOrElse(false).toString))
+        GeomAttributeSpec(name, geom, opts + (OptDefault -> default.getOrElse(false).toString))
       }
     }
   }

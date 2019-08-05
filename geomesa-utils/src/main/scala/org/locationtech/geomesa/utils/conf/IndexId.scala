@@ -14,7 +14,18 @@ import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import scala.util.control.NonFatal
 
 case class IndexId(name: String, version: Int, attributes: Seq[String], mode: IndexMode = IndexMode.ReadWrite) {
+
   lazy val encoded: String = s"$name:$version:${mode.flag}:${attributes.mkString(":")}"
+
+  override def equals(other: Any): Boolean = other match {
+    case that: IndexId => encoded == that.encoded
+    case _ => false
+  }
+
+  override def hashCode(): Int = {
+    val state = Seq(encoded)
+    state.map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  }
 }
 
 object IndexId {

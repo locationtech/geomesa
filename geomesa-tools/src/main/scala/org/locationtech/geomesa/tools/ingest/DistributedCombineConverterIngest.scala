@@ -16,9 +16,9 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.ingest.AbstractConverterIngest.StatusCallback
 import org.locationtech.geomesa.tools.ingest.DistributedCombineConverterIngest.ConverterCombineIngestJob
 import org.locationtech.geomesa.tools.ingest.DistributedConverterIngest.ConverterIngestJob
+import org.locationtech.geomesa.tools.utils.StatusCallback
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -29,7 +29,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * @param sft simple feature type
   * @param converterConfig converter definition
   * @param inputs files to ingest
-  * @param libjarsFile file with list of jars needed for ingest
+  * @param libjarsFiles files with list of jars needed for ingest
   * @param libjarsPaths paths to search for libjars
   * @param maxSplitSize max size for input splits
   * @param waitForCompletion wait for the job to complete before returning
@@ -39,7 +39,7 @@ class DistributedCombineConverterIngest(
     sft: SimpleFeatureType,
     converterConfig: Config,
     inputs: Seq[String],
-    libjarsFile: String,
+    libjarsFiles: Seq[String],
     libjarsPaths: Iterator[() => Seq[File]],
     maxSplitSize: Option[Integer] = None,
     waitForCompletion: Boolean = true
@@ -55,7 +55,7 @@ class DistributedCombineConverterIngest(
   }
 
   protected def createJob(): ConverterCombineIngestJob =
-    new ConverterCombineIngestJob(dsParams, sft, converterConfig, inputs, maxSplitSize, libjarsFile, libjarsPaths)
+    new ConverterCombineIngestJob(dsParams, sft, converterConfig, inputs, maxSplitSize, libjarsFiles, libjarsPaths)
 }
 
 object DistributedCombineConverterIngest {
@@ -75,9 +75,9 @@ object DistributedCombineConverterIngest {
       converterConfig: Config,
       paths: Seq[String],
       maxSplitSize: Option[Integer],
-      libjarsFile: String,
+      libjarsFiles: Seq[String],
       libjarsPaths: Iterator[() => Seq[File]]
-    ) extends ConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFile, libjarsPaths) {
+    ) extends ConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths) {
 
     override val inputFormatClass: Class[_ <: FileInputFormat[_, SimpleFeature]] = classOf[ConverterCombineInputFormat]
 

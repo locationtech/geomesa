@@ -10,14 +10,16 @@ package org.locationtech.geomesa.utils.stats
 
 import java.lang.reflect.Type
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
 
 import com.google.gson._
-import org.locationtech.jts.geom.Geometry
 import org.apache.commons.text.StringEscapeUtils
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.JavaConverters._
@@ -150,7 +152,7 @@ object Stat {
   }
   private val DateSerializer = new JsonSerializer[Date] {
     def serialize(d: Date, t: Type, jsc: JsonSerializationContext): JsonElement =
-      new JsonPrimitive(GeoToolsDateFormat.format(d.toInstant))
+      new JsonPrimitive(GeoToolsDateFormat.format(toInstant(d)))
   }
   private val DoubleSerializer = new JsonSerializer[jDouble]() {
     def serialize(double: jDouble, t: Type, jsc: JsonSerializationContext): JsonElement = double match {
@@ -339,19 +341,19 @@ object Stat {
     * @return
     */
   def stringifier[T](clas: Class[T], json: Boolean = false): Any => String = {
-    val toString: (Any) => String = if (classOf[Geometry].isAssignableFrom(clas)) {
-      (v) => WKTUtils.write(v.asInstanceOf[Geometry])
-    } else if (clas == classOf[Date]) {
-      (v) => GeoToolsDateFormat.format(v.asInstanceOf[Date].toInstant)
+    val toString: Any => String = if (classOf[Geometry].isAssignableFrom(clas)) {
+      v => WKTUtils.write(v.asInstanceOf[Geometry])
+    } else if (classOf[Date].isAssignableFrom(clas)) {
+      v => GeoToolsDateFormat.format(toInstant(v.asInstanceOf[Date]))
     } else {
-      (v) => v.toString
+      v => v.toString
     }
 
     // add quotes to json strings if needed
-    if (json && !classOf[Number].isAssignableFrom(clas)) {
-      (v) => if (v == null) "null" else s""""${toString(v)}""""
+    if (json && (!classOf[Number].isAssignableFrom(clas) && clas != classOf[java.lang.Boolean])) {
+      v => if (v == null) { "null" } else { s""""${toString(v)}"""" }
     } else {
-      (v) => if (v == null) "null" else toString(v)
+      v => if (v == null) { "null" } else { toString(v) }
     }
   }
 
@@ -362,35 +364,36 @@ object Stat {
     * @tparam T type of the value class
     * @return
     */
-  def destringifier[T](clas: Class[T]): String => T =
+  def destringifier[T](clas: Class[T]): String => T = {
     if (clas == classOf[String]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else s.asInstanceOf[T]
+      s => if (s == "null") { null.asInstanceOf[T] } else { s.asInstanceOf[T] }
     } else if (clas == classOf[Integer]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else s.toInt.asInstanceOf[T]
+      s => if (s == "null") { null.asInstanceOf[T] } else { s.toInt.asInstanceOf[T] }
     } else if (clas == classOf[jLong]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else s.toLong.asInstanceOf[T]
+      s => if (s == "null") { null.asInstanceOf[T] } else { s.toLong.asInstanceOf[T] }
     } else if (clas == classOf[jFloat]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else s.toFloat.asInstanceOf[T]
+      s => if (s == "null") { null.asInstanceOf[T] } else { s.toFloat.asInstanceOf[T] }
     } else if (clas == classOf[jDouble]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else s.toDouble.asInstanceOf[T]
+      s => if (s == "null") { null.asInstanceOf[T] } else { s.toDouble.asInstanceOf[T] }
+    } else if (clas == classOf[java.lang.Boolean]) {
+      s => if (s == "null") { null.asInstanceOf[T] } else { s.toBoolean.asInstanceOf[T] }
     } else if (classOf[Geometry].isAssignableFrom(clas)) {
-      (s) => if (s == "null") null.asInstanceOf[T] else WKTUtils.read(s).asInstanceOf[T]
-    } else if (clas == classOf[Date]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else java.util.Date.from(java.time.LocalDateTime.parse(s, GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC)).asInstanceOf[T]
+      s => if (s == "null") { null.asInstanceOf[T] } else { WKTUtils.read(s).asInstanceOf[T] }
+    } else if (classOf[Date].isAssignableFrom(clas)) {
+      s => if (s == "null") { null.asInstanceOf[T] } else {
+        Date.from(LocalDateTime.parse(s, GeoToolsDateFormat).toInstant(ZoneOffset.UTC)).asInstanceOf[T]
+      }
     } else {
       throw new RuntimeException(s"Unexpected class binding for stat attribute: $clas")
     }
-}
+  }
 
-trait ImmutableStat extends Stat {
+  trait ImmutableStat extends Stat {
+    override def observe(sf: SimpleFeature): Unit = fail()
+    override def unobserve(sf: SimpleFeature): Unit = fail()
+    override def +=(other: S): Unit = fail()
+    override def clear(): Unit = fail()
 
-  override def observe(sf: SimpleFeature): Unit = fail()
-
-  override def unobserve(sf: SimpleFeature): Unit = fail()
-
-  override def +=(other: S): Unit = fail()
-
-  override def clear(): Unit = fail()
-
-  private def fail(): Unit = throw new RuntimeException("This stat is immutable")
+    private def fail(): Unit = throw new RuntimeException("This stat is immutable")
+  }
 }

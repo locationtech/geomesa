@@ -31,11 +31,13 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * @param period time period to use for z index
   * @param length number of bins the histogram has, per period
  */
-class Z3Histogram(val sft: SimpleFeatureType,
-                  val geom: String,
-                  val dtg: String,
-                  val period: TimePeriod,
-                  val length: Int) extends Stat with LazyLogging {
+class Z3Histogram(
+    val sft: SimpleFeatureType,
+    val geom: String,
+    val dtg: String,
+    val period: TimePeriod,
+    val length: Int
+  ) extends Stat with LazyLogging {
 
   import Z3Histogram._
 

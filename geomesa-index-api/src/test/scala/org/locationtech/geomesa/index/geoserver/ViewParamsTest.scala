@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.geoserver
 import java.util.Collections
 
 import org.geotools.data.Query
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation

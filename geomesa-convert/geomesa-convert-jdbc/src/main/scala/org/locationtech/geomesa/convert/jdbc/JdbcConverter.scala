@@ -35,7 +35,7 @@ class JdbcConverter(sft: SimpleFeatureType, config: JdbcConfig, fields: Seq[Basi
 
   override protected def values(parsed: CloseableIterator[ResultSet],
                                 ec: EvaluationContext): CloseableIterator[Array[Any]] = {
-    new ResultSetIterator(parsed, ec.counter)
+    new ResultSetIterator(parsed, ec)
   }
 
   override def close(): Unit = {
@@ -46,11 +46,13 @@ class JdbcConverter(sft: SimpleFeatureType, config: JdbcConfig, fields: Seq[Basi
 
 object JdbcConverter {
 
-  case class JdbcConfig(`type`: String,
-                        connection: String,
-                        idField: Option[Expression],
-                        caches: Map[String, Config],
-                        userData: Map[String, Expression]) extends ConverterConfig
+  case class JdbcConfig(
+      `type`: String,
+      connection: String,
+      idField: Option[Expression],
+      caches: Map[String, Config],
+      userData: Map[String, Expression]
+    ) extends ConverterConfig
 
   /**
     * Converts the input to statements and executes them.
@@ -101,9 +103,9 @@ object JdbcConverter {
     * Converts result sets into values
     *
     * @param iter result sets
-    * @param counter counter
+    * @param ec evaluation context
     */
-  class ResultSetIterator private [JdbcConverter] (iter: CloseableIterator[ResultSet], counter: Counter)
+  class ResultSetIterator private [JdbcConverter] (iter: CloseableIterator[ResultSet], ec: EvaluationContext)
       extends CloseableIterator[Array[Any]] {
 
     private var results: ResultSet = _
@@ -126,7 +128,7 @@ object JdbcConverter {
 
     override def next(): Array[Any] = {
       if (!hasNext) { Iterator.empty.next() } else {
-        counter.incLineCount()
+        ec.line += 1
         // the first column will hold the entire row, but set it empty here to
         // avoid the previous row being captured in mkString, below
         array(0) = ""

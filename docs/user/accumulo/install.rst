@@ -227,7 +227,7 @@ Installing GeoMesa Accumulo in GeoServer
 
 .. warning::
 
-    GeoMesa 2.2.0 and later require GeoServer 2.14.0 or later. GeoMesa 2.1.0 and earlier require GeoServer 2.12.5.
+    See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
 
 As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a
 `GeoTools`_-compatible data store. This makes it possible
@@ -251,11 +251,8 @@ and installing `the WPS plugin`_.
         export CATALINA_OPTS="-Xmx8g -XX:MaxPermSize=512M -Duser.timezone=UTC \
         -server -Djava.awt.headless=true"
 
-    The value of ``-Xmx`` should be as large as your system will permit; this
-    is especially important for the Kafka plugin. You
-    should also consider passing ``-DGEOWEBCACHE_CACHE_DIR=/tmp/$USER-gwc``
-    and ``-DEPSG-HSQL.directory=/tmp/$USER-hsql``
-    as well. Be sure to restart Tomcat for changes to take place.
+    The value of ``-Xmx`` should be as large as your system will permit. Be sure to
+    restart Tomcat for changes to take place.
 
 
 To install GeoMesa's Accumulo data store as a GeoServer plugin, we can utilize the script ``manage-geoserver-plugins.sh`` in ``bin`` directory

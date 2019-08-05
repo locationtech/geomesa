@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.api
 
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.utils.Explainer
 import org.opengis.feature.simple.SimpleFeatureType

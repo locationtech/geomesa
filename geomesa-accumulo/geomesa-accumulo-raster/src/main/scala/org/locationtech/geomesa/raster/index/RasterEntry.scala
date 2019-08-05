@@ -21,6 +21,7 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatu
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.data.Raster
 import org.locationtech.geomesa.raster.index.RasterEntryDecoder.DecodedIndexValue
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.opengis.feature.simple.SimpleFeature
 
 object RasterEntry {
@@ -78,7 +79,7 @@ object RasterEntryEncoder extends LazyLogging {
   private def getCF(raster: Raster): Text = new Text("")
 
   private def getCQ(raster: Raster): Text = {
-    new Text(RasterEntry.encodeIndexCQMetadata(raster.id, raster.metadata.geom, Option(Date.from(raster.time.toInstant))))
+    new Text(RasterEntry.encodeIndexCQMetadata(raster.id, raster.metadata.geom, Option(Date.from(toInstant(raster.time)))))
   }
 
   private def encodeValue(raster: Raster): Value = new Value(raster.serializedChunk)

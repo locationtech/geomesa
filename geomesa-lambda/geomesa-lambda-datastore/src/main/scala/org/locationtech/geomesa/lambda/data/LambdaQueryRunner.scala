@@ -10,7 +10,7 @@ package org.locationtech.geomesa.lambda.data
 
 import com.github.benmanes.caffeine.cache.LoadingCache
 import org.geotools.data.{DataStore, Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.filterToString
@@ -76,7 +76,7 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
     if (hints.isStatsQuery) {
       // do the reduce here, as we can't merge json stats
       hints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
-      StatsScan.reduceFeatures(sft, hints)(standardQuery(sft, query, explain))
+      StatsScan.StatsReducer(sft, hints)(standardQuery(sft, query, explain))
     } else if (hints.isArrowQuery) {
       val arrowSft = hints.getTransformSchema.getOrElse(sft)
 
@@ -88,10 +88,10 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
       val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
       val cachedDictionaries: Map[String, TopK[AnyRef]] = if (!hints.isArrowCachedDictionaries) { Map.empty } else {
         val toLookup = dictionaryFields.filterNot(providedDictionaries.contains)
-        stats.getStats[TopK[AnyRef]](sft, toLookup).map(k => k.property -> k).toMap
+        toLookup.flatMap(stats.getTopK[AnyRef](sft, _)).map(k => k.property -> k).toMap
       }
 
-      if (hints.isArrowDoublePass ||
+      val reducer = if (hints.isArrowDoublePass ||
           dictionaryFields.forall(f => providedDictionaries.contains(f) || cachedDictionaries.contains(f))) {
         val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE).map(FastFilterFactory.optimize(sft, _))
         // we have all the dictionary values, or we will run a query to determine them up front
@@ -99,16 +99,14 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
           providedDictionaries, cachedDictionaries)
         // set the merged dictionaries in the query where they'll be picked up by our delegates
         hints.setArrowDictionaryEncodedValues(dictionaries.map { case (k, v) => (k, v.iterator.toSeq) })
-        hints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
-
-        ArrowScan.mergeBatches(arrowSft, dictionaries, encoding, batchSize, sort)(standardQuery(sft, query, explain))
+        new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, batchSize, sort)
       } else if (hints.isArrowMultiFile) {
-        hints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
-        ArrowScan.mergeFiles(arrowSft, dictionaryFields, encoding, sort)(standardQuery(sft, query, explain))
+        new ArrowScan.FileReducer(arrowSft, dictionaryFields, encoding, sort)
       } else {
-        hints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
-        ArrowScan.mergeDeltas(arrowSft, dictionaryFields, encoding, batchSize, sort)(standardQuery(sft, query, explain))
+        new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, batchSize, sort)
       }
+      hints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
+      reducer(standardQuery(sft, query, explain))
     } else {
       standardQuery(sft, query, explain)
     }

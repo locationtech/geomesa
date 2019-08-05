@@ -31,7 +31,7 @@ class TablePartitionTest extends Specification {
   val ds = new TestGeoMesaDataStore(false)
 
   val sft = SimpleFeatureTypes.createType("table-partition-test", s"dtg:Date,*geom:Point:srid=4326;" +
-      s"${Configs.TABLE_PARTITIONING}=${TimePartition.Name}")
+      s"${Configs.TablePartitioning}=${TimePartition.Name}")
 
   val timeToBin = BinnedTime.timeToBin(sft.getZ3Interval)
 
@@ -68,7 +68,28 @@ class TablePartitionTest extends Specification {
       val partitionOption = TablePartition(ds, sft)
       partitionOption must beSome
       val partition = partitionOption.get
-      partition.partitions(filter).map(_.toShort) must containTheSameElementsAs(Seq.range(min, max + 1).map(_.toShort))
+      val partitionsOption = partition.partitions(filter)
+      partitionsOption must beSome
+      partitionsOption.get.map(_.toShort) must containTheSameElementsAs(Seq.range(min, max + 1).map(_.toShort))
+    }
+
+    "extract partitions from disjoint filters" in {
+      val filter = ECQL.toFilter("dtg < '2018-01-01T00:00:00.000Z' AND dtg > '2018-02-01T00:00:00.000Z'")
+      val partitionOption = TablePartition(ds, sft)
+      partitionOption must beSome
+      val partition = partitionOption.get
+      val partitionsOption = partition.partitions(filter)
+      partitionsOption must beSome
+      partitionsOption.get must beEmpty
+    }
+
+    "extract nothing from non-selective filters" in {
+      val filter = ECQL.toFilter("bbox(geom,-10,-10,10,10)")
+      val partitionOption = TablePartition(ds, sft)
+      partitionOption must beSome
+      val partition = partitionOption.get
+      val partitionsOption = partition.partitions(filter)
+      partitionsOption must beNone
     }
   }
 }

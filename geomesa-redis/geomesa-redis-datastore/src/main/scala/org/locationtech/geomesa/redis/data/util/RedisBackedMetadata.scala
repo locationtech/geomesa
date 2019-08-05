@@ -10,7 +10,7 @@ package org.locationtech.geomesa.redis.data.util
 
 import java.nio.charset.StandardCharsets
 
-import org.locationtech.geomesa.index.metadata.{CachedLazyBinaryMetadata, MetadataSerializer}
+import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import redis.clients.jedis.JedisPool
@@ -24,7 +24,7 @@ import redis.clients.jedis.JedisPool
   * @tparam T type param
   */
 class RedisBackedMetadata[T](connection: JedisPool, table: String, val serializer: MetadataSerializer[T])
-    extends CachedLazyBinaryMetadata[T] {
+    extends KeyValueStoreMetadata[T] {
 
   import scala.collection.JavaConverters._
 
@@ -54,6 +54,9 @@ class RedisBackedMetadata[T](connection: JedisPool, table: String, val serialize
       case Some(p) => CloseableIterator(all.filter { case (k, _) => k.startsWith(p) })
     }
   }
+
+  override protected def createEmptyBackup(timestamp: String): RedisBackedMetadata[T] =
+    new RedisBackedMetadata(connection, s"${table}_${timestamp}_bak", serializer)
 
   override protected def checkIfTableExists: Boolean = true
 

@@ -12,13 +12,18 @@ import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
 import java.util.Date
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
-import org.geotools.factory.Hints
+import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
 import org.locationtech.geomesa.arrow.io.{DeltaWriter, DictionaryBuildingWriter}
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector
+import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
+import org.locationtech.geomesa.index.api.QueryPlan.FeatureReducer
+import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryHook
 import org.locationtech.geomesa.index.stats.GeoMesaStats
@@ -29,6 +34,7 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, SimpleFeatureOrdering, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.stats.{Stat, TopK}
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -66,7 +72,7 @@ abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[Author
         s"density[${query.getHints.isDensityQuery}] stats[${query.getHints.isStatsQuery}] " +
         s"sampling[${query.getHints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
     explain(s"Transforms: ${query.getHints.getTransformDefinition.getOrElse("None")}")
-    explain(s"Sort: ${query.getHints.getSortReadableString}")
+    explain(s"Sort: ${query.getHints.getSortFields.map(QueryHints.sortReadableString).getOrElse("none")}")
     explain.popLevel()
 
     val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE)
@@ -74,12 +80,29 @@ abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[Author
     val iter = features(sft, filter).filter(visible.apply)
 
     val hook = Some(ArrowDictionaryHook(stats, filter))
-    val result = transform(sft, iter, query.getHints.getTransform, query.getHints, hook)
+    var result = transform(sft, iter, query.getHints.getTransform, query.getHints, hook)
 
-    Reprojection(query) match {
-      case None    => result
-      case Some(r) => result.map(r.reproject)
+    query.getHints.getSortFields.foreach { sort =>
+      result = new SortingSimpleFeatureIterator(result, sort)
     }
+
+    query.getHints.getMaxFeatures.foreach { maxFeatures =>
+      if (query.getHints.getReturnSft == BinaryOutputEncoder.BinEncodedSft) {
+        // bin queries pack multiple records into each feature
+        // to count the records, we have to count the total bytes coming back, instead of the number of features
+        val label = query.getHints.getBinLabelField.isDefined
+        result = new BinaryOutputEncoder.FeatureLimitingIterator(result, maxFeatures, label)
+      } else {
+        result = result.take(maxFeatures)
+      }
+    }
+
+    query.getHints.getProjection.foreach { crs =>
+      val r = Reprojection(query.getHints.getReturnSft, crs)
+      result = result.map(r.apply)
+    }
+
+    result
   }
 
   override protected [geomesa] def getReturnSft(sft: SimpleFeatureType, hints: Hints): SimpleFeatureType = {
@@ -98,6 +121,7 @@ abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[Author
 }
 
 object LocalQueryRunner {
+
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   import scala.collection.JavaConversions._
@@ -114,6 +138,72 @@ object LocalQueryRunner {
     provider match {
       case None    => noAuthVisibilityCheck
       case Some(p) => authVisibilityCheck(_, p.getAuthorizations.map(_.getBytes(StandardCharsets.UTF_8)))
+    }
+  }
+
+  /**
+    * Reducer for local transforms. Handles ecql and visibility filtering, transforms and analytic queries.
+    *
+    * @param sft simple feature type being queried
+    * @param hints query hints
+    * @param arrow stats hook and cql filter - used for dictionary building in certain arrow queries
+    * @return
+    */
+  class LocalTransformReducer(
+      private var sft: SimpleFeatureType,
+      private var filter: Option[Filter],
+      private var visibility: Option[SimpleFeature => Boolean],
+      private var transform: Option[(String, SimpleFeatureType)],
+      private var hints: Hints,
+      private var arrow: Option[ArrowDictionaryHook] = None
+    ) extends FeatureReducer with LazyLogging {
+
+    def this() = this(null, null, None, null, null, None) // no-arg constructor required for serialization
+
+    override def init(state: Map[String, String]): Unit = {
+      sft = SimpleFeatureTypes.createType(state("name"), state("spec"))
+      filter = state.get("filt").filterNot(_.isEmpty).map(ECQL.toFilter)
+      hints = ViewParams.deserialize(state("hint"))
+      transform = for {
+        tdef <- state.get("tdef").filterNot(_.isEmpty)
+        tnam <- state.get("tnam").filterNot(_.isEmpty)
+        spec <- state.get("tsft").filterNot(_.isEmpty)
+      } yield {
+        (tdef, SimpleFeatureTypes.createType(tnam, spec))
+      }
+    }
+
+    override def state: Map[String, String] = {
+      if (visibility.isDefined) {
+        throw new NotImplementedError("Visibility filtering is not serializable")
+      } else if (hints.isArrowQuery) {
+        // check for conditions which require a dictionary lookup using the arrow hook, which is not serializable
+        val dictionaries = hints.getArrowDictionaryFields
+        lazy val provided = hints.getArrowDictionaryEncodedValues(sft)
+        if (dictionaries.nonEmpty && !dictionaries.forall(provided.contains) &&
+            (hints.isArrowDoublePass || hints.isArrowCachedDictionaries)) {
+          throw new NotImplementedError("Arrow dictionary lookup is not serializable")
+        }
+      }
+      Map(
+        "name" -> sft.getTypeName,
+        "spec" -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
+        "filt" -> filter.map(ECQL.toCQL).getOrElse(""),
+        "tdef" -> transform.map(_._1).getOrElse(""),
+        "tnam" -> transform.map(_._2.getTypeName).getOrElse(""),
+        "tsft" -> transform.map(t => SimpleFeatureTypes.encodeType(t._2, includeUserData = true)).getOrElse(""),
+        "hint" -> ViewParams.serialize(hints)
+      )
+    }
+
+    override def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
+      val filtered = (filter, visibility) match {
+        case (None, None)       => features
+        case (Some(f), None)    => features.filter(f.evaluate)
+        case (None, Some(v))    => features.filter(v.apply)
+        case (Some(f), Some(v)) => features.filter(feature => v(feature) && f.evaluate(feature))
+      }
+      LocalQueryRunner.transform(sft, filtered, transform, hints, arrow)
     }
   }
 
@@ -198,8 +288,6 @@ object LocalQueryRunner {
 
     import org.locationtech.geomesa.arrow.allocator
 
-    ArrowScan.setSortHints(hints) // handle any sort hints from the query
-
     val sort = hints.getArrowSort
     val batchSize = ArrowScan.getBatchSize(hints)
     val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid)
@@ -225,16 +313,17 @@ object LocalQueryRunner {
     val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
     val cachedDictionaries: Map[String, TopK[AnyRef]] = if (!hints.isArrowCachedDictionaries) { Map.empty } else {
       val toLookup = dictionaryFields.filterNot(providedDictionaries.contains)
-      if (toLookup.isEmpty) { Map.empty } else {
-        stats.getStats[TopK[AnyRef]](sft, toLookup).map(k => k.property -> k).toMap
-      }
+      toLookup.flatMap(stats.getTopK[AnyRef](sft, _)).map(k => k.property -> k).toMap
     }
 
     if (hints.isArrowDoublePass ||
         dictionaryFields.forall(f => providedDictionaries.contains(f) || cachedDictionaries.contains(f))) {
       // we have all the dictionary values, or we will run a query to determine them up front
-      val dictionaries = ArrowScan.createDictionaries(stats, sft, filter, dictionaryFields,
-        providedDictionaries, cachedDictionaries)
+      // note: only invoke createDictionaries if needed, so we only get the arrow hook if needed
+      val dictionaries: Map[String, ArrowDictionary] =
+        if (dictionaryFields.isEmpty) { Map.empty } else {
+          ArrowScan.createDictionaries(stats, sft, filter, dictionaryFields, providedDictionaries, cachedDictionaries)
+        }
 
       val vector = SimpleFeatureVector.create(arrowSft, dictionaries, encoding)
       val batchWriter = new RecordBatchUnloader(vector)
@@ -257,7 +346,7 @@ object LocalQueryRunner {
       }
 
       if (hints.isSkipReduce) { arrows } else {
-        ArrowScan.mergeBatches(arrowSft, dictionaries, encoding, batchSize, sort)(arrows)
+        new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, batchSize, sort)(arrows)
       }
     } else if (hints.isArrowMultiFile) {
       val writer = DictionaryBuildingWriter.create(arrowSft, dictionaryFields, encoding)
@@ -282,7 +371,7 @@ object LocalQueryRunner {
         override def close(): Unit = features.close()
       }
       if (hints.isSkipReduce) { arrows } else {
-        ArrowScan.mergeFiles(arrowSft, dictionaryFields, encoding, sort)(arrows)
+        new ArrowScan.FileReducer(arrowSft, dictionaryFields, encoding, sort)(arrows)
       }
     } else {
       val writer = new DeltaWriter(arrowSft, dictionaryFields, encoding, None, batchSize)
@@ -304,7 +393,7 @@ object LocalQueryRunner {
         override def close(): Unit = features.close()
       }
       if (hints.isSkipReduce) { arrows } else {
-        ArrowScan.mergeDeltas(arrowSft, dictionaryFields, encoding, batchSize, sort)(arrows)
+        new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, batchSize, sort)(arrows)
       }
     }
   }
@@ -332,13 +421,13 @@ object LocalQueryRunner {
                              transform: Option[(String, SimpleFeatureType)],
                              query: String,
                              encode: Boolean): CloseableIterator[SimpleFeature] = {
-    val stat = Stat(sft, query)
-    val toObserve = transform match {
-      case None                => features
-      case Some((tdefs, tsft)) => projectionTransform(features, sft, tsft, tdefs, None)
+    val (statSft, toObserve) = transform match {
+      case None                => (sft, features)
+      case Some((tdefs, tsft)) => (tsft, projectionTransform(features, sft, tsft, tdefs, None))
     }
+    val stat = Stat(statSft, query)
     try { toObserve.foreach(stat.observe) } finally { toObserve.close() }
-    val encoded = if (encode) { StatsScan.encodeStat(sft)(stat) } else { stat.toJson }
+    val encoded = if (encode) { StatsScan.encodeStat(statSft)(stat) } else { stat.toJson }
     CloseableIterator(Iterator(new ScalaSimpleFeature(StatsScan.StatsSft, "stat", Array(encoded, GeometryUtils.zeroPoint))))
   }
 

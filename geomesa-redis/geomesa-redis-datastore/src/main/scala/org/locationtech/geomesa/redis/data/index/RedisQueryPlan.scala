@@ -12,16 +12,19 @@ package index
 import java.nio.charset.StandardCharsets
 
 import org.locationtech.geomesa.index.PartitionParallelScan
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{BoundedByteRange, FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.redis.data.util.RedisBatchScan
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import redis.clients.jedis.Response
 
 sealed trait RedisQueryPlan extends QueryPlan[RedisDataStore] {
+
+  override type Results = Array[Byte]
 
   /**
     * Tables being scanned
@@ -78,7 +81,12 @@ object RedisQueryPlan {
     override val tables: Seq[String] = Seq.empty
     override val ranges: Seq[BoundedByteRange] = Seq.empty
     override val ecql: Option[Filter] = None
-    override def scan(ds: RedisDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
+    override val resultsToFeatures: ResultsToFeatures[Array[Byte]] = ResultsToFeatures.empty
+    override val reducer: Option[FeatureReducer] = None
+    override val sort: Option[Seq[(String, Boolean)]] = None
+    override val maxFeatures: Option[Int] = None
+    override val projection: Option[QueryReferenceSystems] = None
+    override def scan(ds: RedisDataStore): CloseableIterator[Array[Byte]] = CloseableIterator.empty
   }
 
   // uses zrangebylex
@@ -88,17 +96,21 @@ object RedisQueryPlan {
       ranges: Seq[BoundedByteRange],
       pipeline: Boolean,
       ecql: Option[Filter], // note: will already be applied in resultsToFeatures
-      resultsToFeatures: CloseableIterator[Array[Byte]] => CloseableIterator[SimpleFeature]
+      resultsToFeatures: ResultsToFeatures[Array[Byte]],
+      reducer: Option[FeatureReducer],
+      sort: Option[Seq[(String, Boolean)]],
+      maxFeatures: Option[Int],
+      projection: Option[QueryReferenceSystems]
     ) extends RedisQueryPlan {
 
     import scala.collection.JavaConverters._
 
-    override def scan(ds: RedisDataStore): CloseableIterator[SimpleFeature] = {
+    override def scan(ds: RedisDataStore): CloseableIterator[Array[Byte]] = {
       val iter = tables.iterator.map(_.getBytes(StandardCharsets.UTF_8))
       val scans = iter.map(singleTableScan(ds, _))
       if (PartitionParallelScan.toBoolean.contains(true)) {
         // kick off all the scans at once
-        scans.foldLeft(CloseableIterator.empty[SimpleFeature])(_ ++ _)
+        scans.foldLeft(CloseableIterator.empty[Array[Byte]])(_ ++ _)
       } else {
         // kick off the scans sequentially as they finish
         SelfClosingIterator(scans).flatMap(s => s)
@@ -108,7 +120,7 @@ object RedisQueryPlan {
     override protected def explain(explainer: Explainer): Unit =
       explainer(s"Pipelining: ${if (pipeline) { "enabled" } else { "disabled" }}")
 
-    private def singleTableScan(ds: RedisDataStore, table: Array[Byte]): CloseableIterator[SimpleFeature] = {
+    private def singleTableScan(ds: RedisDataStore, table: Array[Byte]): CloseableIterator[Array[Byte]] = {
       if (pipeline) {
         val result = Seq.newBuilder[Response[java.util.Set[Array[Byte]]]]
         result.sizeHint(ranges.length)
@@ -119,10 +131,9 @@ object RedisQueryPlan {
             pipe.sync()
           }
         }
-        resultsToFeatures(result.result.iterator.flatMap(_.get.iterator().asScala))
+        result.result.iterator.flatMap(_.get.iterator().asScala)
       } else {
-        val results = RedisBatchScan(ds.connection, table, ranges, ds.config.queryThreads)
-        SelfClosingIterator(resultsToFeatures(results), results.close())
+        RedisBatchScan(ds.connection, table, ranges, ds.config.queryThreads)
       }
     }
   }

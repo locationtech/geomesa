@@ -14,7 +14,7 @@ import org.apache.accumulo.core.security.Authorizations
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
@@ -39,7 +39,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithDataStore {
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 
   override val spec =
-    s"name:String:index=true,age:Int:index=join,dtg:Date,*geom:Point:srid=4326;${Configs.FID_UUID_KEY}=true"
+    s"name:String:index=true,age:Int:index=join,dtg:Date,*geom:Point:srid=4326;${Configs.FidsAreUuids}=true"
 
   val features = (0 until 10).map { i =>
     val id = s"28a12c18-e5ae-4c04-ae7b-bf7cdbfaf23$i"
@@ -158,7 +158,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithDataStore {
       callbackResults must haveLength(2)
       proxy.evaluate(callbackResults.head) mustEqual ids.head
       proxy.evaluate(callbackResults.last) mustEqual ids.last
-    }.pendingUntilFixed("GEOMESA-2562")
+    }
   }
 
   step {

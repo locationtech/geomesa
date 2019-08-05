@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.index
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
@@ -82,10 +82,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
       ds.createSchema(sft)
 
       WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
-        features.foreach { f =>
-          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-          writer.write()
-        }
+        features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
       }
 
       def execute(filter: String, explain: Explainer = ExplainNull): Seq[String] = {
@@ -115,10 +112,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
       ds.createSchema(sft)
 
       WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
-        features.foreach { f =>
-          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-          writer.write()
-        }
+        features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
       }
 
       val filter = "contains('POLYGON ((46.9 48.9, 47.1 48.9, 47.1 49.1, 46.9 49.1, 46.9 48.9))', geom) AND " +
@@ -136,10 +130,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
       ds.createSchema(sft)
 
       WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
-        features.foreach { f =>
-          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-          writer.write()
-        }
+        features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
       }
 
       val filters = Seq (
@@ -190,10 +181,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
       ds.createSchema(sft)
 
       WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
-        features.foreach { f =>
-          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-          writer.write()
-        }
+        features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
       }
 
       val query = new Query(typeName, ECQL.toFilter("height = 12.0 AND dtg > '2014-01-01T11:45:00.000Z'"))
@@ -230,10 +218,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
       }
 
       WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
-        features.foreach { f =>
-          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
-          writer.write()
-        }
+        features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
       }
 
       val dtgPart = "dtg between '2014-01-01T00:00:00.000Z' and '2014-01-31T00:00:00.000Z'"

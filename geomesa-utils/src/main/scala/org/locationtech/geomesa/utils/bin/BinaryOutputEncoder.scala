@@ -86,6 +86,43 @@ object BinaryOutputEncoder extends LazyLogging {
 
   case class EncodedValues(trackId: Int, lat: Float, lon: Float, dtg: Long, label: Long)
 
+  /**
+    * BIN queries pack multiple records into each feature. To count the records, we have to count
+    * the total bytes coming back, instead of the number of features
+    *
+    * @param iter aggregated bin iter
+    * @param maxFeatures max features
+    * @param hasLabel bin results have labels (extended format) or not
+    */
+  class FeatureLimitingIterator(iter: CloseableIterator[SimpleFeature], maxFeatures: Int, hasLabel: Boolean)
+      extends CloseableIterator[SimpleFeature] {
+
+    private val bytesPerHit = if (hasLabel) { 24 } else { 16 }
+    private var seen = 0L
+
+    override def hasNext: Boolean = seen < maxFeatures && iter.hasNext
+
+    override def next(): SimpleFeature = {
+      if (hasNext) {
+        val sf = iter.next()
+        val bytes = sf.getAttribute(0).asInstanceOf[Array[Byte]]
+        val count = bytes.length / bytesPerHit
+        seen += count
+        if (seen > maxFeatures) {
+          // remove the extra aggregated features so that we hit our exact feature limit
+          val trimmed = Array.ofDim[Byte]((count - (seen - maxFeatures).toInt) * bytesPerHit)
+          System.arraycopy(bytes, 0, trimmed, 0, trimmed.length)
+          sf.setAttribute(0, trimmed)
+        }
+        sf
+      } else {
+        Iterator.empty.next()
+      }
+    }
+
+    override def close(): Unit = iter.close()
+  }
+
   def apply(sft: SimpleFeatureType, options: EncodingOptions): BinaryOutputEncoder =
     new BinaryOutputEncoder(toValues(sft, options))
 

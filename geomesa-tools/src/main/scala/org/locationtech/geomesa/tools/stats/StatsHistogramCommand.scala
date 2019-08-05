@@ -8,9 +8,10 @@
 
 package org.locationtech.geomesa.tools.stats
 
-import com.beust.jcommander.Parameter
+import com.beust.jcommander.{Parameter, ParameterException}
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
+import org.locationtech.geomesa.tools.stats.StatsHistogramCommand.StatsHistogramParams
 import org.locationtech.geomesa.tools.utils.Prompt
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
@@ -31,14 +32,18 @@ trait StatsHistogramCommand[DS <: DataStore with HasGeoMesaStats] extends DataSt
 
   protected def histogram(ds: DS): Unit = {
     val sft = ds.getSchema(params.featureName)
-    val attributes = StatsCommand.getAttributesFromParams(sft, params)
+    if (sft == null) {
+      throw new ParameterException(s"Schema '${params.featureName}' does not exist")
+    }
+
+    val attributes = getAttributesFromParams(sft, params)
     val filter = Option(params.cqlFilter).getOrElse(Filter.INCLUDE)
     val bins = Option(params.bins).map(_.intValue)
 
     val histograms = if (params.exact) {
       val bounds = scala.collection.mutable.Map.empty[String, (Any, Any)]
       attributes.foreach { attribute =>
-        ds.stats.getStats[MinMax[Any]](sft, Seq(attribute)).headOption.foreach { b =>
+        ds.stats.getMinMax[Any](sft, attribute).foreach { b =>
           bounds.put(attribute, if (b.min == b.max) Histogram.buffer(b.min) else b.bounds)
         }
       }
@@ -61,13 +66,13 @@ trait StatsHistogramCommand[DS <: DataStore with HasGeoMesaStats] extends DataSt
         }
         if (response == 1) {
           Command.user.info("Running bounds query...")
-          ds.stats.runStats[MinMax[Any]](sft, Stat.SeqStat(noBounds.map(Stat.MinMax)), filter).foreach { mm =>
+          ds.stats.getSeqStat[MinMax[Any]](sft, noBounds.map(Stat.MinMax), filter, exact = true).foreach { mm =>
             bounds.put(mm.property, mm.bounds)
           }
         } else if (response == 2) {
           noBounds.foreach { attribute =>
-            val ct = ClassTag[Any](sft.getDescriptor(attribute).getType.getBinding)
-            bounds.put(attribute, GeoMesaStats.defaultBounds(ct.runtimeClass))
+            val binding = sft.getDescriptor(attribute).getType.getBinding
+            bounds.put(attribute, GeoMesaStats.defaultBounds(binding))
           }
         } else if (response == 3) {
           noBounds.foreach { attribute =>
@@ -105,12 +110,13 @@ trait StatsHistogramCommand[DS <: DataStore with HasGeoMesaStats] extends DataSt
         val (lower, upper) = bounds(attribute)
         Stat.Histogram[Any](attribute, length, lower, upper)(ct)
       }
-      ds.stats.runStats[Histogram[Any]](sft, Stat.SeqStat(queries), filter)
+      ds.stats.getSeqStat[Histogram[Any]](sft, queries, filter, exact = true)
     } else {
       if (filter != Filter.INCLUDE) {
-        Command.user.warn("Ignoring CQL filter for non-exact stat query")
+        Command.user.warn("Non-exact stat queries may not fully account for the specified CQL filter")
       }
-      ds.stats.getStats[Histogram[Any]](sft, attributes).map {
+      val queries = attributes.map(attribute => Stat.Histogram[AnyRef](attribute, 0, null, null))
+      ds.stats.getSeqStat[Histogram[Any]](sft, queries, filter).map {
         case histogram: Histogram[Any] if bins.forall(_ == histogram.length) => histogram
         case histogram: Histogram[Any] =>
           val descriptor = sft.getDescriptor(histogram.property)
@@ -133,19 +139,17 @@ trait StatsHistogramCommand[DS <: DataStore with HasGeoMesaStats] extends DataSt
           }
       }
     }
-
-    ds.dispose()
   }
 }
 
-// @Parameters(commandDescription = "View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
-trait StatsHistogramParams extends StatsParams with AttributeStatsParams {
-  @Parameter(names = Array("--bins"), description = "How many bins the data will be divided into. " +
-      "For example, if you are examining a week of data, you may want to divide the date into 7 bins, one per day.")
-  var bins: Integer = _
-}
-
 object StatsHistogramCommand {
+
+  // @Parameters(commandDescription = "View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
+  trait StatsHistogramParams extends StatsParams with AttributeStatsParams {
+    @Parameter(names = Array("--bins"), description = "How many bins the data will be divided into. " +
+        "For example, if you are examining a week of data, you may want to divide the date into 7 bins, one per day.")
+    var bins: Integer = _
+  }
 
   /**
     * Creates a readable string for the histogram.

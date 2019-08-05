@@ -20,6 +20,7 @@ import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.opengis.feature.simple.SimpleFeature
 
 @DescribeProcess(title = "Point2PointProcess", description = "Aggregates a collection of points into a collection of line segments")
@@ -112,5 +113,5 @@ class Point2PointProcess extends GeoMesaProcess {
   }
 
   def getDayOfYear(sortFieldIndex: Int, f: SimpleFeature): Int =
-    ZonedDateTime.ofInstant(f.getAttribute(sortFieldIndex).asInstanceOf[Date].toInstant, ZoneOffset.UTC).getDayOfYear
+    ZonedDateTime.ofInstant(toInstant(f.getAttribute(sortFieldIndex).asInstanceOf[Date]), ZoneOffset.UTC).getDayOfYear
 }

@@ -1,0 +1,115 @@
+#! /usr/bin/env bash
+#
+# Copyright (c) 2013-%%copyright.year%% Commonwealth Computer Research, Inc.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0 which
+# accompanies this distribution and is available at
+# http://www.opensource.org/licenses/apache2.0.php.
+#
+
+# Set environment variables in bin/geomesa-env.sh
+
+if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
+  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+fi
+
+# Load common functions and setup
+. "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
+
+# HADOOP paths, user can hard set these in geomesa-env, or rely on this script to find set them via HADOOP_HOME
+if [[ -n "$HADOOP_HOME" ]]; then
+  if [[ -z "$HADOOP_CONF_DIR" && -d "${HADOOP_HOME}/etc/hadoop" ]]; then
+    HADOOP_CONF_DIR=${HADOOP_HOME}/etc/hadoop
+  fi
+fi
+
+# Start constructing GEOMESA_CP (classpath)
+# include geomesa first so that the correct log4j.properties is picked up
+GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB):${HADOOP_CONF_DIR}"
+
+# Prepend user defined directories to the classpath using java classpath syntax
+# We preprend so that they take precedence when explicitly defined by the user
+if [[ -n "${GEOMESA_EXTRA_CLASSPATHS}" ]]; then
+  GEOMESA_CP="${GEOMESA_EXTRA_CLASSPATHS}:${GEOMESA_CP}"
+fi
+
+# Get the hadoop jars, ignoring jars with names containing slf4j and test
+# Copied from accumulo classpath
+if [[ "$hadoopCDH" == "1" ]]; then
+  # Hadoop CDH configuration
+  hadoopDirs=(
+    $HADOOP_HOME
+    $HADOOP_CONF_DIR
+    $HADOOP_COMMON_HOME
+    $HADOOP_HDFS_HOME
+    $YARN_HOME
+    $HADOOP_MAPRED_HOME
+    $HADOOP_CUSTOM_CP
+  )
+else
+  hadoopDirs=(
+    # Hadoop 2 requirements
+    $HADOOP_HOME/share/hadoop/common
+    $HADOOP_HOME/share/hadoop/hdfs/
+    $HADOOP_HOME/share/hadoop/mapreduce/
+    $HADOOP_HOME/share/hadoop/tools/lib
+    $HADOOP_HOME/share/hadoop/yarn/
+    # HDP 2.0 requirements
+    /usr/lib/hadoop/
+    /usr/lib/hadoop-hdfs/
+    /usr/lib/hadoop-mapreduce/
+    /usr/lib/hadoop-yarn/
+    # HDP 2.2 requirements
+    /usr/hdp/current/hadoop-client/
+    /usr/hdp/current/hadoop-hdfs-client/
+    /usr/hdp/current/hadoop-mapreduce-client/
+    /usr/hdp/current/hadoop-yarn-client/
+    # IOP 4.1 requirements
+    /usr/iop/current/hadoop-client/
+    /usr/iop/current/hadoop-hdfs-client/
+    /usr/iop/current/hadoop-mapreduce-client/
+    /usr/iop/current/hadoop-yarn-client/
+  )
+fi
+
+for home in ${hadoopDirs[*]}; do
+  tmp="$(findJars $home true)"
+  if [[ -n "$tmp" ]]; then
+    HADOOP_CP="$HADOOP_CP:$tmp"
+  fi
+  if [[ "${HADOOP_CP:0:1}" = ":" ]]; then
+    HADOOP_CP="${HADOOP_CP:1}"
+  fi
+done
+
+CLASSPATH="$GEOMESA_CP:$HADOOP_CP"
+
+# Geomesa tools setup completed, below we parse user arguments
+#
+# configure | runs the geomesa configuration, sets both the ${geomesa.dist.foobar} and PATH vars
+# classpath | prints the class path, ie list of jars we are using
+# [else]    | runs actual commands in the tools
+
+if  [[ $1 = configure ]]; then
+  geomesaConfigure
+else
+  if [[ $1 = debug ]]; then
+    GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
+    shift 1
+  fi
+  if [[ $1 = classpath ]]; then
+    for element in ${CLASSPATH//:/ }; do
+      echo ${element}
+    done
+  elif [[ $1 = scala-console ]]; then
+    # scala console requires options to be passed in through java_opts
+    export JAVA_OPTS="${GEOMESA_OPTS} ${CUSTOM_JAVA_OPTS} ${JAVA_OPTS}"
+    geomesaScalaConsole ${CLASSPATH}
+  else
+    if [[ -z "$CUSTOM_JAVA_OPTS" ]]; then
+      # if custom opts are not set, use global default
+      export CUSTOM_JAVA_OPTS="${JAVA_OPTS}"
+    fi
+    java ${GEOMESA_OPTS} ${CUSTOM_JAVA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.geotools.tools.GeoToolsRunner "$@"
+  fi
+fi

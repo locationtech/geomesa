@@ -14,7 +14,8 @@ import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.stats.FsStatsBoundsCommand.FsStatsBoundsParams
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
-import org.locationtech.geomesa.tools.stats.{StatsBoundsCommand, StatsBoundsParams}
+import org.locationtech.geomesa.tools.stats.StatsBoundsCommand
+import org.locationtech.geomesa.tools.stats.StatsBoundsCommand.StatsBoundsParams
 
 class FsStatsBoundsCommand extends StatsBoundsCommand[FileSystemDataStore] with FsDataStoreCommand {
   override val params = new FsStatsBoundsParams

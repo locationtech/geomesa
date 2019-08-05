@@ -21,7 +21,7 @@ import org.apache.kafka.clients.producer._
 import org.apache.kafka.common.serialization._
 import org.apache.kafka.common.{Cluster, TopicPartition}
 import org.geotools.data.{DataStore, Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
@@ -176,8 +176,9 @@ object KafkaStore {
     val Delete: Byte = 1
   }
 
-  def topic(ns: String, sft: SimpleFeatureType): String =
-    s"${ns}_${sft.getTypeName}".replaceAll("[^a-zA-Z0-9_\\-]", "_")
+  def topic(ns: String, sft: SimpleFeatureType): String = topic(ns, sft.getTypeName)
+
+  def topic(ns: String, typeName: String): String = s"${ns}_$typeName".replaceAll("[^a-zA-Z0-9_\\-]", "_")
 
   def withZk[T](zookeepers: String)(fn: ZkUtils => T): T = {
     val security = SystemProperty("geomesa.zookeeper.security.enabled").option.exists(_.toBoolean)

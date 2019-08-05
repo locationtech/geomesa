@@ -12,7 +12,7 @@ import java.io.File
 
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.{DefaultCounter, EvaluationContextImpl, SimpleFeatureConverters}
+import org.locationtech.geomesa.convert.{EvaluationContext, SimpleFeatureConverters}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -43,7 +43,7 @@ class ScriptingFunctionFactoryTest extends Specification {
     }
 
     "execute functions" >> {
-      implicit val ec = new EvaluationContextImpl(IndexedSeq.empty[String], Array.empty[Any], new DefaultCounter, Map.empty)
+      implicit val ec = EvaluationContext.empty
       val fn = sff.functions.find(_.names.contains("js:hello")).head
       val res = fn.eval(Array("geomesa"))
       res must beEqualTo("hello: geomesa")

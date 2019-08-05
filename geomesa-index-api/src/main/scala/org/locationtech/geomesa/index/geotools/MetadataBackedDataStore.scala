@@ -14,16 +14,17 @@ import java.util.{List => jList}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureSource, SimpleFeatureWriter}
-import org.geotools.factory.Hints
 import org.geotools.feature.{FeatureTypes, NameImpl}
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceConfig
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata._
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY, TABLE_SHARING_KEY}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.SHARING_PREFIX_KEY
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.TableSharingPrefix
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -31,7 +32,6 @@ import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
 /**
@@ -39,6 +39,8 @@ import scala.util.control.NonFatal
   */
 abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStore
     with HasGeoMesaMetadata[String] with DistributedLocking with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   // TODO: GEOMESA-2360 - Remove global axis order hint from MetadataBackedDataStore
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
@@ -137,8 +139,8 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
             // write out the metadata to the catalog table
             // compute the metadata values - IMPORTANT: encode type has to be called after all user data is set
             val metadataMap = Map(
-              ATTRIBUTES_KEY       -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
-              STATS_GENERATION_KEY -> GeoToolsDateFormat.format(Instant.now().atOffset(ZoneOffset.UTC))
+              AttributesKey      -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
+              StatsGenerationKey -> GeoToolsDateFormat.format(Instant.now().atOffset(ZoneOffset.UTC))
             )
             metadata.insert(sft.getTypeName, metadataMap)
 
@@ -146,11 +148,12 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
             // then copy over any additional keys that were in the original sft.
             // avoid calling getSchema directly, as that may trigger a remote version
             // check for indices that haven't been created yet
-            val attributes = metadata.readRequired(sft.getTypeName, ATTRIBUTES_KEY)
+            val attributes = metadata.readRequired(sft.getTypeName, AttributesKey)
             val reloadedSft = SimpleFeatureTypes.createType(sft.getTypeName, attributes)
-            (sft.getUserData.keySet -- reloadedSft.getUserData.keySet).foreach { k =>
-              reloadedSft.getUserData.put(k, sft.getUserData.get(k))
-            }
+            val userData = new java.util.HashMap[AnyRef, AnyRef]()
+            userData.putAll(reloadedSft.getUserData)
+            reloadedSft.getUserData.putAll(sft.getUserData)
+            reloadedSft.getUserData.putAll(userData)
 
             // create the tables
             onSchemaCreated(reloadedSft)
@@ -184,7 +187,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
    * @return feature type, or null if it does not exist
    */
   override def getSchema(typeName: String): SimpleFeatureType = {
-    metadata.read(typeName, ATTRIBUTES_KEY) match {
+    metadata.read(typeName, AttributesKey) match {
       case None => null
       case Some(spec) => SimpleFeatureTypes.createImmutableType(config.namespace.orNull, typeName, spec)
     }
@@ -192,9 +195,11 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
 
   /**
     * Allows the following modifications to the schema:
+    *   renaming the feature type
+    *   renaming attributes
+    *   appending new attributes
+    *   enabling/disabling indices through RichSimpleFeatureType.setIndexVersion
     *   modifying keywords through user-data
-    *   enabling/disabling indices through RichSimpleFeatureType.setIndexVersion (SimpleFeatureTypes.INDEX_VERSIONS)
-    *   appending of new attributes
     *
     * Other modifications are not supported.
     *
@@ -207,9 +212,11 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
 
   /**
     * Allows the following modifications to the schema:
+    *   renaming the feature type
+    *   renaming attributes
+    *   appending new attributes
+    *   enabling/disabling indices through RichSimpleFeatureType.setIndexVersion
     *   modifying keywords through user-data
-    *   enabling/disabling indices through RichSimpleFeatureType.setIndexVersion (SimpleFeatureTypes.INDEX_VERSIONS)
-    *   appending of new attributes
     *
     * Other modifications are not supported.
     *
@@ -218,47 +225,61 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     * @param schema new simple feature type
     */
   override def updateSchema(typeName: Name, schema: SimpleFeatureType): Unit = {
-    // validate type name has not changed
-    if (typeName.getLocalPart != schema.getTypeName) {
-      val msg = s"Updating the name of a schema is not allowed: '$typeName' changed to '${schema.getTypeName}'"
-      throw new UnsupportedOperationException(msg)
+    // validate that the type name has not changed, or that the new name is not already in use
+    if (typeName.getLocalPart != schema.getTypeName && getTypeNames.contains(schema.getTypeName)) {
+      throw new IllegalArgumentException(
+        s"Updated type name already exists: '$typeName' changed to '${schema.getTypeName}'")
     }
 
     val lock = acquireCatalogLock()
     try {
-      // Get previous schema and user data
+      // get previous schema and user data
       val previousSft = getSchema(typeName)
 
       if (previousSft == null) {
         throw new IllegalArgumentException(s"Schema '$typeName' does not exist")
       }
 
-      // validate that default geometry has not changed
-      if (schema.getGeomField != previousSft.getGeomField) {
-        throw new UnsupportedOperationException("Changing the default geometry is not supported")
+      // validate that default geometry and date have not changed (rename is ok)
+      if (schema.getGeomIndex != previousSft.getGeomIndex) {
+        throw new UnsupportedOperationException("Changing the default geometry attribute is not supported")
+      } else if (schema.getDtgIndex != previousSft.getDtgIndex) {
+        throw new UnsupportedOperationException("Changing the default date attribute is not supported")
       }
 
-      // Check that unmodifiable user data has not changed
-      MetadataBackedDataStore.unmodifiableUserdataKeys.foreach { key =>
+      // check that unmodifiable user data has not changed
+      MetadataBackedDataStore.UnmodifiableUserDataKeys.foreach { key =>
         if (schema.userData[Any](key) != previousSft.userData[Any](key)) {
           throw new UnsupportedOperationException(s"Updating '$key' is not supported")
         }
       }
 
-      // Check that the rest of the schema has not changed (columns, types, etc)
-      val previousColumns = previousSft.getAttributeDescriptors
-      val currentColumns = schema.getAttributeDescriptors
-      if (previousColumns.toSeq != currentColumns.take(previousColumns.length)) {
-        throw new UnsupportedOperationException("Updating schema columns is not allowed")
+      // check for column type changes
+      previousSft.getAttributeDescriptors.asScala.zipWithIndex.foreach { case (prev, i) =>
+        if (prev.getType.getBinding != schema.getDescriptor(i).getType.getBinding) {
+          throw new UnsupportedOperationException("Updating schema column types is not allowed")
+        }
       }
 
       val sft = SimpleFeatureTypes.mutable(schema)
 
+      // validation and normalization of the schema
       preSchemaUpdate(sft, previousSft)
 
-      // If all is well, update the metadata
-      val attributesValue = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
-      metadata.insert(sft.getTypeName, ATTRIBUTES_KEY, attributesValue)
+      // if all is well, update the metadata - first back it up
+      if (FastConverter.convertOrElse[java.lang.Boolean](sft.getUserData.get(Configs.UpdateBackupMetadata), true)) {
+        metadata.backup(typeName.getLocalPart)
+      }
+
+      // rename the old rows if the type name has changed
+      if (typeName.getLocalPart != schema.getTypeName) {
+        metadata.scan(typeName.getLocalPart, "", cache = false).foreach { case (k, v) =>
+          metadata.insert(sft.getTypeName, k, v)
+          metadata.remove(typeName.getLocalPart, k)
+        }
+      }
+      // now insert the new spec string
+      metadata.insert(sft.getTypeName, AttributesKey, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
 
       onSchemaUpdated(sft, previousSft)
     } finally {
@@ -381,5 +402,9 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
 }
 
 object MetadataBackedDataStore {
-  private val unmodifiableUserdataKeys = Set(TABLE_SHARING_KEY, SHARING_PREFIX_KEY, DEFAULT_DATE_KEY, ST_INDEX_SCHEMA_KEY)
+
+  import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
+
+  private val UnmodifiableUserDataKeys =
+    Set(TableSharing, TableSharingPrefix, IndexVisibilityLevel, IndexZ3Interval, IndexXzPrecision)
 }

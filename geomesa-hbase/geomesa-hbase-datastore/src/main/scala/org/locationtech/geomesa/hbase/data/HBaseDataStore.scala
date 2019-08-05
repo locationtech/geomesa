@@ -25,8 +25,7 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
-import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.stats.MetadataBackedStats.RunnableStats
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, RunnableStats}
 import org.locationtech.geomesa.index.utils._
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
@@ -127,7 +126,7 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
         require(id.version <= 5, s"Expected index version of 1-5 but got: $id")
         lazy val fields = if (id.version == 1) { dtg } else { geom ++ dtg }
         sft.getAttributeDescriptors.asScala.foreach { d =>
-          val index = d.getUserData.remove(AttributeOptions.OPT_INDEX).asInstanceOf[String]
+          val index = d.getUserData.remove(AttributeOptions.OptIndex).asInstanceOf[String]
           if (index == null || index.equalsIgnoreCase("false") || index.equalsIgnoreCase(IndexCoverage.NONE.toString)) {
             // no-op
           } else if (java.lang.Boolean.valueOf(index) || index.equalsIgnoreCase(IndexCoverage.FULL.toString) ||

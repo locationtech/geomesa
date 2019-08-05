@@ -23,6 +23,7 @@ import org.geotools.factory.CommonFactoryFinder
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
 import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils, SparkVersions}
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.opengis.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
 import org.opengis.filter.{FilterFactory2, Filter => GTFilter}
 
@@ -117,7 +118,7 @@ object SQLRules extends LazyLogging {
       lazy val zone = c.timeZoneId.map(ZoneId.of).orNull
       sparkExprToGTExpr(c.child).map {
         case lit: GTLiteral if lit.getValue.isInstanceOf[Date] && zone != null =>
-          val date = LocalDateTime.ofInstant(lit.getValue.asInstanceOf[Date].toInstant, zone)
+          val date = LocalDateTime.ofInstant(toInstant(lit.getValue.asInstanceOf[Date]), zone)
           ff.literal(new Date(date.atZone(ZoneOffset.UTC).toInstant.toEpochMilli))
         case e => e
       }

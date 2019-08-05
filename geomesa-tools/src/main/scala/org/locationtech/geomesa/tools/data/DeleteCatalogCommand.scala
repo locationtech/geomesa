@@ -19,7 +19,7 @@ trait DeleteCatalogCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[
   override def params: DeleteCatalogParams
 
   override def execute(): Unit = {
-    if (params.force || Prompt.confirm(s"Delete catalog '${params.catalog}'? (yes/no): ")) {
+    if (params.force || Prompt.confirm(s"Delete catalog '${params.catalog}' (y/n)? ")) {
       withDataStore(_.delete())
       Command.user.info(s"Deleted catalog '${params.catalog}'")
     } else {

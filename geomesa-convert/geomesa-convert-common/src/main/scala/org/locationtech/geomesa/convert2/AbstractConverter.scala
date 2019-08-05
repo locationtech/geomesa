@@ -9,16 +9,22 @@
 package org.locationtech.geomesa.convert2
 
 import java.io.{IOException, InputStream}
-import java.nio.charset.Charset
+import java.nio.charset.{Charset, StandardCharsets}
+import java.util.Date
 
+import com.codahale.metrics.Histogram
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
-import org.locationtech.geomesa.convert._
+import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics.SimpleGauge
 import org.locationtech.geomesa.convert2.transforms.Expression
+import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
@@ -36,6 +42,7 @@ import scala.util.control.NonFatal
   * @param config converter config
   * @param fields converter fields
   * @param options converter options
+  * @tparam T intermediate parsed values binding
   * @tparam C config binding
   * @tparam F field binding
   * @tparam O options binding
@@ -44,40 +51,64 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
   (val sft: SimpleFeatureType, val config: C, val fields: Seq[F], val options: O)
     extends SimpleFeatureConverter with ParsingConverter[T] with LazyLogging {
 
-  private val requiredFields: Array[Field] =
-    AbstractConverter.requiredFields(sft, fields, config.userData.values.toSeq ++ config.idField.toSeq)
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  private val requiredFields: Array[Field] = AbstractConverter.requiredFields(this)
 
   private val requiredFieldsCount: Int = requiredFields.length
 
   private val requiredFieldsIndices: Array[Int] = requiredFields.map(f => sft.indexOf(f.name))
 
-  private val configCaches = config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
+  private val metrics = ConverterMetrics(sft, options.reporters)
+
+  private val validators = SimpleFeatureValidator(sft, options.validators, metrics)
+
+  private val caches = config.caches.map { case (k, v) => (k, EnrichmentCache(v)) }
+
+  private val idFieldConfig = config.idField.orNull
+
+  private val userDataConfig = config.userData.toArray
 
   override def targetSft: SimpleFeatureType = sft
 
-  override def createEvaluationContext(globalParams: Map[String, Any],
-                                       caches: Map[String, EnrichmentCache],
-                                       counter: Counter): EvaluationContext = {
-    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
+  override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
+    EvaluationContext(requiredFields.map(_.name), globalParams, caches, metrics)
 
-    val globalKeys = globalParams.keys.toSeq
-    val names = requiredFields.map(_.name) ++ globalKeys
-    val values = Array.ofDim[Any](names.length)
-    // note, globalKeys are maintained even through EvaluationContext.clear()
-    globalKeys.foreachIndex { case (k, i) => values(requiredFieldsCount + i) = globalParams(k) }
-    new EvaluationContextImpl(names, values, counter, configCaches ++ caches)
+  // noinspection ScalaDeprecation
+  override def createEvaluationContext(
+      globalParams: Map[String, Any],
+      caches: Map[String, EnrichmentCache],
+      counter: org.locationtech.geomesa.convert.Counter): EvaluationContext = {
+    logger.warn("Using deprecated evaluation context - metrics will not be registered correctly")
+    val keys = requiredFields.map(_.name) ++ globalParams.keys
+    val values = keys.map(key => globalParams.get(key).orNull)
+    EvaluationContext(keys, values, counter, this.caches ++ caches)
   }
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
-    val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec.counter), ec)
+    val hist = ec.metrics.histogram("parse.nanos")
+    val converted = convert(new ErrorHandlingIterator(parse(is, ec), options.errorMode, ec.failure, hist), ec)
     options.parseMode match {
       case ParseMode.Incremental => converted
       case ParseMode.Batch => CloseableIterator(converted.to[ListBuffer].iterator, converted.close())
     }
   }
 
-  override def convert(values: CloseableIterator[T], ec: EvaluationContext): CloseableIterator[SimpleFeature] =
-    this.values(values, ec).flatMap(convert(_, ec))
+  override def convert(values: CloseableIterator[T], ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
+    val rate = ec.metrics.meter("rate")
+    val duration = ec.metrics.histogram("convert.nanos")
+    val dtgMetrics = sft.getDtgIndex.map { i =>
+      (i, ec.metrics.gauge[Date]("dtg.last"), ec.metrics.histogram("dtg.latency.millis"))
+    }
+
+    this.values(values, ec).flatMap { raw =>
+      rate.mark()
+      val start = System.nanoTime()
+      try { convert(raw, ec, dtgMetrics) } finally {
+        duration.update(System.nanoTime() - start)
+      }
+    }
+  }
 
   /**
     * Parse objects out of the input stream. This should be lazily evaluated, so that any exceptions occur
@@ -112,17 +143,20 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     * @param ec evaluation context
     * @return
     */
-  private def convert(rawValues: Array[Any], ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
+  private def convert(
+      rawValues: Array[Any],
+      ec: EvaluationContext,
+      dtgMetrics: Option[(Int, SimpleGauge[Date], Histogram)]): CloseableIterator[SimpleFeature] = {
     val sf = new ScalaSimpleFeature(sft, "")
 
     def failure(field: String, e: Throwable): CloseableIterator[SimpleFeature] = {
-      ec.counter.incFailure()
+      ec.failure.inc()
       def msg(verbose: Boolean): String = {
         val values = if (!verbose) { "" } else {
           // head is the whole record
           s" using values:\n${rawValues.headOption.orNull}\n[${rawValues.drop(1).mkString(", ")}]"
         }
-        s"Failed to evaluate field '$field' on line ${ec.counter.getLineCount}$values"
+        s"Failed to evaluate field '$field' on line ${ec.line}$values"
       }
 
       options.errorMode match {
@@ -151,26 +185,36 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     }
 
     // if no id builder, empty feature id will be replaced with an auto-gen one
-    config.idField.foreach { expr =>
-      try { sf.setId(expr.eval(rawValues)(ec).asInstanceOf[String]) } catch {
+    if (idFieldConfig != null) {
+      try { sf.setId(idFieldConfig.eval(rawValues)(ec).asInstanceOf[String]) } catch {
         case NonFatal(e) => return failure("feature id", e)
       }
       sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     }
 
-    config.userData.foreach { case (k, v) =>
+    i = 0
+    while (i < userDataConfig.length) {
+      val (k, v) = userDataConfig(i)
       try { sf.getUserData.put(k, v.eval(rawValues)(ec).asInstanceOf[AnyRef]) } catch {
         case NonFatal(e) => return failure(s"user-data:$k", e)
       }
+      i += 1
     }
 
-    val error = options.validators.validate(sf)
+    val error = validators.validate(sf)
     if (error == null) {
-      ec.counter.incSuccess()
+      ec.success.inc()
+      dtgMetrics.foreach { case (index, dtg, latency) =>
+        val date = sf.getAttribute(index).asInstanceOf[Date]
+        if (date != null) {
+          dtg.set(date)
+          latency.update(System.currentTimeMillis() - date.getTime)
+        }
+      }
       CloseableIterator.single(sf)
     } else {
-      ec.counter.incFailure()
-      val msg = s"Invalid SimpleFeature on line ${ec.counter.getLineCount}: $error"
+      ec.failure.inc()
+      val msg = s"Invalid SimpleFeature on line ${ec.line}: $error"
       options.errorMode match {
         case ErrorMode.SkipBadRecords => logger.debug(msg)
         case ErrorMode.RaiseErrors => throw new IOException(msg)
@@ -179,10 +223,16 @@ abstract class AbstractConverter[T, C <: ConverterConfig, F <: Field, O <: Conve
     }
   }
 
-  override def close(): Unit = configCaches.foreach(_._2.close())
+  override def close(): Unit = {
+    CloseWithLogging(caches.values)
+    CloseWithLogging(metrics)
+    CloseWithLogging(validators)
+  }
 }
 
 object AbstractConverter {
+
+  import scala.collection.JavaConverters._
 
   type Dag = scala.collection.mutable.Map[Field, Set[Field]]
 
@@ -202,50 +252,70 @@ object AbstractConverter {
     * @param caches caches
     * @param userData user data expressions
     */
-  case class BasicConfig(`type`: String,
-                         idField: Option[Expression],
-                         caches: Map[String, Config],
-                         userData: Map[String, Expression]) extends ConverterConfig
+  case class BasicConfig(
+      `type`: String,
+      idField: Option[Expression],
+      caches: Map[String, Config],
+      userData: Map[String, Expression]
+    ) extends ConverterConfig
 
   /**
     * Basic converter options implementation, useful if a converter doesn't have additional options
     *
     * @param validators validator
+    * @param reporters metric reporters
     * @param parseMode parse mode
     * @param errorMode error mode
     * @param encoding file/stream encoding
     */
   case class BasicOptions(
-      validators: SimpleFeatureValidator,
+      validators: Seq[String],
+      reporters: Seq[Config],
       parseMode: ParseMode,
       errorMode: ErrorMode,
       encoding: Charset
     ) extends ConverterOptions
 
+  object BasicOptions {
+    // keep as a function to pick up system property changes
+    def default: BasicOptions = {
+      val validators = SimpleFeatureValidator.default
+      BasicOptions(validators, Seq.empty, ParseMode.Default, ErrorMode(), StandardCharsets.UTF_8)
+    }
+  }
+
   /**
     * Determines the fields that are actually used for the conversion
     *
-    * @param sft simple feature type
-    * @param fields defined fields
-    * @param others other expressions (i.e. id field and user data)
+    * @param converter converter
+    * @tparam T intermediate parsed values binding
+    * @tparam C config binding
+    * @tparam F field binding
+    * @tparam O options binding
     * @return
     */
-  private def requiredFields(sft: SimpleFeatureType, fields: Seq[Field], others: Seq[Expression]): Array[Field] = {
-    import scala.collection.JavaConverters._
+  private def requiredFields[T, C <: ConverterConfig, F <: Field, O <: ConverterOptions](
+      converter: AbstractConverter[T, C, F, O]): Array[Field] = {
 
-    val fieldNameMap = fields.map(f => (f.name, f)).toMap
+    val fieldNameMap = converter.fields.map(f => f.name -> f).toMap
     val dag = scala.collection.mutable.Map.empty[Field, Set[Field]]
 
     // compute only the input fields that we need to deal with to populate the simple feature
-    sft.getAttributeDescriptors.asScala.foreach { ad =>
+    converter.sft.getAttributeDescriptors.asScala.foreach { ad =>
       fieldNameMap.get(ad.getLocalName).foreach(addDependencies(_, fieldNameMap, dag))
     }
 
     // add id field and user data deps - these will be evaluated last so we only need to add their deps
+    val others = converter.config.userData.values.toSeq ++ converter.config.idField.toSeq
     others.flatMap(_.dependencies(Set.empty, fieldNameMap)).foreach(addDependencies(_, fieldNameMap, dag))
 
     // use a topological ordering to ensure that dependencies are evaluated before the fields that require them
-    topologicalOrder(dag)
+    val ordered = topologicalOrder(dag)
+
+    // log warnings for missing/unused fields
+    checkMissingFields(converter, ordered.map(_.name))
+
+    ordered
   }
 
   /**
@@ -283,5 +353,30 @@ object AbstractConverter {
       }
     }
     res.toArray
+  }
+
+  /**
+    * Checks for missing/unused fields and logs warnings
+    *
+    * @param converter converter
+    * @param used fields used in the conversion
+    * @tparam T intermediate parsed values binding
+    * @tparam C config binding
+    * @tparam F field binding
+    * @tparam O options binding
+    */
+  private def checkMissingFields[T, C <: ConverterConfig, F <: Field, O <: ConverterOptions](
+      converter: AbstractConverter[T, C, F, O],
+      used: Seq[String]): Unit = {
+    val undefined = converter.sft.getAttributeDescriptors.asScala.map(_.getLocalName).diff(used)
+    if (undefined.nonEmpty) {
+      converter.logger.warn(s"'${converter.sft.getTypeName}' converter did not define fields for some attributes: " +
+          undefined.mkString(", "))
+    }
+    val unused = converter.fields.map(_.name).diff(used)
+    if (unused.nonEmpty) {
+      converter.logger.warn(s"'${converter.sft.getTypeName}' converter defined unused fields: " +
+          unused.mkString(", "))
+    }
   }
 }

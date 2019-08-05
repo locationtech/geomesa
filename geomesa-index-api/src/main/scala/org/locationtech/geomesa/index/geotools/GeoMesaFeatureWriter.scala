@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -39,17 +39,17 @@ trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWrit
 
   private val exceptions: ArrayBuffer[Throwable] = ArrayBuffer.empty[Throwable]
 
-  protected val statUpdater: StatUpdater = ds.stats.statUpdater(sft)
+  protected val statUpdater: StatUpdater = ds.stats.writer.updater(sft)
 
   override def getFeatureType: SimpleFeatureType = sft
 
   protected def getWriter(feature: SimpleFeature): IndexWriter
 
-  protected def writeFeature(feature: SimpleFeature): Unit = {
+  protected def writeFeature(feature: SimpleFeature, update: Boolean = false): Unit = {
     // see if there's a suggested ID to use for this feature, else create one based on the feature
     val writable = GeoMesaFeatureWriter.featureWithFid(sft, feature)
     // `write` will calculate all mutations up front in case the feature is not valid, so we don't write partial entries
-    try { getWriter(writable).write(writable) } catch {
+    try { getWriter(writable).write(writable, update) } catch {
       case NonFatal(e) =>
         val attributes = s"${writable.getID}:${writable.getAttributes.asScala.mkString("|")}"
         throw new IllegalArgumentException(s"Error indexing feature '$attributes'", e)
@@ -266,7 +266,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
       // comparison of feature ID and attributes - doesn't consider concrete class used
       if (!ScalaSimpleFeature.equalIdAndAttributes(live, original)) {
         removeFeature(original)
-        writeFeature(live)
+        writeFeature(live, update = true)
       }
       original = null
       live = null

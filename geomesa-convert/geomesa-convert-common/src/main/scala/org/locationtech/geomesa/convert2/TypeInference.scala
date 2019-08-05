@@ -175,7 +175,7 @@ object TypeInference {
       spec.append(typ.name).append(':').append(typ.binding)
     }
     if (types.exists(_.typed == ObjectType.GEOMETRY)) {
-      spec.append(s";${SimpleFeatureTypes.Configs.MIXED_GEOMETRIES}=true")
+      spec.append(s";${SimpleFeatureTypes.Configs.MixedGeometries}=true")
     }
     SimpleFeatureTypes.createType(name, spec.toString())
   }
@@ -391,7 +391,7 @@ object TypeInference {
 
   object InferredType {
 
-    private val dateParsers = TransformerFunction.functions.values.collect { case f: StandardDateParser => f }.toSeq
+    private val dateParsers = TransformerFunction.functions.values.collect { case f: StandardDateParser => f }.toArray
 
     /**
       * Infer a type from a value. Returned type will have an empty name
@@ -445,10 +445,13 @@ object TypeInference {
     }
 
     private def tryDateParsing(s: String): Option[InferredType] = {
-      dateParsers.foreach { p =>
+      var i = 0
+      while (i < dateParsers.length) {
+        val p = dateParsers(i)
         if (Try(DateParsing.parseDate(s, p.format)).isSuccess) {
           return Some(InferredType("", DATE, FunctionTransform(s"${p.names.head}(", ")")))
         }
+        i += 1
       }
       None
     }

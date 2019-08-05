@@ -18,11 +18,12 @@ import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
-import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.stats.MetadataBackedStats.RunnableStats
+import org.locationtech.geomesa.index.stats.{GeoMesaStats, RunnableStats}
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
 import org.locationtech.geomesa.utils.conf.IndexId
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -48,6 +49,15 @@ class CassandraDataStore(val session: Session, config: CassandraDataStoreConfig)
     (tables.distinct :+ config.catalog).par.foreach { table =>
       session.execute(s"drop table $table")
     }
+  }
+
+  override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+    val rename = sft.getUserData.remove(SimpleFeatureTypes.Configs.UpdateRenameTables)
+    if (FastConverter.convert(rename, classOf[java.lang.Boolean]) == java.lang.Boolean.TRUE) {
+      logger.warn("Cassandra does not support renaming tables - disabling rename option")
+    }
+    sft.getUserData.put(SimpleFeatureTypes.Configs.UpdateRenameTables, java.lang.Boolean.FALSE)
+    super.preSchemaUpdate(sft, previous)
   }
 
   override protected def transitionIndices(sft: SimpleFeatureType): Unit = {
@@ -85,7 +95,7 @@ class CassandraDataStore(val session: Session, config: CassandraDataStoreConfig)
         require(id.version <= 2, s"Expected index version of 1 or 2 but got: $id")
         val fields = geom ++ dtg
         sft.getAttributeDescriptors.asScala.foreach { d =>
-          val index = d.getUserData.remove(AttributeOptions.OPT_INDEX).asInstanceOf[String]
+          val index = d.getUserData.remove(AttributeOptions.OptIndex).asInstanceOf[String]
           if (index == null || index.equalsIgnoreCase("false") || index.equalsIgnoreCase(IndexCoverage.NONE.toString)) {
             // no-op
           } else if (java.lang.Boolean.valueOf(index) || index.equalsIgnoreCase(IndexCoverage.FULL.toString) ||

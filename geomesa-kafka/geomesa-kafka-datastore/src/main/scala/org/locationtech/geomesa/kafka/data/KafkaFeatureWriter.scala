@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kafka.clients.producer.{Producer, ProducerRecord}
 import org.geotools.data.simple.SimpleFeatureWriter
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter

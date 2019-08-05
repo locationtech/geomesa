@@ -90,6 +90,40 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 2.4.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+GeoTools 21 and GeoServer 2.15
+------------------------------
+
+GeoMesa 2.4.0 is compiled against GeoTools 21.1 and GeoServer 2.15. This version of GeoTools contains package
+and class location changes to support Java 11. Due to the changes, GeoMesa will no longer work with older
+versions of GeoTools and GeoServer.
+
+.. warning::
+
+  GeoMesa 2.4.0 requires GeoTools 21.x and GeoServer 2.15.x.
+
+Configuration of Cached Statistics
+----------------------------------
+
+GeoMesa 2.4.0 moves the configuration of cached stats from a data store parameter (where it has to be set every time)
+to the feature type user data (where it is set once at schema creation, and only changed through explicit schema
+updates). See :ref:`stat_config` for more details.
+
+Feature types that were created in prior versions will continue to behave as before, with the configuration
+determined by the data store parameter each time. The configuration can be set permanently through
+the ``updateSchema`` data store method or the :ref:`cli_update_schema` CLI command.
+
+Distribution of Installation Bundles
+------------------------------------
+
+As of GeoMesa 2.4.0, installation bundles (binary distribution and GeoServer plugin tar files) will no
+longer be hosted on Maven Central. They will continue to be available on
+`GitHub <https://github.com/locationtech/geomesa/releases>`__ and the
+`Locationtech Maven Repository <https://repo.locationtech.org/content/groups/releases>`__. Note that this only
+applies to large installation bundles; GeoMesa will continue to publish JAR files to Maven Central.
+
 Version 2.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -144,7 +178,7 @@ GeoMesa will no longer work with older versions of GeoTools and GeoServer.
 
 .. warning::
 
-  GeoMesa 2.2.0 requires GeoTools 20.0 or later and GeoServer 2.14 or later.
+  GeoMesa 2.2.0 requires GeoTools 20.x and GeoServer 2.14.x.
 
 Accumulo DataStore GeoServer Installation
 -----------------------------------------

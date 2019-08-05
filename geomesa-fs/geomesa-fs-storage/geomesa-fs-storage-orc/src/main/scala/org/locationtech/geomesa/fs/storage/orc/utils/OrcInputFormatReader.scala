@@ -46,7 +46,6 @@ object OrcInputFormatReader {
           case ObjectType.DOUBLE   => new DoubleInputFormatReader(col, i)
           case ObjectType.BOOLEAN  => new BooleanInputFormatReader(col, i)
           case ObjectType.BYTES    => new BytesInputFormatReader(col, i)
-          case ObjectType.JSON     => new StringInputFormatReader(col, i)
           case ObjectType.UUID     => new UuidInputFormatReader(col, i)
           case ObjectType.LIST     => new ListInputFormatReader(col, i, bindings(1))
           case ObjectType.MAP      => new MapInputFormatReader(col, i, bindings(1), bindings(2))
@@ -434,7 +433,6 @@ object OrcInputFormatReader {
       case ObjectType.DOUBLE   => new ConvertInputFormatDouble {}
       case ObjectType.BOOLEAN  => new ConvertInputFormatBoolean {}
       case ObjectType.BYTES    => new ConvertInputFormatBytes {}
-      case ObjectType.JSON     => new ConvertInputFormatString {}
       case ObjectType.UUID     => new ConvertInputFormatUuid {}
       case _ => throw new IllegalArgumentException(s"Unexpected object type $binding")
     }

@@ -22,7 +22,7 @@ There are three validators provided for use with GeoMesa converters:
   the relevant GeoMesa Z-Index implementations (i.e. Z2, Z3, XZ2, XZ3)
 
 Additional validators may be loaded through Java SPI by by implementing
-``org.locationtech.geomesa.convert.SimpleFeatureValidator$ValidatorFactory`` and including a special service
+``org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorFactory`` and including a special service
 descriptor file. See below for additional information.
 
 By default the ``index`` validator is enabled. This is suitable for most use cases, as it will choose the appropriate
@@ -41,15 +41,34 @@ Custom Validators
 ^^^^^^^^^^^^^^^^^
 
 Custom validators may be loaded through Java SPI by by implementing
-``org.locationtech.geomesa.convert.SimpleFeatureValidator$ValidatorFactory``, shown below. Note that validators
-must be registered through a special service descriptor file.
+``org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorFactory``, shown below. Note that validators
+must be registered through a special
+`service descriptor file <http://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html>`__.
 
 .. code-block:: scala
 
-  trait ValidatorFactory {
-    def name: String
-    def validator(sft: SimpleFeatureType, config: Option[String]): Validator
-  }
+    trait SimpleFeatureValidatorFactory {
+
+      /**
+        * Well-known name of this validator, for specifying the validator to use
+        *
+        * @return
+        */
+      def name: String
+
+      /**
+        * Create a validator for the given feature typ
+        *
+        * @param sft simple feature type
+        * @param metrics metrics registry for reporting validation
+        * @param config optional configuration string
+        */
+      def apply(sft: SimpleFeatureType, metrics: ConverterMetrics, config: Option[String]): SimpleFeatureValidator
+    }
+
+
+Valdiators are provided with a `Dropwizard MetricRegistry <https://metrics.dropwizard.io/>`__, which can be used
+to register custom validation metrics. See :ref:`converter_metrics`, below.
 
 When specifying validators in a converter config, the ``name`` of the factory must match the ``validators`` string.
 Any additional arguments may be specified in parentheses, which will be passed to the ``validator`` method.
@@ -63,11 +82,16 @@ For example::
 
 .. code-block:: scala
 
-  class MyCustomValidator extends ValidatorFactory {
+  import org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorFactory
+
+  class MyCustomValidator extends SimpleFeatureValidatorFactory {
 
     override val name: String = "my-custom-validator"
 
-    override def validator(sft: SimpleFeatureType, config: Option[String]): Validator = {
+    override def apply(
+        sft: SimpleFeatureType,
+        metrics: ConverterMetrics,
+        config: Option[String]): SimpleFeatureValidator = {
       if (config.exists(_.contains("optionA"))) {
         // handle option a
       } else {
@@ -77,7 +101,7 @@ For example::
   }
 
 See the GeoMesa
-`unit tests <https://github.com/locationtech/geomesa/blob/master/geomesa-convert/geomesa-convert-common/src/test/scala/org/locationtech/geomesa/convert/SimpleFeatureValidatorTest.scala>`__
+`unit tests <https://github.com/locationtech/geomesa/blob/master/geomesa-convert/geomesa-convert-common/src/test/scala/org/locationtech/geomesa/convert2/validators/SimpleFeatureValidatorTest.scala>`__
 for a sample implementation.
 
 For more details on implementing a service provider, see the
@@ -140,6 +164,70 @@ To view validation logs you can enable info or debug level logging on the packag
 
 When logging is enabled at the info level, it will just show the field that failed. When enabled at the debug
 level, it will show the entire record, along with the stack trace.
+
+.. _converter_metrics:
+
+Metrics
+~~~~~~~
+
+Converters use the `Dropwizard Metrics <https://metrics.dropwizard.io/>`__ library to register metrics on
+successful conversions, failed conversions, validation errors, and processing rates. Metrics can be accessed
+through the converter evaluation context, or can be exposed through reporters configured in the converter options:
+
+::
+
+    geomesa.converters.myconverter {
+      options {
+        reporters = [
+          {
+            type           = "slf4j"
+            logger         = "com.example.MyConverter"
+            level          = "INFO"
+            rate-units     = "SECONDS"
+            duration-units = "MILLISECONDS"
+            interval       = "10 seconds"
+          }
+        ]
+      }
+    }
+
+Reporters are available for `SLF4J <https://www.slf4j.org/>`__, `Graphite <https://graphiteapp.org/>`__ and
+`Ganglia <http://ganglia.sourceforge.net/>`__. To use Graphite or Ganglia, you must include a dependency on
+``geomesa-convert-metrics-graphite_2.11`` or ``geomesa-convert-metrics-ganglia_2.11``, respectively. Note that
+using Ganglia requires an additional GPL-licensed dependency ``info.ganglia.gmetric4j:gmetric4j``, which is excluded
+by default. The reporters can be configured as follows:
+
+::
+
+    geomesa.converters.myconverter {
+      options {
+        reporters = [
+          {
+            type           = "graphite"
+            url            = "localhost:9000"
+            prefix         = "example"
+            rate-units     = "SECONDS"
+            duration-units = "MILLISECONDS"
+            interval       = "10 seconds"
+          },
+          {
+            type            = "ganglia"
+            group           = "example"
+            port            = 8649
+            addressing-mode = "multicast" // or unicast
+            ttl             = 32
+            ganglia311      = true
+            rate-units      = "SECONDS"
+            duration-units  = "MILLISECONDS"
+            interval        = "10 seconds"
+          }
+        ]
+      }
+    }
+
+Additional reporters can be added at runtime by implementing
+``org.locationtech.geomesa.convert2.metrics.ReporterFactory`` and registering the new class as a
+`service provider <http://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html>`__.
 
 Transactional Considerations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

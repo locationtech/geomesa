@@ -11,9 +11,10 @@ package org.locationtech.geomesa.kudu.data
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.StrictLogging
+import org.apache.kudu.client.AlterTableOptions
 import org.apache.kudu.client.SessionConfiguration.FlushMode
 import org.locationtech.geomesa.curve.BinnedTime
-import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
+import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{WritableFeature, _}
 import org.locationtech.geomesa.kudu.data.KuduIndexAdapter.{KuduFeatureWrapper, KuduIndexWriter}
@@ -55,6 +56,12 @@ class KuduIndexAdapter(ds: KuduDataStore) extends IndexAdapter[KuduDataStore] {
     }
   }
 
+  override def renameTable(from: String, to: String): Unit = {
+    if (ds.client.tableExists(from)) {
+      ds.client.alterTable(from, new AlterTableOptions().renameTable(to))
+    }
+  }
+
   override def deleteTables(tables: Seq[String]): Unit = {
     tables.par.foreach { table =>
       if (ds.client.tableExists(table)) {
@@ -92,6 +99,8 @@ class KuduIndexAdapter(ds: KuduDataStore) extends IndexAdapter[KuduDataStore] {
   // kudu operates better with lower range numbers compared to e.g. accumulo
 
   override def createQueryPlan(strategy: QueryStrategy): KuduQueryPlan = {
+    import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
     val QueryStrategy(filter, _, keyRanges, tieredKeyRanges, _, hints, _) = strategy
     val index = filter.index
 
@@ -108,7 +117,12 @@ class KuduIndexAdapter(ds: KuduDataStore) extends IndexAdapter[KuduDataStore] {
 
       val adapter = KuduResultAdapter(index.sft, auths, ecql, hints)
 
-      ScanPlan(filter, tables, ranges, predicates, ecql, adapter, ds.config.queryThreads)
+      val sort = hints.getSortFields
+      val max = hints.getMaxFeatures
+      val project = hints.getProjection
+      val threads = ds.config.queryThreads
+
+      ScanPlan(filter, tables, ranges, predicates, ecql, adapter, sort, max, project, threads)
     }
   }
 
@@ -120,10 +134,12 @@ class KuduIndexAdapter(ds: KuduDataStore) extends IndexAdapter[KuduDataStore] {
 
 object KuduIndexAdapter {
 
-  class KuduIndexWriter(ds: KuduDataStore,
-                        indices: Seq[GeoMesaFeatureIndex[_, _]],
-                        wrapper: KuduFeatureWrapper,
-                        partition: Option[String]) extends IndexWriter(indices, wrapper) with StrictLogging {
+  class KuduIndexWriter(
+      ds: KuduDataStore,
+      indices: Seq[GeoMesaFeatureIndex[_, _]],
+      wrapper: KuduFeatureWrapper,
+      partition: Option[String]
+    ) extends BaseIndexWriter[KuduWritableFeature](indices, wrapper) with StrictLogging {
 
     // track partitions written by this instance
     private val partitions = scala.collection.mutable.Set.empty[String]
@@ -145,17 +161,18 @@ object KuduIndexAdapter {
 
     private var i = 0
 
-    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
-      val kf = feature.asInstanceOf[KuduWritableFeature]
-
+    override protected def write(
+        feature: KuduWritableFeature,
+        values: Array[RowKeyValue[_]],
+        update: Boolean): Unit = {
       i = 0
       while (i < values.length) {
         val (mapper, table) = mappers(i)
         // if we haven't seen this partition before, try to add it
         // it's hard (impossible?) to inspect existing partitions through the kudu API,
         // so we just add them and suppress duplicate partition errors
-        if (partitions.add(s"${mapper.index.identifier}.${kf.bin}")) {
-          mapper.createPartition(table, kf.bin).foreach { case Partitioning(name, alter) =>
+        if (partitions.add(s"${mapper.index.identifier}.${feature.bin}")) {
+          mapper.createPartition(table, feature.bin).foreach { case Partitioning(name, alter) =>
             try { ds.client.alterTable(name, alter) } catch {
               case e if existingPartitionError(e) =>
                 logger.debug(s"Tried to create a partition to table $name but it already exists: ", e)
@@ -167,8 +184,8 @@ object KuduIndexAdapter {
             val upsert = table.newUpsert()
             val row = upsert.getRow
             mapper.createKeyValues(kv).foreach(_.writeToRow(row))
-            kf.kuduValues.foreach(_.writeToRow(row))
-            VisibilityAdapter.writeToRow(row, kf.vis)
+            feature.kuduValues.foreach(_.writeToRow(row))
+            VisibilityAdapter.writeToRow(row, feature.vis)
             session.session.apply(upsert)
 
           case mkv: MultiRowKeyValue[_] =>
@@ -176,8 +193,8 @@ object KuduIndexAdapter {
               val upsert = table.newUpsert()
               val row = upsert.getRow
               mapper.createKeyValues(kv).foreach(_.writeToRow(row))
-              kf.kuduValues.foreach(_.writeToRow(row))
-              VisibilityAdapter.writeToRow(row, kf.vis)
+              feature.kuduValues.foreach(_.writeToRow(row))
+              VisibilityAdapter.writeToRow(row, feature.vis)
               session.session.apply(upsert)
             }
         }
@@ -185,7 +202,7 @@ object KuduIndexAdapter {
       }
     }
 
-    override protected def delete(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
+    override protected def delete(feature: KuduWritableFeature, values: Array[RowKeyValue[_]]): Unit = {
       i = 0
       while (i < values.length) {
         val (mapper, table) = mappers(i)
@@ -218,7 +235,8 @@ object KuduIndexAdapter {
       e.getMessage != null && e.getMessage.startsWith("New range partition conflicts with existing range partition")
   }
 
-  class KuduFeatureWrapper(sft: SimpleFeatureType, delegate: FeatureWrapper) extends FeatureWrapper {
+  class KuduFeatureWrapper(sft: SimpleFeatureType, delegate: FeatureWrapper[WritableFeature])
+      extends FeatureWrapper[KuduWritableFeature] {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -226,8 +244,8 @@ object KuduIndexAdapter {
     private val toBin = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
     private val schema = KuduSimpleFeatureSchema(sft)
 
-    override def wrap(feature: SimpleFeature): KuduWritableFeature = {
-      new KuduWritableFeature(delegate.wrap(feature), schema, dtgIndex, toBin)
+    override def wrap(feature: SimpleFeature, delete: Boolean): KuduWritableFeature = {
+      new KuduWritableFeature(delegate.wrap(feature, delete), schema, dtgIndex, toBin)
     }
   }
 }

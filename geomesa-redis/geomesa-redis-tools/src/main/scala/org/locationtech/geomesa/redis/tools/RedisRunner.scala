@@ -9,10 +9,7 @@
 package org.locationtech.geomesa.redis.tools
 
 import com.beust.jcommander.JCommander
-import org.locationtech.geomesa.redis.tools.export.{RedisExplainCommand, RedisExportCommand}
-import org.locationtech.geomesa.redis.tools.ingest.{RedisDeleteFeaturesCommand, RedisIngestCommand}
-import org.locationtech.geomesa.redis.tools.schema._
-import org.locationtech.geomesa.redis.tools.stats._
+import org.locationtech.geomesa.tools.export.{ConvertCommand, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.status._
 import org.locationtech.geomesa.tools.{Command, Runner}
 
@@ -21,26 +18,31 @@ object RedisRunner extends Runner {
   override val name: String = "geomesa-redis"
 
   override protected def createCommands(jc: JCommander): Seq[Command] = Seq(
-    new RedisCreateSchemaCommand,
-    new RedisDeleteCatalogCommand,
-    new RedisDeleteFeaturesCommand,
-    new RedisDescribeSchemaCommand,
-    new RedisExplainCommand,
-    new RedisExportCommand,
-    new RedisGetSftConfigCommand,
-    new RedisGetTypeNamesCommand,
-    new RedisIngestCommand,
-    new RedisKeywordsCommand,
-    new RedisManagePartitionsCommand(this, jc),
-    new RedisRemoveSchemaCommand,
-    new RedisStatsAnalyzeCommand,
-    new RedisStatsBoundsCommand,
-    new RedisStatsCountCommand,
-    new RedisStatsHistogramCommand,
-    new RedisStatsTopKCommand,
-    new HelpCommand(this, jc),
+    new export.RedisExplainCommand,
+    new export.RedisExportCommand,
+    new ingest.RedisDeleteFeaturesCommand,
+    new ingest.RedisIngestCommand,
+    new schema.RedisCreateSchemaCommand,
+    new schema.RedisDeleteCatalogCommand,
+    new schema.RedisDescribeSchemaCommand,
+    new schema.RedisGetSftConfigCommand,
+    new schema.RedisGetTypeNamesCommand,
+    new schema.RedisKeywordsCommand,
+    new schema.RedisManagePartitionsCommand(this, jc),
+    new schema.RedisRemoveSchemaCommand,
+    new schema.RedisUpdateSchemaCommand,
+    new stats.RedisStatsAnalyzeCommand,
+    new stats.RedisStatsBoundsCommand,
+    new stats.RedisStatsCountCommand,
+    new stats.RedisStatsHistogramCommand,
+    new stats.RedisStatsTopKCommand,
+    // common commands, placeholders for script functions
     new ConfigureCommand,
+    new ConvertCommand,
     new ClasspathCommand,
+    new EnvironmentCommand,
+    new GenerateAvroSchemaCommand,
+    new HelpCommand(this, jc),
     new ScalaConsoleCommand,
     new VersionCommand
   )

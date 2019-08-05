@@ -15,11 +15,10 @@ import java.util.Collections
 import com.typesafe.config.{Config, ConfigFactory, ConfigObject, ConfigValueFactory}
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
-import org.locationtech.geomesa.convert.SimpleFeatureValidator.{HasDtgValidator, HasGeoValidator}
-import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{ConverterConfigConvert, ConverterOptionsConvert, FieldConvert}
 import org.locationtech.geomesa.convert2.transforms.Expression
+import org.locationtech.geomesa.convert2.validators.{HasDtgValidatorFactory, HasGeoValidatorFactory}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -39,7 +38,7 @@ abstract class AbstractConverterFactory[S <: AbstractConverter[_, C, F, O]: Clas
                                         C <: ConverterConfig: ClassTag,
                                         F <: Field,
                                         O <: ConverterOptions: ClassTag]
-    extends SimpleFeatureConverterFactory with LazyLogging {
+    extends SimpleFeatureConverterFactory {
 
   /**
     * The converter to use is identified by the 'type' field in the config, e.g. 'xml' or 'json'
@@ -63,7 +62,6 @@ abstract class AbstractConverterFactory[S <: AbstractConverter[_, C, F, O]: Clas
       } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid configuration: ${e.getMessage}")
       }
-      opts.validators.init(sft)
       val args = Array(classOf[SimpleFeatureType], implicitly[ClassTag[C]].runtimeClass,
         classOf[Seq[F]], implicitly[ClassTag[O]].runtimeClass)
       val constructor = implicitly[ClassTag[S]].runtimeClass.getConstructor(args: _*)
@@ -131,7 +129,7 @@ object AbstractConverterFactory extends LazyLogging {
     if (conf.hasPath("options.validating")) {
       logger.warn(s"Using deprecated validation key 'validating'")
       val validators = if (conf.getBoolean("options.validating")) {
-        ConfigValueFactory.fromIterable(Seq(HasGeoValidator.name, HasDtgValidator.name).asJava)
+        ConfigValueFactory.fromIterable(Seq(HasGeoValidatorFactory.Name, HasDtgValidatorFactory.Name).asJava)
       } else {
         ConfigValueFactory.fromIterable(Collections.emptyList())
       }
@@ -155,11 +153,12 @@ object AbstractConverterFactory extends LazyLogging {
     */
   implicit object BasicConfigConvert extends ConverterConfigConvert[BasicConfig] {
 
-    override protected def decodeConfig(cur: ConfigObjectCursor,
-                                        `type`: String,
-                                        idField: Option[Expression],
-                                        caches: Map[String, Config],
-                                        userData: Map[String, Expression]): Either[ConfigReaderFailures, BasicConfig] = {
+    override protected def decodeConfig(
+        cur: ConfigObjectCursor,
+        `type`: String,
+        idField: Option[Expression],
+        caches: Map[String, Config],
+        userData: Map[String, Expression]): Either[ConfigReaderFailures, BasicConfig] = {
       Right(BasicConfig(`type`, idField, caches, userData))
     }
 
@@ -189,11 +188,12 @@ object AbstractConverterFactory extends LazyLogging {
 
     override protected def decodeOptions(
         cur: ConfigObjectCursor,
-        validators: SimpleFeatureValidator,
+        validators: Seq[String],
+        reporters: Seq[Config],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, BasicOptions] = {
-      Right(BasicOptions(validators, parseMode, errorMode, encoding))
+      Right(BasicOptions(validators, reporters, parseMode, errorMode, encoding))
     }
 
     override protected def encodeOptions(options: BasicOptions, base: java.util.Map[String, AnyRef]): Unit = {}
@@ -205,13 +205,15 @@ object AbstractConverterFactory extends LazyLogging {
     *
     * @tparam C config class
     */
-  abstract class ConverterConfigConvert[C <: ConverterConfig] extends ConfigConvert[C] with ExpressionConvert {
+  abstract class ConverterConfigConvert[C <: ConverterConfig]
+      extends ConfigConvert[C] with ExpressionConvert with ConfigMapConvert {
 
-    protected def decodeConfig(cur: ConfigObjectCursor,
-                               `type`: String,
-                               idField: Option[Expression],
-                               caches: Map[String, Config],
-                               userData: Map[String, Expression]): Either[ConfigReaderFailures, C]
+    protected def decodeConfig(
+        cur: ConfigObjectCursor,
+        `type`: String,
+        idField: Option[Expression],
+        caches: Map[String, Config],
+        userData: Map[String, Expression]): Either[ConfigReaderFailures, C]
 
     protected def encodeConfig(config: C, base: java.util.Map[String, AnyRef]): Unit
 
@@ -221,7 +223,7 @@ object AbstractConverterFactory extends LazyLogging {
         typ      <- obj.atKey("type").right.flatMap(_.asString).right
         idField  <- idFieldFrom(obj.atKeyOrUndefined("id-field")).right
         userData <- userDataFrom(obj.atKeyOrUndefined("user-data")).right
-        caches   <- cachesFrom(obj.atKeyOrUndefined("caches")).right
+        caches   <- configMapFrom(obj.atKeyOrUndefined("caches")).right
         config   <- decodeConfig(obj, typ, idField, caches, userData).right
       } yield {
         config
@@ -258,17 +260,6 @@ object AbstractConverterFactory extends LazyLogging {
           }
         }
         for { obj <- cur.asObjectCursor.right; data <- merge(obj).right } yield { data }
-      }
-    }
-
-    private def cachesFrom(cur: ConfigCursor): Either[ConfigReaderFailures, Map[String, Config]] = {
-      if (cur.isUndefined) { Right(Map.empty) } else {
-        def merge(cur: ConfigObjectCursor): Either[ConfigReaderFailures, Map[String, Config]] = {
-          cur.map.foldLeft[Either[ConfigReaderFailures, Map[String, Config]]](Right(Map.empty)) {
-            case (map, (k, v)) => for { m <- map.right; c <- v.asObjectCursor.right } yield { m + (k -> c.value.toConfig) }
-          }
-        }
-        for { obj <- cur.asObjectCursor.right; caches <- merge(obj).right } yield { caches }
       }
     }
   }
@@ -340,11 +331,13 @@ object AbstractConverterFactory extends LazyLogging {
     *
     * @tparam O options class
     */
-  abstract class ConverterOptionsConvert[O <: ConverterOptions] extends ConfigConvert[O] {
+  abstract class ConverterOptionsConvert[O <: ConverterOptions]
+      extends ConfigConvert[O] with ConfigSeqConvert with ConfigMapConvert {
 
     protected def decodeOptions(
         cur: ConfigObjectCursor,
-        validators: SimpleFeatureValidator,
+        validators: Seq[String],
+        reporters: Seq[Config],
         parseMode: ParseMode,
         errorMode: ErrorMode,
         encoding: Charset): Either[ConfigReaderFailures, O]
@@ -368,14 +361,9 @@ object AbstractConverterFactory extends LazyLogging {
 
     private def optionsFrom(cur: ConfigObjectCursor): Either[ConfigReaderFailures, O] = {
 
-      def mergeValidators(cur: ConfigListCursor): Either[ConfigReaderFailures, SimpleFeatureValidator] = {
-        val strings = cur.list.foldLeft[Either[ConfigReaderFailures, Seq[String]]](Right(Seq.empty)) {
+      def mergeValidators(cur: ConfigListCursor): Either[ConfigReaderFailures, Seq[String]] = {
+        cur.list.foldLeft[Either[ConfigReaderFailures, Seq[String]]](Right(Seq.empty)) {
           case (seq, v) => for { s <- seq.right; string <- v.asString.right } yield { s :+ string }
-        }
-        strings.right.flatMap { s =>
-          try { Right(SimpleFeatureValidator(s)) } catch {
-            case NonFatal(e) => cur.failed(CannotConvert(cur.value.toString, "SimpleFeatureValidator", e.getMessage))
-          }
         }
       }
 
@@ -396,12 +384,27 @@ object AbstractConverterFactory extends LazyLogging {
 
       for {
         validators <- cur.atKey("validators").right.flatMap(_.asListCursor).right.flatMap(mergeValidators).right
+        reporters  <- parseReporters(cur.atKeyOrUndefined("reporters")).right
         parseMode  <- parse("parse-mode", ParseMode.values).right
         errorMode  <- parse("error-mode", ErrorMode.values).right
         encoding   <- cur.atKey("encoding").right.flatMap(_.asString).right.map(Charset.forName).right
-        options    <- decodeOptions(cur, validators, parseMode, errorMode, encoding).right
+        options    <- decodeOptions(cur, validators, reporters, parseMode, errorMode, encoding).right
       } yield {
         options
+      }
+    }
+
+    /**
+      * Reads reporters as a config list, plus checks for back compatible config map
+      *
+      * @param cur cursor
+      * @return
+      */
+    private def parseReporters(cur: ConfigCursor): Either[ConfigReaderFailures, Seq[Config]] = {
+      if (cur.asObjectCursor.isRight) {
+        configMapFrom(cur).right.map(_.values.toList)
+      } else {
+        configSeqFrom(cur)
       }
     }
 
@@ -410,9 +413,9 @@ object AbstractConverterFactory extends LazyLogging {
       map.put("parse-mode", options.parseMode.toString)
       map.put("error-mode", options.errorMode.toString)
       map.put("encoding", options.encoding.name)
-      options.validators match {
-        // use unapplySeq to extract names
-        case SimpleFeatureValidator(names@_*) => map.put("validators", names.asJava)
+      map.put("validators", options.validators.asJava)
+      if (options.reporters.nonEmpty) {
+        map.put("reporters", options.reporters.map(_.root().unwrapped()))
       }
       encodeOptions(options, map)
       map
@@ -440,6 +443,39 @@ object AbstractConverterFactory extends LazyLogging {
       val optCur = cur.atKeyOrUndefined(key)
       if (optCur.isUndefined) { Right(None) } else {
         optCur.asString.right.map(Option.apply)
+      }
+    }
+  }
+
+  /**
+    * Convert named configs
+    */
+  trait ConfigMapConvert {
+    protected def configMapFrom(cur: ConfigCursor): Either[ConfigReaderFailures, Map[String, Config]] = {
+      if (cur.isUndefined) { Right(Map.empty) } else {
+        def merge(cur: ConfigObjectCursor): Either[ConfigReaderFailures, Map[String, Config]] = {
+          cur.map.foldLeft[Either[ConfigReaderFailures, Map[String, Config]]](Right(Map.empty)) {
+            case (map, (k, v)) =>
+              for { m <- map.right; c <- v.asObjectCursor.right } yield { m + (k -> c.value.toConfig) }
+          }
+        }
+        for { obj <- cur.asObjectCursor.right; configs <- merge(obj).right } yield { configs }
+      }
+    }
+  }
+
+  /**
+    * Convert unnamed configs
+    */
+  trait ConfigSeqConvert {
+    protected def configSeqFrom(cur: ConfigCursor): Either[ConfigReaderFailures, Seq[Config]] = {
+      if (cur.isUndefined) { Right(Seq.empty) } else {
+        def merge(cur: ConfigListCursor): Either[ConfigReaderFailures, Seq[Config]] = {
+          cur.list.foldLeft[Either[ConfigReaderFailures, Seq[Config]]](Right(Seq.empty)) {
+            case (seq, v) => for { s <- seq.right; c <- v.asObjectCursor.right } yield { s :+ c.value.toConfig }
+          }
+        }
+        for { obj <- cur.asListCursor.right; configs <- merge(obj).right } yield { configs }
       }
     }
   }

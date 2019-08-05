@@ -252,3 +252,30 @@ Other useful options are as follows:
   ``option("cover", "true")`` - Since only the EQUAL and EARTH partition strategies can guarantee that partition envelopes
   will be identical across relations, data frames with this option set will force the partitioning scheme of data frames
   that they are joined with to match its own.
+
+GeoJSON Output
+^^^^^^^^^^^^^^
+
+The ``geomesa-spark-sql`` module provides a means of exporting a ``DataFrame`` to a `GeoJSON <http://geojson.org/>`__
+string. This allows for quick visualization of the data in many front-end mapping libraries that support GeoJSON
+input such as Leaflet or Open Layers.
+
+To convert a DataFrame, import the implicit conversion and invoke the ``toGeoJSON`` method.
+
+.. code-block:: scala
+
+    import org.locationtech.geomesa.spark.sql.GeoJSONExtensions._
+    val df: DataFrame = // Some data frame
+    val geojsonDf = df.toGeoJSON
+
+If the result can fit in memory, it can then be collected on the driver and written to a file. If not, each executor can
+write to a distributed file system like HDFS.
+
+.. code:: scala
+
+    val geoJsonString = geojsonDF.collect.mkString("[",",","]")
+
+.. note::
+
+    For this to work, the Data Frame should have a geometry field, meaning its schema should have a ``StructField`` that
+    is one of the JTS geometry types provided by GeoMesa.

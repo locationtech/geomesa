@@ -6,9 +6,28 @@ in GeoMesa data stores is to use `GeoServer`_,
 an open source server for sharing geospatial data. This chapter describes
 how to work with the GeoMesa GeoServer plugins.
 
+.. _geoserver_versions:
+
+GeoServer Versions
+------------------
+
+Not all versions of GeoServer are compatible with all versions of GeoMesa. Refer to the chart below for which
+version to install. It is recommended to use the latest GeoServer bug-fix release for the compatible minor version.
+
++-------------------+-------------------+
+| GeoMesa Version   | GeoServer Version |
++===================+===================+
+| 2.1.x and earlier | 2.12.x            |
++-------------------+-------------------+
+| 2.2.x and 2.3.x   | 2.14.x            |
++-------------------+-------------------+
+| 2.4.x             | 2.15.x            |
++-------------------+-------------------+
+
 .. warning::
 
-    GeoMesa 2.2.0 and later require GeoServer 2.14.0 or later. GeoMesa 2.1.0 and earlier require GeoServer 2.12.5.
+    GeoMesa will not work with an incompatible version of GeoServer. Ensure that your install the correct
+    version according to the chart above.
 
 Installation
 ------------
@@ -127,6 +146,16 @@ For massive queries, the standard 60 second timeout may be too short.
 |"Disable limits"|
 
 .. |"Disable limits"| image:: _static/img/wms_limits.png
+
+Temp Directories
+^^^^^^^^^^^^^^^^
+
+GeoServer creates temporary directories for caching various files. Running in a multi-tenant environment
+can result in permission errors when different users try to write to the same directories. To avoid this,
+configure your application server with the following system properties::
+
+  -DEPSG-HSQL.directory=/tmp/$USER-hsql
+  -DGEOWEBCACHE_CACHE_DIR=/tmp/$USER-gwc
 
 .. _geoserver_explain_query:
 

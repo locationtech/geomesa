@@ -8,8 +8,10 @@
 
 package org.locationtech.geomesa.tools.stats
 
+import com.beust.jcommander.ParameterException
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
+import org.locationtech.geomesa.tools.stats.StatsBoundsCommand.StatsBoundsParams
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.locationtech.jts.geom.Geometry
@@ -26,19 +28,19 @@ trait StatsBoundsCommand[DS <: DataStore with HasGeoMesaStats] extends DataStore
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
     val sft = ds.getSchema(params.featureName)
-    val attributes = StatsCommand.getAttributesFromParams(sft, params)
+    if (sft == null) {
+      throw new ParameterException(s"Schema '${params.featureName}' does not exist")
+    }
+    val attributes = getAttributesFromParams(sft, params)
     val filter = Option(params.cqlFilter).getOrElse(Filter.INCLUDE)
 
-    val allBounds = if (params.exact) {
+    if (params.exact) {
       Command.user.info("Running stat query...")
-      val query = Stat.SeqStat(attributes.map(Stat.MinMax))
-      ds.stats.runStats[MinMax[Any]](sft, query, filter)
-    } else {
-      if (filter != Filter.INCLUDE) {
-        Command.user.warn("Ignoring CQL filter for non-exact stat query")
-      }
-      ds.stats.getStats[MinMax[Any]](sft, attributes)
+    } else if (filter != Filter.INCLUDE) {
+      Command.user.warn("Non-exact stat queries may not fully account for the specified CQL filter")
     }
+
+    val allBounds = ds.stats.getSeqStat[MinMax[Any]](sft, attributes.map(Stat.MinMax), filter, params.exact)
 
     attributes.foreach { attribute =>
       val out = allBounds.find(_.property == attribute) match {
@@ -59,5 +61,7 @@ trait StatsBoundsCommand[DS <: DataStore with HasGeoMesaStats] extends DataStore
   }
 }
 
-// @Parameters(commandDescription = "View or calculate bounds on attributes in a GeoMesa feature type")
-trait StatsBoundsParams extends StatsParams with AttributeStatsParams
+object StatsBoundsCommand {
+  // @Parameters(commandDescription = "View or calculate bounds on attributes in a GeoMesa feature type")
+  trait StatsBoundsParams extends StatsParams with AttributeStatsParams
+}

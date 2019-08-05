@@ -16,6 +16,7 @@ import java.util.Date
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -51,7 +52,7 @@ case class DateTimeScheme(format: String, stepUnit: ChronoUnit, step: Int, dtg: 
   override val depth: Int = format.count(_ == '/')
 
   override def getPartitionName(feature: SimpleFeature): String =
-    fmt.format(feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant.atZone(ZoneOffset.UTC))
+    fmt.format(toInstant(feature.getAttribute(dtgIndex).asInstanceOf[Date]).atZone(ZoneOffset.UTC))
 
   override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
     val bounds = FilterHelper.extractIntervals(filter, dtg, handleExclusiveBounds = false)

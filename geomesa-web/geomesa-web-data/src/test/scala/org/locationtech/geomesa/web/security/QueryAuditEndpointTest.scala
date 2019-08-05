@@ -23,7 +23,6 @@ import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloEventWriter}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.filter.filterToString
-import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
@@ -37,6 +36,8 @@ import org.specs2.runner.JUnitRunner
 class QueryAuditEndpointTest extends TestWithDataStore with MutableScalatraSpec {
 
   sequential
+
+  skipAllUnless(sys.props.get("geomesa.query.audit.test").exists(_.toBoolean))
 
   override val spec: String = "name:String,dtg:Date,*geom:Point:srid=4326"
 

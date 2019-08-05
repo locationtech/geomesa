@@ -10,10 +10,11 @@ package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.geotools.data.DataStore
-import org.locationtech.geomesa.tools.utils.KeywordParamSplitter
+import org.locationtech.geomesa.tools.utils.NoopParameterSplitter
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 
+@deprecated("DescribeSchemaCommand, UpdateSchemaCommand")
 trait KeywordsCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override val name: String = "keywords"
@@ -26,6 +27,8 @@ trait KeywordsCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
 
     import scala.collection.JavaConversions._
+
+    Command.user.warn("This command is deprecated - please use 'describe-schema' and/or 'update-schema'")
 
     val sft = Option(ds.getSchema(params.featureName)).map(SimpleFeatureTypes.mutable).orNull
     if (sft == null) {
@@ -58,10 +61,10 @@ trait KeywordsCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 @Parameters(commandDescription = "Add/Remove/List keywords on an existing schema")
 trait KeywordsParams extends RequiredTypeNameParam {
 
-  @Parameter(names = Array("-a", "--add"), description = "A keyword to add. Can be specified multiple times", splitter = classOf[KeywordParamSplitter])
+  @Parameter(names = Array("-a", "--add"), description = "A keyword to add. Can be specified multiple times", splitter = classOf[NoopParameterSplitter])
   var keywordsToAdd: java.util.List[String] = _
 
-  @Parameter(names = Array("-r", "--remove"), description = "A keyword to remove. Can be specified multiple times", splitter = classOf[KeywordParamSplitter])
+  @Parameter(names = Array("-r", "--remove"), description = "A keyword to remove. Can be specified multiple times", splitter = classOf[NoopParameterSplitter])
   var keywordsToRemove: java.util.List[String] = _
 
   @Parameter(names = Array("-l", "--list"), description = "List all keywords on the schema")

@@ -17,6 +17,7 @@ import org.locationtech.geomesa.utils.geotools.wholeWorldEnvelope
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+@deprecated("use org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator")
 trait SimpleFeatureValidator {
 
   /**
@@ -35,12 +36,13 @@ trait SimpleFeatureValidator {
   def validate(sf: SimpleFeature): String
 }
 
+@deprecated("use org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator")
 object SimpleFeatureValidator extends LazyLogging {
 
   import scala.collection.JavaConverters._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  val property = SystemProperty("geomesa.converter.validators", IndexValidator.name)
+  val property = org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator.DefaultValidators
 
   def default: SimpleFeatureValidator = apply(property.get.split(","))
 
@@ -86,6 +88,7 @@ object SimpleFeatureValidator extends LazyLogging {
   /**
     * Factory for validators
     */
+  @deprecated("use org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorFactory")
   trait ValidatorFactory {
     def name: String
     def validator(sft: SimpleFeatureType, config: Option[String]): Validator
@@ -94,6 +97,7 @@ object SimpleFeatureValidator extends LazyLogging {
   /**
     * Simplified validator interface for delegating
     */
+  @deprecated("use org.locationtech.geomesa.convert2.validators.SimpleFeatureValidator")
   trait Validator {
 
     /**
@@ -195,11 +199,12 @@ object SimpleFeatureValidator extends LazyLogging {
     * @param geom geom index
     */
   private class Z2Validator(geom: Int) extends Validator {
+    private val envelope = wholeWorldEnvelope
     override def validate(sf: SimpleFeature): String = {
       val g = sf.getAttribute(geom).asInstanceOf[Geometry]
       if (g == null) {
         Errors.GeomNull
-      } else if (!wholeWorldEnvelope.contains(g.getEnvelopeInternal)) {
+      } else if (!envelope.contains(g.getEnvelopeInternal)) {
         Errors.GeomBounds
       } else {
         null
@@ -216,6 +221,7 @@ object SimpleFeatureValidator extends LazyLogging {
     * @param maxDate max z3 date
     */
   private class Z3Validator(geom: Int, dtg: Int, minDate: Date, maxDate: Date) extends Validator {
+    private val envelope = wholeWorldEnvelope
     private val dateBefore = s"date is before minimum indexable date ($minDate)"
     private val dateAfter = s"date is after maximum indexable date ($maxDate)"
 
@@ -232,7 +238,7 @@ object SimpleFeatureValidator extends LazyLogging {
         } else {
           Errors.GeomNull
         }
-      } else if (!wholeWorldEnvelope.contains(g.getEnvelopeInternal)) {
+      } else if (!envelope.contains(g.getEnvelopeInternal)) {
         if (d == null) {
           s"${Errors.GeomBounds}, ${Errors.DateNull}"
         } else if (d.before(minDate)) {

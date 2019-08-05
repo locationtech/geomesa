@@ -13,7 +13,8 @@ import java.util.concurrent.{Executors, LinkedBlockingQueue}
 
 import com.typesafe.scalalogging.StrictLogging
 import org.geotools.data.{DataStore, Query, Transaction}
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}

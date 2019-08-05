@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.process.knn
 
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
@@ -49,7 +49,7 @@ class NearestNeighborsPQTest extends Specification {
   def diagonalFeatureCollection: DefaultFeatureCollection = {
     val sftName = "geomesaKNNTestDiagonalFeature"
     val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
-    sft.getUserData()(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY) = "dtg"
+    sft.getUserData()(SimpleFeatureTypes.Configs.DefaultDtgField) = "dtg"
 
     val featureCollection = new DefaultFeatureCollection(sftName, sft)
     // generate a range of Simple Features along a "diagonal"
@@ -66,7 +66,7 @@ class NearestNeighborsPQTest extends Specification {
   def polarFeatureCollection: DefaultFeatureCollection = {
     val sftName = "geomesaKNNTestPolarFeature"
     val sft = SimpleFeatureTypes.createType(sftName, "geom:Point:srid=4326,dtg:Date,dtg_end_time:Date")
-    sft.getUserData()(SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY) = "dtg"
+    sft.getUserData()(SimpleFeatureTypes.Configs.DefaultDtgField) = "dtg"
 
     val featureCollection = new DefaultFeatureCollection(sftName, sft)
     val polarLat = 89.9

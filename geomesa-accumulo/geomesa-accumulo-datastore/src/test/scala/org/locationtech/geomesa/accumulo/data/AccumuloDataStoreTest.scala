@@ -17,7 +17,7 @@ import org.apache.commons.codec.binary.Hex
 import org.apache.hadoop.io.Text
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
@@ -126,11 +126,11 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "create a schema with keywords" in {
-      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
-      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.KEYWORDS_DELIMITER
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.Keywords
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.KeywordsDelimiter
 
       val keywords = Seq("keywordA", "keywordB", "keywordC")
-      val spec = s"name:String;$KEYWORDS_KEY=${keywords.mkString(KEYWORDS_DELIMITER)}"
+      val spec = s"name:String;$Keywords=${keywords.mkString(KeywordsDelimiter)}"
       val sftWithKeywords = createNewSchema(spec, dtgField = None)
 
       ds.getFeatureSource(sftWithKeywords.getTypeName).getInfo.getKeywords.toSeq must containAllOf(keywords)
@@ -183,11 +183,11 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "remove keywords from schema" in {
-      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
-      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.KEYWORDS_DELIMITER
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.Keywords
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.KeywordsDelimiter
 
       val initialKeywords = Set("keywordA=Hello", "keywordB", "keywordC")
-      val spec = s"name:String;$KEYWORDS_KEY=${initialKeywords.mkString(KEYWORDS_DELIMITER)}"
+      val spec = s"name:String;$Keywords=${initialKeywords.mkString(KeywordsDelimiter)}"
       val sft = SimpleFeatureTypes.mutable(createNewSchema(spec, dtgField = None))
 
       val keywordsToRemove = Set("keywordA=Hello", "keywordC")
@@ -200,12 +200,12 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "add keywords to schema" in {
-      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.KEYWORDS_KEY
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.Keywords
 
       val originalKeyword = "keywordB"
       val keywordsToAdd = Set("keywordA", "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\")
 
-      val spec = s"name:String;$KEYWORDS_KEY=$originalKeyword"
+      val spec = s"name:String;$Keywords=$originalKeyword"
       val sft = SimpleFeatureTypes.mutable(createNewSchema(spec, dtgField = None))
 
       sft.addKeywords(keywordsToAdd)
@@ -216,12 +216,12 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "not allow updating non-keyword user data" in {
-      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TABLE_SHARING_KEY
+      import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TableSharing
 
       val sft = SimpleFeatureTypes.mutable(createNewSchema("name:String", dtgField = None))
       ds.createSchema(sft)
 
-      sft.getUserData.put(TABLE_SHARING_KEY, "false") // Change table sharing
+      sft.getUserData.put(TableSharing, "false") // Change table sharing
 
       ds.updateSchema(sft.getTypeName, sft) must throwAn[UnsupportedOperationException]
     }
@@ -453,7 +453,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     "update metadata for indexed attributes" in {
       val sft = SimpleFeatureTypes.mutable(createNewSchema("name:String,dtg:Date,*geom:Point:srid=4326"))
       sft.getIndices.map(_.name) must containTheSameElementsAs(Seq(Z3Index, Z2Index, IdIndex).map(_.name))
-      sft.getAttributeDescriptors.head.getUserData.put(AttributeOptions.OPT_INDEX, IndexCoverage.JOIN.toString)
+      sft.getAttributeDescriptors.head.getUserData.put(AttributeOptions.OptIndex, IndexCoverage.JOIN.toString)
       ds.updateSchema(sft.getTypeName, sft)
       ds.getSchema(sft.getTypeName).getIndices.map(_.name) must
           containTheSameElementsAs(Seq(Z3Index, Z2Index, IdIndex, JoinIndex).map(_.name))

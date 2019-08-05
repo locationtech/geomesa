@@ -8,9 +8,12 @@
 
 package org.locationtech.geomesa.tools
 
+import java.io.File
+
 import com.beust.jcommander.{JCommander, ParameterException}
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.locationtech.geomesa.tools.utils.Prompt
+import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.JavaConversions._
@@ -68,6 +71,7 @@ trait DataStoreCommand[DS <: DataStore] extends Command {
 }
 
 trait InteractiveCommand {
+
   private var _console: Prompt.SystemConsole = _
 
   implicit def console: Prompt.SystemConsole = {
@@ -78,4 +82,14 @@ trait InteractiveCommand {
   }
 
   def setConsole(c: Prompt.SystemConsole): Unit = _console = c
+}
+
+trait DistributedCommand {
+
+  def libjarsFiles: Seq[String]
+
+  def libjarsPaths: Iterator[() => Seq[File]] = Iterator(
+    () => ClassPathUtils.getJarsFromClasspath(getClass),
+    () => ClassPathUtils.getFilesFromSystemProperty("geomesa.convert.scripts.path")
+  )
 }

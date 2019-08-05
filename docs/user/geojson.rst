@@ -170,9 +170,8 @@ REST Access
 ^^^^^^^^^^^
 
 The ``GeoJsonIndex`` is also exposed through a REST endpoint. Currently, the REST endpoint does not support
-updates or deletes of existing features, or transformation of resposes. Furthermore, it requires Accumulo as
-the backing data store. It may be installed in GeoServer by extracting the install file into
-``geoserver/WEB-INF/lib``:
+transformation of responses. Furthermore, it requires Accumulo as the backing data store. It may be installed
+in GeoServer by extracting the install file into ``geoserver/WEB-INF/lib``:
 
 .. code-block:: bash
 

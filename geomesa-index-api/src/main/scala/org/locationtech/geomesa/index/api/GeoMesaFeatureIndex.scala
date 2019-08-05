@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex.IdFromRow
 import org.locationtech.geomesa.index.api.WriteConverter.{TieredWriteConverter, WriteConverterImpl}
@@ -94,15 +94,15 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     partition.map(p => s"$tableNameKey.$p").getOrElse(tableNameKey)
 
   /**
-    * Create the initial index or a new partition
+    * Create the metadata entry for the initial index table or a new partition
     *
     * @param partition partition
     * @return table name
     */
-  def configureTableName(partition: Option[String] = None): String = {
+  def configureTableName(partition: Option[String] = None, limit: Option[Int] = None): String = {
     val key = tableNameKey(partition)
     ds.metadata.read(sft.getTypeName, key).getOrElse {
-      val name = generateTableName(partition)
+      val name = generateTableName(partition, limit)
       ds.metadata.insert(sft.getTypeName, key, name)
       name
     }
@@ -116,8 +116,11 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
   def deleteTableNames(partition: Option[String] = None): Seq[String] = {
     val tables = getTableNames(partition)
     partition match {
-      case None => ds.metadata.scan(sft.getTypeName, tableNameKey).foreach(k => ds.metadata.remove(sft.getTypeName, k._1))
       case Some(p) => ds.metadata.remove(sft.getTypeName, s"$tableNameKey.$p")
+      case None =>
+        ds.metadata.scan(sft.getTypeName, tableNameKey, cache = false).foreach { case (k, _) =>
+          ds.metadata.remove(sft.getTypeName, k)
+        }
     }
     tables
   }
@@ -172,12 +175,10 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     * @return
     */
   def getTablesForQuery(filter: Option[Filter]): Seq[String] = {
-    val partitions = filter.toSeq.flatMap(f => TablePartition(ds, sft).toSeq.flatMap(_.partitions(f)))
-    if (partitions.isEmpty) {
-      getTableNames(None)
-    } else {
+    val partitioned = for { f <- filter; tp <- TablePartition(ds, sft); partitions <- tp.partitions(f) } yield {
       partitions.flatMap(p => getTableNames(Some(p)))
     }
+    partitioned.getOrElse(getTableNames(None))
   }
 
   /**
@@ -341,16 +342,30 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     * Creates a valid, unique string for the underlying table
     *
     * @param partition partition
+    * @param limit limit on the length of a table name in the underlying database
     * @return
     */
-  protected def generateTableName(partition: Option[String] = None): String = {
-    val builder = Seq.newBuilder[String]
-    builder += ds.config.catalog
-    builder ++= Seq(sft.getTypeName, name).map(StringSerialization.alphaNumericSafeString)
-    builder ++= attributes.map(StringSerialization.alphaNumericSafeString)
-    builder += s"v$version"
-    val base = builder.result.mkString("_")
-    partition.map(p => s"${base}_$p").getOrElse(base)
+  protected def generateTableName(partition: Option[String] = None, limit: Option[Int] = None): String = {
+    import StringSerialization.alphaNumericSafeString
+
+    val prefix = (ds.config.catalog +: Seq(sft.getTypeName, name).map(alphaNumericSafeString)).mkString("_")
+    val suffix = s"_v$version${partition.map(p => s"_$p").getOrElse("")}"
+
+    def build(attrs: Seq[String]): String = (prefix +: attrs :+ suffix).mkString("_")
+
+    val full = build(attributes.map(alphaNumericSafeString))
+
+    limit match {
+      case Some(lim) if full.lengthCompare(lim) > 0 =>
+        // try using the attribute numbers instead
+        val nums = build(attributes.map(a => s"${sft.indexOf(a)}"))
+        if (nums.lengthCompare(lim) <= 0) { nums } else {
+          logger.warn(s"Table name length exceeds configured limit ($lim), falling back to UUID: $full")
+          IndexAdapter.truncateTableName(full, lim)
+        }
+
+      case _ => full
+    }
   }
 
   override def toString: String = s"${getClass.getSimpleName}${attributes.mkString("(", ",", ")")}"

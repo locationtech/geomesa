@@ -10,20 +10,21 @@ package org.locationtech.geomesa.convert.text
 
 import java.io.{ByteArrayInputStream, InputStreamReader}
 import java.nio.charset.StandardCharsets
-import java.util.Collections
+import java.util.{Collections, Date}
 
 import com.google.common.hash.Hashing
 import com.google.common.io.Resources
 import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
-import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.apache.commons.csv.CSVFormat
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.{DefaultCounter, SimpleFeatureConverters}
+import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -345,15 +346,14 @@ class DelimitedTextConverterTest extends Specification {
         WithClose(SimpleFeatureConverter(wktSft, trueConf)) { converter =>
           converter must not(beNull)
 
-          val counter = new DefaultCounter
-          val ec = converter.createEvaluationContext(counter = counter)
+          val ec = converter.createEvaluationContext()
           val stream = new ByteArrayInputStream(trueData.getBytes(StandardCharsets.UTF_8))
           val res = WithClose(converter.process(stream, ec))(_.toList)
           res.length mustEqual 2
 
-          counter.getLineCount mustEqual 3
-          counter.getSuccess mustEqual 2
-          counter.getFailure mustEqual 0
+          ec.line mustEqual 3
+          ec.success.getCount mustEqual 2
+          ec.failure.getCount mustEqual 0
 
           val geoFac = new GeometryFactory()
           res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))
@@ -369,14 +369,13 @@ class DelimitedTextConverterTest extends Specification {
         WithClose(SimpleFeatureConverter(wktSft, falseConf)) { converter =>
           converter must not(beNull)
 
-          val counter = new DefaultCounter
-          val ec = converter.createEvaluationContext(counter = counter)
+          val ec = converter.createEvaluationContext()
           val res = WithClose(converter.process(new ByteArrayInputStream(falseData.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
           res.length mustEqual 2
 
-          counter.getLineCount mustEqual 2
-          counter.getSuccess mustEqual 2
-          counter.getFailure mustEqual 0
+          ec.line mustEqual 2
+          ec.success.getCount mustEqual 2
+          ec.failure.getCount mustEqual 0
 
           val geoFac = new GeometryFactory()
           res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))
@@ -394,14 +393,13 @@ class DelimitedTextConverterTest extends Specification {
         WithClose(SimpleFeatureConverter(wktSft, falseConf)) { converter =>
           converter must not(beNull)
 
-          val counter = new DefaultCounter
-          val ec = converter.createEvaluationContext(counter = counter)
+          val ec = converter.createEvaluationContext()
           val res = WithClose(converter.process(new ByteArrayInputStream(falseData.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
           res.length mustEqual 2
 
-          counter.getLineCount mustEqual 5
-          counter.getSuccess mustEqual 2
-          counter.getFailure mustEqual 0
+          ec.line mustEqual 5
+          ec.success.getCount mustEqual 2
+          ec.failure.getCount mustEqual 0
 
           val geoFac = new GeometryFactory()
           res(0).getDefaultGeometry mustEqual geoFac.createPoint(new Coordinate(46, 45))
@@ -858,6 +856,41 @@ class DelimitedTextConverterTest extends Specification {
         features(i).getAttribute(1) mustEqual i
         features(i).getAttribute(2) mustEqual WKTUtils.read(s"POINT(4$i 5$i)")
       }
+    }
+
+    "type infer and ingest magic files" >> {
+      import scala.collection.JavaConverters._
+
+      val data =
+        """id,fid:Integer,name:String,age:Integer,lastseen:Date,friends:List[String],"talents:Map[String,Integer]",*geom:Point:srid=4326
+          |23623,23623,Harry,20,2015-05-06T00:00:00.000Z,"Will,Mark,Suzan","patronus->10,expelliarmus->9",POINT (-100.2365 23)
+          |26236,26236,Hermione,25,2015-06-07T00:00:00.000Z,"Edward,Bill,Harry",accio->10,POINT (40.232 -53.2356)
+          |3233,3233,Severus,30,2015-10-23T00:00:00.000Z,"Tom,Riddle,Voldemort",potions->10,POINT (3 -62.23)
+          |""".stripMargin
+
+      val factory = new DelimitedTextConverterFactory()
+      val inferred = factory.infer(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8)))
+      inferred must beSome
+
+      val (sft, config) = inferred.get
+
+      SimpleFeatureTypes.encodeType(sft) mustEqual
+          "fid:Integer,name:String,age:Integer,lastseen:Date,friends:List[String],talents:Map[String,Integer],*geom:Point:srid=4326"
+
+      val converter = factory.apply(sft, config)
+      converter must beSome
+
+      val features = converter.get.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))).toList
+      converter.get.close()
+
+      features must haveLength(3)
+      features.map(_.getID) mustEqual Seq("23623", "26236", "3233")
+
+      features.map(_.getAttributes.asScala) mustEqual Seq(
+        Seq(23623, "Harry", 20, FastConverter.convert("2015-05-06T00:00:00.000Z", classOf[Date]), Seq("Will", "Mark", "Suzan").asJava, Map("patronus" -> 10, "expelliarmus" -> 9).asJava, WKTUtils.read("POINT (-100.2365 23)")),
+        Seq(26236, "Hermione", 25, FastConverter.convert("2015-06-07T00:00:00.000Z", classOf[Date]), Seq("Edward", "Bill", "Harry").asJava, Map("accio" -> 10).asJava, WKTUtils.read("POINT (40.232 -53.2356)")),
+        Seq(3233, "Severus", 30, FastConverter.convert("2015-10-23T00:00:00.000Z", classOf[Date]), Seq("Tom", "Riddle", "Voldemort").asJava, Map("potions" -> 10).asJava, WKTUtils.read("POINT (3 -62.23)"))
+      )
     }
   }
 }

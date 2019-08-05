@@ -11,7 +11,6 @@ package org.locationtech.geomesa.fs.spark
 import java.io.Serializable
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.commons.io.IOUtils
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
@@ -25,10 +24,12 @@ import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcSimpleFeatureInputFormat
 import org.locationtech.geomesa.index.planning.QueryPlanner
-import org.locationtech.geomesa.parquet.jobs.{ParquetSimpleFeatureInputFormat, SimpleFeatureReadSupport}
+import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport
+import org.locationtech.geomesa.parquet.jobs.ParquetSimpleFeatureInputFormat
 import org.locationtech.geomesa.parquet.{FilterConverter, ParquetFileSystemStorage}
 import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
+import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -96,26 +97,16 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
   }
 
   override def save(rdd: RDD[SimpleFeature], params: Map[String, String], typeName: String): Unit = {
-    import scala.collection.JavaConversions._
-    val ds = DataStoreFinder.getDataStore(params).asInstanceOf[FileSystemDataStore]
-    try {
+    WithStore[FileSystemDataStore](params) {ds =>
       require(ds.getSchema(typeName) != null,
         "Feature type must exist before calling save. Call createSchema on the DataStore first.")
-    } finally {
-      ds.dispose()
     }
 
     rdd.foreachPartition { iter =>
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[FileSystemDataStore]
-      val featureWriter = ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)
-      try {
-        iter.foreach { rawFeature =>
-          FeatureUtils.copyToWriter(featureWriter, rawFeature, useProvidedFid = true)
-          featureWriter.write()
+      WithStore[FileSystemDataStore](params) { ds =>
+        WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+          iter.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
-      } finally {
-        IOUtils.closeQuietly(featureWriter)
-        ds.dispose()
       }
     }
   }
@@ -140,9 +131,9 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
     conf.set("parquet.filter.dictionary.enabled", "true")
 
     // push-down Parquet predicates and remaining gt-filter
-    val (parquetFilter, modifiedGT) = new FilterConverter(sft).convert(query.getFilter)
+    val (parquetFilter, modifiedGT) = FilterConverter.convert(sft, query.getFilter)
     parquetFilter.foreach(ParquetInputFormat.setFilterPredicate(conf, _))
-    ParquetSimpleFeatureInputFormat.setGeoToolsFilter(conf, modifiedGT)
+    ParquetSimpleFeatureInputFormat.setGeoToolsFilter(conf, modifiedGT.getOrElse(Filter.INCLUDE))
 
     // @see org.apache.parquet.hadoop.ParquetInputFormat.setReadSupportClass(org.apache.hadoop.mapred.JobConf, java.lang.Class<?>)
     conf.set(ParquetInputFormat.READ_SUPPORT_CLASS, classOf[SimpleFeatureReadSupport].getName)

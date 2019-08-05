@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data._
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
@@ -37,7 +37,7 @@ class AccumuloPartitioningTest extends Specification with TestWithDataStore {
   sequential
 
   override val spec: String =
-    s"name:String:index=true,attr:String,dtg:Date,*geom:Point:srid=4326;${Configs.TABLE_PARTITIONING}=${TimePartition.Name}"
+    s"name:String:index=true,attr:String,dtg:Date,*geom:Point:srid=4326;${Configs.TablePartitioning}=${TimePartition.Name}"
 
   val features = (0 until 10).map { i =>
     val sf = new ScalaSimpleFeature(sft, i.toString)

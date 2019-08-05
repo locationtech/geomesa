@@ -15,7 +15,8 @@ import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, Projecting
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore._
-import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
+import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWriter}
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{WritableFeature, _}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -23,6 +24,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
 import org.locationtech.geomesa.index.stats._
+import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -63,8 +65,13 @@ object TestGeoMesaDataStore {
         partition: Option[String],
         splits: => Seq[Array[Byte]]): Unit = {
       val table = index.configureTableName(partition) // writes table name to metadata
-      tables.put(table, scala.collection.mutable.SortedSet.empty[SingleRowKeyValue[_]](ordering))
+      if (!tables.contains(table)) {
+        tables.put(table, scala.collection.mutable.SortedSet.empty[SingleRowKeyValue[_]](ordering))
+      }
     }
+
+    override def renameTable(from: String, to: String): Unit =
+      tables.remove(from).foreach(tables.put(to, _))
 
     override def deleteTables(tables: Seq[String]): Unit = tables.foreach(this.tables.remove)
 
@@ -80,6 +87,7 @@ object TestGeoMesaDataStore {
 
     override def createQueryPlan(strategy: QueryStrategy): QueryPlan[TestGeoMesaDataStore] = {
       import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
       val ranges = strategy.ranges.map {
         case SingleRowByteRange(row)  => TestRange(row, ByteArrays.rowFollowingRow(row))
         case BoundedByteRange(lo, hi) => TestRange(lo, hi)
@@ -90,8 +98,13 @@ object TestGeoMesaDataStore {
         case None    => KryoFeatureSerializer(strategy.index.sft, opts)
         case Some(s) => new ProjectingKryoFeatureDeserializer(strategy.index.sft, s, opts)
       }
-      val ecql = strategy.ecql.map(FastFilterFactory.optimize(transform.getOrElse(strategy.index.sft), _))
-      TestQueryPlan(strategy.filter, tables, serializer, ranges, ecql)
+      val returnSchema = transform.getOrElse(strategy.index.sft)
+      val ecql = strategy.ecql.map(FastFilterFactory.optimize(returnSchema, _))
+      val maxFeatures = strategy.hints.getMaxFeatures
+      val sort = strategy.hints.getSortFields
+      val project = strategy.hints.getProjection
+
+      TestQueryPlan(strategy.filter, tables, serializer, ranges, ecql, sort, maxFeatures, project, returnSchema)
     }
 
     override def createWriter(sft: SimpleFeatureType,
@@ -104,11 +117,23 @@ object TestGeoMesaDataStore {
     override def toString: String = getClass.getSimpleName
   }
 
-  case class TestQueryPlan(filter: FilterStrategy,
-                           tables: scala.collection.Map[String, SortedSet[SingleRowKeyValue[_]]],
-                           serializer: SimpleFeatureSerializer,
-                           ranges: Seq[TestRange],
-                           ecql: Option[Filter]) extends QueryPlan[TestGeoMesaDataStore] {
+  case class TestQueryPlan(
+      filter: FilterStrategy,
+      tables: scala.collection.Map[String, SortedSet[SingleRowKeyValue[_]]],
+      serializer: SimpleFeatureSerializer,
+      ranges: Seq[TestRange],
+      ecql: Option[Filter],
+      sort: Option[Seq[(String, Boolean)]],
+      maxFeatures: Option[Int],
+      projection: Option[QueryReferenceSystems],
+      returnSchema: SimpleFeatureType
+    ) extends QueryPlan[TestGeoMesaDataStore] {
+
+    override type Results = SimpleFeature
+
+    override val resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.identity(returnSchema)
+    override val reducer: Option[FeatureReducer] = None
+
     override def scan(ds: TestGeoMesaDataStore): CloseableIterator[SimpleFeature] = {
       def contained(range: TestRange, row: Array[Byte]): Boolean =
         ByteArrays.ByteOrdering.compare(range.start, row) <= 0 &&
@@ -149,14 +174,15 @@ object TestGeoMesaDataStore {
     override def toString: String = s"TestRange(${start.mkString(":")}, ${end.mkString(":")}}"
   }
 
-  class TestIndexWriter(indices: Seq[GeoMesaFeatureIndex[_, _]],
-                        wrapper: FeatureWrapper,
-                        tables: Seq[scala.collection.mutable.SortedSet[SingleRowKeyValue[_]]])
-      extends IndexWriter(indices, wrapper) {
+  class TestIndexWriter(
+      indices: Seq[GeoMesaFeatureIndex[_, _]],
+      wrapper: FeatureWrapper[WritableFeature],
+      tables: Seq[scala.collection.mutable.SortedSet[SingleRowKeyValue[_]]]
+    ) extends BaseIndexWriter[WritableFeature](indices, wrapper) {
 
     private var i = 0
 
-    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]]): Unit = {
+    override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
       i = 0
       values.foreach {
         case kv: SingleRowKeyValue[_] => tables(i).add(kv); i += 1
@@ -187,7 +213,7 @@ object TestGeoMesaDataStore {
   }
 
   class TestStats(ds: TestGeoMesaDataStore, metadata: GeoMesaMetadata[Stat])
-      extends MetadataBackedStats(ds, metadata, true) {
+      extends MetadataBackedStats(ds, metadata) {
     override protected def write(typeName: String, stats: Seq[WritableStat]): Unit = {
       synchronized {
         stats.foreach { case WritableStat(key, stat, merge) =>

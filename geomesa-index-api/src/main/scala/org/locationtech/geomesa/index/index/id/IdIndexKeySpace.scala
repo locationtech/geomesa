@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.index.id
 
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
 import org.locationtech.geomesa.index.api.ShardStrategy.NoShardStrategy
 import org.locationtech.geomesa.index.api._

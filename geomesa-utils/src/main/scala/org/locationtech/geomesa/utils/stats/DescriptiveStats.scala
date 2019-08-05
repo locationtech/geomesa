@@ -15,15 +15,14 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.immutable.ListMap
 import scala.Array._
 
-class DescriptiveStats private [stats] (val sft: SimpleFeatureType,
-                                        val properties: Seq[String]) extends Stat with Serializable {
+class DescriptiveStats(val sft: SimpleFeatureType, val properties: Seq[String]) extends Stat with Serializable {
 
   override type S = DescriptiveStats
 
   @deprecated("properties")
   lazy val attributes: Seq[Int] = properties.map(sft.indexOf)
 
-  private val indices = properties.map(sft.indexOf)
+  private val indices = properties.map(sft.indexOf).toArray
 
   private val size = properties.size
   private val size_squared = size * size
@@ -123,20 +122,27 @@ class DescriptiveStats private [stats] (val sft: SimpleFeatureType,
     if (_count < count) Array.fill(length)(Double.NaN) else op.getMatrix.data.clone()
 
   override def observe(sf: SimpleFeature): Unit = {
-    val values = indices.map(sf.getAttribute).map {
-      case n: Number =>
-        val double = n.doubleValue()
-        if (double != double) {
-          return // NaN, short-circuit evaluation
-        }
-        double
+    val values = Array.newBuilder[Double]
+    values.sizeHint(indices.length)
 
-      case null => return // short-circuit evaluation
+    var i = 0
+    while (i < indices.length) {
+      sf.getAttribute(indices(i)) match {
+        case n: Number =>
+          val double = n.doubleValue()
+          if (double != double) {
+            return // NaN, short-circuit evaluation
+          }
+          values += double
 
-      case n => throw new IllegalArgumentException(s"Not a number: $n")
+        case null => return // short-circuit evaluation
+
+        case n => throw new IllegalArgumentException(s"Not a number: $n")
+      }
+      i += 1
     }
 
-    val values_v = new SimpleMatrix(size, 1, true, values: _*)
+    val values_v = new SimpleMatrix(size, 1, true, values.result(): _*)
 
     if (_count < 1) {
       _count = 1

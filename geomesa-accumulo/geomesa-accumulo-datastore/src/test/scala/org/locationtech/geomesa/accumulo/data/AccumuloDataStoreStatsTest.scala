@@ -11,7 +11,6 @@ package org.locationtech.geomesa.accumulo.data
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.Date
 
-import org.locationtech.jts.geom.Geometry
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureReader
 import org.geotools.feature.DefaultFeatureCollection
@@ -22,9 +21,10 @@ import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelope}
-import org.locationtech.geomesa.utils.stats._
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -51,20 +51,20 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
 
       "initially have global stats" >> {
         ds.stats.getCount(sft) must beNone
-        ds.stats.getBounds(sft) mustEqual wholeWorldEnvelope
-        ds.stats.getAttributeBounds[String](sft, "name") must beNone
-        ds.stats.getAttributeBounds[Int](sft, "age") must beNone
-        ds.stats.getAttributeBounds[Date](sft, "dtg") must beNone
-        ds.stats.getStats[TopK[String]](sft, Seq("name")) must beEmpty
-        ds.stats.getStats[TopK[Int]](sft, Seq("age")) must beEmpty
-        ds.stats.getStats[TopK[Date]](sft, Seq("dtg")) must beEmpty
-        ds.stats.getStats[Frequency[String]](sft, Seq("name")) must beEmpty
-        ds.stats.getStats[Frequency[Int]](sft, Seq("age")) must beEmpty
-        ds.stats.getStats[Frequency[Date]](sft, Seq("dtg")) must beEmpty
-        ds.stats.getStats[Histogram[String]](sft, Seq("name")) must beEmpty
-        ds.stats.getStats[Histogram[Int]](sft, Seq("age")) must beEmpty
-        ds.stats.getStats[Histogram[Date]](sft, Seq("dtg")) must beEmpty
-        ds.stats.getStats[Histogram[Geometry]](sft, Seq("geom")) must beEmpty
+        ds.stats.getBounds(sft, Filter.INCLUDE, exact = false) mustEqual wholeWorldEnvelope
+        ds.stats.getMinMax[String](sft, "name") must beNone
+        ds.stats.getMinMax[Int](sft, "age") must beNone
+        ds.stats.getMinMax[Date](sft, "dtg") must beNone
+        ds.stats.getTopK[String](sft, "name") must beNone
+        ds.stats.getTopK[Int](sft, "age") must beNone
+        ds.stats.getTopK[Date](sft, "dtg") must beNone
+        ds.stats.getFrequency[String](sft, "name", 0) must beNone
+        ds.stats.getFrequency[Int](sft, "age", 0) must beNone
+        ds.stats.getFrequency[Date](sft, "dtg", 0) must beNone
+        ds.stats.getHistogram[String](sft, "name", 0, null, null) must beNone
+        ds.stats.getHistogram[Int](sft, "age", 0, 0, 0) must beNone
+        ds.stats.getHistogram[Date](sft, "dtg", 0, null, null) must beNone
+        ds.stats.getHistogram[Geometry](sft, "geom", 0, null, null) must beNone
       }
 
       "through feature writer append" >> {
@@ -79,28 +79,28 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         writer.write()
         writer.flush()
 
-        ds.stats.getCount(sft) must beSome(1)
+        ds.stats.getCount(sft) must beSome(1L)
 
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(0, 0, 0, 0, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[String](sft, "name").map(_.tuple) must beSome(("alpha", "alpha", 1L))
-        ds.stats.getAttributeBounds[Int](sft, "age").map(_.tuple) must beSome((10, 10, 1L))
-        ds.stats.getAttributeBounds[String](sft, "height") must beNone
-        ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must beSome((new Date(baseMillis), new Date(baseMillis), 1L))
+        ds.stats.getMinMax[String](sft, "name").map(_.tuple) must beSome(("alpha", "alpha", 1L))
+        ds.stats.getMinMax[Int](sft, "age").map(_.tuple) must beSome((10, 10, 1L))
+        ds.stats.getMinMax[String](sft, "height") must beNone
+        ds.stats.getMinMax[Date](sft, "dtg").map(_.tuple) must beSome((new Date(baseMillis), new Date(baseMillis), 1L))
 
-        ds.stats.getStats[TopK[String]](sft, Seq("name")).map(_.topK(10).toSeq) mustEqual Seq(Seq(("alpha", 1)))
-        ds.stats.getStats[TopK[Int]](sft, Seq("age")).map(_.topK(10).toSeq) mustEqual Seq(Seq((10, 1)))
-        ds.stats.getStats[TopK[Int]](sft, Seq("height")) must beEmpty
-        ds.stats.getStats[TopK[Date]](sft, Seq("dtg")) must beEmpty
+        ds.stats.getTopK[String](sft, "name").map(_.topK(10).toSeq) must beSome(Seq(("alpha", 1L)))
+        ds.stats.getTopK[Int](sft, "age").map(_.topK(10).toSeq) must beSome(Seq((10, 1L)))
+        ds.stats.getTopK[Int](sft, "height") must beNone
+        ds.stats.getTopK[Date](sft, "dtg") must beNone
 
-        ds.stats.getStats[Frequency[String]](sft, Seq("name")) must haveLength(1)
-        ds.stats.getStats[Frequency[Int]](sft, Seq("age")) must beEmpty
-        ds.stats.getStats[Frequency[Int]](sft, Seq("height")) must beEmpty
-        ds.stats.getStats[Frequency[Date]](sft, Seq("dtg")) must beEmpty
+        ds.stats.getFrequency[String](sft, "name", 0) must beSome
+        ds.stats.getFrequency[Int](sft, "age", 0) must beNone
+        ds.stats.getFrequency[Int](sft, "height", 0) must beNone
+        ds.stats.getFrequency[Date](sft, "dtg", 0) must beNone
 
-        ds.stats.getStats[Histogram[String]](sft, Seq("name")) must haveLength(1)
-        ds.stats.getStats[Histogram[Int]](sft, Seq("age")) must beEmpty
-        ds.stats.getStats[Histogram[Date]](sft, Seq("dtg")) must haveLength(1)
-        ds.stats.getStats[Histogram[Geometry]](sft, Seq("geom")) must haveLength(1)
+        ds.stats.getHistogram[String](sft, "name", 0, null, null) must beSome
+        ds.stats.getHistogram[Int](sft, "age", 0, 0, 0) must beNone
+        ds.stats.getHistogram[Date](sft, "dtg", 0, null, null) must beSome
+        ds.stats.getHistogram[Geometry](sft, "geom", 0, null, null) must beSome
 
         val sf2 = writer.next()
         sf2.setAttribute(0, "cappa")
@@ -111,10 +111,10 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         writer.write()
         writer.close()
 
-        ds.stats.getCount(sft) must beSome(2)
+        ds.stats.getCount(sft) must beSome(2L)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(0, 10, 0, 10, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[String](sft, "name").map(_.tuple) must beSome(("alpha", "cappa", 2L))
-        ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must
+        ds.stats.getMinMax[String](sft, "name").map(_.tuple) must beSome(("alpha", "cappa", 2L))
+        ds.stats.getMinMax[Date](sft, "dtg").map(_.tuple) must
             beSome((new Date(baseMillis), new Date(baseMillis + dayInMillis / 2), 2L))
       }
 
@@ -132,10 +132,10 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         features.add(sf)
         fs.addFeatures(features)
 
-        ds.stats.getCount(sft) must beSome(3)
+        ds.stats.getCount(sft) must beSome(3L)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(-10, 10, -10, 10, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[String](sft, "name").map(_.tuple) must beSome (("alpha", "gamma", 3L))
-        ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must
+        ds.stats.getMinMax[String](sft, "name").map(_.tuple) must beSome (("alpha", "gamma", 3L))
+        ds.stats.getMinMax[Date](sft, "dtg").map(_.tuple) must
             beSome((new Date(baseMillis), new Date(baseMillis + dayInMillis), 3L))
       }
 
@@ -151,10 +151,10 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         writer.write()
         writer.close()
 
-        ds.stats.getCount(sft) must beSome(4)
+        ds.stats.getCount(sft) must beSome(4L)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(-10, 10, -10, 10, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[String](sft, "name").map(_.tuple) must beSome(("alpha", "gamma", 4L))
-        ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must
+        ds.stats.getMinMax[String](sft, "name").map(_.tuple) must beSome(("alpha", "gamma", 4L))
+        ds.stats.getMinMax[Date](sft, "dtg").map(_.tuple) must
             beSome((new Date(baseMillis), new Date(baseMillis + dayInMillis), 3L))
       }
 
@@ -168,8 +168,8 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         sf.setAttribute(3, "2016-01-03T00:00:00.000Z")
         sf.setAttribute(4, "POINT (15 0)")
 
-        val features = new SimpleFeatureReader() {
-          val iter = Iterator(sf)
+        val features: SimpleFeatureReader = new SimpleFeatureReader() {
+          private val iter = Iterator.single(sf)
           override def next(): SimpleFeature = iter.next()
           override def hasNext: Boolean = iter.hasNext
           override def getFeatureType: SimpleFeatureType = sft
@@ -178,10 +178,10 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
 
         fs.setFeatures(features)
 
-        ds.stats.getCount(sft) must beSome(1)
+        ds.stats.getCount(sft) must beSome(1L)
         // note - with setFeatures, stats get reset
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(15.0, 15.0, 0.0, 0.0, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must
+        ds.stats.getMinMax[Date](sft, "dtg").map(_.tuple) must
             beSome((new Date(baseMillis - dayInMillis), new Date(baseMillis - dayInMillis), 1L))
       }
 
@@ -222,65 +222,63 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         // run it twice so that all our bounds are exact for histograms
         ds.stats.generateStats(sft)
 
-        ds.stats.getCount(sft) must beSome(10)
+        ds.stats.getCount(sft) must beSome(10L)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(0, 27, 0, 9, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[String](sft, "name").map(_.tuple) must beSome(("0", "9", 10L))
-        ds.stats.getAttributeBounds[Int](sft, "age").map(_.tuple) must beSome((1, 2, 2L))
-        ds.stats.getAttributeBounds[Int](sft, "height") must beNone
-        ds.stats.getAttributeBounds[Date](sft, "dtg").map(_.tuple) must beSome((minDate, maxDate, 10L))
+        ds.stats.getMinMax[String](sft, "name").map(_.tuple) must beSome(("0", "9", 10L))
+        ds.stats.getMinMax[Int](sft, "age").map(_.tuple) must beSome((1, 2, 2L))
+        ds.stats.getMinMax[Int](sft, "height") must beNone
+        ds.stats.getMinMax[Date](sft, "dtg").map(_.tuple) must beSome((minDate, maxDate, 10L))
 
-        val nameTopK = ds.stats.getStats[TopK[String]](sft, Seq("name"))
-        nameTopK must haveLength(1)
-        nameTopK.head.topK(10).toSeq must containTheSameElementsAs((0 until 10).map(i => (s"$i", 1)))
+        val nameTopK = ds.stats.getTopK[String](sft, "name")
+        nameTopK must beSome
+        nameTopK.get.topK(10).toSeq must containTheSameElementsAs((0 until 10).map(i => (s"$i", 1)))
 
-        val ageTopK = ds.stats.getStats[TopK[Int]](sft, Seq("age"))
-        ageTopK must haveLength(1)
-        ageTopK.head.topK(10).toSeq mustEqual Seq((2, 7), (1, 3))
+        val ageTopK = ds.stats.getTopK[Int](sft, "age")
+        ageTopK must beSome
+        ageTopK.get.topK(10).toSeq mustEqual Seq((2, 7), (1, 3))
 
-        ds.stats.getStats[TopK[Int]](sft, Seq("height")) must beEmpty
-        ds.stats.getStats[TopK[Date]](sft, Seq("dtg")) must beEmpty
+        ds.stats.getTopK[Int](sft, "height") must beNone
+        ds.stats.getTopK[Date](sft, "dtg") must beNone
 
-        val nameFrequency = ds.stats.getStats[Frequency[String]](sft, Seq("name"))
-        nameFrequency must haveLength(1)
-        forall(0 until 10)(i => nameFrequency.head.count(i.toString) mustEqual 1)
+        val nameFrequency = ds.stats.getFrequency[String](sft, "name", 0)
+        nameFrequency must beSome
+        forall(0 until 10)(i => nameFrequency.get.count(i.toString) mustEqual 1)
 
-        ds.stats.getStats[Frequency[Int]](sft, Seq("age")) must beEmpty
-        ds.stats.getStats[Frequency[Int]](sft, Seq("height")) must beEmpty
+        ds.stats.getFrequency[Int](sft, "age", 0) must beNone
+        ds.stats.getFrequency[Int](sft, "height", 0) must beNone
 
-        val nameHistogram = ds.stats.getStats[Histogram[String]](sft, Seq("name"))
-        nameHistogram must haveLength(1)
-        nameHistogram.head.bounds mustEqual ("0", "9")
-        nameHistogram.head.length mustEqual 1000
-        forall(0 until 10)(i => nameHistogram.head.count(nameHistogram.head.indexOf(i.toString)) mustEqual 1)
-        (0 until 1000).map(nameHistogram.head.count).sum mustEqual 10
+        val nameHistogram = ds.stats.getHistogram[String](sft, "name", 0, null, null)
+        nameHistogram must beSome
+        nameHistogram.get.bounds mustEqual ("0", "9")
+        nameHistogram.get.length mustEqual 1000
+        forall(0 until 10)(i => nameHistogram.get.count(nameHistogram.head.indexOf(i.toString)) mustEqual 1)
+        (0 until 1000).map(nameHistogram.get.count).sum mustEqual 10
 
-        ds.stats.getStats[Histogram[Int]](sft, Seq("age")) must beEmpty
-        ds.stats.getStats[Histogram[Int]](sft, Seq("height")) must beEmpty
+        ds.stats.getHistogram[Int](sft, "age", 0, 0, 0) must beNone
+        ds.stats.getHistogram[Int](sft, "height", 0, 0, 0) must beNone
 
-        val dateHistogram = ds.stats.getStats[Histogram[Date]](sft, Seq("dtg"))
-        dateHistogram must haveLength(1)
-        dateHistogram.head.bounds mustEqual (minDate, maxDate)
-        dateHistogram.head.length mustEqual 1000
-        dateHistogram.head.count(0) mustEqual 1
-        dateHistogram.head.count(999) mustEqual 1
-        (0 until 1000).map(dateHistogram.head.count).sum mustEqual 10
+        val dateHistogram = ds.stats.getHistogram[Date](sft, "dtg", 0, null, null)
+        dateHistogram must beSome
+        dateHistogram.get.bounds mustEqual (minDate, maxDate)
+        dateHistogram.get.length mustEqual 1000
+        dateHistogram.get.count(0) mustEqual 1
+        dateHistogram.get.count(999) mustEqual 1
+        (0 until 1000).map(dateHistogram.get.count).sum mustEqual 10
 
-        val geomHistogram = ds.stats.getStats[Histogram[Geometry]](sft, Seq("geom"))
-        geomHistogram must haveLength(1)
-        geomHistogram.head.bounds mustEqual (minGeom, maxGeom)
+        val geomHistogram = ds.stats.getHistogram[Geometry](sft, "geom", 0, null, null)
+        geomHistogram must beSome
+        geomHistogram.get.bounds mustEqual (minGeom, maxGeom)
         val geoms = (0 until 10).map(i => WKTUtils.read(s"POINT (${i * 3} $i)"))
-        forall(geoms)(g => geomHistogram.head.count(geomHistogram.head.indexOf(g)) mustEqual 1)
+        forall(geoms)(g => geomHistogram.get.count(geomHistogram.get.indexOf(g)) mustEqual 1)
 
-        val z3Histogram = ds.stats.getStats[Z3Histogram](sft, Seq("geom", "dtg"))
-        z3Histogram must haveLength(1)
+        val z3Histogram = ds.stats.getZ3Histogram(sft, "geom", "dtg", null, 0)
+        z3Histogram must beSome
         val dates = (0 until 10).map(i => new Date(minDate.getTime + i * dayInMillis))
         forall(geoms.zip(dates)) { z =>
-          val index = z3Histogram.head.indexOf(z)
+          val index = z3Histogram.get.indexOf(z)
           index._2 must not(beEqualTo(-1))
-          z3Histogram.head.count(index._1, index._2) must beBetween(1L, 2L)
+          z3Histogram.get.count(index._1, index._2) must beBetween(1L, 2L)
         }
-
-        success
       }
 
       "calculate exact counts" >> {
@@ -292,9 +290,9 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
           "bbox(geom,0,0,10,5) AND dtg during 2016-01-02T23:00:00.000Z/2016-01-03T01:00:00.000Z")
         forall(filters.map(ECQL.toFilter)) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
-          val exact = SelfClosingIterator(reader).length
+          val exact = SelfClosingIterator(reader).length.toLong
+          exact must beGreaterThan(0L)
           val calculated = ds.stats.getCount(sft, filter, exact = true)
-          exact must beGreaterThan(0)
           calculated must beSome(exact)
         }
       }
@@ -379,11 +377,11 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         features.add(sf)
         fs.addFeatures(features)
 
-        ds.stats.getCount(sft) must beSome(10)
+        ds.stats.getCount(sft) must beSome(10L)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(0, 27, 0, 9, CRS_EPSG_4326)
-        ds.stats.getAttributeBounds[String](sft, "name").map(_.tuple) must beSome(("0", "9", 10L))
-        ds.stats.getAttributeBounds[Int](sft, "age").map(_.tuple) must beSome((1, 2, 2L))
-        ds.stats.getAttributeBounds[Int](sft, "height") must beNone
+        ds.stats.getMinMax[String](sft, "name").map(_.tuple) must beSome(("0", "9", 10L))
+        ds.stats.getMinMax[Int](sft, "age").map(_.tuple) must beSome((1, 2, 2L))
+        ds.stats.getMinMax[Int](sft, "height") must beNone
       }
     }
   }

@@ -17,14 +17,63 @@ import java.util.{Date, Locale}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.csv.{CSVFormat, CSVParser, CSVPrinter}
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 
 object StringSerialization extends LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   private val dateFormat: DateTimeFormatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME.withZone(ZoneOffset.UTC)
 
   private val AlphaNumericPattern = Pattern.compile("^[a-zA-Z0-9]+$")
   private val AlphaNumeric = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')
+
+  /**
+    * Encode a sequence of string values to a single string
+    *
+    * @param values values
+    * @return
+    */
+  def encodeSeq(values: Seq[String]): String = {
+    if (values.isEmpty) { "" } else {
+      val sb = new java.lang.StringBuilder()
+      val printer = new CSVPrinter(sb, CSVFormat.DEFAULT)
+      values.foreach(printer.print)
+      sb.toString
+    }
+  }
+
+  /**
+    * Recover a sequence of string values encoded with `encodedSeq`
+    *
+    * @param values encoded string
+    * @return
+    */
+  def decodeSeq(values: String): Seq[String] = {
+    if (values.isEmpty) { Seq.empty } else {
+      WithClose(CSVParser.parse(values, CSVFormat.DEFAULT))(_.iterator.next.iterator.asScala.toList)
+    }
+  }
+
+  /**
+    * Encode a map of string values to a single string
+    *
+    * @param values values
+    * @return
+    */
+  def encodeMap(values: scala.collection.Map[String, String]): String =
+    encodeSeq(values.toSeq.flatMap { case (k, v) => Seq(k, v) })
+
+  /**
+    * Recover a map of string values encoded with `encodedMap`
+    *
+    * @param values encoded string
+    * @return
+    */
+  def decodeMap(values: String): Map[String, String] =
+    decodeSeq(values).grouped(2).map { case Seq(k, v) => k -> v }.toMap
 
   /**
     * Encode a map of sequences as a string
@@ -37,7 +86,7 @@ object StringSerialization extends LazyLogging {
     val printer = new CSVPrinter(sb, CSVFormat.DEFAULT)
     map.foreach { case (k, v) =>
       val strings = v.headOption match {
-        case Some(_: Date) => v.map(d => ZonedDateTime.ofInstant(d.asInstanceOf[Date].toInstant, ZoneOffset.UTC).format(dateFormat))
+        case Some(_: Date) => v.map(d => ZonedDateTime.ofInstant(toInstant(d.asInstanceOf[Date]), ZoneOffset.UTC).format(dateFormat))
         case _ => v
       }
       printer.print(k)
@@ -55,8 +104,7 @@ object StringSerialization extends LazyLogging {
     * @return decoded map
     */
   def decodeSeqMap(sft: SimpleFeatureType, encoded: String): Map[String, Array[AnyRef]] = {
-    import scala.collection.JavaConversions._
-    val bindings = sft.getAttributeDescriptors.map(d => d.getLocalName -> d.getType.getBinding)
+    val bindings = sft.getAttributeDescriptors.asScala.map(d => d.getLocalName -> d.getType.getBinding)
     decodeSeqMap(encoded, bindings.toMap[String, Class[_]])
   }
 
@@ -67,24 +115,24 @@ object StringSerialization extends LazyLogging {
     * @return decoded map
     */
   def decodeSeqMap(encoded: String, bindings: Map[String, Class[_]]): Map[String, Array[AnyRef]] = {
-    import scala.collection.JavaConversions._
     // encoded as CSV, first element of each row is key, rest is value
-    val parser = CSVParser.parse(encoded, CSVFormat.DEFAULT)
-    parser.iterator.map { record =>
-      val iter = record.iterator
-      val key = iter.next
-      val values = bindings.get(key) match {
-        case Some(c) if c == classOf[String]              => iter.toArray[AnyRef]
-        case Some(c) if c == classOf[Integer]             => iter.map(Integer.valueOf).toArray[AnyRef]
-        case Some(c) if c == classOf[java.lang.Long]      => iter.map(java.lang.Long.valueOf).toArray[AnyRef]
-        case Some(c) if c == classOf[java.lang.Float]     => iter.map(java.lang.Float.valueOf).toArray[AnyRef]
-        case Some(c) if c == classOf[java.lang.Double]    => iter.map(java.lang.Double.valueOf).toArray[AnyRef]
-        case Some(c) if classOf[Date].isAssignableFrom(c) => iter.map(v => Date.from(ZonedDateTime.parse(v, dateFormat).toInstant)).toArray[AnyRef]
-        case Some(c) if c == classOf[java.lang.Boolean]   => iter.map(java.lang.Boolean.valueOf).toArray[AnyRef]
-        case c => logger.warn(s"No conversion defined for encoded attribute '$key' of type ${c.orNull}"); iter.toArray[AnyRef]
-      }
-      key -> values
-    }.toMap
+    WithClose(CSVParser.parse(encoded, CSVFormat.DEFAULT)) { parser =>
+      parser.iterator.asScala.map { record =>
+        val iter = record.iterator.asScala
+        val key = iter.next
+        val values = bindings.get(key) match {
+          case Some(c) if c == classOf[String]              => iter.toArray[AnyRef]
+          case Some(c) if c == classOf[Integer]             => iter.map(Integer.valueOf).toArray[AnyRef]
+          case Some(c) if c == classOf[java.lang.Long]      => iter.map(java.lang.Long.valueOf).toArray[AnyRef]
+          case Some(c) if c == classOf[java.lang.Float]     => iter.map(java.lang.Float.valueOf).toArray[AnyRef]
+          case Some(c) if c == classOf[java.lang.Double]    => iter.map(java.lang.Double.valueOf).toArray[AnyRef]
+          case Some(c) if classOf[Date].isAssignableFrom(c) => iter.map(v => Date.from(ZonedDateTime.parse(v, dateFormat).toInstant)).toArray[AnyRef]
+          case Some(c) if c == classOf[java.lang.Boolean]   => iter.map(java.lang.Boolean.valueOf).toArray[AnyRef]
+          case c => logger.warn(s"No conversion defined for encoded attribute '$key' of type ${c.orNull}"); iter.toArray[AnyRef]
+        }
+        key -> values
+      }.toMap
+    }
   }
 
   /**

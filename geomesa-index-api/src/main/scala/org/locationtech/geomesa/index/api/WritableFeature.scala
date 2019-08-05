@@ -73,7 +73,7 @@ object WritableFeature {
     * @param groups column groups
     * @return
     */
-  def wrapper(sft: SimpleFeatureType, groups: ColumnGroups): FeatureWrapper = {
+  def wrapper(sft: SimpleFeatureType, groups: ColumnGroups): FeatureWrapper[WritableFeature] = {
     val idSerializer: String => Array[Byte] = GeoMesaFeatureIndex.idToBytes(sft)
     val serializers: Seq[(Array[Byte], SimpleFeatureSerializer)] = groups.serializers(sft)
 
@@ -90,15 +90,16 @@ object WritableFeature {
   /**
     * Creates a writable feature from a feature
     */
-  trait FeatureWrapper {
+  trait FeatureWrapper[+T <: WritableFeature] {
 
     /**
       * Create a writable feature
       *
       * @param feature feature
+      * @param delete true if the feature is an already written feature that we are deleting
       * @return
       */
-    def wrap(feature: SimpleFeature): WritableFeature
+    def wrap(feature: SimpleFeature, delete: Boolean = false): T
   }
 
   /**
@@ -107,9 +108,11 @@ object WritableFeature {
     * @param serializers feature serializers, per column group
     * @param idSerializer feature id serializer
     */
-  class FeatureLevelFeatureWrapper(serializers: Seq[(Array[Byte], SimpleFeatureSerializer)],
-                                   idSerializer: String => Array[Byte]) extends FeatureWrapper {
-    override def wrap(feature: SimpleFeature): WritableFeature =
+  class FeatureLevelFeatureWrapper(
+      serializers: Seq[(Array[Byte], SimpleFeatureSerializer)],
+      idSerializer: String => Array[Byte]
+    ) extends FeatureWrapper[WritableFeature] {
+    override def wrap(feature: SimpleFeature, delete: Boolean): WritableFeature =
       new FeatureLevelWritableFeature(feature, serializers, idSerializer)
   }
 
@@ -120,10 +123,12 @@ object WritableFeature {
     * @param serializer serializer
     * @param idSerializer feature id serializer
     */
-  class AttributeLevelFeatureWrapper(colFamily: Array[Byte],
-                                     serializer: SimpleFeatureSerializer,
-                                     idSerializer: String => Array[Byte]) extends FeatureWrapper {
-    override def wrap(feature: SimpleFeature): WritableFeature =
+  class AttributeLevelFeatureWrapper(
+      colFamily: Array[Byte],
+      serializer: SimpleFeatureSerializer,
+      idSerializer: String => Array[Byte]
+    ) extends FeatureWrapper[WritableFeature] {
+    override def wrap(feature: SimpleFeature, delete: Boolean): WritableFeature =
       new AttributeLevelWritableFeature(feature, colFamily, serializer, idSerializer)
   }
 
