@@ -29,14 +29,15 @@ class RouteSelectorByAttribute extends RouteSelector {
 
   override def init(stores: Seq[(DataStore, java.util.Map[String, AnyRef])]): Unit = {
     val builder = Seq.newBuilder[(Set[String], DataStore)]
+
     stores.foreach { case (ds, config) =>
       Option(config.get(RouteAttributes)).foreach { attributes =>
         try {
           attributes.asInstanceOf[java.util.List[AnyRef]].asScala.foreach {
-            case s: String if s.equalsIgnoreCase("id") => id = Some(ds)
+            case s: String if s.equalsIgnoreCase("id") => setId(ds)
             case s: String => builder += Set(s) -> ds
-            case list: java.util.List[String] if list.isEmpty => include = Some(ds)
-            case list: java.util.List[String] if list.size() == 1 && list.get(0).equalsIgnoreCase("id") => id = Some(ds)
+            case list: java.util.List[String] if list.isEmpty => setInclude(ds)
+            case list: java.util.List[String] if list.size() == 1 && list.get(0).equalsIgnoreCase("id") => setId(ds)
             case list: java.util.List[String] => builder += list.asScala.toSet -> ds
             case i => throw new IllegalArgumentException(s"Expected List[String] bug got: $i")
           }
@@ -46,6 +47,14 @@ class RouteSelectorByAttribute extends RouteSelector {
       }
     }
     mappings = builder.result
+
+    val check = scala.collection.mutable.Set.empty[Set[String]]
+    mappings.foreach { case (m, _) =>
+      if (!check.add(m)) {
+        throw new IllegalArgumentException("Invalid store routing: " +
+            s"route [${m.mkString(", ")}] is defined more than once")
+      }
+    }
   }
 
   override def route(sft: SimpleFeatureType, query: Query): Option[DataStore] = {
@@ -61,6 +70,20 @@ class RouteSelectorByAttribute extends RouteSelector {
     } else {
       attributes.orElse(include)
     }
+  }
+
+  private def setId(ds: DataStore): Unit = {
+    if (id.isDefined) {
+      throw new IllegalArgumentException("Invalid store routing: 'id' route is defined more than once")
+    }
+    id = Some(ds)
+  }
+
+  private def setInclude(ds: DataStore): Unit = {
+    if (include.isDefined) {
+      throw new IllegalArgumentException("Invalid store routing: 'include' route is defined more than once")
+    }
+    include = Some(ds)
   }
 }
 
