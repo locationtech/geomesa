@@ -63,19 +63,24 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
     } catch {
       case NonFatal(e) => stores.result.foreach(_._1.dispose()); throw e
     }
+
     val storesAndConfigs = stores.result
 
-    val router = {
-      val impl = RouterParam.lookup(params)
-      ServiceLoader.load[RouteSelector]().find(_.getClass.getName == impl).getOrElse {
-        throw new IllegalArgumentException(s"Could not load route selector '$impl'. Available implementations: " +
-            ServiceLoader.load[RouteSelector]().map(_.getClass.getName).mkString(", "))
+    try {
+      val router = {
+        val impl = RouterParam.lookup(params)
+        ServiceLoader.load[RouteSelector]().find(_.getClass.getName == impl).getOrElse {
+          throw new IllegalArgumentException(s"Could not load route selector '$impl'. Available implementations: " +
+              ServiceLoader.load[RouteSelector]().map(_.getClass.getName).mkString(", "))
+        }
       }
+
+      router.init(storesAndConfigs)
+
+      new RoutedDataStoreView(storesAndConfigs.map(_._1), router, namespace)
+    } catch {
+      case NonFatal(e) => storesAndConfigs.foreach(_._1.dispose()); throw e
     }
-
-    router.init(storesAndConfigs)
-
-    new RoutedDataStoreView(storesAndConfigs.map(_._1), router, namespace)
   }
 
   override def getDisplayName: String = DisplayName
