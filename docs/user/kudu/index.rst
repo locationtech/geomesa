@@ -28,10 +28,10 @@ To get started with the Kudu Data Store, try the :doc:`/tutorials/geomesa-quicks
     :maxdepth: 1
 
     install
-    configuration
-    index_config
     usage
     geoserver
     commandline
     spark
+    configuration
+    index_config
     visibilities

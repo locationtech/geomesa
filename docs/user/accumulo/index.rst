@@ -20,15 +20,13 @@ To get started with the Accumulo Data Store, try the :doc:`/tutorials/geomesa-qu
    :maxdepth: 1
 
    install
-   configuration
    usage
    geoserver
    commandline
-   examples
+   configuration
+   index_config
    visibilities
-   data_management
    jobs
-   raster
-   internals
    kerberos
-   ageoff
+   raster
+   examples

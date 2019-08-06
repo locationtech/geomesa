@@ -30,10 +30,10 @@ To get started with the Kafka Data Store, try the :doc:`/tutorials/geomesa-quick
 
    install
    usage
-   geoserver
-   commandline
    producers
    consumers
+   geoserver
+   commandline
    index_config
    data
    feature_events

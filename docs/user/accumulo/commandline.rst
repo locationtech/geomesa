@@ -123,9 +123,9 @@ based on the default date attribute for the schema. Due to table keys, this is m
 and the ID index when used with ``--z3-feature-ids``. Other indices will typically be compacted in full, as they
 are not partitioned by date.
 
-This command is particularly useful when using :ref:`ageoff_accumulo`, to ensure that expired rows are physically
-deleted from disk. In this scenario, the ``--from`` parameter should be set to the age-off period, and the
-``--duration`` parameter should be set based on how often compactions are run. The intent is to only compact
+This command is particularly useful when using :ref:`accumulo_feature_expiry`, to ensure that expired rows are
+physically deleted from disk. In this scenario, the ``--from`` parameter should be set to the age-off period, and
+the ``--duration`` parameter should be set based on how often compactions are run. The intent is to only compact
 the data that may have aged-off since the last compaction. Note that the time periods align with attribute-based
 age-off; ingest time age-off may need a time buffer, assuming some relationship between ingest time and the default
 date attribute.
@@ -135,10 +135,17 @@ This may be useful for a static data set, which will not be automatically compac
 stops growing. In this scenario, the ``--from`` and ``--duration`` parameters can be omitted, so that the
 entire data set is compacted.
 
+.. _accumulo_age_off_command:
+
 ``configure-age-off``
 ^^^^^^^^^^^^^^^^^^^^^
 
-List, add or remove age-off on a given feature type. See :ref:`ageoff_accumulo` for more information.
+List, add or remove age-off on a given feature type. See :ref:`accumulo_feature_expiry` for more information.
+
+.. warning::
+
+  Any manually configured age-off iterators should be removed before using this command, as they may
+  not operate correctly due to the configuration name.
 
 ======================== =============================================================
 Argument                 Description
@@ -152,14 +159,32 @@ Argument                 Description
 ``--dtg``                Use attribute-based age-off on the specified date field
 ======================== =============================================================
 
-The ``--list`` argument will display any configured age-off.
+The ``--list`` argument will display any configured age-off::
 
-The ``--remove`` argument will remove any configured age-off.
+  $ geomesa-accumulo configure-age-off -c test_catalog -f test_feature --list
+  INFO  Attribute age-off: None
+  INFO  Timestamp age-off: name:age-off, priority:10, class:org.locationtech.geomesa.accumulo.iterators.AgeOffIterator, properties:{retention=PT1M}
 
-The ``--set`` argument will configure age-off. When using ``--set``, ``--expiry`` must also be provided.
-``--expiry`` can be any time duration string, specified in natural language. If ``--dtg`` is provided,
-age-off will be based on the specified date-type attribute. Otherwise, age-off will be based on ingest
-time.
+The ``--remove`` argument will remove any configured age-off::
+
+  $ geomesa-accumulo configure-age-off -c test_catalog -f test_feature --remove
+
+The ``--set`` argument will configure age-off. This will remove any existing age-off configuration and replace it
+with the new specification. When using ``--set``, ``--expiry`` must also be provided. ``--expiry`` can be any time
+duration string, specified in natural language.
+
+If ``--dtg`` is provided, age-off will be based on the specified date-type attribute::
+
+  $ geomesa-accumulo configure-age-off -c test_catalog -f test_feature --set --expiry '1 day' --dtg my_date_attribute
+
+Otherwise, age-off will be based on ingest time::
+
+  $ geomesa-accumulo configure-age-off -c test_catalog -f test_feature --set --expiry '1 day'
+
+.. warning::
+
+    Ingest time expiration requires that logical timestamps are disabled in the schema. See
+    :ref:`logical_timestamps` for more information.
 
 ``configure-stats``
 ^^^^^^^^^^^^^^^^^^^

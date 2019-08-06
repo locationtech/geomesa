@@ -16,12 +16,12 @@ directory structures.
 
     architecture
     install
-    index_config
-    partition_schemes
-    metadata
     usage
     geoserver
     commandline
     configuration
+    index_config
+    partition_schemes
+    metadata
     example
     spark_example

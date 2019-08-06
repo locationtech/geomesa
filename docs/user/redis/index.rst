@@ -20,9 +20,9 @@ To get started with the Redis Data Store, try the :doc:`/tutorials/geomesa-quick
     :maxdepth: 1
 
     install
-    configuration
-    index_config
     usage
     geoserver
     commandline
+    configuration
+    index_config
     visibilities
