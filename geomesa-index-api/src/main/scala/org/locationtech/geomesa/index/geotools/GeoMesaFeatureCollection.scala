@@ -163,16 +163,14 @@ object GeoMesaFeatureCollection extends LazyLogging {
   }
 
   /**
-    * Attempts to remove any decorating feature collections.
-    *
-    * Note: package private visible for testing
+    * Attempts to remove any decorating feature collections
     *
     * @param collection collection
     * @param level level of collections that have been removed, used to detect potentially infinite looping
     * @return
     */
   @tailrec
-  private [geotools] def unwrap(
+  private def unwrap(
       collection: FeatureCollection[SimpleFeatureType, SimpleFeature],
       level: Int = 1): FeatureCollection[SimpleFeatureType, SimpleFeature] = {
 

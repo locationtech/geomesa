@@ -9,20 +9,25 @@
 package org.locationtech.geomesa.index.geotools
 
 import org.geotools.data.collection.ListFeatureCollection
+import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.{ReTypingFeatureCollection, ReprojectingFeatureCollection}
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.factory.Hints
+import org.geotools.feature.collection.{DecoratingFeatureCollection, DecoratingSimpleFeatureCollection}
+import org.geotools.feature.visitor.CalcResult
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTS
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreTest.TestQueryInterceptor
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreTest.{TestFeatureCollection, TestQueryInterceptor, TestSimpleFeatureCollection, TestVisitor}
 import org.locationtech.geomesa.index.planning.QueryInterceptor
+import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.{Geometry, Point}
+import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -94,18 +99,42 @@ class GeoMesaDataStoreTest extends Specification {
       val fc = ds.getFeatureSource(sft.getTypeName).getFeatures()
       val collections = Seq(
         new ReTypingFeatureCollection(fc, SimpleFeatureTypes.renameSft(sft, "foo")),
-        new ReprojectingFeatureCollection(fc, epsg3857)
+        new ReprojectingFeatureCollection(fc, epsg3857),
+        new TestFeatureCollection(fc),
+        new TestSimpleFeatureCollection(fc)
       )
-      foreach(collections)(collection => GeoMesaFeatureCollection.unwrap(collection) must beTheSameAs(fc))
+      foreach(collections) { collection =>
+        val visitor = new TestVisitor()
+        GeoMesaFeatureCollection.visit(collection, visitor)
+        visitor.visited must beFalse
+        visitor.executed must beTrue
+      }
     }
   }
 }
 
 object GeoMesaDataStoreTest {
+
   class TestQueryInterceptor extends QueryInterceptor {
     override def init(ds: DataStore, sft: SimpleFeatureType): Unit = {}
     override def rewrite(query: Query): Unit =
       if (query.getFilter == Filter.INCLUDE) { query.setFilter(Filter.EXCLUDE) }
     override def close(): Unit = {}
   }
+
+  class TestVisitor extends GeoMesaProcessVisitor {
+    var executed = false
+    var visited = false
+    override def execute(source: SimpleFeatureSource, query: Query): Unit = executed = true
+    override def visit(feature: Feature): Unit = visited = true
+    override def getResult: CalcResult = null
+  }
+
+  // example class extending DecoratingFeatureCollection
+  class TestFeatureCollection(delegate: SimpleFeatureCollection)
+      extends DecoratingFeatureCollection[SimpleFeatureType, SimpleFeature](delegate)
+
+  // example class extending DecoratingSimpleFeatureCollection
+  class TestSimpleFeatureCollection(delegate: SimpleFeatureCollection)
+      extends DecoratingSimpleFeatureCollection(delegate)
 }
