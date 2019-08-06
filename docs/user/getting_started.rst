@@ -18,7 +18,7 @@ barrier to entry, and can read existing data in a variety of file formats. The F
 extremely low-cost storage when backed by cloud-native object stores; however, it generally is not as performant as
 using an actual database.
 
-For advanced use cases, multiple stores can be combined through a :doc:`/user/merged_view` to provide both high
+For advanced use cases, multiple stores can be combined through :doc:`/user/ds_views` to provide both high
 performance (for recent data) and low cost (for older data).
 
 Whichever storage solution you choose, the GeoMesa API is the same (outside of some back-end-specific configuration

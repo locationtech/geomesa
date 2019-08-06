@@ -12,7 +12,6 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, FeatureReader, Query, Transaction}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.ARROW_DICTIONARY_CACHED
@@ -20,14 +19,10 @@ import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.planning.{LocalQueryRunner, QueryPlanner, QueryRunner}
-import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
-import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
-import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.iterators.SortedMergeIterator
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -246,123 +241,5 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[(DataStore, Option[
     } else {
       super.getReturnSft(sft, hints)
     }
-  }
-}
-
-object MergedQueryRunner {
-
-  class MergedStats(stores: Seq[(DataStore, Option[Filter])]) extends GeoMesaStats {
-
-    private val stats = stores.map {
-      case (s: HasGeoMesaStats, f) => (s.stats, f)
-      case (s, f) => (new UnoptimizedRunnableStats(s), f)
-    }
-
-    override val writer: GeoMesaStatWriter = new MergedStatWriter(stats.map(_._1.writer))
-
-    override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
-      // note: unlike most methods in this class, this will return if any of the merged stores provide a response
-      val counts = stats.flatMap { case (stat, f) => stat.getCount(sft, mergeFilter(filter, f), exact) }
-      counts.reduceLeftOption(_ + _)
-    }
-
-    override def getMinMax[T](
-        sft: SimpleFeatureType,
-        attribute: String,
-        filter: Filter,
-        exact: Boolean): Option[MinMax[T]] = {
-      // note: unlike most methods in this class, this will return if any of the merged stores provide a response
-      val bounds = stats.flatMap { case (stat, f) =>
-        stat.getMinMax[T](sft, attribute, mergeFilter(filter, f), exact)
-      }
-      bounds.reduceLeftOption(_ + _)
-    }
-
-    override def getEnumeration[T](
-        sft: SimpleFeatureType,
-        attribute: String,
-        filter: Filter,
-        exact: Boolean): Option[EnumerationStat[T]] = {
-      merge((stat, f) => stat.getEnumeration[T](sft, attribute, mergeFilter(filter, f), exact))
-    }
-
-    override def getFrequency[T](
-        sft: SimpleFeatureType,
-        attribute: String,
-        precision: Int,
-        filter: Filter,
-        exact: Boolean): Option[Frequency[T]] = {
-      merge((stat, f) => stat.getFrequency[T](sft, attribute, precision, mergeFilter(filter, f), exact))
-    }
-
-    override def getTopK[T](
-        sft: SimpleFeatureType,
-        attribute: String,
-        filter: Filter,
-        exact: Boolean): Option[TopK[T]] = {
-      merge((stat, f) => stat.getTopK[T](sft, attribute, mergeFilter(filter, f), exact))
-    }
-
-    override def getHistogram[T](
-        sft: SimpleFeatureType,
-        attribute: String,
-        bins: Int,
-        min: T,
-        max: T,
-        filter: Filter,
-        exact: Boolean): Option[Histogram[T]] = {
-      merge((stat, f) => stat.getHistogram[T](sft, attribute, bins, min, max, mergeFilter(filter, f), exact))
-    }
-
-    override def getZ3Histogram(
-        sft: SimpleFeatureType,
-        geom: String,
-        dtg: String,
-        period: TimePeriod,
-        bins: Int,
-        filter: Filter,
-        exact: Boolean): Option[Z3Histogram] = {
-      merge((stat, f) => stat.getZ3Histogram(sft, geom, dtg, period, bins, mergeFilter(filter, f), exact))
-    }
-
-    override def getStat[T <: Stat](
-        sft: SimpleFeatureType,
-        query: String,
-        filter: Filter,
-        exact: Boolean): Option[T] = {
-      merge((stat, f) => stat.getStat(sft, query, mergeFilter(filter, f), exact))
-    }
-
-    override def close(): Unit = CloseWithLogging(stats.map(_._1))
-
-    private def merge[T <: Stat](query: (GeoMesaStats, Option[Filter]) => Option[T]): Option[T] = {
-      // lazily evaluate each stat as we only return Some if all the child stores do
-      val head = query(stats.head._1, stats.head._2)
-      stats.tail.foldLeft(head) { case (result, (stat, filter)) =>
-        for { r <- result; n <- query(stat, filter) } yield { (r + n).asInstanceOf[T] }
-      }
-    }
-  }
-
-  class MergedStatWriter(writers: Seq[GeoMesaStatWriter]) extends GeoMesaStatWriter {
-    override def analyze(sft: SimpleFeatureType): Seq[Stat] = {
-      writers.map(_.analyze(sft)).reduceLeft[Seq[Stat]] { case (left, right) =>
-        left.zip(right).map { case (l, r) => l + r }
-      }
-    }
-
-    override def updater(sft: SimpleFeatureType): StatUpdater = new MergedStatUpdater(writers.map(_.updater(sft)))
-
-    override def rename(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit =
-      writers.foreach(_.rename(sft, previous))
-
-    override def clear(sft: SimpleFeatureType): Unit = writers.foreach(_.clear(sft))
-  }
-
-  class MergedStatUpdater(updaters: Seq[StatUpdater]) extends StatUpdater {
-    override def add(sf: SimpleFeature): Unit = updaters.foreach(_.add(sf))
-    override def remove(sf: SimpleFeature): Unit = updaters.foreach(_.remove(sf))
-    override def flush(): Unit = updaters.foreach(_.flush())
-    override def close(): Unit = CloseWithLogging(updaters)
   }
 }
