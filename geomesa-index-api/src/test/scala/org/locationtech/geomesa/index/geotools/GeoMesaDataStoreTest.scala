@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.geotools
 
 import org.geotools.data.collection.ListFeatureCollection
+import org.geotools.data.store.{ReTypingFeatureCollection, ReprojectingFeatureCollection}
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
@@ -88,6 +89,14 @@ class GeoMesaDataStoreTest extends Specification {
       // other queries should go through as normal
       results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, ECQL.toFilter("bbox(geom,39,54,51,56)")), Transaction.AUTO_COMMIT)).toSeq
       results must haveLength(10)
+    }
+    "unwrap decorating feature collections" in {
+      val fc = ds.getFeatureSource(sft.getTypeName).getFeatures()
+      val collections = Seq(
+        new ReTypingFeatureCollection(fc, SimpleFeatureTypes.renameSft(sft, "foo")),
+        new ReprojectingFeatureCollection(fc, epsg3857)
+      )
+      foreach(collections)(collection => GeoMesaFeatureCollection.unwrap(collection) must beTheSameAs(fc))
     }
   }
 }
