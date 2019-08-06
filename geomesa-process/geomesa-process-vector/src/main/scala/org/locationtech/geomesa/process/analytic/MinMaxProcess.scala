@@ -13,8 +13,8 @@ import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.geotools.data.util.NullProgressListener
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.process.analytic.MinMaxProcess.MinMaxVisitor
@@ -56,7 +56,7 @@ class MinMaxProcess extends GeoMesaProcess with LazyLogging {
     logger.debug(s"Attempting min/max process on type ${features.getClass.getName}")
 
     val visitor = new MinMaxVisitor(features, attribute, Option(cached).forall(_.booleanValue()))
-    features.accepts(visitor, new NullProgressListener)
+    GeoMesaFeatureCollection.visit(features, visitor)
     visitor.getResult.results
   }
 }

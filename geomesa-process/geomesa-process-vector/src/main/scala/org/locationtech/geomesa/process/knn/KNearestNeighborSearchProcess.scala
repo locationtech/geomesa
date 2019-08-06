@@ -9,15 +9,15 @@
 package org.locationtech.geomesa.process.knn
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Point
 import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.geotools.data.util.NullProgressListener
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.jts.geom.Point
 import org.opengis.feature.Feature
 
 import scala.collection.JavaConverters._
@@ -60,7 +60,7 @@ class KNearestNeighborSearchProcess extends GeoMesaProcess with LazyLogging {
     logger.debug("Attempting Geomesa K-Nearest Neighbor Search on collection type " + dataFeatures.getClass.getName)
 
     val visitor = new KNNVisitor(inputFeatures, dataFeatures, numDesired, estimatedDistance, maxSearchDistance)
-    dataFeatures.accepts(visitor, new NullProgressListener)
+    GeoMesaFeatureCollection.visit(dataFeatures, visitor)
     visitor.getResult.asInstanceOf[KNNResult].results
   }
 }

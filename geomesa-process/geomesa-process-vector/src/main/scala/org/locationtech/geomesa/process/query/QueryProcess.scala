@@ -13,9 +13,9 @@ import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.geotools.data.util.NullProgressListener
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
 import org.opengis.feature.Feature
@@ -56,7 +56,7 @@ class QueryProcess extends GeoMesaProcess with LazyLogging {
     val propsArray = Option(properties).map(_.toArray(Array.empty[String])).filter(_.length > 0).orNull
 
     val visitor = new QueryVisitor(features, Option(filter).getOrElse(Filter.INCLUDE), propsArray)
-    features.accepts(visitor, new NullProgressListener)
+    GeoMesaFeatureCollection.visit(features, visitor)
     visitor.getResult.results
   }
 }

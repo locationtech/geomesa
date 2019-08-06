@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.geotools
 
 import org.geotools.data.collection.ListFeatureCollection
+import org.geotools.data.store.{ReTypingFeatureCollection, ReprojectingFeatureCollection}
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
@@ -189,6 +190,14 @@ class GeoMesaDataStoreTest extends Specification {
         ds.stats.getCount(sft) must beSome(1L)
         ds.stats.getMinMax[String](sft, "n", exact = false).map(_.max) must beSome("name0")
       }
+    }
+    "unwrap decorating feature collections" in {
+      val fc = ds.getFeatureSource(sft.getTypeName).getFeatures()
+      val collections = Seq(
+        new ReTypingFeatureCollection(fc, SimpleFeatureTypes.renameSft(sft, "foo")),
+        new ReprojectingFeatureCollection(fc, epsg3857)
+      )
+      foreach(collections)(collection => GeoMesaFeatureCollection.unwrap(collection) must beTheSameAs(fc))
     }
   }
 }
