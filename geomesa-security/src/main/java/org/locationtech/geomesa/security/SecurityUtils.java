@@ -27,12 +27,16 @@ public class SecurityUtils {
      * @return {@code feature}
      */
     public static SimpleFeature setFeatureVisibility(SimpleFeature feature, String visibility) {
-        feature.getUserData().put(FEATURE_VISIBILITY, visibility);
+        String value = null;
+        if (visibility != null) {
+            value = visibility.intern();
+        }
+        feature.getUserData().put(FEATURE_VISIBILITY, value);
         return feature;
     }
 
     /**
-     * Sets the visbility to an expression created by joining the given {@code visibilities} with "&amp;".
+     * Sets the visibility to an expression created by joining the given {@code visibilities} with "&amp;".
      *
      * @param feature the <tt>SimpleFeature</tt> to add or update visibility
      * @param visibilities a set of visbilities that will be and-ed together
@@ -40,8 +44,7 @@ public class SecurityUtils {
      * @return {@code feature}
      */
     public static SimpleFeature setFeatureVisibilities(SimpleFeature feature, String... visibilities) {
-        String and = Joiner.on("&").join(visibilities);
-        return setFeatureVisibility(feature, and);
+        return setFeatureVisibility(feature, Joiner.on("&").join(visibilities));
     }
 
     /**
@@ -49,7 +52,7 @@ public class SecurityUtils {
      * @return the visbility from {@code feature} or null if none
      */
     public static String getVisibility(SimpleFeature feature) {
-        return (String)feature.getUserData().get(FEATURE_VISIBILITY);
+        return (String) feature.getUserData().get(FEATURE_VISIBILITY);
     }
 
 
