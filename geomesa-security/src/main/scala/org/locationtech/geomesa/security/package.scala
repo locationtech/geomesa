@@ -33,6 +33,7 @@ package object security {
   }
 
   implicit class SecureSimpleFeature(val sf: SimpleFeature) extends AnyVal {
+
     /**
      * Sets the visibility to the given ``visibility`` expression.
      *
