@@ -47,7 +47,7 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
 
   private implicit val ordering: Ordering[(AnyRef, AnyRef)] = Ordering.by(_._1.toString)
 
-  override def serialize(out: Output, javaMap: java.util.Map[AnyRef, AnyRef]): Unit = {
+  override def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
     import scala.collection.JavaConverters._
 
     // write in sorted order to keep consistent output

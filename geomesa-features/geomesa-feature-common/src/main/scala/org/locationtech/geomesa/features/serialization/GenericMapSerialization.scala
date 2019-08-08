@@ -18,7 +18,7 @@ import org.locationtech.jts.geom.Geometry
 // noinspection LanguageFeature
 trait GenericMapSerialization[T <: PrimitiveWriter, V <: PrimitiveReader] extends LazyLogging {
 
-  def serialize(out: T, map: java.util.Map[AnyRef, AnyRef]): Unit
+  def serialize(out: T, map: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit
 
   def deserialize(in: V): java.util.Map[AnyRef, AnyRef]
 

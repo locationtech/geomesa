@@ -27,6 +27,10 @@ object ByteArrays {
   implicit val ByteOrdering: Ordering[Array[Byte]] =
     Ordering.comparatorToOrdering(UnsignedBytes.lexicographicalComparator)
 
+  implicit val UnsignedByteOrdering: Ordering[Byte] = new Ordering[Byte] {
+    override def compare(x: Byte, y: Byte): Int = UnsignedBytes.compare(x, y)
+  }
+
   /**
     * Writes the short as 2 bytes in the provided array, starting at offset
     *

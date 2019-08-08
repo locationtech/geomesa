@@ -17,7 +17,7 @@ object AvroUserDataSerialization extends GenericMapSerialization[Encoder, Decode
 
   val NullMarkerString = "<null>"
 
-  override def serialize(out: Encoder, map: java.util.Map[AnyRef, AnyRef]): Unit = {
+  override def serialize(out: Encoder, map: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
     // may not be able to write all entries - must pre-filter to know correct count
     val filtered = map.asScala.filter { case (key, value) =>
       if (canSerialize(key)) {

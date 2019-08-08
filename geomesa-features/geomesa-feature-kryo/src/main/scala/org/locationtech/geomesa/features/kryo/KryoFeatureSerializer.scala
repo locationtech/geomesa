@@ -19,11 +19,14 @@ trait KryoFeatureSerializer extends KryoFeatureSerialization with KryoFeatureDes
 
 object KryoFeatureSerializer {
 
-  val VERSION = 2
-  assert(VERSION < Byte.MaxValue, "Serialization expects version to be in one byte")
+  val Version : Byte = 3
+  val Version2: Byte = 2
 
-  val NULL_BYTE: Byte     = 0.asInstanceOf[Byte]
-  val NON_NULL_BYTE: Byte = 1.asInstanceOf[Byte]
+  @deprecated("Version")
+  lazy val VERSION: Int = Version
+
+  val NullByte: Byte    = 0.asInstanceOf[Byte]
+  val NonNullByte: Byte = 1.asInstanceOf[Byte]
 
   def apply(sft: SimpleFeatureType, options: Set[SerializationOption] = Set.empty): KryoFeatureSerializer = {
     (options.immutable, options.isLazy) match {
@@ -38,26 +41,26 @@ object KryoFeatureSerializer {
 
   class ImmutableActiveSerializer(sft: SimpleFeatureType, val options: Set[SerializationOption])
       extends KryoFeatureSerializer with ImmutableActiveDeserialization {
-    override private [kryo] def serializeSft = sft
-    override private [kryo] def deserializeSft = sft
+    override protected [kryo] def in: SimpleFeatureType = sft
+    override protected [kryo] def out: SimpleFeatureType = sft
   }
 
   class ImmutableLazySerializer(sft: SimpleFeatureType, val options: Set[SerializationOption])
       extends KryoFeatureSerializer with ImmutableLazyDeserialization {
-    override private [kryo] def serializeSft = sft
-    override private [kryo] def deserializeSft = sft
+    override protected [kryo] def in: SimpleFeatureType = sft
+    override protected [kryo] def out: SimpleFeatureType = sft
   }
 
   class MutableActiveSerializer(sft: SimpleFeatureType, val options: Set[SerializationOption])
       extends KryoFeatureSerializer with MutableActiveDeserialization {
-    override private [kryo] def serializeSft = sft
-    override private [kryo] def deserializeSft = sft
+    override protected [kryo] def in: SimpleFeatureType = sft
+    override protected [kryo] def out: SimpleFeatureType = sft
   }
 
   class MutableLazySerializer(sft: SimpleFeatureType, val options: Set[SerializationOption])
       extends KryoFeatureSerializer with MutableLazyDeserialization {
-    override private [kryo] def serializeSft = sft
-    override private [kryo] def deserializeSft = sft
+    override protected [kryo] def in: SimpleFeatureType = sft
+    override protected [kryo] def out: SimpleFeatureType = sft
   }
 
   class Builder private [KryoFeatureSerializer] (sft: SimpleFeatureType)

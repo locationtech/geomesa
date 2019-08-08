@@ -6,16 +6,20 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.kryo.impl
+package org.locationtech.geomesa.features.kryo
+package impl
 
 import java.io.InputStream
 
 import com.esotericsoftware.kryo.io.Input
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.ScalaSimpleFeature.ImmutableSimpleFeature
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization.getInput
+import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerialization
+import org.locationtech.geomesa.utils.collection.IntBitSet
 import org.opengis.feature.simple.SimpleFeature
+
+import scala.util.control.NonFatal
 
 object ActiveDeserialization {
 
@@ -23,10 +27,11 @@ object ActiveDeserialization {
     * Creates mutable features
     */
   trait MutableActiveDeserialization extends ActiveDeserialization {
-    override protected def createFeature(id: String,
-                                         attributes: Array[AnyRef],
-                                         userData: java.util.Map[AnyRef, AnyRef]): SimpleFeature = {
-      new ScalaSimpleFeature(deserializeSft, id, attributes, userData)
+    override protected def createFeature(
+        id: String,
+        attributes: Array[AnyRef],
+        userData: java.util.Map[AnyRef, AnyRef]): SimpleFeature = {
+      new ScalaSimpleFeature(out, id, attributes, userData)
     }
   }
 
@@ -34,10 +39,11 @@ object ActiveDeserialization {
     * Creates immutable features
     */
   trait ImmutableActiveDeserialization extends ActiveDeserialization {
-    override protected def createFeature(id: String,
-                                         attributes: Array[AnyRef],
-                                         userData: java.util.Map[AnyRef, AnyRef]): SimpleFeature = {
-      new ImmutableSimpleFeature(deserializeSft, id, attributes, userData)
+    override protected def createFeature(
+        id: String,
+        attributes: Array[AnyRef],
+        userData: java.util.Map[AnyRef, AnyRef]): SimpleFeature = {
+      new ImmutableSimpleFeature(out, id, attributes, userData)
     }
   }
 }
@@ -46,10 +52,6 @@ object ActiveDeserialization {
   * Fully deserializes the simple feature before returning
   */
 trait ActiveDeserialization extends KryoFeatureDeserialization {
-
-  protected def createFeature(id: String,
-                              attributes: Array[AnyRef],
-                              userData: java.util.Map[AnyRef, AnyRef]): SimpleFeature
 
   override def deserialize(bytes: Array[Byte]): SimpleFeature = readFeature("", getInput(bytes, 0, bytes.length))
 
@@ -66,22 +68,75 @@ trait ActiveDeserialization extends KryoFeatureDeserialization {
 
   override def deserialize(id: String, in: InputStream): SimpleFeature = readFeature(id, getInput(in))
 
+  protected def createFeature(
+      id: String,
+      attributes: Array[AnyRef],
+      userData: java.util.Map[AnyRef, AnyRef]): SimpleFeature
+
   private def readFeature(id: String, input: Input): SimpleFeature = {
+    input.readByte() match {
+      case KryoFeatureSerializer.Version  => readFeatureV3(id, input)
+      case KryoFeatureSerializer.Version2 => readFeatureV2(id, input)
+      case b => throw new IllegalArgumentException(s"Can't process features serialized with version: $b")
+    }
+  }
+
+  private def readFeatureV3(id: String, input: Input): SimpleFeature = {
+    val count = input.readShort()
     val offset = input.position()
-    if (input.readInt(true) != KryoFeatureSerializer.VERSION) {
-      throw new IllegalArgumentException("Can't process features serialized with an older version")
+
+    // read our null mask
+    input.setPosition(offset + (2 * count) + 2)
+    val nulls = IntBitSet.deserialize(input, count)
+
+    // we should now be positioned to read the feature id
+    val finalId = if (withoutId) { id } else { input.readString() }
+
+    // read our attributes
+    val attributes = Array.ofDim[AnyRef](out.getAttributeCount) // note: may not match the serialized count
+    var i = 0
+    while (i < count) {
+      if (!nulls.contains(i)) {
+        attributes(i) = readers(i).apply(input)
+      }
+      i += 1
     }
 
+    val userData = if (withoutUserData) { new java.util.HashMap[AnyRef, AnyRef](1) } else {
+      KryoUserDataSerialization.deserialize(input)
+    }
+
+    createFeature(finalId, attributes, userData)
+  }
+
+  private def readFeatureV2(id: String, input: Input): SimpleFeature = {
+    val offset = input.position() - 1 // we've already read our version byte
     // read the start of the offsets - we'll stop reading when we hit this
     val limit = offset + input.readInt()
     val finalId = if (withoutId) { id } else { input.readString() }
-    val attributes = Array.ofDim[AnyRef](readers.length)
+    val attributes = Array.ofDim[AnyRef](readersV2.length)
     var i = 0
-    while (i < readers.length && input.position < limit) {
-      attributes(i) = readers(i)(input)
+    while (i < readersV2.length && input.position < limit) {
+      attributes(i) = readersV2(i)(input)
       i += 1
     }
-    val userData = readUserData(input, skipOffsets = true)
+
+    val userData = if (withoutUserData) { new java.util.HashMap[AnyRef, AnyRef] } else {
+      // skip offset data
+      try {
+        i = 0
+        while (i < readersV2.length) {
+          input.readInt(true)
+          i += 1
+        }
+        KryoUserDataSerialization.deserialize(input)
+      } catch {
+        case NonFatal(e) =>
+          logger.error("Error reading serialized kryo user data:", e)
+          new java.util.HashMap[AnyRef, AnyRef]()
+      }
+    }
+
     createFeature(finalId, attributes, userData)
   }
 }

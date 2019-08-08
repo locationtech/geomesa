@@ -19,8 +19,6 @@ import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
-//import scala.languageFeature.postfixOps
-
 @RunWith(classOf[JUnitRunner])
 class KryoBufferSimpleFeatureTest extends Specification {
 
