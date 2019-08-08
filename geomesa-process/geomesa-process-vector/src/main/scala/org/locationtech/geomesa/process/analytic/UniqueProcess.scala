@@ -17,6 +17,7 @@ import org.geotools.feature.visitor.{AbstractCalcResult, CalcResult}
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
@@ -64,7 +65,7 @@ class UniqueProcess extends GeoMesaProcess with LazyLogging {
     val sortBy = Option(sortByCount).exists(_.booleanValue)
 
     val visitor = new AttributeVisitor(features, attributeDescriptor, Option(filter).filter(_ != Filter.INCLUDE), hist)
-    features.accepts(visitor, progressListener)
+    GeoMesaFeatureCollection.visit(features, visitor, progressListener)
     val uniqueValues = visitor.getResult.attributes
 
     val binding = attributeDescriptor.getType.getBinding

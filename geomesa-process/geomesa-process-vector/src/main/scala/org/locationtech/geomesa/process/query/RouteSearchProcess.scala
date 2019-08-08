@@ -11,21 +11,21 @@ package org.locationtech.geomesa.process.query
 import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom._
-import org.locationtech.jts.operation.distance.DistanceOp
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator, SimpleFeatureSource}
 import org.geotools.feature.collection.DecoratingSimpleFeatureCollection
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.GeodeticCalculator
-import org.geotools.util.NullProgressListener
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.{ff, orFilters}
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom._
+import org.locationtech.jts.operation.distance.DistanceOp
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -115,7 +115,7 @@ class RouteSearchProcess extends GeoMesaProcess with LazyLogging {
 
     val visitor = new RouteVisitor(sft, routeGeoms, bufferSize, headingThreshold, bi,
       geomAttribute, isPoints, Option(headingField))
-    features.accepts(visitor, new NullProgressListener)
+    GeoMesaFeatureCollection.visit(features, visitor)
     visitor.getResult.results
   }
 }

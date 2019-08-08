@@ -15,6 +15,7 @@ import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.utils.FeatureSampler
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
 import org.opengis.feature.Feature
@@ -53,7 +54,7 @@ class SamplingProcess extends GeoMesaProcess with LazyLogging {
     logger.trace(s"Attempting sampling on ${data.getClass.getName}")
 
     val visitor = new SamplingVisitor(data, samplePercent, Option(threadBy))
-    data.accepts(visitor, monitor)
+    GeoMesaFeatureCollection.visit(data, visitor, monitor)
     visitor.getResult.results
   }
 }
