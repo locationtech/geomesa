@@ -8,14 +8,20 @@
 
 package org.locationtech.geomesa.fs.storage.common
 
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata}
+import com.typesafe.config.{ConfigValue, ConfigValueFactory}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction.StorageFileAction
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.common.metadata.PartitionAction.PartitionAction
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeatureType
-import pureconfig.ConfigConvert
+import pureconfig.ConfigReader.Result
+import pureconfig.error.{CannotConvert, ConfigReaderFailures}
+import pureconfig.{ConfigConvert, ConfigCursor, ConfigReader, ConfigWriter}
 
 package object metadata {
+
+  import pureconfig.generic.semiauto._
 
   /**
     * Creates a new simple feature type with the namespace in the simple feature type name
@@ -49,7 +55,7 @@ package object metadata {
   case class PartitionConfig(
       name: String,
       action: PartitionAction,
-      files: Set[String],
+      files: Set[StorageFile],
       count: Long,
       envelope: EnvelopeConfig,
       timestamp: Long) {
@@ -63,7 +69,9 @@ package object metadata {
     def -(other: PartitionConfig): PartitionConfig = {
       require(action == PartitionAction.Add, "Can't aggregate into non-add actions")
       val ts = math.max(timestamp, other.timestamp)
-      PartitionConfig(name, action, files -- other.files, math.max(0, count - other.count), envelope, ts)
+      val names = other.files.map(_.name)
+      val fs = files.filterNot(f => names.contains(f.name))
+      PartitionConfig(name, action, fs, math.max(0, count - other.count), envelope, ts)
     }
 
     def toMetadata: PartitionMetadata = PartitionMetadata(name, files.toSeq, envelope.toBounds, count)
@@ -97,6 +105,47 @@ package object metadata {
     val Add, Remove, Clear = Value
   }
 
-  implicit val ActionConvert: ConfigConvert[PartitionAction] =
-    ConfigConvert[String].xmap[PartitionAction](name => PartitionAction.values.find(_.toString == name).get, _.toString)
+  // pureconfig converters for our case classes
+
+  class EnumerationConvert[T <: Enumeration](enum: T) extends ConfigConvert[T#Value] {
+    override def to(a: T#Value): ConfigValue = ConfigValueFactory.fromAnyRef(a.toString)
+    override def from(cur: ConfigCursor): Result[T#Value] = {
+      cur.asString.right.flatMap { s =>
+          lazy val reason = CannotConvert(cur.value.toString, enum.getClass.getName,
+            s"value ${cur.value} is not a valid enum: ${enum.values.mkString(", ")}")
+        enum.values.find(_.toString == s).asInstanceOf[Option[T#Value]].toRight(cur.failed(reason).left.get)
+      }
+    }
+  }
+
+  implicit val PartitionActionConvert: ConfigConvert[PartitionAction] = new EnumerationConvert(PartitionAction)
+  implicit val StorageFileActionConvert: ConfigConvert[StorageFileAction] = new EnumerationConvert(StorageFileAction)
+  implicit val StorageFileReader: ConfigReader[StorageFile] = ConfigReader.fromCursor(readStorageFile)
+  implicit val StorageFileWriter: ConfigWriter[StorageFile] = deriveWriter[StorageFile]
+  implicit val EnvelopeConfigConvert: ConfigConvert[EnvelopeConfig] = deriveConvert[EnvelopeConfig]
+  implicit val PartitionConfigConvert: ConfigConvert[PartitionConfig] = deriveConvert[PartitionConfig]
+  implicit val CompactedConfigConvert: ConfigConvert[CompactedConfig] = deriveConvert[CompactedConfig]
+
+  /**
+    * Back-compatible read of storage files with and without actions
+    *
+    * @param cur cursor
+    * @return
+    */
+  private def readStorageFile(cur: ConfigCursor): Either[ConfigReaderFailures, StorageFile] = {
+    val withAction = for {
+      obj    <- cur.asObjectCursor.right
+      name   <- obj.atKey("name").right.flatMap(_.asString).right
+      ts     <- obj.atKey("timestamp").right.flatMap(ConfigReader[Long].from).right
+      action <- obj.atKey("action").right.flatMap(StorageFileActionConvert.from).right
+    } yield {
+      StorageFile(name, ts, action)
+    }
+
+    if (withAction.isRight) { withAction } else {
+      // note: use 0 for timestamp to sort before any mods
+      val sansAction = for { name <- cur.asString.right } yield { StorageFile(name, 0L) }
+      sansAction.left.flatMap(_ => withAction) // if failure, replace with original error
+    }
+  }
 }

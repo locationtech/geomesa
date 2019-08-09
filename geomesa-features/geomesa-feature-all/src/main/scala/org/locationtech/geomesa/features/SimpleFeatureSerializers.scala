@@ -57,12 +57,15 @@ object ProjectingSimpleFeatureDeserializers {
 
 object SimpleFeatureSerializers {
 
-  val simpleFeatureImpls = Seq(classOf[ScalaSimpleFeature],
-                               classOf[KryoBufferSimpleFeature],
-                               classOf[LazySimpleFeature],
-                               classOf[AvroSimpleFeature],
-                               classOf[SimpleFeature],
-                               classOf[SimpleFeatureImpl])
+  val simpleFeatureImpls: Seq[Class[_ <: SimpleFeature]] = Seq(
+    classOf[ScalaSimpleFeature],
+    classOf[KryoBufferSimpleFeature],
+    classOf[LazySimpleFeature],
+    classOf[AvroSimpleFeature],
+    classOf[TransformSimpleFeature],
+    classOf[SimpleFeature],
+    classOf[SimpleFeatureImpl]
+  )
 
   /**
    * @param sft the simple feature type to be encoded

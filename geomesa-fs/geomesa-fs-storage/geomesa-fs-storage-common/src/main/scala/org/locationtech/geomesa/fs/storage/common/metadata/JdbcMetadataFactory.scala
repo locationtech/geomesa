@@ -70,7 +70,13 @@ class JdbcMetadataFactory extends StorageMetadataFactory {
 
 object JdbcMetadataFactory extends MethodProfiling with LazyLogging {
 
-  private def createDataSource(config: Map[String, String]): PoolingDataSource[PoolableConnection] = {
+  /**
+    * Create a jdbc data source based on a configuration
+    *
+    * @param config config
+    * @return
+    */
+  def createDataSource(config: Map[String, String]): PoolingDataSource[PoolableConnection] = {
     import JdbcMetadata.Config._
 
     val url = config.getOrElse(UrlKey, throw new IllegalArgumentException(s"JdbcMetadata requires '$UrlKey'"))

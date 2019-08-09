@@ -10,7 +10,9 @@ package org.locationtech.geomesa.fs.storage.api
 
 import java.io.Closeable
 
+import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction.StorageFileAction
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -97,6 +99,11 @@ trait StorageMetadata extends Compactable with Closeable {
 
 object StorageMetadata {
 
+  implicit val StorageFileOrdering: Ordering[StorageFile] = Ordering.by[StorageFile, Long](_.timestamp).reverse
+
+  implicit val StorageFilePathOrdering: Ordering[StorageFilePath] =
+    Ordering.by[StorageFilePath, Long](_.file.timestamp).reverse
+
   /**
     * Metadata for a given partition
     *
@@ -105,7 +112,7 @@ object StorageMetadata {
     * @param bounds estimated spatial bounds for this partition, if known
     * @param count estimated count of features in this partition
     */
-  case class PartitionMetadata(name: String, files: Seq[String], bounds: Option[PartitionBounds], count: Long) {
+  case class PartitionMetadata(name: String, files: Seq[StorageFile], bounds: Option[PartitionBounds], count: Long) {
 
     /**
       * Combine two metadata instances for the same partition
@@ -128,6 +135,31 @@ object StorageMetadata {
       */
     def -(other: PartitionMetadata): PartitionMetadata =
       copy(files = files.diff(other.files), count = math.max(0, count - other.count))
+  }
+
+  /**
+    * Holds a storage file
+    *
+    * @param name file name (relative to the root path)
+    * @param timestamp timestamp for the file
+    * @param action type of file (append, modify, delete)
+    */
+  case class StorageFile(name: String, timestamp: Long, action: StorageFileAction = StorageFileAction.Append)
+
+  /**
+    * Holds a storage file path
+    *
+    * @param file storage file
+    * @param path full path to the file
+    */
+  case class StorageFilePath(file: StorageFile, path: Path)
+
+  /**
+    * Action related to a storage file
+    */
+  object StorageFileAction extends Enumeration {
+    type StorageFileAction = Value
+    val Append, Modify, Delete = Value
   }
 
   /**

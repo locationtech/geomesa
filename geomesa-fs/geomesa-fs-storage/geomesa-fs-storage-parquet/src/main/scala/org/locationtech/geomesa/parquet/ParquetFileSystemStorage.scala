@@ -12,9 +12,6 @@ package org.locationtech.geomesa.parquet
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.parquet.filter2.compat.FilterCompat
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api._
@@ -25,7 +22,6 @@ import org.locationtech.geomesa.parquet.ParquetFileSystemStorage._
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.opengis.filter.expression.{Expression, PropertyName}
 
 /**
   *
@@ -34,8 +30,6 @@ import org.opengis.filter.expression.{Expression, PropertyName}
   */
 class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata)
     extends AbstractFileSystemStorage(context, metadata, ParquetFileSystemStorage.FileExtension) {
-
-  import scala.collection.JavaConverters._
 
   override protected def createWriter(file: Path, cb: WriterCallback): FileSystemWriter = {
     val sftConf = new Configuration(context.conf)
@@ -48,39 +42,9 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
   override protected def createReader(
       filter: Option[Filter],
       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader = {
-
-    val filt = filter.getOrElse(Filter.INCLUDE)
-
     // readSft has all the fields needed for filtering and return
-    val (readSft, readTransform) = transform match {
-      case None => (metadata.sft, None)
-
-      case Some((tdefs, _)) =>
-        // if we have to return a different feature than we read, we need to apply a secondary transform
-        // otherwise, we can just do the transform on read and skip the secondary transform
-        var secondary = false
-
-        // note: update `secondary` in our .flatMap to avoid a second pass over the expressions
-        val transformCols = TransformProcess.toDefinition(tdefs).asScala.map(_.expression).flatMap {
-          case p: PropertyName => Seq(p.getPropertyName)
-          case e: Expression   => secondary = true; FilterHelper.propertyNames(e, metadata.sft)
-        }.distinct
-        val filterCols = FilterHelper.propertyNames(filt, metadata.sft).filterNot(transformCols.contains)
-        secondary = secondary || filterCols.nonEmpty
-
-        val projectedSft = {
-          val builder = new SimpleFeatureTypeBuilder()
-          builder.setName(metadata.sft.getName)
-          transformCols.foreach(a => builder.add(metadata.sft.getDescriptor(a)))
-          filterCols.foreach(a => builder.add(metadata.sft.getDescriptor(a)))
-          builder.buildFeatureType()
-        }
-        projectedSft.getUserData.putAll(metadata.sft.getUserData)
-
-        (projectedSft, if (secondary) { transform } else { None })
-    }
-
-    val (fc, residualFilter) = FilterConverter.convert(readSft, filt)
+    val ReadSchema(readSft, readTransform) = ReadSchema(metadata.sft, filter, transform)
+    val ReadFilter(fc, residualFilter) = ReadFilter(readSft, filter)
     val parquetFilter = fc.map(FilterCompat.get).getOrElse(FilterCompat.NOOP)
     val gtFilter = residualFilter.map(FastFilterFactory.optimize(readSft, _))
 

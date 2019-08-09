@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.storage.converter
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.apache.hadoop.fs.Path
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.fs.storage.converter.ConverterStorage.Encoding
@@ -31,8 +31,8 @@ class ConverterMetadata(
   override def getPartition(name: String): Option[PartitionMetadata] = {
     val path = new Path(context.root, name)
     if (!PathCache.exists(context.fc, path)) { None } else {
-      val files = if (leafStorage) { Seq(name) } else {
-        PathCache.list(context.fc, path).map(_.getPath.getName).toList
+      val files = if (leafStorage) { Seq(StorageFile(name, 0L)) } else {
+        PathCache.list(context.fc, path).map(fs => StorageFile(fs.getPath.getName, 0L)).toList
       }
       Some(PartitionMetadata(name, files, None, -1L))
     }
@@ -40,8 +40,8 @@ class ConverterMetadata(
 
   override def getPartitions(prefix: Option[String]): Seq[PartitionMetadata] = {
     buildPartitionList(prefix, dirty.compareAndSet(true, false)).map { name =>
-      val files = if (leafStorage) { Seq(name) } else {
-        PathCache.list(context.fc, new Path(context.root, name)).map(_.getPath.getName).toList
+      val files = if (leafStorage) { Seq(StorageFile(name, 0L)) } else {
+        PathCache.list(context.fc, new Path(context.root, name)).map(fs => StorageFile(fs.getPath.getName, 0L)).toList
       }
       PartitionMetadata(name, files, None, -1L)
     }

@@ -50,6 +50,15 @@ class FileSystemDataStoreTest extends Specification {
 
   val dirs = scala.collection.mutable.Map.empty[String, File]
 
+  val filters = Seq(
+    "INCLUDE",
+    s"name IN ${(0 until 10).mkString("('test", "','test", "')")}",
+    "bbox(geom, 5, 5, 15, 15)",
+    "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-07T04:04:00.0000Z",
+    "dtg > '2017-06-05T04:03:00.0000Z' AND dtg < '2017-06-07T04:04:00.0000Z'",
+    "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-07T04:04:00.0000Z and bbox(geom, 5, 5, 15, 15)"
+  ).map(ECQL.toFilter)
+
   step {
     formats.foreach { case (f, _, _) => dirs.put(f, Files.createTempDirectory(s"fsds-test-$f").toFile) }
   }
@@ -100,7 +109,7 @@ class FileSystemDataStoreTest extends Specification {
     }
 
     "create a second ds with the same path" >> {
-      foreach(formats) { case (format, sft, features) =>
+      foreach(formats) { case (format, _, features) =>
         val dir = dirs(format)
         // Load a new datastore to read metadata and stuff
         val ds = DataStoreFinder.getDataStore(Collections.singletonMap("fs.path", dir.getPath))
@@ -141,7 +150,7 @@ class FileSystemDataStoreTest extends Specification {
     }
 
     "call create schema on existing type" >> {
-      foreach(formats) { case (format, sft, features) =>
+      foreach(formats) { case (format, _, _) =>
         val dir = dirs(format)
         val ds = DataStoreFinder.getDataStore(Collections.singletonMap("fs.path", dir.getPath))
         val sameSft = SimpleFeatureTypes.createType(format, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
@@ -151,7 +160,7 @@ class FileSystemDataStoreTest extends Specification {
     }
 
     "reject schemas with reserved words" >> {
-      foreach(formats) { case (format, sft, features) =>
+      foreach(formats) { case (format, _, _) =>
         val dir = dirs(format)
         val reserved = SimpleFeatureTypes.createType("reserved", "dtg:Date,*point:Point:srid=4326")
         reserved.setScheme("daily")
@@ -165,18 +174,9 @@ class FileSystemDataStoreTest extends Specification {
     }
 
     "support transforms" >> {
-      val filters = Seq(
-        "INCLUDE",
-        s"name IN ${(0 until 10).mkString("('test", "','test", "')")}",
-        "bbox(geom, 5, 5, 15, 15)",
-        "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-07T04:04:00.0000Z",
-        "dtg > '2017-06-05T04:03:00.0000Z' AND dtg < '2017-06-07T04:04:00.0000Z'",
-        "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-07T04:04:00.0000Z and bbox(geom, 5, 5, 15, 15)"
-      ).map(ECQL.toFilter)
-
       val transforms = Seq(null, Array("name"), Array("dtg", "geom"))
 
-      foreach(formats) { case (format, sft, features) =>
+      foreach(formats) { case (format, _, features) =>
         val dir = dirs(format)
         val ds = DataStoreFinder.getDataStore(Collections.singletonMap("fs.path", dir.getPath))
 
@@ -198,6 +198,39 @@ class FileSystemDataStoreTest extends Specification {
           }
         }
         ok
+      }
+    }
+
+    "support updates" >> {
+      foreach(formats) { case (format, _, features) =>
+        val dsParams = Map("fs.path" -> dirs(format).getPath, "fs.config" -> "parquet.compression=gzip")
+        val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
+
+        WithClose(ds.getFeatureWriter(format, ECQL.toFilter("IN ('0', '1', '2')"), Transaction.AUTO_COMMIT)) { writer =>
+          def modify(f: SimpleFeature): Unit = {
+            f.getID match {
+              case "0" => writer.remove()
+              case "1" => f.setAttribute("dtg", "2017-06-05T04:03:02.0001Z"); writer.write() // note: move partition
+              case "2" => f.setAttribute("name", "test0"); writer.write()
+            }
+          }
+          foreach(0 to 2) { _ =>
+            writer.hasNext must beTrue
+            modify(writer.next)
+            ok
+          }
+          writer.hasNext must beFalse
+        }
+
+        val expected = features.drop(1).map(ScalaSimpleFeature.copy)
+        expected.head.setAttribute("dtg", "2017-06-05T04:03:02.0001Z")
+        expected(1).setAttribute("name", "test0")
+
+        foreach(filters) { filter =>
+          val query = new Query(format, filter)
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          results must containTheSameElementsAs(expected)
+        }
       }
     }
   }

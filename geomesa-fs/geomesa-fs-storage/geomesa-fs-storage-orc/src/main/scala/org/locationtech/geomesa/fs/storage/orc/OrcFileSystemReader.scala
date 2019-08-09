@@ -32,11 +32,10 @@ class OrcFileSystemReader(sft: SimpleFeatureType,
   private val (options, columns) = {
     val options = new Reader.Options(config)
     val readOptions = OrcFileSystemReader.readOptions(sft, filter, transform)
-    val columns = readOptions.columns.map(_.map(sft.indexOf))
-    columns.foreach { c => options.include(OrcFileSystemReader.include(sft, c)) }
+    readOptions.columns.foreach(c => options.include(OrcFileSystemReader.include(sft, c)))
     // note: push down will exclude whole record batches, but doesn't actually filter inside a batch
     readOptions.pushDown.foreach { case (sarg, cols) => options.searchArgument(sarg, cols) }
-    (options, columns)
+    (options, readOptions.columns)
   }
 
   override def read(path: Path): CloseableIterator[SimpleFeature] = new PathReader(path)
@@ -102,6 +101,8 @@ class OrcFileSystemReader(sft: SimpleFeatureType,
 
 object OrcFileSystemReader {
 
+  import scala.collection.JavaConverters._
+
   /**
     * Create low-level reading options used by ORC
     *
@@ -110,16 +111,16 @@ object OrcFileSystemReader {
     * @param transform transform
     * @return
     */
-  def readOptions(sft: SimpleFeatureType,
-                  filter: Option[Filter],
-                  transform: Option[(String, SimpleFeatureType)]): OrcReadOptions = {
+  def readOptions(
+      sft: SimpleFeatureType,
+      filter: Option[Filter],
+      transform: Option[(String, SimpleFeatureType)]): OrcReadOptions = {
     val columns = transform.map { case (tdefs, _) =>
-      import scala.collection.JavaConversions._
       val fromFilter = filter.map(FilterHelper.propertyNames(_, sft)).getOrElse(Seq.empty)
-      val fromTransform = TransformProcess.toDefinition(tdefs).flatMap { definition =>
+      val fromTransform = TransformProcess.toDefinition(tdefs).asScala.flatMap { definition =>
         FilterHelper.propertyNames(definition.expression, sft)
       }
-      (fromFilter ++ fromTransform).toSet
+      (fromFilter ++ fromTransform).toSet[String].map(sft.indexOf)
     }
     // push down will exclude whole record batches, but doesn't actually filter inside a batch
     val pushDown = filter.flatMap { f =>
@@ -139,7 +140,7 @@ object OrcFileSystemReader {
     * @param fid read fid
     * @return
     */
-  private def include(sft: SimpleFeatureType, columns: Set[Int], fid: Boolean = true): Array[Boolean] = {
+  def include(sft: SimpleFeatureType, columns: Set[Int], fid: Boolean = true): Array[Boolean] = {
     val buffer = ArrayBuffer[Boolean](true) // outer struct
 
     var i = 0
@@ -171,5 +172,5 @@ object OrcFileSystemReader {
     buffer.toArray
   }
 
-  case class OrcReadOptions(columns: Option[Set[String]], pushDown: Option[(SearchArgument, Array[String])])
+  case class OrcReadOptions(columns: Option[Set[Int]], pushDown: Option[(SearchArgument, Array[String])])
 }

@@ -14,7 +14,7 @@ import java.sql.{Connection, ResultSet, SQLException}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.dbcp2.{PoolableConnection, PoolingDataSource}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, StorageMetadata}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
@@ -172,9 +172,10 @@ object JdbcMetadata extends LazyLogging {
           WithClose(statement.executeQuery()) { results =>
             if (!results.next) {
               None
+            } else {
+              val serialized = new ByteArrayInputStream(results.getString(1).getBytes(StandardCharsets.UTF_8))
+              Some(MetadataSerialization.deserialize(serialized))
             }
-            val serialized = new ByteArrayInputStream(results.getString(1).getBytes(StandardCharsets.UTF_8))
-            Some(MetadataSerialization.deserialize(serialized))
           }
         }
       } catch {
@@ -349,6 +350,8 @@ object JdbcMetadata extends LazyLogging {
     val TableName = "storage_partition_files"
 
     private val FileCol = "file"
+    private val TypeCol = "typ"
+    private val TimeCol = "ts"
 
     private val CreateStatement: String =
       s"create table if not exists $TableName (" +
@@ -356,16 +359,18 @@ object JdbcMetadata extends LazyLogging {
           s"$NameCol varchar(256) not null, " +
           s"$IdCol int not null, " +
           s"$FileCol varchar(256) not null, " +
+          s"$TypeCol char(1) not null, " +
+          s"$TimeCol bigint, " +
           s"primary key ($RootCol, $NameCol, $IdCol, $FileCol))"
 
     private val InsertStatement: String =
-      s"insert into $TableName ($RootCol, $NameCol, $IdCol, $FileCol) values (?, ?, ?, ?)"
+      s"insert into $TableName ($RootCol, $NameCol, $IdCol, $FileCol, $TypeCol, $TimeCol) values (?, ?, ?, ?, ?, ?)"
 
     private val DeleteStatement: String =
       s"delete from $TableName where $RootCol = ? and and $IdCol = ?"
 
     private val SelectStatement: String =
-      s"select $FileCol from $TableName where $RootCol = ? and $IdCol = ?"
+      s"select $FileCol, $TypeCol, $TimeCol from $TableName where $RootCol = ? and $IdCol = ?"
 
     private val ClearStatement: String = s"delete from $TableName where $RootCol = ?"
 
@@ -374,13 +379,21 @@ object JdbcMetadata extends LazyLogging {
     def create(connection: Connection): Unit =
       WithClose(connection.createStatement())(_.executeUpdate(CreateStatement))
 
-    def insert(connection: Connection, root: String, name: String, id: Int, files: Seq[String]): Unit = {
+    def insert(connection: Connection, root: String, name: String, id: Int, files: Seq[StorageFile]): Unit = {
       WithClose(connection.prepareStatement(InsertStatement)) { statement =>
         statement.setString(1, root)
         statement.setString(2, name)
         statement.setInt(3, id)
-        files.foreach { file =>
+        files.foreach { case StorageFile(file, timestamp, action) =>
           statement.setString(4, file)
+          val char = action match {
+            case StorageFileAction.Append => "a"
+            case StorageFileAction.Modify => "m"
+            case StorageFileAction.Delete => "d"
+            case _ => throw new NotImplementedError(s"Unexpected action: $action")
+          }
+          statement.setString(5, char)
+          statement.setLong(6, timestamp)
           statement.executeUpdate()
         }
       }
@@ -394,14 +407,20 @@ object JdbcMetadata extends LazyLogging {
       }
     }
 
-    def select(connection: Connection, root: String, id: Int): Set[String] = {
-      val files = Set.newBuilder[String]
+    def select(connection: Connection, root: String, id: Int): Set[StorageFile] = {
+      val files = Set.newBuilder[StorageFile]
       WithClose(connection.prepareStatement(SelectStatement)) { select =>
         select.setString(1, root)
         select.setInt(2, id)
         WithClose(select.executeQuery()) { results =>
           while (results.next()) {
-            files += results.getString(1)
+            val action = results.getString(2) match {
+              case "a" => StorageFileAction.Append
+              case "m" => StorageFileAction.Modify
+              case "d" => StorageFileAction.Delete
+              case a => throw new IllegalStateException(s"Expected an action of 'a', 'm', or 'd' but got: $a")
+            }
+            files += StorageFile(results.getString(1), results.getLong(3), action)
           }
         }
       }
@@ -422,6 +441,23 @@ object JdbcMetadata extends LazyLogging {
         delete.executeUpdate()
       }
     }
+
+    def updateSchema(connection: Connection): Unit = {
+      WithClose(connection.createStatement()) { statement =>
+        val cols = WithClose(statement.executeQuery(s"select * from $TableName limit 1")) { results =>
+          results.getMetaData.getColumnCount
+        }
+        if (cols == 4) {
+          statement.executeUpdate(s"alter table $TableName add column $TypeCol char(1)")
+          statement.executeUpdate(s"alter table $TableName add column $TimeCol bigint")
+          statement.executeUpdate(s"update $TableName set $TypeCol = 'a', $TimeCol = 0")
+          statement.executeUpdate(s"alter table $TableName alter column $TypeCol char(1) not null")
+        } else if (cols != 6) {
+          throw new IllegalStateException(s"Unexpected schema detected for table $TableName: " +
+              s"expected 6 columns, but found $cols")
+        }
+      }
+    }
   }
 
   /**
@@ -431,8 +467,16 @@ object JdbcMetadata extends LazyLogging {
     * @param root root path
     * @return
     */
-  def load(pool: PoolingDataSource[PoolableConnection], root: String): Option[Metadata] =
-    WithClose(pool.getConnection())(MetadataTable.select(_, root))
+  def load(pool: PoolingDataSource[PoolableConnection], root: String): Option[Metadata] = {
+    WithClose(pool.getConnection()) { connection =>
+      val metadata = MetadataTable.select(connection, root)
+      if (metadata.isDefined) {
+        // migrate old data schemas if needed
+        FilesTable.updateSchema(connection)
+      }
+      metadata
+    }
+  }
 
   /**
     * Persists metadata into a new table

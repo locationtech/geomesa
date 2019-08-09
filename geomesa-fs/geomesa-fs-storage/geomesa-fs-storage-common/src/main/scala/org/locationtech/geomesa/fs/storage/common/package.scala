@@ -12,7 +12,8 @@ import com.typesafe.config._
 import org.locationtech.geomesa.fs.storage.api.NamedOptions
 import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.PartitionSchemeConfig
 import org.opengis.feature.simple.SimpleFeatureType
-import pureconfig.ConfigWriter
+import pureconfig.generic.semiauto.deriveConvert
+import pureconfig.{ConfigConvert, ConfigWriter}
 
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -22,6 +23,8 @@ package object common {
   val RenderOptions: ConfigRenderOptions = ConfigRenderOptions.concise().setFormatted(true)
   val ParseOptions: ConfigParseOptions = ConfigParseOptions.defaults()
 
+  implicit val NamedOptionsConvert: ConfigConvert[NamedOptions] = deriveConvert[NamedOptions]
+
   object StorageSerialization {
 
     /**
@@ -30,8 +33,7 @@ package object common {
       * @param options options
       * @return
       */
-    def serialize(options: NamedOptions): String =
-      ConfigWriter[NamedOptions].to(options).render(RenderOptions)
+    def serialize(options: NamedOptions): String = NamedOptionsConvert.to(options).render(RenderOptions)
 
     /**
       * Deserialize configuration options, e.g. for partition schemes and metadata connections

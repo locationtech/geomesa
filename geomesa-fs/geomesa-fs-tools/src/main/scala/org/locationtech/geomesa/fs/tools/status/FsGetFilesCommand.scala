@@ -8,13 +8,19 @@
 
 package org.locationtech.geomesa.fs.tools.status
 
+import java.time.Instant
+import java.util.Locale
+
 import com.beust.jcommander.{ParameterException, Parameters}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.status.FsGetFilesCommand.FSGetFilesParams
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
 
 class FsGetFilesCommand extends FsDataStoreCommand {
+
+  import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 
   import scala.collection.JavaConverters._
 
@@ -35,7 +41,11 @@ class FsGetFilesCommand extends FsDataStoreCommand {
     Command.user.info(s"Listing files for ${partitions.length} partitions")
     partitions.sortBy(_.name).foreach { partition =>
       Command.output.info(s"${partition.name}:")
-      partition.files.foreach(f => Command.output.info(s"\t$f"))
+      // sort by chronological order
+      partition.files.sorted(StorageMetadata.StorageFileOrdering.reverse).foreach { f =>
+        Command.output.info(s"\t${f.action.toString.toUpperCase(Locale.US)} " +
+            s"${GeoToolsDateFormat.format(Instant.ofEpochMilli(f.timestamp))} ${f.name}")
+      }
     }
   }
 }

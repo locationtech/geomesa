@@ -14,7 +14,7 @@ import org.apache.hadoop.mapred.InvalidJobConfException
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFormat}
 import org.apache.hadoop.mapreduce.security.TokenCache
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, StorageMetadataFactory}
 import org.locationtech.geomesa.fs.storage.common.jobs.PartitionOutputFormat.{PartitionState, SingleFileOutputFormat}
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils
@@ -81,8 +81,8 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
       cache.foreach { case (partition, state) =>
         logger.debug(s"Closing writer for $partition")
         state.writer.close(context)
-        val meta = PartitionMetadata(partition, Seq(state.file), PartitionBounds(state.bounds), state.count)
-        metadata.addPartition(meta)
+        val files = Seq(StorageFile(state.file, System.currentTimeMillis()))
+        metadata.addPartition(PartitionMetadata(partition, files, PartitionBounds(state.bounds), state.count))
       }
       CloseWithLogging(metadata)
     }
