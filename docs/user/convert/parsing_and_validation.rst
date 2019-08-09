@@ -191,17 +191,27 @@ through the converter evaluation context, or can be exposed through reporters co
       }
     }
 
-Reporters are available for `SLF4J <https://www.slf4j.org/>`__, `Graphite <https://graphiteapp.org/>`__ and
-`Ganglia <http://ganglia.sourceforge.net/>`__. To use Graphite or Ganglia, you must include a dependency on
-``geomesa-convert-metrics-graphite_2.11`` or ``geomesa-convert-metrics-ganglia_2.11``, respectively. Note that
-using Ganglia requires an additional GPL-licensed dependency ``info.ganglia.gmetric4j:gmetric4j``, which is excluded
-by default. The reporters can be configured as follows:
+Reporters are available for `SLF4J <https://www.slf4j.org/>`__, `CloudWatch <https://aws.amazon.com/cloudwatch/>`__,
+`Graphite <https://graphiteapp.org/>`__, and `Ganglia <http://ganglia.sourceforge.net/>`__. To use CloudWatch,
+Graphite, or Ganglia, you must include a dependency on ``geomesa-convert-metrics-cloudwatch_2.11``, 
+``geomesa-convert-metrics-graphite_2.11``, or ``geomesa-convert-metrics-ganglia_2.11``, respectively. The CloudWatch
+module uses the default credentials and region specified in your AWS profile config. Note that using Ganglia requires 
+an additional GPL-licensed dependency ``info.ganglia.gmetric4j:gmetric4j``, which is excluded by default. 
+The reporters can be configured as follows:
 
 ::
 
     geomesa.converters.myconverter {
       options {
         reporters = [
+          {
+            type        = "cloudwatch"
+            units       = "MILLISECONDS"
+            interval    = "60 seconds"
+            namespace   = "geomesa"
+            raw-counts  = false
+            zero-values = true
+          },
           {
             type           = "graphite"
             url            = "localhost:9000"
