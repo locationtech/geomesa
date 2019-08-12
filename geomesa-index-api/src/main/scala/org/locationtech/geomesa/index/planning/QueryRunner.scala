@@ -13,14 +13,14 @@ import org.geotools.factory.Hints
 import org.geotools.filter.visitor.BindingFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
-import org.locationtech.geomesa.filter.{andFilters, decomposeAnd, ff}
+import org.locationtech.geomesa.filter.{FilterHelper, andFilters, ff, orFilters}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.opengis.filter.spatial.BBOX
 
 trait QueryRunner {
 
@@ -54,20 +54,17 @@ trait QueryRunner {
     // set return SFT in the query
     query.getHints.put(QueryHints.Internal.RETURN_SFT, getReturnSft(sft, query.getHints))
 
-    // add the bbox from the density query to the filter
-    if (query.getHints.isDensityQuery) {
-      val env = query.getHints.getDensityEnvelope.get.asInstanceOf[ReferencedEnvelope]
-      val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env)
-      if (query.getFilter == Filter.INCLUDE) {
-        query.setFilter(bbox)
-      } else {
-        // add the bbox - try to not duplicate an existing bbox
-        val bounds = bbox.getBounds
-        val filters = decomposeAnd(query.getFilter).filter {
-          case b: BBOX if bounds.contains(b.getBounds) => false
-          case _ => true
+    // add the bbox from the density query to the filter, if there is no more restrictive filter
+    query.getHints.getDensityEnvelope.foreach { env =>
+      val geoms = FilterHelper.extractGeometries(query.getFilter, sft.getGeometryDescriptor.getLocalName)
+      if (geoms.isEmpty || geoms.exists(g => !env.contains(g.getEnvelopeInternal))) {
+        val split = GeometryUtils.splitBoundingBox(env.asInstanceOf[ReferencedEnvelope])
+        val bbox = orFilters(split.map(ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), _)))
+        if (query.getFilter == Filter.INCLUDE) {
+          query.setFilter(bbox)
+        } else {
+          query.setFilter(andFilters(Seq(query.getFilter, bbox)))
         }
-        query.setFilter(andFilters(filters ++ Seq(bbox)))
       }
     }
 

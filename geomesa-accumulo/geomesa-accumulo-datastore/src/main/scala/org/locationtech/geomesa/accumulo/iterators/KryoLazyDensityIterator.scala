@@ -17,15 +17,14 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.accumulo.AccumuloFeatureIndexType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.iterators.DensityScan
-import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, RenderingGrid}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 /**
  * Density iterator - only works on kryo-encoded features
  */
-class KryoLazyDensityIterator extends BaseAggregatingIterator[DensityResult] with DensityScan
+class KryoLazyDensityIterator extends BaseAggregatingIterator[RenderingGrid] with DensityScan
 
 object KryoLazyDensityIterator extends LazyLogging {
 
