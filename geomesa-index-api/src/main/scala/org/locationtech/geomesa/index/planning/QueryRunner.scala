@@ -10,10 +10,10 @@ package org.locationtech.geomesa.index.planning
 
 import com.typesafe.scalalogging.Logger
 import org.geotools.data.Query
-import org.geotools.util.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
-import org.locationtech.geomesa.filter.{FilterHelper, andFilters, ff}
+import org.locationtech.geomesa.filter.{FilterHelper, andFilters, ff, orFilters}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
@@ -21,6 +21,7 @@ import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptor
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.slf4j.LoggerFactory
@@ -88,7 +89,8 @@ trait QueryRunner {
     query.getHints.getDensityEnvelope.foreach { env =>
       val geoms = FilterHelper.extractGeometries(query.getFilter, sft.getGeomField)
       if (geoms.isEmpty || geoms.exists(g => !env.contains(g.getEnvelopeInternal))) {
-        val bbox = ff.bbox(ff.property(sft.getGeometryDescriptor.getLocalName), env.asInstanceOf[ReferencedEnvelope])
+        val split = GeometryUtils.splitBoundingBox(env.asInstanceOf[ReferencedEnvelope])
+        val bbox = orFilters(split.map(ff.bbox(ff.property(sft.getGeomField), _)))
         if (query.getFilter == Filter.INCLUDE) {
           query.setFilter(bbox)
         } else {
