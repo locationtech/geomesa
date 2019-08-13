@@ -174,11 +174,11 @@ object GeometryUtils extends LazyLogging {
       }
 
       // if the bbox extends past world bounds, split and wrap it
-      if (translated.getMinX < -180d) {
+      if (translated.getMinX < -180d && translated.getMaxX < 180d) {
         val trimmed = new ReferencedEnvelope(-180d , translated.getMaxX, envelope.getMinY, envelope.getMaxY, crs)
         val wrapped = new ReferencedEnvelope(translated.getMinX + 360d , 180d, envelope.getMinY, envelope.getMaxY, crs)
         Seq(trimmed, wrapped)
-      } else if (translated.getMaxX > 180d) {
+      } else if (translated.getMaxX > 180d && translated.getMinX > -180d) {
         val trimmed = new ReferencedEnvelope(translated.getMinX, 180d, envelope.getMinY, envelope.getMaxY, crs)
         val wrapped = new ReferencedEnvelope(-180d, translated.getMaxX - 360d, envelope.getMinY, envelope.getMaxY, crs)
         Seq(trimmed, wrapped)

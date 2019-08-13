@@ -60,6 +60,9 @@ class GeometryUtilsTest extends Specification {
       translated.head.getMaxX must beCloseTo(-78.44636, 0.0001)
       translated.head.getMinY mustEqual 38.00967
       translated.head.getMaxY mustEqual 38.07052
+
+      val covers = new ReferencedEnvelope(-200, 200, -100, 100, CRS_EPSG_4326)
+      GeometryUtils.splitBoundingBox(covers) mustEqual Seq(covers)
     }
   }
 }
