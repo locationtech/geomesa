@@ -49,13 +49,19 @@ class GeoMesaDataSource extends DataSourceRegister
     // TODO: Need different ways to retrieve sft
     //  GEOMESA-1643 Add method to lookup SFT to RDD Provider
     //  Below the details of the Converter RDD Provider and Providers which are backed by GT DSes are leaking through
+
+    val sqlFeature = parameters.getOrElse(GEOMESA_SQL_FEATURE,
+      throw new IllegalArgumentException(s"Feature type must be specified with '$GEOMESA_SQL_FEATURE'"))
+
     val sft = WithStore[DataStore](parameters) { ds =>
       if (ds != null) {
-        ds.getSchema(parameters(GEOMESA_SQL_FEATURE))
-      } else if (parameters.contains(GEOMESA_SQL_FEATURE) && parameters.contains("geomesa.sft")) {
-        SimpleFeatureTypes.createType(parameters(GEOMESA_SQL_FEATURE), parameters("geomesa.sft"))
+        Option(ds.getSchema(sqlFeature)).getOrElse {
+          throw new IllegalArgumentException(s"Schema '$sqlFeature' does not exist in the data store")
+        }
+      } else if (parameters.contains("geomesa.sft")) {
+        SimpleFeatureTypes.createType(sqlFeature, parameters("geomesa.sft"))
       } else {
-        SftArgResolver.getArg(SftArgs(parameters(GEOMESA_SQL_FEATURE), parameters(GEOMESA_SQL_FEATURE))) match {
+        SftArgResolver.getArg(SftArgs(sqlFeature, sqlFeature)) match {
           case Right(s) => s
           case Left(e) => throw new IllegalArgumentException("Could not resolve simple feature type", e)
         }
