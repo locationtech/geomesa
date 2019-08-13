@@ -25,7 +25,7 @@ import org.opengis.filter.expression.Expression
 trait DensityScan extends AggregatingScan[RenderingGrid] {
 
   // we snap each point into a pixel and aggregate based on that
-  protected var renderer: GeometryRenderer = _KafkaQueryRunner
+  protected var renderer: GeometryRenderer = _
 
   override protected def initResult(
       sft: SimpleFeatureType,
