@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import java.lang.{Double => jDouble, Float => jFloat, Integer => jInt, Long => jLong}
+import java.lang.{Integer => jInt}
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -34,11 +34,10 @@ class GroupByTest extends Specification with StatTestHelper {
           groupBy.getOrElse(index, null).asInstanceOf[GroupBy[String]]
         def countStat(groupBy: GroupBy[String], index: String): CountStat =
           groupBy.getOrElse(index, null).asInstanceOf[CountStat]
-        val groupByCountMatcher = """\[(\{ "\d" : \[(\{ "." : \{ "count": \d \}\},?)+\]\},?)*\]""".ignoreSpace
 
         "be empty initially" >> {
-          val groupBy = newStat[Int]("cat1","GroupBy(cat2,Count())", false)
-          groupBy.toJson mustEqual "[]"
+          val groupBy = newStat[Int]("cat1","GroupBy(cat2,Count())", observe = false)
+          groupBy.toJson mustEqual "{}"
           groupBy.isEmpty must beTrue
         }
 
@@ -59,7 +58,28 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "serialize to json" >> {
           val groupBy = newStat[Int]("cat1", "GroupBy(cat2,Count())")
-          groupBy.toJson must beMatching (groupByCountMatcher)
+          groupBy.toJson mustEqual
+              """{"0":{"A":{"count":1},"C":{"count":1},"E":{"count":1},"I":{"count":1},"K":{"count":1},
+                |"M":{"count":1},"O":{"count":1},"S":{"count":1},"U":{"count":1},"Y":{"count":1}},
+                |"1":{"B":{"count":1},"D":{"count":1},"F":{"count":1},"J":{"count":1},"L":{"count":1},
+                |"N":{"count":1},"P":{"count":1},"T":{"count":1},"V":{"count":1},"Z":{"count":1}},
+                |"2":{"A":{"count":1},"C":{"count":1},"E":{"count":1},"G":{"count":1},"K":{"count":1},
+                |"M":{"count":1},"O":{"count":1},"Q":{"count":1},"U":{"count":1},"W":{"count":1}},
+                |"3":{"B":{"count":1},"D":{"count":1},"F":{"count":1},"H":{"count":1},"L":{"count":1},
+                |"N":{"count":1},"P":{"count":1},"R":{"count":1},"V":{"count":1},"X":{"count":1}},
+                |"4":{"C":{"count":1},"E":{"count":1},"G":{"count":1},"I":{"count":1},"M":{"count":1},
+                |"O":{"count":1},"Q":{"count":1},"S":{"count":1},"W":{"count":1},"Y":{"count":1}},
+                |"5":{"D":{"count":1},"F":{"count":1},"H":{"count":1},"J":{"count":1},"N":{"count":1},
+                |"P":{"count":1},"R":{"count":1},"T":{"count":1},"X":{"count":1},"Z":{"count":1}},
+                |"6":{"A":{"count":1},"E":{"count":1},"G":{"count":1},"I":{"count":1},"K":{"count":1},
+                |"O":{"count":1},"Q":{"count":1},"S":{"count":1},"U":{"count":1},"Y":{"count":1}},
+                |"7":{"B":{"count":1},"F":{"count":1},"H":{"count":1},"J":{"count":1},"L":{"count":1},
+                |"P":{"count":1},"R":{"count":1},"T":{"count":1},"V":{"count":1},"Z":{"count":1}},
+                |"8":{"A":{"count":1},"C":{"count":1},"G":{"count":1},"I":{"count":1},"K":{"count":1},
+                |"M":{"count":1},"Q":{"count":1},"S":{"count":1},"U":{"count":1},"W":{"count":1}},
+                |"9":{"B":{"count":1},"D":{"count":1},"H":{"count":1},"J":{"count":1},"L":{"count":1},
+                |"N":{"count":1},"R":{"count":1},"T":{"count":1},"V":{"count":1},"X":{"count":1}}}
+                |""".stripMargin.replaceAll("\n", "")
         }
 
         "serialize and deserialize" >> {
@@ -67,17 +87,13 @@ class GroupByTest extends Specification with StatTestHelper {
             val groupBy = newStat[Int]("cat1", "GroupBy(cat2,Count())")
             val packed = StatSerializer(sft).serialize(groupBy)
             val unpacked = StatSerializer(sft).deserialize(packed)
-            // Sometimes Json is deserialized in a different order making direct comparison not possible
-            groupBy.toJson must beMatching (groupByCountMatcher)
-            unpacked.toJson must beMatching (groupByCountMatcher)
+            groupBy.toJson mustEqual unpacked.toJson
           }
           "unobserved" >> {
-            val groupBy = newStat[Int]("cat1", "GroupBy(cat2,Count())", false)
+            val groupBy = newStat[Int]("cat1", "GroupBy(cat2,Count())", observe = false)
             val packed = StatSerializer(sft).serialize(groupBy)
             val unpacked = StatSerializer(sft).deserialize(packed)
-            // Sometimes Json is deserialized in a different order making direct comparison not possible
-            groupBy.toJson must beMatching (groupByCountMatcher)
-            unpacked.toJson must beMatching (groupByCountMatcher)
+            groupBy.toJson mustEqual unpacked.toJson
           }
         }
 
@@ -85,9 +101,7 @@ class GroupByTest extends Specification with StatTestHelper {
           val groupBy = newStat[Int]("cat1", "GroupBy(cat2,Count())")
           val packed = StatSerializer(sft).serialize(groupBy)
           val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
-          // Sometimes Json is deserialized in a different order making direct comparison not possible
-          groupBy.toJson must beMatching (groupByCountMatcher)
-          unpacked.toJson must beMatching (groupByCountMatcher)
+          groupBy.toJson mustEqual unpacked.toJson
 
           unpacked.clear must throwAn[Exception]
           unpacked.+=(groupBy) must throwAn[Exception]
@@ -97,7 +111,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "combine two stats" >> {
           val groupBy = newStat[Int]("cat1", "GroupBy(cat2,Count())")
-          val groupBy2 = newStat[Int]("cat1", "GroupBy(cat2,Count())", false)
+          val groupBy2 = newStat[Int]("cat1", "GroupBy(cat2,Count())", observe = false)
 
           features2.foreach { groupBy2.observe }
 
@@ -111,7 +125,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "combine two stats after deserialization" >> {
           val groupBy = newStat[Int]("cat1", "GroupBy(cat2,Count())")
-          val groupBy2 = newStat[Int]("cat1", "GroupBy(cat2,Count())", false)
+          val groupBy2 = newStat[Int]("cat1", "GroupBy(cat2,Count())", observe = false)
 
           features2.foreach { groupBy2.observe }
           groupBy2.size mustEqual 10
@@ -120,11 +134,11 @@ class GroupByTest extends Specification with StatTestHelper {
           val groupByUnpacked = StatSerializer(sft).deserialize(groupByPacked, immutable = true)
 
           val groupBy2Packed = StatSerializer(sft).serialize(groupBy2)
-          val groupBy2Unpacked = StatSerializer(sft).deserialize(groupByPacked, immutable = true)
+          val groupBy2Unpacked = StatSerializer(sft).deserialize(groupBy2Packed, immutable = true)
 
           val newGroupBy = groupByUnpacked + groupBy2Unpacked
 
-          groupByStat(newGroupBy.asInstanceOf[GroupBy[Int]]).size mustEqual 10
+          groupByStat(newGroupBy.asInstanceOf[GroupBy[Int]]).size mustEqual 13
           groupByStat(groupByUnpacked.asInstanceOf[GroupBy[Int]]).size mustEqual 10
           groupByStat(groupBy2Unpacked.asInstanceOf[GroupBy[Int]]).size mustEqual 10
         }
@@ -145,8 +159,8 @@ class GroupByTest extends Specification with StatTestHelper {
           groupBy.getOrElse(index, null).asInstanceOf[CountStat]
 
         "be empty initially" >> {
-          val groupBy = newStat[Int]("cat1","Count()", false)
-          groupBy.toJson mustEqual "[]"
+          val groupBy = newStat[Int]("cat1","Count()", observe = false)
+          groupBy.toJson mustEqual "{}"
           groupBy.isEmpty must beTrue
         }
 
@@ -165,7 +179,9 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "serialize to json" >> {
           val groupBy = newStat[Int]("cat1", "Count()")
-          groupBy.toJson must beMatching ("""\[(\{ "\d" : \{ "count": 10 \}\},?){10}\]""" ignoreSpace)
+          groupBy.toJson mustEqual
+              """{"0":{"count":10},"1":{"count":10},"2":{"count":10},"3":{"count":10},"4":{"count":10},""" +
+                """"5":{"count":10},"6":{"count":10},"7":{"count":10},"8":{"count":10},"9":{"count":10}}"""
         }
 
         "serialize and deserialize" >> {
@@ -176,7 +192,7 @@ class GroupByTest extends Specification with StatTestHelper {
             groupBy.toJson mustEqual unpacked.toJson
           }
           "unobserved" >> {
-            val groupBy = newStat[Int]("cat1", "Count()", false)
+            val groupBy = newStat[Int]("cat1", "Count()", observe = false)
             val packed = StatSerializer(sft).serialize(groupBy)
             val unpacked = StatSerializer(sft).deserialize(packed)
             groupBy.toJson mustEqual unpacked.toJson
@@ -197,7 +213,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "combine two stats" >> {
           val groupBy = newStat[Int]("cat1", "Count()")
-          val groupBy2 = newStat[Int]("cat1", "Count()", false)
+          val groupBy2 = newStat[Int]("cat1", "Count()", observe = false)
 
           features2.foreach { groupBy2.observe }
 
@@ -225,8 +241,8 @@ class GroupByTest extends Specification with StatTestHelper {
           groupBy.getOrElse(index, null).asInstanceOf[MinMax[String]]
 
         "be empty initially" >> {
-          val groupBy = newStat[Int]("cat1","MinMax(strAttr)", false)
-          groupBy.toJson mustEqual "[]"
+          val groupBy = newStat[Int]("cat1","MinMax(strAttr)", observe = false)
+          groupBy.toJson mustEqual "{}"
           groupBy.isEmpty must beTrue
         }
 
@@ -239,12 +255,23 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "serialize to json" >> {
           val groupBy = newStat[Int]("cat1","MinMax(strAttr)")
-          groupBy.toJson must beMatching ("""\[(\{ "\d" : \{ "min": "abc[0-9]{3}", "max": "abc[0-9]{3}", "cardinality": \d+ \}\},?){10}\]""" ignoreSpace)
+          groupBy.toJson mustEqual
+              """{"0":{"min":"abc000","max":"abc090","cardinality":10},
+                |"1":{"min":"abc001","max":"abc091","cardinality":10},
+                |"2":{"min":"abc002","max":"abc092","cardinality":10},
+                |"3":{"min":"abc003","max":"abc093","cardinality":10},
+                |"4":{"min":"abc004","max":"abc094","cardinality":10},
+                |"5":{"min":"abc005","max":"abc095","cardinality":10},
+                |"6":{"min":"abc006","max":"abc096","cardinality":10},
+                |"7":{"min":"abc007","max":"abc097","cardinality":10},
+                |"8":{"min":"abc008","max":"abc098","cardinality":10},
+                |"9":{"min":"abc009","max":"abc099","cardinality":10}}
+                |""".stripMargin.replaceAll("\n", "")
         }
 
         "serialize empty to json" >> {
-          val groupBy = newStat[Int]("cat1","MinMax(strAttr)", false)
-          groupBy.toJson mustEqual "[]"
+          val groupBy = newStat[Int]("cat1","MinMax(strAttr)", observe = false)
+          groupBy.toJson mustEqual "{}"
         }
 
         "serialize and deserialize" >> {
@@ -255,7 +282,7 @@ class GroupByTest extends Specification with StatTestHelper {
         }
 
         "serialize and deserialize empty MinMax" >> {
-          val groupBy = newStat[Int]("cat1","MinMax(strAttr)", false)
+          val groupBy = newStat[Int]("cat1","MinMax(strAttr)", observe = false)
           val packed = StatSerializer(sft).serialize(groupBy)
           val unpacked = StatSerializer(sft).deserialize(packed)
           unpacked.toJson mustEqual groupBy.toJson
@@ -275,7 +302,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "combine two MinMaxes" >> {
           val groupBy1 = newStat[Int]("cat1","MinMax(strAttr)")
-          val groupBy2 = newStat[Int]("cat1","MinMax(strAttr)", false)
+          val groupBy2 = newStat[Int]("cat1","MinMax(strAttr)", observe = false)
 
           features2.foreach { groupBy2.observe }
           val gS20 = minmaxStat(groupBy2)
@@ -306,8 +333,8 @@ class GroupByTest extends Specification with StatTestHelper {
             groupBy.getOrElse(index, null).asInstanceOf[EnumerationStat[jInt]]
 
           "be empty initially" >> {
-            val groupBy = newStat[Int]("cat1","Enumeration(intAttr)", false)
-            groupBy.toJson mustEqual "[]"
+            val groupBy = newStat[Int]("cat1","Enumeration(intAttr)", observe = false)
+            groupBy.toJson mustEqual "{}"
             groupBy.isEmpty must beTrue
           }
 
@@ -334,8 +361,8 @@ class GroupByTest extends Specification with StatTestHelper {
           }
 
           "serialize empty to json" >> {
-            val groupBy = newStat[Int]("cat1","Enumeration(intAttr)", false)
-            groupBy.toJson mustEqual "[]"
+            val groupBy = newStat[Int]("cat1","Enumeration(intAttr)", observe = false)
+            groupBy.toJson mustEqual "{}"
           }
 
           "serialize and deserialize" >> {
@@ -346,7 +373,7 @@ class GroupByTest extends Specification with StatTestHelper {
               unpacked.toJson mustEqual groupBy.toJson
             }
             "unobserved" >> {
-              val groupBy = newStat[Int]("cat1","Enumeration(intAttr)", false)
+              val groupBy = newStat[Int]("cat1","Enumeration(intAttr)", observe = false)
               val packed = StatSerializer(sft).serialize(groupBy)
               val unpacked = StatSerializer(sft).deserialize(packed)
               unpacked.toJson mustEqual groupBy.toJson
@@ -355,7 +382,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
           "combine two stats" >> {
             val groupBy = newStat[Int]("cat1","Enumeration(intAttr)")
-            val groupBy2 = newStat[Int]("cat1","Enumeration(intAttr)", false)
+            val groupBy2 = newStat[Int]("cat1","Enumeration(intAttr)", observe = false)
 
             features2.foreach { groupBy2.observe }
             val enum2 = enumerationStat(groupBy2)
@@ -393,8 +420,8 @@ class GroupByTest extends Specification with StatTestHelper {
             histogramStatString("intAttr", bins, min.toString, max.toString)
 
           "be empty initially" >> {
-            val groupBy = newStat[Int]("cat1", intStat(20, 0, 199), false)
-            groupBy.toJson mustEqual "[]"
+            val groupBy = newStat[Int]("cat1", intStat(20, 0, 199), observe = false)
+            groupBy.toJson mustEqual "{}"
             groupBy.isEmpty must beTrue
           }
 
@@ -439,7 +466,7 @@ class GroupByTest extends Specification with StatTestHelper {
             }
 
             "unobserved" >> {
-              val groupBy = newStat[Int]("cat1", intStat(20, 0, 199), false)
+              val groupBy = newStat[Int]("cat1", intStat(20, 0, 199), observe = false)
               val packed = StatSerializer(sft).serialize(groupBy)
               val unpacked = StatSerializer(sft).deserialize(packed).asInstanceOf[GroupBy[Int]]
 
@@ -449,7 +476,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
           "combine two RangeHistograms" >> {
             val groupBy = newStat[Int]("cat1", intStat(20, 0, 199))
-            val groupBy2 = newStat[Int]("cat1", intStat(20, 0, 199), false)
+            val groupBy2 = newStat[Int]("cat1", intStat(20, 0, 199), observe = false)
 
             features2.foreach { groupBy2.observe }
 
@@ -474,7 +501,7 @@ class GroupByTest extends Specification with StatTestHelper {
             groupBy.clear()
 
             groupBy.isEmpty must beTrue
-            groupBy.toJson mustEqual "[]"
+            groupBy.toJson mustEqual "{}"
           }
         }
       }
@@ -484,10 +511,10 @@ class GroupByTest extends Specification with StatTestHelper {
         def seqStat(groupBy: GroupBy[Int], index: Int = 0): SeqStat =
           groupBy.getOrElse(index, null).asInstanceOf[SeqStat]
         "be empty initiallly" >> {
-          val groupBy = newStat[Int]("cat1", statStr, false)
+          val groupBy = newStat[Int]("cat1", statStr, observe = false)
 
           groupBy.size mustEqual 0
-          groupBy.toJson mustEqual "[]"
+          groupBy.toJson mustEqual "{}"
           groupBy.isEmpty must beTrue
         }
 
@@ -527,8 +554,8 @@ class GroupByTest extends Specification with StatTestHelper {
         }
 
         "serialize empty to json" >> {
-          val groupBy = newStat[Int]("cat1", statStr, false)
-          groupBy.toJson mustEqual "[]"
+          val groupBy = newStat[Int]("cat1", statStr, observe = false)
+          groupBy.toJson mustEqual "{}"
         }
 
         "serialize and deserialize" >> {
@@ -540,7 +567,7 @@ class GroupByTest extends Specification with StatTestHelper {
           }.pendingUntilFixed("Throws 'java.io.EOFException' when deserializing hpp in readMinMax.")
 
           "unobserved" >> {
-            val groupBy = newStat[Int]("cat1", statStr, false)
+            val groupBy = newStat[Int]("cat1", statStr, observe = false)
             val packed = StatSerializer(sft).serialize(groupBy)
             val unpacked = StatSerializer(sft).deserialize(packed)
             unpacked.toJson mustEqual groupBy.toJson
@@ -561,7 +588,7 @@ class GroupByTest extends Specification with StatTestHelper {
 
         "combine two SeqStats" >> {
           val groupBy = newStat[Int]("cat1", statStr)
-          val groupBy2 = newStat[Int]("cat1", statStr, false)
+          val groupBy2 = newStat[Int]("cat1", statStr, observe = false)
 
           groupBy2.isEmpty must beTrue
 
@@ -615,7 +642,7 @@ class GroupByTest extends Specification with StatTestHelper {
           groupBy.clear()
 
           groupBy.isEmpty must beTrue
-          groupBy.toJson mustEqual "[]"
+          groupBy.toJson mustEqual "{}"
         }
       }
     }
