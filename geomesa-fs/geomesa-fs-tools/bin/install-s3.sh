@@ -12,7 +12,6 @@
 # geomesa tools lib dir or the WEB-INF/lib dir of geoserver.
 
 hadoop_version="%%hadoop.version.recommended%%"
-hadoop_version_min="%%hadoop.version.minimum%%"
 
 aws_sdk_version="1.10.6"
 
