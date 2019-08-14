@@ -86,13 +86,11 @@ object IndexAdapter {
     */
   @throws[IllegalArgumentException]("Limit does not fit a UUID (34 chars)")
   def truncateTableName(name: String, limit: Int): String = {
-    if (name.lengthCompare(limit) <= 0) { name } else {
-      val offset = limit - 33
-      if (offset <= 0) {
-        throw new IllegalArgumentException(s"Limit is too small to fit a UUID, must be at least 34 chars: $limit")
-      }
-      s"${name.substring(0, offset)}_${UUID.randomUUID().toString.replaceAllLiterally("-", "")}"
+    val offset = limit - 33
+    if (offset <= 0) {
+      throw new IllegalArgumentException(s"Limit is too small to fit a UUID, must be at least 34 chars: $limit")
     }
+    s"${name.substring(0, offset)}_${UUID.randomUUID().toString.replaceAllLiterally("-", "")}"
   }
 
   /**
