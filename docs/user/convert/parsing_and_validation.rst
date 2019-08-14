@@ -14,12 +14,13 @@ At their core, converters transform input streams into SimpleFeatures. Validator
 of those SimpleFeatures before they are written to GeoMesa. For example, you may want to validate that there is a
 geometry field and that the geometry is valid.
 
-There are three validators provided for use with GeoMesa converters:
+There are four validators provided for use with GeoMesa converters:
 
-* ``has-geo`` - Ensure that the SimpleFeature has a non-null geometry
-* ``has-dtg`` - Ensure that the SimpleFeature has a non-null date
-* ``index`` - Ensure that the SimpleFeature has a geometry and date that are within the space/time bounds of
+* ``index`` - validates that the SimpleFeature has a geometry and date that are within the space/time bounds of
   the relevant GeoMesa Z-Index implementations (i.e. Z2, Z3, XZ2, XZ3)
+* ``has-geo`` - validates that the SimpleFeature has a non-null geometry
+* ``has-dtg`` - validates that the SimpleFeature has a non-null date
+* ``cql`` - validates that the SimpleFeature passes an arbitrary CQL filter
 
 Additional validators may be loaded through Java SPI by by implementing
 ``org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorFactory`` and including a special service
@@ -27,11 +28,11 @@ descriptor file. See below for additional information.
 
 By default the ``index`` validator is enabled. This is suitable for most use cases, as it will choose the appropriate
 validator based on the SimpleFeatureType. To enable other validators, specify them in the options block of your
-typesafe converter config::
+converter definition::
 
     geomesa.converters.myconverter {
       options {
-        validators = [ "has-dtg", "has-geo" ]
+        validators = [ "has-dtg", "cql(bbox(geom,-75,-90,-45,90))" ]
       }
     }
 
