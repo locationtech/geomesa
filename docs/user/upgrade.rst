@@ -115,6 +115,36 @@ Feature types that were created in prior versions will continue to behave as bef
 determined by the data store parameter each time. The configuration can be set permanently through
 the ``updateSchema`` data store method or the :ref:`cli_update_schema` CLI command.
 
+Indexing of Timestamp Attributes
+--------------------------------
+
+GeoMesa 2.4.0 fully supports indexing of ``java.sql.Timestamp`` attributes. In previous versions, timestamp
+attribute indices were not officially supported, however they did work in some cases. Any data that was written to
+a timestamp attribute index with an older version will no longer be readable by GeoMesa 2.4.0. To migrate old
+data, **truncate the index table** first, then re-write all existing records:
+
+.. code-block:: scala
+
+    import org.geotools.data.{DataStoreFinder, Query, Transaction}
+    import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+    import org.locationtech.geomesa.utils.geotools.FeatureUtils
+
+    val params: java.util.Map[String, String] = ??? // data store connection parameters
+    val ds: GeoMesaDataStore[_] = DataStoreFinder.getDataStore(params).asInstanceOf[GeoMesaDataStore[_]]
+    val typeName: String = ??? // simple feature type name to update
+    val timestamps: Seq[String] = ??? // names of any timestamp-type attributes
+    val indices = ds.manager.indices(ds.getSchema(typeName)).filter(_.attributes.headOption.exists(timestamps.contains))
+    val writer = ds.getIndexWriterAppend(typeName, indices)
+    val features = ds.getFeatureReader(new Query(typeName), Transaction.AUTO_COMMIT)
+    try {
+      while (features.hasNext) {
+        FeatureUtils.write(writer, features.next(), useProvidedFid = true)
+      }
+    } finally {
+      features.close()
+      writer.close()
+    }
+
 Distribution of Installation Bundles
 ------------------------------------
 
