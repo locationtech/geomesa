@@ -127,15 +127,10 @@
         <!-- recommended installation versions -->
         <accumulo.version.recommended>1.9.2</accumulo.version.recommended>
         <hbase.version.recommended>1.3.1</hbase.version.recommended>
+        <cassandra.server.version.recommended>3.11.4</cassandra.server.version.recommended>
+        <cassandra.driver.version.recommended>3.7.2</cassandra.driver.version.recommended>
         <hadoop.version.recommended>2.8.4</hadoop.version.recommended>
         <zookeeper.version.recommended>3.4.10</zookeeper.version.recommended>
-
-        <!-- minimum supported versions -->
-        <accumulo.version.minimum>1.6.0</accumulo.version.minimum>
-        <hbase.version.minimum>1.2.3</hbase.version.minimum>
-        <hadoop.version.minimum>2.5.0</hadoop.version.minimum>
-        <zookeeper.version.minimum>3.4.6</zookeeper.version.minimum>
-        <thrift.version.minimum>0.9.1</thrift.version.minimum>
     </properties>
 
     <profiles>
