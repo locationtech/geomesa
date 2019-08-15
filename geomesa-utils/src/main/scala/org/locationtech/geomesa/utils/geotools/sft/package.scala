@@ -26,41 +26,44 @@ package object sft {
   //  user data keys and values may be mutable objects, so while the user data map will not change,
   //  the values inside may
 
-  class ImmutableAttributeDescriptor(`type`: AttributeType,
-                                     name: Name,
-                                     minOccurs: Int,
-                                     maxOccurs: Int,
-                                     isNillable: Boolean,
-                                     defaultValue: AnyRef,
-                                     userData: java.util.Map[AnyRef, AnyRef])
-      extends AttributeDescriptorImpl(`type`, name, minOccurs, maxOccurs, isNillable, defaultValue) {
+  class ImmutableAttributeDescriptor(
+      `type`: AttributeType,
+      name: Name,
+      minOccurs: Int,
+      maxOccurs: Int,
+      isNillable: Boolean,
+      defaultValue: AnyRef,
+      ud: java.util.Map[_ <: AnyRef, _ <: AnyRef]
+    ) extends AttributeDescriptorImpl(`type`, name, minOccurs, maxOccurs, isNillable, defaultValue) {
     override val getUserData: java.util.Map[AnyRef, AnyRef] =
-      Collections.unmodifiableMap(new java.util.HashMap[AnyRef, AnyRef](userData))
+      Collections.unmodifiableMap(new java.util.HashMap[AnyRef, AnyRef](ud))
   }
 
-  class ImmutableGeometryDescriptor(`type`: GeometryType,
-                                    name: Name,
-                                    minOccurs: Int,
-                                    maxOccurs: Int,
-                                    isNillable: Boolean,
-                                    defaultValue: AnyRef,
-                                    userData: java.util.Map[AnyRef, AnyRef])
-      extends GeometryDescriptorImpl(`type`, name, minOccurs, maxOccurs, isNillable, defaultValue) {
+  class ImmutableGeometryDescriptor(
+      `type`: GeometryType,
+      name: Name,
+      minOccurs: Int,
+      maxOccurs: Int,
+      isNillable: Boolean,
+      defaultValue: AnyRef,
+      ud: java.util.Map[_ <: AnyRef, _ <: AnyRef]
+    ) extends GeometryDescriptorImpl(`type`, name, minOccurs, maxOccurs, isNillable, defaultValue) {
     override val getUserData: java.util.Map[AnyRef, AnyRef] =
-      Collections.unmodifiableMap(new java.util.HashMap[AnyRef, AnyRef](userData))
+      Collections.unmodifiableMap(new java.util.HashMap[AnyRef, AnyRef](ud))
   }
 
-  class ImmutableSimpleFeatureType(name: Name,
-                                   schema: java.util.List[AttributeDescriptor],
-                                   defaultGeometry: GeometryDescriptor,
-                                   isAbstract: Boolean,
-                                   restrictions: java.util.List[Filter],
-                                   superType: AttributeType,
-                                   description: InternationalString,
-                                   userData: java.util.Map[AnyRef, AnyRef])
-      extends SimpleFeatureTypeImpl(name, schema, defaultGeometry, isAbstract, restrictions, superType, description) {
+  class ImmutableSimpleFeatureType(
+      name: Name,
+      schema: java.util.List[AttributeDescriptor],
+      defaultGeometry: GeometryDescriptor,
+      isAbstract: Boolean,
+      restrictions: java.util.List[Filter],
+      superType: AttributeType,
+      description: InternationalString,
+      ud: java.util.Map[_ <: AnyRef, _ <: AnyRef]
+    ) extends SimpleFeatureTypeImpl(name, schema, defaultGeometry, isAbstract, restrictions, superType, description) {
     override val getUserData: java.util.Map[AnyRef, AnyRef] =
-      Collections.unmodifiableMap(new java.util.HashMap[AnyRef, AnyRef](userData))
+      Collections.unmodifiableMap(new java.util.HashMap[AnyRef, AnyRef](ud))
     override lazy val toString: String = s"SimpleFeatureType $name ${SimpleFeatureTypes.encodeType(this)}"
   }
 }
