@@ -63,6 +63,6 @@ class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val ser
 
 object HBaseBackedMetadata {
   val ColumnFamily: Array[Byte] = Bytes.toBytes("m")
-  val ColumnFamilyDescriptor = new HColumnDescriptor(ColumnFamily)
+  val ColumnFamilyDescriptor = new HColumnDescriptor(ColumnFamily).setInMemory(true)
   val ColumnQualifier: Array[Byte] = Bytes.toBytes("v")
 }
