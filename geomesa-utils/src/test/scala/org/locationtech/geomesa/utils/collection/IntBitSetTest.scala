@@ -10,7 +10,7 @@ package org.locationtech.geomesa.utils.collection
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.collection.IntBitSet.{BitSet32, BitSet64, BitSetN}
+import org.locationtech.geomesa.utils.collection.IntBitSet._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -19,7 +19,7 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class IntBitSetTest extends Specification {
 
-  val sizes = Seq(32, 64, 96) // gets each of the 3 bit set impls
+  val sizes = Seq(32, 64, 96, 128, 160, 192, 224) // gets each of the bit set impls
 
   val rands = new ThreadLocal[Random]() {
     override def initialValue: Random = new Random(-7)
@@ -64,9 +64,13 @@ class IntBitSetTest extends Specification {
       foreach(sizes) { size =>
         val bs = IntBitSet(size)
         size match {
-          case 32 => bs must beAnInstanceOf[BitSet32]
-          case 64 => bs must beAnInstanceOf[BitSet64]
-          case 96 => bs must beAnInstanceOf[BitSetN]
+          case 32  => bs must beAnInstanceOf[BitSet32]
+          case 64  => bs must beAnInstanceOf[BitSet64]
+          case 96  => bs must beAnInstanceOf[BitSet96]
+          case 128 => bs must beAnInstanceOf[BitSet128]
+          case 160 => bs must beAnInstanceOf[BitSet160]
+          case 192 => bs must beAnInstanceOf[BitSet192]
+          case 224 => bs must beAnInstanceOf[BitSetN]
         }
         bs.add(size - 1) must beTrue
         bs.contains(size - 1) must beTrue
@@ -75,7 +79,7 @@ class IntBitSetTest extends Specification {
       }
     }
     "be serializable" >> {
-      val indices = Seq(rands.get.nextInt(32), rands.get.nextInt(32) + 32, rands.get.nextInt(32) + 64)
+      val indices = Seq.tabulate(7)(i => rands.get.nextInt(32) + (32 * i))
       foreach(sizes) { size =>
         val bs = IntBitSet(size)
         indices.foreach { i =>
