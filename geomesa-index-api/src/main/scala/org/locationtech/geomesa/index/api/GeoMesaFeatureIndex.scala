@@ -349,7 +349,7 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     import StringSerialization.alphaNumericSafeString
 
     val prefix = (ds.config.catalog +: Seq(sft.getTypeName, name).map(alphaNumericSafeString)).mkString("_")
-    val suffix = s"_v$version${partition.map(p => s"_$p").getOrElse("")}"
+    val suffix = s"v$version${partition.map(p => s"_$p").getOrElse("")}"
 
     def build(attrs: Seq[String]): String = (prefix +: attrs :+ suffix).mkString("_")
 
