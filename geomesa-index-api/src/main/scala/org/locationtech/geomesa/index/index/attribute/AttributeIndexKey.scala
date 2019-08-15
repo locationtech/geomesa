@@ -8,7 +8,10 @@
 
 package org.locationtech.geomesa.index.index.attribute
 
-import org.calrissian.mango.types.LexiTypeEncoders
+import java.sql.Timestamp
+
+import org.calrissian.mango.types.encoders.lexi.LongEncoder
+import org.calrissian.mango.types.{LexiTypeEncoders, TypeEncoder, TypeRegistry}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -35,9 +38,9 @@ object AttributeIndexKey {
 
   import scala.collection.JavaConverters._
 
-  private val typeRegistry = LexiTypeEncoders.LEXI_TYPES
+  private val TypeRegistry = new TypeRegistry[String](LexiTypeEncoders.LEXI_TYPES, TimestampEncoder)
 
-  val lexicoders: Seq[Class[_]] = AttributeIndexKey.typeRegistry.getAllEncoders.asScala.map(_.resolves()).toList
+  val lexicoders: Seq[Class[_]] = TypeRegistry.getAllEncoders.asScala.map(_.resolves()).toList
 
   // store 2 bytes for the index of the attribute in the sft - this allows up to 32k attributes in the sft.
   def indexToBytes(i: Int): Array[Byte] = ByteArrays.toBytes(i.toShort)
@@ -61,7 +64,7 @@ object AttributeIndexKey {
     * @param value value
     * @return
     */
-  def typeEncode(value: Any): String = typeRegistry.encode(value)
+  def typeEncode(value: Any): String = TypeRegistry.encode(value)
 
   /**
     * Decode a lexicoded value
@@ -70,7 +73,7 @@ object AttributeIndexKey {
     * @param value encoded value
     * @return
     */
-  def decode(alias: String, value: String): AnyRef = typeRegistry.decode(alias, value)
+  def decode(alias: String, value: String): AnyRef = TypeRegistry.decode(alias, value)
 
   /**
     * Is the type supported for lexicoding
@@ -88,4 +91,25 @@ object AttributeIndexKey {
     * @return
     */
   def encodable(binding: Class[_]): Boolean = lexicoders.exists(_.isAssignableFrom(binding))
+
+  /**
+    * Encoder for java.sql.Timestamp
+    */
+  object TimestampEncoder extends TypeEncoder[Timestamp, String] {
+
+    private val longEncoder = new LongEncoder()
+
+    override val getAlias: String = "timestamp"
+
+    override def resolves(): Class[Timestamp] = classOf[Timestamp]
+
+    override def encode(value: Timestamp): String = {
+      if (value == null) {
+        throw new NullPointerException("Null values are not allowed")
+      }
+      longEncoder.encode(value.getTime)
+    }
+
+    override def decode(value: String): Timestamp = new Timestamp(longEncoder.decode(value))
+  }
 }

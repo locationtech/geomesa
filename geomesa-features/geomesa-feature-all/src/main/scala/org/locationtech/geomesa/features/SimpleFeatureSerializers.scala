@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.features
 
 import org.geotools.feature.simple.SimpleFeatureImpl
+import org.locationtech.geomesa.features.ScalaSimpleFeature.{ImmutableSimpleFeature, LazyImmutableSimpleFeature, LazyMutableSimpleFeature}
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.avro._
 import org.locationtech.geomesa.features.kryo._
-import org.locationtech.geomesa.features.nio.LazySimpleFeature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 
@@ -59,12 +59,15 @@ object SimpleFeatureSerializers {
 
   val simpleFeatureImpls: Seq[Class[_ <: SimpleFeature]] = Seq(
     classOf[ScalaSimpleFeature],
+    classOf[ImmutableSimpleFeature],
+    classOf[LazyImmutableSimpleFeature],
+    classOf[LazyMutableSimpleFeature],
     classOf[KryoBufferSimpleFeature],
-    classOf[LazySimpleFeature],
     classOf[AvroSimpleFeature],
     classOf[TransformSimpleFeature],
+    classOf[SimpleFeatureImpl],
     classOf[SimpleFeature],
-    classOf[SimpleFeatureImpl]
+    classOf[org.locationtech.geomesa.features.nio.LazySimpleFeature]
   )
 
   /**

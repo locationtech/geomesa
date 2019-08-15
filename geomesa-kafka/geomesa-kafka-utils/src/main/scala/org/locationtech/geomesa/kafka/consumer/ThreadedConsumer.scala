@@ -17,6 +17,7 @@ import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord, OffsetAndMet
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.errors.{InterruptException, WakeupException}
 import org.locationtech.geomesa.kafka.KafkaConsumerVersions
+import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
 
 import scala.util.control.NonFatal
 
@@ -48,11 +49,11 @@ abstract class ThreadedConsumer(
     }
   }
 
-  def startConsumers(): Unit = {
+  def startConsumers(handler: Option[ConsumerErrorHandler] = None): Unit = {
     val format = if (consumers.lengthCompare(10) > 0) { "%02d" } else { "%d" }
     var i = 0
     consumers.foreach { c =>
-      executor.execute(new ConsumerRunnable(c, frequency, String.format(format, Int.box(i))))
+      executor.execute(new ConsumerRunnable(c, String.format(format, Int.box(i)), handler))
       i += 1
     }
     logger.debug(s"Started $i consumer(s) on topic ${topics.mkString(", ")}")
@@ -64,8 +65,11 @@ abstract class ThreadedConsumer(
     executor.awaitTermination(Long.MaxValue, TimeUnit.SECONDS)
   }
 
-  class ConsumerRunnable(consumer: Consumer[Array[Byte], Array[Byte]], frequency: Duration, id: String)
-      extends Runnable {
+  class ConsumerRunnable(
+      consumer: Consumer[Array[Byte], Array[Byte]],
+      id: String,
+      handler: Option[ConsumerErrorHandler]
+    ) extends Runnable {
 
     private var errorCount = 0
 
@@ -90,9 +94,9 @@ abstract class ThreadedConsumer(
           } catch {
             case _: WakeupException | _: InterruptException | _: InterruptedException => interrupted = true
             case NonFatal(e) =>
-              if (errorCount < 300) {
-                errorCount += 1
-                logger.warn(s"Consumer [$id] error receiving message from topic ${topics.mkString(", ")}:", e)
+              errorCount += 1
+              logger.warn(s"Consumer [$id] error receiving message from topic ${topics.mkString(", ")}:", e)
+              if (errorCount <= 300 || handler.exists(_.handle(id, e))) {
                 Thread.sleep(1000)
               } else {
                 logger.error(s"Consumer [$id] shutting down due to too many errors from topic ${topics.mkString(", ")}:", e)
@@ -108,5 +112,23 @@ abstract class ThreadedConsumer(
         }
       }
     }
+  }
+}
+
+object ThreadedConsumer {
+
+  /**
+    * Handler for asynchronous errors in the consumer threads
+    */
+  trait ConsumerErrorHandler {
+
+    /**
+      * Invoked on a fatal error
+      *
+      * @param consumer consumer identifier
+      * @param e exception
+      * @return true to continue processing, false to terminate the consumer
+      */
+    def handle(consumer: String, e: Throwable): Boolean
   }
 }

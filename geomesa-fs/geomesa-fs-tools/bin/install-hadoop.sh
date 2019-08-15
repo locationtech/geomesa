@@ -12,7 +12,6 @@
 # geomesa tools lib dir or the WEB-INF/lib dir of geoserver.
 
 hadoop_version="%%hadoop.version.recommended%%"
-hadoop_version_min="%%hadoop.version.minimum%%"
 
 # this version required for hadoop 2.8, earlier hadoop versions use 3.1.0-incubating
 htrace_core_version="4.1.0-incubating"

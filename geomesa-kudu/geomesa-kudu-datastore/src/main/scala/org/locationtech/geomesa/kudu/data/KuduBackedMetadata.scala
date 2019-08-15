@@ -114,7 +114,7 @@ class KuduBackedMetadata[T](val client: KuduClient, val catalog: String, val ser
 
     val iter = builder.build().iterator.map(r => (r.getString(1), r.getBinaryCopy(2)))
     if (prefix == null || prefix.isEmpty) { iter } else {
-      iter.filter(_._2.startsWith(prefix))
+      iter.filter { case (k, _) => k.startsWith(prefix) }
     }
   }
 

@@ -96,7 +96,6 @@ tools ``lib`` folder. To do this, use the scripts provided with the distribution
 .. code-block:: bash
 
     $ bin/install-cassandra-jars.sh lib
-    $ bin/install-tools-jar.sh lib
 
 Due to licensing restrictions, dependencies for shape file support must be separately installed.
 Do this with the following commands:
@@ -135,10 +134,12 @@ are not bundled to allow for different versions. The distribution includes a scr
 the JARs: ``bin/install-cassandra-jars.sh``. Call it with the path to the GeoServer ``WEB-INF/lib`` directory.
 By default, it will install the following JARs:
 
- * cassandra-all-3.0.11.jar
- * cassandra-driver-core-3.0.0.jar
- * cassandra-driver-mapping-3.0.0.jar
- * netty-all-4.0.33.Final.jar
- * metrics-core-3.1.2.jar
+ * cassandra-all-3.11.4.jar
+ * cassandra-driver-core-3.7.2.jar
+ * cassandra-driver-mapping-3.7.2.jar
+ * netty-all-4.1.17.Final.jar
+ * metrics-core-3.2.6.jar
+ * logback-core-1.1.3.jar
+ * logback-classic-1.1.3.jar
 
 Restart GeoServer after the JARs are installed.

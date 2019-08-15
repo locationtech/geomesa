@@ -32,7 +32,12 @@ class CassandraBackedMetadata[T](val session: Session, val catalog: String, val 
     session.execute(s"CREATE TABLE IF NOT EXISTS $catalog (sft text, key text, value text, PRIMARY KEY ((sft), key))")
 
   override protected def createEmptyBackup(timestamp: String): CassandraBackedMetadata[T] = {
-    val table = IndexAdapter.truncateTableName(s"${catalog}_${timestamp}_bak", CassandraIndexAdapter.TableNameLimit)
+    val table = {
+      val full = s"${catalog}_${timestamp}_bak"
+      if (full.lengthCompare(CassandraIndexAdapter.TableNameLimit) <= 0) { full } else {
+        IndexAdapter.truncateTableName(full, CassandraIndexAdapter.TableNameLimit)
+      }
+    }
     new CassandraBackedMetadata(session, table, serializer)
   }
 
