@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.stats
 
 import java.lang.{Integer => jInt}
 
+import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -175,6 +176,20 @@ class GroupByTest extends Specification with StatTestHelper {
           groupBy.size mustEqual 10
           features.take(10).foreach(groupBy.unobserve)
           countStat(groupBy).counter mustEqual 9L
+        }
+
+        "work with nulls" >> {
+          val groupBy = newStat[String]("strAttr", "Count()", observe = false)
+          var i = 0
+          while (i < 10) {
+            i % 3 match {
+              case 0 => groupBy.observe(SimpleFeatureBuilder.build(sft, Array[AnyRef]("foo"), i.toString))
+              case 1 => groupBy.observe(SimpleFeatureBuilder.build(sft, Array[AnyRef]("bar"), i.toString))
+              case 2 => groupBy.observe(SimpleFeatureBuilder.build(sft, Array.empty[AnyRef], i.toString))
+            }
+            i += 1
+          }
+          groupBy.groups.mapValues(_.toJson) mustEqual Map("foo" -> """{"count":4}""", "bar" -> """{"count":3}""")
         }
 
         "serialize to json" >> {
