@@ -22,14 +22,14 @@
             </excludes>
         </dependencySet>
         <dependencySet>
-            <outputDirectory>dist/converters</outputDirectory>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
             <directoryMode>0755</directoryMode>
             <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
-            <useStrictFiltering>true</useStrictFiltering>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-tools*:jar:data</include>
+                <include>org.locationtech.geomesa:geomesa-fs-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-process-wps*</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -45,13 +45,14 @@
             </includes>
         </dependencySet>
         <dependencySet>
-            <outputDirectory>dist/gs-plugins</outputDirectory>
+            <outputDirectory>dist/converters</outputDirectory>
             <directoryMode>0755</directoryMode>
             <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
+            <useStrictFiltering>true</useStrictFiltering>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-fs-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-tools*:jar:data</include>
             </includes>
         </dependencySet>
     </dependencySets>
@@ -61,6 +62,7 @@
             <fileMode>0644</fileMode>
             <includes>
                 <include>LICENSE.txt</include>
+                <include>README.md</include>
             </includes>
         </fileSet>
 
@@ -118,7 +120,9 @@
                 <exclude>*/**</exclude>
             </excludes>
         </fileSet>
+
     </fileSets>
+
     <files>
         <!-- geomesa-site.xml.template -->
         <file>
@@ -133,4 +137,5 @@
             <outputDirectory>conf</outputDirectory>
         </file>
     </files>
+
 </component>

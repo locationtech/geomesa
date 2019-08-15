@@ -39,7 +39,9 @@ class GroupBy[T](val sft: SimpleFeatureType, val property: String, val stat: Str
     */
   override def observe(sf: SimpleFeature): Unit = {
     val key = sf.getAttribute(i).asInstanceOf[T]
-    groups.getOrElseUpdate(key, buildNewStat).observe(sf)
+    if (key != null) {
+      groups.getOrElseUpdate(key, buildNewStat).observe(sf)
+    }
   }
 
   /**
@@ -51,7 +53,9 @@ class GroupBy[T](val sft: SimpleFeatureType, val property: String, val stat: Str
     */
   override def unobserve(sf: SimpleFeature): Unit = {
     val key = sf.getAttribute(i).asInstanceOf[T]
-    groups.get(key).foreach(groupedStat => groupedStat.unobserve(sf))
+    if (key != null) {
+      groups.get(key).foreach(groupedStat => groupedStat.unobserve(sf))
+    }
   }
 
   /**
@@ -77,18 +81,20 @@ class GroupBy[T](val sft: SimpleFeatureType, val property: String, val stat: Str
     sum
   }
 
-  override def toJsonObject: Seq[Map[T, Any]] = {
-    val keyClass = groups.keys.headOption.map(_.getClass).getOrElse(ct.runtimeClass)
-    if (classOf[Comparable[T]].isAssignableFrom(keyClass)) {
+  override def toJsonObject: Map[T, Any] = {
+    val builder = collection.immutable.ListMap.newBuilder[T, Any]
+    val keyClass = groups.headOption.map(_._1.getClass).getOrElse(ct.runtimeClass)
+    val ordered: Iterable[(T, Stat)] = if (classOf[Comparable[_]].isAssignableFrom(keyClass)) {
       val ordering = new Ordering[T] {
-        def compare(l: T, r: T): Int = l.asInstanceOf[Comparable[T]].compareTo(r)
+        override def compare(x: T, y: T): Int = x.asInstanceOf[Comparable[Any]].compareTo(y)
       }
       groups.toSeq.sortBy(_._1)(ordering)
     } else {
-      groups.toSeq
+      groups
     }
-  }.map { case (k, v) => Map(k -> v.toJsonObject) }
-
+    ordered.foreach { case (k, v) => builder += k -> v.toJsonObject }
+    builder.result
+  }
 
   /**
     * Necessary method used by the StatIterator. Indicates if the stat has any values or not

@@ -11,19 +11,19 @@ package org.locationtech.geomesa.process.tube
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom._
 import org.geotools.data.Query
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.EmptyFeatureCollection
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.geotools.data.util.NullProgressListener
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.iterators.DeduplicatingSimpleFeatureIterator
+import org.locationtech.jts.geom._
 import org.opengis.feature.Feature
 import org.opengis.filter.Filter
 
@@ -98,7 +98,8 @@ class TubeSelectProcess extends GeoMesaProcess with LazyLogging {
                                       Option(maxBins).getOrElse(0).asInstanceOf[Int],
                                       Option(gapFill).map(GapFill.withName).getOrElse(GapFill.NOFILL))
 
-    featureCollection.accepts(tubeVisitor, new NullProgressListener)
+    GeoMesaFeatureCollection.visit(featureCollection, tubeVisitor)
+
     tubeVisitor.getResult.asInstanceOf[TubeResult].results
   }
 }

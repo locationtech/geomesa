@@ -418,6 +418,14 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       results2.head.getAttribute("numattr") mustEqual 2
     }
 
+    "support attribute indices on timestamps" in {
+      val sft = createNewSchema("dtg:Date,ts:Timestamp:index=true,*geom:Point:srid=4326")
+      val f = ScalaSimpleFeature.create(sft, "0", "2018-01-01T00:00:00.000Z", "2018-01-01T00:00:00.000Z", "POINT (45 55)")
+      addFeature(sft, f)
+      val query = new Query(sft.getTypeName, ECQL.toFilter("ts = '2018-01-01T00:00:00.000Z'"))
+      SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList mustEqual Seq(f)
+    }
+
     "hex encode multibyte chars as multiple underscore + hex" in {
       // accumulo supports only alphanum + underscore aka ^\\w+$
       // this should end up hex encoded
