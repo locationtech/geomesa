@@ -18,8 +18,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
 import org.locationtech.geomesa.arrow.io.{DeltaWriter, DictionaryBuildingWriter}
-import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
+import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
 import org.locationtech.geomesa.index.api.QueryPlan.FeatureReducer
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -33,7 +33,7 @@ import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.ByteStreamCallbac
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, SimpleFeatureOrdering, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, RenderingGrid, SimpleFeatureOrdering, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.stats.{Stat, TopK}
 import org.locationtech.jts.geom.Envelope
@@ -398,21 +398,20 @@ object LocalQueryRunner {
     }
   }
 
-  private def densityTransform(features: CloseableIterator[SimpleFeature],
-                               sft: SimpleFeatureType,
-                               envelope: Envelope,
-                               width: Int,
-                               height: Int,
-                               weight: Option[String]): CloseableIterator[SimpleFeature] = {
-    val grid = new GridSnap(envelope, width, height)
-    val result = scala.collection.mutable.Map.empty[(Int, Int), Double].withDefaultValue(0d)
-    val getWeight = DensityScan.getWeight(sft, weight)
-    val writeGeom = DensityScan.writeGeometry(sft, grid)
-    try { features.foreach(f => writeGeom(f, getWeight(f), result)) } finally { features.close() }
+  private def densityTransform(
+      features: CloseableIterator[SimpleFeature],
+      sft: SimpleFeatureType,
+      envelope: Envelope,
+      width: Int,
+      height: Int,
+      weight: Option[String]): CloseableIterator[SimpleFeature] = {
+    val renderer = DensityScan.getRenderer(sft, weight)
+    val grid = new RenderingGrid(envelope, width, height)
+    try { features.foreach(renderer.render(grid, _)) } finally { features.close() }
 
     val sf = new ScalaSimpleFeature(DensityScan.DensitySft, "", Array(GeometryUtils.zeroPoint))
     // Return value in user data so it's preserved when passed through a RetypingFeatureCollection
-    sf.getUserData.put(DensityScan.DensityValueKey, DensityScan.encodeResult(result))
+    sf.getUserData.put(DensityScan.DensityValueKey, DensityScan.encodeResult(grid))
     CloseableIterator(Iterator(sf))
   }
 

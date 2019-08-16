@@ -12,11 +12,12 @@ import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan
-import org.locationtech.geomesa.index.iterators.DensityScan.{DensityResult, DensityResultsToFeatures}
+import org.locationtech.geomesa.index.iterators.DensityScan.DensityResultsToFeatures
+import org.locationtech.geomesa.utils.geotools.RenderingGrid
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-class HBaseDensityAggregator extends DensityScan with HBaseAggregator[DensityResult]
+class HBaseDensityAggregator extends DensityScan with HBaseAggregator[RenderingGrid]
 
 object HBaseDensityAggregator {
 

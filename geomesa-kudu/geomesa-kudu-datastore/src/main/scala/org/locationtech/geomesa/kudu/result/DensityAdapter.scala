@@ -11,7 +11,6 @@ package org.locationtech.geomesa.kudu.result
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-import org.locationtech.jts.geom.Envelope
 import org.apache.kudu.client.RowResult
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -23,8 +22,9 @@ import org.locationtech.geomesa.kudu.schema.KuduIndexColumnAdapter.{FeatureIdAda
 import org.locationtech.geomesa.kudu.schema.{KuduSimpleFeatureSchema, RowResultSimpleFeature}
 import org.locationtech.geomesa.security.VisibilityEvaluator
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, RenderingGrid, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.ByteBuffers.ExpandingByteBuffer
+import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -68,16 +68,14 @@ case class DensityAdapter(sft: SimpleFeatureType,
   override def result: SimpleFeatureType = DensityScan.DensitySft
 
   override def adapt(results: CloseableIterator[RowResult]): CloseableIterator[SimpleFeature] = {
-    val grid = new GridSnap(envelope, width, height)
-    val result = scala.collection.mutable.Map.empty[(Int, Int), Double].withDefaultValue(0d)
-    val getWeight = DensityScan.getWeight(sft, weight)
-    val writeGeom = DensityScan.writeGeometry(sft, grid)
+    val renderer = DensityScan.getRenderer(sft, weight)
+    val grid = new RenderingGrid(envelope, width, height)
     try {
       results.foreach { row =>
         val vis = VisibilityAdapter.readFromRow(row)
         if ((vis == null || VisibilityEvaluator.parse(vis).evaluate(auths)) &&
             { feature.setRowResult(row); ecql.forall(_.evaluate(feature)) }) {
-          writeGeom(feature, getWeight(feature), result)
+          renderer.render(grid, feature)
         }
       }
     } finally {
@@ -86,7 +84,7 @@ case class DensityAdapter(sft: SimpleFeatureType,
 
     val sf = new ScalaSimpleFeature(DensityScan.DensitySft, "", Array(GeometryUtils.zeroPoint))
     // Return value in user data so it's preserved when passed through a RetypingFeatureCollection
-    sf.getUserData.put(DensityScan.DensityValueKey, DensityScan.encodeResult(result))
+    sf.getUserData.put(DensityScan.DensityValueKey, DensityScan.encodeResult(grid))
     CloseableIterator(Iterator.single(sf))
   }
 
