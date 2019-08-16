@@ -56,6 +56,7 @@ trait NearestNeighborsMethods {
  *
  */
 object NearestNeighbors {
+
   def apply(aFeatureForSearch: SimpleFeature, numDesired: Int): NearestNeighbors = {
     aFeatureForSearch.point match {
       case aPoint: Point => NearestNeighbors(aPoint, numDesired)

@@ -15,7 +15,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geohash.GeoHash
-import org.opengis.feature.simple.SimpleFeature
+import org.locationtech.jts.geom.Point
 
 import scala.annotation.tailrec
 
@@ -31,20 +31,21 @@ object KNNQuery extends LazyLogging {
    * Situations where maxDistanceInMeters is set too small may cause the search to not actually find the K nearest neighbors,
    * but still permit K neighbors to be found, resulting in incorrect results. To be addressed in GEOMESA-285.
    */
-  def runNewKNNQuery(source: SimpleFeatureSource,
-                     query: Query,
-                     numDesired: Int,
-                     searchDistanceInMeters: Double,
-                     maxDistanceInMeters: Double,
-                     aFeatureForSearch: SimpleFeature): NearestNeighbors = {
+  def runNewKNNQuery(
+      source: SimpleFeatureSource,
+      query: Query,
+      numDesired: Int,
+      searchDistanceInMeters: Double,
+      maxDistanceInMeters: Double,
+      point: Point): NearestNeighbors = {
 
     // setup the GeoHashSpiral -- it requires the search point,
     // an estimate of the area containing the K Nearest Neighbors,
     // and a maximum distance for search as a safeguard
-    val geoHashPQ = GeoHashSpiral(aFeatureForSearch, searchDistanceInMeters, maxDistanceInMeters)
+    val geoHashPQ = GeoHashSpiral(point, searchDistanceInMeters, maxDistanceInMeters)
 
     // setup the NearestNeighbors PriorityQueue -- this is the last usage of aFeatureForSearch
-    val sfPQ = NearestNeighbors(aFeatureForSearch, numDesired)
+    val sfPQ = NearestNeighbors(point, numDesired)
 
     // begin the search with the recursive method
     runKNNQuery(source, query, geoHashPQ, sfPQ)

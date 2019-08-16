@@ -40,13 +40,23 @@ object GeometryUtils extends LazyLogging {
     */
   def distanceDegrees(geom: Geometry, meters: Double): (Double, Double) = {
     geom match {
-      case p: Point => distanceDegrees(p, meters)
+      case p: Point => distanceDegrees(p, meters, new GeodeticCalculator())
       case _        => distanceDegrees(geom.getEnvelopeInternal, meters)
     }
   }
 
-  private def distanceDegrees(point: Point, meters: Double): (Double, Double) = {
-    val calc = new GeodeticCalculator()
+  /**
+    * Convert meters to decimal degrees, based on the latitude of the geometry.
+    *
+    * Returns two values, ones based on latitude and one based on longitude. The first value
+    * will always be &lt;= the second value
+    *
+    * @param point geometry to buffer
+    * @param meters meters
+    * @param calc geodetic calculator instance
+    * @return (min degrees, max degrees)
+    */
+  def distanceDegrees(point: Point, meters: Double, calc: GeodeticCalculator): (Double, Double) = {
     calc.setStartingGeographicPoint(point.getX, point.getY)
     val north = {
       calc.setDirection(0, meters)
@@ -63,7 +73,19 @@ object GeometryUtils extends LazyLogging {
     if (east > north) { (north, east) } else { (east, north) }
   }
 
-  private def distanceDegrees(env: Envelope, meters: Double): (Double, Double) = {
+  /**
+    * Convert meters to decimal degrees, based on the latitude of the geometry.
+    *
+    * Returns two values, ones based on latitude and one based on longitude. The first value
+    * will always be &lt;= the second value
+    *
+    * Distances are measured from the corners of the geometry envelope
+    *
+    * @param env envelope to buffer
+    * @param meters meters
+    * @return (min degrees, max degrees)
+    */
+  def distanceDegrees(env: Envelope, meters: Double): (Double, Double) = {
     val distances = Seq(
       distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMaxX, env.getMaxY)), meters),
       distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMaxX, env.getMinY)), meters),
