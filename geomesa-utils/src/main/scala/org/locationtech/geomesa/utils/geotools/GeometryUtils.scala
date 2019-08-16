@@ -8,14 +8,17 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import com.typesafe.scalalogging.LazyLogging
 import com.vividsolutions.jts.geom._
-import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.geometry.jts.{JTSFactoryFinder, ReferencedEnvelope}
 import org.geotools.referencing.GeodeticCalculator
+
+import scala.util.control.NonFatal
 
 /**
  * The object provides convenience methods for common operations on geometries.
  */
-object GeometryUtils {
+object GeometryUtils extends LazyLogging {
 
   val geoFactory = JTSFactoryFinder.getGeometryFactory
 
@@ -142,5 +145,48 @@ object GeometryUtils {
     val slope = (point1.y - point2.y) / (point1.x - point2.x);
     val intercept = point1.y - (slope * point1.x);
     (slope * crossLon) + intercept;
+  }
+
+  /**
+    * Split a bounding box envelope, which may extend outside [-180,180], into one or more envelopes
+    * that are contained within [-180,180]
+    *
+    * @param envelope envelope of a bounding box
+    * @return
+    */
+  def splitBoundingBox(envelope: ReferencedEnvelope): Seq[ReferencedEnvelope] = {
+    try {
+      val crs = envelope.getCoordinateReferenceSystem
+
+      // if the bbox is completely outside world bounds, translate to bring it back in
+      val translated = if (envelope.getMinX >= 180d) {
+        val multiplier = math.ceil((envelope.getMinX - 180d) / 360d)
+        val left = envelope.getMinX - 360d * multiplier
+        val right = envelope.getMaxX - 360d * multiplier
+        new ReferencedEnvelope(left, right, envelope.getMinY, envelope.getMaxY, crs)
+      } else if (envelope.getMaxX <= -180d) {
+        val multiplier = math.ceil((envelope.getMaxX + 180d) / -360d)
+        val left = envelope.getMinX + 360d * multiplier
+        val right = envelope.getMaxX + 360d * multiplier
+        new ReferencedEnvelope(left, right, envelope.getMinY, envelope.getMaxY, crs)
+      } else {
+        envelope
+      }
+
+      // if the bbox extends past world bounds, split and wrap it
+      if (translated.getMinX < -180d && translated.getMaxX < 180d) {
+        val trimmed = new ReferencedEnvelope(-180d , translated.getMaxX, envelope.getMinY, envelope.getMaxY, crs)
+        val wrapped = new ReferencedEnvelope(translated.getMinX + 360d , 180d, envelope.getMinY, envelope.getMaxY, crs)
+        Seq(trimmed, wrapped)
+      } else if (translated.getMaxX > 180d && translated.getMinX > -180d) {
+        val trimmed = new ReferencedEnvelope(translated.getMinX, 180d, envelope.getMinY, envelope.getMaxY, crs)
+        val wrapped = new ReferencedEnvelope(-180d, translated.getMaxX - 360d, envelope.getMinY, envelope.getMaxY, crs)
+        Seq(trimmed, wrapped)
+      } else {
+        Seq(translated)
+      }
+    } catch {
+      case NonFatal(e) => logger.warn(s"Error splitting bounding box envelope '$envelope':", e); Seq(envelope)
+    }
   }
 }

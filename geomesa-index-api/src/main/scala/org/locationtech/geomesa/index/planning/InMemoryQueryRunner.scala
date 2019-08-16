@@ -23,7 +23,7 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.KryoLazyStatsUtils
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, SimpleFeatureOrdering}
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, RenderingGrid, SimpleFeatureOrdering}
 import org.locationtech.geomesa.utils.stats.{Stat, TopK}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -212,15 +212,13 @@ object InMemoryQueryRunner {
                                width: Int,
                                height: Int,
                                weight: Option[String]): Iterator[SimpleFeature] = {
-    val grid = new GridSnap(envelope, width, height)
-    val result = scala.collection.mutable.Map.empty[(Int, Int), Double].withDefaultValue(0d)
-    val getWeight = DensityScan.getWeight(sft, weight)
-    val writeGeom = DensityScan.writeGeometry(sft, grid)
-    features.foreach(f => writeGeom(f, getWeight(f), result))
+    val grid = new RenderingGrid(envelope, width, height)
+    val renderer = DensityScan.getRenderer(sft, weight)
+    features.foreach(f => renderer.render(grid, f))
 
     val sf = new ScalaSimpleFeature(DensityScan.DensitySft, "", Array(GeometryUtils.zeroPoint))
     // Return value in user data so it's preserved when passed through a RetypingFeatureCollection
-    sf.getUserData.put(DensityScan.DensityValueKey, DensityScan.encodeResult(result))
+    sf.getUserData.put(DensityScan.DensityValueKey, DensityScan.encodeResult(grid))
     Iterator(sf)
   }
 
