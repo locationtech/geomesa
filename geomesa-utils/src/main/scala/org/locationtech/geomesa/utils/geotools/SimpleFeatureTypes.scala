@@ -305,7 +305,7 @@ object SimpleFeatureTypes {
   def encodeUserData(sft: SimpleFeatureType): String = {
     val prefixes = sft.getUserDataPrefixes
     val result = new StringBuilder(";")
-    sft.getUserData.asScala.foreach { case (k, v) =>
+    sft.getUserData.asScala.foreach { case (k: AnyRef, v: AnyRef) =>
       if (v != null && prefixes.exists(k.toString.startsWith)) {
         result.append(encodeUserData(k, v)).append(",")
       }
@@ -313,7 +313,7 @@ object SimpleFeatureTypes {
     if (result.lengthCompare(1) > 0) { result.substring(0, result.length - 1) } else { "" }
   }
 
-  def encodeUserData(data: java.util.Map[AnyRef, AnyRef]): String = {
+  def encodeUserData(data: java.util.Map[_ <: AnyRef, _ <: AnyRef]): String = {
     if (data.isEmpty) { "" } else {
       val result = new StringBuilder(";")
       data.asScala.foreach { case (k, v) =>
@@ -445,6 +445,59 @@ object SimpleFeatureTypes {
     val renamed = builder.buildFeatureType()
     renamed.getUserData.putAll(sft.getUserData)
     renamed
+  }
+
+  /**
+    * Compare two feature types. This method compares the the schemas of each feature type, i.e. the
+    * names and type bindings of the attributes. The result will be:
+    *
+    * <ul>
+    *   <li>a positive int if type A is a sub type or reorder of type B</li>
+    *   <li>zero if type A has the same schema as type B</li>
+    *   <li>a negative int if none of the above</li>
+    * </ul>
+    *
+    * Note that this shouldn't be used for sorting.
+    *
+    * Note: GeoTools DataUtilities has a similar method that does not work correctly
+    *
+    * @param a schema A
+    * @param b schema B
+    * @return comparison
+    */
+  def compare(a: SimpleFeatureType, b: SimpleFeatureType): Int = {
+    if (a.getAttributeCount > b.getAttributeCount) {
+      return -1 // not equals, subtype or reorder
+    }
+
+    var exact = a.getAttributeCount == b.getAttributeCount
+
+    var i = 0
+    while (i < a.getAttributeCount) {
+      val ad = a.getDescriptor(i)
+      val bd = b.getDescriptor(i)
+      if (ad.getLocalName == bd.getLocalName) {
+        if (ad.getType.getBinding != bd.getType.getBinding) {
+          if (bd.getType.getBinding.isAssignableFrom(ad.getType.getBinding)) {
+            exact = false // we've seen a subtyping
+          } else {
+            return -1 // not a subtype/reorder
+          }
+        }
+      } else {
+        val reorder = b.getDescriptor(ad.getLocalName)
+        if (reorder == null || !reorder.getType.getBinding.isAssignableFrom(ad.getType.getBinding)) {
+          return -1 // not a subtype/reorder
+        } else {
+          exact = false // we've seen a reordering
+        }
+      }
+      i += 1
+    }
+
+    if (exact) { 0 } else {
+      1  // we haven't hit an absolute inequality, but we've found a reordering or subtype
+    }
   }
 
   private def createFeatureType(namespace: String,

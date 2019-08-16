@@ -16,7 +16,7 @@ import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.{FilenameUtils, IOUtils}
-import org.geotools.data.DataStore
+import org.geotools.data.{DataStore, DataUtilities}
 import org.locationtech.geomesa.convert.ConverterConfigLoader
 import org.locationtech.geomesa.convert.all.TypeAwareInference
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
@@ -184,10 +184,7 @@ object IngestCommand extends LazyLogging {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 
     // try to load the sft, first check for an existing schema, then load from the params/environment
-    var sft: SimpleFeatureType =
-      Option(params.featureName).flatMap(n => command.flatMap(_.withDataStore(ds => Try(ds.getSchema(n)).filter(_ != null).toOption)))
-          .orElse(Option(params.spec).flatMap(s => Option(CLArgResolver.getSft(s, params.featureName))))
-          .orNull
+    var sft: SimpleFeatureType = loadSft(params, command).orNull
 
     var converter: Config = Option(params.config).map(CLArgResolver.getConfig).orNull
 
@@ -280,6 +277,41 @@ object IngestCommand extends LazyLogging {
       s"and failed to ingest ${TextTools.getPlural(failures, "feature")}"
     }
     s"$action ${TextTools.getPlural(successes, "feature")} $failureString$input"
+  }
+
+  /**
+    * Tries to load a feature type, first from the data store then from the params/environment
+    *
+    * @param params params
+    * @param command command with data store access
+    * @return
+    */
+  private def loadSft(
+      params: TypeNameParam with FeatureSpecParam,
+      command: Option[DataStoreCommand[_ <: DataStore]]): Option[SimpleFeatureType] = {
+    val fromStore = for {
+      cmd  <- command
+      name <- Option(params.featureName)
+      sft  <- cmd.withDataStore(ds => Try(ds.getSchema(name)).filter(_ != null).toOption)
+    } yield {
+      sft
+    }
+    lazy val fromEnv = Option(params.spec).map(CLArgResolver.getSft(_, params.featureName)).orElse {
+      Option(params.featureName).flatMap(name => Try(CLArgResolver.getSft(name)).toOption)
+    }
+
+    if (logger.underlying.isWarnEnabled()) {
+      for { fs <- fromStore; fe <- fromEnv } {
+        if (fs.getTypeName != fe.getTypeName || SimpleFeatureTypes.compare(fs, fe) != 0) {
+          logger.warn(
+            "Schema from data store does not match schema from environment." +
+              s"\n  From data store:  ${fs.getTypeName} identified ${DataUtilities.encodeType(fs)}" +
+              s"\n  From environment: ${fe.getTypeName} identified ${DataUtilities.encodeType(fe)}")
+        }
+      }
+    }
+
+    fromStore.orElse(fromEnv)
   }
 
   private def writeInferredConverter(typeName: String, converterString: String, schemaString: Option[String]): Unit = {
