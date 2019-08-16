@@ -7,7 +7,7 @@ and column-based encodings for efficient OLAP queries. GeoMesa FSDS can run on t
 filesystem including Amazon S3, Hadoop HDFS, Google FileStorage, and Azure BlobStore. This enables users to realize
 cost savings through the utilization of elastic compute resources in lieu of dedicated servers.
 
-The FileSystem datastore can be used to ETL new data into a filesystem or  wrap existing file system storage directories
+The FileSystem datastore can be used to ETL new data into a filesystem or wrap existing file system storage directories
 using a GeoMesa converter. In both modes the user must provide a defined partition scheme describing the layout of the
 directory structures.
 
@@ -23,5 +23,6 @@ directory structures.
     index_config
     partition_schemes
     metadata
+    modify_features
     example
     spark_example

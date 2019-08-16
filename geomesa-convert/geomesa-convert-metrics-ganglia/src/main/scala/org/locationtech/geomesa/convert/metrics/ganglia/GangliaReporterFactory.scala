@@ -17,6 +17,7 @@ import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import info.ganglia.gmetric4j.gmetric.GMetric
 import info.ganglia.gmetric4j.gmetric.GMetric.UDPAddressingMode
 import org.locationtech.geomesa.convert2.metrics.ReporterFactory
+import pureconfig.ConfigReader
 
 class GangliaReporterFactory extends ReporterFactory {
 
@@ -48,10 +49,14 @@ class GangliaReporterFactory extends ReporterFactory {
 
 object GangliaReporterFactory {
 
-  case class GangliaConfig(group: String, port: Int, addressingMode: String, ttl: Int, ganglia311: Boolean)
+  import pureconfig.generic.semiauto._
 
   val GangliaDefaults: Config =
     ConfigFactory.empty
         .withValue("addressing-mode", ConfigValueFactory.fromAnyRef("unicast"))
         .withValue("ganglia311", ConfigValueFactory.fromAnyRef("true"))
+
+  implicit val GangliaConfigReader: ConfigReader[GangliaConfig] = deriveReader[GangliaConfig]
+
+  case class GangliaConfig(group: String, port: Int, addressingMode: String, ttl: Int, ganglia311: Boolean)
 }

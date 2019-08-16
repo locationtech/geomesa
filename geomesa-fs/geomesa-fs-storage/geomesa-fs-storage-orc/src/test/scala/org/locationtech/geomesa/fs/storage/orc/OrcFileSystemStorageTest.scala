@@ -20,7 +20,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, FileSystemStorage, Metadata, NamedOptions}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme
@@ -28,6 +28,7 @@ import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -183,6 +184,67 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
         }
       }
     }
+
+    "modify and delete features" in {
+      val sft = SimpleFeatureTypes.createType("orc-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
+
+      val features = (0 until 10).map { i =>
+        val sf = new ScalaSimpleFeature(sft, i.toString)
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.setAttribute(1, s"name$i")
+        sf.setAttribute(2, s"$i")
+        sf.setAttribute(3, f"2014-01-${i + 1}%02dT00:00:01.000Z")
+        sf.setAttribute(0, s"POINT(4$i 5$i)")
+        sf
+      }
+
+      withTestDir { dir =>
+        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val metadata =
+          new FileBasedMetadataFactory()
+              .create(context, Map.empty, Metadata(sft, "orc", scheme, leafStorage = true))
+        val storage = new OrcFileSystemStorageFactory().apply(context, metadata)
+
+        storage must not(beNull)
+
+        val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+
+        features.foreach { f =>
+          val partition = storage.metadata.scheme.getPartitionName(f)
+          val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+          writer.write(f)
+        }
+
+        writers.foreach(_._2.close())
+
+        logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+
+        testQuery(storage, sft)("INCLUDE", null, features)
+
+        val updater = storage.getWriter(Filter.INCLUDE)
+
+        updater.hasNext must beTrue
+        while (updater.hasNext) {
+          val feature = updater.next
+          if (feature.getID == "0") {
+            updater.remove()
+          } else if (feature.getID == "1") {
+            feature.setAttribute(1, "name-updated")
+            updater.write()
+          }
+        }
+        updater.close()
+
+        val updates = features.drop(2) :+ {
+          val mod = ScalaSimpleFeature.copy(features.drop(1).head)
+          mod.setAttribute("name", "name-updated")
+          mod
+        }
+
+        testQuery(storage, sft)("INCLUDE", null, updates)
+      }
+    }
+
     "transition old metadata files" in {
       withTestDir { dir =>
         val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
@@ -201,9 +263,9 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
         storage.metadata.scheme must beAnInstanceOf[DateTimeScheme]
         storage.getPartitions must containTheSameElementsAs(
           Seq(
-            PartitionMetadata("2015/05/06", Seq("06_Wb48cb7293793447480c0885f3f4bb56a.orc"), None, 0L),
-            PartitionMetadata("2015/06/07", Seq("07_W25d311113f0b4bad819f209f00a58173.orc"), None, 0L),
-            PartitionMetadata("2015/10/23", Seq("23_Weedeb59bad0d4521b2ae46189eac4a4d.orc"), None, 0L)
+            PartitionMetadata("2015/05/06", Seq(StorageFile("06_Wb48cb7293793447480c0885f3f4bb56a.orc", 0L)), None, 0L),
+            PartitionMetadata("2015/06/07", Seq(StorageFile("07_W25d311113f0b4bad819f209f00a58173.orc", 0L)), None, 0L),
+            PartitionMetadata("2015/10/23", Seq(StorageFile("23_Weedeb59bad0d4521b2ae46189eac4a4d.orc", 0L)), None, 0L)
           )
         )
       }

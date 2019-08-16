@@ -26,6 +26,7 @@ import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFact
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -136,7 +137,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
           }
         )
         sf.setAttribute("mline", s"MULTILINESTRING((0 2, 2 $i, 8 6),(0 $i, 2 $i, 8 ${10 - i}))")
-        sf.setAttribute("mpoly", s"MULTIPOLYGON(((-1 0, 0 $i, 1 0, 0 -1, -1 0)), ((-2 6, 1 6, 1 3, -2 3, -2 6)), ((-1 5, 2 5, 2 2, -1 2, -1 5)))")
+        sf.setAttribute("mpoly", s"MULTIPOLYGON(((-1 0, 0 $i, 1 0, 0 -1, -1 0)), ((-2 6, 1 6, 1 3, -2 3, -2 6), (-1 5, 2 5, 2 2, -1 2, -1 5)))")
         sf.setAttribute("dtg", f"2014-01-${i + 1}%02dT00:00:01.000Z")
         sf.setAttribute("geom", s"POINT(4$i 5$i)")
         sf
@@ -183,6 +184,66 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
           doTest("age < 5", transforms, features.take(5))
           doTest("age > 5", transforms, features.drop(6))
         }
+      }
+    }
+
+    "modify and delete features" in {
+      val sft = SimpleFeatureTypes.createType("orc-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
+
+      val features = (0 until 10).map { i =>
+        val sf = new ScalaSimpleFeature(sft, i.toString)
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.setAttribute(1, s"name$i")
+        sf.setAttribute(2, s"$i")
+        sf.setAttribute(3, f"2014-01-${i + 1}%02dT00:00:01.000Z")
+        sf.setAttribute(0, s"POINT(4$i 5$i)")
+        sf
+      }
+
+      withTestDir { dir =>
+        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val metadata =
+          new FileBasedMetadataFactory()
+              .create(context, Map.empty, Metadata(sft, "orc", scheme, leafStorage = true))
+        val storage = new ParquetFileSystemStorageFactory().apply(context, metadata)
+
+        storage must not(beNull)
+
+        val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+
+        features.foreach { f =>
+          val partition = storage.metadata.scheme.getPartitionName(f)
+          val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+          writer.write(f)
+        }
+
+        writers.foreach(_._2.close())
+
+        logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+
+        testQuery(storage, sft)("INCLUDE", null, features)
+
+        val updater = storage.getWriter(Filter.INCLUDE)
+
+        updater.hasNext must beTrue
+        while (updater.hasNext) {
+          val feature = updater.next
+          if (feature.getID == "0") {
+            updater.remove()
+          } else if (feature.getID == "1") {
+            feature.setAttribute(1, "name-updated")
+            updater.write()
+          }
+        }
+        updater.close()
+
+        val updates = features.drop(2) :+ {
+          val mod = ScalaSimpleFeature.copy(features.drop(1).head)
+          mod.setAttribute("name", "name-updated")
+          mod
+        }
+
+        testQuery(storage, sft)("INCLUDE", null, updates)
       }
     }
 

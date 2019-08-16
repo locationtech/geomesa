@@ -10,11 +10,10 @@ package org.locationtech.geomesa.fs.storage.api
 
 import java.io.{Closeable, Flushable}
 
-import org.apache.hadoop.fs.Path
 import org.geotools.data.Query
-import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemUpdateWriter, FileSystemWriter}
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFilePath}
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 
@@ -109,7 +108,17 @@ trait FileSystemStorage extends Compactable with Closeable {
     * @param partition partition
     * @return file paths
     */
-  def getFilePaths(partition: String): Seq[Path]
+  def getFilePaths(partition: String): Seq[StorageFilePath]
+
+  /**
+    * Get a reader for all relevant partitions
+    *
+    * @param query query
+    * @param partition restrict results to a single partition
+    * @param threads suggested threads used for reading data files
+    * @return reader
+    */
+  def getReader(query: Query, partition: Option[String] = None, threads: Int = 1): CloseableFeatureIterator
 
   /**
     * Get a writer for a given partition. This method is thread-safe and can be called multiple times,
@@ -121,14 +130,17 @@ trait FileSystemStorage extends Compactable with Closeable {
   def getWriter(partition: String): FileSystemWriter
 
   /**
-    * Get a reader for all relevant partitions
+    * Gets a modifying writer. This method is thread-safe and can be called multiple times,
+    * although if a feature is modified multiple times concurrently, the last update 'wins'.
+    * There is no guarantee that any concurrent modifications will be reflected in the returned
+    * writer.
     *
-    * @param query query
-    * @param partition restrict results to a single partition
+    * @param filter the filter used to select features for modification
+    * @param partition restrict results to a single partition (writes will go to the appropriate partition, regardless)
     * @param threads suggested threads used for reading data files
-    * @return reader
+    * @return
     */
-  def getReader(query: Query, partition: Option[String] = None, threads: Int = 1): CloseableFeatureIterator
+  def getWriter(filter: Filter, partition: Option[String] = None, threads: Int = 1): FileSystemUpdateWriter
 
   override def close(): Unit = metadata.close()
 }
@@ -143,5 +155,18 @@ object FileSystemStorage {
       * @param feature feature
       */
     def write(feature: SimpleFeature): Unit
+  }
+
+  trait FileSystemUpdateWriter extends Iterator[SimpleFeature] with Closeable with Flushable {
+
+    /**
+      * Writes a modification to the last feature returned by `next`
+      */
+    def write(): Unit
+
+    /**
+      * Deletes the last feature returned by `next`
+      */
+    def remove(): Unit
   }
 }
