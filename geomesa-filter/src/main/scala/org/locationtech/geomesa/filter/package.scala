@@ -344,25 +344,23 @@ package object filter {
     }
   }
 
-  // Currently pulling the wildcard values from the filter
-  // leads to inconsistent results...so use % as wildcard
-  // TODO try to use wildcard values from the Filter itself (https://geomesa.atlassian.net/browse/GEOMESA-309)
-  val MULTICHAR_WILDCARD = "%"
-  val SINGLE_CHAR_WILDCARD = "_"
+  val WildcardMultiChar = '%'
+  val WildcardSingleChar = '_'
+  val Wildcards = Seq(WildcardMultiChar, WildcardSingleChar)
 
-  val WILDCARD_SUFFIX = "\uffff\uffff\uffff"
+  val WildcardSuffix = "\uffff\uffff\uffff"
 
-  /* Like queries that can be handled by current reverse index */
-  def likeEligible(filter: PropertyIsLike): Boolean = containsNoSingles(filter) && trailingOnlyWildcard(filter)
-
-  /* contains no single character wildcards */
-  private def containsNoSingles(filter: PropertyIsLike) =
-    !filter.getLiteral.replace("\\\\", "").replace(s"\\$SINGLE_CHAR_WILDCARD", "").contains(SINGLE_CHAR_WILDCARD)
-
-  private def trailingOnlyWildcard(filter: PropertyIsLike) =
-    (filter.getLiteral.endsWith(MULTICHAR_WILDCARD) &&
-        filter.getLiteral.indexOf(MULTICHAR_WILDCARD) == filter.getLiteral.length - MULTICHAR_WILDCARD.length) ||
-        filter.getLiteral.indexOf(MULTICHAR_WILDCARD) == -1
+  /**
+    * Like queries we can handle with our current index
+    *
+    * @param filter filter
+    * @return
+    */
+  def likeEligible(filter: PropertyIsLike): Boolean = {
+    val lit = filter.getLiteral
+    // no leading wildcard (otherwise it's a full table scan)
+    lit.nonEmpty && !Wildcards.contains(lit.charAt(0))
+  }
 
   def decomposeBinary(f: Filter): Seq[Filter] =
     f match {
