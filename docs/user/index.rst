@@ -20,8 +20,8 @@ User Manual
    process
    hbase/index
    accumulo/index
-   bigtable/index
    cassandra/index
+   bigtable/index
    kafka/index
    redis/index
    filesystem/index
