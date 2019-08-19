@@ -73,6 +73,6 @@ object GeoMesaDataStoreFactory {
     def DisplayName: String
     def Description: String
     def ParameterInfo: Array[GeoMesaParam[_]]
-    def canProcess(params: java.util.Map[String,Serializable]): Boolean
+    def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean
   }
 }

@@ -17,7 +17,7 @@ import org.apache.spark.sql.types.StructType
 import org.geotools.data.DataStore
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.spark.GeoMesaSparkSQL._
-import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -45,48 +45,29 @@ class GeoMesaDataSource extends DataSourceRegister
 
   override def createRelation(sqlContext: SQLContext, parameters: Map[String, String]): BaseRelation = {
     SQLTypes.init(sqlContext)
-
-    // TODO: Need different ways to retrieve sft
-    //  GEOMESA-1643 Add method to lookup SFT to RDD Provider
-    //  Below the details of the Converter RDD Provider and Providers which are backed by GT DSes are leaking through
-
-    val sqlFeature = parameters.getOrElse(GEOMESA_SQL_FEATURE,
-      throw new IllegalArgumentException(s"Feature type must be specified with '$GEOMESA_SQL_FEATURE'"))
-
-    val sft = WithStore[DataStore](parameters) { ds =>
-      if (ds != null) {
-        Option(ds.getSchema(sqlFeature)).getOrElse {
-          throw new IllegalArgumentException(s"Schema '$sqlFeature' does not exist in the data store")
-        }
-      } else if (parameters.contains("geomesa.sft")) {
-        SimpleFeatureTypes.createType(sqlFeature, parameters("geomesa.sft"))
-      } else {
-        SftArgResolver.getArg(SftArgs(sqlFeature, sqlFeature)) match {
-          case Right(s) => s
-          case Left(e) => throw new IllegalArgumentException("Could not resolve simple feature type", e)
-        }
-      }
-    }
-
-    logger.trace(s"Creating GeoMesa Relation with sft : $sft")
-
-    val schema = SparkUtils.createStructType(sft)
-    GeoMesaRelation(sqlContext, sft, schema, parameters)
+    GeoMesaRelation(sqlContext, parameters)
   }
 
   // JNH: Q: Why doesn't this method have the call to SQLTypes.init(sqlContext)?
-  override def createRelation(sqlContext: SQLContext, parameters: Map[String, String], schema: StructType): BaseRelation = {
-    val sft = WithStore[DataStore](parameters)(_.getSchema(parameters(GEOMESA_SQL_FEATURE)))
-    GeoMesaRelation(sqlContext, sft, schema, parameters)
+  override def createRelation(
+      sqlContext: SQLContext,
+      parameters: Map[String, String],
+      schema: StructType): BaseRelation = {
+    GeoMesaRelation(sqlContext, parameters, schema)
   }
 
   @deprecated("Use SparkUtils.createFeatureType")
   def structType2SFT(struct: StructType, name: String): SimpleFeatureType =
     SparkUtils.createFeatureType(name, struct)
 
-  override def createRelation(sqlContext: SQLContext, mode: SaveMode, parameters: Map[String, String], data: DataFrame): BaseRelation = {
+  override def createRelation(
+      sqlContext: SQLContext,
+      mode: SaveMode,
+      parameters: Map[String, String],
+      data: DataFrame): BaseRelation = {
+
     val newFeatureName = parameters(GEOMESA_SQL_FEATURE)
-    val sft: SimpleFeatureType = SparkUtils.createFeatureType(newFeatureName, data.schema)
+    val sft = SparkUtils.createFeatureType(newFeatureName, data.schema)
 
     WithStore[DataStore](parameters) { ds =>
       if (ds.getTypeNames.contains(newFeatureName)) {
@@ -105,10 +86,10 @@ class GeoMesaDataSource extends DataSourceRegister
 
     val structType = if (data.queryExecution == null) { SparkUtils.createStructType(sft) } else { data.schema }
 
-    val rddToSave: RDD[SimpleFeature] = data.rdd.mapPartitions { iterRow =>
+    val rddToSave: RDD[SimpleFeature] = data.rdd.mapPartitions { partition =>
       val sft = WithStore[DataStore](parameters)(_.getSchema(newFeatureName))
       val mappings = SparkUtils.rowsToFeatures(sft, structType)
-      iterRow.map { row =>
+      partition.map { row =>
         val sf = mappings.apply(row)
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf
@@ -117,7 +98,7 @@ class GeoMesaDataSource extends DataSourceRegister
 
     GeoMesaSpark(parameters).save(rddToSave, parameters, newFeatureName)
 
-    GeoMesaRelation(sqlContext, sft, data.schema, parameters)
+    GeoMesaRelation(sqlContext, parameters, data.schema, sft)
   }
 
   // are schemas compatible? we're flexible with order, but require the same number, names and types

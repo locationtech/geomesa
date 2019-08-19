@@ -16,7 +16,7 @@ import org.apache.hadoop.mapreduce.Job
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.fs.data.{FileSystemDataStore, FileSystemDataStoreFactory}
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFileAction, StorageFilePath}
@@ -36,18 +36,15 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 
-  import scala.collection.JavaConverters._
-
-  override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
-    new FileSystemDataStoreFactory().canProcess(params)
+  override def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean =
+    FileSystemDataStoreFactory.canProcess(params)
 
   override def rdd(
       conf: Configuration,
       sc: SparkContext,
       params: Map[String, String],
       query: Query): SpatialRDD = {
-    val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[FileSystemDataStore]
-    try {
+    WithStore[FileSystemDataStore](params) { ds =>
       val sft = ds.getSchema(query.getTypeName)
       val storage = ds.storage(query.getTypeName)
 
@@ -121,8 +118,6 @@ class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
         rdds.reduceLeft(_ union _)
       }
       SpatialRDD(rdd, sft)
-    } finally {
-      ds.dispose()
     }
   }
 

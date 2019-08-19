@@ -44,7 +44,7 @@ import scala.collection.JavaConversions._
 class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
   import org.locationtech.geomesa.spark.CaseInsensitiveMapFix._
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     AccumuloDataStoreFactory.canProcess(params)
 
   override def rdd(conf: Configuration,
