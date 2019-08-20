@@ -211,11 +211,15 @@ class AttributeIndexTest extends Specification with LazyLogging {
         bub.setId("bub")
         bub.setAttribute("name", "bub")
         FeatureUtils.write(writer, bub, useProvidedFid = true)
+        val bobbed = ScalaSimpleFeature.copy(features(2))
+        bobbed.setId("bobbed")
+        bobbed.setAttribute("name", "bobbed")
+        FeatureUtils.write(writer, bobbed, useProvidedFid = true)
       }
 
       val queries = Seq(
         "name like 'alice'" -> Seq("alice"),
-        "name like 'b%'"    -> Seq("bill", "bob", "bot", "bub"),
+        "name like 'b%'"    -> Seq("bill", "bob", "bobbed", "bot", "bub"),
         "name like 'bo_'"   -> Seq("bob", "bot"),
         "name like 'b_b'"   -> Seq("bob", "bub"),
         "name like 'b%b'"   -> Seq("bob", "bub"),
