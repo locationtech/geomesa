@@ -8,19 +8,7 @@
 
 package org.locationtech.geomesa.spark
 
-import java.io.{BufferedWriter, StringWriter}
 import java.util.ServiceLoader
-
-import org.apache.hadoop.conf.Configuration
-import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
-import org.apache.spark.{Partition, SparkContext, TaskContext}
-import org.apache.spark.rdd.RDD
-import org.geotools.data.Query
-import org.geotools.geojson.feature.FeatureJSON
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-
-import scala.collection.JavaConversions._
 
 object GeoMesaSpark {
 

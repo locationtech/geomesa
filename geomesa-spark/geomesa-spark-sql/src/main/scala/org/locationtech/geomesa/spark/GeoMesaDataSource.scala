@@ -37,8 +37,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 class GeoMesaDataSource extends DataSourceRegister
     with RelationProvider with SchemaRelationProvider with CreatableRelationProvider with LazyLogging {
 
-  import CaseInsensitiveMapFix._
-
   import scala.collection.JavaConverters._
 
   override def shortName(): String = "geomesa"
@@ -96,7 +94,7 @@ class GeoMesaDataSource extends DataSourceRegister
       }
     }
 
-    GeoMesaSpark(parameters).save(rddToSave, parameters, newFeatureName)
+    GeoMesaSpark(parameters.asJava).save(rddToSave, parameters, newFeatureName)
 
     GeoMesaRelation(sqlContext, parameters, data.schema, sft)
   }
