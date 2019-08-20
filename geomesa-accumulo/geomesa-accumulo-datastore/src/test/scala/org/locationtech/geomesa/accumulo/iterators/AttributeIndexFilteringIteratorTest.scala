@@ -60,11 +60,6 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
       // Try out wildcard queries using the % wildcard syntax.
       // Test single wildcard, trailing, leading, and both trailing & leading wildcards
 
-      // % should return all features
-      val wildCardQuery = new Query(sftName, ff.like(ff.property("name"),"%"))
-      checkStrategies(wildCardQuery, JoinIndex)
-      SelfClosingIterator(fs.getFeatures(wildCardQuery)).toSeq must haveLength(16)
-
       forall(List("a", "b", "c", "d")) { letter =>
         // 4 features for this letter
         val leftWildCard = new Query(sftName, ff.like(ff.property("name"),s"%$letter"))
