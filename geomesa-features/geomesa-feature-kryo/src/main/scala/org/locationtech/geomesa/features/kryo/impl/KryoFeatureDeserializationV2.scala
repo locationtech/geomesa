@@ -24,6 +24,18 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
 
+/**
+  * Version 2 serialization scheme consists of:
+  *
+  * <ol>
+  *   <li>one byte containing the serialization version (2)</li>
+  *   <li>four byte int containing the offset to the per-attribute offsets</li>
+  *   <li>the feature id as a string (if `withId`)</li>
+  *   <li>the serialized attributes, in order, each prepended with a byte 0 or 1 to indicate null/not null</li>
+  *   <li>a variable length int (1-4 bytes) per attribute, for the offset to the start of the attribute in the serialized bytes</li>
+  *   <li>the serialized user data (if `withUserData`)</li>
+  * </ol>
+  */
 object KryoFeatureDeserializationV2 extends LazyLogging {
 
   private val readers = new SoftThreadLocalCache[String, Array[Input => AnyRef]]()

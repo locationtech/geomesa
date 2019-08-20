@@ -15,6 +15,27 @@ import org.locationtech.geomesa.features.kryo.impl.LazyDeserialization.{Immutabl
 import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureSerialization}
 import org.opengis.feature.simple.SimpleFeatureType
 
+/**
+  * Kryo feature serialization and deserialization.
+  *
+  * The current serialization scheme (version 3):
+  *
+  * <ol>
+  *   <li>one byte containing the serialization version (3)</li>
+  *   <li>two bytes for a short containing the number of serialized attributes. this supports
+  *       appending attributes to the schema, as we know how many attributes were written when deserializing</li>
+  *   <li>a known number of bytes for metadata, which consists of:
+  *     <ol>
+  *       <li>2 byte short per attribute for the offset to the start of the attribute in the serialized bytes</li>
+  *       <li>2 byte short for the offset to the start of the user data (or end of the feature if no user data)</li>
+  *       <li>4 bytes per 32 attributes (or part thereof) to store a bitset tracking null attributes</li>
+  *     </ol>
+  *   </li>
+  *   <li>the feature id as a string (if `withId`)</li>
+  *   <li>the serialized attributes, in order</li>
+  *   <li>the serialized user data (if `withUserData`)</li>
+  * </ol>
+  */
 trait KryoFeatureSerializer extends KryoFeatureSerialization with KryoFeatureDeserialization
 
 object KryoFeatureSerializer {
