@@ -60,6 +60,14 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     }
   }
 
+  /**
+    * Version 3 encoding. @see `org.locationtech.geomesa.features.kryo.KryoFeatureSerializer` for details on
+    * the serialization scheme
+    *
+    * @param keys keys for this row
+    * @param values values for this row
+    * @return
+    */
   private def encodeV3(keys: java.util.List[Key], values: java.util.List[Value]): Value = {
     // 1 byte for version + 2 bytes for count + metadata
     var length = 3 + org.locationtech.geomesa.features.kryo.metadataSize(count)
@@ -108,6 +116,14 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     new Value(value)
   }
 
+  /**
+    * Version 2 encoding. @see `org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserializationV2` for
+    * details on the serialization scheme
+    *
+    * @param keys keys for this row
+    * @param values values for this row
+    * @return
+    */
   private def encodeV2(keys: java.util.List[Key], values: java.util.List[Value]): Value = {
     setupV2()
     val allValues = Array.ofDim[Array[Byte]](sft.getAttributeCount)
