@@ -8,61 +8,164 @@
 
 package org.locationtech.geomesa.parquet.jobs
 
-import java.io.IOException
-
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.mapreduce.{InputSplit, RecordReader, TaskAttemptContext}
+import org.apache.hadoop.fs.Path
+import org.apache.hadoop.mapreduce.lib.input.{FileInputFormat, FileSplit}
+import org.apache.hadoop.mapreduce.{InputSplit, JobContext, RecordReader, TaskAttemptContext}
 import org.apache.parquet.hadoop.ParquetInputFormat
-import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.parquet.jobs.ParquetSimpleFeatureInputFormat.GTFilteringRR
-import org.opengis.feature.simple.SimpleFeature
+import org.geotools.data.Query
+import org.locationtech.geomesa.features.TransformSimpleFeature
+import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
+import org.locationtech.geomesa.index.planning.QueryRunner
+import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport
+import org.locationtech.geomesa.parquet.jobs.ParquetSimpleFeatureInputFormat.{ParquetSimpleFeatureInputFormatBase, ParquetSimpleFeatureRecordReaderBase, ParquetSimpleFeatureTransformRecordReaderBase}
+import org.locationtech.geomesa.parquet.{ReadFilter, ReadSchema}
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 
-class ParquetSimpleFeatureInputFormat extends ParquetInputFormat[SimpleFeature] {
-  /**
-    * {@inheritDoc }
-    */
-  @throws[IOException]
-  @throws[InterruptedException]
-  override def createRecordReader(inputSplit: InputSplit, taskAttemptContext: TaskAttemptContext): RecordReader[Void, SimpleFeature] =
-    new GTFilteringRR(super.createRecordReader(inputSplit, taskAttemptContext))
+/**
+  * Input format for parquet files
+  */
+class ParquetSimpleFeatureInputFormat extends ParquetSimpleFeatureInputFormatBase[Void] {
 
+  override protected def createRecordReader(
+      delegate: RecordReader[Void, SimpleFeature],
+      conf: Configuration,
+      split: FileSplit,
+      sft: SimpleFeatureType,
+      filter: Option[Filter],
+      transform: Option[(String, SimpleFeatureType)]): RecordReader[Void, SimpleFeature] = {
+    transform match {
+      case None => new ParquetSimpleFeatureRecordReader(delegate, filter)
+      case Some((tdefs, tsft)) => new ParquetSimpleFeatureTransformRecordReader(delegate, filter, sft, tsft, tdefs)
+    }
+  }
+
+  class ParquetSimpleFeatureRecordReader(delegate: RecordReader[Void, SimpleFeature], filter: Option[Filter])
+      extends ParquetSimpleFeatureRecordReaderBase[Void](delegate, filter) {
+    override def getCurrentKey: Void = null
+  }
+
+  class ParquetSimpleFeatureTransformRecordReader(
+      delegate: RecordReader[Void, SimpleFeature],
+      filter: Option[Filter],
+      sft: SimpleFeatureType,
+      tsft: SimpleFeatureType,
+      tdefs: String
+    ) extends ParquetSimpleFeatureTransformRecordReaderBase[Void](delegate, filter, sft, tsft, tdefs) {
+    override def getCurrentKey: Void = null
+  }
 }
 
 object ParquetSimpleFeatureInputFormat {
 
-  val GeoToolsFilterKey = "geomesa.fs.residual.filter"
+  import org.locationtech.geomesa.index.conf.QueryHints._
 
-  def setGeoToolsFilter(conf: Configuration, filter: org.opengis.filter.Filter): Unit =
-    conf.set(GeoToolsFilterKey, ECQL.toCQL(filter))
-  def getGeoToolsFilter(conf: Configuration): org.opengis.filter.Filter = ECQL.toFilter(conf.get(GeoToolsFilterKey))
+  /**
+    * Configure the input format
+    *
+    * @param conf conf
+    * @param sft simple feature type
+    * @param query query
+    */
+  def configure(conf: Configuration, sft: SimpleFeatureType, query: Query): Unit = {
+    val q = QueryRunner.configureDefaultQuery(sft, query)
+    val filter = Option(q.getFilter).filter(_ != Filter.INCLUDE)
 
-  class GTFilteringRR(rr: RecordReader[Void, SimpleFeature]) extends RecordReader[Void, SimpleFeature] {
+    // Parquet read schema and final transform
+    val ReadSchema(readSft, readTransform) = ReadSchema(sft, filter, q.getHints.getTransform)
+    // push-down Parquet predicates and remaining gt-filter
+    val ReadFilter(parquetFilter, residualFilter) = ReadFilter(readSft, filter)
 
-    private var cur: SimpleFeature = _
-    private var filter: org.opengis.filter.Filter = _
+    // set the parquet push-down filter
+    parquetFilter.foreach(ParquetInputFormat.setFilterPredicate(conf, _))
 
-    override def getProgress: Float = rr.getProgress
+    // set our residual filters and transforms
+    StorageConfiguration.setSft(conf, readSft)
+    residualFilter.foreach(StorageConfiguration.setFilter(conf, _))
+    readTransform.foreach(StorageConfiguration.setTransforms(conf, _))
+
+    // need this for query planning
+    conf.set("parquet.filter.dictionary.enabled", "true")
+
+    // @see org.apache.parquet.hadoop.ParquetInputFormat.setReadSupportClass(org.apache.hadoop.mapred.JobConf, java.lang.Class<?>)
+    conf.set(ParquetInputFormat.READ_SUPPORT_CLASS, classOf[SimpleFeatureReadSupport].getName)
+
+    // replicates parquet input format strategy of always recursively listing directories
+    conf.set(FileInputFormat.INPUT_DIR_RECURSIVE, "true")
+  }
+
+  abstract class ParquetSimpleFeatureInputFormatBase[T] extends FileInputFormat[T, SimpleFeature] {
+
+    private val delegate = new ParquetInputFormat[SimpleFeature]()
+
+    override def createRecordReader(
+        split: InputSplit,
+        context: TaskAttemptContext): RecordReader[T, SimpleFeature] = {
+      val rr = delegate.createRecordReader(split, context)
+
+      val conf = context.getConfiguration
+      val sft = StorageConfiguration.getSft(conf)
+      val filter = StorageConfiguration.getFilter(conf, sft)
+      val transform = StorageConfiguration.getTransforms(conf)
+
+      createRecordReader(rr, conf, split.asInstanceOf[FileSplit], sft, filter, transform)
+    }
+
+    override def getSplits(context: JobContext): java.util.List[InputSplit] = delegate.getSplits(context)
+
+    override protected def isSplitable(context: JobContext, filename: Path): Boolean =
+      context.getConfiguration.getBoolean(ParquetInputFormat.SPLIT_FILES, true)
+
+    protected def createRecordReader(
+        delegate: RecordReader[Void, SimpleFeature],
+        conf: Configuration,
+        split: FileSplit,
+        sft: SimpleFeatureType,
+        filter: Option[Filter],
+        transform: Option[(String, SimpleFeatureType)]): RecordReader[T, SimpleFeature]
+  }
+
+  abstract class ParquetSimpleFeatureRecordReaderBase[T](
+      delegate: RecordReader[Void, SimpleFeature],
+      filter: Option[Filter]
+    ) extends RecordReader[T, SimpleFeature] {
+
+    private var current: SimpleFeature = _
+
+    override def initialize(split: InputSplit, context: TaskAttemptContext): Unit =
+      delegate.initialize(split, context)
+
+    override def getProgress: Float = delegate.getProgress
 
     override def nextKeyValue(): Boolean = {
-      cur = null
-      while (cur == null && rr.nextKeyValue()) {
-        val next = rr.getCurrentValue
-        if (filter.evaluate(next)) {
-          cur = next
+      while (delegate.nextKeyValue()) {
+        current = delegate.getCurrentValue
+        if (filter.forall(_.evaluate(current))) {
+           return true
         }
       }
-      cur != null
+      false
     }
 
-    override def getCurrentValue: SimpleFeature = cur
+    override def getCurrentValue: SimpleFeature = current
 
-    override def initialize(split: InputSplit, context: TaskAttemptContext): Unit = {
-      rr.initialize(split, context)
-      filter = ParquetSimpleFeatureInputFormat.getGeoToolsFilter(context.getConfiguration)
+    override def close(): Unit = delegate.close()
+  }
+
+  abstract class ParquetSimpleFeatureTransformRecordReaderBase[T](
+      delegate: RecordReader[Void, SimpleFeature],
+      filter: Option[Filter],
+      sft: SimpleFeatureType,
+      tsft: SimpleFeatureType,
+      tdefs: String
+    ) extends ParquetSimpleFeatureRecordReaderBase[T](delegate, filter) {
+
+    private val current = TransformSimpleFeature(sft, tsft, tdefs)
+
+    override def getCurrentValue: SimpleFeature = {
+      current.setFeature(super.getCurrentValue)
+      current
     }
-
-    override def getCurrentKey: Void = null
-
-    override def close(): Unit = rr.close()
   }
 }

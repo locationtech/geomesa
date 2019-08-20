@@ -64,6 +64,7 @@ object SimpleFeatureSerializers {
     classOf[LazyMutableSimpleFeature],
     classOf[KryoBufferSimpleFeature],
     classOf[AvroSimpleFeature],
+    classOf[TransformSimpleFeature],
     classOf[SimpleFeatureImpl],
     classOf[SimpleFeature],
     classOf[org.locationtech.geomesa.features.nio.LazySimpleFeature]

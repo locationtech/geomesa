@@ -443,6 +443,8 @@ object FilterHelper {
 
   def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = andOption(filters)
 
+  def filterListAsOr(filters: Seq[Filter]): Option[Filter] = orOption(filters)
+
   /**
     * Simplifies filters to make them easier to process.
     *

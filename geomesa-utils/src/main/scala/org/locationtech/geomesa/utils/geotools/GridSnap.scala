@@ -13,6 +13,13 @@ import org.locationtech.jts.geom.{Envelope, Geometry}
 
 import scala.math.abs
 
+/**
+  * Snaps points to cells of a defined grid
+  *
+  * @param env bounding envelope
+  * @param xSize number of x cells in the grid
+  * @param ySize number of y cells in the grid
+  */
 class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
 
   lazy val envelope: Geometry = GeometryUtils.geoFactory.toGeometry(env)
@@ -53,8 +60,8 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
   def i(x: Double): Int = {
     if (x < xMin || x > xMax) { -1 } else {
       val i = math.floor((x - xMin) / dx).toInt
-      // i == length check catches the upper bound
-      if (i < 0 || i > xSize) { -1 } else if (i == xSize) { xSize - 1 } else { i }
+      // i >= size check catches the upper bound
+      if (i >= xSize) { xSize - 1 } else { i }
     }
   }
 
@@ -67,8 +74,8 @@ class GridSnap(env: Envelope, xSize: Int, ySize: Int) {
   def j(y: Double): Int = {
     if (y < yMin || y > yMax) { -1 } else {
       val i = math.floor((y - yMin) / dy).toInt
-      // i == length check catches the upper bound
-      if (i < 0 || i > ySize) { -1 } else if (i == ySize) { ySize - 1 } else { i }
+      // i >= size check catches the upper bound
+      if (i >= ySize) { ySize - 1 } else { i }
     }
   }
 

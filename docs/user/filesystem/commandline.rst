@@ -27,7 +27,7 @@ Commands
 ^^^^^^^^^^^
 
 Compact one or more filesystem partitions. This will merge multiple files into a single file, which may
-provide better query peformance.
+provide better query performance.
 
 ======================== =========================================================
 Argument                 Description
@@ -39,7 +39,7 @@ Argument                 Description
 ``--temp-path``          Path to a temp directory used for working files
 ======================== =========================================================
 
-The ``--temp-path`` argument may be useful when working with ``s3`` data, as ``s3`` is slow to write to.
+The ``--temp-path`` argument may be useful when working with ``s3`` data, as ``s3`` is slow for incremental writes.
 
 ``get-files``
 ^^^^^^^^^^^^^
@@ -51,7 +51,7 @@ Argument                 Description
 ======================== =========================================================
 ``-p, --path *``         The filesystem root path used to store data
 ``-f, --feature-name *`` The name of the schema
-``--partitions``         Partitions to compact (omit to list all partitions)
+``--partitions``         Partitions to list (omit to list all partitions)
 ======================== =========================================================
 
 ``get-partitions``

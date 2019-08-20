@@ -11,6 +11,7 @@ package org.locationtech.geomesa.fs.storage.converter
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFilePath}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, WriterCallback}
@@ -37,10 +38,10 @@ class ConverterStorage(context: FileSystemContext, metadata: StorageMetadata, co
     new ConverterFileSystemReader(context.fc, converter, filter, transform)
   }
 
-  override def getFilePaths(partition: String): Seq[Path] = {
+  override def getFilePaths(partition: String): Seq[StorageFilePath] = {
     val path = new Path(context.root, partition)
-    if (metadata.leafStorage) { Seq(path) } else {
-      PathCache.list(context.fc, path).map(_.getPath).toList
+    if (metadata.leafStorage) { Seq(StorageFilePath(StorageFile(path.getName, 0L), path)) } else {
+      PathCache.list(context.fc, path).map(p => StorageFilePath(StorageFile(p.getPath.getName, 0L), p.getPath)).toList
     }
   }
 

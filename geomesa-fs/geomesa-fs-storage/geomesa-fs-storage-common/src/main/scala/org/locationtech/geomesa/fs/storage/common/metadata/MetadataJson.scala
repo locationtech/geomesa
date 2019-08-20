@@ -6,7 +6,8 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.common.metadata
+package org.locationtech.geomesa.fs.storage.common // get pureconfig converters from common package
+package metadata
 
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
@@ -15,10 +16,9 @@ import java.util.concurrent.ConcurrentHashMap
 import com.typesafe.config.{Config, ConfigFactory}
 import org.apache.hadoop.fs.Options.CreateOpts
 import org.apache.hadoop.fs.{CreateFlag, Path}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
-import org.locationtech.geomesa.fs.storage.common.{ParseOptions, RenderOptions}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
@@ -125,7 +125,7 @@ object MetadataJson extends MethodProfiling {
       WithClose(new FileBasedMetadataFactory().create(context, Map.empty, meta)) { metadata =>
         partitionConfig.root().entrySet().asScala.foreach { e =>
           val name = e.getKey
-          val files = partitionConfig.getStringList(name).asScala
+          val files = partitionConfig.getStringList(name).asScala.map(StorageFile(_, 0L))
           metadata.addPartition(PartitionMetadata(name, files, None, 0L))
         }
       }

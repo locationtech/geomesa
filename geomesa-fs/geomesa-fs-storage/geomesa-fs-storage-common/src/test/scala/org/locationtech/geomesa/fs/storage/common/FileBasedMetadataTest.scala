@@ -16,7 +16,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions, PartitionSchemeFactory}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
@@ -41,6 +41,10 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
   val meta = Metadata(sft, encoding, schemeOptions, leafStorage = true)
   val factory = new FileBasedMetadataFactory()
 
+  val f1 = StorageFile("file1", 0L)
+  val Seq(f2, f3) = Seq("file2", "file3").map(StorageFile(_, 1L))
+  val Seq(f5, f6) = Seq("file5", "file6").map(StorageFile(_, 2L))
+
   // noinspection LanguageFeature
   implicit def toBounds(env: Envelope): Option[PartitionBounds] = PartitionBounds(env)
 
@@ -63,9 +67,9 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
     "persist file changes" in {
       withPath { context =>
         val created = factory.create(context, Map.empty, meta)
-        created.addPartition(PartitionMetadata("1", Seq("file1"), new Envelope(-10, 10, -5, 5), 10L))
-        created.addPartition(PartitionMetadata("1", Seq("file2", "file3"), new Envelope(-11, 11, -5, 5), 20L))
-        created.addPartition(PartitionMetadata("2", Seq("file5", "file6"), new Envelope(-1, 1, -5, 5), 20L))
+        created.addPartition(PartitionMetadata("1", Seq(f1), new Envelope(-10, 10, -5, 5), 10L))
+        created.addPartition(PartitionMetadata("1", Seq(f2,f3), new Envelope(-11, 11, -5, 5), 20L))
+        created.addPartition(PartitionMetadata("2", Seq(f5, f6), new Envelope(-1, 1, -5, 5), 20L))
         PathCache.invalidate(fc, context.root)
         val loaded = factory.load(context)
         loaded.foreach(_.reload()) // ensure state is loaded
@@ -76,16 +80,16 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
           metadata.sft.getUserData.asScala.toSeq must containAllOf(sft.getUserData.asScala.toSeq)
           metadata.scheme mustEqual scheme
           metadata.getPartitions().map(_.name) must containTheSameElementsAs(Seq("1", "2"))
-          metadata.getPartition("1").map(_.files) must beSome(containTheSameElementsAs((1 to 3).map(i => s"file$i")))
-          metadata.getPartition("2").map(_.files) must beSome(containTheSameElementsAs((5 to 6).map(i => s"file$i")))
+          metadata.getPartition("1").map(_.files) must beSome(containTheSameElementsAs(Seq(f1, f2, f3)))
+          metadata.getPartition("2").map(_.files) must beSome(containTheSameElementsAs(Seq(f5, f6)))
         }
       }
     }
     "read metadata from nested folders" in {
       withPath { context =>
         val created = factory.create(context, Map.empty, meta)
-        created.addPartition(PartitionMetadata("1", Seq("file1"), new Envelope(-10, 10, -5, 5), 10L))
-        created.addPartition(PartitionMetadata("1", Seq("file2", "file3"), new Envelope(-11, 11, -5, 5), 20L))
+        created.addPartition(PartitionMetadata("1", Seq(f1), new Envelope(-10, 10, -5, 5), 10L))
+        created.addPartition(PartitionMetadata("1", Seq(f2, f3), new Envelope(-11, 11, -5, 5), 20L))
         fc.mkdir(new Path(context.root, "metadata/nested/"), FsPermission.getDirDefault, false)
         fc.util.listStatus(new Path(context.root, "metadata")).foreach { file =>
           if (file.getPath.getName.startsWith("update-")) {
@@ -103,7 +107,32 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
           metadata.sft.getUserData.asScala.toSeq must containAllOf(sft.getUserData.asScala.toSeq)
           metadata.scheme mustEqual scheme
           metadata.getPartitions().map(_.name) mustEqual Seq("1")
-          metadata.getPartition("1").map(_.files) must beSome(containTheSameElementsAs((1 to 3).map(i => s"file$i")))
+          metadata.getPartition("1").map(_.files) must beSome(containTheSameElementsAs(Seq(f1, f2, f3)))
+        }
+      }
+    }
+    "track modified and deleted files" in {
+      withPath { context =>
+        val f5mod = StorageFile("file5", 3L, StorageFileAction.Delete)
+        val f2mod = StorageFile("file2", 3L, StorageFileAction.Modify)
+        val created = factory.create(context, Map.empty, meta)
+        created.addPartition(PartitionMetadata("1", Seq(f1), new Envelope(-10, 10, -5, 5), 10L))
+        created.addPartition(PartitionMetadata("1", Seq(f2,f3), new Envelope(-11, 11, -5, 5), 20L))
+        created.addPartition(PartitionMetadata("2", Seq(f5, f6), new Envelope(-1, 1, -5, 5), 20L))
+        created.addPartition(PartitionMetadata("2", Seq(f5mod), new Envelope(-1, 1, -5, 5), 20L))
+        created.addPartition(PartitionMetadata("1", Seq(f2mod), new Envelope(-11, 11, -5, 5), 20L))
+        PathCache.invalidate(fc, context.root)
+        val loaded = factory.load(context)
+        loaded.foreach(_.reload()) // ensure state is loaded
+        loaded must beSome
+        foreach(Seq(created, loaded.get)) { metadata =>
+          metadata.encoding mustEqual encoding
+          metadata.sft mustEqual sft
+          metadata.sft.getUserData.asScala.toSeq must containAllOf(sft.getUserData.asScala.toSeq)
+          metadata.scheme mustEqual scheme
+          metadata.getPartitions().map(_.name) must containTheSameElementsAs(Seq("1", "2"))
+          metadata.getPartition("1").map(_.files) must beSome(containTheSameElementsAs(Seq(f1, f2, f3, f2mod)))
+          metadata.getPartition("2").map(_.files) must beSome(containTheSameElementsAs(Seq(f5, f6, f5mod)))
         }
       }
     }

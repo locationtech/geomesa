@@ -12,7 +12,7 @@ import java.util
 
 import com.beust.jcommander.converters.BaseConverter
 import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata}
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.ingest.ManageMetadataCommand.{CompactCommand, ManageMetadataParams, RegisterCommand, UnregisterCommand}
@@ -54,13 +54,14 @@ object ManageMetadataCommand {
 
     override def execute(): Unit = withDataStore { ds =>
       val metadata = ds.storage(params.featureName).metadata
+      val files = params.files.asScala.map(StorageFile(_, System.currentTimeMillis()))
       val count = Option(params.count).map(_.longValue()).getOrElse(0L)
       val bounds = new Envelope
       Option(params.bounds).foreach { case (xmin, ymin, xmax, ymax) =>
         bounds.expandToInclude(xmin, ymin)
         bounds.expandToInclude(xmax, ymax)
       }
-      metadata.addPartition(PartitionMetadata(params.partition, params.files.asScala, PartitionBounds(bounds), count))
+      metadata.addPartition(PartitionMetadata(params.partition, files, PartitionBounds(bounds), count))
       val partition = metadata.getPartition(params.partition).getOrElse(PartitionMetadata("", Seq.empty, None, 0L))
       Command.user.info(s"Registered ${params.files.size} new files. Updated partition: ${partition.files.size} " +
           s"files containing ${partition.count} known features")
@@ -74,8 +75,9 @@ object ManageMetadataCommand {
 
     override def execute(): Unit = withDataStore { ds =>
       val metadata = ds.storage(params.featureName).metadata
+      val files = params.files.asScala.map(StorageFile(_, 0L))
       val count = Option(params.count).map(_.longValue()).getOrElse(0L)
-      metadata.removePartition(PartitionMetadata(params.partition, params.files.asScala, None, count))
+      metadata.removePartition(PartitionMetadata(params.partition, files, None, count))
       val partition = metadata.getPartition(params.partition).getOrElse(PartitionMetadata("", Seq.empty, None, 0L))
       Command.user.info(s"Unregistered ${params.files.size} files. Updated partition: ${partition.files.size} " +
           s"files containing ${partition.count} known features")

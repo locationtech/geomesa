@@ -150,6 +150,8 @@ trait CloseableIterator[+A] extends Iterator[A] with Closeable {
 
   override def filter(p: A => Boolean): CloseableIterator[A] = new CloseableIteratorImpl(super.filter(p), close())
 
+  override def filterNot(p: A => Boolean): CloseableIterator[A] = new CloseableIteratorImpl(super.filterNot(p), close())
+
   override def take(n: Int): CloseableIterator[A] = new CloseableIteratorImpl(super.take(n), close())
 
   override def collect[B](pf: PartialFunction[A, B]): CloseableIterator[B] =
