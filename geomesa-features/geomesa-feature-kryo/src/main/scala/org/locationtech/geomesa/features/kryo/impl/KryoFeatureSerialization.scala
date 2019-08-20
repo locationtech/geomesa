@@ -49,7 +49,7 @@ trait KryoFeatureSerialization extends SimpleFeatureSerializer {
   }
 
   private def writeFeature(sf: SimpleFeature, output: Output): Unit = {
-    output.writeByte(KryoFeatureSerializer.Version)
+    output.writeByte(KryoFeatureSerializer.Version3)
     output.writeShort(count) // track the number of attributes
     val offset = output.position()
     output.setPosition(offset + metadataSize(count))

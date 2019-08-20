@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.features
 
 import java.util.Collections
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.Phaser
 
 import org.locationtech.geomesa.features.AbstractSimpleFeature.{AbstractImmutableSimpleFeature, AbstractMutableSimpleFeature}
-import org.locationtech.geomesa.utils.collection.IntBitSet
+import org.locationtech.geomesa.utils.collection.WordBitSet
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -145,35 +145,42 @@ object ScalaSimpleFeature {
     *
     * @param sft simple feature type
     * @param id simple feature id
-    * @param readAttribute lazily read an attribute value, must already be converted into the appropriate types
-    * @param readUserData lazily read the user data
+    * @param reader lazily read attributes, must be thread-safe and already of the appropriate types
+    * @param userDataReader lazily read user data, must be thread-safe
     */
   class LazyImmutableSimpleFeature(
       sft: SimpleFeatureType,
       id: String,
-      private var readAttribute: Int => AnyRef,
-      private var readUserData: () => java.util.Map[AnyRef, AnyRef]
+      private var reader: LazyAttributeReader,
+      private var userDataReader: LazyUserDataReader
     ) extends AbstractImmutableSimpleFeature(sft, id) {
 
-    private val bits = IntBitSet(sft.getAttributeCount)
+    // we synchronize on the low-level words, in order to minimize contention
+    private val bits = WordBitSet(sft.getAttributeCount)
     private lazy val attributes = Array.ofDim[AnyRef](sft.getAttributeCount)
-    private var count = 0
+
+    private var phaser: Phaser = new Phaser(sft.getAttributeCount) {
+      override def onAdvance(phase: Int, registeredParties: Int): Boolean = {
+        // once all attributes have been read, dereference any backing resources so that they can be gc'd
+        reader = null
+        phaser = null
+        true
+      }
+    }
 
     override lazy val getUserData: java.util.Map[AnyRef, AnyRef] = {
-      val read = synchronized { readUserData() }
-      readUserData = null // dereference any backing resources
+      val read = userDataReader.read()
+      userDataReader = null // dereference any backing resources
       Collections.unmodifiableMap(read)
     }
 
     override def getAttribute(index: Int): AnyRef = {
-      if (readAttribute != null) {
-        bits.synchronized {
-          if (bits.add(index)) {
-            attributes(index) = synchronized { readAttribute(index) }
-            count += 1
-            if (count == sft.getAttributeCount) {
-              readAttribute = null // dereference any backing resources
-            }
+      if (reader != null) {
+        val word = bits.word(index)
+        word.synchronized {
+          if (word.add(index)) {
+            attributes(index) = reader.read(index)
+            phaser.arriveAndDeregister()
           }
         }
       }
@@ -186,29 +193,41 @@ object ScalaSimpleFeature {
     *
     * @param sft simple feature type
     * @param initialId simple feature id
-    * @param readAttribute lazily read an attribute value, must already be converted into the appropriate types
-    * @param readUserData lazily read the user data
+    * @param reader lazily read attributes, must be thread-safe and already of the appropriate types
+    * @param userDataReader lazily read user data, must be thread-safe
     */
   class LazyMutableSimpleFeature(
       sft: SimpleFeatureType,
       initialId: String,
-      private var readAttribute: Int => AnyRef,
-      private var readUserData: () => java.util.Map[AnyRef, AnyRef]
+      private var reader: LazyAttributeReader,
+      private var userDataReader: LazyUserDataReader
     ) extends AbstractMutableSimpleFeature(sft, initialId, null) {
 
-    private val bits = IntBitSet(sft.getAttributeCount)
+    // we synchronize on the low-level words, in order to minimize contention
+    private val bits = WordBitSet(sft.getAttributeCount)
     private lazy val attributes = Array.ofDim[AnyRef](sft.getAttributeCount)
-    private val userDataRead = new AtomicBoolean(false)
-    private var count = 0
+
+    private var phaser: Phaser = new Phaser(sft.getAttributeCount) {
+      override def onAdvance(phase: Int, registeredParties: Int): Boolean = {
+        // once all attributes have been read, dereference any backing resources so that they can be gc'd
+        reader = null
+        phaser = null
+        true
+      }
+    }
+
+    override lazy val getUserData: java.util.Map[AnyRef, AnyRef] = {
+      val ud = userDataReader.read()
+      userDataReader = null // dereference any backing resources
+      ud
+    }
 
     override def setAttributeNoConvert(index: Int, value: AnyRef): Unit = {
-      if (readAttribute != null) {
-        bits.synchronized {
-          if (bits.add(index)) {
-            count += 1
-            if (count == sft.getAttributeCount) {
-              readAttribute = null // dereference any backing resources
-            }
+      if (reader != null) {
+        val word = bits.word(index)
+        word.synchronized {
+          if (word.add(index)) {
+            phaser.arriveAndDeregister()
           }
         }
       }
@@ -216,31 +235,31 @@ object ScalaSimpleFeature {
     }
 
     override def getAttribute(index: Int): AnyRef = {
-      if (readAttribute != null) {
-        bits.synchronized {
-          if (bits.add(index)) {
-            attributes(index) = synchronized { readAttribute(index) }
-            count += 1
-            if (count == sft.getAttributeCount) {
-              readAttribute = null // dereference any backing resources
-            }
+      if (reader != null) {
+        val word = bits.word(index)
+        word.synchronized {
+          if (word.add(index)) {
+            attributes(index) = reader.read(index)
+            phaser.arriveAndDeregister()
           }
         }
       }
       attributes(index)
     }
+  }
 
-    override def getUserData: java.util.Map[AnyRef, AnyRef] = {
-      val res = super.getUserData
-      if (readUserData != null) {
-        userDataRead.synchronized {
-          if (userDataRead.compareAndSet(false, true)) {
-            res.putAll(synchronized { readUserData() })
-            readUserData = null // dereference any backing resources
-          }
-        }
-      }
-      res
-    }
+
+  /**
+    * Lazy attribute reader
+    */
+  trait LazyAttributeReader {
+    def read(i: Int): AnyRef
+  }
+
+  /**
+    * Lazy user data reader
+    */
+  trait LazyUserDataReader {
+    def read(): java.util.Map[AnyRef, AnyRef]
   }
 }

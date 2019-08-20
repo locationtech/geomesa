@@ -120,7 +120,7 @@ class KryoBufferSimpleFeature(serializer: KryoFeatureDeserialization) extends Si
   def setBuffer(bytes: Array[Byte], offset: Int, length: Int): Unit = {
     input.setBuffer(bytes, offset, length)
     delegate = input.readByte() match {
-      case KryoFeatureSerializer.Version  => delegateV3
+      case KryoFeatureSerializer.Version3 => delegateV3
       case KryoFeatureSerializer.Version2 => delegateV2
       case b => throw new IllegalArgumentException(s"Can't process features serialized with version: $b")
     }
@@ -440,7 +440,7 @@ object KryoBufferSimpleFeature {
 
         val result = Array.ofDim[Byte](length)
         val output = new Output(result, length)
-        output.writeByte(KryoFeatureSerializer.Version)
+        output.writeByte(KryoFeatureSerializer.Version3)
         output.writeShort(indices.length) // track the number of attributes
         i = 0
         while (i < positionsAndLengths.length) {

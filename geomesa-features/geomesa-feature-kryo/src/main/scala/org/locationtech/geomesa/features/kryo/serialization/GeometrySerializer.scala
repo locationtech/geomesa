@@ -19,7 +19,7 @@ import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 class GeometrySerializer extends Serializer[Geometry] {
 
   override def write(kryo: Kryo, output: Output, geom: Geometry): Unit = {
-    output.writeByte(KryoFeatureSerializer.Version)
+    output.writeByte(KryoFeatureSerializer.Version3)
     KryoGeometrySerialization.serialize(output, geom)
   }
 

@@ -75,7 +75,7 @@ trait ActiveDeserialization extends KryoFeatureDeserialization {
 
   private def readFeature(id: String, input: Input): SimpleFeature = {
     input.readByte() match {
-      case KryoFeatureSerializer.Version  => readFeatureV3(id, input)
+      case KryoFeatureSerializer.Version3 => readFeatureV3(id, input)
       case KryoFeatureSerializer.Version2 => readFeatureV2(id, input)
       case b => throw new IllegalArgumentException(s"Can't process features serialized with version: $b")
     }

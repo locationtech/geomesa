@@ -15,7 +15,7 @@ import com.esotericsoftware.kryo.io.{Input, Output}
   *
   * Provides access to the underlying mask, for serialization. Not thread safe.
   */
-sealed abstract class IntBitSet {
+trait IntBitSet {
 
   /**
     * Checks whether the value is contained in the set or not

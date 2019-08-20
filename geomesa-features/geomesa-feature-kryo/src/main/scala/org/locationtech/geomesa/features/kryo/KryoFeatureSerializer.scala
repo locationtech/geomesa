@@ -40,11 +40,11 @@ trait KryoFeatureSerializer extends KryoFeatureSerialization with KryoFeatureDes
 
 object KryoFeatureSerializer {
 
-  val Version : Byte = 3
+  val Version3: Byte = 3
   val Version2: Byte = 2
 
-  @deprecated("Version")
-  lazy val VERSION: Int = Version
+  @deprecated("Version2/3")
+  lazy val VERSION: Int = Version3
 
   val NullByte: Byte    = 0.asInstanceOf[Byte]
   val NonNullByte: Byte = 1.asInstanceOf[Byte]

@@ -70,7 +70,7 @@ class ProjectingKryoFeatureDeserializer(
   override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
     val input = KryoFeatureDeserialization.getInput(bytes, offset, length)
     input.readByte() match {
-      case KryoFeatureSerializer.Version  => readFeatureV3(id, input)
+      case KryoFeatureSerializer.Version3 => readFeatureV3(id, input)
       case KryoFeatureSerializer.Version2 => readFeatureV2(id, input)
       case b => throw new IllegalArgumentException(s"Can't process features serialized with version: $b")
     }

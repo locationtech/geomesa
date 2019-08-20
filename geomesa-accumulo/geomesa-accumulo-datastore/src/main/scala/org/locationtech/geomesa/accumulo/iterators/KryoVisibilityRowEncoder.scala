@@ -55,7 +55,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     }
     // TODO if we don't have a geometry, skip the record?
     values.get(0).get.head match {
-      case KryoFeatureSerializer.Version  => encodeV3(keys, values)
+      case KryoFeatureSerializer.Version3 => encodeV3(keys, values)
       case KryoFeatureSerializer.Version2 => encodeV2(keys, values)
     }
   }
@@ -91,7 +91,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
 
     val value = Array.ofDim[Byte](length)
     val output = new Output(value)
-    output.writeByte(KryoFeatureSerializer.Version)
+    output.writeByte(KryoFeatureSerializer.Version3)
     output.writeShort(count)
 
     val nulls = IntBitSet(count)
