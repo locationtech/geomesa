@@ -39,7 +39,7 @@ Before you begin, you must have the following installed and configured:
 -  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
 -  a Kafka instance version |kafka_version|
--  an Accumulo |accumulo_version| instance
+-  an Accumulo |accumulo_required_version| instance
 -  an Accumulo user that has both create-table and write permissions
 -  the GeoMesa distributed runtime installed for your instance (see below)
 

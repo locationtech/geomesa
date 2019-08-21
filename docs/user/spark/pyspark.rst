@@ -6,7 +6,7 @@ GeoMesa provides integration with the Spark Python API for accessing data in Geo
 Prerequisites
 ^^^^^^^^^^^^^
 
-* `Spark`_ |spark_version| should be installed.
+* `Spark`_ |spark_required_version| should be installed.
 * `Python`_ 2.7 or 3.x should be installed.
 * `pip`_ or ``pip3`` should be installed.
 
