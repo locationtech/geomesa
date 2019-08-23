@@ -27,6 +27,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait KryoFeatureSerialization extends SimpleFeatureSerializer {
 
+  import KryoFeatureSerialization.MaxUnsignedShort
+
   protected [kryo] def in: SimpleFeatureType
 
   private val writers = KryoFeatureSerialization.getWriters(CacheKeyGenerator.cacheKey(in), in)
@@ -80,9 +82,9 @@ trait KryoFeatureSerialization extends SimpleFeatureSerializer {
       KryoUserDataSerialization.serialize(output, sf.getUserData)
     }
     val end = output.position()
-    if (end - offset > Short.MaxValue.toInt) {
+    if (end - offset > MaxUnsignedShort) {
       // TODO handle overflow
-      throw new NotImplementedError(s"Serialized feature exceeds max byte size (${Short.MaxValue}): ${end - offset}")
+      throw new NotImplementedError(s"Serialized feature exceeds max byte size (${MaxUnsignedShort}): ${end - offset}")
     }
     // go back and write the nulls
     output.setPosition(offset + (2 * count) + 2)
@@ -97,6 +99,8 @@ object KryoFeatureSerialization {
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   import scala.collection.JavaConverters._
+
+  val MaxUnsignedShort = 65535
 
   private [this] val outputs = new SoftThreadLocal[Output]()
   private [this] val writers = new SoftThreadLocalCache[String, Array[KryoAttributeWriter]]()
