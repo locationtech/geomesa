@@ -27,7 +27,7 @@ class RouteSelectorByAttribute extends RouteSelector {
   private var id: Option[DataStore] = None
   private var include: Option[DataStore] = None
 
-  override def init(stores: Seq[(DataStore, java.util.Map[String, AnyRef])]): Unit = {
+  override def init(stores: Seq[(DataStore, java.util.Map[String, _ <: AnyRef])]): Unit = {
     val builder = Seq.newBuilder[(Set[String], DataStore)]
 
     stores.foreach { case (ds, config) =>

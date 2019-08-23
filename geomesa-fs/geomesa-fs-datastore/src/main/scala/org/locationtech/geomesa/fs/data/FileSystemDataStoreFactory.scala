@@ -92,7 +92,7 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
       FileSystemDataStoreParams.ConfParam
     )
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     FileSystemDataStoreParams.PathParam.exists(params)
 
   private val configuration = new Configuration()

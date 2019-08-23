@@ -6,17 +6,12 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark
+package org.locationtech.geomesa
 
-import java.util.ServiceLoader
+import org.opengis.feature.simple.SimpleFeatureType
 
-object GeoMesaSpark {
-
-  import scala.collection.JavaConversions._
-
-  lazy val providers: ServiceLoader[SpatialRDDProvider] = ServiceLoader.load(classOf[SpatialRDDProvider])
-
-  def apply(params: java.util.Map[String, _ <: java.io.Serializable]): SpatialRDDProvider =
-    providers.find(_.canProcess(params)).getOrElse(throw new RuntimeException("Could not find a SpatialRDDProvider"))
+package object spark {
+  trait Schema {
+    def schema: SimpleFeatureType
+  }
 }
-

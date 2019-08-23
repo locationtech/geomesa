@@ -16,13 +16,13 @@ import org.geotools.data.{DataStore, DataStoreFinder}
   */
 object DataStoreConnector {
 
-  import org.locationtech.geomesa.spark.CaseInsensitiveMapFix._
+  import scala.collection.JavaConverters._
 
   def apply[T <: DataStore](params: Map[String, String]): T = loadingMap.get(params).asInstanceOf[T]
 
   private val loadingMap = Caffeine.newBuilder().build[Map[String, String], DataStore](
     new CacheLoader[Map[String, String], DataStore] {
-      override def load(key: Map[String, String]): DataStore = DataStoreFinder.getDataStore(key)
+      override def load(key: Map[String, String]): DataStore = DataStoreFinder.getDataStore(key.asJava)
     }
   )
 }

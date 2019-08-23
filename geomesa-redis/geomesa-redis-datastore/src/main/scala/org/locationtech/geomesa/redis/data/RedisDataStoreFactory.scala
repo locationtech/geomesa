@@ -81,7 +81,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       ForceEmptyAuthsParam
     )
 
-  override def canProcess(params: java.util.Map[java.lang.String,Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     RedisCatalogParam.exists(params)
 
   /**

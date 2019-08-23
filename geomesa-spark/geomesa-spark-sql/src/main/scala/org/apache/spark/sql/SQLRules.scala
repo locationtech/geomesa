@@ -12,7 +12,6 @@ import java.time.{LocalDateTime, ZoneId, ZoneOffset}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
@@ -20,14 +19,15 @@ import org.apache.spark.sql.execution.datasources.LogicalRelation
 import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
 import org.apache.spark.sql.types.{DataTypes, StructType}
 import org.geotools.factory.CommonFactoryFinder
+import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.spark.GeoMesaRelation.PartitionedIndexedRDD
 import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
 import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils, SparkVersions}
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.opengis.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
 import org.opengis.filter.{FilterFactory2, Filter => GTFilter}
-
-import scala.collection.JavaConversions._
 
 object SQLRules extends LazyLogging {
   @transient
@@ -171,15 +171,12 @@ object SQLRules extends LazyLogging {
       (join.left, join.right) match {
         case (left: LogicalRelation, right: LogicalRelation) if isSpatialUDF =>
           (left.relation, right.relation) match {
-            case (leftRel: GeoMesaRelation, rightRel: GeoMesaRelation) if leftRel.spatiallyPartition && rightRel.spatiallyPartition =>
-              if (leftRel.partitionEnvelopes != rightRel.partitionEnvelopes) {
-                logger.warn("Joining across two relations that are not partitioned by the same scheme - " +
-                    "unable to optimize")
-                join
-              } else {
-                val joinRelation = alterRelation(leftRel, rightRel, join.condition.get)
-                val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
-                Join(newLogicalRelLeft, right, join.joinType, join.condition)
+            case (leftRel: GeoMesaRelation, rightRel: GeoMesaRelation) =>
+              leftRel.join(rightRel, join.condition.get) match {
+                case None => join
+                case Some(joinRelation) =>
+                  val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
+                  Join(newLogicalRelLeft, right, join.joinType, join.condition)
               }
 
             case _ => join
@@ -188,26 +185,13 @@ object SQLRules extends LazyLogging {
         case (leftProject @ Project(leftProjectList, left: LogicalRelation),
             rightProject @ Project(rightProjectList, right: LogicalRelation)) if isSpatialUDF =>
           (left.relation, right.relation) match {
-            case (leftRel: GeoMesaRelation, rightRel: GeoMesaRelation) if leftRel.spatiallyPartition && rightRel.spatiallyPartition =>
-              if (leftRel.partitionEnvelopes == rightRel.partitionEnvelopes) {
-                val joinRelation = alterRelation(leftRel, rightRel, join.condition.get)
-                val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
-                val newProjectLeft = leftProject.copy(projectList = leftProjectList ++ rightProjectList, child = newLogicalRelLeft)
-                Join(newProjectLeft, rightProject, join.joinType, join.condition)
-              } else if (leftRel.coverPartition) {
-                rightRel.partitionEnvelopes = leftRel.partitionEnvelopes
-                rightRel.partitionedRDD = RelationUtils.spatiallyPartition(leftRel.partitionEnvelopes,
-                  rightRel.rawRDD,
-                  leftRel.numPartitions,
-                  rightRel.geometryOrdinal)
-                val joinRelation = alterRelation(leftRel, rightRel, join.condition.get)
-                val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
-                val newProjectLeft = leftProject.copy(projectList = leftProjectList ++ rightProjectList, child = newLogicalRelLeft)
-                Join(newProjectLeft, rightProject, join.joinType, join.condition)
-              } else {
-                logger.warn("Joining across two relations that are not partitioned by the same scheme - " +
-                    "unable to optimize")
-                join
+            case (leftRel: GeoMesaRelation, rightRel: GeoMesaRelation) =>
+              leftRel.join(rightRel, join.condition.get) match {
+                case None => join
+                case Some(joinRelation) =>
+                  val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
+                  val newProjectLeft = leftProject.copy(projectList = leftProjectList ++ rightProjectList, child = newLogicalRelLeft)
+                  Join(newProjectLeft, rightProject, join.joinType, join.condition)
               }
 
             case _ => join
@@ -238,27 +222,25 @@ object SQLRules extends LazyLogging {
 
           val (gtFilters: Seq[GTFilter], sFilters: Seq[Expression]) = sparkFilters.foldLeft((Seq[GTFilter](), Seq[Expression]())) {
             case ((gts: Seq[GTFilter], sfilters), expression: Expression) =>
-              val cqlFilter = sparkFilterToGTFilter(expression)
-
-              cqlFilter match {
+              sparkFilterToGTFilter(expression) match {
                 case Some(gtf) => (gts.+:(gtf), sfilters)
                 case None      => (gts,         sfilters.+:(expression))
               }
           }
 
-          val partitionHints = if (gmRel.spatiallyPartition) {
-            val hints = sparkFilters.flatMap{e => extractGridId(gmRel.partitionEnvelopes, e) }.flatten
-            if (hints.nonEmpty) {
-              hints
-            } else {
-              null
-            }
-          } else {
-            null
-          }
-
           if (gtFilters.nonEmpty) {
-            val relation = gmRel.copy(filt = ff.and(gtFilters :+ gmRel.filt), partitionHints = partitionHints)
+            // if we have a partitioned cache, exclude partitions that don't match the query filter
+            val partitioned = gmRel.cached.map {
+              case c: PartitionedIndexedRDD =>
+                val hints = sparkFilters.flatMap(extractGridId(c.envelopes, _)).flatten
+                if (hints.isEmpty) { c } else {
+                  c.copy(rdd = c.rdd.filter { case (key, _) => hints.contains(key) })
+                }
+
+              case c => c
+            }
+            val filt = FilterHelper.filterListAsAnd(gmRel.filter.toSeq ++ gtFilters)
+            val relation = gmRel.copy(filter = filt, cached = partitioned)
             val newrel = SparkVersions.copy(lr)(output = lr.output, relation = relation)
             if (sFilters.nonEmpty) {
               // Keep filters that couldn't be transformed at the top level

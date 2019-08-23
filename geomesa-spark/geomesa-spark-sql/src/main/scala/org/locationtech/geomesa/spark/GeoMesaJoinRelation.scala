@@ -13,10 +13,9 @@ import org.apache.spark.sql.catalyst.expressions.{AttributeReference, Expression
 import org.apache.spark.sql.sources._
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{Row, SQLContext}
-import org.locationtech.jts.geom.{Coordinate, Geometry}
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.index.sweepline.{SweepLineIndex, SweepLineInterval}
 import org.opengis.feature.simple.SimpleFeature
-
 
 // A special case relation that is built when a join happens across two identically partitioned relations
 // Uses the sweepline algorithm to lower the complexity of the join
@@ -30,32 +29,41 @@ case class GeoMesaJoinRelation(
     props: Option[Seq[String]] = None
   ) extends BaseRelation with PrunedFilteredScan {
 
-  def sweeplineJoin(overlapAction: OverlapAction): RDD[(Int, (SimpleFeature, SimpleFeature))] = {
-    implicit val ordering: Ordering[Coordinate] = RelationUtils.CoordinateOrdering
-    val partitionPairs = leftRel.partitionedRDD.join(rightRel.partitionedRDD)
+  import RelationUtils.CoordinateOrdering
 
-    partitionPairs.flatMap { case (key, (left, right)) =>
+  private val leftPartitioning = leftRel.partitioned.getOrElse {
+    throw new IllegalArgumentException("Trying to join un-partitioned relations")
+  }
+  private val rightPartitioning = rightRel.partitioned.getOrElse {
+    throw new IllegalArgumentException("Trying to join un-partitioned relations")
+  }
+
+  private def sweeplineJoin(overlapAction: OverlapAction): RDD[(Int, (SimpleFeature, SimpleFeature))] = {
+    leftPartitioning.rdd.join(rightPartitioning.rdd).flatMap { case (key, (left, right)) =>
       val sweeplineIndex = new SweepLineIndex()
-      left.foreach{feature =>
+      left.foreach {feature =>
         val coords = feature.getDefaultGeometry.asInstanceOf[Geometry].getCoordinates
-        val interval = new SweepLineInterval(coords.min.x, coords.max.x, (0, feature))
-        sweeplineIndex.add(interval)
+        sweeplineIndex.add(new SweepLineInterval(coords.min.x, coords.max.x, (0, feature)))
       }
-      right.foreach{feature =>
+      right.foreach {feature =>
         val coords = feature.getDefaultGeometry.asInstanceOf[Geometry].getCoordinates
-        val interval = new SweepLineInterval(coords.min.x, coords.max.x, (1, feature))
-        sweeplineIndex.add(interval)
+        sweeplineIndex.add(new SweepLineInterval(coords.min.x, coords.max.x, (1, feature)))
       }
       sweeplineIndex.computeOverlaps(overlapAction)
-      overlapAction.joinList.map{ f => (key, f)}
+      overlapAction.joinList.map(key -> _)
     }
   }
 
-  override def buildScan(requiredColumns: Array[String], filters: Array[org.apache.spark.sql.sources.Filter]): RDD[Row] = {
+  override def buildScan(
+      requiredColumns: Array[String],
+      filters: Array[org.apache.spark.sql.sources.Filter]): RDD[Row] = {
+
     val leftSchema = leftRel.schema
     val rightSchema = rightRel.schema
     val leftExtractors = SparkUtils.getExtractors(leftSchema.fieldNames, leftSchema)
     val rightExtractors = SparkUtils.getExtractors(rightSchema.fieldNames, rightSchema)
+    val joinedSchema = StructType(leftSchema.fields ++ rightSchema.fields)
+    val joinedExtractors = leftExtractors ++ rightExtractors
 
     // Extract geometry indexes and spatial function from condition expression and relation SFTs
     val (leftIndex, rightIndex, conditionFunction) = {
@@ -75,12 +83,8 @@ case class GeoMesaJoinRelation(
 
     // Perform the sweepline join and build rows containing matching features
     val overlapAction = new OverlapAction(leftIndex, rightIndex, conditionFunction)
-    val joinedRows: RDD[(Int, (SimpleFeature, SimpleFeature))] = sweeplineJoin(overlapAction)
-    joinedRows.mapPartitions{ iter =>
-      val joinedSchema = StructType(leftSchema.fields ++ rightSchema.fields)
-      val joinedExtractors = leftExtractors ++ rightExtractors
-
-      iter.map{ case (_, (leftFeature, rightFeature)) =>
+    sweeplineJoin(overlapAction).mapPartitions { iter =>
+      iter.map { case (_, (leftFeature, rightFeature)) =>
         SparkUtils.joinedSf2row(joinedSchema, leftFeature, rightFeature, joinedExtractors)
       }
     }

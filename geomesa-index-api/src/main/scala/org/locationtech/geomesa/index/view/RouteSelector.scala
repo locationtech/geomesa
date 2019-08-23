@@ -21,7 +21,7 @@ trait RouteSelector {
     *
     * @param stores stores and configuration maps
     */
-  def init(stores: Seq[(DataStore, java.util.Map[String, AnyRef])]): Unit
+  def init(stores: Seq[(DataStore, java.util.Map[String, _ <: AnyRef])]): Unit
 
   /**
     * Route a query to a particular store. If no store is selected, query will return empty
