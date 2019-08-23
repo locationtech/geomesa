@@ -83,10 +83,11 @@ trait ActiveDeserialization extends KryoFeatureDeserialization {
 
   private def readFeatureV3(id: String, input: Input): SimpleFeature = {
     val count = input.readShortUnsigned()
+    val size = input.readByte()
     val offset = input.position()
 
     // read our null mask
-    input.setPosition(offset + (2 * count) + 2)
+    input.setPosition(offset + size * (count + 1))
     val nulls = IntBitSet.deserialize(input, count)
 
     // we should now be positioned to read the feature id

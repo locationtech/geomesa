@@ -55,7 +55,7 @@ object LazyDeserialization {
     * @param offset offset into the byte array
     * @param length number of valid bytes in the byte array
     */
-  class LazyReaderV3(
+  class LazyShortReaderV3(
       readers: Array[KryoAttributeReader],
       nulls: IntBitSet,
       count: Int,
@@ -77,6 +77,37 @@ object LazyDeserialization {
   }
 
   /**
+    * Attribute reader for v3 serialization
+    *
+    * @param readers readers
+    * @param nulls null set
+    * @param count number of attributes
+    * @param bytes raw serialized bytes
+    * @param offset offset into the byte array
+    * @param length number of valid bytes in the byte array
+    */
+  class LazyIntReaderV3(
+      readers: Array[KryoAttributeReader],
+      nulls: IntBitSet,
+      count: Int,
+      bytes: Array[Byte],
+      offset: Int,
+      length: Int
+  ) extends LazyAttributeReader {
+    override def read(i: Int): AnyRef = {
+      if (i >= count || nulls.contains(i)) { null } else {
+        // read the offset and go to the position for reading
+        // we create a new kryo input each time, so that position and offset are not affected by other reads
+        // this should be thread-safe, as long as the same attribute is not being read in multiple threads
+        // (since kryo can mutate the bytes during read)
+        val input = new Input(bytes, offset + (4 * i), length - (4 * i))
+        input.setPosition(offset + input.readInt())
+        readers(i).apply(input)
+      }
+    }
+  }
+
+  /**
     * User data reader for v3 serialization
     *
     * @param count number of attributes
@@ -84,7 +115,8 @@ object LazyDeserialization {
     * @param offset offset into the byte array
     * @param length number of valid bytes in the byte array
     */
-  class LazyUserDataReaderV3(count: Int, bytes: Array[Byte], offset: Int, length: Int) extends LazyUserDataReader {
+  class LazyShortUserDataReaderV3(count: Int, bytes: Array[Byte], offset: Int, length: Int)
+      extends LazyUserDataReader {
     override def read(): java.util.Map[AnyRef, AnyRef] = {
       // read the offset and go to the position for reading
       // we create a new kryo input each time, so that position and offset are not affected by other reads
@@ -93,6 +125,28 @@ object LazyDeserialization {
       val input = new Input(bytes, offset + (2 * count), length - (2 * count))
       // read the offset and go to the position for reading
       input.setPosition(offset + input.readShortUnsigned())
+      KryoUserDataSerialization.deserialize(input)
+    }
+  }
+
+  /**
+    * User data reader for v3 serialization
+    *
+    * @param count number of attributes
+    * @param bytes raw serialized bytes
+    * @param offset offset into the byte array
+    * @param length number of valid bytes in the byte array
+    */
+  class LazyIntUserDataReaderV3(count: Int, bytes: Array[Byte], offset: Int, length: Int)
+      extends LazyUserDataReader {
+    override def read(): java.util.Map[AnyRef, AnyRef] = {
+      // read the offset and go to the position for reading
+      // we create a new kryo input each time, so that position and offset are not affected by other reads
+      // this should be thread-safe, as long as the user data is not being read in multiple threads
+      // (since kryo can mutate the bytes during read)
+      val input = new Input(bytes, offset + (4 * count), length - (4 * count))
+      // read the offset and go to the position for reading
+      input.setPosition(offset + input.readInt())
       KryoUserDataSerialization.deserialize(input)
     }
   }
@@ -158,7 +212,7 @@ trait LazyDeserialization extends KryoFeatureDeserialization {
 
   override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
     bytes(offset) match {
-      case KryoFeatureSerializer.Version3 => readFeatureV3(id, bytes, offset + 3, length - 3) // note: our offset starts after the version byte and 'count' short
+      case KryoFeatureSerializer.Version3 => readFeatureV3(id, bytes, offset, length)
       case KryoFeatureSerializer.Version2 => readFeatureV2(id, bytes, offset, length)
       case b => throw new IllegalArgumentException(s"Can't process features serialized with version: $b")
     }
@@ -171,21 +225,33 @@ trait LazyDeserialization extends KryoFeatureDeserialization {
 
   protected def createFeature(id: String, reader: LazyAttributeReader, userData: LazyUserDataReader): SimpleFeature
 
-  private def readFeatureV3(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
-    // our offset starts after the 'count' short, go back so we can read it
-    val input = new Input(bytes, offset - 2, length + 2)
+  private def readFeatureV3(id: String, bytes: Array[Byte], start: Int, length: Int): SimpleFeature = {
+    // our offset starts after the 'count' short and 'size' byte, go back so we can read them
+    val input = new Input(bytes, start, length)
     val count = input.readShortUnsigned()
+    val size = input.readByte()
+    val offset = input.position()
 
     // read our null mask
-    input.setPosition(offset + (2 * count) + 2)
+    input.setPosition(offset + size * (count + 1))
     val nulls = IntBitSet.deserialize(input, count)
 
     // we should now be positioned to read the feature id
     val finalId = if (withoutId) { id } else { input.readString() }
 
-    val reader = new LazyReaderV3(readers, nulls, count, bytes, offset, length)
-    val userData = if (withoutUserData) { WithoutUserDataReader } else {
-      new LazyUserDataReaderV3(count, bytes, offset, length)
+    var reader: LazyAttributeReader = null
+    var userData: LazyUserDataReader = null
+
+    if (size == 2) {
+      reader = new LazyShortReaderV3(readers, nulls, count, bytes, offset, length)
+      userData = if (withoutUserData) { WithoutUserDataReader } else {
+        new LazyShortUserDataReaderV3(count, bytes, offset, length)
+      }
+    } else {
+      reader = new LazyIntReaderV3(readers, nulls, count, bytes, offset, length)
+      userData = if (withoutUserData) { WithoutUserDataReader } else {
+        new LazyIntUserDataReaderV3(count, bytes, offset, length)
+      }
     }
 
     createFeature(finalId, reader, userData)

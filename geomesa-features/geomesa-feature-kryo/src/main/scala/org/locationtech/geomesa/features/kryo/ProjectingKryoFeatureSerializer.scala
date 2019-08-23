@@ -50,19 +50,18 @@ class ProjectingKryoFeatureSerializer(
   private def writeFeature(sf: SimpleFeature, output: Output): Unit = {
     output.writeByte(KryoFeatureSerializer.Version3)
     output.writeShort(count) // track the number of attributes
+    output.write(2) // size of each offset
     val offset = output.position()
     output.setPosition(offset + metadataSize(count))
     if (withId) {
       output.writeString(sf.getID) // TODO optimize for uuids?
     }
     // write attributes and keep track off offset into byte array
+    val offsets = Array.ofDim[Int](count + 1)
     val nulls = IntBitSet(count)
     var i = 0
     while (i < count) {
-      val position = output.position()
-      output.setPosition(offset + (i * 2))
-      output.writeShort(position - offset)
-      output.setPosition(position)
+      offsets(i) = output.position() - offset
       val attribute = sf.getAttribute(mappings(i))
       if (attribute == null) {
         nulls.add(i)
@@ -71,22 +70,39 @@ class ProjectingKryoFeatureSerializer(
       }
       i += 1
     }
-    val userDataPosition = output.position()
-    output.setPosition(offset + (i * 2))
-    output.writeShort(userDataPosition - offset)
-    output.setPosition(userDataPosition)
+    offsets(i) = output.position() - offset // user data position
     if (withUserData) {
       KryoUserDataSerialization.serialize(output, sf.getUserData)
     }
     val end = output.position()
-    if (end - offset > Short.MaxValue.toInt) {
-      // TODO handle overflow
-      throw new NotImplementedError(s"Serialized feature exceeds max byte size (${Short.MaxValue}): ${end - offset}")
+    if (end - offset > KryoFeatureSerialization.MaxUnsignedShort) {
+      // we need to shift the bytes rightwards to add space for writing ints instead of shorts for the offsets
+      val shift = 2 * (count + 1)
+      if (output.getBuffer.length < end + shift) {
+        val expanded = Array.ofDim[Byte](end + shift)
+        System.arraycopy(output.getBuffer, 0, expanded, 0, end)
+        output.setBuffer(expanded)
+      }
+      val buffer = output.getBuffer
+      var i = end
+      while (i > offset) {
+        buffer(i + shift) = buffer(i)
+        i -= 1
+      }
+      // go back and write the offsets and nulls
+      output.setPosition(offset - 1)
+      output.write(4) // 4 bytes per offset
+      offsets.foreach(output.writeInt)
+      nulls.serialize(output)
+      // reset the position back to the end of the buffer so the bytes aren't lost
+      output.setPosition(end + shift)
+    } else {
+      // go back and write the offsets and nulls
+      output.setPosition(offset)
+      offsets.foreach(output.writeShort)
+      nulls.serialize(output)
+      // reset the position back to the end of the buffer so the bytes aren't lost
+      output.setPosition(end)
     }
-    // go back and write the nulls
-    output.setPosition(offset + (2 * count) + 2)
-    nulls.serialize(output)
-    // reset the position back to the end of the buffer so the bytes aren't lost
-    output.setPosition(end)
   }
 }

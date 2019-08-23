@@ -69,22 +69,30 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     * @return
     */
   private def encodeV3(keys: java.util.List[Key], values: java.util.List[Value]): Value = {
-    // 1 byte for version + 2 bytes for count + metadata
-    var length = 3 + org.locationtech.geomesa.features.kryo.metadataSize(count)
+    // 1 byte for version + 2 bytes for count + 1 byte for size + metadata
+    var length = 4 + org.locationtech.geomesa.features.kryo.metadataSize(count, 4)
     var valueCursor = length
 
     var i = 0
     while (i < keys.size) {
       val bytes = values.get(i).get
       val input = KryoFeatureDeserialization.getInput(bytes, 0, bytes.length)
-
+      input.setPosition(3) // skip count and version
+      val size = input.readByte()
       keys.get(i).getColumnQualifier.getBytes.foreach { unsigned =>
         val index = java.lang.Byte.toUnsignedInt(unsigned)
-        input.setPosition(3 + (2 * index))
-        val pos = input.readShort()
-        val len = input.readShort() - pos
-        attributes(index) = (bytes, 3 + pos, len)
-        length += len
+        input.setPosition(4 + (index * size))
+        if (size == 2) {
+          val pos = input.readShortUnsigned()
+          val len = input.readShortUnsigned() - pos
+          attributes(index) = (bytes, 4 + pos, len)
+          length += len
+        } else {
+          val pos = input.readInt()
+          val len = input.readInt() - pos
+          attributes(index) = (bytes, 4 + pos, len)
+          length += len
+        }
       }
       i += 1
     }
@@ -93,12 +101,13 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     val output = new Output(value)
     output.writeByte(KryoFeatureSerializer.Version3)
     output.writeShort(count)
+    output.write(4) // size of each offset, we just use 4 so we know we have enough space
 
     val nulls = IntBitSet(count)
 
     i = 0
     while (i < count) {
-      output.writeShort(valueCursor - 3) // offset relative to version + count
+      output.writeInt(valueCursor - 4) // offset relative to version + count + size
       val attribute = attributes(i)
       if (attribute == null) { nulls.add(i) } else {
         val (bytes, offset, len) = attribute
@@ -108,7 +117,7 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
       }
       i += 1
     }
-    output.writeShort(valueCursor) // user-data position
+    output.writeInt(valueCursor - 4) // user-data position
 
     // write nulls - we should already be in the right position
     nulls.serialize(output)

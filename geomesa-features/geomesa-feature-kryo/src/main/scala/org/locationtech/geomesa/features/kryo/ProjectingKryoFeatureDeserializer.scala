@@ -78,10 +78,11 @@ class ProjectingKryoFeatureDeserializer(
 
   private def readFeatureV3(id: String, input: Input): SimpleFeature = {
     val count = input.readShort()
+    val size = input.readByte()
     val offset = input.position()
 
     // read our null mask
-    input.setPosition(offset + (2 * count) + 2)
+    input.setPosition(offset + size * (count + 1))
     val nulls = IntBitSet.deserialize(input, count)
 
     // we should now be positioned to read the feature id
@@ -90,16 +91,16 @@ class ProjectingKryoFeatureDeserializer(
     val attributes = indices.map { i =>
       if (i == -1 || i >= count || nulls.contains(i)) { null } else {
         // read the offset and go to the position for reading
-        input.setPosition(offset + (2 * i))
-        input.setPosition(offset + input.readShort())
+        input.setPosition(offset + (i * size))
+        input.setPosition(offset + (if (size == 2) { input.readShortUnsigned() } else { input.readInt() }))
         readers(i).apply(input)
       }
     }
 
     val userData = if (withoutUserData) { null } else {
       // read the offset and go to the position for reading
-      input.setPosition(offset + (2 * count))
-      input.setPosition(offset + input.readShort())
+      input.setPosition(offset + (count * size))
+      input.setPosition(offset + (if (size == 2) { input.readShortUnsigned() } else { input.readInt() }))
       KryoUserDataSerialization.deserialize(input)
     }
 

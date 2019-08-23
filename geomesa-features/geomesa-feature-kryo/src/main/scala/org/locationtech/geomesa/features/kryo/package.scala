@@ -17,10 +17,14 @@ package object kryo {
     * of offsets for each attribute value and user data, and a bit mask for holding nulls
     *
     * Size required is:
-    *   2 bytes per attribute for relative offset + 2 bytes for user data offset + 4 bytes per bit mask for nulls
+    *   `bytesPerNumber` bytes per attribute for relative offset
+    *   + `bytesPerNumber` bytes for user data offset
+    *   + 4 bytes per bit mask for nulls
     *
     * @param count number of attributes
+    * @param bytesPerNumber number of bytes used to store each offset
     * @return
     */
-  def metadataSize(count: Int): Int = (2 * count) + 2 + (IntBitSet.size(count) * 4)
+  def metadataSize(count: Int, bytesPerNumber: Int = 2): Int =
+    bytesPerNumber * (count + 1) + (IntBitSet.size(count) * 4)
 }
