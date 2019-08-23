@@ -226,8 +226,8 @@ trait LazyDeserialization extends KryoFeatureDeserialization {
   protected def createFeature(id: String, reader: LazyAttributeReader, userData: LazyUserDataReader): SimpleFeature
 
   private def readFeatureV3(id: String, bytes: Array[Byte], start: Int, length: Int): SimpleFeature = {
-    // our offset starts after the 'count' short and 'size' byte, go back so we can read them
-    val input = new Input(bytes, start, length)
+    // skip the version byte, which we've already read
+    val input = new Input(bytes, start + 1, length - 1)
     val count = input.readShortUnsigned()
     val size = input.readByte()
     val offset = input.position()
