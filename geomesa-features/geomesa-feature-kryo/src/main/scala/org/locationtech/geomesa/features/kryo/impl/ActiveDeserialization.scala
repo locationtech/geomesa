@@ -82,7 +82,7 @@ trait ActiveDeserialization extends KryoFeatureDeserialization {
   }
 
   private def readFeatureV3(id: String, input: Input): SimpleFeature = {
-    val count = input.readShort()
+    val count = input.readShortUnsigned()
     val offset = input.position()
 
     // read our null mask

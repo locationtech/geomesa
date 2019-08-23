@@ -70,7 +70,7 @@ object LazyDeserialization {
         // this should be thread-safe, as long as the same attribute is not being read in multiple threads
         // (since kryo can mutate the bytes during read)
         val input = new Input(bytes, offset + (2 * i), length - (2 * i))
-        input.setPosition(offset + input.readShort())
+        input.setPosition(offset + input.readShortUnsigned())
         readers(i).apply(input)
       }
     }
@@ -92,7 +92,7 @@ object LazyDeserialization {
       // (since kryo can mutate the bytes during read)
       val input = new Input(bytes, offset + (2 * count), length - (2 * count))
       // read the offset and go to the position for reading
-      input.setPosition(offset + input.readShort())
+      input.setPosition(offset + input.readShortUnsigned())
       KryoUserDataSerialization.deserialize(input)
     }
   }
@@ -174,7 +174,7 @@ trait LazyDeserialization extends KryoFeatureDeserialization {
   private def readFeatureV3(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
     // our offset starts after the 'count' short, go back so we can read it
     val input = new Input(bytes, offset - 2, length + 2)
-    val count = input.readShort()
+    val count = input.readShortUnsigned()
 
     // read our null mask
     input.setPosition(offset + (2 * count) + 2)
