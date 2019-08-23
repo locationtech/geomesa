@@ -27,7 +27,7 @@ Before you begin, you must have the following installed and configured:
 -  `Java <http://java.oracle.com/>`__ JDK 1.8
 -  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
--  an HBase |hbase_version| instance
+-  an HBase |hbase_required_version| instance
 -  the GeoMesa HBase distributed runtime installed for your HBase instance (see below)
 
 If you do not have an existing HBase instance, you can easily set one up
@@ -36,7 +36,7 @@ as detailed next.
 Setting up HBase in standalone mode (optional)
 ----------------------------------------------
 
-(Skip this section if you have an existing HBase |hbase_version| installation.)
+(Skip this section if you have an existing HBase |hbase_required_version| installation.)
 
 Download the HBase 1.3.1 binary distribution from
 http://www.apache.org/dyn/closer.cgi/hbase/
