@@ -38,7 +38,7 @@ package object kryo {
     }
 
     /**
-      * Position to read the feature ID
+      * Position the input to read the feature ID
       *
       * @return the relative position being set
       */
@@ -47,6 +47,13 @@ package object kryo {
       input.setPosition(offset + pos)
       pos
     }
+
+    /**
+      * Position the input to read the user data
+      *
+      * @return the relative position being set
+      */
+    def setUserDataPosition(): Int = setPosition(count)
   }
 
   object Metadata {

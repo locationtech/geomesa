@@ -228,7 +228,7 @@ trait LazyDeserialization extends KryoFeatureDeserialization {
   private def readFeatureV3(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
     // skip the version byte, which we've already read
     val input = new Input(bytes, offset + 1, length - 1)
-    val metadata = Metadata(input)
+    val metadata = Metadata(input) // read count, size, nulls, etc
 
     // we should now be positioned to read the feature id
     val finalId = if (withoutId) { id } else { input.readString() }

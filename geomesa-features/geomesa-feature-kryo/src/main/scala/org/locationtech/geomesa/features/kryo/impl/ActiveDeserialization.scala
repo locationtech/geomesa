@@ -81,7 +81,7 @@ trait ActiveDeserialization extends KryoFeatureDeserialization {
   }
 
   private def readFeatureV3(id: String, input: Input): SimpleFeature = {
-    val Metadata(_, count, _, _, nulls) = Metadata(input)
+    val metadata = Metadata(input) // read count, size, nulls, etc
 
     // we should now be positioned to read the feature id
     val finalId = if (withoutId) { id } else { input.readString() }
@@ -89,8 +89,8 @@ trait ActiveDeserialization extends KryoFeatureDeserialization {
     // read our attributes
     val attributes = Array.ofDim[AnyRef](out.getAttributeCount) // note: may not match the serialized count
     var i = 0
-    while (i < count) {
-      if (!nulls.contains(i)) {
+    while (i < metadata.count) {
+      if (!metadata.nulls.contains(i)) {
         attributes(i) = readers(i).apply(input)
       }
       i += 1

@@ -254,7 +254,7 @@ object KryoBufferSimpleFeature {
   /**
     * Common interface for handling serialization versions
     */
-  private sealed trait KryoBufferDelegate {
+  private sealed trait KryoBufferDelegate extends Transformer {
 
     /**
       * Invoked after the underlying kryo buffer has been updated with a new serialized feature
@@ -306,6 +306,12 @@ object KryoBufferSimpleFeature {
       * @return
       */
     def getInput(index: Int): Option[Input]
+  }
+
+  /**
+    * Abstraction over transformer impls
+    */
+  private sealed trait Transformer {
 
     /**
       * Transform a feature, based on previously set transform schema
@@ -313,13 +319,6 @@ object KryoBufferSimpleFeature {
       * @param original original feature being transformed
       * @return
       */
-    def transform(original: SimpleFeature): Array[Byte]
-  }
-
-  /**
-    * Abstraction over transformer impls
-    */
-  private sealed trait Transformer {
     def transform(original: SimpleFeature): Array[Byte]
   }
 
@@ -334,7 +333,7 @@ object KryoBufferSimpleFeature {
     private var metadata: Metadata = _
     private var transformer: Transformer = _
 
-    override def reset(): Unit = metadata = Metadata(input)
+    override def reset(): Unit = metadata = Metadata(input) // reads count, size, nulls, etc
 
     override def setTransforms(schema: SimpleFeatureType, transforms: java.util.List[Definition]): Unit = {
       val indices = Array.tabulate(transforms.size()) { i =>
@@ -363,7 +362,7 @@ object KryoBufferSimpleFeature {
     }
 
     override def getUserData: java.util.Map[AnyRef, AnyRef] = {
-      metadata.setPosition(metadata.count)
+      metadata.setUserDataPosition()
       KryoUserDataSerialization.deserialize(input)
     }
 
@@ -608,7 +607,7 @@ object KryoBufferSimpleFeature {
       schema: SimpleFeatureType,
       transforms: java.util.List[Definition],
       options: Set[SerializationOption]
-  ) extends Transformer {
+    ) extends Transformer {
 
     private val serializer = KryoFeatureSerializer(schema, options)
     private val sf = new ScalaSimpleFeature(schema, "")

@@ -73,18 +73,18 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     // + 4 bytes for user data offset + null bit set bytes
     var length = (count + 2 + IntBitSet.size(count)) * 4
 
-    var valueCursor = length
+    var valueCursor = length // tracks our output position for copying bytes
 
     var i = 0
     while (i < keys.size) {
       val bytes = values.get(i).get
       val input = KryoFeatureDeserialization.getInput(bytes, 1, bytes.length - 1) // skip the version byte
-      val metadata = Metadata(input)
+      val metadata = Metadata(input) // read count, size, etc
       keys.get(i).getColumnQualifier.getBytes.foreach { unsigned =>
         val index = java.lang.Byte.toUnsignedInt(unsigned)
         val pos = metadata.setPosition(index)
         val len = metadata.setPosition(index + 1) - pos
-        attributes(index) = (bytes, 4 + pos, len)
+        attributes(index) = (bytes, 4 + pos, len) // the offset is always 4 since we're copying into a new byte array
         length += len
       }
       i += 1

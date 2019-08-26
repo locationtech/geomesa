@@ -13,6 +13,7 @@ import java.io.OutputStream
 import java.util.{Date, UUID}
 
 import com.esotericsoftware.kryo.io.Output
+import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.kryo.json.KryoJsonSerialization
 import org.locationtech.geomesa.features.kryo.serialization.{KryoGeometrySerialization, KryoUserDataSerialization}
@@ -109,13 +110,13 @@ trait KryoFeatureSerialization extends SimpleFeatureSerializer {
   }
 }
 
-object KryoFeatureSerialization {
+object KryoFeatureSerialization extends LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   import scala.collection.JavaConverters._
 
-  val MaxUnsignedShort = 65535
+  val MaxUnsignedShort: Int = 65535
 
   private [this] val outputs = new SoftThreadLocal[Output]()
   private [this] val writers = new SoftThreadLocalCache[String, Array[KryoAttributeWriter]]()
@@ -232,28 +233,66 @@ object KryoFeatureSerialization {
   }
 
   case class KryoListWriter(elements: KryoAttributeWriter) extends KryoAttributeWriter {
-    // TODO handle null elements?
     override def apply(output: Output, value: AnyRef): Unit = {
       val list = value.asInstanceOf[java.util.List[AnyRef]]
-      output.writeInt(list.size(), true)
+      val pos = output.position()
+      var size = list.size()
+      output.writeInt(size, true)
+      val start = output.position()
       val iter = list.iterator()
       while (iter.hasNext) {
-        elements(output, iter.next())
+        val next = iter.next()
+        if (next == null) {
+          size -= 1
+        } else {
+          elements(output, next)
+        }
+      }
+      if (size != list.size()) {
+        logger.warn(s"Dropping ${list.size() - size} null elements from serialized list")
+        resize(output, size, pos, start)
       }
     }
   }
 
   case class KryoMapWriter(keys: KryoAttributeWriter, values: KryoAttributeWriter) extends KryoAttributeWriter {
-    // TODO handle null keys/values?
     override def apply(output: Output, value: AnyRef): Unit = {
       val map = value.asInstanceOf[java.util.Map[AnyRef, AnyRef]]
-      output.writeInt(map.size(), true)
+      val pos = output.position()
+      var size = map.size()
+      output.writeInt(size, true)
+      val start = output.position()
       val iter = map.entrySet.iterator()
       while (iter.hasNext) {
         val entry = iter.next()
-        keys(output, entry.getKey)
-        values(output, entry.getValue)
+        if (entry.getKey == null || entry.getValue == null) {
+          size -= 1
+        } else {
+          keys(output, entry.getKey)
+          values(output, entry.getValue)
+        }
       }
+      if (size != map.size()) {
+        logger.warn(s"Dropping ${map.size() - size} entries with null keys or values from serialized map")
+        resize(output, size, pos, start)
+      }
+    }
+  }
+
+  private def resize(output: Output, size: Int, position: Int, start: Int): Unit = {
+    val end = output.position()
+    output.setPosition(position)
+    output.writeInt(size, true)
+    val shift = start - output.position()
+    if (shift != 0) {
+      // the var-int encoding resulting in fewer bytes, we have to shift the result left
+      val buf = output.getBuffer
+      var i = output.position()
+      while (i + shift < end) {
+        buf(i) = buf(i + shift)
+        i -= 1
+      }
+      output.setPosition(end - shift)
     }
   }
 }
