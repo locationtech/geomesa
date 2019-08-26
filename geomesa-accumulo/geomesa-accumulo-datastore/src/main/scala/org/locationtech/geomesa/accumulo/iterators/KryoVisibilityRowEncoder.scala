@@ -13,7 +13,7 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RowEncodingIterator
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, Metadata}
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.index.iterators.IteratorCache
@@ -69,30 +69,23 @@ class KryoVisibilityRowEncoder extends RowEncodingIterator {
     * @return
     */
   private def encodeV3(keys: java.util.List[Key], values: java.util.List[Value]): Value = {
-    // 1 byte for version + 2 bytes for count + 1 byte for size + metadata
-    var length = 4 + org.locationtech.geomesa.features.kryo.metadataSize(count, 4)
+    // 1 byte for version + 2 bytes for count + 1 byte for size + 4 bytes per attribute for offsets
+    // + 4 bytes for user data offset + null bit set bytes
+    var length = (count + 2 + IntBitSet.size(count)) * 4
+
     var valueCursor = length
 
     var i = 0
     while (i < keys.size) {
       val bytes = values.get(i).get
-      val input = KryoFeatureDeserialization.getInput(bytes, 0, bytes.length)
-      input.setPosition(3) // skip count and version
-      val size = input.readByte()
+      val input = KryoFeatureDeserialization.getInput(bytes, 1, bytes.length - 1) // skip the version byte
+      val metadata = Metadata(input)
       keys.get(i).getColumnQualifier.getBytes.foreach { unsigned =>
         val index = java.lang.Byte.toUnsignedInt(unsigned)
-        input.setPosition(4 + (index * size))
-        if (size == 2) {
-          val pos = input.readShortUnsigned()
-          val len = input.readShortUnsigned() - pos
-          attributes(index) = (bytes, 4 + pos, len)
-          length += len
-        } else {
-          val pos = input.readInt()
-          val len = input.readInt() - pos
-          attributes(index) = (bytes, 4 + pos, len)
-          length += len
-        }
+        val pos = metadata.setPosition(index)
+        val len = metadata.setPosition(index + 1) - pos
+        attributes(index) = (bytes, 4 + pos, len)
+        length += len
       }
       i += 1
     }

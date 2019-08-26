@@ -49,10 +49,7 @@ class ProjectingKryoFeatureSerializer(
 
   private def writeFeature(sf: SimpleFeature, output: Output): Unit = {
     output.writeByte(KryoFeatureSerializer.Version3)
-    output.writeShort(count) // track the number of attributes
-    output.write(2) // size of each offset
-    val offset = output.position()
-    output.setPosition(offset + metadataSize(count))
+    val offset = Metadata.write(output, count, 2)
     if (withId) {
       output.writeString(sf.getID) // TODO optimize for uuids?
     }

@@ -16,7 +16,6 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.ScalaSimpleFeature.ImmutableSimpleFeature
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization.getInput
 import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerialization
-import org.locationtech.geomesa.utils.collection.IntBitSet
 import org.opengis.feature.simple.SimpleFeature
 
 import scala.util.control.NonFatal
@@ -82,13 +81,7 @@ trait ActiveDeserialization extends KryoFeatureDeserialization {
   }
 
   private def readFeatureV3(id: String, input: Input): SimpleFeature = {
-    val count = input.readShortUnsigned()
-    val size = input.readByte()
-    val offset = input.position()
-
-    // read our null mask
-    input.setPosition(offset + size * (count + 1))
-    val nulls = IntBitSet.deserialize(input, count)
+    val Metadata(_, count, _, _, nulls) = Metadata(input)
 
     // we should now be positioned to read the feature id
     val finalId = if (withoutId) { id } else { input.readString() }

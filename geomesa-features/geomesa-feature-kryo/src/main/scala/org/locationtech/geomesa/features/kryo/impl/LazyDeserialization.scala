@@ -225,32 +225,28 @@ trait LazyDeserialization extends KryoFeatureDeserialization {
 
   protected def createFeature(id: String, reader: LazyAttributeReader, userData: LazyUserDataReader): SimpleFeature
 
-  private def readFeatureV3(id: String, bytes: Array[Byte], start: Int, length: Int): SimpleFeature = {
+  private def readFeatureV3(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature = {
     // skip the version byte, which we've already read
-    val input = new Input(bytes, start + 1, length - 1)
-    val count = input.readShortUnsigned()
-    val size = input.readByte()
-    val offset = input.position()
-
-    // read our null mask
-    input.setPosition(offset + size * (count + 1))
-    val nulls = IntBitSet.deserialize(input, count)
+    val input = new Input(bytes, offset + 1, length - 1)
+    val metadata = Metadata(input)
 
     // we should now be positioned to read the feature id
     val finalId = if (withoutId) { id } else { input.readString() }
 
+    val remaining = input.limit - metadata.offset
+
     var reader: LazyAttributeReader = null
     var userData: LazyUserDataReader = null
 
-    if (size == 2) {
-      reader = new LazyShortReaderV3(readers, nulls, count, bytes, offset, length)
+    if (metadata.size == 2) {
+      reader = new LazyShortReaderV3(readers, metadata.nulls, metadata.count, bytes, metadata.offset, remaining)
       userData = if (withoutUserData) { WithoutUserDataReader } else {
-        new LazyShortUserDataReaderV3(count, bytes, offset, length)
+        new LazyShortUserDataReaderV3(metadata.count, bytes, metadata.offset, remaining)
       }
     } else {
-      reader = new LazyIntReaderV3(readers, nulls, count, bytes, offset, length)
+      reader = new LazyIntReaderV3(readers, metadata.nulls, metadata.count, bytes, metadata.offset, remaining)
       userData = if (withoutUserData) { WithoutUserDataReader } else {
-        new LazyIntUserDataReaderV3(count, bytes, offset, length)
+        new LazyIntUserDataReaderV3(metadata.count, bytes, metadata.offset, remaining)
       }
     }
 

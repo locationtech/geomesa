@@ -52,10 +52,7 @@ trait KryoFeatureSerialization extends SimpleFeatureSerializer {
 
   private def writeFeature(sf: SimpleFeature, output: Output): Unit = {
     output.writeByte(KryoFeatureSerializer.Version3)
-    output.writeShort(count) // track the number of attributes
-    output.write(2) // size of each offset
-    val offset = output.position()
-    output.setPosition(offset + metadataSize(count))
+    val offset = Metadata.write(output, count, 2)
     if (withId) {
       output.writeString(sf.getID) // TODO optimize for uuids?
     }
@@ -73,7 +70,7 @@ trait KryoFeatureSerialization extends SimpleFeatureSerializer {
       }
       i += 1
     }
-    offsets(i) = output.position() - offset// user data position
+    offsets(i) = output.position() - offset // user data position
     if (withUserData) {
       KryoUserDataSerialization.serialize(output, sf.getUserData)
     }
@@ -83,19 +80,21 @@ trait KryoFeatureSerialization extends SimpleFeatureSerializer {
       val shift = 2 * (count + 1)
       if (output.getBuffer.length < end + shift) {
         val expanded = Array.ofDim[Byte](end + shift)
-        System.arraycopy(output.getBuffer, 0, expanded, 0, end)
+        System.arraycopy(output.getBuffer, 0, expanded, 0, offset)
+        System.arraycopy(output.getBuffer, offset, expanded, offset + shift, end - offset)
         output.setBuffer(expanded)
-      }
-      val buffer = output.getBuffer
-      var i = end
-      while (i > offset) {
-        buffer(i + shift) = buffer(i)
-        i -= 1
+      } else {
+        val buffer = output.getBuffer
+        var i = end
+        while (i > offset) {
+          buffer(i + shift) = buffer(i)
+          i -= 1
+        }
       }
       // go back and write the offsets and nulls
       output.setPosition(offset - 1)
       output.write(4) // 4 bytes per offset
-      offsets.foreach(output.writeInt)
+      offsets.foreach(o => output.writeInt(o + shift))
       nulls.serialize(output)
       // reset the position back to the end of the buffer so the bytes aren't lost
       output.setPosition(end + shift)

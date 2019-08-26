@@ -243,7 +243,7 @@ class KryoBufferSimpleFeature(serializer: KryoFeatureDeserialization) extends Si
 object KryoBufferSimpleFeature {
 
   private class IdParser {
-    var parse: (Array[Byte], Int, Int) => String = _
+    var parse: (Array[Byte], Int, Int) => String = (_, _, _) => null
     var buffer: Array[Byte] = _
     var offset: Int = 0
     var length: Int = 0
@@ -331,21 +331,10 @@ object KryoBufferSimpleFeature {
     */
   private class KryoBufferV3(serializer: KryoFeatureDeserialization, input: Input) extends KryoBufferDelegate {
 
-    private var count: Int = -1
-    private var offset: Int = -1
-    private var size: Int = -1
-    private var nulls: IntBitSet = _
-
+    private var metadata: Metadata = _
     private var transformer: Transformer = _
 
-    override def reset(): Unit = {
-      count = input.readShort()
-      size = input.readByte()
-      offset = input.position()
-      // read our null mask
-      input.setPosition(offset + size * (count + 1))
-      nulls = IntBitSet.deserialize(input, count)
-    }
+    override def reset(): Unit = metadata = Metadata(input)
 
     override def setTransforms(schema: SimpleFeatureType, transforms: java.util.List[Definition]): Unit = {
       val indices = Array.tabulate(transforms.size()) { i =>
@@ -362,47 +351,37 @@ object KryoBufferSimpleFeature {
     }
 
     override def id(): String = {
-      input.setPosition(offset + metadataSize(count, size))
+      metadata.setIdPosition()
       input.readString()
     }
 
     override def getAttribute(index: Int): AnyRef = {
-      if (index >= count || nulls.contains(index)) { null } else {
-        setPosition(index)
+      if (index >= metadata.count || metadata.nulls.contains(index)) { null } else {
+        metadata.setPosition(index)
         serializer.readers(index).apply(input)
       }
     }
 
     override def getUserData: java.util.Map[AnyRef, AnyRef] = {
-      setPosition(count)
+      metadata.setPosition(metadata.count)
       KryoUserDataSerialization.deserialize(input)
     }
 
     override def getDateAsLong(index: Int): Long = {
-      if (index >= count || nulls.contains(index)) { 0L } else {
-        setPosition(index)
+      if (index >= metadata.count || metadata.nulls.contains(index)) { 0L } else {
+        metadata.setPosition(index)
         KryoLongReader.apply(input)
       }
     }
 
     override def getInput(index: Int): Option[Input] = {
-      if (index >= count || nulls.contains(index)) { None } else {
-        setPosition(index)
+      if (index >= metadata.count || metadata.nulls.contains(index)) { None } else {
+        metadata.setPosition(index)
         Some(input)
       }
     }
 
     override def transform(original: SimpleFeature): Array[Byte] = transformer.transform(original)
-
-    /**
-      * Read the offset and go to the position for reading
-      *
-      * @param i index to read
-      */
-    private def setPosition(i: Int): Unit = {
-      input.setPosition(offset + (i * size))
-      input.setPosition(offset + (if (size == 2) { input.readShortUnsigned() } else { input.readInt() }))
-    }
 
     // if we are just returning a subset of attributes, we can copy the bytes directly
     private class BinaryTransformer(indices: Array[Int]) extends Transformer {
@@ -410,10 +389,10 @@ object KryoBufferSimpleFeature {
       private val positionsAndLengths = Array.ofDim[(Int, Int)](indices.length)
 
       override def transform(original: SimpleFeature): Array[Byte] = {
-        var length = metadataSize(indices.length, size) + 4 // +1 for version, +2 for count, +1 for size
+        // +1 for version, +2 for count, +1 for size
+        var length = (metadata.size * (indices.length + 1)) + (IntBitSet.size(indices.length) * 4) + 4
         val id = if (serializer.withoutId) { null } else {
-          val pos = offset + metadataSize(count, size)
-          input.setPosition(pos)
+          val pos = metadata.setIdPosition() + metadata.offset
           val id = input.readString()
           length += input.position() - pos
           id
@@ -427,20 +406,12 @@ object KryoBufferSimpleFeature {
         var i = 0
         while (i < indices.length) {
           val index = indices(i) // the index of the attribute in the original feature
-          if (index >= count || KryoBufferV3.this.nulls.contains(index)) { nulls.add(i) } else {
+          if (index >= metadata.count || metadata.nulls.contains(index)) { nulls.add(i) } else {
             // read the offset and the subsequent offset to get the length
-            input.setPosition(offset + (size * index))
-            if (size == 2) {
-              val pos = input.readShortUnsigned()
-              val len = input.readShortUnsigned() - pos
-              length += len
-              positionsAndLengths(i) = (pos, len)
-            } else {
-              val pos = input.readInt()
-              val len = input.readInt() - pos
-              length += len
-              positionsAndLengths(i) = (pos, len)
-            }
+            val pos = metadata.setPosition(index)
+            val len = metadata.setPosition(index + 1) - pos
+            length += len
+            positionsAndLengths(i) = (metadata.offset + pos, len)
           }
           i += 1
         }
@@ -453,23 +424,24 @@ object KryoBufferSimpleFeature {
         val output = new Output(result, length)
         output.writeByte(KryoFeatureSerializer.Version3)
         output.writeShort(indices.length) // track the number of attributes
-        output.write(size)
+        output.write(metadata.size)
         i = 0
         while (i < positionsAndLengths.length) {
-          if (size == 2) {
-            output.writeShort(resultCursor)
+          // note: offset is always 4 here since we're using the full result array
+          if (metadata.size == 2) {
+            output.writeShort(resultCursor - 4)
           } else {
-            output.writeInt(resultCursor)
+            output.writeInt(resultCursor - 4)
           }
           if (!nulls.contains(i)) {
             val (pos, len) = positionsAndLengths(i)
-            System.arraycopy(buf, offset + pos, result, resultCursor, len)
+            System.arraycopy(buf, pos, result, resultCursor, len)
             resultCursor += len
           }
           i += 1
         }
         // user data offset
-        if (size == 2) {
+        if (metadata.size == 2) {
           output.writeShort(resultCursor)
         } else {
           output.writeInt(resultCursor)
