@@ -152,7 +152,7 @@ class AttributeIndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStra
                          multiplier: Int): Iterator[ScanRange[AttributeIndexKey]] = {
 
     import AttributeIndexKey.encodeForQuery
-    import org.locationtech.geomesa.filter.WILDCARD_SUFFIX
+    import org.locationtech.geomesa.filter.WildcardSuffix
 
     if (values.values.isEmpty) {
       // we have an attribute, but weren't able to extract any bounds... scan all values
@@ -175,7 +175,7 @@ class AttributeIndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStra
             if (lower == upper) {
               val row = AttributeIndexKey(fieldIndexShort, encodeForQuery(lower, binding), inclusive = true)
               Iterator.single(SingleRowRange(row))
-            } else if (lower + WILDCARD_SUFFIX == upper) {
+            } else if (lower + WildcardSuffix == upper) {
               val row = AttributeIndexKey(fieldIndexShort, encodeForQuery(lower, binding), inclusive = true)
               Iterator.single(PrefixRange(row))
             } else {

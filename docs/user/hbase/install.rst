@@ -3,7 +3,7 @@ Installing GeoMesa HBase
 
 .. note::
 
-    GeoMesa currently supports HBase version |hbase_version|.
+    GeoMesa currently supports HBase |hbase_supported_versions|.
 
 GeoMesa supports traditional HBase installations as well as HBase running on `Amazon's EMR <https://aws.amazon.com/emr/>`_
 , `Hortonworks' Data Platform (HDP) <https://hortonworks.com/products/data-center/hdp/>`_, and the
@@ -286,7 +286,7 @@ Installing GeoMesa HBase in GeoServer
 The HBase GeoServer plugin is bundled by default in a GeoMesa binary distribution. To install, extract
 ``$GEOMESA_HBASE_HOME/dist/gs-plugins/geomesa-hbase-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
 ``WEB-INF/lib`` directory. Note that this plugin contains a shaded JAR with HBase |hbase_bundled_version|
-bundled. This JAR should work with HBase |hbase_version|.
+bundled. This JAR should work with HBase |hbase_supported_versions|.
 
 This distribution does not include the Hadoop or Zookeeper JARs; the following JARs
 should be copied from the ``lib`` directory of your HBase or Hadoop installations into

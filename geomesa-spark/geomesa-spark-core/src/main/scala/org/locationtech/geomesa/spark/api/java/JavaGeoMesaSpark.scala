@@ -10,73 +10,78 @@ package org.locationtech.geomesa.spark.api.java
 
 import java.util
 import java.util.AbstractMap.SimpleEntry
+import java.util.Map.Entry
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.spark.api.java._
 import org.apache.spark.api.java.JavaRDD._
+import org.apache.spark.api.java._
+import org.apache.spark.rdd.RDD
 import org.geotools.data.Query
 import org.locationtech.geomesa.spark.{GeoMesaSpark, Schema, SpatialRDD, SpatialRDDProvider}
-import org.opengis.feature.simple.SimpleFeature
-import org.apache.spark.rdd.RDD
-
-import scala.collection.JavaConversions._
-
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 object JavaGeoMesaSpark {
-
   def apply(params: java.util.Map[String, _ <: java.io.Serializable]) =
-    JavaSpatialRDDProvider(GeoMesaSpark.apply(params.asInstanceOf[java.util.Map[String, java.io.Serializable]]))
+    JavaSpatialRDDProvider(GeoMesaSpark.apply(params))
 }
 
 object JavaSpatialRDDProvider {
-
   def apply(provider: SpatialRDDProvider) = new JavaSpatialRDDProvider(provider)
 }
 
 class JavaSpatialRDDProvider(provider: SpatialRDDProvider) {
 
-  def rdd(conf: Configuration,
-          jsc: JavaSparkContext,
-          params: java.util.Map[String, String],
-          query: Query): JavaSpatialRDD =
-    provider.rdd(conf, jsc.sc, params.toMap, query)
+  import scala.collection.JavaConverters._
 
-  def save(jrdd: JavaRDD[SimpleFeature],
-           params: util.Map[String, String],
-           typeName: String): Unit =
-    provider.save(jrdd, params.toMap, typeName)
+  def rdd(
+      conf: Configuration,
+      jsc: JavaSparkContext,
+      params: java.util.Map[String, String],
+      query: Query): JavaSpatialRDD =
+    provider.rdd(conf, jsc.sc, params.asScala.toMap, query)
+
+  def save(jrdd: JavaRDD[SimpleFeature], params: java.util.Map[String, String], typeName: String): Unit =
+    provider.save(jrdd, params.asScala.toMap, typeName)
 }
 
 object JavaSpatialRDD {
 
-  def apply(rdd: SpatialRDD) = new JavaSpatialRDD(rdd)
+  import scala.collection.JavaConverters._
+
+  def apply(rdd: SpatialRDD): JavaSpatialRDD = new JavaSpatialRDD(rdd)
 
   implicit def toJavaSpatialRDD(rdd: SpatialRDD):JavaSpatialRDD = JavaSpatialRDD(rdd)
 
-  implicit def toValueList(in: RDD[SimpleFeature] with Schema): RDD[util.List[AnyRef]] =
-    in.map(sf => util.Arrays.asList(sf.getAttributes: _*))
+  implicit def toValueList(in: RDD[SimpleFeature] with Schema): RDD[java.util.List[AnyRef]] =
+    in.map(_.getAttributes)
 
-  implicit def toKeyValueEntryList(in: RDD[SimpleFeature] with Schema): RDD[util.List[util.Map.Entry[String, AnyRef]]] =
-    in.map(_.getProperties.map(p => new SimpleEntry(p.getName.getLocalPart, p.getValue)))
-      .map(i => util.Arrays.asList(i.toSeq: _*))
+  implicit def toKeyValueEntryList(in: RDD[SimpleFeature] with Schema): RDD[java.util.List[Entry[String, AnyRef]]] = {
+    in.map { sf =>
+      val entries = new java.util.ArrayList[Entry[String, AnyRef]](sf.getAttributeCount)
+      sf.getProperties.asScala.foreach(p => entries.add(new SimpleEntry(p.getName.getLocalPart, p.getValue)))
+      entries
+    }
+  }
 
-  implicit def toKeyValueArrayList(in: RDD[SimpleFeature] with Schema): RDD[util.List[Array[AnyRef]]] =
-    in.map(_.getProperties.map(p => Array(p.getName.getLocalPart, p.getValue)))
-      .map(i => util.Arrays.asList(i.toSeq: _*))
+  implicit def toKeyValueArrayList(in: RDD[SimpleFeature] with Schema): RDD[java.util.List[Array[AnyRef]]] = {
+    in.map { sf =>
+      val entries = new java.util.ArrayList[Array[AnyRef]](sf.getAttributeCount)
+      sf.getProperties.asScala.foreach(p => entries.add(Array[AnyRef](p.getName.getLocalPart, p.getValue)))
+      entries
+    }
+  }
 
-  implicit def toKeyValueJavaMap(in: RDD[SimpleFeature] with Schema): RDD[util.Map[String, AnyRef]] =
-    SpatialRDD.toKeyValueMap(in)
-      .map(new util.HashMap(_))
+  implicit def toKeyValueJavaMap(in: RDD[SimpleFeature] with Schema): RDD[java.util.Map[String, AnyRef]] =
+    SpatialRDD.toKeyValueMap(in).map(_.asJava)
 
   implicit def toGeoJSONString(in: RDD[SimpleFeature] with Schema): RDD[String] =
     SpatialRDD.toGeoJSONString(in)
-
 }
 
 class JavaSpatialRDD(val srdd: SpatialRDD) extends JavaRDD[SimpleFeature](srdd) with Schema {
   import JavaSpatialRDD._
 
-  def schema = srdd.schema
+  def schema: SimpleFeatureType = srdd.schema
 
   def asValueList:          JavaRDD[util.List[Object]]                         = toValueList(srdd)
   def asKeyValueEntryList:  JavaRDD[util.List[util.Map.Entry[String, Object]]] = toKeyValueEntryList(srdd)

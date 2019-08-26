@@ -99,7 +99,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
   @deprecated("Use Description")
   val DESCRIPTION: String = Description
 
-  override def canProcess(params: java.util.Map[String, Serializable]): Boolean = {
+  override def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean = {
     val hasConnector = ConnectorParam.lookupOpt(params).isDefined
     def hasConnection = InstanceIdParam.exists(params) && ZookeepersParam.exists(params) && UserParam.exists(params)
     def hasMock = InstanceIdParam.exists(params) && UserParam.exists(params) && MockParam.lookupOpt(params).contains(java.lang.Boolean.TRUE)

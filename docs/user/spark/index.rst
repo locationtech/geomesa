@@ -3,7 +3,7 @@ GeoMesa Spark
 
 .. note::
 
-    GeoMesa currently supports Spark version |spark_version|.
+    GeoMesa currently supports Spark |spark_supported_versions|.
 
 GeoMesa Spark allows for execution of jobs on Apache Spark using data stored in GeoMesa,
 other GeoTools ``DataStore``\ s, or files readable by the GeoMesa converter library.

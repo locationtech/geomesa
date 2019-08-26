@@ -30,9 +30,10 @@ class GeoToolsSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean = {
+  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean = {
+    val parameters = params.asInstanceOf[java.util.Map[String, java.io.Serializable]]
     Option(params.get("geotools")).exists(FastConverter.convert(_, classOf[java.lang.Boolean])) &&
-        DataStoreFinder.getAllDataStores.asScala.exists(_.canProcess(params))
+        DataStoreFinder.getAllDataStores.asScala.exists(_.canProcess(parameters))
   }
 
   override def rdd(

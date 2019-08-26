@@ -45,7 +45,7 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
     val namespace = NamespaceParam.lookupOpt(params)
     val nsConfig = namespace.map(ConfigValueFactory.fromAnyRef)
 
-    val stores = Seq.newBuilder[(DataStore, java.util.Map[String, AnyRef])]
+    val stores = Seq.newBuilder[(DataStore, java.util.Map[String, _ <: AnyRef])]
     stores.sizeHint(configs.length)
 
     try {
@@ -56,7 +56,7 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
         val storeParams = nsConfig.map(config.withValue(NamespaceParam.key, _)).getOrElse(config).root().unwrapped()
         Try(DataStoreFinder.getDataStore(storeParams)) match {
           case Success(null)  => throw error
-          case Success(store) => stores += store -> storeParams
+          case Success(store) => stores += store -> storeParams.asInstanceOf[java.util.Map[String, AnyRef]]
           case Failure(e)     => throw error.initCause(e)
         }
       }
@@ -113,6 +113,6 @@ object RoutedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 
   override val ParameterInfo: Array[GeoMesaParam[_]] = Array(ConfigParam, RouterParam)
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     params.containsKey(ConfigParam.key)
 }

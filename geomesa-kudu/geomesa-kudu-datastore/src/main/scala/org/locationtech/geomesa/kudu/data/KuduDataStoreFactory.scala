@@ -99,7 +99,8 @@ object KuduDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       Params.CachingParam
     )
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean = Params.KuduMasterParam.exists(params)
+  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+    Params.KuduMasterParam.exists(params)
 
   // noinspection TypeAnnotation
   object Params extends GeoMesaDataStoreParams {
