@@ -24,10 +24,13 @@ import org.opengis.feature.simple.SimpleFeatureType
   *   <li>one byte containing the serialization version (3)</li>
   *   <li>two bytes for a short containing the number of serialized attributes. this supports
   *       appending attributes to the schema, as we know how many attributes were written when deserializing</li>
+  *   <li>one byte for the size of the stored offsets, which will currently be either 2 (for shorts) or 4 (for ints)</li>
   *   <li>a known number of bytes for metadata, which consists of:
   *     <ol>
-  *       <li>2 byte short per attribute for the offset to the start of the attribute in the serialized bytes</li>
-  *       <li>2 byte short for the offset to the start of the user data (or end of the feature if no user data)</li>
+  *       <li>2 byte short or 4 byte int (determined by the size as stored above)
+  *           per attribute for the offset to the start of the attribute in the serialized bytes</li>
+  *       <li>2 byte short or 4 byte int (determined by the size as stored above)
+  *           for the offset to the start of the user data (or end of the feature if no user data)</li>
   *       <li>4 bytes per 32 attributes (or part thereof) to store a bitset tracking null attributes</li>
   *     </ol>
   *   </li>
