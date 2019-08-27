@@ -75,6 +75,7 @@ class HBaseBackCompatibilityTest extends HBaseTest with LazyLogging  {
   "HBase data store" should {
 
     "Support back-compatibility to version 2.0.2" in { runVersionTest("2.0.2") }
+    "Support back-compatibility to version 2.3.1" in { runVersionTest("2.3.1") }
 
     "Write data to disk" in {
 

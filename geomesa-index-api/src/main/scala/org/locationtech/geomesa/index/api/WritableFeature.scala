@@ -177,10 +177,15 @@ object WritableFeature {
       visibilities
     }
 
-    lazy val indexGroups: Seq[(Array[Byte], Array[Byte])] =
-      visibilities.zipWithIndex.groupBy(_._1).map { case (vis, indices) =>
-        (vis.getBytes(StandardCharsets.UTF_8), indices.map(_._2.toByte).sorted)
-      }.toSeq
+    lazy val indexGroups: Seq[(Array[Byte], Array[Byte])] = {
+      val grouped = scala.collection.mutable.Map.empty[String, scala.collection.mutable.ArrayBuilder[Byte]]
+      var i = 0
+      while (i < visibilities.length) {
+        grouped.getOrElseUpdate(visibilities(i), Array.newBuilder[Byte]) += i.toByte
+        i += 1
+      }
+      grouped.map { case (vis, indices) => (vis.getBytes(StandardCharsets.UTF_8), indices.result) }.toSeq
+    }
 
     override lazy val values: Seq[KeyValue] = indexGroups.map { case (vis, indices) =>
       val sf = new ScalaSimpleFeature(feature.getFeatureType, "")

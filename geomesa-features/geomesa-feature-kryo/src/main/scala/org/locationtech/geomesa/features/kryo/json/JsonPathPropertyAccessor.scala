@@ -12,9 +12,9 @@ import java.lang.ref.SoftReference
 
 import com.jayway.jsonpath.Option.{ALWAYS_RETURN_LIST, DEFAULT_PATH_LEAF_TO_NULL, SUPPRESS_EXCEPTIONS}
 import com.jayway.jsonpath.{Configuration, JsonPath}
-import org.geotools.util.factory.Hints
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{PathAttribute, PathAttributeWildCard, PathDeepScan, PathElement}
 import org.locationtech.geomesa.features.kryo.json.JsonPathPropertyAccessor.pathFor
@@ -120,13 +120,14 @@ object JsonPathPropertyAccessor {
     override protected def getFeatureType(obj: AnyRef): SimpleFeatureType =
       obj.asInstanceOf[SimpleFeature].getFeatureType
 
-    override protected def getValue(descriptor: AttributeDescriptor,
-                                    attribute: Int,
-                                    path: Seq[PathElement],
-                                    obj: AnyRef): Any = {
+    override protected def getValue(
+        descriptor: AttributeDescriptor,
+        attribute: Int,
+        path: Seq[PathElement],
+        obj: AnyRef): Any = {
       obj match {
         case s: KryoBufferSimpleFeature if descriptor.isJson() =>
-          KryoJsonSerialization.deserialize(s.getInput(attribute), path)
+          s.getInput(attribute).map(KryoJsonSerialization.deserialize(_, path)).orNull
 
         case s: SimpleFeature =>
           val json = s.getAttribute(attribute).asInstanceOf[String]

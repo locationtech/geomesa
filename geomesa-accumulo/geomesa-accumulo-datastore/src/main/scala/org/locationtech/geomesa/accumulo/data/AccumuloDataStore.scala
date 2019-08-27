@@ -44,7 +44,7 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.OverrideDtgJoin
-import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode}
+import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -198,6 +198,10 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
       }
     }
 
+    if (sft.getVisibilityLevel == VisibilityLevel.Attribute && sft.getAttributeCount > 255) {
+      throw new IllegalArgumentException("Attribute level visibility only supports up to 255 attributes")
+    }
+
     super.preSchemaCreate(sft)
 
     // note: dtg should be set appropriately before calling this method
@@ -230,6 +234,10 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaUpdate(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+    if (sft.getVisibilityLevel == VisibilityLevel.Attribute && sft.getAttributeCount > 255) {
+      throw new IllegalArgumentException("Attribute level visibility only supports up to 255 attributes")
+    }
+
     // check for attributes flagged 'index=join' and convert them to sft-level user data
     sft.getAttributeDescriptors.asScala.foreach { d =>
       val index = d.getUserData.get(AttributeOptions.OptIndex).asInstanceOf[String]

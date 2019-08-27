@@ -8,78 +8,60 @@
 
 package org.locationtech.geomesa.features.kryo
 
-import java.io.OutputStream
+import java.io.{InputStream, OutputStream}
 
-import com.esotericsoftware.kryo.io.Output
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
-import org.locationtech.geomesa.features.SimpleFeatureSerializer
-import org.locationtech.geomesa.features.kryo.impl.ActiveDeserialization.MutableActiveDeserialization
-import org.locationtech.geomesa.features.kryo.impl.KryoFeatureSerialization
-import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
+  * Project to a subtype when serializing
+  *
   * @param original the simple feature type that will be serialized
   * @param projected the simple feature type to project to when serializing
+  * @param options serialization options
   */
-class ProjectingKryoFeatureSerializer(original: SimpleFeatureType,
-                                      projected: SimpleFeatureType,
-                                      val options: Set[SerializationOption] = Set.empty)
-    extends SimpleFeatureSerializer with MutableActiveDeserialization {
+class ProjectingKryoFeatureSerializer(
+    original: SimpleFeatureType,
+    projected: SimpleFeatureType,
+    val options: Set[SerializationOption] = Set.empty
+  ) extends SimpleFeatureSerializer {
 
-  import KryoFeatureSerializer._
+  private val delegate = KryoFeatureSerializer(projected, options)
 
-  import scala.collection.JavaConversions._
-
-  require(!options.withUserData, "User data serialization not supported")
-
-  override private [kryo] def deserializeSft = projected
-
-  private val cacheKey = CacheKeyGenerator.cacheKey(projected)
-  private val numAttributes = projected.getAttributeCount
-  private val writers = KryoFeatureSerialization.getWriters(cacheKey, projected)
-  private val mappings = Array.ofDim[Int](numAttributes)
-  private val withId = !options.withoutId
-
-  projected.getAttributeDescriptors.zipWithIndex.foreach { case (d, i) =>
-    mappings(i) = original.indexOf(d.getLocalName)
+  private val mappings = Array.tabulate(projected.getAttributeCount) { i =>
+    original.indexOf(projected.getDescriptor(i).getLocalName)
   }
+
+  private val features = new ThreadLocal[ScalaSimpleFeature]() {
+    override def initialValue(): ScalaSimpleFeature = new ScalaSimpleFeature(projected, "")
+  }
+
+  override def serialize(feature: SimpleFeature): Array[Byte] = delegate.serialize(project(feature))
 
   override def serialize(feature: SimpleFeature, out: OutputStream): Unit =
-    writeFeature(feature, KryoFeatureSerialization.getOutput(out))
+    delegate.serialize(project(feature), out)
 
-  override def serialize(feature: SimpleFeature): Array[Byte] = {
-    val output = KryoFeatureSerialization.getOutput(null)
-    writeFeature(feature, output)
-    output.toBytes
-  }
+  override def deserialize(in: InputStream): SimpleFeature = delegate.deserialize(in)
 
-  private def writeFeature(sf: SimpleFeature, output: Output): Unit = {
-    val offsets = KryoFeatureSerialization.getOffsets(cacheKey, numAttributes)
-    output.writeInt(VERSION, true)
-    output.setPosition(5) // leave 4 bytes to write the offsets
-    if (withId) {
-      output.writeString(sf.getID)  // TODO optimize for uuids?
-    }
-    // write attributes and keep track off offset into byte array
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    delegate.deserialize(bytes, offset, length)
+
+  override def deserialize(id: String, in: InputStream): SimpleFeature = delegate.deserialize(id, in)
+
+  override def deserialize(id: String, bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    delegate.deserialize(id, bytes, offset, length)
+
+  private def project(feature: SimpleFeature): SimpleFeature = {
+    val projected = features.get
+    projected.setId(feature.getID)
     var i = 0
-    while (i < numAttributes) {
-      offsets(i) = output.position()
-      writers(i)(output, sf.getAttribute(mappings(i)))
+    while (i < mappings.length) {
+      projected.setAttributeNoConvert(i, feature.getAttribute(mappings(i)))
       i += 1
     }
-    // write the offsets - variable width
-    i = 0
-    val offsetStart = output.position()
-    while (i < numAttributes) {
-      output.writeInt(offsets(i), true)
-      i += 1
-    }
-    // got back and write the start position for the offsets
-    val total = output.position()
-    output.setPosition(1)
-    output.writeInt(offsetStart)
-    // reset the position back to the end of the buffer so that toBytes works, and we can keep writing user data
-    output.setPosition(total)
+    projected.getUserData.clear()
+    projected.getUserData.putAll(feature.getUserData)
+    projected
   }
 }

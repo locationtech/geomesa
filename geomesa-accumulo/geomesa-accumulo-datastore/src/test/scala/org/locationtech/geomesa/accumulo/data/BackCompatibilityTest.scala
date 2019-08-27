@@ -281,6 +281,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     // note: data on disk is the same from 1.3.3 through 2.0.0-m.1
     "support backward compatibility to 2.0.0-m.1" >> { testVersion("2.0.0-m.1") }
     "support backward compatibility to 2.1.0"     >> { testVersion("2.1.0") }
+    "support backward compatibility to 2.3.1"     >> { testVersion("2.3.1") }
 
     "delete invalid indexed data" >> { testBoundsDelete() }
   }
