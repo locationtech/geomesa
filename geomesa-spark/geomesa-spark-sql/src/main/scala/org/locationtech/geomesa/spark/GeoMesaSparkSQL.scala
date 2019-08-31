@@ -19,7 +19,7 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.expressions.{AttributeReference, Expression, GenericRowWithSchema, ScalaUDF}
 import org.apache.spark.sql.jts.JTSTypes
 import org.apache.spark.sql.sources.{Filter, _}
-import org.apache.spark.sql.types.{DataTypes, StructField, StructType, TimestampType}
+import org.apache.spark.sql.types._
 import org.apache.spark.storage.StorageLevel
 import org.geotools.data._
 import org.geotools.factory.{CommonFactoryFinder, Hints}
@@ -115,6 +115,25 @@ class GeoMesaDataSource extends DataSourceRegister
     builder.setName(name)
 
     struct.fields.filter( _.name != "__fid__").foreach { field =>
+      val isGeom = checkGeoType(field.dataType)
+      field.getComment().map(_.split(";")).foreach {
+        _.foreach { kvPair =>
+          val kv = kvPair.split("=")
+          if (kv.length == 2) {
+            if (isGeom) {
+              (kv(0).trim.toLowerCase.equals("default"), kv(1).trim.toLowerCase.equals("true")) match {
+                case (true, true) =>
+                  if (builder.getDefaultGeometry == null) {
+                    builder.setDefaultGeometry(field.name)
+                  }
+                case (_, _) => builder.userData(kv(0), kv(1))
+              }
+            } else {
+              builder.userData(kv(0), kv(1))
+            }
+          }
+        }
+      }
       val binding = field.dataType match {
         case DataTypes.StringType              => classOf[java.lang.String]
         case DataTypes.DateType                => classOf[java.util.Date]
@@ -127,6 +146,8 @@ class GeoMesaDataSource extends DataSourceRegister
         case JTSTypes.PointTypeInstance        => classOf[org.locationtech.jts.geom.Point]
         case JTSTypes.LineStringTypeInstance   => classOf[org.locationtech.jts.geom.LineString]
         case JTSTypes.PolygonTypeInstance      => classOf[org.locationtech.jts.geom.Polygon]
+        case JTSTypes.MultiPointTypeInstance => classOf[org.locationtech.jts.geom.MultiPoint]
+        case JTSTypes.MultiLineStringTypeInstance => classOf[org.locationtech.jts.geom.MultiLineString]
         case JTSTypes.MultipolygonTypeInstance => classOf[org.locationtech.jts.geom.MultiPolygon]
         case JTSTypes.GeometryTypeInstance     => classOf[org.locationtech.jts.geom.Geometry]
       }
@@ -169,7 +190,30 @@ class GeoMesaDataSource extends DataSourceRegister
 
       case _ => logger.warn(s"Unexpected bindings for descriptor $ad: ${bindings.mkString(", ")}"); null
     }
-    Option(dt).map(StructField(ad.getLocalName, _))
+    ad2comment(ad) match {
+      case Some(comment) => Option(dt).map(StructField(ad.getLocalName, _).withComment(comment))
+      case None => Option(dt).map(StructField(ad.getLocalName, _))
+    }
+  }
+
+  private def ad2comment(ad: AttributeDescriptor): Option[String] = {
+    val comment = ad.getUserData.map { case (k, v) => s"$k=$v" }
+    if (comment.isEmpty) {
+      None
+    } else {
+      Some(comment.mkString(";"))
+    }
+  }
+
+  private def checkGeoType(dataType: DataType): Boolean = {
+      dataType.getClass == JTSTypes.GeometryTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.PointTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.LineStringTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.PolygonTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.MultiLineStringTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.MultiPointTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.MultipolygonTypeInstance.getClass ||
+      dataType.getClass == JTSTypes.GeometryCollectionTypeInstance.getClass
   }
 
   override def createRelation(sqlContext: SQLContext, mode: SaveMode, parameters: Map[String, String], data: DataFrame): BaseRelation = {
@@ -239,20 +283,25 @@ case class GeoMesaRelation(sqlContext: SQLContext,
                            var indexRDD: RDD[GeoCQEngineDataStore] = null,
                            var partitionedRDD: RDD[(Int, Iterable[SimpleFeature])] = null,
                            var indexPartRDD: RDD[(Int, GeoCQEngineDataStore)] = null)
-  extends BaseRelation with PrunedFilteredScan {
+  extends BaseRelation with PrunedFilteredScan with InsertableRelation {
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  val cache: Boolean = Try(params("cache").toBoolean).getOrElse(false)
+  val cache: Boolean = Try(params("cache").toBoolean).getOrElse(sft.isSpatialCache)
   val indexId: Boolean = Try(params("indexId").toBoolean).getOrElse(false)
-  val indexGeom: Boolean  = Try(params("indexGeom").toBoolean).getOrElse(false)
-  val numPartitions: Int = Try(params("partitions").toInt).getOrElse(sqlContext.sparkContext.defaultParallelism)
-  val spatiallyPartition: Boolean = Try(params("spatial").toBoolean).getOrElse(false)
-  val partitionStrategy: String = Try(params("strategy").toString).getOrElse("EQUAL")
+  val indexGeom: Boolean  = Try(params("indexGeom").toBoolean).getOrElse(sft.isSpatialIndexGeom)
+  var numPartitions: Int = Try(params("partitions").toInt).getOrElse(math.max(sft.getSpatialPartitions, sqlContext.sparkContext.defaultParallelism))
+  val spatiallyPartition: Boolean = Try(params("spatial").toBoolean).getOrElse(sft.isSpatialPartition)
+  val partitionStrategy: String = Try(params("strategy").toString).getOrElse(sft.getPartitionStrategy)
   var partitionEnvelopes: List[Envelope] = null
-  val providedBounds: String = Try(params("bounds").toString).getOrElse(null)
-  val coverPartition: Boolean = Try(params("cover").toBoolean).getOrElse(false)
+  val providedBounds: String = Try(params("bounds").toString).getOrElse(sft.getSpatialBound)
+  val coverPartition: Boolean = Try(params("cover").toBoolean).getOrElse(sft.isSpatialCover)
   // Control partitioning strategies that require a sample of the data
   val sampleSize: Int = Try(params("sampleSize").toInt).getOrElse(100)
   val thresholdMultiplier: Double = Try(params("threshold").toDouble).getOrElse(0.3)
+
+  val gridPartitions: Boolean = Try(params("gridPartitions").toBoolean).getOrElse(false)
+  val gridFactor: Double = Try(params("gridFactor").toDouble).getOrElse(2.5)
+  val geoHashPrecision: Int = Try(params("geoHashPrecision").toInt).getOrElse(20)
 
   val initialQuery: String = Try(params("query").toString).getOrElse("INCLUDE")
   val geometryOrdinal: Int = sft.indexOf(sft.getGeometryDescriptor.getLocalName)
@@ -276,13 +325,22 @@ case class GeoMesaRelation(sqlContext: SQLContext,
   if (partitionedRDD == null && spatiallyPartition) {
     if (partitionEnvelopes == null) {
       val bounds: Envelope = if (providedBounds == null) {
-        RelationUtils.getBound(rawRDD)
+        partitionStrategy match {
+          case "EARTH" => RelationUtils.globalEnvelope
+          case "EQUAL" | "WEIGHTED" => RelationUtils.getBound(rawRDD)
+          case _ => null
+        }
       } else {
         WKTUtils.read(providedBounds).getEnvelopeInternal
       }
       partitionEnvelopes = partitionStrategy match {
-        case "EARTH" => RelationUtils.wholeEarthPartitioning(numPartitions)
-        case "EQUAL" => RelationUtils.equalPartitioning(bounds, numPartitions)
+        case "EARTH" | "EQUAL" =>
+          if (gridPartitions) numPartitions = RelationUtils.computePartitions(bounds, numPartitions, gridFactor)
+          RelationUtils.equalPartitioning(bounds, numPartitions)
+        case "GEOHASH" =>
+          val envelopes = SpatialJoinUtils.geoHashPartitioning(rawRDD, geoHashPrecision, geometryOrdinal)
+          numPartitions = envelopes.length
+          envelopes
         case "WEIGHTED" => RelationUtils.weightedPartitioning(rawRDD, bounds, numPartitions, sampleSize)
         case "RTREE" => RelationUtils.rtreePartitioning(rawRDD, numPartitions, sampleSize, thresholdMultiplier)
         case _ => throw new IllegalArgumentException(s"Invalid partitioning strategy specified: $partitionStrategy")
@@ -324,6 +382,29 @@ case class GeoMesaRelation(sqlContext: SQLContext,
       case t @ (_:IsNotNull | _:IsNull) => true
       case _ => false
     }
+  }
+
+  override def insert(data: DataFrame, overwrite: Boolean): Unit = {
+    val fidFn: Row => String = data.schema.fields.indexWhere(_.name == "__fid__") match {
+      case -1 => _ => TimeSortedUuidGenerator.createUuid().toString
+      case i => r => r.getString(i)
+    }
+
+    val newFeatureName = params(GEOMESA_SQL_FEATURE)
+    val structType = data.schema
+    val parameters = params
+
+    val rddToSave: RDD[SimpleFeature] = data.rdd.mapPartitions(iterRow => {
+      val innerDS = DataStoreFinder.getDataStore(parameters)
+      val sft = try {
+        innerDS.getSchema(newFeatureName)
+      } finally {
+        innerDS.dispose()
+      }
+      val mappings = SparkUtils.sftToRowMappings(sft, structType)
+      iterRow.map(r => SparkUtils.row2Sf(sft, mappings, r, fidFn(r)))
+    })
+    GeoMesaSpark(parameters).save(rddToSave, parameters, newFeatureName)
   }
 }
 
@@ -406,6 +487,8 @@ object RelationUtils extends LazyLogging {
   import CaseInsensitiveMapFix._
 
   @transient val ff = CommonFactoryFinder.getFilterFactory2
+  val treeLimit: Int = 200
+  val globalEnvelope = new Envelope(-180, 180, -90, 90)
 
   implicit val CoordinateOrdering: Ordering[Coordinate] = Ordering.by {_.x}
 
@@ -443,17 +526,18 @@ object RelationUtils extends LazyLogging {
   // Will duplicate features that belong to more than one envelope
   // Returns -1 if no match was found
   // TODO: Filter duplicates when querying
-  def gridIdMapper(sf: SimpleFeature, envelopes: List[Envelope], geometryOrdinal: Int): List[(Int, SimpleFeature)] = {
+  def gridIdMapper(sf: SimpleFeature, envelopes: List[Envelope], geometryOrdinal: Int, buffer: Double): List[(Int, SimpleFeature)] = {
     val geom = sf.getAttribute(geometryOrdinal).asInstanceOf[Geometry]
+    val env = extractEnvelope(geom.getEnvelopeInternal, buffer)
     val mappings = envelopes.indices.flatMap { index =>
-      if (envelopes(index).intersects(geom.getEnvelopeInternal)) {
+      if (envelopes(index).intersects(env)) {
         Some(index, sf)
       } else {
         None
       }
     }
     if (mappings.isEmpty) {
-      List((-1, sf))
+      List((-1, null))
     } else {
       mappings.toList
     }
@@ -476,12 +560,35 @@ object RelationUtils extends LazyLogging {
     }
   }
 
+  def gridIdMapper(sf: SimpleFeature, rtree: STRtree, geometryOrdinal: Int, buffer: Double): List[(Int, SimpleFeature)] = {
+    val geom = sf.getAttribute(geometryOrdinal).asInstanceOf[Geometry]
+    val env = extractEnvelope(geom.getEnvelopeInternal, buffer)
+    val mappings = rtree.query(env).flatMap { i => Some(i.asInstanceOf[Int], sf) }
+    if (mappings.isEmpty) {
+      List((-1, null))
+    } else {
+      mappings.toList
+    }
+  }
+
   def spatiallyPartition(envelopes: List[Envelope],
                          rdd: RDD[SimpleFeature],
                          numPartitions: Int,
-                         geometryOrdinal: Int): RDD[(Int, Iterable[SimpleFeature])] = {
-    val keyedRdd = rdd.flatMap { gridIdMapper( _, envelopes, geometryOrdinal)}
-    keyedRdd.groupByKey(new IndexPartitioner(numPartitions))
+                         geometryOrdinal: Int,
+                         buffer: Double = 0): RDD[(Int, Iterable[SimpleFeature])] = {
+    val keyedRdd = if (numPartitions < treeLimit) {
+      rdd.flatMap {
+        gridIdMapper(_, envelopes, geometryOrdinal, buffer)
+      }
+    } else {
+      val rtree = new STRtree()
+      envelopes.indices.foreach(i => rtree.insert(envelopes(i), i))
+      rtree.build()
+      rdd.flatMap {
+        gridIdMapper(_, rtree, geometryOrdinal, buffer)
+      }
+    }
+    keyedRdd.filter(f => f._1 != -1).groupByKey(new IndexPartitioner(numPartitions))
   }
 
   def getBound(rdd: RDD[SimpleFeature]): Envelope = {
@@ -541,10 +648,6 @@ object RelationUtils extends LazyLogging {
     }
 
     partitionEnvelopes.toList
-  }
-
-  def wholeEarthPartitioning(numPartitions: Int): List[Envelope] = {
-    equalPartitioning(new Envelope(-180,180,-90,90), numPartitions)
   }
 
   // Constructs an RTree based on a sample of the data and returns its bounds as envelopes
@@ -611,12 +714,6 @@ object RelationUtils extends LazyLogging {
       }
       nodeCount
     }
-  }
-
-  def coverPartitioning(dataRDD: RDD[SimpleFeature], coverRDD: RDD[SimpleFeature], numPartitions: Int): List[Envelope] = {
-    coverRDD.map {
-      _.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
-    }.collect().toList
   }
 
   def buildScan(requiredColumns: Array[String],
@@ -697,6 +794,32 @@ object RelationUtils extends LazyLogging {
     }.map(SparkUtils.sf2row(schema, _, extractors))
     result.asInstanceOf[RDD[Row]]
   }
+
+  def computePartitions(bound: Envelope, originPartitions: Int, gridFactor: Double): Int = {
+    val width = bound.getWidth
+    val height = bound.getHeight
+    val count: Int = (width < 0.5, height < 0.5) match {
+      case (true, true) => 1
+      case (true, false) => (height * gridFactor).toInt + 1
+      case (false, true) => (width * gridFactor).toInt + 1
+      case (false, false) => (width * height * gridFactor * gridFactor).toInt + 1
+    }
+    if (count < originPartitions) originPartitions
+    else count
+  }
+
+  def extractEnvelope(envelope: Envelope, buffer: Double = 0.0): Envelope = {
+    if (buffer > 0) {
+      envelope.expandBy(buffer)
+      if (globalEnvelope.contains(envelope)) {
+        envelope
+      } else {
+        globalEnvelope.intersection(envelope)
+      }
+    } else {
+      envelope
+    }
+  }
 }
 
 object SparkUtils {
@@ -728,7 +851,6 @@ object SparkUtils {
         }
     }
   }
-
 
   def sparkFilterToCQLFilter(filt: org.apache.spark.sql.sources.Filter): Option[org.opengis.filter.Filter] = filt match {
     case GreaterThanOrEqual(attribute, v) => Some(ff.greaterOrEqual(ff.property(attribute), ff.literal(v)))

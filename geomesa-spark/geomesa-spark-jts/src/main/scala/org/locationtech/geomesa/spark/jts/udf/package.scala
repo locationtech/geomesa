@@ -20,5 +20,6 @@ package object udf {
     GeometricOutputFunctions.registerFunctions(sqlContext)
     GeometricProcessingFunctions.registerFunctions(sqlContext)
     SpatialRelationFunctions.registerFunctions(sqlContext)
+    SpatialAggregatorFunctions.registerFunctions(sqlContext)
   }
 }

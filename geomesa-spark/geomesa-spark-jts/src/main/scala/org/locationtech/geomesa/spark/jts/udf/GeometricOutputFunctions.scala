@@ -13,7 +13,7 @@ import org.locationtech.jts.geom.{Geometry, Point}
 import org.locationtech.jts.io.geojson.GeoJsonWriter
 import org.apache.spark.sql.SQLContext
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
-import org.locationtech.geomesa.spark.jts.util.WKBUtils
+import org.locationtech.geomesa.spark.jts.util.{WKBUtils, WKTUtils}
 import org.locationtech.geomesa.spark.jts.util.GeoHashUtils._
 
 object GeometricOutputFunctions {
@@ -28,7 +28,7 @@ object GeometricOutputFunctions {
   val ST_AsBinary: Geometry => Array[Byte] = nullableUDF(geom => WKBUtils.write(geom))
   val ST_AsGeoJSON: Geometry => String = nullableUDF(geom => geomJSON.get().write(geom))
   val ST_AsLatLonText: Point => String = nullableUDF(point => toLatLonString(point))
-  val ST_AsText: Geometry => String = nullableUDF(geom => geom.toText)
+  val ST_AsText: Geometry => String = nullableUDF(geom => WKTUtils.write(geom))
   val ST_GeoHash: (Geometry, Int) => String = nullableUDF((geom, prec) => encode(geom, prec))
 
   private[geomesa] val outputNames = Map(

@@ -23,7 +23,7 @@ import scala.collection.JavaConversions._
 
 class GeoCQEngineDataStore(useGeoIndex: Boolean) extends ContentDataStore with LazyLogging {
 
-  logger.info(s"useGeoIndex=$useGeoIndex")
+  logger.debug(s"useGeoIndex=$useGeoIndex")
 
   val namesToEngine = new java.util.concurrent.ConcurrentHashMap[String, GeoCQEngine]()
 

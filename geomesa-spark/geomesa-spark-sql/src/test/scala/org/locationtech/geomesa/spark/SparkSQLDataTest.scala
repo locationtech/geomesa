@@ -87,7 +87,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
         .option("geomesa.feature", "chicago")
         .option("cache", "true")
         .option("spatial","true")
-        .option("strategy", "RTREE")
+        .option("strategy", "EQUAL")
         .load()
       logger.debug(df.schema.treeString)
 
@@ -302,7 +302,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       val points = SparkSQLTestUtils.generatePoints(gf, 1000)
       SparkSQLTestUtils.ingestPoints(ds, "points", points)
 
-      val polys = SparkSQLTestUtils.generatePolys(gf, 1000)
+      val polys = SparkSQLTestUtils.generatePolys(gf, 10)
       SparkSQLTestUtils.ingestGeometries(ds, "polys", polys)
 
       val polysDf = spark.read
@@ -348,6 +348,60 @@ class SparkSQLDataTest extends Specification with LazyLogging {
       val r2 = spark.sql("select * from polysSpatial join pointsSpatial on st_intersects(pointsSpatial.geom, polysSpatial.geom)")
       val sweeplineCount = r2.count()
       logger.info(s"Sweepline join took ${System.currentTimeMillis() - now}ms")
+      sweeplineCount mustEqual count
+    }
+
+    "lookup join" >> {
+
+      val gf = new GeometryFactory
+
+      val points = SparkSQLTestUtils.generatePoints(gf, 1000)
+      SparkSQLTestUtils.ingestPoints(ds, "points", points)
+
+      val polys = SparkSQLTestUtils.generatePolys(gf, 10)
+      SparkSQLTestUtils.ingestGeometries(ds, "polys", polys)
+
+      val polysDf = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "polys")
+        .load()
+
+      val pointsDf = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "points")
+        .load()
+
+      val partitionedPolys = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "polys")
+        .option("strategy", "GEOHASH")
+        .option("cover","true")
+        .load()
+
+      val partitionedPoints = spark.read
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "points")
+        .option("strategy", "GEOHASH")
+        .option("cover","true")
+        .load()
+
+      partitionedPolys.createOrReplaceTempView("polysSpatial")
+      partitionedPoints.createOrReplaceTempView("pointsSpatial")
+      pointsDf.createOrReplaceTempView("points")
+      polysDf.createOrReplaceTempView("polys")
+
+      var now = System.currentTimeMillis()
+      val r1 = spark.sql("select * from polys join points on st_intersects(points.geom, polys.geom)")
+      val count = r1.count()
+      logger.info(s"Regular join took ${System.currentTimeMillis() - now}ms")
+      now = System.currentTimeMillis()
+      val r2 = spark.sql("select * from polysSpatial join pointsSpatial on st_intersects(pointsSpatial.geom, polysSpatial.geom)")
+      val sweeplineCount = r2.count()
+      logger.info(s"lookup join took ${System.currentTimeMillis() - now}ms")
       sweeplineCount mustEqual count
     }
 

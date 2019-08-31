@@ -11,6 +11,7 @@ package org.locationtech.geomesa.hbase.data
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 import java.util.{Collections, Locale}
+
 import org.apache.hadoop.hbase.regionserver.BloomType
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.hadoop.fs.Path
@@ -21,7 +22,7 @@ import org.apache.hadoop.hbase.filter.{FilterList, KeyOnlyFilter, MultiRowRangeF
 import org.apache.hadoop.hbase.io.compress.Compression
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
-import org.apache.hadoop.hbase.{Coprocessor, HColumnDescriptor, HTableDescriptor, TableName}
+import org.apache.hadoop.hbase._
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -72,7 +73,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
           case e: String if e.toBoolean =>
             // note: all compression types in HBase are case-sensitive and lower-cased
             val compressionType = index.sft.getUserData.get(Configs.COMPRESSION_TYPE) match {
-              case null => "gz"
+              case null => ds.config.compression
               case t: String => t.toLowerCase(Locale.US)
             }
             logger.debug(s"Setting compression '$compressionType' on table $name for feature ${index.sft.getTypeName}")
@@ -80,6 +81,8 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         }
 
         val descriptor = new HTableDescriptor(name)
+        descriptor.setValue("GROUP", ds.config.group)
+        val ttlValue = Some(if (ds.config.ttl > 0 && ds.config.ttl < HConstants.FOREVER) ds.config.ttl else HConstants.FOREVER)
 
         groups.apply(index.sft).foreach { case (k, _) =>
           val column = new HColumnDescriptor(k)
@@ -88,6 +91,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
           if (index.name != IdIndex.name) {
             column.setDataBlockEncoding(DataBlockEncoding.FAST_DIFF)
           }
+          ttlValue.foreach(column.setTimeToLive)
           HBaseVersions.addFamily(descriptor, column)
         }
 

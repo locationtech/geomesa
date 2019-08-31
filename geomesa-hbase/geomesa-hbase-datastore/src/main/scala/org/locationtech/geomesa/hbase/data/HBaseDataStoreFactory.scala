@@ -13,7 +13,7 @@ import java.io.Serializable
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
-import org.apache.hadoop.hbase.HBaseConfiguration
+import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants}
 import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
@@ -67,9 +67,12 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     val coprocessorUrl = CoprocessorUrlParam.lookupOpt(params)
 
     val ns = NamespaceParam.lookupOpt(params)
+    val group = HBaseGroupParam.lookup(params)
+    val compression = HBaseCompressionParam.lookup(params)
+    val ttl = HBaseTTLParam.lookup(params)
 
     val config = HBaseDataStoreConfig(catalog, remoteFilters, generateStats, audit, queryThreads, queryTimeout,
-      maxRangesPerExtendedScan, looseBBox, caching, authsProvider, coprocessorUrl, ns)
+      maxRangesPerExtendedScan, looseBBox, caching, authsProvider, coprocessorUrl, ns, group, compression, ttl)
 
     val ds = buildDataStore(connection, config)
     GeoMesaDataStore.initRemoteVersion(ds)
@@ -117,6 +120,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     Array(
       HBaseCatalogParam,
       ZookeeperParam,
+      ZookeeperZNode,
       RemoteFilteringParam,
       CoprocessorUrlParam,
       ConfigPathsParam,
@@ -128,7 +132,9 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       CachingParam,
       EnableSecurityParam,
       AuthsParam,
-      ForceEmptyAuthsParam
+      ForceEmptyAuthsParam,
+      HBaseGroupParam,
+      HBaseCompressionParam
     )
 
   private [geomesa] val BigTableParamCheck = "google.bigtable.instance.id"
@@ -150,7 +156,10 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
                                   caching: Boolean,
                                   authProvider: Option[AuthorizationsProvider],
                                   coprocessorUrl: Option[Path],
-                                  namespace: Option[String]) extends GeoMesaDataStoreConfig
+                                  namespace: Option[String],
+                                  group: String,
+                                  compression: String,
+                                  ttl: Int) extends GeoMesaDataStoreConfig
 
   def buildAuthsProvider(connection: Connection, params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
     val forceEmptyOpt: Option[java.lang.Boolean] = ForceEmptyAuthsParam.lookupOpt(params)
@@ -191,9 +200,13 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
   val HBaseCatalogParam             = new GeoMesaParam[String]("hbase.catalog", "Catalog table name", optional = false, deprecatedKeys = Seq("bigtable.table.name"))
   val ConnectionParam               = new GeoMesaParam[Connection]("hbase.connection", "Connection", deprecatedKeys = Seq("connection"))
   val ZookeeperParam                = new GeoMesaParam[String]("hbase.zookeepers", "List of HBase Zookeeper ensemble servers, comma-separated. Prefer including a valid 'hbase-site.xml' on the classpath over setting this parameter")
+  val ZookeeperZNode                = new GeoMesaParam[String]("hbase.zookeeper.znode", "The path of zookeeper.znode.parent", default = "/hbase")
   val CoprocessorUrlParam           = new GeoMesaParam[Path]("hbase.coprocessor.url", "Coprocessor Url", deprecatedKeys = Seq("coprocessor.url"))
   val RemoteFilteringParam          = new GeoMesaParam[java.lang.Boolean]("hbase.remote.filtering", "Remote filtering", default = true, deprecatedKeys = Seq("remote.filtering"))
   val MaxRangesPerExtendedScanParam = new GeoMesaParam[java.lang.Integer]("hbase.ranges.max-per-extended-scan", "Max Ranges per Extended Scan", default = 100, deprecatedKeys = Seq("max.ranges.per.extended.scan"))
   val EnableSecurityParam           = new GeoMesaParam[java.lang.Boolean]("hbase.security.enabled", "Enable HBase Security (Visibilities)", default = false, deprecatedKeys = Seq("security.enabled"))
   val ConfigPathsParam              = new GeoMesaParam[String]("hbase.config.paths", "Additional HBase configuration resource files (comma-delimited)")
+  val HBaseGroupParam               = new GeoMesaParam[String]("hbase.group", "HBase GROUP")
+  val HBaseCompressionParam         = new GeoMesaParam[String]("hbase.compression", "HBase compression method", default = "zstd")
+  val HBaseTTLParam                 = new GeoMesaParam[java.lang.Integer]("hbase.ttl", "HBase table TTL", default = HConstants.FOREVER)
 }

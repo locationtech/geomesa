@@ -21,7 +21,7 @@ import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{HBaseGeoMesaKeyTab, HBaseGeoMesaPrincipal}
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsParam, ConnectionParam, ZookeeperParam}
+import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsParam, ConnectionParam, ZookeeperParam, ZookeeperZNode}
 
 object HBaseConnectionPool extends LazyLogging {
 
@@ -31,11 +31,12 @@ object HBaseConnectionPool extends LazyLogging {
   private val configuration = withPaths(HBaseConfiguration.create(), HBaseDataStoreFactory.ConfigPathProperty.option)
 
   private val configCache = Caffeine.newBuilder().build(
-    new CacheLoader[(Option[String], Option[String]), Configuration] {
-      override def load(key: (Option[String], Option[String])): Configuration = {
-        val (zookeepers, paths) = key
+    new CacheLoader[(Option[String], Option[String], Option[String]), Configuration] {
+      override def load(key: (Option[String], Option[String], Option[String])): Configuration = {
+        val (zookeepers, znode, paths) = key
         val conf = withPaths(configuration, paths)
         zookeepers.foreach(zk => conf.set(HConstants.ZOOKEEPER_QUORUM, zk))
+        znode.foreach(zn => conf.set(HConstants.ZOOKEEPER_ZNODE_PARENT, zn))
         if (zookeepers.isEmpty && conf.get(HConstants.ZOOKEEPER_QUORUM) == "localhost") {
           logger.warn("HBase connection is set to localhost - " +
               "this may indicate that 'hbase-site.xml' is not on the classpath")
@@ -75,8 +76,9 @@ object HBaseConnectionPool extends LazyLogging {
 
   def getConfiguration(params: java.util.Map[String, Serializable]): Configuration = {
     val zk = ZookeeperParam.lookupOpt(params)
+    val zn = ZookeeperZNode.lookupOpt(params)
     val paths = ConfigPathsParam.lookupOpt(params)
-    configCache.get((zk, paths))
+    configCache.get((zk, zn, paths))
   }
 
   def getConnection(params: java.util.Map[String, Serializable], validate: Boolean): Connection = {

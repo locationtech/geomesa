@@ -55,6 +55,14 @@ object SimpleFeatureTypes {
     val FID_UUID_ENCODED_KEY = "geomesa.fid.uuid-encoded"
     val TABLE_PARTITIONING   = "geomesa.table.partition"
     val QUERY_INTERCEPTORS   = "geomesa.query.interceptors"
+
+    val SPATIAL_CACHE_KEY                 = "geomesa.spatial.cache"
+    val SPATIAL_PARTITION_KEY             = "geomesa.spatial.partition"
+    val SPATIAL_PARTITION_NUM_KEY         = "geomesa.spatial.partition.num"
+    val SPATIAL_PARTITION_STRATEGY_KEY    = "geomesa.spatial.partition.strategy"
+    val SPATIAL_INDEX_GEOM_KEY            = "geomesa.spatial.index.geom"
+    val SPATIAL_BOUND_KEY                 = "geomesa.spatial.bound.wkt"
+    val SPATIAL_COVER_KEY                 = "geomesa.spatial.cover"
   }
 
   private [geomesa] object InternalConfigs {

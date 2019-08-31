@@ -256,6 +256,27 @@ object RichSimpleFeatureType {
     def getXZPrecision: Short = userData[String](XZ_PRECISION_KEY).map(_.toShort).getOrElse(XZSFC.DefaultPrecision)
     def setXZPrecision(p: Short): Unit = sft.getUserData.put(XZ_PRECISION_KEY, p.toString)
 
+    def isSpatialCache: Boolean = userData[String](SPATIAL_CACHE_KEY).getOrElse("false").toBoolean
+    def setSpatialCache(cache: Boolean): Unit = sft.getUserData.put(SPATIAL_CACHE_KEY, cache.toString)
+
+    def isSpatialPartition: Boolean = userData[String](SPATIAL_PARTITION_KEY).getOrElse("false").toBoolean
+    def setSpatialPartition(partition: Boolean): Unit = sft.getUserData.put(SPATIAL_PARTITION_KEY, partition.toString)
+
+    def getSpatialPartitions: Int = userData[String](SPATIAL_PARTITION_NUM_KEY).getOrElse("4").toInt
+    def setSpatialPartitions(partitions: Int): Unit = sft.getUserData.put(SPATIAL_PARTITION_NUM_KEY, partitions.toString)
+
+    def getPartitionStrategy: String = userData[String](SPATIAL_PARTITION_STRATEGY_KEY).getOrElse("GEOHASH")
+    def setPartitionStrategy(strategy: String): Unit = sft.getUserData.put(SPATIAL_PARTITION_STRATEGY_KEY, strategy)
+
+    def isSpatialIndexGeom: Boolean = userData[String](SPATIAL_INDEX_GEOM_KEY).getOrElse("false").toBoolean
+    def setSpatialIndexGeom(indexGeom: Boolean): Unit = sft.getUserData.put(SPATIAL_INDEX_GEOM_KEY, indexGeom.toString)
+
+    def getSpatialBound: String = userData[String](SPATIAL_BOUND_KEY).getOrElse(null)
+    def setSpatialBound(wkt: String): Unit = sft.getUserData.put(SPATIAL_BOUND_KEY, wkt)
+
+    def isSpatialCover: Boolean = userData[String](SPATIAL_COVER_KEY).getOrElse("false").toBoolean
+    def setSpatialCover(cover: Boolean): Unit = sft.getUserData.put(SPATIAL_COVER_KEY, cover.toString)
+
     // note: defaults to false now
     def isTableSharing: Boolean = userData[String](TABLE_SHARING_KEY).exists(_.toBoolean)
     @deprecated("table sharing no longer supported")

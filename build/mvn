@@ -76,7 +76,7 @@ install_mvn() {
 
 # Install zinc under the build/ folder
 install_zinc() {
-  local ZINC_VERSION="0.3.13"
+  local ZINC_VERSION="0.3.15"
   local zinc_path="zinc-${ZINC_VERSION}/bin/zinc"
   [ ! -f "${zinc_path}" ] && ZINC_INSTALL_FLAG=1
   install_app \

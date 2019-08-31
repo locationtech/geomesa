@@ -137,6 +137,16 @@ trait OptionalZookeepersParam {
   var zookeepers: String = _
 }
 
+trait OptionalZookeeperZNodeParam {
+  @Parameter(names = Array("-zn", "--znode"), description = "Zookeepers znode.parent path")
+  var znode: String = _
+}
+
+trait OptionalHBaseGroupParam {
+  @Parameter(names = Array("-g", "--group"), description = "HBase group")
+  var group: String = _
+}
+
 trait InputFilesParam {
   @Parameter(description = "<file>...")
   var files: java.util.List[String] = new util.ArrayList[String]()

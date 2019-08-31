@@ -45,7 +45,7 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
   import scala.collection.JavaConverters._
 
   override val metadata: GeoMesaMetadata[String] =
-    new HBaseBackedMetadata(connection, TableName.valueOf(config.catalog), MetadataStringSerializer)
+    new HBaseBackedMetadata(connection, TableName.valueOf(config.catalog), config.group, MetadataStringSerializer)
 
   override val adapter: HBaseIndexAdapter = new HBaseIndexAdapter(this)
 

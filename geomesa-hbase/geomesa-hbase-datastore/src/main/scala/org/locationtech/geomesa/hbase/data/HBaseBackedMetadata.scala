@@ -18,7 +18,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 
 import scala.collection.JavaConversions._
 
-class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val serializer: MetadataSerializer[T])
+class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val group: String, val serializer: MetadataSerializer[T])
     extends { private val table = connection.getTable(catalog) } with CachedLazyBinaryMetadata[T] {
 
   import HBaseBackedMetadata._
@@ -29,6 +29,7 @@ class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val ser
     WithClose(connection.getAdmin) { admin =>
       if (!admin.tableExists(catalog)) {
         val descriptor = new HTableDescriptor(catalog)
+        descriptor.setValue("GROUP", group)
         HBaseVersions.addFamily(descriptor, ColumnFamilyDescriptor)
         admin.createTable(descriptor)
       }

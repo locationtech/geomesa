@@ -14,7 +14,7 @@ import com.beust.jcommander.Parameter
 import org.apache.hadoop.hbase.HConstants
 import org.locationtech.geomesa.hbase.data.{HBaseConnectionPool, HBaseDataStore, HBaseDataStoreParams}
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.HBaseParams
-import org.locationtech.geomesa.tools.{CatalogParam, DataStoreCommand, OptionalZookeepersParam}
+import org.locationtech.geomesa.tools._
 
 /**
  * Abstract class for commands that have a pre-existing catalog
@@ -31,17 +31,19 @@ trait HBaseDataStoreCommand extends DataStoreCommand[HBaseDataStore] {
 
     Map(
       HBaseDataStoreParams.ZookeeperParam.getName       -> zk,
+      HBaseDataStoreParams.ZookeeperZNode.getName       -> params.znode,
       HBaseDataStoreParams.HBaseCatalogParam.getName    -> params.catalog,
       HBaseDataStoreParams.RemoteFilteringParam.getName -> (!params.noRemote).toString,
       HBaseDataStoreParams.EnableSecurityParam.getName  -> params.secure.toString,
-      HBaseDataStoreParams.AuthsParam.getName           -> params.auths
+      HBaseDataStoreParams.AuthsParam.getName           -> params.auths,
+      HBaseDataStoreParams.HBaseGroupParam.getName      -> params.group
     ).filter(_._2 != null)
   }
 }
 
 object HBaseDataStoreCommand {
 
-  trait HBaseParams extends CatalogParam with OptionalZookeepersParam with RemoteFilterParam {
+  trait HBaseParams extends CatalogParam with OptionalZookeepersParam with OptionalZookeeperZNodeParam with OptionalHBaseGroupParam with RemoteFilterParam {
     @Parameter(names = Array("--secure"), description = "Enable HBase security (visibilities)")
     var secure: Boolean = false
 

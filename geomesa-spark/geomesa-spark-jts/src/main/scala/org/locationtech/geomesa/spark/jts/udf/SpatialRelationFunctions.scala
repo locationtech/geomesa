@@ -32,6 +32,7 @@ object SpatialRelationFunctions {
   val ST_Disjoint:   (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.disjoint(geom2))
   val ST_Equals:     (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.equals(geom2))
   val ST_Intersects: (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.intersects(geom2))
+  val ST_Intersection: (Geometry, Geometry) => Geometry = nullableUDF((geom1, geom2) => geom1.intersection(geom2))
   val ST_Overlaps:   (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.overlaps(geom2))
   val ST_Touches:    (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.touches(geom2))
   val ST_Within:     (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.within(geom2))
@@ -62,6 +63,7 @@ object SpatialRelationFunctions {
     ST_Disjoint -> "st_disjoint",
     ST_Equals -> "st_equals",
     ST_Intersects -> "st_intersects",
+    ST_Intersection -> "st_intersection",
     ST_Overlaps -> "st_overlaps",
     ST_Touches -> "st_touches",
     ST_Within -> "st_within",
@@ -91,6 +93,7 @@ object SpatialRelationFunctions {
     sqlContext.udf.register(relationNames(ST_Disjoint), ST_Disjoint)
     sqlContext.udf.register(relationNames(ST_Equals), ST_Equals)
     sqlContext.udf.register(relationNames(ST_Intersects), ST_Intersects)
+    sqlContext.udf.register(relationNames(ST_Intersection), ST_Intersection)
     sqlContext.udf.register(relationNames(ST_Overlaps), ST_Overlaps)
     sqlContext.udf.register(relationNames(ST_Touches), ST_Touches)
     sqlContext.udf.register(relationNames(ST_Within), ST_Within)

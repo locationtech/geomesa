@@ -55,6 +55,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       if (qp.isInstanceOf[EmptyPlan]) {
         sc.emptyRDD[SimpleFeature]
       } else {
+        GeoMesaConfigurator.setDataStoreInParams(conf, dsParams)
         GeoMesaConfigurator.setSchema(conf, sft)
         GeoMesaConfigurator.setSerialization(conf)
         GeoMesaConfigurator.setIndexIn(conf, qp.filter.index)

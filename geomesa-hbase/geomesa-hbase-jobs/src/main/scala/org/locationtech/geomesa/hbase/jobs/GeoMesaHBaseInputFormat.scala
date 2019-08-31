@@ -10,7 +10,7 @@ package org.locationtech.geomesa.hbase.jobs
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.HBaseConfiguration
+import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants}
 import org.apache.hadoop.hbase.client.Result
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.{MultiTableInputFormat, TableInputFormat}
@@ -42,6 +42,13 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
     index = GeoMesaFeatureIndexFactory.create(null, sft, Seq(IndexId.id(identifier))).headOption.getOrElse {
       throw new RuntimeException(s"Index option not configured correctly: $identifier")
     }
+    val dsParams = GeoMesaConfigurator.getDataStoreInParams(conf)
+    if(dsParams.isDefinedAt("hbase.zookeepers")) {
+      conf.set(HConstants.ZOOKEEPER_QUORUM, dsParams("hbase.zookeepers"))
+    }
+    if(dsParams.isDefinedAt("hbase.zookeeper.znode")) {
+      conf.set(HConstants.ZOOKEEPER_ZNODE_PARENT, dsParams("hbase.zookeeper.znode"))
+    }
     delegate.setConf(conf)
     // see TableMapReduceUtil.java
     HBaseConfiguration.merge(conf, HBaseConfiguration.create(conf))
@@ -66,7 +73,8 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Lazy
     val ecql = GeoMesaConfigurator.getFilter(context.getConfiguration).map(FastFilterFactory.toFilter(sft, _))
     val transform = GeoMesaConfigurator.getTransformSchema(context.getConfiguration)
     // TODO GEOMESA-2300 support local filtering
-    new HBaseGeoMesaRecordReader(index, sft, ecql, transform, rr, true)
+    val remoteFilter = context.getConfiguration.get("geomesa.hbase.remote.filtering", "true").toBoolean
+    new HBaseGeoMesaRecordReader(index, sft, ecql, transform, rr, remoteFilter)
   }
 }
 

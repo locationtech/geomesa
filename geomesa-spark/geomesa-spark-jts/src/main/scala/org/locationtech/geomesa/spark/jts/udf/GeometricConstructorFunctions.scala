@@ -34,7 +34,7 @@ object GeometricConstructorFunctions {
   val ST_MakePoint: (Double, Double) => Point = nullableUDF((x, y) => geomFactory.createPoint(new Coordinate(x, y)))
   val ST_MakeLine: Seq[Point] => LineString = nullableUDF(s => geomFactory.createLineString(s.map(_.getCoordinate).toArray))
   val ST_MakePointM: (Double, Double, Double) => Point = nullableUDF((x, y, m) =>
-    WKTUtils.read(s"POINT($x $y $m)").asInstanceOf[Point])
+    WKTUtils.read(s"POINT M($x $y $m)").asInstanceOf[Point])
   val ST_MLineFromText: String => MultiLineString = nullableUDF(text => WKTUtils.read(text).asInstanceOf[MultiLineString])
   val ST_MPointFromText: String => MultiPoint = nullableUDF(text => WKTUtils.read(text).asInstanceOf[MultiPoint])
   val ST_MPolyFromText: String => MultiPolygon = nullableUDF(text => WKTUtils.read(text).asInstanceOf[MultiPolygon])

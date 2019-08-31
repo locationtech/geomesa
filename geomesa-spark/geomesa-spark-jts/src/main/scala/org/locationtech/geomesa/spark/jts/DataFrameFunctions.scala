@@ -310,6 +310,9 @@ object DataFrameFunctions extends SpatialEncoders {
     def st_intersects(left: Column, right: Column): TypedColumn[Any, jl.Boolean] =
       udfToColumn(ST_Intersects, relationNames, left, right)
 
+    def st_intersection(left: Column, right: Column): TypedColumn[Any, Geometry] =
+      udfToColumn(ST_Intersection, relationNames, left, right)
+
     def st_overlaps(left: Column, right: Column): TypedColumn[Any, jl.Boolean] =
       udfToColumn(ST_Overlaps, relationNames, left, right)
 

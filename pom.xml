@@ -21,38 +21,38 @@
     </licenses>
 
     <modules>
-        <module>geomesa-accumulo</module>
-        <module>geomesa-archetypes</module>
+        <!--<module>geomesa-accumulo</module>-->
+        <!--<module>geomesa-archetypes</module>-->
         <module>geomesa-arrow</module>
-        <module>geomesa-bigtable</module>
-        <module>geomesa-blobstore</module>
-        <module>geomesa-cassandra</module>
+        <!--<module>geomesa-bigtable</module>-->
+        <!--<module>geomesa-blobstore</module>-->
+        <!--<module>geomesa-cassandra</module>-->
         <module>geomesa-convert</module>
         <module>geomesa-features</module>
         <module>geomesa-filter</module>
         <module>geomesa-fs</module>
-        <module>geomesa-geojson</module>
+        <!--<module>geomesa-geojson</module>-->
         <module>geomesa-hbase</module>
         <module>geomesa-index-api</module>
         <module>geomesa-jobs</module>
-        <module>geomesa-jupyter</module>
-        <module>geomesa-kafka</module>
-        <module>geomesa-kudu</module>
-        <module>geomesa-lambda</module>
+        <!--<module>geomesa-jupyter</module>-->
+        <!--<module>geomesa-kafka</module>-->
+        <!--<module>geomesa-kudu</module>-->
+        <!--<module>geomesa-lambda</module>-->
         <module>geomesa-memory</module>
-        <module>geomesa-metrics</module>
+        <!--<module>geomesa-metrics</module>-->
         <module>geomesa-native-api</module>
         <module>geomesa-process</module>
-        <module>geomesa-redis</module>
+        <!--<module>geomesa-redis</module>-->
         <module>geomesa-security</module>
         <module>geomesa-spark</module>
-        <module>geomesa-stream</module>
+        <!--<module>geomesa-stream</module>-->
         <module>geomesa-tools</module>
         <module>geomesa-utils</module>
-        <module>geomesa-web</module>
+        <!--<module>geomesa-web</module>-->
         <module>geomesa-z3</module>
         <module>geomesa-zk-utils</module>
-        <module>docs</module>
+        <!--<module>docs</module>-->
     </modules>
 
     <properties>
@@ -65,7 +65,7 @@
 
         <!-- this must remain outside of version specific scala profiles for sbt/ivy -->
         <scala.binary.version>2.11</scala.binary.version>
-        <scala.version>2.11.7</scala.version>
+        <scala.version>2.11.8</scala.version>
 
         <scala.xml.version>1.0.6</scala.xml.version>
         <scala.parsers.version>1.0.6</scala.parsers.version>
@@ -92,9 +92,9 @@
         <accumulo.version>1.8.1</accumulo.version>
         <zookeeper.version>3.4.10</zookeeper.version>
         <thrift.version>0.9.3</thrift.version>
-        <hadoop.version>2.6.4</hadoop.version>
-        <spark.version>2.3.1</spark.version>
-        <hbase.version>1.3.1</hbase.version>
+        <hadoop.version>2.6.5</hadoop.version>
+        <spark.version>2.3.2</spark.version>
+        <hbase.version>1.3.5</hbase.version>
         <hbase.guava.version>12.0.1</hbase.guava.version>
         <cassandra.version>3.0.0</cassandra.version>
         <cassandra.guava.version>18.0</cassandra.guava.version>
