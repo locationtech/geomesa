@@ -28,6 +28,7 @@ Installation
     geodocker-geomesa/index
     geomesa-hbase-s3-on-aws
     geomesa-hbase-on-cdh
+    geomesa-fs-on-azure
 
 Data In/Out
 -----------
