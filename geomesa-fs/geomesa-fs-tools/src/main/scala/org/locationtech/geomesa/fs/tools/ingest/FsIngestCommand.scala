@@ -13,8 +13,7 @@ import com.typesafe.config.Config
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
-import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
-import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, OptionalEncodingParam, OptionalSchemeParams}
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams, OptionalEncodingParam, OptionalSchemeParams}
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
 import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{OrcConverterJob, ParquetConverterJob}
 import org.locationtech.geomesa.fs.tools.ingest.FsIngestCommand.FsIngestParams
@@ -26,7 +25,7 @@ import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
 import org.locationtech.geomesa.tools.ingest._
 import org.opengis.feature.simple.SimpleFeatureType
 
-class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDataStoreCommand {
+class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistributedCommand {
 
   override val params = new FsIngestParams
 
