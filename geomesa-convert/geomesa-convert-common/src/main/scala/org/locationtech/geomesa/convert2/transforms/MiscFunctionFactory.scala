@@ -13,13 +13,20 @@ import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTra
 
 class MiscFunctionFactory extends TransformerFunctionFactory {
 
-  override def functions: Seq[TransformerFunction] = Seq(lineNumber, withDefault)
+  override def functions: Seq[TransformerFunction] = Seq(lineNumber, withDefault, require)
 
   private val withDefault = TransformerFunction.pure("withDefault") { args =>
     if (args(0) == null) { args(1) } else { args(0) }
   }
 
+  private val require = TransformerFunction.pure("require") { args =>
+    if (args(0) == null) {
+      throw new IllegalArgumentException("Required field is null")
+    }
+    args(0)
+  }
+
   private val lineNumber = new NamedTransformerFunction(Seq("lineNo", "lineNumber")) {
-    def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = ctx.line
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = ctx.line
   }
 }
