@@ -11,7 +11,6 @@ package org.locationtech.geomesa.raster.data
 
 import com.google.common.collect.{ImmutableSetMultimap, ImmutableMap => IMap}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Geometry
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.hadoop.io.Text
@@ -19,11 +18,11 @@ import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.BatchScanPlan
-import org.locationtech.geomesa.process.knn.TouchingGeoHashes
 import org.locationtech.geomesa.raster.iterators.{RasterFilteringIterator => RFI}
 import org.locationtech.geomesa.raster.{defaultResolution, lexiEncodeDoubleToString, rasterSft, rasterSftName}
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeohashUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 

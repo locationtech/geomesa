@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.process.knn
+package org.locationtech.geomesa.raster.data
 
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.geomesa.utils.geohash.GeoHash
@@ -84,7 +84,3 @@ object TouchingGeoHashes {
     newLons.map(newLon => new Coordinate(newLon, newLat)).toSet
   }
 }
-
-
-
-

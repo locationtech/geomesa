@@ -28,6 +28,8 @@ package object geotools {
   val CRS_EPSG_4326: CoordinateReferenceSystem =
     try { CRS.decode("EPSG:4326", true) } catch { case t: Throwable => DefaultGeographicCRS.WGS84 }
 
+  val CrsEpsg4326: CoordinateReferenceSystem = CRS_EPSG_4326
+
   // we make this a function, as envelopes are mutable
   def wholeWorldEnvelope = new ReferencedEnvelope(-180, 180, -90, 90, CRS_EPSG_4326)
   val WholeWorldPolygon: Polygon =

@@ -57,17 +57,7 @@ object GeometryUtils extends LazyLogging {
     * @return (min degrees, max degrees)
     */
   def distanceDegrees(point: Point, meters: Double, calc: GeodeticCalculator): (Double, Double) = {
-    calc.setStartingGeographicPoint(point.getX, point.getY)
-    val north = {
-      calc.setDirection(0, meters)
-      val dest2D = calc.getDestinationGeographicPoint
-      point.distance(geoFactory.createPoint(new Coordinate(dest2D.getX, dest2D.getY)))
-    }
-    val east = {
-      calc.setDirection(90, meters)
-      val dest2D = calc.getDestinationGeographicPoint
-      point.distance(geoFactory.createPoint(new Coordinate(dest2D.getX, dest2D.getY)))
-    }
+    val (east, north) = directionalDegrees(point, meters, calc)
     // normally east would be the largest in degrees, but sometimes it can be smaller
     // due to variances in the ellipsoid
     if (east > north) { (north, east) } else { (east, north) }
@@ -92,17 +82,33 @@ object GeometryUtils extends LazyLogging {
       distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMinX, env.getMinY)), meters),
       distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMinX, env.getMaxY)), meters)
     )
-
     (distances.minBy(_._1)._1, distances.maxBy(_._2)._2)
   }
 
-  def unfoldRight[A, B](seed: B)(f: B => Option[(A, B)]): List[A] = f(seed) match {
-    case None => Nil
-    case Some((a, b)) => a :: unfoldRight(b)(f)
+  /**
+    * Calculate distance from a point, in degrees.
+    *
+    * Note: normally east/west would be the largest in degrees, but sometimes it can be smaller
+    * due to variances in the ellipsoid
+    *
+    * @param point point to buffer
+    * @param meters distance to buffer, in meters
+    * @param calc calculator, for re-use
+    * @return (east/west, north/south) distance in degrees
+    */
+  def directionalDegrees(point: Point, meters: Double, calc: GeodeticCalculator): (Double, Double) = {
+    calc.setStartingGeographicPoint(point.getX, point.getY)
+    def degrees(azimuth: Double): Double = {
+      calc.setDirection(azimuth, meters)
+      val dest = calc.getDestinationGeographicPoint
+      point.distance(geoFactory.createPoint(new Coordinate(dest.getX, dest.getY)))
+    }
+    // take min distance to account for crossing the AM/poles
+    (math.min(degrees(90), degrees(-90)), math.min(degrees(0), degrees(180)))
   }
 
   /** Adds way points to Seq[Coordinates] so that they remain valid with Spatial4j, useful for BBOX */
-  def addWayPoints(coords: Seq[Coordinate]): List[Coordinate] =
+  def addWayPoints(coords: Seq[Coordinate]): List[Coordinate] = {
     unfoldRight(coords) {
       case Seq() => None
       case Seq(pt) => Some((pt, Seq()))
@@ -114,6 +120,12 @@ object GeometryUtils extends LazyLogging {
         case _ => Some((first, second +: rest))
       }
     }
+  }
+
+  private def unfoldRight[A, B](seed: B)(f: B => Option[(A, B)]): List[A] = f(seed) match {
+    case None => Nil
+    case Some((a, b)) => a :: unfoldRight(b)(f)
+  }
 
   /**
     * Returns the rough bounds of a geometry
