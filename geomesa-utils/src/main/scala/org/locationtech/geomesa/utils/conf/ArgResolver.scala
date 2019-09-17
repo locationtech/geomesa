@@ -22,7 +22,7 @@ trait ArgResolver[ReturnType, ParseMethodArgs] extends LazyLogging {
   type ResEither = Either[(String, Throwable, ArgTypes), ReturnType]
 
   // Important to setAllowMissing to false bc else you'll get a config but it will be empty
-  protected val parseOpts =
+  protected val parseOpts: ConfigParseOptions =
     ConfigParseOptions.defaults()
       .setAllowMissing(false)
       .setClassLoader(null)
