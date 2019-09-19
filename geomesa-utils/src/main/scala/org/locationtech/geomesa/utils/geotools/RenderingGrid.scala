@@ -33,6 +33,8 @@ class RenderingGrid(env: Envelope, xSize: Int, ySize: Int) extends LazyLogging {
 
   private val wide = xMax - xMin > 360d
 
+  private var count = 0L
+
   /**
     * Render a point
     *
@@ -44,6 +46,7 @@ class RenderingGrid(env: Envelope, xSize: Int, ySize: Int) extends LazyLogging {
     if (j != -1) {
       translate(point.getX).foreach(i => pixels(i, j) += weight)
     }
+    count += 1
   }
 
   /**
@@ -58,6 +61,7 @@ class RenderingGrid(env: Envelope, xSize: Int, ySize: Int) extends LazyLogging {
       render(multiPoint.getGeometryN(i).asInstanceOf[Point], weight)
       i += 1
     }
+    count += (1 - i)
   }
 
   /**
@@ -95,6 +99,7 @@ class RenderingGrid(env: Envelope, xSize: Int, ySize: Int) extends LazyLogging {
             val intersection = GeometryUtils.geoFactory.createLineString(Array(p0, p1)).intersection(grid.envelope)
             if (!intersection.isEmpty) {
               render(intersection, weight)
+              count -= 1 // don't double count
             }
           } catch {
             case NonFatal(e) => logger.error(s"Error intersecting line string [$p0 $p1] with ${grid.envelope}", e)
@@ -134,6 +139,7 @@ class RenderingGrid(env: Envelope, xSize: Int, ySize: Int) extends LazyLogging {
         n += 1
       }
     }
+    count += 1
   }
 
   /**
@@ -148,6 +154,7 @@ class RenderingGrid(env: Envelope, xSize: Int, ySize: Int) extends LazyLogging {
       render(multiLineString.getGeometryN(i).asInstanceOf[LineString], weight)
       i += 1
     }
+    count += (1 - i)
   }
 
   /**
@@ -170,6 +177,7 @@ class RenderingGrid(env: Envelope, xSize: Int, ySize: Int) extends LazyLogging {
         val intersection = polygon.intersection(grid.envelope)
         if (!intersection.isEmpty) {
           render(intersection, weight)
+          count -= 1 // don't double count
         }
       } catch {
         case NonFatal(e) => logger.error(s"Error intersecting polygon [$polygon] with ${grid.envelope}", e)
@@ -224,6 +232,7 @@ class RenderingGrid(env: Envelope, xSize: Int, ySize: Int) extends LazyLogging {
       render(multiPolygon.getGeometryN(i).asInstanceOf[Polygon], weight)
       i += 1
     }
+    count += (1 - i)
   }
 
   /**
@@ -246,6 +255,8 @@ class RenderingGrid(env: Envelope, xSize: Int, ySize: Int) extends LazyLogging {
           render(g.getGeometryN(i), weight)
           i += 1
         }
+        count += (1 - i)
+
       case _ => throw new NotImplementedError(s"Unexpected geometry type: $geometry")
     }
   }
@@ -256,6 +267,15 @@ class RenderingGrid(env: Envelope, xSize: Int, ySize: Int) extends LazyLogging {
     * @return
     */
   def isEmpty: Boolean = pixels.isEmpty
+
+  /**
+    * Number of features rendered in this grid (not accounting for weights).
+    *
+    * May not be exact - features that are outside the grid envelope will still be counted.
+    *
+    * @return
+    */
+  def size: Long = count
 
   /**
     * Pixel weights

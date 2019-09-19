@@ -17,6 +17,7 @@ import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures
 import org.locationtech.geomesa.index.iterators.DensityScan.GeometryRenderer
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, RenderingGrid}
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
@@ -30,6 +31,8 @@ trait DensityScan extends AggregatingScan[RenderingGrid] {
   // we snap each point into a pixel and aggregate based on that
   protected var renderer: GeometryRenderer = _
 
+  private var batchSize: Int = -1
+
   override protected def initResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
@@ -38,11 +41,14 @@ trait DensityScan extends AggregatingScan[RenderingGrid] {
     val bounds = options(DensityScan.Configuration.EnvelopeOpt).split(",").map(_.toDouble)
     val envelope = new Envelope(bounds(0), bounds(1), bounds(2), bounds(3))
     val Array(width, height) = options(DensityScan.Configuration.GridOpt).split(",").map(_.toInt)
+    batchSize = DensityScan.BatchSize.toInt.get // has a valid default so should be safe to .get
     new RenderingGrid(envelope, width, height)
   }
 
   override protected def aggregateResult(sf: SimpleFeature, result: RenderingGrid): Unit =
     renderer.render(result, sf)
+
+  override protected def notFull(result: RenderingGrid): Boolean = result.size < batchSize
 
   override protected def encodeResult(result: RenderingGrid): Array[Byte] = DensityScan.encodeResult(result)
 }
@@ -53,6 +59,8 @@ object DensityScan extends LazyLogging {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   type GridIterator  = SimpleFeature => Iterator[(Double, Double, Double)]
+
+  val BatchSize = SystemProperty("geomesa.density.batch.size", "100000")
 
   val DensitySft: SimpleFeatureType = SimpleFeatureTypes.createType("density", "*geom:Point:srid=4326")
   val DensityValueKey = new ClassKey(classOf[Array[Byte]])
