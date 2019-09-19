@@ -10,7 +10,6 @@ package org.locationtech.geomesa.index.iterators
 import java.awt.image.BufferedImage
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom._
 import org.geotools.factory.Hints
 import org.geotools.factory.Hints.ClassKey
 import org.geotools.filter.text.ecql.ECQL
@@ -18,9 +17,11 @@ import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, 
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap}
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes
+import org.locationtech.jts.geom._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
@@ -35,10 +36,15 @@ trait DensityScan extends AggregatingScan[DensityResult] {
   protected var getWeight: SimpleFeature => Double = _
   protected var writeGeom: (SimpleFeature, Double, DensityResult) => Unit = _
 
-  override protected def initResult(sft: SimpleFeatureType,
-                                    transform: Option[SimpleFeatureType],
-                                    options: Map[String, String]): DensityResult = {
+  private var batchSize: Int = -1
+  private var count: Int = -1
+
+  override protected def initResult(
+      sft: SimpleFeatureType,
+      transform: Option[SimpleFeatureType],
+      options: Map[String, String]): DensityResult = {
     import DensityScan.Configuration._
+
     gridSnap = {
       val bounds = options(EnvelopeOpt).split(",").map(_.toDouble)
       val envelope = new Envelope(bounds(0), bounds(1), bounds(2), bounds(3))
@@ -48,12 +54,19 @@ trait DensityScan extends AggregatingScan[DensityResult] {
 
     getWeight = DensityScan.getWeight(sft, options.get(WeightOpt))
     writeGeom = DensityScan.writeGeometry(sft, gridSnap)
+    count = 0
+    batchSize = DensityScan.BatchSize.toInt.get // has a valid default so should be safe to .get
 
     scala.collection.mutable.Map.empty[(Int, Int), Double].withDefaultValue(0d)
   }
 
-  override protected def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit =
+  override protected def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = {
     writeGeom(sf, getWeight(sf), result)
+    count += 1
+  }
+
+  override protected def notFull(result: DensityResult): Boolean =
+    if (count < batchSize) { true } else { count = 0; false }
 
   override protected def encodeResult(result: DensityResult): Array[Byte] = DensityScan.encodeResult(result)
 }
@@ -65,6 +78,8 @@ object DensityScan extends LazyLogging {
 
   type DensityResult = scala.collection.mutable.Map[(Int, Int), Double]
   type GridIterator  = SimpleFeature => Iterator[(Double, Double, Double)]
+
+  val BatchSize = SystemProperty("geomesa.density.batch.size", "100000")
 
   val DensitySft: SimpleFeatureType = SimpleFeatureTypes.createType("density", "*geom:Point:srid=4326")
   val DensityValueKey = new ClassKey(classOf[Array[Byte]])

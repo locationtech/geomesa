@@ -117,7 +117,8 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
   protected def validateFeature(f: SimpleFeature): Boolean = validate(f)
 
   // hook to allow result to be chunked up
-  protected def notFull(result: T): Boolean = true
+  // note: it's important to return false occasionally, so that we can check for cancelled scans
+  protected def notFull(result: T): Boolean
 
   // create the result object for the current scan
   protected def initResult(sft: SimpleFeatureType, transform: Option[SimpleFeatureType], options: Map[String, String]): T
