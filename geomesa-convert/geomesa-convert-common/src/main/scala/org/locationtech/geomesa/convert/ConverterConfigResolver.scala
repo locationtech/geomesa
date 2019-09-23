@@ -57,7 +57,7 @@ object ConverterConfigResolver extends ArgResolver[Config, ConfArgs] with LazyLo
 
   private [ConverterConfigResolver] def parseString(args: ConfArgs): ResEither = {
     try {
-      val confs = SimpleConverterConfigParser.parseConf(ConfigFactory.parseString(args.config, parseOpts))
+      val confs = SimpleConverterConfigParser.parseConf(ConfigFactory.parseString(args.config, parseOpts).resolve())
       if (confs.size > 1) {
         logger.warn(s"Found more than one SFT conf in arg '${args.config}'")
       }
@@ -75,7 +75,7 @@ object ConverterConfigResolver extends ArgResolver[Config, ConfArgs] with LazyLo
       WithClose(handle.open) { is =>
         if (is.hasNext) {
           val reader = new InputStreamReader(is.next._2, StandardCharsets.UTF_8)
-          val confs = SimpleConverterConfigParser.parseConf(ConfigFactory.parseReader(reader, parseOpts))
+          val confs = SimpleConverterConfigParser.parseConf(ConfigFactory.parseReader(reader, parseOpts).resolve())
           if (confs.size > 1) {
             logger.warn(s"Found more than one SFT conf in arg '${args.config}'")
           }
