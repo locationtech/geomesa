@@ -31,9 +31,7 @@ import org.opengis.filter.Filter
 /**
  * Iterator that computes and aggregates 'bin' entries
  */
-class BinAggregatingIterator extends BaseAggregatingIterator[ByteBufferResult] with BinAggregatingScan {
-  override def notFull(result: ByteBufferResult): Boolean = result.buffer.position < result.buffer.limit
-}
+class BinAggregatingIterator extends BaseAggregatingIterator[ByteBufferResult] with BinAggregatingScan
 
 object BinAggregatingIterator extends LazyLogging {
 
