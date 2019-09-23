@@ -17,6 +17,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
@@ -29,14 +30,18 @@ trait StatsScan extends AggregatingScan[Stat] with LazyLogging {
 
   import org.locationtech.geomesa.index.iterators.StatsScan.Configuration._
 
-  var serializer: StatSerializer = _
+  private var serializer: StatSerializer = _
+  private var batchSize: Int = -1
+  private var count: Int = -1
 
-  override protected def initResult(sft: SimpleFeatureType,
-                                    transform: Option[SimpleFeatureType],
-                                    options: Map[String, String]): Stat = {
+  override protected def initResult(
+      sft: SimpleFeatureType,
+      transform: Option[SimpleFeatureType],
+      options: Map[String, String]): Stat = {
     val finalSft = transform.getOrElse(sft)
     serializer = StatSerializer(finalSft)
-
+    count = 0
+    batchSize = StatsScan.BatchSize.toInt.get // has a valid default so should be safe to .get
     Stat(finalSft, options(STATS_STRING_KEY))
   }
 
@@ -44,13 +49,18 @@ trait StatsScan extends AggregatingScan[Stat] with LazyLogging {
     try { result.observe(sf) } catch {
       case NonFatal(e) => logger.warn(s"Error observing feature $sf", e)
     }
+    count += 1
   }
+
+  override protected def notFull(result: Stat): Boolean = if (count < batchSize) { true } else { count = 0; false }
 
   // encode the result as a byte array
   override protected def encodeResult(result: Stat): Array[Byte] = serializer.serialize(result)
 }
 
 object StatsScan {
+
+  val BatchSize = SystemProperty("geomesa.stats.batch.size", "100000")
 
   val StatsSft: SimpleFeatureType = SimpleFeatureTypes.createType("stats:stats", "stats:String,geom:Geometry")
 

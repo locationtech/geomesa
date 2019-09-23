@@ -46,6 +46,13 @@ geomesa.convert.scripts.path
 This property allows for adding files to the classpath. It should be set to a colon-separated list of file
 paths. This is useful for getting scripts onto the classpath for use by map-reduce ingest jobs.
 
+geomesa.density.batch.size
+++++++++++++++++++++++++++
+
+This property controls the batch size used for running distributed density (heatmap) queries. It needs to be set on
+each region or tablet server. If a query is closed or cancelled before completion, the batch size will determine how
+long the distributed scan will keep running before seeing the cancellation.
+
 geomesa.distributed.lock.timeout
 ++++++++++++++++++++++++++++++++
 
@@ -214,6 +221,13 @@ geomesa.sft.config.urls
 
 This property allows for adding GeoMesa simple feature type configurations to the environment. It can be set to
 a comma-separated list of arbitrary URLs. For more information on defining types, see :ref:`cli_sft_conf`.
+
+geomesa.stats.batch.size
+++++++++++++++++++++++++
+
+This property controls the batch size used for running distributed stat queries. It needs to be set on each
+region or tablet server. If a query is closed or cancelled before completion, the batch size will determine how
+long the distributed scan will keep running before seeing the cancellation.
 
 .. _stats_generate_config:
 
