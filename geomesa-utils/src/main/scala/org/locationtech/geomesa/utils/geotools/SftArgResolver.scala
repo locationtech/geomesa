@@ -99,15 +99,24 @@ object SftArgResolver extends ArgResolver[SimpleFeatureType, SftArgs] with LazyL
 
   private [SftArgResolver] def parseConf(input: Reader, name: String): Either[Throwable, SimpleFeatureType] = {
     try {
-      val sfts = SimpleSftParser.parseConf(ConfigFactory.parseReader(input, parseOpts))
-      if (sfts.size > 1) {
-        logger.warn(s"Found more than one SFT conf in input arg")
+      val sfts = ConfigSftParsing.parseConf(ConfigFactory.parseReader(input, parseOpts).resolve())
+      if (sfts.isEmpty) {
+        throw new RuntimeException("No feature types parsed from config string")
       }
-      val sft = sfts.get(0)
-      if (name == null || name == sft.getTypeName) {
-        Right(sft)
+      if (name == null) {
+        if (sfts.lengthCompare(1) > 0) {
+          logger.warn(s"Found more than one SFT conf in input arg")
+        }
+        Right(sfts.head)
       } else {
-        Right(SimpleFeatureTypes.renameSft(sft, name))
+        sfts.find(_.getTypeName == name) match {
+          case Some(sft) => Right(sft)
+          case None =>
+            if (sfts.lengthCompare(1) > 0) {
+              logger.warn("Found more than one SFT conf in input arg")
+            }
+            Right(SimpleFeatureTypes.renameSft(sfts.head, name))
+        }
       }
     } catch {
       case NonFatal(e) => Left(e)

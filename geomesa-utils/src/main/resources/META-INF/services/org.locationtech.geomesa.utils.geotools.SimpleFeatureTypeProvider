@@ -1,2 +1,2 @@
-org.locationtech.geomesa.utils.geotools.ClassPathSftProvider
-org.locationtech.geomesa.utils.geotools.URLSftProvider
+org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader$ClassPathSftProvider
+org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader$URLSftProvider
