@@ -14,14 +14,14 @@ import java.security.PrivilegedExceptionAction
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.Path
-import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants}
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory, HBaseAdmin}
 import org.apache.hadoop.hbase.security.User
+import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants}
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{HBaseGeoMesaKeyTab, HBaseGeoMesaPrincipal}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsParam, ConnectionParam, ZookeeperParam}
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
 object HBaseConnectionPool extends LazyLogging {
 
@@ -133,7 +133,23 @@ object HBaseConnectionPool extends LazyLogging {
     val sanitized = paths.filterNot(_.trim.isEmpty).toSeq.flatMap(_.split(',')).map(_.trim).filterNot(_.isEmpty)
     if (sanitized.isEmpty) { base } else {
       val conf = new Configuration(base)
-      sanitized.foreach(p => conf.addResource(new Path(p)))
+      sanitized.foreach { path =>
+        // use our path handling logic, which is more robust than just passing paths to the config
+        val handles = PathUtils.interpretPath(path)
+        if (handles.isEmpty) {
+          logger.warn(s"Could not load configuration file at: $path")
+        } else {
+          handles.foreach { handle =>
+            WithClose(handle.open) { files =>
+              files.foreach {
+                case (None, is) => conf.addResource(is)
+                case (Some(name), is) => conf.addResource(is, name)
+              }
+              conf.size() // this forces a loading of the resource files, before we close our file handle
+            }
+          }
+        }
+      }
       conf
     }
   }
