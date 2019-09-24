@@ -41,6 +41,8 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-storage-orc_${scala.binary.version}</artifactId>
         </dependency>
+
+        <!-- distributed runtime -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-spark-runtime_${scala.binary.version}</artifactId>
@@ -49,12 +51,25 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-spark_${scala.binary.version}</artifactId>
         </dependency>
+
+        <!-- geoserver plugins -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-fs-gs-plugin_${scala.binary.version}</artifactId>
             <classifier>install</classifier>
             <version>${project.version}</version>
             <type>tar.gz</type>
+            <!-- Don't bring any any transitives of dist tar.gz files -->
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-process-wps_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- additional deps to manage in for deploying to lib dir-->

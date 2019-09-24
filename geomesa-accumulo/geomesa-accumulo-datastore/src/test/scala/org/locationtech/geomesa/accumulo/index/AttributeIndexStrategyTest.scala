@@ -898,10 +898,16 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
   "AttributeIndexLikeStrategy" should {
 
-    "correctly query on strings" in {
+    "correctly query on strings with multi-char match" in {
       val features = execute("name LIKE 'b%'")
       features must haveLength(2)
       features must contain("bill", "bob")
+    }
+
+    "correctly query on strings with single-char match" in {
+      val features = execute("name LIKE 'b_b'")
+      features must haveLength(1)
+      features must contain("bob")
     }
 
     "correctly query on non-strings" in {

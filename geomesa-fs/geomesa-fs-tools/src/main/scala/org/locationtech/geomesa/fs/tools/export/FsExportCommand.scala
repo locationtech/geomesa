@@ -11,14 +11,13 @@ package org.locationtech.geomesa.fs.tools.export
 import com.beust.jcommander.{Parameter, Parameters}
 import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams
-import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
-import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsDistributedCommand, FsParams}
 import org.locationtech.geomesa.fs.tools.export.FsExportCommand.FsExportParams
 import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.export.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 
-class FsExportCommand extends ExportCommand[FileSystemDataStore] with FsDataStoreCommand {
+class FsExportCommand extends ExportCommand[FileSystemDataStore] with FsDistributedCommand {
 
   override val params = new FsExportParams
 

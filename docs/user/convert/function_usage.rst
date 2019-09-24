@@ -27,6 +27,17 @@ Example: ``withDefault('foo', 'bar') = foo``
 
 Example: ``withDefault(null, 'bar') = bar``
 
+require
+^^^^^^^
+
+Description: Throw an exception if the value is null, otherwise return the value
+
+Usage: ``require($1)``
+
+Example: ``require('foo') = foo``
+
+Example: ``require(null) // throws an error``
+
 String Functions
 ~~~~~~~~~~~~~~~~
 

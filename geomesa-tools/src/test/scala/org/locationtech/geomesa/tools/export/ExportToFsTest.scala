@@ -21,7 +21,7 @@ import org.geotools.data.{DataStore, Query}
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions}
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorageFactory
@@ -86,7 +86,7 @@ class ExportToFsTest extends Specification {
           DataStoreRegistration.unregister(key, ds)
         }
 
-        storage.metadata.addPartition(PartitionMetadata("2016/01/01", Seq(file.getName), None, 2L))
+        storage.metadata.addPartition(PartitionMetadata("2016/01/01", Seq(StorageFile(file.getName, 0L)), None, 2L))
 
         val read = WithClose(storage.getReader(new Query(sft.getTypeName)))(_.toList)
         read mustEqual features

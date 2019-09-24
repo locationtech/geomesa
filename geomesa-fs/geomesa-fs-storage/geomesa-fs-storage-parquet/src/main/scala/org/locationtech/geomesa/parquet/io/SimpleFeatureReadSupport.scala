@@ -381,7 +381,7 @@ object SimpleFeatureReadSupport {
       val polys = Array.tabulate(x.polys.length) { i =>
         val shell = gf.createLinearRing(zip(x.polys(i).head, y.polys(i).head))
         val holes = if (x.polys(i).lengthCompare(1) == 0) { null } else {
-          Array.tabulate(x.polys(i).length - 1)(i => gf.createLinearRing(zip(x.polys(i)(i + 1), y.polys(i)(i + 1))))
+          Array.tabulate(x.polys(i).length - 1)(j => gf.createLinearRing(zip(x.polys(i)(j + 1), y.polys(i)(j + 1))))
         }
         gf.createPolygon(shell, holes)
       }

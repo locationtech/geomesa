@@ -103,7 +103,7 @@ trait FileSystemCompactionJob extends StorageConfiguration with JobWithLibJars {
       if (copied) {
         Command.user.info("Removing old files")
         existingDataFiles.foreach { case (partition, files) =>
-          files.foreach(storage.context.fc.delete(_, false))
+          files.foreach(f => storage.context.fc.delete(f.path, false))
           storage.metadata.removePartition(partition)
           Command.user.info(s"Removed ${TextTools.getPlural(files.size, "file")} in partition ${partition.name}")
         }

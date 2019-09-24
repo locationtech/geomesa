@@ -15,6 +15,7 @@ import com.codahale.metrics.graphite.{Graphite, GraphiteReporter}
 import com.codahale.metrics.{MetricRegistry, ScheduledReporter}
 import com.typesafe.config.Config
 import org.locationtech.geomesa.convert2.metrics.ReporterFactory
+import pureconfig.ConfigReader
 
 import scala.util.control.NonFatal
 
@@ -46,5 +47,10 @@ class GraphiteReporterFactory extends ReporterFactory {
 }
 
 object GraphiteReporterFactory {
+
+  import pureconfig.generic.semiauto._
+
   case class GraphiteConfig(url: String, prefix: Option[String])
+
+  implicit val GraphiteConfigReader: ConfigReader[GraphiteConfig] = deriveReader[GraphiteConfig]
 }

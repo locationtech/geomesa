@@ -28,7 +28,7 @@ class AtomicBitSet(array: AtomicIntegerArray) {
     * @param value value to check
     * @return true if contains, false otherwise
     */
-  def contains(value: Int): Boolean = (array.get(value >> Divisor) & (1 << value)) != 0L
+  def contains(value: Int): Boolean = (array.get(value >> Divisor) & (1 << value)) != 0
 
   /**
     * Adds the value to the set, if it is not present

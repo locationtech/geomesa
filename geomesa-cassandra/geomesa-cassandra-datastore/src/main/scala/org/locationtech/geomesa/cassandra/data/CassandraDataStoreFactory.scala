@@ -133,7 +133,8 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       Params.QueryTimeoutParam
     )
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean = Params.KeySpaceParam.exists(params)
+  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+    Params.KeySpaceParam.exists(params)
 
   object Params extends GeoMesaDataStoreParams {
 

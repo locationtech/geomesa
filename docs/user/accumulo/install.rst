@@ -3,7 +3,7 @@ Installing GeoMesa Accumulo
 
 .. note::
 
-    GeoMesa currently supports Accumulo version |accumulo_version|.
+    GeoMesa currently supports Accumulo |accumulo_supported_versions|.
 
 Installing from the Binary Distribution
 ---------------------------------------

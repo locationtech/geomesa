@@ -93,6 +93,18 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       factory.canProcess(Map(Brokers.key -> "test", Zookeepers.key -> "test")) must beTrue
     }
 
+    "handle old read-back params" >> {
+      val deprecated = Seq(
+        "autoOffsetReset" -> "earliest",
+        "autoOffsetReset" -> "latest",
+        "kafka.consumer.from-beginning" -> "true",
+        "kafka.consumer.from-beginning" -> "false"
+      )
+      foreach(deprecated) { case (k, v) =>
+        KafkaDataStoreFactoryParams.ConsumerReadBack.lookupOpt(Collections.singletonMap(k, v)) must not(throwAn[Exception])
+      }
+    }
+
     "create unique topics based on zkPath" >> {
       val path = s"geomesa/topics/test/${paths.getAndIncrement()}"
       val ds = getStore(path, 0)

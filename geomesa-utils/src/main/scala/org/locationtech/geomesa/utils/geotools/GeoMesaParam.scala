@@ -110,7 +110,7 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
       if (deprecatedKeys.contains(oldKey)) {
         lookUp(Collections.singletonMap(key, params.get(oldKey)))
       } else {
-        fromTypedValue(deprecatedParams.dropWhile(_.key != oldKey).head.lookup(params, required))
+        Option(deprecatedParams.dropWhile(_.key != oldKey).head.lookup(params, required)).map(fromTypedValue).orNull
       }
     } else if (required) {
       throw new IOException(s"Parameter $key is required: $description")
@@ -121,9 +121,14 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
       }
     }
     if (value == null) { default } else {
-      try { toTypedValue(value) } catch {
+      val typed = try { toTypedValue(value) } catch {
         case NonFatal(e) => throw new IOException(s"Invalid property for parameter '$key': $value", e)
       }
+      if (enumerations.nonEmpty && !enumerations.contains(typed)) {
+        throw new IOException(s"Invalid property for parameter '$key': $value\n" +
+            s"  Accepted values are: ${enumerations.mkString(", ")}")
+      }
+      typed
     }
   }
 

@@ -9,11 +9,11 @@
 package org.locationtech.geomesa.utils.geotools
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom._
-import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.geometry.jts.{JTSFactoryFinder, ReferencedEnvelope}
 import org.geotools.referencing.GeodeticCalculator
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geohash.GeohashUtils.ResolutionRange
+import org.locationtech.jts.geom._
 
 import scala.util.control.NonFatal
 
@@ -40,47 +40,75 @@ object GeometryUtils extends LazyLogging {
     */
   def distanceDegrees(geom: Geometry, meters: Double): (Double, Double) = {
     geom match {
-      case p: Point => distanceDegrees(p, meters)
+      case p: Point => distanceDegrees(p, meters, new GeodeticCalculator())
       case _        => distanceDegrees(geom.getEnvelopeInternal, meters)
     }
   }
 
-  private def distanceDegrees(point: Point, meters: Double): (Double, Double) = {
-    val calc = new GeodeticCalculator()
-    calc.setStartingGeographicPoint(point.getX, point.getY)
-    val north = {
-      calc.setDirection(0, meters)
-      val dest2D = calc.getDestinationGeographicPoint
-      point.distance(geoFactory.createPoint(new Coordinate(dest2D.getX, dest2D.getY)))
-    }
-    val east = {
-      calc.setDirection(90, meters)
-      val dest2D = calc.getDestinationGeographicPoint
-      point.distance(geoFactory.createPoint(new Coordinate(dest2D.getX, dest2D.getY)))
-    }
+  /**
+    * Convert meters to decimal degrees, based on the latitude of the geometry.
+    *
+    * Returns two values, ones based on latitude and one based on longitude. The first value
+    * will always be &lt;= the second value
+    *
+    * @param point geometry to buffer
+    * @param meters meters
+    * @param calc geodetic calculator instance
+    * @return (min degrees, max degrees)
+    */
+  def distanceDegrees(point: Point, meters: Double, calc: GeodeticCalculator): (Double, Double) = {
+    val (east, north) = directionalDegrees(point, meters, calc)
     // normally east would be the largest in degrees, but sometimes it can be smaller
     // due to variances in the ellipsoid
     if (east > north) { (north, east) } else { (east, north) }
   }
 
-  private def distanceDegrees(env: Envelope, meters: Double): (Double, Double) = {
+  /**
+    * Convert meters to decimal degrees, based on the latitude of the geometry.
+    *
+    * Returns two values, ones based on latitude and one based on longitude. The first value
+    * will always be &lt;= the second value
+    *
+    * Distances are measured from the corners of the geometry envelope
+    *
+    * @param env envelope to buffer
+    * @param meters meters
+    * @return (min degrees, max degrees)
+    */
+  def distanceDegrees(env: Envelope, meters: Double): (Double, Double) = {
     val distances = Seq(
       distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMaxX, env.getMaxY)), meters),
       distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMaxX, env.getMinY)), meters),
       distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMinX, env.getMinY)), meters),
       distanceDegrees(geoFactory.createPoint(new Coordinate(env.getMinX, env.getMaxY)), meters)
     )
-
     (distances.minBy(_._1)._1, distances.maxBy(_._2)._2)
   }
 
-  def unfoldRight[A, B](seed: B)(f: B => Option[(A, B)]): List[A] = f(seed) match {
-    case None => Nil
-    case Some((a, b)) => a :: unfoldRight(b)(f)
+  /**
+    * Calculate distance from a point, in degrees.
+    *
+    * Note: normally east/west would be the largest in degrees, but sometimes it can be smaller
+    * due to variances in the ellipsoid
+    *
+    * @param point point to buffer
+    * @param meters distance to buffer, in meters
+    * @param calc calculator, for re-use
+    * @return (east/west, north/south) distance in degrees
+    */
+  def directionalDegrees(point: Point, meters: Double, calc: GeodeticCalculator): (Double, Double) = {
+    calc.setStartingGeographicPoint(point.getX, point.getY)
+    def degrees(azimuth: Double): Double = {
+      calc.setDirection(azimuth, meters)
+      val dest = calc.getDestinationGeographicPoint
+      point.distance(geoFactory.createPoint(new Coordinate(dest.getX, dest.getY)))
+    }
+    // take min distance to account for crossing the AM/poles
+    (math.min(degrees(90), degrees(-90)), math.min(degrees(0), degrees(180)))
   }
 
   /** Adds way points to Seq[Coordinates] so that they remain valid with Spatial4j, useful for BBOX */
-  def addWayPoints(coords: Seq[Coordinate]): List[Coordinate] =
+  def addWayPoints(coords: Seq[Coordinate]): List[Coordinate] = {
     unfoldRight(coords) {
       case Seq() => None
       case Seq(pt) => Some((pt, Seq()))
@@ -92,6 +120,12 @@ object GeometryUtils extends LazyLogging {
         case _ => Some((first, second +: rest))
       }
     }
+  }
+
+  private def unfoldRight[A, B](seed: B)(f: B => Option[(A, B)]): List[A] = f(seed) match {
+    case None => Nil
+    case Some((a, b)) => a :: unfoldRight(b)(f)
+  }
 
   /**
     * Returns the rough bounds of a geometry
@@ -213,5 +247,48 @@ object GeometryUtils extends LazyLogging {
     val slope = (point1.y - point2.y) / (point1.x - point2.x)
     val intercept = point1.y - (slope * point1.x)
     (slope * crossLon) + intercept
+  }
+
+  /**
+    * Split a bounding box envelope, which may extend outside [-180,180], into one or more envelopes
+    * that are contained within [-180,180]
+    *
+    * @param envelope envelope of a bounding box
+    * @return
+    */
+  def splitBoundingBox(envelope: ReferencedEnvelope): Seq[ReferencedEnvelope] = {
+    try {
+      val crs = envelope.getCoordinateReferenceSystem
+
+      // if the bbox is completely outside world bounds, translate to bring it back in
+      val translated = if (envelope.getMinX >= 180d) {
+        val multiplier = math.ceil((envelope.getMinX - 180d) / 360d)
+        val left = envelope.getMinX - 360d * multiplier
+        val right = envelope.getMaxX - 360d * multiplier
+        new ReferencedEnvelope(left, right, envelope.getMinY, envelope.getMaxY, crs)
+      } else if (envelope.getMaxX <= -180d) {
+        val multiplier = math.ceil((envelope.getMaxX + 180d) / -360d)
+        val left = envelope.getMinX + 360d * multiplier
+        val right = envelope.getMaxX + 360d * multiplier
+        new ReferencedEnvelope(left, right, envelope.getMinY, envelope.getMaxY, crs)
+      } else {
+        envelope
+      }
+
+      // if the bbox extends past world bounds, split and wrap it
+      if (translated.getMinX < -180d && translated.getMaxX < 180d) {
+        val trimmed = new ReferencedEnvelope(-180d , translated.getMaxX, envelope.getMinY, envelope.getMaxY, crs)
+        val wrapped = new ReferencedEnvelope(translated.getMinX + 360d , 180d, envelope.getMinY, envelope.getMaxY, crs)
+        Seq(trimmed, wrapped)
+      } else if (translated.getMaxX > 180d && translated.getMinX > -180d) {
+        val trimmed = new ReferencedEnvelope(translated.getMinX, 180d, envelope.getMinY, envelope.getMaxY, crs)
+        val wrapped = new ReferencedEnvelope(-180d, translated.getMaxX - 360d, envelope.getMinY, envelope.getMaxY, crs)
+        Seq(trimmed, wrapped)
+      } else {
+        Seq(translated)
+      }
+    } catch {
+      case NonFatal(e) => logger.warn(s"Error splitting bounding box envelope '$envelope':", e); Seq(envelope)
+    }
   }
 }

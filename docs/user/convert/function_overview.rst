@@ -104,6 +104,7 @@ Control Functions
 
 -  ``try``
 -  ``withDefault``
+-  ``require``
 
 State Functions
 ~~~~~~~~~~~~~~~

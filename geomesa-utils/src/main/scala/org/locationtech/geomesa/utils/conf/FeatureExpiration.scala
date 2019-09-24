@@ -46,16 +46,13 @@ object FeatureExpiration {
   /**
     * Expiration based on an attribute of the feature
     *
-    * @param sft simple feature type
     * @param attribute name of a Date-type attribute
+    * @param i index in the sft of the attribute
     * @param ttl time-to-live after the attribute date, before the feature expires
     */
-  case class FeatureTimeExpiration(sft: SimpleFeatureType, attribute: String, ttl: Duration)
+  case class FeatureTimeExpiration(attribute: String, i: Int, ttl: Duration)
       extends FeatureExpiration {
-
-    private val i = sft.indexOf(attribute)
     private val millis = ttl.toMillis
-
     override def expires(feature: SimpleFeature): Long = {
       val date = feature.getAttribute(i).asInstanceOf[Date]
       if (date == null) { 0L } else { date.getTime + millis }
@@ -73,11 +70,11 @@ object FeatureExpiration {
     val matcher = AttributeRegex.pattern.matcher(expiration)
     if (matcher.matches()) {
       val attribute = matcher.group(1)
-      if (sft.indexOf(attribute) == -1 ||
-          !classOf[Date].isAssignableFrom(sft.getDescriptor(attribute).getType.getBinding)) {
+      val i = sft.indexOf(attribute)
+      if (i == -1 || !classOf[Date].isAssignableFrom(sft.getDescriptor(i).getType.getBinding)) {
         throw new IllegalArgumentException(s"Invalid age-off attribute: $attribute")
       }
-      FeatureTimeExpiration(sft, attribute, duration(matcher.group(2)))
+      FeatureTimeExpiration(attribute, i, duration(matcher.group(2)))
     } else {
       IngestTimeExpiration(duration(expiration))
     }
@@ -92,7 +89,7 @@ object FeatureExpiration {
   def unapply(expiration: FeatureExpiration): Option[String] = {
     expiration match {
       case IngestTimeExpiration(duration)                => Some(duration.toString)
-      case FeatureTimeExpiration(_, attribute, duration) => Some(s"$attribute($duration)")
+      case FeatureTimeExpiration(attribute, _, duration) => Some(s"$attribute($duration)")
       case _                                             => None
     }
   }

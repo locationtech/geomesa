@@ -14,7 +14,7 @@ import org.apache.hadoop.fs.FileContext
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.Query
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
+import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
@@ -44,7 +44,7 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
       WithClose(FileSystemStorageFactory(fsc, metadata)) { storage =>
         val splits = StorageConfiguration.getPartitions(conf).map { partition =>
           val files = storage.metadata.getPartition(partition).map(_.files).getOrElse(Seq.empty)
-          val size = storage.getFilePaths(partition).map(f => PathCache.status(fsc.fc, f).getLen).sum
+          val size = storage.getFilePaths(partition).map(f => PathCache.status(fsc.fc, f.path).getLen).sum
           new PartitionInputSplit(partition, files, size)
         }
         java.util.Arrays.asList(splits: _*)
@@ -66,10 +66,10 @@ object PartitionInputFormat {
   class PartitionInputSplit extends InputSplit with Writable {
 
     private var name: String = _
-    private var files: Seq[String] = _
+    private var files: Seq[StorageFile] = _
     private var length: java.lang.Long = _
 
-    def this(name: String, files: Seq[String], length: Long) = {
+    def this(name: String, files: Seq[StorageFile], length: Long) = {
       this()
       this.name = name
       this.files = files
@@ -81,7 +81,7 @@ object PartitionInputFormat {
       */
     def getName: String = name
 
-    def getFiles: Seq[String] = files
+    def getFiles: Seq[StorageFile] = files
 
     override def getLength: Long = length
 
@@ -93,17 +93,23 @@ object PartitionInputFormat {
       out.writeUTF(name)
       out.writeLong(length)
       out.writeInt(files.length)
-      files.foreach(out.writeUTF)
+      files.foreach { case StorageFile(file, ts, action) =>
+        out.writeUTF(file)
+        out.writeLong(ts)
+        out.writeUTF(action.toString)
+      }
     }
 
     override def readFields(in: DataInput): Unit = {
       this.name = in.readUTF()
       this.length = in.readLong()
-      this.files = Seq.fill(in.readInt)(in.readUTF())
+      this.files = Seq.fill(in.readInt) {
+        StorageFile(in.readUTF(), in.readLong, StorageFileAction.withName(in.readUTF()))
+      }
     }
   }
 
-  class PartitionRecordReader(partition: String, files: Seq[String]) extends RecordReader[Void, SimpleFeature] {
+  class PartitionRecordReader(partition: String, files: Seq[StorageFile]) extends RecordReader[Void, SimpleFeature] {
 
     private var storage: FileSystemStorage = _
     private var reader: CloseableFeatureIterator = _

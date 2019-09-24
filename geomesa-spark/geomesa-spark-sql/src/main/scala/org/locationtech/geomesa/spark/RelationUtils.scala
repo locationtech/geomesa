@@ -9,28 +9,17 @@
 package org.locationtech.geomesa.spark
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.conf.Configuration
-import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{IndexPartitioner, Row}
-import org.geotools.data.{Query, Transaction}
+import org.apache.spark.sql.IndexPartitioner
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineDataStore
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.{Coordinate, Envelope, Geometry}
 import org.locationtech.jts.index.strtree.{AbstractNode, Boundable, STRtree}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.FilterFactory2
 
-import scala.collection.Iterator
 import scala.collection.mutable.ListBuffer
 
 object RelationUtils extends LazyLogging {
-
-  import CaseInsensitiveMapFix._
 
   import scala.collection.JavaConverters._
 
@@ -38,32 +27,9 @@ object RelationUtils extends LazyLogging {
 
   implicit val CoordinateOrdering: Ordering[Coordinate] = Ordering.by {_.x}
 
-  def indexIterator(sft: SimpleFeatureType, indexId: Boolean, indexGeom: Boolean): GeoCQEngineDataStore = {
-    val engineStore = new org.locationtech.geomesa.memory.cqengine.datastore.GeoCQEngineDataStore(indexGeom)
-    engineStore.createSchema(sft)
-    engineStore
-  }
-
-  def index(encodedSft: String, typeName: String, rdd: RDD[SimpleFeature], indexId: Boolean, indexGeom: Boolean): RDD[GeoCQEngineDataStore] = {
-    rdd.mapPartitions { iter =>
-      val sft = SimpleFeatureTypes.createType(typeName,encodedSft)
-      val engineStore = RelationUtils.indexIterator(sft, indexId, indexGeom)
-      engineStore.namesToEngine.get(typeName).insert(iter.toList)
-      Iterator(engineStore)
-    }
-  }
-
-  def indexPartitioned(encodedSft: String,
-      typeName: String,
-      rdd: RDD[(Int, Iterable[SimpleFeature])],
-      indexId: Boolean,
-      indexGeom: Boolean): RDD[(Int, GeoCQEngineDataStore)] = {
-    rdd.mapValues { iter =>
-      val sft = SimpleFeatureTypes.createType(typeName,encodedSft)
-      val engineStore = RelationUtils.indexIterator(sft, indexId, indexGeom)
-      engineStore.namesToEngine.get(typeName).insert(iter)
-      engineStore
-    }
+  def grid(rdd: SpatialRDD, envelopes: List[Envelope], parallelism: Int): RDD[(Int, Iterable[SimpleFeature])] = {
+    val geom = rdd.schema.indexOf(rdd.schema.getGeometryDescriptor.getLocalName)
+    rdd.flatMap(RelationUtils.gridIdMapper(_, envelopes, geom)).groupByKey(new IndexPartitioner(parallelism))
   }
 
   // Maps a SimpleFeature to the id of the envelope that contains it
@@ -101,14 +67,6 @@ object RelationUtils extends LazyLogging {
     } else {
       mappings.toList
     }
-  }
-
-  def spatiallyPartition(envelopes: List[Envelope],
-      rdd: RDD[SimpleFeature],
-      numPartitions: Int,
-      geometryOrdinal: Int): RDD[(Int, Iterable[SimpleFeature])] = {
-    val keyedRdd = rdd.flatMap { gridIdMapper( _, envelopes, geometryOrdinal)}
-    keyedRdd.groupByKey(new IndexPartitioner(numPartitions))
   }
 
   def getBound(rdd: RDD[SimpleFeature]): Envelope = {
@@ -243,90 +201,5 @@ object RelationUtils extends LazyLogging {
       }
       nodeCount
     }
-  }
-
-  def coverPartitioning(dataRDD: RDD[SimpleFeature], coverRDD: RDD[SimpleFeature], numPartitions: Int): List[Envelope] = {
-    coverRDD.map {
-      _.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal
-    }.collect().toList
-  }
-
-  def buildScan(requiredColumns: Array[String],
-      filters: Array[org.apache.spark.sql.sources.Filter],
-      filt: org.opengis.filter.Filter,
-      ctx: SparkContext,
-      schema: StructType,
-      params: Map[String, String]): RDD[Row] = {
-    logger.debug(
-      s"""Building scan, filt = $filt,
-         |filters = ${filters.mkString(",")},
-         |requiredColumns = ${requiredColumns.mkString(",")}""".stripMargin)
-    val compiledCQL = filters.flatMap(SparkUtils.sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => ff.and(l, r) }
-    val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
-    val rdd = GeoMesaSpark(params).rdd(
-      new Configuration(ctx.hadoopConfiguration), ctx, params,
-      new Query(params(GeoMesaSparkSQL.GEOMESA_SQL_FEATURE), compiledCQL, requiredAttributes))
-
-    val extractors = SparkUtils.getExtractors(requiredColumns, schema)
-    val result = rdd.map(SparkUtils.sf2row(schema, _, extractors))
-    result.asInstanceOf[RDD[Row]]
-  }
-
-  def buildScanInMemoryScan(requiredColumns: Array[String],
-      filters: Array[org.apache.spark.sql.sources.Filter],
-      filt: org.opengis.filter.Filter,
-      ctx: SparkContext,
-      schema: StructType,
-      params: Map[String, String],  indexRDD: RDD[GeoCQEngineDataStore]): RDD[Row] = {
-    logger.debug(
-      s"""Building in-memory scan, filt = $filt,
-         |filters = ${filters.mkString(",")},
-         |requiredColumns = ${requiredColumns.mkString(",")}""".stripMargin)
-    val compiledCQL = filters.flatMap(SparkUtils.sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => SparkUtils.ff.and(l, r) }
-    val filterString = ECQL.toCQL(compiledCQL)
-
-    val extractors = SparkUtils.getExtractors(requiredColumns, schema)
-
-    val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
-    val result = indexRDD.flatMap { engine =>
-      val cqlFilter = ECQL.toFilter(filterString)
-      val query = new Query(params(GeoMesaSparkSQL.GEOMESA_SQL_FEATURE), cqlFilter, requiredAttributes)
-      SelfClosingIterator(engine.getFeatureReader(query, Transaction.AUTO_COMMIT))
-    }.map(SparkUtils.sf2row(schema, _, extractors))
-
-    result.asInstanceOf[RDD[Row]]
-  }
-
-  def buildScanInMemoryPartScan(requiredColumns: Array[String],
-      filters: Array[org.apache.spark.sql.sources.Filter],
-      filt: org.opengis.filter.Filter,
-      ctx: SparkContext,
-      schema: StructType,
-      params: Map[String, String],
-      partitionHints: Seq[Int],
-      indexPartRDD: RDD[(Int, GeoCQEngineDataStore)]): RDD[Row] = {
-    logger.debug(
-      s"""Building partitioned in-memory scan, filt = $filt,
-         |filters = ${filters.mkString(",")},
-         |requiredColumns = ${requiredColumns.mkString(",")}""".stripMargin)
-    val compiledCQL = filters.flatMap(SparkUtils.sparkFilterToCQLFilter).foldLeft[org.opengis.filter.Filter](filt) { (l, r) => SparkUtils.ff.and(l,r) }
-    val filterString = ECQL.toCQL(compiledCQL)
-
-    // If keys were derived from query, go straight to those partitions
-    val reducedRdd =  if (partitionHints != null) {
-      indexPartRDD.filter {case (key, _) => partitionHints.contains(key) }
-    } else {
-      indexPartRDD
-    }
-
-    val extractors = SparkUtils.getExtractors(requiredColumns, schema)
-
-    val requiredAttributes = requiredColumns.filterNot(_ == "__fid__")
-    val result = reducedRdd.flatMap { case (key, engine) =>
-      val cqlFilter = ECQL.toFilter(filterString)
-      val query = new Query(params(GeoMesaSparkSQL.GEOMESA_SQL_FEATURE), cqlFilter, requiredAttributes)
-      SelfClosingIterator(engine.getFeatureReader(query, Transaction.AUTO_COMMIT))
-    }.map(SparkUtils.sf2row(schema, _, extractors))
-    result.asInstanceOf[RDD[Row]]
   }
 }

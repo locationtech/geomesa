@@ -24,7 +24,6 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeatureType
-import pureconfig.ConfigWriter
 
 import scala.collection.parallel.ExecutionContextTaskSupport
 import scala.concurrent.ExecutionContext
@@ -195,7 +194,7 @@ object FileBasedMetadata extends MethodProfiling with LazyLogging {
   private def writePartitionConfig(fc: FileContext, directory: Path, config: PartitionConfig): Unit = {
     val name = s"$UpdateFilePrefix${sanitizePartitionName(config.name)}-${UUID.randomUUID()}$JsonPathSuffix"
     val data = profile("Serialized partition configuration") {
-      ConfigWriter[PartitionConfig].to(config).render(options)
+      PartitionConfigConvert.to(config).render(options)
     }
     profile("Persisted partition configuration") {
       val file = new Path(directory, name)
@@ -239,7 +238,7 @@ object FileBasedMetadata extends MethodProfiling with LazyLogging {
     */
   private def writeCompactedConfig(fc: FileContext, directory: Path, config: Seq[PartitionConfig]): Unit = {
     val data = profile("Serialized compacted partition configuration") {
-      ConfigWriter[CompactedConfig].to(CompactedConfig(config)).render(options)
+      CompactedConfigConvert.to(CompactedConfig(config)).render(options)
     }
     profile("Persisted compacted partition configuration") {
       val file = new Path(directory, CompactedPath)

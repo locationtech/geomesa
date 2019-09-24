@@ -10,9 +10,9 @@ package org.locationtech.geomesa.index.index
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{Query, Transaction}
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -195,6 +195,44 @@ class AttributeIndexTest extends Specification with LazyLogging {
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
 
       results must containTheSameElementsAs(Seq("bob", "charles"))
+    }
+
+    "handle various wildcards" in {
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+        features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        val bot = ScalaSimpleFeature.copy(features(2))
+        bot.setId("bot")
+        bot.setAttribute("name", "bot")
+        FeatureUtils.write(writer, bot, useProvidedFid = true)
+        val bub = ScalaSimpleFeature.copy(features(2))
+        bub.setId("bub")
+        bub.setAttribute("name", "bub")
+        FeatureUtils.write(writer, bub, useProvidedFid = true)
+        val bobbed = ScalaSimpleFeature.copy(features(2))
+        bobbed.setId("bobbed")
+        bobbed.setAttribute("name", "bobbed")
+        FeatureUtils.write(writer, bobbed, useProvidedFid = true)
+      }
+
+      val queries = Seq(
+        "name like 'alice'" -> Seq("alice"),
+        "name like 'b%'"    -> Seq("bill", "bob", "bobbed", "bot", "bub"),
+        "name like 'bo_'"   -> Seq("bob", "bot"),
+        "name like 'b_b'"   -> Seq("bob", "bub"),
+        "name like 'b%b'"   -> Seq("bob", "bub"),
+        "name like 'b__l'"  -> Seq("bill")
+      )
+      val withDates = queries.map { case (filter, expected) =>
+        s"$filter AND dtg > '2012-01-01T11:45:00.000Z' AND dtg < '2014-01-01T13:00:00.000Z'" -> expected
+      }
+      foreach(queries ++ withDates) { case (filter, expected) =>
+        val query = new Query(typeName, ECQL.toFilter(filter))
+        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
+        results must containTheSameElementsAs(expected)
+      }
     }
 
     "handle large or'd attribute queries" in {

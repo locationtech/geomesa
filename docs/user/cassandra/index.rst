@@ -19,5 +19,5 @@ source distribution.
     usage
     geoserver
     commandline
+    configuration
     heatmaps
-    runtime_config

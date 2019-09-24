@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.features.kryo
 
+import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 
 import org.junit.runner.RunWith
@@ -18,8 +19,6 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
-
-//import scala.languageFeature.postfixOps
 
 @RunWith(classOf[JUnitRunner])
 class KryoBufferSimpleFeatureTest extends Specification {
@@ -143,11 +142,14 @@ class KryoBufferSimpleFeatureTest extends Specification {
       laz.setBuffer(serialized)
       laz.setTransforms("geom=geom", projectedSft)
 
-      val transformed = KryoFeatureSerializer(projectedSft).deserialize(laz.transform())
+      val bytes = laz.transform()
 
-      transformed.getID mustEqual sf.getID
-      transformed.getDefaultGeometry mustEqual sf.getDefaultGeometry
-      transformed.getAttributeCount mustEqual 1
+      foreach(Seq(SerializationOptions.none, SerializationOptions.builder.`lazy`.build)) { opts =>
+        val transformed = KryoFeatureSerializer(projectedSft, opts).deserialize(bytes)
+        transformed.getID mustEqual sf.getID
+        transformed.getDefaultGeometry mustEqual sf.getDefaultGeometry
+        transformed.getAttributeCount mustEqual 1
+      }
     }
 
     "correctly project index values" in {
@@ -268,6 +270,28 @@ class KryoBufferSimpleFeatureTest extends Specification {
       newTransformed.getAttributeCount mustEqual 2
       newTransformed.getAttribute(1)  mustEqual "test1"
       newTransformed.getAttribute("attr1") mustEqual "test1"
+    }
+
+    "support large serialized objects" in {
+      val spec = "age:Int,name:String,dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("test", spec)
+      val sf = ScalaSimpleFeature.create(sft, "fid-0", "10", null, "2013-01-02T00:00:00.000Z", "POINT(45.0 49.0)")
+      val name = new String(Array.fill(Short.MaxValue * 2)(1.toByte), StandardCharsets.UTF_8)
+      sf.setAttribute("name", name)
+
+      val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+      val laz = serializer.getReusableFeature
+
+      laz.setBuffer(serializer.serialize(sf))
+
+      laz.getAttribute("name") mustEqual name
+      laz.getAttributes.toArray mustEqual sf.getAttributes.toArray
+
+      laz.setTransforms("geom=geom;name=name", SimpleFeatureTypes.createType("projected", "*geom:Point,name:String"))
+      laz.setBuffer(serializer.serialize(sf))
+
+      laz.getAttribute("name") mustEqual name
+      laz.getAttribute("geom") mustEqual sf.getAttribute("geom")
     }
 
     "be faster than full deserialization" in {

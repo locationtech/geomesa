@@ -40,7 +40,7 @@ Setting up the FileSystem Command Line Tools
 --------------------------------------------
 
 After untaring the distribution, you'll need to either define the standard Hadoop environment variables or install Hadoop
-using the ``bin/install-hadoop.sh`` script provided in the tarball. Note that you will need the proper Yarn/Hadoop
+using the ``bin/install-hadoop.sh`` script provided in the tarball. If using AWS S3 as the filesystem, run ``bin/install-s3.sh``. Note that you will need the proper Yarn/Hadoop
 environment configured if you would like to run a distributed ingest job to create files.
 
 If you are using a service such as Amazon Elastic MapReduce (EMR) or have a distribution of Apache Hadoop, Cloudera, or
@@ -86,15 +86,34 @@ your Hadoop installations into GeoServer's ``WEB-INF/lib`` directory:
 
 (Note the versions may vary depending on your installation.)
 
-  * hadoop-annotations-2.7.3.jar
-  * hadoop-auth-2.7.3.jar
-  * hadoop-common-2.7.3.jar
-  * hadoop-mapreduce-client-core-2.7.3.jar
-  * hadoop-yarn-api-2.7.3.jar
-  * hadoop-yarn-common-2.7.3.jar
+  * hadoop-auth-2.8.4.jar
+  * hadoop-common-2.8.4.jar
+  * hadoop-hdfs-2.8.4.jar
+  * hadoop-hdfs-client-2.8.4.jar
+  * snappy-java-1.1.1.6.jar
   * commons-configuration-1.6.jar
+  * commons-logging-1.1.3.jar
+  * commons-cli-1.2.jar
+  * commons-io-2.5.jar
+  * protobuf-java-2.5.0.jar
+
 
 You can use the bundled ``$GEOMESA_FS_HOME/bin/install-hadoop.sh`` script to install these JARs.
+
+For AWS S3 functionality, run the bundled ``$GEOMESA_FS_HOME/bin/install-s3.sh`` script to install the following jars:
+
+(Note the versions may vary depending on your installation.)
+
+  * hadoop-aws-2.8.4.jar
+  * aws-java-sdk-core-1.10.6.jar
+  * aws-java-sdk-s3-1.10.6.jar
+  * joda-time-2.8.1.jar
+  * httpclient-4.3.4.jar
+  * httpcore-4.3.3.jar
+  * commons-httpclient-3.1.jar
+
+
+These JARs should be copied from ``$GEOMESA_FS_HOME/lib/`` into GeoServer's ``WEB-INF/lib`` directory.
 
 The FileSystem data store requires the configuration file ``core-site.xml`` to be on the classpath. This can
 be accomplished by placing the file in ``geoserver/WEB-INF/classes`` (you should make the directory if it
@@ -105,3 +124,16 @@ doesn't exist). Utilizing a symbolic link will be useful here so any changes are
     $ ln -s /path/to/core-site.xml /path/to/geoserver/WEB-INF/classes/core-site.xml
 
 Restart GeoServer after the JARs are installed.
+
+GeoMesa Process
+^^^^^^^^^^^^^^^
+
+GeoMesa-specific WPS processes (such as ``geomesa:Density``, which is used to generate heat maps), require the
+installation of the ``geomesa-process-wps_2.11-$VERSION.jar`` in ``geoserver/WEB-INF/lib``. This JAR is included
+in the ``geomesa-fs_2.11-$VERSION/dist/gs-plugins`` directory of the binary distribution, or is built in the
+``geomesa-process`` module of the source distribution.
+
+.. note::
+
+  The WPS JAR requires the installation of the
+  `GeoServer WPS Plugin <http://docs.geoserver.org/stable/en/user/services/wps/install.html>`__.

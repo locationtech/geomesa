@@ -18,7 +18,7 @@ import org.locationtech.jts.geom.Geometry
 // noinspection LanguageFeature
 trait GenericMapSerialization[T <: PrimitiveWriter, V <: PrimitiveReader] extends LazyLogging {
 
-  def serialize(out: T, map: java.util.Map[AnyRef, AnyRef]): Unit
+  def serialize(out: T, map: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit
 
   def deserialize(in: V): java.util.Map[AnyRef, AnyRef]
 
@@ -40,8 +40,16 @@ trait GenericMapSerialization[T <: PrimitiveWriter, V <: PrimitiveReader] extend
     case _ => throw new IllegalArgumentException(s"Unsupported value: $value (${value.getClass})")
   }
 
+  /**
+    * Read a key or value. Strings will be interned, as we expect a lot of duplication in user data,
+    * i.e keys but also visibilities, which is the only user data we generally store
+    *
+    * @param in input
+    * @param clas class of the item to read
+    * @return
+    */
   protected def read(in: V, clas: Class[_]): AnyRef = clas match {
-    case c if classOf[java.lang.String].isAssignableFrom(c)  => in.readString()
+    case c if classOf[java.lang.String].isAssignableFrom(c)  => in.readString().intern()
     case c if classOf[java.lang.Integer].isAssignableFrom(c) => Int.box(in.readInt())
     case c if classOf[java.lang.Long].isAssignableFrom(c)    => Long.box(in.readLong())
     case c if classOf[java.lang.Float].isAssignableFrom(c)   => Float.box(in.readFloat())

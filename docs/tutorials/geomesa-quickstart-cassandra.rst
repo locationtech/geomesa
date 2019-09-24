@@ -229,6 +229,8 @@ run the following command from the GeoMesa Cassandra tools distribution director
         --contact-point <host:port> \
         --key-space <keyspace>      \
         --catalog <table>           \
+        -f gdelt-quickstart         \
+        -o <filename>.html          \
         --user <user>               \
         --password <password>
 

@@ -5,7 +5,7 @@ org.locationtech.geomesa.process.analytic.SamplingProcess
 org.locationtech.geomesa.process.analytic.StatsProcess
 org.locationtech.geomesa.process.analytic.TrackLabelProcess
 org.locationtech.geomesa.process.analytic.UniqueProcess
-org.locationtech.geomesa.process.knn.KNearestNeighborSearchProcess
+org.locationtech.geomesa.process.query.KNearestNeighborSearchProcess
 org.locationtech.geomesa.process.query.JoinProcess
 org.locationtech.geomesa.process.query.ProximitySearchProcess
 org.locationtech.geomesa.process.query.QueryProcess

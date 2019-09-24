@@ -32,11 +32,13 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 
   override def createDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
 
-    val conf = ConfParam.lookupOpt(params).filterNot(_.isEmpty).map { props =>
-      val conf = new Configuration(configuration)
-      props.asScala.foreach { case (k, v) => conf.set(k, v) }
-      conf
-    }.getOrElse(configuration)
+    val conf = ConfParam.lookupOpt(params).filterNot(_.isEmpty) match {
+      case None => configuration
+      case Some(props) =>
+        val conf = new Configuration(configuration)
+        props.asScala.foreach { case (k, v) => conf.set(k, v) }
+        conf
+    }
 
     val fc = fileContextCache.get(conf)
 
@@ -90,7 +92,7 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
       FileSystemDataStoreParams.ConfParam
     )
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     FileSystemDataStoreParams.PathParam.exists(params)
 
   private val configuration = new Configuration()

@@ -15,22 +15,16 @@ import java.util.concurrent.atomic.AtomicBoolean
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
-import org.geotools.data.store.DataFeatureCollection
-import org.geotools.util.factory.Hints
-import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
+import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection.GeoMesaFeatureVisitingCollection
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.DelegatingResourceInfo
 import org.locationtech.geomesa.index.planning.QueryPlanner
-import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.index.view.MergedFeatureSourceView.MergedQueryCapabilities
-import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.sort.SortBy
-import org.opengis.util.ProgressListener
 
 /**
   * Feature source for merged data store view
@@ -94,7 +88,8 @@ class MergedFeatureSourceView(
     *
     * @param query query
     */
-  class MergedFeatureCollection(query: Query) extends DataFeatureCollection(GeoMesaFeatureCollection.nextId) {
+  class MergedFeatureCollection(query: Query)
+      extends GeoMesaFeatureVisitingCollection(MergedFeatureSourceView.this, ds.stats, query) {
 
     private val open = new AtomicBoolean(false)
 
@@ -116,35 +111,6 @@ class MergedFeatureSourceView(
       open.set(true)
       iter
     }
-
-    override def accepts(visitor: FeatureVisitor, progress: ProgressListener): Unit =
-      visitor match {
-        case v: BoundsVisitor =>
-          v.reset(ds.stats.getBounds(sft, query.getFilter, exact = false))
-
-        case v: MinVisitor if v.getExpression.isInstanceOf[PropertyName] =>
-          val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName
-          minMax(attribute, exact = false).orElse(minMax(attribute, exact = true)) match {
-            case Some((min, _)) => v.setValue(min)
-            case None           => super.accepts(visitor, progress)
-          }
-
-        case v: MaxVisitor if v.getExpression.isInstanceOf[PropertyName] =>
-          val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName
-          minMax(attribute, exact = false).orElse(minMax(attribute, exact = true)) match {
-            case Some((_, max)) => v.setValue(max)
-            case None           => super.accepts(visitor, progress)
-          }
-
-        case v: GeoMesaProcessVisitor =>
-          v.execute(MergedFeatureSourceView.this, query)
-
-        case _ =>
-          super.accepts(visitor, progress)
-      }
-
-    private def minMax(attribute: String, exact: Boolean): Option[(Any, Any)] =
-      ds.stats.getMinMax[Any](sft, attribute, query.getFilter, exact).map(_.bounds)
 
     override def reader(): FeatureReader[SimpleFeatureType, SimpleFeature] =
       ds.getFeatureReader(query, Transaction.AUTO_COMMIT)

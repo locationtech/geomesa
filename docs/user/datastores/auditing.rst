@@ -11,7 +11,7 @@ For other data stores, audits are written to log files.
 As GeoMesa can run in many environments, determining **who** executed a query is delegated to a service class.
 Services need to implement ``org.locationtech.geomesa.utils.audit.AuditProvider``. Third-party implementations
 can be enabled by placing them on the classpath and including a special service descriptor file. See the
-`Oracle Javadoc <http://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html>`__
+`Oracle Javadoc <http://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__
 for details on implementing a service provider.
 
 The GeoMesa Accumulo GeoServer plugin comes bundled with an ``AuditProvider`` that pulls user credentials from

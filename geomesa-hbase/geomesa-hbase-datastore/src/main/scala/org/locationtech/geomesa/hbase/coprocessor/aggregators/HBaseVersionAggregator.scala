@@ -36,6 +36,8 @@ class HBaseVersionAggregator extends HBaseAggregator[VersionAggregator] {
 
   override protected def aggregateResult(sf: SimpleFeature, result: VersionAggregator): Unit = {}
 
+  override protected def notFull(result: VersionAggregator): Boolean = true
+
   override protected def encodeResult(result: VersionAggregator): Array[Byte] =
     GeoMesaProperties.ProjectVersion.getBytes(StandardCharsets.UTF_8)
 }

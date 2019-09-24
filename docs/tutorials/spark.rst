@@ -33,13 +33,13 @@ Prerequisites
 
 .. warning::
 
-    You will need access to a Hadoop |hadoop_version| installation with Yarn as well as an Accumulo |accumulo_version| database.
+    You will need access to a Hadoop |hadoop_version| installation with Yarn as well as an Accumulo |accumulo_required_version| database.
 
     You will need to have ingested GDELT data using GeoMesa. Instructions are available in :doc:`geomesa-examples-gdelt`.
 
 You will also need:
 
--  a `Spark <http://spark.apache.org/>`__ |spark_version| distribution
+-  a `Spark <http://spark.apache.org/>`__ |spark_required_version| distribution
 -  an Accumulo user that has appropriate permissions to query your data
 -  `Java JDK 8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__,
 -  `Apache Maven <http://maven.apache.org/>`__ |maven_version|, and

@@ -24,6 +24,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 trait BinAggregatingScan extends AggregatingScan[ByteBufferResult] {
+
   import BinAggregatingScan.Configuration._
 
   var encoding: EncodingOptions = _
@@ -34,9 +35,10 @@ trait BinAggregatingScan extends AggregatingScan[ByteBufferResult] {
   var sort: Boolean = false
 
   // create the result object for the current scan
-  override protected def initResult(sft: SimpleFeatureType,
-                                    transform: Option[SimpleFeatureType],
-                                    options: Map[String, String]): ByteBufferResult = {
+  override protected def initResult(
+      sft: SimpleFeatureType,
+      transform: Option[SimpleFeatureType],
+      options: Map[String, String]): ByteBufferResult = {
     val geom = options.get(GeomOpt).map(_.toInt).filter(_ != -1)
     val dtg = options.get(DateOpt).map(_.toInt).filter(_ != -1)
     val track = options.get(TrackOpt).map(_.toInt).filter(_ != -1)
@@ -59,10 +61,14 @@ trait BinAggregatingScan extends AggregatingScan[ByteBufferResult] {
   }
 
   // add the feature to the current aggregated result
-  override def aggregateResult(sf: SimpleFeature, result: ByteBufferResult): Unit = encoder.encode(sf, callback)
+  override protected def aggregateResult(sf: SimpleFeature, result: ByteBufferResult): Unit =
+    encoder.encode(sf, callback)
+
+  override protected def notFull(result: ByteBufferResult): Boolean =
+    result.buffer.position < result.buffer.limit
 
   // encode the result as a byte array
-  override def encodeResult(result: ByteBufferResult): Array[Byte] = {
+  override protected def encodeResult(result: ByteBufferResult): Array[Byte] = {
     val bytes = if (result.overflow.position() > 0) {
       // overflow bytes - copy the two buffers into one
       val copy = Array.ofDim[Byte](result.buffer.position + result.overflow.position)

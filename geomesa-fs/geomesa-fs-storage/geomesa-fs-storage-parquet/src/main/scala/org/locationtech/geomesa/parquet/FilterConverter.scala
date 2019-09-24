@@ -26,14 +26,13 @@ object FilterConverter {
 
   def convert(sft: SimpleFeatureType, filter: Filter): (Option[FilterPredicate], Option[Filter]) = {
     if (filter == Filter.INCLUDE) { (None, None) } else {
-      val z: (Option[FilterPredicate], Option[Filter]) = (None, Some(filter))
-      FilterHelper.propertyNames(filter).foldLeft(z)(reduce(sft, _, _))
+      FilterHelper.propertyNames(filter).foldLeft((Option.empty[FilterPredicate], Option(filter)))(reduce(sft))
     }
   }
 
   private def reduce(
-      sft: SimpleFeatureType,
-      result: (Option[FilterPredicate], Option[Filter]),
+      sft: SimpleFeatureType
+    )(result: (Option[FilterPredicate], Option[Filter]),
       name: String): (Option[FilterPredicate], Option[Filter]) = {
     val (parquet, geotools) = result
     val filter = geotools.orNull

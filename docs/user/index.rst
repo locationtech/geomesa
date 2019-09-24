@@ -20,14 +20,14 @@ User Manual
    process
    hbase/index
    accumulo/index
-   bigtable/index
    cassandra/index
+   bigtable/index
    kafka/index
    redis/index
    filesystem/index
    kudu/index
    lambda/index
-   merged_view
+   ds_views
    geojson
    blobstore
    native_api

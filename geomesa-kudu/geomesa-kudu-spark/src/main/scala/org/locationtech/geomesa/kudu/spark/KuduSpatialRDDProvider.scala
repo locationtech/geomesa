@@ -24,7 +24,7 @@ import org.opengis.feature.simple.SimpleFeature
 
 class KuduSpatialRDDProvider extends SpatialRDDProvider {
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     KuduDataStoreFactory.canProcess(params)
 
   override def rdd(conf: Configuration, sc: SparkContext, params: Map[String, String], query: Query): SpatialRDD = {

@@ -17,7 +17,7 @@ import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization
 import org.locationtech.geomesa.fs.storage.common.{ParseOptions, RenderOptions}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.MethodProfiling
-import pureconfig.ConfigWriter
+import pureconfig.{ConfigConvert, ConfigWriter}
 
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -71,9 +71,22 @@ object MetadataSerialization extends MethodProfiling {
 
   // case classes used for serialization to/from typesafe config
   object Persistence {
-    case class StoragePersistence(featureType: Config, partitionScheme: PartitionSchemeConfig,
-        encoding: String, leafStorage: Boolean)
+
+    import pureconfig.generic.semiauto._
+
+    case class StoragePersistence(
+        featureType: Config,
+        partitionScheme: PartitionSchemeConfig,
+        encoding: String,
+        leafStorage: Boolean
+      )
     case class StoragePersistenceV1(featureType: Config, partitionScheme: PartitionSchemeConfig, encoding: String)
     case class PartitionSchemeConfig(scheme: String, options: Map[String, String])
+
+    implicit val PartitionSchemeConfigConvert: ConfigConvert[PartitionSchemeConfig] =
+      deriveConvert[PartitionSchemeConfig]
+    implicit val StoragePersistenceV1Convert: ConfigConvert[StoragePersistenceV1] =
+      deriveConvert[StoragePersistenceV1]
+    implicit val StoragePersistenceConvert: ConfigConvert[StoragePersistence] = deriveConvert[StoragePersistence]
   }
 }

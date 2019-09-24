@@ -31,7 +31,7 @@ class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     BigtableDataStoreFactory.canProcess(params)
 
   override def rdd(

@@ -16,8 +16,8 @@ import org.geotools.feature.collection.DecoratingSimpleFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.process.ProcessException
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.geotools.data.util.NullProgressListener
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -102,7 +102,7 @@ class JoinProcess extends GeoMesaProcess with LazyLogging {
       val or = ff.or(joinFilters.toList)
       val filter = if (joinFilter != null && joinFilter != Filter.INCLUDE) { ff.and(or, joinFilter) } else { or }
       val visitor = new QueryVisitor(secondary, filter, null)
-      secondary.accepts(visitor, new NullProgressListener)
+      GeoMesaFeatureCollection.visit(secondary, visitor)
       val results = visitor.getResult.results
 
       // mappings from the secondary feature result to the return schema

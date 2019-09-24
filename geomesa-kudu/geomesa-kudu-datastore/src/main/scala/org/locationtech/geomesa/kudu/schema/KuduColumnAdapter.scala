@@ -12,7 +12,6 @@ import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.util.{Date, UUID}
 
-import org.locationtech.jts.geom.{Coordinate, Geometry, Point}
 import org.apache.kudu.ColumnSchema.ColumnSchemaBuilder
 import org.apache.kudu.client.KuduPredicate.ComparisonOp
 import org.apache.kudu.client.{KuduPredicate, PartialRow, RowResult}
@@ -26,6 +25,7 @@ import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
 import org.locationtech.geomesa.kudu.schema.KuduSimpleFeatureSchema.KuduFilter
 import org.locationtech.geomesa.kudu.utils.ColumnConfiguration
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.jts.geom.{Coordinate, Geometry, Point}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -55,6 +55,9 @@ object KuduColumnAdapter {
   import scala.collection.JavaConverters._
 
   private val gf = JTSFactoryFinder.getGeometryFactory
+
+  private val NullByte = 0.toByte
+  private val NotNullByte = 1.toByte
 
   /**
     * Create a binding for a simple feature attribute
@@ -386,27 +389,35 @@ object KuduColumnAdapter {
   /**
     * Encodes variable-size types (lists and maps) for storing in a fixed number of columns (i.e. one)
     */
-  case class KryoColumnAdapter(name: String,
-                               bindings: Seq[ObjectType],
-                               descriptor: AttributeDescriptor,
-                               config: ColumnConfiguration) extends KuduColumnAdapter[AnyRef] {
+  case class KryoColumnAdapter(
+      name: String,
+      bindings: Seq[ObjectType],
+      descriptor: AttributeDescriptor,
+      config: ColumnConfiguration
+    ) extends KuduColumnAdapter[AnyRef] {
 
-    // note: reader and writer handle null values
-    private val writer = KryoFeatureSerialization.matchWriter(bindings, descriptor)
-    private val reader = KryoFeatureDeserialization.matchReader(bindings)
+    // note: reader and writer do not handle null values
+    private val writer = KryoFeatureSerialization.writer(bindings, descriptor)
+    private val reader = KryoFeatureDeserialization.reader(bindings)
 
     private val column = s"${name}_sft"
     override val columns: Seq[ColumnSchema] = Seq(config(new ColumnSchemaBuilder(column, Type.BINARY)).build())
 
     override def readFromRow(row: RowResult): AnyRef = {
       import org.locationtech.geomesa.utils.io.ByteBuffers.RichByteBuffer
-      reader.apply(KryoFeatureDeserialization.getInput(row.getBinary(column).toInputStream))
+      val in = KryoFeatureDeserialization.getInput(row.getBinary(column).toInputStream)
+      if (in.readByte() == NullByte) { null } else { reader.apply(in) }
     }
 
     override def writeToRow(row: PartialRow, value: AnyRef): Unit = {
       val stream = new ByteArrayOutputStream()
       val out = KryoFeatureSerialization.getOutput(stream)
-      writer.apply(out, value)
+      if (value == null) {
+        out.writeByte(NullByte)
+      } else {
+        out.writeByte(NotNullByte)
+        writer.apply(out, value)
+      }
       out.flush()
       row.addBinary(column, stream.toByteArray)
     }

@@ -22,6 +22,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.process.transform.ArrowConversionProcess.ArrowVisitor
 import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -89,7 +90,7 @@ class ArrowConversionProcess extends GeoMesaProcess with LazyLogging {
 
     val visitor =
       new ArrowVisitor(sft, encoding, toEncode, cacheDictionaries, Option(sortField), reverse, false, batch, double)
-    features.accepts(visitor, null)
+    GeoMesaFeatureCollection.visit(features, visitor)
     visitor.getResult.results
   }
 }

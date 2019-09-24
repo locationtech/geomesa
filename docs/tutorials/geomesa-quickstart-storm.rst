@@ -17,7 +17,7 @@ Prerequisites
 
 You will need access to:
 
--  an instance of Accumulo |accumulo_version|,
+-  an instance of Accumulo |accumulo_required_version|,
 -  an Accumulo user with create-table and write permissions,
 -  an installation of Kafka |kafka_version|,
 -  an installation of Storm 0.9+, and

@@ -8,65 +8,95 @@
 
 package org.locationtech.geomesa.accumulo.tools.data
 
-import java.util.Date
-
-import com.beust.jcommander.{ParameterException, Parameters}
+import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator}
 import org.locationtech.geomesa.accumulo.tools.data.AccumuloAgeOffCommand.AccumuloAgeOffParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
-import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.data.AgeOffCommand
-import org.locationtech.geomesa.tools.data.AgeOffCommand.AgeOffParams
+import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
+import org.locationtech.geomesa.tools.utils.Prompt
+import org.locationtech.geomesa.tools.{Command, OptionalDtgParam, RequiredTypeNameParam}
+import org.locationtech.geomesa.utils.conf.FeatureExpiration.{FeatureTimeExpiration, IngestTimeExpiration}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 
 import scala.concurrent.duration.Duration
 
-class AccumuloAgeOffCommand extends AgeOffCommand[AccumuloDataStore] with AccumuloDataStoreCommand {
+class AccumuloAgeOffCommand extends AccumuloDataStoreCommand {
 
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  override val name = "configure-age-off"
   override val params = new AccumuloAgeOffParams()
 
-  override protected def list(ds: AccumuloDataStore, typeName: String): Unit = {
-    val sft = getSft(ds, typeName)
-    Command.user.info(s"Attribute age-off: ${DtgAgeOffIterator.list(ds, sft).getOrElse("None")}")
-    Command.user.info(s"Timestamp age-off: ${AgeOffIterator.list(ds, sft).getOrElse("None")}")
-  }
-
-  override protected def set(ds: AccumuloDataStore, typeName: String, expiry: Duration): Unit = {
-    val sft = getSft(ds, typeName)
-    AgeOffIterator.clear(ds, sft)
-    DtgAgeOffIterator.clear(ds, sft)
-    AgeOffIterator.set(ds, getSft(ds, typeName), expiry)
-  }
-
-  override protected def set(ds: AccumuloDataStore, typeName: String, dtg: String, expiry: Duration): Unit = {
-    val sft = getSft(ds, typeName)
-    if (!Option(sft.getDescriptor(dtg)).exists(d => classOf[Date].isAssignableFrom(d.getType.getBinding))) {
-      throw new ParameterException(s"Attribute '$dtg' does not exist or is not an date type in $typeName " +
-          SimpleFeatureTypes.encodeType(sft))
+  override def execute(): Unit = {
+    if (Seq(params.set, params.remove, params.list).count(_ == true) != 1) {
+      throw new ParameterException("Must specify exactly one of 'list', 'set' or 'remove'")
+    } else if (params.set && params.expiry == null) {
+      throw new ParameterException("Must specify 'expiry' when setting age-off")
     }
-    AgeOffIterator.clear(ds, sft)
-    DtgAgeOffIterator.clear(ds, sft)
-    DtgAgeOffIterator.set(ds, sft, expiry, dtg)
+    withDataStore(exec)
   }
 
-  override protected def remove(ds: AccumuloDataStore, typeName: String): Unit = {
-    val sft = getSft(ds, typeName)
-    AgeOffIterator.clear(ds, sft)
-    DtgAgeOffIterator.clear(ds, sft)
-  }
-
-  private def getSft(ds: AccumuloDataStore, typeName: String): SimpleFeatureType = {
-    val sft = ds.getSchema(typeName)
+  private def exec(ds: AccumuloDataStore): Unit = {
+    val sft = ds.getSchema(params.featureName)
     if (sft == null) {
-      throw new ParameterException(s"SimpleFeatureType '$typeName' does not exist in the data store")
+      throw new ParameterException(s"SimpleFeatureType '${params.featureName}' does not exist in the data store")
     }
-    sft
+    lazy val mutable = SimpleFeatureTypes.mutable(sft)
+    if (params.list) {
+      Command.user.info(s"Attribute age-off: ${DtgAgeOffIterator.list(ds, sft).getOrElse("None")}")
+      Command.user.info(s"Timestamp age-off: ${AgeOffIterator.list(ds, sft).getOrElse("None")}")
+    } else if (params.set && params.dtgField == null) {
+      if (Prompt.confirm(s"Configuring ingest-time-based age-off for schema '${params.featureName}' " +
+          s"with expiry ${params.expiry}. Continue (y/n)? ")) {
+        mutable.setFeatureExpiration(IngestTimeExpiration(params.expiry))
+        ds.updateSchema(sft.getTypeName, mutable)
+      }
+    } else if (params.set) {
+      if (Prompt.confirm(s"Configuring attribute-based age-off for schema '${params.featureName}' " +
+          s"on field '${params.dtgField}' with expiry ${params.expiry}. Continue (y/n)? ")) {
+        val expiry = FeatureTimeExpiration(params.dtgField, sft.indexOf(params.dtgField), params.expiry)
+        mutable.setFeatureExpiration(expiry)
+        ds.updateSchema(sft.getTypeName, mutable)
+      }
+    } else if (Prompt.confirm(s"Removing age-off for schema '${params.featureName}'. Continue (y/n)? ")) {
+      // clear the iterator configs if expiration wasn't configured in the schema,
+      // as we can't detect that in updateSchema
+      if (mutable.getUserData.remove(Configs.FeatureExpiration) == null) {
+        AgeOffIterator.clear(ds, sft)
+        DtgAgeOffIterator.clear(ds, sft)
+      } else {
+        ds.updateSchema(sft.getTypeName, mutable)
+      }
+    }
   }
 }
 
 object AccumuloAgeOffCommand {
+
   @Parameters(commandDescription = "List/set/remove age-off for a GeoMesa feature type")
-  class AccumuloAgeOffParams extends AgeOffParams with AccumuloDataStoreParams
+  class AccumuloAgeOffParams extends AccumuloDataStoreParams with RequiredTypeNameParam with OptionalDtgParam {
+
+    @Parameter(
+      names = Array("-e", "--expiry"),
+      description = "Duration before entries are aged-off, e.g. '1 day', '2 weeks and 1 hour', etc",
+      converter = classOf[DurationConverter])
+    var expiry: Duration = _
+
+    @Parameter(
+      names = Array("-l", "--list"),
+      description = "List existing age-off for a simple feature type")
+    var list: Boolean = _
+
+    @Parameter(
+      names = Array("-s", "--set"),
+      description = "Set age-off for a simple feature type")
+    var set: Boolean = _
+
+    @Parameter(
+      names = Array("-r", "--remove"),
+      description = "Remove existing age-off for a simple feature type")
+    var remove: Boolean = _
+  }
 }

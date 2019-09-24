@@ -258,6 +258,25 @@ class ExpressionTest extends Specification {
       val exp = Expression("secsToDate($1)")
       exp.eval(Array("", secs)).asInstanceOf[Date] must be equalTo testDate
     }
+    "parse null dates" >> {
+      val input = Array[Any]("", null)
+      val expressions = Seq(
+        "date('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)",
+        "isodate($1)",
+        "basicDate($1)",
+        "isodatetime($1)",
+        "basicDateTime($1)",
+        "dateTime($1)",
+        "basicDateTimeNoMillis($1)",
+        "dateHourMinuteSecondMillis($1)",
+        "millisToDate($1)",
+        "secsToDate($1)"
+      )
+      foreach(expressions) { expression =>
+        Expression(expression).eval(input) must beNull
+        Expression(s"require($expression)").eval(input) must throwAn[IllegalArgumentException]
+      }
+    }
     "transform a date to a string" >> {
       val d = LocalDateTime.now()
       val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")

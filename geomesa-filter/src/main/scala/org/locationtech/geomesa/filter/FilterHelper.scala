@@ -337,15 +337,18 @@ object FilterHelper {
         try {
           val prop = f.getExpression.asInstanceOf[PropertyName].getPropertyName
           if (prop != attribute) { FilterValues.empty } else {
-            // Remove the trailing wildcard and create a range prefix
+            // find the first wildcard and create a range prefix
             val literal = f.getLiteral
-            val lower = if (literal.endsWith(MULTICHAR_WILDCARD)) {
-              literal.substring(0, literal.length - MULTICHAR_WILDCARD.length)
-            } else {
-              literal
+            var i = literal.indexWhere(Wildcards.contains)
+            // check for escaped wildcards
+            while (i > 1 && literal.charAt(i - 1) == '\\' && literal.charAt(i - 2) == '\\') {
+              i = literal.indexWhere(Wildcards.contains, i + 1)
             }
-            val upper = Bound(Some(lower + WILDCARD_SUFFIX), inclusive = true).asInstanceOf[Bound[T]]
-            FilterValues(Seq(Bounds(Bound(Some(lower.asInstanceOf[T]), inclusive = true), upper)))
+            val lower = if (i == -1) { literal } else { literal.substring(0, i) }
+            val upper = Bound(Some(lower + WildcardSuffix), inclusive = true).asInstanceOf[Bound[T]]
+            // our ranges fully capture the filter if there's no wildcard or a single trailing multi-char wildcard
+            val exact = i == -1 || (i == literal.length - 1 && literal.charAt(i) == WildcardMultiChar)
+            FilterValues(Seq(Bounds(Bound(Some(lower.asInstanceOf[T]), inclusive = true), upper)), precise = exact)
           }
         } catch {
           case e: Exception =>
@@ -442,6 +445,8 @@ object FilterHelper {
     filter.accept(new IdDetectingFilterVisitor, false).asInstanceOf[Boolean]
 
   def filterListAsAnd(filters: Seq[Filter]): Option[Filter] = andOption(filters)
+
+  def filterListAsOr(filters: Seq[Filter]): Option[Filter] = orOption(filters)
 
   /**
     * Simplifies filters to make them easier to process.

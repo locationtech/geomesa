@@ -217,31 +217,33 @@ joinFilter     Additional filter to apply to joined features.
 attributes     Attributes to return. Attribute names should be qualified with the schema name, e.g. foo.bar.
 =============  ===========
 
-
-
 .. _knn_process:
 
-KNearestNeighborProcess
-^^^^^^^^^^^^^^^^^^^^^^^
+KNearestNeighborSearchProcess
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The ``KNearestNeighborProcess`` performs a K Nearest Neighbor search on a Geomesa feature collection using another feature collection as input. Return k neighbors for each point in the input data set. If a point is the nearest neighbor of multiple points of the input data set, it is returned only once.
+The ``KNearestNeighborSearchProcess`` performs a K-nearest-neighbor search on a feature collection using a second
+feature collection as input. It returns ``k`` neighbors for each point in the input data set. Note that if a feature
+is the nearest neighbor of multiple points in the input data set, it is returned only once.
 
-=================  ===========
-Parameters         Description
-=================  ===========
-inputFeatures      Input feature collection that defines the KNN search.
-dataFeatures       The data set to query for matching features.
-numDesired         K : number of nearest neighbors to return.
-estimatedDistance  Estimate of Search Distance in meters for K neighbors---used to set the granularity of the search.
-maxSearchDistance  Maximum search distance in meters---used to prevent runaway queries of the entire table.
-=================  ===========
+================= ===================================================================================================
+Parameter         Description
+================= ===================================================================================================
+inputFeatures     Input feature collection. The geometries of the features defines the KNN search.
+dataFeatures      The data set to query for neighbors.
+numDesired        ``k``, number of nearest neighbors to return.
+estimatedDistance Estimate of the distance in meters for the ``k``-th nearest neighbor, used for the initial query window.
+maxSearchDistance Maximum search distance in meters, used to prevent runaway queries of the entire data set.
+================= ===================================================================================================
 
 .. _knnExampleXML:
 
-K-Nearest-Neighbor example (XML)
+K-Nearest-Neighbor Example (XML)
 """"""""""""""""""""""""""""""""
 
-:download:`KNNProcess_wps.xml </user/_static/process/KNNProcess_wps.xml>` is a geoserver WPS call to the GeoMesa KNearestNeighborProcess. It is here chained with a Query process (see :ref:`chaining_processes`) in order to avoid points related to the same Id to be matched by the request. It can be run with the following curl call:
+:download:`KNNProcess_wps.xml </user/_static/process/KNNProcess_wps.xml>` is a geoserver WPS call to the GeoMesa
+KNearestNeighborSearchProcess. In this example, it is chained with a Query process (see :ref:`chaining_processes`),
+in order to avoid returning the query features as data. It can be run with the following curl call:
 
 .. code-block:: bash
 

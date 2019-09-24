@@ -481,7 +481,7 @@ object AccumuloIndexAdapter {
   }
 
   /**
-    * Wrapper for byte array to use as a key in the cached visibilites map
+    * Wrapper for byte array to use as a key in the cached visibilities map
     *
     * @param vis vis
     */

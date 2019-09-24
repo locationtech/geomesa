@@ -4,7 +4,7 @@ Deploying GeoMesa Spark with Jupyter Notebook
 `Jupyter Notebook`_ is a web-based application for creating interactive documents containing runnable code,
 visualizations, and text. Via the `Apache Toree`_ kernel, Jupyter can be used for preparing spatio-temporal
 analyses in Scala and submitting them in `Spark`_. The guide below describes how to configure Jupyter with
-Spark |spark_version|, Scala 2.11, and GeoMesa.
+Spark |spark_required_version|, Scala 2.11, and GeoMesa.
 
 .. note::
 
@@ -16,7 +16,7 @@ Spark |spark_version|, Scala 2.11, and GeoMesa.
 Prerequisites
 -------------
 
-`Spark`_ |spark_version| should be installed, and the environment variable ``SPARK_HOME`` should be set.
+`Spark`_ |spark_required_version| should be installed, and the environment variable ``SPARK_HOME`` should be set.
 Spark 2.0 and above requires Scala version 2.11.
 
 `Python`_ 2.7 or 3.x should be installed, along with the Python development tools. For example, for Python 2.7 on Ubuntu:
@@ -32,7 +32,7 @@ For Python 2.7 on CentOS:
    $ sudo yum groupinstall 'Development Tools'
    $ sudo yum install python-devel
 
-Building the Toree kernel for Spark |spark_version| requires Git, GNU Make, `Docker`_, and `SBT`_.
+Building the Toree kernel for Spark |spark_required_version| requires Git, GNU Make, `Docker`_, and `SBT`_.
 
 Installing Jupyter
 ------------------
