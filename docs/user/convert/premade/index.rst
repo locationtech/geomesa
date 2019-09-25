@@ -31,6 +31,7 @@ artifact with the ``data`` classifier. For example, for Maven add the following 
 .. toctree::
     :maxdepth: 1
 
+    adsbx
     gdelt
     geolife
     geonames
