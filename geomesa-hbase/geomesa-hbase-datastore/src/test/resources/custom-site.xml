@@ -1,0 +1,6 @@
+<configuration>
+  <property>
+    <name>foo.resource</name>
+    <value>baz</value>
+  </property>
+</configuration>

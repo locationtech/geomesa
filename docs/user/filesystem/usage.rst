@@ -32,6 +32,7 @@ Parameter                       Type   Description
 ``fs.read-threads``             Int    The number of threads used for queries
 ``fs.writer.partition.timeout`` String Timeout for closing a partition file after write, e.g. '60 seconds'. This is to
                                        prevent too many open files during large write operations.
-``fs.config``                   String Configuration values, formatted as a Java properties file, that will be passed to
-                                       the underlying FileSystem
+``fs.config.paths``             String Additional Hadoop configuration resource files (comma-delimited)
+``fs.config.xml``               String Additional Hadoop configuration properties, as a standard XML ``<configuration>``
+                                       element
 =============================== ====== ===================================================================================

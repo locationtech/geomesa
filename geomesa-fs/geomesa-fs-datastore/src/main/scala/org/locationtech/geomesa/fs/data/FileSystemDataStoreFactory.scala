@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.fs.data
 
 import java.awt.RenderingHints
+import java.io.{ByteArrayInputStream, StringReader, StringWriter}
+import java.nio.charset.StandardCharsets
 import java.util.{Collections, Properties}
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
@@ -19,25 +21,27 @@ import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.SystemPropertyDurationParam
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, SystemPropertyDurationParam}
+import org.locationtech.geomesa.utils.io.HadoopUtils
 
 import scala.concurrent.duration.Duration
 
 class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 
   import FileSystemDataStoreFactory.FileSystemDataStoreParams._
-  import FileSystemDataStoreFactory.{configuration, fileContextCache}
-
-  import scala.collection.JavaConverters._
+  import FileSystemDataStoreFactory.fileContextCache
 
   override def createDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
 
-    val conf = ConfParam.lookupOpt(params).filterNot(_.isEmpty) match {
-      case None => configuration
-      case Some(props) =>
-        val conf = new Configuration(configuration)
-        props.asScala.foreach { case (k, v) => conf.set(k, v) }
-        conf
+    val xml = ConfigsParam.lookupOpt(params)
+    val resources = ConfigPathsParam.lookupOpt(params).toSeq.flatMap(_.split(',')).map(_.trim).filterNot(_.isEmpty)
+
+    val conf = if (xml.isEmpty && resources.isEmpty) { FileSystemDataStoreFactory.configuration } else {
+      val conf = new Configuration(FileSystemDataStoreFactory.configuration)
+      // add the explicit props first, they may be needed for loading the path resources
+      xml.foreach(x => conf.addResource(new ByteArrayInputStream(x.getBytes(StandardCharsets.UTF_8))))
+      resources.foreach(HadoopUtils.addResource(conf, _))
+      conf
     }
 
     val fc = fileContextCache.get(conf)
@@ -80,6 +84,8 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
 
 object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
 
+  import scala.collection.JavaConverters._
+
   override val DisplayName: String = "File System (GeoMesa)"
   override val Description: String = "File System Data Store"
 
@@ -89,7 +95,8 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
       FileSystemDataStoreParams.EncodingParam,
       FileSystemDataStoreParams.ReadThreadsParam,
       FileSystemDataStoreParams.WriteTimeoutParam,
-      FileSystemDataStoreParams.ConfParam
+      FileSystemDataStoreParams.ConfigPathsParam,
+      FileSystemDataStoreParams.ConfigsParam
     )
 
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
@@ -107,10 +114,34 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
 
     val WriterFileTimeout = SystemProperty("geomesa.fs.writer.partition.timeout", "60s")
 
+    val DeprecatedConfParam = new ConvertedParam[String, String]("fs.config", convertPropsToXml)
+
     val PathParam         = new GeoMesaParam[String]("fs.path", "Root of the filesystem hierarchy", optional = false)
     val EncodingParam     = new GeoMesaParam[String]("fs.encoding", "Encoding of data")
-    val ConfParam         = new GeoMesaParam[Properties]("fs.config", "Values to set in the root Configuration, in Java properties format", largeText = true)
+    val ConfigPathsParam  = new GeoMesaParam[String]("fs.config.paths", "Additional Hadoop configuration resource files (comma-delimited)")
+    val ConfigsParam      = new GeoMesaParam[String]("fs.config.xml", "Additional Hadoop configuration properties, as a standard XML `<configuration>` element", largeText = true, deprecatedParams = Seq(DeprecatedConfParam))
     val ReadThreadsParam  = new GeoMesaParam[Integer]("fs.read-threads", "Read Threads", default = 4)
     val WriteTimeoutParam = new GeoMesaParam[Duration]("fs.writer.partition.timeout", "Timeout for closing a partition file after write, e.g. '60 seconds'", default = Duration("60s"), systemProperty = Some(SystemPropertyDurationParam(WriterFileTimeout)))
+
+    @deprecated("ConfigsParam")
+    val ConfParam = new GeoMesaParam[Properties]("fs.config", "Values to set in the root Configuration, in Java properties format", largeText = true)
+
+    /**
+      * Convert java properties format to *-site.xml
+      *
+      * @param properties props
+      * @return
+      */
+    private [fs] def convertPropsToXml(properties: String): String = {
+      val conf = new Configuration(false)
+
+      val props = new Properties()
+      props.load(new StringReader(properties))
+      props.asScala.foreach { case (k, v) => conf.set(k, v) }
+
+      val out = new StringWriter()
+      conf.writeXml(out)
+      out.toString
+    }
   }
 }
