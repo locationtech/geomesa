@@ -11,6 +11,7 @@ package org.locationtech.geomesa.hbase.coprocessor
 import java.io.{InterruptedIOException, _}
 import java.util.Collections
 import java.util.concurrent._
+import java.util.concurrent.atomic.AtomicBoolean
 
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.protobuf.{ByteString, RpcCallback, RpcController, Service}
@@ -22,6 +23,7 @@ import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.protobuf.{ProtobufUtil, ResponseConverter}
 import org.apache.hadoop.hbase.util.Base64
 import org.apache.hadoop.hbase.{Coprocessor, CoprocessorEnvironment}
+import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor.CancelCallback
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseAggregator
 import org.locationtech.geomesa.hbase.coprocessor.utils.{GeoMesaHBaseCallBack, GeoMesaHBaseRpcController}
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto
@@ -32,6 +34,8 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with CoprocessorService {
+
+  import scala.collection.JavaConverters._
 
   private var env: RegionCoprocessorEnvironment = _
 
@@ -49,9 +53,13 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
 
   override def getService: Service = this
 
-  def getResult(controller: RpcController,
-                request: GeoMesaProto.GeoMesaCoprocessorRequest,
-                done: RpcCallback[GeoMesaProto.GeoMesaCoprocessorResponse]): Unit = {
+  override def getResult(
+      controller: RpcController,
+      request: GeoMesaProto.GeoMesaCoprocessorRequest,
+      done: RpcCallback[GeoMesaProto.GeoMesaCoprocessorResponse]): Unit = {
+    val canceled = new CancelCallback()
+    controller.notifyOnCancel(canceled)
+
     val response: GeoMesaCoprocessorResponse = try {
       val options: Map[String, String] = deserializeOptions(request.getOptions.toByteArray)
       val aggregator = {
@@ -60,11 +68,13 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
       }
       aggregator.init(options)
 
-      val scanList: List[Scan] = getScanFromOptions(options)
+      val scans = getScanFromOptions(options).iterator
       val filterList: FilterList = getFilterListFromOptions(options)
 
       val results = ArrayBuffer.empty[Array[Byte]]
-      scanList.foreach { scan =>
+
+      while (scans.hasNext && !canceled.canceled.get) {
+        val scan = scans.next
         scan.setFilter(filterList)
         // Enable Visibilities by delegating to the Region Server configured Coprocessors
         env.getRegion.getCoprocessorHost.preScannerOpen(scan)
@@ -73,7 +83,7 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
         val scanner = env.getRegion.getScanner(scan)
         aggregator.setScanner(scanner)
         try {
-          while (aggregator.hasNextData) {
+          while (aggregator.hasNextData && !canceled.canceled.get) {
             val agg = aggregator.aggregate()
             if (agg != null) {
               results.append(agg)
@@ -83,8 +93,8 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
           scanner.close()
         }
       }
-      import scala.collection.JavaConversions._
-      GeoMesaCoprocessorResponse.newBuilder.addAllPayload(results.map(ByteString.copyFrom)).build
+
+      GeoMesaCoprocessorResponse.newBuilder.addAllPayload(results.map(ByteString.copyFrom).asJava).build
     } catch {
       case e: IOException => ResponseConverter.setControllerException(controller, e); null
       case NonFatal(e) => ResponseConverter.setControllerException(controller, new IOException(e)); null
@@ -187,5 +197,13 @@ object GeoMesaCoprocessor extends LazyLogging {
 
     override def run(parameter: GeoMesaCoprocessorResponse): Unit =
       result = Option(parameter).map(_.getPayloadList).orNull
+  }
+
+  /**
+    * Cancel rpc callback
+    */
+  class CancelCallback extends RpcCallback[AnyRef]() {
+    val canceled = new AtomicBoolean(false)
+    override def run(parameter: AnyRef): Unit = canceled.compareAndSet(false, true)
   }
 }
