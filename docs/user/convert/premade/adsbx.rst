@@ -25,9 +25,8 @@ Converters
 ----------
 
 The converter definitions provided include:
-- adsbx : For historical storage.
-- adsbx-multi : For historical storage. ``feature-path`` will need to match your input json array structure.
-- adsbx-live-single : For live storage Ex. Kafka, Redis
+- adsbx-historical : For historical storage Ex. Accumulo, HBase, GeoMesa FSDS
+- adsbx-live : For live storage Ex. Kafka, Redis
 
 These extend from a common converter named ``adsbx-base`` and provide additional configuration.
 For historical data storage, ``id-field`` is a unique concatenation formed from Icao, dtg, Lat, and Long.
