@@ -25,13 +25,10 @@ Converters
 ----------
 
 The converter definitions provided include:
-- adsbx : For historical storage. Uncomment ``feature-path`` to ingest a json array.
-- adsbx-single : For historical storage.
+- adsbx : For historical storage.
+- adsbx-multi : For historical storage. ``feature-path`` will need to match your input json array structure.
 - adsbx-live-single : For live storage Ex. Kafka, Redis
 
 These extend from a common converter named ``adsbx-base`` and provide additional configuration.
 For historical data storage, ``id-field`` is a unique concatenation formed from Icao, dtg, Lat, and Long.
 For live storage, only Icao is used as the ``id-field`` which ensures that the most recently processed observation is correctly presented for that aircraft.
-
-While not required for ingest, the user can optionally set up a redis instance as referenced by the ``adsbx_static`` cache in the converter.
-In a separate ingest flow, fields across all message types will populate this cache for a given aircraft identified by ``Icao`` which allows future messages to be enriched by cache values.
