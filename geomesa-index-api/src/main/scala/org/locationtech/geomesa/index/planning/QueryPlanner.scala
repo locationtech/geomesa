@@ -13,7 +13,7 @@ import org.locationtech.jts.geom.Geometry
 import org.geotools.data.Query
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.filter.{FunctionExpressionImpl, MathExpressionImpl}
+import org.geotools.filter.MathExpressionImpl
 import org.geotools.process.vector.TransformProcess
 import org.geotools.process.vector.TransformProcess.Definition
 import org.locationtech.geomesa.filter.FilterHelper
@@ -31,7 +31,7 @@ import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, StatParser}
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.expression.PropertyName
+import org.opengis.filter.expression.{Function, PropertyName}
 
 import scala.collection.JavaConverters._
 
@@ -245,7 +245,7 @@ object QueryPlanner extends LazyLogging {
             builder.buildDescriptor(definition.name, builder.buildType())
           }
 
-        case f: FunctionExpressionImpl  =>
+        case f: Function  =>
           val clazz = f.getFunctionName.getReturn.getType
           val ab = new AttributeTypeBuilder().binding(clazz)
           if (classOf[Geometry].isAssignableFrom(clazz)) {
@@ -280,4 +280,3 @@ object QueryPlanner extends LazyLogging {
     SimpleFeatureTypes.immutable(sftBuilder.buildFeatureType(), sft.getUserData)
   }
 }
-
