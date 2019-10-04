@@ -15,6 +15,7 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel
 import org.apache.commons.io.IOUtils
+import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Options.CreateOpts
 import org.apache.hadoop.fs._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -27,13 +28,12 @@ import scala.collection.mutable.ListBuffer
 /**
   * Delegate allows us to avoid a runtime dependency on hadoop
   */
-class HadoopDelegate extends FileSystemDelegate {
+class HadoopDelegate(conf: Configuration = new Configuration()) extends FileSystemDelegate {
 
   import ArchiveStreamFactory.{JAR, TAR, ZIP}
   import HadoopDelegate.HiddenFileFilter
   import org.apache.hadoop.fs.{LocatedFileStatus, Path}
 
-  private val conf = new org.apache.hadoop.conf.Configuration()
   // use the same property as FileInputFormat
   private val recursive = conf.getBoolean("mapreduce.input.fileinputformat.input.dir.recursive", false)
 

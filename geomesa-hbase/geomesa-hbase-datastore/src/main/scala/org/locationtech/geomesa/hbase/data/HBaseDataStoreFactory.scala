@@ -29,9 +29,6 @@ import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWr
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
-import scala.collection.JavaConversions._
-
-
 class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   import HBaseDataStoreParams._
@@ -104,6 +101,8 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
   import HBaseDataStoreParams._
 
+  import scala.collection.JavaConverters._
+
   val HBaseGeoMesaPrincipal = "hbase.geomesa.principal"
   val HBaseGeoMesaKeyTab    = "hbase.geomesa.keytab"
 
@@ -120,6 +119,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       RemoteFilteringParam,
       CoprocessorUrlParam,
       ConfigPathsParam,
+      ConfigsParam,
       QueryThreadsParam,
       QueryTimeoutParam,
       GenerateStatsParam,
@@ -162,7 +162,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
     // master auths is the superset of auths this connector/user can support
     val userName = User.getCurrent.getName
-    val masterAuths = VisibilityClient.getAuths(connection, userName).getAuthList.map(a => Bytes.toString(a.toByteArray))
+    val masterAuths = VisibilityClient.getAuths(connection, userName).getAuthList.asScala.map(a => Bytes.toString(a.toByteArray))
 
     // get the auth params passed in as a comma-delimited string
     val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filter(s => !s.isEmpty)
@@ -175,13 +175,11 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     }
 
     // if the caller provided any non-null string for authorizations, use it;
-    // otherwise, grab all authorizations to which the Accumulo user is entitled
+    // otherwise, grab all authorizations to which the user is entitled
     if (configuredAuths.length != 0 && forceEmptyAuths) {
       throw new IllegalArgumentException("Forcing empty auths is checked, but explicit auths are provided")
     }
-    val auths: List[String] =
-      if (forceEmptyAuths || configuredAuths.length > 0) configuredAuths.toList
-      else masterAuths.toList
+    val auths = if (forceEmptyAuths || configuredAuths.nonEmpty) { configuredAuths.toList } else { masterAuths.toList }
 
     security.getAuthorizationsProvider(params, auths)
   }
@@ -196,4 +194,5 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
   val MaxRangesPerExtendedScanParam = new GeoMesaParam[java.lang.Integer]("hbase.ranges.max-per-extended-scan", "Max Ranges per Extended Scan", default = 100, deprecatedKeys = Seq("max.ranges.per.extended.scan"))
   val EnableSecurityParam           = new GeoMesaParam[java.lang.Boolean]("hbase.security.enabled", "Enable HBase Security (Visibilities)", default = false, deprecatedKeys = Seq("security.enabled"))
   val ConfigPathsParam              = new GeoMesaParam[String]("hbase.config.paths", "Additional HBase configuration resource files (comma-delimited)")
+  val ConfigsParam                  = new GeoMesaParam[String]("hbase.config.xml", "Additional HBase configuration properties, as a standard XML `<configuration>` element", largeText = true)
 }

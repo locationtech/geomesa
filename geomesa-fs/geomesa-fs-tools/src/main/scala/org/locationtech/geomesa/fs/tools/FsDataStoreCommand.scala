@@ -36,7 +36,8 @@ trait FsDataStoreCommand extends DataStoreCommand[FileSystemDataStore] {
     val builder = Map.newBuilder[String, String]
     builder += (FileSystemDataStoreParams.PathParam.getName -> url.toString)
     if (params.configuration != null && !params.configuration.isEmpty) {
-      builder += (FileSystemDataStoreParams.ConfParam.getName -> params.configuration.asScala.mkString("\n"))
+      val xml = FileSystemDataStoreParams.convertPropsToXml(params.configuration.asScala.mkString("\n"))
+      builder += (FileSystemDataStoreParams.ConfigsParam.getName -> xml)
     }
     builder.result()
   }

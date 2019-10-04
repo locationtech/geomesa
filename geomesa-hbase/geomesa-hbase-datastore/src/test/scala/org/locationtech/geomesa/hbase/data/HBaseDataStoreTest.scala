@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.hbase.data
 
+import java.io.File
 import java.util.Collections
 
 import com.typesafe.scalalogging.LazyLogging
@@ -333,6 +334,22 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
       } finally {
         SchemaProperties.CheckDistributedVersion.clear()
       }
+    }
+
+    "support configuration via path or embedded xml" in {
+      val embedded =
+        """<configuration>
+          |  <property>
+          |    <name>foo.embedded</name>
+          |    <value>bar</value>
+          |  </property>
+          |</configuration>""".stripMargin
+      val resource = new File(getClass.getClassLoader.getResource("custom-site.xml").toURI).getAbsolutePath
+      val params = Map(ConfigsParam.getName -> embedded, ConfigPathsParam.getName -> resource)
+      val conf = HBaseConnectionPool.getConfiguration(params.asJava)
+
+      conf.get("foo.embedded") mustEqual "bar"
+      conf.get("foo.resource") mustEqual "baz"
     }
   }
 

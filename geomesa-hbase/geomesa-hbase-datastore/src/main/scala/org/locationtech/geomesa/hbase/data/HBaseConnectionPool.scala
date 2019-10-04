@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.io.Serializable
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 import java.security.PrivilegedExceptionAction
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
@@ -20,74 +21,102 @@ import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants}
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{HBaseGeoMesaKeyTab, HBaseGeoMesaPrincipal}
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsParam, ConnectionParam, ZookeeperParam}
-import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
+import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsParam, ConfigsParam, ConnectionParam, ZookeeperParam}
+import org.locationtech.geomesa.utils.io.HadoopUtils
 
 object HBaseConnectionPool extends LazyLogging {
 
   private var userCheck: Option[User] = _
 
   // add common resources from system property
-  private val configuration = withPaths(HBaseConfiguration.create(), HBaseDataStoreFactory.ConfigPathProperty.option)
+  private val configuration = load(HBaseConfiguration.create(), HBaseDataStoreFactory.ConfigPathProperty.option, None)
 
-  private val configCache = Caffeine.newBuilder().build(
-    new CacheLoader[(Option[String], Option[String]), Configuration] {
-      override def load(key: (Option[String], Option[String])): Configuration = {
-        val (zookeepers, paths) = key
-        val conf = withPaths(configuration, paths)
+  private val configs = Caffeine.newBuilder().build(
+    new CacheLoader[(Option[String], Option[String], Option[String]), Configuration] {
+      override def load(key: (Option[String], Option[String], Option[String])): Configuration = {
+        val (zookeepers, paths, props) = key
+        val conf = HBaseConnectionPool.load(configuration, paths, props)
         zookeepers.foreach(zk => conf.set(HConstants.ZOOKEEPER_QUORUM, zk))
         if (zookeepers.isEmpty && conf.get(HConstants.ZOOKEEPER_QUORUM) == "localhost") {
           logger.warn("HBase connection is set to localhost - " +
               "this may indicate that 'hbase-site.xml' is not on the classpath")
         }
-        configureSecurity(conf)
         conf
       }
     }
   )
 
-  private val connectionCache = Caffeine.newBuilder().build(
+  private val connections = Caffeine.newBuilder().build(
     new CacheLoader[(Configuration, Boolean), Connection] {
-      override def load(key: (Configuration, Boolean)): Connection = {
-        val (conf, validate) = key
-        val action = new PrivilegedExceptionAction[Connection]() {
-          override def run(): Connection = {
-            if (validate) {
-              logger.debug("Checking configuration availability")
-              HBaseAdmin.checkHBaseAvailable(conf)
-            }
-            ConnectionFactory.createConnection(conf)
-          }
-        }
-        val user = if (User.isHBaseSecurityEnabled(conf)) { Option(User.getCurrent) } else { None }
-        user match {
-          case None => action.run()
-          case Some(u) => u.runAs(action)
-        }
-      }
+      override def load(key: (Configuration, Boolean)): Connection = createConnection(key._1, key._2)
     }
   )
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
     import scala.collection.JavaConversions._
-    override def run(): Unit = connectionCache.asMap().foreach(_._2.close())
+    override def run(): Unit = connections.asMap().foreach(_._2.close())
   })
 
-  def getConfiguration(params: java.util.Map[String, Serializable]): Configuration = {
+  /**
+    * Get (or create) a cached configuration
+    *
+    * @param params data store params
+    * @return
+    */
+  def getConfiguration(params: java.util.Map[String, _]): Configuration = {
     val zk = ZookeeperParam.lookupOpt(params)
     val paths = ConfigPathsParam.lookupOpt(params)
-    configCache.get((zk, paths))
+    val props = ConfigsParam.lookupOpt(params)
+    configs.get((zk, paths, props))
   }
 
-  def getConnection(params: java.util.Map[String, Serializable], validate: Boolean): Connection = {
+  /**
+    * Get (or create) a cached connection
+    *
+    * @param params data store params
+    * @param validate validate the connection after creation, or not
+    * @return
+    */
+  def getConnection(params: java.util.Map[String, _], validate: Boolean): Connection = {
     if (ConnectionParam.exists(params)) {
       ConnectionParam.lookup(params)
     } else {
-      connectionCache.get((getConfiguration(params), validate))
+      connections.get((getConfiguration(params), validate))
     }
   }
 
-  // hadoop/hbase security is configured in a global manner...
+  /**
+    * Create a new connection (not pooled)
+    *
+    * @param conf hbase configuration
+    * @param validate validate the connection after creation, or not
+    * @return
+    */
+  def createConnection(conf: Configuration, validate: Boolean): Connection = {
+    val action = new PrivilegedExceptionAction[Connection]() {
+      override def run(): Connection = {
+        if (validate) {
+          logger.debug("Checking configuration availability")
+          HBaseAdmin.checkHBaseAvailable(conf)
+        }
+        ConnectionFactory.createConnection(conf)
+      }
+    }
+    val user = if (User.isHBaseSecurityEnabled(conf)) { Option(User.getCurrent) } else { None }
+    user match {
+      case None => action.run()
+      case Some(u) => u.runAs(action)
+    }
+  }
+
+  /**
+    * Configures hadoop security, based on the configuration.
+    *
+    * Note: hadoop security is configured globally - having different security settings in a single JVM
+    * will likely result in errors
+    *
+    * @param conf conf
+    */
   def configureSecurity(conf: Configuration): Unit = synchronized {
 
     val last = userCheck // will be null first time through
@@ -127,28 +156,15 @@ object HBaseConnectionPool extends LazyLogging {
     *
     * @param base original configuration
     * @param paths resources to add, comma-delimited
+    * @param xml properties to add, as XML
     * @return a new configuration, or the existing one
     */
-  private def withPaths(base: Configuration, paths: Option[String]): Configuration = {
-    val sanitized = paths.filterNot(_.trim.isEmpty).toSeq.flatMap(_.split(',')).map(_.trim).filterNot(_.isEmpty)
-    if (sanitized.isEmpty) { base } else {
-      val conf = new Configuration(base)
-      sanitized.foreach { path =>
-        // use our path handling logic, which is more robust than just passing paths to the config
-        val handle = PathUtils.getHandle(path)
-        if (!handle.exists) {
-          logger.warn(s"Could not load configuration file at: $path")
-        } else {
-          WithClose(handle.open) { files =>
-            files.foreach {
-              case (None, is) => conf.addResource(is)
-              case (Some(name), is) => conf.addResource(is, name)
-            }
-            conf.size() // this forces a loading of the resource files, before we close our file handle
-          }
-        }
-      }
-      conf
-    }
+  private def load(base: Configuration, paths: Option[String], xml: Option[String]): Configuration = {
+    val conf = new Configuration(base)
+    // add the explicit props first, they may be needed for loading the path resources
+    xml.foreach(x => conf.addResource(new ByteArrayInputStream(x.getBytes(StandardCharsets.UTF_8))))
+    paths.toSeq.flatMap(_.split(',')).map(_.trim).filterNot(_.isEmpty).foreach(HadoopUtils.addResource(conf, _))
+    configureSecurity(conf)
+    conf
   }
 }

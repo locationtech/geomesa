@@ -37,6 +37,8 @@ Parameter                              Type    Description
                                                the preferred method for defining the HBase connection is with ``hbase-site.xml``
 ``hbase.coprocessor.url``              String  Path to the GeoMesa jar containing coprocessors, for auto registration
 ``hbase.config.paths``                 String  Additional HBase configuration resource files (comma-delimited)
+``hbase.config.xml``                   String  Additional HBase configuration properties, as a standard XML ``<configuration>``
+                                               element
 ``hbase.remote.filtering``             Boolean Can be used to disable remote filtering and coprocessors, for environments
                                                where custom code can't be installed
 ``hbase.security.enabled``             Boolean Enable HBase security (visibilities)
