@@ -59,6 +59,8 @@ class FileSystemDataStoreTest extends Specification {
     "dtg DURING 2017-06-05T04:03:00.0000Z/2017-06-07T04:04:00.0000Z and bbox(geom, 5, 5, 15, 15)"
   ).map(ECQL.toFilter)
 
+  val gzip = "<configuration><property><name>parquet.compression</name><value>gzip</value></property></configuration>"
+
   step {
     formats.foreach { case (f, _, _) => dirs.put(f, Files.createTempDirectory(s"fsds-test-$f").toFile) }
   }
@@ -70,7 +72,7 @@ class FileSystemDataStoreTest extends Specification {
         val dsParams = Map(
           "fs.path" -> dir.getPath,
           "fs.encoding" -> format,
-          "fs.config" -> "parquet.compression=gzip")
+          "fs.config.xml" -> gzip)
 
         val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
 
@@ -167,7 +169,7 @@ class FileSystemDataStoreTest extends Specification {
         val ds = DataStoreFinder.getDataStore(Map(
           "fs.path" -> dir.getPath,
           "fs.encoding" -> format,
-          "fs.config" -> "parquet.compression=gzip"))
+          "fs.config.xml" -> gzip))
         ds.createSchema(reserved) must throwAn[IllegalArgumentException]
         ds.getSchema(reserved.getTypeName) must throwAn[IOException] // content data store schema does not exist
       }
@@ -203,7 +205,7 @@ class FileSystemDataStoreTest extends Specification {
 
     "support updates" >> {
       foreach(formats) { case (format, _, features) =>
-        val dsParams = Map("fs.path" -> dirs(format).getPath, "fs.config" -> "parquet.compression=gzip")
+        val dsParams = Map("fs.path" -> dirs(format).getPath, "fs.config.xml" -> gzip)
         val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
 
         WithClose(ds.getFeatureWriter(format, ECQL.toFilter("IN ('0', '1', '2')"), Transaction.AUTO_COMMIT)) { writer =>

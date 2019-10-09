@@ -140,22 +140,58 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
 
     override protected def looseBBoxDefault = false
 
-    val ContactPointParam = new GeoMesaParam[String]("cassandra.contact.point", "HOST:PORT to Cassandra", optional = false, deprecatedKeys = Seq("geomesa.cassandra.contact.point"))
-    val KeySpaceParam     = new GeoMesaParam[String]("cassandra.keyspace", "Cassandra Keyspace", optional = false, deprecatedKeys = Seq("geomesa.cassandra.keyspace"))
-    val CatalogParam      = new GeoMesaParam[String]("cassandra.catalog", "Name of GeoMesa catalog table", optional = false, deprecatedKeys = Seq("geomesa.cassandra.catalog.table"))
-    val UserNameParam     = new GeoMesaParam[String]("cassandra.username", "Username to connect with", deprecatedKeys = Seq("geomesa.cassandra.username"))
-    val PasswordParam     = new GeoMesaParam[String]("cassandra.password", "Password to connect with", password = true, deprecatedKeys = Seq("geomesa.cassandra.password"))
+    val ContactPointParam =
+      new GeoMesaParam[String](
+        "cassandra.contact.point",
+        "HOST:PORT to Cassandra",
+        optional = false,
+        deprecatedKeys = Seq("geomesa.cassandra.contact.point"),
+        supportsNiFiExpressions = true)
+
+    val KeySpaceParam =
+      new GeoMesaParam[String](
+        "cassandra.keyspace",
+        "Cassandra Keyspace",
+        optional = false,
+        deprecatedKeys = Seq("geomesa.cassandra.keyspace"),
+        supportsNiFiExpressions = true)
+
+    val CatalogParam =
+      new GeoMesaParam[String](
+        "cassandra.catalog",
+        "Name of GeoMesa catalog table",
+        optional = false,
+        deprecatedKeys = Seq("geomesa.cassandra.catalog.table"),
+        supportsNiFiExpressions = true)
+
+    val UserNameParam =
+      new GeoMesaParam[String](
+        "cassandra.username",
+        "Username to connect with",
+        deprecatedKeys = Seq("geomesa.cassandra.username"),
+        supportsNiFiExpressions = true)
+
+    val PasswordParam =
+      new GeoMesaParam[String](
+        "cassandra.password",
+        "Password to connect with",
+        password = true,
+        deprecatedKeys = Seq("geomesa.cassandra.password"),
+        supportsNiFiExpressions = true)
 
     // used to handle geoserver password encryption in persisted ds params
-    val DeprecatedGeoServerPasswordParam = new Param("password", classOf[String], "", false, null, ImmutableMap.of(Parameter.DEPRECATED, true, Parameter.IS_PASSWORD, true))
+    val DeprecatedGeoServerPasswordParam =
+      new Param("password", classOf[String], "", false, null, ImmutableMap.of(Parameter.DEPRECATED, true, Parameter.IS_PASSWORD, true))
   }
 
-  case class CassandraDataStoreConfig(catalog: String,
-                                  generateStats: Boolean,
-                                  audit: Option[(AuditWriter, AuditProvider, String)],
-                                  caching: Boolean,
-                                  queryThreads: Int,
-                                  queryTimeout: Option[Long],
-                                  looseBBox: Boolean,
-                                  namespace: Option[String]) extends GeoMesaDataStoreConfig
+  case class CassandraDataStoreConfig(
+      catalog: String,
+      generateStats: Boolean,
+      audit: Option[(AuditWriter, AuditProvider, String)],
+      caching: Boolean,
+      queryThreads: Int,
+      queryTimeout: Option[Long],
+      looseBBox: Boolean,
+      namespace: Option[String]
+    ) extends GeoMesaDataStoreConfig
 }

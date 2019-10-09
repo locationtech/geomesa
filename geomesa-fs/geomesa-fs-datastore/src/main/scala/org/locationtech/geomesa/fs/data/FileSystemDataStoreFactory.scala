@@ -18,7 +18,9 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
+import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, SystemPropertyDurationParam}
@@ -47,7 +49,7 @@ class FileSystemDataStoreFactory extends DataStoreFactorySpi {
     val fc = fileContextCache.get(conf)
 
     val path = new Path(PathParam.lookup(params))
-    val encoding = EncodingParam.lookupOpt(params)
+    val encoding = EncodingParam.lookupOpt(params).filterNot(_.isEmpty)
 
     // Need to do more tuning here. On a local system 1 thread (so basic producer/consumer) was best
     // because Parquet is also threading the reads underneath I think. using prod/cons pattern was
@@ -116,15 +118,55 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
 
     val DeprecatedConfParam = new ConvertedParam[String, String]("fs.config", convertPropsToXml)
 
-    val PathParam         = new GeoMesaParam[String]("fs.path", "Root of the filesystem hierarchy", optional = false)
-    val EncodingParam     = new GeoMesaParam[String]("fs.encoding", "Encoding of data")
-    val ConfigPathsParam  = new GeoMesaParam[String]("fs.config.paths", "Additional Hadoop configuration resource files (comma-delimited)")
-    val ConfigsParam      = new GeoMesaParam[String]("fs.config.xml", "Additional Hadoop configuration properties, as a standard XML `<configuration>` element", largeText = true, deprecatedParams = Seq(DeprecatedConfParam))
-    val ReadThreadsParam  = new GeoMesaParam[Integer]("fs.read-threads", "Read Threads", default = 4)
-    val WriteTimeoutParam = new GeoMesaParam[Duration]("fs.writer.partition.timeout", "Timeout for closing a partition file after write, e.g. '60 seconds'", default = Duration("60s"), systemProperty = Some(SystemPropertyDurationParam(WriterFileTimeout)))
+    val PathParam =
+      new GeoMesaParam[String](
+        "fs.path",
+        "Root of the filesystem hierarchy",
+        optional = false,
+        supportsNiFiExpressions = true)
+
+    val EncodingParam =
+      new GeoMesaParam[String](
+        "fs.encoding",
+        "Encoding of data",
+        default = "", // needed to prevent geoserver from selecting something
+        enumerations = ServiceLoader.load[FileSystemStorageFactory]().map(_.encoding),
+        supportsNiFiExpressions = true)
+
+    val ConfigPathsParam =
+      new GeoMesaParam[String](
+        "fs.config.paths",
+        "Additional Hadoop configuration resource files (comma-delimited)",
+        supportsNiFiExpressions = true)
+
+    val ConfigsParam =
+      new GeoMesaParam[String](
+        "fs.config.xml",
+        "Additional Hadoop configuration properties, as a standard XML `<configuration>` element",
+        largeText = true,
+        deprecatedParams = Seq(DeprecatedConfParam))
+
+    val ReadThreadsParam =
+      new GeoMesaParam[Integer](
+        "fs.read-threads",
+        "Read Threads",
+        default = 4,
+        supportsNiFiExpressions = true)
+
+    val WriteTimeoutParam =
+      new GeoMesaParam[Duration](
+        "fs.writer.partition.timeout",
+        "Timeout for closing a partition file after write, e.g. '60 seconds'",
+        default = Duration("60s"),
+        systemProperty = Some(SystemPropertyDurationParam(WriterFileTimeout)),
+        supportsNiFiExpressions = true)
 
     @deprecated("ConfigsParam")
-    val ConfParam = new GeoMesaParam[Properties]("fs.config", "Values to set in the root Configuration, in Java properties format", largeText = true)
+    val ConfParam =
+      new GeoMesaParam[Properties](
+        "fs.config",
+        "Values to set in the root Configuration, in Java properties format",
+        largeText = true)
 
     /**
       * Convert java properties format to *-site.xml
