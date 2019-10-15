@@ -30,11 +30,42 @@ package object data extends LazyLogging {
     // disable loose bbox by default, since we don't have any z-iterators
     override protected def looseBBoxDefault = false
 
-    val RedisUrlParam       = new GeoMesaParam[String]("redis.url", "Redis connection URL. The URL can be used to specify the Redis database and credentials, if required - for example, 'redis://user:password@localhost:6379/1'", optional = false)
-    val RedisCatalogParam   = new GeoMesaParam[String]("redis.catalog", "The name of the GeoMesa catalog table", optional = false)
-    val PoolSizeParam       = new GeoMesaParam[Integer]("redis.connection.pool.size", "Max number of simultaneous connections to use", default = 16)
-    val TestConnectionParam = new GeoMesaParam[java.lang.Boolean]("redis.connection.pool.validate", "Test connections when borrowed from the pool. Connections may be closed due to inactivity, which would cause a transient error if validation is disabled", default = Boolean.box(true))
-    val PipelineParam       = new GeoMesaParam[java.lang.Boolean]("redis.pipeline.enabled", "Enable pipelining of query requests. This reduces network latency, but restricts queries to a single execution thread", default = Boolean.box(false))
+    val RedisUrlParam =
+      new GeoMesaParam[String](
+        "redis.url",
+        "Redis connection URL. The URL can be used to specify the Redis database and credentials, if required - " +
+            "for example, 'redis://user:password@localhost:6379/1'",
+        optional = false,
+        supportsNiFiExpressions = true)
+
+    val RedisCatalogParam =
+      new GeoMesaParam[String](
+        "redis.catalog",
+        "The name of the GeoMesa catalog table",
+        optional = false,
+        supportsNiFiExpressions = true)
+
+    val PoolSizeParam =
+      new GeoMesaParam[Integer](
+        "redis.connection.pool.size",
+        "Max number of simultaneous connections to use",
+        default = 16,
+        supportsNiFiExpressions = true)
+
+    val TestConnectionParam =
+      new GeoMesaParam[java.lang.Boolean](
+        "redis.connection.pool.validate",
+        "Test connections when borrowed from the pool. Connections may be closed due to inactivity, " +
+            "which would cause a transient error if validation is disabled",
+        default = Boolean.box(true))
+
+    val PipelineParam =
+      new GeoMesaParam[java.lang.Boolean](
+        "redis.pipeline.enabled",
+        "Enable pipelining of query requests. This reduces network latency, " +
+            "but restricts queries to a single execution thread",
+        default = Boolean.box(false))
+
     val ConnectionPoolParam = new GeoMesaParam[JedisPool]("redis.connection", "Connection pool") // generally used for testing
   }
 

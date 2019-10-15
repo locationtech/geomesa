@@ -40,7 +40,7 @@ class BucketVsLeafStorageTest extends Specification {
   def ds = DataStoreFinder.getDataStore(Map(
     "fs.path" -> tempDir.toFile.getPath,
     "fs.encoding" -> "parquet",
-    "fs.config" -> "parquet.compression=gzip"
+    "fs.config.xml" -> "<configuration><property><name>parquet.compression</name><value>gzip</value></property></configuration>"
   )).asInstanceOf[FileSystemDataStore]
 
   def features(sft: SimpleFeatureType) = List(

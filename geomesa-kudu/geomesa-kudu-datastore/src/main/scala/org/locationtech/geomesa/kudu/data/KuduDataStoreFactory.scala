@@ -107,13 +107,44 @@ object KuduDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
     override protected def looseBBoxDefault = false
 
-    val KuduMasterParam    = new GeoMesaParam[String]("kudu.master", "Kudu master host[:port][,host2[:port2]...]", optional = false)
-    val CatalogParam       = new GeoMesaParam[String]("kudu.catalog", "Name of GeoMesa catalog table", optional = false)
-    val CredentialsParam   = new GeoMesaParam[String]("kudu.credentials", "Kudu client authentication credentials")
-    val WorkerThreadsParam = new GeoMesaParam[Integer]("kudu.worker.threads", "Number of worker threads")
-    val BossThreadsParam   = new GeoMesaParam[Integer]("kudu.boss.threads", "Number of boss threads")
-    val StatisticsParam    = new GeoMesaParam[java.lang.Boolean]("kudu.client.stats.disable", "Disable Kudu client statistics")
-    val AuthsParam         = org.locationtech.geomesa.security.AuthsParam
+    val KuduMasterParam =
+      new GeoMesaParam[String](
+        "kudu.master",
+        "Kudu master host[:port][,host2[:port2]...]",
+        optional = false,
+        supportsNiFiExpressions = true)
+
+    val CatalogParam =
+      new GeoMesaParam[String](
+        "kudu.catalog",
+        "Name of GeoMesa catalog table",
+        optional = false,
+        supportsNiFiExpressions = true)
+
+    val CredentialsParam =
+      new GeoMesaParam[String](
+        "kudu.credentials",
+        "Kudu client authentication credentials",
+        supportsNiFiExpressions = true)
+
+    val WorkerThreadsParam =
+      new GeoMesaParam[Integer](
+        "kudu.worker.threads",
+        "Number of worker threads",
+        supportsNiFiExpressions = true)
+
+    val BossThreadsParam =
+      new GeoMesaParam[Integer](
+        "kudu.boss.threads",
+        "Number of boss threads",
+        supportsNiFiExpressions = true)
+
+    val StatisticsParam =
+      new GeoMesaParam[java.lang.Boolean](
+        "kudu.client.stats.disable",
+        "Disable Kudu client statistics")
+
+    val AuthsParam = org.locationtech.geomesa.security.AuthsParam
   }
 
   def buildClient(params: java.util.Map[String, java.io.Serializable]): KuduClient = {

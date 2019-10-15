@@ -116,17 +116,17 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     Array(
       HBaseCatalogParam,
       ZookeeperParam,
-      RemoteFilteringParam,
-      CoprocessorUrlParam,
       ConfigPathsParam,
       ConfigsParam,
+      CoprocessorUrlParam,
       QueryThreadsParam,
       QueryTimeoutParam,
+      RemoteFilteringParam,
+      EnableSecurityParam,
       GenerateStatsParam,
       AuditQueriesParam,
       LooseBBoxParam,
       CachingParam,
-      EnableSecurityParam,
       AuthsParam,
       ForceEmptyAuthsParam
     )
@@ -186,13 +186,65 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 }
 
 object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
-  val HBaseCatalogParam             = new GeoMesaParam[String]("hbase.catalog", "Catalog table name", optional = false, deprecatedKeys = Seq("bigtable.table.name"))
-  val ConnectionParam               = new GeoMesaParam[Connection]("hbase.connection", "Connection", deprecatedKeys = Seq("connection"))
-  val ZookeeperParam                = new GeoMesaParam[String]("hbase.zookeepers", "List of HBase Zookeeper ensemble servers, comma-separated. Prefer including a valid 'hbase-site.xml' on the classpath over setting this parameter")
-  val CoprocessorUrlParam           = new GeoMesaParam[Path]("hbase.coprocessor.url", "Coprocessor Url", deprecatedKeys = Seq("coprocessor.url"))
-  val RemoteFilteringParam          = new GeoMesaParam[java.lang.Boolean]("hbase.remote.filtering", "Remote filtering", default = true, deprecatedKeys = Seq("remote.filtering"))
-  val MaxRangesPerExtendedScanParam = new GeoMesaParam[java.lang.Integer]("hbase.ranges.max-per-extended-scan", "Max Ranges per Extended Scan", default = 100, deprecatedKeys = Seq("max.ranges.per.extended.scan"))
-  val EnableSecurityParam           = new GeoMesaParam[java.lang.Boolean]("hbase.security.enabled", "Enable HBase Security (Visibilities)", default = false, deprecatedKeys = Seq("security.enabled"))
-  val ConfigPathsParam              = new GeoMesaParam[String]("hbase.config.paths", "Additional HBase configuration resource files (comma-delimited)")
-  val ConfigsParam                  = new GeoMesaParam[String]("hbase.config.xml", "Additional HBase configuration properties, as a standard XML `<configuration>` element", largeText = true)
+  val HBaseCatalogParam =
+    new GeoMesaParam[String](
+      "hbase.catalog",
+      "Catalog table name",
+      optional = false,
+      deprecatedKeys = Seq("bigtable.table.name"),
+      supportsNiFiExpressions = true)
+
+  val ConnectionParam =
+    new GeoMesaParam[Connection](
+      "hbase.connection",
+      "Connection",
+      deprecatedKeys = Seq("connection"))
+
+  val ZookeeperParam =
+    new GeoMesaParam[String](
+      "hbase.zookeepers",
+      "List of HBase Zookeeper ensemble servers, comma-separated. " +
+          "Prefer including a valid 'hbase-site.xml' on the classpath over setting this parameter",
+      supportsNiFiExpressions = true)
+
+  val CoprocessorUrlParam =
+    new GeoMesaParam[Path](
+      "hbase.coprocessor.url",
+      "Coprocessor Url",
+      deprecatedKeys = Seq("coprocessor.url"),
+      supportsNiFiExpressions = true)
+
+  val RemoteFilteringParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "hbase.remote.filtering",
+      "Remote filtering",
+      default = true,
+      deprecatedKeys = Seq("remote.filtering"))
+
+  val MaxRangesPerExtendedScanParam =
+    new GeoMesaParam[java.lang.Integer](
+      "hbase.ranges.max-per-extended-scan",
+      "Max Ranges per Extended Scan",
+      default = 100,
+      deprecatedKeys = Seq("max.ranges.per.extended.scan"),
+      supportsNiFiExpressions = true)
+
+  val EnableSecurityParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "hbase.security.enabled",
+      "Enable HBase Security (Visibilities)",
+      default = false,
+      deprecatedKeys = Seq("security.enabled"))
+
+  val ConfigPathsParam =
+    new GeoMesaParam[String](
+      "hbase.config.paths",
+      "Additional HBase configuration resource files (comma-delimited)",
+      supportsNiFiExpressions = true)
+
+  val ConfigsParam =
+    new GeoMesaParam[String](
+      "hbase.config.xml",
+      "Additional HBase configuration properties, as a standard XML `<configuration>` element",
+      largeText = true)
 }

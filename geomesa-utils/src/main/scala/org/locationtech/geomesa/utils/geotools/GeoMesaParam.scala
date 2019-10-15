@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.Parameter
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam._
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{DeprecatedParam, SystemPropertyParam}
 import org.locationtech.geomesa.utils.text.DurationParsing
 
 import scala.concurrent.duration.Duration
@@ -37,20 +37,28 @@ import scala.util.control.NonFatal
   * @param systemProperty system property used as a fallback lookup
   * @param enumerations list of values used to restrain the user input
   */
-class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' field from Param
-                                desc: String = "", // can't override final 'description' field from Param
-                                optional: Boolean = true, // can't override final 'required' field from Param
-                                val default: T = null,
-                                val password: Boolean = false,
-                                val largeText: Boolean = false,
-                                val extension: String = null,
-                                val deprecatedKeys: Seq[String] = Seq.empty,
-                                val deprecatedParams: Seq[DeprecatedParam[T]] = Seq.empty,
-                                val systemProperty: Option[SystemPropertyParam[T]] = None,
-                                val enumerations: Seq[T] = Seq.empty)
-                               (implicit ct: ClassTag[T])
-    extends Param(_key, binding(ct), desc, !optional, sample(default), metadata(password, largeText, extension, enumerations))
-      with LazyLogging {
+class GeoMesaParam[T <: AnyRef](
+    _key: String, // can't override final 'key' field from Param
+    desc: String = "", // can't override final 'description' field from Param
+    optional: Boolean = true, // can't override final 'required' field from Param
+    val default: T = null,
+    val password: Boolean = false,
+    val largeText: Boolean = false,
+    val extension: String = null,
+    val deprecatedKeys: Seq[String] = Seq.empty,
+    val deprecatedParams: Seq[DeprecatedParam[T]] = Seq.empty,
+    val systemProperty: Option[SystemPropertyParam[T]] = None,
+    val enumerations: Seq[T] = Seq.empty,
+    val supportsNiFiExpressions: Boolean = false
+  )(implicit ct: ClassTag[T]
+  ) extends Param(
+    _key,
+    GeoMesaParam.binding(ct),
+    desc,
+    !optional,
+    GeoMesaParam.sample(default),
+    GeoMesaParam.metadata(password, largeText, extension, enumerations, supportsNiFiExpressions)
+  ) with LazyLogging {
 
   private val deprecated = deprecatedKeys ++ deprecatedParams.map(_.key)
 
@@ -153,6 +161,8 @@ class GeoMesaParam[T <: AnyRef](_key: String, // can't override final 'key' fiel
 
 object GeoMesaParam {
 
+  val SupportsNiFiExpressions = "geomesa.nifi.expressions"
+
   trait DeprecatedParam[T <: AnyRef] {
     def key: String
     def lookup(params: java.util.Map[String, _], required: Boolean): T
@@ -199,25 +209,37 @@ object GeoMesaParam {
     case v => v
   }
 
-  def metadata(password: Boolean,
-               largeText: Boolean,
-               extension: String,
-               enumerations: Seq[AnyRef]): java.util.Map[String, AnyRef] = {
-    // presumably we wouldn't have any combinations of these...
+  def metadata(
+      password: Boolean,
+      largeText: Boolean,
+      extension: String,
+      enumerations: Seq[AnyRef],
+      supportsNiFiExpressions: Boolean): java.util.Map[String, AnyRef] = {
+    var opt: Option[java.util.Map[String, AnyRef]] = None
+    lazy val map = {
+      val m = new java.util.HashMap[String, AnyRef]
+      opt = Some(m) // note: side effect
+      m
+    }
     if (password) {
-      java.util.Collections.singletonMap(Parameter.IS_PASSWORD, java.lang.Boolean.TRUE)
-    } else if (largeText) {
-      java.util.Collections.singletonMap(Parameter.IS_LARGE_TEXT, java.lang.Boolean.TRUE)
-    } else if (extension != null) {
-      java.util.Collections.singletonMap(Parameter.EXT, extension)
-    } else if (enumerations.nonEmpty) {
+      map.put(Parameter.IS_PASSWORD, java.lang.Boolean.TRUE)
+    }
+    if (largeText) {
+      map.put(Parameter.IS_LARGE_TEXT, java.lang.Boolean.TRUE)
+    }
+    if (extension != null) {
+      map.put(Parameter.EXT, extension)
+    }
+    if (enumerations.nonEmpty) {
       // convert to a mutable java list, as geoserver tries to sort it in place
       val enums = new java.util.ArrayList[AnyRef](enumerations.length)
       enumerations.foreach(enums.add)
-      java.util.Collections.singletonMap(Parameter.OPTIONS, enums)
-    } else {
-      null
+      map.put(Parameter.OPTIONS, enums)
     }
+    if (supportsNiFiExpressions) {
+      map.put(SupportsNiFiExpressions, java.lang.Boolean.TRUE)
+    }
+    opt.map(Collections.unmodifiableMap[String,AnyRef]).orNull
   }
 
   private def parseDuration(text: String): Duration = DurationParsing.caseInsensitive(text)

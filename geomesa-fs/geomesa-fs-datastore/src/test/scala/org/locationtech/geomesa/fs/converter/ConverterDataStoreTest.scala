@@ -26,23 +26,41 @@ class ConverterDataStoreTest extends Specification {
 
   sequential
 
+  def fsConfig(converter: String, path: String): String = {
+    s"""
+      |<configuration>
+      |$converter
+      |  <property><name>fs.options.converter.path</name><value>$path</value></property>
+      |  <property><name>fs.partition-scheme.name</name><value>datetime</value></property>
+      |  <property><name>fs.partition-scheme.opts.datetime-format</name><value>yyyy/DDD/HH/mm</value></property>
+      |  <property><name>fs.partition-scheme.opts.step-unit</name><value>MINUTES</value></property>
+      |  <property><name>fs.partition-scheme.opts.step</name><value>15</value></property>
+      |  <property><name>fs.partition-scheme.opts.dtg-attribute</name><value>dtg</value></property>
+      |  <property><name>fs.partition-scheme.opts.leaf-storage</name><value>true</value></property>
+      |</configuration>
+      |""".stripMargin
+  }
+
+  def sftByName(name: String): String = {
+    s"""
+      |  <property><name>fs.options.sft.name</name><value>$name</value></property>
+      |  <property><name>fs.options.converter.name</name><value>$name</value></property>
+      |""".stripMargin
+  }
+
+  def sftByConf(conf: String): String = {
+    s"""
+      |  <property><name>fs.options.sft.conf</name><value>$conf</value></property>
+      |  <property><name>fs.options.converter.conf</name><value>$conf</value></property>
+      |""".stripMargin
+  }
+
   "ConverterDataStore" should {
     "work with one datastore" >> {
       val ds = DataStoreFinder.getDataStore(Map(
-        "fs.path"     -> this.getClass.getClassLoader.getResource("example").getFile,
-        "fs.encoding" -> "converter",
-        "fs.config"   ->
-          """
-            |fs.options.sft.name=fs-test
-            |fs.options.converter.name=fs-test
-            |fs.options.converter.path=datastore1
-            |fs.partition-scheme.name=datetime
-            |fs.partition-scheme.opts.datetime-format=yyyy/DDD/HH/mm
-            |fs.partition-scheme.opts.step-unit=MINUTES
-            |fs.partition-scheme.opts.step=15
-            |fs.partition-scheme.opts.dtg-attribute=dtg
-            |fs.partition-scheme.opts.leaf-storage=true
-          """.stripMargin
+        "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
+        "fs.encoding"   -> "converter",
+        "fs.config.xml" -> fsConfig(sftByName("fs-test"), "datastore1")
       ))
       ds must not(beNull)
 
@@ -61,20 +79,9 @@ class ConverterDataStoreTest extends Specification {
 
     "work with something else" >> {
       val ds = DataStoreFinder.getDataStore(Map(
-        "fs.path"     -> this.getClass.getClassLoader.getResource("example").getFile,
-        "fs.encoding" -> "converter",
-        "fs.config"   ->
-            """
-              |fs.options.sft.name=fs-test
-              |fs.options.converter.name=fs-test
-              |fs.options.converter.path=datastore2
-              |fs.partition-scheme.name=datetime
-              |fs.partition-scheme.opts.datetime-format=yyyy/DDD/HH/mm
-              |fs.partition-scheme.opts.step-unit=MINUTES
-              |fs.partition-scheme.opts.step=15
-              |fs.partition-scheme.opts.dtg-attribute=dtg
-              |fs.partition-scheme.opts.leaf-storage=true
-            """.stripMargin
+        "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
+        "fs.encoding"   -> "converter",
+        "fs.config.xml" -> fsConfig(sftByName("fs-test"), "datastore2")
       ))
       ds must not(beNull)
 
@@ -126,20 +133,9 @@ class ConverterDataStoreTest extends Specification {
       ).root().render(ConfigRenderOptions.concise)
 
       val ds = DataStoreFinder.getDataStore(Map(
-        "fs.path"     -> this.getClass.getClassLoader.getResource("example").getFile,
-        "fs.encoding" -> "converter",
-        "fs.config"   ->
-            s"""
-              |fs.options.sft.conf=$conf
-              |fs.options.converter.conf=$conf
-              |fs.options.converter.path=datastore1
-              |fs.partition-scheme.name=datetime
-              |fs.partition-scheme.opts.datetime-format=yyyy/DDD/HH/mm
-              |fs.partition-scheme.opts.step-unit=MINUTES
-              |fs.partition-scheme.opts.step=15
-              |fs.partition-scheme.opts.dtg-attribute=dtg
-              |fs.partition-scheme.opts.leaf-storage=true
-            """.stripMargin
+        "fs.path"       -> this.getClass.getClassLoader.getResource("example").getFile,
+        "fs.encoding"   -> "converter",
+        "fs.config.xml" -> fsConfig(sftByConf(conf), "datastore1")
       ))
 
       ds must not(beNull)
