@@ -56,5 +56,4 @@ object S3Index extends ConfiguredIndex {
     S3IndexKeySpace.supports(sft, attributes)
 
   override def defaults(sft: SimpleFeatureType): Seq[Seq[String]] = Seq.empty
-  }
 }
