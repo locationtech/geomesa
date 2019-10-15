@@ -87,6 +87,7 @@ io.github.azagniotov:dropwizard-metrics-cloudwatch	1.0.13	compile
 io.netty:netty-all	4.1.17.Final	compile
 io.netty:netty-buffer	4.1.17.Final	compile
 io.netty:netty-common	4.1.17.Final	compile
+io.sgr:s2-geometry-library-java	1.0.1	compile
 it.geosolutions.jaiext.affine:jt-affine	1.1.9	compile
 it.geosolutions.jaiext.algebra:jt-algebra	1.1.9	compile
 it.geosolutions.jaiext.bandcombine:jt-bandcombine	1.1.9	compile

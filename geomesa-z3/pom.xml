@@ -13,6 +13,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.sgr</groupId>
+            <artifactId>s2-geometry-library-java</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+        <dependency>
             <groupId>org.locationtech.sfcurve</groupId>
             <artifactId>sfcurve-zorder_${scala.binary.version}</artifactId>
             <version>0.2.0</version>

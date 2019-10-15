@@ -44,6 +44,7 @@ object SimpleFeatureTypes {
     val IndexVisibilityLevel  = "geomesa.visibility.level"
     val IndexXzPrecision      = "geomesa.xz.precision"
     val IndexZ3Interval       = "geomesa.z3.interval"
+    val S3_INTERVAL_KEY       = "geomesa.s3.interval"
     val IndexZShards          = "geomesa.z.splits"
     val Keywords              = "geomesa.keywords"
     val MixedGeometries       = "geomesa.mixed.geometries"

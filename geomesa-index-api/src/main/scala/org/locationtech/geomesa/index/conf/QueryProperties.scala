@@ -24,7 +24,16 @@ object QueryProperties {
   // decomposition is disabled by default
   val PolygonDecompMultiplier = SystemProperty("geomesa.query.decomposition.multiplier", "0")
   val PolygonDecompBits = SystemProperty("geomesa.query.decomposition.bits", "20")
-
+  
+  // S2 parameter configuration
+  val S2CoverConfig = SystemProperty("google.s2.coverer.config", "0,30,1,8")
+    .get.trim.split(",")
+    .map(item => item.toInt)
+  val S2MinLevel = S2CoverConfig(0)
+  val S2MaxLevel = S2CoverConfig(1)
+  val S2LevelMod = S2CoverConfig(2)
+  val S2MaxCells = S2CoverConfig(3)
+  
   // noinspection TypeAnnotation
   // allow for full table scans or preempt them due to size of data set
   val BlockFullTableScans = new SystemProperty("geomesa.scan.block-full-table", "false") {

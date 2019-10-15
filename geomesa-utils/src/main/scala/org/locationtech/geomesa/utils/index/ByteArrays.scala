@@ -257,6 +257,19 @@ object ByteArrays {
   }
 
   /**
+    * @author sunyabo 2019年8月2日 10:15
+    * @version V1.0
+    * Creates a byte array with a short and a long
+    */
+  def toS3Bytes(bin: Short, cellId: Long, offset: Long): Array[Byte] = {
+    val result = Array.ofDim[Byte](18)
+    writeShort(bin, result, 0)
+    writeLong(cellId, result, 2)
+    writeLong(offset, result, 10)
+    result
+  }
+
+  /**
     * Creates a byte array with a short and a long, preserving the sort order of the short for negative values
     *
     * @param bin time bin
