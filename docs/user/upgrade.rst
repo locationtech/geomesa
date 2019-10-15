@@ -145,6 +145,13 @@ data, **truncate the index table** first, then re-write all existing records:
       writer.close()
     }
 
+NiFi Processor Changes
+----------------------
+
+The GeoMesa NiFi processors have been refactored to support NiFi nar inheritance and as a first step towards supporting
+Java 11. Any existing processors will continue to work under the older version, as long as you don't delete the old
+GeoMesa nar file. However, you will need to create new processors in order to upgrade to 2.4.0.
+
 Distribution of Installation Bundles
 ------------------------------------
 
