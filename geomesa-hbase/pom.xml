@@ -12,10 +12,6 @@
 
     <packaging>pom</packaging>
 
-    <properties>
-        <protobuf.version>2.6.1</protobuf.version>
-    </properties>
-
     <modules>
         <module>geomesa-hbase-datastore</module>
         <module>geomesa-hbase-dist</module>
