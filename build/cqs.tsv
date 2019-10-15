@@ -26,7 +26,6 @@ com.google.guava:guava	14.0.1	compile
 com.google.guava:guava	17.0	compile
 com.google.guava:guava	18.0	compile
 com.google.protobuf:protobuf-java	2.5.0	compile
-com.google.protobuf:protobuf-java	2.6.1	compile
 com.h2database:h2	1.4.192	compile
 com.jayway.jsonpath:json-path	2.2.0	compile
 com.lmax:disruptor	3.3.0	compile
