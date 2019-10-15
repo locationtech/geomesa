@@ -13,6 +13,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>io.sgr</groupId>
+            <artifactId>s2-geometry-library-java</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+        <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-filter_${scala.binary.version}</artifactId>
         </dependency>

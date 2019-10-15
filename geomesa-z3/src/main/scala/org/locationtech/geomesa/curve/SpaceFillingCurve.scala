@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.curve
 
+import com.google.common.geometry.S2CellId
 import org.locationtech.sfcurve.IndexRange
 
 trait SpaceFillingCurve[T] {
@@ -77,6 +78,41 @@ trait SpaceTimeFillingCurve[T] {
              t: Seq[(Long, Long)],
              precision: Int = FullPrecision,
              maxRanges: Option[Int] = None): Seq[IndexRange]
+}
+
+/**
+  * @author sunyabo 2019/7/29 11:17
+  * @version V1.0
+  */
+trait S2SpaceFillingCurve[T] {
+
+  def index(x: Double, y: Double, lenient: Boolean = false): S2CellId
+
+  /**
+    * Gets google-s2 cellunion as ranges
+    * @return
+    */
+  def ranges(xy: Seq [(Double, Double, Double, Double)],
+             maxRanges: Option[Int]): Seq[S2CellId]
+}
+
+/**
+  * @author sunyabo 2019年8月1日 15:35
+  * @version V1.0
+  */
+trait S3SpaceFillingCurve[T] {
+
+  def time: Int
+
+  def index(x: Double, y: Double, lenient: Boolean = false): S2CellId
+
+  /**
+    * Gets google-s2 cellunion as ranges
+    * @return
+    */
+  def ranges(xy: Seq [(Double, Double, Double, Double)],
+             maxRanges: Option[Int]): Seq[S2CellId]
+
 }
 
 object SpaceFillingCurve {

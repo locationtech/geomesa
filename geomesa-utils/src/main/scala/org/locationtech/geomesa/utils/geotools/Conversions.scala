@@ -259,6 +259,12 @@ object RichSimpleFeatureType {
     }
     def setZ3Interval(i: TimePeriod): Unit = sft.getUserData.put(IndexZ3Interval, i.toString)
 
+    def getS3Interval: TimePeriod = userData[String](S3_INTERVAL_KEY) match {
+      case None    => TimePeriod.Week
+      case Some(i) => TimePeriod.withName(i.toLowerCase)
+    }
+    def setS3Interval(i: TimePeriod): Unit = sft.getUserData.put(S3_INTERVAL_KEY, i.toString)
+
     def getXZPrecision: Short = userData[String](IndexXzPrecision).map(_.toShort).getOrElse(XZSFC.DefaultPrecision)
     def setXZPrecision(p: Short): Unit = sft.getUserData.put(IndexXzPrecision, p.toString)
 

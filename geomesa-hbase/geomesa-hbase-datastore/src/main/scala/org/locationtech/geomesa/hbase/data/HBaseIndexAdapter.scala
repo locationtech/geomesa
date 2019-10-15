@@ -32,14 +32,16 @@ import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseDensityAggreg
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseStatsAggregator.HBaseStatsResultsToFeatures
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.{HBaseArrowAggregator, HBaseBinAggregator, HBaseDensityAggregator, HBaseStatsAggregator}
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, EmptyPlan, ScanPlan}
-import org.locationtech.geomesa.hbase.filters.{CqlTransformFilter, Z2HBaseFilter, Z3HBaseFilter}
+import org.locationtech.geomesa.hbase.filters._
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
-import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWriter}
+import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{WritableFeature, _}
-import org.locationtech.geomesa.index.filters.{Z2Filter, Z3Filter}
+import org.locationtech.geomesa.index.filters.{S2Filter, S3Filter, Z2Filter, Z3Filter}
 import org.locationtech.geomesa.index.index.id.IdIndex
+import org.locationtech.geomesa.index.index.s2.{S2Index, S2IndexValues}
+import org.locationtech.geomesa.index.index.s3.{S3Index, S3IndexValues}
 import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexValues}
 import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
@@ -245,6 +247,15 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               (Z2HBaseFilter.Priority, Z2HBaseFilter(Z2Filter(v), index.keySpace.sharding.length))
             }
 
+          case _: S2Index =>
+            strategy.values.map { case v: S2IndexValues =>
+              (S2HBaseFilter.Priority, S2HBaseFilter(S2Filter(v), index.keySpace.sharding.length))
+            }
+
+          case _: S3Index =>
+            strategy.values.map { case v: S3IndexValues =>
+              (S3HBaseFilter.Priority, S3HBaseFilter(S3Filter(v), index.keySpace.sharding.length))
+            }
           // TODO GEOMESA-1807 deal with non-points in a pushdown XZ filter
 
           case _ => None
