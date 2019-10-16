@@ -56,7 +56,7 @@ class Z3IteratorTest extends Specification {
     val indexValues = new Z3IndexKeySpace(sft, NoShardStrategy, "geom", "dtg").getIndexValues(filter, ExplainNull)
 
     val iter = new Z3Iterator
-    iter.init(srcIter, Z3Iterator.configure(indexValues, hasSplits = false, isSharing = false, 25).getOptions, null)
+    iter.init(srcIter, Z3Iterator.configure(indexValues, 0, 25).getOptions, null)
 
     "iterate on points" >> {
       "keep in bounds values" >> {

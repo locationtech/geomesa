@@ -16,10 +16,6 @@ import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
-/**
-  * @author sunyabo 2019年08月01日 09:25
-  * @version V1.0
-  */
 class S3Index protected (ds: GeoMesaDataStore[_],
                          sft: SimpleFeatureType,
                          version: Int,
@@ -32,18 +28,9 @@ class S3Index protected (ds: GeoMesaDataStore[_],
   def this(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geomField: String, dtgField: String, mode: IndexMode) =
     this(ds, sft, S3Index.version, geomField, dtgField, mode)
 
-  /**
-    * Primary key space used by this index
-    *
-    * @return
-    */
-  override def keySpace: IndexKeySpace[S3IndexValues, S3IndexKey] = new S3IndexKeySpace(sft, ZShardStrategy(sft), geom, dtg)
+  override val keySpace: IndexKeySpace[S3IndexValues, S3IndexKey] =
+    new S3IndexKeySpace(sft, ZShardStrategy(sft), geom, dtg)
 
-  /**
-    * Tiered key space beyond the primary one, if any
-    *
-    * @return
-    */
   override def tieredKeySpace: Option[IndexKeySpace[_, _]] = None
 }
 

@@ -9,49 +9,39 @@
 package org.locationtech.geomesa.curve
 
 import com.google.common.geometry._
+import org.locationtech.sfcurve.IndexRange
 
 import scala.collection.JavaConversions._
 
 /**
-  * s2 space-filling curve
-  *
-  * @author sunyabo 2019年07月26日 09:11
-  * @version V1.0
+  * S2 space-filling curve
   */
-class S2SFC(minLevel: Int, maxLevel: Int, levelMod: Int, maxCells: Int) extends S2SpaceFillingCurve[S2CellId] {
+class S2SFC(minLevel: Int, maxLevel: Int, levelMod: Int, maxCells: Int) extends SpaceFillingCurve[S2CellId] {
 
-  private val lonMin: Double = -180d
-  private val latMin: Double = -90d
-  private val lonMax: Double = 180d
-  private val latMax: Double = 90d
+  import S2SFC.{LatMax, LatMin, LonMax, LonMin}
 
   override def index(x: Double, y: Double, lenient: Boolean): S2CellId = {
-    try {
-      require(x >= lonMin && x <= lonMax && y >= latMin && y <= latMax,
-        s"Value(s) out of bounds ([$lonMin,$lonMax], [$latMin,$latMax]): $x, $y")
+    if (lenient) {
+      val bx = if (x < LonMin) { LonMin } else if (x > LonMax) { LonMax } else { x }
+      val by = if (y < LatMin) { LatMin } else if (y > LatMax) { LatMax } else { y }
+      S2CellId.fromLatLng(S2LatLng.fromDegrees(by, bx))
+    } else {
+      require(x >= LonMin && x <= LonMax && y >= LatMin && y <= LatMax,
+        s"Value(s) out of bounds ([$LonMin,$LonMax], [$LatMin,$LatMax]): $x, $y")
       S2CellId.fromLatLng(S2LatLng.fromDegrees(y, x))
-    } catch {
-      case _: IllegalArgumentException if lenient => lenientIndex(x, y)
     }
   }
 
-  protected def lenientIndex(x: Double, y: Double): S2CellId = {
-    val bx = if (x < lonMin) { lonMin } else if (x > lonMax) { lonMax } else { x }
-    val by = if (y < latMin) { latMin } else if (y > latMax) { latMax } else { y }
-    S2CellId.fromLatLng(S2LatLng.fromDegrees(by, bx))
-  }
+  override def ranges(
+      xy: Seq[(Double, Double, Double, Double)],
+      precision: Int,
+      maxRanges: Option[Int]): Seq[IndexRange] = {
 
-  /**
-    * get s2 cell union as ranges
-    * @return
-    */
-  override def ranges(xy: Seq [(Double, Double, Double, Double)],
-                      maxRanges: Option[Int]): Seq[S2CellId] = {
+    val lo = S2LatLng.fromDegrees(xy.head._2, xy.head._1)
+    val hi = S2LatLng.fromDegrees(xy.head._4, xy.head._3)
+    val rect = new S2LatLngRect(lo, hi)
 
-    val rect = new S2LatLngRect(S2LatLng.fromDegrees(xy.head._2, xy.head._1),
-      S2LatLng.fromDegrees(xy.head._4, xy.head._3))
-
-    val cover: S2RegionCoverer = new S2RegionCoverer
+    val cover = new S2RegionCoverer
     cover.setMinLevel(minLevel)
     cover.setMaxLevel(maxLevel)
     cover.setLevelMod(levelMod)
@@ -59,11 +49,26 @@ class S2SFC(minLevel: Int, maxLevel: Int, levelMod: Int, maxCells: Int) extends 
 
     val s2CellUnion = cover.getCovering(rect)
 
-    s2CellUnion.cellIds().toSeq
+    s2CellUnion.cellIds().toSeq.map(c => IndexRange(c.rangeMin().id(), c.rangeMax().id(), contained = true))
   }
+
+  override def invert(i: S2CellId): (Double, Double) = {
+    val latLon = i.toLatLng
+    (latLon.lngDegrees(), latLon.latDegrees())
+  }
+
+  // TODO remove from interface
+  override def lat: NormalizedDimension = ???
+  override def lon: NormalizedDimension = ???
 }
 
 object S2SFC {
+
+  private val LonMin: Double = -180d
+  private val LonMax: Double = 180d
+  private val LatMin: Double = -90d
+  private val LatMax: Double = 90d
+
   def apply(minLevel: Int, maxLevel: Int, levelMod: Int, maxCells: Int): S2SFC =
     new S2SFC(minLevel, maxLevel, levelMod, maxCells)
 }

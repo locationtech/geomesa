@@ -13,13 +13,11 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
-import org.locationtech.geomesa.curve.{BinnedTime, S3SFC}
+import org.locationtech.geomesa.curve.{BinnedTime, S2SFC}
 import org.locationtech.geomesa.filter.FilterValues
-import org.locationtech.geomesa.index.api
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
 import org.locationtech.geomesa.index.api.ShardStrategy.{NoShardStrategy, ZShardStrategy}
 import org.locationtech.geomesa.index.api._
-import org.locationtech.geomesa.index.conf.QueryHints.LOOSE_BBOX
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
 import org.locationtech.geomesa.index.utils.Explainer
@@ -29,7 +27,6 @@ import org.locationtech.jts.geom.{Geometry, Point}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 
 /**
@@ -50,13 +47,19 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
     s"Expected field $dtgField to have a date binding, but instead it has: " +
       sft.getDescriptor(dtgField).getType.getBinding.getSimpleName)
 
-  protected val sfc = S3SFC(QueryProperties.S2MinLevel, QueryProperties.S2MaxLevel,
-    QueryProperties.S2LevelMod, QueryProperties.S2MaxCells, sft.getS3Interval)
+  private val sfc =
+    S2SFC(
+      QueryProperties.S2MinLevel,
+      QueryProperties.S2MaxLevel,
+      QueryProperties.S2LevelMod,
+      QueryProperties.S2MaxCells
+    )
 
-  protected val geomIndex: Int = sft.indexOf(geomField)
-  protected val dtgIndex: Int = sft.indexOf(dtgField)
+  private val geomIndex: Int = sft.indexOf(geomField)
+  private val dtgIndex: Int = sft.indexOf(dtgField)
 
-  protected val timeToIndex: TimeToBinnedTime = BinnedTime.timeToBinnedTime(sft.getS3Interval)
+  private val timeToIndex: TimeToBinnedTime = BinnedTime.timeToBinnedTime(sft.getS3Interval)
+  private val maxTime = BinnedTime.maxOffset(sft.getS3Interval).toInt
 
   private val dateToIndex = BinnedTime.dateToBinnedTime(sft.getS3Interval)
   private val boundsToDates = BinnedTime.boundsToIndexableDates(sft.getS3Interval)
@@ -66,7 +69,7 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
     *
     * @return
     */
-  override def attributes: Seq[String] = Seq(geomField, dtgField)
+  override val attributes: Seq[String] = Seq(geomField, dtgField)
 
   /**
     * Length of an index key. If static (general case), will return a Right with the length. If dynamic,
@@ -74,14 +77,14 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
     *
     * @return
     */
-  override def indexKeyByteLength: Right[(Array[Byte], Int, Int) => Int, Int] = Right(10 + sharding.length)
+  override val indexKeyByteLength: Right[(Array[Byte], Int, Int) => Int, Int] = Right(14 + sharding.length)
 
   /**
     * Table sharing
     *
     * @return
     */
-  override def sharing: Array[Byte] = Array.empty
+  override val sharing: Array[Byte] = Array.empty
 
   /**
     * Index key from the attributes of a simple feature
@@ -92,8 +95,11 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
     * @param lenient if input values should be strictly checked, or normalized instead
     * @return
     */
-  override def toIndexKey(writable: WritableFeature, tier: Array[Byte],
-                          id: Array[Byte], lenient: Boolean): api.RowKeyValue[S3IndexKey] = {
+  override def toIndexKey(
+      writable: WritableFeature,
+      tier: Array[Byte],
+      id: Array[Byte],
+      lenient: Boolean): RowKeyValue[S3IndexKey] = {
     val geom = writable.getAttribute[Point](geomIndex)
     if (geom == null) {
       throw new IllegalArgumentException(s"Null geometry in feature ${writable.feature.getID}")
@@ -111,7 +117,7 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
     val bytes = Array.ofDim[Byte](shard.length + 14 + id.length)
 
     if (shard.isEmpty) {
-      ByteArrays.writeShort(b, bytes, 0)
+      ByteArrays.writeShort(b, bytes)
       ByteArrays.writeLong(s.id(), bytes, 2)
       ByteArrays.writeInt(t.toInt, bytes, 10)
       System.arraycopy(id, 0, bytes, 14, id.length)
@@ -140,7 +146,7 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
     // standardize the two key query arguments:  polygon and date-range
 
     val geometries: FilterValues[Geometry] = {
-      val extracted = extractGeometries(filter, geomField, intersect = true) // intersect since we have points
+      val extracted = extractGeometries(filter, geomField) // intersect since we have points
       if (extracted.nonEmpty) { extracted } else { FilterValues(Seq(WholeWorldPolygon)) }
     }
 
@@ -154,7 +160,7 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
 
     if (geometries.disjoint || intervals.disjoint) {
       explain("Disjoint geometries or dates extracted, short-circuiting to empty query")
-      return S3IndexValues(sfc, geometries, Seq.empty, intervals, Map.empty, Seq.empty)
+      return S3IndexValues(sfc, maxTime, geometries, Seq.empty, intervals, Map.empty, Seq.empty)
     }
 
     // compute our ranges based on the coarse bounds for our query
@@ -163,9 +169,6 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
       val bits = QueryProperties.PolygonDecompBits.toInt.get
       geometries.values.flatMap(GeometryUtils.bounds(_, multiplier, bits))
     }
-
-    val minTime = 0
-    val maxTime = sfc.time.toInt
 
     // calculate map of weeks to time intervals in that week
     val timesByBin = scala.collection.mutable.Map.empty[Short, Seq[(Int, Int)]].withDefaultValue(Seq.empty)
@@ -182,19 +185,19 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
           timesByBin(lb) ++= Seq((lt.toInt, ut.toInt))
         } else {
           timesByBin(lb) ++= Seq((lt.toInt, maxTime))
-          timesByBin(ub) ++= Seq((minTime, ut.toInt))
-          Range.inclusive(lb + 1, ub - 1).foreach(b => timesByBin(b.toShort) = sfc.wholePeriod)
+          timesByBin(ub) ++= Seq((0, ut.toInt))
+          Range.inclusive(lb + 1, ub - 1).foreach(b => timesByBin(b.toShort) = Seq((0, maxTime)))
         }
       } else if (interval.lower.value.isDefined) {
         timesByBin(lb) ++= Seq((lt.toInt, maxTime))
         unboundedBins += (((lb + 1).toShort, Short.MaxValue))
       } else if (interval.upper.value.isDefined) {
-        timesByBin(ub) ++= Seq((minTime, ut.toInt))
+        timesByBin(ub) ++= Seq((0, ut.toInt))
         unboundedBins += ((0, (ub - 1).toShort))
       }
     }
 
-    S3IndexValues(sfc, geometries, xy, intervals, timesByBin.toMap, unboundedBins.result())
+    S3IndexValues(sfc, maxTime, geometries, xy, intervals, timesByBin.toMap, unboundedBins.result())
   }
 
   /**
@@ -207,23 +210,18 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
     */
   override def getRanges(values: S3IndexValues, multiplier: Int): Iterator[ScanRange[S3IndexKey]] = {
 
-    val S3IndexValues(s3, _, xy, _, timesByBin, unboundedBins) = values
+    val S3IndexValues(s3, _, _, xy, _, timesByBin, unboundedBins) = values
 
     // note: `target` will always be Some, as ScanRangesTarget has a default value
     val target = QueryProperties.ScanRangesTarget.option.map { t =>
       math.max(1, if (timesByBin.isEmpty) { t.toInt } else { t.toInt / timesByBin.size } / multiplier)
     }
 
-    /*lazy val wholePeriodRanges = s3.wholePeriod*/
+    val s2CellId = s3.ranges(xy, -1, target)
 
-    val s2CellId = s3.ranges(xy, target)
-    import scala.collection.JavaConversions._
-    val bounded = timesByBin.iterator.flatMap { case (bin, times) => {
-      val s3ScanRanges = ListBuffer.empty[ScanRange[S3IndexKey]]
-      times.foreach(time => s2CellId.foreach(item=> s3ScanRanges
-        .add(BoundedRange(S3IndexKey(bin, item.rangeMin().id(), time._1),
-        S3IndexKey(bin, item.rangeMax().id(), time._2)))))
-      s3ScanRanges
+    val bounded = timesByBin.iterator.flatMap { case (bin, times) =>
+      times.flatMap { time =>
+        s2CellId.map(s => BoundedRange(S3IndexKey(bin, s.lower, time._1), S3IndexKey(bin, s.upper, time._2)))
       }
     }
 
@@ -246,19 +244,19 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
     * @param tier   will the ranges have tiered ranges appended, or not
     * @return
     */
-  override def getRangeBytes(ranges: Iterator[api.ScanRange[S3IndexKey]], tier: Boolean): Iterator[api.ByteRange] = {
-
+  override def getRangeBytes(ranges: Iterator[ScanRange[S3IndexKey]], tier: Boolean): Iterator[ByteRange] = {
     if (sharding.length == 0) {
       ranges.map {
         case BoundedRange(lo, hi) =>
-          BoundedByteRange(ByteArrays.toS3Bytes(lo.bin, lo.s, lo.offset),
-            ByteArrays.toS3Bytes(hi.bin, hi.s, hi.offset))
+          val lower = ByteArrays.toBytes(lo.bin, lo.s, lo.offset)
+          val upper = ByteArrays.toBytesFollowingPrefix(hi.bin, hi.s, hi.offset)
+          BoundedByteRange(lower, upper)
 
         case LowerBoundedRange(lo) =>
-          BoundedByteRange(ByteArrays.toS3Bytes(lo.bin, lo.s, lo.offset), ByteRange.UnboundedUpperRange)
+          BoundedByteRange(ByteArrays.toBytes(lo.bin, lo.s, lo.offset), ByteRange.UnboundedUpperRange)
 
         case UpperBoundedRange(hi) =>
-          BoundedByteRange(ByteRange.UnboundedLowerRange, ByteArrays.toS3Bytes(hi.bin, hi.s, hi.offset))
+          BoundedByteRange(ByteRange.UnboundedLowerRange, ByteArrays.toBytesFollowingPrefix(hi.bin, hi.s, hi.offset))
 
         case UnboundedRange(_) =>
           BoundedByteRange(ByteRange.UnboundedLowerRange, ByteRange.UnboundedUpperRange)
@@ -269,18 +267,18 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
     } else {
       ranges.flatMap {
         case BoundedRange(lo, hi) =>
-          val lower = ByteArrays.toS3Bytes(lo.bin, lo.s, lo.offset)
-          val upper = ByteArrays.toS3Bytes(hi.bin, hi.s, hi.offset)
+          val lower = ByteArrays.toBytes(lo.bin, lo.s, lo.offset)
+          val upper = ByteArrays.toBytesFollowingPrefix(hi.bin, hi.s, hi.offset)
           sharding.shards.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
 
         case LowerBoundedRange(lo) =>
-          val lower = ByteArrays.toS3Bytes(lo.bin, lo.s, lo.offset)
+          val lower = ByteArrays.toBytes(lo.bin, lo.s, lo.offset)
           val upper = ByteRange.UnboundedUpperRange
           sharding.shards.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
 
         case UpperBoundedRange(hi) =>
           val lower = ByteRange.UnboundedLowerRange
-          val upper = ByteArrays.toS3Bytes(hi.bin, hi.s, hi.offset)
+          val upper = ByteArrays.toBytesFollowingPrefix(hi.bin, hi.s, hi.offset)
           sharding.shards.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
 
         case UnboundedRange(_) =>
@@ -293,30 +291,20 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
   }
 
   /**
-    * Determines if the ranges generated by `getRanges` are sufficient to fulfill the query,
-    * or if additional filtering needs to be done
-    *
-    * @param config data store config
-    * @param values index values @see getIndexValues
-    * @param hints  query hints
-    * @return
-    */
-  override def useFullFilter(values: Option[S3IndexValues],
-                             config: Option[GeoMesaDataStoreFactory.GeoMesaDataStoreConfig],
-                             hints: Hints): Boolean = {
-
-    // if the user has requested strict bounding boxes, we apply the full filter
-    // if we have a complicated geometry predicate, we need to pass it through to be evaluated
-    // if we have unbounded dates, we need to pass them through as we don't have z-values for all periods
-
-    // if the spatial predicate is rectangular (e.g. a bbox), the index is fine enough that we
-    // don't need to apply the filter on top of it. this may cause some minor errors at extremely
-    // fine resolutions, but the performance is worth it
-    val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(config.forall(_.looseBBox))
-    def unboundedDates: Boolean = values.exists(_.temporalUnbounded.nonEmpty)
-    def complexGeoms: Boolean = values.exists(_.geometries.values.exists(g => !GeometryUtils.isRectangular(g)))
-    !looseBBox || unboundedDates || complexGeoms
-  }
+   * Determines if the ranges generated by `getRanges` are sufficient to fulfill the query,
+   * or if additional filtering needs to be done
+   *
+   * Because we have a tiered date index, we always need to use the full filter
+   *
+   * @param config data store config
+   * @param values index values @see getIndexValues
+   * @param hints  query hints
+   * @return
+   */
+  override def useFullFilter(
+      values: Option[S3IndexValues],
+      config: Option[GeoMesaDataStoreFactory.GeoMesaDataStoreConfig],
+      hints: Hints): Boolean = true
 }
 
 object S3IndexKeySpace extends IndexKeySpaceFactory[S3IndexValues, S3IndexKey]{

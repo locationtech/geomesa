@@ -34,6 +34,8 @@ import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.ColumnGroups
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
+import org.locationtech.geomesa.index.index.s2.{S2Index, S2IndexValues}
+import org.locationtech.geomesa.index.index.s3.{S3Index, S3IndexValues}
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index, Z2IndexValues}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
@@ -201,13 +203,19 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
           // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
           val indexIter = if (index.name == Z3Index.name) {
             strategy.values.toSeq.map { case v: Z3IndexValues =>
-              val hasSplits = index.keySpace.sharding.length > 0
-              val sharing = index.keySpace.sharing.nonEmpty
-              Z3Iterator.configure(v, hasSplits, sharing, ZIterPriority)
+              Z3Iterator.configure(v, index.keySpace.sharding.length + index.keySpace.sharing.length, ZIterPriority)
             }
           } else if (index.name == Z2Index.name) {
             strategy.values.toSeq.map { case v: Z2IndexValues =>
-              Z2Iterator.configure(v, index.keySpace.sharing.nonEmpty, ZIterPriority)
+              Z2Iterator.configure(v, index.keySpace.sharding.length + index.keySpace.sharing.length, ZIterPriority)
+            }
+          } else if (index.name == S3Index.name) {
+            strategy.values.toSeq.map { case v: S3IndexValues =>
+              S3Iterator.configure(v, index.keySpace.sharding.length, ZIterPriority)
+            }
+          } else if (index.name == S2Index.name) {
+            strategy.values.toSeq.map { case v: S2IndexValues =>
+              S2Iterator.configure(v, index.keySpace.sharding.length, ZIterPriority)
             }
           } else {
             Seq.empty

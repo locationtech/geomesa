@@ -11,8 +11,8 @@ package org.locationtech.geomesa.index
 import com.google.common.primitives.UnsignedBytes
 import org.geotools.data.Query
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer, TransformSimpleFeature}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore._
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWriter}
@@ -93,18 +93,14 @@ object TestGeoMesaDataStore {
         case BoundedByteRange(lo, hi) => TestRange(lo, hi)
       }
       val opts = if (strategy.index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
-      val transform = strategy.hints.getTransformSchema
-      val serializer = transform match {
-        case None    => KryoFeatureSerializer(strategy.index.sft, opts)
-        case Some(s) => new ProjectingKryoFeatureDeserializer(strategy.index.sft, s, opts)
-      }
-      val returnSchema = transform.getOrElse(strategy.index.sft)
-      val ecql = strategy.ecql.map(FastFilterFactory.optimize(returnSchema, _))
+      val serializer = KryoFeatureSerializer(strategy.index.sft, opts)
+      val ecql = strategy.ecql.map(FastFilterFactory.optimize(strategy.index.sft, _))
+      val transform = strategy.hints.getTransform
       val maxFeatures = strategy.hints.getMaxFeatures
       val sort = strategy.hints.getSortFields
       val project = strategy.hints.getProjection
 
-      TestQueryPlan(strategy.filter, tables, serializer, ranges, ecql, sort, maxFeatures, project, returnSchema)
+      TestQueryPlan(strategy.filter, tables, strategy.index.sft, serializer, ranges, ecql, transform, sort, maxFeatures, project)
     }
 
     override def createWriter(sft: SimpleFeatureType,
@@ -120,18 +116,24 @@ object TestGeoMesaDataStore {
   case class TestQueryPlan(
       filter: FilterStrategy,
       tables: scala.collection.Map[String, SortedSet[SingleRowKeyValue[_]]],
+      sft: SimpleFeatureType,
       serializer: SimpleFeatureSerializer,
       ranges: Seq[TestRange],
       ecql: Option[Filter],
+      transform: Option[(String, SimpleFeatureType)],
       sort: Option[Seq[(String, Boolean)]],
       maxFeatures: Option[Int],
-      projection: Option[QueryReferenceSystems],
-      returnSchema: SimpleFeatureType
+      projection: Option[QueryReferenceSystems]
     ) extends QueryPlan[TestGeoMesaDataStore] {
 
     override type Results = SimpleFeature
 
-    override val resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.identity(returnSchema)
+    private val attributes = transform.map { case (tdefs, tsft) =>
+      (tsft, TransformSimpleFeature.attributes(sft, tsft, tdefs))
+    }
+
+    override val resultsToFeatures: ResultsToFeatures[SimpleFeature] =
+      ResultsToFeatures.identity(transform.map(_._2).getOrElse(sft))
     override val reducer: Option[FeatureReducer] = None
 
     override def scan(ds: TestGeoMesaDataStore): CloseableIterator[SimpleFeature] = {
@@ -152,7 +154,11 @@ object TestGeoMesaDataStore {
               sf
             }
             if (ecql.forall(_.evaluate(feature))) {
-              Iterator.single(feature)
+              val result = attributes match {
+                case None => feature
+                case Some((tsft, a)) => new TransformSimpleFeature(tsft, a, feature)
+              }
+              Iterator.single(result)
             } else {
               Iterator.empty
             }
