@@ -22,5 +22,5 @@ class GeoMesaHBaseCallBack extends Callback[java.util.List[ByteString]] {
   def getResult: List[ByteString] = finalResult.toList
 
   override def update(region: Array[Byte], row: Array[Byte], result: java.util.List[ByteString]): Unit =
-    finalResult.addAll(result)
+    if (result != null) { finalResult.addAll(result) }
 }

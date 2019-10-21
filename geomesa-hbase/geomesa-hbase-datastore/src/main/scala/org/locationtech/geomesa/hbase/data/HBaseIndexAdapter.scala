@@ -27,6 +27,7 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, TableAvailabilityTimeout}
+import org.locationtech.geomesa.hbase.coprocessor.{AllCoprocessors, GeoMesaCoprocessor}
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.{HBaseArrowAggregator, HBaseBinAggregator, HBaseDensityAggregator, HBaseStatsAggregator}
 import org.locationtech.geomesa.hbase.coprocessor.{AllCoprocessors, CoprocessorConfig}
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, EmptyPlan, ScanPlan}
@@ -216,20 +217,21 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         ScanPlan(filter, tables, ranges, scans, resultsToFeatures)
       } else {
         lazy val returnSchema = transform.map(_._2).getOrElse(schema)
+        lazy val timeout = strategy.index.ds.config.queryTimeout.map(GeoMesaCoprocessor.timeout)
 
         val coprocessorConfig = if (hints.isDensityQuery) {
           val options = HBaseDensityAggregator.configure(schema, index, ecql, hints)
-          Some(CoprocessorConfig(options, HBaseDensityAggregator.bytesToFeatures))
+          Some(CoprocessorConfig(options ++ timeout, HBaseDensityAggregator.bytesToFeatures))
         } else if (hints.isArrowQuery) {
           val (options, reduce) = HBaseArrowAggregator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
-          Some(CoprocessorConfig(options, HBaseArrowAggregator.bytesToFeatures, reduce))
+          Some(CoprocessorConfig(options ++ timeout, HBaseArrowAggregator.bytesToFeatures, reduce))
         } else if (hints.isStatsQuery) {
           val options = HBaseStatsAggregator.configure(schema, index, ecql, hints)
           val reduce = StatsScan.reduceFeatures(returnSchema, hints) _
-          Some(CoprocessorConfig(options, HBaseStatsAggregator.bytesToFeatures, reduce))
+          Some(CoprocessorConfig(options ++ timeout, HBaseStatsAggregator.bytesToFeatures, reduce))
         } else if (hints.isBinQuery) {
           val options = HBaseBinAggregator.configure(schema, index, ecql, hints)
-          Some(CoprocessorConfig(options, HBaseBinAggregator.bytesToFeatures))
+          Some(CoprocessorConfig(options ++ timeout, HBaseBinAggregator.bytesToFeatures))
         } else {
           None
         }
