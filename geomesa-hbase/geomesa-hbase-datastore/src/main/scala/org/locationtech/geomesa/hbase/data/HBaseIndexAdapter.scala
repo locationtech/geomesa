@@ -25,7 +25,7 @@ import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.apache.hadoop.hbase.{Coprocessor, HColumnDescriptor, HTableDescriptor, TableName}
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, TableAvailabilityTimeout}
-import org.locationtech.geomesa.hbase.coprocessor.AllCoprocessors
+import org.locationtech.geomesa.hbase.coprocessor.{AllCoprocessors, GeoMesaCoprocessor}
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseArrowAggregator.HBaseArrowResultsToFeatures
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseBinAggregator.HBaseBinResultsToFeatures
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseDensityAggregator.HBaseDensityResultsToFeatures
@@ -266,24 +266,25 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
         val max = hints.getMaxFeatures
         val projection = hints.getProjection
+        lazy val timeout = strategy.index.ds.config.queryTimeout.map(GeoMesaCoprocessor.timeout)
 
         if (hints.isDensityQuery) {
           val options = HBaseDensityAggregator.configure(schema, index, ecql, hints)
           val results = new HBaseDensityResultsToFeatures()
-          CoprocessorPlan(filter, tables, ranges, cScan, options, results, None, max, projection)
+          CoprocessorPlan(filter, tables, ranges, cScan, options ++ timeout, results, None, max, projection)
         } else if (hints.isArrowQuery) {
           val (options, reducer) = HBaseArrowAggregator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
           val results = new HBaseArrowResultsToFeatures()
-          CoprocessorPlan(filter, tables, ranges, cScan, options, results, Some(reducer), max, projection)
+          CoprocessorPlan(filter, tables, ranges, cScan, options ++ timeout, results, Some(reducer), max, projection)
         } else if (hints.isStatsQuery) {
           val options = HBaseStatsAggregator.configure(schema, index, ecql, hints)
           val results = new HBaseStatsResultsToFeatures()
           val reducer = StatsScan.StatsReducer(returnSchema, hints)
-          CoprocessorPlan(filter, tables, ranges, cScan, options, results, Some(reducer), max, projection)
+          CoprocessorPlan(filter, tables, ranges, cScan, options ++ timeout, results, Some(reducer), max, projection)
         } else if (hints.isBinQuery) {
           val options = HBaseBinAggregator.configure(schema, index, ecql, hints)
           val results = new HBaseBinResultsToFeatures()
-          CoprocessorPlan(filter, tables, ranges, cScan, options, results, None, max, projection)
+          CoprocessorPlan(filter, tables, ranges, cScan, options ++ timeout, results, None, max, projection)
         } else {
           val filters = (cqlFilter ++ indexFilter).sortBy(_._1).map(_._2)
           val scans = configureScans(ranges, colFamily, filters, coprocessor = false)
