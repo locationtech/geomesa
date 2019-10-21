@@ -75,7 +75,7 @@ abstract class RowFilterIterator[T <: RowFilter](factory: RowFilterFactory[T])
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] = {
     val opts = factory.serializeToStrings(filter) + (RowFilterIterator.RowOffsetKey -> offset.toString)
-    val iter = getClass.getConstructor().newInstance()
+    val iter = getClass.newInstance() // note: requires default (zero-arg) constructor
     iter.init(source.deepCopy(env), opts.asJava, env)
     iter
   }
