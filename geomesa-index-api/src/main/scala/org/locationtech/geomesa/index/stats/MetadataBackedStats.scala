@@ -19,8 +19,6 @@ import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
-import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
-import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, MetadataSerializer, TableBasedMetadata}
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -217,9 +215,12 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
     val stAttributesBuilder = Seq.newBuilder[String]
     val indexedAttributesBuilder = Seq.newBuilder[String]
 
-    sft.getIndices.foreach {
-      case i if Seq(Z3Index, XZ3Index, Z2Index, XZ2Index).exists(_.name == i.name) => stAttributesBuilder ++= i.attributes
-      case i => i.attributes.headOption.foreach(indexedAttributesBuilder += _)
+    sft.getIndices.foreach { i =>
+      if (i.attributes.headOption.contains(sft.getGeomField)) {
+        stAttributesBuilder ++= i.attributes
+      } else {
+        i.attributes.headOption.foreach(indexedAttributesBuilder += _)
+      }
     }
 
     val stAttributes = stAttributesBuilder.result().distinct

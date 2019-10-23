@@ -10,13 +10,19 @@ package org.locationtech.geomesa.index.filters
 
 import java.nio.ByteBuffer
 
+import org.locationtech.geomesa.index.filters.RowFilter.RowFilterFactory
 import org.locationtech.geomesa.index.index.z3.Z3IndexValues
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.sfcurve.zorder.Z3
 
-class Z3Filter(val xy: Array[Array[Int]], val t: Array[Array[Array[Int]]], val minEpoch: Short, val maxEpoch: Short) {
+class Z3Filter(
+    val xy: Array[Array[Int]],
+    val t: Array[Array[Array[Int]]],
+    val minEpoch: Short,
+    val maxEpoch: Short
+  ) extends RowFilter {
 
-  def inBounds(buf: Array[Byte], offset: Int): Boolean = {
+  override def inBounds(buf: Array[Byte], offset: Int): Boolean = {
     val keyZ = ByteArrays.readLong(buf, offset + 2) // account for epoch - first 2 bytes
     pointInBounds(keyZ) && timeInBounds(ByteArrays.readShort(buf, offset), keyZ)
   }
@@ -57,7 +63,7 @@ class Z3Filter(val xy: Array[Array[Int]], val t: Array[Array[Array[Int]]], val m
   override def toString: String = Z3Filter.serializeToStrings(this).toSeq.sortBy(_._1).mkString(",")
 }
 
-object Z3Filter {
+object Z3Filter extends RowFilterFactory[Z3Filter] {
 
   private val RangeSeparator = ":"
   private val TermSeparator  = ";"
@@ -101,7 +107,7 @@ object Z3Filter {
     new Z3Filter(xy, t, minEpoch, maxEpoch)
   }
 
-  def serializeToBytes(filter: Z3Filter): Array[Byte] = {
+  override def serializeToBytes(filter: Z3Filter): Array[Byte] = {
     // 4 bytes for length plus 16 bytes for each xy val (4 ints)
     val xyLength = 4 + filter.xy.length * 16
     // 4 bytes for length, then per-epoch 4 bytes for length plus 8 bytes for each t val (2 ints)
@@ -128,7 +134,7 @@ object Z3Filter {
     buffer.array()
   }
 
-  def deserializeFromBytes(serialized: Array[Byte]): Z3Filter = {
+  override def deserializeFromBytes(serialized: Array[Byte]): Z3Filter = {
     val buffer = ByteBuffer.wrap(serialized)
 
     val xy = Array.fill(buffer.getInt())(Array.fill(4)(buffer.getInt))
@@ -144,7 +150,7 @@ object Z3Filter {
     new Z3Filter(xy, t, minEpoch, maxEpoch)
   }
 
-  def serializeToStrings(filter: Z3Filter): Map[String, String] = {
+  override def serializeToStrings(filter: Z3Filter): Map[String, String] = {
     val xy = filter.xy.map(bounds => bounds.mkString(RangeSeparator)).mkString(TermSeparator)
     val t = filter.t.map { bounds =>
       if (bounds == null) { "" } else {
@@ -160,7 +166,7 @@ object Z3Filter {
     )
   }
 
-  def deserializeFromStrings(serialized: scala.collection.Map[String, String]): Z3Filter = {
+  override def deserializeFromStrings(serialized: scala.collection.Map[String, String]): Z3Filter = {
     val xy = serialized(XYKey).split(TermSeparator).map(_.split(RangeSeparator).map(_.toInt))
     val t = serialized(TKey).split(EpochSeparator).map { bounds =>
       if (bounds.isEmpty) { null } else {
