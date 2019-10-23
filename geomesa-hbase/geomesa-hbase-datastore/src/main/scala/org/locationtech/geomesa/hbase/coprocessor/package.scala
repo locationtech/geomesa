@@ -23,13 +23,16 @@ import scala.collection.JavaConversions._
 
 package object coprocessor {
 
+  @deprecated
   val FILTER_OPT = "filter"
+  @deprecated
   val SCAN_OPT   = "scan"
 
   lazy val AllCoprocessors: Seq[Class[_ <: Coprocessor]] = Seq(
     classOf[GeoMesaCoprocessor]
   )
 
+  @deprecated
   def deserializeOptions(bytes: Array[Byte]): Map[String, String] = {
     val byteIn = new ByteArrayInputStream(bytes)
     val in = new ObjectInputStream(byteIn)
@@ -37,6 +40,7 @@ package object coprocessor {
     map
   }
 
+  @deprecated
   @throws[IOException]
   def serializeOptions(map: Map[String, String]): Array[Byte] = {
     val baos = new ByteArrayOutputStream
@@ -49,6 +53,7 @@ package object coprocessor {
     output
   }
 
+  @deprecated
   def getScanFromOptions(options: Map[String, String]): List[Scan] = {
     if (options.containsKey(SCAN_OPT)) {
       val decoded = org.apache.hadoop.hbase.util.Base64.decode(options(SCAN_OPT))
@@ -59,6 +64,7 @@ package object coprocessor {
     }
   }
 
+  @deprecated
   def getFilterListFromOptions(options: Map[String, String]): FilterList = {
     if (options.containsKey(FILTER_OPT)) {
       FilterList.parseFrom(Base64.decode(options(FILTER_OPT)))
