@@ -31,7 +31,7 @@ import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseDensityAggreg
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseStatsAggregator.HBaseStatsResultsToFeatures
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.{HBaseArrowAggregator, HBaseBinAggregator, HBaseDensityAggregator, HBaseStatsAggregator}
 import org.locationtech.geomesa.hbase.coprocessor.{AllCoprocessors, GeoMesaCoprocessor}
-import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, EmptyCoprocessorPlan, EmptyPlan, EmptyScanPlan, ScanPlan}
+import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, EmptyPlan, ScanPlan}
 import org.locationtech.geomesa.hbase.filters._
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
