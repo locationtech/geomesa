@@ -81,11 +81,15 @@ object HBaseQueryPlan {
   }
 
   // plan that will not actually scan anything
-  case class EmptyPlan(filter: FilterStrategy) extends HBaseQueryPlan {
+  case class EmptyPlan(
+      filter: FilterStrategy,
+      resultsToFeatures: CloseableIterator[Result] => CloseableIterator[SimpleFeature]
+    ) extends HBaseQueryPlan {
     override val tables: Seq[TableName] = Seq.empty
     override val ranges: Seq[Scan] = Seq.empty
     override val scans: Seq[Scan] = Seq.empty
-    override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
+    override def scan(ds: HBaseDataStore): CloseableIterator[SimpleFeature] =
+      resultsToFeatures(CloseableIterator.empty)
   }
 
   case class ScanPlan(filter: FilterStrategy,

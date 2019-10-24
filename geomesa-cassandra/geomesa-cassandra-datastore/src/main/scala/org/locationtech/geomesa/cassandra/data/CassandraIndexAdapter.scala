@@ -79,39 +79,36 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
 
     val QueryStrategy(filter, _, keyRanges, tieredKeyRanges, ecql, hints, _) = strategy
 
-    if (keyRanges.isEmpty) { EmptyPlan(filter) } else {
-      val ks = ds.session.getLoggedKeyspace
+    val serializer = KryoFeatureSerializer(strategy.index.sft, SerializationOptions.builder.`lazy`.withoutId.build)
+    val idSerializer = GeoMesaFeatureIndex.idFromBytes(strategy.index.sft)
 
+    val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
+    val transform: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] =
+      LocalQueryRunner.transform(strategy.index.sft, _, hints.getTransform, hints, hook)
+
+    val rowsToFeatures = (rows: CloseableIterator[Row]) => {
+      val features = rows.map { row =>
+        val fid = {
+          val bytes = row.get(FeatureIdColumnName, classOf[String]).getBytes(StandardCharsets.UTF_8)
+          idSerializer.apply(bytes, 0, bytes.length, null)
+        }
+        val sf = row.getBytes(SimpleFeatureColumnName)
+        val bytes = Array.ofDim[Byte](sf.limit())
+        sf.get(bytes)
+        serializer.deserialize(fid, bytes)
+      }
+      ecql match {
+        case None    => transform(features)
+        case Some(e) => transform(features.filter(e.evaluate))
+      }
+    }
+
+    if (keyRanges.isEmpty) { EmptyPlan(filter, rowsToFeatures) } else {
+      val ks = ds.session.getLoggedKeyspace
       val mapper = CassandraColumnMapper(strategy.index)
       val ranges = keyRanges.flatMap(mapper.select(_, tieredKeyRanges))
       val tables = strategy.index.getTablesForQuery(filter.filter)
-
       val statements = tables.flatMap(table => ranges.map(r => CassandraIndexAdapter.statement(ks, table, r.clauses)))
-
-      val serializer = KryoFeatureSerializer(strategy.index.sft, SerializationOptions.builder.`lazy`.withoutId.build)
-      val idSerializer = GeoMesaFeatureIndex.idFromBytes(strategy.index.sft)
-
-      val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
-      val transform: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] =
-        LocalQueryRunner.transform(strategy.index.sft, _, hints.getTransform, hints, hook)
-
-      val rowsToFeatures = (rows: CloseableIterator[Row]) => {
-        val features = rows.map { row =>
-          val fid = {
-            val bytes = row.get(FeatureIdColumnName, classOf[String]).getBytes(StandardCharsets.UTF_8)
-            idSerializer.apply(bytes, 0, bytes.length, null)
-          }
-          val sf = row.getBytes(SimpleFeatureColumnName)
-          val bytes = Array.ofDim[Byte](sf.limit())
-          sf.get(bytes)
-          serializer.deserialize(fid, bytes)
-        }
-        ecql match {
-          case None    => transform(features)
-          case Some(e) => transform(features.filter(e.evaluate))
-        }
-      }
-
       StatementPlan(filter, tables, statements, ds.config.queryThreads, ecql, rowsToFeatures)
     }
   }

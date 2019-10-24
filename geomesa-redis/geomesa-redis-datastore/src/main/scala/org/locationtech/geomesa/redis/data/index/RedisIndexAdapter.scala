@@ -58,35 +58,35 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
 
     val QueryStrategy(filter, byteRanges, _, _, ecql, hints, _) = strategy
 
-    if (byteRanges.isEmpty) { EmptyPlan(filter) } else {
+    val serializer = KryoFeatureSerializer.builder(strategy.index.sft).`lazy`.withUserData.withoutId.build()
+    val idFromBytes = GeoMesaFeatureIndex.idFromBytes(strategy.index.sft)
+
+    val visible = LocalQueryRunner.visible(Some(ds.config.authProvider))
+    val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
+    val transform: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] =
+      LocalQueryRunner.transform(strategy.index.sft, _, hints.getTransform, hints, hook)
+
+    val resultsToFeatures = (results: CloseableIterator[Array[Byte]]) => {
+      val features = results.map { bytes =>
+        // parse out the feature id and the serialized value from the concatenated row + value
+        val idStart = strategy.index.getIdOffset(bytes, 0, bytes.length)
+        val idLength = ByteArrays.readShort(bytes, idStart)
+        val id = idFromBytes(bytes, idStart + 2, idLength, null)
+        val valueStart = idStart + idLength + 2
+        serializer.deserialize(id, bytes, valueStart, bytes.length - valueStart)
+      }
+      ecql match {
+        case None    => transform(features.filter(visible))
+        case Some(e) => transform(features.filter(f => visible(f) && e.evaluate(f)))
+      }
+    }
+
+    if (byteRanges.isEmpty) { EmptyPlan(filter, resultsToFeatures) } else {
       val tables = strategy.index.getTablesForQuery(filter.filter)
       val ranges = if (strategy.index.isInstanceOf[IdIndex]) {
         byteRanges.map(RedisIndexAdapter.toRedisIdRange)
       } else {
         byteRanges.map(RedisIndexAdapter.toRedisRange)
-      }
-
-      val serializer = KryoFeatureSerializer.builder(strategy.index.sft).`lazy`.withUserData.withoutId.build()
-      val idFromBytes = GeoMesaFeatureIndex.idFromBytes(strategy.index.sft)
-
-      val visible = LocalQueryRunner.visible(Some(ds.config.authProvider))
-      val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
-      val transform: CloseableIterator[SimpleFeature] => CloseableIterator[SimpleFeature] =
-        LocalQueryRunner.transform(strategy.index.sft, _, hints.getTransform, hints, hook)
-
-      val resultsToFeatures = (results: CloseableIterator[Array[Byte]]) => {
-        val features = results.map { bytes =>
-          // parse out the feature id and the serialized value from the concatenated row + value
-          val idStart = strategy.index.getIdOffset(bytes, 0, bytes.length)
-          val idLength = ByteArrays.readShort(bytes, idStart)
-          val id = idFromBytes(bytes, idStart + 2, idLength, null)
-          val valueStart = idStart + idLength + 2
-          serializer.deserialize(id, bytes, valueStart, bytes.length - valueStart)
-        }
-        ecql match {
-          case None    => transform(features.filter(visible))
-          case Some(e) => transform(features.filter(f => visible(f) && e.evaluate(f)))
-        }
       }
 
       ZLexPlan(filter, tables, ranges, ds.config.pipeline, ecql, resultsToFeatures)
