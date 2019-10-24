@@ -12,7 +12,6 @@ import org.apache.kudu.client.{KuduPredicate, PartialRow}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.kudu.result.KuduResultAdapter
-import org.locationtech.geomesa.kudu.result.KuduResultAdapter.EmptyAdapter
 import org.locationtech.geomesa.kudu.utils.KuduBatchScan
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.SimpleFeature
@@ -45,14 +44,13 @@ object KuduQueryPlan {
   }
 
   // plan that will not actually scan anything
-  case class EmptyPlan(filter: FilterStrategy) extends KuduQueryPlan {
+  case class EmptyPlan(filter: FilterStrategy, adapter: KuduResultAdapter) extends KuduQueryPlan {
     override def tables: Seq[String] = Seq.empty
     override def ranges: Seq[(Option[PartialRow], Option[PartialRow])] = Seq.empty
     override def predicates: Seq[KuduPredicate] = Seq.empty
     override def ecql: Option[Filter] = None
     override def numThreads: Int = 0
-    override def adapter: KuduResultAdapter = EmptyAdapter
-    override def scan(ds: KuduDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
+    override def scan(ds: KuduDataStore): CloseableIterator[SimpleFeature] = adapter.adapt(CloseableIterator.empty)
   }
 
   case class ScanPlan(filter: FilterStrategy,

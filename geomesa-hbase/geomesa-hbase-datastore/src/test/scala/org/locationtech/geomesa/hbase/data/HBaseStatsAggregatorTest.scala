@@ -228,6 +228,12 @@ class HBaseStatsAggregatorTest extends HBaseTest with LazyLogging {
       val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
       minMaxStat.bounds mustEqual (22, 298)
     }
+
+    "handle empty queries with exact stats" >> {
+      val filter = "dtg > '2019-01-01T00:00:00.000Z' AND dtg < '2019-01-02T00:00:00.000Z' AND dtg > currentDate('-P1D')"
+      val calculated = ds.stats.getCount(sft, ECQL.toFilter(filter), exact = true)
+      calculated must beSome(0L)
+    }
   }
 
   def getQuery(statString: String, ecql: Option[String] = None): Query = {

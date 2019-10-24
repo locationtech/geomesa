@@ -95,19 +95,16 @@ class KuduIndexAdapter(ds: KuduDataStore) extends IndexAdapter[KuduDataStore] {
     val QueryStrategy(filter, _, keyRanges, tieredKeyRanges, _, hints, _) = strategy
     val index = filter.index
 
-    if (keyRanges.isEmpty) { EmptyPlan(filter) } else {
-      val mapper = KuduColumnMapper(index)
-      val ranges = mapper.toRowRanges(keyRanges, tieredKeyRanges)
+    val mapper = KuduColumnMapper(index)
+    val auths = ds.config.authProvider.getAuthorizations.asScala.map(_.getBytes(StandardCharsets.UTF_8))
 
+    // create push-down predicates and remove from the ecql where possible
+    val KuduFilter(predicates, ecql) = strategy.ecql.map(mapper.schema.predicate).getOrElse(KuduFilter(Seq.empty, None))
+
+    val adapter = KuduResultAdapter(index.sft, auths, ecql, hints)
+    if (keyRanges.isEmpty) { EmptyPlan(filter, adapter) } else {
       val tables = index.getTablesForQuery(filter.filter)
-
-      val auths = ds.config.authProvider.getAuthorizations.asScala.map(_.getBytes(StandardCharsets.UTF_8))
-
-      // create push-down predicates and remove from the ecql where possible
-      val KuduFilter(predicates, ecql) = strategy.ecql.map(mapper.schema.predicate).getOrElse(KuduFilter(Seq.empty, None))
-
-      val adapter = KuduResultAdapter(index.sft, auths, ecql, hints)
-
+      val ranges = mapper.toRowRanges(keyRanges, tieredKeyRanges)
       ScanPlan(filter, tables, ranges, predicates, ecql, adapter, ds.config.queryThreads)
     }
   }

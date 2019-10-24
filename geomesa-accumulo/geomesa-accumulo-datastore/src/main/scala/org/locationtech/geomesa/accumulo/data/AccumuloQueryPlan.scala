@@ -74,7 +74,10 @@ object AccumuloQueryPlan extends LazyLogging {
     Key.toPrintableString(k.getRow.getBytes, 0, k.getRow.getLength, k.getRow.getLength)
 
   // plan that will not actually scan anything
-  case class EmptyPlan(filter: FilterStrategy) extends AccumuloQueryPlan {
+  case class EmptyPlan(
+      filter: FilterStrategy,
+      override val reduce: Option[Reducer] = None
+    ) extends AccumuloQueryPlan {
     override val tables: Seq[String] = Seq.empty
     override val iterators: Seq[IteratorSetting] = Seq.empty
     override val ranges: Seq[org.apache.accumulo.core.data.Range] = Seq.empty

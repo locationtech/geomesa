@@ -138,77 +138,77 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
   override def createQueryPlan(strategy: QueryStrategy): AccumuloQueryPlan = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    if (strategy.ranges.isEmpty) { EmptyPlan(strategy.filter) } else {
-      val QueryStrategy(filter, byteRanges, _, _, ecql, hints, _) = strategy
-      val index = filter.index
-      // index api defines empty start/end for open-ended range - in accumulo, it's indicated with null
-      // index api defines start row inclusive, end row exclusive
-      val ranges = byteRanges.map {
-        case BoundedByteRange(start, end) =>
-            val startKey = if (start.length == 0) { null } else { new Key(new Text(start)) }
-            val endKey = if (end.length == 0) { null } else { new Key(new Text(end)) }
-            new Range(startKey, true, endKey, false)
+    val QueryStrategy(filter, byteRanges, _, _, ecql, hints, _) = strategy
+    val index = filter.index
+    // index api defines empty start/end for open-ended range - in accumulo, it's indicated with null
+    // index api defines start row inclusive, end row exclusive
+    val ranges = byteRanges.map {
+      case BoundedByteRange(start, end) =>
+          val startKey = if (start.length == 0) { null } else { new Key(new Text(start)) }
+          val endKey = if (end.length == 0) { null } else { new Key(new Text(end)) }
+          new Range(startKey, true, endKey, false)
 
-        case SingleRowByteRange(row) =>
-          new Range(new Text(row))
-      }
-      val numThreads = if (index.name == IdIndex.name) { ds.config.recordThreads } else { ds.config.queryThreads }
-      val tables = index.getTablesForQuery(filter.filter)
-      val (colFamily, schema) = {
-        val (cf, s) = groups.group(index.sft, hints.getTransformDefinition, ecql)
-        (Some(new Text(AccumuloIndexAdapter.mapColumnFamily(index)(cf))), s)
-      }
-
-      index match {
-        case i: AccumuloJoinIndex =>
-          i.createQueryPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
-
-        case _ =>
-          val (iter, eToF, reduce) = if (strategy.hints.isBinQuery) {
-            val iter = BinAggregatingIterator.configure(schema, index, ecql, hints)
-            (Seq(iter), BinAggregatingIterator.kvsToFeatures(), None)
-          } else if (strategy.hints.isArrowQuery) {
-            val (iter, reduce) = ArrowIterator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
-            (Seq(iter), ArrowIterator.kvsToFeatures(), Some(reduce))
-          } else if (strategy.hints.isDensityQuery) {
-            val iter = DensityIterator.configure(schema, index, ecql, hints)
-            (Seq(iter), DensityIterator.kvsToFeatures(), None)
-          } else if (strategy.hints.isStatsQuery) {
-            val iter = StatsIterator.configure(schema, index, ecql, hints)
-            val reduce = Some(StatsScan.reduceFeatures(schema, hints)(_))
-            (Seq(iter), StatsIterator.kvsToFeatures(), reduce)
-          } else {
-            val iter = FilterTransformIterator.configure(schema, index, ecql, hints).toSeq
-            (iter, AccumuloIndexAdapter.entriesToFeatures(index, hints.getReturnSft), None)
-          }
-
-          // configure additional iterators based on the index
-          // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
-          val indexIter = if (index.name == Z3Index.name) {
-            strategy.values.toSeq.map { case v: Z3IndexValues =>
-              val hasSplits = index.keySpace.sharding.length > 0
-              val sharing = index.keySpace.sharing.nonEmpty
-              Z3Iterator.configure(v, hasSplits, sharing, ZIterPriority)
-            }
-          } else if (index.name == Z2Index.name) {
-            strategy.values.toSeq.map { case v: Z2IndexValues =>
-              Z2Iterator.configure(v, index.keySpace.sharing.nonEmpty, ZIterPriority)
-            }
-          } else {
-            Seq.empty
-          }
-
-          // add the attribute-level vis iterator if necessary
-          val visIter = index.sft.getVisibilityLevel match {
-            case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(schema))
-            case _ => Seq.empty
-          }
-
-          val iters = iter ++ indexIter ++ visIter
-
-          BatchScanPlan(filter, tables, ranges, iters, colFamily, eToF, reduce, numThreads)
-      }
+      case SingleRowByteRange(row) =>
+        new Range(new Text(row))
     }
+    val numThreads = if (index.name == IdIndex.name) { ds.config.recordThreads } else { ds.config.queryThreads }
+    val tables = index.getTablesForQuery(filter.filter)
+    val (colFamily, schema) = {
+      val (cf, s) = groups.group(index.sft, hints.getTransformDefinition, ecql)
+      (Some(new Text(AccumuloIndexAdapter.mapColumnFamily(index)(cf))), s)
+    }
+
+    val qp = index match {
+      case i: AccumuloJoinIndex =>
+        i.createQueryPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
+
+      case _ =>
+        val (iter, eToF, reduce) = if (strategy.hints.isBinQuery) {
+          val iter = BinAggregatingIterator.configure(schema, index, ecql, hints)
+          (Seq(iter), BinAggregatingIterator.kvsToFeatures(), None)
+        } else if (strategy.hints.isArrowQuery) {
+          val (iter, reduce) = ArrowIterator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
+          (Seq(iter), ArrowIterator.kvsToFeatures(), Some(reduce))
+        } else if (strategy.hints.isDensityQuery) {
+          val iter = DensityIterator.configure(schema, index, ecql, hints)
+          (Seq(iter), DensityIterator.kvsToFeatures(), None)
+        } else if (strategy.hints.isStatsQuery) {
+          val iter = StatsIterator.configure(schema, index, ecql, hints)
+          val reduce = Some(StatsScan.reduceFeatures(schema, hints)(_))
+          (Seq(iter), StatsIterator.kvsToFeatures(), reduce)
+        } else {
+          val iter = FilterTransformIterator.configure(schema, index, ecql, hints).toSeq
+          (iter, AccumuloIndexAdapter.entriesToFeatures(index, hints.getReturnSft), None)
+        }
+
+        // configure additional iterators based on the index
+        // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
+        val indexIter = if (index.name == Z3Index.name) {
+          strategy.values.toSeq.map { case v: Z3IndexValues =>
+            val hasSplits = index.keySpace.sharding.length > 0
+            val sharing = index.keySpace.sharing.nonEmpty
+            Z3Iterator.configure(v, hasSplits, sharing, ZIterPriority)
+          }
+        } else if (index.name == Z2Index.name) {
+          strategy.values.toSeq.map { case v: Z2IndexValues =>
+            Z2Iterator.configure(v, index.keySpace.sharing.nonEmpty, ZIterPriority)
+          }
+        } else {
+          Seq.empty
+        }
+
+        // add the attribute-level vis iterator if necessary
+        val visIter = index.sft.getVisibilityLevel match {
+          case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(schema))
+          case _ => Seq.empty
+        }
+
+        val iters = iter ++ indexIter ++ visIter
+
+        BatchScanPlan(filter, tables, ranges, iters, colFamily, eToF, reduce, numThreads)
+    }
+
+    if (strategy.ranges.nonEmpty) { qp } else { EmptyPlan(strategy.filter, qp.reduce) }
   }
 
   override def createWriter(sft: SimpleFeatureType,

@@ -40,12 +40,16 @@ object CassandraQueryPlan {
 }
 
 // plan that will not actually scan anything
-case class EmptyPlan(filter: FilterStrategy) extends CassandraQueryPlan {
+case class EmptyPlan(
+    filter: FilterStrategy,
+    rowsToFeatures: CloseableIterator[Row] => CloseableIterator[SimpleFeature]
+  ) extends CassandraQueryPlan {
   override val tables: Seq[String] = Seq.empty
   override val ranges: Seq[Statement] = Seq.empty
   override val numThreads: Int = 0
   override val clientSideFilter: Option[Filter] = None
-  override def scan(ds: CassandraDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
+  override def scan(ds: CassandraDataStore): CloseableIterator[SimpleFeature] =
+    rowsToFeatures(CloseableIterator.empty)
 }
 
 case class StatementPlan(filter: FilterStrategy,

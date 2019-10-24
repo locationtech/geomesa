@@ -74,11 +74,15 @@ object RedisQueryPlan {
   }
 
   // plan that will not actually scan anything
-  case class EmptyPlan(filter: FilterStrategy) extends RedisQueryPlan {
+  case class EmptyPlan(
+      filter: FilterStrategy,
+      resultsToFeatures: CloseableIterator[Array[Byte]] => CloseableIterator[SimpleFeature]
+    ) extends RedisQueryPlan {
     override val tables: Seq[String] = Seq.empty
     override val ranges: Seq[BoundedByteRange] = Seq.empty
     override val ecql: Option[Filter] = None
-    override def scan(ds: RedisDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
+    override def scan(ds: RedisDataStore): CloseableIterator[SimpleFeature] =
+      resultsToFeatures(CloseableIterator.empty)
   }
 
   // uses zrangebylex
