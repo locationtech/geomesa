@@ -13,8 +13,8 @@ import java.util.Map.Entry
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Range, Value}
 import org.apache.hadoop.io.Text
-import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.AccumuloResultsToFeatures
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan._
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloIndexAdapter, AccumuloQueryPlan}
@@ -123,7 +123,7 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
 
     val transform = hints.getTransformSchema
 
-    if (hints.isBinQuery) {
+    val qp = if (hints.isBinQuery) {
       // check to see if we can execute against the index values
       if (indexSft.indexOf(hints.getBinTrackIdField) != -1 &&
           hints.getBinGeomField.forall(indexSft.indexOf(_) != -1) &&
@@ -232,6 +232,8 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
       // have to do a join against the record table
       createJoinPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
     }
+
+    if (ranges.nonEmpty) { qp } else { EmptyPlan(qp.filter, qp.reducer) }
   }
 
   /**

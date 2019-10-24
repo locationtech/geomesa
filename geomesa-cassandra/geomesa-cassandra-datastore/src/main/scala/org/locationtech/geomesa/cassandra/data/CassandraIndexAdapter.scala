@@ -81,26 +81,21 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
 
     val QueryStrategy(filter, _, keyRanges, tieredKeyRanges, ecql, hints, _) = strategy
 
-    if (keyRanges.isEmpty) { EmptyPlan(filter) } else {
-      val ks = ds.session.getLoggedKeyspace
+    val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
+    val reducer = Some(new LocalTransformReducer(strategy.index.sft, ecql, None, hints.getTransform, hints, hook))
 
+    if (keyRanges.isEmpty) { EmptyPlan(filter, reducer) } else {
       val mapper = CassandraColumnMapper(strategy.index)
       val ranges = keyRanges.flatMap(mapper.select(_, tieredKeyRanges))
       val tables = strategy.index.getTablesForQuery(filter.filter)
-      val threads = ds.config.queryThreads
-
+      val ks = ds.session.getLoggedKeyspace
       val statements = tables.flatMap(table => ranges.map(r => CassandraIndexAdapter.statement(ks, table, r.clauses)))
-
-      val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
-      val reducer = new LocalTransformReducer(strategy.index.sft, ecql, None, hints.getTransform, hints, hook)
-
       val rowsToFeatures = new CassandraResultsToFeatures(strategy.index, strategy.index.sft)
-
+      val threads = ds.config.queryThreads
       val sort = hints.getSortFields
       val max = hints.getMaxFeatures
       val project = hints.getProjection
-
-      StatementPlan(filter, tables, statements, threads, ecql, rowsToFeatures, Some(reducer), sort, max, project)
+      StatementPlan(filter, tables, statements, threads, ecql, rowsToFeatures, reducer, sort, max, project)
     }
   }
 

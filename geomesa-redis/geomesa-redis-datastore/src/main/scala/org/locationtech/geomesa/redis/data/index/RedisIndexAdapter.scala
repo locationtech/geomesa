@@ -62,25 +62,25 @@ class RedisIndexAdapter(ds: RedisDataStore) extends IndexAdapter[RedisDataStore]
 
     val QueryStrategy(filter, byteRanges, _, _, ecql, hints, _) = strategy
 
-    if (byteRanges.isEmpty) { EmptyPlan(filter) } else {
+    val reducer = {
+      val visible = Some(LocalQueryRunner.visible(Some(ds.config.authProvider)))
+      val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
+      Some(new LocalTransformReducer(strategy.index.sft, ecql, visible, hints.getTransform, hints, hook))
+    }
+
+    if (byteRanges.isEmpty) { EmptyPlan(filter, reducer) } else {
       val tables = strategy.index.getTablesForQuery(filter.filter)
       val ranges = if (strategy.index.isInstanceOf[IdIndex]) {
         byteRanges.map(RedisIndexAdapter.toRedisIdRange)
       } else {
         byteRanges.map(RedisIndexAdapter.toRedisRange)
       }
-
       val results = new RedisResultsToFeatures(strategy.index, strategy.index.sft)
-      val reducer = {
-        val visible = Some(LocalQueryRunner.visible(Some(ds.config.authProvider)))
-        val hook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
-        new LocalTransformReducer(strategy.index.sft, ecql, visible, hints.getTransform, hints, hook)
-      }
       val sort = hints.getSortFields
       val max = hints.getMaxFeatures
       val project = hints.getProjection
 
-      ZLexPlan(filter, tables, ranges, ds.config.pipeline, ecql, results, Some(reducer), sort, max, project)
+      ZLexPlan(filter, tables, ranges, ds.config.pipeline, ecql, results, reducer, sort, max, project)
     }
   }
 
