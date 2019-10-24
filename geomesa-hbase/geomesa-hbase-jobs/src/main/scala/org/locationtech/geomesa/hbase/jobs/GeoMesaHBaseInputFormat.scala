@@ -15,7 +15,7 @@ import org.apache.hadoop.hbase.client.{Result, Scan}
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable
 import org.apache.hadoop.hbase.mapreduce.{MultiTableInputFormat, TableInputFormat}
 import org.apache.hadoop.hbase.protobuf.ProtobufUtil
-import org.apache.hadoop.hbase.util.Base64
+import java.util.Base64
 import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.Query
@@ -107,7 +107,7 @@ object GeoMesaHBaseInputFormat {
     val scans = plan.scans.map { scan =>
       // need to set the table name in each scan
       scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, plan.tables.head.getName)
-      Base64.encodeBytes(ProtobufUtil.toScan(scan).toByteArray)
+      Base64.getEncoder.encodeToString(ProtobufUtil.toScan(scan).toByteArray)
     }
     conf.setStrings(MultiTableInputFormat.SCANS, scans: _*)
 

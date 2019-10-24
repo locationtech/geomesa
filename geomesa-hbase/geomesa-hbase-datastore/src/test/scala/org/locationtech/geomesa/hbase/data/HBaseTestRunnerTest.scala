@@ -39,15 +39,16 @@ class HBaseTestRunnerTest extends Specification with BeforeAfterAll with LazyLog
     new HBaseDataStoreTest,
     new HBaseDensityFilterTest,
     new HBaseStatsAggregatorTest,
-    new HBaseVisibilityTest,
     new HBasePartitioningTest,
     new HBaseBackCompatibilityTest
+    //new HBaseVisibilityTest
   )
 
   override def beforeAll(): Unit = {
     logger.info("Starting embedded hbase")
-    cluster.getConfiguration.set("hbase.superuser", "admin")
-    cluster.getConfiguration.set(CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY,
+    cluster.getConfiguration.set("hbase.superuser", "admin,hbase")
+    cluster.getConfiguration.set("hbase.localcluster.assign.random.ports", "true")
+     cluster.getConfiguration.set(CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY,
       classOf[GeoMesaCoprocessor].getCanonicalName)
     cluster.startMiniCluster(1)
     connection = cluster.getConnection

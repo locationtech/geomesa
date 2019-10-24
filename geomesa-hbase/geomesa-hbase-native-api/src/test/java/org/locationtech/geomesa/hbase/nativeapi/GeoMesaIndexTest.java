@@ -99,7 +99,7 @@ public class GeoMesaIndexTest {
     @BeforeClass
     public static void setup() throws Exception {
         testingUtil.getConfiguration().set("hbase.superuser", "admin");
-        testingUtil.getConfiguration().set("hfile.format.version", "3");
+        testingUtil.getConfiguration().set("hbase.localcluster.assign.random.ports", "true");
         testingUtil.startMiniCluster(1);
 
         adminUser = User.createUserForTesting(testingUtil.getConfiguration(), "admin", new String[] {"supergroup"});
