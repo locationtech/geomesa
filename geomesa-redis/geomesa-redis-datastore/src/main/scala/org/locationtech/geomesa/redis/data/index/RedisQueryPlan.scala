@@ -77,12 +77,11 @@ object RedisQueryPlan {
   }
 
   // plan that will not actually scan anything
-  case class EmptyPlan(filter: FilterStrategy) extends RedisQueryPlan {
+  case class EmptyPlan(filter: FilterStrategy, reducer: Option[FeatureReducer] = None) extends RedisQueryPlan {
     override val tables: Seq[String] = Seq.empty
     override val ranges: Seq[BoundedByteRange] = Seq.empty
     override val ecql: Option[Filter] = None
     override val resultsToFeatures: ResultsToFeatures[Array[Byte]] = ResultsToFeatures.empty
-    override val reducer: Option[FeatureReducer] = None
     override val sort: Option[Seq[(String, Boolean)]] = None
     override val maxFeatures: Option[Int] = None
     override val projection: Option[QueryReferenceSystems] = None

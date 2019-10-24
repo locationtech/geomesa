@@ -297,6 +297,12 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         }
       }
 
+      "handle empty queries with exact stats" >> {
+        val filter = "dtg > '2019-01-01T00:00:00.000Z' AND dtg < '2019-01-02T00:00:00.000Z' AND dtg > currentDate('-P1D')"
+        val calculated = ds.stats.getCount(sft, ECQL.toFilter(filter), exact = true)
+        calculated must beSome(0L)
+      }
+
       "estimate counts for spatial queries" >> {
         val filters = Seq("bbox(geom,0,0,10,5)", "bbox(geom,10,5,30,10)", "bbox(geom,0,0,30,10)",
           "bbox(geom,-30,-10,-5,0)", "dwithin(geom, POLYGON((0 0, 0 5, 5 7, 6 3, 0 0)), 100, meters)")
