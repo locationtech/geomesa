@@ -98,11 +98,11 @@ in other repositories. To include GeoMesa in your project, add the following rep
   </repository>
   <repository>
     <id>osgeo</id>
-    <url>http://download.osgeo.org/webdav/geotools</url>
+    <url>https://download.osgeo.org/webdav/geotools</url>
   </repository>
   <repository>
-    <id>conjars.org</id>
-    <url>http://conjars.org/repo</url>
+    <id>confluent</id>
+    <url>https://packages.confluent.io/maven/</url>
   </repository>
 </repositories>
 ```
