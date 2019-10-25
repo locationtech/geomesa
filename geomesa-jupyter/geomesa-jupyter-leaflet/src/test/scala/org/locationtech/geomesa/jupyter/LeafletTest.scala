@@ -36,6 +36,7 @@ class LeafletTest extends Specification {
           |     format: 'image/png',
           |     version: '1.1.1'
           |  }).getLayer('foo').addTo(map);
+          |
         """.stripMargin) must be equalTo rendered
     }
 
@@ -46,6 +47,17 @@ class LeafletTest extends Specification {
       println(rendered)
       s"L.polygon([[10.0,10.0],[11.0,10.0],[11.0,11.0],[10.0,11.0],[10.0,10.0]],${clean(StyleOptions().render)}).addTo(map);" must be equalTo rendered
     }
+
+  }
+
+  "L without path should include CDN links" >> {
+    val html = L.buildMap(Seq(), (0,0), 8, None)
+    html must contain(L.leafletCssCdn) and contain (L.leafletJsCdn) and contain (L.leafletWmsJsCdn)
+  }
+
+  "L with path should not include CDN links" >> {
+    val html = L.buildMap(Seq(), (0,0), 8, Some("js"))
+    html must not contain(L.leafletCssCdn) and not contain (L.leafletJsCdn) and not contain (L.leafletWmsJsCdn)
   }
 
 
