@@ -65,7 +65,7 @@ class S2IndexTest extends Specification with LazyLogging {
   }
 
 
-  // insert digit in the box to avoid comparison between doubles too close
+  // insert digits in the boxes to avoid comparison between doubles too close
   "S2Index" should {
     "return all features for inclusive filter" >> {
       val filter = "bbox(geom, 34.9, 54.9, 45.1, 75.1)" +
