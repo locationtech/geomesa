@@ -11,6 +11,7 @@ package org.locationtech.geomesa.index.index
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{Query, Transaction}
 import org.geotools.factory.Hints
+import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
@@ -19,7 +20,7 @@ import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.index.TestGeoMesaDataStore.{TestAttributeIndex, TestRange}
 import org.locationtech.geomesa.index.conf.QueryHints
-import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
+import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey}
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -132,17 +133,24 @@ class AttributeIndexTest extends Specification with LazyLogging {
     }
 
     "correctly set index ranges without a secondary key" in {
-      val spec = "name:String,age:Int,height:Float,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='attr:name'"
+      val spec = "name:String:index=true;geomesa.indices.enabled='attr'"
       val sft = SimpleFeatureTypes.createType(typeName, spec)
 
       val ds = new TestGeoMesaDataStore(true)
       ds.createSchema(sft)
 
       ds.manager.indices(sft) must haveLength(1)
-      ds.manager.indices(sft).flatMap(_.attributes) mustEqual Seq("name")
+      ds.manager.indices(sft).map(_.name) mustEqual Seq(AttributeIndex.Name)
 
       WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
-        features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        features.foreach { f =>
+          val toWrite = writer.next()
+          toWrite.setAttribute(0, f.getAttribute(0))
+          toWrite.getUserData.putAll(f.getUserData)
+          toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(f.getID)
+          toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+          writer.write()
+        }
       }
 
       val query = new Query(typeName, ECQL.toFilter("name = 'alice'"))
