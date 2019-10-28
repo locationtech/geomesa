@@ -142,7 +142,10 @@ class AttributeIndexTest extends Specification with LazyLogging {
       ds.manager.indices(sft).flatMap(_.attributes) mustEqual Seq("name")
 
       WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
-        features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        features.foreach { f =>
+          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
+          writer.write()
+        }
       }
 
       val query = new Query(typeName, ECQL.toFilter("name = 'alice'"))
