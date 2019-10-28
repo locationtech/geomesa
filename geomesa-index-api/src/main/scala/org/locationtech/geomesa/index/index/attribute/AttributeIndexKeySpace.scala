@@ -201,7 +201,7 @@ trait AttributeIndexKeySpace extends IndexKeySpace[AttributeIndexValues[Any], At
     import org.locationtech.geomesa.utils.index.ByteArrays.concat
 
     val bytes = ranges.map {
-      case SingleRowRange(row)   => SingleRowByteRange(lower(row))
+      case SingleRowRange(row)   => BoundedByteRange(lower(row), upper(row))
       case BoundedRange(lo, hi)  => BoundedByteRange(lower(lo), upper(hi))
       case PrefixRange(prefix)   => BoundedByteRange(lower(prefix, prefix = true), upper(prefix, prefix = true))
       case LowerBoundedRange(lo) => BoundedByteRange(lower(lo), upper(AttributeIndexKey(lo.i, null)))
@@ -212,7 +212,6 @@ trait AttributeIndexKeySpace extends IndexKeySpace[AttributeIndexValues[Any], At
 
     if (prefixes.isEmpty) { bytes } else {
       bytes.flatMap {
-        case SingleRowByteRange(row)  => prefixes.map(p => SingleRowByteRange(concat(p, row)))
         case BoundedByteRange(lo, hi) => prefixes.map(p => BoundedByteRange(concat(p, lo), concat(p, hi)))
       }
     }

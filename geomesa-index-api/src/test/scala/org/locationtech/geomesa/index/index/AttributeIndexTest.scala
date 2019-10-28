@@ -131,6 +131,26 @@ class AttributeIndexTest extends Specification with LazyLogging {
       results mustEqual Seq("bob")
     }
 
+    "correctly set index ranges without a secondary key" in {
+      val spec = "name:String,age:Int,height:Float,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='attr:name'"
+      val sft = SimpleFeatureTypes.createType(typeName, spec)
+
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      ds.manager.indices(sft) must haveLength(1)
+      ds.manager.indices(sft).flatMap(_.attributes) mustEqual Seq("name")
+
+      WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
+        features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+      }
+
+      val query = new Query(typeName, ECQL.toFilter("name = 'alice'"))
+      val result = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).map(_.getID).toList
+
+      result mustEqual Seq("alice")
+    }
+
     "handle functions" in {
       val ds = new TestGeoMesaDataStore(true)
       ds.createSchema(sft)
