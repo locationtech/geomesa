@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, Closeable}
 import java.nio.charset.StandardCharsets
 import java.security.PrivilegedExceptionAction
 
@@ -22,11 +22,14 @@ import org.apache.hadoop.security.UserGroupInformation
 import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{HBaseGeoMesaKeyTab, HBaseGeoMesaPrincipal}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsParam, ConfigsParam, ConnectionParam, ZookeeperParam}
-import org.locationtech.geomesa.utils.io.HadoopUtils
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils}
 
 object HBaseConnectionPool extends LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   private var userCheck: Option[User] = _
+  private var kerberosTicket: Option[Closeable] = None
 
   private val configs = Caffeine.newBuilder().build(
     new CacheLoader[(Option[String], Option[String], Option[String]), Configuration] {
@@ -65,8 +68,10 @@ object HBaseConnectionPool extends LazyLogging {
   )
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
-    import scala.collection.JavaConversions._
-    override def run(): Unit = connections.asMap().foreach(_._2.close())
+    override def run(): Unit = {
+      CloseWithLogging(kerberosTicket)
+      CloseWithLogging(connections.asMap().values().asScala)
+    }
   })
 
   /**
@@ -153,6 +158,10 @@ object HBaseConnectionPool extends LazyLogging {
       UserGroupInformation.loginUserFromKeytab(principal, keytab)
 
       logger.debug(s"Logged into Hadoop with user '${User.getCurrent}'")
+
+      if (kerberosTicket.isEmpty) {
+        kerberosTicket = Some(HadoopUtils.kerberosTicketRenewer())
+      }
     }
 
     userCheck = Option(User.getCurrent)
