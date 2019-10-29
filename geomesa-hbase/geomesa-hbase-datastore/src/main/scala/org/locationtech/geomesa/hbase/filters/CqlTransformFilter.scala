@@ -61,9 +61,6 @@ class CqlTransformFilter(delegate: DelegateFilter) extends FilterBase {
   override def transformCell(v: Cell): Cell = delegate.transformCell(v)
   override def toByteArray: Array[Byte] = CqlTransformFilter.serialize(delegate)
   override def toString: String = delegate.toString
-
-  //temporary used in test
-//  def serializingForTest() = serialize(delegate)
 }
 
 object CqlTransformFilter extends StrictLogging with SamplingIterator {
@@ -80,9 +77,6 @@ object CqlTransformFilter extends StrictLogging with SamplingIterator {
   @throws(classOf[DeserializationException])
   def parseFrom(pbBytes: Array[Byte]): org.apache.hadoop.hbase.filter.Filter =
     new CqlTransformFilter(deserialize(pbBytes))
-
-
-
 
   /**
     * Create a new filter. Typically, filters created by this method will just be serialized to bytes and sent
@@ -113,19 +107,16 @@ object CqlTransformFilter extends StrictLogging with SamplingIterator {
 
     val samplingOptions: Option[(Float, Option[String])] = hints.getSampling
 
-    val delegate = filter match {
-      case None if samplingOptions.isDefined && transform.isEmpty => new FilterDelegate(sft, index, feature, Filter.INCLUDE,samplingOptions)
-      case None if samplingOptions.isDefined => new FilterTransformDelegate(sft, index, feature, Filter.INCLUDE,samplingOptions)
-      case None => new TransformDelegate(sft, index, feature,samplingOptions)
-      case Some(f) if transform.isEmpty => new FilterDelegate(sft, index, feature, f,samplingOptions)
-      case Some(f) => new FilterTransformDelegate(sft, index, feature, f,samplingOptions)
+    val delegate = (filter, transform, samplingOptions) match {
+      case (None, None, Some(_))  => new FilterDelegate(sft, index, feature, Filter.INCLUDE, samplingOptions)
+      case (None, Some(_), Some(_)) => new FilterTransformDelegate(sft, index, feature, Filter.INCLUDE, samplingOptions)
+      case (Some(f), None , _) => new FilterDelegate(sft, index, feature, f, samplingOptions)
+      case (Some(f), Some(_), _) => new FilterTransformDelegate(sft, index, feature, f, samplingOptions)
+      case (None, Some(_), _) => new TransformDelegate(sft, index, feature, samplingOptions)
     }
 
     new CqlTransformFilter(delegate)
   }
-
-
-
 
   /**
     * Full serialization of the delegate filter
@@ -137,7 +128,7 @@ object CqlTransformFilter extends StrictLogging with SamplingIterator {
     val sftBytes = SimpleFeatureTypes.encodeType(delegate.sft, includeUserData = true).getBytes(StandardCharsets.UTF_8)
     val cqlBytes = delegate.filter.map(ECQL.toCQL(_).getBytes(StandardCharsets.UTF_8)).getOrElse(Array.empty)
     val indexBytes = delegate.index.identifier.getBytes(StandardCharsets.UTF_8)
-    val indexSftBytes= if (delegate.index == NullFeatureIndex ||delegate.index.sft == delegate.sft) { Array.empty[Byte] } else {
+    val indexSftBytes = if (delegate.index == NullFeatureIndex || delegate.index.sft == delegate.sft) { Array.empty[Byte] } else {
       SimpleFeatureTypes.encodeType(delegate.index.sft, includeUserData = true).getBytes(StandardCharsets.UTF_8)
     }
     val samplingFactor: Option[Float] = delegate.samplingOptions.map(s => s._1)
@@ -150,7 +141,7 @@ object CqlTransformFilter extends StrictLogging with SamplingIterator {
     delegate.transform match {
       case None =>
         val array = Array.ofDim[Byte](sftBytes.length + cqlBytes.length +
-            indexBytes.length + indexSftBytes.length + samplingFactorBytes.length + samplingFieldBytes.length + 4*7) //4 bytes (lenght info) per 7 fields
+            indexBytes.length + indexSftBytes.length + samplingFactorBytes.length + samplingFieldBytes.length + 4*7) //4 bytes (length info) per 7 fields
 
         var offset = 0
         ByteArrays.writeInt(sftBytes.length, array, offset)
@@ -209,7 +200,7 @@ object CqlTransformFilter extends StrictLogging with SamplingIterator {
         val tsftBytes = SimpleFeatureTypes.encodeType(tsft).getBytes(StandardCharsets.UTF_8)
 
         val array = Array.ofDim[Byte](sftBytes.length + cqlBytes.length + tdefsBytes.length + tsftBytes.length +
-            indexBytes.length + indexSftBytes.length +samplingFactorBytes.length + samplingFieldBytes.length + 4*8) //4 bytes (lenght info) per 8 fields
+            indexBytes.length + indexSftBytes.length +samplingFactorBytes.length + samplingFieldBytes.length + 4*8) //4 bytes (length info) per 8 fields
 
         var offset = 0
         ByteArrays.writeInt(sftBytes.length, array, offset)
@@ -354,15 +345,15 @@ object CqlTransformFilter extends StrictLogging with SamplingIterator {
     var samplingOption: Option[(Float,Option[String])]= Option.empty
 
     var offset = start
-    val factorLenght = ByteArrays.readInt(bytes, offset)
+    val factorLength = ByteArrays.readInt(bytes, offset)
     offset += 4
-    if(factorLenght != 0) {
-      val samplingFactor = ByteBuffer.wrap(bytes,offset,factorLenght).getFloat
-      offset+=factorLenght
-      val fieldNameLenght = ByteArrays.readInt(bytes, offset)
+    if(factorLength != 0) {
+      val samplingFactor = ByteBuffer.wrap(bytes,offset,factorLength).getFloat
+      offset+=factorLength
+      val fieldNameLength = ByteArrays.readInt(bytes, offset)
       offset+=4
-      if (fieldNameLenght!=0){
-        val fieldName = new String(bytes, offset, fieldNameLenght,StandardCharsets.UTF_8)
+      if (fieldNameLength!=0){
+        val fieldName = new String(bytes, offset, fieldNameLength,StandardCharsets.UTF_8)
         samplingOption = Option.apply((samplingFactor,Option.apply(fieldName)))
       }
       else {

@@ -16,9 +16,11 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.stats.CountStat
 import org.opengis.feature.simple.SimpleFeature
 
 class HBaseSamplingFilterTest extends HBaseTest with LazyLogging {
@@ -249,6 +251,23 @@ class HBaseSamplingFilterTest extends HBaseTest with LazyLogging {
           features must haveSize(4)
           features(0).getAttribute("dtg") must not beNull
         }
+
+        {
+          //check interaction with aggregations
+
+          val query = new Query(sft.getTypeName)
+          query.getHints.put(QueryHints.STATS_STRING, "Count()")
+          query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
+          query.getHints.put(QueryHints.SAMPLING, 0.1f)
+
+          val features = runQuery(query)
+
+          val stat:CountStat = StatsScan.decodeStat(sft)(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+                                  .next.getAttribute(0).asInstanceOf[String]).asInstanceOf[CountStat]
+
+          stat.count must beEqualTo(4)
+        }
+
 
       } finally {
         ds.dispose()

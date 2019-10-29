@@ -51,9 +51,6 @@ class CqlTransformFilterTest extends Specification with LazyLogging {
       val transformFeatureType = SimpleFeatureTypes.createType("cqlFilter", "name:String")
       val tranform = Option.apply(("name=name",transformFeatureType))
 
-
-
-
       val tsft = SimpleFeatureTypes.createType("", "name:String")
       val serializer = KryoFeatureSerializer.builder(tsft).withoutId.build()
       val wrapper = WritableFeature.wrapper(sft, new ColumnGroups())
@@ -68,21 +65,21 @@ class CqlTransformFilterTest extends Specification with LazyLogging {
 
 
       /**
-        * //code used for generatating base64 serialized filters. For using it temporary de-comment serializingForTest() and make NullFeatureIndex object public
+        * //code used for generatating base64 serialized filters. For using it temporary make NullFeatureIndex object public
         *
         *
         * //  CqlFilter[BBOX(geom, -55.0,45.0,-45.0,55.0)]
-        * val bytesFilter = CqlTransformFilter(featureType, NullFeatureIndex, Option.apply(ecqlFilter),Option.empty,new Hints()).serializingForTest()
+        * val bytesFilter = CqlTransformFilter(featureType, NullFeatureIndex, Option.apply(ecqlFilter),Option.empty,new Hints()).toByteArray
         * val base64Filter = Base64.encodeBytes(bytesFilter)
         * println(base64Filter)
         *
         * //  TransformFilter[name=name]
-        * val bytesTrasformer = CqlTransformFilter(featureType,NullFeatureIndex,Option.empty,tranform,new Hints()).serializingForTest()
+        * val bytesTrasformer = CqlTransformFilter(featureType,NullFeatureIndex,Option.empty,tranform,new Hints()).toByteArray
         * val base64Transformer = Base64.encodeBytes(bytesTrasformer)
         * println(base64Transformer)
         *
         * //  CqlTransformFilter[BBOX(geom, -55.0,45.0,-45.0,55.0), name=name]
-        * val bytesTransformFilter = CqlTransformFilter(featureType,NullFeatureIndex,Option.apply(ecqlFilter),tranform,new Hints()).serializingForTest()
+        * val bytesTransformFilter = CqlTransformFilter(featureType,NullFeatureIndex,Option.apply(ecqlFilter),tranform,new Hints()).toByteArray
         * val base64TransformerFilter = Base64.encodeBytes(bytesTransformFilter)
         * println(base64TransformerFilter)
         *
