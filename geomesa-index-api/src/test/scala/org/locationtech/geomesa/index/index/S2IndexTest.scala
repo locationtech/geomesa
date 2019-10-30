@@ -64,9 +64,11 @@ class S2IndexTest extends Specification with LazyLogging {
     execute(query)
   }
 
+
+  // insert digits in the boxes to avoid comparison between doubles too close
   "S2Index" should {
     "return all features for inclusive filter" >> {
-      val filter = "bbox(geom, 35, 55, 45, 75)" +
+      val filter = "bbox(geom, 34.9, 54.9, 45.1, 75.1)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val features = execute(filter)
       features must haveSize(10)
@@ -74,7 +76,7 @@ class S2IndexTest extends Specification with LazyLogging {
     }
 
     "return some features for exclusive geom filter" >> {
-      val filter = "bbox(geom, 35, 55, 45, 65)" +
+      val filter = "bbox(geom, 34.9, 54.9, 45.1, 65.1)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val features = execute(filter)
       features must haveSize(6)
@@ -82,7 +84,7 @@ class S2IndexTest extends Specification with LazyLogging {
     }
 
     "return some features for exclusive date filter" >> {
-      val filter = "bbox(geom, 35, 55, 45, 75)" +
+      val filter = "bbox(geom, 34.9, 54.9, 45.1, 75.1)" +
           " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val features = execute(filter)
       features must haveSize(4)
@@ -105,7 +107,7 @@ class S2IndexTest extends Specification with LazyLogging {
     }
 
     "apply secondary filters" >> {
-      val filter = "bbox(geom, 35, 55, 45, 75)" +
+      val filter = "bbox(geom, 34.9, 54.9, 45.1, 75.1)" +
           " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'" +
           " AND name = 'name8'"
       val features = execute(filter)
@@ -114,7 +116,7 @@ class S2IndexTest extends Specification with LazyLogging {
     }
 
     "apply transforms" >> {
-      val filter = "bbox(geom, 35, 55, 45, 75)" +
+      val filter = "bbox(geom, 34.9, 54.9, 45.1, 75.1)" +
           " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val features = execute(filter, Some(Array("name")))
       features must haveSize(4)
@@ -124,7 +126,7 @@ class S2IndexTest extends Specification with LazyLogging {
     }
 
     "apply functional transforms" >> {
-      val filter = "bbox(geom, 35, 55, 45, 75)" +
+      val filter = "bbox(geom, 34.9, 54.9, 45.1, 75.1)" +
           " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
       val features = execute(filter, Some(Array("derived=strConcat('my', name)")))
       features must haveSize(4)
