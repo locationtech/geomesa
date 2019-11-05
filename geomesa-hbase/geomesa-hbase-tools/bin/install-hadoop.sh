@@ -65,3 +65,4 @@ if [ -z "$(find -L $install_dir -maxdepth 1 -name 'guava-*' -print -quit)" ]; th
 fi
 
 downloadUrls "$install_dir" urls[@]
+
