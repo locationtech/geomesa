@@ -10,7 +10,6 @@
 package org.locationtech.geomesa.accumulo.data
 
 import java.util.Locale
-import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client._
@@ -45,7 +44,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.OverrideDtgJoin
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode, VisibilityLevel}
-import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.io.HadoopUtils.logger
+import org.locationtech.geomesa.utils.io.{CloseQuietly, HadoopUtils, WithClose}
 import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -72,26 +72,11 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   override val stats = AccumuloGeoMesaStats(this)
 
   // If on a secured cluster, create a thread to periodically renew Kerberos tgt
-  private val kerberosTgtRenewer: Option[ScheduledExecutorService] = {
+  private val kerberosTgtRenewer = {
     val enabled = try { UserGroupInformation.isSecurityEnabled } catch {
       case e: Throwable => logger.error("Error checking for hadoop security", e); false
     }
-    if (!enabled) { None } else {
-      val runnable = new Runnable {
-        override def run(): Unit = {
-          try {
-            logger.info(s"Checking whether TGT needs renewing for ${UserGroupInformation.getCurrentUser}")
-            logger.debug(s"Logged in from keytab? ${UserGroupInformation.getCurrentUser.isFromKeytab}")
-            UserGroupInformation.getCurrentUser.checkTGTAndReloginFromKeytab()
-          } catch {
-            case NonFatal(e) => logger.warn("Error checking and renewing TGT", e)
-          }
-        }
-      }
-      val executor = Executors.newSingleThreadScheduledExecutor()
-      executor.scheduleAtFixedRate(runnable, 0, 10, TimeUnit.MINUTES)
-      Some(executor)
-    }
+    if (enabled) { Some(HadoopUtils.kerberosTicketRenewer()) } else { None }
   }
 
   // some convenience operations
@@ -370,7 +355,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override def dispose(): Unit = {
     super.dispose()
-    kerberosTgtRenewer.foreach(_.shutdown())
+    CloseQuietly(kerberosTgtRenewer)
   }
 }
 
