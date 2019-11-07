@@ -115,7 +115,7 @@ class GeoCQEngine(val sft: SimpleFeatureType,
               RadixTreeIndex.onAttribute(new SimpleFeatureAttribute(classOf[String], sft, name))
 
           case GEOMETRY | DEFAULT if classOf[Geometry].isAssignableFrom(binding) =>
-              val attribute = new SimpleFeatureAttribute(classOf[Geometry], sft, name)
+              val attribute = new SimpleFeatureAttribute(binding.asInstanceOf[Class[Geometry]], sft, name)
               GeoIndex.onAttribute(sft, attribute, geomResolution._1, geomResolution._2)
 
           case DEFAULT if classOf[UUID].isAssignableFrom(binding) =>
