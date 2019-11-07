@@ -17,7 +17,6 @@ import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
-import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
@@ -162,7 +161,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
     // master auths is the superset of auths this connector/user can support
     val userName = User.getCurrent.getName
-    val masterAuths = VisibilityClient.getAuths(connection, userName).getAuthList.map(a => Bytes.toString(a.toByteArray))
+    val masterAuths = VisibilityClient.getAuths(connection, userName).getAuthList.map(_.toStringUtf8)
 
     // get the auth params passed in as a comma-delimited string
     val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filter(s => !s.isEmpty)
@@ -170,12 +169,18 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     // verify that the configured auths are valid for the connector we are using (fail-fast)
     val invalidAuths = configuredAuths.filterNot(masterAuths.contains)
     if (invalidAuths.nonEmpty) {
-      throw new IllegalArgumentException(s"The authorizations '${invalidAuths.mkString(",")}' " +
-        "are not valid for the HBase user and connection being used")
+      val msg = s"The authorizations '${invalidAuths.mkString("', '")}' are not valid for the HBase user '$userName'"
+      if (masterAuths.isEmpty) {
+        // looking up auths requires a system-level user - likely the user does not have permission
+        logger.warn(s"$msg. This may be due to the user not having permissions" +
+            " to read its own authorizations, in which case this warning can be ignored.")
+      } else {
+        throw new IllegalArgumentException(s"$msg. Available authorizations are: ${masterAuths.mkString(", ")}")
+      }
     }
 
     // if the caller provided any non-null string for authorizations, use it;
-    // otherwise, grab all authorizations to which the Accumulo user is entitled
+    // otherwise, grab all authorizations to which the user is entitled
     if (configuredAuths.length != 0 && forceEmptyAuths) {
       throw new IllegalArgumentException("Forcing empty auths is checked, but explicit auths are provided")
     }
