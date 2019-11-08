@@ -18,7 +18,7 @@ import com.googlecode.cqengine.index.unique.UniqueIndex
 import org.locationtech.jts.geom.Geometry
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
-import org.locationtech.geomesa.memory.cqengine.index.GeoIndex
+import org.locationtech.geomesa.memory.cqengine.index.AbstractGeoIndex
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
@@ -71,7 +71,7 @@ class CQIndexingOptionsTest extends Specification {
         }
       }
 
-      nameToIndex.get("Where") must beSome[AttributeIndex[_, SimpleFeature]](beAnInstanceOf[GeoIndex[Geometry, SimpleFeature]])
+      nameToIndex.get("Where") must beSome[AttributeIndex[_, SimpleFeature]](beAnInstanceOf[AbstractGeoIndex[Geometry, SimpleFeature]])
 
       // Who is a string field and the 'default' hint is used.  This should be a Radix index
       nameToIndex.get("Who")  must beSome[AttributeIndex[_, SimpleFeature]](beAnInstanceOf[RadixTreeIndex[String, SimpleFeature]])

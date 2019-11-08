@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.memory.cqengine.index;
 
 import com.googlecode.cqengine.attribute.Attribute;
+import org.locationtech.geomesa.memory.cqengine.index.param.BucketIndexParam;
 import org.locationtech.geomesa.utils.index.BucketIndex;
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex;
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex$;
@@ -18,20 +19,29 @@ import org.locationtech.jts.geom.Point;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Deprecated
-public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends AbstractGeoIndex<A, O> {
-    public GeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute) {
-        super(sft, attribute);
-    }
+import java.text.MessageFormat;
+import java.util.Optional;
 
-    @Deprecated
-    public GeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute, int xBuckets, int yBuckets) {
+public class BucketGeoIndex<A extends Geometry, O extends SimpleFeature> extends AbstractGeoIndex<A, O> {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BucketGeoIndex.class);
+
+    public BucketGeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute, Optional<BucketIndexParam> geoIndexParams) {
         super(sft, attribute);
         geomAttributeIndex = sft.indexOf(attribute.getAttributeName());
         AttributeDescriptor attributeDescriptor = sft.getDescriptor(geomAttributeIndex);
+
+        BucketIndexParam params = geoIndexParams.orElse(new BucketIndexParam());
+
+        int xBuckets = params.getxBuckets();
+        int yBuckets = params.getyBuckets();
+        LOGGER.debug(MessageFormat.format("Bucket Index in use :xBucket = {0}, yBucket={1}", xBuckets, yBuckets));
+
         if (attributeDescriptor.getType().getBinding() == Point.class) {
-            index = new BucketIndex<>(xBuckets, yBuckets, new Envelope(-180.0, 180.0, -90.0, 90.0));
+            index = new BucketIndex<>(xBuckets, params.getyBuckets(), new Envelope(-180.0, 180.0, -90.0, 90.0));
         } else {
             index = new SizeSeparatedBucketIndex<>(SizeSeparatedBucketIndex$.MODULE$.DefaultTiers(),
                     xBuckets / 360d,
@@ -39,16 +49,4 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
                     new Envelope(-180.0, 180.0, -90.0, 90.0));
         }
     }
-
-    @Deprecated
-    public static <A extends Geometry, O extends SimpleFeature> GeoIndex<A, O> onAttribute(SimpleFeatureType sft, Attribute<O, A> attribute) {
-        return (GeoIndex<A, O>) onAttribute(sft, attribute, 360, 180);
-    }
-
-    @Deprecated
-    public static <A extends Geometry, O extends SimpleFeature> GeoIndex<A, O> onAttribute(SimpleFeatureType sft, Attribute<O, A> attribute, int xBuckets, int yBuckets) {
-        return new GeoIndex<A, O>(sft, attribute, xBuckets, yBuckets);
-    }
-
-
 }

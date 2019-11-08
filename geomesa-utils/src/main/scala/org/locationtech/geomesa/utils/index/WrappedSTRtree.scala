@@ -8,20 +8,16 @@
 
 package org.locationtech.geomesa.utils.index
 
-import org.locationtech.jts.index.quadtree.Quadtree
+import org.locationtech.jts.index.strtree.STRtree
 
-import scala.collection.JavaConverters._
-
-/**
- * Spatial index wrapper for un-synchronized quad tree
- */
-class WrappedQuadtree[T] extends WrapperIndex[T,Quadtree](
-  indexBuider = () => new Quadtree()
-
+class WrappedSTRtree[T](nodeCapacity:Int) extends WrapperIndex[T,STRtree](
+  indexBuider = () => new STRtree(nodeCapacity)
 ) with Serializable {
 
-  override def query(): Iterator[T] =
-    index.queryAll().iterator.asScala.asInstanceOf[Iterator[(String, T)]].map(_._2)
+  def this()
+  {
+    this(10)
+  }
 
   override def size(): Int = index.size()
 
