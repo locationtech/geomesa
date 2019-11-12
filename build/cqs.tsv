@@ -2,7 +2,7 @@ asm:asm	3.1	compile
 com.adobe.xmp:xmpcore	5.1.2	compile
 com.beust:jcommander	1.48	compile
 com.carrotsearch:hppc	0.7.2	compile
-com.chuusai:shapeless_2.11	2.3.2	compile
+com.chuusai:shapeless_2.11	2.3.2-1	compile
 com.clearspring.analytics:stream	2.9.2	compile
 com.conversantmedia:disruptor	1.2.13	compile
 com.drewnoakes:metadata-extractor	2.8.1	compile
@@ -286,7 +286,7 @@ org.apache.hbase:hbase-testing-util	1.3.1	test
 org.apache.kafka:kafka_2.11	test:2.1.1	test
 org.apache.kafka:kafka-clients	test:2.1.1	test
 org.cassandraunit:cassandra-unit	2.2.2.1	test
-org.codehaus.groovy:groovy-jsr223	2.4.5	test
+org.codehaus.groovy:groovy-jsr2.3.2-1.4.5	test
 org.geotools:gt-geometry	20.0	test
 org.geotools.jdbc:gt-jdbc-h2	20.0	test
 org.jruby:jruby	9.0.4.0	test
