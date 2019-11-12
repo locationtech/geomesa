@@ -63,7 +63,7 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
     try {
       if (!controller.isCanceled) {
         val options = GeoMesaCoprocessor.deserializeOptions(request.getOptions.toByteArray)
-        val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong + System.currentTimeMillis())
+        val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong)
         val aggregator = {
           val classname = options(GeoMesaCoprocessor.AggregatorClass)
           Class.forName(classname).newInstance().asInstanceOf[HBaseAggregator[_]]
@@ -105,6 +105,8 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
       case e: IOException => ResponseConverter.setControllerException(controller, e)
       case NonFatal(e) => ResponseConverter.setControllerException(controller, new IOException(e))
     }
+
+    logger.debug(s"GeoMesa Coprocessors Results have total size ${results.map(_.length).sum}.  Individually they are size: ${results.map(_.length).mkString(",")}.")
 
     done.run(GeoMesaCoprocessorResponse.newBuilder.addAllPayload(results.map(ByteString.copyFrom).asJava).build)
   }
@@ -154,7 +156,7 @@ object GeoMesaCoprocessor extends LazyLogging {
    * @param millis milliseconds
    * @return
    */
-  def timeout(millis: Long): (String, String) = TimeoutOpt -> millis.toString
+  def timeout(millis: Long): (String, String) = TimeoutOpt -> (millis + System.currentTimeMillis()).toString
 
   /**
    * Closeable iterator implementation for invoking coprocessor rpcs
