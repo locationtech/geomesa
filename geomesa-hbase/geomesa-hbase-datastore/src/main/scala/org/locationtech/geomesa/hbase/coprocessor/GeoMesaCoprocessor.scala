@@ -64,7 +64,7 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
       val options = GeoMesaCoprocessor.deserializeOptions(request.getOptions.toByteArray)
       val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong)
 
-      if (!controller.isCanceled && timeout.exists(_ < System.currentTimeMillis())) {
+      if (!controller.isCanceled && timeout.forall(_ > System.currentTimeMillis())) {
         val options = GeoMesaCoprocessor.deserializeOptions(request.getOptions.toByteArray)
         val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong)
         val aggregator = {
