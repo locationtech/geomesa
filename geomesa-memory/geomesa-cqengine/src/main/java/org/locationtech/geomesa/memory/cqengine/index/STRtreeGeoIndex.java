@@ -14,7 +14,6 @@ import org.locationtech.geomesa.utils.index.WrappedSTRtree;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.feature.type.AttributeDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,14 +26,9 @@ public class STRtreeGeoIndex<A extends Geometry, O extends SimpleFeature> extend
 
     public STRtreeGeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute, Optional<STRtreeIndexParam> geoIndexParams) {
         super(sft, attribute);
-
-        geomAttributeIndex = sft.indexOf(attribute.getAttributeName());
-        AttributeDescriptor attributeDescriptor = sft.getDescriptor(geomAttributeIndex);
-
         STRtreeIndexParam stRtreeIndexParam = geoIndexParams.orElse(new STRtreeIndexParam());
         int nodeCapacity = stRtreeIndexParam.getNodeCapacity();
         LOGGER.debug(MessageFormat.format("STR Tree Index in use :nodeCapacity = {0}", nodeCapacity));
-
         index = new WrappedSTRtree<>(nodeCapacity);
     }
 }

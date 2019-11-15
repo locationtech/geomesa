@@ -15,7 +15,7 @@ import scala.collection.JavaConverters._
 
 class WrapperIndex[T, Index <: JSTSpatialIndex](val indexBuider : () => Index) extends SpatialIndex[T] with Serializable {
 
-  var index = indexBuider()
+  protected var index = indexBuider()
 
   override def insert(geom: Geometry, key: String, value: T): Unit = index.insert(geom.getEnvelopeInternal, (key, value))
 

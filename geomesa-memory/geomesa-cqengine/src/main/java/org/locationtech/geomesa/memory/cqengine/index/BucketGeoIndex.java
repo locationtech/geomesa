@@ -31,7 +31,6 @@ public class BucketGeoIndex<A extends Geometry, O extends SimpleFeature> extends
 
     public BucketGeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute, Optional<BucketIndexParam> geoIndexParams) {
         super(sft, attribute);
-        geomAttributeIndex = sft.indexOf(attribute.getAttributeName());
         AttributeDescriptor attributeDescriptor = sft.getDescriptor(geomAttributeIndex);
 
         BucketIndexParam params = geoIndexParams.orElse(new BucketIndexParam());

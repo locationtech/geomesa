@@ -72,8 +72,8 @@ class GeoCQEngineIndexChoiseTest extends Specification with LazyLogging {
     val lastIndexUsed = GeoCQEngine.getLastIndexUsed()
     if (spatialIndex.isDefined) {
       val expected = spatialIndex.get
-      lastIndexUsed must not(beNull)
-      lastIndexUsed.getClass must equalTo(expected)
+      lastIndexUsed.nonEmpty must beTrue
+      lastIndexUsed.get.getClass must equalTo(expected)
     }
 
     // since GT count is (presumably) correct

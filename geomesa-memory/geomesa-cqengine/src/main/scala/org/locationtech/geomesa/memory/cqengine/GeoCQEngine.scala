@@ -162,27 +162,24 @@ class GeoCQEngine(val sft: SimpleFeatureType,
 
 object GeoCQEngine {
 
-  private var lastIndexUsed: ThreadLocal[SpatialIndex[_ <: SimpleFeature]] = null
+  private val lastIndexUsed : Option[ThreadLocal[SpatialIndex[_ <: SimpleFeature]]] =
+    sys.props.get("GeoCQEngineDebugEnabled").collect {
+      case e if e.toBoolean => new ThreadLocal[SpatialIndex[_ <: SimpleFeature]]
+    }
 
-  var isDebugEnabled = false
-
-  if ("true".equals(System.getProperty("GeoCQEngineDebugEnabled"))) {
-    lastIndexUsed = new ThreadLocal[SpatialIndex[_ <: SimpleFeature]]
-    isDebugEnabled = true
-  }
+  def isDebugEnabled(): Boolean = lastIndexUsed.nonEmpty
 
   def setLastIndexUsed(spatialIndex: SpatialIndex[_ <: SimpleFeature]) = {
-    if (!isDebugEnabled) {
+    if (lastIndexUsed.isEmpty) {
       throw new UnsupportedOperationException("GeoCQEngineDebugEnabled = false, debug mode disabled")
     }
-    lastIndexUsed.set(spatialIndex)
-
+    lastIndexUsed.foreach(_.set(spatialIndex))
   }
 
-  def getLastIndexUsed(): SpatialIndex[_ <: SimpleFeature] = {
-    if (!isDebugEnabled) {
+  def getLastIndexUsed(): Option[SpatialIndex[_ <: SimpleFeature]] = {
+    if (lastIndexUsed.isEmpty) {
       throw new UnsupportedOperationException("GeoCQEngineDebugEnabled = false, debug mode disabled")
     }
-    return lastIndexUsed.get()
+    return lastIndexUsed.map(_.get())
   }
 }

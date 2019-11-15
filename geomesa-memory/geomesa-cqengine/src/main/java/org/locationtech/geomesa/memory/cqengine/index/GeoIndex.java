@@ -28,9 +28,8 @@ public class GeoIndex<A extends Geometry, O extends SimpleFeature> extends Abstr
     @Deprecated
     public GeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute, int xBuckets, int yBuckets) {
         super(sft, attribute);
-        geomAttributeIndex = sft.indexOf(attribute.getAttributeName());
-        AttributeDescriptor attributeDescriptor = sft.getDescriptor(geomAttributeIndex);
-        if (attributeDescriptor.getType().getBinding() == Point.class) {
+        AttributeDescriptor geomAttributeDescriptor = sft.getDescriptor(geomAttributeIndex);
+        if (geomAttributeDescriptor.getType().getBinding() == Point.class) {
             index = new BucketIndex<>(xBuckets, yBuckets, new Envelope(-180.0, 180.0, -90.0, 90.0));
         } else {
             index = new SizeSeparatedBucketIndex<>(SizeSeparatedBucketIndex$.MODULE$.DefaultTiers(),

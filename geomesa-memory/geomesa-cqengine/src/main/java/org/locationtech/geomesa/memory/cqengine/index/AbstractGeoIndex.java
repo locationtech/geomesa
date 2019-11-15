@@ -40,7 +40,7 @@ public abstract class AbstractGeoIndex<A extends Geometry, O extends SimpleFeatu
     private static final int INDEX_RETRIEVAL_COST = 40;
 
     protected SpatialIndex<O> index;
-    protected int geomAttributeIndex;
+    protected final int geomAttributeIndex;
 
     static Set<Class<? extends Query>> supportedQueries = new HashSet<Class<? extends Query>>() {{
         add(Intersects.class);
@@ -48,6 +48,7 @@ public abstract class AbstractGeoIndex<A extends Geometry, O extends SimpleFeatu
 
     AbstractGeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute) {
         super(attribute, supportedQueries);
+        geomAttributeIndex = sft.indexOf(attribute.getAttributeName());
     }
 
 
