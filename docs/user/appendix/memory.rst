@@ -61,3 +61,11 @@ Sample usage
 
     // clear the cache
     cq.clear()
+
+You can also choose the geometry index type. By default a Bucket index is used that provides better performance in case of frequent inserts or updates. In the case of you need to search inside a immutable (or with few variation) collection of data you can use the QuadTree or the SRTtree index.
+To do that you must create the GeoCqEngine as in the following:
+
+.. code-block:: scala
+
+   val cq1 = new GeoCQEngine(featureType, Seq(("Who", CQIndexType.DEFAULT), ("Where", CQIndexType.GEOMETRY)),geoIndexType = GeoIndexType.STRtree,geoIndexParam = Option.apply(new STRtreeIndexParam(/*nodeCapacity*/10)))
+   val cq2 = new GeoCQEngine(featureType, Seq(("Who", CQIndexType.DEFAULT), ("Where", CQIndexType.GEOMETRY)),geoIndexType = GeoIndexType.QuadTree)
