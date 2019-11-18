@@ -29,8 +29,8 @@ class GeoMesaFeatureReader private (sft: SimpleFeatureType, qp: QueryRunner, que
     extends SimpleFeatureReader with ManagedQuery {
 
   private val closed = new AtomicBoolean(false)
-  private val cancel = timeout.map(_ => ThreadManagement.register(this))
   private val iter = runQuery()
+  private val cancel = timeout.map(_ => ThreadManagement.register(this))
 
   override def hasNext: Boolean = iter.hasNext
 

@@ -18,12 +18,10 @@ import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
-  * @author sunyabo 2019年07月29日 8:23
-  * @version V1.0
   * @param ds data store
   * @param sft simple feature type stored in this index
   * @param version version of the index
-  * @param geom
+  * @param geom geom attribute to index
   * @param mode mode of the index (read/write/both)
   */
 class S2Index protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType,

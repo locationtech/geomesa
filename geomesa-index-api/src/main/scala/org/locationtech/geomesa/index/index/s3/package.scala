@@ -10,14 +10,10 @@ package org.locationtech.geomesa.index.index
 
 import java.time.ZonedDateTime
 
-import org.locationtech.geomesa.curve.S3SFC
+import org.locationtech.geomesa.curve.S2SFC
 import org.locationtech.geomesa.filter.{Bounds, FilterValues}
 import org.locationtech.jts.geom.Geometry
 
-/**
-  * @author sunyabo 2019年08月01日 09:25
-  * @version V1.0
-  */
 package object s3 {
 
   case class S3IndexKey(bin: Short, s: Long, offset: Int) extends Ordered[S3IndexKey] {
@@ -29,10 +25,12 @@ package object s3 {
     }
   }
 
-  case class S3IndexValues(sfc: S3SFC,
-                           geometries: FilterValues[Geometry],
-                           spatialBounds: Seq[(Double, Double, Double, Double)],
-                           intervals: FilterValues[Bounds[ZonedDateTime]],
-                           temporalBounds: Map[Short, Seq[(Int, Int)]],
-                           temporalUnbounded: Seq[(Short, Short)])
+  case class S3IndexValues(
+      sfc: S2SFC,
+      maxTime: Int,
+      geometries: FilterValues[Geometry],
+      spatialBounds: Seq[(Double, Double, Double, Double)],
+      intervals: FilterValues[Bounds[ZonedDateTime]],
+      temporalBounds: Map[Short, Seq[(Int, Int)]],
+      temporalUnbounded: Seq[(Short, Short)])
 }

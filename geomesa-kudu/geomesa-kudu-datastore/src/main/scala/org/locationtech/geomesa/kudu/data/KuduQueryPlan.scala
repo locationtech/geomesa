@@ -50,19 +50,19 @@ object KuduQueryPlan {
   }
 
   // plan that will not actually scan anything
-  case class EmptyPlan(filter: FilterStrategy) extends KuduQueryPlan {
+  case class EmptyPlan(filter: FilterStrategy, adapter: KuduResultAdapter = EmptyAdapter) extends KuduQueryPlan {
     override def tables: Seq[String] = Seq.empty
     override def ranges: Seq[(Option[PartialRow], Option[PartialRow])] = Seq.empty
     override def predicates: Seq[KuduPredicate] = Seq.empty
     override def ecql: Option[Filter] = None
     override def numThreads: Int = 0
-    override def adapter: KuduResultAdapter = EmptyAdapter
-    override def resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.empty
+    // TODO results to features and reducing are done in the kudu result adapter
+    override def resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.identity(adapter.result)
     override def reducer: Option[FeatureReducer] = None
     override def sort: Option[Seq[(String, Boolean)]] = None
     override def maxFeatures: Option[Int] = None
     override def projection: Option[QueryReferenceSystems] = None
-    override def scan(ds: KuduDataStore): CloseableIterator[SimpleFeature] = CloseableIterator.empty
+    override def scan(ds: KuduDataStore): CloseableIterator[SimpleFeature] = adapter.adapt(CloseableIterator.empty)
   }
 
   case class ScanPlan(

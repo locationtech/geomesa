@@ -34,6 +34,8 @@ import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.ColumnGroups
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
+import org.locationtech.geomesa.index.index.s2.{S2Index, S2IndexValues}
+import org.locationtech.geomesa.index.index.s3.{S3Index, S3IndexValues}
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index, Z2IndexValues}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
@@ -152,62 +154,68 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
   override def createQueryPlan(strategy: QueryStrategy): AccumuloQueryPlan = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-    if (strategy.ranges.isEmpty) { EmptyPlan(strategy.filter) } else {
-      val QueryStrategy(filter, byteRanges, _, _, ecql, hints, _) = strategy
-      val index = filter.index
-      // index api defines empty start/end for open-ended range - in accumulo, it's indicated with null
-      // index api defines start row inclusive, end row exclusive
-      val ranges = byteRanges.map {
-        case BoundedByteRange(start, end) =>
-            val startKey = if (start.length == 0) { null } else { new Key(new Text(start)) }
-            val endKey = if (end.length == 0) { null } else { new Key(new Text(end)) }
-            new Range(startKey, true, endKey, false)
+    val QueryStrategy(filter, byteRanges, _, _, ecql, hints, _) = strategy
+    val index = filter.index
+    // index api defines empty start/end for open-ended range - in accumulo, it's indicated with null
+    // index api defines start row inclusive, end row exclusive
+    val ranges = byteRanges.map {
+      case BoundedByteRange(start, end) =>
+          val startKey = if (start.length == 0) { null } else { new Key(new Text(start)) }
+          val endKey = if (end.length == 0) { null } else { new Key(new Text(end)) }
+          new Range(startKey, true, endKey, false)
 
-        case SingleRowByteRange(row) =>
-          new Range(new Text(row))
-      }
-      val numThreads = if (index.name == IdIndex.name) { ds.config.recordThreads } else { ds.config.queryThreads }
-      val tables = index.getTablesForQuery(filter.filter)
-      val (colFamily, schema) = {
-        val (cf, s) = groups.group(index.sft, hints.getTransformDefinition, ecql)
-        (Some(new Text(AccumuloIndexAdapter.mapColumnFamily(index)(cf))), s)
-      }
+      case SingleRowByteRange(row) =>
+        new Range(new Text(row))
+    }
+    val numThreads = if (index.name == IdIndex.name) { ds.config.recordThreads } else { ds.config.queryThreads }
+    val tables = index.getTablesForQuery(filter.filter)
+    val (colFamily, schema) = {
+      val (cf, s) = groups.group(index.sft, hints.getTransformDefinition, ecql)
+      (Some(new Text(AccumuloIndexAdapter.mapColumnFamily(index)(cf))), s)
+    }
 
-      index match {
-        case i: AccumuloJoinIndex =>
-          i.createQueryPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
+    index match {
+      case i: AccumuloJoinIndex =>
+        i.createQueryPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
 
-        case _ =>
-          val (iter, eToF, reduce) = if (strategy.hints.isBinQuery) {
-            val iter = BinAggregatingIterator.configure(schema, index, ecql, hints)
-            (Seq(iter), new AccumuloBinResultsToFeatures(), None)
-          } else if (strategy.hints.isArrowQuery) {
-            val (iter, reduce) = ArrowIterator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
-            (Seq(iter), new AccumuloArrowResultsToFeatures(), Some(reduce))
-          } else if (strategy.hints.isDensityQuery) {
-            val iter = DensityIterator.configure(schema, index, ecql, hints)
-            (Seq(iter), new AccumuloDensityResultsToFeatures(), None)
-          } else if (strategy.hints.isStatsQuery) {
-            val iter = StatsIterator.configure(schema, index, ecql, hints)
-            val reduce = Some(StatsScan.StatsReducer(schema, hints))
-            (Seq(iter), new AccumuloStatsResultsToFeatures(), reduce)
-          } else {
-            val iter = FilterTransformIterator.configure(schema, index, ecql, hints).toSeq
-            val toFeatures = AccumuloResultsToFeatures(index, hints.getReturnSft)
-            (iter, toFeatures, None)
-          }
+      case _ =>
+        val (iter, eToF, reduce) = if (strategy.hints.isBinQuery) {
+          val iter = BinAggregatingIterator.configure(schema, index, ecql, hints)
+          (Seq(iter), new AccumuloBinResultsToFeatures(), None)
+        } else if (strategy.hints.isArrowQuery) {
+          val (iter, reduce) = ArrowIterator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
+          (Seq(iter), new AccumuloArrowResultsToFeatures(), Some(reduce))
+        } else if (strategy.hints.isDensityQuery) {
+          val iter = DensityIterator.configure(schema, index, ecql, hints)
+          (Seq(iter), new AccumuloDensityResultsToFeatures(), None)
+        } else if (strategy.hints.isStatsQuery) {
+          val iter = StatsIterator.configure(schema, index, ecql, hints)
+          val reduce = Some(StatsScan.StatsReducer(schema, hints))
+          (Seq(iter), new AccumuloStatsResultsToFeatures(), reduce)
+        } else {
+          val iter = FilterTransformIterator.configure(schema, index, ecql, hints).toSeq
+          val toFeatures = AccumuloResultsToFeatures(index, hints.getReturnSft)
+          (iter, toFeatures, None)
+        }
 
+        if (ranges.isEmpty) { EmptyPlan(strategy.filter, reduce) } else {
           // configure additional iterators based on the index
           // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
           val indexIter = if (index.name == Z3Index.name) {
             strategy.values.toSeq.map { case v: Z3IndexValues =>
-              val hasSplits = index.keySpace.sharding.length > 0
-              val sharing = index.keySpace.sharing.nonEmpty
-              Z3Iterator.configure(v, hasSplits, sharing, ZIterPriority)
+              Z3Iterator.configure(v, index.keySpace.sharding.length + index.keySpace.sharing.length, ZIterPriority)
             }
           } else if (index.name == Z2Index.name) {
             strategy.values.toSeq.map { case v: Z2IndexValues =>
-              Z2Iterator.configure(v, index.keySpace.sharing.nonEmpty, ZIterPriority)
+              Z2Iterator.configure(v, index.keySpace.sharding.length + index.keySpace.sharing.length, ZIterPriority)
+            }
+          } else if (index.name == S3Index.name) {
+            strategy.values.toSeq.map { case v: S3IndexValues =>
+              S3Iterator.configure(v, index.keySpace.sharding.length, ZIterPriority)
+            }
+          } else if (index.name == S2Index.name) {
+            strategy.values.toSeq.map { case v: S2IndexValues =>
+              S2Iterator.configure(v, index.keySpace.sharding.length, ZIterPriority)
             }
           } else {
             Seq.empty
@@ -226,7 +234,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
           val project = hints.getProjection
 
           BatchScanPlan(filter, tables, ranges, iters, colFamily, eToF, reduce, sort, max, project, numThreads)
-      }
+        }
     }
   }
 

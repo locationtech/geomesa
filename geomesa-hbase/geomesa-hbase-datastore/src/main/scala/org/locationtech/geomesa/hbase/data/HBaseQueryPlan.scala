@@ -81,13 +81,12 @@ object HBaseQueryPlan {
   }
 
   // plan that will not actually scan anything
-  case class EmptyPlan(filter: FilterStrategy) extends HBaseQueryPlan {
+  case class EmptyPlan(filter: FilterStrategy, reducer: Option[FeatureReducer] = None) extends HBaseQueryPlan {
     override type Results = Result
     override val tables: Seq[TableName] = Seq.empty
     override val ranges: Seq[Scan] = Seq.empty
     override val scans: Seq[Scan] = Seq.empty
     override val resultsToFeatures: ResultsToFeatures[Result] = ResultsToFeatures.empty
-    override val reducer: Option[FeatureReducer] = None
     override val sort: Option[Seq[(String, Boolean)]] = None
     override val maxFeatures: Option[Int] = None
     override val projection: Option[QueryReferenceSystems] = None

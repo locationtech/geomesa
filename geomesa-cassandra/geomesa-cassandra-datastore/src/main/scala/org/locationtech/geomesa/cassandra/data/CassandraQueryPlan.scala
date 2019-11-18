@@ -48,13 +48,12 @@ object CassandraQueryPlan {
 }
 
 // plan that will not actually scan anything
-case class EmptyPlan(filter: FilterStrategy) extends CassandraQueryPlan {
+case class EmptyPlan(filter: FilterStrategy, reducer: Option[FeatureReducer] = None) extends CassandraQueryPlan {
   override val tables: Seq[String] = Seq.empty
   override val ranges: Seq[Statement] = Seq.empty
   override val numThreads: Int = 0
   override val clientSideFilter: Option[Filter] = None
   override val resultsToFeatures: ResultsToFeatures[Row] = ResultsToFeatures.empty
-  override val reducer: Option[FeatureReducer] = None
   override val sort: Option[Seq[(String, Boolean)]] = None
   override val maxFeatures: Option[Int] = None
   override val projection: Option[QueryReferenceSystems] = None

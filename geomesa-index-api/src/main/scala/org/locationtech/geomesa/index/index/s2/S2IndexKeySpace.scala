@@ -18,7 +18,6 @@ import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.QueryHints.LOOSE_BBOX
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory
-import org.locationtech.geomesa.index.index.s2.S2IndexValues
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, WholeWorldPolygon}
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -39,10 +38,15 @@ class S2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
     s"Expected field $geomField to have a point binding, but instead it has: " +
       sft.getDescriptor(geomField).getType.getBinding.getSimpleName)
 
-  protected val sfc: S2SFC = new S2SFC(QueryProperties.S2MinLevel, QueryProperties.S2MaxLevel,
-    QueryProperties.S2LevelMod, QueryProperties.S2MaxCells)
+  private val sfc: S2SFC =
+    S2SFC(
+      QueryProperties.S2MinLevel,
+      QueryProperties.S2MaxLevel,
+      QueryProperties.S2LevelMod,
+      QueryProperties.S2MaxCells
+    )
 
-  protected val geomIndex: Int = sft.indexOf(geomField)
+  private val geomIndex: Int = sft.indexOf(geomField)
 
   /**
     * The attributes used to create the index keys
@@ -93,7 +97,7 @@ class S2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
     val bytes = Array.ofDim[Byte](shard.length + 8 + id.length)
 
     if (shard.isEmpty) {
-      ByteArrays.writeLong(s.id(), bytes, 0)
+      ByteArrays.writeLong(s.id(), bytes)
       System.arraycopy(id, 0, bytes, 8, id.length)
     } else {
       bytes(0) = shard.head // shard is only a single byte
@@ -114,7 +118,7 @@ class S2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
   override def getIndexValues(filter: Filter, explain: Explainer): S2IndexValues = {
 
     val geometries: FilterValues[Geometry] = {
-      val extracted = FilterHelper.extractGeometries(filter, geomField, intersect = true) // intersect since we have points
+      val extracted = FilterHelper.extractGeometries(filter, geomField) // intersect since we have points
       if (extracted.nonEmpty) { extracted } else { FilterValues(Seq(WholeWorldPolygon)) }
     }
 
@@ -150,7 +154,7 @@ class S2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
     } else {
       // note: `target` will always be Some, as ScanRangesTarget has a default value
       val target = QueryProperties.ScanRangesTarget.option.map(t => math.max(1, t.toInt / multiplier))
-      sfc.ranges(xy, target).iterator.map(r => BoundedRange(r.rangeMin().id(), r.rangeMax().id()))
+      sfc.ranges(xy, -1, target).iterator.map(r => BoundedRange(r.lower, r.upper))
     }
   }
 
@@ -164,14 +168,14 @@ class S2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
   override def getRangeBytes(ranges: Iterator[ScanRange[Long]], tier: Boolean): Iterator[api.ByteRange] = {
     if (sharding.length == 0) {
       ranges.map {
-        case BoundedRange(lo, hi) => BoundedByteRange(ByteArrays.toBytes(lo), ByteArrays.toBytes(hi))
+        case BoundedRange(lo, hi) => BoundedByteRange(ByteArrays.toBytes(lo), ByteArrays.toBytesFollowingPrefix(hi))
         case r => throw new IllegalArgumentException(s"Unexpected range type $r")
       }
     } else {
       ranges.flatMap {
         case BoundedRange(lo, hi) =>
           val lower = ByteArrays.toBytes(lo)
-          val upper = ByteArrays.toBytes(hi)
+          val upper = ByteArrays.toBytesFollowingPrefix(hi)
           sharding.shards.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
 
         case r => throw new IllegalArgumentException(s"Unexpected range type $r")
@@ -211,11 +215,7 @@ object S2IndexKeySpace extends IndexKeySpaceFactory[S2IndexValues, Long] {
       classOf[Point].isAssignableFrom(sft.getDescriptor(attributes.head).getType.getBinding)
 
   override def apply(sft: SimpleFeatureType, attributes: Seq[String], tier: Boolean): S2IndexKeySpace = {
-    val shards = if (tier) {
-      NoShardStrategy
-    } else {
-      ZShardStrategy(sft)
-    }
+    val shards = if (tier) { NoShardStrategy } else { ZShardStrategy(sft) }
     new S2IndexKeySpace(sft, shards, attributes.head)
   }
 }

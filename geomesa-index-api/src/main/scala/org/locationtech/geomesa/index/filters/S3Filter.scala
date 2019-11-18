@@ -11,6 +11,7 @@ package org.locationtech.geomesa.index.filters
 import java.nio.ByteBuffer
 
 import com.google.common.geometry.S2CellId
+import org.locationtech.geomesa.index.filters.RowFilter.RowFilterFactory
 import org.locationtech.geomesa.index.index.s3.S3IndexValues
 import org.locationtech.geomesa.utils.index.ByteArrays
 
@@ -18,7 +19,12 @@ import org.locationtech.geomesa.utils.index.ByteArrays
   * @author sunyabo 2019年08月01日 09:26
   * @version V1.0
   */
-class S3Filter(val xy: Array[Array[Double]], val t: Array[Array[Array[Int]]], val minEpoch: Short, val maxEpoch: Short) {
+class S3Filter(
+    val xy: Array[Array[Double]],
+    val t: Array[Array[Array[Int]]],
+    val minEpoch: Short,
+    val maxEpoch: Short
+  ) extends RowFilter {
 
   /**
     * Determine if the point is inside the rectangle
@@ -26,7 +32,7 @@ class S3Filter(val xy: Array[Array[Double]], val t: Array[Array[Array[Int]]], va
     * @param offset offset
     * @return
     */
-  def inBounds(buf: Array[Byte], offset: Int): Boolean = {
+  override def inBounds(buf: Array[Byte], offset: Int): Boolean = {
     // account for epoch - first 2 bytes
     val keyS = ByteArrays.readLong(buf, offset + 2)
     val timeOffset = ByteArrays.readInt(buf, offset + 10)
@@ -70,7 +76,7 @@ class S3Filter(val xy: Array[Array[Double]], val t: Array[Array[Array[Int]]], va
   override def toString: String = S3Filter.serializeToStrings(this).toSeq.sortBy(_._1).mkString(",")
 }
 
-object S3Filter {
+object S3Filter extends RowFilterFactory[S3Filter] {
 
   private val RangeSeparator = ":"
   private val TermSeparator  = ";"
@@ -81,14 +87,14 @@ object S3Filter {
   val EpochKey  = "epoch"
 
   def apply(values: S3IndexValues): S3Filter = {
-    val S3IndexValues(sfc, _, spatialBounds, _, temporalBounds, _) = values
+    val S3IndexValues(_, maxTime, _, spatialBounds, _, temporalBounds, _) = values
 
     val xy: Array[Array[Double]] = spatialBounds.map { case (xmin, ymin, xmax, ymax) =>
       Array(xmin, ymin, xmax, ymax)
     }.toArray
 
     // we know we're only going to scan appropriate periods, so leave out whole ones
-    val wholePeriod = Seq((0L, sfc.time))
+    val wholePeriod = Seq((0L, maxTime))
     var minEpoch: Short = Short.MaxValue
     var maxEpoch: Short = Short.MinValue
     val epochsAndTimes = temporalBounds.toSeq.filter(_._2 != wholePeriod).sortBy(_._1).map { case (epoch, times) =>
@@ -114,7 +120,7 @@ object S3Filter {
     new S3Filter(xy, t, minEpoch, maxEpoch)
   }
 
-  def serializeToBytes(filter: S3Filter): Array[Byte] = {
+  override def serializeToBytes(filter: S3Filter): Array[Byte] = {
     // 4 bytes for length plus 32 bytes for each xy val (4 doubles)
     val xyLength = 4 + filter.xy.length * 32
     // 4 bytes for length, then per-epoch 4 bytes for length plus 8 bytes for each t val (2 ints)
@@ -140,7 +146,7 @@ object S3Filter {
     buffer.array()
   }
 
-  def deserializeFromBytes(serialized: Array[Byte]): S3Filter = {
+  override def deserializeFromBytes(serialized: Array[Byte]): S3Filter = {
     val buffer = ByteBuffer.wrap(serialized)
 
     val xy = Array.fill(buffer.getInt())(Array.fill(4)(buffer.getDouble()))
@@ -156,7 +162,7 @@ object S3Filter {
     new S3Filter(xy, t, minEpoch, maxEpoch)
   }
 
-  def serializeToStrings(filter: S3Filter): Map[String, String] = {
+  override def serializeToStrings(filter: S3Filter): Map[String, String] = {
     val xy = filter.xy.map(bounds => bounds.mkString(RangeSeparator)).mkString(TermSeparator)
     val t = filter.t.map { bounds =>
       if (bounds == null) { "" } else {
@@ -172,7 +178,7 @@ object S3Filter {
     )
   }
 
-  def deserializeFromStrings(serialized: scala.collection.Map[String, String]): S3Filter = {
+  override def deserializeFromStrings(serialized: scala.collection.Map[String, String]): S3Filter = {
     val xy = serialized(XYKey).split(TermSeparator).map(_.split(RangeSeparator).map(_.toDouble))
     val t = serialized(TKey).split(EpochSeparator).map { bounds =>
       if (bounds.isEmpty) { null } else {

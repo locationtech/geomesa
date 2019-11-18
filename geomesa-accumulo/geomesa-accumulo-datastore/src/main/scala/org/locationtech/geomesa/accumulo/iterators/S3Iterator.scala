@@ -9,20 +9,18 @@
 package org.locationtech.geomesa.accumulo.iterators
 
 import org.apache.accumulo.core.client.IteratorSetting
-import org.locationtech.geomesa.index.filters.Z3Filter
-import org.locationtech.geomesa.index.index.z3.Z3IndexValues
+import org.locationtech.geomesa.index.filters.S3Filter
+import org.locationtech.geomesa.index.index.s3.S3IndexValues
 
-class Z3Iterator extends RowFilterIterator[Z3Filter](Z3Filter)
+class S3Iterator extends RowFilterIterator[S3Filter](S3Filter)
 
-object Z3Iterator {
-  def configure(
-      values: Z3IndexValues,
-      offset: Int,
-      priority: Int): IteratorSetting = {
-    val is = new IteratorSetting(priority, "z3", classOf[Z3Iterator])
-    is.addOption(RowFilterIterator.RowOffsetKey, offset.toString)
+object S3Iterator {
+  def configure(values: S3IndexValues, prefix: Int, priority: Int): IteratorSetting = {
+    val is = new IteratorSetting(priority, "s3", classOf[S3Iterator])
     // index space values for comparing in the iterator
-    Z3Filter.serializeToStrings(Z3Filter(values)).foreach { case (k, v) => is.addOption(k, v) }
+    S3Filter.serializeToStrings(S3Filter(values)).foreach { case (k, v) => is.addOption(k, v) }
+    // account for shard and table sharing bytes
+    is.addOption(RowFilterIterator.RowOffsetKey, prefix.toString)
     is
   }
 }

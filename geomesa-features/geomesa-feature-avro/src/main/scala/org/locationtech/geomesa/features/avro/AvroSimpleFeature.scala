@@ -56,7 +56,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
   def setAttributesNoConvert(vals: Array[Object])= vals.zipWithIndex.foreach { case (v, idx) => values(idx) = v }
 
   def getAttributeCount = values.length
-  def getAttributes: JList[Object] = values.toList
+  def getAttributes: JList[Object] = java.util.Arrays.asList(values: _*)
   def getDefaultGeometry: Object = Try(sft.getGeometryDescriptor.getName).map(getAttribute).getOrElse(null)
 
   def setDefaultGeometry(geo: Object) = setAttribute(sft.getGeometryDescriptor.getName, geo)

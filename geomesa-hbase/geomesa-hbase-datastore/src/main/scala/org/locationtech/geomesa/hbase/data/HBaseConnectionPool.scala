@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.hbase.data
 
-import java.io.ByteArrayInputStream
+import java.io.{ByteArrayInputStream, Closeable}
 import java.nio.charset.StandardCharsets
 import java.security.PrivilegedExceptionAction
 
@@ -22,27 +22,42 @@ import org.apache.hadoop.security.UserGroupInformation
 import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{HBaseGeoMesaKeyTab, HBaseGeoMesaPrincipal}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsParam, ConfigsParam, ConnectionParam, ZookeeperParam}
-import org.locationtech.geomesa.utils.io.HadoopUtils
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils}
 
 object HBaseConnectionPool extends LazyLogging {
 
-  private var userCheck: Option[User] = _
+  import scala.collection.JavaConverters._
 
-  // add common resources from system property
-  private val configuration = load(HBaseConfiguration.create(), HBaseDataStoreFactory.ConfigPathProperty.option, None)
+  private var userCheck: Option[User] = _
+  private var kerberosTicket: Option[Closeable] = None
 
   private val configs = Caffeine.newBuilder().build(
     new CacheLoader[(Option[String], Option[String], Option[String]), Configuration] {
+
+      // add common resources from system property - lazy to allow object initialization if there's an error
+      private lazy val configuration = {
+        val base = HBaseConfiguration.create()
+        HBaseDataStoreFactory.ConfigPathProperty.option.foreach(addResources(base, _))
+        base
+      }
+
       override def load(key: (Option[String], Option[String], Option[String])): Configuration = {
         val (zookeepers, paths, props) = key
-        val conf = HBaseConnectionPool.load(configuration, paths, props)
+        val conf = new Configuration(configuration)
+        // add the explicit props first, they may be needed for loading the path resources
+        props.foreach(xml => conf.addResource(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))))
+        paths.foreach(addResources(conf, _))
         zookeepers.foreach(zk => conf.set(HConstants.ZOOKEEPER_QUORUM, zk))
         if (zookeepers.isEmpty && conf.get(HConstants.ZOOKEEPER_QUORUM) == "localhost") {
           logger.warn("HBase connection is set to localhost - " +
               "this may indicate that 'hbase-site.xml' is not on the classpath")
         }
+        configureSecurity(conf)
         conf
       }
+
+      private def addResources(conf: Configuration, paths: String): Unit =
+        paths.split(',').map(_.trim).filterNot(_.isEmpty).foreach(HadoopUtils.addResource(conf, _))
     }
   )
 
@@ -53,8 +68,10 @@ object HBaseConnectionPool extends LazyLogging {
   )
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
-    import scala.collection.JavaConversions._
-    override def run(): Unit = connections.asMap().foreach(_._2.close())
+    override def run(): Unit = {
+      CloseWithLogging(kerberosTicket)
+      CloseWithLogging(connections.asMap().values().asScala)
+    }
   })
 
   /**
@@ -141,6 +158,10 @@ object HBaseConnectionPool extends LazyLogging {
       UserGroupInformation.loginUserFromKeytab(principal, keytab)
 
       logger.debug(s"Logged into Hadoop with user '${User.getCurrent}'")
+
+      if (kerberosTicket.isEmpty) {
+        kerberosTicket = Some(HadoopUtils.kerberosTicketRenewer())
+      }
     }
 
     userCheck = Option(User.getCurrent)
@@ -149,22 +170,5 @@ object HBaseConnectionPool extends LazyLogging {
       logger.warn(s"Detected change in authenticated user from ${last.getOrElse("unauthenticated")} to " +
           s"${userCheck.getOrElse("unauthenticated")} - this may not work properly with Hadoop security")
     }
-  }
-
-  /**
-    * Creates a new configuration with the paths added. If no paths, will share the existing configuration.
-    *
-    * @param base original configuration
-    * @param paths resources to add, comma-delimited
-    * @param xml properties to add, as XML
-    * @return a new configuration, or the existing one
-    */
-  private def load(base: Configuration, paths: Option[String], xml: Option[String]): Configuration = {
-    val conf = new Configuration(base)
-    // add the explicit props first, they may be needed for loading the path resources
-    xml.foreach(x => conf.addResource(new ByteArrayInputStream(x.getBytes(StandardCharsets.UTF_8))))
-    paths.toSeq.flatMap(_.split(',')).map(_.trim).filterNot(_.isEmpty).foreach(HadoopUtils.addResource(conf, _))
-    configureSecurity(conf)
-    conf
   }
 }

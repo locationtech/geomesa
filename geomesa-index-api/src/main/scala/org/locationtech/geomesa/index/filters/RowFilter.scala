@@ -6,16 +6,19 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.index.index
+package org.locationtech.geomesa.index.filters
 
-import org.locationtech.geomesa.curve.S2SFC
-import org.locationtech.geomesa.filter.FilterValues
-import org.locationtech.jts.geom.Geometry
+trait RowFilter {
+  def inBounds(buf: Array[Byte], offset: Int): Boolean
+}
 
-package object s2 {
+object RowFilter {
 
-  case class S2IndexValues(
-      sfc: S2SFC,
-      geometries: FilterValues[Geometry],
-      bounds: Seq[(Double, Double, Double, Double)])
+  trait RowFilterFactory[T <: RowFilter] {
+    def serializeToBytes(filter: T): Array[Byte]
+    def deserializeFromBytes(serialized: Array[Byte]): T
+
+    def serializeToStrings(filter: T): Map[String, String]
+    def deserializeFromStrings(serialized: scala.collection.Map[String, String]): T
+  }
 }
