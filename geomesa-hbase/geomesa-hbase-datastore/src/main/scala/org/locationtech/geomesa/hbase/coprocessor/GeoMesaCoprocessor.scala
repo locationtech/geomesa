@@ -24,7 +24,6 @@ import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.apache.hadoop.hbase.shaded.protobuf.ResponseConverter
 import java.util.Base64
 import org.apache.hadoop.hbase.{Coprocessor, CoprocessorEnvironment}
-import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor.{CancelCallback, logger}
 import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseAggregator
 import org.locationtech.geomesa.hbase.coprocessor.utils.{GeoMesaHBaseCallBack, GeoMesaHBaseRpcController}
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto
