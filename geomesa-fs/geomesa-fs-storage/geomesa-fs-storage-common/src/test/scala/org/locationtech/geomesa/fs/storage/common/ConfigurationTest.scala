@@ -79,5 +79,18 @@ class ConfigurationTest extends Specification with AllExpectations {
         sft.removeLeafStorage() must beNone
       }
     }
+
+    "configure observers in user data" >> {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,foo:Date,*bar:Point:srid=4326")
+      val setters = Seq(
+        () => ConfigurationUtils.setObservers(sft, java.util.Arrays.asList("foo.bar", "foo.baz")),
+        () => sft.setObservers(Seq("foo.bar", "foo.baz")))
+      foreach(setters) { setter =>
+        setter.apply()
+        sft.getObservers mustEqual Seq("foo.bar", "foo.baz")
+        sft.getUserData.remove(StorageKeys.ObserversKey)
+        sft.getObservers must beEmpty
+      }
+    }
   }
 }
