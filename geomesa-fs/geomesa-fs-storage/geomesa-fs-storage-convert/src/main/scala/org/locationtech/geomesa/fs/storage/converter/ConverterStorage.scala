@@ -13,14 +13,15 @@ import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFilePath}
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, WriterCallback}
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
+import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 class ConverterStorage(context: FileSystemContext, metadata: StorageMetadata, converter: SimpleFeatureConverter)
-    extends AbstractFileSystemStorage(context, metadata, "") {
+    extends AbstractFileSystemStorage(context, metadata, Seq.empty, "") {
 
   // TODO close converter...
   // the problem is that we aggressively cache storage instances for performance (in FileSystemStorageManager),
@@ -29,7 +30,7 @@ class ConverterStorage(context: FileSystemContext, metadata: StorageMetadata, co
   // actually need to be closed, and since they will only open a single connection per converter, the
   // impact should be low
 
-  override protected def createWriter(file: Path, callback: WriterCallback): FileSystemWriter =
+  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter =
     throw new NotImplementedError()
 
   override protected def createReader(

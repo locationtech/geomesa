@@ -10,6 +10,7 @@ package org.locationtech.geomesa.fs.storage.orc
 
 import org.apache.orc.OrcConf
 import org.locationtech.geomesa.fs.storage.api._
+import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory
 
 class OrcFileSystemStorageFactory extends FileSystemStorageFactory {
 
@@ -20,6 +21,6 @@ class OrcFileSystemStorageFactory extends FileSystemStorageFactory {
         context.conf.get(OrcConf.USE_ZEROCOPY.getHiveConfName) == null) {
       OrcConf.USE_ZEROCOPY.setBoolean(context.conf, true)
     }
-    new OrcFileSystemStorage(context, metadata)
+    new OrcFileSystemStorage(context, metadata, FileSystemObserverFactory(metadata.sft))
   }
 }

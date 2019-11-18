@@ -22,6 +22,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, FileSystemStorage, Metadata, NamedOptions}
+import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.fs.storage.common.partitions.DateTimeScheme
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
@@ -242,6 +243,71 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
         }
 
         testQuery(storage, sft)("INCLUDE", null, updates)
+      }
+    }
+
+    "use custom file observers" in {
+      val userData = s"${StorageKeys.ObserversKey}=${classOf[TestObserverFactory].getName}"
+      val sft = SimpleFeatureTypes.createType("orc-test",
+        s"*geom:Point:srid=4326,name:String,age:Int,dtg:Date;$userData")
+
+      val features = (0 until 10).map { i =>
+        val sf = new ScalaSimpleFeature(sft, i.toString)
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf.setAttribute(1, s"name$i")
+        sf.setAttribute(2, s"$i")
+        sf.setAttribute(3, f"2014-01-${i + 1}%02dT00:00:01.000Z")
+        sf.setAttribute(0, s"POINT(4$i 5$i)")
+        sf
+      }
+
+      withTestDir { dir =>
+        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
+        val metadata =
+          new FileBasedMetadataFactory()
+              .create(context, Map.empty, Metadata(sft, "orc", scheme, leafStorage = true))
+        val storage = new OrcFileSystemStorageFactory().apply(context, metadata)
+
+        storage must not(beNull)
+
+        val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
+
+        features.foreach { f =>
+          val partition = storage.metadata.scheme.getPartitionName(f)
+          val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
+          writer.write(f)
+        }
+
+        TestObserverFactory.observers must haveSize(3) // 3 partitions due to our data and scheme
+        forall(TestObserverFactory.observers)(_.closed must beFalse)
+
+        writers.foreach(_._2.close())
+        forall(TestObserverFactory.observers)(_.closed must beTrue)
+        TestObserverFactory.observers.flatMap(_.features) must containTheSameElementsAs(features)
+        TestObserverFactory.observers.clear()
+
+        logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
+
+        val updater = storage.getWriter(Filter.INCLUDE)
+
+        updater.hasNext must beTrue
+        while (updater.hasNext) {
+          val feature = updater.next
+          if (feature.getID == "0") {
+            updater.remove()
+          } else if (feature.getID == "1") {
+            feature.setAttribute(1, "name-updated")
+            updater.write()
+          }
+        }
+
+        TestObserverFactory.observers must haveSize(2) // 2 partitions were updated
+        forall(TestObserverFactory.observers)(_.closed must beFalse)
+
+        updater.close()
+
+        forall(TestObserverFactory.observers)(_.closed must beTrue)
+        TestObserverFactory.observers.flatMap(_.features) must haveLength(2)
       }
     }
 

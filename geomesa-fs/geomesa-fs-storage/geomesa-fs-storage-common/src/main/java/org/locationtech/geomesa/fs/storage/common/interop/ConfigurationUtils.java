@@ -13,6 +13,7 @@ import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValueFactory;
 import org.opengis.feature.simple.SimpleFeatureType;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,6 +41,10 @@ public class ConfigurationUtils {
 
     public static void setMetadata(SimpleFeatureType sft, String name, Map<String, String> options) {
         sft.getUserData().put("geomesa.fs.metadata", serialize(name, options));
+    }
+
+    public static void setObservers(SimpleFeatureType sft, List<String> observers) {
+        sft.getUserData().put("geomesa.fs.observers", String.join(",", observers));
     }
 
     private static String serialize(String name, Map<String, String> options) {

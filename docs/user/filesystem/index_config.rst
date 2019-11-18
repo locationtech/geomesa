@@ -145,3 +145,53 @@ Metadata persistence can be specified through the user data key ``geomesa.fs.met
         // or set directly in the user data as JSON
         sft.getUserData.put("geomesa.fs.metadata",
             """{ "name": "jdbc", "options": { "jdbc.url": "jdbc:postgresql://localhost/geomesa" } }""")
+
+Configuring Custom Observer Callbacks
+-------------------------------------
+
+The FSDS provides a mechanism to add custom handling during file writing. Users can implement observer factories,
+which will be invoked for each new file that is created. Observer factories must extend the trait
+``FileSystemObserverFactory``:
+
+.. code-block:: scala
+
+  package org.locationtech.geomesa.fs.storage.common.observer
+
+  trait FileSystemObserverFactory {
+    def apply(sft: SimpleFeatureType, partition: String, path: Path): FileSystemObserver
+  }
+
+.. note::
+
+  Observer factories must have a default no-arg constructor in order to be instantiated by the framework.
+
+Observers can be specified through the user data key ``geomesa.fs.observers``:
+
+.. tabs::
+
+    .. code-tab:: java
+
+        import org.locationtech.geomesa.fs.storage.common.interop.ConfigurationUtils;
+        import java.util.Arrays;
+        import java.util.Collections;
+        import java.util.List;
+
+        SimpleFeatureType sft = ...
+        List<String> factories =
+          Arrays.asList("com.example.MyCustomObserverFactory", "com.example.MySecondObserverFactory");
+        // use the static utility method
+        ConfigurationUtils.setObservers(sft, factories);
+        // or set directly in the user data as a comma-delimited string
+        sft.getUserData().put("geomesa.fs.observers", String.join(",", factories));
+
+    .. code-tab:: scala
+
+        import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
+
+        val sft: SimpleFeatureType = ???
+        val factories = Seq("com.example.MyCustomObserverFactory", "com.example.MySecondObserverFactory")
+        // use the implicit method from RichSimpleFeatureType
+        sft.setObservers(factories)
+        // or set directly in the user data as a comma-delimited string
+        sft.getUserData.put("geomesa.fs.observers", factories.mkString(","))
+

@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.parquet
 
 import org.locationtech.geomesa.fs.storage.api._
+import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage.ParquetCompressionOpt
 
 class ParquetFileSystemStorageFactory extends FileSystemStorageFactory {
@@ -20,6 +21,6 @@ class ParquetFileSystemStorageFactory extends FileSystemStorageFactory {
       Option(System.getProperty(ParquetCompressionOpt)).foreach(context.conf.set(ParquetCompressionOpt, _))
     }
     context.conf.set("parquet.filter.dictionary.enabled", "true")
-    new ParquetFileSystemStorage(context, metadata)
+    new ParquetFileSystemStorage(context, metadata, FileSystemObserverFactory(metadata.sft))
   }
 }

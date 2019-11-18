@@ -16,8 +16,10 @@ import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, MetadataObservingFileSystemWriter, WriterCallback}
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
+import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.NoOpObserver
+import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.parquet.ParquetFileSystemStorage._
 import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -28,15 +30,16 @@ import org.opengis.filter.Filter
   * @param context file system context
   * @param metadata metadata
   */
-class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata)
-    extends AbstractFileSystemStorage(context, metadata, ParquetFileSystemStorage.FileExtension) {
+class ParquetFileSystemStorage(
+    context: FileSystemContext,
+    metadata: StorageMetadata,
+    observers: Seq[FileSystemObserverFactory] = Seq.empty
+  ) extends AbstractFileSystemStorage(context, metadata, observers, ParquetFileSystemStorage.FileExtension) {
 
-  override protected def createWriter(file: Path, cb: WriterCallback): FileSystemWriter = {
+  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter = {
     val sftConf = new Configuration(context.conf)
     StorageConfiguration.setSft(sftConf, metadata.sft)
-    new ParquetFileSystemWriter(metadata.sft, file, sftConf) with MetadataObservingFileSystemWriter {
-      override def callback: WriterCallback = cb
-    }
+    new ParquetFileSystemWriter(metadata.sft, file, sftConf, observer)
   }
 
   override protected def createReader(
@@ -68,12 +71,20 @@ object ParquetFileSystemStorage {
 
   val ParquetCompressionOpt = "parquet.compression"
 
-  class ParquetFileSystemWriter(sft: SimpleFeatureType, file: Path, conf: Configuration) extends FileSystemWriter {
+  class ParquetFileSystemWriter(
+      sft: SimpleFeatureType,
+      file: Path,
+      conf: Configuration,
+      observer: FileSystemObserver = NoOpObserver
+    ) extends FileSystemWriter {
 
     private val writer = SimpleFeatureParquetWriter.builder(file, conf).build()
 
-    override def write(f: SimpleFeature): Unit = writer.write(f)
-    override def flush(): Unit = {}
-    override def close(): Unit = CloseQuietly(writer)
+    override def write(f: SimpleFeature): Unit = {
+      writer.write(f)
+      observer.write(f)
+    }
+    override def flush(): Unit = observer.flush()
+    override def close(): Unit = CloseQuietly(Seq(writer, observer)).foreach(e => throw e)
   }
 }
