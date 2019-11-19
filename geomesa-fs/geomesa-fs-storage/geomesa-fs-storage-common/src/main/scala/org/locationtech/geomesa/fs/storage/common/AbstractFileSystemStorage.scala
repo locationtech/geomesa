@@ -145,7 +145,7 @@ abstract class AbstractFileSystemStorage(
         def threaded = FileSystemThreadedReader(Iterator.single(reader -> toCompact), threads)
         val compactObserver = new CompactObserver(partition, path, toCompact)
         val observer = if (observers.isEmpty) { compactObserver } else {
-          new CompositeObserver(observers.map(_.apply(metadata.sft, partition, path)).+:(compactObserver))
+          new CompositeObserver(observers.map(_.apply(context.fc, context.conf, metadata.sft, path)).+:(compactObserver))
         }
 
         WithClose(createWriter(path, observer), threaded) { case (writer, features) =>
@@ -194,7 +194,7 @@ abstract class AbstractFileSystemStorage(
     PathCache.register(context.fc, path)
     val updateObserver = new UpdateObserver(partition, path, action)
     val observer = if (observers.isEmpty) { updateObserver } else {
-      new CompositeObserver(observers.map(_.apply(metadata.sft, partition, path)).+:(updateObserver))
+      new CompositeObserver(observers.map(_.apply(context.fc, context.conf, metadata.sft, path)).+:(updateObserver))
     }
     createWriter(path, observer)
   }

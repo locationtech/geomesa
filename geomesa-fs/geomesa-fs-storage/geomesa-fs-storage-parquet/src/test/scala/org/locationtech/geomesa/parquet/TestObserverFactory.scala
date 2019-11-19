@@ -10,7 +10,8 @@ package org.locationtech.geomesa.parquet
 
 import java.util.Collections
 
-import org.apache.hadoop.fs.Path
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileContext, Path}
 import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.parquet.TestObserverFactory.TestObserver
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -18,8 +19,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.mutable.ArrayBuffer
 
 class TestObserverFactory extends FileSystemObserverFactory {
-  override def apply(sft: SimpleFeatureType, partition: String, path: Path): FileSystemObserver = {
-    val observer = new TestObserver(partition, path)
+  override def apply(fc: FileContext, conf: Configuration, sft: SimpleFeatureType, path: Path): FileSystemObserver = {
+    val observer = new TestObserver(path)
     TestObserverFactory.observers += observer
     observer
   }
@@ -33,7 +34,7 @@ object TestObserverFactory {
   val observers: scala.collection.mutable.Set[TestObserver] =
     Collections.synchronizedSet(new java.util.HashSet[TestObserver]()).asScala
 
-  class TestObserver(val partition: String, val path: Path) extends FileSystemObserver {
+  class TestObserver(val path: Path) extends FileSystemObserver {
 
     val features = ArrayBuffer.empty[SimpleFeature]
     var closed = false

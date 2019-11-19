@@ -158,7 +158,7 @@ which will be invoked for each new file that is created. Observer factories must
   package org.locationtech.geomesa.fs.storage.common.observer
 
   trait FileSystemObserverFactory extends Closeable {
-    def apply(sft: SimpleFeatureType, partition: String, path: Path): FileSystemObserver
+    def apply(fc: FileContext, conf: Configuration, sft: SimpleFeatureType, path: Path): FileSystemObserver
   }
 
 .. note::

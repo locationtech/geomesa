@@ -11,7 +11,8 @@ package observer
 
 import java.io.Closeable
 
-import org.apache.hadoop.fs.Path
+import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.fs.{FileContext, Path}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -19,7 +20,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  * Factory for observing file writes
  */
 trait FileSystemObserverFactory extends Closeable {
-  def apply(sft: SimpleFeatureType, partition: String, path: Path): FileSystemObserver
+  def apply(fc: FileContext, conf: Configuration, sft: SimpleFeatureType, path: Path): FileSystemObserver
 }
 
 object FileSystemObserverFactory {
