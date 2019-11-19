@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.fs.storage.common
 package observer
 
+import java.io.Closeable
+
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -16,7 +18,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 /**
  * Factory for observing file writes
  */
-trait FileSystemObserverFactory {
+trait FileSystemObserverFactory extends Closeable {
   def apply(sft: SimpleFeatureType, partition: String, path: Path): FileSystemObserver
 }
 

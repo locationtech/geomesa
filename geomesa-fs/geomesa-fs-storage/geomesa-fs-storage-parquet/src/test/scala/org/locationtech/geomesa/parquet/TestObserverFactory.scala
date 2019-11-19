@@ -23,6 +23,7 @@ class TestObserverFactory extends FileSystemObserverFactory {
     TestObserverFactory.observers += observer
     observer
   }
+  override def close(): Unit = {}
 }
 
 object TestObserverFactory {
