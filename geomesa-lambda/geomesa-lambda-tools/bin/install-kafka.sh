@@ -30,4 +30,13 @@ declare -a urls=(
   "${base_url}com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar"
 )
 
+zk_maj_ver="$(expr match "$zookeeper_version" '\([0-9][0-9]*\)\.')"
+zk_min_ver="$(expr match "$zookeeper_version" '[0-9][0-9]*\.\([0-9][0-9]*\)')"
+zk_bug_ver="$(expr match "$zookeeper_version" '[0-9][0-9]*\.[0-9][0-9]*\.\([0-9][0-9]*\)')"
+
+# compare the version of zookeeper to determine if we need zookeeper-jute (version >= 3.5.5)
+if [[ "$zk_maj_ver" -ge 3 && "$zk_min_ver" -ge 5 && "$zk_bug_ver" -ge 5 ]]; then
+  urls+=("${base_url}org/apache/zookeeper/zookeeper-jute/$zookeeper_version/zookeeper-jute-$zookeeper_version.jar")
+fi
+
 downloadUrls "$install_dir" urls[@]
