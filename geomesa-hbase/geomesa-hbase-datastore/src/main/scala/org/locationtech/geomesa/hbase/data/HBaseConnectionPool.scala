@@ -114,7 +114,7 @@ object HBaseConnectionPool extends LazyLogging {
       override def run(): Connection = {
         if (validate) {
           logger.debug("Checking configuration availability")
-          HBaseAdmin.checkHBaseAvailable(conf)
+          HBaseAdmin.available(conf)
         }
         ConnectionFactory.createConnection(conf)
       }

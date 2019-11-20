@@ -17,7 +17,10 @@
     <name>hbase.coprocessor.region.classes</name>
     <value>org.apache.hadoop.hbase.security.visibility.VisibilityController</value>
   </property>
-
+  <property>
+    <name>hbase.security.authorization</name>
+    <value>true</value>
+  </property>
   <property>
     <name>hfile.format.version</name>
     <value>3</value>
