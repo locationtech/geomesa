@@ -42,7 +42,6 @@ class FileSystemRDDProviderTest extends Specification with LazyLogging {
 
   var spark: SparkSession = _
   var sc: SQLContext = _
-
   lazy val params = Map("fs.path" -> directory)
   lazy val ds: DataStore = DataStoreFinder.getDataStore(params.asJava)
 
@@ -76,6 +75,7 @@ class FileSystemRDDProviderTest extends Specification with LazyLogging {
     spark = SparkSQLTestUtils.createSparkSession()
     sc = spark.sqlContext
     SQLTypes.init(sc)
+    spark.sql("set spark.sql.orc.impl=native")
   }
 
   "FileSystemRDDProvider" should {
