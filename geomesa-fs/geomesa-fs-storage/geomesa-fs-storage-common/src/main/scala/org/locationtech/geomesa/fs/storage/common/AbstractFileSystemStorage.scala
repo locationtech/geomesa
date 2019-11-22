@@ -51,7 +51,9 @@ abstract class AbstractFileSystemStorage(
     val builder = Seq.newBuilder[FileSystemObserverFactory]
     metadata.sft.getObservers.foreach { c =>
       try {
-        val observer = Class.forName(c).newInstance().asInstanceOf[FileSystemObserverFactory]
+        // use the context classloader if defined, so that child classloaders can be accessed, as per SPI loading
+        val cl = Option(Thread.currentThread.getContextClassLoader).getOrElse(ClassLoader.getSystemClassLoader)
+        val observer = cl.loadClass(c).newInstance().asInstanceOf[FileSystemObserverFactory]
         builder += observer
         observer.init(context.fc, context.conf, metadata.sft)
       } catch {
