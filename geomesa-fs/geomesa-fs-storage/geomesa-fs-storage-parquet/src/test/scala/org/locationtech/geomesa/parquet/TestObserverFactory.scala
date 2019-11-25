@@ -11,7 +11,7 @@ package org.locationtech.geomesa.parquet
 import java.util.Collections
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.parquet.TestObserverFactory.TestObserver
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -19,7 +19,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.collection.mutable.ArrayBuffer
 
 class TestObserverFactory extends FileSystemObserverFactory {
-  override def init(fc: FileContext, conf: Configuration, sft: SimpleFeatureType): Unit = {}
+  override def init(conf: Configuration, root: Path, sft: SimpleFeatureType): Unit = {}
   override def apply(path: Path): FileSystemObserver = {
     val observer = new TestObserver(path)
     TestObserverFactory.observers += observer

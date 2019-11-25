@@ -162,11 +162,11 @@ which will be invoked for each new file that is created. Observer factories must
     /**
      * Called once after instantiating the factory
      *
-     * @param fc hadoop file context
      * @param conf hadoop configuration
+     * @param root root path
      * @param sft simple feature type
      */
-    def init(fc: FileContext, conf: Configuration, sft: SimpleFeatureType): Unit
+    def init(conf: Configuration, root: Path, sft: SimpleFeatureType): Unit
 
     /**
      * Create an observer for the given path

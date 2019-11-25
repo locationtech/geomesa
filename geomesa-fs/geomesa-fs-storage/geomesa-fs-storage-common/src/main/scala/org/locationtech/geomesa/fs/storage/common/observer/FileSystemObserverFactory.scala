@@ -12,7 +12,7 @@ package observer
 import java.io.Closeable
 
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.fs.{FileContext, Path}
+import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -24,11 +24,11 @@ trait FileSystemObserverFactory extends Closeable {
   /**
    * Called once after instantiating the factory
    *
-   * @param fc hadoop file context
    * @param conf hadoop configuration
+   * @param root root path
    * @param sft simple feature type
    */
-  def init(fc: FileContext, conf: Configuration, sft: SimpleFeatureType): Unit
+  def init(conf: Configuration, root: Path, sft: SimpleFeatureType): Unit
 
   /**
    * Create an observer for the given path

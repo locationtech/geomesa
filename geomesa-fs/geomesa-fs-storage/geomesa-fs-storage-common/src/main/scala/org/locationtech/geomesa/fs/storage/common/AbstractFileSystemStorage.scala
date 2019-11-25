@@ -55,7 +55,7 @@ abstract class AbstractFileSystemStorage(
         val cl = Option(Thread.currentThread.getContextClassLoader).getOrElse(ClassLoader.getSystemClassLoader)
         val observer = cl.loadClass(c).newInstance().asInstanceOf[FileSystemObserverFactory]
         builder += observer
-        observer.init(context.fc, context.conf, metadata.sft)
+        observer.init(context.conf, context.root, metadata.sft)
       } catch {
         case NonFatal(e) => CloseQuietly(builder.result).foreach(e.addSuppressed); throw e
       }
