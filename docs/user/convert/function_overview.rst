@@ -17,6 +17,7 @@ Type Conversions
 -  ``stringToFloat``
 -  ``stringToDouble``
 -  ``stringToBoolean``
+-  ``intToBoolean``
 
 String Functions
 ~~~~~~~~~~~~~~~~

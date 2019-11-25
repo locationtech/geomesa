@@ -12,17 +12,17 @@ import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 
 object MiscFunctionFactory {
-  def intToBoolean(value: Any): Any = {
-    if (value == null) null else value.asInstanceOf[Int] != 0
+  def intToBoolean(args: Array[Any]): Any = {
+    if (args(0) == null) null else args(0).asInstanceOf[Int] != 0
   }
-  def withDefault(value: Any, default: Any): Any = {
-    if (value == null) default else value
+  def withDefault(args: Array[Any]): Any = {
+    if (args(0) == null) args(1) else args(0)
   }
-  def require(value: Any): Any = {
-    if (value == null) {
+  def require(args: Array[Any]): Any = {
+    if (args(0) == null) {
       throw new IllegalArgumentException("Required field is null")
     }
-    value
+    args(0)
   }
 }
 
@@ -30,19 +30,13 @@ class MiscFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFunction] = Seq(lineNumber, withDefault, require, intToBoolean)
 
-  private val withDefault = TransformerFunction.pure("withDefault") { args =>
-    MiscFunctionFactory.withDefault(args(0), args(1))
-  }
+  private val withDefault = TransformerFunction.pure("withDefault")(MiscFunctionFactory.withDefault)
 
-  private val require = TransformerFunction.pure("require") { args =>
-    MiscFunctionFactory.require(args(0))
-  }
+  private val require = TransformerFunction.pure("require")(MiscFunctionFactory.require)
 
   private val lineNumber = new NamedTransformerFunction(Seq("lineNo", "lineNumber")) {
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = ctx.line
   }
 
-  private val intToBoolean = TransformerFunction.pure("intToBoolean") { args =>
-    MiscFunctionFactory.intToBoolean(args(0))
-  }
+  private val intToBoolean = TransformerFunction.pure("intToBoolean")(MiscFunctionFactory.intToBoolean)
 }
