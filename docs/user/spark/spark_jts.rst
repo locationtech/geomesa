@@ -125,6 +125,21 @@ also achievable with the following code:
     import spark.implicits. _
     chicagoDF.where(st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), $"geom"))
 
+
+Note that there are two GeoTools derived UDFs and those are:
+
+ * ``st_distanceSpheroid``
+ * ``st_lengthSpheroid``
+
+These are available in the geomesa-spark-sql jar, but also bundled by default in the spark-runtime.
+Example usage is as follows:
+
+.. code::
+
+    import org.locationtech.geomesa.spark.geotools._
+    chicagoDF.where(st_contains(st_distanceSpheroid(st_point(0.0,0.0), col("geom")) > 10)
+
+
 A complete list of the implemented UDFs is given in the next section (:doc:`./sparksql_functions`).
 
 .. _classes representing geometry objects: http://docs.geotools.org/stable/userguide/library/jts/geometry.html
@@ -132,6 +147,13 @@ A complete list of the implemented UDFs is given in the next section (:doc:`./sp
 .. _OpenGIS Simple feature access common architecture: http://www.opengeospatial.org/standards/sfa
 
 .. _OpenGIS Simple feature access SQL option: http://www.opengeospatial.org/standards/sfs
+
+.. code::
+
+    import org.locationtech.geomesa.spark.jts._
+    import spark.implicits. _
+    chicagoDF.where(st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), $"geom"))
+
 
 Building
 ^^^^^^^^
