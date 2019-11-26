@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
+import java.lang.ClassCastException
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
@@ -708,6 +709,15 @@ class ExpressionTest extends Specification {
       trans.eval(Array(null)) mustEqual "foo"
       trans.eval(Array("bar")) mustEqual "bar"
       trans.eval(Array("")) mustEqual ""
+    }
+    "convert integer to boolean" >> {
+      val trans = Expression("intToBoolean($0)")
+      trans.eval(Array(null)) mustEqual null
+      trans.eval(Array(1)) mustEqual true
+      trans.eval(Array(0)) mustEqual false
+      trans.eval(Array(-20)) mustEqual true
+      trans.eval(Array(10000)) mustEqual true
+      trans.eval(Array(2.2)) must throwA[ClassCastException]
     }
     "strip quotes" >> {
       val trans = Expression("stripQuotes($0)")
