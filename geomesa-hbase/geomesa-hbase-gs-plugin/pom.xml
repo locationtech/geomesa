@@ -11,10 +11,6 @@
     <artifactId>geomesa-hbase-gs-plugin_2.11</artifactId>
     <modelVersion>4.0.0</modelVersion>
 
-    <!--
-      Because geoserver includes guava 17, and hbase requires guava 12, we have to create a shaded jar
-      and include that in our assembly instead of individual jars.
-    -->
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -32,7 +28,7 @@
             </exclusions>
         </dependency>
 
-        <!-- bring in hbase and guava so that we can relocate them -->
+        <!-- bring in hbase and guava so that we can relocate them for the legacy shaded jar -->
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
