@@ -126,7 +126,7 @@ also achievable with the following code:
     chicagoDF.where(st_contains(st_makeBBOX(0.0, 0.0, 90.0, 90.0), $"geom"))
 
 GeoTools User-defined Functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Note that there are two GeoTools derived UDFs and those are:
 
