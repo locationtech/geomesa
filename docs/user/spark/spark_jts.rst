@@ -139,7 +139,7 @@ Example usage is as follows:
 .. code::
 
     import org.locationtech.geomesa.spark.geotools._
-    chicagoDF.where(st_contains(st_distanceSpheroid(st_point(0.0,0.0), col("geom")) > 10)
+    chicagoDF.where(st_distanceSpheroid(st_point(0.0,0.0), col("geom")) > 10)
 
 
 A complete list of the implemented UDFs is given in the next section (:doc:`./sparksql_functions`).
