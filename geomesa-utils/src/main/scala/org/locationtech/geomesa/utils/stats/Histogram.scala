@@ -157,18 +157,14 @@ class Histogram[T](
 
   override def toJsonObject: Map[String, Any] = {
     val binSeq = Seq.tabulate(bins.length) { bin =>
-      val builder = ListMap.newBuilder[String, Any]
-      builder.sizeHint(if (bin == 0) { 4 } else { 3 })
-      builder += "index" -> bin
-      builder += "lower-bound" -> bounds(bin)._1
-      if (bin == 0) {
-        builder += "upper-bound" -> bounds(bin)._2
-      }
-      builder += "count" -> bins.counts(bin)
-      builder.result
+      ListMap[String, Any](
+        "index"       -> bin,
+        "lower-bound" -> bounds(bin)._1,
+        "upper-bound" -> bounds(bin)._2,
+        "count"       -> bins.counts(bin)
+      )
     }
     ListMap("lower-bound" -> bounds._1, "upper-bound" -> bounds._2, "bins" -> binSeq)
-
   }
 
   override def isEmpty: Boolean = bins.counts.forall(_ == 0)
