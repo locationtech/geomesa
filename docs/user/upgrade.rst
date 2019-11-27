@@ -161,6 +161,13 @@ longer be hosted on Maven Central. They will continue to be available on
 `Locationtech Maven Repository <https://repo.locationtech.org/content/groups/releases>`__. Note that this only
 applies to large installation bundles; GeoMesa will continue to publish JAR files to Maven Central.
 
+HBase GeoServer Plugin Installation
+-----------------------------------
+
+The GeoMesa HBase GeoServer plugin installation tar file has been updated to remove the shaded HBase client JARs.
+The appropriate client JARS for your HBase version now must be installed separately. See
+:ref:`install_hbase_geoserver` for details.
+
 Version 2.3.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
