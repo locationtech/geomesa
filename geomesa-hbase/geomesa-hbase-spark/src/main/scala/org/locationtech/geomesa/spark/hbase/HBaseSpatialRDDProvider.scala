@@ -29,10 +29,12 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     HBaseDataStoreFactory.canProcess(params)
 
-  def rdd(
+  def rdd(conf: Configuration, sc: SparkContext, params: Map[String, String], query: Query): SpatialRDD = createRdd(conf, sc, params, query)
+
+  override def createRdd(
       conf: Configuration,
       sc: SparkContext,
-      dsParams: Map[String, String],
+      dsParams: Map[String, Object],
       origQuery: Query): SpatialRDD = {
 
     val ds = DataStoreConnector[HBaseDataStore](dsParams)

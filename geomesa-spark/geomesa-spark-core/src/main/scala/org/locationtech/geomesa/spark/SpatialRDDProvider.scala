@@ -41,6 +41,7 @@ trait SpatialRDDProvider {
     * @return
     */
   def rdd(conf: Configuration, sc: SparkContext, params: Map[String, String], query: Query) : SpatialRDD
+  def createRdd(conf: Configuration, sc: SparkContext, params: Map[String, Object], query: Query) : SpatialRDD = null
 
   /**
     * Persist an RDD to long-term storage.

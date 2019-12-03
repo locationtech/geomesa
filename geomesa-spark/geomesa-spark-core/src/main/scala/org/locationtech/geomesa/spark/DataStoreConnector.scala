@@ -18,11 +18,11 @@ object DataStoreConnector {
 
   import scala.collection.JavaConverters._
 
-  def apply[T <: DataStore](params: Map[String, String]): T = loadingMap.get(params).asInstanceOf[T]
+  def apply[T <: DataStore](params: Map[String, Object]): T = loadingMap.get(params).asInstanceOf[T]
 
-  private val loadingMap = Caffeine.newBuilder().build[Map[String, String], DataStore](
-    new CacheLoader[Map[String, String], DataStore] {
-      override def load(key: Map[String, String]): DataStore = DataStoreFinder.getDataStore(key.asJava)
+  private val loadingMap = Caffeine.newBuilder().build[Map[String, Object], DataStore](
+    new CacheLoader[Map[String, Object], DataStore] {
+      override def load(key: Map[String, Object]): DataStore = DataStoreFinder.getDataStore(key.asJava)
     }
   )
 }
