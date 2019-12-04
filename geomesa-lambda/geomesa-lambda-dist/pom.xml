@@ -112,6 +112,17 @@
     </dependencies>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <configuration>
+                        <skip>${skip.installers.deploy}</skip>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -124,7 +135,6 @@
                         </goals>
                         <phase>package</phase>
                         <configuration>
-                            <attach>${attach.installers}</attach>
                             <tarLongFileMode>posix</tarLongFileMode>
                             <descriptors>
                                 <descriptor>src/main/assemblies/binary-release.xml</descriptor>

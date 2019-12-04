@@ -183,7 +183,6 @@
                         <descriptors>
                             <descriptor>${project.basedir}/../../geomesa-archetypes/geomesa-archetypes-gs-plugin/assembly.xml</descriptor>
                         </descriptors>
-                        <attach>${attach.installers}</attach>
                     </configuration>
                     <executions>
                         <execution>
@@ -194,6 +193,13 @@
                             </goals>
                         </execution>
                     </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <configuration>
+                        <skip>${skip.installers.deploy}</skip>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

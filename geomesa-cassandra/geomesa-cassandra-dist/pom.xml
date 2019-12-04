@@ -60,6 +60,17 @@
     </dependencies>
 
     <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <configuration>
+                        <skip>${skip.installers.deploy}</skip>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -72,7 +83,6 @@
                         </goals>
                         <phase>package</phase>
                         <configuration>
-                            <attach>${attach.installers}</attach>
                             <finalName>geomesa-cassandra_${scala.binary.version}-${project.version}</finalName>
                             <tarLongFileMode>posix</tarLongFileMode>
                             <descriptors>

@@ -112,6 +112,7 @@
         <!-- *** maven build configuration *** -->
 
         <attach.installers>true</attach.installers> <!-- whether install artifacts are published to maven or not -->
+        <skip.installers.deploy>false</skip.installers.deploy>
 
         <!-- testing properties -->
         <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Dgeomesa.scan.ranges.target=500 -Duser.language=en -Duser.region=US</maven.test.jvmargs>
@@ -164,7 +165,7 @@
         <profile>
             <id>central</id>
             <properties>
-                <attach.installers>false</attach.installers>
+                <skip.installers.deploy>true</skip.installers.deploy>
             </properties>
             <build>
                 <plugins>
@@ -2264,6 +2265,9 @@
                     <artifactId>maven-deploy-plugin</artifactId>
                     <!-- 3.0.0-M1 was released 2018-09-23. -->
                     <version>3.0.0-M1</version>
+                    <configuration>
+                        <deployAtEnd>true</deployAtEnd>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
