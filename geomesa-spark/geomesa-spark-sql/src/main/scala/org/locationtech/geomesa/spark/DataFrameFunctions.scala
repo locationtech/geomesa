@@ -3,7 +3,6 @@
  * This program and the accompanying materials are made available under the
  * Apache License, Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0.
- *
  * This software was produced for the U. S. Government under Basic Contract
  * No. W56KGU-18-D-0004, and is subject to the Rights in Noncommercial
  * Computer Software and Noncommercial Computer Software Documentation
