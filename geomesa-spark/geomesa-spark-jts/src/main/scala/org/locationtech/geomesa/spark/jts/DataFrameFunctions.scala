@@ -348,6 +348,12 @@ object DataFrameFunctions extends SpatialEncoders {
 
     def st_lengthSphere(line: Column): TypedColumn[Any, jl.Double] =
       udfToColumn(ST_LengthSphere, relationNames, line)
+
+    def st_intersection(geom1:Column, geom2:Column): TypedColumn[Any, Geometry] =
+      udfToColumn(ST_Intersection, relationNames, geom1, geom2)
+
+    def st_difference(geom1:Column, geom2:Column): TypedColumn[Any, Geometry] =
+      udfToColumn(ST_Difference, relationNames, geom1, geom2)
   }
 
   /** Stack of all DataFrame DSL functions. */

@@ -670,6 +670,17 @@ st_crosses
 
 Returns true if the supplied geometries have some, but not all, interior points in common.
 
+.. _st_difference:
+
+st_difference
+^^^^^^^^^^^^^
+
+::
+
+    Geometry st_difference(Geometry a, Geometry b)
+
+Returns the difference of the input geometries.
+
 .. _st_disjoint:
 
 st_disjoint
@@ -726,6 +737,17 @@ st_equals
     Boolean st_equals(Geometry a, Geometry b)
 
 Returns true if the given Geometries represent the same logical Geometry. Directionality is ignored.
+
+.. _st_intersection:
+
+st_intersection
+^^^^^^^^^^^^^^^
+
+::
+
+    Geometry st_intersection(Geometry a, Geometry b)
+
+Returns the intersection of the input geometries.
 
 .. _st_intersects:
 
