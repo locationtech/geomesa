@@ -673,13 +673,13 @@ Returns true if the supplied geometries have some, but not all, interior points 
 .. _st_difference:
 
 st_difference
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^
 
 ::
 
     Geometry st_difference(Geometry a, Geometry b)
 
-Returns the difference of the input geomtries.
+Returns the difference of the input geometries.
 
 .. _st_disjoint:
 
@@ -747,7 +747,7 @@ st_intersection
 
     Geometry st_intersection(Geometry a, Geometry b)
 
-Returns the intersection of the input geomtries.
+Returns the intersection of the input geometries.
 
 .. _st_intersects:
 
