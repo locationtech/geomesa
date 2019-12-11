@@ -94,7 +94,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
         // From sc.newAPIHadoopRDD
         // Add necessary security credentials to the JobConf. Required to access secure HDFS.
-        val jconf = new JobConf(conf)
+        val jconf: JobConf = new JobConf(conf)
         SparkHadoopUtil.get.addCredentials(jconf)
 
         // Get username from params

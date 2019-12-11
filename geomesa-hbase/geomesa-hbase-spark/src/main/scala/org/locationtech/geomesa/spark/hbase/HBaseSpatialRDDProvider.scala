@@ -22,39 +22,42 @@ import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
 
-class HBaseSpatialRDDProvider extends SpatialRDDProvider {
+class HBaseSpatialRDDProvider extends SpatialRDDProvider { //Super class is SpatialRDD provider
 
-  import org.locationtech.geomesa.index.conf.QueryHints._
+  import org.locationtech.geomesa.index.conf.QueryHints._//import everything from Query Hints
 
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
-    HBaseDataStoreFactory.canProcess(params)
+    HBaseDataStoreFactory.canProcess(params) // override supermethod for canProcess which runs the canProcess from HBaseDataStoreFactory
+  // maps string to everything less than or equal to serializable(string)
+  // determines whether the params(string) passed in are valid for the database system
 
   def rdd(
       conf: Configuration,
       sc: SparkContext,
-      dsParams: Map[String, String],
+      dsParams: Map[String, String], //data store parameters
       origQuery: Query): SpatialRDD = {
 
-    val ds = DataStoreConnector[HBaseDataStore](dsParams)
+    val ds = DataStoreConnector[HBaseDataStore](dsParams) //connector to specific database datastore
 
     // get the query plan to set up the iterators, ranges, etc
-    lazy val sft = ds.getSchema(origQuery.getTypeName)
+    lazy val sft = ds.getSchema(origQuery.getTypeName) // simple feature type(sft) gets the database/datastore schema using the query and type name
+    // want to figure out whatcolumns(?) are going to be needed for input
     lazy val qps = {
       // force loose bbox to be false
       origQuery.getHints.put(QueryHints.LOOSE_BBOX, false)
       // flatten and duplicate the query plans so each one only has a single table
       HBaseJobUtils.getMultiScanPlans(ds, origQuery)
-    }
+    } // query plan statement, Loosebox??; And go to Utils file and run multiscan plans with the Original query and the Datastore connector
     // note: only access this after getting the query plans so that the hint is set
-    lazy val rddSft = origQuery.getHints.getTransformSchema.getOrElse(sft)
+    lazy val rddSft = origQuery.getHints.getTransformSchema.getOrElse(sft) //transform simple feature types into rddSft(??)
 
-    def queryPlanToRdd(qp: ScanPlan): RDD[SimpleFeature] = {
+    def queryPlanToRdd(qp: ScanPlan): RDD[SimpleFeature] = {  // transforms queryPlan(scanPlan) to RDD(of simple features??)
       val config = new Configuration(conf)
       GeoMesaHBaseInputFormat.configure(config, qp)
-      sc.newAPIHadoopRDD(config, classOf[GeoMesaHBaseInputFormat], classOf[Text], classOf[SimpleFeature]).map(_._2)
+      sc.newAPIHadoopRDD(config, classOf[GeoMesaHBaseInputFormat], classOf[Text], classOf[SimpleFeature]).map(_._2) // spark context takes in configuration, and classes of input format, text and simple features
     }
 
-    if (ds == null || sft == null || qps.isEmpty) {
+    if (ds == null || sft == null || qps.isEmpty) { // if no datastore connection or no query plan or no schema, return empty spatial RDD
       SpatialRDD(sc.emptyRDD[SimpleFeature], rddSft)
     } else {
       // can return a union of the RDDs because the query planner rewrites ORs to make them logically disjoint
