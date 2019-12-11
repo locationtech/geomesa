@@ -32,6 +32,7 @@
         <module>geomesa-filter</module>
         <module>geomesa-fs</module>
         <module>geomesa-geojson</module>
+        <module>geomesa-geospark</module>
         <module>geomesa-gt</module>
         <module>geomesa-hbase</module>
         <module>geomesa-index-api</module>
@@ -69,7 +70,8 @@
 
         <gt.version>21.1</gt.version>
         <geoserver.version>2.15.1</geoserver.version>
-        <jts.version>1.16.0</jts.version>
+        <jts.version>1.16.2-SNAPSHOT</jts.version>
+        <geospark.version>1.2.0</geospark.version>
         <avro.version>1.7.5</avro.version> <!-- see also confluent.avro.version -->
         <parquet.version>1.9.0</parquet.version>
         <orc.version>1.5.4</orc.version>
@@ -726,6 +728,11 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-spark-core_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-spark-jts_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
