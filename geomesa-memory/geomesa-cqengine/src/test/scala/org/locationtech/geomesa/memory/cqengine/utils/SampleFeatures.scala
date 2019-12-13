@@ -228,11 +228,6 @@ object SampleFilters {
     s"BBOX(Where, -180, 0, 0, 90)"
   )
 
-  val spatialIndexesForIndexChoise: Seq[Filter] = Seq(
-    s"INTERSECTS(Where, $bbox2)",
-    s"BBOX(Where, -180, 0, 0, 90)"
-  )
-
   val andedSpatialPredicates: Seq[Filter] = Seq(
     s"INTERSECTS(Where, $bbox1) AND OVERLAPS(Where, $bbox2)",
     s"INTERSECTS(Where, $bbox1) AND WITHIN(Where, $bbox2)",

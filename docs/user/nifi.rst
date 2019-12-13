@@ -100,8 +100,6 @@ following sections.
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConverterErrorMode``        | Override the converter error mode (``skip-bad-records`` or ``raise-errors``)            |
 +-------------------------------+-----------------------------------------------------------------------------------------+
-| ``ConverterClasspath``        | Additional resources to add to the classpath.                                           |
-+-------------------------------+-----------------------------------------------------------------------------------------+
 | ``BatchSize``                 | The number of flow files that will be processed in a single batch                       |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``FeatureWriterCaching``      | Enable caching of feature writers between flow files, useful if flow files have a       |
@@ -109,6 +107,19 @@ following sections.
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``FeatureWriterCacheTimeout`` | How often feature writers will be flushed to the data store, if caching is enabled      |
 +-------------------------------+-----------------------------------------------------------------------------------------+
+
+Feature Writer Caching
+^^^^^^^^^^^^^^^^^^^^^^
+
+Feature writer caching can be used to improve the throughput of processing many small flow files. Instead of a new
+feature writer being created for each flow file, writers are cached and re-used between operations. If a writer is
+idle for the configured timeout, then it will be flushed to the data store and closed.
+
+Note that if feature writer caching is enabled, features that are processed may not show up in the data store
+immediately. In addition, any features that have been processed but not flushed may be lost if NiFi shuts down
+unexpectedly. To ensure data is properly flushed, stop the processor before shutting down NiFi.
+
+Alternatively, NiFi's built-in ``MergeContent`` processor can be used to batch up small files.
 
 Defining SimpleFeatureTypes and Converters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -123,14 +134,14 @@ For custom data sources, there are two ways of providing custom SFTs and convert
 Providing SimpleFeatureTypes and Converters on the Classpath
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-To bundle configuration in a JAR file simply place your config in a file named ``reference.conf`` and place it **at
-the root level** of a JAR file:
+To bundle configuration in a jar file simply place your config in a file named ``reference.conf`` and place it **at
+the root level** of a jar file:
 
 .. code-block:: bash
 
     $ jar cvf data-formats.jar reference.conf
 
-You can verify your JAR was built properly:
+You can verify your jar was built properly:
 
 .. code-block:: bash
 
@@ -139,29 +150,13 @@ You can verify your JAR was built properly:
         69 Mon Mar 20 18:18:36 EDT 2017 META-INF/MANIFEST.MF
      28473 Mon Mar 20 14:49:54 EDT 2017 reference.conf
 
-Use the ``ConverterClasspath`` property to point your processor to the JAR file. The property takes a list of
-comma-delimited resources. Once set, the ``SftName`` and/or ``ConverterName`` properties will update with the
-name of your converters. You will need to close the configuration panel and re-open it in order for the
-properties to update.
+Add the jar file to ``$NIFI_HOME/lib`` to make it available on the classpath.
 
 Defining SimpleFeatureTypes and Converters via the UI
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 You may also provide SimpleFeatureTypes and Converters directly in the Processor configuration via the NiFi UI.
 Simply paste your TypeSafe configuration into the ``SftSpec`` and ``ConverterSpec`` property fields.
-
-Feature Writer Caching
-^^^^^^^^^^^^^^^^^^^^^^
-
-Feature writer caching can be used to improve the throughput of processing many small flow files. Instead of a new
-feature writer being created for each flow file, writers are cached and re-used between operations. If a writer is
-idle for the configured timeout, then it will be flushed to the data store and closed.
-
-Note that if feature writer caching is enabled, features that are processed may not show up in the data store
-immediately. In addition, any features that have been processed but not flushed may be lost if NiFi shuts down
-unexpectedly. To ensure data is properly flushed, stop the processor before shutting down NiFi.
-
-Alternatively, NiFi's built-in ``MergeContent`` processor can be used to batch up small files.
 
 PutGeoMesaAccumulo
 ~~~~~~~~~~~~~~~~~~

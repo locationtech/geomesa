@@ -4,7 +4,7 @@
     <parent>
         <artifactId>geomesa-cassandra_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>2.5.0-SNAPSHOT</version>
+        <version>2.4.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -44,9 +44,21 @@
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-mapping</artifactId>
         </dependency>
+
+        <dependency>
+        <groupId>org.apache.thrift</groupId>
+        <artifactId>libthrift</artifactId>
+        <version>0.13.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-main</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-jobs_${scala.binary.version}</artifactId>
         </dependency>
 
         <!-- test deps -->
@@ -110,6 +122,4 @@
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
         </dependency>
     </dependencies>
-
-
 </project>

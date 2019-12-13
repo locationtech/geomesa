@@ -88,8 +88,8 @@ Contact
 
 Contact the GeoMesa developers via the developers mailing list:
 
-* https://accounts.eclipse.org/mailing-list/geomesa-dev
+* https://www.locationtech.org/mailman/listinfo/geomesa-dev
 
 For user information, use the users mailing list:
 
-* https://accounts.eclipse.org/mailing-list/geomesa-users
+* https://www.locationtech.org/mailman/listinfo/geomesa-users

@@ -46,8 +46,8 @@ Community and Support
 The main GeoMesa website is http://www.geomesa.org/. For additional information, see:
 
 * Getting started `tutorials <http://www.geomesa.org/tutorials/>`_
-* The GeoMesa `users <https://accounts.eclipse.org/mailing-list/geomesa-users>`_ and
-  `developers <https://accounts.eclipse.org/mailing-list/geomesa-dev>`_ mailing list archives
+* The GeoMesa `users <https://locationtech.org/mhonarc/lists/geomesa-users/>`_ and
+  `developers <https://locationtech.org/mhonarc/lists/geomesa-dev/>`_ mailing list archives
 * The community chat on `Gitter <https://gitter.im/locationtech/geomesa/>`_.
 
 |locationtech-icon|

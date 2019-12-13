@@ -11,11 +11,9 @@ package org.locationtech.geomesa.fs.storage
 import com.typesafe.config._
 import org.locationtech.geomesa.fs.storage.api.NamedOptions
 import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.PartitionSchemeConfig
-import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
-import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import pureconfig.ConfigConvert
+import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.generic.semiauto.deriveConvert
+import pureconfig.{ConfigConvert, ConfigWriter}
 
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -61,7 +59,6 @@ package object common {
     val LeafStorageKey = "geomesa.fs.leaf-storage"
     val MetadataKey    = "geomesa.fs.metadata"
     val SchemeKey      = "geomesa.fs.scheme"
-    val ObserversKey   = "geomesa.fs.observers"
 
     @deprecated("Replaced with SchemeKey")
     val PartitionSchemeKey = "geomesa.fs.partition-scheme.config"
@@ -92,12 +89,6 @@ package object common {
     def setMetadata(name: String, options: Map[String, String] = Map.empty): Unit =
       sft.getUserData.put(MetadataKey, serialize(NamedOptions(name, options)))
     def removeMetadata(): Option[NamedOptions] = remove(MetadataKey).map(deserialize)
-
-    def setObservers(names: Seq[String]): Unit = sft.getUserData.put(ObserversKey, names.mkString(","))
-    def getObservers: Seq[String] = {
-      val obs = sft.getUserData.get(ObserversKey).asInstanceOf[String]
-      if (obs == null || obs.isEmpty) { Seq.empty } else { obs.split(",") }
-    }
 
     private def remove(key: String): Option[String] = Option(sft.getUserData.remove(key).asInstanceOf[String])
   }

@@ -14,8 +14,7 @@ import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWrite
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{StorageFile, StorageFilePath}
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
-import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, WriterCallback}
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -30,7 +29,7 @@ class ConverterStorage(context: FileSystemContext, metadata: StorageMetadata, co
   // actually need to be closed, and since they will only open a single connection per converter, the
   // impact should be low
 
-  override protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter =
+  override protected def createWriter(file: Path, callback: WriterCallback): FileSystemWriter =
     throw new NotImplementedError()
 
   override protected def createReader(

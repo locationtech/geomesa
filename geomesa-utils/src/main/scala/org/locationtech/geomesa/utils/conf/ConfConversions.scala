@@ -8,27 +8,11 @@
 
 package org.locationtech.geomesa.utils.conf
 
-import com.typesafe.config.{Config, ConfigUtil}
+import com.typesafe.config.Config
 
 object ConfConversions {
 
-  import scala.collection.JavaConverters._
-
-  /**
-   * Normalizes a potentially nested path into a dot-delimited string
-   *
-   * @param k key
-   * @return
-   */
-  def normalizeKey(k: String): String = String.join(".", ConfigUtil.splitPath(k))
-
-  /**
-   * Helper methods on typesafe config objects
-   *
-   * @param base config
-   */
-  implicit class RichConfig(val base: Config) extends AnyVal {
-
+  implicit class RichConfig(val base: Config) {
     def getStringOpt(path: String): Option[String] =
       if (base.hasPath(path)) Some(base.getString(path)) else None
 
@@ -52,22 +36,5 @@ object ConfConversions {
 
     def getStringListOpt(path: String): Option[java.util.List[String]] =
       if (base.hasPath(path)) Some(base.getStringList(path)) else None
-
-    /**
-     * Converts the (potentially nested) config to a flat map
-     *
-     * @param delimiter delimiter used to join list values
-     * @return
-     */
-    def toStringMap(delimiter: String = ","): Map[String, String] = {
-      val entries = base.entrySet().asScala.map { e =>
-        val value = e.getValue.unwrapped() match {
-          case v: java.util.List[String] => String.join(delimiter, v)
-          case v => s"$v"
-        }
-        normalizeKey(e.getKey) -> value
-      }
-      entries.toMap
-    }
   }
 }

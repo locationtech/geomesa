@@ -679,18 +679,6 @@ Example: ``stringToBoolean('true', false) = true``
 
 Example: ``stringToBoolean('55', false) = false``
 
-intToBoolean
-^^^^^^^^^^^^
-
-Description: Converts an int to boolean. Follows the normal rules of conversion, where 0 is false and all other ints
-are true.
-
-Usage: ``intToBoolean($1)``
-
-Example: ``intToBoolean(1) = true``
-
-Example: ``intToBoolean(0) = false``
-
 Math Functions
 ~~~~~~~~~~~~~~
 

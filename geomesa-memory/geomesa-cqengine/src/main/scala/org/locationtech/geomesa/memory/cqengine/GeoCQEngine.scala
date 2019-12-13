@@ -21,13 +21,12 @@ import com.googlecode.cqengine.query.simple.{All, Equal}
 import com.googlecode.cqengine.query.{Query, QueryFactory}
 import com.googlecode.cqengine.{ConcurrentIndexedCollection, IndexedCollection}
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.memory.cqengine.attribute.SimpleFeatureAttribute
-import org.locationtech.geomesa.memory.cqengine.index.GeoIndexType
-import org.locationtech.geomesa.memory.cqengine.index.param.{BucketIndexParam, GeoIndexParams}
+import org.locationtech.geomesa.memory.cqengine.index.GeoIndex
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.memory.cqengine.utils._
-import org.locationtech.geomesa.utils.index.{SimpleFeatureIndex, SpatialIndex}
-import org.locationtech.jts.geom.Geometry
+import org.locationtech.geomesa.utils.index.SimpleFeatureIndex
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
@@ -36,27 +35,10 @@ import scala.collection.JavaConversions._
 class GeoCQEngine(val sft: SimpleFeatureType,
                   attributes: Seq[(String, CQIndexType)],
                   enableFidIndex: Boolean = false,
-                  geoIndexType: GeoIndexType = GeoIndexType.Bucket,
-                  geoIndexParam: Option[_ <: GeoIndexParams] = Option.empty,
+                  geomResolution: (Int, Int) = (360, 180),
                   dedupe: Boolean = true) extends SimpleFeatureIndex with LazyLogging {
 
   protected val cqcache: IndexedCollection[SimpleFeature] = new ConcurrentIndexedCollection[SimpleFeature]()
-
-  def this(sft: SimpleFeatureType,
-           attributes: Seq[(String, CQIndexType)],
-           enableFidIndex: Boolean,
-           geomResolution: (Int, Int),
-           dedupe: Boolean) = {
-    this(sft, attributes, enableFidIndex, GeoIndexType.Bucket, Option.apply(new BucketIndexParam(geomResolution._1, geomResolution._2).asInstanceOf[GeoIndexParams]), dedupe)
-  }
-
-
-  def this(sft: SimpleFeatureType,
-           attributes: Seq[(String, CQIndexType)],
-           enableFidIndex: Boolean,
-           geomResolution: (Int, Int)) = {
-    this(sft, attributes, enableFidIndex, geomResolution, true)
-  }
 
   addIndices()
 
@@ -134,7 +116,7 @@ class GeoCQEngine(val sft: SimpleFeatureType,
 
           case GEOMETRY | DEFAULT if classOf[Geometry].isAssignableFrom(binding) =>
               val attribute = new SimpleFeatureAttribute(binding.asInstanceOf[Class[Geometry]], sft, name)
-              GeoIndexFactory.onAttribute(sft, attribute, geoIndexType, geoIndexParam);
+              GeoIndex.onAttribute(sft, attribute, geomResolution._1, geomResolution._2)
 
           case DEFAULT if classOf[UUID].isAssignableFrom(binding) =>
               UniqueIndex.onAttribute(new SimpleFeatureAttribute(classOf[UUID], sft, name))
@@ -157,29 +139,5 @@ class GeoCQEngine(val sft: SimpleFeatureType,
         cqcache.addIndex(index)
       }
     }
-  }
-}
-
-object GeoCQEngine {
-
-  private val lastIndexUsed : Option[ThreadLocal[SpatialIndex[_ <: SimpleFeature]]] =
-    sys.props.get("GeoCQEngineDebugEnabled").collect {
-      case e if e.toBoolean => new ThreadLocal[SpatialIndex[_ <: SimpleFeature]]
-    }
-
-  def isDebugEnabled(): Boolean = lastIndexUsed.nonEmpty
-
-  def setLastIndexUsed(spatialIndex: SpatialIndex[_ <: SimpleFeature]) = {
-    if (lastIndexUsed.isEmpty) {
-      throw new UnsupportedOperationException("GeoCQEngineDebugEnabled = false, debug mode disabled")
-    }
-    lastIndexUsed.foreach(_.set(spatialIndex))
-  }
-
-  def getLastIndexUsed(): Option[SpatialIndex[_ <: SimpleFeature]] = {
-    if (lastIndexUsed.isEmpty) {
-      throw new UnsupportedOperationException("GeoCQEngineDebugEnabled = false, debug mode disabled")
-    }
-    return lastIndexUsed.map(_.get())
   }
 }

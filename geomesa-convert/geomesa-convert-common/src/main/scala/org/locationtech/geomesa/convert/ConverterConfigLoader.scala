@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.convert
 
 import java.net.URL
+import java.util
 import java.util.{ServiceLoader, List => JList}
 
 import com.typesafe.config.{Config, ConfigFactory}
@@ -78,16 +79,16 @@ object GeoMesaConvertParser {
   * Provides access converter configs on the classpath
   */
 class ClassPathConfigProvider extends ConverterConfigProvider with GeoMesaConvertParser {
-  // intentionally keep as a method so we can reload dynamically
-  override def loadConfigs(): java.util.Map[String, Config] = parseConf(ConfigFactory.load).asJava
+  lazy val confs: java.util.Map[String, Config] = parseConf(ConfigFactory.load)
+  override def loadConfigs(): util.Map[String, Config] = confs
 }
 
 /** Load Config from URLs */
 class URLConfigProvider extends ConverterConfigProvider with GeoMesaConvertParser {
   import URLConfigProvider._
 
-  override def loadConfigs(): java.util.Map[String, Config] = {
-    val confs = configURLs.flatMap { url =>
+  override def loadConfigs(): util.Map[String, Config] =
+    configURLs.flatMap { url =>
       try {
         Some(ConfigFactory.parseURL(url))
       } catch {
@@ -96,9 +97,9 @@ class URLConfigProvider extends ConverterConfigProvider with GeoMesaConvertParse
           logger.trace(s"Unable to load converter config from url $url", e)
           None
       }
-    }
-    confs.reduceLeftOption(_.withFallback(_)).map(parseConf).getOrElse(Map.empty[String, Config]).asJava
-  }
+    }.reduceLeftOption(_.withFallback(_))
+    .map(parseConf)
+    .getOrElse(Map.empty[String, Config]).asJava
 
   // Will also pick things up from the SystemProperties
   def configURLs: Seq[URL] = {

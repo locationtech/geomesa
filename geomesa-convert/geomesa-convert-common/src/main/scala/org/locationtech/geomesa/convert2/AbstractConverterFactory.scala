@@ -12,7 +12,7 @@ import java.lang.reflect.InvocationTargetException
 import java.nio.charset.Charset
 import java.util.Collections
 
-import com.typesafe.config.{Config, ConfigFactory, ConfigObject, ConfigUtil, ConfigValueFactory}
+import com.typesafe.config.{Config, ConfigFactory, ConfigObject, ConfigValueFactory}
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
@@ -136,6 +136,14 @@ object AbstractConverterFactory extends LazyLogging {
       updates.append(c => c.withValue("options.validators", validators))
     }
 
+    if (conf.hasPath("user-data")) {
+      // re-write user data so that it doesn't have to be quoted
+      val kvs = new java.util.HashMap[String, AnyRef]
+      conf.getConfig("user-data").entrySet.asScala.foreach(e => kvs.put(e.getKey, e.getValue.unwrapped()))
+      val fallback = ConfigFactory.empty().withValue("user-data", ConfigValueFactory.fromMap(kvs))
+      updates.append(c => c.withoutPath("user-data").withFallback(fallback))
+    }
+
     updates.foldLeft(conf)((c, mod) => mod.apply(c)).withFallback(ConfigFactory.load("base-converter-defaults"))
   }
 
@@ -245,17 +253,10 @@ object AbstractConverterFactory extends LazyLogging {
     }
 
     private def userDataFrom(cur: ConfigCursor): Either[ConfigReaderFailures, Map[String, Expression]] = {
-      import org.locationtech.geomesa.utils.conf.ConfConversions.RichConfig
-
       if (cur.isUndefined) { Right(Map.empty) } else {
         def merge(cur: ConfigObjectCursor): Either[ConfigReaderFailures, Map[String, Expression]] = {
-          val map = cur.value.toConfig.toStringMap() // handles quoting keys
-          map.foldLeft[Either[ConfigReaderFailures, Map[String, Expression]]](Right(Map.empty)) {
-            case (map, (k, v)) =>
-              // convert back to a cursor for parsing the expression
-              val path = cur.pathElems ++ ConfigUtil.splitPath(k).asScala
-              val valueCursor = ConfigCursor(ConfigValueFactory.fromAnyRef(v), path)
-              for { m <- map.right; d <- exprFrom(valueCursor).right } yield { m + (k -> d) }
+          cur.map.foldLeft[Either[ConfigReaderFailures, Map[String, Expression]]](Right(Map.empty)) {
+            case (map, (k, v)) => for { m <- map.right; d <- exprFrom(v).right } yield { m + (k -> d) }
           }
         }
         for { obj <- cur.asObjectCursor.right; data <- merge(obj).right } yield { data }

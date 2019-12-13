@@ -30,6 +30,7 @@ import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequ
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 
+import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with CoprocessorService with LazyLogging {
@@ -57,12 +58,12 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
       request: GeoMesaProto.GeoMesaCoprocessorRequest,
       done: RpcCallback[GeoMesaProto.GeoMesaCoprocessorResponse]): Unit = {
 
-    val results = GeoMesaCoprocessorResponse.newBuilder()
+    val results = ArrayBuffer.empty[Array[Byte]]
 
     try {
-      val options = GeoMesaCoprocessor.deserializeOptions(request.getOptions.toByteArray)
-      val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong)
-      if (!controller.isCanceled && timeout.forall(_ > System.currentTimeMillis())) {
+      if (!controller.isCanceled) {
+        val options = GeoMesaCoprocessor.deserializeOptions(request.getOptions.toByteArray)
+        val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong + System.currentTimeMillis())
         val aggregator = {
           val classname = options(GeoMesaCoprocessor.AggregatorClass)
           Class.forName(classname).newInstance().asInstanceOf[HBaseAggregator[_]]
@@ -85,7 +86,7 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
             logger.trace(s"Running batch on aggregator $aggregator")
             val agg = aggregator.aggregate()
             if (agg != null) {
-              results.addPayload(ByteString.copyFrom(agg))
+              results.append(agg)
             }
             if (controller.isCanceled) {
               logger.warn(s"Stopping aggregator $aggregator due to controller being cancelled")
@@ -105,11 +106,7 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
       case NonFatal(e) => ResponseConverter.setControllerException(controller, new IOException(e))
     }
 
-    logger.debug(
-      s"Results total size: ${results.getPayloadList.asScala.map(_.size()).sum}" +
-          s"\n\tBatch sizes: ${results.getPayloadList.asScala.map(_.size()).mkString(", ")}")
-
-    done.run(results.build)
+    done.run(GeoMesaCoprocessorResponse.newBuilder.addAllPayload(results.map(ByteString.copyFrom).asJava).build)
   }
 }
 
@@ -157,7 +154,7 @@ object GeoMesaCoprocessor extends LazyLogging {
    * @param millis milliseconds
    * @return
    */
-  def timeout(millis: Long): (String, String) = TimeoutOpt -> (millis + System.currentTimeMillis()).toString
+  def timeout(millis: Long): (String, String) = TimeoutOpt -> millis.toString
 
   /**
    * Closeable iterator implementation for invoking coprocessor rpcs

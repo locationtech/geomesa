@@ -17,9 +17,7 @@ import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemUpda
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction.StorageFileAction
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata._
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, MetadataObserver}
-import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.CompositeObserver
-import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, WriterCallback}
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils}
 import org.locationtech.geomesa.index.planning.QueryRunner
@@ -31,46 +29,28 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
 import scala.collection.mutable.ListBuffer
-import scala.util.control.NonFatal
 
 /**
- * Base class storage implementations
- *
- * @param context file system context
- * @param metadata metadata
- * @param extension file extension
- */
+  * Base class storage implementations
+  *
+  * @param context file system context
+  * @param metadata metadata
+  * @param extension file extension
+  */
 abstract class AbstractFileSystemStorage(
     val context: FileSystemContext,
     val metadata: StorageMetadata,
     extension: String
   ) extends FileSystemStorage with MethodProfiling with LazyLogging {
 
-  // don't require observers if we never write any data
-  lazy private val observers = {
-    val builder = Seq.newBuilder[FileSystemObserverFactory]
-    metadata.sft.getObservers.foreach { c =>
-      try {
-        // use the context classloader if defined, so that child classloaders can be accessed, as per SPI loading
-        val cl = Option(Thread.currentThread.getContextClassLoader).getOrElse(ClassLoader.getSystemClassLoader)
-        val observer = cl.loadClass(c).newInstance().asInstanceOf[FileSystemObserverFactory]
-        builder += observer
-        observer.init(context.conf, context.root, metadata.sft)
-      } catch {
-        case NonFatal(e) => CloseQuietly(builder.result).foreach(e.addSuppressed); throw e
-      }
-    }
-    builder.result
-  }
-
   /**
     * Create a writer for the given file
     *
     * @param file file to write to
-    * @param observer observer to report stats on the data written
+    * @param callback callback to report stats on the data written
     * @return
     */
-  protected def createWriter(file: Path, observer: FileSystemObserver): FileSystemWriter
+  protected def createWriter(file: Path, callback: WriterCallback): FileSystemWriter
 
   /**
     * Create a path reader with the given filter and transform
@@ -159,12 +139,9 @@ abstract class AbstractFileSystemStorage(
 
         val reader = createReader(None, None)
         def threaded = FileSystemThreadedReader(Iterator.single(reader -> toCompact), threads)
-        val compactObserver = new CompactObserver(partition, path, toCompact)
-        val observer = if (observers.isEmpty) { compactObserver } else {
-          new CompositeObserver(observers.map(_.apply(path)).+:(compactObserver))
-        }
+        val callback = new CompactCallback(partition, path, toCompact)
 
-        WithClose(createWriter(path, observer), threaded) { case (writer, features) =>
+        WithClose(createWriter(path, callback), threaded) { case (writer, features) =>
           while (features.hasNext) {
             writer.write(features.next())
             written += 1
@@ -208,11 +185,7 @@ abstract class AbstractFileSystemStorage(
     }
     val path = StorageUtils.nextFile(context.root, partition, metadata.leafStorage, extension, fileType)
     PathCache.register(context.fc, path)
-    val updateObserver = new UpdateObserver(partition, path, action)
-    val observer = if (observers.isEmpty) { updateObserver } else {
-      new CompositeObserver(observers.map(_.apply(path)).+:(updateObserver))
-    }
-    createWriter(path, observer)
+    createWriter(path, new MetadataCallback(partition, path, action))
   }
 
   /**
@@ -262,7 +235,7 @@ abstract class AbstractFileSystemStorage(
     override def flush(): Unit = FlushQuietly(modifiers.values.toSeq ++ deleters.values).foreach(e => throw e)
 
     override def close(): Unit =
-      CloseQuietly(Seq(reader) ++ modifiers.values ++ deleters.values ++ observers).foreach(e => throw e)
+      CloseQuietly(Seq(reader) ++ modifiers.values ++ deleters.values).foreach(e => throw e)
   }
 
   /**
@@ -272,8 +245,8 @@ abstract class AbstractFileSystemStorage(
     * @param file file being written
     * @param action file type
     */
-  class UpdateObserver(partition: String, file: Path, action: StorageFileAction) extends MetadataObserver {
-    override protected def onClose(bounds: Envelope, count: Long): Unit = {
+  class MetadataCallback(partition: String, file: Path, action: StorageFileAction) extends WriterCallback {
+    override def onClose(bounds: Envelope, count: Long): Unit = {
       val files = Seq(StorageFile(file.getName, System.currentTimeMillis(), action))
       metadata.addPartition(PartitionMetadata(partition, files, PartitionBounds(bounds), count))
     }
@@ -286,8 +259,8 @@ abstract class AbstractFileSystemStorage(
     * @param file compacted file being written
     * @param replaced files being replaced
     */
-  class CompactObserver(partition: String, file: Path, replaced: Seq[StorageFilePath]) extends MetadataObserver {
-    override protected def onClose(bounds: Envelope, count: Long): Unit = {
+  class CompactCallback(partition: String, file: Path, replaced: Seq[StorageFilePath]) extends WriterCallback {
+    override def onClose(bounds: Envelope, count: Long): Unit = {
       val partitionBounds = PartitionBounds(bounds)
       metadata.removePartition(PartitionMetadata(partition, replaced.map(_.file), partitionBounds, count))
       val added = Seq(StorageFile(file.getName, System.currentTimeMillis(), StorageFileAction.Append))
@@ -298,34 +271,31 @@ abstract class AbstractFileSystemStorage(
 
 object AbstractFileSystemStorage {
 
-  /**
-   * Reader trait
-   */
+  trait WriterCallback {
+    def onClose(bounds: Envelope, count: Long): Unit
+  }
+
   trait FileSystemPathReader {
     def read(path: Path): CloseableIterator[SimpleFeature]
   }
 
-  /**
-   * Tracks metadata during writes
-   */
-  abstract class MetadataObserver extends FileSystemObserver {
+  trait MetadataObservingFileSystemWriter extends FileSystemWriter {
+
+    def callback: WriterCallback
 
     private var count: Long = 0L
     private val bounds: Envelope = new Envelope()
 
-    override def write(feature: SimpleFeature): Unit = {
+    abstract override def write(feature: SimpleFeature): Unit = {
+      super.write(feature)
       // Update internal count/bounds/etc
       count += 1L
-      val geom = feature.getDefaultGeometry.asInstanceOf[Geometry]
-      if (geom != null) {
-        bounds.expandToInclude(geom.getEnvelopeInternal)
-      }
+      bounds.expandToInclude(feature.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal)
     }
 
-    override def flush(): Unit = {}
-
-    override def close(): Unit = onClose(bounds, count)
-
-    protected def onClose(bounds: Envelope, count: Long): Unit
+    abstract override def close(): Unit = {
+      super.close()
+      callback.onClose(bounds, count)
+    }
   }
 }

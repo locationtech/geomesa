@@ -22,7 +22,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.FileSystemWriter
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.StorageKeys
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -46,7 +45,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
 
   "ParquetFileSystemStorage" should {
     "read and write features" in {
-      val sft = SimpleFeatureTypes.createType("parquet-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
+      val sft = SimpleFeatureTypes.createType("orc-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
 
       val features = (0 until 10).map { i =>
         val sf = new ScalaSimpleFeature(sft, i.toString)
@@ -62,7 +61,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
         val metadata =
           new FileBasedMetadataFactory()
-              .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
+              .create(context, Map.empty, Metadata(sft, "orc", scheme, leafStorage = true))
         val storage = new ParquetFileSystemStorageFactory().apply(context, metadata)
 
         storage must not(beNull)
@@ -108,7 +107,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
     }
 
     "read and write complex features" in {
-      val sft = SimpleFeatureTypes.createType("parquet-test-complex",
+      val sft = SimpleFeatureTypes.createType("orc-test-complex",
         "name:String,age:Int,time:Long,height:Float,weight:Double,bool:Boolean," +
             "uuid:UUID,bytes:Bytes,list:List[Int],map:Map[String,Long]," +
             "line:LineString,mpt:MultiPoint,poly:Polygon,mline:MultiLineString,mpoly:MultiPolygon," +
@@ -148,7 +147,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
         val metadata =
           new FileBasedMetadataFactory()
-              .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
+              .create(context, Map.empty, Metadata(sft, "orc", scheme, leafStorage = true))
         val storage = new ParquetFileSystemStorageFactory().apply(context, metadata)
 
         storage must not(beNull)
@@ -189,7 +188,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
     }
 
     "modify and delete features" in {
-      val sft = SimpleFeatureTypes.createType("parquet-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
+      val sft = SimpleFeatureTypes.createType("orc-test", "*geom:Point:srid=4326,name:String,age:Int,dtg:Date")
 
       val features = (0 until 10).map { i =>
         val sf = new ScalaSimpleFeature(sft, i.toString)
@@ -205,7 +204,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
         val metadata =
           new FileBasedMetadataFactory()
-              .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
+              .create(context, Map.empty, Metadata(sft, "orc", scheme, leafStorage = true))
         val storage = new ParquetFileSystemStorageFactory().apply(context, metadata)
 
         storage must not(beNull)
@@ -248,71 +247,6 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       }
     }
 
-    "use custom file observers" in {
-      val userData = s"${StorageKeys.ObserversKey}=${classOf[TestObserverFactory].getName}"
-      val sft = SimpleFeatureTypes.createType("parquet-test",
-        s"*geom:Point:srid=4326,name:String,age:Int,dtg:Date;$userData")
-
-      val features = (0 until 10).map { i =>
-        val sf = new ScalaSimpleFeature(sft, i.toString)
-        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-        sf.setAttribute(1, s"name$i")
-        sf.setAttribute(2, s"$i")
-        sf.setAttribute(3, f"2014-01-${i + 1}%02dT00:00:01.000Z")
-        sf.setAttribute(0, s"POINT(4$i 5$i)")
-        sf
-      }
-
-      withTestDir { dir =>
-        val context = FileSystemContext(FileContext.getFileContext(dir.toUri), config, dir)
-        val metadata =
-          new FileBasedMetadataFactory()
-              .create(context, Map.empty, Metadata(sft, "parquet", scheme, leafStorage = true))
-        val storage = new ParquetFileSystemStorageFactory().apply(context, metadata)
-
-        storage must not(beNull)
-
-        val writers = scala.collection.mutable.Map.empty[String, FileSystemWriter]
-
-        features.foreach { f =>
-          val partition = storage.metadata.scheme.getPartitionName(f)
-          val writer = writers.getOrElseUpdate(partition, storage.getWriter(partition))
-          writer.write(f)
-        }
-
-        TestObserverFactory.observers must haveSize(3) // 3 partitions due to our data and scheme
-        forall(TestObserverFactory.observers)(_.closed must beFalse)
-
-        writers.foreach(_._2.close())
-        forall(TestObserverFactory.observers)(_.closed must beTrue)
-        TestObserverFactory.observers.flatMap(_.features) must containTheSameElementsAs(features)
-        TestObserverFactory.observers.clear()
-
-        logger.debug(s"wrote to ${writers.size} partitions for ${features.length} features")
-
-        val updater = storage.getWriter(Filter.INCLUDE)
-
-        updater.hasNext must beTrue
-        while (updater.hasNext) {
-          val feature = updater.next
-          if (feature.getID == "0") {
-            updater.remove()
-          } else if (feature.getID == "1") {
-            feature.setAttribute(1, "name-updated")
-            updater.write()
-          }
-        }
-
-        TestObserverFactory.observers must haveSize(2) // 2 partitions were updated
-        forall(TestObserverFactory.observers)(_.closed must beFalse)
-
-        updater.close()
-
-        forall(TestObserverFactory.observers)(_.closed must beTrue)
-        TestObserverFactory.observers.flatMap(_.features) must haveLength(2)
-      }
-    }
-
     "read old files" in {
       val url = getClass.getClassLoader.getResource("data/2.3.0/example-csv/")
       url must not(beNull)
@@ -332,7 +266,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
   }
 
   def withTestDir[R](code: Path => R): R = {
-    val file = new Path(Files.createTempDirectory("gm-parquet-test").toUri)
+    val file = new Path(Files.createTempDirectory("gm-orc-test").toUri)
     try { code(file) } finally {
       file.getFileSystem(new Configuration).delete(file, true)
     }

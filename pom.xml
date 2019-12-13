@@ -10,7 +10,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa_2.11</artifactId>
     <packaging>pom</packaging>
-    <version>2.5.0-SNAPSHOT</version>
+    <version>2.4.0-SNAPSHOT</version>
 
     <licenses>
         <license>
@@ -112,27 +112,26 @@
         <!-- *** maven build configuration *** -->
 
         <attach.installers>true</attach.installers> <!-- whether install artifacts are published to maven or not -->
-        <skip.installers.deploy>false</skip.installers.deploy>
 
         <!-- testing properties -->
-        <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Dgeomesa.scan.ranges.target=500 -Duser.language=en -Duser.region=US</maven.test.jvmargs>
+        <maven.test.jvmargs>-Duser.timezone=UTC -Xms1g -Xmx8g -XX:-UseGCOverheadLimit -Djava.net.preferIPv4Stack=true -Djava.awt.headless=true -Dgeomesa.scan.ranges.target=500</maven.test.jvmargs>
         <test.fork.count>1</test.fork.count>
         <test.fork.reuse>true</test.fork.reuse>
 
         <!-- *** documentation *** -->
 
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>2.4.0</geomesa.release.version>
-        <geomesa.devel.version>2.5.0-SNAPSHOT</geomesa.devel.version>
+        <geomesa.release.version>2.3.2</geomesa.release.version>
+        <geomesa.devel.version>2.4.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2019</copyright.year>
 
         <!-- recommended installation versions -->
-        <accumulo.version.recommended>1.9.3</accumulo.version.recommended>
-        <hbase.version.recommended>1.4.11</hbase.version.recommended>
+        <accumulo.version.recommended>1.9.2</accumulo.version.recommended>
+        <hbase.version.recommended>1.3.1</hbase.version.recommended>
         <cassandra.server.version.recommended>3.11.4</cassandra.server.version.recommended>
         <cassandra.driver.version.recommended>3.7.2</cassandra.driver.version.recommended>
-        <hadoop.version.recommended>2.8.5</hadoop.version.recommended>
-        <zookeeper.version.recommended>3.5.6</zookeeper.version.recommended>
+        <hadoop.version.recommended>2.8.4</hadoop.version.recommended>
+        <zookeeper.version.recommended>3.4.10</zookeeper.version.recommended>
     </properties>
 
     <profiles>
@@ -165,7 +164,7 @@
         <profile>
             <id>central</id>
             <properties>
-                <skip.installers.deploy>true</skip.installers.deploy>
+                <attach.installers>false</attach.installers>
             </properties>
             <build>
                 <plugins>
@@ -407,6 +406,11 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-cassandra-datastore_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-cassandra-spark_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -2265,9 +2269,6 @@
                     <artifactId>maven-deploy-plugin</artifactId>
                     <!-- 3.0.0-M1 was released 2018-09-23. -->
                     <version>3.0.0-M1</version>
-                    <configuration>
-                        <deployAtEnd>true</deployAtEnd>
-                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -2338,7 +2339,6 @@
                             <validHeader>build/copyright/dstl.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
-                            <validHeader>build/copyright/mitre.txt</validHeader>
                         </validHeaders>
                         <properties>
                             <year>${copyright.year}</year>

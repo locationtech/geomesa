@@ -11,8 +11,6 @@ package org.locationtech.geomesa.memory.cqengine.utils
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
-import org.locationtech.geomesa.memory.cqengine.index.GeoIndexType
-import org.locationtech.geomesa.memory.cqengine.index.param.STRtreeIndexParam
 import org.locationtech.geomesa.memory.cqengine.utils.SampleFeatures._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.filter.Filter
@@ -33,21 +31,8 @@ class GeoCQEngineTest extends Specification with LazyLogging {
   cqNoIndexes.insert(feats)
 
   // Set up CQEngine with all indexes
-  val cqWithIndexes = new GeoCQEngine(sftWithIndexes, CQIndexType.getDefinedAttributes(sftWithIndexes), enableFidIndex = true)
+  val cqWithIndexes = new GeoCQEngine(sftWithIndexes, CQIndexType.getDefinedAttributes(sftWithIndexes) , enableFidIndex = true)
   cqWithIndexes.insert(feats)
-
-  // Set up CQEngine with rtree indexes
-  val cqWithSTRtreeIndexes = new GeoCQEngine(sftWithIndexes, CQIndexType.getDefinedAttributes(sftWithIndexes), enableFidIndex = true, GeoIndexType.STRtree)
-  cqWithSTRtreeIndexes.insert(feats)
-
-  // Set up CQEngine with STRtree indexes and node capacity
-  val cqWithSTRtreeNodeCapacityIndexes = new GeoCQEngine(sftWithIndexes, CQIndexType.getDefinedAttributes(sftWithIndexes), enableFidIndex = true, GeoIndexType.STRtree, Option.apply(new STRtreeIndexParam(20)))
-  cqWithSTRtreeNodeCapacityIndexes.insert(feats)
-
-  // Set up CQEngine with Quadtree indexes
-  val cqWithQuadtreeIndexes = new GeoCQEngine(sftWithIndexes, CQIndexType.getDefinedAttributes(sftWithIndexes), enableFidIndex = true, GeoIndexType.QuadTree)
-  cqWithQuadtreeIndexes.insert(feats)
-
 
   def getGeoToolsCount(filter: Filter) = feats.count(filter.evaluate)
 
@@ -64,7 +49,7 @@ class GeoCQEngineTest extends Specification with LazyLogging {
     if (gtCount == cqCount)
       logger.debug(msg)
     else
-      logger.error("MISMATCH: " + msg)
+      logger.error("MISMATCH: "+msg)
 
     // since GT count is (presumably) correct
     cqCount must equalTo(gtCount)
@@ -72,21 +57,11 @@ class GeoCQEngineTest extends Specification with LazyLogging {
 
   def buildFilterTests(name: String, filters: Seq[Filter]): Seq[Fragment] = {
     for (f <- filters) yield {
-
       s"return correct number of results for $name filter $f (geo-only index)" >> {
         checkFilter(f, cqNoIndexes)
       }
       s"return correct number of results for $name filter $f (various indices)" >> {
         checkFilter(f, cqWithIndexes)
-      }
-      s"return correct number of results for $name filter $f (various with geo-SRTree with default config)" >> {
-        checkFilter(f, cqWithSTRtreeIndexes)
-      }
-      s"return correct number of results for $name filter $f (various with geo-SRTree with nodecapacity=20)" >> {
-        checkFilter(f, cqWithSTRtreeNodeCapacityIndexes)
-      }
-      s"return correct number of results for $name filter $f (various with QuadTree)" >> {
-        checkFilter(f, cqWithQuadtreeIndexes)
       }
     }
   }

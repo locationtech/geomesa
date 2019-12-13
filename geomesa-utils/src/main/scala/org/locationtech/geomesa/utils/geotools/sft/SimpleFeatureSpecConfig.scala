@@ -30,7 +30,7 @@ object SimpleFeatureSpecConfig {
   val NamePath       = "name"
 
   // config keys that are not attribute options - all other fields are assumed to be options
-  private val NonOptions = Set(TypePath, NamePath)
+  private val NonOptions = Seq(TypePath, NamePath)
 
   /**
     * Parse a SimpleFeatureType spec from a typesafe Config
@@ -117,27 +117,18 @@ object SimpleFeatureSpecConfig {
   }
 
   private def parse(conf: Config): (Option[String], SimpleFeatureSpec) = {
-    import org.locationtech.geomesa.utils.conf.ConfConversions.RichConfig
+    import org.locationtech.geomesa.utils.conf.ConfConversions._
 
     val name = conf.getStringOpt(TypeNamePath)
     val attributes = conf.getConfigListOpt("fields").getOrElse(conf.getConfigList(AttributesPath)).asScala.map(buildField)
-    val opts = {
-      val userDataConfig = conf.getConfigOpt(UserDataPath).getOrElse(ConfigFactory.empty)
-      val base = userDataConfig.toStringMap()
-      if (!base.contains(Keywords)) { base } else {
-        // special case to handle keywords
-        base ++ userDataConfig.withOnlyPath(Keywords).toStringMap(KeywordsDelimiter)
-      }
-    }
+    val opts = getOptions(conf.getConfigOpt(UserDataPath).getOrElse(ConfigFactory.empty))
 
     (name, SimpleFeatureSpec(attributes, opts))
   }
 
   private def buildField(conf: Config): AttributeSpec = {
-    import org.locationtech.geomesa.utils.conf.ConfConversions.RichConfig
-
     val attribute = SimpleFeatureSpecParser.parseAttribute(s"${conf.getString(NamePath)}:${conf.getString(TypePath)}")
-    val options = conf.toStringMap().filterNot { case (k, _) => NonOptions.contains(k) }
+    val options = getOptions(conf)
 
     attribute match {
       case s: SimpleAttributeSpec => s.copy(options = options)
@@ -147,6 +138,16 @@ object SimpleFeatureSpecConfig {
     }
   }
 
-  @deprecated("org.locationtech.geomesa.utils.conf.ConfConversions.normalizeKey")
-  def normalizeKey(k: String): String = org.locationtech.geomesa.utils.conf.ConfConversions.normalizeKey(k)
+  def normalizeKey(k: String): String = String.join(".", ConfigUtil.splitPath(k))
+
+  private def getOptions(conf: Config): Map[String, String] = {
+    val asMap = conf.entrySet().asScala.map(e => normalizeKey(e.getKey) -> e.getValue.unwrapped()).toMap
+    asMap.filterKeys(!NonOptions.contains(_)).map {
+      // Special case to handle adding keywords
+      case (Keywords, v: java.util.List[String]) => Keywords -> String.join(KeywordsDelimiter, v)
+      case (k, v: java.util.List[String]) => k -> String.join(",", v)
+      case (k, v) => k -> s"$v"
+    }
+  }
+
 }

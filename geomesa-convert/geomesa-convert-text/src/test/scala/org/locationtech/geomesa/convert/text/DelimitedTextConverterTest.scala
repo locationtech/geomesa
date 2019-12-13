@@ -416,9 +416,9 @@ class DelimitedTextConverterTest extends Specification {
           |   format       = "DEFAULT",
           |   id-field     = "md5(string2bytes($0))",
           |   user-data    = {
-          |     my.first.key   = "$1::int",
-          |     my.second.key  = "$2",
-          |     "my.third.key" = "$concat"
+          |     my.first.key  = "$1::int",
+          |     my.second.key = "$2",
+          |     my.third.key  = "$concat"
           |   }
           |   fields = [
           |     { name = "concat", transform = "concat($1, $2)" },
