@@ -18,7 +18,7 @@ Alternatively use ``sudo`` with the ``pip`` command to install the packages in t
 Optional:  if you want to build the PDF version of the manual, install LaTeX:
 
     # on Ubuntu
-    $ sudo apt-get install texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended
+    $ sudo apt-get install texlive-latex-base texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended latexmk
 
 The LaTeX distribution is pretty big, so you can skip it if you're just interested in the HTML docs.
 You will also need ``make``.
