@@ -16,18 +16,20 @@
                 <exclude>org.locationtech.geomesa:geomesa-hbase-spark*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-spark*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-hbase-distributed-runtime*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
                 <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with HBase 1.2.3 which provides guava 12 -->
             </excludes>
         </dependencySet>
         <dependencySet>
             <outputDirectory>dist/gs-plugins</outputDirectory>
             <directoryMode>0755</directoryMode>
-            <fileMode>0755</fileMode>
+            <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <useStrictFiltering>true</useStrictFiltering>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-hbase-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-process-wps*</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -72,6 +74,7 @@
             <fileMode>0644</fileMode>
             <includes>
                 <include>LICENSE.txt</include>
+                <include>README.md</include>
             </includes>
         </fileSet>
 
@@ -86,6 +89,13 @@
         <fileSet>
             <directory>../geomesa-hbase-tools/conf</directory>
             <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-hbase-tools/examples</directory>
+            <outputDirectory>examples</outputDirectory>
             <fileMode>0644</fileMode>
             <filtered>false</filtered>
             <directoryMode>755</directoryMode>
@@ -107,6 +117,13 @@
             <directoryMode>755</directoryMode>
         </fileSet>
         <fileSet>
+            <directory>../../geomesa-tools/conf-filtered</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>true</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
             <directory>../../geomesa-tools/examples</directory>
             <outputDirectory>examples</outputDirectory>
             <fileMode>0644</fileMode>
@@ -123,31 +140,17 @@
         </fileSet>
     </fileSets>
 
-    <!-- readmes -->
     <files>
-        <file>
-            <source>../../README.md</source>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/README.md</source>
-            <destName>README-gs-plugin.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-utils/README.md</source>
-            <destName>README-utils.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-convert/README.md</source>
-            <destName>README-convert.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
         <!-- geomesa-site.xml.template -->
         <file>
             <source>../../geomesa-utils/src/main/resources/org/locationtech/geomesa/geomesa-site.xml.template</source>
             <destName>geomesa-site.xml.template</destName>
+            <outputDirectory>conf</outputDirectory>
+        </file>
+        <!-- autocomplete -->
+        <file>
+            <source>../geomesa-hbase-tools/target/autocomplete.sh</source>
+            <destName>autocomplete.sh</destName>
             <outputDirectory>conf</outputDirectory>
         </file>
     </files>

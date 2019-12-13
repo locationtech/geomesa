@@ -16,17 +16,88 @@ Example: ``try("1"::int, 0) = 1``
 
 Example: ``try("abcd"::int, 0) = 0``
 
+withDefault
+^^^^^^^^^^^
+
+Description: Replace a value with a default, if the value is null
+
+Usage: ``withDefault($1, $2)``
+
+Example: ``withDefault('foo', 'bar') = foo``
+
+Example: ``withDefault(null, 'bar') = bar``
+
+require
+^^^^^^^
+
+Description: Throw an exception if the value is null, otherwise return the value
+
+Usage: ``require($1)``
+
+Example: ``require('foo') = foo``
+
+Example: ``require(null) // throws an error``
+
 String Functions
 ~~~~~~~~~~~~~~~~
+
+strip
+^^^^^
+
+Description: Removes characters from the start or end of a string. Defaults to whitespace.
+
+Usage: ``strip($1)`` or ``strip($1, $chars)``
+
+Examples: ``strip('afoob', 'abc') = foo``
+``strip('foao', 'abc') = foao``
+``strip('\t foo ') = foo``
 
 stripQuotes
 ^^^^^^^^^^^
 
-Description: Remove double quotes from a string.
+Description: Remove double or single quotes from a the start or end of a string
 
 Usage: ``stripQuotes($1)``
 
-Example: ``stripQuotes('fo"o') = foo``
+Examples: ``stripQuotes('"foo"') = foo``
+``stripQuotes('\'foo\'') = foo``
+``stripQuotes('fo"o') = fo"o``
+
+stripPrefix
+^^^^^^^^^^^
+
+Description: Removes characters from the start of a string. Whitespace is preserved.
+
+Usage: ``stripPrefix($1, $chars)``
+
+Examples: ``stripPrefix('afoob', 'abc') = foob``
+
+stripSuffix
+^^^^^^^^^^^
+
+Description: Removes characters from the end of a string. Whitespace is preserved.
+
+Usage: ``stripSuffix($1, $chars)``
+
+Examples: ``stripSuffix('afoob', 'abc') = afoo``
+
+remove
+^^^^^^
+
+Description: Removes a substring from a string
+
+Usage: ``remove($1, $substring)``
+
+Examples: ``remove('foabco', 'abc') = foo``
+
+replace
+^^^^^^^
+
+Description: Replaces a literal string with another string
+
+Usage: ``replace($1, $toReplace, $replacement)``
+
+Examples: ``replace('foobar', 'ob', 'ab') = foabar``
 
 length
 ^^^^^^
@@ -109,8 +180,48 @@ Usage: ``toString($0)``
 
 Example: ``concatenate(toString(5), toString(6)) = '56'``
 
+emptyToNull
+^^^^^^^^^^^
+
+Description: Replace an empty string with ``null``. Useful for setting optional attributes from delimited
+text files, where inputs will never be ``null``.
+
+Usage: ``emptyToNull($0)``
+
+Example: ``emptyToNull('') = null``
+
+printf
+^^^^^^
+
+Description: Format custom strings.  As an implementation detail,
+this function delegates to Java's String `formatting classes`__.
+
+.. __: https://docs.oracle.com/javase/8/docs/api/java/util/Formatter.html
+
+Usage: ``printf('patterns', $arg1, $arg2, ...)'``
+
+Examples: ``printf('%s-%s-%sT00:00:00.000Z', '2015', '01', '01') = '2015-01-01T00:00:00.000Z'``
+          ``printf('%2f', divide(-1, 2, 3)) = '-0.17'``
+
 Date Functions
 ~~~~~~~~~~~~~~
+
+The following table summarizes the predefined date formats by name. For dates that don't match any of these
+formats, a custom format can be used with the ``date`` function. ``secsToDate`` and ``millisToDate`` can be used
+for parsing intervals since the Java epoch. See below for full descriptions of each function.
+
+========================== =============================== ========================
+Function                   Format                          Example
+========================== =============================== ========================
+basicIsoDate               ``yyyyMMdd``                    20150101
+basicDateTime              ``yyyyMMdd'T'HHmmss.SSSZ``      20150101T000000.000Z
+basicDateTimeNoMillis      ``yyyyMMdd'T'HHmmssZ``          20150101T000000Z
+dateTime                   ``yyyy-MM-dd'T'HH:mm:ss.SSSZZ`` 2015-01-01T00:00:00.000Z
+dateHourMinuteSecondMillis ``yyyy-MM-dd'T'HH:mm:ss.SSS``   2015-01-01T00:00:00.000
+isoLocalDate               ``yyyy-MM-dd``                  2015-01-01
+isoLocalDateTime           ``yyyy-MM-dd'T'HH:mm:ss``       2015-01-01
+isoOffsetDateTime          ``yyyy-MM-dd'T'HH:mm:ssZ``      2015-01-01T00:00:00Z
+========================== =============================== ========================
 
 now
 ^^^
@@ -122,37 +233,28 @@ Usage: ``now()``
 date
 ^^^^
 
-Description: Custom date parser.
+Description: Custom date parser. The date format is defined by the Java 8 `DateTimeFormatter`__ class.
+
+.. __: https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html
 
 Usage: ``date($format, $1)``
 
 Example:
-``date('YYYY-MM-dd\\'T\\'HH:mm:ss.SSSSSS', '2015-01-01T00:00:00.000000')``
+``date('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', '2015-01-01T00:00:00.000000')``
 
-dateTime
-^^^^^^^^
+basicIsoDate
+^^^^^^^^^^^^
 
-Description: A strict ISO 8601 Date parser for format
-``yyyy-MM-dd'T'HH:mm:ss.SSSZZ``.
+Description: A date format for ``yyyyMMdd``, equivalent to java.time.format.DateTimeFormatter.BASIC_ISO_DATE.
 
-Usage: ``dateTime($1)``
+Usage: ``basicIsoDate($1)``
 
-Example: ``dateTime('2015-01-01T00:00:00.000Z')``
-
-basicDate
-^^^^^^^^^
-
-Description: A basic date format for ``yyyyMMdd``.
-
-Usage: ``basicDate($1)``
-
-Example: ``basicDate('20150101')``
+Example: ``basicIsoDate('20150101')``
 
 basicDateTime
 ^^^^^^^^^^^^^
 
-Description: A basic format that combines a basic date and time for
-format ``yyyyMMdd'T'HHmmss.SSSZ``.
+Description: A date format that combines a basic date and time for ``yyyyMMdd'T'HHmmss.SSSZ``.
 
 Usage: ``basicDateTime($1)``
 
@@ -168,6 +270,16 @@ Usage: ``basicDateTimeNoMillis($1)``
 
 Example: ``basicDateTimeNoMillis('20150101T000000Z')``
 
+dateTime
+^^^^^^^^
+
+Description: A strict ISO 8601 Date parser for format
+``yyyy-MM-dd'T'HH:mm:ss.SSSZZ``.
+
+Usage: ``dateTime($1)``
+
+Example: ``dateTime('2015-01-01T00:00:00.000Z')``
+
 dateHourMinuteSecondMillis
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -177,6 +289,34 @@ fractional seconds for format ``yyyy-MM-dd'T'HH:mm:ss.SSS``.
 Usage: ``dateHourMinuteSecondMillis($1)``
 
 Example: ``dateHourMinuteSecondMillis('2015-01-01T00:00:00.000')``
+
+isoLocalDate
+^^^^^^^^^^^^
+
+Description: A date format for ``yyyy-MM-dd``, equivalent to java.time.format.DateTimeFormatter.ISO_LOCAL_DATE.
+
+Usage: ``isoLocalDate($1)``
+
+Example: ``isoLocalDate('2015-01-01')``
+
+isoLocalDateTime
+^^^^^^^^^^^^^^^^
+
+Description: A date format for ``yyyy-MM-dd'T'HH:mm:ss``, equivalent to
+java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME.
+
+Usage: ``isoLocalDateTime($1)``
+
+Example: ``isoLocalDateTime('2015-01-01T00:00:00')``
+
+isoOffsetDateTime
+^^^^^^^^^^^^^^^^^
+Description: A date format for ``yyyy-MM-dd'T'HH:mm:ssZ``, equivalent to
+java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME.
+
+Usage: ``isoOffsetDateTime($1)``
+
+Example: ``isoOffsetDateTime('2015-01-01T00:00:00Z')``
 
 millisToDate
 ^^^^^^^^^^^^
@@ -198,13 +338,23 @@ Usage: ``secsToDate($1)``
 
 Example: ``secsToDate(1449675054)``
 
+dateToString
+^^^^^^^^^^^^
+
+Description: Formats a date as a string, based on a pattern as defined by Java's
+`DateTimeFormatter <https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html>`__.
+
+Usage: ``dateToString($pattern, $date)``
+
+Example: ``dateToString('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', now())``
+
 Geometry Functions
 ~~~~~~~~~~~~~~~~~~
 
 point
 ^^^^^
 
-Description: Parse a Point geometry from lon/lat or WKT.
+Description: Parse a Point geometry from lon/lat, WKT or WKB.
 
 Usage: ``point($lon, $lat)`` or ``point($wkt)``
 
@@ -232,7 +382,7 @@ Example: Parsing lon/lat from text without creating lon/lat fields:
 ::
 
     # config
-    { name = "geom", transform="point($2::double, $3::double)"
+    { name = "geom", transform="point($2::double, $3::double)" }
 
     # data
     id,lat,lon,date
@@ -249,28 +399,64 @@ Example: Parsing WKT as a point
     ID,wkt,date
     1,POINT(2 3),2015-01-02
 
+multipoint
+^^^^^^^^^^
+
+Description: Parse a multi-point from a WKT string or WKB byte array.
+
+Usage: ``multipoint($0)``
+
+Example: ``multipoint('MULTIPOINT ((10 40), (40 30), (20 20), (30 10))')``
+
 linestring
 ^^^^^^^^^^
 
-Description: Parse a linestring from a WKT string.
+Description: Parse a linestring from a WKT string or WKB byte array.
 
 Usage: ``linestring($0)``
 
 Example: ``linestring('LINESTRING(102 0, 103 1, 104 0, 105 1)')``
 
+multilinestring
+^^^^^^^^^^^^^^^
+
+Description: Parse a multi-linestring from a WKT string or WKB byte array.
+
+Usage: ``multilinestring($0)``
+
+Example: ``multilinestring('MULTILINESTRING ((10 10, 20 20, 10 40), (40 40, 30 30, 40 20, 30 10))')``
+
 polygon
 ^^^^^^^
 
-Description: Parse a polygon from a WKT string.
+Description: Parse a polygon from a WKT string or WKB byte array.
 
 Usage: ``polygon($0)``
 
-Example: ``polygon('polygon((100 0, 101 0, 101 1, 100 1, 100 0))')``
+Example: ``polygon('POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))')``
+
+multipolygon
+^^^^^^^^^^^^
+
+Description: Parse a multi-polygon from a WKT string or WKB byte array.
+
+Usage: ``multipolygon($0)``
+
+Example: ``multipolygon('MULTIPOLYGON (((30 20, 45 40, 10 40, 30 20)), ((15 5, 40 10, 10 20, 5 10, 15 5)))')``
+
+geometrycollection
+^^^^^^^^^^^^^^^^^^
+
+Description: Parse a geometry collection from a WKT string or WKB byte array.
+
+Usage: ``geometrycollection($0)``
+
+Example: ``geometrycollection('GEOMETRYCOLLECTION(POINT(4 6),LINESTRING(4 6,7 10))')``
 
 geometry
 ^^^^^^^^
 
-Description: Parse a geometry from a WKT string or GeoJson.
+Description: Parse a geometry from a WKT string or WKB byte array.
 
 Usage: ``geometry($0)``
 
@@ -284,21 +470,26 @@ Example: Parsing WKT as a geometry
     # data
     ID,wkt,date
     1,POINT(2 3),2015-01-02
+    2,"LINESTRING(102 0, 103 1, 104 0, 105 1)",2015-01-03
 
-Example: Parsing GeoJson geometry
+projectFrom
+^^^^^^^^^^^
+
+Description: Project a geometry from its native CRS to EPSG:4326. GeoMesa only supports EPSG:4326,
+so geometries must be transformed when ingesting from another CRS.
+
+Usage: ``projectFrom('EPSG:3857',$0)``
+
+Example: Reprojecting a parsed point from EPSG:3857 to EPSG:4326:
 
 ::
 
     # config
-    { name = "geom", json-type = "geometry", path = "$.geometry" }
+    { name = "geom", transform="projectFrom('EPSG:3857',point($2::double, $3::double))" }
 
     # data
-    {
-        id: 1,
-        number: 123,
-        color: "red",
-        "geometry": {"type": "Point", "coordinates": [55, 56]}
-    }
+    id,x,y,date
+    identity1,1689200.14,1113194.91,2015-02-03
 
 ID Functions
 ~~~~~~~~~~~~
@@ -321,12 +512,53 @@ Usage: ``md5($0)``
 
 Example: ``md5(stringToBytes('row,of,data'))``
 
+murmur3_32
+^^^^^^^^^^
+
+Description: Creates a 32-bit murmur3 hash from a string.
+
+Usage: ``murmur3_32($0)``
+
+Example: ``murmur3_32('row,of,data')``
+
+murmur3_128
+^^^^^^^^^^^
+
+Description: Creates a 128-bit murmur3 hash from a string. Note that previously this function was incorrectly
+named ``murmur3_64``, and can still be invoked by that name.
+
+Usage: ``murmur3_128($0)``
+
+Example: ``murmur3_128('row,of,data')``
+
 uuid
 ^^^^
 
 Description: Generates a random UUID.
 
 Usage: ``uuid()``
+
+uuidZ3
+^^^^^^
+
+Description: Generates a Z3-based UUID for point geometries.
+
+Usage: ``uuidZ3($geom, $date, $interval)``
+
+Example: ``uuidZ3(point('POINT (3 2)'), dateTime('2015-01-01T00:00:00.000Z'), 'week')``
+
+See :ref:`customizing_z_index` for details on Z3 intervals.
+
+uuidZ3Centroid
+^^^^^^^^^^^^^^
+
+Description: Generates a Z3-based UUID for non-point geometries.
+
+Usage: ``uuidZ3Centroid($geom, $date, $interval)``
+
+Example: ``uuidZ3Centroid(linestring('LINESTRING(102 0, 103 1, 104 0, 105 1)', dateTime('2015-01-01T00:00:00.000Z'), 'week')``
+
+See :ref:`customizing_z_index` for details on Z3 intervals.
 
 base64
 ^^^^^^
@@ -447,6 +679,18 @@ Example: ``stringToBoolean('true', false) = true``
 
 Example: ``stringToBoolean('55', false) = false``
 
+intToBoolean
+^^^^^^^^^^^^
+
+Description: Converts an int to boolean. Follows the normal rules of conversion, where 0 is false and all other ints
+are true.
+
+Usage: ``intToBoolean($1)``
+
+Example: ``intToBoolean(1) = true``
+
+Example: ``intToBoolean(0) = false``
+
 Math Functions
 ~~~~~~~~~~~~~~
 
@@ -497,8 +741,43 @@ Example: ``divide($1,$2)``
 
 Example: ``divide($1,$2,"15")`` is equivalent to ``($1/$2)/"15"``
 
-List and Map Parsing
-~~~~~~~~~~~~~~~~~~~~
+mean
+^^^^
+
+Description: Takes the mean (average) of two or more numbers.
+
+Example: ``mean($1,$2,$3)``
+
+min
+^^^
+
+Description: Finds the minimum of two or more numbers.
+
+Example: ``min($1,$2,$3)``
+
+max
+^^^
+
+Description: Finds the maximum of two or more numbers.
+
+Example: ``max($1,$2,$3)``
+
+List and Map Functions
+~~~~~~~~~~~~~~~~~~~~~~
+
+list
+^^^^
+
+Description: Creates a list from the input arguments
+
+Example: ``list(1,2,3)``
+
+mapValue
+^^^^^^^^
+
+Description: Read a value out of a map instance by key
+
+Example: ``mapValue($map,'key')``
 
 parseList
 ^^^^^^^^^
@@ -535,6 +814,8 @@ And a transform to parse the quoted CSV field:
 
     { name = "friends", transform = "parseList('string', $5)" }
 
+.. _converter_parse_map_fn:
+
 parseMap
 ^^^^^^^^
 
@@ -566,4 +847,42 @@ delimiters for a map:
 
 ::
 
-    { name = "numbers", transform = "parseMap('int -> string', $2, ',', '->')" }
+    { name = "numbers", transform = "parseMap('int -> string', $2, '->', ',')" }
+
+State Functions
+~~~~~~~~~~~~~~~
+
+inputFilePath
+^^^^^^^^^^^^^
+
+Description: provides the absolute path to the file being operated on, if available
+
+Example: ``$inputFilePath``
+
+The file path is a variable, referenced through ``$`` notation.
+
+The file path may not always be available, depending on how the converter is being invoked.
+When invoked through the GeoMesa command-line tools or GeoMesa NiFi, it will be set appropriately.
+
+lineNo
+^^^^^^
+
+Description: provides the current line number in the file being operated on, if available
+
+Example: ``lineNo()``
+
+The line number may not always be available, depending on the converter being used. For some converters,
+line number may be an abstract concept. For example, in the Avro converter line number will refer to the
+number of the Avro record in the file.
+
+Enrichment Functions
+~~~~~~~~~~~~~~~~~~~~
+
+cacheLookup
+^^^^^^^^^^^
+
+Description: Looks up a value from a cache
+
+Usage: ``cacheLookup(<cacheName>, <entityKey>, <attributeKey>)``
+
+Example: ``cacheLookup('test', $id, 'name')``

@@ -1,46 +1,67 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.tools.export
 
-import java.io.{StringReader, StringWriter}
+import java.io._
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.{Collections, Locale}
 
-import org.geotools.data.DataUtilities
-import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.simple.SimpleFeatureCollection
+import org.geotools.data.memory.MemoryDataStore
+import org.geotools.data.{DataStore, DataUtilities, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.tools.export.formats.DelimitedExporter
-import org.locationtech.geomesa.tools.ingest.AutoIngestDelimited
-import org.locationtech.geomesa.tools.utils.DataFormats
-import org.locationtech.geomesa.tools.utils.DataFormats._
-import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.geomesa.tools.DataStoreRegistration
+import org.locationtech.geomesa.tools.export.formats.{DelimitedExporter, ExportFormat}
+import org.locationtech.geomesa.tools.ingest.IngestCommand
+import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class DelimitedExportImportTest extends Specification {
 
-  val dt1 = GeoToolsDateFormat.parseDateTime("2016-01-01T00:00:00.000Z").toDate
-  val dt2 = GeoToolsDateFormat.parseDateTime("2016-01-02T00:00:00.000Z").toDate
-  val pt1 = WKTUtils.read("POINT(1 0)")
-  val pt2 = WKTUtils.read("POINT(0 2)")
+  private val counter = new AtomicInteger(0)
 
-  def export(features: SimpleFeatureCollection, format: DataFormat): String = {
-    val writer = new StringWriter()
-    val export = new DelimitedExporter(writer, format, None, true)
+  def withCommand[T](ds: DataStore)(op: IngestCommand[DataStore] => T): T = {
+    val key = s"${getClass.getName}:${counter.getAndIncrement()}"
+    DataStoreRegistration.register(key, ds)
+
+    val command: IngestCommand[DataStore] = new IngestCommand[DataStore]() {
+      override val params: IngestParams = new IngestParams(){}
+      override def connection: Map[String, String] = Map(DataStoreRegistration.param.key -> key)
+    }
+    command.params.force = true
+
+    try {
+      op(command)
+    } finally {
+      DataStoreRegistration.unregister(key, ds)
+    }
+  }
+
+  def export(sft: SimpleFeatureType, features: Iterator[SimpleFeature], format: ExportFormat): String = {
+    val os = new ByteArrayOutputStream()
+    // exclude feature ID since the inferred ingestion just treats it as another column
+    val export = format match {
+      case ExportFormat.Csv => DelimitedExporter.csv(os, null, withHeader = true, includeIds = false)
+      case ExportFormat.Tsv => DelimitedExporter.tsv(os, null, withHeader = true, includeIds = false)
+    }
+    export.start(sft)
     export.export(features)
     export.close()
-    writer.toString
+    new String(os.toByteArray, StandardCharsets.UTF_8)
   }
 
   "Delimited export import" should {
@@ -49,87 +70,35 @@ class DelimitedExportImportTest extends Specification {
 
       val sft = SimpleFeatureTypes.createType("tools", "name:String,dtg:Date,*geom:Point:srid=4326")
       val features = List(
-        new ScalaSimpleFeature("1", sft, Array("name1", dt1, pt1)),
-        new ScalaSimpleFeature("2", sft, Array("name2", dt2, pt2))
+        ScalaSimpleFeature.create(sft, "id1", "name1", "2016-01-01T00:00:00.000Z", "POINT(1 0)"),
+        ScalaSimpleFeature.create(sft, "id2", "name2", "2016-01-02T00:00:00.000Z", "POINT(0 2)")
       )
-      val fc = new ListFeatureCollection(sft, features)
 
-      "in tsv" >> {
-        val format = DataFormats.Tsv
-        val results = export(fc, format)
-
-        val reader = AutoIngestDelimited.getCsvFormat(format).parse(new StringReader(results))
-
+      foreach(Seq(ExportFormat.Tsv, ExportFormat.Csv)) { format =>
+        val path = Files.createTempFile(getClass.getSimpleName, "." + format.toString.toLowerCase(Locale.US))
+        val file = new File(path.toAbsolutePath.toString)
         try {
-          val (newSft, newFeatures) = AutoIngestDelimited.createSimpleFeatures("tools", reader.iterator())
-          SimpleFeatureTypes.encodeType(newSft) mustEqual SimpleFeatureTypes.encodeType(sft)
-          newFeatures.map(DataUtilities.encodeFeature).toList mustEqual features.map(DataUtilities.encodeFeature)
+          WithClose(new PrintWriter(file)) { writer =>
+            writer.println(export(sft, features.iterator, format))
+          }
+
+          val ds = new MemoryDataStore() {
+            override def dispose(): Unit = {} // prevent dispose from deleting our data
+          }
+
+          withCommand(ds) { command =>
+            command.params.featureName = "tools"
+            command.params.files = Collections.singletonList(file.getAbsolutePath)
+            command.execute()
+          }
+
+          ds.getTypeNames mustEqual Array("tools")
+          val ingested = SelfClosingIterator(ds.getFeatureReader(new Query("tools"), Transaction.AUTO_COMMIT)).toList
+          ingested.map(DataUtilities.encodeFeature(_, false)) mustEqual features.map(DataUtilities.encodeFeature(_, false))
         } finally {
-          reader.close()
-        }
-      }
-
-      "in csv" >> {
-        val format = DataFormats.Csv
-        val results = export(fc, format)
-
-        val reader = AutoIngestDelimited.getCsvFormat(format).parse(new StringReader(results))
-
-        try {
-          val (newSft, newFeatures) = AutoIngestDelimited.createSimpleFeatures("tools", reader.iterator())
-          SimpleFeatureTypes.encodeType(newSft) mustEqual SimpleFeatureTypes.encodeType(sft)
-          newFeatures.map(DataUtilities.encodeFeature).toList mustEqual features.map(DataUtilities.encodeFeature)
-        } finally {
-          reader.close()
-        }
-      }
-    }
-
-    "export and import lists and maps" >> {
-
-      val sft = SimpleFeatureTypes.createType("tools",
-        "name:String,fingers:List[Int],toes:Map[String,Int],dtg:Date,*geom:Point:srid=4326")
-      val features = List(
-        new ScalaSimpleFeature("1", sft, Array("name1", List(1, 2).asJava, Map("one" -> 1, "1" -> 0).asJava, dt1, pt1)),
-        new ScalaSimpleFeature("2", sft, Array("name2", List(2, 1).asJava, Map("two" -> 2, "2" -> 0).asJava, dt1, pt1))
-      )
-      val fc = new ListFeatureCollection(sft, features)
-
-      "in tsv" >> {
-        val format = DataFormats.Tsv
-        val results = export(fc, format)
-
-        val reader = AutoIngestDelimited.getCsvFormat(format).parse(new StringReader(results))
-
-        val (newSft, newFeatures) = try {
-          val (newSft, newFeatures) = AutoIngestDelimited.createSimpleFeatures("tools", reader.iterator())
-          (newSft, newFeatures.toList)
-        } finally {
-          reader.close()
-        }
-
-        SimpleFeatureTypes.encodeType(newSft) mustEqual SimpleFeatureTypes.encodeType(sft)
-        forall(0 until sft.getAttributeCount) { i =>
-          newFeatures.map(_.getAttribute(i)) mustEqual features.map(_.getAttribute(i))
-        }
-      }
-
-      "in csv" >> {
-        val format = DataFormats.Csv
-        val results = export(fc, format)
-
-        val reader = AutoIngestDelimited.getCsvFormat(format).parse(new StringReader(results))
-
-        val (newSft, newFeatures) = try {
-          val (newSft, newFeatures) = AutoIngestDelimited.createSimpleFeatures("tools", reader.iterator())
-          (newSft, newFeatures.toList)
-        } finally {
-          reader.close()
-        }
-
-        SimpleFeatureTypes.encodeType(newSft) mustEqual SimpleFeatureTypes.encodeType(sft)
-        forall(0 until sft.getAttributeCount) { i =>
-          newFeatures.map(_.getAttribute(i)) mustEqual features.map(_.getAttribute(i))
+          if (!file.delete()) {
+            file.deleteOnExit()
+          }
         }
       }
     }

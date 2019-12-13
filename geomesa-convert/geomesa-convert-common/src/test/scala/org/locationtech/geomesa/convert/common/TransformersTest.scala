@@ -1,23 +1,24 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert.common
 
+import java.time.format.DateTimeFormatter
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
 
 import com.google.common.hash.Hashing
-import com.vividsolutions.jts.geom._
 import org.apache.commons.codec.binary.Base64
-import org.joda.time.DateTime
+import org.geotools.util.Converters
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.Transformers
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContextImpl, EvaluationContext}
+import org.locationtech.geomesa.convert.{Counter, EnrichmentCache, EvaluationContext, Transformers}
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -28,7 +29,7 @@ class TransformersTest extends Specification {
 
   "Transformers" should {
 
-    implicit val ctx = EvaluationContext.empty
+    implicit val ctx: EvaluationContext = EvaluationContext.empty
 
     "handle transformations" >> {
 
@@ -47,32 +48,37 @@ class TransformersTest extends Specification {
         }
         "allow native ints" >> {
           val res = Transformers.parseTransform("1").eval(Array(null))
-          res must beAnInstanceOf[java.lang.Integer]
+          res must not(beNull)
+          res.getClass mustEqual classOf[java.lang.Integer]
           res mustEqual 1
         }
         "allow native longs" >> {
           val res = Transformers.parseTransform("1L").eval(Array(null))
-          res must beAnInstanceOf[java.lang.Long]
+          res must not(beNull)
+          res.getClass mustEqual classOf[java.lang.Long]
           res mustEqual 1L
         }
         "allow native floats" >> {
-          val f = Transformers.parseTransform("1.0f").eval(Array(null))
-          f must beAnInstanceOf[java.lang.Float]
-          f mustEqual 1.0f
-          val F = Transformers.parseTransform("1.0F").eval(Array(null))
-          F must beAnInstanceOf[java.lang.Float]
-          F mustEqual 1.0f
+          val tests = Seq(("1.0", 1f), ("1.0", 1f), (".1", .1f), ("0.1", .1f), ("-1.0", -1f))
+          foreach(tests) { case (s, expected) =>
+            foreach(Seq("f", "F")) { suffix =>
+              val res = Transformers.parseTransform(s + suffix).eval(Array(null))
+              res must not(beNull)
+              res.getClass mustEqual classOf[java.lang.Float]
+              res mustEqual expected
+            }
+          }
         }
         "allow native doubles" >> {
-          val res = Transformers.parseTransform("1.0").eval(Array(null))
-          res must beAnInstanceOf[java.lang.Double]
-          res mustEqual 1.0d
-          val d = Transformers.parseTransform("1.0d").eval(Array(null))
-          d must beAnInstanceOf[java.lang.Double]
-          d mustEqual 1.0d
-          val D = Transformers.parseTransform("1.0D").eval(Array(null))
-          D must beAnInstanceOf[java.lang.Double]
-          D mustEqual 1.0d
+          val tests = Seq(("1.0", 1d), ("0.1", 0.1d), (".1", 0.1d), ("-1.0", -1d), ("-0.1", -0.1d))
+          foreach(tests) { case (s, expected) =>
+            foreach(Seq("", "d", "D")) { suffix =>
+              val res = Transformers.parseTransform(s + suffix).eval(Array(null))
+              res must not(beNull)
+              res.getClass mustEqual classOf[java.lang.Double]
+              res mustEqual expected
+            }
+          }
         }
         "allow native booleans" >> {
           Transformers.parseTransform("false").eval(Array(null)) mustEqual false
@@ -136,6 +142,17 @@ class TransformersTest extends Specification {
         "mkstring" >> {
           val exp = Transformers.parseTransform("mkstring(',', $1, $2, $3, $4, $5, $6)")
           exp.eval(Array("", 1, 2, 3, 4, 5, 6)) must be equalTo "1,2,3,4,5,6"
+        }
+        "emptyToNull" >> {
+          val exp = Transformers.parseTransform("emptyToNull($1)")
+          exp.eval(Array("", "foo")) mustEqual "foo"
+          exp.eval(Array("", "")) must beNull
+          exp.eval(Array("", "  ")) must beNull
+          exp.eval(Array("", null)) must beNull
+        }
+        "printf" >> {
+          val exp = Transformers.parseTransform("printf('%s-%s-%sT00:00:00.000Z', '2015', '01', '01')")
+          exp.eval(Array()) mustEqual "2015-01-01T00:00:00.000Z"
         }
       }
 
@@ -205,14 +222,15 @@ class TransformersTest extends Specification {
       }
 
       "handle dates" >> {
-        val testDate = DateTime.parse("2015-01-01T00:00:00.000Z").toDate
+        val testDate = Converters.convert("2015-01-01T00:00:00.000Z", classOf[Date])
+        testDate must not(beNull)
 
         "date with custom format" >> {
           val exp = Transformers.parseTransform("date('yyyyMMdd', $1)")
           exp.eval(Array("", "20150101")).asInstanceOf[Date] must be equalTo testDate
         }
         "date with a realistic custom format" >> {
-          val exp = Transformers.parseTransform("date('YYYY-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)")
+          val exp = Transformers.parseTransform("date('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)")
           exp.eval(Array("", "2015-01-01T00:00:00.000000")).asInstanceOf[Date] must be equalTo testDate
         }
         "datetime" >> {
@@ -258,6 +276,17 @@ class TransformersTest extends Specification {
           val exp = Transformers.parseTransform("secsToDate($1)")
           exp.eval(Array("", secs)).asInstanceOf[Date] must be equalTo testDate
         }
+
+        "transform a date to a string" >> {
+          val d = LocalDateTime.now()
+          val fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
+          val exp = Transformers.parseTransform("dateToString('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)")
+          exp.eval(Array("", Date.from(d.toInstant(ZoneOffset.UTC)))).asInstanceOf[String] must be equalTo fmt.format(d)
+        }
+        "work with the printf functions" >> {
+          val exp = Transformers.parseTransform("datetime(printf('%s-%s-%sT00:00:00.000Z', $1, $2, $3))")
+          exp.eval(Array("", "2015", "01", "01")) must be equalTo testDate
+        }
       }
 
       "handle point geometries" >> {
@@ -271,41 +300,133 @@ class TransformersTest extends Specification {
         val geoFac = new GeometryFactory()
         val geom = geoFac.createPoint(new Coordinate(55, 56)).asInstanceOf[Geometry]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[Point]
+        res must not(beNull)
+        res.getClass mustEqual classOf[Point]
         res.asInstanceOf[Point] mustEqual geoFac.createPoint(new Coordinate(55, 56))
       }
 
-      "handle linestring wkt" >> {
+      "handle multipoint wkt and objects" >> {
+        val geoFac = new GeometryFactory()
+        val multiPoint = geoFac.createMultiPoint(Array(new Coordinate(45.0, 45.0), new Coordinate(50, 52)))
+        val trans = Transformers.parseTransform("multipoint($0)")
+        trans.eval(Array("Multipoint((45.0 45.0), (50 52))")).asInstanceOf[MultiPoint] mustEqual multiPoint
+
+        // convert objects
+        val geom = multiPoint.asInstanceOf[Geometry]
+        val res = trans.eval(Array(geom))
+        res must not(beNull)
+        res.getClass mustEqual classOf[MultiPoint]
+        res.asInstanceOf[MultiPoint] mustEqual WKTUtils.read("Multipoint((45.0 45.0), (50 52))")
+      }
+
+      "handle linestring wkt and objects" >> {
         val geoFac = new GeometryFactory()
         val lineStr = geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
         val trans = Transformers.parseTransform("linestring($0)")
-        trans.eval(Array("Linestring(102 0, 103 1, 104 0, 105 1)")).asInstanceOf[LineString] must be equalTo lineStr
+        trans.eval(Array("Linestring(102 0, 103 1, 104 0, 105 1)")).asInstanceOf[LineString] mustEqual lineStr
 
         // type conversion
         val geom = lineStr.asInstanceOf[Geometry]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[LineString]
+        res must not(beNull)
+        res.getClass mustEqual classOf[LineString]
         res.asInstanceOf[LineString] mustEqual WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)")
       }
 
-      "handle polygon wkt" >> {
+      "handle multilinestring wkt and objects" >> {
+        val geoFac = new GeometryFactory()
+        val multiLineStr = geoFac.createMultiLineString(Array(
+          geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray),
+            geoFac.createLineString(Seq((0, 0), (1, 2), (2, 3), (4, 5)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
+        ))
+        val trans = Transformers.parseTransform("multilinestring($0)")
+        trans.eval(Array("MultiLinestring((102 0, 103 1, 104 0, 105 1), (0 0, 1 2, 2 3, 4 5))")).asInstanceOf[MultiLineString] mustEqual multiLineStr
+
+        // type conversion
+        val geom = multiLineStr.asInstanceOf[Geometry]
+        val res = trans.eval(Array(geom))
+        res must not(beNull)
+        res.getClass mustEqual classOf[MultiLineString]
+        res.asInstanceOf[MultiLineString] mustEqual WKTUtils.read("MultiLinestring((102 0, 103 1, 104 0, 105 1), (0 0, 1 2, 2 3, 4 5))")
+      }
+
+      "handle polygon wkt and objects" >> {
         val geoFac = new GeometryFactory()
         val poly = geoFac.createPolygon(Seq((100, 0), (101, 0), (101, 1), (100, 1), (100, 0)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
         val trans = Transformers.parseTransform("polygon($0)")
-        trans.eval(Array("polygon((100 0, 101 0, 101 1, 100 1, 100 0))")).asInstanceOf[Polygon] must be equalTo poly
+        trans.eval(Array("polygon((100 0, 101 0, 101 1, 100 1, 100 0))")).asInstanceOf[Polygon] mustEqual poly
 
         // type conversion
         val geom = poly.asInstanceOf[Polygon]
         val res = trans.eval(Array(geom))
-        res must beAnInstanceOf[Polygon]
+        res must not(beNull)
+        res.getClass mustEqual classOf[Polygon]
         res.asInstanceOf[Polygon] mustEqual WKTUtils.read("polygon((100 0, 101 0, 101 1, 100 1, 100 0))")
       }
 
-      "handle geometry wkt" >> {
+      "handle multipolygon wkt and objects" >> {
+        val geoFac = new GeometryFactory()
+        val multiPoly = geoFac.createMultiPolygon(Array(
+          geoFac.createPolygon(Seq((100, 0), (101, 0), (101, 1), (100, 1), (100, 0)).map{ case (x,y) => new Coordinate(x, y)}.toArray),
+          geoFac.createPolygon(Seq((10, 0), (11, 0), (11, 1), (10, 1), (10, 0)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
+        ))
+        val trans = Transformers.parseTransform("multipolygon($0)")
+        trans.eval(Array("multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), ((10 0, 11 0, 11 1, 10 1, 10 0)))")).asInstanceOf[MultiPolygon] mustEqual multiPoly
+
+        // type conversion
+        val geom = multiPoly.asInstanceOf[MultiPolygon]
+        val res = trans.eval(Array(geom))
+        res must not(beNull)
+        res.getClass mustEqual classOf[MultiPolygon]
+        res.asInstanceOf[MultiPolygon] mustEqual WKTUtils.read("multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), ((10 0, 11 0, 11 1, 10 1, 10 0)))")
+      }
+
+      "handle geometry wkt and objects" >> {
         val geoFac = new GeometryFactory()
         val lineStr = geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
         val trans = Transformers.parseTransform("geometry($0)")
         trans.eval(Array("Linestring(102 0, 103 1, 104 0, 105 1)")).asInstanceOf[Geometry] must be equalTo lineStr
+
+        // type conversion
+        val geom = lineStr.asInstanceOf[Geometry]
+        val res = trans.eval(Array(geom))
+        res must not(beNull)
+        res.asInstanceOf[AnyRef] must beAnInstanceOf[Geometry]
+        res.asInstanceOf[Geometry] mustEqual WKTUtils.read("Linestring(102 0, 103 1, 104 0, 105 1)\"")
+      }
+
+      "handle geometrycollection wkt and objects" >> {
+        val geoFac = new GeometryFactory()
+        val geoCol = geoFac.createGeometryCollection(Array(
+          geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray),
+          geoFac.createMultiPolygon(Array(
+            geoFac.createPolygon(Seq((100, 0), (101, 0), (101, 1), (100, 1), (100, 0)).map{ case (x,y) => new Coordinate(x, y)}.toArray),
+            geoFac.createPolygon(Seq((10, 0), (11, 0), (11, 1), (10, 1), (10, 0)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
+          ))
+        ))
+        val trans = Transformers.parseTransform("geometrycollection($0)")
+        trans.eval(Array("GeometryCollection(Linestring(102 0, 103 1, 104 0, 105 1)," +
+          "multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), " +
+          "((10 0, 11 0, 11 1, 10 1, 10 0))))")).asInstanceOf[GeometryCollection] mustEqual geoCol
+
+        // type conversion
+        val geom = geoCol.asInstanceOf[Geometry]
+        val res = trans.eval(Array(geom))
+        res must not(beNull)
+        res.getClass mustEqual classOf[GeometryCollection]
+        res.asInstanceOf[GeometryCollection] mustEqual WKTUtils.read(
+          "GeometryCollection(Linestring(102 0, 103 1, 104 0, 105 1), " +
+          "multipolygon(((100 0, 101 0, 101 1, 100 1, 100 0)), ((10 0, 11 0, 11 1, 10 1, 10 0))))")
+      }
+
+      "reproject to EPSG 4326" >> {
+        val geom = WKTUtils.read("POINT (1113194.91 1689200.14)")
+        val trans = Transformers.parseTransform("projectFrom('EPSG:3857',$1)")
+        val transformed = trans.eval(Array("", geom))
+        transformed must not(beNull)
+        transformed.getClass mustEqual classOf[Point]
+        transformed.asInstanceOf[Point].getX must beCloseTo(10d, 0.001)
+        transformed.asInstanceOf[Point].getY must beCloseTo(15d, 0.001)
       }
 
       "handle identity functions" >> {
@@ -319,7 +440,25 @@ class TransformersTest extends Specification {
         }
         "uuid" >> {
           val exp = Transformers.parseTransform("uuid()")
-          exp.eval(Array(null)) must anInstanceOf[String]
+          val res = exp.eval(Array(null))
+          res must not(beNull)
+          res.getClass mustEqual classOf[String]
+        }
+        "z3 uuid" >> {
+          val exp = Transformers.parseTransform("uuidZ3($0, $1, 'week')")
+          val geom = WKTUtils.read("POINT (103 1)")
+          val date = Converters.convert("2018-01-01T00:00:00.000Z", classOf[Date])
+          val res = exp.eval(Array(geom, date))
+          res must not(beNull)
+          res.getClass mustEqual classOf[String]
+        }
+        "z3 centroid uuid" >> {
+          val exp = Transformers.parseTransform("uuidZ3Centroid($0, $1, 'week')")
+          val geom = WKTUtils.read("LINESTRING (102 0, 103 1, 104 0, 105 1)")
+          val date = Converters.convert("2018-01-01T00:00:00.000Z", classOf[Date])
+          val res = exp.eval(Array(geom, date))
+          res must not(beNull)
+          res.getClass mustEqual classOf[String]
         }
         "base64" >> {
           val exp = Transformers.parseTransform("base64($0)")
@@ -327,8 +466,19 @@ class TransformersTest extends Specification {
         }
       }
 
+      "handle whitespace in functions" >> {
+        val variants = Seq(
+          "printf('%s-%s-%sT00:00:00.000Z', $1, $2, $3)",
+          "printf ( '%s-%s-%sT00:00:00.000Z' , $1 , $2 , $3 )"
+        )
+        foreach(variants) { t =>
+          val exp = Transformers.parseTransform(t)
+          exp.eval(Array("", "2015", "01", "01")) mustEqual "2015-01-01T00:00:00.000Z"
+        }
+      }
+
       "handle named values" >> {
-        implicit val ctx = EvaluationContext(IndexedSeq(null, "foo", null), Array[Any](null, "bar", null), null)
+        val ctx = EvaluationContext(IndexedSeq[String](null, "foo", null), Array[Any](null, "bar", null), null: Counter, Map.empty[String, EnrichmentCache])
         val exp = Transformers.parseTransform("capitalize($foo)")
         exp.eval(Array(null))(ctx) must be equalTo "Bar"
       }
@@ -371,6 +521,15 @@ class TransformersTest extends Specification {
         exp.eval(Array("", "")).asInstanceOf[Date] must beNull
         exp.eval(Array("", "abcd")).asInstanceOf[Date] must beNull
       }
+
+      "allow spaces in try statements" >> {
+        foreach(Seq("try($1::int,0)", "try ( $1::int, 0 )")) { t =>
+          val exp = Transformers.parseTransform(t)
+          exp.eval(Array("", "1")).asInstanceOf[Int] mustEqual 1
+          exp.eval(Array("", "")).asInstanceOf[Int] mustEqual 0
+          exp.eval(Array("", "abcd")).asInstanceOf[Int] mustEqual 0
+        }
+      }
     }
 
     "handle math" >> {
@@ -412,6 +571,26 @@ class TransformersTest extends Specification {
         val exp2 = Transformers.parseTransform("divide($1,$2,$3)")
         exp2.eval(Array("","1","2","3.0")) mustEqual (1.0/2/3) // 0.166666666666
         exp2.eval(Array("","-1","2","3.0")) mustEqual (-1.0/2/3) // -0.166666666666
+      }
+      "mean" >> {
+        val exp1 = Transformers.parseTransform("mean($1,$2,$3,$4)")
+        exp1.eval(Array("","1","2","3","4")) mustEqual 2.5
+      }
+      "min" >> {
+        val exp1 = Transformers.parseTransform("min($1,$2,$3,$4)::int")
+        exp1.eval(Array("","1","2","3","4")) mustEqual 1
+      }
+      "max" >> {
+        val exp1 = Transformers.parseTransform("max($1,$2,$3,$4)::int")
+        exp1.eval(Array("","1","2","3","4")) mustEqual 4
+      }
+      "allow for number formatting using printf" >> {
+        val exp = Transformers.parseTransform("printf('%.2f', divide($1,$2,$3))")
+        exp.eval(Array("","-1","2","3.0")) mustEqual "-0.17"
+      }
+      "allow for number formatting using printf" >> {
+        val exp = Transformers.parseTransform("printf('%.2f', divide(-1, 2, 3))")
+        exp.eval(Array()) mustEqual "-0.17"
       }
     }
 
@@ -609,7 +788,8 @@ class TransformersTest extends Specification {
         "buffer" >> {
           val exp = Transformers.parseTransform("cql:buffer($1, $2)")
           val buf = exp.eval(Array(null, "POINT(1 1)", 2.0))
-          buf must beAnInstanceOf[Polygon]
+          buf must not(beNull)
+          buf.getClass mustEqual classOf[Polygon]
           buf.asInstanceOf[Polygon].getCentroid.getX must beCloseTo(1, 0.0001)
           buf.asInstanceOf[Polygon].getCentroid.getY must beCloseTo(1, 0.0001)
           // note: area is not particularly close as there aren't very many points in the polygon
@@ -619,7 +799,7 @@ class TransformersTest extends Specification {
     }
 
     "return null for non-existing fields" >> {
-      val fieldsCtx = new EvaluationContextImpl(IndexedSeq("foo", "bar"), Array("5", "10"), null)
+      val fieldsCtx = EvaluationContext(IndexedSeq("foo", "bar"), Array[Any]("5", "10"), null: Counter, Map.empty[String, EnrichmentCache])
       Transformers.parseTransform("$b").eval(Array())(fieldsCtx) mustEqual null
       Transformers.parseTransform("$bar").eval(Array())(fieldsCtx) mustEqual "10"
     }
@@ -655,6 +835,137 @@ class TransformersTest extends Specification {
         val trans = Transformers.parseTransform("parseList('int', $0, '%')")
         trans.eval(Array("1%2%a")).asInstanceOf[java.util.List[Int]] must throwAn[IllegalArgumentException]
       }
+    }
+
+    "parse maps" >> {
+      "default delimiter" >> {
+        val trans = Transformers.parseTransform("parseMap('String->Int', $0)")
+        val res = trans.eval(Array("a->1,b->2,c->3"))
+        res must not(beNull)
+        res.asInstanceOf[AnyRef] must beAnInstanceOf[java.util.Map[String, Int]]
+        res.asInstanceOf[java.util.Map[String, Int]].size mustEqual 3
+        res.asInstanceOf[java.util.Map[String, Int]].toMap mustEqual Map("a" -> 1, "b" -> 2, "c" -> 3)
+      }
+      "custom delimiter" >> {
+        val trans = Transformers.parseTransform("parseMap('String->Int', $0, '%', ';')")
+        val res = trans.eval(Array("a%1;b%2;c%3"))
+        res must not(beNull)
+        res.asInstanceOf[AnyRef] must beAnInstanceOf[java.util.Map[String, Int]]
+        res.asInstanceOf[java.util.Map[String, Int]].size mustEqual 3
+        res.asInstanceOf[java.util.Map[String, Int]].toMap mustEqual Map("a" -> 1, "b" -> 2, "c" -> 3)
+      }
+      "throw exception for invalid values" >> {
+        val trans = Transformers.parseTransform("parseMap('String->Int', $0)")
+        trans.eval(Array("a->1,b->2,c->d")) must throwAn[IllegalArgumentException]
+      }
+    }
+
+    "handle default values" >> {
+      val trans = Transformers.parseTransform("withDefault($0, 'foo')")
+      trans.eval(Array(null)) mustEqual "foo"
+      trans.eval(Array("bar")) mustEqual "bar"
+      trans.eval(Array("")) mustEqual ""
+    }
+
+    "strip strings" >> {
+
+      "strip quotes" >> {
+        val trans = Transformers.parseTransform("stripQuotes($0)")
+        trans.eval(Array("'foo'")) mustEqual "foo"
+        trans.eval(Array("\"foo'")) mustEqual "foo"
+        trans.eval(Array("\"'foo'")) mustEqual "foo"
+
+        // white space is preserved
+        trans.eval(Array("'foo\t\t")) mustEqual "foo\t\t"
+        trans.eval(Array("  foo'\"\"")) mustEqual "  foo"
+      }
+
+      "all whitespace no args" >> {
+        val trans = Transformers.parseTransform("strip($0)")
+        trans.eval(Array("\t   foo   \t\t\t")) mustEqual "foo"
+      }
+
+      "from start and front with strip" >> {
+        val trans = Transformers.parseTransform("strip($0, '\\'')")
+        trans.eval(Array("'foo'")) mustEqual "foo"
+        trans.eval(Array("'foo")) mustEqual "foo"
+        trans.eval(Array("foo'")) mustEqual "foo"
+      }
+
+      "multiple chars (e.g. quotes)" >> {
+        val trans = Transformers.parseTransform("strip($0, '\\'\\\"')")
+        trans.eval(Array("'foo'")) mustEqual "foo"
+        trans.eval(Array("\"foo'")) mustEqual "foo"
+        trans.eval(Array("\"'foo'")) mustEqual "foo"
+        trans.eval(Array("'foo")) mustEqual "foo"
+        trans.eval(Array("foo'\"\"")) mustEqual "foo"
+      }
+
+      "prefix only" >> {
+        val trans = Transformers.parseTransform("stripPrefix($0, '\\'')")
+        trans.eval(Array("'foo'", "'")) mustEqual "foo'"
+        trans.eval(Array("'foo", "'")) mustEqual "foo"
+        trans.eval(Array("foo'", "'")) mustEqual "foo'"
+        trans.eval(Array(" 'foo'", "'")) mustEqual " 'foo'"
+      }
+
+      "prefix with  multiple chars" >> {
+        val trans = Transformers.parseTransform("stripPrefix($0, '\\'\\\"')")
+        trans.eval(Array("'foo'", "'")) mustEqual "foo'"
+        trans.eval(Array("'foo", "'")) mustEqual "foo"
+        trans.eval(Array("foo'", "'")) mustEqual "foo'"
+        trans.eval(Array("\"'foo\"", "'")) mustEqual "foo\""
+        trans.eval(Array("\"\"\"'foo'", "'")) mustEqual "foo'"
+      }
+
+      "suffix only" >> {
+        val trans = Transformers.parseTransform("stripSuffix($0, '\\'')")
+        trans.eval(Array("'foo'")) mustEqual "'foo"
+        trans.eval(Array("'foo")) mustEqual "'foo"
+        trans.eval(Array("foo'")) mustEqual "foo"
+      }
+
+      "suffix with preserving whitespace" >> {
+        val trans = Transformers.parseTransform("stripSuffix($0, 'ab')")
+        trans.eval(Array("fooab ")) mustEqual "fooab "
+      }
+
+      "suffix multiple chars" >> {
+        val trans = Transformers.parseTransform("stripSuffix($0, '\\'\\\"')")
+        trans.eval(Array("'\"foo'")) mustEqual "'\"foo"
+        trans.eval(Array("'\"foo")) mustEqual "'\"foo"
+        trans.eval(Array("\"foo'")) mustEqual "\"foo"
+        trans.eval(Array("'foo\"'")) mustEqual "'foo"
+        trans.eval(Array("'foo\"")) mustEqual "'foo"
+        trans.eval(Array("foo'\"")) mustEqual "foo"
+      }
+
+      "something other than quotes" >> {
+        val trans = Transformers.parseTransform("strip($0, 'X')")
+        trans.eval(Array("XfooX")) mustEqual "foo"
+        trans.eval(Array("Xfoo")) mustEqual "foo"
+        trans.eval(Array("fooX")) mustEqual "foo"
+      }
+    }
+
+    "remove strings" >> {
+      val trans = Transformers.parseTransform("remove($0, '\\'')")
+      trans.eval(Array("'foo'")) mustEqual "foo"
+      trans.eval(Array("'foo")) mustEqual "foo"
+      trans.eval(Array("foo'")) mustEqual "foo"
+      trans.eval(Array("f'o'o'")) mustEqual "foo"
+
+      Transformers.parseTransform("remove($0, 'abc')").eval(Array("foabco")) mustEqual "foo"
+    }
+
+    "replace" >> {
+      val trans = Transformers.parseTransform("replace($0, '\\'', '\\\"')")
+      trans.eval(Array("'foo'")) mustEqual "\"foo\""
+      trans.eval(Array("'foo")) mustEqual "\"foo"
+      trans.eval(Array("foo'")) mustEqual "foo\""
+      trans.eval(Array("f'o'o'")) mustEqual "f\"o\"o\""
+
+      Transformers.parseTransform("replace($0, 'a', 'o')").eval(Array("faa")) mustEqual "foo"
     }
   }
 }

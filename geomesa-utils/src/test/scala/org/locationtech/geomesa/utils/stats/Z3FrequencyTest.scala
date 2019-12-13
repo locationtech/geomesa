@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.stats
 
@@ -28,7 +28,7 @@ class Z3FrequencyTest extends Specification with StatTestHelper {
 
   def createStat(observe: Boolean = true): Z3Frequency = createStat(25, observe)
 
-  def toDate(string: String) = GeoToolsDateFormat.parseDateTime(string).toDate
+  def toDate(string: String) = java.util.Date.from(java.time.LocalDateTime.parse(string, GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
   def toGeom(string: String) = WKTUtils.read(string)
 
   "FrequencyZ3 stat" should {
@@ -55,8 +55,8 @@ class Z3FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Z3Frequency]
-        unpacked.asInstanceOf[Z3Frequency].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3Frequency].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Frequency].geom mustEqual stat.geom
+        unpacked.asInstanceOf[Z3Frequency].dtg mustEqual stat.dtg
         unpacked.asInstanceOf[Z3Frequency].precision mustEqual stat.precision
         unpacked.asInstanceOf[Z3Frequency].toJson mustEqual stat.toJson
       }
@@ -67,8 +67,8 @@ class Z3FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Z3Frequency]
-        unpacked.asInstanceOf[Z3Frequency].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3Frequency].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Frequency].geom mustEqual stat.geom
+        unpacked.asInstanceOf[Z3Frequency].dtg mustEqual stat.dtg
         unpacked.asInstanceOf[Z3Frequency].precision mustEqual stat.precision
         unpacked.asInstanceOf[Z3Frequency].toJson mustEqual stat.toJson
       }
@@ -80,8 +80,8 @@ class Z3FrequencyTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
 
         unpacked must beAnInstanceOf[Z3Frequency]
-        unpacked.asInstanceOf[Z3Frequency].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3Frequency].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Frequency].geom mustEqual stat.geom
+        unpacked.asInstanceOf[Z3Frequency].dtg mustEqual stat.dtg
         unpacked.asInstanceOf[Z3Frequency].precision mustEqual stat.precision
         unpacked.asInstanceOf[Z3Frequency].toJson mustEqual stat.toJson
 

@@ -1,28 +1,28 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 
 package org.locationtech.geomesa.raster.data
 
 import com.google.common.collect.{ImmutableSetMultimap, ImmutableMap => IMap}
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Range => ARange}
 import org.apache.hadoop.io.Text
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.accumulo.index.{AccumuloQueryPlan, BatchScanPlan}
-import org.locationtech.geomesa.accumulo.process.knn.TouchingGeoHashes
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.BatchScanPlan
 import org.locationtech.geomesa.raster.iterators.{RasterFilteringIterator => RFI}
 import org.locationtech.geomesa.raster.{defaultResolution, lexiEncodeDoubleToString, rasterSft, rasterSftName}
 import org.locationtech.geomesa.utils.geohash.{BoundingBox, GeohashUtils}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -86,7 +86,7 @@ object AccumuloRasterQueryPlanner extends LazyLogging {
 
       // TODO: WCS: setup a CFPlanner to match against a list of strings
       // ticket is GEOMESA-559
-      Some(BatchScanPlan(null, null, rows, Seq(cfg), Seq.empty[Text], null, None, -1, hasDuplicates = false))
+      Some(BatchScanPlan(null, null, rows, Seq(cfg), None, null, None, None, None, None, -1))
     }
   }
 

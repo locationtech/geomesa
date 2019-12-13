@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.index
 
@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.Lock
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Point
+import org.locationtech.jts.geom.Point
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -142,7 +142,7 @@ class SynchronizedQuadtreeWithMetrics extends SynchronizedQuadtree[Point] {
   val totalReads = new AtomicLong()
   val totalWrites = new AtomicLong()
 
-  override protected[index] def withLock[T](lock: Lock)(fn: => T) = {
+  override protected [index] def withLock[U](lock: Lock)(fn: => U): U = {
     val start = System.currentTimeMillis()
     lock.lock()
     val time = System.currentTimeMillis() - start

@@ -1,21 +1,22 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.stats
 
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.Date
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -51,7 +52,7 @@ class HistogramTest extends Specification with StatTestHelper {
   def geomStat(bins: Int, min: String, max: String, observe: Boolean = true) =
     createStat[Geometry]("geom", bins, min, max, observe)
 
-  def toDate(string: String) = GeoToolsDateFormat.parseDateTime(string).toDate
+  def toDate(string: String) = java.util.Date.from(java.time.LocalDateTime.parse(string, GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
   def toGeom(string: String) = WKTUtils.read(string)
 
   "RangeHistogram stat" should {
@@ -79,7 +80,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[String]]
         unpacked.asInstanceOf[Histogram[String]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[String]].property mustEqual stat.property
         unpacked.asInstanceOf[Histogram[String]].toJson mustEqual stat.toJson
       }
 
@@ -90,7 +91,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[String]]
         unpacked.asInstanceOf[Histogram[String]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[String]].property mustEqual stat.property
         unpacked.asInstanceOf[Histogram[String]].toJson mustEqual stat.toJson
       }
 
@@ -101,7 +102,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[String]]
         unpacked.asInstanceOf[Histogram[String]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[String]].property mustEqual stat.property
         unpacked.asInstanceOf[Histogram[String]].toJson mustEqual stat.toJson
 
         unpacked.clear must throwAn[Exception]
@@ -188,7 +189,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[Integer]]
         unpacked.asInstanceOf[Histogram[Integer]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[Integer]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[Integer]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -199,7 +200,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[Integer]]
         unpacked.asInstanceOf[Histogram[Integer]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[Integer]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[Integer]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -319,7 +320,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jLong]]
         unpacked.asInstanceOf[Histogram[jLong]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jLong]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jLong]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -330,7 +331,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jLong]]
         unpacked.asInstanceOf[Histogram[jLong]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jLong]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jLong]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -391,7 +392,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jFloat]]
         unpacked.asInstanceOf[Histogram[jFloat]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jFloat]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jFloat]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -402,7 +403,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jFloat]]
         unpacked.asInstanceOf[Histogram[jFloat]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jFloat]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jFloat]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -465,7 +466,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jDouble]]
         unpacked.asInstanceOf[Histogram[jDouble]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jDouble]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jDouble]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -476,7 +477,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jDouble]]
         unpacked.asInstanceOf[Histogram[jDouble]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jDouble]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jDouble]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -542,7 +543,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[Date]]
         unpacked.asInstanceOf[Histogram[Date]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[Date]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[Date]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -553,7 +554,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jDouble]]
         unpacked.asInstanceOf[Histogram[jDouble]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jDouble]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jDouble]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -585,19 +586,15 @@ class HistogramTest extends Specification with StatTestHelper {
         val stat = dateStat(4, "2012-01-01T00:00:00.000Z", "2012-01-28T23:59:59.999Z", observe = false)
         val stat2 = dateStat(5, "2012-01-01T00:00:00.000Z", "2012-02-04T23:59:59.999Z", observe = false)
 
-        val attributes = Array.ofDim[AnyRef](7)
-        (1 to 28).foreach { i =>
-          attributes(6) = f"2012-01-$i%02dT12:00:00.000Z"
-          stat.observe(SimpleFeatureBuilder.build(sft, attributes, ""))
+        def newSF(dtg: String): SimpleFeature = {
+          val sf = SimpleFeatureBuilder.build(sft, Array[AnyRef](), "")
+          sf.setAttribute("dtg", dtg)
+          sf
         }
-        (29 to 31).foreach { i =>
-          attributes(6) = f"2012-01-$i%02dT12:00:00.000Z"
-          stat2.observe(SimpleFeatureBuilder.build(sft, attributes, ""))
-        }
-        (1 to 4).foreach { i =>
-          attributes(6) = f"2012-02-$i%02dT12:00:00.000Z"
-          stat2.observe(SimpleFeatureBuilder.build(sft, attributes, ""))
-        }
+
+        ( 1 to 28).foreach { i => stat.observe(newSF(f"2012-01-$i%02dT12:00:00.000Z")) }
+        (29 to 31).foreach { i => stat2.observe(newSF(f"2012-01-$i%02dT12:00:00.000Z")) }
+        ( 1 to  4).foreach { i => stat2.observe(newSF(f"2012-02-$i%02dT12:00:00.000Z")) }
 
         stat.length mustEqual 4
         forall(0 until 4)(stat.count(_) mustEqual 7)
@@ -659,7 +656,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jDouble]]
         unpacked.asInstanceOf[Histogram[jDouble]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jDouble]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jDouble]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 
@@ -670,7 +667,7 @@ class HistogramTest extends Specification with StatTestHelper {
 
         unpacked must beAnInstanceOf[Histogram[jDouble]]
         unpacked.asInstanceOf[Histogram[jDouble]].length mustEqual stat.length
-        unpacked.asInstanceOf[Histogram[jDouble]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[Histogram[jDouble]].property mustEqual stat.property
         unpacked.toJson mustEqual stat.toJson
       }
 

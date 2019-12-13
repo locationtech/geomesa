@@ -36,6 +36,13 @@ To set a hint through GeoServer, modify your query URL to use the ``viewparams``
 
 Hint values will be converted into the appropriate types. See below for available hints and their accepted values.
 
+Command-Line Tools
+^^^^^^^^^^^^^^^^^^
+
+When exporting features through the GeoMesa command line tools, query hints can be set using the ``--hints`` parameter.
+Hints should be specified in the form ``key1=value1;key2=value2``. Hints are converted to the appropriate type
+according to the conventions for GeoServer hints.
+
 Loose Bounding Box
 ------------------
 
@@ -64,9 +71,9 @@ QueryHints.LOOSE_BBOX ``Boolean`` ``true`` or ``false``
 
         query.getHints.put(QueryHints.LOOSE_BBOX, false)
 
-    .. tab:: GeoServer
+    .. code-tab:: none GeoServer
 
-        ``...&viewparams=LOOSE_BBOX:false``
+        ...&viewparams=LOOSE_BBOX:false
 
 Exact Counts
 ------------
@@ -95,9 +102,11 @@ QueryHints.EXACT_COUNT ``Boolean`` ``true`` or ``false``
 
         query.getHints.put(QueryHints.EXACT_COUNT, true)
 
-    .. tab:: GeoServer
+    .. code-tab:: none GeoServer
 
-        ``...&viewparams=EXACT_COUNT:true``
+        ...&viewparams=EXACT_COUNT:true
+
+.. _query_index_hint:
 
 Query Index
 -----------
@@ -129,21 +138,32 @@ QueryHints.QUERY_INDEX ``GeoMesaFeatureIndex`` index name, or name:version
 
         query.getHints.put(QueryHints.QUERY_INDEX, Z2Index)
 
-    .. tab:: GeoServer
+    .. code-tab:: none GeoServer
 
-        ``...&viewparams=QUERY_INDEX:z2``
+        ...&viewparams=QUERY_INDEX:z2
 
-Query Planning
---------------
+For more details, see :ref:`query_planning`.
+
+.. _query_planning_hint:
+
+Query Planning Type
+-------------------
 
 As explained above, GeoMesa uses cost-based query planning to determine the best index for a given query.
-If cost-based query planning is not working as desired, the legacy heuristic-based query
-planning can be used as a fall-back. ``Stats`` uses cost-based planning; ``Index`` uses heuristic-based planning.
+By default, heuristics are used to pick the index. This method is quite fast, but may not always account for
+unusual data distributions. If heuristic-based query planning is not working as desired, stat-based query
+planning can be used, based on data statistics gathered during ingestion. ``Stats`` uses cost-based planning;
+``Index`` uses heuristic-based planning. Note that currently, statistics have only been implemented for the
+Accumulo data store - for other stores, heuristic-based planning will always be used.
+
+Query planning can also be controlled through the system property ``geomesa.query.cost.type``. See
+:ref:`geomesa_site_xml` for details. If both a query hint and a system property are set, the query hint will
+take precedence.
 
 ========================== ================== ======================
 Key                        Type               GeoServer Conversion
 ========================== ================== ======================
-QueryHints.COST_EVALUATION ``CostEvaluation`` ``stats`` or ``index``
+QueryHints.COST_EVALUATION ``CostEvaluation`` ``index`` or ``stats``
 ========================== ================== ======================
 
 
@@ -151,18 +171,20 @@ QueryHints.COST_EVALUATION ``CostEvaluation`` ``stats`` or ``index``
 
     .. code-tab:: java
 
-        import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation;
+        import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation;
         import org.locationtech.geomesa.index.conf.QueryHints;
 
         query.getHints().put(QueryHints.COST_EVALUATION(), CostEvaluation.Index());
 
     .. code-tab:: scala
 
-        import org.locationtech.geomesa.index.api.QueryPlanner.CostEvaluation
+        import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
         import org.locationtech.geomesa.index.conf.QueryHints
 
         query.getHints.put(QueryHints.COST_EVALUATION, CostEvaluation.Index)
 
-    .. tab:: GeoServer
+    .. code-tab:: none GeoServer
 
-        ``...&viewparams=COST_EVALUATION:index``
+        ...&viewparams=COST_EVALUATION:index
+
+See :ref:`query_planning` for more information on query planning strategies.

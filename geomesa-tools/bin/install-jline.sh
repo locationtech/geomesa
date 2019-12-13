@@ -1,26 +1,29 @@
 #! /usr/bin/env bash
 #
-# Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+# Copyright (c) 2013-%%copyright.year%% Commonwealth Computer Research, Inc.
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0 which
 # accompanies this distribution and is available at
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
+jline_version="2.12.1"
+
+# Load common functions and setup
 if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
   export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
 fi
-lib_dir="${%%gmtools.dist.name%%_HOME}/lib"
+. $%%gmtools.dist.name%%_HOME/bin/common-functions.sh
 
-url='http://search.maven.org/remotecontent?filepath=jline/jline/2.12.1/jline-2.12.1.jar'
-read -r -p "JLine is BSD licensed and free to use and distribute, however, the provenance of the code could not be established by the Eclipse Foundation, and thus it is not distributed with GeoMesa... are you sure you want to install it from $url ? [Y/n] " confirm
-confirm=${confirm,,} #lowercasing
-if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
-  echo "Trying to install JLine from $url to ${lib_dir}"
-  wget -O /tmp/jline-2.12.1.jar $url \
-    && mv /tmp/jline-2.12.1.jar "${lib_dir}/" \
-    && echo "Successfully installed JLine to ${lib_dir}" \
-    || { rm -f /tmp/jline-2.12.1.jar; echo "Failed to download: ${url}"; };
-else
-  echo "Cancelled installation of JLine"
-fi
+install_dir="${1:-${%%gmtools.dist.name%%_HOME}/lib}"
+
+# Resource download location
+base_url="${GEOMESA_MAVEN_URL:-https://search.maven.org/remotecontent?filepath=}"
+
+declare -a urls=(
+  "${base_url}jline/jline/${jline_version}/jline-${jline_version}.jar"
+)
+
+echo "Warning: JLine is BSD licensed and free to use and distribute, however, the provenance of the code could not be established by the Eclipse Foundation, and thus it is not distributed with GeoMesa. However, you may download it yourself."
+
+downloadUrls "$install_dir" urls[@]

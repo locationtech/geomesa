@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+    <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.EnhancedPatternLayout">
+            <param name="ConversionPattern" value="[%d] %5p %c{1}: %m%n"/>
+        </layout>
+    </appender>
+
+    <category name="org.apache.zookeeper">
+        <priority value="warn"/>
+    </category>
+    <category name="org.apache.accumulo">
+        <priority value="warn"/>
+    </category>
+    <category name="org.apache.hadoop">
+        <priority value="warn"/>
+    </category>
+    <category name="hsqldb">
+        <priority value="warn"/>
+    </category>
+
+    <!--
+    <category name="org.locationtech">
+        <priority value="trace"/>
+    </category>
+    -->
+
+    <!-- un-comment the following line to enable verbose log messages
+         from the index query-planner; this can be helpful in debugging
+         query plans -->
+    <!--
+    <category name="org.locationtech.geomesa.core.index.IndexQueryPlanner">
+        <priority value="trace"/>
+    </category>
+    -->
+
+    <root>
+        <priority value="info"/>
+        <appender-ref ref="CONSOLE" />
+    </root>
+</log4j:configuration>
+

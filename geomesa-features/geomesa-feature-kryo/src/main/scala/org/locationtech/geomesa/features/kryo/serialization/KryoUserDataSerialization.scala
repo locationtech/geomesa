@@ -1,49 +1,157 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features.kryo.serialization
 
+import java.util.UUID
+
 import com.esotericsoftware.kryo.io.{Input, Output}
+import com.typesafe.scalalogging.LazyLogging
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.serialization.GenericMapSerialization
+import org.locationtech.jts.geom.{Geometry, LineString, Point, Polygon}
 
-object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] {
+import scala.util.control.NonFatal
 
-  override def serialize(out: Output, map: java.util.Map[AnyRef, AnyRef]): Unit = {
-    import scala.collection.JavaConversions._
+object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] with LazyLogging {
 
-    // may not be able to write all entries - must pre-filter to know correct count
-    val (toWrite, toIgnore) = map.partition { case (key, value) => key != null && value != null && canSerialize(key) }
+  private val nullMapping = "$_"
 
-    if (toIgnore.nonEmpty) {
-      logger.warn(s"Skipping serialization of entries: ${toIgnore.mkString("[", "],[", "]")}")
+  private val baseClassMappings: Map[Class[_], String] = Map(
+    classOf[String]            -> "$s",
+    classOf[Int]               -> "$i",
+    classOf[java.lang.Integer] -> "$i",
+    classOf[Long]              -> "$l",
+    classOf[java.lang.Long]    -> "$l",
+    classOf[Float]             -> "$f",
+    classOf[java.lang.Float]   -> "$f",
+    classOf[Double]            -> "$d",
+    classOf[java.lang.Double]  -> "$d",
+    classOf[Boolean]           -> "$b",
+    classOf[java.lang.Boolean] -> "$b",
+    classOf[java.util.Date]    -> "$D",
+    classOf[Array[Byte]]       -> "$B",
+    classOf[UUID]              -> "$u",
+    classOf[Point]             -> "$pt",
+    classOf[LineString]        -> "$ls",
+    classOf[Polygon]           -> "$pl",
+    classOf[Hints.Key]         -> "$h"
+  )
+
+  private val baseClassLookups: Map[String, Class[_]] = baseClassMappings.filterNot(_._1.isPrimitive).map(_.swap)
+
+  private implicit val ordering: Ordering[(AnyRef, AnyRef)] = Ordering.by(_._1.toString)
+
+  override def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
+    import scala.collection.JavaConverters._
+
+    // write in sorted order to keep consistent output
+    val toWrite = scala.collection.mutable.SortedSet.empty[(AnyRef, AnyRef)]
+
+    javaMap.asScala.foreach { case (k, v) =>
+      if (k != null && canSerialize(k)) { toWrite += k -> v } else {
+        logger.warn(s"Skipping serialization of entry: $k -> $v")
+      }
     }
 
     out.writeInt(toWrite.size) // don't use positive optimized version for back compatibility
 
     toWrite.foreach { case (key, value) =>
-      out.writeString(key.getClass.getName)
+      out.writeString(baseClassMappings.getOrElse(key.getClass, key.getClass.getName))
       write(out, key)
-      out.writeString(value.getClass.getName)
-      write(out, value)
+      if (value == null) {
+        out.writeString(nullMapping)
+      } else {
+        out.writeString(baseClassMappings.getOrElse(value.getClass, value.getClass.getName))
+        write(out, value)
+      }
     }
   }
 
   override def deserialize(in: Input): java.util.Map[AnyRef, AnyRef] = {
-    var toRead = in.readInt()
-    val map = new java.util.HashMap[AnyRef, AnyRef](toRead)
-
-    while (toRead > 0) {
-      val key = read(in, Class.forName(in.readString()))
-      val value = read(in, Class.forName(in.readString()))
-      map.put(key, value)
-      toRead -= 1
+    try {
+      val size = in.readInt()
+      val map = new java.util.HashMap[AnyRef, AnyRef](size)
+      deserializeWithSize(in, map, size)
+      map
+    } catch {
+      case NonFatal(e) =>
+        logger.error("Error reading serialized kryo user data:", e)
+        new java.util.HashMap[AnyRef, AnyRef]()
     }
+  }
 
-    map
+  override def deserialize(in: Input, map: java.util.Map[AnyRef, AnyRef]): Unit = {
+    try {
+      deserializeWithSize(in, map, in.readInt())
+    } catch {
+      case NonFatal(e) =>
+        logger.error("Error reading serialized kryo user data:", e)
+        new java.util.HashMap[AnyRef, AnyRef]()
+    }
+  }
+
+  private def deserializeWithSize(in: Input, map: java.util.Map[AnyRef, AnyRef], size: Int): Unit = {
+    var i = 0
+    while (i < size) {
+      val keyClass = in.readString()
+      val key = read(in, baseClassLookups.getOrElse(keyClass, Class.forName(keyClass)))
+      val valueClass = in.readString()
+      val value = if (valueClass == nullMapping) { null } else {
+        read(in, baseClassLookups.getOrElse(valueClass, Class.forName(valueClass)))
+      }
+      map.put(key, value)
+      i += 1
+    }
+  }
+
+  override protected def writeGeometry(out: Output, geom: Geometry): Unit =
+    KryoGeometrySerialization.serializeWkb(out, geom)
+
+  override protected def readGeometry(in: Input): Geometry =
+    KryoGeometrySerialization.deserializeWkb(in, checkNull = true)
+
+  override protected def writeBytes(out: Output, bytes: Array[Byte]): Unit = {
+    out.writeInt(bytes.length)
+    out.writeBytes(bytes)
+  }
+
+  override protected def readBytes(in: Input): Array[Byte] = {
+    val bytes = Array.ofDim[Byte](in.readInt)
+    in.readBytes(bytes)
+    bytes
+  }
+
+  override protected def writeList(out: Output, list: java.util.List[AnyRef]): Unit = {
+    out.writeInt(list.size)
+    val iterator = list.iterator()
+    while (iterator.hasNext) {
+      val value = iterator.next()
+      if (value == null) {
+        out.writeString(nullMapping)
+      } else {
+        out.writeString(baseClassMappings.getOrElse(value.getClass, value.getClass.getName))
+        write(out, value)
+      }
+    }
+  }
+
+  override protected def readList(in: Input): java.util.List[AnyRef] = {
+    val size = in.readInt()
+    val list = new java.util.ArrayList[AnyRef](size)
+    var i = 0
+    while (i < size) {
+      val clas = in.readString()
+      if (clas == nullMapping) { list.add(null) } else {
+        list.add(read(in, baseClassLookups.getOrElse(clas, Class.forName(clas))))
+      }
+      i += 1
+    }
+    list
   }
 }

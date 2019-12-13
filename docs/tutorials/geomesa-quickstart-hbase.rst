@@ -1,42 +1,44 @@
 GeoMesa HBase Quick Start
 =========================
 
-This tutorial is the fastest and easiest way to get started with the
-HBase support in GeoMesa. In the spirit of keeping things simple, the
-code in this tutorial only does a few things:
+This tutorial is the fastest and easiest way to get started with GeoMesa using HBase.
+It is a good stepping-stone on the path to the other tutorials, that present increasingly
+involved examples of how to use GeoMesa.
 
-1. Establishes a new (static) ``SimpleFeatureType``
-2. Prepares the HBase table to store this type of data
-3. Creates 1000 example SimpleFeatures
-4. Writes these SimpleFeatures to the HBase table
-5. Queries for a given geographic rectangle and time range, and
-   attribute filter, and writes out the entries in the result set
+About this Tutorial
+-------------------
+
+In the spirit of keeping things simple, the code in this tutorial only
+does a few small things:
+
+1. Establishes a new (static) SimpleFeatureType
+2. Prepares the HBase tables to store this type of data
+3. Creates a few thousand example SimpleFeatures
+4. Writes these SimpleFeatures to HBase
+5. Queries for a given geographic rectangle, time range, and attribute
+   filter, writing out the entries in the result set
+6. Uses GeoServer to visualize the data (optional)
 
 Prerequisites
 -------------
 
 Before you begin, you must have the following installed and configured:
 
--  `Java <http://java.oracle.com/>`__ Development Kit 1.8
--  Apache `Maven <http://maven.apache.org/>`__
+-  `Java <http://java.oracle.com/>`__ JDK 1.8
+-  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
 -  a GitHub client
--  HBase 1.1.x (optional)
--  GeoServer |geoserver_version| (optional)
+-  an HBase |hbase_required_version| instance
+-  the GeoMesa HBase distributed runtime installed for your HBase instance (see below)
 
-An existing HBase 1.1.x installation is helpful but not necessary. The
-tutorial described will work either with an existing HBase server or by
-downloading the HBase binary distribution and running it in "standalone"
-mode (described below).
-
-GeoServer is only required for visualizing the HBase data. Setting up
-GeoServer is beyond the scope of this tutorial.
+If you do not have an existing HBase instance, you can easily set one up
+as detailed next.
 
 Setting up HBase in standalone mode (optional)
 ----------------------------------------------
 
-(Skip this section if you have an existing HBase 1.1.x installation.)
+(Skip this section if you have an existing HBase |hbase_required_version| installation.)
 
-Download the HBase 1.2.3 binary distribution from
+Download the HBase 1.3.1 binary distribution from
 http://www.apache.org/dyn/closer.cgi/hbase/
 
 Follow the chapter in the HBase Manual for running a standalone instance
@@ -44,223 +46,281 @@ of HBase (https://hbase.apache.org/book.html#quickstart). Note that this
 will use the local filesystem instead of HDFS, and will spin up its own
 instances of HBase and Zookeeper.
 
-Download and build the tutorial
+Installing the GeoMesa Distributed Runtime
+------------------------------------------
+
+Follow the instructions under :ref:`hbase_deploy_distributed_runtime` and :ref:`registering_coprocessors`
+to install GeoMesa in your HBase instance.
+
+Download and Build the Tutorial
 -------------------------------
 
-Clone the geomesa-tutorials distribution from GitHub:
+Pick a reasonable directory on your machine, and run:
 
 .. code-block:: bash
 
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
-.. note::
+.. warning::
 
-    You may need to download a particular release of the tutorials project
-    to target a particular GeoMesa release. See :ref:`tutorial_versions`.
+    Make sure that you download or checkout the version of the tutorials project that corresponds to
+    your GeoMesa version. See :ref:`tutorial_versions` for more details.
 
-The ``pom.xml`` file contains an explicit list of dependent libraries
-that will be bundled together into the final tutorial. You should
-confirm that the versions of HBase and Hadoop match what you are
-running; if it does not match, change the values of the
-``hbase.version`` and ``hbase.hadoop.version`` properties. The version
-of GeoMesa that this tutorial targets matches the project version of the
-``pom.xml``. (Note that this tutorial has been tested with GeoMesa 1.2.2
-or later).
+To ensure that the quick start works with your environment, modify the ``pom.xml``
+to set the appropriate versions for HBase, Hadoop, etc.
 
-.. note::
-
-    The only reason these libraries are bundled into the final JAR is
-    that this is easier for most people to do this than it is to set the
-    classpath when running the tutorial. If you would rather not bundle
-    these dependencies, mark them as ``provided`` in the POM, and update
-    your classpath as appropriate.)
-
-GeoMesa's ``HBaseDataStore`` searches for a file called
-``hbase-site.xml``, which among other things configures the Zookeeper
-host(s) and port. If this file is not present on the classpath, the
-``hbase-default.xml`` provided by hbase-common sets the default
-zookeeper quorum to "localhost" and port to 2181, which is what is used
-by the standalone HBase described in "Setting up HBase in standalone
-mode" above. If you have an existing HBase installation, you should copy
-your ``hbase-site.xml`` file into
-``geomesa-quickstart-hbase/src/main/resources`` (or otherwise add it to
-the classpath when you run the tutorial).
-
-To build the tutorial code:
+For ease of use, the project builds a bundled artifact that contains all the required
+dependencies in a single JAR. To build, run:
 
 .. code-block:: bash
 
-    $ cd geomesa-quickstart-hbase
-    $ mvn clean install
+    $ mvn clean install -pl geomesa-tutorials-hbase/geomesa-tutorials-hbase-quickstart -am
 
-When this is complete, it should have built a JAR file that contains all
-of the code you need to run the tutorial.
-
-Running the tutorial
+Running the Tutorial
 --------------------
 
 On the command line, run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-hbase/target/geomesa-quickstart-hbase-$VERSION.jar \
-      com.example.geomesa.hbase.HBaseQuickStart --bigtable_table_name geomesa
+    $ java -cp geomesa-tutorials-hbase/geomesa-tutorials-hbase-quickstart/target/geomesa-tutorials-hbase-quickstart-$VERSION.jar \
+        org.geomesa.example.hbase.HBaseQuickStart \
+        --hbase.zookeepers <zookeepers>           \
+        --hbase.catalog <table>
 
-The only argument passed is the name of the HBase table where GeoMesa
-will store the feature type information. It will also create a table
-called ``<featuretype>_z3`` which will store the Z3-indexed features.
+where you provide the following arguments:
 
-You should see output similar to the following (not including some of
-Maven's output and log4j's warnings), which lists the features that
-match the specified query in the tutorial do
+-  ``<zookeepers>`` the HBase Zookeeper quorum. If you installed HBase in stand-alone mode,
+   this will be ``localhost``. Note that for most use cases, it is preferable to put the
+   ``hbase-site.xml`` from your cluster on the GeoMesa classpath instead of specifying Zookeepers.
+-  ``<table>`` the name of the destination table that will accept these
+   test records. This table should either not exist or should be empty
 
-::
+Optionally, you can also specify that the quick start should delete its data upon completion. Use the
+``--cleanup`` flag when you run to enable this behavior.
 
-    Creating feature-type (schema):  QuickStart
-    Creating new features
-    Inserting new features
-    Submitting query
-    1.  Bierce|676|Fri Jul 18 08:22:03 EDT 2014|POINT (-78.08495724535888 37.590866849120395)|null
-    2.  Bierce|190|Sat Jul 26 19:06:19 EDT 2014|POINT (-78.1159944062711 37.64226959044015)|null
-    3.  Bierce|550|Mon Aug 04 08:27:52 EDT 2014|POINT (-78.01884511971093 37.68814732634964)|null
-    4.  Bierce|307|Tue Sep 09 11:23:22 EDT 2014|POINT (-78.18782181976381 37.6444865782879)|null
-    5.  Bierce|781|Wed Sep 10 01:14:16 EDT 2014|POINT (-78.0250604717695 37.58285696304815)|null
+Once run, you should see the following output:
 
-To see how the data is stored in HBase, use the HBase shell.
+.. code-block:: none
 
-.. code-block:: bash
+    Loading datastore
 
-    $ /path/to/hbase-1.2.3/bin/hbase shell
+    Creating schema: GLOBALEVENTID:String,Actor1Name:String,Actor1CountryCode:String,Actor2Name:String,Actor2CountryCode:String,EventCode:String,NumMentions:Integer,NumSources:Integer,NumArticles:Integer,ActionGeo_Type:Integer,ActionGeo_FullName:String,ActionGeo_CountryCode:String,dtg:Date,geom:Point:srid=4326
 
-The type information is in the ``geomesa`` table (or whatever name you
-specified on the command line):
+    Generating test data
 
-::
+    Writing test data
+    Wrote 2356 features
 
-    hbase> scan 'geomesa'
-    ROW                              COLUMN+CELL          
-     QuickStart                      column=M:schema, timestamp=1463593804724, value=Who:String,What:Long,When:Date,*Where:Point:s
-                                     rid=4326,Why:String
+    Running test queries
+    Running query BBOX(geom, -120.0,30.0,-75.0,55.0) AND dtg DURING 2017-12-31T00:00:00+00:00/2018-01-02T00:00:00+00:00
+    01 719027236=719027236|UNITED STATES|USA|INDUSTRY||012|1|1|1|3|Central Valley, California, United States|US|2018-01-01T00:00:00.000Z|POINT (-119.682 34.0186)
+    02 719027005=719027005|UNITED STATES|USA|||172|2|2|2|3|Long Beach, California, United States|US|2018-01-01T00:00:00.000Z|POINT (-118.189 33.767)
+    03 719026204=719026204|JUDGE||||0214|6|1|6|3|Los Angeles, California, United States|US|2018-01-01T00:00:00.000Z|POINT (-118.244 34.0522)
+    04 719025745=719025745|KING||||051|4|2|4|2|California, United States|US|2018-01-01T00:00:00.000Z|POINT (-119.746 36.17)
+    05 719026858=719026858|UNITED STATES|USA|||010|20|2|20|2|California, United States|US|2018-01-01T00:00:00.000Z|POINT (-119.746 36.17)
+    06 719026964=719026964|UNITED STATES|USA|||081|2|2|2|2|California, United States|US|2018-01-01T00:00:00.000Z|POINT (-119.746 36.17)
+    07 719026965=719026965|CALIFORNIA|USA|||081|8|1|8|2|California, United States|US|2018-01-01T00:00:00.000Z|POINT (-119.746 36.17)
+    08 719025635=719025635|PARIS|FRA|||010|2|1|2|3|Las Vegas, Nevada, United States|US|2018-01-01T00:00:00.000Z|POINT (-115.137 36.175)
+    09 719026918=719026918|UNITED STATES|USA|||042|20|5|20|3|Las Vegas, Nevada, United States|US|2018-01-01T00:00:00.000Z|POINT (-115.137 36.175)
+    10 719027141=719027141|ALABAMA|USA|JUDGE||172|8|1|8|2|Nevada, United States|US|2018-01-01T00:00:00.000Z|POINT (-117.122 38.4199)
 
-The features are stored in ``<featuretype>_z3`` (``QuickStart_z3`` in
-this example):
+    Returned 669 total features
 
-::
+    Running query BBOX(geom, -120.0,30.0,-75.0,55.0) AND dtg DURING 2017-12-31T00:00:00+00:00/2018-01-02T00:00:00+00:00
+    Returning attributes [GLOBALEVENTID, dtg, geom]
+    01 719027208=719027208|2018-01-01T00:00:00.000Z|POINT (-89.6812 32.7673)
+    02 719026313=719026313|2018-01-01T00:00:00.000Z|POINT (-84.388 33.749)
+    03 719026419=719026419|2018-01-01T00:00:00.000Z|POINT (-84.388 33.749)
+    04 719026316=719026316|2018-01-01T00:00:00.000Z|POINT (-83.6487 32.9866)
+    05 719027132=719027132|2018-01-01T00:00:00.000Z|POINT (-81.2793 33.4968)
+    06 719026819=719026819|2018-01-01T00:00:00.000Z|POINT (-81.9296 33.7896)
+    07 719026952=719026952|2018-01-01T00:00:00.000Z|POINT (-81.9296 33.7896)
+    08 719026881=719026881|2018-01-01T00:00:00.000Z|POINT (-82.0193 34.146)
+    09 719026909=719026909|2018-01-01T00:00:00.000Z|POINT (-82.0193 34.146)
+    10 719026951=719026951|2018-01-01T00:00:00.000Z|POINT (-82.0193 34.146)
 
-    hbase> scan 'QuickStart_z3', { LIMIT => 3 }
-    ROW                              COLUMN+CELL                                                                                  
-     \x08\xF7\x0F#\x83\x91\xAE\xA2\x column=D:\x0F#\x83\x91\xAE\xA2\xA8PObservation.452, timestamp=1463593805801, value=\x02\x00\x
-     A8P                             00\x00@Observation.45\xB2Clemen\xF3\x01\x00\x00\x00\x00\x00\x00\x01\xC4\x01\x00\x00\x01CM8\x0
-                                     E\xA0\x01\x01\xC0S!\x93\xBCSg\x00\xC0CG\xBF$\x0DO\x7F\x80\x14\x1B$-?                         
-     \x08\xF8\x06\x03\x19\xDFf\xA3p\ column=D:\x06\x03\x19\xDFf\xA3p\x0CObservation.362, timestamp=1463593805680, value=\x02\x00\x
-     x0C                             00\x00@Observation.36\xB2Clemen\xF3\x01\x00\x00\x00\x00\x00\x00\x01j\x01\x00\x00\x01CQ\x17wh\
-                                     x01\x01\xC0S\x05\xA5b\xD49"\xC0B\x88*~\xD1\xA0}\x80\x14\x1B$-?                               
-     \x08\xF8\x06\x07\x19S\xD0\xA21> column=D:\x06\x07\x19S\xD0\xA21>Observation.35, timestamp=1463593805664, value=\x02\x00\x00\x
-                                     00?Observation.3\xB5Clemen\xF3\x01\x00\x00\x00\x00\x00\x00\x00#\x01\x00\x00\x01CS?`x\x01\x01\
-                                     xC0S_\xA7+G\xADH\xC0B\x90\xEB\xF7`\xC2T\x80\x13\x1A#,> 
+    Returned 669 total features
 
-Visualize the data with GeoServer (optional)
---------------------------------------------
+    Running query EventCode = '051'
+    01 719024909=719024909|||MELBOURNE|AUS|051|10|1|10|4|Melbourne, Victoria, Australia|AS|2018-01-01T00:00:00.000Z|POINT (144.967 -37.8167)
+    02 719025178=719025178|AUSTRALIA|AUS|COMMUNITY||051|20|2|20|4|Sydney, New South Wales, Australia|AS|2018-01-01T00:00:00.000Z|POINT (151.217 -33.8833)
+    03 719025965=719025965|MIDWIFE||||051|10|1|10|4|Sydney, New South Wales, Australia|AS|2018-01-01T00:00:00.000Z|POINT (151.217 -33.8833)
+    04 719025509=719025509|COMMUNITY||AUSTRALIA|AUS|051|2|1|2|1|Australia|AS|2018-01-01T00:00:00.000Z|POINT (135 -25)
+    05 719025742=719025742|KING||||051|22|3|22|3|San Diego, California, United States|US|2018-01-01T00:00:00.000Z|POINT (-117.157 32.7153)
+    06 719025745=719025745|KING||||051|4|2|4|2|California, United States|US|2018-01-01T00:00:00.000Z|POINT (-119.746 36.17)
+    07 719025743=719025743|AUTHORITIES||||051|60|12|60|3|Wichita, Kansas, United States|US|2018-01-01T00:00:00.000Z|POINT (-97.3375 37.6922)
+    08 719027205=719027205|UNITED STATES|USA|SIOUX||051|4|1|4|3|Sioux City, Iowa, United States|US|2018-01-01T00:00:00.000Z|POINT (-96.4003 42.5)
+    09 719025111=719025111|||UNITED STATES|USA|051|2|1|2|3|Pickens County, South Carolina, United States|US|2018-01-01T00:00:00.000Z|POINT (-82.7165 34.9168)
+    10 719026938=719026938|PITTSBURGH|USA|||051|5|1|5|3|York County, Pennsylvania, United States|US|2018-01-01T00:00:00.000Z|POINT (-77 40.1254)
 
-Setting up the GeoMesa HBase GeoServer plugin
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    Returned 138 total features
 
-Clone the GeoMesa source distribution:
+    Running query EventCode = '051' AND dtg DURING 2017-12-31T00:00:00+00:00/2018-01-02T00:00:00+00:00
+    Returning attributes [GLOBALEVENTID, dtg, geom]
+    01 719024909=719024909|2018-01-01T00:00:00.000Z|POINT (144.967 -37.8167)
+    02 719025178=719025178|2018-01-01T00:00:00.000Z|POINT (151.217 -33.8833)
+    03 719025965=719025965|2018-01-01T00:00:00.000Z|POINT (151.217 -33.8833)
+    04 719025509=719025509|2018-01-01T00:00:00.000Z|POINT (135 -25)
+    05 719025742=719025742|2018-01-01T00:00:00.000Z|POINT (-117.157 32.7153)
+    06 719025745=719025745|2018-01-01T00:00:00.000Z|POINT (-119.746 36.17)
+    07 719025743=719025743|2018-01-01T00:00:00.000Z|POINT (-97.3375 37.6922)
+    08 719027205=719027205|2018-01-01T00:00:00.000Z|POINT (-96.4003 42.5)
+    09 719025111=719025111|2018-01-01T00:00:00.000Z|POINT (-82.7165 34.9168)
+    10 719026938=719026938|2018-01-01T00:00:00.000Z|POINT (-77 40.1254)
 
-.. code-block:: bash
+    Returned 138 total features
 
-    $ git clone https://github.com/locationtech/geomesa.git
-    $ cd geomesa
+    Cleaning up test data
+    Done
 
-and build it with the ``hbase`` profile:
+Looking at the Code
+-------------------
 
-::
+The source code is meant to be accessible for this tutorial. The main logic is contained in
+the generic ``org.geomesa.example.quickstart.GeoMesaQuickStart`` in the ``geomesa-tutorials-common`` module,
+which is datastore agnostic. Some relevant methods are:
 
-    $ mvn clean install -DskipTests -Phbase
+-  ``createDataStore`` get a datastore instance from the input configuration
+-  ``createSchema`` create the schema in the datastore, as a pre-requisite to writing data
+-  ``writeFeatures`` use a ``FeatureWriter`` to write features to the datastore
+-  ``queryFeatures`` run several queries against the datastore
+-  ``cleanup`` delete the sample data and dispose of the datastore instance
 
-Go into the built HBase GeoServer plugin module:
+The quickstart uses a small subset of GDELT data. Code for parsing the data into GeoTools SimpleFeatures is
+contained in ``org.geomesa.example.data.GDELTData``:
 
-::
+-  ``getSimpleFeatureType`` creates the ``SimpleFeatureType`` representing the data
+-  ``getTestData`` parses an embedded TSV file to create ``SimpleFeature`` objects
+-  ``getTestQueries`` illustrates several different query types, using CQL (GeoTools' Contextual Query Language)
 
-    $ cd geomesa-hbase/geomesa-hbase-gs-plugin/target
+Visualize Data (optional)
+-------------------------
 
-and extract the contents of the
-``geomesa-hbase-gs-plugin_2.11-<version>-install.tar.gz`` file into
-GeoServer's ``WEB-INF/lib`` directory. This distribution does not
-include the Hadoop or Zookeeper JARs; the following JARs should be
-copied from the ``lib`` directory of your HBase or Hadoop installations
-into GeoServer's ``WEB-INF/lib`` directory:
+There are two options to visual the data ingested by this quick start. The easiest option is to use the
+``export`` command of the GeoMesa HBase tools distribution. For a more production ready example, you
+can alternatively stand up a GeoServer and connect it to your HBase instance.
 
--  hadoop-annotations-2.5.1.jar
--  hadoop-auth-2.5.1.jar
--  hadoop-common-2.5.1.jar
--  hadoop-mapreduce-client-core-2.5.1.jar
--  hadoop-yarn-api-2.5.1.jar
--  hadoop-yarn-common-2.5.1.jar
--  zookeeper-3.4.6.jar
--  commons-configuration-1.6.jar
+Visualize Data With Leaflet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Note: the versions may vary depending on your installation. In addition,
-for Hadoop 2.6.0+, ``htrace-core-<version>.jar`` is also required.
+.. warning::
 
-The HBase data store requires the configuration file ``hbase-site.xml``
-to be on the classpath. This can be accomplished, for example in Tomcat,
-by placing the file in ``WEB-INF/classes`` (you should create the
-directory if it doesn't exist). Restart GeoServer.
+    To successfully run this command you must have a computer that is connected to the internet
+    in order to access external Leaflet resources.
 
-Register the GeoMesa store with GeoServer
+
+The ``export`` command is a part of the GeoMesa HBase command-line tools. In order to use the command,
+ensure you have the command-line tools installed as described in :ref:`setting_up_hbase_commandline`.
+The ``export`` command provides the ``leaflet`` format which will export the features to a Leaflet map
+that you can open in your web browser. To produce the map, run the following command from the GeoMesa
+HBase tools distribution directory:
+
+.. code:: bash
+
+    bin/geomesa-hbase export            \
+        --output-format leaflet         \
+        --feature-name gdelt-quickstart \
+        --zookeepers <zookeepers>       \
+        --catalog <table>
+
+
+Where the connection parameters are the same you used above during the quickstart. To view the map simply
+open the url provided by the command in your web browser. If you click the menu in the upper right of the
+map you can enable and disable the heatmap and feature layers as well as the two provided base layers.
+
+.. figure:: _static/geomesa-quickstart-gdelt-data/leaflet-layer-preview.png
+    :alt: Visualizing quick-start data with Leaflet
+
+    Visualizing quick-start data with Leaflet
+
+
+Visualize Data With GeoServer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use GeoServer to access and visualize the data stored in GeoMesa. In order to use GeoServer,
+download and install version |geoserver_version|. Then follow the instructions in
+:ref:`install_hbase_geoserver` to enable GeoMesa.
+
+Register the GeoMesa Store with GeoServer
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Log into GeoServer using your user and password credentials. Click
 "Stores" and "Add new Store". Select the ``HBase (GeoMesa)`` vector data
-source, and enter the following parameters.
+source, and fill in the required parameters.
+
+Basic store info:
 
 -  ``workspace`` this is dependent upon your GeoServer installation
--  ``data source name`` pick a sensible name, such as,
-   ``geomesa_quick_start``
+-  ``data source name`` pick a sensible name, such as ``geomesa_quick_start``
 -  ``description`` this is strictly decorative; ``GeoMesa quick start``
--  ``bigtable_table_name`` the name of the table you specified on the
-   command line
+
+Connection parameters:
+
+-  these are the same parameter values that you supplied on the
+   command line when you ran the tutorial; they describe how to connect
+   to the HBase instance where your data reside
 
 Click "Save", and GeoServer will search your HBase table for any
 GeoMesa-managed feature types.
 
-Publish the layer
+Publish the Layer
 ~~~~~~~~~~~~~~~~~
 
-GeoServer should recognize the ``QuickStart`` feature type, and should
-present that as a layer that could be published. Click on the "Publish"
-link.
+GeoServer should recognize the ``gdelt-quickstart`` feature type, and
+should present that as a layer that can be published. Click on the
+"Publish" link.
 
-You will be taken to the "Edit Layer" screen.
-
-In the "Data" pane, enter values for the bounding boxes. In this case,
-you can click on the link to compute these values from the data.
+You will be taken to the "Edit Layer" screen. You will need to enter values for the data bounding
+boxes. In this case, you can click on the link to compute these values from the data.
 
 Click on the "Save" button when you are done.
 
-Take a look
+Take a Look
 ~~~~~~~~~~~
 
 Click on the "Layer Preview" link in the left-hand gutter. If you don't
-see the quickstart layer on the first page of results, enter the name of
-the layer you just created into the search box, and press . Select the
-layer, and you should see a small square with a collection of red dots.
-(You may shift-click to highlight a region to zoom into). After zooming
-in your view should look something like this:
+see the quick-start layer on the first page of results, enter the name
+of the layer you just created into the search box, and press
+``<Enter>``.
 
-.. figure:: _static/geomesa-quickstart-hbase/geoserver-layer-preview.png
-   :alt: Visualizing quickstart data
+Once you see your layer, click on the "OpenLayers" link, which will open
+a new tab. You should see a collection of red dots similar to the following image:
 
-Click on one of the red points in the display, and GeoServer should
-report a detailed record for the clicked point underneath the map area.
+.. figure:: _static/geomesa-quickstart-gdelt-data/geoserver-layer-preview.png
+    :alt: Visualizing quick-start data with GeoServer
 
-Click on the "Toggle options toolbar" icon in the upper-left corner of
-the preview window. The right-hand side of the screen will include a
-"Filter" text box. Enter ``Who = 'Bierce'``, and click "Apply". The
-display will now show only those points matching your filter criterion.
+    Visualizing quick-start data with GeoServer
 
-This is a CQL filter, which can be constructed in various ways to query
-our data. You can find more information about CQL from `GeoServer's CQL
-tutorial <http://docs.geoserver.org/stable/en/user/tutorials/cql/cql_tutorial.html>`__.
+Tweaking the display
+~~~~~~~~~~~~~~~~~~~~
+
+Here are just a few simple ways you can play with the visualization:
+
+-  Click on one of the red points in the display, and GeoServer will
+   report the detail records underneath the map area.
+-  Shift-click to highlight a region within the map that you would like
+   to zoom into.
+-  Click on the "Toggle options toolbar" icon in the upper-left corner
+   of the preview window. The right-hand side of the screen will include
+   a "Filter" text box. Enter ``EventCode = '051'``, and press on the
+   "play" icon. The display will now show only those points matching
+   your filter criterion. This is a CQL filter, which can be constructed
+   in various ways to query your data. You can find more information
+   about CQL from `GeoServer's CQL
+   tutorial <http://docs.geoserver.org/2.9.1/user/tutorials/cql/cql_tutorial.html>`__.
+
+Generating Heatmaps
+~~~~~~~~~~~~~~~~~~~
+
+-  To try out server-side processing, you can install the Heatmap SLD from
+   the :doc:`geomesa-examples-gdelt` tutorial.
+-  After configuring the SLD, in the URL, change ``styles=`` to be
+   ``styles=heatmap``. Once you press ``<Enter>``, the display will
+   change to a density heat-map.
+
+.. note::
+
+    For this to work, you will have to first install the WPS module for GeoServer
+    as described in :doc:`/user/geoserver`.

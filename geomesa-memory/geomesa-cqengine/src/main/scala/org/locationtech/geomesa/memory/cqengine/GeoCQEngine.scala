@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.memory.cqengine
 
@@ -16,173 +16,170 @@ import com.googlecode.cqengine.index.hash.HashIndex
 import com.googlecode.cqengine.index.navigable.NavigableIndex
 import com.googlecode.cqengine.index.radix.RadixTreeIndex
 import com.googlecode.cqengine.index.unique.UniqueIndex
-import com.googlecode.cqengine.{ConcurrentIndexedCollection, IndexedCollection}
 import com.googlecode.cqengine.query.option.DeduplicationStrategy
-import com.googlecode.cqengine.query.{QueryFactory, Query}
-import com.googlecode.cqengine.query.simple.{Equal, All}
+import com.googlecode.cqengine.query.simple.{All, Equal}
+import com.googlecode.cqengine.query.{Query, QueryFactory}
+import com.googlecode.cqengine.{ConcurrentIndexedCollection, IndexedCollection}
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.memory.cqengine.index.GeoIndex
+import org.locationtech.geomesa.memory.cqengine.attribute.SimpleFeatureAttribute
+import org.locationtech.geomesa.memory.cqengine.index.GeoIndexType
+import org.locationtech.geomesa.memory.cqengine.index.param.{BucketIndexParam, GeoIndexParams}
+import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.memory.cqengine.utils._
-import org.locationtech.geomesa.utils.geotools._
-import org.opengis.feature.`type`.AttributeDescriptor
+import org.locationtech.geomesa.utils.index.{SimpleFeatureIndex, SpatialIndex}
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
 import scala.collection.JavaConversions._
 
 class GeoCQEngine(val sft: SimpleFeatureType,
+                  attributes: Seq[(String, CQIndexType)],
                   enableFidIndex: Boolean = false,
-                  enableGeomIndex: Boolean = true) extends LazyLogging {
-  //val cqcache = CQIndexingOptions.buildIndexedCollection(sft)
-  val cqcache: IndexedCollection[SimpleFeature] = new ConcurrentIndexedCollection[SimpleFeature]()
-  val attributes = SFTAttributes(sft)
+                  geoIndexType: GeoIndexType = GeoIndexType.Bucket,
+                  geoIndexParam: Option[_ <: GeoIndexParams] = Option.empty,
+                  dedupe: Boolean = true) extends SimpleFeatureIndex with LazyLogging {
 
-  // Add Geometry index on default geometry first.
-  // TODO: Add logic to allow for the geo-index to be disabled?  (Low priority)
-  if (enableGeomIndex) addGeoIndex(sft.getGeometryDescriptor)
+  protected val cqcache: IndexedCollection[SimpleFeature] = new ConcurrentIndexedCollection[SimpleFeature]()
 
-  if (enableFidIndex) addFidIndex()
-
-  // Add other indexes
-  sft.getAttributeDescriptors.foreach {addIndex(_)}
-
-  def remove(sf: SimpleFeature): Boolean = {
-    cqcache.remove(sf)
+  def this(sft: SimpleFeatureType,
+           attributes: Seq[(String, CQIndexType)],
+           enableFidIndex: Boolean,
+           geomResolution: (Int, Int),
+           dedupe: Boolean) = {
+    this(sft, attributes, enableFidIndex, GeoIndexType.Bucket, Option.apply(new BucketIndexParam(geomResolution._1, geomResolution._2).asInstanceOf[GeoIndexParams]), dedupe)
   }
 
-  def add(sf: SimpleFeature): Boolean = {
-    cqcache.add(sf)
+
+  def this(sft: SimpleFeatureType,
+           attributes: Seq[(String, CQIndexType)],
+           enableFidIndex: Boolean,
+           geomResolution: (Int, Int)) = {
+    this(sft, attributes, enableFidIndex, geomResolution, true)
   }
 
-  def addAll(sfs: util.Collection[SimpleFeature]): Boolean = {
-    cqcache.addAll(sfs)
+  addIndices()
+
+  // methods from SimpleFeatureIndex
+
+  override def insert(feature: SimpleFeature): Unit = cqcache.add(feature)
+
+  override def insert(features: Iterable[SimpleFeature]): Unit = cqcache.addAll(features)
+
+  override def update(feature: SimpleFeature): SimpleFeature = {
+    val existing = remove(feature.getID)
+    cqcache.add(feature)
+    existing
   }
 
-  def clear(): Unit = {
-    cqcache.clear()
+  override def remove(id: String): SimpleFeature = {
+    val existing = get(id)
+    if (existing != null) {
+      cqcache.remove(existing)
+    }
+    existing
   }
 
-  def getById(id: String): Option[SimpleFeature] = {
+  override def get(id: String): SimpleFeature = {
     // if this gets used, set enableFidIndex=true
-    cqcache.retrieve(new Equal(SFTAttributes.fidAttribute, id)).headOption
+    cqcache.retrieve(new Equal(SFTAttributes.fidAttribute, id)).headOption.orNull
   }
 
-  def update(sf: SimpleFeature): Boolean = {
-    getById(sf.getID) match {
-      case Some(oldsf) => cqcache.remove(oldsf)
-      case None =>
-    }
-    cqcache.add(sf)
-  }
-
-  // NB: We expect that FID filters have been handled previously
-  def getReaderForFilter(filter: Filter): FR =
-    filter match {
-      case f: IncludeFilter => include(f)
-      case f => queryCQ(f, dedup = true)
-    }
-
-  def queryCQ(f: Filter, dedup: Boolean = true): FR = {
-    val visitor = new CQEngineQueryVisitor(sft)
-
-    val query: Query[SimpleFeature] = f.accept(visitor, null) match {
-      case q: Query[SimpleFeature] => q
-      case _ => throw new Exception(s"Filter visitor didn't recognize filter: $f.")
-    }
-    if (dedup) {
+  override def query(filter: Filter): Iterator[SimpleFeature] = {
+    val query = filter.accept(new CQEngineQueryVisitor(sft), null).asInstanceOf[Query[SimpleFeature]]
+    val iter = if (dedupe) {
       val dedupOpt = QueryFactory.deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION)
       val queryOptions = QueryFactory.queryOptions(dedupOpt)
-      new DFR(sft, new DFI(cqcache.retrieve(query, queryOptions).iterator()))
-    }
-    else
-      new DFR(sft, new DFI(cqcache.retrieve(query).iterator()))
-  }
-
-  def include(i: IncludeFilter): FR = {
-    logger.warn("Running Filter.INCLUDE")
-    new DFR(sft, new DFI(cqcache.retrieve(new All(classOf[SimpleFeature])).iterator()))
-  }
-
-  private def addIndex(ad: AttributeDescriptor): Unit = {
-    CQIndexingOptions.getCQIndexType(ad) match {
-      case CQIndexType.DEFAULT =>
-        ad.getType.getBinding match {
-          // Comparable fields should have a Navigable Index
-          case c if
-          classOf[java.lang.Integer].isAssignableFrom(c) ||
-            classOf[java.lang.Long].isAssignableFrom(c) ||
-            classOf[java.lang.Float].isAssignableFrom(c) ||
-            classOf[java.lang.Double].isAssignableFrom(c) ||
-            classOf[java.util.Date].isAssignableFrom(c) => addNavigableIndex(ad)
-          case c if classOf[java.lang.String].isAssignableFrom(c) => addRadixIndex(ad)
-          case c if classOf[Geometry].isAssignableFrom(c) => addGeoIndex(ad)
-          case c if classOf[UUID].isAssignableFrom(c) => addUniqueIndex(ad)
-          // TODO: Decide how boolean fields should be indexed
-          case c if classOf[java.lang.Boolean].isAssignableFrom(c) => addHashIndex(ad)
-        }
-
-      case CQIndexType.NAVIGABLE => addNavigableIndex(ad)
-      case CQIndexType.RADIX => addRadixIndex(ad)
-      case CQIndexType.UNIQUE => addUniqueIndex(ad)
-      case CQIndexType.HASH => addHashIndex(ad)
-      case CQIndexType.NONE => // NO-OP
-    }
-  }
-
-  private def addFidIndex(): Unit = {
-    val attribute = SFTAttributes.fidAttribute
-    cqcache.addIndex(HashIndex.onAttribute(attribute))
-  }
-
-  private def addGeoIndex(ad: AttributeDescriptor): Unit = {
-    val geom: Attribute[SimpleFeature, Geometry] = attributes.lookup[Geometry](ad.getLocalName)
-    cqcache.addIndex(GeoIndex.onAttribute(sft, geom))
-  }
-
-  private def addNavigableIndex(ad: AttributeDescriptor): Unit = {
-    val binding = ad.getType.getBinding
-    binding match {
-      case c if classOf[java.lang.Integer].isAssignableFrom(c) => {
-        val attr = attributes.lookup[java.lang.Integer](ad.getLocalName)
-        cqcache.addIndex(NavigableIndex.onAttribute(attr))
-      }
-      case c if classOf[java.lang.Long].isAssignableFrom(c) => {
-        val attr = attributes.lookup[java.lang.Long](ad.getLocalName)
-        cqcache.addIndex(NavigableIndex.onAttribute(attr))
-      }
-      case c if classOf[java.lang.Float].isAssignableFrom(c) => {
-        val attr = attributes.lookup[java.lang.Float](ad.getLocalName)
-        cqcache.addIndex(NavigableIndex.onAttribute(attr))
-      }
-      case c if classOf[java.lang.Double].isAssignableFrom(c) => {
-        val attr = attributes.lookup[java.lang.Double](ad.getLocalName)
-        cqcache.addIndex(NavigableIndex.onAttribute(attr))
-      }
-      case c if classOf[java.util.Date].isAssignableFrom(c) => {
-        val attr = attributes.lookup[java.util.Date](ad.getLocalName)
-        cqcache.addIndex(NavigableIndex.onAttribute(attr))
-      }
-      case _ => logger.warn(s"Failed to add a Navigable index for attribute ${ad.getLocalName}")
-    }
-  }
-
-  private def addRadixIndex(ad: AttributeDescriptor): Unit = {
-    if (classOf[java.lang.String].isAssignableFrom(ad.getType.getBinding)) {
-      val attribute: Attribute[SimpleFeature, String] = attributes.lookup(ad.getLocalName)
-      cqcache.addIndex(RadixTreeIndex.onAttribute(attribute))
+      cqcache.retrieve(query, queryOptions).iterator()
     } else {
-      logger.warn(s"Failed to add a Radix index for attribute ${ad.getLocalName}.")
+      cqcache.retrieve(query).iterator()
+    }
+    if (query.isInstanceOf[All[_]]) { iter.filter(filter.evaluate) } else { iter }
+  }
+
+  def size(): Int = cqcache.size()
+  def clear(): Unit = cqcache.clear()
+
+  @deprecated def add(sf: SimpleFeature): Boolean = cqcache.add(sf)
+  @deprecated def addAll(sfs: util.Collection[SimpleFeature]): Boolean = cqcache.addAll(sfs)
+  @deprecated def remove(sf: SimpleFeature): Boolean = cqcache.remove(sf)
+  @deprecated def getById(id: String): Option[SimpleFeature] = Option(get(id))
+  @deprecated def getReaderForFilter(filter: Filter): Iterator[SimpleFeature] = query(filter)
+
+  private def addIndices(): Unit = {
+
+    import CQIndexType._
+
+    if (enableFidIndex) {
+      cqcache.addIndex(HashIndex.onAttribute(SFTAttributes.fidAttribute))
+    }
+
+    // track attribute names in case there are duplicates...
+    val names = scala.collection.mutable.Set.empty[String]
+
+    // works around casting to T <: Comparable[T]
+    def navigableIndex[T <: Comparable[T]](name: String): NavigableIndex[T, SimpleFeature] = {
+      val attribute = new SimpleFeatureAttribute(classOf[Comparable[_]], sft, name)
+      NavigableIndex.onAttribute(attribute.asInstanceOf[Attribute[SimpleFeature, T]])
+    }
+
+    attributes.foreach { case (name, indexType) =>
+      if (indexType != NONE && names.add(name)) {
+        val descriptor = sft.getDescriptor(name)
+        require(descriptor != null, s"Could not find descriptor for $name in schema ${sft.getTypeName}")
+        val binding = descriptor.getType.getBinding
+        val index = indexType match {
+          case RADIX | DEFAULT if classOf[String].isAssignableFrom(binding) =>
+              RadixTreeIndex.onAttribute(new SimpleFeatureAttribute(classOf[String], sft, name))
+
+          case GEOMETRY | DEFAULT if classOf[Geometry].isAssignableFrom(binding) =>
+              val attribute = new SimpleFeatureAttribute(binding.asInstanceOf[Class[Geometry]], sft, name)
+              GeoIndexFactory.onAttribute(sft, attribute, geoIndexType, geoIndexParam);
+
+          case DEFAULT if classOf[UUID].isAssignableFrom(binding) =>
+              UniqueIndex.onAttribute(new SimpleFeatureAttribute(classOf[UUID], sft, name))
+
+          case DEFAULT if classOf[java.lang.Boolean].isAssignableFrom(binding) =>
+              HashIndex.onAttribute(new SimpleFeatureAttribute(classOf[java.lang.Boolean], sft, name))
+
+          case NAVIGABLE | DEFAULT if classOf[Comparable[_]].isAssignableFrom(binding) =>
+            navigableIndex(name)
+
+          case UNIQUE =>
+            UniqueIndex.onAttribute(new SimpleFeatureAttribute(classOf[AnyRef], sft, name))
+
+          case HASH =>
+            HashIndex.onAttribute(new SimpleFeatureAttribute(classOf[AnyRef], sft, name))
+
+          case t =>
+              throw new IllegalArgumentException(s"No CQEngine binding available for type $t and class $binding")
+        }
+        cqcache.addIndex(index)
+      }
     }
   }
+}
 
-  private def addUniqueIndex(ad: AttributeDescriptor): Unit = {
-    val attribute: Attribute[SimpleFeature, Any] = attributes.lookup(ad.getLocalName)
-    cqcache.addIndex(UniqueIndex.onAttribute(attribute))
+object GeoCQEngine {
+
+  private val lastIndexUsed : Option[ThreadLocal[SpatialIndex[_ <: SimpleFeature]]] =
+    sys.props.get("GeoCQEngineDebugEnabled").collect {
+      case e if e.toBoolean => new ThreadLocal[SpatialIndex[_ <: SimpleFeature]]
+    }
+
+  def isDebugEnabled(): Boolean = lastIndexUsed.nonEmpty
+
+  def setLastIndexUsed(spatialIndex: SpatialIndex[_ <: SimpleFeature]) = {
+    if (lastIndexUsed.isEmpty) {
+      throw new UnsupportedOperationException("GeoCQEngineDebugEnabled = false, debug mode disabled")
+    }
+    lastIndexUsed.foreach(_.set(spatialIndex))
   }
 
-  private def addHashIndex(ad: AttributeDescriptor): Unit = {
-    val attribute: Attribute[SimpleFeature, Any] = attributes.lookup(ad.getLocalName)
-    cqcache.addIndex(HashIndex.onAttribute(attribute))
+  def getLastIndexUsed(): Option[SpatialIndex[_ <: SimpleFeature]] = {
+    if (lastIndexUsed.isEmpty) {
+      throw new UnsupportedOperationException("GeoCQEngineDebugEnabled = false, debug mode disabled")
+    }
+    return lastIndexUsed.map(_.get())
   }
 }

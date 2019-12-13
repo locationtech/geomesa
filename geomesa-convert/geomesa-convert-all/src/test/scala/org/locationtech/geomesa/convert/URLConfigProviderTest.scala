@@ -1,18 +1,18 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert
 
+import com.typesafe.config.ConfigFactory
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.text.DelimitedTextConverter
-import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypeLoader, URLSftProvider}
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypeLoader.URLSftProvider
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.{Request, Server}
 import org.specs2.mutable.Specification
@@ -57,7 +57,7 @@ class URLConfigProviderTest extends Specification {
               |        { name = "id",       transform = "$1::int"                 }
               |        { name = "name",     transform = "$2::string"              }
               |        { name = "age",      transform = "$3::int"                 }
-              |        { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
+              |        { name = "lastseen", transform = "date('yyyy-MM-dd', $4)"  }
               |        { name = "friends",  transform = "parseList('string', $5)" }
               |        { name = "lon",      transform = "$6::double"              }
               |        { name = "lat",      transform = "$7::double"              }
@@ -91,7 +91,7 @@ class URLConfigProviderTest extends Specification {
               |        { name = "id",       transform = "$1::int"                 }
               |        { name = "name",     transform = "$2::string"              }
               |        { name = "age",      transform = "$3::int"                 }
-              |        { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
+              |        { name = "lastseen", transform = "date('yyyy-MM-dd', $4)"  }
               |        { name = "friends",  transform = "parseList('string', $5)" }
               |        { name = "lon",      transform = "$6::double"              }
               |        { name = "lat",      transform = "$7::double"              }
@@ -108,16 +108,19 @@ class URLConfigProviderTest extends Specification {
       try {
         jetty.start()
         val port = jetty.getConnectors()(0).getLocalPort
-        System.setProperty(URLConfigProvider.ConverterConfigURLs, s"http://localhost:$port/")
-        System.setProperty(URLSftProvider.SftConfigURLs, s"http://localhost:$port/")
 
-        ConverterConfigLoader.listConverterNames must containTheSameElementsAs(Seq("example-csv-url", "example-csv-url2"))
-        SimpleFeatureTypeLoader.listTypeNames must containTheSameElementsAs(Seq("example-csv-url", "example-csv-url2"))
+        // Should be able to handle bad urls as well as good urls
+        System.setProperty(URLConfigProvider.ConverterConfigURLs, s"http://localhost:$port/,http://fakeurl:80/foobar")
+        System.setProperty(URLSftProvider.SftConfigURLs, s"http://localhost:$port/,http://fakeurl:80/foobar")
+        // This ensures that the URLConfigProvider's config will re-read
+        ConfigFactory.invalidateCaches()
 
-        // Intententional second calls to ensure the providers is a list and can be called twice
-        ConverterConfigLoader.listConverterNames must containTheSameElementsAs(Seq("example-csv-url", "example-csv-url2"))
-        SimpleFeatureTypeLoader.listTypeNames must containTheSameElementsAs(Seq("example-csv-url", "example-csv-url2"))
+        ConverterConfigLoader.listConverterNames must containAllOf(Seq("example-csv-url", "example-csv-url2"))
+        SimpleFeatureTypeLoader.listTypeNames must containAllOf(Seq("example-csv-url", "example-csv-url2"))
 
+        // Intentional second calls to ensure the providers is a list and can be called twice
+        ConverterConfigLoader.listConverterNames must containAllOf(Seq("example-csv-url", "example-csv-url2"))
+        SimpleFeatureTypeLoader.listTypeNames must containAllOf(Seq("example-csv-url", "example-csv-url2"))
 
         SimpleFeatureTypeLoader.sftForName("example-csv-url").isDefined must beTrue
 
@@ -128,12 +131,11 @@ class URLConfigProviderTest extends Specification {
         val configOpt2 = ConverterConfigLoader.configForName("example-csv-url2")
         configOpt2.isDefined must beTrue
         configOpt2.get.getInt("options.skip-lines") mustEqual 5
-
-        SimpleFeatureConverters.build("example-csv-url", "example-csv-url") must beAnInstanceOf[DelimitedTextConverter]
-        SimpleFeatureConverters.build("example-csv-url2", "example-csv-url2") must beAnInstanceOf[DelimitedTextConverter]
       }
       finally {
         jetty.stop()
+        System.clearProperty(URLConfigProvider.ConverterConfigURLs)
+        System.clearProperty(URLSftProvider.SftConfigURLs)
       }
     }
   }

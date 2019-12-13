@@ -1,17 +1,17 @@
 .. _installing_sft_and_converter_definitions:
 
-Using SFT and Converter Definitions with Command-Line Tools
------------------------------------------------------------
+Using Converters with the Command-Line Tools
+--------------------------------------------
 
-Several GeoMesa binary distributions ship with prepackaged feature type and
+The GeoMesa binary distributions ship with prepackaged feature type and
 converter definitions for common data types including Twitter, GeoNames, T-drive, and
-many more. These converters can be used with the GeoMesa command-line tools in these
-distributions out of the box. See :ref:`prepackaged_converters`.
+several more. These converters can be used with the GeoMesa command-line tools out of the box.
+See :ref:`prepackaged_converters`. In addition, common file formats such as GeoJSON, delimited text,
+or self-describing Avro can often be ingested without a converter. See :ref:`cli_ingest` for details.
 
-Users can add additional SFT and converter types by providing a ``reference.conf`` file
+Users can add additional SimpleFeatureType and converter types by providing a ``reference.conf`` file
 embedded with a JAR within the ``lib`` directory, or by adding the types to the
-``application.conf`` file in the ``$GEOMESA_ACCUMULO_HOME/conf`` or ``$GEOMESA_KAKFA_HOME/conf``
-directory.
+``application.conf`` file in the ``conf`` directory of the tools distribution.
 
 .. note::
 
@@ -65,10 +65,10 @@ can be referenced in the converter and SFT loaders.
           },
           id-field = "toString($fid)",
           fields = [
-            { name = "fid",       transform = "$1::int"                 }
+            { name = "fid",      transform = "$1::int"                 }
             { name = "name",     transform = "$2::string"              }
             { name = "age",      transform = "$3::int"                 }
-            { name = "lastseen", transform = "date('YYYY-MM-dd', $4)"  }
+            { name = "lastseen", transform = "date('yyyy-MM-dd', $4)"  }
             { name = "friends",  transform = "parseList('string', $5)" }
             { name = "lon",      transform = "$6::double"              }
             { name = "lat",      transform = "$7::double"              }
@@ -79,16 +79,16 @@ can be referenced in the converter and SFT loaders.
     }
 
 
-Use ``geomesa env`` to confirm that ``geomesa ingest`` can properly read
+Use ``geomesa-accumulo env`` to confirm that ``geomesa-accumulo ingest`` can properly read
 the updated file.
 
 .. code-block:: shell
 
-    $ geomesa env
+    $ geomesa-accumulo env
 
 Once the converter and SFT are registered, it can be used to ingest the
 ``example.csv`` file:
 
 .. code-block:: shell
 
-    $ geomesa ingest -u <user> -p <pass> -i <instance> -z <zookeepers> -s renegades -C renegades-csv  example.csv
+    $ geomesa-accumulo ingest -u <user> -p <pass> -i <instance> -z <zookeepers> -s renegades -C renegades-csv example.csv

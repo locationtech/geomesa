@@ -1,17 +1,21 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert.text
 
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
+
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -50,25 +54,21 @@ class NewLinesTest extends Specification {
     ))
 
     "process trailing newline" >> {
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
-      val data = "45.0,45.0\n55.0,55.0\n".split("\n", -1)
-      data.length mustEqual 3
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val data = "45.0,45.0\n55.0,55.0\n"
 
-      val res = converter.processInput(data.toIterator)
-      res.length mustEqual 2
-      converter.close()
-      success
+        val res = WithClose(converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        res must haveLength(2)
+      }
     }
 
     "process middle of data newline" >> {
-      val converter = SimpleFeatureConverters.build[String](sft, conf)
-      val data = "45.0,45.0\n\n55.0,55.0\n".split("\n", -1)
-      data.length mustEqual 4
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val data = "45.0,45.0\n\n55.0,55.0\n"
 
-      val res = converter.processInput(data.toIterator)
-      res.length mustEqual 2
-      converter.close()
-      success
+        val res = WithClose(converter.process(new ByteArrayInputStream(data.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        res must haveLength(2)
+      }
     }
   }
 }

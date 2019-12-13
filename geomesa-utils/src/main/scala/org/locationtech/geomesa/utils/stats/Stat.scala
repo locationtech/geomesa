@@ -1,23 +1,28 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.stats
 
+import java.lang.reflect.Type
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
 
-import com.vividsolutions.jts.geom.Geometry
-import org.apache.commons.lang.StringEscapeUtils
+import com.google.gson._
+import org.apache.commons.text.StringEscapeUtils
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 
 /**
@@ -26,6 +31,13 @@ import scala.reflect.ClassTag
 trait Stat {
 
   type S <: Stat
+
+  /**
+    * The simple feature type that this stat operates on
+    *
+    * @return
+    */
+  def sft: SimpleFeatureType
 
   /**
    * Compute statistics based upon the given simple feature.
@@ -73,11 +85,24 @@ trait Stat {
   def +(other: Stat)(implicit d: DummyImplicit): Stat = this + other.asInstanceOf[S]
 
   /**
-   * Returns a json representation of the stat
+   * Returns a JSON representation of the [[Stat]]
    *
    * @return stat as a json string
    */
-  def toJson: String
+  def toJson: String = Stat.JSON.toJson(toJsonObject)
+
+  /**
+    * Returns a representation of the [[Stat]] to be serialized
+    *
+    * This function should return a representation (view) of the [[Stat]] to be serialized as JSON.
+    * Instances of [[Map]] can be used to represent JSON dictionaries or [[Seq]] for JSON arrays.
+    * A [[collection.SortedMap]] such as [[collection.immutable.ListMap]] is recommended if key order
+    * should be deterministic.  Other types may be used but could require the creation and registration
+    * of custom serializers dependent on the JSON framework being utilized (currently [[Gson]]).
+    *
+    * @return stat as a json serializable object
+    */
+  def toJsonObject: Any
 
   /**
    * Necessary method used by the StatIterator. Indicates if the stat has any values or not
@@ -112,7 +137,56 @@ trait Stat {
  */
 object Stat {
 
-  def apply(sft: SimpleFeatureType, s: String) = StatParser.parse(sft, s)
+  private val ScalaMapSerializer = new JsonSerializer[Map[Any,Any]] {
+    def serialize(s: Map[Any,Any], t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.asJava)
+  }
+  private val ScalaSeqSerializer = new JsonSerializer[Seq[Any]] {
+    def serialize(s: Seq[Any], t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.asJava)
+  }
+  private val StatSerializer = new JsonSerializer[Stat] {
+    def serialize(s: Stat, t: Type, jsc: JsonSerializationContext): JsonElement = jsc.serialize(s.toJsonObject)
+  }
+  private val GeometrySerializer = new JsonSerializer[Geometry] {
+    def serialize(g: Geometry, t: Type, jsc: JsonSerializationContext): JsonElement =
+      new JsonPrimitive(WKTUtils.write(g))
+  }
+  private val DateSerializer = new JsonSerializer[Date] {
+    def serialize(d: Date, t: Type, jsc: JsonSerializationContext): JsonElement =
+      new JsonPrimitive(GeoToolsDateFormat.format(toInstant(d)))
+  }
+  private val DoubleSerializer = new JsonSerializer[jDouble]() {
+    def serialize(double: jDouble, t: Type, jsc: JsonSerializationContext): JsonElement = double match {
+      /* NaN check, use null to mirror existing behavior for missing/invalid values */
+      case d if jDouble.isNaN(d) => JsonNull.INSTANCE
+      case d if d == jDouble.NEGATIVE_INFINITY => new JsonPrimitive("Infinity")
+      case d if d == jDouble.POSITIVE_INFINITY => new JsonPrimitive("+Infinity")
+      case _ => new JsonPrimitive(double)
+    }
+  }
+  private val FloatSerializer = new JsonSerializer[jFloat]() {
+    def serialize(float: jFloat, t: Type, jsc: JsonSerializationContext): JsonElement = float match {
+      /* NaN check, use null to mirror existing behavior for missing/invalid values */
+      case f if jFloat.isNaN(f) => JsonNull.INSTANCE
+      case f if f == jFloat.NEGATIVE_INFINITY => new JsonPrimitive("Infinity")
+      case f if f == jFloat.POSITIVE_INFINITY => new JsonPrimitive("+Infinity")
+      case _ => new JsonPrimitive(float)
+    }
+  }
+
+  private val JSON: Gson = new GsonBuilder()
+    .serializeNulls()
+    .registerTypeAdapter(classOf[Double], DoubleSerializer)
+    .registerTypeAdapter(classOf[jDouble], DoubleSerializer)
+    .registerTypeAdapter(classOf[Float], FloatSerializer)
+    .registerTypeAdapter(classOf[jFloat], FloatSerializer)
+    .registerTypeHierarchyAdapter(classOf[Stat], StatSerializer)
+    .registerTypeHierarchyAdapter(classOf[Geometry], GeometrySerializer)
+    .registerTypeHierarchyAdapter(classOf[Date], DateSerializer)
+    .registerTypeHierarchyAdapter(classOf[Map[_,_]], ScalaMapSerializer)
+    .registerTypeHierarchyAdapter(classOf[Seq[_]], ScalaSeqSerializer)
+    .create()
+
+  def apply(sft: SimpleFeatureType, s: String): Stat = StatParser.parse(sft, s)
 
   /**
     * String that will be parsed to a count stat
@@ -222,6 +296,23 @@ object Stat {
   def SeqStat(stats: Seq[String]): String = stats.mkString(";")
 
   /**
+    * Groups results by attribute and runs stats for each group.
+    *
+    * @param attribute attribute to group stats by
+    * @param groupedStat stat to apply to grouped attributes
+    * @return
+    */
+  def GroupBy(attribute: String, groupedStat: Stat): String = s"GroupBy(${safeString(attribute)},$groupedStat)"
+
+  /**
+    * String that will be parsed into a multi variate descriptive stat
+    *
+    * @param attributes attribute name to evaluate
+    * @return
+    */
+  def DescriptiveStats(attributes: Seq[String]): String = s"DescriptiveStats(${attributes.map(safeString).mkString(",")})"
+
+  /**
     * Combines a sequence of stats. This will not modify any of the inputs.
     *
     * @param stats stats to combine
@@ -250,19 +341,19 @@ object Stat {
     * @return
     */
   def stringifier[T](clas: Class[T], json: Boolean = false): Any => String = {
-    val toString: (Any) => String = if (classOf[Geometry].isAssignableFrom(clas)) {
-      (v) => WKTUtils.write(v.asInstanceOf[Geometry])
-    } else if (clas == classOf[Date]) {
-      (v) => GeoToolsDateFormat.print(v.asInstanceOf[Date].getTime)
+    val toString: Any => String = if (classOf[Geometry].isAssignableFrom(clas)) {
+      v => WKTUtils.write(v.asInstanceOf[Geometry])
+    } else if (classOf[Date].isAssignableFrom(clas)) {
+      v => GeoToolsDateFormat.format(toInstant(v.asInstanceOf[Date]))
     } else {
-      (v) => v.toString
+      v => v.toString
     }
 
     // add quotes to json strings if needed
-    if (json && !classOf[Number].isAssignableFrom(clas)) {
-      (v) => if (v == null) "null" else s""""${toString(v)}""""
+    if (json && (!classOf[Number].isAssignableFrom(clas) && clas != classOf[java.lang.Boolean])) {
+      v => if (v == null) { "null" } else { s""""${toString(v)}"""" }
     } else {
-      (v) => if (v == null) "null" else toString(v)
+      v => if (v == null) { "null" } else { toString(v) }
     }
   }
 
@@ -273,35 +364,36 @@ object Stat {
     * @tparam T type of the value class
     * @return
     */
-  def destringifier[T](clas: Class[T]): String => T =
+  def destringifier[T](clas: Class[T]): String => T = {
     if (clas == classOf[String]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else s.asInstanceOf[T]
+      s => if (s == "null") { null.asInstanceOf[T] } else { s.asInstanceOf[T] }
     } else if (clas == classOf[Integer]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else s.toInt.asInstanceOf[T]
+      s => if (s == "null") { null.asInstanceOf[T] } else { s.toInt.asInstanceOf[T] }
     } else if (clas == classOf[jLong]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else s.toLong.asInstanceOf[T]
+      s => if (s == "null") { null.asInstanceOf[T] } else { s.toLong.asInstanceOf[T] }
     } else if (clas == classOf[jFloat]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else s.toFloat.asInstanceOf[T]
+      s => if (s == "null") { null.asInstanceOf[T] } else { s.toFloat.asInstanceOf[T] }
     } else if (clas == classOf[jDouble]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else s.toDouble.asInstanceOf[T]
+      s => if (s == "null") { null.asInstanceOf[T] } else { s.toDouble.asInstanceOf[T] }
+    } else if (clas == classOf[java.lang.Boolean]) {
+      s => if (s == "null") { null.asInstanceOf[T] } else { s.toBoolean.asInstanceOf[T] }
     } else if (classOf[Geometry].isAssignableFrom(clas)) {
-      (s) => if (s == "null") null.asInstanceOf[T] else WKTUtils.read(s).asInstanceOf[T]
-    } else if (clas == classOf[Date]) {
-      (s) => if (s == "null") null.asInstanceOf[T] else GeoToolsDateFormat.parseDateTime(s).toDate.asInstanceOf[T]
+      s => if (s == "null") { null.asInstanceOf[T] } else { WKTUtils.read(s).asInstanceOf[T] }
+    } else if (classOf[Date].isAssignableFrom(clas)) {
+      s => if (s == "null") { null.asInstanceOf[T] } else {
+        Date.from(LocalDateTime.parse(s, GeoToolsDateFormat).toInstant(ZoneOffset.UTC)).asInstanceOf[T]
+      }
     } else {
       throw new RuntimeException(s"Unexpected class binding for stat attribute: $clas")
     }
-}
+  }
 
-trait ImmutableStat extends Stat {
+  trait ImmutableStat extends Stat {
+    override def observe(sf: SimpleFeature): Unit = fail()
+    override def unobserve(sf: SimpleFeature): Unit = fail()
+    override def +=(other: S): Unit = fail()
+    override def clear(): Unit = fail()
 
-  override def observe(sf: SimpleFeature): Unit = fail()
-
-  override def unobserve(sf: SimpleFeature): Unit = fail()
-
-  override def +=(other: S): Unit = fail()
-
-  override def clear(): Unit = fail()
-
-  private def fail(): Unit = throw new RuntimeException("This stat is immutable")
+    private def fail(): Unit = throw new RuntimeException("This stat is immutable")
+  }
 }

@@ -13,13 +13,15 @@
             <excludes>
                 <exclude>org.locationtech.geomesa:*:tar.gz:*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-web-core*</exclude>
-                <exclude>org.locationtech.geomesa:geomesa-process*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-accumulo-raster-distributed-runtime*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-spark*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-stream*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-geojson*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-blobstore*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-accumulo-compute*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-accumulo-spark-runtime*</exclude>
                 <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with Hadoop 2.x which provides guava 11.0.2-->
             </excludes>
         </dependencySet>
@@ -31,6 +33,7 @@
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</include>
+                <include>org.locationtech.geomesa:geomesa-accumulo-raster-distributed-runtime*</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -41,10 +44,10 @@
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-accumulo-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-process-wps*</include>
                 <include>org.locationtech.geomesa:geomesa-blobstore-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-stream-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-geojson-gs-plugin*</include>
-                <include>org.locationtech.geomesa:geomesa-process*</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -97,6 +100,7 @@
             <fileMode>0644</fileMode>
             <includes>
                 <include>LICENSE.txt</include>
+                <include>README.md</include>
             </includes>
         </fileSet>
 
@@ -116,10 +120,10 @@
             <directoryMode>755</directoryMode>
         </fileSet>
         <fileSet>
-            <directory>../geomesa-accumulo-tools/emr4</directory>
-            <outputDirectory>emr4</outputDirectory>
+            <directory>../geomesa-accumulo-tools/examples</directory>
+            <outputDirectory>examples</outputDirectory>
             <fileMode>0644</fileMode>
-            <filtered>true</filtered>
+            <filtered>false</filtered>
             <directoryMode>755</directoryMode>
         </fileSet>
 
@@ -139,6 +143,13 @@
             <directoryMode>755</directoryMode>
         </fileSet>
         <fileSet>
+            <directory>../../geomesa-tools/conf-filtered</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>true</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
             <directory>../../geomesa-tools/examples</directory>
             <outputDirectory>examples</outputDirectory>
             <fileMode>0644</fileMode>
@@ -155,95 +166,8 @@
             </excludes>
         </fileSet>
 
-        <fileSet>
-            <directory>../../geomesa-web/geomesa-web-install/target</directory>
-            <outputDirectory>dist/webservices</outputDirectory>
-            <fileMode>0644</fileMode>
-            <includes>
-                <include>spark-*-geomesa-assembly.jar</include>
-            </includes>
-        </fileSet>
     </fileSets>
     <files>
-        <file>
-            <source>../../README.md</source>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../README.md</source>
-            <destName>README-accumulo.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/README.md</source>
-            <destName>README-gs-plugin.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-utils/README.md</source>
-            <destName>README-utils.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../geomesa-accumulo-datastore/README.md</source>
-            <destName>README-accumulo-datastore.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../geomesa-accumulo-raster/README.md</source>
-            <destName>README-raster.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../geomesa-accumulo-gs-plugin/README.md</source>
-            <destName>README-accumulo-gs-plugin.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-blobstore/README.md</source>
-            <destName>README-blobstore.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-blobstore/geomesa-blobstore-handlers/geomesa-blobstore-gdal-handler</source>
-            <destName>README-blobstore-gdal-handler.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-stream/README.md</source>
-            <destName>README-stream.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-convert/README.md</source>
-            <destName>README-convert.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../geomesa-accumulo-jobs/README.md</source>
-            <destName>README-jobs.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../geomesa-accumulo-compute/README.md</source>
-            <destName>README-compute.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../geomesa-accumulo-distributed-runtime/README.md</source>
-            <destName>README-accumulo-distributed-runtime.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-web/geomesa-web-data/README.md</source>
-            <destName>README-web-data.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-process/README.md</source>
-            <destName>README-process.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
         <!-- geomesa-site.xml.template -->
         <file>
             <source>../../geomesa-utils/src/main/resources/org/locationtech/geomesa/geomesa-site.xml.template</source>

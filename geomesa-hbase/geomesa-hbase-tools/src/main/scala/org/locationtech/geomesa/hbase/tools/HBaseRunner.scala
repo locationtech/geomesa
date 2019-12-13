@@ -1,51 +1,55 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.tools
 
 import com.beust.jcommander.JCommander
-import org.locationtech.geomesa.hbase.tools.data._
-import org.locationtech.geomesa.hbase.tools.export.{HBaseBinExportCommand, HBaseExportCommand}
-import org.locationtech.geomesa.hbase.tools.ingest.HBaseIngestCommand
-import org.locationtech.geomesa.hbase.tools.stats._
-import org.locationtech.geomesa.hbase.tools.status._
-import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
-import org.locationtech.geomesa.tools.status.{EnvironmentCommand, HelpCommand, VersionCommand}
-import org.locationtech.geomesa.tools.{Command, ConvertCommand, Runner}
+import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.HBaseDistributedCommand
+import org.locationtech.geomesa.tools.export.{ConvertCommand, GenerateAvroSchemaCommand}
+import org.locationtech.geomesa.tools.status._
+import org.locationtech.geomesa.tools.{Command, Runner}
 
 object HBaseRunner extends Runner {
 
   override val name: String = "geomesa-hbase"
 
   override def createCommands(jc: JCommander): Seq[Command] = Seq(
-    new HBaseCreateSchemaCommand,
-    new HBaseDeleteCatalogCommand,
-    new HBaseDeleteFeaturesCommand,
-    new HBaseDescribeSchemaCommand,
-    new EnvironmentCommand,
-    new HBaseExplainCommand,
-    new HBaseExportCommand,
-    new HelpCommand(this, jc),
-    new HBaseIngestCommand,
-    new HBaseKeywordsCommand,
-    new HBaseGetTypeNamesCommand,
-    new HBaseRemoveSchemaCommand,
-    new HBaseVersionRemoteCommand,
-    new VersionCommand,
-    new HBaseGetSftConfigCommand,
-    new GenerateAvroSchemaCommand,
-    new HBaseStatsAnalyzeCommand,
-    new HBaseStatsBoundsCommand,
-    new HBaseStatsCountCommand,
-    new HBaseStatsTopKCommand,
-    new HBaseStatsHistogramCommand,
+    new data.HBaseCreateSchemaCommand,
+    new data.HBaseDeleteCatalogCommand,
+    new data.HBaseDeleteFeaturesCommand,
+    new data.HBaseManagePartitionsCommand(this, jc),
+    new data.HBaseRemoveSchemaCommand,
+    new data.HBaseUpdateSchemaCommand,
+    new export.HBaseExportCommand with HBaseDistributedCommand,
+    new export.HBasePlaybackCommand,
+    new ingest.HBaseBulkIngestCommand,
+    new ingest.HBaseBulkLoadCommand,
+    new ingest.HBaseIngestCommand with HBaseDistributedCommand,
+    new stats.HBaseStatsAnalyzeCommand,
+    new stats.HBaseStatsBoundsCommand,
+    new stats.HBaseStatsCountCommand,
+    new stats.HBaseStatsTopKCommand,
+    new stats.HBaseStatsHistogramCommand,
+    new status.HBaseDescribeSchemaCommand,
+    new status.HBaseExplainCommand,
+    new status.HBaseGetSftConfigCommand,
+    new status.HBaseGetTypeNamesCommand,
+    new status.HBaseKeywordsCommand,
+    new status.HBaseVersionRemoteCommand,
+    // common commands, placeholders for script functions
     new ConvertCommand,
-    new HBaseBinExportCommand
+    new ConfigureCommand,
+    new ClasspathCommand,
+    new EnvironmentCommand,
+    new GenerateAvroSchemaCommand,
+    new HelpCommand(this, jc),
+    new ScalaConsoleCommand,
+    new VersionCommand
   )
 
   override def environmentErrorInfo(): Option[String] = {

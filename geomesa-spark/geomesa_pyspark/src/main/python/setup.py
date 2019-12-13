@@ -5,5 +5,5 @@ setup(
     version='${python.version}',
     url='http://www.geomesa.org',
     packages=find_packages(),
-    install_requires=['pytz']
+    install_requires=['pytz', 'shapely']
 )

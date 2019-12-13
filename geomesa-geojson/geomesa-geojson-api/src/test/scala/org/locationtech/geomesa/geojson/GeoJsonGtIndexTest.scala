@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.geojson
 
@@ -24,9 +24,9 @@ class GeoJsonGtIndexTest extends Specification {
   val connector = new MockInstance().getConnector("root", new PasswordToken(""))
 
   val ds = DataStoreFinder.getDataStore(Map(
-    AccumuloDataStoreParams.connParam.getName      -> connector,
-    AccumuloDataStoreParams.tableNameParam.getName -> "GeoJsonAccumuloIndexTest",
-    AccumuloDataStoreParams.mockParam.getName      -> "true"
+    AccumuloDataStoreParams.ConnectorParam.getName -> connector,
+    AccumuloDataStoreParams.CatalogParam.getName   -> "GeoJsonAccumuloIndexTest",
+    AccumuloDataStoreParams.MockParam.getName      -> "true"
   ))
 
   val f0 = """{"type":"Feature","geometry":{"type":"Point","coordinates":[30,10]},"properties":{"id":"0","name":"n0"}}"""

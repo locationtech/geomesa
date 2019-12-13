@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.stats
 
@@ -16,16 +16,15 @@ import org.specs2.runner.JUnitRunner
 class MethodProfilingTest extends Specification {
 
   "MethodProfiling" should {
-    "keep track of implicit timings" in {
-
+    "keep track of explicit timings" in {
       class Profiling extends MethodProfiling {
-        implicit val timings = new TimingsImpl
+        val timings = new TimingsImpl
         def slowMethod(): String = {
           Thread.sleep(10)
           "test"
         }
         def exec: String = {
-          profile("1")(slowMethod())
+          profile(time => timings.occurrence("1", time))(slowMethod())
         }
       }
 
@@ -54,7 +53,7 @@ class MethodProfilingTest extends Specification {
 
     "compute averages" in {
       val timing = new Timing
-      timing.average.toString mustEqual Double.NaN.toString
+      timing.average().toString mustEqual Double.NaN.toString
 
       timing.occurrence(100)
       timing.average mustEqual 100

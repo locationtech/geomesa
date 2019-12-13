@@ -1,19 +1,20 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features.kyro.interop;
 
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Point;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 import org.locationtech.geomesa.features.interop.SerializationOptions;
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer;
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer$;
 import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
 import org.locationtech.geomesa.utils.interop.WKTUtils;
 import org.opengis.feature.simple.SimpleFeature;
@@ -41,7 +42,7 @@ public class SerializationOptionsTest {
 
         SimpleFeature sf = sfBuilder.buildFeature("1");
         sf.getUserData().put("TESTKEY", "TESTVAL");
-        KryoFeatureSerializer serializer = new KryoFeatureSerializer(sft, SerializationOptions.withUserData());
+        KryoFeatureSerializer serializer = KryoFeatureSerializer$.MODULE$.apply(sft, SerializationOptions.withUserData());
 
         byte[] serialized = serializer.serialize(sf);
         SimpleFeature deserialized = serializer.deserialize(serialized);

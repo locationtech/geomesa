@@ -1,10 +1,11 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2017-2019 Dstl
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.jobs.accumulo
 
@@ -18,19 +19,21 @@ abstract class GeoMesaArgs(val args: Array[String]) extends ReverseParsable {
 }
 
 object GeoMesaArgs {
-  final val InputUser = "--geomesa.input.user"
-  final val InputPassword = "--geomesa.input.password"
-  final val InputInstanceId = "--geomesa.input.instanceId"
-  final val InputZookeepers = "--geomesa.input.zookeepers"
-  final val InputTableName = "--geomesa.input.tableName"
+  final val InputUser        = "--geomesa.input.user"
+  final val InputPassword    = "--geomesa.input.password"
+  final val InputKeytabPath  = "--geomesa.input.keytabPath"
+  final val InputInstanceId  = "--geomesa.input.instanceId"
+  final val InputZookeepers  = "--geomesa.input.zookeepers"
+  final val InputTableName   = "--geomesa.input.tableName"
   final val InputFeatureName = "--geomesa.input.feature"
-  final val InputCQL = "--geomesa.input.cql"
-  final val OutputUser = "--geomesa.output.user"
-  final val OutputPassword = "--geomesa.output.password"
+  final val InputCQL         = "--geomesa.input.cql"
+  final val OutputUser       = "--geomesa.output.user"
+  final val OutputPassword   = "--geomesa.output.password"
   final val OutputInstanceId = "--geomesa.output.instanceId"
   final val OutputZookeepers = "--geomesa.output.zookeepers"
-  final val OutputTableName = "--geomesa.output.tableName"
-  final val OutputFeature = "--geomesa.output.feature"
+  final val OutputTableName  = "--geomesa.output.tableName"
+  final val OutputFeature    = "--geomesa.output.feature"
+  final val OutputHdfs       = "--geomesa.output.hdfs"
 }
 
 trait ReverseParsable {
@@ -42,8 +45,11 @@ trait InputDataStoreArgs extends ReverseParsable {
   @Parameter(names = Array(GeoMesaArgs.InputUser), description = "Accumulo user name", required = true)
   var inUser: String = null
 
-  @Parameter(names = Array(GeoMesaArgs.InputPassword), description = "Accumulo password", required = true)
+  @Parameter(names = Array(GeoMesaArgs.InputPassword), description = "Accumulo password")
   var inPassword: String = null
+
+  @Parameter(names = Array(GeoMesaArgs.InputKeytabPath), description = "Accumulo Kerberos keytab path")
+  var inKeytabPath: String = null
 
   @Parameter(names = Array(GeoMesaArgs.InputInstanceId), description = "Accumulo instance name", required = true)
   var inInstanceId: String = null
@@ -55,11 +61,12 @@ trait InputDataStoreArgs extends ReverseParsable {
   var inTableName: String = null
 
   def inDataStore: Map[String, String] = Map(
-    AccumuloDataStoreParams.userParam.getName       -> inUser,
-    AccumuloDataStoreParams.passwordParam.getName   -> inPassword,
-    AccumuloDataStoreParams.instanceIdParam.getName -> inInstanceId,
-    AccumuloDataStoreParams.zookeepersParam.getName -> inZookeepers,
-    AccumuloDataStoreParams.tableNameParam.getName  -> inTableName
+    AccumuloDataStoreParams.UserParam.getName       -> inUser,
+    AccumuloDataStoreParams.PasswordParam.getName   -> inPassword,
+    AccumuloDataStoreParams.KeytabPathParam.getName -> inKeytabPath,
+    AccumuloDataStoreParams.InstanceIdParam.getName -> inInstanceId,
+    AccumuloDataStoreParams.ZookeepersParam.getName -> inZookeepers,
+    AccumuloDataStoreParams.CatalogParam.getName    -> inTableName
   )
 
   override def unparse(): Array[String] = {
@@ -69,6 +76,9 @@ trait InputDataStoreArgs extends ReverseParsable {
     }
     if (inPassword != null) {
       buf.append(GeoMesaArgs.InputPassword, inPassword)
+    }
+    if (inKeytabPath != null) {
+      buf.append(GeoMesaArgs.InputKeytabPath, inKeytabPath)
     }
     if (inInstanceId != null) {
       buf.append(GeoMesaArgs.InputInstanceId, inInstanceId)
@@ -115,11 +125,11 @@ trait OutputDataStoreArgs extends ReverseParsable {
   var outTableName: String = null
 
   def outDataStore: Map[String, String] = Map(
-    AccumuloDataStoreParams.userParam.getName       -> outUser,
-    AccumuloDataStoreParams.passwordParam.getName   -> outPassword,
-    AccumuloDataStoreParams.instanceIdParam.getName -> outInstanceId,
-    AccumuloDataStoreParams.zookeepersParam.getName -> outZookeepers,
-    AccumuloDataStoreParams.tableNameParam.getName  -> outTableName
+    AccumuloDataStoreParams.UserParam.getName       -> outUser,
+    AccumuloDataStoreParams.PasswordParam.getName   -> outPassword,
+    AccumuloDataStoreParams.InstanceIdParam.getName -> outInstanceId,
+    AccumuloDataStoreParams.ZookeepersParam.getName -> outZookeepers,
+    AccumuloDataStoreParams.CatalogParam.getName    -> outTableName
   )
 
   override def unparse(): Array[String] = {
@@ -179,6 +189,20 @@ trait InputCqlArgs extends ReverseParsable {
   override def unparse(): Array[String] = {
     if (inCql != null) {
       Array(GeoMesaArgs.InputCQL, inCql)
+    } else {
+      Array.empty
+    }
+  }
+}
+
+trait OutputHdfsArgs extends ReverseParsable {
+
+  @Parameter(names = Array(GeoMesaArgs.OutputHdfs), description = "HDFS path", required = true)
+  var outHdfs: String = null
+
+  override def unparse(): Array[String] = {
+    if (outHdfs != null) {
+      Array(GeoMesaArgs.OutputHdfs, outHdfs)
     } else {
       Array.empty
     }

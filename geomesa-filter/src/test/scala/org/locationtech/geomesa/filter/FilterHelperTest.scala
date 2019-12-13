@@ -1,21 +1,25 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.filter
 
+import java.time.temporal.ChronoUnit
+import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.Date
 
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl, LiteralExpressionImpl}
 import org.geotools.util.Converters
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -23,20 +27,44 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class FilterHelperTest extends Specification {
 
-  val ff = CommonFactoryFinder.getFilterFactory2
+  val sft = SimpleFeatureTypes.createType("FilterHelperTest",
+    "dtg:Date,number:Int,a:Int,b:Int,c:Int,*geom:Point:srid=4326")
 
-  val MinDateTime = Converters.convert(FilterHelper.MinDateTime.toDate, classOf[String])
-  val MaxDateTime = Converters.convert(FilterHelper.MaxDateTime.toDate, classOf[String])
+  def updateFilter(filter: Filter): Filter = QueryPlanFilterVisitor.apply(sft, filter)
 
-  def updateFilter(filter: Filter) = filter.accept(new QueryPlanFilterVisitor(null), null).asInstanceOf[Filter]
-
-  def toInterval(dt1: String, dt2: String): (DateTime, DateTime) = {
-    val s = Converters.convert(dt1, classOf[Date])
-    val e = Converters.convert(dt2, classOf[Date])
-    (new DateTime(s, DateTimeZone.UTC), new DateTime(e, DateTimeZone.UTC))
+  def toInterval(dt1: String, dt2: String, inclusive: Boolean = true): Bounds[ZonedDateTime] = {
+    val s = Option(Converters.convert(dt1, classOf[Date])).map(d => ZonedDateTime.ofInstant(toInstant(d), ZoneOffset.UTC))
+    val e = Option(Converters.convert(dt2, classOf[Date])).map(d => ZonedDateTime.ofInstant(toInstant(d), ZoneOffset.UTC))
+    Bounds(Bound(s, if (s.isDefined) inclusive else false), Bound(e, if (e.isDefined) inclusive else false))
   }
 
   "FilterHelper" should {
+
+    "evaluate functions with 0 arguments" >> {
+      val filter = ECQL.toFilter("dtg < currentDate()")
+      val updated = updateFilter(filter)
+      updated.asInstanceOf[IsLessThenImpl].getExpression2.isInstanceOf[LiteralExpressionImpl] mustEqual true
+    }
+
+    "evaluate functions with 1 argument" >> {
+      val filter = ECQL.toFilter("dtg > currentDate('P2D')")
+      val updated = updateFilter(filter)
+      updated.asInstanceOf[IsGreaterThanImpl].getExpression2.isInstanceOf[LiteralExpressionImpl] mustEqual true
+    }
+
+    "evaluate functions representing the last day" >> {
+      val filter = ECQL.toFilter("dtg > currentDate('-P1D') AND dtg < currentDate()")
+      val updated = updateFilter(filter)
+      val intervals = FilterHelper.extractIntervals(updated, "dtg", handleExclusiveBounds = true)
+      intervals.values(0).lower.value.get.until(
+        intervals.values(0).upper.value.get, ChronoUnit.HOURS) must beCloseTo(24l, 2)
+    }
+
+    "evaluate functions with math" >> {
+      val filter = ECQL.toFilter("number < 1+2")
+      val updated = updateFilter(filter)
+      updated.asInstanceOf[IsLessThenImpl].getExpression2.evaluate(null) mustEqual 3
+    }
 
     "fix out of bounds bbox" >> {
       val filter = ff.bbox(ff.property("geom"), -181, -91, 181, 91, "4326")
@@ -80,13 +108,19 @@ class FilterHelperTest extends Specification {
     }
 
     "extract interval from simple during and between" >> {
-      val predicates = Seq("dtg DURING 2016-01-01T00:00:00.000Z/2016-01-02T00:00:00.000Z",
-        "dtg BETWEEN '2016-01-01T00:00:00.000Z' AND '2016-01-02T00:00:00.000Z'")
-      forall(predicates) { predicate =>
+      val predicates = Seq(("dtg DURING 2016-01-01T00:00:00.000Z/2016-01-02T00:00:00.000Z", false),
+        ("dtg BETWEEN '2016-01-01T00:00:00.000Z' AND '2016-01-02T00:00:00.000Z'", true))
+      forall(predicates) { case (predicate, inclusive) =>
         val filter = ECQL.toFilter(predicate)
         val intervals = FilterHelper.extractIntervals(filter, "dtg")
-        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", "2016-01-02T00:00:00.000Z")))
+        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", "2016-01-02T00:00:00.000Z", inclusive)))
       }
+    }
+
+    "extract interval from narrow during" >> {
+      val filter = ECQL.toFilter("dtg DURING 2016-01-01T00:00:00.000Z/T1S")
+      val intervals = FilterHelper.extractIntervals(filter, "dtg", handleExclusiveBounds = true)
+      intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", "2016-01-01T00:00:01.000Z", inclusive = false)))
     }
 
     "extract interval with exclusive endpoints from simple during and between" >> {
@@ -111,14 +145,14 @@ class FilterHelperTest extends Specification {
 
     "extract interval from simple after" >> {
       val filters = Seq(
-        "dtg > '2016-01-01T00:00:00.000Z'",
-        "dtg >= '2016-01-01T00:00:00.000Z'",
-        "dtg AFTER 2016-01-01T00:00:00.000Z"
+        ("dtg > '2016-01-01T00:00:00.000Z'", false),
+        ("dtg >= '2016-01-01T00:00:00.000Z'", true),
+        ("dtg AFTER 2016-01-01T00:00:00.000Z", false)
       )
-      forall(filters) { cql =>
+      forall(filters) { case (cql, inclusive) =>
         val filter = ECQL.toFilter(cql)
         val intervals = FilterHelper.extractIntervals(filter, "dtg")
-        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", MaxDateTime)))
+        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:00.000Z", null, inclusive)))
       }
     }
 
@@ -131,20 +165,20 @@ class FilterHelperTest extends Specification {
       forall(filters) { cql =>
         val filter = ECQL.toFilter(cql)
         val intervals = FilterHelper.extractIntervals(filter, "dtg", handleExclusiveBounds = true)
-        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:01.000Z", MaxDateTime)))
+        intervals mustEqual FilterValues(Seq(toInterval("2016-01-01T00:00:01.000Z", null)))
       }
     }
 
     "extract interval from simple before" >> {
       val filters = Seq(
-        "dtg < '2016-01-01T00:00:00.000Z'",
-        "dtg <= '2016-01-01T00:00:00.000Z'",
-        "dtg BEFORE 2016-01-01T00:00:00.000Z"
+        ("dtg < '2016-01-01T00:00:00.000Z'", false),
+        ("dtg <= '2016-01-01T00:00:00.000Z'", true),
+        ("dtg BEFORE 2016-01-01T00:00:00.000Z", false)
       )
-      forall(filters) { cql =>
+      forall(filters) { case (cql, inclusive) =>
         val filter = ECQL.toFilter(cql)
         val intervals = FilterHelper.extractIntervals(filter, "dtg")
-        intervals mustEqual FilterValues(Seq(toInterval(MinDateTime, "2016-01-01T00:00:00.000Z")))
+        intervals mustEqual FilterValues(Seq(toInterval(null, "2016-01-01T00:00:00.000Z", inclusive)))
       }
     }
 
@@ -157,7 +191,7 @@ class FilterHelperTest extends Specification {
       forall(filters) { cql =>
         val filter = ECQL.toFilter(cql)
         val intervals = FilterHelper.extractIntervals(filter, "dtg", handleExclusiveBounds = true)
-        intervals mustEqual FilterValues(Seq(toInterval(MinDateTime, "2016-01-01T00:00:00.000Z")))
+        intervals mustEqual FilterValues(Seq(toInterval(null, "2016-01-01T00:00:00.000Z")))
       }
     }
 

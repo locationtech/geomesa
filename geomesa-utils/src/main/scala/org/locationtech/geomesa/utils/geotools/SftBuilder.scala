@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools
 
@@ -16,10 +16,12 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.stats.Cardinality.Cardinality
 import org.opengis.feature.`type`.AttributeDescriptor
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe.{Type => UType, _}
 
+@deprecated("SchemaBuilder")
 abstract class InitBuilder[T] {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -54,12 +56,12 @@ abstract class InitBuilder[T] {
     booleanType(name, Opts(index = index, stIndex = stIndex))
 
   // Primitives
-  def stringType (name: String, opts: Opts = Opts()) = append(name, opts, "String")
-  def intType    (name: String, opts: Opts = Opts()) = append(name, opts, "Integer")
-  def longType   (name: String, opts: Opts = Opts()) = append(name, opts, "Long")
-  def floatType  (name: String, opts: Opts = Opts()) = append(name, opts, "Float")
-  def doubleType (name: String, opts: Opts = Opts()) = append(name, opts, "Double")
-  def booleanType(name: String, opts: Opts = Opts()) = append(name, opts, "Boolean")
+  def stringType (name: String, opts: Opts = Opts()): T = append(name, opts, "String")
+  def intType    (name: String, opts: Opts = Opts()): T = append(name, opts, "Integer")
+  def longType   (name: String, opts: Opts = Opts()): T = append(name, opts, "Long")
+  def floatType  (name: String, opts: Opts = Opts()): T = append(name, opts, "Float")
+  def doubleType (name: String, opts: Opts = Opts()): T = append(name, opts, "Double")
+  def booleanType(name: String, opts: Opts = Opts()): T = append(name, opts, "Boolean")
 
   // Helpful Types - back compatible
   def date(name: String, default: Boolean): T =
@@ -74,26 +76,26 @@ abstract class InitBuilder[T] {
     uuid(name, Opts(index = index, stIndex = stIndex))
 
   // Helpful Types
-  def date(name: String, opts: Opts = Opts()) = {
+  def date(name: String, opts: Opts = Opts()): T = {
     if (opts.default) {
       withDefaultDtg(name)
     }
     append(name, opts, "Date")
   }
-  def uuid(name: String, opts: Opts = Opts()) = append(name, opts, "UUID")
-  def bytes(name: String, opts: Opts = Opts()) = append(name, opts, "Bytes")
+  def uuid(name: String, opts: Opts = Opts()): T = append(name, opts, "UUID")
+  def bytes(name: String, opts: Opts = Opts()): T = append(name, opts, "Bytes")
 
   // Single Geometries
-  def point     (name: String, default: Boolean = false) = appendGeom(name, default, "Point")
-  def lineString(name: String, default: Boolean = false) = appendGeom(name, default, "LineString")
-  def polygon   (name: String, default: Boolean = false) = appendGeom(name, default, "Polygon")
-  def geometry  (name: String, default: Boolean = false) = appendGeom(name, default, "Geometry")
+  def point     (name: String, default: Boolean = false): T = appendGeom(name, default, "Point")
+  def lineString(name: String, default: Boolean = false): T = appendGeom(name, default, "LineString")
+  def polygon   (name: String, default: Boolean = false): T = appendGeom(name, default, "Polygon")
+  def geometry  (name: String, default: Boolean = false): T = appendGeom(name, default, "Geometry")
 
   // Multi Geometries
-  def multiPoint     (name: String, default: Boolean = false) = appendGeom(name, default, "MultiPoint")
-  def multiLineString(name: String, default: Boolean = false) = appendGeom(name, default, "MultiLineString")
-  def multiPolygon   (name: String, default: Boolean = false) = appendGeom(name, default, "MultiPolygon")
-  def geometryCollection(name: String, default: Boolean = false) =
+  def multiPoint     (name: String, default: Boolean = false): T = appendGeom(name, default, "MultiPoint")
+  def multiLineString(name: String, default: Boolean = false): T = appendGeom(name, default, "MultiLineString")
+  def multiPolygon   (name: String, default: Boolean = false): T = appendGeom(name, default, "MultiPolygon")
+  def geometryCollection(name: String, default: Boolean = false): T =
     appendGeom(name, default, "GeometryCollection")
 
   // List and Map Types - back compatible
@@ -103,16 +105,16 @@ abstract class InitBuilder[T] {
     listType[Type](name, Opts(index = index))
 
   // List and Map Types
-  def mapType[K: TypeTag, V: TypeTag](name: String, opts: Opts = Opts()) =
+  def mapType[K: TypeTag, V: TypeTag](name: String, opts: Opts = Opts()): T =
     append(name, opts.copy(stIndex = false), s"Map[${resolve(typeOf[K])},${resolve(typeOf[V])}]")
-  def listType[Type: TypeTag](name: String, opts: Opts = Opts()) =
+  def listType[Type: TypeTag](name: String, opts: Opts = Opts()): T =
     append(name, opts.copy(stIndex = false), s"List[${resolve(typeOf[Type])}]")
 
   // Convenience method to add columns via Attribute Descriptors
-  def attributeDescriptor(ad: AttributeDescriptor) =
+  def attributeDescriptor(ad: AttributeDescriptor): T =
     append(ad.getLocalName, Opts(), ad.getType.getBinding.getCanonicalName)
 
-  def withIndexes(indexSuffixes: List[String]): T = userData(ENABLED_INDICES, indexSuffixes.mkString(","))
+  def withIndexes(indexSuffixes: List[String]): T = userData(EnabledIndices, indexSuffixes.mkString(","))
 
   def userData(key: String, value: String): T = {
     options.append(s"$key='$value'")
@@ -124,7 +126,7 @@ abstract class InitBuilder[T] {
     this.asInstanceOf[T]
   }
 
-  def defaultDtg() = withDefaultDtg("dtg")
+  def defaultDtg(): T = withDefaultDtg("dtg")
 
   // Internal helper methods
   private def resolve(tt: UType): String =
@@ -151,16 +153,16 @@ abstract class InitBuilder[T] {
     this.asInstanceOf[T]
   }
 
-  private def indexPart(index: Boolean) = if (index) Seq(s"$OPT_INDEX=true") else Seq.empty
-  private def stIndexPart(index: Boolean) = if (index) Seq(s"$OPT_INDEX_VALUE=true") else Seq.empty
+  private def indexPart(index: Boolean) = if (index) Seq(s"$OptIndex=true") else Seq.empty
+  private def stIndexPart(index: Boolean) = if (index) Seq(s"$OptIndexValue=true") else Seq.empty
   private def cardinalityPart(cardinality: Cardinality) = cardinality match {
-    case Cardinality.LOW | Cardinality.HIGH => Seq(s"$OPT_CARDINALITY=${cardinality.toString}")
+    case Cardinality.LOW | Cardinality.HIGH => Seq(s"$OptCardinality=${cardinality.toString}")
     case _ => Seq.empty
   }
 
   // public accessors
   /** Get the type spec string associated with this builder...doesn't include dtg info */
-  def getSpec = {
+  def getSpec: String = {
     if (options.isEmpty) {
       entries.mkString(SepEntry)
     } else {
@@ -169,7 +171,7 @@ abstract class InitBuilder[T] {
   }
 
   /** builds a SimpleFeatureType object from this builder */
-  def build(nameSpec: String) = {
+  def build(nameSpec: String): SimpleFeatureType = {
     val sft = SimpleFeatureTypes.createType(nameSpec, getSpec)
     dtgFieldOpt.foreach(sft.setDtgField)
     sft
@@ -177,6 +179,7 @@ abstract class InitBuilder[T] {
 
 }
 
+@deprecated("SchemaBuilder")
 class SftBuilder extends InitBuilder[SftBuilder] {}
 
 object SftBuilder {
@@ -187,7 +190,7 @@ object SftBuilder {
                   cardinality: Cardinality = Cardinality.UNKNOWN)
 
   // Note: not for general use - only for use with SimpleFeatureTypes parsing (doesn't escape separator characters)
-  def encodeMap(opts: Map[String,String], kvSep: String, entrySep: String) =
+  def encodeMap(opts: Map[String,String], kvSep: String, entrySep: String): String =
     opts.map { case (k, v) => k + kvSep + v }.mkString(entrySep)
 
   val SridPart = "srid=4326"
@@ -210,6 +213,6 @@ object SftBuilder {
       typeOf[Boolean]
     )
 
-  def simpleClassName(clazz: String) = clazz.split("[.]").last
+  def simpleClassName(clazz: String): String = clazz.split("[.]").last
 
 }

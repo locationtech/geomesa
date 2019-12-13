@@ -1,16 +1,16 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.filter
 
 import org.geotools.filter.text.cql2.CQL
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.filter
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -25,6 +25,20 @@ class OrSplittingFilterTest extends Specification {
   val osf = new OrSplittingFilter
 
   def splitFilter(f: Filter) = osf.visit(f, null)
+
+  implicit class RichFilter(val filter: Filter) {
+    def &&(that: Filter) = ff.and(filter, that)
+
+    def ||(that: Filter) = ff.or(filter, that)
+
+    def ! = ff.not(filter)
+  }
+
+  implicit def stringToFilter(s: String): Filter = ECQL.toFilter(s)
+
+  implicit def intToAttributeFilter(i: Int): Filter = s"attr$i = val$i"
+
+  implicit def intToFilter(i: Int): RichFilter = intToAttributeFilter(i)
 
   "The OrSplittingFilter" should {
 

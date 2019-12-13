@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
 
@@ -14,13 +14,15 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.index.z2.Z2Index
+import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
 class ConfigurableIndexesTest extends Specification with TestWithDataStore {
@@ -30,7 +32,7 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
   override val spec = s"name:String,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='${Z3Index.name}'"
 
   val features = (0 until 10).map { i =>
-    val sf = new ScalaSimpleFeature(s"f-$i", sft)
+    val sf = new ScalaSimpleFeature(sft, s"f-$i")
     sf.setAttribute(0, s"name-$i")
     sf.setAttribute(1, s"2016-01-01T0$i:01:00.000Z")
     sf.setAttribute(2, s"POINT(4$i 5$i)")
@@ -40,10 +42,12 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
 
   "AccumuloDataStore" should {
     "only create the z3 index" >> {
-      ds.tableOps.exists(Z3Index.getTableName(sft.getTypeName, ds)) must beTrue
-      forall(AccumuloFeatureIndex.AllIndices.filter(i => i != Z3Index)) { i =>
-        Try(i.getTableName(sft.getTypeName, ds)).map(ds.tableOps.exists).getOrElse(false) must beFalse
-      }
+      val indices = ds.manager.indices(sft)
+      indices must haveLength(1)
+      indices.head.name mustEqual Z3Index.name
+      val z3Tables = indices.head.getTableNames()
+      z3Tables must not(beEmpty)
+      foreach(z3Tables)(t => ds.connector.tableOperations().exists(t) must beTrue)
     }
 
     "be able to use z3 for spatial queries" >> {
@@ -72,17 +76,23 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
 
     "add another empty index" >> {
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-      sft.setIndices(sft.getIndices :+ (Z2Index.name, Z2Index.version, IndexMode.ReadWrite))
-      ds.updateSchema(sftName, sft)
-      forall(Seq(Z3Index, Z2Index))(i => ds.tableOps.exists(i.getTableName(sft.getTypeName, ds)) must beTrue)
-      forall(AccumuloFeatureIndex.AllIndices.filter(i => i != Z3Index && i != Z2Index)) { i =>
-        Try(i.getTableName(sft.getTypeName, ds)).map(ds.tableOps.exists).getOrElse(false) must beFalse
-      }
-      val scanner = connector.createScanner(Z2Index.getTableName(sft.getTypeName, ds), new Authorizations)
-      try {
-        scanner.iterator.hasNext must beFalse
-      } finally {
-        scanner.close()
+      val updated = SimpleFeatureTypes.mutable(sft)
+      updated.setIndices(sft.getIndices :+ IndexId(Z2Index.name, Z2Index.version, Seq("geom"), IndexMode.ReadWrite))
+      ds.updateSchema(sftName, updated)
+      val indices = ds.manager.indices(updated)
+      indices must haveLength(2)
+      indices.map(_.name) must containTheSameElementsAs(Seq(Z3Index.name, Z2Index.name))
+      forall(indices) { i =>
+        val tables = i.getTableNames()
+        tables must not(beEmpty)
+        foreach(tables)(t => ds.connector.tableOperations().exists(t) must beTrue)
+        if (i.name == Z2Index.name) {
+          foreach(tables) { table =>
+            WithClose(connector.createScanner(table, new Authorizations))(_.iterator.hasNext must beFalse)
+          }
+        } else {
+          ok
+        }
       }
     }
 
@@ -92,7 +102,7 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
       var results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
       results must beEmpty
 
-      val sf = new ScalaSimpleFeature(s"f-10", ds.getSchema(sftName))
+      val sf = new ScalaSimpleFeature(ds.getSchema(sftName), s"f-10")
       sf.setAttribute(0, "name-10")
       sf.setAttribute(1, "2016-01-01T10:01:00.000Z")
       sf.setAttribute(2, "POINT(50 60)")

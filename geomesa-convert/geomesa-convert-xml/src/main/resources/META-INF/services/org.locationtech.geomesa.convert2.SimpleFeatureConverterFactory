@@ -1,0 +1,2 @@
+org.locationtech.geomesa.convert.xml.XmlConverterFactory
+org.locationtech.geomesa.convert.xml.XmlCompositeConverterFactory

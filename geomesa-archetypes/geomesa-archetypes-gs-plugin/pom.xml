@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa-archetypes_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>1.3.2-SNAPSHOT</version>
+        <version>2.5.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -29,13 +29,19 @@
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
-                <version>2.1</version>
+                <version>2.6</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>commons-lang</groupId>
                 <artifactId>commons-lang</artifactId>
-                <version>2.6</version>
+                <version>2.4</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.7</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -47,13 +53,7 @@
             <dependency>
                 <groupId>commons-pool</groupId>
                 <artifactId>commons-pool</artifactId>
-                <version>1.5.3</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
-                <artifactId>gt-api</artifactId>
-                <version>${gt.version}</version>
+                <version>1.5.4</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -118,12 +118,6 @@
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
-                <artifactId>gt-data</artifactId>
-                <version>${gt.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.geotools</groupId>
                 <artifactId>gt-grid</artifactId>
                 <version>${gt.version}</version>
                 <scope>provided</scope>
@@ -149,31 +143,13 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>17.0</version>
+                <version>25.1-jre</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>com.vividsolutions</groupId>
-                <artifactId>jts</artifactId>
-                <version>1.13</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-streams</artifactId>
-                <version>1.1.13</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-utilities</artifactId>
-                <version>1.1.13</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>it.geosolutions.imageio-ext</groupId>
-                <artifactId>imageio-ext-geocore</artifactId>
-                <version>1.1.13</version>
+                <groupId>org.locationtech.jts</groupId>
+                <artifactId>jts-core</artifactId>
+                <version>${jts.version}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -183,16 +159,15 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <version>4.3.18.RELEASE</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
-                <scope>provided</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.springframework.security</groupId>
-                <artifactId>spring-security-core</artifactId>
-                <version>4.0.4.RELEASE</version>
                 <scope>provided</scope>
             </dependency>
         </dependencies>
@@ -205,7 +180,9 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
                     <configuration>
-                        <descriptor>${project.basedir}/../../geomesa-archetypes/geomesa-archetypes-gs-plugin/assembly.xml</descriptor>
+                        <descriptors>
+                            <descriptor>${project.basedir}/../../geomesa-archetypes/geomesa-archetypes-gs-plugin/assembly.xml</descriptor>
+                        </descriptors>
                     </configuration>
                     <executions>
                         <execution>
@@ -216,6 +193,13 @@
                             </goals>
                         </execution>
                     </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <configuration>
+                        <skip>${skip.installers.deploy}</skip>
+                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

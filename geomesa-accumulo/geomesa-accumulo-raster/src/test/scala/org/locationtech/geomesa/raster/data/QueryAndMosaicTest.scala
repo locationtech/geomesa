@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.raster.data
 
@@ -14,8 +14,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.raster.RasterTestsUtils._
 import org.locationtech.geomesa.raster.util.RasterUtils
 import org.locationtech.geomesa.utils.geohash.BoundingBox
-import org.locationtech.geomesa.utils.stats.{NoOpTimings, Timings}
-import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -23,7 +21,6 @@ import org.specs2.runner.JUnitRunner
 class QueryAndMosaicTest extends Specification {
   sequential
 
-  implicit val noTime: Timings = NoOpTimings
   var testIteration = 0
 
   val bboxNorthOf    = BoundingBox(-77.1152343750, -77.104248046875, 43.01220703125, 43.023193359375)
@@ -50,14 +47,12 @@ class QueryAndMosaicTest extends Specification {
   val permutationsOfThree = List(0, 1, 2).permutations.toSeq
 
   val lessPreciseQBox = BoundingBox(-77.1152343750, -77.1042480469, 43.0012207031, 43.0122070313)
-  val lessPreciseQuery = RasterQuery(lessPreciseQBox, 10.0, null, null)
+  val lessPreciseQuery = RasterQuery(lessPreciseQBox, 10.0)
 
   def getNewIteration() = {
     testIteration += 1
     s"testQAMT_Table_$testIteration"
   }
-
-  def allBeTrue: Matcher[Iterator[Boolean]] = be_==(true).forall
 
   "Our Mosaicing" should {
     "Return the same tile we store" in {
@@ -114,7 +109,7 @@ class QueryAndMosaicTest extends Specification {
         val (mosaic, _) = RasterUtils.mosaicChunks(rasters.iterator, 16, 16, lessPreciseQBox)
         compareIntBufferedImages(mosaic, testRasterIntVSplit)
       }
-      res must allBeTrue
+      forall(res.toSeq)(_ must beTrue)
     }
 
     "Return the Correct thing for all Vertical case permutations with less precise query" in {
@@ -130,7 +125,7 @@ class QueryAndMosaicTest extends Specification {
         val (mosaic, _) = RasterUtils.mosaicChunks(rasters.iterator, 16, 16, lessPreciseQBox)
         compareIntBufferedImages(mosaic, testRasterIntVSplit)
       }
-      res must allBeTrue
+      forall(res.toSeq)(_ must beTrue)
     }
 
     "Return the Correct thing for all NW to SE case permutations with less precise query" in {
@@ -146,7 +141,7 @@ class QueryAndMosaicTest extends Specification {
         val (mosaic, _) = RasterUtils.mosaicChunks(rasters.iterator, 16, 16, lessPreciseQBox)
         compareIntBufferedImages(mosaic, testRasterIntVSplit)
       }
-      res must allBeTrue
+      forall(res.toSeq)(_ must beTrue)
     }
 
     "Return the Correct thing for all SW to NE case permutations with less precise query" in {
@@ -162,9 +157,7 @@ class QueryAndMosaicTest extends Specification {
         val (mosaic, _) = RasterUtils.mosaicChunks(rasters.iterator, 16, 16, lessPreciseQBox)
         compareIntBufferedImages(mosaic, testRasterIntVSplit)
       }
-      res must allBeTrue
+      forall(res.toSeq)(_ must beTrue)
     }
-
   }
-
 }

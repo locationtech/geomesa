@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.geojson
 
@@ -12,15 +12,15 @@ import java.io.Closeable
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Geometry, Point}
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.geotools.data.{DataStore, FeatureWriter, Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.geojson.geom.GeometryJSON
 import org.json4s.native.JsonMethods._
 import org.json4s.{JObject, _}
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathElement
-import org.locationtech.geomesa.geojson.query.GeoJsonQuery
+import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{PathAttribute, PathElement}
+import org.locationtech.geomesa.geojson.query.{GeoJsonQuery, PropertyTransformer}
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -43,6 +43,12 @@ class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
 
   // TODO GEOMESA-1450 support json-schema validation
   // TODO GEOMESA-1451 optimize serialization for json-schema
+
+  def getTransformer(schema:SimpleFeatureType):PropertyTransformer = {
+    val idPath = GeoJsonGtIndex.getIdPath(schema)
+    val dtgPath = GeoJsonGtIndex.getDtgPath(schema)
+    new GeoMesaIndexPropertyTransformer(idPath, dtgPath)
+  }
 
   override def createIndex(name: String, id: Option[String], dtg: Option[String], points: Boolean): Unit = {
     try {
@@ -193,10 +199,7 @@ class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
       throw new IllegalArgumentException(s"Index $name does not exist - please call 'createIndex'")
     }
 
-    val idPath = GeoJsonGtIndex.getIdPath(schema)
-    val dtgPath = GeoJsonGtIndex.getDtgPath(schema)
-
-    val filter = try { GeoJsonQuery(query).toFilter(idPath, dtgPath) } catch {
+    val filter = try { GeoJsonQuery(query).toFilter(getTransformer(schema)) } catch {
       case NonFatal(e) => throw new IllegalArgumentException("Invalid query syntax", e)
     }
     val paths = try { transform.mapValues(JsonPathParser.parse(_)) } catch {
@@ -233,8 +236,8 @@ class GeoJsonGtIndex(ds: DataStore) extends GeoJsonIndex with LazyLogging {
 
 object GeoJsonGtIndex {
 
-  val IdPathKey  = s"${SimpleFeatureTypes.InternalConfigs.GEOMESA_PREFIX}json.id"
-  val DtgPathKey = s"${SimpleFeatureTypes.InternalConfigs.GEOMESA_PREFIX}json.dtg"
+  val IdPathKey  = s"${SimpleFeatureTypes.InternalConfigs.GeomesaPrefix}json.id"
+  val DtgPathKey = s"${SimpleFeatureTypes.InternalConfigs.GeomesaPrefix}json.dtg"
 
   private type ExtractGeometry = (JObject) => Geometry
   private type ExtractId = (JObject) => Option[String]
@@ -266,7 +269,7 @@ object GeoJsonGtIndex {
       spec.append(",dtg:Date")
     }
 
-    val mixedGeoms = if (points) { Seq.empty } else { Seq(s"${SimpleFeatureTypes.Configs.MIXED_GEOMETRIES}='true'") }
+    val mixedGeoms = if (points) { Seq.empty } else { Seq(s"${SimpleFeatureTypes.Configs.MixedGeometries}='true'") }
     val id = idPath.map(p => s"$IdPathKey='$p'")
     val dtg = dtgPath.map(p => s"$DtgPathKey='$p'")
 
@@ -402,7 +405,7 @@ object GeoJsonGtIndex {
     var selected: Seq[JValue] = Seq(json)
 
     path.foreach {
-      case PathAttribute(name) =>
+      case PathAttribute(name, _) =>
         selected = selected.flatMap {
           case j: JObject => j.obj.collect { case (n, v) if n == name => v }
           case _ => Seq.empty

@@ -1,22 +1,24 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
 
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.filter
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{decomposeAnd, decomposeOr}
-import org.locationtech.geomesa.index.api.FilterSplitter
-import org.locationtech.geomesa.utils.geotools.SftBuilder.Opts
-import org.locationtech.geomesa.utils.geotools.{SftBuilder, SimpleFeatureTypes}
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndexFactory
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.locationtech.geomesa.index.index.z2.Z2Index
+import org.locationtech.geomesa.index.index.z3.Z3Index
+import org.locationtech.geomesa.index.planning.FilterSplitter
+import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.filter._
@@ -30,23 +32,23 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class QueryFilterSplitterTest extends Specification {
 
+  import org.locationtech.geomesa.filter.ff
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  val sft = new SftBuilder()
-    .stringType("attr1")
-    .stringType("attr2", index = true)
-    .stringType("attr3")
-    .stringType("attr4")
-    .stringType("high", Opts(index = true, cardinality = Cardinality.HIGH))
-    .stringType("low", Opts(index = true, cardinality = Cardinality.LOW))
-    .date("dtg", default = true)
-    .point("geom", default = true)
+  val sft = SchemaBuilder.builder()
+    .addString("attr1")
+    .addString("attr2").withIndex()
+    .addString("attr3")
+    .addString("attr4")
+    .addString("high").withIndex(Cardinality.HIGH)
+    .addString("low").withIndex(Cardinality.LOW)
+    .addDate("dtg", default = true)
+    .addPoint("geom", default = true)
     .build("QueryFilterSplitterTest")
 
-  sft.setIndices(AccumuloFeatureIndex.CurrentIndices.filter(_.supports(sft)).map(i => (i.name, i.version, IndexMode.ReadWrite)))
+  sft.setIndices(GeoMesaFeatureIndexFactory.indices(sft))
 
-  val ff = CommonFactoryFinder.getFilterFactory2
-  val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft, IndexMode.Any))
+  val splitter = new FilterSplitter(sft, GeoMesaFeatureIndexFactory.create(null, sft, sft.getIndices), None)
 
   val geom                = "BBOX(geom,40,40,50,50)"
   val geom2               = "BBOX(geom,60,60,70,70)"
@@ -63,7 +65,7 @@ class QueryFilterSplitterTest extends Specification {
 
   val wholeWorld          = "BBOX(geom,-180,-90,180,90)"
 
-  val includeStrategy     = Z3Index
+  val includeStrategy     = Z3Index.name
 
   def and(clauses: Filter*) = ff.and(clauses)
   def or(clauses: Filter*)  = ff.or(clauses)
@@ -91,7 +93,7 @@ class QueryFilterSplitterTest extends Specification {
       val options = splitter.getQueryOptions(Filter.INCLUDE)
       options must haveLength(1)
       options.head.strategies must haveLength(1)
-      options.head.strategies.head.index mustEqual Z3Index
+      options.head.strategies.head.index.name mustEqual Z3Index.name
       options.head.strategies.head.primary must beNone
       options.head.strategies.head.secondary must beNone
     }
@@ -107,11 +109,11 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(2)
         forall(options)(_.strategies must haveLength(1))
-        options.map(_.strategies.head.index) must containAllOf(Seq(Z2Index, Z3Index))
-        val z2 = options.find(_.strategies.head.index == Z2Index).get
+        options.map(_.strategies.head.index.name) must containAllOf(Seq(Z2Index.name, Z3Index.name))
+        val z2 = options.find(_.strategies.head.index.name == Z2Index.name).get
         z2.strategies.head.primary must beSome(f(geom))
         z2.strategies.head.secondary must beSome(f(dtg))
-        val z3 = options.find(_.strategies.head.index == Z3Index).get
+        val z3 = options.find(_.strategies.head.index.name == Z3Index.name).get
         z3.strategies.head.primary.map(decomposeAnd) must beSome(containTheSameElementsAs(Seq(f(geom), f(dtg))))
         z3.strategies.head.secondary must beNone
       }
@@ -121,11 +123,11 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(2)
         forall(options)(_.strategies must haveLength(1))
-        options.map(_.strategies.head.index) must containAllOf(Seq(Z2Index, Z3Index))
-        val z2 = options.find(_.strategies.head.index == Z2Index).get
+        options.map(_.strategies.head.index.name) must containAllOf(Seq(Z2Index.name, Z3Index.name))
+        val z2 = options.find(_.strategies.head.index.name == Z2Index.name).get
         compareAnd(z2.strategies.head.primary, geom, geom2)
         z2.strategies.head.secondary must beSome(f(dtg))
-        val z3 = options.find(_.strategies.head.index == Z3Index).get
+        val z3 = options.find(_.strategies.head.index.name == Z3Index.name).get
         compareAnd(z3.strategies.head.primary, geom, geom2, dtg)
         z3.strategies.head.secondary must beNone
       }
@@ -135,11 +137,11 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(2)
         forall(options)(_.strategies must haveLength(1))
-        options.map(_.strategies.head.index) must containAllOf(Seq(Z2Index, Z3Index))
-        val z2 = options.find(_.strategies.head.index == Z2Index).get
+        options.map(_.strategies.head.index.name) must containAllOf(Seq(Z2Index.name, Z3Index.name))
+        val z2 = options.find(_.strategies.head.index.name == Z2Index.name).get
         z2.strategies.head.primary must beSome(f(geom))
         z2.strategies.head.secondary must beSome(and(dtg, dtgOverlap))
-        val z3 = options.find(_.strategies.head.index == Z3Index).get
+        val z3 = options.find(_.strategies.head.index.name == Z3Index.name).get
         compareAnd(z3.strategies.head.primary, geom, dtg, dtgOverlap)
         z3.strategies.head.secondary must beNone
       }
@@ -149,11 +151,11 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(2)
         forall(options)(_.strategies must haveLength(1))
-        options.map(_.strategies.head.index) must containAllOf(Seq(Z2Index, Z3Index))
-        val z2 = options.find(_.strategies.head.index == Z2Index).get
+        options.map(_.strategies.head.index.name) must containAllOf(Seq(Z2Index.name, Z3Index.name))
+        val z2 = options.find(_.strategies.head.index.name == Z2Index.name).get
         z2.strategies.head.primary must beSome(and(geom, geomOverlap))
         z2.strategies.head.secondary must beSome(and(dtg, dtgOverlap))
-        val z3 = options.find(_.strategies.head.index == Z3Index).get
+        val z3 = options.find(_.strategies.head.index.name == Z3Index.name).get
         compareAnd(z3.strategies.head.primary, geom, geomOverlap, dtg, dtgOverlap)
         z3.strategies.head.secondary must beNone
       }
@@ -163,14 +165,11 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(2)
         forall(options)(_.strategies must haveLength(1))
-        options.map(_.strategies.head.index) must containTheSameElementsAs(Seq(Z2Index, Z3Index))
-        val z2 = options.find(_.strategies.head.index == Z2Index).get
+        options.map(_.strategies.head.index.name) must containTheSameElementsAs(Seq(Z2Index.name, Z3Index.name))
+        val z2 = options.find(_.strategies.head.index.name == Z2Index.name).get
         compareOr(z2.strategies.head.primary, geom, geom2)
-        forall(z2.strategies.map(_.secondary))(_ must beSome)
-        z2.strategies.map(_.secondary.get) must contain(beAnInstanceOf[During], beAnInstanceOf[And])
-        z2.strategies.map(_.secondary.get).collect { case a: And => a.getChildren }.flatten must
-            contain(beAnInstanceOf[During], beAnInstanceOf[Not])
-        val z3 = options.find(_.strategies.head.index == Z3Index).get
+        forall(z2.strategies.map(_.secondary))(_ must beSome(beAnInstanceOf[During]))
+        val z3 = options.find(_.strategies.head.index.name == Z3Index.name).get
         compareAnd(z3.strategies.head.primary, or(geom, geom2), f(dtg))
         z3.strategies.head.secondary must beNone
       }
@@ -180,11 +179,11 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(2)
         forall(options)(_.strategies must haveLength(1))
-        options.map(_.strategies.head.index) must containTheSameElementsAs(Seq(Z2Index, Z3Index))
-        val z2 = options.find(_.strategies.head.index == Z2Index).get
+        options.map(_.strategies.head.index.name) must containTheSameElementsAs(Seq(Z2Index.name, Z3Index.name))
+        val z2 = options.find(_.strategies.head.index.name == Z2Index.name).get
         compareOr(z2.strategies.head.primary, geom, geom2)
         z2.strategies.head.secondary must beSome // secondary filter is too complex to compare here...
-        val z3 = options.find(_.strategies.head.index == Z3Index).get
+        val z3 = options.find(_.strategies.head.index.name == Z3Index.name).get
         z3.strategies.head.primary must beSome
         z3.strategies.head.primary.get must beAnInstanceOf[And]
         z3.strategies.head.primary.get.asInstanceOf[And].getChildren must haveLength(2)
@@ -198,11 +197,11 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(2)
         forall(options)(_.strategies must haveLength(1))
-        options.map(_.strategies.head.index) must containAllOf(Seq(Z2Index, Z3Index))
-        val z2 = options.find(_.strategies.head.index == Z2Index).get
+        options.map(_.strategies.head.index.name) must containAllOf(Seq(Z2Index.name, Z3Index.name))
+        val z2 = options.find(_.strategies.head.index.name == Z2Index.name).get
         z2.strategies.head.primary must beSome(f(geom))
         z2.strategies.head.secondary must beSome(and(dtg, nonIndexedAttr))
-        val z3 = options.find(_.strategies.head.index == Z3Index).get
+        val z3 = options.find(_.strategies.head.index.name == Z3Index.name).get
         compareAnd(z3.strategies.head.primary, geom, dtg)
         z3.strategies.head.secondary must beSome(f(nonIndexedAttr))
       }
@@ -212,14 +211,14 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(3)
         forall(options)(_.strategies must haveLength(1))
-        options.map(_.strategies.head.index) must contain(Z2Index, Z3Index, AttributeIndex)
-        val z2 = options.find(_.strategies.head.index == Z2Index).get
+        options.map(_.strategies.head.index.name) must contain(Z2Index.name, Z3Index.name, AttributeIndex.name)
+        val z2 = options.find(_.strategies.head.index.name == Z2Index.name).get
         z2.strategies.head.primary must beSome(f(geom))
         z2.strategies.head.secondary must beSome(and(dtg, indexedAttr))
-        val z3 = options.find(_.strategies.head.index == Z3Index).get
+        val z3 = options.find(_.strategies.head.index.name == Z3Index.name).get
         compareAnd(z3.strategies.head.primary, geom, dtg)
         z3.strategies.head.secondary must beSome(f(indexedAttr))
-        val attr = options.find(_.strategies.head.index == AttributeIndex).get
+        val attr = options.find(_.strategies.head.index.name == AttributeIndex.name).get
         attr.strategies.head.primary must beSome(f(indexedAttr))
         attr.strategies.head.secondary must beSome(and(geom, dtg))
       }
@@ -229,14 +228,14 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(3)
         forall(options)(_.strategies must haveLength(1))
-        options.map(_.strategies.head.index) must contain(Z2Index, Z3Index, AttributeIndex)
-        val z2 = options.find(_.strategies.head.index == Z2Index).get
+        options.map(_.strategies.head.index.name) must contain(Z2Index.name, Z3Index.name, AttributeIndex.name)
+        val z2 = options.find(_.strategies.head.index.name == Z2Index.name).get
         z2.strategies.head.primary must beSome(f(geom))
         z2.strategies.head.secondary must beSome(and(dtg, indexedAttr, nonIndexedAttr))
-        val z3 = options.find(_.strategies.head.index == Z3Index).get
+        val z3 = options.find(_.strategies.head.index.name == Z3Index.name).get
         compareAnd(z3.strategies.head.primary, geom, dtg)
         z3.strategies.head.secondary must beSome(and(indexedAttr, nonIndexedAttr))
-        val attr = options.find(_.strategies.head.index == AttributeIndex).get
+        val attr = options.find(_.strategies.head.index.name == AttributeIndex.name).get
         attr.strategies.head.primary must beSome(f(indexedAttr))
         attr.strategies.head.secondary must beSome(and(geom, dtg, nonIndexedAttr))
       }
@@ -246,11 +245,11 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(2)
         forall(options)(_.strategies must haveLength(1))
-        options.map(_.strategies.head.index) must containAllOf(Seq(Z2Index, Z3Index))
-        val z2 = options.find(_.strategies.head.index == Z2Index).get
+        options.map(_.strategies.head.index.name) must containAllOf(Seq(Z2Index.name, Z3Index.name))
+        val z2 = options.find(_.strategies.head.index.name == Z2Index.name).get
         z2.strategies.head.primary must beSome(f(geom))
         z2.strategies.head.secondary must beSome(and(f(dtg), or(nonIndexedAttr, nonIndexedAttr2)))
-        val z3 = options.find(_.strategies.head.index == Z3Index).get
+        val z3 = options.find(_.strategies.head.index.name == Z3Index.name).get
         compareAnd(z3.strategies.head.primary, geom, dtg)
         z3.strategies.head.secondary must beSome(or(nonIndexedAttr, nonIndexedAttr2))
       }
@@ -260,7 +259,7 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(1)
-        options.head.strategies.head.index mustEqual includeStrategy
+        options.head.strategies.head.index.name mustEqual includeStrategy
         options.head.strategies.head.primary must beNone
         options.head.strategies.head.secondary must beNone
       }
@@ -270,11 +269,11 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(2)
         forall(options)(_.strategies must haveLength(1))
-        options.map(_.strategies.head.index) must containAllOf(Seq(Z2Index, Z3Index))
-        val z2 = options.find(_.strategies.head.index == Z2Index).get
+        options.map(_.strategies.head.index.name) must containAllOf(Seq(Z2Index.name, Z3Index.name))
+        val z2 = options.find(_.strategies.head.index.name == Z2Index.name).get
         z2.strategies.head.primary must beSome(f(geom))
         z2.strategies.head.secondary must beSome(f(dtg))
-        val z3 = options.find(_.strategies.head.index == Z3Index).get
+        val z3 = options.find(_.strategies.head.index.name == Z3Index.name).get
         compareAnd(z3.strategies.head.primary, geom, dtg)
         z3.strategies.head.secondary must beNone
       }
@@ -286,7 +285,7 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(1)
-        options.head.strategies.head.index mustEqual Z2Index
+        options.head.strategies.head.index.name mustEqual Z2Index.name
         options.head.strategies.head.primary must beSome(filter)
         options.head.strategies.head.secondary must beNone
       }
@@ -296,7 +295,7 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(1)
-        options.head.strategies.head.index mustEqual Z3Index
+        options.head.strategies.head.index.name mustEqual Z3Index.name
         options.head.strategies.head.primary must beSome(filter)
         options.head.strategies.head.secondary must beNone
       }
@@ -306,7 +305,7 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(1)
-        options.head.strategies.head.index mustEqual includeStrategy
+        options.head.strategies.head.index.name mustEqual includeStrategy
         options.head.strategies.head.primary must beNone
         options.head.strategies.head.secondary must beSome(filter)
       }
@@ -316,7 +315,7 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(1)
-        options.head.strategies.head.index mustEqual AttributeIndex
+        options.head.strategies.head.index.name mustEqual AttributeIndex.name
         options.head.strategies.head.primary must beSome(filter)
         options.head.strategies.head.secondary must beNone
       }
@@ -326,7 +325,7 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(1)
-        options.head.strategies.head.index mustEqual AttributeIndex
+        options.head.strategies.head.index.name mustEqual AttributeIndex.name
         options.head.strategies.head.primary must beSome(filter)
         options.head.strategies.head.secondary must beNone
       }
@@ -336,7 +335,7 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(1)
-        options.head.strategies.head.index mustEqual AttributeIndex
+        options.head.strategies.head.index.name mustEqual AttributeIndex.name
         options.head.strategies.head.primary must beSome(filter)
         options.head.strategies.head.secondary must beNone
       }
@@ -348,7 +347,7 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(1)
-        options.head.strategies.head.index mustEqual Z2Index
+        options.head.strategies.head.index.name mustEqual Z2Index.name
         compareAnd(options.head.strategies.head.primary, geom, geom2)
         options.head.strategies.head.secondary must beNone
       }
@@ -358,7 +357,7 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(1)
-        options.head.strategies.head.index mustEqual Z3Index
+        options.head.strategies.head.index.name mustEqual Z3Index.name
         compareAnd(options.head.strategies.head.primary, dtg, dtgOverlap)
         options.head.strategies.head.secondary must beNone
       }
@@ -368,7 +367,7 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(1)
-        options.head.strategies.head.index mustEqual includeStrategy
+        options.head.strategies.head.index.name mustEqual includeStrategy
         options.head.strategies.head.primary must beNone
         options.head.strategies.head.secondary must beSome(filter)
       }
@@ -378,7 +377,7 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(1)
-        options.head.strategies.head.index mustEqual AttributeIndex
+        options.head.strategies.head.index.name mustEqual AttributeIndex.name
         options.head.strategies.head.primary must beSome(filter)
         options.head.strategies.head.secondary must beNone
       }
@@ -388,7 +387,7 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(1)
-        options.head.strategies.head.index mustEqual AttributeIndex
+        options.head.strategies.head.index.name mustEqual AttributeIndex.name
         options.head.strategies.head.primary must beSome(f(lowCardinaltiyAttr))
         options.head.strategies.head.secondary must beSome(f(nonIndexedAttr))
       }
@@ -400,11 +399,11 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(2)
-        val z3 = options.head.strategies.find(_.index == Z3Index)
+        val z3 = options.head.strategies.find(_.index.name == Z3Index.name)
         z3 must beSome
         z3.get.primary must beSome(f(dtg))
         z3.get.secondary must beSome(not(geom))
-        val st = options.head.strategies.find(_.index == Z2Index)
+        val st = options.head.strategies.find(_.index.name == Z2Index.name)
         st must beSome
         st.get.primary must beSome(f(geom))
         st.get.secondary must beNone
@@ -415,7 +414,7 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(1)
-        options.head.strategies.head.index mustEqual Z2Index
+        options.head.strategies.head.index.name mustEqual Z2Index.name
         compareOr(options.head.strategies.head.primary, geom, geom2)
         options.head.strategies.head.secondary must beNone
       }
@@ -425,11 +424,11 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(2)
-        options.head.strategies.map(_.index) must containTheSameElementsAs(Seq(Z2Index, AttributeIndex))
-        options.head.strategies.find(_.index == Z2Index).get.primary must beSome(f(geom))
-        options.head.strategies.find(_.index == Z2Index).get.secondary must beNone
-        options.head.strategies.find(_.index == AttributeIndex).get.primary must beSome(f(indexedAttr))
-        options.head.strategies.find(_.index == AttributeIndex).get.secondary must beSome(not(geom))
+        options.head.strategies.map(_.index.name) must containTheSameElementsAs(Seq(Z2Index.name, AttributeIndex.name))
+        options.head.strategies.find(_.index.name == Z2Index.name).get.primary must beSome(f(geom))
+        options.head.strategies.find(_.index.name == Z2Index.name).get.secondary must beNone
+        options.head.strategies.find(_.index.name == AttributeIndex.name).get.primary must beSome(f(indexedAttr))
+        options.head.strategies.find(_.index.name == AttributeIndex.name).get.secondary must beSome(not(geom))
       }
 
       "and collapse overlapping query filters" >> {
@@ -438,7 +437,7 @@ class QueryFilterSplitterTest extends Specification {
           val options = splitter.getQueryOptions(filter)
           options must haveLength(1)
           options.head.strategies must haveLength(1)
-          options.head.strategies.head.index mustEqual includeStrategy
+          options.head.strategies.head.index.name mustEqual includeStrategy
           options.head.strategies.head.primary must beNone
           options.head.strategies.head.secondary must beSome(filter)
         }
@@ -451,11 +450,11 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(2)
         forall(options)(_.strategies must haveLength(1))
-        options.map(_.strategies.head.index) must containAllOf(Seq(Z2Index, Z3Index))
-        val z2 = options.find(_.strategies.head.index == Z2Index).get
+        options.map(_.strategies.head.index.name) must containAllOf(Seq(Z2Index.name, Z3Index.name))
+        val z2 = options.find(_.strategies.head.index.name == Z2Index.name).get
         z2.strategies.head.primary must beSome(f(geom))
         z2.strategies.head.secondary must beSome(and(dtg, nonIndexedAttr))
-        val z3 = options.find(_.strategies.head.index == Z3Index).get
+        val z3 = options.find(_.strategies.head.index.name == Z3Index.name).get
         compareAnd(z3.strategies.head.primary, geom, dtg)
         z3.strategies.head.secondary must beSome(f(nonIndexedAttr))
       }
@@ -465,25 +464,28 @@ class QueryFilterSplitterTest extends Specification {
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
         options.head.strategies must haveLength(3)
-        options.head.strategies.map(_.index) must
-            containTheSameElementsAs(Seq(Z3Index, Z2Index, AttributeIndex))
+        options.head.strategies.map(_.index.name) must
+            containTheSameElementsAs(Seq(Z3Index.name, Z2Index.name, AttributeIndex.name))
         options.head.strategies.map(_.primary) must contain(beSome(f(geom)), beSome(f(dtg)), beSome(f(indexedAttr)))
-        options.head.strategies.map(_.secondary) must contain(beSome(not(geom)), beSome(not(geom, dtg)))
+        options.head.strategies.map(_.secondary) must contain(beSome(not(geom)), beSome(not(geom, indexedAttr)))
         options.head.strategies.map(_.secondary) must contain(beNone)
       }
     }
 
     "support indexed date attributes" >> {
       val sft = SimpleFeatureTypes.createType("dtgIndex", "dtg:Date:index=full,*geom:Point:srid=4326")
-      sft.setIndices(AccumuloFeatureIndex.CurrentIndices.filter(_.supports(sft)).map(i => (i.name, i.version, IndexMode.ReadWrite)))
-      val splitter = new FilterSplitter(sft, AccumuloFeatureIndex.indices(sft, IndexMode.Any))
+      sft.setIndices(GeoMesaFeatureIndexFactory.indices(sft))
+      val splitter = new FilterSplitter(sft, GeoMesaFeatureIndexFactory.create(null, sft, sft.getIndices), None)
       val filter = f("dtg TEQUALS 2014-01-01T12:30:00.000Z")
       val options = splitter.getQueryOptions(filter)
-      options must haveLength(1)
-      options.head.strategies must haveLength(1)
-      options.head.strategies.head.index mustEqual AttributeIndex
-      options.head.strategies.head.primary must beSome(filter)
-      options.head.strategies.head.secondary must beNone
+      options must haveLength(2)
+      foreach(options)(_.strategies must haveLength(1))
+      val strategies = options.map(_.strategies.head)
+      strategies.map(_.index.name) must containTheSameElementsAs(Seq(AttributeIndex.name, Z3Index.name))
+      foreach(strategies) { strategy =>
+        strategy.primary must beSome(filter)
+        strategy.secondary must beNone
+      }
     }
 
     "provide only one option on OR queries of high cardinality indexed attributes" >> {
@@ -495,14 +497,14 @@ class QueryFilterSplitterTest extends Specification {
         options must haveLength(3)
 
         forall(options)(_.strategies must haveLength(1))
-        options.map(_.strategies.head.index) must
-            containTheSameElementsAs(Seq(AttributeIndex, Z2Index, Z3Index))
+        options.map(_.strategies.head.index.name) must
+            containTheSameElementsAs(Seq(AttributeIndex.name, Z2Index.name, Z3Index.name))
 
-        val attrQueryFilter = options.find(_.strategies.head.index == AttributeIndex).get.strategies.head
+        val attrQueryFilter = options.find(_.strategies.head.index.name == AttributeIndex.name).get.strategies.head
         compareOr(attrQueryFilter.primary, decomposeOr(f(attrPart)): _*)
         compareAnd(attrQueryFilter.secondary, bbox, dtg)
 
-        val z2QueryFilters = options.find(_.strategies.head.index == Z2Index).get.strategies.head
+        val z2QueryFilters = options.find(_.strategies.head.index.name == Z2Index.name).get.strategies.head
         z2QueryFilters.primary must beSome(f(bbox))
         z2QueryFilters.secondary must beSome(beAnInstanceOf[And])
         val z2secondary = z2QueryFilters.secondary.get.asInstanceOf[And].getChildren.toSeq
@@ -511,7 +513,7 @@ class QueryFilterSplitterTest extends Specification {
         compareOr(z2secondary.find(_.isInstanceOf[Or]), decomposeOr(f(attrPart)): _*)
         z2secondary.find(_.isInstanceOf[During]).get mustEqual f(dtg)
 
-        val z3QueryFilters = options.find(_.strategies.head.index == Z3Index).get.strategies.head
+        val z3QueryFilters = options.find(_.strategies.head.index.name == Z3Index.name).get.strategies.head
         compareAnd(z3QueryFilters.primary, bbox, dtg)
         compareOr(z3QueryFilters.secondary, decomposeOr(f(attrPart)): _*)
       }
@@ -531,7 +533,7 @@ class QueryFilterSplitterTest extends Specification {
       val options = splitter.getQueryOptions(filter)
       options must haveLength(1)
       options.head.strategies must haveLength(1)
-      options.head.strategies.head.index mustEqual Z2Index
+      options.head.strategies.head.index.name mustEqual Z2Index.name
       compareOr(options.head.strategies.head.primary, bbox1, bbox2)
       options.head.strategies.head.secondary must beSome // note: filter is too complex to compare explicitly...
     }

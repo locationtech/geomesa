@@ -1,54 +1,7 @@
+.. _converter_functions:
+
 Transformation Function Overview
 --------------------------------
-
-The provided transformation functions are listed below.
-
-Control Functions
-~~~~~~~~~~~~~~~~~
-
--  ``try``
-
-String Functions
-~~~~~~~~~~~~~~~~
-
--  ``stripQuotes``
--  ``length``
--  ``trim``
--  ``capitalize``
--  ``lowercase``
--  ``regexReplace``
--  ``concatenate``
--  ``substring``
--  ``toString``
-
-Date Functions
-~~~~~~~~~~~~~~
-
--  ``now``
--  ``date``
--  ``dateTime``
--  ``basicDate``
--  ``basicDateTime``
--  ``basicDateTimeNoMillis``
--  ``dateHourMinuteSecondMillis``
--  ``millisToDate``
--  ``secsToDate``
-
-Geometry Functions
-~~~~~~~~~~~~~~~~~~
-
--  ``point``
--  ``linestring``
--  ``polygon``
--  ``geometry``
-
-ID Functions
-~~~~~~~~~~~~
-
--  ``stringToBytes``
--  ``md5``
--  ``uuid``
--  ``base64``
 
 Type Conversions
 ~~~~~~~~~~~~~~~~
@@ -64,12 +17,103 @@ Type Conversions
 -  ``stringToFloat``
 -  ``stringToDouble``
 -  ``stringToBoolean``
+-  ``intToBoolean``
 
-List and Map Parsing
-~~~~~~~~~~~~~~~~~~~~
+String Functions
+~~~~~~~~~~~~~~~~
 
+-  ``strip``
+-  ``stripPrefix``
+-  ``stripSuffix``
+-  ``stripQuotes``
+-  ``replace``
+-  ``removeChars``
+-  ``length``
+-  ``trim``
+-  ``capitalize``
+-  ``lowercase``
+-  ``regexReplace``
+-  ``concatenate``
+-  ``substring``
+-  ``toString``
+-  ``emptyToNull``
+-  ``printf``
+
+Date Functions
+~~~~~~~~~~~~~~
+
+-  ``now``
+-  ``date``
+-  ``dateTime``
+-  ``basicIsoDate``
+-  ``isoLocalDate``
+-  ``basicDateTime``
+-  ``isoLocalDateTime``
+-  ``isoOffsetDateTime``
+-  ``basicDateTimeNoMillis``
+-  ``dateHourMinuteSecondMillis``
+-  ``millisToDate``
+-  ``secsToDate``
+-  ``dateToString``
+
+Geometry Functions
+~~~~~~~~~~~~~~~~~~
+
+-  ``point``
+-  ``multipoint``
+-  ``linestring``
+-  ``multilinestring``
+-  ``polygon``
+-  ``multipolygon``
+-  ``geometrycollection``
+-  ``geometry``
+-  ``projectFrom``
+
+ID Functions
+~~~~~~~~~~~~
+
+-  ``stringToBytes``
+-  ``md5``
+-  ``murmur3_32``
+-  ``murmur3_128``
+-  ``uuid``
+-  ``uuidZ3``
+-  ``uuidZ3Centroid``
+-  ``base64``
+
+Math Functions
+~~~~~~~~~~~~~~
+
+-  ``add``
+-  ``subtract``
+-  ``multiply``
+-  ``divide``
+-  ``mean``
+-  ``min``
+-  ``max``
+
+List and Map Functions
+~~~~~~~~~~~~~~~~~~~~~~
+
+-  ``list``
+-  ``mapValue``
 -  ``parseList``
 -  ``parseMap``
+
+Control Functions
+~~~~~~~~~~~~~~~~~
+
+-  ``try``
+-  ``withDefault``
+-  ``require``
+
+State Functions
+~~~~~~~~~~~~~~~
+
+-  ``inputFilePath``
+-  ``lineNo``
+
+.. _convert_scripting_functions:
 
 Functions defined using scripting languages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -94,7 +138,7 @@ Installing Custom Scripts
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Custom scripting functions are made available to GeoMesa comamnd line tools or
-distributed (mapreduce) ingest via including them on the classpath or
+distributed (map-reduce) ingest via including them on the classpath or
 setting a system property.
 
 For local usage, geomesa defines the system property ``geomesa.convert.scripts.path``
@@ -102,9 +146,9 @@ to be a colon-separated list of script files and/or directories containing scrip
 This system property can be set when using the command line tools by setting the
 ``CUSTOM_JAVA_OPTS`` environmental variable:
 
-.. code-block:: javascript
+.. code-block:: bash
 
-    CUSTOM_JAVA_OPTS="/path/to/script.js:/path/to/script-dir/"
+    CUSTOM_JAVA_OPTS="-Dgeomesa.convert.scripts.path=/path/to/script.js:/path/to/script-dir/"
 
 A more resilient method of including custom scripts is to package them as a JAR or ZIP
 file and add it to the ``GEOMESA_EXTRA_CLASSPATHS`` environmental variable. If using
@@ -126,7 +170,7 @@ inside the archive containing the scripts:
            42                     2 files
 
 For either zip or jar files add them to the extra classpaths in your environment to
-make them available for the tools or mapreduce ingest:
+make them available for the tools or map-reduce ingest:
 
 .. code-block:: bash
 
@@ -136,14 +180,14 @@ A example of ingest with a scripts on the classpath is below:
 
 .. code-block:: bash
 
-    GEOMESA_EXTRA_CLASSPATHS="/tmp/scripts.zip:/path/to/my-scripts.jar" bin/geomesa ingest -u <user-name>
+    GEOMESA_EXTRA_CLASSPATHS="/tmp/scripts.zip:/path/to/my-scripts.jar" bin/geomesa-accumulo ingest -u <user-name>
     -p <password> -s <sft-name> -C <converter-name> -c geomesa.catalog hdfs://localhost:9000/data/example.csv
 
 You can also verify the classpath is properly configured with the tools:
 
 .. code-block:: bash
 
-    GEOMESA_EXTRA_CLASSPATHS="/tmp/scripts.zip:/path/to/my-scripts.jar" bin/geomesa classpath
+    GEOMESA_EXTRA_CLASSPATHS="/tmp/scripts.zip:/path/to/my-scripts.jar" bin/geomesa-accumulo classpath
 
 
 CQL Functions
@@ -165,4 +209,13 @@ reference <http://docs.geoserver.org/stable/en/user/filter/function_reference.ht
 JSON/Avro Transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-See Parsing Json and Parsing Avro sections
+See :ref:`json_converter_functions` and :ref:`avro_converter_functions`.
+
+Enrichment Functions
+~~~~~~~~~~~~~~~~~~~~
+
+The converter framework provides a mechanism for setting an attribute based on a lookup
+from a cache.  The cache can be a literal cache in the system or in an external system such
+as Redis.
+
+- ``cacheLookup``

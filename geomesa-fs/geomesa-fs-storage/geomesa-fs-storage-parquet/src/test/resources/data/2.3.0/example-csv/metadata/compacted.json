@@ -1,0 +1,49 @@
+{
+    "partitions" : [
+        {
+            "action" : "Add",
+            "count" : 1,
+            "envelope" : {
+                "xmax" : 40.232,
+                "xmin" : 40.232,
+                "ymax" : -53.2356,
+                "ymin" : -53.2356
+            },
+            "files" : [
+                "06_W7a8d0d7dd46648c29960d763ccd45b7d.parquet"
+            ],
+            "name" : "2015/06",
+            "timestamp" : 1556195540213
+        },
+        {
+            "action" : "Add",
+            "count" : 1,
+            "envelope" : {
+                "xmax" : -100.2365,
+                "xmin" : -100.2365,
+                "ymax" : 23.0,
+                "ymin" : 23.0
+            },
+            "files" : [
+                "05_W10faf41d091a4b2ca81b3211c8234151.parquet"
+            ],
+            "name" : "2015/05",
+            "timestamp" : 1556195540187
+        },
+        {
+            "action" : "Add",
+            "count" : 1,
+            "envelope" : {
+                "xmax" : 3.0,
+                "xmin" : 3.0,
+                "ymax" : -62.23,
+                "ymin" : -62.23
+            },
+            "files" : [
+                "10_W0005d8ad0bb74182878e7e11917e5605.parquet"
+            ],
+            "name" : "2015/10",
+            "timestamp" : 1556195540207
+        }
+    ]
+}

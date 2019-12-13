@@ -1,0 +1,6 @@
+org.locationtech.geomesa.convert2.validators.CqlValidatorFactory
+org.locationtech.geomesa.convert2.validators.HasDtgValidatorFactory
+org.locationtech.geomesa.convert2.validators.HasGeoValidatorFactory
+org.locationtech.geomesa.convert2.validators.IndexValidatorFactory
+org.locationtech.geomesa.convert2.validators.NoneValidatorFactory
+org.locationtech.geomesa.convert2.validators.IndexValidatorFactory$ZIndexValidatorFactory

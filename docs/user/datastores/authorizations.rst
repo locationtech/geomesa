@@ -1,7 +1,7 @@
 .. _authorizations:
 
-DataStore Authorizations
-------------------------
+Authorizations
+--------------
 
 When performing a query using the Accumulo or HBase datastore, GeoMesa delegates the retrieval of authorizations to
 ``service providers`` that implement the following interface:
@@ -33,7 +33,7 @@ When performing a query using the Accumulo or HBase datastore, GeoMesa delegates
 When a GeoMesa data store is instantiated, it will scan for available service providers
 via Java SPI. Third-party implementations can be enabled by placing them on the classpath
 and including a special service descriptor file. See the
-`Oracle Javadoc <http://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html>`__
+`Oracle Javadoc <http://docs.oracle.com/javase/8/docs/api/java/util/ServiceLoader.html>`__
 for details on implementing a service provider.
 
 The GeoMesa data store will call ``configure()`` on the ``AuthorizationsProvider``
@@ -50,19 +50,19 @@ provider class to use can be specified by the following system property:
     org.locationtech.geomesa.security.AuthorizationsProvider.AUTH_PROVIDER_SYS_PROPERTY
 
 For simple scenarios, the set of authorizations to apply to all queries can be specified when creating
-the GeoMesa data store by using the ``auths`` configuration parameter. This will use a
+the GeoMesa data store by using the ``geomesa.security.auths`` configuration parameter. This will use a
 default ``AuthorizationsProvider`` implementation provided by GeoMesa.
 
 .. code-block:: java
 
     // create a map containing initialization data for the GeoMesa data store
     Map<String, String> configuration = ...
-    configuration.put("auths", "user,admin");
+    configuration.put("geomesa.security.auths", "user,admin");
     DataStore dataStore = DataStoreFinder.getDataStore(configuration);
 
-If there are no ``AuthorizationsProvider`` implementations found on the classpath, and the ``auths`` parameter is
-not set, GeoMesa will default to using the authorizations associated with the underlying Accumulo or HBase
-connection (i.e. the ``user`` configuration value).
+If there are no ``AuthorizationsProvider`` implementations found on the classpath, and the ``geomesa.security.auths``
+parameter is not set, GeoMesa will default to using the authorizations associated with the underlying Accumulo or HBase
+connection (i.e. the ``accumulo.user`` configuration value).
 
 .. warning::
 

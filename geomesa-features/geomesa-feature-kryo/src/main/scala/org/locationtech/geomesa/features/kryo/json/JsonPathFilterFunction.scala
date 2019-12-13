@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features.kryo.json
 
@@ -20,7 +20,7 @@ class JsonPathFilterFunction extends FunctionExpressionImpl(
   new FunctionNameImpl("jsonPath",
     parameter("value", classOf[String]),
     parameter("path", classOf[String]))
-  ) with SimpleFeaturePropertyAccessor with LazyLogging with VolatileFunction {
+  ) with LazyLogging with VolatileFunction {
 
   override def evaluate(obj: java.lang.Object): AnyRef = {
     val sf = try {
@@ -30,7 +30,7 @@ class JsonPathFilterFunction extends FunctionExpressionImpl(
         s"Only simple features are supported. ${obj.toString}", e)
     }
     val path = getExpression(0).evaluate(null).asInstanceOf[String]
-    getAccessor(sf, path) match {
+    SimpleFeaturePropertyAccessor.getAccessor(sf, path) match {
       case Some(a) => a.get(sf, path, classOf[AnyRef])
       case None    => throw new RuntimeException(s"Can't handle property '$name' for feature type " +
         s"${sf.getFeatureType.getTypeName} ${SimpleFeatureTypes.encodeType(sf.getFeatureType)}")

@@ -1,27 +1,33 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert.json
 
 import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 import java.util.{Date, UUID}
 
 import com.typesafe.config.ConfigFactory
-import com.vividsolutions.jts.geom._
+import org.locationtech.jts.geom._
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class JsonConverterTest extends Specification {
+
+  import scala.collection.JavaConverters._
+
+  sequential
 
   val sftConfPoint = ConfigFactory.parseString(
     """{ type-name = "jsonFeatureType"
@@ -112,17 +118,18 @@ class JsonConverterTest extends Specification {
       val pt1 = new Point(new Coordinate(0, 0), new PrecisionModel(PrecisionModel.FIXED), 4326)
       val pt2 = new Point(new Coordinate(1, 1), new PrecisionModel(PrecisionModel.FIXED), 4326)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.processInput(Iterator(jsonStr)).toList
-      features must haveLength(2)
-      features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features(0).getDefaultGeometry must be equalTo pt1
-      features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
-      features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-      features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getDefaultGeometry must be equalTo pt2
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        features must haveLength(2)
+        features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features(0).getDefaultGeometry must be equalTo pt1
+        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+        features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+        features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+        features(1).getDefaultGeometry must be equalTo pt2
+      }
     }
 
     // NB: To enable this feature, we are reading the JSON path relative from the global context and the 'feature path'.
@@ -177,17 +184,18 @@ class JsonConverterTest extends Specification {
       val pt1 = new Point(new Coordinate(4, 5), new PrecisionModel(PrecisionModel.FIXED), 4326)
       val pt2 = new Point(new Coordinate(4, 5), new PrecisionModel(PrecisionModel.FIXED), 4326)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.processInput(Iterator(jsonStr)).toList
-      features must haveLength(2)
-      features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features(0).getDefaultGeometry must be equalTo pt1
-      features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
-      features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-      features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getDefaultGeometry must be equalTo pt2
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        features must haveLength(2)
+        features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features(0).getDefaultGeometry must be equalTo pt1
+        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+        features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+        features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+        features(1).getDefaultGeometry must be equalTo pt2
+      }
     }
 
     "parse in single line-mode" >> {
@@ -256,17 +264,18 @@ class JsonConverterTest extends Specification {
       val pt1 = new Point(new Coordinate(0, 0), new PrecisionModel(PrecisionModel.FIXED), 4326)
       val pt2 = new Point(new Coordinate(1, 1), new PrecisionModel(PrecisionModel.FIXED), 4326)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.process(new ByteArrayInputStream(jsonStr.getBytes)).toList
-      features must haveLength(2)
-      features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features(0).getDefaultGeometry must be equalTo pt1
-      features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
-      features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-      features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getDefaultGeometry must be equalTo pt2
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes)))(_.toList)
+        features must haveLength(2)
+        features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features(0).getDefaultGeometry must be equalTo pt1
+        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+        features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+        features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+        features(1).getDefaultGeometry must be equalTo pt2
+      }
     }
 
     "parse in multi line-mode" >> {
@@ -325,17 +334,18 @@ class JsonConverterTest extends Specification {
       val pt1 = new Point(new Coordinate(0, 0), new PrecisionModel(PrecisionModel.FIXED), 4326)
       val pt2 = new Point(new Coordinate(1, 1), new PrecisionModel(PrecisionModel.FIXED), 4326)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.process(new ByteArrayInputStream(jsonStr.getBytes)).toList
-      features must haveLength(2)
-      features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features(0).getDefaultGeometry must be equalTo pt1
-      features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
-      features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-      features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getDefaultGeometry must be equalTo pt2
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes)))(_.toList)
+        features must haveLength(2)
+        features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features(0).getDefaultGeometry must be equalTo pt1
+        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+        features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+        features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+        features(1).getDefaultGeometry must be equalTo pt2
+      }
     }
 
     "parse nested feature nodes" >> {
@@ -394,17 +404,18 @@ class JsonConverterTest extends Specification {
       val pt1 = new Point(new Coordinate(0, 0), new PrecisionModel(PrecisionModel.FIXED), 4326)
       val pt2 = new Point(new Coordinate(1, 1), new PrecisionModel(PrecisionModel.FIXED), 4326)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.processInput(Iterator(jsonStr)).toList
-      features must haveLength(2)
-      features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features(0).getDefaultGeometry must be equalTo pt1
-      features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
-      features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-      features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-      features(1).getDefaultGeometry must be equalTo pt2
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        features must haveLength(2)
+        features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features(0).getDefaultGeometry must be equalTo pt1
+        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+        features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+        features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+        features(1).getDefaultGeometry must be equalTo pt2
+      }
     }
 
     "use an ID hash for each node" >> {
@@ -460,10 +471,11 @@ class JsonConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.processInput(Iterator(jsonStr)).toList
-      features(0).getID must be equalTo "a159e39826218d193761dc4480e8eb95"
-      features(1).getID must be equalTo "5ad94a63c273eac62689c636ea1ba408"
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        features(0).getID must be equalTo "a159e39826218d193761dc4480e8eb95"
+        features(1).getID must be equalTo "5ad94a63c273eac62689c636ea1ba408"
+      }
 
     }
 
@@ -484,7 +496,7 @@ class JsonConverterTest extends Specification {
             |        id: 2,
             |        number: 456,
             |        color: "blue",
-                     "geometry": "Point ( 101 102)"
+                     "geometry": "Point (101 89)"
             |      }
             |    ]
             | }
@@ -506,18 +518,19 @@ class JsonConverterTest extends Specification {
           """.stripMargin)
 
         val pt1 = new Point(new Coordinate(55, 56), new PrecisionModel(PrecisionModel.FIXED), 4326)
-        val pt2 = new Point(new Coordinate(101, 102), new PrecisionModel(PrecisionModel.FIXED), 4326)
+        val pt2 = new Point(new Coordinate(101, 89), new PrecisionModel(PrecisionModel.FIXED), 4326)
 
-        val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-        val features = converter.processInput(Iterator(jsonStr)).toList
-        features must haveLength(2)
-        features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
-        features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
-        features(0).getDefaultGeometry must be equalTo pt1
+        WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+          val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
+          features must haveLength(2)
+          features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
+          features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
+          features(0).getDefaultGeometry must be equalTo pt1
 
-        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
-        features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-        features(1).getDefaultGeometry must be equalTo pt2
+          features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+          features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+          features(1).getDefaultGeometry must be equalTo pt2
+        }
       }
 
       "allow specific sft geom and cast into it" >> {
@@ -535,7 +548,7 @@ class JsonConverterTest extends Specification {
             |        id: 2,
             |        number: 456,
             |        color: "blue",
-                     "geometry": "LineString ( 101 102, 200 200)"
+                     "geometry": "LineString ( 101 89, 102 88)"
             |      }
             |    ]
             | }
@@ -556,17 +569,15 @@ class JsonConverterTest extends Specification {
             | }
           """.stripMargin)
 
-        val pt1 = new Point(new Coordinate(55, 56), new PrecisionModel(PrecisionModel.FIXED), 4326)
-        val pt2 = new Point(new Coordinate(101, 102), new PrecisionModel(PrecisionModel.FIXED), 4326)
+        WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+          val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
+          features must haveLength(2)
+          features(0).getDefaultGeometry must beAnInstanceOf[LineString]
+          features(0).getDefaultGeometry mustEqual WKTUtils.read("LineString (55 56, 56 57)")
 
-        val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-        val features = converter.processInput(Iterator(jsonStr)).toList
-        features must haveLength(2)
-        features(0).getDefaultGeometry must beAnInstanceOf[LineString]
-        features(0).getDefaultGeometry mustEqual WKTUtils.read("LineString (55 56, 56 57)")
-
-        features(1).getDefaultGeometry must beAnInstanceOf[LineString]
-        features(1).getDefaultGeometry mustEqual WKTUtils.read("LineString ( 101 102, 200 200)")
+          features(1).getDefaultGeometry must beAnInstanceOf[LineString]
+          features(1).getDefaultGeometry mustEqual WKTUtils.read("LineString (101 89, 102 88)")
+        }
       }
 
       "parse points" >> {
@@ -584,7 +595,7 @@ class JsonConverterTest extends Specification {
                 |        id: 2,
                 |        number: 456,
                 |        color: "blue",
-                         "geometry": "Point ( 101 102)"
+                         "geometry": "Point ( 101 89)"
                 |      }
                 |    ]
                 | }
@@ -606,18 +617,19 @@ class JsonConverterTest extends Specification {
           """.stripMargin)
 
         val pt1 = new Point(new Coordinate(55, 56), new PrecisionModel(PrecisionModel.FIXED), 4326)
-        val pt2 = new Point(new Coordinate(101, 102), new PrecisionModel(PrecisionModel.FIXED), 4326)
+        val pt2 = new Point(new Coordinate(101, 89), new PrecisionModel(PrecisionModel.FIXED), 4326)
 
-        val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-        val features = converter.processInput(Iterator(jsonStr)).toList
-        features must haveLength(2)
-        features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
-        features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
-        features(0).getDefaultGeometry must be equalTo pt1
-
-        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
-        features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-        features(1).getDefaultGeometry must be equalTo pt2
+        WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+          val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
+          features must haveLength(2)
+          features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
+          features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
+          features(0).getDefaultGeometry must be equalTo pt1
+  
+          features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+          features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+          features(1).getDefaultGeometry must be equalTo pt2
+        }
       }
 
       "parse mixed geometry" >> {
@@ -691,26 +703,27 @@ class JsonConverterTest extends Specification {
         val lineStr1 = geoFac.createLineString(Seq((102, 0), (103, 1), (104, 0), (105, 1)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
         val poly1 = geoFac.createPolygon(Seq((100, 0), (101, 0), (101, 1), (100, 1), (100, 0)).map{ case (x,y) => new Coordinate(x, y)}.toArray)
 
-        val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-        val features = converter.processInput(Iterator(jsonStr)).toList
-        features must haveLength(3)
-        features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
-        features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
-        features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-        features(0).getDefaultGeometry must beAnInstanceOf[Point]
-        features(0).getDefaultGeometry must be equalTo pt1
+        WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+          val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
+          features must haveLength(3)
+          features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
+          features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
+          features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+          features(0).getDefaultGeometry must beAnInstanceOf[Point]
+          features(0).getDefaultGeometry must be equalTo pt1
 
-        features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
-        features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
-        features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
-        features(1).getDefaultGeometry must beAnInstanceOf[LineString]
-        features(1).getDefaultGeometry must be equalTo lineStr1
+          features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
+          features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
+          features(1).getAttribute("weight").asInstanceOf[Double] mustEqual 150
+          features(1).getDefaultGeometry must beAnInstanceOf[LineString]
+          features(1).getDefaultGeometry must be equalTo lineStr1
 
-        features(2).getAttribute("number").asInstanceOf[Integer] mustEqual 789
-        features(2).getAttribute("color").asInstanceOf[String] mustEqual "green"
-        features(2).getAttribute("weight").asInstanceOf[Double] mustEqual 185
-        features(2).getDefaultGeometry must be equalTo poly1
-        features(2).getDefaultGeometry must beAnInstanceOf[Polygon]
+          features(2).getAttribute("number").asInstanceOf[Integer] mustEqual 789
+          features(2).getAttribute("color").asInstanceOf[String] mustEqual "green"
+          features(2).getAttribute("weight").asInstanceOf[Double] mustEqual 185
+          features(2).getDefaultGeometry must be equalTo poly1
+          features(2).getDefaultGeometry must beAnInstanceOf[Polygon]
+        }
       }
 
       "parse time in seconds" >> {
@@ -734,13 +747,14 @@ class JsonConverterTest extends Specification {
             | }
           """.stripMargin)
 
-        val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-        val features = converter.processInput(Iterator(jsonStr)).toList
-        features must haveLength(1)
-        val f = features.head
-        f.getAttribute("number") mustEqual 123
-        f.getAttribute("dtg") mustEqual new Date(1000000)
-        f.getDefaultGeometry.toString mustEqual "POINT (0 0)"
+        WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+          val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
+          features must haveLength(1)
+          val f = features.head
+          f.getAttribute("number") mustEqual 123
+          f.getAttribute("dtg") mustEqual new Date(1000000)
+          f.getDefaultGeometry.toString mustEqual "POINT (0 0)"
+        }
       }
     }
 
@@ -774,12 +788,13 @@ class JsonConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val ec = converter.createEvaluationContext()
-      val features = converter.processInput(Iterator(jsonStr), ec).toList
-      features must haveLength(0)
-      ec.counter.getSuccess mustEqual 0
-      ec.counter.getFailure mustEqual 1
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val ec = converter.createEvaluationContext()
+        val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
+        features must haveLength(0)
+        ec.counter.getSuccess mustEqual 0
+        ec.counter.getFailure mustEqual 1
+      }
     }
 
     "parse and convert json arrays into lists" >> {
@@ -810,11 +825,10 @@ class JsonConverterTest extends Specification {
           |        "things": [
           |          {
           |            "s": "s1",
-          |            "i": 1,
           |            "d": 1.1,
           |            "u": "12345678-1234-1234-1234-123456781234"
           |          },
-                     {
+          |          {
           |            "s": "s2",
           |            "i": 2,
           |            "d": 2.2,
@@ -833,7 +847,7 @@ class JsonConverterTest extends Specification {
           |      {
           |        "id": 1,
           |        "geometry": {"type": "Point", "coordinates": [55, 56]},
-          |        "i": [1, 2],
+          |        "i": [2],
           |        "d": [1.1, 2.2],
           |        "s": ["s1", "s2"],
           |        "u": ["12345678-1234-1234-1234-123456781234", "00000000-0000-0000-0000-000000000000"]
@@ -877,29 +891,31 @@ class JsonConverterTest extends Specification {
         """.stripMargin)
 
       forall(List((nestedJson, nestedConf),(simpleJson, simpleConf))) { case (json, conf) =>
-        val converter = SimpleFeatureConverters.build[String](advSft, conf)
-        val ec = converter.createEvaluationContext()
-        val features = converter.processInput(Iterator(json), ec).toList
-        features must haveLength(1)
-        ec.counter.getSuccess mustEqual 1
-        ec.counter.getFailure mustEqual 0
+        WithClose(SimpleFeatureConverter(advSft, conf)) { converter =>
+          import scala.collection.JavaConversions._
 
-        import scala.collection.JavaConversions._
-        val f = features.head
+          val ec = converter.createEvaluationContext()
+          val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
+          features must haveLength(1)
+          ec.counter.getSuccess mustEqual 1
+          ec.counter.getFailure mustEqual 0
 
-        f.getAttribute("sList") must beAnInstanceOf[java.util.List[String]]
-        f.getAttribute("sList").asInstanceOf[java.util.List[String]].toSeq must containTheSameElementsAs(Seq("s1", "s2"))
+          val f = features.head
 
-        f.getAttribute("iList") must beAnInstanceOf[java.util.List[Integer]]
-        f.getAttribute("iList").asInstanceOf[java.util.List[Integer]].toSeq must containTheSameElementsAs(Seq(1, 2))
+          f.getAttribute("sList") must beAnInstanceOf[java.util.List[String]]
+          f.getAttribute("sList").asInstanceOf[java.util.List[String]].toSeq must containTheSameElementsAs(Seq("s1", "s2"))
 
-        f.getAttribute("dList") must beAnInstanceOf[java.util.List[Double]]
-        f.getAttribute("dList").asInstanceOf[java.util.List[Double]].toSeq must containTheSameElementsAs(Seq(1.1, 2.2))
+          f.getAttribute("iList") must beAnInstanceOf[java.util.List[Integer]]
+          f.getAttribute("iList").asInstanceOf[java.util.List[Integer]].toSeq must containTheSameElementsAs(Seq(2))
 
-        f.getAttribute("uList") must beAnInstanceOf[java.util.List[UUID]]
-        f.getAttribute("uList").asInstanceOf[java.util.List[UUID]].toSeq must containTheSameElementsAs(
-          Seq(UUID.fromString("12345678-1234-1234-1234-123456781234"),
-            UUID.fromString("00000000-0000-0000-0000-000000000000")))
+          f.getAttribute("dList") must beAnInstanceOf[java.util.List[Double]]
+          f.getAttribute("dList").asInstanceOf[java.util.List[Double]].toSeq must containTheSameElementsAs(Seq(1.1, 2.2))
+
+          f.getAttribute("uList") must beAnInstanceOf[java.util.List[UUID]]
+          f.getAttribute("uList").asInstanceOf[java.util.List[UUID]].toSeq must containTheSameElementsAs(
+            Seq(UUID.fromString("12345678-1234-1234-1234-123456781234"),
+              UUID.fromString("00000000-0000-0000-0000-000000000000")))
+        }
       }
     }
 
@@ -961,38 +977,42 @@ class JsonConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](mapSft, mapConf)
-      val ec = converter.createEvaluationContext()
-      val features = converter.processInput(Iterator(json), ec).toList
-      features must haveLength(1)
-      ec.counter.getSuccess mustEqual 1
-      ec.counter.getFailure mustEqual 0
+      WithClose(SimpleFeatureConverter(mapSft, mapConf)) { converter =>
+        import java.util.{Map => JMap}
 
-      import scala.collection.JavaConversions._
-      val f = features.head
+        import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
 
-      import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
-      import java.util.{Map => JMap}
+        import scala.collection.JavaConversions._
 
-      val m = f.get[JMap[String,String]]("map1")
-      m must beAnInstanceOf[JMap[String,String]]
-      m.size() mustEqual 2
-      m("a") mustEqual "val1"
-      m("b") mustEqual "val2"
+        val ec = converter.createEvaluationContext()
+        val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
+        features must haveLength(1)
+        ec.counter.getSuccess mustEqual 1
+        ec.counter.getFailure mustEqual 0
 
-      val m2 = f.get[JMap[String,String]]("map2")
-      m2 must beAnInstanceOf[JMap[String,String]]
-      m2.size mustEqual 3
-      m2("a") mustEqual "1.0"
-      m2("b") mustEqual "foobar"
-      m2("c") mustEqual "false"
 
-      val m3 = f.get[JMap[Int,Boolean]]("map3")
-      m3 must beAnInstanceOf[JMap[Int,Boolean]]
-      m3.size mustEqual 3
-      m3(1) mustEqual true
-      m3(2) mustEqual false
-      m3(3) mustEqual true
+        val f = features.head
+
+        val m = f.get[JMap[String,String]]("map1")
+        m must beAnInstanceOf[JMap[String,String]]
+        m.size() mustEqual 2
+        m("a") mustEqual "val1"
+        m("b") mustEqual "val2"
+
+        val m2 = f.get[JMap[String,String]]("map2")
+        m2 must beAnInstanceOf[JMap[String,String]]
+        m2.size mustEqual 3
+        m2("a") mustEqual "1.0"
+        m2("b") mustEqual "foobar"
+        m2("c") mustEqual "false"
+
+        val m3 = f.get[JMap[Int,Boolean]]("map3")
+        m3 must beAnInstanceOf[JMap[Int,Boolean]]
+        m3.size mustEqual 3
+        m3(1) mustEqual true
+        m3(2) mustEqual false
+        m3(3) mustEqual true
+      }
     }
 
     "parse user data" >> {
@@ -1038,14 +1058,15 @@ class JsonConverterTest extends Specification {
 
       val pt1 = new Point(new Coordinate(0, 0), new PrecisionModel(PrecisionModel.FIXED), 4326)
 
-      val converter = SimpleFeatureConverters.build[String](sft, parserConf)
-      val features = converter.processInput(Iterator(jsonStr)).toList
-      features must haveLength(1)
-      features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
-      features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
-      features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
-      features(0).getDefaultGeometry must be equalTo pt1
-      features(0).getUserData.get("my.user.key") mustEqual "red"
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8))))(_.toList)
+        features must haveLength(1)
+        features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
+        features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
+        features(0).getAttribute("weight").asInstanceOf[Double] mustEqual 127.5
+        features(0).getDefaultGeometry must be equalTo pt1
+        features(0).getUserData.get("my.user.key") mustEqual "red"
+      }
     }
 
     "parse longs, booleans, int, double, float" >> {
@@ -1094,22 +1115,250 @@ class JsonConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[String](typeSft, typeConf)
-      val ec = converter.createEvaluationContext()
-      val features = converter.processInput(Iterator(json), ec).toList
-      features must haveLength(1)
-      ec.counter.getSuccess mustEqual 1
-      ec.counter.getFailure mustEqual 0
+      WithClose(SimpleFeatureConverter(typeSft, typeConf)) { converter =>
+        val ec = converter.createEvaluationContext()
+        val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
+        features must haveLength(1)
+        ec.counter.getSuccess mustEqual 1
+        ec.counter.getFailure mustEqual 0
+        val f = features.head
 
-      import scala.collection.JavaConversions._
-      val f = features.head
+        import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
+        f.get[Int]("i") mustEqual 1
+        f.get[Long]("l") mustEqual Long.MaxValue
+        f.get[Double]("d") mustEqual 1.7976931348623157E8
+        f.get[Float]("f") mustEqual 1.023f
+        f.get[Boolean]("b") mustEqual false
+      }
+    }
 
-      import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
-      f.get[Int]("i") mustEqual 1
-      f.get[Long]("l") mustEqual Long.MaxValue
-      f.get[Double]("d") mustEqual 1.7976931348623157E8
-      f.get[Float]("f") mustEqual 1.023f
-      f.get[Boolean]("b") mustEqual false
+    "parse missing values as null" >> {
+      val sft = SimpleFeatureTypes.createType("foo", "name:String,*geom:Point:srid=4326")
+      val json = Seq(
+        """{ "lat": 0, "lon": 0, "properties": { "name": "name1" } }""",
+        """{ "lat": 0, "lon": 0, "properties": { "name": null } }""",
+        """{ "lat": 0, "lon": 0, "properties": {} }""",
+        """{ "lat": 0, "lon": 0 }"""
+      ).mkString("\n")
+
+      val parserConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type = "json"
+          |   options = {
+          |     line-mode = "single"
+          |   }
+          |   fields = [
+          |     { name = "name", json-type = "string", path = "$.properties.name", }
+          |     { name = "lat",  json-type = "double", path = "$.lat",             }
+          |     { name = "lon",  json-type = "double", path = "$.lon",             }
+          |     { name = "geom", transform = "point($lon, $lat)"                   }
+          |   ]
+          | }
+        """.stripMargin)
+
+      WithClose(SimpleFeatureConverter(sft, parserConf)) { converter =>
+        val in = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+        val features = WithClose(converter.process(in))(_.toList)
+        features must haveLength(4)
+        features.map(_.getAttribute("name")) mustEqual Seq("name1", null, null, null)
+      }
+    }
+
+    "handle invalid input" >> {
+      val typeSft = SimpleFeatureTypes.createType("foo", "i:Long")
+
+      val json = "{ foobarbaz"
+
+      val typeConf = ConfigFactory.parseString(
+        """
+          | {
+          |   type         = "json"
+          |   id-field     = "md5(string2bytes(json2string($0)))"
+          |   fields = [
+          |     { name = "i", json-type = "integer",  path = "$.i", transform = "$0::long" }
+          |   ]
+          | }
+        """.stripMargin)
+
+      WithClose(SimpleFeatureConverter(typeSft, typeConf)) { converter =>
+        val ec = converter.createEvaluationContext()
+        val iter = converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec)
+        val features = iter.toList
+        features must haveLength(0)
+        ec.counter.getSuccess mustEqual 0
+        ec.counter.getFailure mustEqual 1
+      }
+    }
+
+    "parse geojson geometries" >> {
+      // geojson examples from wikipedia
+      val sft = SimpleFeatureTypes.createType("geojson", "*geom:Geometry:srid=4326")
+      val input = Seq(
+        """{ "type":"Feature","geometry":{"type":"Point","coordinates":[30,10]}}""",
+        """{ "type":"Feature","geometry":{"type":"LineString","coordinates":[[30,10],[10,30],[40,40]]}}""",
+        """{ "type":"Feature","geometry":{"type":"Polygon","coordinates":[[[30,10],[40,40],[20,40],[10,20],[30,10]]]}}""",
+        """{ "type":"Feature","geometry":{"type":"Polygon","coordinates":[[[35,10],[45,45],[15,40],[10,20],[35,10]],[[20,30],[35,35],[30,20],[20,30]]]}}""",
+        """{ "type":"Feature","geometry":{"type":"MultiPoint","coordinates":[[10,40],[40,30],[20,20],[30,10]]}}""",
+        """{ "type":"Feature","geometry":{"type":"MultiLineString","coordinates":[[[10,10],[20,20],[10,40]],[[40,40],[30,30],[40,20],[30,10]]]}}""",
+        """{ "type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[30,20],[45,40],[10,40],[30,20]]],[[[15,5],[40,10],[10,20],[5,10],[15,5]]]]}}""",
+        """{ "type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[40,40],[20,45],[45,30],[40,40]]],[[[20,35],[10,30],[10,10],[30,5],[45,20],[20,35]],[[30,20],[20,15],[20,25],[30,20]]]]}}"""
+      ).mkString("\n")
+
+      val conf = ConfigFactory.parseString(
+        """
+          | {
+          |   type = "json"
+          |   id-field = "md5(string2bytes(json2string($0)))"
+          |   fields = [
+          |     { name = "geom", json-type = "geometry",  path = "$.geometry" }
+          |   ]
+          | }
+        """.stripMargin)
+      WithClose(SimpleFeatureConverter(sft, conf)) { converter =>
+        val ec = converter.createEvaluationContext()
+        val in = new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8))
+        val features = WithClose(converter.process(in, ec))(_.toList)
+        features must haveLength(8)
+        forall(features)(_.getDefaultGeometry must not(beNull))
+      }
+    }
+
+    "infer schema from geojson files" >> {
+      val json =
+        """{
+          |  "type": "FeatureCollection",
+          |  "features": [
+          |    {
+          |      "type": "Feature",
+          |      "geometry": {
+          |        "type": "Point",
+          |        "coordinates": [41.0, 51.0]
+          |      },
+          |      "properties": {
+          |        "name": "name1"
+          |      }
+          |    },
+          |    {
+          |      "type": "Feature",
+          |      "geometry": {
+          |        "type": "Point",
+          |        "coordinates": [42.0, 52.0]
+          |      },
+          |      "properties": {
+          |        "name": "name2",
+          |        "demographics": {
+          |          "age": 2
+          |        }
+          |      }
+          |    },
+          |    {
+          |      "type": "Feature",
+          |      "geometry": {
+          |        "type": "Point",
+          |        "coordinates": [43.0, 53.0]
+          |      },
+          |      "properties": {
+          |        "name": "name3",
+          |        "demographics": {
+          |          "age": 3
+          |        }
+          |      }
+          |    }
+          |  ]
+          |}
+        """.stripMargin
+
+      def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+
+      val inferred = new JsonConverterFactory().infer(bytes)
+
+      inferred must beSome
+
+      val sft = inferred.get._1
+      sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
+          Seq(("name", classOf[String]), ("demographics_age", classOf[Integer]), ("geom", classOf[Point]))
+
+      WithClose(SimpleFeatureConverter(sft, inferred.get._2)) { converter =>
+        converter must not(beNull)
+
+        val features = WithClose(converter.process(bytes))(_.toList)
+        features must haveLength(3)
+
+        val expected = Seq(
+          Seq("name1", null, WKTUtils.read("POINT (41 51)")),
+          Seq("name2", 2, WKTUtils.read("POINT (42 52)")),
+          Seq("name3", 3, WKTUtils.read("POINT (43 53)"))
+        )
+        features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
+      }
+    }
+
+    "infer schemas with empty attributes" in {
+      val json = Seq(
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[164.2,-48.6732]},"properties":{"A":"foo"}}]}""",
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[154.3,-38.6832]},"properties":{"A":""}}]}""",
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[152.3,-38.7832]},"properties":{"A":"bar"}}]}"""
+      ).mkString("\n")
+
+      def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+
+      val inferred = new JsonConverterFactory().infer(bytes)
+
+      inferred must beSome
+
+      val sft = inferred.get._1
+      sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
+          Seq(("A", classOf[String]), ("geom", classOf[Point]))
+
+      WithClose(SimpleFeatureConverter(sft, inferred.get._2)) { converter =>
+        converter must not(beNull)
+
+        val features = WithClose(converter.process(bytes))(_.toList)
+        features must haveLength(3)
+
+        val expected = Seq(
+          Seq("foo", WKTUtils.read("POINT (164.2 -48.6732)")),
+          Seq("",    WKTUtils.read("POINT (154.3 -38.6832)")),
+          Seq("bar", WKTUtils.read("POINT (152.3 -38.7832)"))
+        )
+        features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
+      }
+    }
+
+    "infer schemas with three dimensional points" in {
+      val json = Seq(
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[164.2,-48.6732]},"properties":{"A":"foo"}}]}""",
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[154.3,-38.6832,500.2]},"properties":{"A":"bar"}}]}""",
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[152.3,-38.7832]},"properties":{"A":"baz"}}]}"""
+      ).mkString("\n")
+
+      def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+
+      val inferred = new JsonConverterFactory().infer(bytes)
+
+      inferred must beSome
+
+      val sft = inferred.get._1
+      sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
+          Seq(("A", classOf[String]), ("geom", classOf[Point]))
+
+      WithClose(SimpleFeatureConverter(sft, inferred.get._2)) { converter =>
+        converter must not(beNull)
+
+        val features = WithClose(converter.process(bytes))(_.toList)
+        features must haveLength(3)
+
+        val expected = Seq(
+          Seq("foo", WKTUtils.read("POINT (164.2 -48.6732)")),
+          Seq("bar", WKTUtils.read("POINT (154.3 -38.6832 500.2)")),
+          Seq("baz", WKTUtils.read("POINT (152.3 -38.7832)"))
+        )
+        features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
+        foreach(features.zip(expected)) { case (f, e) =>
+          f.getAttribute(1).asInstanceOf[Point].getCoordinate.equals3D(e(1).asInstanceOf[Point].getCoordinate) must beTrue
+        }
+      }
     }
   }
 }

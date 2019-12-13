@@ -1,17 +1,17 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.stats
 
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.{Date, Locale}
 
-import com.vividsolutions.jts.geom.{Coordinate, Geometry, Point}
+import org.locationtech.jts.geom.{Coordinate, Geometry, Point}
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.sfcurve.zorder.Z2
@@ -218,7 +218,7 @@ class BinnedGeometryArray(length: Int, bounds: (Geometry, Geometry))
       case p: Point => p
       case g => g.safeCentroid()
     }
-    Z2SFC.index(centroid.getX, centroid.getY).z
+    Z2SFC.index(centroid.getX, centroid.getY, lenient = true).z
   }
 
   override protected def convertFromLong(value: Long): Geometry = {
@@ -327,11 +327,11 @@ class BinnedStringArray(length: Int, rawBounds: (String, String))
 
 object BinnedStringArray {
 
-  val Base36Chars   = (0 until 36).map(Integer.toString(_, 36).toLowerCase(Locale.US).charAt(0)).toArray
-  val Base36Lowest  = Base36Chars.head
-  val Base36Highest = Base36Chars.last
+  private val Base36Chars = (0 until 36).map(Integer.toString(_, 36).toLowerCase(Locale.US).charAt(0)).toArray
+  val Base36Lowest: Char  = Base36Chars.head
+  val Base36Highest: Char = Base36Chars.last
 
-  def normalize(s: String) = s.toLowerCase(Locale.US).replaceAll("[^0-9a-z]", Base36Lowest.toString)
+  def normalize(s: String): String = s.toLowerCase(Locale.US).replaceAll("[^0-9a-z]", Base36Lowest.toString)
 
   def normalizeBounds(bounds: (String, String)): (String, String) = {
     val length = math.max(bounds._1.length, bounds._2.length)

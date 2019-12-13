@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.tools.data
 
@@ -57,8 +57,8 @@ trait RemoveSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
     }
   }
 
-  protected def promptConfirm(featureNames: Seq[String]) =
-    Prompt.confirm(s"Remove schema(s) ${featureNames.mkString(", ")}? (yes/no): ")
+  protected def promptConfirm(featureNames: Seq[String]): Boolean =
+    Prompt.confirm(s"Remove schema(s) ${featureNames.mkString(", ")} (y/n)? ")
 
 }
 

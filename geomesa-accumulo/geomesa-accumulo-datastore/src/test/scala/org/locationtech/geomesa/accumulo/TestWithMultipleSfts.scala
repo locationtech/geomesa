@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo
 
@@ -13,23 +13,20 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index._
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.index.utils.ExplainString
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.identity.FeatureId
 import org.specs2.mutable.Specification
-import org.specs2.specification.{Fragments, Step}
+import org.specs2.specification.core.Fragments
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
-import scala.util.Try
 
 /**
  * Trait to simplify tests that require reading and writing features from an AccumuloDataStore
@@ -44,29 +41,23 @@ trait TestWithMultipleSfts extends Specification {
   val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
 
   val dsParams = Map(
-    "connector" -> connector,
-    "caching"   -> false,
+    AccumuloDataStoreParams.ConnectorParam.key -> connector,
+    AccumuloDataStoreParams.CachingParam.key   -> false,
     // note the table needs to be different to prevent testing errors
-    "tableName" -> sftBaseName)
+    AccumuloDataStoreParams.CatalogParam.key   -> sftBaseName)
 
   val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
 
   // after all tests, drop the tables we created to free up memory
-  override def map(fragments: => Fragments) = fragments ^ Step {
-    val to = connector.tableOperations()
-    val tables = Seq(sftBaseName) ++ sfts.flatMap { sft =>
-      Try(AccumuloFeatureIndex.indices(sft, IndexMode.Any).map(_.getTableName(sft.getTypeName, ds))).getOrElse(Seq.empty)
-    }
-    tables.toSet.filter(to.exists).foreach(to.delete)
+  override def map(fragments: => Fragments): Fragments = fragments ^ fragmentFactory.step {
+    ds.delete()
+    ds.dispose()
   }
 
-  def createNewSchema(spec: String,
-                      dtgField: Option[String] = Some("dtg"),
-                      tableSharing: Boolean = true): SimpleFeatureType = synchronized {
+  def createNewSchema(spec: String, dtgField: Option[String] = Some("dtg")): SimpleFeatureType = synchronized {
     val sftName = sftBaseName + sftCounter.getAndIncrement()
     val sft = SimpleFeatureTypes.createType(sftName, spec)
     dtgField.foreach(sft.setDtgField)
-    sft.setTableSharing(tableSharing)
     ds.createSchema(sft)
     val reloaded = ds.getSchema(sftName) // reload the sft from the ds to ensure all user data is set properly
     sfts += reloaded

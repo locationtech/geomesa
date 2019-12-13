@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.stats
 
@@ -32,7 +32,7 @@ class StatTest extends Specification with StatTestHelper {
       val stat = Stat(sft, Stat.Histogram("foreign_key", 1000, min, max))
       stat must beAnInstanceOf[Histogram[String]]
       val histogram = stat.asInstanceOf[Histogram[String]]
-      histogram.attribute mustEqual 0
+      histogram.property mustEqual "foreign_key"
       histogram.bins.bounds mustEqual BinnedStringArray.normalizeBounds(min, max)
     }
   }

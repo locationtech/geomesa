@@ -1,65 +1,85 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.tools.export.formats
 
 import java.io.File
+import java.net.URL
 
-import org.geotools.data.DataUtilities
+import org.geotools.data.Transaction
+import org.geotools.data.shapefile.files.ShpFiles
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
-import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureStore}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.geotools.util.URLs
+import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.jts.geom.Geometry
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class ShapefileExporter(file: File) extends FeatureExporter {
 
-  override def export(features: SimpleFeatureCollection): Option[Long] = {
-    val url = DataUtilities.fileToURL(file)
-    val factory = new ShapefileDataStoreFactory()
-    val newShapeFile = factory.createDataStore(url).asInstanceOf[ShapefileDataStore]
+  import scala.collection.JavaConverters._
 
-    newShapeFile.createSchema(features.getSchema)
-    val store = newShapeFile.getFeatureSource.asInstanceOf[SimpleFeatureStore]
-    store.addFeatures(features)
-    None
-  }
+  private val url = URLs.fileToUrl(file)
+  private var ds: ShapefileDataStore = _
+  private var mappings: Map[Int, Int] = _
 
-  override def flush(): Unit = {}
-  override def close(): Unit = {}
+  override def start(sft: SimpleFeatureType): Unit = {
+    // ensure that the parent directory exists, otherwise the data store will error out
+    Option(file.getParentFile).filterNot(_.exists()).foreach(_.mkdirs())
+    ds = new ShapefileDataStoreFactory().createDataStore(url).asInstanceOf[ShapefileDataStore]
+    ds.createSchema(sft)
 
-}
-
-object ShapefileExporter {
-
-  // When exporting to Shapefile, we must rename the Geometry Attribute Descriptor to "the_geom", per
-  // the requirements of Geotools' ShapefileDataStore and ShapefileFeatureWriter. The easiest way to do this
-  // is transform the attribute when retrieving the SimpleFeatureCollection.
-  def modifySchema(sft: SimpleFeatureType): Seq[String] = {
-    import scala.collection.JavaConversions._
-    replaceGeom(sft, sft.getAttributeDescriptors.map(_.getLocalName))
-  }
-
-  /**
-    * If the attribute string has the geometry attribute in it, we will replace the name of the
-    * geom descriptor with "the_geom," since that is what Shapefile expect the geom to be named.
-    *
-    * @param attributes attributes
-    * @param sft simple feature type
-    * @return
-    */
-  def replaceGeom(sft: SimpleFeatureType, attributes: Seq[String]): Seq[String] = {
-    if (attributes.exists(_.startsWith("the_geom"))) { attributes } else {
-      val geom = Option(sft.getGeometryDescriptor).map(_.getLocalName).orNull
-      val index = attributes.indexOf(geom)
-      if (index == -1) {
-        attributes :+ s"the_geom=$geom"
-      } else {
-        attributes.updated(index, s"the_geom=$geom")
+    var i = -1
+    var j = 0
+    // map attributes according to the shapefile data store
+    // default geometry goes to attribute 0, other geometries are dropped
+    // byte arrays are dropped, but everything else is kept or transformed
+    // see: `org.geotools.data.shapefile.ShapefileDataStore.createDbaseHeader()`
+    val attributes = sft.getAttributeDescriptors.asScala.flatMap { d =>
+      i += 1
+      val binding = d.getType.getBinding
+      if (classOf[Geometry].isAssignableFrom(binding) || binding == classOf[Array[Byte]] ) { None } else {
+        j += 1
+        Some(i -> j)
       }
     }
+    mappings = attributes.toMap + (sft.indexOf(sft.getGeometryDescriptor.getLocalName) -> 0)
   }
+
+  override def export(features: Iterator[SimpleFeature]): Option[Long] = {
+    var count = 0L
+
+    WithClose(ds.getFeatureWriterAppend(Transaction.AUTO_COMMIT)) { writer =>
+      features.foreach { feature =>
+        val toWrite = writer.next()
+        mappings.foreach { case (from, to) => toWrite.setAttribute(to, feature.getAttribute(from)) }
+        // copy over the user data
+        // note: shapefile doesn't support provided fid
+        toWrite.getUserData.putAll(feature.getUserData)
+        writer.write()
+        count += 1L
+      }
+    }
+
+    Some(count)
+  }
+
+  override def bytes: Long = {
+    val files = new ShpFiles(url)
+    try {
+      var sum = 0L
+      files.getFileNames.asScala.values.foreach { file =>
+        sum += URLs.urlToFile(new URL(file)).length()
+      }
+      sum
+    } finally {
+      files.dispose()
+    }
+  }
+
+  override def close(): Unit = Option(ds).foreach(_.dispose)
 }

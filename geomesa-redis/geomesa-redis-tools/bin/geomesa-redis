@@ -1,0 +1,59 @@
+#! /usr/bin/env bash
+#
+# Copyright (c) 2013-%%copyright.year%% Commonwealth Computer Research, Inc.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0 which
+# accompanies this distribution and is available at
+# http://www.opensource.org/licenses/apache2.0.php.
+#
+
+# Set environment variables in bin/geomesa-env.sh
+
+if [[ -z "${%%gmtools.dist.name%%_HOME}" ]]; then
+  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+fi
+
+# Load common functions and setup
+. "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
+
+# Start constructing GEOMESA_CP (classpath)
+# include geomesa first so that the correct log4j.properties is picked up
+GEOMESA_CP="${GEOMESA_CONF_DIR}:$(findJars $GEOMESA_LIB)"
+
+# Prepend user defined directories to the classpath using java classpath syntax
+# We prepend so that they take precedence when explicitly defined by the user
+if [[ -n "${GEOMESA_EXTRA_CLASSPATHS}" ]]; then
+  GEOMESA_CP="${GEOMESA_EXTRA_CLASSPATHS}:${GEOMESA_CP}"
+fi
+
+CLASSPATH="$GEOMESA_CP"
+
+# Geomesa tools setup completed, below we parse user arguments
+#
+# configure runs the geomesa configuration, sets both the %%gmtools.dist.name%%_HOME and PATH vars
+# classpath prints the class path, ie list of jars we are using
+# else is running actual commands in the tools
+
+if  [[ $1 = configure ]]; then
+  geomesaConfigure
+else
+  if [[ $1 = debug ]]; then
+    GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
+    shift 1
+  fi
+  if [[ $1 = classpath ]]; then
+    for element in ${CLASSPATH//:/ }; do
+      echo ${element}
+    done
+  elif [[ $1 = scala-console ]]; then
+    # scala console requires options to be passed in through java_opts
+    export JAVA_OPTS="${GEOMESA_OPTS} ${CUSTOM_JAVA_OPTS} ${JAVA_OPTS}"
+    geomesaScalaConsole ${CLASSPATH}
+  else
+    if [[ -z "$CUSTOM_JAVA_OPTS" ]]; then
+      # if custom opts are not set, use global default
+      export CUSTOM_JAVA_OPTS="${JAVA_OPTS}"
+    fi
+    java ${GEOMESA_OPTS} ${CUSTOM_JAVA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.redis.tools.RedisRunner "$@"
+  fi
+fi

@@ -1,17 +1,20 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert
 
 import java.io.InputStream
 
+import com.codahale.metrics
 import com.typesafe.config.Config
-import org.locationtech.geomesa.convert.Transformers.{Counter, EvaluationContext, Predicate}
+import org.locationtech.geomesa.convert.Transformers.Predicate
+import org.locationtech.geomesa.convert2.metrics.ConverterMetrics
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.annotation.tailrec
@@ -19,6 +22,7 @@ import scala.collection.JavaConversions._
 import scala.collection.immutable.IndexedSeq
 import scala.util.Try
 
+@deprecated("Replaced with org.locationtech.geomesa.convert2.composite.CompositeConverterFactory")
 class CompositeConverterFactory[I] extends SimpleFeatureConverterFactory[I] {
 
   override def canProcess(conf: Config): Boolean =
@@ -35,8 +39,11 @@ class CompositeConverterFactory[I] extends SimpleFeatureConverterFactory[I] {
   }
 }
 
+@deprecated("Replaced with org.locationtech.geomesa.convert2.composite.CompositeConverter")
 class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(Predicate, SimpleFeatureConverter[I])])
     extends SimpleFeatureConverter[I] {
+
+  override val caches: Map[String, EnrichmentCache] = Map.empty
 
   val predsWithIndex = converters.map(_._1).zipWithIndex.toIndexedSeq
   val indexedConverters = converters.map(_._2).toIndexedSeq
@@ -75,8 +82,8 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(P
         toEval(0) = is.next()
         val i = predsWithIndex.find(evalPred).map(_._2).getOrElse(-1)
         val res = if (i == -1) {
-          ec.counter.incLineCount()
-          ec.counter.incFailure()
+          ec.line += 1
+          ec.failure.inc()
           Iterator.empty
         } else {
           indexedConverters(i).processInput(Iterator(toEval(0).asInstanceOf[I]), ec)
@@ -93,9 +100,11 @@ class CompositeConverter[I](val targetSFT: SimpleFeatureType, converters: Seq[(P
     }
   }
 
-  override def processSingleInput(i: I, ec: EvaluationContext): Seq[SimpleFeature] = ???
+  override def processSingleInput(i: I, ec: EvaluationContext): Iterator[SimpleFeature] = ???
 
   override def process(is: InputStream, ec: EvaluationContext): Iterator[SimpleFeature] = ???
+
+  override def close(): Unit = indexedConverters.foreach(CloseWithLogging.apply)
 }
 
 case class CompositeEvaluationContext(contexts: IndexedSeq[EvaluationContext]) extends EvaluationContext {
@@ -107,5 +116,11 @@ case class CompositeEvaluationContext(contexts: IndexedSeq[EvaluationContext]) e
   override def get(i: Int): Any = current.get(i)
   override def set(i: Int, v: Any): Unit = current.set(i, v)
   override def indexOf(n: String): Int = current.indexOf(n)
+  override def clear(): Unit = contexts.foreach(_.clear())
+  override def cache: Map[String, EnrichmentCache] = current.cache
+  override def metrics: ConverterMetrics = current.metrics
+  override def success: com.codahale.metrics.Counter = current.success
+  override def failure: com.codahale.metrics.Counter = current.failure
+  // noinspection ScalaDeprecation
   override def counter: Counter = current.counter
 }

@@ -1,17 +1,34 @@
 Tutorials
 =========
 
-Getting Started
----------------
+Not sure where to begin? Take a look at :doc:`/user/getting_started`.
+
+Quick Starts
+------------
 
 .. toctree::
     :maxdepth: 1
 
-    geomesa-quickstart-accumulo
-    geomesa-quickstart-kafka
     geomesa-quickstart-hbase
-    geodocker-geomesa-spark-on-aws
+    geomesa-quickstart-accumulo
+    geomesa-quickstart-cassandra
+    geomesa-quickstart-kafka
+    geomesa-quickstart-redis
+    geomesa-quickstart-fsds
+    geomesa-quickstart-kudu
+    geomesa-quickstart-lambda
+    geomesa-quickstart-nifi
+
+Installation
+------------
+
+.. toctree::
+    :maxdepth: 1
+
+    geodocker-geomesa/index
     geomesa-hbase-s3-on-aws
+    geomesa-hbase-on-cdh
+    geomesa-fs-on-azure
 
 Data In/Out
 -----------
@@ -19,13 +36,15 @@ Data In/Out
 .. toctree::
     :maxdepth: 1
 
-    geomesa-quickstart-storm
     geomesa-examples-gdelt
-    geomesa-examples-avro
-    geomesa-raster
     geomesa-examples-transformations
+    geomesa-examples-avro
     geomesa-blobstore
     geomesa-blobstore-exif
+    geomesa-quickstart-storm
+    geomesa-raster
+
+.. _tutorials_analytics:
 
 Data Analysis
 -------------
@@ -34,7 +53,8 @@ Data Analysis
     :maxdepth: 1
 
     spark
-    shallow-join
+    broadcast-join
+    dwithin-join
     geomesa-tubeselect
 
 .. _accumulo_tutorials_security:
@@ -70,23 +90,19 @@ cloning the `geomesa-tutorials`_ project:
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
-Keep in mind that you may have to download a particular release of
-the tutorials project to match the GeoMesa version that
-you are using. For example, to target GeoMesa |release|, you should download
-version |release_tutorial| of the `geomesa-tutorials`_ project
-(``$TUTORIAL_VERSION`` = |release_tutorial|):
+Keep in mind that you should download or checkout the release version corresponding to the GeoMesa version
+you are using:
 
 .. code-block:: bash
 
-    $ git checkout geomesa-tutorials-$TUTORIAL_VERSION
+    $ git checkout tags/geomesa-tutorials-$TUTORIAL_VERSION
 
 In general, the major, minor, and patch version numbers of the
 tutorials release will match the corresponding numbers of the
 GeoMesa version. The tutorials version contains a fourth digit
 number permitting multiple releases per GeoMesa release.
 
-You may also see the `geomesa-tutorials`_ releases available, and
-download a tarball of a release on the `geomesa-tutorials releases page`_.
+You may also see the releases available, and download them directly from the `geomesa-tutorials releases page`_.
 
 .. _geomesa-tutorials: https://github.com/geomesa/geomesa-tutorials/
 

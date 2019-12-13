@@ -1,19 +1,21 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.tools.stats
 
-import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import com.beust.jcommander.ParameterException
+import org.geotools.data.DataStore
+import org.locationtech.geomesa.index.stats.HasGeoMesaStats
+import org.locationtech.geomesa.tools.stats.StatsCountCommand.StatsCountParams
 import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
 import org.opengis.filter.Filter
 
-trait StatsCountCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
+trait StatsCountCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreCommand[DS] {
 
   override val name = "stats-count"
   override def params: StatsCountParams
@@ -22,7 +24,11 @@ trait StatsCountCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreComman
 
   protected def count(ds: DS): Unit = {
     val sft = ds.getSchema(params.featureName)
-    val filter = Option(params.cqlFilter).map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+    if (sft == null) {
+      throw new ParameterException(s"Schema '${params.featureName}' does not exist")
+    }
+
+    val filter = Option(params.cqlFilter).getOrElse(Filter.INCLUDE)
 
     if (params.exact) {
       Command.user.info("Running stat query...")
@@ -35,5 +41,7 @@ trait StatsCountCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreComman
   }
 }
 
-// @Parameters(commandDescription = "Estimate or calculate feature counts in a GeoMesa feature type")
-trait StatsCountParams extends StatsParams
+object StatsCountCommand {
+  // @Parameters(commandDescription = "Estimate or calculate feature counts in a GeoMesa feature type")
+  trait StatsCountParams extends StatsParams
+}

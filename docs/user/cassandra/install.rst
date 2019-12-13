@@ -1,6 +1,10 @@
 Installing GeoMesa Cassandra
 ============================
 
+.. note::
+
+    GeoMesa currently supports Cassandra version |cassandra_version|.
+
 Connecting to Cassandra
 -----------------------
 
@@ -38,15 +42,19 @@ Installing from the Binary Distribution
 ---------------------------------------
 
 GeoMesa Cassandra artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version (``$VERSION`` = |release|)
-and untar it somewhere convenient:
+The easiest way to get started is to download the most recent binary version
+(|release|) from `GitHub`__.
+
+__ https://github.com/locationtech/geomesa/releases
+
+Extract it somewhere convenient:
 
 .. code-block:: bash
 
-    # download and unpackage the most recent distribution
-    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-cassandra-dist_2.11/$VERSION/geomesa-cassandra-dist_2.11-$VERSION-bin.tar.gz
-    $ tar xvf geomesa-cassandra.11-$VERSION-bin.tar.gz
-    $ cd geomesa-cassandra-dist_2.11-$VERSION
+    # download and unpackage the most recent distribution:
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-cassandra_2.11-$VERSION-bin.tar.gz"
+    $ tar xvf geomesa-cassandra_2.11-$VERSION-bin.tar.gz
+    $ cd geomesa-cassandra_2.11-$VERSION
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
@@ -88,7 +96,6 @@ tools ``lib`` folder. To do this, use the scripts provided with the distribution
 .. code-block:: bash
 
     $ bin/install-cassandra-jars.sh lib
-    $ bin/install-tools-jar.sh lib
 
 Due to licensing restrictions, dependencies for shape file support must be separately installed.
 Do this with the following commands:
@@ -112,6 +119,10 @@ Run ``geomesa-cassandra`` without arguments to confirm that the tools work.
 Installing GeoMesa Cassandra in GeoServer
 -----------------------------------------
 
+.. warning::
+
+    See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
+
 The GeoMesa Cassandra distribution includes a GeoServer plugin for including
 Cassandra data stores in GeoServer. The plugin files are in the
 ``dist/gs-plugins/geomesa-cassandra-gs-plugin_2.11-$VERSION-install.tar.gz`` archive within the
@@ -123,10 +134,12 @@ are not bundled to allow for different versions. The distribution includes a scr
 the JARs: ``bin/install-cassandra-jars.sh``. Call it with the path to the GeoServer ``WEB-INF/lib`` directory.
 By default, it will install the following JARs:
 
- * cassandra-all-3.0.11.jar
- * cassandra-driver-core-3.0.0.jar
- * cassandra-driver-mapping-3.0.0.jar
- * netty-all-4.0.33.Final.jar
- * metrics-core-3.1.2.jar
+ * cassandra-all-3.11.4.jar
+ * cassandra-driver-core-3.7.2.jar
+ * cassandra-driver-mapping-3.7.2.jar
+ * netty-all-4.1.17.Final.jar
+ * metrics-core-3.2.6.jar
+ * logback-core-1.1.3.jar
+ * logback-classic-1.1.3.jar
 
 Restart GeoServer after the JARs are installed.

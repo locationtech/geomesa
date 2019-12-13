@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.iterators
 
@@ -12,12 +12,16 @@ import java.text.SimpleDateFormat
 import java.util.{Collections, Date, TimeZone}
 
 import org.geotools.data.Query
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo._
-import org.locationtech.geomesa.accumulo.index.AttributeIndex
+import org.locationtech.geomesa.accumulo.index.JoinIndex
+import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.index.conf.QueryHints.QUERY_INDEX
+import org.locationtech.geomesa.index.index.z2.Z2Index
+import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -29,7 +33,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
   sequential
 
-  val spec = "name:String:index=true,age:Integer:index=true,scars:List[String]:index=true,dtg:Date:index=true," +
+  val spec = "name:String:index=join,age:Integer:index=join,scars:List[String]:index=join,dtg:Date:index=join," +
       "*geom:Point:srid=4326;override.index.dtg.join=true"
 
   val dateToIndex = {
@@ -53,13 +57,12 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
     }
   })
 
-  val ff = CommonFactoryFinder.getFilterFactory2
-
   val queryPlanner = ds.queryPlanner
 
-  def query(filter: String, attributes: Array[String] = Array.empty) = {
+  def query(filter: String, attributes: Array[String] = Array.empty, explain: Explainer = ExplainNull) = {
     val query = new Query(sftName, ECQL.toFilter(filter), if (attributes.length == 0) null else attributes)
-    queryPlanner.runQuery(sft, query, Some(AttributeIndex)).toList
+    query.getHints.put(QUERY_INDEX, JoinIndex.name)
+    queryPlanner.runQuery(sft, query, explain).toList
   }
 
   "AttributeIndexIterator" should {
@@ -72,7 +75,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
         results must haveSize(4)
         results.map(_.getAttributeCount) must contain(3).foreach
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("b").foreach
+        foreach(results.map(_.getAttribute("name").asInstanceOf[String]))(_ must contain("b"))
         results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
@@ -83,7 +86,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
         results must haveSize(4)
         results.map(_.getAttributeCount) must contain(3).foreach
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("a").foreach
+        foreach(results.map(_.getAttribute("name").asInstanceOf[String]))(_ must contain("a"))
         results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
@@ -94,8 +97,8 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
         results must haveSize(8)
         results.map(_.getAttributeCount) must contain(3).foreach
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("c").exactly(4)
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("d").exactly(4)
+        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("c")).exactly(4)
+        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("d")).exactly(4)
         results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
@@ -106,9 +109,9 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
 
         results must haveSize(12)
         results.map(_.getAttributeCount) must contain(3).foreach
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("b").exactly(4)
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("c").exactly(4)
-        results.map(_.getAttribute("name").asInstanceOf[String]) must contain("d").exactly(4)
+        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("b")).exactly(4)
+        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("c")).exactly(4)
+        results.map(_.getAttribute("name").asInstanceOf[String]) must contain(beEqualTo("d")).exactly(4)
         results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
@@ -144,7 +147,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
         results must haveSize(5)
         results.map(_.getAttributeCount) must contain(3).foreach
         results.map(_.getAttribute("age").asInstanceOf[Int]) must contain(1).foreach
-        results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)").foreach
+        foreach(results.map(_.getAttribute("geom").toString))(_ must contain("POINT (45 45)"))
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
 
@@ -156,8 +159,8 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
         results.map(_.getAttributeCount) must contain(3).foreach
         results.map(_.getAttribute("age").asInstanceOf[Int]) must contain(3).exactly(5)
         results.map(_.getAttribute("age").asInstanceOf[Int]) must contain(4).exactly(5)
-        results.map(_.getAttribute("geom").toString) must contain("POINT (47 47)").exactly(5)
-        results.map(_.getAttribute("geom").toString) must contain("POINT (48 48)").exactly(5)
+        results.map(_.getAttribute("geom").toString) must contain(beEqualTo("POINT (47 47)")).exactly(5)
+        results.map(_.getAttribute("geom").toString) must contain(beEqualTo("POINT (48 48)")).exactly(5)
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
 
@@ -176,8 +179,7 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
         val results = query(filter, Array("dtg"))
 
         results must haveSize(4)
-        results.map(_.getAttributeCount) must contain(2).foreach // geom gets added back in
-        results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
+        results.map(_.getAttributeCount) must contain(1).foreach
         results.map(_.getAttribute("dtg").asInstanceOf[Date]) must contain(dateToIndex).foreach
       }
 
@@ -195,9 +197,8 @@ class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
         val results = query(filter, Array("name"))
 
         results must haveSize(4)
-        results.map(_.getAttributeCount) must contain(2).foreach // geom gets added back in
-        results.map(_.getAttribute("name").toString) must contain("b").foreach
-        results.map(_.getAttribute("geom").toString) must contain("POINT (45 45)", "POINT (46 46)", "POINT (47 47)", "POINT (48 48)")
+        results.map(_.getAttributeCount) must contain(1).foreach
+        foreach(results.map(_.getAttribute("name").toString))(_ must contain("b"))
       }
 
       "with additional filter applied" >> {

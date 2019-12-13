@@ -1,41 +1,42 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.apache.spark.sql
 
+import java.time.{LocalDateTime, ZoneId, ZoneOffset}
+import java.util.Date
+
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
-import org.apache.spark.sql.SQLTypes._
-import org.apache.spark.sql.catalyst.InternalRow
-import org.apache.spark.sql.catalyst.expressions.codegen.CodegenFallback
-import org.apache.spark.sql.catalyst.expressions.{And, AttributeReference, Expression, GenericInternalRow, LeafExpression, Literal, PredicateHelper, ScalaUDF}
-import org.apache.spark.sql.catalyst.plans.logical.{Filter, LogicalPlan, Sort}
+import org.apache.spark.sql.catalyst.expressions._
+import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.execution.datasources.LogicalRelation
-import org.apache.spark.sql.types.DataType
-import org.locationtech.geomesa.spark.GeoMesaRelation
-import org.opengis.filter.expression.{Expression => GTExpression}
-import org.opengis.filter.{Filter => GTFilter}
-
-import scala.collection.JavaConversions._
-import scala.util.Try
+import org.apache.spark.sql.execution.{ProjectExec, SparkPlan}
+import org.apache.spark.sql.types.{DataTypes, StructType}
+import org.geotools.factory.CommonFactoryFinder
+import org.locationtech.geomesa.filter.FilterHelper
+import org.locationtech.geomesa.spark.GeoMesaRelation.PartitionedIndexedRDD
+import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral
+import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
+import org.locationtech.geomesa.spark.{GeoMesaJoinRelation, GeoMesaRelation, RelationUtils, SparkVersions}
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+import org.locationtech.jts.geom.{Envelope, Geometry}
+import org.opengis.filter.expression.{Expression => GTExpression, Literal => GTLiteral}
+import org.opengis.filter.{FilterFactory2, Filter => GTFilter}
 
 object SQLRules extends LazyLogging {
-  import SQLSpatialFunctions._
+  @transient
+  private val ff: FilterFactory2 = CommonFactoryFinder.getFilterFactory2
 
   def scalaUDFtoGTFilter(udf: Expression): Option[GTFilter] = {
-    val ScalaUDF(func, _, expressions, _) = udf
-
-    if (expressions.size == 2) {
-      val Seq(exprA, exprB) = expressions
-      buildGTFilter(func, exprA, exprB)
-    } else {
-      None
+    udf match {
+      case u: ScalaUDF if u.children.length == 2 => buildGTFilter(u.function, u.children.head, u.children.last)
+      case _ => None
     }
   }
 
@@ -70,76 +71,182 @@ object SQLRules extends LazyLogging {
     }
   }
 
-  def sparkExprToGTExpr(expr: org.apache.spark.sql.catalyst.expressions.Expression): Option[org.opengis.filter.expression.Expression] = {
+  def sparkFilterToGTFilter(expr: Expression): Option[GTFilter] = {
     expr match {
-      case GeometryLiteral(_, geom) =>
-        Some(ff.literal(geom))
-      case AttributeReference(name, _, _, _) =>
-        Some(ff.property(name))
+      case udf: ScalaUDF => scalaUDFtoGTFilter(udf)
+      case binaryComp@BinaryComparison(left, right) =>
+        val leftExpr = sparkExprToGTExpr(left)
+        val rightExpr = sparkExprToGTExpr(right)
+        if (leftExpr.isEmpty || rightExpr.isEmpty) {
+          None
+        } else {
+          binaryComp match {
+            case _: EqualTo            => Some(ff.equals(leftExpr.get, rightExpr.get))
+            case _: LessThan           => Some(ff.less(leftExpr.get, rightExpr.get))
+            case _: LessThanOrEqual    => Some(ff.lessOrEqual(leftExpr.get, rightExpr.get))
+            case _: GreaterThan        => Some(ff.greater(leftExpr.get, rightExpr.get))
+            case _: GreaterThanOrEqual => Some(ff.greaterOrEqual(leftExpr.get, rightExpr.get))
+            case _ => None
+          }
+        }
+      case unary: UnaryExpression =>
+        val sparkExpr = unary.child
+        val gtExpr = sparkExprToGTExpr(sparkExpr)
+        if (gtExpr.isEmpty)
+          None
+        else {
+          unary match {
+            case _: IsNotNull => Some(ff.not(ff.isNull(gtExpr.get)))
+            case _: IsNull => Some(ff.isNull(gtExpr.get))
+            case _ => None
+          }
+        }
       case _ =>
         logger.debug(s"Got expr: $expr.  Don't know how to turn this into a GeoTools Expression.")
         None
     }
   }
 
-  // new AST expressions
-  case class GeometryLiteral(repr: InternalRow, geom: Geometry) extends LeafExpression  with CodegenFallback {
+  def sparkExprToGTExpr(expression: Expression): Option[GTExpression] = expression match {
+    case g: GeometryLiteral =>
+      Some(ff.literal(g.geom))
 
-    override def foldable: Boolean = true
+    case a: AttributeReference if a.name != "__fid__" =>
+      Some(ff.property(a.name))
 
-    override def nullable: Boolean = true
+    case c: Cast =>
+      lazy val zone = c.timeZoneId.map(ZoneId.of).orNull
+      sparkExprToGTExpr(c.child).map {
+        case lit: GTLiteral if lit.getValue.isInstanceOf[Date] && zone != null =>
+          val date = LocalDateTime.ofInstant(toInstant(lit.getValue.asInstanceOf[Date]), zone)
+          ff.literal(new Date(date.atZone(ZoneOffset.UTC).toInstant.toEpochMilli))
+        case e => e
+      }
 
-    override def eval(input: InternalRow): Any = repr
+    case lit: Literal if lit.dataType == DataTypes.StringType =>
+      // the actual class is org.apache.spark.unsafe.types.UTF8String, we need to make it
+      // a normal string so that geotools can handle it
+      Some(ff.literal(Option(lit.value).map(_.toString).orNull))
 
-    override def dataType: DataType = GeometryTypeInstance
+    case lit: Literal if lit.dataType == DataTypes.TimestampType =>
+      // timestamps are defined as microseconds
+      Some(ff.literal(new Date(lit.value.asInstanceOf[Long] / 1000)))
+
+    case lit: Literal =>
+      Some(ff.literal(lit.value))
+
+    case _ =>
+      logger.debug(s"Can't turn expression into geotools: $expression")
+      None
   }
 
   // new optimizations rules
-  object STContainsRule extends Rule[LogicalPlan] with PredicateHelper {
+  object SpatialOptimizationsRule extends Rule[LogicalPlan] with PredicateHelper {
 
-
-    // JNH: NB: Unused.
     def extractGeometry(e: org.apache.spark.sql.catalyst.expressions.Expression): Option[Geometry] = e match {
+      case GeometryLiteral(_, geom) => Some(geom)
       case And(l, r) => extractGeometry(l).orElse(extractGeometry(r))
-      case ScalaUDF(_, _, Seq(_, GeometryLiteral(_, geom)), _) => Some(geom)
+      case u: ScalaUDF => u.children.collectFirst { case GeometryLiteral(_, geom) => geom }
       case _ => None
     }
 
-    private def extractScalaUDFs(f: Expression) = {
-      splitConjunctivePredicates(f).partition {
-        // TODO: Add guard which checks to see if the function can be pushed down
-        case ScalaUDF(_, _, _, _) => true
+    private def extractGridId(envelopes: List[Envelope],
+                              e: org.apache.spark.sql.catalyst.expressions.Expression): Option[List[Int]] =
+      extractGeometry(e).map(RelationUtils.gridIdMapper(_, envelopes))
+
+    // Converts a pair of GeoMesaRelations into one GeoMesaJoinRelation
+    private def alterRelation(left: GeoMesaRelation, right: GeoMesaRelation, cond: Expression): GeoMesaJoinRelation = {
+      val joinedSchema = StructType(left.schema.fields ++ right.schema.fields)
+      GeoMesaJoinRelation(left.sqlContext, left, right, joinedSchema, cond)
+    }
+
+    // Replace the relation in a join with a GeoMesaJoin Relation
+    private def alterJoin(join: Join): LogicalPlan = {
+      val isSpatialUDF = join.condition.exists {
+        case u: ScalaUDF if u.function.isInstanceOf[(Geometry, Geometry) => java.lang.Boolean] =>
+          u.children.head.isInstanceOf[AttributeReference] && u.children(1).isInstanceOf[AttributeReference]
         case _ => false
+      }
+
+      (join.left, join.right) match {
+        case (left: LogicalRelation, right: LogicalRelation) if isSpatialUDF =>
+          (left.relation, right.relation) match {
+            case (leftRel: GeoMesaRelation, rightRel: GeoMesaRelation) =>
+              leftRel.join(rightRel, join.condition.get) match {
+                case None => join
+                case Some(joinRelation) =>
+                  val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
+                  Join(newLogicalRelLeft, right, join.joinType, join.condition)
+              }
+
+            case _ => join
+          }
+
+        case (leftProject @ Project(leftProjectList, left: LogicalRelation),
+            rightProject @ Project(rightProjectList, right: LogicalRelation)) if isSpatialUDF =>
+          (left.relation, right.relation) match {
+            case (leftRel: GeoMesaRelation, rightRel: GeoMesaRelation) =>
+              leftRel.join(rightRel, join.condition.get) match {
+                case None => join
+                case Some(joinRelation) =>
+                  val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
+                  val newProjectLeft = leftProject.copy(projectList = leftProjectList ++ rightProjectList, child = newLogicalRelLeft)
+                  Join(newProjectLeft, rightProject, join.joinType, join.condition)
+              }
+
+            case _ => join
+          }
+
+        case _ => join
       }
     }
 
     override def apply(plan: LogicalPlan): LogicalPlan = {
+      logger.debug(s"Optimizer sees $plan")
       plan.transform {
+        case agg @ Aggregate(aggregateExpressions,groupingExpressions, Project(projectList, join: Join)) =>
+          val alteredJoin = alterJoin(join)
+          Aggregate(aggregateExpressions, groupingExpressions, Project(projectList, alteredJoin))
+        case agg @ Aggregate(aggregateExpressions,groupingExpressions, join: Join) =>
+          val alteredJoin = alterJoin(join)
+          Aggregate(aggregateExpressions, groupingExpressions, alteredJoin)
+        case join: Join =>
+          alterJoin(join)
         case sort @ Sort(_, _, _) => sort    // No-op.  Just realizing what we can do:)
-        case filt @ Filter(f, lr@LogicalRelation(gmRel: GeoMesaRelation, _, _)) =>
+        case filt @ Filter(f, lr: LogicalRelation) if lr.relation.isInstanceOf[GeoMesaRelation] =>
           // TODO: deal with `or`
 
+          val gmRel = lr.relation.asInstanceOf[GeoMesaRelation]
           // split up conjunctive predicates and extract the st_contains variable
-          val (scalaUDFs: Seq[Expression], otherFilters: Seq[Expression]) = extractScalaUDFs(f)
+          val sparkFilters: Seq[Expression] =  splitConjunctivePredicates(f)
 
-          val (gtFilters: Seq[GTFilter], sFilters: Seq[Expression]) = scalaUDFs.foldLeft((Seq[GTFilter](), otherFilters)) {
+          val (gtFilters: Seq[GTFilter], sFilters: Seq[Expression]) = sparkFilters.foldLeft((Seq[GTFilter](), Seq[Expression]())) {
             case ((gts: Seq[GTFilter], sfilters), expression: Expression) =>
-              val cqlFilter = scalaUDFtoGTFilter(expression)
-
-              cqlFilter match {
+              sparkFilterToGTFilter(expression) match {
                 case Some(gtf) => (gts.+:(gtf), sfilters)
                 case None      => (gts,         sfilters.+:(expression))
               }
           }
 
           if (gtFilters.nonEmpty) {
-            val relation = gmRel.copy(filt = ff.and(gtFilters :+ gmRel.filt))
-            val newrel = lr.copy(expectedOutputAttributes = Some(lr.output), relation = relation)
+            // if we have a partitioned cache, exclude partitions that don't match the query filter
+            val partitioned = gmRel.cached.map {
+              case c: PartitionedIndexedRDD =>
+                val hints = sparkFilters.flatMap(extractGridId(c.envelopes, _)).flatten
+                if (hints.isEmpty) { c } else {
+                  c.copy(rdd = c.rdd.filter { case (key, _) => hints.contains(key) })
+                }
 
+              case c => c
+            }
+            val filt = FilterHelper.filterListAsAnd(gmRel.filter.toSeq ++ gtFilters)
+            val relation = gmRel.copy(filter = filt, cached = partitioned)
+            val newrel = SparkVersions.copy(lr)(output = lr.output, relation = relation)
             if (sFilters.nonEmpty) {
+              // Keep filters that couldn't be transformed at the top level
               Filter(sFilters.reduce(And), newrel)
             } else {
-              // if st_contains was the only filter, just return the new relation
+              // if all filters could be transformed to GeoTools filters, just return the new relation
               newrel
             }
           } else {
@@ -150,33 +257,39 @@ object SQLRules extends LazyLogging {
 
   }
 
-  object ScalaUDFRule extends Rule[LogicalPlan] with LazyLogging {
-    override def apply(plan: LogicalPlan): LogicalPlan = {
-      plan.transform {
-        case q: LogicalPlan => q.transformExpressionsDown {
-          case s@ScalaUDF(_, _, _, _) =>
-            // TODO: Break down by GeometryType
-            Try {
-                s.eval(null) match {
-                  case row: GenericInternalRow =>
-                    val ret = GeometryUDT.deserialize(row)
-                    GeometryLiteral(row, ret)
-                  case other: Any =>
-                    Literal(other)
-                }
-            }.getOrElse(s)
-        }
+  // A catch for when we are able to precompute the join using the sweepline algorithm.
+  // Skips doing a full cartesian product with catalyst.
+  object SpatialJoinStrategy extends Strategy {
+
+    import org.apache.spark.sql.catalyst.plans.logical._
+
+    def alterJoin(logicalPlan: Join): Seq[SparkPlan] = {
+      logicalPlan.left match {
+        case Project(projectList, lr: LogicalRelation) if lr.relation.isInstanceOf[GeoMesaJoinRelation] =>
+           ProjectExec(projectList, planLater(lr)) :: Nil
+
+        case lr: LogicalRelation if lr.relation.isInstanceOf[GeoMesaJoinRelation] => planLater(lr) :: Nil
+
+        case _ => Nil
       }
+    }
+
+    override def apply(plan: LogicalPlan): Seq[SparkPlan] = plan match {
+      //TODO: handle other kinds of joins
+      case Project(_, logicalPlan: Join) => alterJoin(logicalPlan)
+      case join: Join => alterJoin(join)
+      case _ => Nil
     }
   }
 
   def registerOptimizations(sqlContext: SQLContext): Unit = {
-    Seq(ScalaUDFRule, STContainsRule).foreach { r =>
+
+    Seq(SpatialOptimizationsRule).foreach { r =>
       if(!sqlContext.experimental.extraOptimizations.contains(r))
         sqlContext.experimental.extraOptimizations ++= Seq(r)
     }
 
-    Seq.empty[Strategy].foreach { s =>
+    Seq(SpatialJoinStrategy).foreach { s =>
       if(!sqlContext.experimental.extraStrategies.contains(s))
         sqlContext.experimental.extraStrategies ++= Seq(s)
     }

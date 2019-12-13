@@ -1,23 +1,26 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.tools.stats
 
-import com.vividsolutions.jts.geom.Geometry
+import com.beust.jcommander.ParameterException
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
+import org.locationtech.geomesa.tools.stats.StatsAnalyzeCommand.StatsAnalyzeParams
 import org.locationtech.geomesa.tools.{CatalogParam, Command, DataStoreCommand, TypeNameParam}
 import org.locationtech.geomesa.utils.stats._
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.jts.geom.Geometry
 
-trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreCommand[DS] {
+trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[DS]] extends DataStoreCommand[DS] {
 
-  import StatsAnalyzeCommand.attributeName
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  import scala.collection.JavaConverters._
 
   override val name = "stats-analyze"
   override def params: StatsAnalyzeParams
@@ -25,11 +28,12 @@ trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreComm
   override def execute(): Unit = withDataStore(analyze)
 
   private def analyze(ds: DS): Unit = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
     val sft = ds.getSchema(params.featureName)
+    if (sft == null) {
+      throw new ParameterException(s"Schema '${params.featureName}' does not exist")
+    }
 
-    def noStats = ds.metadata.read(sft.getTypeName, GeoMesaMetadata.STATS_GENERATION_KEY, cache = false).isEmpty
+    def noStats = ds.metadata.read(sft.getTypeName, GeoMesaMetadata.StatsGenerationKey, cache = false).isEmpty
 
     Command.user.info(s"Running stat analysis for feature type ${sft.getTypeName}...")
     val stats = if (noStats) {
@@ -41,25 +45,26 @@ trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreComm
       }
       // sleep an additional bit so that the stat table gets configured
       Thread.sleep(1000)
-      ds.stats.getStats[CountStat](sft) ++ ds.stats.getStats[MinMax[Any]](sft)
+      val queries = sft.getAttributeDescriptors.asScala.map(d => Stat.MinMax(d.getLocalName))
+      ds.stats.getStat[CountStat](sft, Stat.Count()) ++ ds.stats.getSeqStat[MinMax[Any]](sft, queries)
     } else {
-      ds.stats.generateStats(sft)
+      ds.stats.writer.analyze(sft)
     }
 
     val strings = stats.collect {
       case s: CountStat   => s"Total features: ${s.count}"
       case s: MinMax[Any] =>
-        val attribute = attributeName(sft, s.attribute)
         val bounds = if (s.isEmpty) {
           "[ no matching data ]"
-        } else if (sft.getGeomField == attribute) {
+        } else if (sft.getGeomField == s.property) {
           val e = s.min.asInstanceOf[Geometry].getEnvelopeInternal
           e.expandToInclude(s.max.asInstanceOf[Geometry].getEnvelopeInternal)
           s"[ ${e.getMinX}, ${e.getMinY}, ${e.getMaxX}, ${e.getMaxY} ] cardinality: ${s.cardinality}"
         } else {
-          s"[ ${s.stringify(s.min)} to ${s.stringify(s.max)} ] cardinality: ${s.cardinality}"
+          val stringify = Stat.stringifier(sft.getDescriptor(s.property).getType.getBinding)
+          s"[ ${stringify(s.min)} to ${stringify(s.max)} ] cardinality: ${s.cardinality}"
         }
-        s"Bounds for $attribute: $bounds"
+        s"Bounds for ${s.property}: $bounds"
     }
 
     Command.user.info("Stats analyzed:")
@@ -68,9 +73,7 @@ trait StatsAnalyzeCommand[DS <: GeoMesaDataStore[_, _, _]] extends DataStoreComm
   }
 }
 
-// @Parameters(commandDescription = "Analyze statistics on a GeoMesa feature type")
-trait StatsAnalyzeParams extends CatalogParam with TypeNameParam
-
 object StatsAnalyzeCommand {
-  private def attributeName(sft: SimpleFeatureType, index: Int): String = sft.getDescriptor(index).getLocalName
+  // @Parameters(commandDescription = "Analyze statistics on a GeoMesa feature type")
+  trait StatsAnalyzeParams extends CatalogParam with TypeNameParam
 }

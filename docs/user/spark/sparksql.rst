@@ -26,12 +26,12 @@ via SparkSQL:
 
     // DataStore params to a hypothetical GeoMesa Accumulo table
     val dsParams = Map(
-      "instanceId" -> "instance",
-      "zookeepers" -> "zoo1,zoo2,zoo3",
-      "user"       -> "user",
-      "password"   -> "*****",
-      "auths"      -> "USER,ADMIN",
-      "tableName"  -> "geomesa_catalog")
+      "accumulo.instance.id"   -> "instance",
+      "accumulo.zookeepers"    -> "zoo1,zoo2,zoo3",
+      "accumulo.user"          -> "user",
+      "accumulo.password"      -> "*****",
+      "accumulo.catalog"       -> "geomesa_catalog",
+      "geomesa.security.auths" -> "USER,ADMIN")
 
     // Create SparkSession
     val sparkSession = SparkSession.builder()
@@ -67,32 +67,15 @@ via SparkSQL:
 
 Configuration
 ^^^^^^^^^^^^^
+
 Because GeoMesa SparkSQL stacks on top of the ``geomesa-spark-core`` module,
-one or more of the ``SpatialRDDProvider`` implementations, as described in
-:doc:`/user/spark/core`, must be included on the classpath. The shaded JAR built by the
-**geomesa-accumulo-spark-runtime** module (``geomesa-accumulo/geomesa-accumulo-spark-runtime``
-in the source distribution) contains all of the dependencies needed to run
-the :ref:`accumulo_rdd_provider` as well as **geomesa-spark-sql**. This shaded
-JAR can be passed (for example) to the ``spark-submit`` command via the ``--jars``
-option:
-
-.. code-block:: bash
-
-    --jars file://path/to/geomesa-accumulo-spark-runtime_2.11-$VERSION.jar
-
-or passed to Spark via the appropriate mechanism in notebook servers such as
-Jupyter (see :doc:`jupyter`) or Zeppelin.
-
-This shaded JAR should also provide the dependencies needed for the
-:ref:`converter_rdd_provider` and :ref:`geotools_rdd_provider`, so these JARs
-may simply be added to ``--jars`` as well (though in the latter
-case additional JARs may be needed to implement the GeoTools data store accessed).
+one or more of the ``SpatialRDDProvider`` implementations must be included on the
+classpath. See :ref:`spark_core_config` for details on setting up the Spark classpath.
 
 .. note::
 
-    When using the :ref:`accumulo_rdd_provider` or :ref:`converter_rdd_provider`
-    with **geomesa-spark-sql**, it is not necessary to set up the Kryo serialization
-    described in :ref:`spark_sf_serialization`. However, this may be required when
+    In most cases, it is not necessary to set up the Kryo serialization described in
+    :ref:`spark_sf_serialization` when using SparkSQL. However, this may be required when
     using the :ref:`geotools_rdd_provider`.
 
 If you will be ``JOIN``-ing multiple ``DataFrame``\s together, it will be necessary
@@ -154,22 +137,44 @@ Registering user-defined types and functions can also be done manually by invoki
 
     SQLTypes.init(sparkSession.sqlContext)
 
+It is also possible to write a Spark DataFrame to a GeoMesa table with:
+
+.. code-block:: scala
+
+    dataFrame.write.format("geomesa").options(dsParams).option("geomesa.feature", "featureName").save()
+
+This will automatically convert the data frame's underlying RDD[Row] into an RDD[SimpleFeature] and write to the
+data store in parallel. For this to work, the feature type `featureName` must already exist in the data store.
+
+When writing features back, it is possible to specify the feature ID through the special ``__fid__`` column:
+
+.. code-block:: scala
+
+    dataFrame
+        .withColumn("__fid__", $"custom_fid")
+        .write
+        .format("geomesa")
+        .options(dsParams)
+        .option("geomesa.feature", "featureName")
+        .save
+
 Geospatial User-defined Types and Functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The GeoMesa SparkSQL module takes several `classes representing geometry objects`_
 (as described by the OGC `OpenGIS Simple feature access common architecture`_ specification and
 implemented by the Java Topology Suite) and registers them as user-defined types (UDTs) in
-SparkSQL. These types are:
+SparkSQL. For example the ``Geometry`` class is registered as ``GeometryUDT``. In GeoMesa SparkSQL
+the following types are registered:
 
- * ``Geometry``
- * ``Point``
- * ``LineString``
- * ``Polygon``
- * ``MultiPoint``
- * ``MultiLineString``
- * ``MultiPolygon``
- * ``GeometryCollection``
+ * ``GeometryUDT``
+ * ``PointUDT``
+ * ``LineStringUDT``
+ * ``PolygonUDT``
+ * ``MultiPointUDT``
+ * ``MultiLineStringUDT``
+ * ``MultiPolygonUDT``
+ * ``GeometryCollectionUDT``
 
 GeoMesa SparkSQL also implements a subset of the functions described in the
 OGC `OpenGIS Simple feature access SQL option`_ specification as SparkSQL
@@ -195,3 +200,82 @@ A complete list of the implemented UDFs is given in the next section (:doc:`./sp
 .. _OpenGIS Simple feature access common architecture: http://www.opengeospatial.org/standards/sfa
 
 .. _OpenGIS Simple feature access SQL option: http://www.opengeospatial.org/standards/sfs
+
+In-memory Indexing
+^^^^^^^^^^^^^^^^^^
+
+If your data is small enough to fit in the memory of your executors, you can tell GeoMesa SparkSQL to persist RDDs in memory
+and leverage the use of CQEngine as an in-memory indexed data store. To do this, add the option ``option("cache", "true")``
+when creating your data frame. This will place an index on every attribute excluding the ``fid`` and the geometry.
+To index based on geometry, add the option ``option("indexGeom", "true")``. Queries to this relation will automatically
+hit the cached RDD and query the in-memory data store that lives on each partition, which can yield significant speedups.
+
+Given some knowledge of your data, it is also possible to ensure that the data will fit in memory by applying an initial query.
+This can be done with the ``query`` option. For example, ``option("query", "dtg AFTER 2016-12-31T23:59:59Z")``
+
+Spatial Partitioning and Faster Joins
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Additional speedups can be attained by also spatially partitioning your data. Adding the option ``option("spatial", "true")``
+will ensure that data that are spatially near each other will be placed on the same partition. By default, your data will
+be partitioned into an NxN grid, but there exist 4 total partitioning strategies, and each can be specified by name with
+``option("strategy", strategyName)``
+
+  EQUAL - Computes the bounds of your data and divides it into an NxN grid of equal size, where ``N = sqrt(numPartitions)``
+
+  WEIGHTED - Like EQUAL, but ensures that equal proportions of the data along each axis are in each grid cell.
+
+  EARTH - Like EQUAL, but uses the whole earth as the bounds instead of computing them based on the data.
+
+  RTREE - Constructs an R-Tree based on a sample of the data, and uses a subset of the bounding rectangles as partition envelopes.
+
+The advantages to spatially partitioning are two fold:
+
+1) Queries with a spatial predicate that lies wholly in one partition can go directly to that partition, skipping the overhead
+of scanning partitions that will be certain to not include the desired data.
+
+2) If two data sets are partitioned by the same scheme, resulting in the same partition envelopes for both relations, then
+spatial joins can use the partition envelope as a key in the join. This dramatically reduces the number of comparisons required
+to complete the join.
+
+Additional data frame options allow for greater control over how partitions are created. For strategies that require a
+sample of the data (WEIGHTED and RTREE), ``sampleSize`` and ``thresholdMultiplier`` can be used to control how much of the
+underlying data is used in the decision process and how many items to allow in an RTree envelope.
+
+Other useful options are as follows:
+
+  ``option("partitions", "n")`` - Specifies the number of partitions that the underlying RDDs will be (overrides default parallelism)
+
+  ``option("bounds", "POLYGON in WellKnownText")`` - Limits the bounds of the grid that ``WEIGHTED`` and ``EQUAL`` strategies use.
+  All data that do not lie in these bounds will be placed in a separate partition
+
+  ``option("cover", "true")`` - Since only the EQUAL and EARTH partition strategies can guarantee that partition envelopes
+  will be identical across relations, data frames with this option set will force the partitioning scheme of data frames
+  that they are joined with to match its own.
+
+GeoJSON Output
+^^^^^^^^^^^^^^
+
+The ``geomesa-spark-sql`` module provides a means of exporting a ``DataFrame`` to a `GeoJSON <http://geojson.org/>`__
+string. This allows for quick visualization of the data in many front-end mapping libraries that support GeoJSON
+input such as Leaflet or Open Layers.
+
+To convert a DataFrame, import the implicit conversion and invoke the ``toGeoJSON`` method.
+
+.. code-block:: scala
+
+    import org.locationtech.geomesa.spark.sql.GeoJSONExtensions._
+    val df: DataFrame = // Some data frame
+    val geojsonDf = df.toGeoJSON
+
+If the result can fit in memory, it can then be collected on the driver and written to a file. If not, each executor can
+write to a distributed file system like HDFS.
+
+.. code:: scala
+
+    val geoJsonString = geojsonDF.collect.mkString("[",",","]")
+
+.. note::
+
+    For this to work, the Data Frame should have a geometry field, meaning its schema should have a ``StructField`` that
+    is one of the JTS geometry types provided by GeoMesa.

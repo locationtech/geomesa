@@ -5,12 +5,7 @@
 
   <bean name="dataEndpoint" class="org.locationtech.geomesa.web.data.DataEndpoint"/>
 
-  <bean name="analyticEndpoint" class="org.locationtech.geomesa.web.analytics.AnalyticEndpoint">
-    <constructor-arg index="0" ref="analyticsDataPersistence"/>
-    <property name="debug" value="true"/>
-  </bean>
-
-  <bean name="statsEndpoint" class="org.locationtech.geomesa.web.analytics.StatsEndpoint">
+  <bean name="queryAuditEndpoint" class="org.locationtech.geomesa.web.security.QueryAuditEndpoint">
     <constructor-arg index="0" ref="analyticsDataPersistence"/>
     <property name="debug" value="true"/>
     <property name="passwordHandler">

@@ -1,0 +1,7 @@
+net.opengis.fes
+net.opengis.ows
+net.opengis.wfs
+org.eclipse.xsd
+org.eclipse.emf
+org.w3.xlink
+picocontainer

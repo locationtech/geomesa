@@ -1,14 +1,16 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.audit;
 
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -48,6 +50,8 @@ public interface AuditProvider {
      */
     public static class Loader {
 
+        private static final Logger logger = LoggerFactory.getLogger(Loader.class);
+
         private Loader() {}
 
         public static AuditProvider load(Map<String, Serializable> params) {
@@ -57,6 +61,11 @@ public interface AuditProvider {
             // if the user specifies an auth provider to use, try to use that impl
             String specified = GeoMesaSystemProperties.getProperty(AuditProvider.AUDIT_PROVIDER_SYS_PROPERTY);
             if (specified != null) {
+                if (specified.equals("org.locationtech.geomesa.plugin.security.SpringAuditProvider")) {
+                    logger.warn("org.locationtech.geomesa.plugin.security.SpringAuditProvider is deprecated;" +
+                                "switching to org.locationtech.geomesa.security.SpringAuditProvider");
+                    specified = "org.locationtech.geomesa.security.SpringAuditProvider";
+                }
                 while (providers.hasNext()) {
                     AuditProvider provider = providers.next();
                     if (specified.equals(provider.getClass().getName())) {

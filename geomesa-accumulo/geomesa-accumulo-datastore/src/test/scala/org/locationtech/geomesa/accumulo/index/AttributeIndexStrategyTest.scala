@@ -1,33 +1,37 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
 
-import org.apache.accumulo.core.data.{Range => AccRange}
-import org.apache.hadoop.io.Text
+import java.util.Date
+
 import org.geotools.data._
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.cql2.CQLException
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.format.ISODateTimeFormat
+import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.index.legacy.attribute.AttributeWritableIndex
-import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, KryoLazyDensityIterator}
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinPlan}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
-import org.locationtech.geomesa.filter.function.Convert2ViewerFunction
-import org.locationtech.geomesa.index.api.{FilterSplitter, FilterStrategy}
+import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.index.conf.QueryHints._
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.locationtech.geomesa.index.iterators.DensityScan
+import org.locationtech.geomesa.index.planning.FilterSplitter
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.index.IndexMode
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -42,22 +46,20 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
   sequential
 
-  override val spec = "name:String:index=full,age:Integer:index=true,count:Long:index=true," +
-      "weight:Double:index=true,height:Float:index=true,admin:Boolean:index=true," +
-      "*geom:Point:srid=4326,dtg:Date,indexedDtg:Date:index=true,fingers:List[String]:index=true," +
-      "toes:List[Double]:index=true,track:String,geom2:Point:srid=4326;geomesa.indexes.enabled='attr,records'"
-
-  val df = ISODateTimeFormat.dateTime()
+  override val spec = "name:String:index=full,age:Integer:index=join,count:Long:index=join," +
+      "weight:Double:index=join,height:Float:index=join,admin:Boolean:index=join," +
+      "*geom:Point:srid=4326,dtg:Date,indexedDtg:Date:index=join,fingers:List[String]:index=join," +
+      "toes:List[Double]:index=join,track:String,geom2:Point:srid=4326;geomesa.indexes.enabled='attr,id'"
 
   val aliceGeom   = WKTUtils.read("POINT(45.0 49.0)")
   val billGeom    = WKTUtils.read("POINT(46.0 49.0)")
   val bobGeom     = WKTUtils.read("POINT(47.0 49.0)")
   val charlesGeom = WKTUtils.read("POINT(48.0 49.0)")
 
-  val aliceDate   = df.parseDateTime("2012-01-01T12:00:00.000Z").toDate
-  val billDate    = df.parseDateTime("2013-01-01T12:00:00.000Z").toDate
-  val bobDate     = df.parseDateTime("2014-01-01T12:00:00.000Z").toDate
-  val charlesDate = df.parseDateTime("2014-01-01T12:30:00.000Z").toDate
+  val aliceDate   = Converters.convert("2012-01-01T12:00:00.000Z", classOf[Date])
+  val billDate    = Converters.convert("2013-01-01T12:00:00.000Z", classOf[Date])
+  val bobDate     = Converters.convert("2014-01-01T12:00:00.000Z", classOf[Date])
+  val charlesDate = Converters.convert("2014-01-01T12:30:00.000Z", classOf[Date])
 
   val aliceFingers   = List("index")
   val billFingers    = List("ring", "middle")
@@ -72,36 +74,49 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     Array("bob",     30,   3, 6.0, 12.0F, false, bobGeom, bobDate, bobDate, bobFingers, List(3.0, 2.0, 5.0), "track1", geom2),
     Array("charles", null, 4, 7.0, 12.0F, false, charlesGeom, charlesDate, charlesDate, charlesFingers, List(), "track1", geom2)
   ).map { entry =>
-    val feature = new ScalaSimpleFeature(entry.head.toString, sft)
+    val feature = new ScalaSimpleFeature(sft, entry.head.toString)
     feature.setAttributes(entry.asInstanceOf[Array[AnyRef]])
     feature
   }
 
-  addFeatures(features)
+  val shards = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    sft.getAttributeShards
+  }
+
+  step {
+    addFeatures(features)
+  }
 
   def execute(filter: String, explain: Explainer = ExplainNull, ranges: Option[Matcher[Int]] = None): List[String] = {
     val query = new Query(sftName, ECQL.toFilter(filter))
     forall(ds.getQueryPlan(query, explainer = explain)) { qp =>
-      qp.filter.index mustEqual AttributeIndex
+      qp.filter.index.name must beOneOf(AttributeIndex.name, JoinIndex.name)
       forall(ranges)(_.test(qp.ranges.length))
     }
     val results = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
     results.map(_.getAttribute("name").toString).toList
   }
 
-  def runQuery(query: Query): Iterator[SimpleFeature] = {
-    forall(ds.getQueryPlan(query))(_.filter.index mustEqual AttributeIndex)
+  def runQuery(query: Query, explain: Explainer = ExplainNull): Iterator[SimpleFeature] = {
+    forall(ds.getQueryPlan(query, explainer = explain)) { qp =>
+      qp.filter.index.name must beOneOf(AttributeIndex.name, JoinIndex.name)
+    }
     SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features())
   }
 
   "AttributeIndexStrategy" should {
     "print values" in {
       skipped("used for debugging")
-      val scanner = connector.createScanner(AttributeIndex.getTableName(sftName, ds), MockUserAuthorizations)
-      val prefix = AttributeWritableIndex.getRowPrefix(sft, sft.indexOf("height"))
-      scanner.setRange(AccRange.prefix(new Text(prefix)))
-      scanner.asScala.foreach(println)
-      println()
+      ds.manager.indices(sft).foreach { index =>
+        if (index.name == AttributeIndex.name || index.name == JoinIndex.name) {
+          index.getTableNames().foreach { table =>
+            println(table)
+            WithClose(connector.createScanner(table, MockUserAuthorizations))(_.asScala.foreach(println))
+          }
+          println()
+        }
+      }
       success
     }
 
@@ -113,46 +128,61 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     }
 
     "support bin queries with join queries" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("count>=2"))
       query.getHints.put(BIN_TRACK, "name")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
-      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
+      bins must haveSize(3)
+      bins.map(_.trackId) must containAllOf(Seq("bill", "bob", "charles").map(_.hashCode))
+    }
+
+    "support bin queries with join queries and transforms" in {
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
+      val query = new Query(sftName, ECQL.toFilter("count>=2"), Array("dtg", "geom", "name")) // note: swap order
+      query.getHints.put(BIN_TRACK, "name")
+      query.getHints.put(BIN_DTG, "dtg")
+      query.getHints.put(BIN_GEOM, "geom")
+      query.getHints.put(BIN_BATCH_SIZE, 1000)
+      forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
+      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+      forall(results)(_ must beAnInstanceOf[Array[Byte]])
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(3)
       bins.map(_.trackId) must containAllOf(Seq("bill", "bob", "charles").map(_.hashCode))
     }
 
     "support bin queries against index values" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("count>=2"))
       query.getHints.put(BIN_TRACK, "dtg")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
-      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(3)
       bins.map(_.trackId) must containAllOf(Seq(billDate, bobDate, charlesDate).map(_.hashCode))
     }
 
     "support bin queries against full values" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("name>'amy'"))
       query.getHints.put(BIN_TRACK, "count")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
-      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(3)
       bins.map(_.trackId) must containAllOf(Seq(2, 3, 4).map(_.hashCode))
     }
 
     "support bin queries against non-default geoms with index-value track" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val query = new Query(sftName, ECQL.toFilter("count>=2"))
       query.getHints.put(BIN_GEOM, "geom2")
       query.getHints.put(BIN_TRACK, "count")
@@ -160,7 +190,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
-      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(3)
       bins.map(_.trackId) must containAllOf(Seq(2, 3, 4).map(_.hashCode))
       forall(bins.map(_.lat))(_ mustEqual 59f)
@@ -177,7 +207,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges with the attribute equals prefix
-        val features = execute(s"height = 12.0 AND $stFilter", ranges = Some(beGreaterThan(1)))
+        val features = execute(s"height = 12.0 AND $stFilter", ranges = Some(beGreaterThan(shards)))
         features must haveLength(1)
         features must contain("bob")
       }
@@ -193,7 +223,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the upper bound
-        val features = execute(s"height < 12.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height < 12.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(1)
         features must contain("alice")
       }
@@ -209,7 +239,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the upper bound
-        val features = execute(s"height <= 12.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height <= 12.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(2)
         features must contain("bill", "bob")
       }
@@ -225,7 +255,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the lower bound
-        val features = execute(s"height > 11.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height > 11.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(1)
         features must contain("bob")
       }
@@ -241,7 +271,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the lower bound
-        val features = execute(s"height >= 11.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height >= 11.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(1)
         features must contain("bob")
       }
@@ -257,10 +287,31 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       )
       forall(stFilters) { stFilter =>
         // expect z3 ranges to only inform the end bounds
-        val features = execute(s"height between 11.0 AND 12.0 AND $stFilter", ranges = Some(beEqualTo(1)))
+        val features = execute(s"height between 11.0 AND 12.0 AND $stFilter", ranges = Some(beEqualTo(shards)))
         features must haveLength(1)
         features must contain("bob")
       }
+    }
+
+    "handle functions" in {
+      val filters = Seq (
+        "strToUpperCase(name) = 'BILL'",
+        "strCapitalize(name) = 'Bill'",
+        "strConcat(name, 'foo') = 'billfoo'",
+        "strIndexOf(name, 'ill') = 1",
+        "strReplace(name, 'ill', 'all', false) = 'ball'",
+        "strSubstring(name, 0, 2) = 'bi'",
+        "strToLowerCase(name) = 'bill'",
+        "strTrim(name) = 'bill'",
+        "abs(age) = 21",
+        "ceil(age) = 21",
+        "floor(age) = 21",
+        "'BILL' = strToUpperCase(name)",
+        "strToUpperCase('bill') = strToUpperCase(name)",
+        "strToUpperCase(name) = strToUpperCase('bill')",
+        "name = strToLowerCase('bill')"
+      )
+      foreach(filters) { filter => execute(filter) mustEqual Seq("bill") }
     }
 
     "support sampling" in {
@@ -298,12 +349,12 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       query.getHints.put(SAMPLE_BY, "track")
       val results = runQuery(query).toList
-      results must haveLength(2)
-      results.map(_.getAttribute("track")) must containTheSameElementsAs(Seq("track1", "track2"))
+      results.length must beLessThan(4) // note: due to sharding and multiple ranges, we don't get exact sampling
+      results.map(_.getAttribute("track")).distinct must containTheSameElementsAs(Seq("track1", "track2"))
     }
 
     "support sampling with bin queries" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       // important - id filters will create multiple ranges and cause multiple iterators to be created
       val query = new Query(sftName, ECQL.toFilter("name > 'a'"))
       query.getHints.put(BIN_TRACK, "name")
@@ -312,7 +363,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       // have to evaluate attributes before pulling into collection, as the same sf is reused
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
-      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(2)
     }
 
@@ -323,7 +374,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(DENSITY_HEIGHT, 600)
       query.getHints.put(DENSITY_WIDTH, 400)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
-      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val decode = DensityScan.decodeResult(envelope, 600, 400)
       val results = runQuery(query).flatMap(decode).toList
       results must containTheSameElementsAs(Seq((41.325,58.5375,1.0), (42.025,58.5375,1.0), (40.675,58.5375,1.0)))
     }
@@ -336,7 +387,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(DENSITY_WIDTH, 400)
       query.getHints.put(DENSITY_WEIGHT, "count")
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
-      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val decode = DensityScan.decodeResult(envelope, 600, 400)
       val results = runQuery(query).flatMap(decode).toList
       results must containTheSameElementsAs(Seq((41.325,58.5375,3.0), (42.025,58.5375,4.0), (40.675,58.5375,2.0)))
     }
@@ -349,7 +400,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(DENSITY_WIDTH, 400)
       query.getHints.put(DENSITY_WEIGHT, "age")
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[JoinPlan])
-      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val decode = DensityScan.decodeResult(envelope, 600, 400)
       val results = runQuery(query).flatMap(decode).toList
       results must containTheSameElementsAs(Seq((40.675,58.5375,21.0), (41.325,58.5375,30.0), (42.025,58.5375,0.0)))
     }
@@ -361,7 +412,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(DENSITY_HEIGHT, 600)
       query.getHints.put(DENSITY_WIDTH, 400)
       forall(ds.getQueryPlan(query))(_ must beAnInstanceOf[BatchScanPlan])
-      val decode = KryoLazyDensityIterator.decodeResult(envelope, 600, 400)
+      val decode = DensityScan.decodeResult(envelope, 600, 400)
       val results = runQuery(query).flatMap(decode).toList
       results must containTheSameElementsAs(Seq((40.675,58.5375,1.0), (42.025,58.5375,1.0)))
     }
@@ -745,57 +796,49 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     }
 
     "correctly query on lists of strings" in {
+      // note: may return duplicate results
       "lt" >> {
         val features = execute("fingers<'middle'")
-        features must haveLength(3)
         features must contain("alice", "bob", "charles")
       }
       "gt" >> {
         val features = execute("fingers>'middle'")
-        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
       "lte" >> {
         val features = execute("fingers<='middle'")
-        features must haveLength(4)
         features must contain("alice", "bill", "bob", "charles")
       }
       "gte" >> {
         val features = execute("fingers>='middle'")
-        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
       "between (inclusive)" >> {
         val features = execute("fingers BETWEEN 'pinkie' AND 'thumb'")
-        features must haveLength(3)
         features must contain("bill", "bob", "charles")
       }
     }
 
     "correctly query on lists of doubles" in {
+      // note: may return duplicate results
       "lt" >> {
         val features = execute("toes<2.0")
-        features must haveLength(2)
         features must contain("alice", "bill")
       }
       "gt" >> {
         val features = execute("toes>2.0")
-        features must haveLength(1)
         features must contain("bob")
       }
       "lte" >> {
         val features = execute("toes<=2.0")
-        features must haveLength(3)
         features must contain("alice", "bill", "bob")
       }
       "gte" >> {
         val features = execute("toes>=2.0")
-        features must haveLength(2)
         features must contain("bill", "bob")
       }
       "between (inclusive)" >> {
         val features = execute("toes BETWEEN 1.5 AND 2.5")
-        features must haveLength(2)
         features must contain("bill", "bob")
       }
     }
@@ -855,10 +898,16 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
   "AttributeIndexLikeStrategy" should {
 
-    "correctly query on strings" in {
+    "correctly query on strings with multi-char match" in {
       val features = execute("name LIKE 'b%'")
       features must haveLength(2)
       features must contain("bill", "bob")
+    }
+
+    "correctly query on strings with single-char match" in {
+      val features = execute("name LIKE 'b_b'")
+      features must haveLength(1)
+      features must contain("bob")
     }
 
     "correctly query on non-strings" in {
@@ -872,23 +921,22 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
     val ff = CommonFactoryFinder.getFilterFactory2
 
     "merge PropertyIsEqualTo primary filters" >> {
-      val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
-      val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
-      val qf1 = FilterStrategy(AttributeIndex, Some(q1), None)
-      val qf2 = FilterStrategy(AttributeIndex, Some(q2), None)
+      val q1 = ff.equals(ff.property("name"), ff.literal("1"))
+      val q2 = ff.equals(ff.property("name"), ff.literal("2"))
+      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), None, 0L)
+      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), None, 0L)
       val res = FilterSplitter.tryMergeAttrStrategy(qf1, qf2)
       res must not(beNull)
       res.primary must beSome(ff.or(q1, q2))
     }
 
     "merge PropertyIsEqualTo on multiple ORs" >> {
-
-      val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
-      val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
-      val q3 = ff.equals(ff.property("prop"), ff.literal("3"))
-      val qf1 = FilterStrategy(AttributeIndex, Some(q1), None)
-      val qf2 = FilterStrategy(AttributeIndex, Some(q2), None)
-      val qf3 = FilterStrategy(AttributeIndex, Some(q3), None)
+      val q1 = ff.equals(ff.property("name"), ff.literal("1"))
+      val q2 = ff.equals(ff.property("name"), ff.literal("2"))
+      val q3 = ff.equals(ff.property("name"), ff.literal("3"))
+      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), None, 0L)
+      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), None, 0L)
+      val qf3 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q3), None, 0L)
       val res = FilterSplitter.tryMergeAttrStrategy(FilterSplitter.tryMergeAttrStrategy(qf1, qf2), qf3)
       res must not(beNull)
       res.primary.map(decomposeOr) must beSome(containTheSameElementsAs(Seq[Filter](q1, q2, q3)))
@@ -896,12 +944,12 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
     "merge PropertyIsEqualTo when secondary matches" >> {
       val bbox = ff.bbox("geom", 1, 2, 3, 4, "EPSG:4326")
-      val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
-      val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
-      val q3 = ff.equals(ff.property("prop"), ff.literal("3"))
-      val qf1 = FilterStrategy(AttributeIndex, Some(q1), Some(bbox))
-      val qf2 = FilterStrategy(AttributeIndex, Some(q2), Some(bbox))
-      val qf3 = FilterStrategy(AttributeIndex, Some(q3), Some(bbox))
+      val q1 = ff.equals(ff.property("name"), ff.literal("1"))
+      val q2 = ff.equals(ff.property("name"), ff.literal("2"))
+      val q3 = ff.equals(ff.property("name"), ff.literal("3"))
+      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), Some(bbox), 0L)
+      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), Some(bbox), 0L)
+      val qf3 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q3), Some(bbox), 0L)
       val res = FilterSplitter.tryMergeAttrStrategy(FilterSplitter.tryMergeAttrStrategy(qf1, qf2), qf3)
       res must not(beNull)
       res.primary.map(decomposeOr) must beSome(containTheSameElementsAs(Seq[Filter](q1, q2, q3)))
@@ -910,12 +958,24 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
 
     "not merge PropertyIsEqualTo when secondary does not match" >> {
       val bbox = ff.bbox("geom", 1, 2, 3, 4, "EPSG:4326")
-      val q1 = ff.equals(ff.property("prop"), ff.literal("1"))
-      val q2 = ff.equals(ff.property("prop"), ff.literal("2"))
-      val qf1 = FilterStrategy(AttributeIndex, Some(q1), Some(bbox))
-      val qf2 = FilterStrategy(AttributeIndex, Some(q2), None)
+      val q1 = ff.equals(ff.property("name"), ff.literal("1"))
+      val q2 = ff.equals(ff.property("name"), ff.literal("2"))
+      val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), Some(bbox), 0L)
+      val qf2 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q2), None, 0L)
       val res = FilterSplitter.tryMergeAttrStrategy(qf1, qf2)
       res must beNull
+    }
+  }
+
+  "AttributeIndexIterator" should {
+    "be run when requesting extra index-encoded attributes" in {
+      val sftName = "AttributeIndexIteratorTriggerTest"
+      val spec = "name:String:index=join,age:Integer:index-value=true,dtg:Date:index=join,*geom:Point:srid=4326;" +
+          "override.index.dtg.join=true"
+      val sft = SimpleFeatureTypes.createType(sftName, spec)
+      ds.createSchema(sft)
+      val qps = ds.getQueryPlan(new Query(sftName, ECQL.toFilter("name='bob'"), Array("geom", "dtg", "name", "age")))
+      forall(qps)(qp => qp.filter.index.name mustEqual JoinIndex.name)
     }
   }
 }

@@ -1,18 +1,18 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.geojson.servlet
 
 import java.io.Closeable
 import java.util.concurrent.ConcurrentHashMap
 
+import org.geotools.data.DataStore
 import org.json4s.{DefaultFormats, Formats}
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.geojson.GeoJsonGtIndex
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.web.core.GeoMesaDataStoreServlet
@@ -30,7 +30,7 @@ class GeoJsonServlet(val persistence: FilePersistence) extends GeoMesaDataStoreS
 
   override protected implicit val jsonFormats: Formats = DefaultFormats
 
-  private val indexCache = new ConcurrentHashMap[AccumuloDataStore, GeoJsonGtIndex]
+  private val indexCache = new ConcurrentHashMap[DataStore, GeoJsonGtIndex]
 
   before() {
     contentType = formats("json")
@@ -217,7 +217,7 @@ class GeoJsonServlet(val persistence: FilePersistence) extends GeoMesaDataStoreS
   }
 
   private def withGeoJsonIndex[T](method: (GeoJsonGtIndex) => T): Any = {
-    withDataStore((ds) => {
+    withDataStore((ds: DataStore) => {
       val index = Option(indexCache.get(ds)).getOrElse {
         val index = new GeoJsonGtIndex(ds)
         indexCache.put(ds, index)

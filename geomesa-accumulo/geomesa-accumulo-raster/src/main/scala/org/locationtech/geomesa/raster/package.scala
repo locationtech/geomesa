@@ -1,19 +1,19 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa
 
 import java.math.{MathContext, RoundingMode}
 
 import org.calrissian.mango.types.LexiTypeEncoders
-import org.geotools.data.DataAccessFactory.Param
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.utils.geotools.{GeoMesaParam, SimpleFeatureTypes}
+import org.opengis.feature.simple.SimpleFeatureType
 
 /**
  * In these lexiEncode and -Decode functions, a double is encoded or decoded into a lexical
@@ -33,18 +33,15 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 package object raster {
 
   object RasterParams {
-    val writeMemoryParam = new Param("writeMemory", classOf[Integer], "The memory allocation to use for writing records", false)
+    val writeMemoryParam = new GeoMesaParam[Integer]("writeMemory", "The memory allocation to use for writing records")
   }
 
   val rasterSftName: String = ""
 
   // Raster CQ MetaData SFT
-  val rasterSft = {
-    val sft = SimpleFeatureTypes.createType("RasterIndexEntry", "*geom:Geometry:srid=4326,dtg:Date")
-    sft.setSchemaVersion(8) // TODO GEOMESA-1278 this should be read out of the actual data we're reading and not be constant
-    sft.setDtgField("dtg")
-    sft
-  }
+  // TODO GEOMESA-1278 schema version should be read out of the actual data we're reading and not be constant
+  val rasterSft: SimpleFeatureType = SimpleFeatureTypes.createType("RasterIndexEntry",
+    s"*geom:Geometry:srid=4326,dtg:Date:default=true;${AccumuloDataStore.DeprecatedSchemaVersionKey}='8'")
 
   // geom field name
   val rasterSftGeomName = "geom"

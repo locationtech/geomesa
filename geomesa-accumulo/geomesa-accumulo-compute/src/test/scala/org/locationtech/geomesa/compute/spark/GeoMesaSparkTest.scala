@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 
 package org.locationtech.geomesa.compute.spark
@@ -22,11 +22,11 @@ import org.apache.spark.{SparkConf, SparkContext}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities, Query}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory}
 import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
 import org.locationtech.geomesa.security.SecurityUtils
@@ -60,20 +60,19 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
 
     import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
     lazy val dsParams = Map[String, String](
-      zookeepersParam.key -> "dummy",
-      instanceIdParam.key -> "dummy",
-      zookeepersParam.key -> "dummy",
-      userParam.key -> "user",
-      passwordParam.key -> "pass",
-      tableNameParam.key -> TEST_TABLE_NAME,
-      mockParam.key -> "true")
+      InstanceIdParam.key -> "dummy",
+      ZookeepersParam.key -> "dummy",
+      UserParam.key       -> "user",
+      PasswordParam.key   -> "pass",
+      CatalogParam.key    -> TEST_TABLE_NAME,
+      MockParam.key       -> "true")
 
     def getDs(params: Map[String,String]): DataStore = {
       val mockInstance = new MockInstance("dummy")
       val c = mockInstance.getConnector("user", new PasswordToken("pass".getBytes))
-      c.tableOperations.create(tableNameParam.lookUp(params).toString)
+      c.tableOperations.create(CatalogParam.lookup(params))
       val splits = (0 to 99).map(s => "%02d".format(s)).map(new Text(_))
-      c.tableOperations().addSplits(tableNameParam.lookUp(params).toString, new java.util.TreeSet[Text](splits.asJava))
+      c.tableOperations().addSplits(CatalogParam.lookup(params), new java.util.TreeSet[Text](splits.asJava))
 
       val dsf = new AccumuloDataStoreFactory
 
@@ -106,7 +105,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
         Array(
           i.toString,
           Map("a" -> i, "b" -> i * 2, (if (random.nextBoolean()) "c" else "d") -> random.nextInt(10)).asJava,
-          new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate,
+          "2012-01-01T19:00:00Z",
           "POINT(-77 38)")
     }
 
@@ -169,13 +168,12 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
 
       // Initialize second
       val secondDsParams = Map[String, String](
-        zookeepersParam.key -> "dummy",
-        instanceIdParam.key -> "dummy",
-        zookeepersParam.key -> "dummy",
-        userParam.key -> "user",
-        passwordParam.key -> "pass",
-        tableNameParam.key -> "SECOND_TABLE",
-        mockParam.key -> "true")
+        InstanceIdParam.key -> "dummy",
+        ZookeepersParam.key -> "dummy",
+        UserParam.key       -> "user",
+        PasswordParam.key   -> "pass",
+        CatalogParam.key    -> "SECOND_TABLE",
+        MockParam.key       -> "true")
 
       val secondDs: DataStore = getDs(secondDsParams)
 
@@ -261,13 +259,13 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
 
       // create the data store
       val privParams = Map(
-        "instanceId"        -> instanceName,
-        "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-        "user"              -> "myuser",
-        "password"          -> "mypassword",
-        "tableName"         -> "testwrite",
-        "useMock"           -> "true",
-        "auths"             -> "user,admin")
+        InstanceIdParam.key -> instanceName,
+        ZookeepersParam.key -> "zoo1:2181,zoo2:2181,zoo3:2181",
+        UserParam.key       -> "myuser",
+        PasswordParam.key   -> "mypassword",
+        CatalogParam.key    -> "testwrite",
+        MockParam.key       -> "true",
+        AuthsParam.key      -> "user,admin")
       val privDS = DataStoreFinder.getDataStore(privParams).asInstanceOf[AccumuloDataStore]
 
       val sftName = "sparkAuthTest"
@@ -305,7 +303,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
         Option(sc).foreach(_.stop())
         sc =  new SparkContext(conf) // will get shut down by shutdown method
 
-        val rdd = GeoMesaSpark.rdd(new Configuration(), sc, privParams.updated("auths", "user"), new Query(sftName))
+        val rdd = GeoMesaSpark.rdd(new Configuration(), sc, privParams.updated(AuthsParam.key, "user"), new Query(sftName))
         rdd.count() mustEqual 3
       }
 
@@ -315,7 +313,7 @@ class GeoMesaSparkTest extends Specification with LazyLogging {
         Option(sc).foreach(_.stop())
         sc =  new SparkContext(conf) // will get shut down by shutdown method
 
-        val rdd = GeoMesaSpark.rdd(new Configuration(), sc, privParams - "auths", new Query(sftName))
+        val rdd = GeoMesaSpark.rdd(new Configuration(), sc, privParams - AuthsParam.key, new Query(sftName))
         rdd.count() mustEqual 0
       }
     }

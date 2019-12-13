@@ -1,41 +1,44 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.util.Date
+import java.util.{Collections, Date}
 
-import com.vividsolutions.jts.geom.Coordinate
 import org.geotools.data._
-import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.Converters
-import org.joda.time.{DateTime, DateTimeZone}
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.EmptyPlan
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, TestData}
-import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, TestWithMultipleSfts}
+import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.function.{BasicValues, Convert2ViewerFunction}
-import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints._
-import org.locationtech.geomesa.index.utils.ExplainString
+import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties}
+import org.locationtech.geomesa.index.index.NamedIndex
+import org.locationtech.geomesa.index.index.id.IdIndex
+import org.locationtech.geomesa.index.index.z2.Z2Index
+import org.locationtech.geomesa.index.index.z3.Z3Index
+import org.locationtech.geomesa.index.planning.QueryPlanner
+import org.locationtech.geomesa.index.utils.{ExplainNull, ExplainString}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.filters.Filters
-import org.locationtech.geomesa.utils.geotools.Conversions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.jts.geom.Coordinate
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.time.Duration
 
 import scala.collection.JavaConversions._
 import scala.util.Random
@@ -43,9 +46,10 @@ import scala.util.Random
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts {
 
+  import org.locationtech.geomesa.filter.ff
+
   sequential
 
-  val ff = CommonFactoryFinder.getFilterFactory2
   val defaultSft = createNewSchema("name:String:index=join,geom:Point:srid=4326,dtg:Date")
   addFeature(defaultSft, ScalaSimpleFeature.create(defaultSft, "fid-1", "name1", "POINT(45 49)", "2010-05-07T12:30:00.000Z"))
 
@@ -112,13 +116,11 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       // add the 50 included points
       TestData.includedDwithinPoints.zipWithIndex.foreach{ case (p, i) =>
-        addFeature(sftPoints, ScalaSimpleFeature.create(sftPoints, "infid$i", p, "2014-06-07T12:00:00.000Z"))
+        addFeature(sftPoints, ScalaSimpleFeature.create(sftPoints, s"infid$i", p, "2014-06-07T12:00:00.000Z"))
       }
 
       // compose the query
-      val start   = new DateTime(2014, 6, 7, 11, 0, 0, DateTimeZone.forID("UTC"))
-      val end     = new DateTime(2014, 6, 7, 13, 0, 0, DateTimeZone.forID("UTC"))
-      val during  = ff.during(ff.property("dtg"), Filters.dts2lit(start, end))
+      val during = ECQL.toFilter("dtg DURING 2014-06-07T11:00:00.000Z/2014-06-07T13:00:00.000Z")
 
       "with correct result when using a dwithin of degrees" >> {
         val dwithinUsingDegrees = ff.dwithin(ff.property("geom"),
@@ -126,7 +128,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         val filterUsingDegrees  = ff.and(during, dwithinUsingDegrees)
         val queryUsingDegrees   = new Query(sftPoints.getTypeName, filterUsingDegrees)
         val resultsUsingDegrees = ds.getFeatureSource(sftPoints.getTypeName).getFeatures(queryUsingDegrees)
-        resultsUsingDegrees.features.length mustEqual 50
+        SelfClosingIterator(resultsUsingDegrees.features).toSeq must haveLength(50)
       }.pendingUntilFixed("Fixed Z3 'During And Dwithin' queries for a buffer created with unit degrees")
 
       "with correct result when using a dwithin of meters" >> {
@@ -135,7 +137,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         val filterUsingMeters  = ff.and(during, dwithinUsingMeters)
         val queryUsingMeters   = new Query(sftPoints.getTypeName, filterUsingMeters)
         val resultsUsingMeters = ds.getFeatureSource(sftPoints.getTypeName).getFeatures(queryUsingMeters)
-        resultsUsingMeters.features.length mustEqual 50
+        SelfClosingIterator(resultsUsingMeters.features).toSeq must haveLength(50)
       }
     }
 
@@ -145,28 +147,17 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val queryNull = new Query(defaultSft.getTypeName, filterNull)
       val queryEmpty = new Query(defaultSft.getTypeName, filterEmpty)
 
-      val (planNull, explainNull) = {
-        val o = new ExplainString
-        val p = ds.getQueryPlan(queryNull, explainer = o)
-        (p, o.toString())
-      }
-      val (planEmpty, explainEmpty) = {
-        val o = new ExplainString
-        val p = ds.getQueryPlan(queryEmpty, explainer = o)
-        (p, o.toString())
-      }
+      val planNull = ds.getQueryPlan(queryNull)
+      val planEmpty = ds.getQueryPlan(queryEmpty)
 
       planNull must haveLength(1)
-      planNull.head.table mustEqual Z2Index.getTableName(defaultSft.getTypeName, ds)
+      planNull.head.filter.index.name mustEqual Z2Index.name
 
       planEmpty must haveLength(1)
-      planEmpty.head.table mustEqual Z2Index.getTableName(defaultSft.getTypeName, ds)
+      planNull.head.filter.index.name mustEqual Z2Index.name
 
-      explainNull must contain("Filter plan: FilterPlan[Z2Index[BBOX(geom, 40.0,44.0,50.0,54.0)][None]]")
-      explainEmpty must contain("Filter plan: FilterPlan[Z2Index[BBOX(geom, 40.0,44.0,50.0,54.0)][None]]")
-
-      val featuresNull = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryNull).features.toSeq
-      val featuresEmpty = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryEmpty).features.toSeq
+      val featuresNull = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryNull).features).toSeq
+      val featuresEmpty = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(queryEmpty).features).toSeq
 
       featuresNull.map(_.getID) mustEqual Seq("fid-1")
       featuresEmpty.map(_.getID) mustEqual Seq("fid-1")
@@ -216,10 +207,10 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val orQuery  = new Query(sft.getTypeName,  orq)
       val andQuery = new Query(sft.getTypeName, andq)
 
-      val urNum  = fs.getFeatures(urQuery).features.length
-      val llNum  = fs.getFeatures(llQuery).features.length
-      val orNum  = fs.getFeatures(orQuery).features.length
-      val andNum = fs.getFeatures(andQuery).features.length
+      val urNum  = SelfClosingIterator(fs.getFeatures(urQuery).features).length
+      val llNum  = SelfClosingIterator(fs.getFeatures(llQuery).features).length
+      val orNum  = SelfClosingIterator(fs.getFeatures(orQuery).features).length
+      val andNum = SelfClosingIterator(fs.getFeatures(andQuery).features).length
 
       (urNum + llNum) mustEqual (orNum + andNum)
     }
@@ -244,7 +235,14 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val filter =
         CQL.toFilter("bbox(geom,40,40,60,60) AND dtg BETWEEN '2010-05-07T12:00:00.000Z' AND '2010-05-07T13:00:00.000Z'")
       val query = new Query(defaultSft.getTypeName, filter)
-      val features = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features.toList
+      val features = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).toList
+      features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
+    }
+
+    "handle 1s duration queries" in {
+      val filter = CQL.toFilter("bbox(geom,40,40,60,60) AND dtg DURING 2010-05-07T12:30:00.000Z/T1S")
+      val query = new Query(defaultSft.getTypeName, filter)
+      val features = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).toList
       features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
     }
 
@@ -253,29 +251,62 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val filter = ECQL.toFilter("contains(POLYGON ((40 40, 50 40, 50 50, 40 50, 40 40)), geom) AND " +
           "dtg BETWEEN '2010-01-01T00:00:00.000Z' AND '2010-12-31T23:59:59.000Z'")
       val query = new Query(defaultSft.getTypeName, filter)
-      val features = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features.toList
+      val features = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).toList
       features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
     }
 
     "handle out-of-bound longitude and in-bounds latitude bboxes" in {
       val filter = ECQL.toFilter("BBOX(geom, -266.8359375,-75.5859375,279.4921875,162.7734375)")
       val query = new Query(defaultSft.getTypeName, filter)
-      val features = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features.toList
+      val features = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).toList
       features.map(DataUtilities.encodeFeature) mustEqual List("fid-1=name1|POINT (45 49)|2010-05-07T12:30:00.000Z")
     }
 
+    "exclude start/end times in before/after filters" in {
+      val after = new Query(defaultSft.getTypeName,ECQL.toFilter("dtg AFTER 2010-05-07T12:30:00.000Z"))
+      SelfClosingIterator(ds.getFeatureReader(after, Transaction.AUTO_COMMIT)).toList must beEmpty
+
+      val before = new Query(defaultSft.getTypeName,ECQL.toFilter("dtg BEFORE 2010-05-07T12:30:00.000Z"))
+      SelfClosingIterator(ds.getFeatureReader(before, Transaction.AUTO_COMMIT)).toList must beEmpty
+    }
+
     "handle requests with namespaces" in {
-      // create the data store
+      import AccumuloDataStoreParams.NamespaceParam
+
+      import scala.collection.JavaConversions._
+
       val ns = "mytestns"
       val typeName = "namespacetest"
 
-      val sft = SimpleFeatureTypes.createType(typeName, "geom:Point:srid=4326")
-      val sftWithNs = SimpleFeatureTypes.createType(ns, typeName, "geom:Point:srid=4326")
+      val sft = SimpleFeatureTypes.createType(typeName, "name:String,geom:Point:srid=4326")
+      val sftWithNs = SimpleFeatureTypes.createType(ns, typeName, "name:String,geom:Point:srid=4326")
 
       ds.createSchema(sftWithNs)
 
-      ds.getSchema(typeName) mustEqual sft
-      ds.getSchema(new NameImpl(ns, typeName)) mustEqual sft
+      ds.getSchema(typeName) mustEqual SimpleFeatureTypes.immutable(sft)
+      ds.getSchema(new NameImpl(ns, typeName)) mustEqual SimpleFeatureTypes.immutable(sft)
+
+      val dsWithNs = DataStoreFinder.getDataStore(dsParams ++ Map(NamespaceParam.key -> "ns0"))
+      val name = dsWithNs.getSchema(typeName).getName
+      name.getNamespaceURI mustEqual "ns0"
+      name.getLocalPart mustEqual typeName
+
+      val sf = ScalaSimpleFeature.create(sft, "fid-1", "name1", "POINT(45 49)")
+      addFeature(sft, sf)
+
+      val queries = Seq(
+        new Query(typeName),
+        new Query(typeName, ECQL.toFilter("bbox(geom,40,45,50,55)")),
+        new Query(typeName, Filter.INCLUDE, Array("geom")),
+        new Query(typeName, ECQL.toFilter("bbox(geom,40,45,50,55)"), Array("geom"))
+      )
+      foreach(queries) { query =>
+        val reader = dsWithNs.getFeatureReader(query, Transaction.AUTO_COMMIT)
+        reader.getFeatureType.getName mustEqual name
+        val features = SelfClosingIterator(reader).toList
+        features.map(_.getID) mustEqual Seq(sf.getID)
+        features.head.getFeatureType.getName mustEqual name
+      }
     }
 
     "handle cql functions" in {
@@ -289,16 +320,16 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val nStrategies = negatives.map(ds.getQueryPlan(_))
 
       forall(pStrategies ++ nStrategies)(_ must haveLength(1))
-      pStrategies.map(_.head.filter.index) mustEqual Seq(AttributeIndex, RecordIndex, Z2Index, Z3Index)
-      nStrategies.map(_.head.filter.index) mustEqual Seq(AttributeIndex, RecordIndex, Z2Index, Z3Index)
+      pStrategies.map(_.head.filter.index.name) mustEqual Seq(JoinIndex, IdIndex, Z2Index, Z3Index).map(_.name)
+      nStrategies.map(_.head.filter.index.name) mustEqual Seq(JoinIndex, IdIndex, Z2Index, Z3Index).map(_.name)
 
       forall(positives) { query =>
-        val result = ds.getFeatureSource(sftName).getFeatures(query).features().toList
+        val result = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
         result must haveLength(1)
         result.head.getID mustEqual "fid-1"
       }
       forall(negatives) { query =>
-        val result = ds.getFeatureSource(sftName).getFeatures(query).features().toList
+        val result = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
         result must beEmpty
       }
     }
@@ -365,27 +396,8 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       (System.currentTimeMillis() - start) must beLessThan(30000L)
     }
 
-    "avoid deduplication when possible" in {
-      val sft = createNewSchema(s"name:String:index=join:cardinality=high,dtg:Date,*geom:Point:srid=4326")
-      addFeature(sft, ScalaSimpleFeature.create(sft, "1", "bob", "2010-05-07T12:00:00.000Z", "POINT(45 45)"))
-
-      val filter = "bbox(geom,-180,-90,180,90) AND dtg DURING 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z" +
-          " AND (name = 'alice' OR name = 'bob' OR name = 'charlie')"
-      val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
-
-      val plans = ds.getQueryPlan(query)
-      plans must haveLength(1)
-      plans.head.hasDuplicates must beFalse
-      plans.head must beAnInstanceOf[JoinPlan]
-      plans.head.asInstanceOf[JoinPlan].joinQuery.hasDuplicates must beFalse
-
-      val features = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features().toList
-      features must haveLength(1)
-      features.head.getID mustEqual "1"
-    }
-
     "support bin queries" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val sft = createNewSchema(s"name:String,dtg:Date,*geom:Point:srid=4326")
 
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", "name1", "2010-05-07T00:00:00.000Z", "POINT(45 45)"))
@@ -394,16 +406,17 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val query = new Query(sft.getTypeName, ECQL.toFilter("BBOX(geom,40,40,50,50)"))
       query.getHints.put(BIN_TRACK, "name")
       query.getHints.put(BIN_BATCH_SIZE, 1000)
-      val queryPlanner = new AccumuloQueryPlanner(ds)
-      val results = queryPlanner.runQuery(sft, query, Some(Z2Index)).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
+      query.getHints.put(QUERY_INDEX, Z2Index.name)
+      val queryPlanner = new QueryPlanner(ds)
+      val results = queryPlanner.runQuery(sft, query, ExplainNull).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toSeq
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
-      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveSize(2)
       bins.map(_.trackId) must containAllOf(Seq("name1", "name2").map(_.hashCode))
     }
 
     "support bin queries with linestrings" in {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val sft = createNewSchema(s"name:String,dtgs:List[Date],dtg:Date,*geom:LineString:srid=4326")
       val dtgs1 = new java.util.ArrayList[Date]
       dtgs1.add(Converters.convert("2010-05-07T00:00:00.000Z", classOf[Date]))
@@ -423,18 +436,18 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         query.getHints.put(BIN_BATCH_SIZE, batch)
         query.getHints.put(BIN_DTG, "dtgs")
 
-        val bytes = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features().map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+        val bytes = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
         forall(bytes)(_ must beAnInstanceOf[Array[Byte]])
-        val bins = bytes.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+        val bins = bytes.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
         bins must haveSize(7)
         val sorted = bins.sortBy(_.dtg)
-        sorted(0) mustEqual BasicValues(41, 40, dtgs1(0).getTime, "name1".hashCode)
-        sorted(1) mustEqual BasicValues(43, 42, dtgs1(1).getTime, "name1".hashCode)
-        sorted(2) mustEqual BasicValues(45, 44, dtgs1(2).getTime, "name1".hashCode)
-        sorted(3) mustEqual BasicValues(47, 46, dtgs1(3).getTime, "name1".hashCode)
-        sorted(4) mustEqual BasicValues(50, 50, dtgs2(0).getTime, "name2".hashCode)
-        sorted(5) mustEqual BasicValues(51, 51, dtgs2(1).getTime, "name2".hashCode)
-        sorted(6) mustEqual BasicValues(52, 52, dtgs2(2).getTime, "name2".hashCode)
+        sorted(0) mustEqual EncodedValues("name1".hashCode, 41, 40, dtgs1(0).getTime, -1L)
+        sorted(1) mustEqual EncodedValues("name1".hashCode, 43, 42, dtgs1(1).getTime, -1L)
+        sorted(2) mustEqual EncodedValues("name1".hashCode, 45, 44, dtgs1(2).getTime, -1L)
+        sorted(3) mustEqual EncodedValues("name1".hashCode, 47, 46, dtgs1(3).getTime, -1L)
+        sorted(4) mustEqual EncodedValues("name2".hashCode, 50, 50, dtgs2(0).getTime, -1L)
+        sorted(5) mustEqual EncodedValues("name2".hashCode, 51, 51, dtgs2(1).getTime, -1L)
+        sorted(6) mustEqual EncodedValues("name2".hashCode, 52, 52, dtgs2(2).getTime, -1L)
       }
     }
 
@@ -446,81 +459,114 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
 
       val filter = ECQL.toFilter("name IN('name1','name2') AND BBOX(geom, 40.0,40.0,50.0,50.0)")
       val query = new Query(sft.getTypeName, filter)
-      val features = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features.toList
+      val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
       features.map(DataUtilities.encodeFeature) must containTheSameElementsAs {
         List("1=name1|2010-05-07T00:00:00.000Z|POINT (45 45)", "2=name2|2010-05-07T01:00:00.000Z|POINT (45 46)")
       }
     }
 
     "support IN queries without dtg on indexed string attributes" in {
-      val sft = createNewSchema("name:String:index=true,dtg:Date,*geom:Point:srid=4326")
+      val sft = createNewSchema("name:String:index=join,dtg:Date,*geom:Point:srid=4326")
 
       addFeature(sft, ScalaSimpleFeature.create(sft, "1", "name1", "2010-05-07T00:00:00.000Z", "POINT(45 45)"))
       addFeature(sft, ScalaSimpleFeature.create(sft, "2", "name2", "2010-05-07T01:00:00.000Z", "POINT(45 46)"))
 
       val filter = ECQL.toFilter("name IN('name1','name2') AND BBOX(geom, -180.0,-90.0,180.0,90.0)")
       val query = new Query(sft.getTypeName, filter)
-      val features = ds.getFeatureSource(sft.getTypeName).getFeatures(query).features.toList
+      val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
       features.map(DataUtilities.encodeFeature).sorted mustEqual List("1=name1|2010-05-07T00:00:00.000Z|POINT (45 45)", "2=name2|2010-05-07T01:00:00.000Z|POINT (45 46)").sorted
     }
 
     "kill queries after a configurable timeout" in {
-      val params = Map(
-        "connector" -> ds.connector,
-        "tableName" -> ds.config.catalog,
-        AccumuloDataStoreParams.queryTimeoutParam.getName -> "1"
-      )
+      import scala.concurrent.duration._
+
+      val params = dsParams ++ Map(AccumuloDataStoreParams.QueryTimeoutParam.getName -> "1s")
 
       val dsWithTimeout = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
       val reader = dsWithTimeout.getFeatureReader(new Query(defaultSft.getTypeName, Filter.INCLUDE), Transaction.AUTO_COMMIT)
       reader.isClosed must beFalse
-      reader.isClosed must eventually(10, new Duration(1000))(beTrue) // reaper thread runs every 5 seconds
+      eventually(20, 200.millis)(reader.isClosed must beTrue)
+    }
+
+    "block full table scans" in {
+      val sft = createNewSchema("name:String:index=join,age:Int,geom:Point:srid=4326,dtg:Date")
+      val feature = ScalaSimpleFeature.create(sft, "fid-1", "name1", "23", "POINT(45 49)", "2010-05-07T12:30:00.000Z")
+      addFeature(sft, feature)
+
+      val filters = Seq(
+        "IN ('fid-1')",
+        "name = 'name1'",
+        "name IN ('name1', 'name2')",
+        "bbox(geom,44,48,46,50)",
+        "bbox(geom,44,48,46,50) AND age < 25",
+        "dtg during 2010-05-07T12:25:00.000Z/2010-05-07T12:35:00.000Z",
+        "bbox(geom,44,48,46,50) AND dtg during 2010-05-07T12:25:00.000Z/2010-05-07T12:35:00.000Z  AND age = 23"
+      )
+      val fullScans = Seq("INCLUDE", "age = 23")
+
+      // test that blocking full table scans doesn't interfere with regular queries
+      QueryProperties.BlockFullTableScans.threadLocalValue.set("true")
+      try {
+        foreach(filters) { filter =>
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
+          val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
+          features mustEqual List(feature)
+        }
+        foreach(fullScans) { filter =>
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
+          ds.getFeatureSource(sft.getTypeName).getFeatures(query).features must throwA[RuntimeException]
+        }
+        // verify that we won't block if max features is set
+        foreach(fullScans) { filter =>
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter), 10, null: Array[String], null)
+          val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
+          features mustEqual List(feature)
+        }
+
+        // verify that we can override individually
+        System.setProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table", "false")
+        foreach(fullScans) { filter =>
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
+          val features = SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(query).features).toList
+          features mustEqual List(feature)
+        }
+        // verify that we can also block individually
+        QueryProperties.BlockFullTableScans.threadLocalValue.remove()
+        System.setProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table", "true")
+        foreach(fullScans) { filter =>
+          val query = new Query(sft.getTypeName, ECQL.toFilter(filter))
+          ds.getFeatureSource(sft.getTypeName).getFeatures(query).features must throwA[RuntimeException]
+        }
+      } finally {
+        QueryProperties.BlockFullTableScans.threadLocalValue.remove()
+        System.clearProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table")
+      }
     }
 
     "allow query strategy to be specified via view params" in {
       val filter = "BBOX(geom,40,40,50,50) and dtg during 2010-05-07T00:00:00.000Z/2010-05-08T00:00:00.000Z and name='name1'"
       val query = new Query(defaultSft.getTypeName, ECQL.toFilter(filter))
 
-      def expectStrategy(strategy: AccumuloFeatureIndexType) = {
+      def expectStrategy(strategy: NamedIndex) = {
         val plans = ds.getQueryPlan(query)
         plans must haveLength(1)
-        plans.head.filter.index mustEqual strategy
-        val res = ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features().map(_.getID).toList
+        plans.head.filter.index.name mustEqual strategy.name
+        val res = SelfClosingIterator(ds.getFeatureSource(defaultSft.getTypeName).getFeatures(query).features).map(_.getID).toList
         res must containTheSameElementsAs(Seq("fid-1"))
       }
 
-      query.getHints.put(QUERY_INDEX, AttributeIndex)
-      expectStrategy(AttributeIndex)
-
-      query.getHints.put(QUERY_INDEX, Z2Index)
-      expectStrategy(Z2Index)
-
-      query.getHints.put(QUERY_INDEX, Z3Index)
-      expectStrategy(Z3Index)
-
-      query.getHints.put(QUERY_INDEX, RecordIndex)
-      expectStrategy(RecordIndex)
-
-      val viewParams =  new java.util.HashMap[String, String]
-      query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, viewParams)
-
-      query.getHints.remove(QUERY_INDEX)
-      viewParams.put("STRATEGY", "attr")
-      expectStrategy(AttributeIndex)
-
-      query.getHints.remove(QUERY_INDEX)
-      viewParams.put("STRATEGY", "Z2")
-      expectStrategy(Z2Index)
-
-      query.getHints.remove(QUERY_INDEX)
-      viewParams.put("STRATEGY", "Z3")
-      expectStrategy(Z3Index)
-
-      query.getHints.remove(QUERY_INDEX)
-      viewParams.put("STRATEGY", "RECORDS")
-      expectStrategy(RecordIndex)
-
-      success
+      forall(Seq(JoinIndex, Z2Index, Z3Index, IdIndex)) { index =>
+        val idx = ds.manager.indices(defaultSft).find(_.name == index.name).orNull
+        idx must not(beNull)
+        query.getHints.put(QUERY_INDEX, idx.identifier)
+        expectStrategy(index)
+        query.getHints.remove(QUERY_INDEX)
+        query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, Collections.singletonMap("QUERY_INDEX", index.name))
+        expectStrategy(index)
+        query.getHints.remove(QUERY_INDEX)
+        query.getHints.put(Hints.VIRTUAL_TABLE_PARAMETERS, Collections.singletonMap("STRATEGY", index.name))
+        expectStrategy(index)
+      }
     }
 
     "allow for loose bounding box config" >> {
@@ -530,11 +576,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
       val z3Query = new Query(defaultSft.getTypeName,
         ECQL.toFilter(s"$bbox AND dtg DURING 2010-05-07T12:25:00.000Z/2010-05-07T12:35:00.000Z"))
 
-      val params = Map(
-        "connector" -> ds.connector,
-        "tableName" -> ds.config.catalog,
-        AccumuloDataStoreParams.looseBBoxParam.getName -> "false"
-      )
+      val params = dsParams ++ Map(AccumuloDataStoreParams.LooseBBoxParam.getName -> "false")
 
       val strictDs = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
 
@@ -636,6 +678,11 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
         explanation must not be null
         explanation.trim must not(beEmpty)
       }
+    }
+
+    "handle Query.ALL" in {
+      ds.getFeatureSource(defaultSft.getTypeName).getFeatures(Query.ALL).features() must not throwAn[IllegalArgumentException]()
+      ds.getFeatureReader(Query.ALL, Transaction.AUTO_COMMIT) must throwAn[IllegalArgumentException]
     }
   }
 }

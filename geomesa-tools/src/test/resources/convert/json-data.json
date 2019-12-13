@@ -1,0 +1,38 @@
+{
+  "DataSource": { "name": "example-json" },
+  "Features": [
+    {
+      "fid": 23623,
+      "name": "Harry",
+      "age": 20,
+      "lastseen": "20150506",
+      "friends": "Will, Mark, Suzan",
+      "talents": "patronus->10,expelliarmus->9",
+      "lon": -100.236523,
+      "lat": 23,
+      "vis": "user"
+    },
+    {
+      "fid": 26236,
+      "name": "Hermione",
+      "age": 25,
+      "lastseen": "20150607",
+      "friends": "Edward, Bill, Harry",
+      "talents": "accio->10",
+      "lon": 40.232,
+      "lat": -53.2356,
+      "vis": "user"
+    },
+    {
+      "fid": 3233,
+      "name": "Severus",
+      "age": 30,
+      "lastseen": "20151023",
+      "friends": "Tom, Riddle, Voldemort",
+      "talents": "potions->10",
+      "lon": 3,
+      "lat": -62.23,
+      "vis": "user&admin"
+    }
+  ]
+}

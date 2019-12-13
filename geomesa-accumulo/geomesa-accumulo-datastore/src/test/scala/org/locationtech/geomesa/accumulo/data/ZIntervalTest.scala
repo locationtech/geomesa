@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data
 
@@ -25,7 +25,7 @@ class ZIntervalTest extends Specification with TestWithMultipleSfts {
 
   sequential
 
-  val key = SimpleFeatureTypes.Configs.Z3_INTERVAL_KEY
+  val key = SimpleFeatureTypes.Configs.IndexZ3Interval
   val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
 
   val filters = Seq(
@@ -36,7 +36,7 @@ class ZIntervalTest extends Specification with TestWithMultipleSfts {
 
   def addFeatures(sft: SimpleFeatureType): Unit = {
     addFeatures(sft, (0 until 10).map { i =>
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttribute("name", "fred")
       sf.setAttribute("dtg", f"2015-01-${i+1}%02dT12:00:00.000Z")
       sf.setAttribute("geom", s"POINT(-120 7$i)")

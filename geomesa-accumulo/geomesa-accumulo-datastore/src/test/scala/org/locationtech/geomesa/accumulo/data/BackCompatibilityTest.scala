@@ -1,14 +1,14 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.io.{File, FileInputStream, FileOutputStream}
+import java.io._
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
@@ -17,17 +17,23 @@ import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
+import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.apache.hadoop.io.Text
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.index.JoinIndex
+import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.io.WithClose
+import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -43,6 +49,8 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     */
 
   sequential
+
+  implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
   lazy val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
 
@@ -73,39 +81,34 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   def doQuery(fs: SimpleFeatureSource, query: Query): Seq[Int] = {
     logger.debug(s"Running query ${ECQL.toCQL(query.getFilter)} :: " +
         Option(query.getPropertyNames).map(_.mkString(",")).getOrElse("All"))
-    fs.getFeatures(query).features.toList.map { f =>
+    SelfClosingIterator(fs.getFeatures(query).features).toList.map { f =>
       logger.debug(DataUtilities.encodeFeature(f))
       f.getID.toInt
+    }
+  }
+
+  def doArrowQuery(fs: SimpleFeatureSource, query: Query): Seq[Int] = {
+    query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+    val out = new ByteArrayOutputStream
+    val results = SelfClosingIterator(fs.getFeatures(query).features)
+    results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+    def in() = new ByteArrayInputStream(out.toByteArray)
+    WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+      SelfClosingIterator(reader.features()).map(_.getID.toInt).toSeq
     }
   }
 
   def runVersionTest(tables: Seq[TableMutations]): MatchResult[Any] = {
     import scala.collection.JavaConversions._
 
-    // since we re-use the same sft and tables, the converter cache can get messed up
-    // note that the only problem is the attribute table name change between 1.2.2 and 1.2.3, which gets cached
-    // other changes are captured in the index versions, and the cache handles them appropriately
-    GeoMesaFeatureWriter.expireConverterCache()
-
-    // reload the tables
-    tables.foreach { case TableMutations(table, mutations) =>
-      if (connector.tableOperations.exists(table)) {
-        connector.tableOperations.delete(table)
-      }
-      connector.tableOperations.create(table)
-      val bw = connector.createBatchWriter(table, new BatchWriterConfig)
-      bw.addMutations(mutations)
-      bw.flush()
-      bw.close()
-    }
+    val sftName = restoreTables(tables)
 
     // get the data store
-    val sftName = tables.map(_.table).minBy(_.length)
     val ds = DataStoreFinder.getDataStore(Map(
-      "connector" -> connector,
-      "caching"   -> false,
-      "tableName" -> sftName
-    ))
+      AccumuloDataStoreParams.ConnectorParam.key -> connector,
+      AccumuloDataStoreParams.CachingParam.key   -> false,
+      AccumuloDataStoreParams.CatalogParam.key   -> sftName
+    )).asInstanceOf[AccumuloDataStore]
     val fs = ds.getFeatureSource(sftName)
 
     // test adding features
@@ -153,8 +156,10 @@ class BackCompatibilityTest extends Specification with LazyLogging {
       val filter = ECQL.toFilter(q)
       logger.debug(s"Running query $q")
       doQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results)
+      doArrowQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results)
       forall(transforms) { transform =>
         doQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
+        doArrowQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
       }
     }
 
@@ -175,6 +180,59 @@ class BackCompatibilityTest extends Specification with LazyLogging {
 
     ds.dispose()
     ok
+  }
+
+  def testBoundsDelete(): MatchResult[Any] = {
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    foreach(Seq("1.2.8-bounds", "1.2.8-bounds-multi")) { name =>
+      logger.info(s"Running back compatible deletion test on $name")
+
+      val sftName = restoreTables(readVersion(getFile(s"data/versioned-data-$name.kryo")))
+      val ds = DataStoreFinder.getDataStore(Map(
+        AccumuloDataStoreParams.ConnectorParam.key -> connector,
+        AccumuloDataStoreParams.CachingParam.key   -> false,
+        AccumuloDataStoreParams.CatalogParam.key   -> sftName
+      )).asInstanceOf[AccumuloDataStore]
+
+      val sft = ds.getSchema(sftName)
+
+      // verify the features are there
+      foreach(sft.getIndices) { index =>
+        val filter = if (index.name == JoinIndex.name) { ECQL.toFilter("name is not null") } else { Filter.INCLUDE }
+        val query = new Query(sftName, filter)
+        query.getHints.put(QueryHints.QUERY_INDEX, GeoMesaFeatureIndex.identifier(index))
+        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must haveLength(4)
+      }
+
+      // delete the features
+      val filter = SelfClosingIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).map(_.getID).mkString("IN('", "', '", "')")
+      ds.getFeatureSource(sftName).removeFeatures(ECQL.toFilter(filter))
+
+      // verify the delete
+      foreach(sft.getIndices) { index =>
+        val filter = if (index.name == JoinIndex.name) { ECQL.toFilter("name is not null") } else { Filter.INCLUDE }
+        val query = new Query(sftName, filter)
+        query.getHints.put(QueryHints.QUERY_INDEX, GeoMesaFeatureIndex.identifier(index))
+        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) must beEmpty
+      }
+    }
+  }
+
+  def restoreTables(tables: Seq[TableMutations]): String = {
+    // reload the tables
+    tables.foreach { case TableMutations(table, mutations) =>
+      if (connector.tableOperations.exists(table)) {
+        connector.tableOperations.delete(table)
+      }
+      connector.tableOperations.create(table)
+      val bw = connector.createBatchWriter(table, new BatchWriterConfig)
+      bw.addMutations(mutations)
+      bw.flush()
+      bw.close()
+    }
+
+    tables.map(_.table).minBy(_.length)
   }
 
   def readVersion(file: File): Seq[TableMutations] = {
@@ -204,21 +262,34 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   }
 
   def testVersion(version: String): MatchResult[Any] = {
-    val file = new File(s"src/test/resources/data/versioned-data-$version.kryo")
-    val data = readVersion(file)
+    val data = readVersion(getFile(s"data/versioned-data-$version.kryo"))
     logger.info(s"Running back compatible test on version $version")
     runVersionTest(data)
   }
 
   "GeoMesa" should {
-    "support backward compatibility to 1.2.0"   >> { testVersion("1.2.0") }
-    "support backward compatibility to 1.2.1"   >> { testVersion("1.2.1") }
-    "support backward compatibility to 1.2.2"   >> { testVersion("1.2.2") }
-    "support backward compatibility to 1.2.3"   >> { testVersion("1.2.3") }
-    "support backward compatibility to 1.2.4"   >> { testVersion("1.2.4") }
+    "support backward compatibility to 1.2.0"     >> { testVersion("1.2.0") }
+    "support backward compatibility to 1.2.1"     >> { testVersion("1.2.1") }
+    "support backward compatibility to 1.2.2"     >> { testVersion("1.2.2") }
+    "support backward compatibility to 1.2.3"     >> { testVersion("1.2.3") }
+    "support backward compatibility to 1.2.4"     >> { testVersion("1.2.4") }
     // note: data on disk is the same in 1.2.5 and 1.2.6
-    "support backward compatibility to 1.2.6"   >> { testVersion("1.2.6") }
-    "support backward compatibility to 1.2.7.3" >> { testVersion("1.2.7.3") }
+    "support backward compatibility to 1.2.6"     >> { testVersion("1.2.6") }
+    "support backward compatibility to 1.2.7.3"   >> { testVersion("1.2.7.3") }
+    "support backward compatibility to 1.3.1"     >> { testVersion("1.3.1") }
+    "support backward compatibility to 1.3.2"     >> { testVersion("1.3.2") }
+    // note: data on disk is the same from 1.3.3 through 2.0.0-m.1
+    "support backward compatibility to 2.0.0-m.1" >> { testVersion("2.0.0-m.1") }
+    "support backward compatibility to 2.1.0"     >> { testVersion("2.1.0") }
+    "support backward compatibility to 2.3.1"     >> { testVersion("2.3.1") }
+
+    "delete invalid indexed data" >> { testBoundsDelete() }
+  }
+
+  def getFile(name: String): File = new File(getClass.getClassLoader.getResource(name).toURI)
+
+  step {
+    allocator.close()
   }
 
   case class TableMutations(table: String, mutations: Seq[Mutation])
@@ -227,7 +298,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
 @RunWith(classOf[JUnitRunner])
 class BackCompatibilityWriter extends TestWithDataStore {
 
-  override val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326,multi:MultiPolygon:srid=4326"
+  override val spec = "name:String:index=join,dtg:Date,*geom:Point:srid=4326,multi:MultiPolygon:srid=4326"
 
   val version = "REPLACEME"
 
@@ -237,7 +308,7 @@ class BackCompatibilityWriter extends TestWithDataStore {
       skipped("integration")
 
       addFeatures((0 until 10).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, s"name$i")
         sf.setAttribute(1, s"2015-01-01T0$i:01:00.000Z")
         sf.setAttribute(2, s"POINT(-12$i 4$i)")

@@ -1,20 +1,20 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features.avro
 
-import java.{util, lang}
 import java.nio.charset.StandardCharsets
-import java.util.{UUID, Date}
+import java.util.{Date, UUID}
+import java.{lang, util}
 
 import org.apache.avro.Schema
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.geotools.SftBuilder
+import org.locationtech.geomesa.utils.geotools.SchemaBuilder
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -358,13 +358,13 @@ class AvroSimpleFeatureUtilsTest extends Specification {
 
     "generate Avro schemas" >> {
       "with non-mangled attributes and custom namespaces" >> {
-        val sft = new SftBuilder()
-          .point("geom", default = true)
-          .intType("age")
+        val sft = SchemaBuilder.builder()
+          .addPoint("geom", default = true)
+          .addInt("age")
           .build("toavro")
 
-        val expectedSchema = new Schema.Parser().parse("""{"type":"record","name":"toavro","namespace":"test.avro","fields":[{"name":"__version__","type":"int"},{"name":"__fid__","type":"string"},{"name":"geom","type":["bytes","null"]},{"name":"age","type":["int","null"]},{"name":"__userdata__","type":{"type":"array","items":{"type":"record","name":"userDataItem","fields":[{"name":"class","type":"string"},{"name":"key","type":"string"},{"name":"value","type":"string"}]}}}]}""")
-        val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true, "test.avro")
+        val expectedSchema = new Schema.Parser().parse("""{"type":"record","name":"toavro","namespace":"test.avro","fields":[{"name":"__version__","type":"int"},{"name":"__fid__","type":"string"},{"name":"geom","type":["bytes","null"]},{"name":"age","type":["int","null"]},{"name":"__userdata__","type":{"type":"array","items":{"type":"record","name":"userDataItem","fields":[{"name":"keyClass","type":"string"},{"name":"key","type":"string"},{"name":"valueClass","type":"string"},{"name":"value","type":"string"}]}}}]}""")
+        val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true, withFeatureId = true, "test.avro")
         expectedSchema must be equalTo schema
       }
     }

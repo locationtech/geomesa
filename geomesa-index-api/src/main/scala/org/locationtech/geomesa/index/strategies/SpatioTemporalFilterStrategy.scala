@@ -1,65 +1,66 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.index.strategies
 
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
-import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, WrappedFeature}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-trait SpatioTemporalFilterStrategy[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W] extends
-    GeoMesaFeatureIndex[DS, F, W] {
+trait SpatioTemporalFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 
-  import SpatioTemporalFilterStrategy.{StaticCost, isBounded}
+  import SpatioTemporalFilterStrategy.StaticCost
 
-  override def getFilterStrategy(sft: SimpleFeatureType, filter: Filter): Seq[FilterStrategy[DS, F, W]] = {
+  def geom: String
+  def dtg: String
 
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-
-    val dtg = sft.getDtgField.getOrElse {
-      throw new RuntimeException("Trying to plan a z3 query but the schema does not have a date")
-    }
+  override def getFilterStrategy(filter: Filter,
+                                 transform: Option[SimpleFeatureType],
+                                 stats: Option[GeoMesaStats]): Option[FilterStrategy] = {
 
     if (filter == Filter.INCLUDE) {
-      Seq(FilterStrategy(this, None, None))
+      Some(FilterStrategy(this, None, None, Long.MaxValue))
     } else if (filter == Filter.EXCLUDE) {
-      Seq.empty
+      None
     } else {
       val (temporal, nonTemporal) = FilterExtractingVisitor(filter, dtg, sft)
-      val (spatial, others) = nonTemporal match {
-        case None     => (None, None)
-        case Some(nt) => FilterExtractingVisitor(nt, sft.getGeomField, sft, SpatialFilterStrategy.spatialCheck)
-      }
+      val intervals = temporal.map(FilterHelper.extractIntervals(_, dtg)).getOrElse(FilterValues.empty)
 
-      if (temporal.exists(isBounded(_, dtg)) && (spatial.isDefined || !sft.getDescriptor(dtg).isIndexed)) {
-        Seq(FilterStrategy(this, andOption((spatial ++ temporal).toSeq), others))
+      if (!intervals.disjoint && !intervals.exists(_.isBounded)) {
+        // if there aren't any intervals then we would have to do a full table scan
+        Some(FilterStrategy(this, None, Some(filter), Long.MaxValue))
       } else {
-        Seq(FilterStrategy(this, None, Some(filter)))
-      }
-    }
-  }
+        val (spatial, others) = nonTemporal match {
+          case Some(f) => FilterExtractingVisitor(f, geom, sft, SpatialFilterStrategy.spatialCheck)
+          case None    => (None, None)
+        }
+        val primary = andFilters(spatial.toSeq ++ temporal)
 
-  override def getCost(sft: SimpleFeatureType,
-                       ds: Option[DS],
-                       filter: FilterStrategy[DS, F, W],
-                       transform: Option[SimpleFeatureType]): Long = {
-    // https://geomesa.atlassian.net/browse/GEOMESA-1166
-    // TODO check date range and use z2 instead if too big
-    // TODO also if very small bbox, z2 has ~10 more bits of lat/lon info
-    filter.primary match {
-      case None    => Long.MaxValue
-      case Some(f) => ds.flatMap(_.stats.getCount(sft, f, exact = false)).getOrElse {
-        val names = filter.primary.map(FilterHelper.propertyNames(_, sft)).getOrElse(Seq.empty)
-        if (names.contains(sft.getGeomField)) StaticCost else SpatialFilterStrategy.StaticCost + 1
+        lazy val cost = {
+          // we can still use this index with a geom, but if there is a date attribute index that will work better
+          if (spatial.isEmpty && AttributeIndex.indexed(sft, dtg)) {
+            Long.MaxValue
+          } else {
+            // TODO check date range and use z2 instead if too big
+            // TODO also if very small bbox, z2 has ~10 more bits of lat/lon info
+            // https://geomesa.atlassian.net/browse/GEOMESA-1166
+
+            val base = stats.flatMap(_.getCount(sft, primary, exact = false)).getOrElse(StaticCost)
+            // de-prioritize non-spatial and one-sided date filters
+            if (spatial.isDefined && intervals.forall(_.isBoundedBothSides)) { base } else { base * 2 + 1 }
+          }
+        }
+
+        Some(FilterStrategy(this, Some(primary), others, cost))
       }
     }
   }
@@ -72,9 +73,9 @@ object SpatioTemporalFilterStrategy {
   /**
     * Returns true if the temporal filters create a range with an upper and lower bound
     */
-  def isBounded(temporalFilter: Filter, dtg: String): Boolean = {
-    import FilterHelper.{MaxDateTime, MinDateTime}
+  @deprecated("deprecated with no replacement")
+  def isBounded(temporalFilter: Filter, sft: SimpleFeatureType, dtg: String): Boolean = {
     val intervals = FilterHelper.extractIntervals(temporalFilter, dtg)
-    intervals.nonEmpty && intervals.values.forall { case (start, end) => start != MinDateTime && end != MaxDateTime }
+    intervals.nonEmpty && intervals.values.forall(_.isBoundedBothSides)
   }
 }

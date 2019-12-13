@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.raster.index
 
@@ -13,19 +13,21 @@ import java.io.{ByteArrayInputStream, ObjectInputStream}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.index.encoders.{DecodedIndexValue, IndexValueEncoder}
+import org.locationtech.geomesa.accumulo.index.IndexValueEncoder.IndexValueEncoderImpl
 import org.locationtech.geomesa.features.{ScalaSimpleFeatureFactory, SimpleFeatureSerializer}
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.data.Raster
+import org.locationtech.geomesa.raster.index.RasterEntryDecoder.DecodedIndexValue
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.opengis.feature.simple.SimpleFeature
 
 object RasterEntry {
 
   val encoder = new ThreadLocal[SimpleFeatureSerializer] {
-    override def initialValue(): SimpleFeatureSerializer = IndexValueEncoder(rasterSft, includeIds = true)
+    override def initialValue(): SimpleFeatureSerializer = new IndexValueEncoderImpl(rasterSft)
   }
 
   def encodeIndexCQMetadata(metadata: DecodedIndexValue): Array[Byte] = {
@@ -77,7 +79,7 @@ object RasterEntryEncoder extends LazyLogging {
   private def getCF(raster: Raster): Text = new Text("")
 
   private def getCQ(raster: Raster): Text = {
-    new Text(RasterEntry.encodeIndexCQMetadata(raster.id, raster.metadata.geom, Option(raster.time.toDate)))
+    new Text(RasterEntry.encodeIndexCQMetadata(raster.id, raster.metadata.geom, Option(Date.from(toInstant(raster.time)))))
   }
 
   private def encodeValue(raster: Raster): Value = new Value(raster.serializedChunk)
@@ -85,6 +87,9 @@ object RasterEntryEncoder extends LazyLogging {
 }
 
 object RasterEntryDecoder {
+
+  case class DecodedIndexValue(id: String, geom: Geometry, date: Option[Date], attributes: Map[String, Any])
+
   def rasterImageDeserialize(imageBytes: Array[Byte]): RenderedImage = {
     val in: ObjectInputStream = new ObjectInputStream(new ByteArrayInputStream(imageBytes))
     var read: RenderedImage = null

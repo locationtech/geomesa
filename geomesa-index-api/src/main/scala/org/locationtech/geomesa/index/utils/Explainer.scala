@@ -1,24 +1,26 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.index.utils
 
 import java.io.PrintStream
 
-import org.slf4j.{Logger, LoggerFactory}
+import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
 trait Explainer {
   private var indent = ""
   def apply(s: => String): Explainer = { output(s"$indent$s"); this }
-  def apply(s: => String, c: => Seq[String]): Explainer = {
+  def apply(s: => String, c: Seq[() => String]): Explainer = {
     output(s"$indent$s")
-    val ci = c // don't evaluate strings twice
-    if (ci.nonEmpty) { pushLevel(); ci.foreach(s => output(s"$indent$s")); popLevel() } else this
+    pushLevel()
+    c.foreach(s => output(s"$indent${s.apply}"))
+    popLevel()
   }
   def pushLevel(): Explainer = { indent += "  "; this }
   def pushLevel(s: => String): Explainer = { apply(s); pushLevel(); this }
@@ -33,6 +35,7 @@ class ExplainPrintln(out: PrintStream = System.out) extends Explainer {
 
 object ExplainNull extends Explainer {
   override def apply(s: => String): Explainer = this
+  override def apply(s: => String, c: Seq[() => String]): Explainer = this
   override def pushLevel(): Explainer = this
   override def pushLevel(s: => String): Explainer = this
   override def popLevel(): Explainer = this
@@ -53,5 +56,5 @@ class ExplainLogger(logger: Logger) extends Explainer {
 class ExplainLogging extends ExplainLogger(ExplainLogging.logger)
 
 object ExplainLogging {
-  private val logger = LoggerFactory.getLogger(classOf[Explainer])
+  private val logger = Logger(LoggerFactory.getLogger(classOf[Explainer]))
 }

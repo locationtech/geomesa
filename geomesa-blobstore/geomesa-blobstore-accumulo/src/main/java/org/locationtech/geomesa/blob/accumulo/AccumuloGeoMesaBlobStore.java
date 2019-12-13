@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.blob.accumulo;
 
@@ -44,20 +44,19 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaIndexedBlobStore {
                                     final String auths,
                                     final Boolean useMock) throws IOException {
         this(new HashMap<String, Serializable>() {{
-            put(AccumuloDataStoreParams.instanceIdParam().key, instanceId);
-            put(AccumuloDataStoreParams.tableNameParam().key, tableName);
-            put(AccumuloDataStoreParams.zookeepersParam().key, zookeepers);
-            put(AccumuloDataStoreParams.userParam().key, user);
-            put(AccumuloDataStoreParams.passwordParam().key, password);
-            put(AccumuloDataStoreParams.authsParam().key, auths);
-            put(AccumuloDataStoreParams.mockParam().key, useMock.toString());
+            put(AccumuloDataStoreParams.InstanceIdParam().key, instanceId);
+            put(AccumuloDataStoreParams.CatalogParam().key, tableName);
+            put(AccumuloDataStoreParams.ZookeepersParam().key, zookeepers);
+            put(AccumuloDataStoreParams.UserParam().key, user);
+            put(AccumuloDataStoreParams.PasswordParam().key, password);
+            put(AccumuloDataStoreParams.AuthsParam().key, auths);
+            put(AccumuloDataStoreParams.MockParam().key, useMock.toString());
         }});
     }
 
     private AccumuloDataStore genNewADS(Map<String, Serializable> dataStoreParams) throws IllegalArgumentException {
         AccumuloDataStoreFactory accumuloDataStoreFactory = new AccumuloDataStoreFactory();
-        AccumuloDataStore ds = (AccumuloDataStore) accumuloDataStoreFactory.createDataStore(dataStoreParams);
-        return ds;
+        return accumuloDataStoreFactory.createDataStore(dataStoreParams);
     }
 
     /**
@@ -107,7 +106,7 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaIndexedBlobStore {
      * Fetches Blob by id
      *
      * @param id String feature Id of the Blob, from getIds functions
-     * @return Map.Entry<String, byte[]> map entry of filename to file bytes
+     * @return Map.Entry&lt;String, byte[]&gt; map entry of filename to file bytes
      */
     @Override
     public Blob get(String id) {

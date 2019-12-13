@@ -1,21 +1,21 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.spark
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{DataFrame, SQLContext, SQLTypes, SparkSession}
 import org.geotools.data.{Query, Transaction}
-import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -24,6 +24,8 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class HBaseSparkProviderIntegrationTest extends Specification with LazyLogging {
 
+  import org.locationtech.geomesa.filter.ff
+
   sequential
 
   // START HBASE INSTANCE MANUALLY
@@ -31,11 +33,9 @@ class HBaseSparkProviderIntegrationTest extends Specification with LazyLogging {
 
   def spec: String = SparkSQLTestUtils.ChiSpec
 
-  private val ff = CommonFactoryFinder.getFilterFactory2
-
   def dtgField: Option[String] = Some("dtg")
 
-  lazy val dsParams = Map(BigTableNameParam.getName -> "test_sft")
+  lazy val dsParams = Map(HBaseCatalogParam.getName -> "test_sft")
   lazy val dsf = new HBaseDataStoreFactory()
   lazy val ds = dsf.createDataStore(dsParams)
 
@@ -105,14 +105,12 @@ class HBaseSparkProviderIntegrationTest extends Specification with LazyLogging {
           .options(params.map { case (k, v) => k -> v.toString })
           .option("geomesa.feature", "fidOnWrite")
           .save()
-
-        import org.locationtech.geomesa.utils.geotools.Conversions._
         val filter = ff.equals(ff.property("case_number"), ff.literal(1))
         val queryOrig = new Query("chicago", filter)
-        val origResults = ds.getFeatureReader(queryOrig, Transaction.AUTO_COMMIT).toIterator.toList
+        val origResults = SelfClosingIterator(ds.getFeatureReader(queryOrig, Transaction.AUTO_COMMIT)).toList
 
         val query = new Query("fidOnWrite", filter)
-        val results = ds.getFeatureReader(query, Transaction.AUTO_COMMIT).toIterator.toList
+        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
         results.head.getID must be equalTo origResults.head.getID
       }

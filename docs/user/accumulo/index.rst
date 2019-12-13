@@ -1,6 +1,10 @@
 Accumulo Data Store
 ===================
 
+.. note::
+
+    GeoMesa currently supports Accumulo |accumulo_supported_versions|.
+
 The GeoMesa Accumulo Data Store module is an implementation of the
 GeoTools ``DataStore`` that is backed by `Apache Accumulo`_. GeoMesa
 also contains many other modules designed to operate with Accumulo,
@@ -16,15 +20,13 @@ To get started with the Accumulo Data Store, try the :doc:`/tutorials/geomesa-qu
    :maxdepth: 1
 
    install
-   configuration
-   commandline_tools
-   examples
    usage
    geoserver
+   commandline
+   configuration
+   index_config
    visibilities
-   data_management
-   analytic_queries
    jobs
-   raster
-   internals
    kerberos
+   raster
+   examples

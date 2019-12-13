@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.spark.converter
 
@@ -15,6 +15,7 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.{GeoMesaSpark, GeoMesaSparkKryoRegistrator}
+import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -63,12 +64,36 @@ class ConverterSpatialRDDProviderTest extends Specification {
 
     "read from a local file using Converter Name lookup" in {
       val params = Map (
-        InputFilesKey    -> getClass.getResource("/example.csv").getPath,
+        InputFilesKey -> getClass.getResource("/example.csv").getPath,
         IngestTypeKey -> "example-csv"
       )
 
       val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, new Query("example-csv"))
       rdd.count() mustEqual 3l
+    }
+
+    "handle projections" in {
+      val params = Map (
+        InputFilesKey -> getClass.getResource("/example.csv").getPath,
+        IngestTypeKey -> "example-csv"
+      )
+      val requestedProps : Array[String] = Array("name")
+      val q = new Query("example-csv", Filter.INCLUDE, requestedProps)
+      val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, q)
+      val returnedProps = rdd.first.getProperties.map{_.getName.toString}.toArray
+      returnedProps mustEqual requestedProps
+    }
+
+    "handle * projections" in {
+      val params = Map (
+        InputFilesKey -> getClass.getResource("/example.csv").getPath,
+        IngestTypeKey -> "example-csv"
+      )
+      val requestedProps : Array[String] = Array( "fid", "name", "age", "lastseen", "friends","talents", "geom")
+      val q = new Query("example-csv", Filter.INCLUDE, requestedProps)
+      val rdd = GeoMesaSpark(params).rdd(new Configuration(), sc, params, q)
+      val returnedProps = rdd.first.getProperties.map{_.getName.toString}.toArray
+      returnedProps mustEqual requestedProps
     }
   }
 }

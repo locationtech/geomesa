@@ -16,6 +16,11 @@ GDELT data is updated each morning at 6am.
 Getting GDELT data
 ------------------
 
+GDELT has two different formats, the original 1.0 and the new 2.0 format. See
+`the GDELT documentation, <https://www.gdeltproject.org/data.html#documentation>`__
+for more information. GeoMesa provides simple feature types and converters for both,
+named ``gdelt`` and ``gdelt2``, respectively.
+
 The GDELT data set can be downloaded using the provided
 ``download-data.sh`` script in ``$GEOMESA_ACCUMULO_HOME/bin/`` as such
 
@@ -41,23 +46,23 @@ documentation
 Ingest Commands
 ---------------
 
-Check that the ``gdelt`` simple feature type is available on the GeoMesa
+Check that the ``gdelt`` and ``gdelt2`` simple feature types are available on the GeoMesa
 tools classpath. This is the default case.
 
 ::
 
-    geomesa env | grep gdelt
+    $ geomesa-accumulo env | grep gdelt
 
 If it is not, merge the contents of ``reference.conf`` to
 ``$GEOMESA_ACCUMULO_HOME/conf/application.conf``, or ensure that
 ``reference.conf`` is in ``$GEOMESA_ACCUMULO_HOME/conf/sfts/gdelt``.
 
 Run the ingest. You may optionally point to a different accumulo
-instance using ``-i`` and ``-z`` options. See ``geomesa help ingest``
+instance using ``-i`` and ``-z`` options. See ``geomesa-accumulo help ingest``
 for more detail.
 
 ::
 
-    geomesa ingest -u USERNAME -c CATALOGNAME -s gdelt -C gdelt gdelt_data.csv
+    $ geomesa-accumulo ingest -u USERNAME -c CATALOGNAME -s gdelt -C gdelt gdelt_data.csv
 
 Any errors in ingestion will be logged to ``$GEOMESA_ACCUMULO_HOME/logs``.

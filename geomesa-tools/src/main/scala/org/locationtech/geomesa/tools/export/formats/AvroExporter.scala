@@ -1,35 +1,41 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.tools.export.formats
 
 import java.io.OutputStream
+import java.util.zip.Deflater
 
-import org.geotools.data.simple.SimpleFeatureCollection
 import org.locationtech.geomesa.features.avro.AvroDataFileWriter
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
+import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class AvroExporter(sft: SimpleFeatureType, os: OutputStream, compression: Int) extends FeatureExporter {
+class AvroExporter(os: OutputStream, counter: ByteCounter, compression: Option[Int])
+    extends ByteCounterExporter(counter) {
 
-  val writer = new AvroDataFileWriter(os, sft, compression)
+  private var writer: AvroDataFileWriter = _
 
-  override def export(fc: SimpleFeatureCollection): Option[Long] = {
-    writer.append(fc)
-    None
-  }
+  override def start(sft: SimpleFeatureType): Unit =
+    writer = new AvroDataFileWriter(os, sft, compression.getOrElse(Deflater.DEFAULT_COMPRESSION))
 
-  override def flush(): Unit = {
+  override def export(features: Iterator[SimpleFeature]): Option[Long] = {
+    var count = 0L
+    features.foreach { feature =>
+      writer.append(feature)
+      count += 1L
+    }
     writer.flush()
-    os.flush()
+    Some(count)
   }
 
   override def close(): Unit = {
-    writer.close()
+    Option(writer).foreach(CloseWithLogging.apply)
     os.close()
   }
 }

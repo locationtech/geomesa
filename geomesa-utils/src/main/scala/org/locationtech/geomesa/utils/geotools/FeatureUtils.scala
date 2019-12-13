@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools
 
@@ -12,7 +12,7 @@ import java.lang.{Boolean => jBoolean}
 import java.util.Locale
 
 import org.geotools.data.{DataUtilities, FeatureWriter}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.identity.FeatureIdImpl
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -112,21 +112,39 @@ object FeatureUtils {
 
   def copyToWriter(writer: FeatureWriter[SimpleFeatureType, SimpleFeature],
                    sf: SimpleFeature,
-                   overrideFid: Boolean = false): SimpleFeature = {
-    val toWrite = writer.next()
+                   useProvidedFid: Boolean = false): SimpleFeature =
+    copyToFeature(writer.next(), sf, useProvidedFid)
+
+  def copyToFeature(toWrite: SimpleFeature, sf: SimpleFeature, useProvidedFid: Boolean = false): SimpleFeature = {
     toWrite.setAttributes(sf.getAttributes)
     toWrite.getUserData.putAll(sf.getUserData)
-    if (overrideFid || jBoolean.TRUE == sf.getUserData.get(Hints.USE_PROVIDED_FID).asInstanceOf[jBoolean]) {
+    if (useProvidedFid || jBoolean.TRUE == sf.getUserData.get(Hints.USE_PROVIDED_FID).asInstanceOf[jBoolean]) {
       toWrite.getIdentifier.asInstanceOf[FeatureIdImpl].setID(sf.getID)
       toWrite.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     }
     toWrite
   }
 
+  /**
+    * Write a feature to a feature writer
+    *
+    * @param writer feature writer
+    * @param sf feature to write
+    * @param useProvidedFid use provided fid
+    */
+  def write(
+      writer: FeatureWriter[SimpleFeatureType, SimpleFeature],
+      sf: SimpleFeature,
+      useProvidedFid: Boolean = false): SimpleFeature = {
+    val written = writer.next()
+    copyToFeature(written, sf, useProvidedFid)
+    writer.write()
+    written
+  }
 
   /**
     *
-    * @param sft
+    * @param sft simple feature type
     * @return
     */
   def sftReservedWords(sft: SimpleFeatureType): Seq[String] =

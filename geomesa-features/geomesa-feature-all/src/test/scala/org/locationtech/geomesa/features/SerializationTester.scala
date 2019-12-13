@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features
 
@@ -12,7 +12,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.text.SimpleDateFormat
 import java.util.UUID
 
-import com.vividsolutions.jts.geom.{Point, Polygon}
+import org.locationtech.jts.geom.{Point, Polygon}
 import org.apache.avro.io.{BinaryDecoder, BinaryEncoder, DecoderFactory, EncoderFactory}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.avro.{AvroSimpleFeature, AvroSimpleFeatureWriter, FeatureSpecificReader}
@@ -81,7 +81,7 @@ object SerializationTester {
 
     def two() = {
       val writer = new AvroSimpleFeatureWriter(features(0).getType)
-      val reader = new FeatureSpecificReader(features(0).getType)
+      val reader = FeatureSpecificReader(features(0).getType)
       val baos = new ByteArrayOutputStream()
       var reusableEncoder: BinaryEncoder = null
       var reusableDecoder: BinaryDecoder = null
@@ -98,7 +98,7 @@ object SerializationTester {
     }
 
     def three() = {
-      val serializer = new KryoFeatureSerializer(features(0).getType)
+      val serializer = KryoFeatureSerializer(features(0).getType)
       features.map { f =>
         val bytes = serializer.serialize(f)
         val feat = serializer.deserialize(bytes)

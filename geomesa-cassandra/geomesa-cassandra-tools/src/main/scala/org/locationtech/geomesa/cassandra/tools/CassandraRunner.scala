@@ -1,17 +1,17 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.cassandra.tools
 
 import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.cassandra.tools.commands._
-import org.locationtech.geomesa.cassandra.tools.export.CassandraExportCommand
-import org.locationtech.geomesa.tools.status.{EnvironmentCommand, HelpCommand, VersionCommand}
+import org.locationtech.geomesa.cassandra.tools.export.{CassandraExportCommand, CassandraPlaybackCommand}
+import org.locationtech.geomesa.tools.status._
 import org.locationtech.geomesa.tools.{Command, Runner}
 
 object CassandraRunner extends Runner {
@@ -29,7 +29,13 @@ object CassandraRunner extends Runner {
     new CassandraRemoveSchemaCommand,
     new CassandraDeleteFeaturesCommand,
     new CassandraIngestCommand,
-    new CassandraExportCommand
+    new CassandraExportCommand,
+    new CassandraPlaybackCommand,
+    new CassandraExplainCommand,
+    new CassandraUpdateSchemaCommand,
+    new ConfigureCommand,
+    new ClasspathCommand,
+    new ScalaConsoleCommand
   )
 
   override def environmentErrorInfo(): Option[String] = {

@@ -1,3 +1,5 @@
+.. _accumulo_config_props:
+
 Accumulo Configuration
 ======================
 
@@ -10,31 +12,41 @@ Batch Writer Properties
 The following properties control the configuration of Accumulo ``BatchWriter``\ s. They map directly to the
 underlying ``BatchWriter`` methods.
 
-geomesa.batchwriter.latency.millis
-++++++++++++++++++++++++++++++++++
+geomesa.batchwriter.latency
++++++++++++++++++++++++++++
 
-See the `Accumulo API <https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxLatency(long,%20java.util.concurrent.TimeUnit)>`__
+The latency is defined as a duration, e.g. ``60 seconds`` or ``100 millis``. See the `Accumulo API`__ for details.
+
+__ https://accumulo.apache.org/1.9/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxLatency(long,%20java.util.concurrent.TimeUnit)
 
 geomesa.batchwriter.maxthreads
 ++++++++++++++++++++++++++++++
 
-See the `Accumulo API <https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxWriteThreads(int)>`__
+Determines the max threads used for writing. See the `Accumulo API`__ for details.
+
+__ https://accumulo.apache.org/1.9/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxWriteThreads(int)
 
 geomesa.batchwriter.memory
 ++++++++++++++++++++++++++
 
-See the `Accumulo API <https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxMemory(long)>`__
+The memory is defined in bytes, e.g. ``10mb`` or ``100kb``. See the `Accumulo API`__ for details.
+
+__ https://accumulo.apache.org/1.9/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxMemory(long)
 
 geomesa.batchwriter.timeout.millis
 ++++++++++++++++++++++++++++++++++
 
-See the `Accumulo API <https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setTimeout(long,%20java.util.concurrent.TimeUnit)>`__
+The timeout is defined as a duration, e.g. ``60 seconds`` or ``100 millis``. See the `Accumulo API`__ for details.
+
+__ https://accumulo.apache.org/1.9/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setTimeout(long,%20java.util.concurrent.TimeUnit)
 
 Map Reduce Input Splits Properties
 ----------------------------------
 
-The following properties control the number of input splits for a map reduce job.
-See the `Accumulo Docs <https://accumulo.apache.org/1.7/accumulo_user_manual#_splitting>`__
+The following properties control the number of input splits for a map reduce job. See the
+`Accumulo User Manual`__ for details.
+
+__ https://accumulo.apache.org/1.9/accumulo_user_manual#_splitting
 
 geomesa.mapreduce.splits.max
 ++++++++++++++++++++++++++++
@@ -42,16 +54,16 @@ geomesa.mapreduce.splits.max
 Set the absolute number of splits when configuring a mapper instead of allowing Accumulo to create a split
 for each range or basing it on the number of tablet servers.
 
-Setting this value overrides geomesa.mapreduce.splits.tserver.max.
+Setting this value overrides ``geomesa.mapreduce.splits.tserver.max``.
 
 geomesa.mapreduce.splits.tserver.max
 ++++++++++++++++++++++++++++++++++++
 
 Set the max number of splits per tablet server when configuring a mapper. By default this value is
-calculated using Accumulo's AbstractInputFormat.getSplits method which creates a split for each range. In
+calculated using Accumulo's ``AbstractInputFormat.getSplits`` method which creates a split for each range. In
 some scenarios this may create an undesirably large number of splits.
 
-This value is overwritten by geomesa.mapreduce.splits.max if it is set.
+This value is overwritten by ``geomesa.mapreduce.splits.max`` if it is set.
 
 Zookeeper Session Timeout
 -------------------------
@@ -59,4 +71,7 @@ Zookeeper Session Timeout
 instance.zookeeper.timeout
 ++++++++++++++++++++++++++
 
-See the `Accumulo API <https://accumulo.apache.org/1.7/accumulo_user_manual.html#_instance_zookeeper_timeout>`__
+The Zookeeper timeout is defined in milliseconds, according to the Accumulo specification. See the
+`Accumulo User Manual`__ for details.
+
+__ https://accumulo.apache.org/1.9/accumulo_user_manual.html#_instance_zookeeper_timeout

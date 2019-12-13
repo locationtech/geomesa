@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
 <!--********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
+* Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Apache License, Version 2.0 which
 * accompanies this distribution and is available at
@@ -58,8 +58,8 @@
     -->
 
     <property>
-        <name>geomesa.batchwriter.latency.millis</name>
-        <value>60000</value>
+        <name>geomesa.batchwriter.latency</name>
+        <value>60 seconds</value>
         <description>
             https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxLatency(long,%20java.util.concurrent.TimeUnit)
         </description>
@@ -77,7 +77,7 @@
 
     <property>
         <name>geomesa.batchwriter.memory</name>
-        <value>52428800</value>
+        <value>52428800b</value>
         <description>
             https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setMaxMemory(long)
         </description>
@@ -85,7 +85,7 @@
     </property>
 
     <property>
-        <name>geomesa.batchwriter.timeout.millis</name>
+        <name>geomesa.batchwriter.timeout</name>
         <value></value>
         <description>
             https://accumulo.apache.org/1.7/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setTimeout(long,%20java.util.concurrent.TimeUnit)
@@ -173,12 +173,40 @@
     </property>
 
     <property>
-        <name>geomesa.query.timeout.millis</name>
+        <name>geomesa.strategy.decider</name>
+        <value></value>
+        <description>This property allows for overriding strategy selection during query
+            planning. It should specify the full class name for a class implementing
+            `org.locationtech.geomesa.index.planning.StrategyDecider`. The class must
+            have a no-arg constructor.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.query.timeout</name>
         <value></value>
         <description>This property can be used to prevent long-running
             queries from overloading the system. When set, queries will be
             closed after the timeout, even if not all results have been
-            returned yet. The timeout is specified in milliseconds.
+            returned yet. The timeout is specified as a duration, e.g. '60 seconds'
+            or '1 minute'.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.scan.block-full-table</name>
+        <value></value>
+        <description>
+          This property will prevent full-table scans from executing. A full-table scan is any query that can't be
+          constrained down using a search index, and thus requires scanning the entire data set. With large data sets,
+          such a scan can last a long time and be resource intensive. The property is specified as a Boolean, i.e.
+          "true" or "false".
+          It is also possible to specify the full-table scan behavior for individual schemas. Use
+          "geomesa.scan.&lt;type-name&gt;.block-full-table", where "&lt;type-name&gt;" is replaced with the schema name
+          (e.g. "gdelt"). Properties set for an individual schema will take precedence over the globally-defined
+          behavior.
         </description>
         <final>false</final>
     </property>
@@ -190,22 +218,40 @@
             number of Accumulo ranges that will be generated for a single
             query. In general, more ranges will result in less non-relevant
             rows being scanned in Accumulo. However, too many ranges can
-            overwhelm clients. Note that for temporal queries against the Z3
-            or XZ3 index, the number of ranges will be multiplied by the
-            number of time periods (weeks by default) being queried.
+            overwhelm clients.
         </description>
         <final>false</final>
     </property>
 
     <property>
-        <name>geomesa.scan.ranges.batch</name>
-        <value>20000</value>
-        <description>This property provides a hard upper limit on the number
-            of Accumulo ranges generated for any one query. If the number of
-            ranges exceeds this value, the query will be split up into smaller
-            sequential queries. In general, this should be higher for more
-            robust Accumulo clusters, and lower when there are more concurrent
-            queries.
+        <name>geomesa.query.decomposition.multiplier</name>
+        <value>0</value> <!-- disabled by default -->
+        <description>
+            Sets the maximum decomposition of complex polygons into rectangular envelopes. Use '0' to disable
+            decomposition.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.query.decomposition.bits</name>
+        <value>20</value>
+        <description>
+            Sets a lower threshold on the size of the polygon decomposition envelopes. Must be between 1 and 63,
+            inclusive, and must be an odd number. Specifies the number of bits of precision as per the GeoHash
+            specification.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.metadata.expiry</name>
+        <value>10 minutes</value>
+        <description>This property controls how often simple feature type metadata
+            is read from the underlying data store. Calls to ``updateSchema`` on a
+            data store will not show up in other instances until the metadata cache
+            has expired. The expiry is specified as a duration, e.g. '10 minutes'
+            or '1 hour'.
         </description>
         <final>false</final>
     </property>
@@ -229,8 +275,8 @@
     </property>
 
     <property>
-        <name>geomesa.stats.compact.millis</name>
-        <value>3600000</value>
+        <name>geomesa.stats.compact.interval</name>
+        <value>1 hour</value>
         <description>This property controls how often the GeoMesa statistics
             table will be compacted, in milliseconds. GeoMesa tracks data
             statistics during ingestion, using an Accumulo combiner iterator
@@ -243,25 +289,65 @@
     </property>
 
     <property>
-        <name>geomesa.cassandra.connection.timeout.millis</name>
-        <value>30000</value>
+        <name>geomesa.cassandra.connection.timeout</name>
+        <value>30 seconds</value>
         <description>This property controls the connection timeout for a Cassandra session</description>
         <final>false</final>
     </property>
 
     <property>
-        <name>geomesa.cassandra.read.timeout.millis</name>
-        <value>30000</value>
+        <name>geomesa.cassandra.read.timeout</name>
+        <value>30 seconds</value>
         <description>This property controls the read timeout for a Cassandra session</description>
         <final>false</final>
     </property>
 
     <property>
         <name>geomesa.hbase.remote.filtering</name>
-        <value>false</value>
+        <value>true</value>
         <description>Enable usage of the server-side HBase Filters for GeoMesa. This requires installation
             of the HBase Distributed Runtime jar which enables pushdown predicates of ECQL filters to be executed
             on HBase Region Servers instead of in client code.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.hbase.coprocessor.path</name>
+        <value></value>
+        <description>HDFS or local path to GeoMesa-HBase Coprocessor JAR. If a local path is provided it must be the same for
+            all region server. A path provided through the DataStore parameters will always override this property.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.hbase.wal.durability</name>
+        <value>USE_DEFAULT</value>
+        <description>HBase WAL durability setting. Available settings are:
+            ASYNC_WAL: Write the Mutation to the WAL asynchronously
+            FSYNC_WAL: Write the Mutation to the WAL synchronously and force the entries to disk.
+            SKIP_WAL: Do not write the Mutation to the WAL
+            SYNC_WAL: Write the Mutation to the WAL synchronously.
+            USE_DEFAULT: If this is for tables durability, use HBase's global default value (SYNC_WAL).
+            For addtional information see HBase docs. https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/client/Durability.htm
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.hbase.client.scanner.caching.size</name>
+        <value></value>
+        <description>Set the number of rows for caching that will be passed to scanners. If not set, the Configuration setting HConstants.HBASE_CLIENT_SCANNER_CACHING will
+            apply. Higher caching values will enable faster scanners but will use more memory.
+        </description>
+        <final>false</final>
+    </property>
+
+    <property>
+        <name>geomesa.hbase.query.block.caching.enabled</name>
+        <value>true</value>
+        <description>Set whether blocks should be cached for this Scan. This is true by default.  When true, default settings of the table and family are used (this will never override caching blocks if the block cache is disabled for that family or entirely).
         </description>
         <final>false</final>
     </property>

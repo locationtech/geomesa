@@ -1,12 +1,14 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features
+
+import org.locationtech.geomesa.features.SerializationOption.Value
 
 /**
  * Options to be applied when encoding.  The same options must be specified when decoding.
@@ -15,12 +17,10 @@ object SerializationOption extends Enumeration {
 
   type SerializationOption = Value
 
-  /**
-   * If this [[SerializationOption]] is specified then all user data of the simple feature will be
-   * serialized and deserialized.
-   */
-  val WithUserData = Value
-  val WithoutId = Value
+  val WithUserData :Value = Value
+  val WithoutId    :Value = Value
+  val Immutable    :Value = Value
+  val Lazy         :Value = Value
 
   implicit class SerializationOptions(val options: Set[SerializationOption]) extends AnyVal {
 
@@ -28,27 +28,38 @@ object SerializationOption extends Enumeration {
      * @param value the value to search for
      * @return true iff ``this`` contains the given ``value``
      */
-    def contains(value: SerializationOption.Value) = options.contains(value)
+    def contains(value: SerializationOption): Boolean = options.contains(value)
 
-    /** @return true iff ``this`` contains ``EncodingOption.WITH_USER_DATA`` */
-    def withUserData: Boolean = options.contains(SerializationOption.WithUserData)
+    def withUserData: Boolean = options.contains(WithUserData)
 
-    def withoutId: Boolean = options.contains(SerializationOption.WithoutId)
+    def withoutId: Boolean = options.contains(WithoutId)
+
+    def immutable: Boolean = options.contains(Immutable)
+
+    def isLazy: Boolean = options.contains(Lazy)
   }
 
   object SerializationOptions {
 
-    /**
-     * An empty set of encoding options.
-     */
     val none: Set[SerializationOption] = Set.empty[SerializationOption]
 
-    /**
-     * @return a new [[SerializationOptions]] containing just the ``EncodingOption.WITH_USER_DATA`` option
-     */
-    val withUserData: Set[SerializationOption] = Set(SerializationOption.WithUserData)
+    val withUserData: Set[SerializationOption] = Set(WithUserData)
 
-    val withoutId: Set[SerializationOption] = Set(SerializationOption.WithoutId)
+    val withoutId: Set[SerializationOption] = Set(WithoutId)
+
+    val immutable: Set[SerializationOption] = Set(Immutable)
+
+    def builder: Builder = new Builder()
+
+    class Builder {
+      private val options = scala.collection.mutable.Set.empty[SerializationOption]
+
+      def immutable: Builder = { options.add(Immutable); this }
+      def withUserData: Builder = { options.add(WithUserData); this }
+      def withoutId: Builder = { options.add(WithoutId); this }
+      def `lazy`: Builder = { options.add(Lazy); this }
+
+      def build: Set[SerializationOption] = options.toSet
+    }
   }
 }
-

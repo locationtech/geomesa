@@ -1,16 +1,16 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features
 
 import java.util
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.feature.NameImpl
 import org.geotools.feature.simple.SimpleFeatureImpl
 import org.geotools.filter.identity.FeatureIdImpl
@@ -30,7 +30,7 @@ class ScalaSimpleFeatureTest extends Specification {
     "properly convert attributes that are set as strings" in {
       val sft = SimpleFeatureTypes.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
 
-      val f = new ScalaSimpleFeature("fakeid", sft)
+      val f = new ScalaSimpleFeature(sft, "fakeid")
       f.setAttribute(0,"1")
       f.setAttribute(1,"2013-01-02T00:00:00.000Z")
       f.setAttribute(2,"POINT(45.0 49.0)")
@@ -46,7 +46,7 @@ class ScalaSimpleFeatureTest extends Specification {
       val valueList = List("1", "POINT (45 49)", "1.01", "true", "Test String")
       val nameStringList = List("a", "geom", "d", "e", "f")
       val nameList = nameStringList.map(new NameImpl(_))
-      val f = new ScalaSimpleFeature("fakeid", sft)
+      val f = new ScalaSimpleFeature(sft, "fakeid")
 
       //Setup sft
       for((tempV, index) <- valueList.view.zipWithIndex) {
@@ -80,7 +80,7 @@ class ScalaSimpleFeatureTest extends Specification {
     "properly validate a correct object" in {
       val sft = SimpleFeatureTypes.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
 
-      val f = new ScalaSimpleFeature("fakeid", sft)
+      val f = new ScalaSimpleFeature(sft, "fakeid")
       f.setAttribute(0,"1")
       f.setAttribute(1,"2013-01-02T00:00:00.000Z") // this date format should be converted
       f.setAttribute(2,"POINT(45.0 49.0)")
@@ -94,7 +94,7 @@ class ScalaSimpleFeatureTest extends Specification {
       for(typeName <- typeList) {
         val sft = SimpleFeatureTypes.createType(typeName, "a⬨_⬨b:Integer,☕☄crazy☄☕_☕name&such➿:Date," +
             "*geom:Point:srid=4326")
-        val f = new ScalaSimpleFeature("fakeid", sft)
+        val f = new ScalaSimpleFeature(sft, "fakeid")
         f.setAttribute(0,"1")
         f.setAttribute(1,"2013-01-02T00:00:00.000Z") // this date format should be converted
         f.setAttribute(2,"POINT(45.0 49.0)")
@@ -107,7 +107,7 @@ class ScalaSimpleFeatureTest extends Specification {
     "fail to validate a correct object" in {
       val sft = SimpleFeatureTypes.createType("testType", "a:Integer,b:Date,*geom:Point:srid=4326")
 
-      val f = new ScalaSimpleFeature("fakeid", sft, Array("1", "2013-01-02T00:00:00.000Z", "POINT(45.0 49.0)"))
+      val f = new ScalaSimpleFeature(sft, "fakeid", Array("1", "2013-01-02T00:00:00.000Z", "POINT(45.0 49.0)"))
 
       f.validate must throwA [org.opengis.feature.IllegalAttributeException]  //should throw it
     }
@@ -121,7 +121,7 @@ class ScalaSimpleFeatureTest extends Specification {
       )
 
 
-      val f = new ScalaSimpleFeature("fakeid", sft)
+      val f = new ScalaSimpleFeature(sft, "fakeid")
       f.setAttribute("a","")
       f.setAttribute("b","")
       f.setAttribute("c","")
@@ -145,7 +145,7 @@ class ScalaSimpleFeatureTest extends Specification {
 
       // Verify that KryoSimpleFeature returns null for attributes that do not exist like SimpleFeatureImpl
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String")
-      val sf = new ScalaSimpleFeature("fakeid", sft)
+      val sf = new ScalaSimpleFeature(sft, "fakeid")
       sf.getAttribute("c") must not(throwA[NullPointerException])
       sf.getAttribute("c") must beNull
 
@@ -156,7 +156,7 @@ class ScalaSimpleFeatureTest extends Specification {
     "give back a null when a property doesn't exist" in {
       // Verify that KryoSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String")
-      val sf = new ScalaSimpleFeature("fakeid", sft)
+      val sf = new ScalaSimpleFeature(sft, "fakeid")
       sf.getProperty("c") must not(throwA[NullPointerException])
       sf.getProperty("c") must beNull
 
@@ -166,7 +166,7 @@ class ScalaSimpleFeatureTest extends Specification {
     "give back a property when a property exists but the value is null" in {
       // Verify that KryoSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String")
-      val sf = new ScalaSimpleFeature("fakeid", sft)
+      val sf = new ScalaSimpleFeature(sft, "fakeid")
       sf.getProperty("b") must not(throwA[NullPointerException])
       sf.getProperty("b") must not beNull
 
@@ -176,7 +176,7 @@ class ScalaSimpleFeatureTest extends Specification {
     "give back a null when the property value is null" in {
       // Verify that KryoSimpleFeature returns null for properties that do not exist like SimpleFeatureImpl
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String")
-      val sf = new ScalaSimpleFeature("fakeid", sft)
+      val sf = new ScalaSimpleFeature(sft, "fakeid")
       sf.getProperty("b").getValue must not(throwA[NullPointerException])
       sf.getProperty("b").getValue must beNull
 
@@ -186,12 +186,12 @@ class ScalaSimpleFeatureTest extends Specification {
     "implement equals" in {
       val sft = SimpleFeatureTypes.createType("kryotesttype", "a:Integer,b:String,*g:Geometry")
 
-      val sf1 = new ScalaSimpleFeature("fakeid", sft)
+      val sf1 = new ScalaSimpleFeature(sft, "fakeid")
       sf1.setAttribute(0, java.lang.Integer.valueOf(1))
       sf1.setAttribute(1, "b string")
       sf1.setAttribute(2, "POINT(10 15)")
 
-      val sf2 = new ScalaSimpleFeature("fakeid", sft)
+      val sf2 = new ScalaSimpleFeature(sft, "fakeid")
       sf2.setAttribute(0, java.lang.Integer.valueOf(1))
       sf2.setAttribute(1, "b string")
       sf2.setAttribute(2, "POINT(10 15)")

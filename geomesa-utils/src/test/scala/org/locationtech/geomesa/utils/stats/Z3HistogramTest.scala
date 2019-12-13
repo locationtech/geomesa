@@ -1,13 +1,16 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.stats
 
+import java.util.Date
+
+import org.locationtech.jts.geom.Geometry
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
@@ -28,8 +31,8 @@ class Z3HistogramTest extends Specification with StatTestHelper {
 
   def createStat(observe: Boolean = true): Z3Histogram = createStat(1024, observe)
 
-  def toDate(string: String) = GeoToolsDateFormat.parseDateTime(string).toDate
-  def toGeom(string: String) = WKTUtils.read(string)
+  def toDate(string: String): Date = Date.from(java.time.LocalDateTime.parse(string, GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
+  def toGeom(string: String): Geometry = WKTUtils.read(string)
 
   "HistogramZ3 stat" should {
 
@@ -44,7 +47,7 @@ class Z3HistogramTest extends Specification with StatTestHelper {
         stat.isEmpty must beFalse
         forall(0 until 100) { i =>
           val (w, idx) = stat.indexOf(toGeom(s"POINT(-$i ${i / 2})"), toDate(f"2012-01-01T${i%24}%02d:00:00.000Z"))
-          stat.count(w, idx) must beBetween(1L, 12L)
+          stat.count(w, idx) must beBetween(1L, 21L)
         }
       }
 
@@ -54,8 +57,8 @@ class Z3HistogramTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Z3Histogram]
-        unpacked.asInstanceOf[Z3Histogram].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3Histogram].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Histogram].geom mustEqual stat.geom
+        unpacked.asInstanceOf[Z3Histogram].dtg mustEqual stat.dtg
         unpacked.asInstanceOf[Z3Histogram].length mustEqual stat.length
         unpacked.asInstanceOf[Z3Histogram].toJson mustEqual stat.toJson
       }
@@ -66,8 +69,8 @@ class Z3HistogramTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[Z3Histogram]
-        unpacked.asInstanceOf[Z3Histogram].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3Histogram].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Histogram].geom mustEqual stat.geom
+        unpacked.asInstanceOf[Z3Histogram].dtg mustEqual stat.dtg
         unpacked.asInstanceOf[Z3Histogram].length mustEqual stat.length
         unpacked.asInstanceOf[Z3Histogram].toJson mustEqual stat.toJson
       }
@@ -78,8 +81,8 @@ class Z3HistogramTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed, immutable = true)
 
         unpacked must beAnInstanceOf[Z3Histogram]
-        unpacked.asInstanceOf[Z3Histogram].geomIndex mustEqual stat.geomIndex
-        unpacked.asInstanceOf[Z3Histogram].dtgIndex mustEqual stat.dtgIndex
+        unpacked.asInstanceOf[Z3Histogram].geom mustEqual stat.geom
+        unpacked.asInstanceOf[Z3Histogram].dtg mustEqual stat.dtg
         unpacked.asInstanceOf[Z3Histogram].length mustEqual stat.length
         unpacked.asInstanceOf[Z3Histogram].toJson mustEqual stat.toJson
 

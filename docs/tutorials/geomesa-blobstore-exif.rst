@@ -13,7 +13,7 @@ Prerequisites
 
 .. warning::
 
-    For Accumulo deployment, you will need access to an Accumulo |accumulo_version| instance.
+    For Accumulo deployment, you will need access to an Accumulo |accumulo_required_version| instance.
 
 Before you begin, you should have these:
 

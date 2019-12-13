@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
 
@@ -14,11 +14,13 @@ import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, ExtendedValues}
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
@@ -32,11 +34,11 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
 
   val features =
     (0 until 10).map { i =>
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttributes(Array[AnyRef](s"name$i", "track1", s"2010-05-07T0$i:00:00.000Z", s"POINT(40 6$i)"))
       sf
     } ++ (10 until 20).map { i =>
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttributes(Array[AnyRef](s"name$i", "track2", s"2010-05-07T$i:00:00.000Z",
         s"POLYGON((40 3${i - 10}, 42 3${i - 10}, 42 2${i - 10}, 40 2${i - 10}, 40 3${i - 10}))"))
       sf
@@ -123,8 +125,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
       val features = execute(filter, Some(Array("name"))).toList
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
-      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 2) // geom always gets added
-      forall(features)((f: SimpleFeature) => f.getAttribute("geom") must not(beNull))
+      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 1)
       forall(features)((f: SimpleFeature) => f.getAttribute("name") must not(beNull))
     }
 
@@ -133,8 +134,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
       val features = execute(filter, Some(Array("name"))).toList
       features must haveSize(5)
       features.map(_.getID.toInt) must containTheSameElementsAs(10 to 14)
-      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 2) // geom always gets added
-      forall(features)((f: SimpleFeature) => f.getAttribute("geom") must not(beNull))
+      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 1)
       forall(features)((f: SimpleFeature) => f.getAttribute("name") must not(beNull))
     }
 
@@ -143,8 +143,7 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
       val features = execute(filter, Some(Array("derived=strConcat('my', name)"))).toList
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
-      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 2) // geom always gets added
-      forall(features)((f: SimpleFeature) => f.getAttribute("geom") must not(beNull))
+      forall(features)((f: SimpleFeature) => f.getAttributeCount mustEqual 1)
       forall(features)((f: SimpleFeature) => f.getAttribute("derived").asInstanceOf[String] must beMatching("myname\\d"))
     }
 
@@ -155,14 +154,14 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
 
       // the same simple feature gets reused - so make sure you access in serial order
       val aggregates = execute(filter, hints = binHints).map(f =>
-        f.getAttribute(BinAggregatingIterator.BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+        f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
       aggregates.size must beLessThan(10) // ensure some aggregation was done
-      val bin = aggregates.flatMap(a => a.grouped(16).map(Convert2ViewerFunction.decode))
+      val bin = aggregates.flatMap(a => a.grouped(16).map(BinaryOutputEncoder.decode))
       bin must haveSize(10)
       bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
-      bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0))
+      bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0f))
       forall(bin.map(_.lon))(_ mustEqual 40.0)
     }
 
@@ -175,17 +174,16 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
 
       // the same simple feature gets reused - so make sure you access in serial order
       val aggregates = execute(filter, hints = hints).map(f =>
-        f.getAttribute(BinAggregatingIterator.BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+        f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
       aggregates.size must beLessThan(10) // ensure some aggregation was done
-      val bin = aggregates.flatMap(a => a.grouped(24).map(Convert2ViewerFunction.decode))
+      val bin = aggregates.flatMap(a => a.grouped(24).map(BinaryOutputEncoder.decode))
       bin must haveSize(10)
       bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
-      bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0))
+      bin.map(_.lat) must containAllOf((0 until 10).map(_ + 60.0f))
       forall(bin.map(_.lon))(_ mustEqual 40.0)
-      forall(bin)(_ must beAnInstanceOf[ExtendedValues])
-      bin.map(_.asInstanceOf[ExtendedValues].label) must containAllOf((0 until 10).map(i => Convert2ViewerFunction.convertToLabel(s"name$i")))
+      bin.map(_.label) must containAllOf((0 until 10).map(i => BinaryOutputEncoder.convertToLabel(s"name$i")))
     }
 
     "support sampling" in {
@@ -223,12 +221,12 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
     "support sampling with bin queries" in {
       val hints = binHints.updated(BIN_TRACK, "track") ++ sample20Hints.updated(SAMPLE_BY, "track")
       val resultFeatures = execute("INCLUDE", hints = hints)
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 
       // have to evaluate attributes before pulling into collection, as the same sf is reused
       val results = resultFeatures.map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
-      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins must haveLength(4)
       bins.map(_.trackId) must containTheSameElementsAs {
         Seq("track1", "track1", "track2", "track2").map(_.hashCode)

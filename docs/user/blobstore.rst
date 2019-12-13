@@ -1,6 +1,10 @@
 GeoMesa Blob Store
 ==================
 
+.. warning::
+
+  The GeoMesa Blob Store is deprecated and will be removed in a future version.
+
 The GeoMesa Blob Store is found in ``geomesa-blobstore`` in the source distribution.
 
 The ``GeoMesaIndexedBlobStore`` is an interface that describes the
@@ -112,7 +116,7 @@ To Register a GeoMesa Blob Store to an alias (in this case myBlobStore):
 
 .. code-block:: bash
 
-    curl -d 'instanceId=myCloud' -d 'zookeepers=zoo1,zoo2,zoo3' -d 'tableName=myBlobStore' -d 'user=user' -d 'password=password' http://localhost:8080/geoserver/geomesa/blobstore/ds/myBlobStore
+    curl -d 'accumulo.instance.id=myCloud' -d 'accumulo.zookeepers=zoo1,zoo2,zoo3' -d 'accumulo.catalog=myBlobStore' -d 'accumulo.user=user' -d 'accumulo.password=password' http://localhost:8080/geoserver/geomesa/blobstore/ds/myBlobStore
 
 Other Blob Store commands:
 

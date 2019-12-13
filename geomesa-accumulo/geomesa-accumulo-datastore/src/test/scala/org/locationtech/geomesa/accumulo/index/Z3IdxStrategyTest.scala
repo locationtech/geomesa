@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
 
@@ -13,15 +13,17 @@ import java.util.Date
 import com.google.common.primitives.{Longs, Shorts}
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{Query, Transaction}
-import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, Z3Iterator}
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.filter.function.{Convert2ViewerFunction, ExtendedValues}
 import org.locationtech.geomesa.index.conf.QueryHints._
+import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.index.z3.Z3Index
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeature
@@ -43,7 +45,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val track = "track1"
       val dtg = s"2010-05-07T0$i:00:00.000Z"
       val geom = s"POINT(4$i 60)"
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttributes(Array[AnyRef](name, track, dtg, geom))
       sf
     } ++ (10 until 20).map { i =>
@@ -51,7 +53,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val track = "track2"
       val dtg = s"2010-05-${i}T$i:00:00.000Z"
       val geom = s"POINT(4${i - 10} 60)"
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttributes(Array[AnyRef](name, track, dtg, geom))
       sf
     } ++ (20 until 30).map { i =>
@@ -59,13 +61,11 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val track = "track3"
       val dtg = s"2010-05-${i}T${i-10}:00:00.000Z"
       val geom = s"POINT(6${i - 20} 60)"
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttributes(Array[AnyRef](name, track, dtg, geom))
       sf
     }
   addFeatures(features)
-
-  implicit val ff = CommonFactoryFinder.getFilterFactory2
 
   def runQuery(filter: String, transforms: Array[String] = null): Iterator[SimpleFeature] =
     runQuery(new Query(sftName, ECQL.toFilter(filter), transforms))
@@ -78,13 +78,16 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       skipped("used for debugging")
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-      ds.connector.createScanner(Z3Index.getTableName(sftName, ds), new Authorizations()).foreach { r =>
-        val prefix = 2 // table sharing + split
-        val bytes = r.getKey.getRow.getBytes
-        val keyZ = Longs.fromByteArray(bytes.drop(prefix))
-        val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(Z3(keyZ))
-        val weeks = Shorts.fromBytes(bytes(prefix), bytes(prefix + 1))
-        println(s"row: $weeks $x $y $t")
+      ds.manager.indices(sft).filter(_.name == Z3Index.name).flatMap(_.getTableNames()).foreach { table =>
+        println(table)
+        ds.connector.createScanner(table, new Authorizations()).foreach { r =>
+          val prefix = 2 // table sharing + split
+          val bytes = r.getKey.getRow.getBytes
+          val keyZ = Longs.fromByteArray(bytes.drop(prefix))
+          val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(Z3(keyZ))
+          val weeks = Shorts.fromBytes(bytes(prefix), bytes(prefix + 1))
+          println(s"row: $weeks $x $y $t")
+        }
       }
       println()
       success
@@ -194,8 +197,7 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
       forall(features) { f =>
-        f.getAttributeCount mustEqual 2 // geom always gets added
-        f.getAttribute("geom") must not(beNull)
+        f.getAttributeCount mustEqual 1
         f.getAttribute("name") must not(beNull)
       }
     }
@@ -207,29 +209,10 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       features must haveSize(4)
       features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
       forall(features) { f =>
-        f.getAttributeCount mustEqual 2 // geom always gets added
-        f.getAttribute("geom") must not(beNull)
+        f.getAttributeCount mustEqual 1
         f.getAttribute("derived").asInstanceOf[String] must beMatching("myname\\d")
       }
     }
-
-    "apply transforms using only the row key" >> {
-      val filter = "bbox(geom, 38, 59, 51, 61)" +
-          " AND dtg between '2010-05-07T06:00:00.000Z' and '2010-05-08T00:00:00.000Z'"
-      val query = new Query(sftName, ECQL.toFilter(filter), Array("geom", "dtg"))
-
-      val qps = ds.getQueryPlan(query)
-      forall(qps)(p => p.columnFamilies must containTheSameElementsAs(Seq(AccumuloFeatureIndex.BinColumnFamily)))
-
-      val features = runQuery(query).toList
-      features must haveSize(4)
-      features.map(_.getID.toInt) must containTheSameElementsAs(6 to 9)
-      forall(features) { f =>
-        f.getAttributeCount mustEqual 2 // geom always gets added
-        f.getAttribute("geom") must not(beNull)
-        f.getAttribute("dtg") must not(beNull)
-      }
-    }.pendingUntilFixed("not implemented")
 
     "optimize for bin format" >> {
       val filter = "bbox(geom, 38, 59, 51, 61)" +
@@ -241,18 +224,22 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val qps = ds.getQueryPlan(query)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
-      val returnedFeatures = runQuery(query)
-      // the same simple feature gets reused - so make sure you access in serial order
-      val aggregates = returnedFeatures.map(f =>
-        f.getAttribute(BinAggregatingIterator.BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+      // reduce our scan ranges so that we get fewer iterator instances and some aggregation
+      QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
+      val aggregates = try {
+        // the same simple feature gets reused - so make sure you access in serial order
+        runQuery(query).map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+      } finally {
+        QueryProperties.ScanRangesTarget.threadLocalValue.remove()
+      }
       aggregates.size must beLessThan(10) // ensure some aggregation was done
-      val bin = aggregates.flatMap(a => a.grouped(16).map(Convert2ViewerFunction.decode))
+      val bin = aggregates.flatMap(a => a.grouped(16).map(BinaryOutputEncoder.decode))
       bin must haveSize(10)
       bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
       forall(bin.map(_.lat))(_ mustEqual 60.0)
-      bin.map(_.lon) must containAllOf((0 until 10).map(_ + 40.0))
+      bin.map(_.lon) must containAllOf((0 until 10).map(_ + 40.0f))
     }
 
     "optimize for bin format with sorting" >> {
@@ -266,22 +253,26 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val qps = ds.getQueryPlan(query)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
-      val returnedFeatures = runQuery(query)
-      // the same simple feature gets reused - so make sure you access in serial order
-      val aggregates = returnedFeatures.map(f =>
-        f.getAttribute(BinAggregatingIterator.BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+      // reduce our scan ranges so that we get fewer iterator instances and some aggregation
+      QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
+      val aggregates = try {
+        // the same simple feature gets reused - so make sure you access in serial order
+        runQuery(query).map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+      } finally {
+        QueryProperties.ScanRangesTarget.threadLocalValue.remove()
+      }
       aggregates.size must beLessThan(10) // ensure some aggregation was done
       forall(aggregates) { a =>
-        val window = a.grouped(16).map(Convert2ViewerFunction.decode(_).dtg).sliding(2).filter(_.length > 1)
-        forall(window)(w => w.head must beLessThanOrEqualTo(w(1)))
+        val window = a.grouped(16).map(BinaryOutputEncoder.decode(_).dtg).sliding(2).filter(_.length > 1)
+        forall(window.toSeq)(w => w.head must beLessThanOrEqualTo(w(1)))
       }
-      val bin = aggregates.flatMap(a => a.grouped(16).map(Convert2ViewerFunction.decode))
+      val bin = aggregates.flatMap(a => a.grouped(16).map(BinaryOutputEncoder.decode))
       bin must haveSize(10)
       bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
       forall(bin.map(_.lat))(_ mustEqual 60.0)
-      bin.map(_.lon) must containAllOf((0 until 10).map(_ + 40.0))
+      bin.map(_.lon) must containAllOf((0 until 10).map(_ + 40.0f))
     }
 
     "optimize for bin format with label" >> {
@@ -295,20 +286,51 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val qps = ds.getQueryPlan(query)
       forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
 
-      val returnedFeatures = runQuery(query)
-      // the same simple feature gets reused - so make sure you access in serial order
-      val aggregates = returnedFeatures.map(f =>
-        f.getAttribute(BinAggregatingIterator.BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+      // reduce our scan ranges so that we get fewer iterator instances and some aggregation
+      QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
+      val aggregates = try {
+        // the same simple feature gets reused - so make sure you access in serial order
+        runQuery(query).map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+      } finally {
+        QueryProperties.ScanRangesTarget.threadLocalValue.remove()
+      }
       aggregates.size must beLessThan(10) // ensure some aggregation was done
-      val bin = aggregates.flatMap(a => a.grouped(24).map(Convert2ViewerFunction.decode))
+      val bin = aggregates.flatMap(a => a.grouped(24).map(BinaryOutputEncoder.decode))
       bin must haveSize(10)
       bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
       bin.map(_.dtg) must
           containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
       forall(bin.map(_.lat))(_ mustEqual 60.0)
-      bin.map(_.lon) must containAllOf((0 until 10).map(_ + 40.0))
-      forall(bin)(_ must beAnInstanceOf[ExtendedValues])
-      bin.map(_.asInstanceOf[ExtendedValues].label) must containAllOf((0 until 10).map(i => Convert2ViewerFunction.convertToLabel(s"name$i")))
+      bin.map(_.lon) must containAllOf((0 until 10).map(_ + 40.0f))
+      bin.map(_.label) must containAllOf((0 until 10).map(i => BinaryOutputEncoder.convertToLabel(s"name$i")))
+    }
+
+    "optimize for bin format with transforms" >> {
+      val filter = "bbox(geom, 38, 59, 51, 61)" +
+          " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
+      val query = new Query(sftName, ECQL.toFilter(filter), Array("name", "geom"))
+      query.getHints.put(BIN_TRACK, "name")
+      query.getHints.put(BIN_BATCH_SIZE, 100)
+
+      val qps = ds.getQueryPlan(query)
+      forall(qps)(_.iterators.map(_.getIteratorClass) must contain(classOf[BinAggregatingIterator].getCanonicalName))
+
+      // reduce our scan ranges so that we get fewer iterator instances and some aggregation
+      QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
+      val aggregates = try {
+        // the same simple feature gets reused - so make sure you access in serial order
+        runQuery(query).map(f => f.getAttribute(BIN_ATTRIBUTE_INDEX).asInstanceOf[Array[Byte]]).toSeq
+      } finally {
+        QueryProperties.ScanRangesTarget.threadLocalValue.remove()
+      }
+      aggregates.size must beLessThan(10) // ensure some aggregation was done
+      val bin = aggregates.flatMap(a => a.grouped(16).map(BinaryOutputEncoder.decode))
+      bin must haveSize(10)
+      bin.map(_.trackId) must containAllOf((0 until 10).map(i => s"name$i".hashCode))
+      bin.map(_.dtg) must
+          containAllOf((0 until 10).map(i => features(i).getAttribute("dtg").asInstanceOf[Date].getTime))
+      forall(bin.map(_.lat))(_ mustEqual 60.0)
+      bin.map(_.lon) must containAllOf((0 until 10).map(_ + 40.0f))
     }
 
     // note: b/c sampling is per iterator, we don't get much reduction with the
@@ -319,7 +341,11 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter))
       query.getHints.put(SAMPLING, new java.lang.Float(.2f))
-      val results = runQuery(query).toList
+      // reduce our scan ranges so that we get fewer iterator instances and some sampling
+      QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
+      val results = try { runQuery(query).toList } finally {
+        QueryProperties.ScanRangesTarget.threadLocalValue.remove()
+      }
       results.length must beLessThan(10)
     }
 
@@ -328,7 +354,11 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter), Array("name", "geom"))
       query.getHints.put(SAMPLING, new java.lang.Float(.2f))
-      val results = runQuery(query).toList
+      // reduce our scan ranges so that we get fewer iterator instances and some sampling
+      QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
+      val results = try { runQuery(query).toList } finally {
+        QueryProperties.ScanRangesTarget.threadLocalValue.remove()
+      }
       results.length must beLessThan(10)
       forall(results)(_.getAttributeCount mustEqual 2)
     }
@@ -339,12 +369,16 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       val query = new Query(sftName, ECQL.toFilter(filter))
       query.getHints.put(SAMPLING, new java.lang.Float(.2f))
       query.getHints.put(SAMPLE_BY, "track")
-      val results = runQuery(query).toList
+      // reduce our scan ranges so that we get fewer iterator instances and some sampling
+      QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
+      val results = try { runQuery(query).toList } finally {
+        QueryProperties.ScanRangesTarget.threadLocalValue.remove()
+      }
       results.length must beLessThan(10)
     }
 
     "support sampling with bin queries" >> {
-      import BinAggregatingIterator.BIN_ATTRIBUTE_INDEX
+      import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
       val filter = "bbox(geom, 38, 59, 51, 61)" +
           " AND dtg between '2010-05-07T00:00:00.000Z' and '2010-05-07T12:00:00.000Z'"
       val query = new Query(sftName, ECQL.toFilter(filter))
@@ -352,10 +386,17 @@ class Z3IdxStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(BIN_BATCH_SIZE, 1000)
       query.getHints.put(SAMPLING, new java.lang.Float(.2f))
       query.getHints.put(SAMPLE_BY, "track")
-      // have to evaluate attributes before pulling into collection, as the same sf is reused
-      val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+
+      // reduce our scan ranges so that we get fewer iterator instances and some sampling
+      QueryProperties.ScanRangesTarget.threadLocalValue.set("1")
+      val results = try {
+        // have to evaluate attributes before pulling into collection, as the same sf is reused
+        runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
+      } finally {
+        QueryProperties.ScanRangesTarget.threadLocalValue.remove()
+      }
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
-      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(Convert2ViewerFunction.decode))
+      val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
       bins.length must beLessThan(10)
     }
   }

@@ -1,15 +1,14 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert
 
 import java.net.URL
-import java.util
 import java.util.{ServiceLoader, List => JList}
 
 import com.typesafe.config.{Config, ConfigFactory}
@@ -39,7 +38,7 @@ object ConverterConfigLoader extends LazyLogging {
   // Public API
   def listConverterNames: List[String] = confs.keys.toList
   def getAllConfigs: Map[String, Config] = confs
-  def configForName(name: String) = confs.get(name)
+  def configForName(name: String): Option[Config] = confs.get(name)
 
   // Rebase a config to to the converter root...allows standalone
   // configurations to start with "converter", "input-converter"
@@ -71,7 +70,7 @@ trait GeoMesaConvertParser extends LazyLogging {
 }
 
 object GeoMesaConvertParser {
-  def isConvertConfig(conf: Config) = {
+  def isConvertConfig(conf: Config): Boolean = {
     conf.hasPath("type")
   }
 }
@@ -79,20 +78,27 @@ object GeoMesaConvertParser {
   * Provides access converter configs on the classpath
   */
 class ClassPathConfigProvider extends ConverterConfigProvider with GeoMesaConvertParser {
-  lazy val confs: java.util.Map[String, Config] = parseConf(ConfigFactory.load)
-  override def loadConfigs(): util.Map[String, Config] = confs
+  // intentionally keep as a method so we can reload dynamically
+  override def loadConfigs(): java.util.Map[String, Config] = parseConf(ConfigFactory.load).asJava
 }
 
 /** Load Config from URLs */
 class URLConfigProvider extends ConverterConfigProvider with GeoMesaConvertParser {
   import URLConfigProvider._
 
-  override def loadConfigs(): util.Map[String, Config] =
-    configURLs
-      .map(ConfigFactory.parseURL)
-      .reduceLeftOption(_.withFallback(_))
-      .map(parseConf)
-      .getOrElse(Map.empty[String, Config]).asJava
+  override def loadConfigs(): java.util.Map[String, Config] = {
+    val confs = configURLs.flatMap { url =>
+      try {
+        Some(ConfigFactory.parseURL(url))
+      } catch {
+        case e: Throwable =>
+          logger.warn(s"Unable to load converter config from url $url")
+          logger.trace(s"Unable to load converter config from url $url", e)
+          None
+      }
+    }
+    confs.reduceLeftOption(_.withFallback(_)).map(parseConf).getOrElse(Map.empty[String, Config]).asJava
+  }
 
   // Will also pick things up from the SystemProperties
   def configURLs: Seq[URL] = {

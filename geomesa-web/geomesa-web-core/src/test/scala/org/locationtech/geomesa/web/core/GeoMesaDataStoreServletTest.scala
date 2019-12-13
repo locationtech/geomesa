@@ -1,25 +1,26 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.web.core
 
 import java.net.URLEncoder
 import java.nio.file.Files
 
+import org.geotools.data.DataStore
 import org.json4s.{DefaultFormats, Formats}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.cache.FilePersistence
-import org.locationtech.geomesa.utils.classpath.PathUtils
+import org.locationtech.geomesa.utils.io.PathUtils
 import org.scalatra.Ok
 import org.scalatra.json.NativeJsonSupport
 import org.scalatra.test.specs2.MutableScalatraSpec
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.{Fragments, Step}
+import org.specs2.specification.core.Fragments
 
 @RunWith(classOf[JUnitRunner])
 class GeoMesaDataStoreServletTest extends MutableScalatraSpec {
@@ -31,7 +32,7 @@ class GeoMesaDataStoreServletTest extends MutableScalatraSpec {
   def urlEncode(s: String): String = URLEncoder.encode(s, "UTF-8")
 
   // cleanup tmp dir after tests run
-  override def map(fragments: => Fragments) = super.map(fragments) ^ Step {
+  override def map(fragments: => Fragments): Fragments = super.map(fragments) ^ step {
     PathUtils.deleteRecursively(tmpDir)
   }
 
@@ -49,7 +50,7 @@ class GeoMesaDataStoreServletTest extends MutableScalatraSpec {
 
     get("/test") {
       try {
-        withDataStore((ds) => { calledTest = true; Ok() })
+        withDataStore((_: DataStore) => { calledTest = true; Ok() })
       } catch {
         case e: Exception => handleError(s"Error creating index:", e)
       }
@@ -58,11 +59,12 @@ class GeoMesaDataStoreServletTest extends MutableScalatraSpec {
 
   implicit val formats: Formats = DefaultFormats
 
-  val dsParams = Map("instanceId" -> "GeoMesaDataStoreServletTest", "zookeepers" -> "zoo", "user" -> "root",
-    "password" -> "", "tableName" -> "GeoMesaDataStoreServlet", "useMock" -> "true")
+  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
+  val dsParams = Map(InstanceIdParam.key -> "GeoMesaDataStoreServletTest", ZookeepersParam.key -> "zoo", UserParam.key -> "root",
+    PasswordParam.key -> "", CatalogParam.key -> "GeoMesaDataStoreServlet", MockParam.key -> "true")
 
   val jsonParams =
-    dsParams.filterKeys(_ != "password").map { case (k, v) => s""""$k":"$v"""" } ++ Seq(""""password":"***"""")
+    dsParams.filterKeys(_ != PasswordParam.key).map { case (k, v) => s""""$k":"$v"""" } ++ Seq(s""""${PasswordParam.key}":"***"""")
 
   "GeoMesaDataStoreServlet" should {
     "register a datastore" in {

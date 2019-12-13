@@ -1,60 +1,58 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io.Writer
+import java.io.{OutputStream, OutputStreamWriter}
+import java.nio.charset.StandardCharsets
+import java.time.{Instant, ZoneOffset}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
-import org.apache.commons.csv.{CSVFormat, QuoteMode}
-import org.geotools.data.simple.SimpleFeatureCollection
-import org.locationtech.geomesa.tools.export.ExportCommand.ExportAttributes
-import org.locationtech.geomesa.tools.utils.DataFormats
-import org.locationtech.geomesa.tools.utils.DataFormats._
+import org.apache.commons.csv.{CSVFormat, CSVPrinter, QuoteMode}
+import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Geometry
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class DelimitedExporter(writer: Writer, format: DataFormat, attributes: Option[ExportAttributes], withHeader: Boolean)
-    extends FeatureExporter with LazyLogging {
+class DelimitedExporter(printer: CSVPrinter, counter: ByteCounter, withHeader: Boolean, includeIds: Boolean)
+    extends ByteCounterExporter(counter)  with LazyLogging {
 
-  import scala.collection.JavaConversions._
+  import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 
-  private val printer = format match {
-    case DataFormats.Csv => CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL).print(writer)
-    case DataFormats.Tsv => CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL).print(writer)
-  }
+  import scala.collection.JavaConverters._
 
-  override def export(features: SimpleFeatureCollection): Option[Long] = {
-    import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
-
-    val sft = features.getSchema
-
-    val withId = attributes.forall(_.fid)
-    val names = attributes.map(_.names).getOrElse(sft.getAttributeDescriptors.map(_.getLocalName))
-
+  override def start(sft: SimpleFeatureType): Unit = {
     // write out a header line
     if (withHeader) {
-      if (withId) {
+      if (includeIds) {
         printer.print("id")
       }
-      val headers = names.map(sft.getDescriptor).map(SimpleFeatureTypes.encodeDescriptor(sft, _))
-      printer.printRecord(headers: _*)
+      sft.getAttributeDescriptors.asScala.foreach { descriptor =>
+        printer.print(SimpleFeatureTypes.encodeDescriptor(sft, descriptor))
+      }
+      printer.println()
+      printer.flush()
     }
+  }
 
+  override def export(features: Iterator[SimpleFeature]): Option[Long] = {
     var count = 0L
-    features.features.foreach { sf =>
-      if (withId) {
+    features.foreach { sf =>
+      if (includeIds) {
         printer.print(sf.getID)
       }
-      // retrieve values by name, index doesn't always correspond correctly due to geometry being added back in
-      names.foreach(name => printer.print(stringify(sf.getAttribute(name))))
+      var i = 0
+      while (i < sf.getAttributeCount) {
+        printer.print(stringify(sf.getAttribute(i)))
+        i += 1
+      }
       printer.println()
 
       count += 1
@@ -62,28 +60,50 @@ class DelimitedExporter(writer: Writer, format: DataFormat, attributes: Option[E
         logger.debug(s"wrote $count features")
       }
     }
-    logger.info(s"Exported $count features")
+
+    printer.flush()
+
+    logger.debug(s"Exported $count features")
     Some(count)
   }
 
-  def stringify(o: Any): String = {
-    import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
-    o match {
-      case null                   => ""
-      case g: Geometry            => WKTUtils.write(g)
-      case d: Date                => GeoToolsDateFormat.print(d.getTime)
-      case l: java.util.List[_]   => l.map(stringify).mkString(",")
-      case m: java.util.Map[_, _] => m.map { case (k, v) => s"${stringify(k)}->${stringify(v)}"}.mkString(",")
-      case _                      => o.toString
-    }
-  }
+  override def close(): Unit = printer.close()
 
-  override def flush(): Unit = printer.flush()
-
-  override def close(): Unit = {
-    printer.flush()
-    printer.close()
+  private def stringify(obj: Any): String = obj match {
+    case null                   => ""
+    case g: Geometry            => WKTUtils.write(g)
+    case d: Date                => GeoToolsDateFormat.format(Instant.ofEpochMilli(d.getTime).atZone(ZoneOffset.UTC))
+    case l: java.util.List[_]   => l.asScala.map(stringify).mkString(",")
+    case m: java.util.Map[_, _] => m.asScala.map { case (k, v) => s"${stringify(k)}->${stringify(v)}"}.mkString(",")
+    case _                      => obj.toString
   }
 }
 
+object DelimitedExporter {
 
+  def csv(
+      os: OutputStream,
+      counter: ByteCounter,
+      withHeader: Boolean,
+      includeIds: Boolean = true): DelimitedExporter = {
+    apply(os, counter, CSVFormat.DEFAULT.withQuoteMode(QuoteMode.MINIMAL), withHeader, includeIds)
+  }
+
+  def tsv(
+      os: OutputStream,
+      counter: ByteCounter,
+      withHeader: Boolean,
+      includeIds: Boolean = true): DelimitedExporter = {
+    apply(os, counter, CSVFormat.TDF.withQuoteMode(QuoteMode.MINIMAL), withHeader, includeIds)
+  }
+
+  def apply(
+      os: OutputStream,
+      counter: ByteCounter,
+      format: CSVFormat,
+      withHeader: Boolean,
+      includeIds: Boolean = true): DelimitedExporter = {
+    val printer = format.print(new OutputStreamWriter(os, StandardCharsets.UTF_8))
+    new DelimitedExporter(printer, counter, withHeader, includeIds)
+  }
+}

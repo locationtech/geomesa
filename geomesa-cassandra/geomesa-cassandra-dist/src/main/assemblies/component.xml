@@ -11,6 +11,7 @@
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
                 <include>org.locationtech.geomesa:geomesa-cassandra-gs-plugin*</include>
+                <include>org.locationtech.geomesa:geomesa-process-wps*</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -34,6 +35,7 @@
             <useStrictFiltering>true</useStrictFiltering>
             <excludes>
                 <exclude>org.locationtech.geomesa:geomesa-cassandra-gs-plugin*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
             </excludes>
         </dependencySet>
     </dependencySets>
@@ -44,6 +46,7 @@
             <fileMode>0644</fileMode>
             <includes>
                 <include>LICENSE.txt</include>
+                <include>README.md</include>
             </includes>
         </fileSet>
 
@@ -57,6 +60,13 @@
         </fileSet>
         <fileSet>
             <directory>../geomesa-cassandra-tools/conf</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-cassandra-tools/conf-filtered</directory>
             <outputDirectory>conf</outputDirectory>
             <fileMode>0644</fileMode>
             <filtered>true</filtered>
@@ -89,6 +99,20 @@
             </excludes>
         </fileSet>
         <fileSet>
+            <directory>../../geomesa-tools/conf-filtered</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>true</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-tools/examples</directory>
+            <outputDirectory>examples</outputDirectory>
+            <fileMode>0644</fileMode>
+            <filtered>false</filtered>
+            <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
             <directory>./</directory>
             <outputDirectory>logs</outputDirectory>
             <directoryMode>0700</directoryMode>
@@ -96,27 +120,13 @@
                 <exclude>*/**</exclude>
             </excludes>
         </fileSet>
-
     </fileSets>
     <files>
+        <!-- geomesa-site.xml.template -->
         <file>
-            <source>../../README.md</source>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/README.md</source>
-            <destName>README-gs-plugin.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-utils/README.md</source>
-            <destName>README-utils.md</destName>
-            <outputDirectory>docs</outputDirectory>
-        </file>
-        <file>
-            <source>../../geomesa-convert/README.md</source>
-            <destName>README-convert.md</destName>
-            <outputDirectory>docs</outputDirectory>
+            <source>../../geomesa-utils/src/main/resources/org/locationtech/geomesa/geomesa-site.xml.template</source>
+            <destName>geomesa-site.xml.template</destName>
+            <outputDirectory>conf</outputDirectory>
         </file>
         <!-- autocomplete -->
         <file>

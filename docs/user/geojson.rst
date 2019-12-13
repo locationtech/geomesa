@@ -170,9 +170,8 @@ REST Access
 ^^^^^^^^^^^
 
 The ``GeoJsonIndex`` is also exposed through a REST endpoint. Currently, the REST endpoint does not support
-updates or deletes of existing features, or transformation of resposes. Furthermore, it requires Accumulo as
-the backing data store. It may be installed in GeoServer by extracting the install file into
-``geoserver/WEB-INF/lib``:
+transformation of responses. Furthermore, it requires Accumulo as the backing data store. It may be installed
+in GeoServer by extracting the install file into ``geoserver/WEB-INF/lib``:
 
 .. code-block:: bash
 
@@ -207,11 +206,11 @@ Returns a list of data stores available for querying.
 |                 |                                                                                      |
 |                 |     {                                                                                |
 |                 |       "mycloud": {                                                                   |
-|                 |         "instanceId":"foo",                                                          |
-|                 |         "zookeepers":"foo1,foo2,foo3",                                               |
-|                 |         "tableName":"foo.bar",                                                       |
-|                 |         "user":"foo",                                                                |
-|                 |         "password":"***"                                                             |
+|                 |         "accumulo.instance.id":"foo",                                                |
+|                 |         "accumulo.zookeepers":"foo1,foo2,foo3",                                      |
+|                 |         "accumulo.catalog":"foo.bar",                                                |
+|                 |         "accumulo.user":"foo",                                                       |
+|                 |         "accumulo.password":"***"                                                    |
 |                 |       }                                                                              |
 |                 |     }                                                                                |
 |                 |                                                                                      |
@@ -243,25 +242,25 @@ Registers a data store to make it available for querying.
 +-----------------+--------------------------------------------------------------------------------------+
 | **Data Params** | **Required**                                                                         |
 |                 |                                                                                      |
-|                 | * ``instanceId=[alphanumeric]``                                                      |
-|                 | * ``zookeepers=[alphanumeric]``                                                      |
-|                 | * ``user=[alphanumeric]``                                                            |
-|                 | * ``tableName=[alphanumeric]``                                                       |
+|                 | * ``accumulo.instance.id=[alphanumeric]``                                            |
+|                 | * ``accumulo.zookeepers=[alphanumeric]``                                             |
+|                 | * ``accumulo.user=[alphanumeric]``                                                   |
+|                 | * ``accumulo.catalog=[alphanumeric]``                                                |
 |                 |                                                                                      |
 |                 | **Optional**                                                                         |
 |                 |                                                                                      |
-|                 | * ``auths=[alphanumeric]``                                                           |
-|                 | * ``visibilities=[alphanumeric]``                                                    |
-|                 | * ``queryTimeout=[integer]``                                                         |
-|                 | * ``queryThreads=[integer]``                                                         |
-|                 | * ``recordThreads=[integer]``                                                        |
-|                 | * ``writeThreads=[integer]``                                                         |
-|                 | * ``looseBoundingBox=[Boolean]``                                                     |
-|                 | * ``generateStats=[Boolean]``                                                        |
-|                 | * ``auditQueries=[Boolean]``                                                         |
-|                 | * ``caching=[Boolean]``                                                              |
-|                 | * ``forceEmptyAuths=[Boolean]``                                                      |
-|                 | * ``useMock=[Boolean]``                                                              |
+|                 | * ``geomesa.security.auths=[alphanumeric]``                                          |
+|                 | * ``geomesa.security.visibilities=[alphanumeric]``                                   |
+|                 | * ``geomesa.query.timeout=[alphanumeric]``                                           |
+|                 | * ``geomesa.query.threads=[integer]``                                                |
+|                 | * ``accumulo.query.record-threads=[integer]``                                        |
+|                 | * ``accumulo.write.threads=[integer]``                                               |
+|                 | * ``geomesa.query.loose-bounding-box=[Boolean]``                                     |
+|                 | * ``geomesa.stats.generate=[Boolean]``                                               |
+|                 | * ``geomesa.query.audit=[Boolean]``                                                  |
+|                 | * ``geomesa.query.caching=[Boolean]``                                                |
+|                 | * ``geomesa.security.force-empty-auths=[Boolean]``                                   |
+|                 | * ``accumulo.mock=[Boolean]``                                                        |
 +-----------------+--------------------------------------------------------------------------------------+
 | **Success**     | **Code:** 200                                                                        |
 | **Response**    |                                                                                      |
@@ -275,8 +274,8 @@ Registers a data store to make it available for querying.
 |                 |                                                                                      |
 |                 |     curl \                                                                           |
 |                 |       'localhost:8080/geoserver/geomesa/geojson/ds/myds' \                           |
-|                 |       -d user=foo -d password=foo -d tableName=foo.bar \                             |
-|                 |       -d zookeepers=foo1,foo2,foo3 -d instanceId=foo                                 |
+|                 |       -d accumulo.user=foo -d accumulo.password=foo -d accumulo.catalog=foo.bar \    |
+|                 |       -d accumulo.zookeepers=foo1,foo2,foo3 -d accumulo.instance.id=foo              |
 |                 |                                                                                      |
 +-----------------+--------------------------------------------------------------------------------------+
 | **Notes**       | Parameters correspond to the ``AccumuloDataStore`` connection parameters used        |
@@ -640,6 +639,7 @@ Query features with a predicate.
 | **Notes**       | See `Querying Features`_ for full query syntax                                       |
 +-----------------+--------------------------------------------------------------------------------------+
 
+.. _json_attributes:
 
 JSON Attributes
 ---------------
@@ -680,6 +680,8 @@ expressions must be enclosed in double quotes.
     filter.evaluate(sf); // returns false
     sf.getAttribute("\"$.json.foo\""); // returns "baz"
     sf.getAttribute("\"$.json.bar\""); // returns null
+
+.. _json_path_filter_function:
 
 JSONPath CQL Filter Function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,28 +1,23 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert.osm
 
 import java.util.Date
 
 import com.typesafe.config.Config
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import de.topobyte.osm4j.core.model.iface._
 import de.topobyte.osm4j.core.model.util.OsmModelUtil
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.locationtech.geomesa.convert.Transformers.{EvaluationContext, Expr}
+import org.locationtech.geomesa.convert.Transformers.Expr
+import org.locationtech.geomesa.convert.osm.OsmField.OsmAttribute.OsmAttribute
 import org.locationtech.geomesa.convert.{Field, _}
-import org.locationtech.geomesa.convert.osm.OsmAttribute.OsmAttribute
-
-object OsmAttribute extends Enumeration {
-  type OsmAttribute = Value
-  val id, geometry, tags, timestamp, user, uid, version, changeset = Value
-}
 
 case class OsmField(name: String, attribute: OsmAttribute, transform: Expr) extends Field {
 
@@ -77,15 +72,20 @@ object OsmField {
 
   def toArrayWithMetadata(entity: OsmEntity, geometry: Geometry): Array[Any] = {
     val tags = OsmModelUtil.getTagsAsMap(entity)
-    val timestamp = new Date(entity.getMetadata.getTimestamp)
-    val user = entity.getMetadata.getUser
-    val uid = entity.getMetadata.getUid
-    val version = entity.getMetadata.getVersion
-    val changeset = entity.getMetadata.getChangeset
+    val metadata = Option(entity.getMetadata)
+    val timestamp = metadata.map(m => new Date(m.getTimestamp)).orNull
+    val user = metadata.map(_.getUser).orNull
+    val uid = metadata.map(m => Long.box(m.getUid)).orNull
+    val version = metadata.map(m => Int.box(m.getVersion)).orNull
+    val changeset = metadata.map(m => Long.box(m.getChangeset)).orNull
     Array(entity.getId, geometry, tags, timestamp, user, uid, version, changeset)
   }
 
   def toArrayNoMetadata(entity: OsmEntity, geometry: Geometry): Array[Any] =
     Array(entity.getId, geometry, OsmModelUtil.getTagsAsMap(entity))
 
+  object OsmAttribute extends Enumeration {
+    type OsmAttribute = Value
+    val id, geometry, tags, timestamp, user, uid, version, changeset = Value
+  }
 }

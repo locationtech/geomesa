@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features.avro
 
@@ -26,9 +26,11 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * Version 3 supports Bytes as a type in the SFT
   */
 object AvroDataFile {
+
   val SftNameKey = "sft.name"
   val SftSpecKey = "sft.spec"
   val VersionKey = "version"
+
   private[avro] val Version: Long = 3L
 
   def setMetaData(dfw: DataFileWriter[SimpleFeature], sft: SimpleFeatureType): Unit = {
@@ -39,17 +41,18 @@ object AvroDataFile {
 
   /**
     * Backwards compatible...Version 2 can parse v1
-    * @param dfs
+    *
+    * @param dfs data file stream
     * @return
     */
-  def canParse(dfs: DataFileStream[_ <: SimpleFeature]): Boolean = {
+  def canParse(dfs: DataFileStream[_]): Boolean = {
     dfs.getMetaKeys.contains(VersionKey) &&
       dfs.getMetaLong(VersionKey) <= Version &&
       dfs.getMetaString(SftNameKey) != null &&
       dfs.getMetaString(SftSpecKey) != null
   }
 
-  def getSft(dfs: DataFileStream[_ <: SimpleFeature]): SimpleFeatureType = {
+  def getSft(dfs: DataFileStream[_]): SimpleFeatureType = {
     val sftName = dfs.getMetaString(SftNameKey)
     val sftString = dfs.getMetaString(SftSpecKey)
     SimpleFeatureTypes.createType(sftName, sftString)

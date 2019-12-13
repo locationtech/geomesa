@@ -64,7 +64,7 @@ install_app() {
 
 # Install maven under the build/ folder
 install_mvn() {
-  local MVN_VERSION="3.3.3"
+  local MVN_VERSION="3.5.0"
 
   install_app \
     "http://archive.apache.org/dist/maven/maven-3/${MVN_VERSION}/binaries" \
@@ -76,7 +76,7 @@ install_mvn() {
 
 # Install zinc under the build/ folder
 install_zinc() {
-  local ZINC_VERSION="0.3.11"
+  local ZINC_VERSION="0.3.13"
   local zinc_path="zinc-${ZINC_VERSION}/bin/zinc"
   [ ! -f "${zinc_path}" ] && ZINC_INSTALL_FLAG=1
   install_app \
@@ -98,7 +98,16 @@ if [ ! "$MVN_BIN" ]; then
 fi
 
 # Install the proper version of Scala and Zinc for the build
-install_zinc
+if [[ -n "${ZINC_HOME}" ]]; then
+  ZINC_BIN="${ZINC_HOME}/bin/zinc"
+  ZINC_INSTALL_FLAG=1
+  echo "Using external zinc server at ${ZINC_BIN}"
+elif [[ -n "${ZINC_BIN}" ]]; then
+  echo "Using external zinc server at ${ZINC_BIN}"
+  ZINC_INSTALL_FLAG=1
+else
+  install_zinc
+fi
 
 # Reset the current working directory
 cd "${_CALLING_DIR}"
@@ -117,3 +126,9 @@ export MAVEN_OPTS=${MAVEN_OPTS:-"$_COMPILE_JVM_OPTS"}
 # Last, call the `mvn` command as usual, but with the 'zinc' port and profile
 ${MVN_BIN} -DzincPort=${ZINC_PORT} -Pzinc "$@"
 
+RET_STATUS=$?
+
+# shut down zinc again
+"${ZINC_BIN}" -shutdown -port ${ZINC_PORT}
+
+exit $RET_STATUS

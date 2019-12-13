@@ -51,7 +51,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'GeoMesa'
-copyright = u'2013-2017 Commonwealth Computer Research, Inc'
+# note: shown in our custom footer
+copyright = u'2013-2019'
 author = u''
 
 # The version info for the project you're documenting, acts as replacement for
@@ -60,14 +61,13 @@ author = u''
 #
 # Warning: current version numbers are handled in versions.py, which is preprocessed
 # by Maven. Do not hardcode current GeoMesa version numbers here!
-from target.versions import release,version,version_devel
+from target.versions import release,version,version_devel,release_last
 
 # Other versions and variables unlikely to change on every point release
-release_1_2 = '1.2.7.3'
 release_eclipse = '1.2.0'
-release_tutorial = '1.3.0.0-m2'
-url_locationtech_release = "https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
+
+url_locationtech_release = "https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
 
 # RST appended to every file. Used for global substitions.
 # (the "%(release)s" substitutions are done by the Python format() method
@@ -80,25 +80,15 @@ rst_epilog = """
 
 .. _Java JDK 8: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
-.. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_2.11/%(release)s/geomesa-accumulo-dist_2.11-%(release)s-bin.tar.gz
+.. |release_tarball_accumulo| replace:: %(url_locationtech_release)s/geomesa-accumulo-dist_2.11/%(release_last)s/geomesa-accumulo_2.11-%(release_last)s-bin.tar.gz
 
-.. |release_tarball_kafka08| replace:: %(url_locationtech_release)s/geomesa-kafka-08-dist_2.11/%(release)s/geomesa-kafka-08-dist_2.11-%(release)s-bin.tar.gz
+.. |release_tarball_kafka| replace:: %(url_locationtech_release)s/geomesa-kafka-dist_2.11/%(release_last)s/geomesa-kafka_2.11-%(release_last)s-bin.tar.gz
 
-.. |release_tarball_kafka09| replace:: %(url_locationtech_release)s/geomesa-kafka-09-dist_2.11/%(release)s/geomesa-kafka-09-dist_2.11-%(release)s-bin.tar.gz
+.. |release_tarball_hbase| replace:: %(url_locationtech_release)s/geomesa-hbase-dist_2.11/%(release_last)s/geomesa-hbase_2.11-%(release_last)s-bin.tar.gz
 
-.. |release_tarball_kafka10| replace:: %(url_locationtech_release)s/geomesa-kafka-10-dist_2.11/%(release)s/geomesa-kafka-10-dist_2.11-%(release)s-bin.tar.gz
+.. |release_tarball_cassandra| replace:: %(url_locationtech_release)s/geomesa-cassandra-dist_2.11/%(release_last)s/geomesa-cassandra_2.11-%(release_last)s-bin.tar.gz
 
-.. |release_tarball_hbase| replace:: %(url_locationtech_release)s/geomesa-hbase-dist_2.11/%(release)s/geomesa-hbase-dist_2.11-%(release)s-bin.tar.gz
-
-.. |release_tarball_cassandra| replace:: %(url_locationtech_release)s/geomesa-cassandra-dist_2.11/%(release)s/geomesa-cassandra-dist_2.11-%(release)s-bin.tar.gz
-
-.. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_2.11-%(release)s.tar.gz
-
-.. |release_kafka08_plugin| replace:: `geomesa-kafka-08-gs-plugin-2.11-%(release)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-08-gs-plugin_2.11/%(release)s/geomesa-kafka-08-gs-plugin_2.11-%(release)s-install.tar.gz>`__
-
-.. |release_kafka09_plugin| replace:: `geomesa-kafka-09-gs-plugin-2.11-%(release)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-09-gs-plugin_2.11/%(release)s/geomesa-kafka-09-gs-plugin_2.11-%(release)s-install.tar.gz>`__
-
-.. |release_kafka10_plugin| replace:: `geomesa-kafka-10-gs-plugin-2.11-%(release)s.tar.gz <%(url_locationtech_release)s/geomesa-kafka-10-gs-plugin_2.11/%(release)s/geomesa-kafka-10-gs-plugin_2.11-%(release)s-install.tar.gz>`__
+.. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_2.11-%(release_last)s.tar.gz
 
 .. |eclipse_release| replace:: %(release_eclipse)s
 
@@ -108,32 +98,41 @@ rst_epilog = """
 
 .. |development| replace:: %(version_devel)s
 
-.. |release_1_2| replace:: %(release_1_2)s
+.. |maven_version| replace:: 3.5.2 or later
 
-.. |release_1_2_tarball| replace::  %(url_locationtech_release)s/geomesa-dist/%(release_1_2)s/geomesa-dist-%(release_1_2)s-bin.tar.gz
+.. |geoserver_version| replace:: 2.15.x
 
-.. |release_1_2_source_tarball| replace:: %(url_github_archive)s/geomesa-%(release_1_2)s.tar.gz
+.. |geotools_version| replace:: 21.x
 
-.. |release_tutorial| replace:: %(release_tutorial)s
+.. |accumulo_required_version| replace:: 1.7.x, 1.8.x or 1.9.x
 
-.. |maven_version| replace:: 3.2.2 or better
+.. |accumulo_supported_versions| replace:: versions 1.7.x, 1.8.x and 1.9.x
 
-.. |geoserver_version| replace:: 2.9.1
+.. |hbase_required_version| replace::  1.3.x or 1.4.x
 
-.. |geotools_version| replace:: 15.1
+.. |hbase_supported_versions| replace:: versions 1.3.x and 1.4.x
 
-.. |accumulo_version| replace:: 1.7 or 1.8
+.. |hbase_bundled_version| replace:: 1.3.1
 
-.. |hadoop_version| replace:: 2.2 or better
+.. |hadoop_version| replace:: 2.6 or later
 
-.. |zookeeper_version| replace:: 3.4.5 or better
+.. |zookeeper_version| replace:: 3.4.5 or later
 
-.. |kafka_version| replace:: 0.8, 0.9, or 0.10
+.. |kafka_version| replace:: 0.9.x or later
+
+.. |cassandra_version| replace:: 3.x
+
+.. |kudu_version| replace:: 1.7.x
+
+.. |spark_required_version| replace:: 2.2.x, 2.3.x or 2.4.x
+
+.. |spark_supported_versions| replace:: versions 2.2.x, 2.3.x and 2.4.x
+
+.. |release_last| replace:: %(release_last)s
 
 """ % {"release": release,
-       "release_1_2": release_1_2,
+       "release_last": release_last,
        "release_eclipse": release_eclipse,
-       "release_tutorial": release_tutorial,
        "version_devel": version_devel,
        "url_locationtech_release": url_locationtech_release,
        "url_github_archive": url_github_archive}
@@ -192,7 +191,12 @@ html_theme = 'sphinx_rtd_theme'
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {
+  'canonical_url': 'https://www.geomesa.org/documentation/',
+  'analytics_id': 'UA-53087457-1',
+  'collapse_navigation': True,
+  'navigation_depth': 4
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
@@ -251,13 +255,16 @@ html_static_path = ['_static']
 #html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
-#html_show_sourcelink = True
+# note: shown in our custom footer
+html_show_sourcelink = False
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
-#html_show_sphinx = True
+# note: shown in our custom footer
+html_show_sphinx = False
 
 # If true, "(C) Copyright ..." is shown in the HTML footer. Default is True.
-#html_show_copyright = True
+# note: shown in our custom footer
+html_show_copyright = False
 
 # If true, an OpenSearch description file will be output, and all pages will
 # contain a <link> tag referring to it.  The value of this option must be the

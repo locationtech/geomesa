@@ -1,15 +1,16 @@
 /***********************************************************************
-* Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features.kryo.json
 
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser.JsonPathFunction.JsonPathFunction
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser._
+import org.locationtech.geomesa.utils.text.BasicParser
 import org.parboiled.Context
 import org.parboiled.errors.{ErrorUtils, ParsingException}
 import org.parboiled.scala._
@@ -53,13 +54,9 @@ object JsonPathParser {
 
   sealed trait PathElement
 
-  // attribute: .foo
-  case class PathAttribute(name: String) extends PathElement {
-    override def toString: String = s".$name"
-  }
-
-  case class BracketedPathAttribute(name: String) extends PathElement {
-    override def toString: String = s".['$name']"
+  // attribute: .foo or ['foo']
+  case class PathAttribute(name: String, bracketed: Boolean = false) extends PathElement {
+    override def toString: String = if (bracketed) { s"['$name']" } else { s".$name" }
   }
 
   // enumerated index: [1]
@@ -99,14 +96,14 @@ object JsonPathParser {
   }
 }
 
-private class JsonPathParser extends Parser {
+private class JsonPathParser extends BasicParser {
 
   // main parsing rule
   def Path: Rule1[Seq[PathElement]] =
-  rule { "$" ~ zeroOrMore(Element) ~ optional(Function) ~~> ((e, f) => e ++ f.toSeq) ~ EOI }
+    rule { "$" ~ zeroOrMore(Element) ~ optional(Function) ~~> ((e, f) => e ++ f.toSeq) ~ EOI }
 
   def Element: Rule1[PathElement] = rule {
-    Attribute | BracketedAttribute | ArrayIndex | ArrayIndices | ArrayIndexRange | AttributeWildCard | IndexWildCard | DeepScan
+    Attribute | ArrayIndex | ArrayIndices | ArrayIndexRange | BracketedAttribute | AttributeWildCard | IndexWildCard | DeepScan
   }
 
   def IndexWildCard: Rule1[PathElement] = rule { "[*]" ~ push(PathIndexWildCard) }
@@ -122,33 +119,22 @@ private class JsonPathParser extends Parser {
   private def pushDeepScan(context: Context[Any]): Unit =
     context.getValueStack.push(PathDeepScan :: context.getValueStack.pop.asInstanceOf[List[_]])
 
-  def ArrayIndex: Rule1[PathIndex] = rule { "[" ~ Number ~ "]" ~~> PathIndex }
+  def ArrayIndex: Rule1[PathIndex] = rule { "[" ~ int ~ "]" ~~> PathIndex }
 
   def ArrayIndices: Rule1[PathIndices] =
-    rule { "[" ~ Number ~ "," ~ oneOrMore(Number, ",") ~ "]" ~~> ((n0, n) => PathIndices(n.+:(n0))) }
+    rule { "[" ~ int ~ "," ~ oneOrMore(int, ",") ~ "]" ~~> ((n0, n) => PathIndices(n.+:(n0))) }
 
   def ArrayIndexRange: Rule1[PathIndices] =
-    rule { "[" ~ Number ~ ":" ~ Number ~ "]" ~~> ((n0, n1) => PathIndices(n0 until n1)) }
+    rule { "[" ~ int ~ ":" ~ int ~ "]" ~~> ((n0, n1) => PathIndices(n0 until n1)) }
 
-  def Attribute: Rule1[PathAttribute] = rule { "." ~ oneOrMore(Character) ~> PathAttribute ~ !"()" }
+  def Attribute: Rule1[PathAttribute] = rule { "." ~ oneOrMore(char) ~> { (s) => PathAttribute(s) } ~ !"()" }
 
-  def BracketedAttribute: Rule1[BracketedPathAttribute] = rule { ".['" ~ oneOrMore(CharacterWithDelimiter) ~> BracketedPathAttribute ~ !"()" ~ "']" }
+  def BracketedAttribute: Rule1[PathAttribute] =
+    rule { "[" ~ bracketedString ~~> { (s) => PathAttribute(s, bracketed = true) } ~ "]" }
+
+  private def bracketedString: Rule1[String] = unquotedString | singleQuotedString
 
   def Function: Rule1[PathFunction] = rule {
     "." ~ ("min" | "max" | "avg" | "length") ~> ((f) => PathFunction(JsonPathFunction.withName(f))) ~ "()"
   }
-
-  def Number: Rule1[Int] = rule { oneOrMore("0" - "9") ~> (_.toInt) }
-
-  def Character: Rule0 = rule { EscapedChar | NormalChar }
-
-  def CharacterWithDelimiter: Rule0 = rule { Character | " " | "." }
-
-  def EscapedChar: Rule0 = rule { "\\" ~ (anyOf("\"\\/bfnrt ") | Unicode) }
-
-  def NormalChar: Rule0 = rule { "a" - "z" | "A" - "Z" | "0" - "9" }
-
-  def Unicode: Rule0 = rule { "u" ~ HexDigit ~ HexDigit ~ HexDigit ~ HexDigit }
-
-  def HexDigit: Rule0 = rule { "0" - "9" | "a" - "f" | "A" - "F" }
 }

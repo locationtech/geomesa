@@ -1,21 +1,29 @@
 Installing GeoMesa Accumulo
 ===========================
 
+.. note::
+
+    GeoMesa currently supports Accumulo |accumulo_supported_versions|.
+
 Installing from the Binary Distribution
 ---------------------------------------
 
 GeoMesa Accumulo artifacts are available for download or can be built from source.
-The easiest way to get started is to download the most recent binary version (``$VERSION`` = |release|)
-and untar it somewhere convenient. For example, to download and prepare the geomesa-accumulo binary:
+The easiest way to get started is to download the most recent binary version
+(|release|) from `GitHub`__.
+
+__ https://github.com/locationtech/geomesa/releases
+
+Extract it somewhere convenient:
 
 .. code-block:: bash
 
-    # download and unpackage the most recent distribution
-    $ wget http://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-accumulo-dist_2.11/$VERSION/geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
-    $ tar xvf geomesa-accumulo-dist_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-accumulo-dist_2.11-$VERSION
+    # download and unpackage the most recent distribution:
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-accumulo_2.11-$VERSION-bin.tar.gz"
+    $ tar xvf geomesa-accumulo_2.11-$VERSION-bin.tar.gz
+    $ cd geomesa-accumulo_2.11-$VERSION
     $ ls
-    bin/  conf/  dist/  docs/  emr4/  examples/  lib/  LICENSE.txt  logs/
+    bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
 .. _accumulo_install_source:
 
@@ -35,7 +43,7 @@ More information about developing with GeoMesa may be found in the :doc:`/develo
 Installing the Accumulo Distributed Runtime Library
 ---------------------------------------------------
 
-The ``geomesa-accumulo-dist_2.11-$VERSION/dist/accumulo/`` directory contains the distributed
+The ``geomesa-accumulo_2.11-$VERSION/dist/accumulo/`` directory contains the distributed
 runtime JARs that contains server-side code for Accumulo that must be made
 available on each of the Accumulo tablet servers in the cluster. These JARs
 contain GeoMesa code and the Accumulo iterators required for querying GeoMesa data.
@@ -68,7 +76,7 @@ each tablet server.
     $ scp dist/accumulo/geomesa-accumulo-distributed-runtime_2.11-$VERSION.jar \
         tserver1:$ACCUMULO_HOME/lib/ext
     # or for raster support
-    $ scp dist/accumulo/geomesa-accumulo-distributed-runtime-raster_2.11-$VERSION.jar \
+    $ scp dist/accumulo/geomesa-accumulo-raster-distributed-runtime_2.11-$VERSION.jar \
         tserver1:$ACCUMULO_HOME/lib/ext
 
 .. note::
@@ -81,12 +89,11 @@ each tablet server.
 Namespace Install
 ^^^^^^^^^^^^^^^^^
 
-Copying the runtime JAR to each tablet server as above will work, but in
-Accumulo 1.6+, we can leverage namespaces to isolate the GeoMesa classpath
-from the rest of Accumulo.
+GeoMesa leverages namespaces and classpath contexts to isolate the GeoMesa
+classpath from the rest of Accumulo.
 
 To install the distributed runtime JAR, use the ``setup-namespace.sh``
-script in the ``geomesa-accumulo-dist_2.11-$VERSION/bin`` directory.
+script in the ``geomesa-accumulo_2.11-$VERSION/bin`` directory.
 
 .. code::
 
@@ -99,7 +106,7 @@ The command line arguments the script accepts are:
 * -p <Accumulo password>
 * -t <Use a cached Kerberos TGT>
 * -g <Path of GeoMesa distributed runtime JAR> (optional, will default to the distribution folder and without raster support)
-* -h <HDFS URI e.g. hdfs://localhost:54310> (optional, will attempt to determine if not supplied)
+* -h <HDFS URI e.g. hdfs://localhost:9000> (optional, will attempt to determine if not supplied)
 
 Since ``accumulo shell`` does not directly support Kerberos keytabs, if using Kerberos (``-t``) then a cached Kerberos
 ticket-granting-ticket (TGT) should be obtained using the ``kinit`` command.
@@ -142,14 +149,14 @@ GeoMesa comes with a set of command line tools for managing Accumulo features lo
 
 .. note::
 
-    You can configure environment variables and classpath settings in geomesa-accumulo_2.11-$VERSION/bin/geomesa-env.sh.
+    You can configure environment variables and classpath settings in geomesa-accumulo_2.11-$VERSION/conf/geomesa-env.sh.
 
-In the ``geomesa-accumulo_2.11-$VERSION`` directory, run ``bin/geomesa configure`` to set up the tools.
+In the ``geomesa-accumulo_2.11-$VERSION`` directory, run ``bin/geomesa-accumulo configure`` to set up the tools.
 
 .. code-block:: bash
 
     ### in geomesa-accumulo_2.11-$VERSION/:
-    $ bin/geomesa configure
+    $ bin/geomesa-accumulo configure
     Warning: GEOMESA_ACCUMULO_HOME is not set, using /path/to/geomesa-accumulo_2.11-$VERSION
     Using GEOMESA_ACCUMULO_HOME as set: /path/to/geomesa-accumulo_2.11-$VERSION
     Is this intentional? Y\n y
@@ -171,7 +178,7 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_ACCUMULO_
 
 .. note::
 
-    ``geomesa`` will read the ``$ACCUMULO_HOME`` and ``$HADOOP_HOME`` environment variables to load the
+    ``geomesa-accumulo`` will read the ``$ACCUMULO_HOME`` and ``$HADOOP_HOME`` environment variables to load the
     appropriate JAR files for Hadoop, Accumulo, Zookeeper, and Thrift. If possible, we recommend
     installing the tools on the Accumulo master server, as you may also need various configuration
     files from Hadoop/Accumulo in order to run certain commands.
@@ -179,8 +186,8 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_ACCUMULO_
     GeoMesa provides the ability to provide additional jars on the classpath using the environmental variable
     ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
     classpath giving it highest precedence in the classpath. Users can provide directories of jar files or individual
-    files using a colon (``:``) as a delimiter. These entries will also be added the the mapreduce libjars variable.
-    Use the ``geomesa classpath`` command to print the final classpath that will be used when executing geomesa
+    files using a colon (``:``) as a delimiter. These entries will also be added the the map-reduce libjars variable.
+    Use the ``geomesa-accumulo classpath`` command to print the final classpath that will be used when executing geomesa
     commands.
 
     If you are running the tools on a system without
@@ -205,9 +212,9 @@ Test the command that invokes the GeoMesa Tools:
 
 .. code::
 
-    $ geomesa
-    Using GEOMESA_ACCUMULO_HOME = /path/to/geomesa-accumulo-dist_2.11-$VERSION
-    Usage: geomesa [command] [command options]
+    $ geomesa-accumulo
+    Using GEOMESA_ACCUMULO_HOME = /path/to/geomesa-accumulo_2.11-$VERSION
+    Usage: geomesa-accumulo [command] [command options]
       Commands:
       ...
 
@@ -220,8 +227,7 @@ Installing GeoMesa Accumulo in GeoServer
 
 .. warning::
 
-    The GeoMesa Accumulo GeoServer plugin requires the use of GeoServer
-    |geoserver_version| and GeoTools |geotools_version|.
+    See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
 
 As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a
 `GeoTools`_-compatible data store. This makes it possible
@@ -245,11 +251,8 @@ and installing `the WPS plugin`_.
         export CATALINA_OPTS="-Xmx8g -XX:MaxPermSize=512M -Duser.timezone=UTC \
         -server -Djava.awt.headless=true"
 
-    The value of ``-Xmx`` should be as large as your system will permit; this
-    is especially important for the Kafka plugin. You
-    should also consider passing ``-DGEOWEBCACHE_CACHE_DIR=/tmp/$USER-gwc``
-    and ``-DEPSG-HSQL.directory=/tmp/$USER-hsql``
-    as well. Be sure to restart Tomcat for changes to take place.
+    The value of ``-Xmx`` should be as large as your system will permit. Be sure to
+    restart Tomcat for changes to take place.
 
 
 To install GeoMesa's Accumulo data store as a GeoServer plugin, we can utilize the script ``manage-geoserver-plugins.sh`` in ``bin`` directory
@@ -271,7 +274,7 @@ of the GeoMesa Accumulo or GeoMesa Hadoop distributions. (``$VERSION`` = |releas
     --------------------------------------
     0 | geomesa-accumulo-gs-plugin_2.11-$VERSION
     1 | geomesa-blobstore-gs-plugin_2.11-$VERSION
-    2 | geomesa-process_2.11-$VERSION
+    2 | geomesa-process-wps_2.11-$VERSION
     3 | geomesa-stream-gs-plugin_2.11-$VERSION
 
     Module(s) to install: 0 1
@@ -289,7 +292,7 @@ If you are using Tomcat:
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-accumulo_2.11-$VERSION/dist/geoserver/geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz \
+      geomesa-accumulo_2.11-$VERSION/dist/gs-plugins/geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz \
       -C /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
 
 If you are using GeoServer's built in Jetty web server:
@@ -297,7 +300,7 @@ If you are using GeoServer's built in Jetty web server:
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-accumulo_2.11-$VERSION/dist/geoserver/geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz \
+      geomesa-accumulo_2.11-$VERSION/dist/gs-plugins/geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz \
       -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
 
 There are additional JARs for Accumulo, Zookeeper, Hadoop, and Thrift that will
@@ -306,9 +309,15 @@ be specific to your installation that you will also need to copy to GeoServer's
 |hadoop_version|, but if you are using Hadoop 2.5.0 you should use the JARs
 that match the version of Hadoop you are running.
 
+.. warning::
+
+   Due to a classpath conflict with GeoServer, the version of Accumulo client JARs installed must be 1.9.2 or later.
+   Note that newer Accumulo clients can talk to older Accumulo instances, so it is only necessary to upgrade the
+   client JARs in GeoServer, but not the entire Accumulo cluster.
+
 There is a script in the ``geomesa-accumulo_2.11-$VERSION/bin`` directory
 (``$GEOMESA_ACCUMULO_HOME/bin/install-hadoop-accumulo.sh``) which will install these
-dependencies to a target directory using ``wget`` (requires an internet
+dependencies to a target directory using ``curl`` (requires an internet
 connection).
 
 .. note::
@@ -319,92 +328,91 @@ connection).
 .. code-block:: bash
 
     $ $GEOMESA_ACCUMULO_HOME/bin/install-hadoop-accumulo.sh /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
-    Install accumulo and hadoop dependencies to /path/to/tomcat/webapps/geoserver/WEB-INF/lib/?
-    Confirm? [Y/n]y
-    fetching https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/1.6.5/accumulo-core-1.6.5.jar
-    --2015-09-29 15:06:48--  https://search.maven.org/remotecontent?filepath=org/apache/accumulo/accumulo-core/1.6.5/accumulo-core-1.6.5.jar
-    Resolving search.maven.org (search.maven.org)... 207.223.241.72
-    Connecting to search.maven.org (search.maven.org)|207.223.241.72|:443... connected.
-    HTTP request sent, awaiting response... 200 OK
-    Length: 4646545 (4.4M) [application/java-archive]
-    Saving to: ‘/path/to/tomcat/webapps/geoserver/WEB-INF/lib/accumulo-core-1.6.5.jar’
-    ...
 
-If you do no have an internet connection you can download the JARs manually via http://search.maven.org/.
-These may include the JARs below; the specific JARs needed for some common configurations are listed below:
+By default, JARs will be downloaded from Maven central. You may override this by setting the environment variable
+``GEOMESA_MAVEN_URL``. If you do no have an internet connection you can download the JARs manually
+via http://search.maven.org/.
 
-Accumulo 1.5
+The specific JARs needed for some common configurations are listed below:
 
-* accumulo-core-1.5.4.jar
-* accumulo-fate-1.5.4.jar
-* accumulo-start-1.5.4.jar
-* accumulo-trace-1.5.4.jar
-* libthrift-0.9.0.jar
-* zookeeper-3.3.6.jar
+.. tabs::
 
-Accumulo 1.6
+    .. tab:: Accumulo 1.9
 
-* accumulo-core-1.6.5.jar
-* accumulo-fate-1.6.5.jar
-* accumulo-server-base-1.6.5.jar
-* accumulo-trace-1.6.5.jar
-* accumulo-start-1.6.5.jar
-* libthrift-0.9.1.jar
-* zookeeper-3.4.6.jar
-* commons-vfs2-2.0.jar
+        * accumulo-core-1.9.2.jar
+        * accumulo-fate-1.9.2.jar
+        * accumulo-server-base-1.9.2.jar
+        * accumulo-trace-1.9.2.jar
+        * accumulo-start-1.9.2.jar
+        * libthrift-0.9.3.jar
+        * zookeeper-3.4.10.jar
+        * htrace-core-3.1.0-incubating.jar
+        * commons-vfs2-2.1.jar
 
-Accumulo 1.7+ (note the addition of htrace)
+    .. tab:: Accumulo 1.7
 
-* accumulo-core-1.7.1.jar
-* accumulo-fate-1.7.1.jar
-* accumulo-server-base-1.7.1.jar
-* accumulo-trace-1.7.1.jar
-* accumulo-start-1.7.1.jar
-* libthrift-0.9.1.jar
-* zookeeper-3.4.6.jar
-* htrace-core-3.1.0-incubating.jar
-* commons-vfs2-2.1.jar
+        * accumulo-core-1.7.4.jar
+        * accumulo-fate-1.7.4.jar
+        * accumulo-server-base-1.7.4.jar
+        * accumulo-trace-1.7.4.jar
+        * accumulo-start-1.7.4.jar
+        * libthrift-0.9.1.jar
+        * zookeeper-3.4.10.jar
+        * htrace-core-3.1.0-incubating.jar
+        * commons-vfs2-2.1.jar
 
-Hadoop 2.2
+    .. tab:: Accumulo 1.6
 
-* commons-configuration-1.6.jar
-* hadoop-auth-2.2.0.jar
-* hadoop-client-2.2.0.jar
-* hadoop-common-2.2.0.jar
-* hadoop-hdfs-2.2.0.jar
+        * accumulo-core-1.6.6.jar
+        * accumulo-fate-1.6.6.jar
+        * accumulo-server-base-1.6.6.jar
+        * accumulo-trace-1.6.6.jar
+        * accumulo-start-1.6.6.jar
+        * libthrift-0.9.1.jar
+        * zookeeper-3.4.10.jar
+        * commons-vfs2-2.1.jar
 
-Hadoop 2.4-2.7 (adjust versions as needed)
+.. tabs::
 
-* commons-configuration-1.6.jar
-* hadoop-auth-2.6.4.jar
-* hadoop-client-2.6.4.jar
-* hadoop-common-2.6.4.jar
-* hadoop-hdfs-2.6.4.jar
+    .. tab:: Hadoop 2.6-2.9
+
+        (adjust versions as needed)
+
+        * commons-configuration-1.6.jar
+        * hadoop-auth-2.8.4.jar
+        * hadoop-client-2.8.4.jar
+        * hadoop-common-2.8.4.jar
+        * hadoop-hdfs-2.8.4.jar
+
 
 Restart GeoServer after the JARs are installed.
 
-A note about Accumulo 1.8
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Accumulo Versions
+^^^^^^^^^^^^^^^^^
 
 .. note::
 
-   GeoMesa supports Accumulo 1.8 when built with the accumulo-1.8 profile.  Accumulo 1.8
-   introduced a dependency on libthrift version 0.9.3 which is not compatible with Accumulo
-   1.7/libthrift 0.9.1.  The default supported version for GeoMesa is Accumulo 1.7.x and
-   the published jars and distribution artifacts reflect this version.  To upgrade, build
-   locally using the accumulo-1.8 profile.
+    GeoMesa targets Accumulo 1.9 as a runtime dependency. Most artifacts will work with older versions
+    of Accumulo without changes, however some artifacts which bundle Accumulo will need to be built manually.
+    Accumulo 1.8 introduced a dependency on libthrift version 0.9.3 which is not compatible with Accumulo
+    1.7/libthrift 0.9.1. To target an earlier Accumulo version, modify ``<accumulo.version>`` and
+    ``<thrift.version>`` in the main pom.xml and re-build.
 
+.. warning::
+
+    There are severe issues with Accumulo versions 1.8.0-1.9.1 and the Accumulo team recommends immediately 
+    upgrading to 1.9.2 or higher.
 
 .. _install_geomesa_process:
 
-A note about GeoMesa Process
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+GeoMesa Process
+^^^^^^^^^^^^^^^
 
 .. note::
 
     Some GeoMesa-specific WPS processes such as ``geomesa:Density``, which is used
-    in the generation of heat maps, also require ``geomesa-process-$VERSION.jar``.
-    This JAR is included in the ``geomesa-accumulo_2.11-$VERSION/dist/geoserver`` directory of the binary
+    in the generation of heat maps, also require ``geomesa-process-wps_2.11-$VERSION.jar``.
+    This JAR is included in the ``geomesa-accumulo_2.11-$VERSION/dist/gs-plugins`` directory of the binary
     distribution, or is built in the ``geomesa-process`` module of the source
     distribution.
 
@@ -426,23 +434,3 @@ not take full advantage of indexing improvements in newer releases. If
 it is not feasible to reingest old data, see :ref:`update_index_format_job`
 for more information on updating its index format.
 
-Bootstrapping GeoMesa Accumulo on Elastic Map Reduce
-----------------------------------------------------
-
-A script to bootstrap GeoMesa Accumulo on an Elastic Map Reduce cluster is provided in ``geomesa-accumulo/geomesa-accumulo-tools/emr4`` and on this public S3 bucket: `s3://elasticmapreduce-geomesa/ <http://s3.amazonaws.com/elasticmapreduce-geomesa/>`_. These rely on the EMR managed Hadoop and ZooKeeper applications. See ``geomesa-accumulo/geomesa-accumulo-tools/emr4/README.md`` for more details on using these clusters. The command below launches a GeoMesa EMR cluster:
-
-.. code-block:: bash
-
-    NUM_WORKERS=2
-    CLUSTER_NAME=geomesa-emr
-    AWS_REGION=us-east-1
-    AWS_PROFILE=my_profile
-    KEYPAIR_NAME=my_keypair # a keypair in the region (for which you have the private key)
-
-    aws emr create-cluster --applications Name=Hadoop Name=ZooKeeper-Sandbox \
-        --bootstrap-actions Path=s3://elasticmapreduce-geomesa/bootstrap-geomesa.sh,Name=geomesa-accumulo \
-        --ec2-attributes KeyName=$KEYPAIR_NAME,InstanceProfile=EMR_EC2_DefaultRole \
-        --service-role EMR_DefaultRole \
-        --release-label emr-4.7.1 --name $CLUSTER_NAME \
-        --instance-groups InstanceCount=$NUM_WORKERS,InstanceGroupType=CORE,InstanceType=m3.xlarge InstanceCount=1,InstanceGroupType=MASTER,InstanceType=m3.xlarge \
-        --region $AWS_REGION --profile $AWS_PROFILE

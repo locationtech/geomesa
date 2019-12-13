@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features.avro
 
@@ -12,7 +12,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.util
 
 import org.apache.avro.io.{BinaryDecoder, DecoderFactory, Encoder, EncoderFactory}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
@@ -51,7 +51,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       }
 
       var decoder: BinaryDecoder = null
-      val fsr = new FeatureSpecificReader(features(0).getFeatureType)
+      val fsr = FeatureSpecificReader(features(0).getFeatureType)
       def convert(bytes: Array[Byte]) = {
         val bais = new ByteArrayInputStream(bytes)
         decoder = DecoderFactory.get().directBinaryDecoder(bais, decoder)

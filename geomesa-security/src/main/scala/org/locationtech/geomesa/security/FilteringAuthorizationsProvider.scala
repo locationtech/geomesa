@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.security
 
@@ -18,20 +18,16 @@ import scala.collection.JavaConversions._
 class FilteringAuthorizationsProvider (val wrappedProvider: AuthorizationsProvider)
     extends AuthorizationsProvider {
 
-  var filter: Option[Array[String]] = None
+  private var filter: Option[Array[String]] = None
 
   override def getAuthorizations: util.List[String] =
     filter match {
-      case None => wrappedProvider.getAuthorizations
-      case Some(_) => wrappedProvider.getAuthorizations.map(new String(_)).intersect(filter.get)
+      case None    => wrappedProvider.getAuthorizations
+      case Some(f) => wrappedProvider.getAuthorizations.intersect(f)
     }
 
-  override def configure(params: java.util.Map[String, java.io.Serializable]) {
-    val authString = AuthsParam.lookUp(params).asInstanceOf[String]
-    if (authString != null && !authString.isEmpty)
-      filter = Option(authString.split(","))
-
+  override def configure(params: java.util.Map[String, java.io.Serializable]): Unit = {
+    filter = AuthsParam.lookupOpt(params).filterNot(_.isEmpty).map(_.split(","))
     wrappedProvider.configure(params)
   }
-
 }

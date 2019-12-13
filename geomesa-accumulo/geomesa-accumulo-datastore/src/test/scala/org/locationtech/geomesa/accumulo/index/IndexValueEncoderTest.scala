@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
 
@@ -12,58 +12,56 @@ import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.{Date, UUID}
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.apache.accumulo.core.data.Value
-import org.joda.time.DateTime
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.CURRENT_SCHEMA_VERSION
-import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class IndexValueEncoderTest extends Specification {
 
+  import scala.collection.JavaConverters._
+
   val defaultSchema = "*geom:Point,dtg:Date,s:String,i:Int,d:Double,f:Float,u:UUID,l:List[String]"
-  val allSchema = s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String:$OPT_INDEX_VALUE=true,i:Int:$OPT_INDEX_VALUE=true,d:Double:$OPT_INDEX_VALUE=true,f:Float:$OPT_INDEX_VALUE=true,u:UUID:$OPT_INDEX_VALUE=true,l:List[String]"
+  val allSchema = s"*geom:Point:$OptIndexValue=true,dtg:Date:$OptIndexValue=true,s:String:$OptIndexValue=true,i:Int:$OptIndexValue=true,d:Double:$OptIndexValue=true,f:Float:$OptIndexValue=true,u:UUID:$OptIndexValue=true,l:List[String]"
   val id = "Feature0123456789"
   val geom = WKTUtils.read("POINT (-78.495356 38.075215)")
-  val dt = new DateTime().toDate
+  val dt = new Date()
 
   // b/c the IndexValueEncoder caches feature types, we need to change the sft name for each test
   val index = new AtomicInteger(0)
-  def getSft(schema: String = defaultSchema, version: Int = CURRENT_SCHEMA_VERSION) = {
-    val sft = SimpleFeatureTypes.createType("IndexValueEncoderTest" + index.getAndIncrement, schema)
-    sft.setSchemaVersion(version)
-    sft
-  }
+  def getSft(schema: String = defaultSchema) =
+    SimpleFeatureTypes.createType("IndexValueEncoderTest" + index.getAndIncrement, schema)
+
+  def getIndexValueFields(sft: SimpleFeatureType): Seq[String] =
+    IndexValueEncoder.getIndexSft(sft).getAttributeDescriptors.asScala.map(_.getLocalName)
 
   "IndexValueEncoder" should {
     "default to id,geom,date" in {
       val sft = getSft()
-      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg"))
+      getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg"))
     }
     "default to id,geom if no date" in {
       val sft = getSft("*geom:Point,foo:String")
-      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom"))
+      getIndexValueFields(sft) must containAllOf(Seq("geom"))
     }
     "allow custom fields to be set" in {
-      val sft = getSft(s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
-      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg", "i", "f"))
+      val sft = getSft(s"*geom:Point:$OptIndexValue=true,dtg:Date:$OptIndexValue=true,s:String,i:Int:$OptIndexValue=true,d:Double,f:Float:$OptIndexValue=true,u:UUID,l:List[String]")
+      getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg", "i", "f"))
     }
     "always include id,geom,dtg" in {
-      val sft = getSft(s"*geom:Point,dtg:Date,s:String,i:Int:$OPT_INDEX_VALUE=true,d:Double,f:Float:$OPT_INDEX_VALUE=true,u:UUID,l:List[String]")
-      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg", "i", "f"))
+      val sft = getSft(s"*geom:Point,dtg:Date,s:String,i:Int:$OptIndexValue=true,d:Double,f:Float:$OptIndexValue=true,u:UUID,l:List[String]")
+      getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg", "i", "f"))
     }
     "not allow complex types" in {
-      val sft = getSft(s"*geom:Point:$OPT_INDEX_VALUE=true,dtg:Date:$OPT_INDEX_VALUE=true,l:List[String]:$OPT_INDEX_VALUE=true")
-      IndexValueEncoder.getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg"))
+      val sft = getSft(s"*geom:Point:$OptIndexValue=true,dtg:Date:$OptIndexValue=true,l:List[String]:$OptIndexValue=true")
+      getIndexValueFields(sft) must containAllOf(Seq("geom", "dtg"))
     }
 
     "encode and decode id,geom,date" in {
@@ -184,85 +182,6 @@ class IndexValueEncoderTest extends Specification {
       decoded.getAttribute("s") must beNull
       decoded.getAttribute("u") must beNull
       decoded.getAttribute("dtg") must beNull
-    }
-
-    "maintain backwards compatibility" in {
-      val sft = getSft(version = 0)
-      val entry = AvroSimpleFeatureFactory.buildAvroFeature(sft,
-        List(geom, dt, null, null, null, null, null, null), id)
-      val encoder = IndexValueEncoder(sft)
-      val encoded = _encodeIndexValue(entry)
-      val decoded = encoder.deserialize(encoded.get())
-      decoded must not(beNull)
-      decoded.getAttributeCount mustEqual 2
-      decoded.getAttribute("geom") mustEqual geom
-      decoded.getAttribute("dtg") mustEqual dt
-      decoded.getID mustEqual id
-    }
-
-    "be at least as fast as before" in {
-      skipped("for integration")
-
-      val sft = getSft()
-
-      val entry = AvroSimpleFeatureFactory.buildAvroFeature(sft,
-        List(geom, dt, null, null, null, null, null, null), id)
-
-      val encoder = IndexValueEncoder(sft)
-      val oldEncoder = IndexValueEncoder(getSft(version = 0))
-
-      var totalEncodeNew = 0L
-      var totalDecodeNew = 0L
-
-      var totalEncodeOld = 0L
-      var totalDecodeOld = 0L
-
-      var totalEncodeOriginal = 0L
-      var totalDecodeOriginal = 0L
-
-      // run once to remove any initialization time...
-      oldEncoder.deserialize(oldEncoder.serialize(entry))
-      encoder.deserialize(encoder.serialize(entry))
-      _decodeIndexValue(_encodeIndexValue(entry))
-
-      (0 to 1000000).foreach { _ =>
-        val start = System.currentTimeMillis()
-        val value = oldEncoder.serialize(entry)
-        val encode = System.currentTimeMillis()
-        oldEncoder.deserialize(value)
-        val decode = System.currentTimeMillis()
-
-        totalEncodeOld += encode - start
-        totalDecodeOld += decode - encode
-      }
-
-      (0 to 1000000).foreach { _ =>
-        val start = System.currentTimeMillis()
-        val value = encoder.serialize(entry)
-        val encode = System.currentTimeMillis()
-        encoder.deserialize(value)
-        val decode = System.currentTimeMillis()
-
-        totalEncodeNew += encode - start
-        totalDecodeNew += decode - encode
-      }
-
-      (0 to 1000000).foreach { _ =>
-        val start = System.currentTimeMillis()
-        val value = _encodeIndexValue(entry)
-        val encode = System.currentTimeMillis()
-        _decodeIndexValue(value)
-        val decode = System.currentTimeMillis()
-
-        totalEncodeOriginal += encode - start
-        totalDecodeOriginal += decode - encode
-      }
-
-      println(s"ori $totalEncodeOriginal $totalDecodeOriginal")
-      println(s"old $totalEncodeOld $totalDecodeOld")
-      println(s"new $totalEncodeNew $totalDecodeNew")
-      println
-      success
     }
   }
 

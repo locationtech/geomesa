@@ -1,0 +1,95 @@
+{
+  "features" : [
+    {
+      "id" : "80fc52fe-faff-4ab0-9aa0-bbee4ff5af79",
+      "geometry" : {
+        "coordinates" : [
+          -34.0924,
+          24.4027
+        ],
+        "type" : "Point"
+      },
+      "type" : "Feature",
+      "properties" : {
+        "Vitesse" : 718,
+        "Heading" : 266,
+        "Date" : "2017-12-08T10:40:35.570+0000",
+        "hash" : 164,
+        "CabId" : 150005
+      }
+    },
+    {
+      "id" : "a0fc52fe-faff-4ab0-8fc7-bb783c681fc2",
+      "geometry" : {
+        "coordinates" : [
+          -34.0927,
+          24.4027
+        ],
+        "type" : "Point"
+      },
+      "type" : "Feature",
+      "properties" : {
+        "Vitesse" : 623,
+        "Heading" : 264,
+        "Date" : "2017-12-08T10:40:41.570+0000",
+        "hash" : 164,
+        "CabId" : 150005
+      }
+    },
+    {
+      "id" : "a0fcd6fd-5513-46f4-90d4-fce8c5f98bf4",
+      "geometry" : {
+        "coordinates" : [
+          -13.4919,
+          37.9369
+        ],
+        "type" : "Point"
+      },
+      "type" : "Feature",
+      "properties" : {
+        "Vitesse" : 1023,
+        "Heading" : 293,
+        "Date" : "2018-02-05T15:37:47.361+0000",
+        "hash" : 38,
+        "CabId" : 366990520
+      }
+    },
+    {
+      "id" : "b0fcd6fd-5513-47d0-9ba9-d73f053f4630",
+      "geometry" : {
+        "coordinates" : [
+          -13.4957,
+          37.9385
+        ],
+        "type" : "Point"
+      },
+      "type" : "Feature",
+      "properties" : {
+        "Vitesse" : 1023,
+        "Heading" : 290,
+        "Date" : "2018-02-05T15:38:59.269+0000",
+        "hash" : 38,
+        "CabId" : 366990520
+      }
+    },
+    {
+      "id" : "20fcd6fd-5513-4ecb-99b9-216f6cac3c68",
+      "geometry" : {
+        "coordinates" : [
+          -13.3464,
+          37.9126
+        ],
+        "type" : "Point"
+      },
+      "type" : "Feature",
+      "properties" : {
+        "Vitesse" : 1023,
+        "Heading" : 511,
+        "Date" : "2018-02-05T15:43:48.219+0000",
+        "hash" : 100,
+        "CabId" : 338231679
+      }
+    }
+  ],
+  "type" : "FeatureCollection"
+}

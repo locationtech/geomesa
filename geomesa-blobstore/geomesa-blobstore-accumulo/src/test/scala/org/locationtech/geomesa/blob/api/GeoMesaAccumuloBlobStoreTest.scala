@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.blob.api
 
@@ -14,7 +14,7 @@ import com.google.common.io.{ByteStreams, Files}
 import org.geotools.data.DataStoreFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.blob.accumulo.GeoMesaAccumuloBlobStore
 import org.opengis.filter._
 import org.specs2.mutable.Specification
@@ -24,13 +24,14 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class GeoMesaAccumuloBlobStoreTest extends Specification {
+
   val dsParams = Map(
-    "instanceId"        -> "mycloud",
-    "zookeepers"        -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    "user"              -> "myuser",
-    "password"          -> "mypassword",
-    "tableName"         -> "geomesa",
-    "useMock"           -> "true")
+    AccumuloDataStoreParams.InstanceIdParam.key -> "mycloud",
+    AccumuloDataStoreParams.ZookeepersParam.key -> "zoo1:2181,zoo2:2181,zoo3:2181",
+    AccumuloDataStoreParams.UserParam.key       -> "myuser",
+    AccumuloDataStoreParams.PasswordParam.key   -> "mypassword",
+    AccumuloDataStoreParams.CatalogParam.key    -> "geomesa",
+    AccumuloDataStoreParams.MockParam.key       -> "true")
   val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
 
   val bstore = GeoMesaAccumuloBlobStore(ds)

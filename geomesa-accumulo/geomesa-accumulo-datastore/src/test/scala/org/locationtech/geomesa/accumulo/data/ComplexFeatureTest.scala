@@ -1,20 +1,21 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data.Query
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.utils.geotools.Conversions._
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -24,7 +25,7 @@ import scala.collection.JavaConverters._
 @RunWith(classOf[JUnitRunner])
 class ComplexFeatureTest extends Specification with TestWithDataStore {
 
-  override def spec =
+  override val spec =
     """
       |names:List[String],
       |fingers:List[String],
@@ -55,7 +56,7 @@ class ComplexFeatureTest extends Specification with TestWithDataStore {
     "set and return list values" >> {
       "in java" >> {
         val query = new Query(sftName, Filter.INCLUDE)
-        val features = fs.getFeatures(query).features().toList
+        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
         val fingers = features.head.getAttribute("fingers")
         fingers must not(beNull)
@@ -66,7 +67,7 @@ class ComplexFeatureTest extends Specification with TestWithDataStore {
       }
       "in scala" >> {
         val query = new Query(sftName, Filter.INCLUDE)
-        val features = fs.getFeatures(query).features().toList
+        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
         val names = features.head.getAttribute("names")
         names must not(beNull)
@@ -80,7 +81,7 @@ class ComplexFeatureTest extends Specification with TestWithDataStore {
     "set and return map values" >> {
       "in java" >> {
         val query = new Query(sftName, Filter.INCLUDE)
-        val features = fs.getFeatures(query).features().toList
+        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
         val metadata = features.head.getAttribute("metadata")
         metadata must not(beNull)
@@ -91,7 +92,7 @@ class ComplexFeatureTest extends Specification with TestWithDataStore {
       }
       "in scala" >> {
         val query = new Query(sftName, Filter.INCLUDE)
-        val features = fs.getFeatures(query).features().toList
+        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
         val skills = features.head.getAttribute("skills")
         skills must not(beNull)
@@ -105,27 +106,27 @@ class ComplexFeatureTest extends Specification with TestWithDataStore {
     "query on list items" >> {
       "for single entries in the list" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND names = 'joe'"))
-        val features = fs.getFeatures(query).features().toList
+        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
       }
       "for multiple entries in the list" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND fingers = 'thumb' AND fingers = 'ring'"))
-        val features = fs.getFeatures(query).features().toList
+        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
       }
       "for ranges" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND names > 'jane'"))
-        val features = fs.getFeatures(query).features().toList
+        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
       }
       "not match invalid filters" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND fingers = 'index'"))
-        val features = fs.getFeatures(query).features().toList
+        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
         features must haveSize(0)
       }
       "not match invalid ranges" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND names < 'jane'"))
-        val features = fs.getFeatures(query).features().toList
+        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
         features must haveSize(0)
       }
     }
@@ -133,19 +134,19 @@ class ComplexFeatureTest extends Specification with TestWithDataStore {
     "query on map items" >> {
       "for keys in the map" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND skills = 'java'"))
-        val features = fs.getFeatures(query).features().toList
+        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
       }.pendingUntilFixed("GEOMESA-454 - can't query on maps")
 
       "for values in the map" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND skills = '100'"))
-        val features = fs.getFeatures(query).features().toList
+        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
         features must haveSize(1)
       }.pendingUntilFixed("GEOMESA-454 - can't query on maps")
 
       "not match invalid filters" >> {
         val query = new Query(sftName, ECQL.toFilter("bbox(geom, 44, 48, 46, 51) AND skills = 'fortran'"))
-        val features = fs.getFeatures(query).features().toList
+        val features = SelfClosingIterator(fs.getFeatures(query).features).toList
         features must haveSize(0)
       }
     }

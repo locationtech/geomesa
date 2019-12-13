@@ -1,20 +1,20 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features.avro
 
 import java.util.{Collection => JCollection, List => JList}
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.util.Converters
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
@@ -44,7 +44,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
   def setAttribute(name: String, value: Object) = setAttribute(sft.indexOf(name), value)
   def setAttribute(name: Name, value: Object) = setAttribute(name.getLocalPart, value)
   def setAttribute(index: Int, value: Object) = setAttributeNoConvert(index,
-    Converters.convert(value, getFeatureType.getDescriptor(index).getType.getBinding).asInstanceOf[AnyRef])
+    FastConverter.convert(value, getFeatureType.getDescriptor(index).getType.getBinding).asInstanceOf[AnyRef])
 
   def setAttributes(vals: JList[Object]) = vals.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
   def setAttributes(vals: Array[Object])= vals.zipWithIndex.foreach { case (v, idx) => setAttribute(idx, v) }
@@ -56,7 +56,7 @@ class AvroSimpleFeature(id: FeatureId, sft: SimpleFeatureType)
   def setAttributesNoConvert(vals: Array[Object])= vals.zipWithIndex.foreach { case (v, idx) => values(idx) = v }
 
   def getAttributeCount = values.length
-  def getAttributes: JList[Object] = values.toList
+  def getAttributes: JList[Object] = java.util.Arrays.asList(values: _*)
   def getDefaultGeometry: Object = Try(sft.getGeometryDescriptor.getName).map(getAttribute).getOrElse(null)
 
   def setDefaultGeometry(geo: Object) = setAttribute(sft.getGeometryDescriptor.getName, geo)

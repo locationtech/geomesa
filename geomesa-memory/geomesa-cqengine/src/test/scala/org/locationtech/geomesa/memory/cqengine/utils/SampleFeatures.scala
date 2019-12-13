@@ -1,18 +1,20 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.memory.cqengine.utils
 
-import com.vividsolutions.jts.geom.Point
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.Date
+
+import org.locationtech.jts.geom.Point
 import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
@@ -43,7 +45,7 @@ object SampleFeatures {
     "WhatDouble:Double:cq-index=navigable",
     "WhatBool:Boolean",
     "When:Date:cq-index=navigable",
-    "*Where:Point:srid=4326",
+    "*Where:Point:srid=4326:cq-index=geometry",
     "Why:String" // Why can have nulls
   ).mkString(",")
   val sftWithIndexes = SimpleFeatureTypes.createType("test2", specIndexes)
@@ -51,11 +53,11 @@ object SampleFeatures {
   val cq = SFTAttributes(sft)
   val ff = CommonFactoryFinder.getFilterFactory2
 
-  val MIN_DATE = new DateTime(2014, 1, 1, 0, 0, 0, DateTimeZone.forID("UTC"))
+  val MIN_DATE = ZonedDateTime.of(2014, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)
   val seconds_per_year = 365L * 24L * 60L * 60L
   val string = "foo"
 
-  def randDate = MIN_DATE.plusSeconds(scala.math.round(scala.util.Random.nextFloat * seconds_per_year)).toDate
+  def randDate = Date.from(MIN_DATE.plusSeconds(scala.math.round(scala.util.Random.nextFloat * seconds_per_year)).toInstant)
 
   val builder = new SimpleFeatureBuilder(sft)
 
@@ -226,6 +228,11 @@ object SampleFilters {
     s"BBOX(Where, -180, 0, 0, 90)"
   )
 
+  val spatialIndexesForIndexChoise: Seq[Filter] = Seq(
+    s"INTERSECTS(Where, $bbox2)",
+    s"BBOX(Where, -180, 0, 0, 90)"
+  )
+
   val andedSpatialPredicates: Seq[Filter] = Seq(
     s"INTERSECTS(Where, $bbox1) AND OVERLAPS(Where, $bbox2)",
     s"INTERSECTS(Where, $bbox1) AND WITHIN(Where, $bbox2)",
@@ -256,5 +263,20 @@ object SampleFilters {
     "Who ILIKE '%AMS'",
     "Who ILIKE 'ADD%'",
     "Who ILIKE '%DA%'"
+  )
+
+  val functionPredicates: Seq[Filter] = Seq(
+    "strConcat(Who, What) = 'Addams1'",
+    "WhatLong * WhatDouble > 1.0",
+    "WhatLong * WhatDouble < 1.0",
+    "WhatLong * WhatDouble >= 1.0",
+    "WhatLong * WhatDouble <= 1.0",
+    "WhatLong * WhatDouble <> 1.0",
+    "strConcat(Who, What) = 'Addams1' AND WhatLong * WhatDouble < 1.0",
+    "WhatLong * WhatDouble > 1.0 AND WhatLong * WhatDouble < 2.0",
+    "WhatLong * WhatDouble >= 1.0 AND WhatLong * WhatDouble <= 2.0",
+    "strConcat(Who, What) = 'Addams1' OR WhatLong * WhatDouble < 1.0",
+    "WhatLong * WhatDouble > 1.0 OR WhatLong * WhatDouble < 2.0",
+    "WhatLong * WhatDouble >= 1.0 OR WhatLong * WhatDouble <= 2.0"
   )
 }

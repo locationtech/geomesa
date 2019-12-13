@@ -1,17 +1,18 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data.stats.usage
+
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
 
 import org.apache.accumulo.core.client.ZooKeeperInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
-import org.joda.time.Interval
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.audit.{AccumuloEventReader, AccumuloQueryEventTransform}
 import org.locationtech.geomesa.index.audit.QueryEvent
@@ -37,7 +38,7 @@ class LiveStatReaderTest extends Specification {
 
       val reader = new AccumuloEventReader(connector, s"${table}_${feature}_queries")
 
-      val dates = new Interval(0, System.currentTimeMillis())
+      val dates = (ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC), ZonedDateTime.now(ZoneOffset.UTC))
       val results = reader.query[QueryEvent](feature, dates, new Authorizations())(AccumuloQueryEventTransform)
 
       results.foreach(println)

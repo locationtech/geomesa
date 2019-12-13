@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.memory.cqengine.utils
 
@@ -13,24 +13,26 @@ import java.util.regex.Pattern
 
 import com.googlecode.cqengine.attribute.Attribute
 import com.googlecode.cqengine.query.Query
+import com.googlecode.cqengine.query.simple.All
 import com.googlecode.cqengine.{query => cqquery}
-import com.vividsolutions.jts.geom.Geometry
 import org.geotools.filter.LikeToRegexConverter
 import org.geotools.filter.visitor.AbstractFilterVisitor
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.memory.cqengine.query.{GeoToolsFilterQuery, Intersects => CQIntersects}
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
-import org.opengis.filter.expression.PropertyName
+import org.opengis.filter.expression.Literal
 import org.opengis.filter.spatial._
 import org.opengis.filter.temporal._
-import org.opengis.temporal.Period
 
 import scala.collection.JavaConversions._
 import scala.language._
 
 class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor {
-  implicit val lookup = SFTAttributes(sft)
+
+  implicit val lookup: SFTAttributes = SFTAttributes(sft)
 
   /* Logical operators */
 
@@ -46,7 +48,11 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
         case _ => throw new RuntimeException(s"Can't parse filter: $f.")
       }
     }.toList
-    new cqquery.logical.And[SimpleFeature](query)
+    if (query.exists(_.isInstanceOf[All[_]])) {
+      new cqquery.simple.All(classOf[SimpleFeature])
+    } else {
+      new cqquery.logical.And[SimpleFeature](query)
+    }
   }
 
   /**
@@ -61,7 +67,11 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
         case _ => throw new RuntimeException(s"Can't parse filter: $f.")
       }
     }.toList
-    new cqquery.logical.Or[SimpleFeature](query)
+    if (query.exists(_.isInstanceOf[All[_]])) {
+      new cqquery.simple.All(classOf[SimpleFeature])
+    } else {
+      new cqquery.logical.Or[SimpleFeature](query)
+    }
   }
 
   /**
@@ -74,7 +84,14 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
       case q: Query[SimpleFeature] => q
       case _ => throw new RuntimeException(s"Can't parse filter: $subfilter.")
     }
-    new cqquery.logical.Not[SimpleFeature](subquery)
+    // In the event that the visitor cannot 'plan' a query, it returns an 'All' Query to indicate
+    //  that all the Simple Features should be considered.
+    // As such, we do not negate the query going back.
+    if (subquery.isInstanceOf[All[_]]) {
+      subquery
+    } else {
+      new cqquery.logical.Not[SimpleFeature](subquery)
+    }
   }
 
   /* Id, null, nil, exclude, include */
@@ -93,8 +110,8 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     * follows the example of IsNilImpl by using the same implementation as PropertyIsNull
     */
   override def visit(filter: PropertyIsNil, extraData: scala.Any): AnyRef = {
-    val prop = getProp(filter)
-    val attr = lookup.lookup[Any](prop.name)
+    val name = getAttribute(filter)
+    val attr = lookup.lookup[Any](name)
     new cqquery.logical.Not[SimpleFeature](new cqquery.simple.Has(attr))
   }
 
@@ -102,8 +119,8 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     * PropertyIsNull
     */
   override def visit(filter: PropertyIsNull, data: scala.Any): AnyRef = {
-    val prop = getProp(filter)
-    val attr = lookup.lookup[Any](prop.name)
+    val name = getAttribute(filter)
+    val attr = lookup.lookup[Any](name)
     // TODO: could this be done better?
     new cqquery.logical.Not[SimpleFeature](new cqquery.simple.Has(attr))
   }
@@ -125,69 +142,144 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     * PropertyIsEqualTo
     */
   override def visit(filter: PropertyIsEqualTo, data: scala.Any): AnyRef = {
-    val prop = getProp(filter)
-    val attribute: Attribute[SimpleFeature, Any] = lookup.lookup[Any](prop.name)
-    val value = prop.literal.evaluate(null, attribute.getAttributeType)
-    new cqquery.simple.Equal(attribute, value)
+    val name = getAttribute(filter)
+    val attribute: Attribute[SimpleFeature, Any] = lookup.lookup[Any](name)
+    val bounds = FilterHelper.extractAttributeBounds(filter, name, attribute.getAttributeType).values.headOption.getOrElse {
+      Bounds.everything[Any]
+    }
+    if(!bounds.isBounded) new cqquery.simple.All(classOf[SimpleFeature])
+    else new cqquery.simple.Equal(attribute, bounds.lower.value.get)
   }
 
   /**
     * PropertyIsGreaterThan
     */
-  override def visit(filter: PropertyIsGreaterThan, data: scala.Any): cqquery.simple.GreaterThan[SimpleFeature, _] = {
-    val prop = getProp(filter)
-    sft.getDescriptor(prop.name).getType.getBinding match {
-      case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntGTQuery(prop)
-      case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongGTQuery(prop)
-      case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatGTQuery(prop)
-      case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleGTQuery(prop)
-      case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateGTQuery(prop)
-      case c => throw new RuntimeException(s"PropertyIsGreaterThan: $c not supported")
+  override def visit(filter: PropertyIsGreaterThan, data: scala.Any): AnyRef = {
+    val name = getAttribute(filter)
+    val binding = sft.getDescriptor(name).getType.getBinding
+    FilterHelper.extractAttributeBounds(filter, name, binding).values.headOption.getOrElse {
+      Bounds.everything[Any]
+    }.bounds match {
+      case (Some(lo), None) =>
+        binding match {
+          case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntGTQuery(name, lo.asInstanceOf[java.lang.Integer])
+          case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongGTQuery(name, lo.asInstanceOf[java.lang.Long])
+          case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatGTQuery(name, lo.asInstanceOf[java.lang.Float])
+          case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleGTQuery(name, lo.asInstanceOf[java.lang.Double])
+          case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateGTQuery(name, lo.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String ].isAssignableFrom(c) => BuildStringGTQuery(name, lo.asInstanceOf[java.lang.String])
+          case c => throw new RuntimeException(s"PropertyIsGreaterThan: $c not supported")
+        }
+      case (None, Some(hi)) =>
+        binding match {
+          case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntLTQuery(name, hi.asInstanceOf[java.lang.Integer])
+          case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongLTQuery(name, hi.asInstanceOf[java.lang.Long])
+          case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatLTQuery(name, hi.asInstanceOf[java.lang.Float])
+          case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleLTQuery(name, hi.asInstanceOf[java.lang.Double])
+          case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateLTQuery(name, hi.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringLTQuery(name, hi.asInstanceOf[java.lang.String])
+          case c => throw new RuntimeException(s"PropertyIsGreaterThan: $c not supported")
+        }
+      case _ => new cqquery.simple.All(classOf[SimpleFeature])
     }
   }
 
   /**
     * PropertyIsGreaterThanOrEqualTo
     */
-  override def visit(filter: PropertyIsGreaterThanOrEqualTo, data: scala.Any): cqquery.simple.GreaterThan[SimpleFeature, _] = {
-    val prop = getProp(filter)
-    sft.getDescriptor(prop.name).getType.getBinding match {
-      case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntGTEQuery(prop)
-      case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongGTEQuery(prop)
-      case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatGTEQuery(prop)
-      case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleGTEQuery(prop)
-      case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateGTEQuery(prop)
-      case c => throw new RuntimeException(s"PropertyIsGreaterThanOrEqualTo: $c not supported")
+  override def visit(filter: PropertyIsGreaterThanOrEqualTo, data: scala.Any): AnyRef = {
+    val name = getAttribute(filter)
+    val binding = sft.getDescriptor(name).getType.getBinding
+    FilterHelper.extractAttributeBounds(filter, name, binding).values.headOption.getOrElse {
+      Bounds.everything[Any]
+    }.bounds match {
+      case (Some(lo), None) =>
+        binding match {
+          case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntGTEQuery(name, lo.asInstanceOf[java.lang.Integer])
+          case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongGTEQuery(name, lo.asInstanceOf[java.lang.Long])
+          case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatGTEQuery(name, lo.asInstanceOf[java.lang.Float])
+          case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleGTEQuery(name, lo.asInstanceOf[java.lang.Double])
+          case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateGTEQuery(name, lo.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringGTEQuery(name, lo.asInstanceOf[java.lang.String])
+          case c => throw new RuntimeException(s"PropertyIsGreaterThanOrEqualTo: $c not supported")
+        }
+      case (None, Some(hi)) =>
+        binding match {
+          case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntLTEQuery(name, hi.asInstanceOf[java.lang.Integer])
+          case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongLTEQuery(name, hi.asInstanceOf[java.lang.Long])
+          case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatLTEQuery(name, hi.asInstanceOf[java.lang.Float])
+          case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleLTEQuery(name, hi.asInstanceOf[java.lang.Double])
+          case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateLTEQuery(name, hi.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringLTEQuery(name, hi.asInstanceOf[java.lang.String])
+          case c => throw new RuntimeException(s"PropertyIsGreaterThanOrEqualTo: $c not supported")
+        }
+      case _ => new cqquery.simple.All(classOf[SimpleFeature])
     }
   }
 
   /**
     * PropertyIsLessThan
     */
-  override def visit(filter: PropertyIsLessThan, data: scala.Any): cqquery.simple.LessThan[SimpleFeature, _] = {
-    val prop = getProp(filter)
-    sft.getDescriptor(prop.name).getType.getBinding match {
-      case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntLTQuery(prop)
-      case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongLTQuery(prop)
-      case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatLTQuery(prop)
-      case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleLTQuery(prop)
-      case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateLTQuery(prop)
-      case c => throw new RuntimeException(s"PropertyIsLessThan: $c not supported")
+  override def visit(filter: PropertyIsLessThan, data: scala.Any): AnyRef = {
+    val name = getAttribute(filter)
+    val binding = sft.getDescriptor(name).getType.getBinding
+    FilterHelper.extractAttributeBounds(filter, name, binding).values.headOption.getOrElse {
+      Bounds.everything[Any]
+    }.bounds match {
+      case (Some(lo), None) =>
+        binding match {
+          case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntGTQuery(name, lo.asInstanceOf[java.lang.Integer])
+          case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongGTQuery(name, lo.asInstanceOf[java.lang.Long])
+          case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatGTQuery(name, lo.asInstanceOf[java.lang.Float])
+          case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleGTQuery(name, lo.asInstanceOf[java.lang.Double])
+          case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateGTQuery(name, lo.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringGTQuery(name, lo.asInstanceOf[java.lang.String])
+          case c => throw new RuntimeException(s"PropertyIsLessThan: $c not supported")
+        }
+      case (None, Some(hi)) =>
+        binding match {
+          case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntLTQuery(name, hi.asInstanceOf[java.lang.Integer])
+          case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongLTQuery(name, hi.asInstanceOf[java.lang.Long])
+          case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatLTQuery(name, hi.asInstanceOf[java.lang.Float])
+          case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleLTQuery(name, hi.asInstanceOf[java.lang.Double])
+          case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateLTQuery(name, hi.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringLTQuery(name, hi.asInstanceOf[java.lang.String])
+          case c => throw new RuntimeException(s"PropertyIsLessThan: $c not supported")
+        }
+      case _ => new cqquery.simple.All(classOf[SimpleFeature])
     }
   }
 
   /**
     * PropertyIsLessThanOrEqualTo
     */
-  override def visit(filter: PropertyIsLessThanOrEqualTo, data: scala.Any): cqquery.simple.LessThan[SimpleFeature, _] = {
-    val prop = getProp(filter)
-    sft.getDescriptor(prop.name).getType.getBinding match {
-      case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntLTEQuery(prop)
-      case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongLTEQuery(prop)
-      case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatLTEQuery(prop)
-      case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleLTEQuery(prop)
-      case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateLTEQuery(prop)
-      case c => throw new RuntimeException(s"PropertyIsLessThanOrEqualTo: $c not supported")
+  override def visit(filter: PropertyIsLessThanOrEqualTo, data: scala.Any): AnyRef = {
+    val name = getAttribute(filter)
+    val binding = sft.getDescriptor(name).getType.getBinding
+    FilterHelper.extractAttributeBounds(filter, name, binding).values.headOption.getOrElse {
+      Bounds.everything[Any]
+    }.bounds match {
+      case (Some(lo), None) =>
+        binding match {
+          case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntGTEQuery(name, lo.asInstanceOf[java.lang.Integer])
+          case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongGTEQuery(name, lo.asInstanceOf[java.lang.Long])
+          case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatGTEQuery(name, lo.asInstanceOf[java.lang.Float])
+          case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleGTEQuery(name, lo.asInstanceOf[java.lang.Double])
+          case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateGTEQuery(name, lo.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringGTEQuery(name, lo.asInstanceOf[java.lang.String])
+          case c => throw new RuntimeException(s"PropertyIsLessThanOrEqualTo: $c not supported")
+        }
+      case (None, Some(hi)) =>
+        binding match {
+          case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntLTEQuery(name, hi.asInstanceOf[java.lang.Integer])
+          case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongLTEQuery(name, hi.asInstanceOf[java.lang.Long])
+          case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatLTEQuery(name, hi.asInstanceOf[java.lang.Float])
+          case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleLTEQuery(name, hi.asInstanceOf[java.lang.Double])
+          case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateLTEQuery(name, hi.asInstanceOf[java.util.Date])
+          case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringLTEQuery(name, hi.asInstanceOf[java.lang.String])
+          case c => throw new RuntimeException(s"PropertyIsLessThanOrEqualTo: $c not supported")
+        }
+      case _ => new cqquery.simple.All(classOf[SimpleFeature])
     }
   }
 
@@ -195,9 +287,15 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     * PropertyIsNotEqualTo
     */
   override def visit(filter: PropertyIsNotEqualTo, data: scala.Any): AnyRef = {
-    val prop = getProp(filter)
-    val attribute: Attribute[SimpleFeature, Any] = lookup.lookup[Any](prop.name)
-    val value: Any = prop.literal.evaluate(null, attribute.getAttributeType)
+    import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
+
+    val name = getAttribute(filter)
+    val attribute: Attribute[SimpleFeature, Any] = lookup.lookup[Any](name)
+    val value: Any = Iterator(filter.getExpression1, filter.getExpression2).collect {
+      case lit: Literal => FastConverter.evaluate(lit, attribute.getAttributeType)
+    }.headOption.getOrElse {
+      throw new RuntimeException(s"Can't parse not equal to values ${filterToString(filter)}")
+    }
     // TODO: could this be done better?
     // may not be as big an issue as PropertyIsNull, as I'm not
     // even sure how to build this filter in (E)CQL
@@ -209,13 +307,20 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     * (in the OpenGIS spec, lower and upper are inclusive)
    */
   override def visit(filter: PropertyIsBetween, data: scala.Any): AnyRef = {
-    val prop = getProp(filter)
-    sft.getDescriptor(prop.name).getType.getBinding match {
-      case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntBetweenQuery(prop)
-      case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongBetweenQuery(prop)
-      case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatBetweenQuery(prop)
-      case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleBetweenQuery(prop)
-      case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateBetweenQuery(prop)
+    val name = getAttribute(filter)
+    val binding = sft.getDescriptor(name).getType.getBinding
+    val values = FilterHelper.extractAttributeBounds(filter, name, binding).values.headOption.getOrElse {
+      throw new RuntimeException(s"Can't parse less than or equal to values ${filterToString(filter)}")
+    }
+    val between = (values.lower.value.get, values.upper.value.get)
+
+    binding match {
+      case c if classOf[java.lang.Integer].isAssignableFrom(c) => BuildIntBetweenQuery(name, between.asInstanceOf[(java.lang.Integer, java.lang.Integer)])
+      case c if classOf[java.lang.Long   ].isAssignableFrom(c) => BuildLongBetweenQuery(name, between.asInstanceOf[(java.lang.Long, java.lang.Long)])
+      case c if classOf[java.lang.Float  ].isAssignableFrom(c) => BuildFloatBetweenQuery(name, between.asInstanceOf[(java.lang.Float, java.lang.Float)])
+      case c if classOf[java.lang.Double ].isAssignableFrom(c) => BuildDoubleBetweenQuery(name, between.asInstanceOf[(java.lang.Double, java.lang.Double)])
+      case c if classOf[java.util.Date   ].isAssignableFrom(c) => BuildDateBetweenQuery(name, between.asInstanceOf[(java.util.Date, java.util.Date)])
+      case c if classOf[java.lang.String   ].isAssignableFrom(c) => BuildStringBetweenQuery(name, between.asInstanceOf[(java.lang.String, java.lang.String)])
       case c => throw new RuntimeException(s"PropertyIsBetween: $c not supported")
     }
   }
@@ -224,15 +329,15 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     * PropertyIsLike
     */
   override def visit(filter: PropertyIsLike, data: scala.Any): AnyRef = {
-    val prop = getProp(filter)
-    val attr = lookup.lookup[String](prop.name)
+    val name = getAttribute(filter)
+    val attr = lookup.lookup[String](name)
 
     val converter = new LikeToRegexConverter(filter)
-    val pattern = if (filter.isMatchingCase)
-                    Pattern.compile(converter.getPattern)
-                  else
-                    Pattern.compile(converter.getPattern, Pattern.CASE_INSENSITIVE)
-
+    val pattern = if (filter.isMatchingCase) {
+      Pattern.compile(converter.getPattern)
+    } else {
+      Pattern.compile(converter.getPattern, Pattern.CASE_INSENSITIVE)
+    }
     new cqquery.simple.StringMatchesRegex[SimpleFeature, String](attr, pattern)
   }
 
@@ -242,10 +347,11 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     * BBOX
     */
   override def visit(filter: BBOX, data: scala.Any): AnyRef = {
-    val prop = getProp(filter)
-    val attributeName = prop.name
-    val geom = prop.literal.evaluate(null, classOf[Geometry])
-    val geomAttribute = lookup.lookup[Geometry](attributeName)
+    val name = getAttribute(filter)
+    val geom = FilterHelper.extractGeometries(filter, name).values.headOption.getOrElse {
+      throw new RuntimeException(s"Can't parse bbox values ${filterToString(filter)}")
+    }
+    val geomAttribute = lookup.lookup[Geometry](name)
 
     new CQIntersects(geomAttribute, geom)
   }
@@ -254,10 +360,11 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     * Intersects
     */
   override def visit(filter: Intersects, data: scala.Any): AnyRef = {
-    val prop = getProp(filter)
-    val attributeName = prop.name
-    val geom = prop.literal.evaluate(null, classOf[Geometry])
-    val geomAttribute = lookup.lookup[Geometry](attributeName)
+    val name = getAttribute(filter)
+    val geom = FilterHelper.extractGeometries(filter, name).values.headOption.getOrElse {
+      throw new RuntimeException(s"Can't parse intersects values ${filterToString(filter)}")
+    }
+    val geomAttribute = lookup.lookup[Geometry](name)
 
     new CQIntersects(geomAttribute, geom)
   }
@@ -275,13 +382,17 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     * After: only for time attributes, and is exclusive
     */
   override def visit(after: After, extraData: scala.Any): AnyRef = {
-    val prop = getProp(after)
-    sft.getDescriptor(prop.name).getType.getBinding match {
-      case c if classOf[Date].isAssignableFrom(c) => {
-        val attr = lookup.lookup[Date](prop.name)
-        val value = prop.literal.evaluate(null, classOf[Date])
-        new cqquery.simple.GreaterThan[SimpleFeature, Date](attr, value, false)
-      }
+    val name = getAttribute(after)
+    sft.getDescriptor(name).getType.getBinding match {
+      case c if classOf[Date].isAssignableFrom(c) =>
+        val attr = lookup.lookup[Date](name)
+        FilterHelper.extractIntervals(after, name).values.headOption.getOrElse {
+          throw new RuntimeException(s"Can't parse after values ${filterToString(after)}")
+        }.bounds match {
+          case (Some(lo), None) => new cqquery.simple.GreaterThan[SimpleFeature, Date](attr, Date.from(lo.toInstant), false)
+          case (None, Some(hi)) => new cqquery.simple.LessThan[SimpleFeature, Date](attr, Date.from(hi.toInstant), false)
+        }
+
       case c => throw new RuntimeException(s"After: $c not supported")
     }
   }
@@ -290,13 +401,17 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     * Before: only for time attributes, and is exclusive
     */
   override def visit(before: Before, extraData: scala.Any): AnyRef = {
-    val prop = getProp(before)
-    sft.getDescriptor(prop.name).getType.getBinding match {
-      case c if classOf[Date].isAssignableFrom(c) => {
-        val attr = lookup.lookup[Date](prop.name)
-        val value = prop.literal.evaluate(null, classOf[Date])
-        new cqquery.simple.LessThan[SimpleFeature, Date](attr, value, false)
-      }
+    val name = getAttribute(before)
+    sft.getDescriptor(name).getType.getBinding match {
+      case c if classOf[Date].isAssignableFrom(c) =>
+        val attr = lookup.lookup[Date](name)
+        FilterHelper.extractIntervals(before, name).values.headOption.getOrElse {
+          throw new RuntimeException(s"Can't parse before values ${filterToString(before)}")
+        }.bounds match {
+          case (Some(lo), None) => new cqquery.simple.GreaterThan[SimpleFeature, Date](attr, Date.from(lo.toInstant), false)
+          case (None, Some(hi)) => new cqquery.simple.LessThan[SimpleFeature, Date](attr, Date.from(hi.toInstant), false)
+        }
+
       case c => throw new RuntimeException(s"Before: $c not supported")
     }
   }
@@ -305,15 +420,16 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     * During: only for time attributes, and is exclusive at both ends
     */
   override def visit(during: During, extraData: scala.Any): AnyRef = {
-    val prop = getProp(during)
-    sft.getDescriptor(prop.name).getType.getBinding match {
-      case c if classOf[Date].isAssignableFrom(c) => {
-        val attr = lookup.lookup[Date](prop.name)
-        val p = prop.literal.evaluate(null, classOf[Period])
-        val lower = p.getBeginning.getPosition.getDate
-        val upper = p.getEnding.getPosition.getDate
-        new cqquery.simple.Between[SimpleFeature, java.util.Date](attr, lower, false, upper, false)
-      }
+    val name = getAttribute(during)
+    sft.getDescriptor(name).getType.getBinding match {
+      case c if classOf[Date].isAssignableFrom(c) =>
+        val attr = lookup.lookup[Date](name)
+        val bounds = FilterHelper.extractIntervals(during, name).values.headOption.getOrElse {
+          throw new RuntimeException(s"Can't parse during values ${filterToString(during)}")
+        }
+        new cqquery.simple.Between[SimpleFeature, java.util.Date](attr, Date.from(bounds.lower.value.get.toInstant),
+          bounds.lower.inclusive, Date.from(bounds.upper.value.get.toInstant), bounds.upper.inclusive)
+
       case c => throw new RuntimeException(s"During: $c not supported")
     }
   }
@@ -330,33 +446,7 @@ class CQEngineQueryVisitor(sft: SimpleFeatureType) extends AbstractFilterVisitor
     new GeoToolsFilterQuery(filter)
   }
 
-  /**
-    * Build a PropertyLiteral for every expression with a property name in it
-    * (essentially a wrapper around getAttributeProperty)
-    */
-  def getProp(filter: Filter): PropertyLiteral = {
-    val prop = filter match {
-      case f: BinarySpatialOperator => checkOrder(f.getExpression1, f.getExpression2)
-      case f: BinaryTemporalOperator => checkOrder(f.getExpression1, f.getExpression2)
-      case f: PropertyIsNotEqualTo => checkOrder(f.getExpression1, f.getExpression2)
-      // we support a wider range of PropertyIsLike filters than getAttributeProperty does
-      case f: PropertyIsLike => {
-        val propName = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-        Some(PropertyLiteral(propName, ff.literal(f.getLiteral), None))
-      }
-      case f: PropertyIsNull => {
-        val propName = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-        Some(PropertyLiteral(propName, ff.literal(null), None))
-      }
-      case f: PropertyIsNil => {
-        val propName = f.getExpression.asInstanceOf[PropertyName].getPropertyName
-        Some(PropertyLiteral(propName, ff.literal(null), None))
-      }
-      case f => getAttributeProperty(f)
-    }
-    prop match {
-      case Some(p) => p
-      case None => throw new RuntimeException(s"Can't parse filter $filter")
-    }
+  def getAttribute(filter: Filter): String = FilterHelper.propertyNames(filter, null).headOption.getOrElse {
+    throw new RuntimeException(s"Can't parse filter ${filterToString(filter)}")
   }
 }

@@ -1,52 +1,58 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.tools.export.formats
 
 import java.io.OutputStream
 
-import org.geotools.data.simple.SimpleFeatureCollection
-import org.locationtech.geomesa.filter.function.BinaryOutputEncoder.{EncodingOptions, LatLonAttributes, encodeFeatureCollection}
-import org.locationtech.geomesa.tools.export.BinExportParams
+import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
+import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class BinExporter(os: OutputStream,
-                  dtgAttribute: String,
-                  idAttribute: Option[String],
-                  latAttribute: Option[String],
-                  lonAttribute: Option[String],
-                  lblAttribute: Option[String]) extends FeatureExporter {
+class BinExporter(os: OutputStream, counter: ByteCounter, hints: Hints) extends ByteCounterExporter(counter) {
 
-  val id = idAttribute.orElse(Some("id"))
-  val latLon = for (lat <- latAttribute; lon <- lonAttribute) yield { LatLonAttributes(lat, lon) }
+  import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-  override def export(fc: SimpleFeatureCollection): Option[Long] = {
-    encodeFeatureCollection(fc, os, EncodingOptions(latLon, Option(dtgAttribute), id, lblAttribute))
-    None
+  private val label = hints.getBinLabelField.isDefined
+  private var encoder: Option[BinaryOutputEncoder] = None
+
+  override def start(sft: SimpleFeatureType): Unit = {
+    if (sft == BinaryOutputEncoder.BinEncodedSft) {
+      encoder = None
+    } else {
+      import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+      // do the encoding here
+      val geom = hints.getBinGeomField.map(sft.indexOf)
+      val dtg = hints.getBinDtgField.map(sft.indexOf)
+      val track = Option(hints.getBinTrackIdField).filter(_ != "id").map(sft.indexOf)
+      val options = EncodingOptions(geom, dtg, track, hints.getBinLabelField.map(sft.indexOf))
+      encoder = Some(BinaryOutputEncoder(sft, options))
+    }
   }
 
-  override def flush(): Unit = os.flush()
+  override def export(features: Iterator[SimpleFeature]): Option[Long] = {
+    val count = encoder match {
+      case Some(e) => e.encode(features, os)
+      case None =>
+        var numBytes = 0L
+        // just copy bytes directly out
+        features.foreach { f =>
+          val bytes = f.getAttribute(0).asInstanceOf[Array[Byte]]
+          os.write(bytes)
+          numBytes += bytes.length
+        }
+        numBytes / (if (label) { 24 } else { 16 })
+    }
+    os.flush()
+    Some(count)
+  }
 
   override def close(): Unit = os.close()
-}
-
-object BinExporter {
-
-  private def date(params: BinExportParams, dtg: Option[String]): String =
-    Option(params.dateAttribute).orElse(dtg).getOrElse("dtg")
-
-  def getAttributeList(params: BinExportParams, dtg: Option[String]): Seq[String] =
-    Seq(params.latAttribute, params.lonAttribute, params.idAttribute, date(params, dtg), params.labelAttribute).filter(_ != null)
-
-  def apply(os: OutputStream, params: BinExportParams, dtg: Option[String]) =
-    new BinExporter(os,
-      date(params, dtg),
-      Option(params.idAttribute),
-      Option(params.latAttribute),
-      Option(params.lonAttribute),
-      Option(params.labelAttribute))
 }

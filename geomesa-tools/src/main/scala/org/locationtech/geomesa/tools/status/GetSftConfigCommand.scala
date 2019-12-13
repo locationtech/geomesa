@@ -1,14 +1,15 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.tools.status
 
 import java.util
+import java.util.Collections
 
 import com.beust.jcommander._
 import org.geotools.data.DataStore
@@ -46,7 +47,7 @@ trait GetSftConfigCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
 object GetSftConfigCommand {
   val Spec = "spec"
-  val TypeSafe = "typesafe"
+  val TypeSafe = "config"
 }
 
 // @Parameters(commandDescription = "Get the SimpleFeatureType of a feature")
@@ -54,12 +55,8 @@ trait GetSftConfigParams extends RequiredTypeNameParam {
   @Parameter(names = Array("--concise"), description = "Render in concise format", required = false)
   var concise: Boolean = false
 
-  @Parameter(names = Array("--format"), description = "Output formats (allowed values are typesafe, spec)", required = false, validateValueWith = classOf[FormatValidator])
-  var format: java.util.List[String] = {
-    val list = new java.util.ArrayList[String]()
-    list.add(TypeSafe)
-    list
-  }
+  @Parameter(names = Array("--format"), description = "Output formats (allowed values are spec or config)", required = false, validateValueWith = classOf[FormatValidator])
+  var format: java.util.List[String] = Collections.singletonList(Spec)
 
   @Parameter(names = Array("--exclude-user-data"), description = "Exclude user data", required = false)
   var excludeUserData: Boolean = false

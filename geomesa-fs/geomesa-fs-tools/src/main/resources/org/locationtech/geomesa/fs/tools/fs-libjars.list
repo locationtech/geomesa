@@ -1,0 +1,9 @@
+aircompressor
+curator-client
+curator-framework
+curator-recipes
+hive
+libthrift
+orc
+parquet
+shapeless

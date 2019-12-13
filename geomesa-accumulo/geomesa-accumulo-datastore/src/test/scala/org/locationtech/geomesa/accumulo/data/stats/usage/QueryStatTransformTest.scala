@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.data.stats.usage
 
@@ -14,12 +14,12 @@ import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.joda.time.format.DateTimeFormat
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloQueryEventTransform}
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -27,8 +27,6 @@ import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class QueryStatTransformTest extends Specification {
-
-  val df = DateTimeFormat.forPattern("yyyy.MM.dd HH:mm:ss")
 
   val table = "QueryStatTransformTest"
   val featureName = "stat-writer-test"
@@ -64,11 +62,11 @@ class QueryStatTransformTest extends Specification {
       query.getHints.put(QueryHints.DENSITY_WIDTH, 500)
       query.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
 
-      val hints = QueryEvent.hintsToString(query.getHints)
+      val hints = ViewParams.getReadableHints(query)
 
-      hints must contain(s"DENSITY_BBOX_KEY=$env")
-      hints must contain("WIDTH_KEY=500")
-      hints must contain("HEIGHT_KEY=500")
+      hints must contain(s"DENSITY_BBOX=$env")
+      hints must contain("DENSITY_WIDTH=500")
+      hints must contain("DENSITY_HEIGHT=500")
     }
   }
 }

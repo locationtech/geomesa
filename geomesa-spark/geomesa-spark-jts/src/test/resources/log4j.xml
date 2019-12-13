@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+    <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.EnhancedPatternLayout">
+            <param name="ConversionPattern" value="[%d{HH:mm:ss,SSS}] %5p %c: %m%n"/>
+        </layout>
+    </appender>
+
+    <category name="org.apache.zookeeper">
+        <priority value="warn"/>
+    </category>
+    <category name="org.apache.hadoop">
+        <priority value="error"/>
+    </category>
+    <category name="org.mortbay.log">
+        <priority value="warn"/>
+    </category>
+    <category name="BlockStateChange">
+        <priority value="warn"/>
+    </category>
+    <category name="SecurityLogger.org.apache.hadoop.hbase.Server">
+        <priority value="warn"/>
+    </category>
+    <category name="hsqldb">
+        <priority value="warn"/>
+    </category>
+
+    <category name="org.apache.spark">
+        <priority value="warn"/>
+    </category>
+
+    <category name="org.spark_project.jetty">
+        <priority value="error"/>
+    </category>
+
+    <!-- un-comment the following line to enable verbose log messages
+     from the Spark SQL query-planner; this can be helpful in debugging
+     Spark SQL query plans -->
+    <!--<category name="org.locationtech.geomesa.spark">-->
+        <!--<priority value="info"/>-->
+    <!--</category>-->
+
+    <!--<category name="org.apache.spark.sql.execution">-->
+        <!--<priority value="trace"/>-->
+    <!--</category>-->
+
+    <!--<category name="org.apache.spark.sql">-->
+        <!--<priority value="debug"/>-->
+    <!--</category>-->
+
+    <!-- un-comment the following line to enable verbose log messages
+         from the index query-planner; this can be helpful in debugging
+         query plans -->
+    <!--<category name="org.locationtech.geomesa.index.utils.Explainer">
+        <priority value="trace"/>
+    </category>-->
+
+    <root>
+        <priority value="info"/>
+        <appender-ref ref="CONSOLE" />
+    </root>
+</log4j:configuration>
+

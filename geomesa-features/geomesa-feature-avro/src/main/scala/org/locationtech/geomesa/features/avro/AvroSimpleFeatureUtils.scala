@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features.avro
 
@@ -12,15 +12,17 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.{Date, Locale, UUID}
 
-import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.io.WKBWriter
+import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.io.WKBWriter
 import org.apache.avro.{Schema, SchemaBuilder}
-import org.geotools.util.Converters
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
-object AvroSimpleFeatureUtils {
+object AvroSimpleFeatureUtils extends LazyLogging {
 
   val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
@@ -36,6 +38,7 @@ object AvroSimpleFeatureUtils {
 
   def generateSchema(sft: SimpleFeatureType,
                      withUserData: Boolean,
+                     withFeatureId: Boolean,
                      namespace: String = AVRO_NAMESPACE): Schema = {
     val nameEncoder = new FieldNameEncoder(VERSION)
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
@@ -43,17 +46,23 @@ object AvroSimpleFeatureUtils {
         .namespace(namespace)
         .fields
         .name(AVRO_SIMPLE_FEATURE_VERSION).`type`.intType.noDefault
-        .name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
+
+    val withFid = if (withFeatureId) {
+      initialAssembler.name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
+    } else {
+      initialAssembler
+    }
 
     val withFields =
-      sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
+      sft.getAttributeDescriptors.foldLeft(withFid) { case (assembler, ad) =>
         addField(assembler, nameEncoder.encode(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
       }
 
     val fullSchema = if (withUserData) {
       withFields.name(AVRO_SIMPLE_FEATURE_USERDATA).`type`.array().items().record("userDataItem").fields()
-        .name("class").`type`.stringType().noDefault()
+        .name("keyClass").`type`.stringType().noDefault()
         .name("key").`type`.stringType().noDefault()
+        .name("valueClass").`type`.stringType().noDefault()
         .name("value").`type`.stringType().noDefault().endRecord().noDefault()
     } else {
       withFields
@@ -125,7 +134,7 @@ object AvroSimpleFeatureUtils {
       } else if (classOf[Array[Byte]].isAssignableFrom(binding)) {
         (value: AnyRef) => ByteBuffer.wrap(value.asInstanceOf[Array[Byte]])
       } else {
-        (value: AnyRef) => Option(Converters.convert(value, classOf[String])).getOrElse(value.toString)
+        (value: AnyRef) => FastConverter.convert(value, classOf[String])
       }
 
       (nameEncoder.encode(ad.getLocalName), Binding(ad.getType.getBinding, converter))
@@ -217,6 +226,44 @@ object AvroSimpleFeatureUtils {
         map.put(key, value)
       }
       map
+    }
+  }
+
+  def schemaToSft(schema: Schema,
+                  sftName: String,
+                  geomAttr: Option[String],
+                  dateAttr: Option[String]): SimpleFeatureType = {
+    val builder = new SimpleFeatureTypeBuilder
+    builder.setName(sftName)
+    geomAttr.foreach { ga =>
+      builder.setDefaultGeometry(ga)
+      builder.add(ga, classOf[Geometry])
+    }
+    dateAttr.foreach(builder.add(_, classOf[Date]))
+    schema.getFields.foreach(addSchemaToBuilder(builder, _))
+    builder.buildFeatureType()
+  }
+
+  def addSchemaToBuilder(builder: SimpleFeatureTypeBuilder,
+                         field: Schema.Field,
+                         typeOverride: Option[Schema.Type] = None): Unit = {
+    typeOverride.getOrElse(field.schema().getType) match {
+      case Schema.Type.STRING  => builder.add(field.name(), classOf[java.lang.String])
+      case Schema.Type.BOOLEAN => builder.add(field.name(), classOf[java.lang.Boolean])
+      case Schema.Type.INT     => builder.add(field.name(), classOf[java.lang.Integer])
+      case Schema.Type.DOUBLE  => builder.add(field.name(), classOf[java.lang.Double])
+      case Schema.Type.LONG    => builder.add(field.name(), classOf[java.lang.Long])
+      case Schema.Type.FLOAT   => builder.add(field.name(), classOf[java.lang.Float])
+      case Schema.Type.BYTES   => logger.error("Avro schema requested BYTES, which is not yet supported") // TODO support
+      case Schema.Type.UNION   => field.schema().getTypes.map(_.getType).find(_ != Schema.Type.NULL)
+                                       .foreach(t => addSchemaToBuilder(builder, field, Option(t))) // TODO support more union types and log any errors better
+      case Schema.Type.MAP     => logger.error("Avro schema requested MAP, which is not yet supported") // TODO support
+      case Schema.Type.RECORD  => logger.error("Avro schema requested RECORD, which is not yet supported") // TODO support
+      case Schema.Type.ENUM    => builder.add(field.name(), classOf[java.lang.String])
+      case Schema.Type.ARRAY   => logger.error("Avro schema requested ARRAY, which is not yet supported") // TODO support
+      case Schema.Type.FIXED   => logger.error("Avro schema requested FIXED, which is not yet supported") // TODO support
+      case Schema.Type.NULL    => logger.error("Avro schema requested NULL, which is not yet supported") // TODO support
+      case _                   => logger.error(s"Avro schema requested unknown type ${field.schema().getType}")
     }
   }
 

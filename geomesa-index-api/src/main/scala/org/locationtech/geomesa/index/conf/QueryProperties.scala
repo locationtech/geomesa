@@ -1,23 +1,54 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.index.conf
 
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.opengis.filter.Filter
 
 object QueryProperties {
-  val QUERY_EXACT_COUNT    = SystemProperty("geomesa.force.count", "false")
-  val QUERY_COST_TYPE      = SystemProperty("geomesa.query.cost.type")
-  val QUERY_TIMEOUT_MILLIS = SystemProperty("geomesa.query.timeout.millis") // default is no timeout
-  // rough upper limit on the number of ranges we will generate per query
-  val SCAN_RANGES_TARGET   = SystemProperty("geomesa.scan.ranges.target", "2000")
-}
 
-object StatsProperties {
-  val GENERATE_STATS = SystemProperty("geomesa.stats.generate", null)
+  val QueryExactCount = SystemProperty("geomesa.force.count", "false")
+  val QueryCostType   = SystemProperty("geomesa.query.cost.type")
+  val QueryTimeout    = SystemProperty("geomesa.query.timeout") // default is no timeout
+
+  // rough upper limit on the number of ranges we will generate per query
+  val ScanRangesTarget = SystemProperty("geomesa.scan.ranges.target", "2000")
+
+  // decomposition is disabled by default
+  val PolygonDecompMultiplier = SystemProperty("geomesa.query.decomposition.multiplier", "0")
+  val PolygonDecompBits = SystemProperty("geomesa.query.decomposition.bits", "20")
+  
+  // S2 parameter configuration
+  val S2CoverConfig = SystemProperty("google.s2.coverer.config", "0,30,1,8")
+    .get.trim.split(",")
+    .map(item => item.toInt)
+  val S2MinLevel = S2CoverConfig(0)
+  val S2MaxLevel = S2CoverConfig(1)
+  val S2LevelMod = S2CoverConfig(2)
+  val S2MaxCells = S2CoverConfig(3)
+  
+  // noinspection TypeAnnotation
+  // allow for full table scans or preempt them due to size of data set
+  val BlockFullTableScans = new SystemProperty("geomesa.scan.block-full-table", "false") {
+    def onFullTableScan(typeName: String, filter: Filter): Unit = {
+      val block =
+        Option(GeoMesaSystemProperties.getProperty(s"geomesa.scan.$typeName.block-full-table"))
+          .map(java.lang.Boolean.parseBoolean)
+          .orElse(toBoolean)
+          .getOrElse(false)
+      if (block) {
+        throw new RuntimeException(s"Full-table scans are disabled. Query being stopped for $typeName: " +
+            org.locationtech.geomesa.filter.filterToString(filter))
+      }
+    }
+  }
+
+  val BlockMaxThreshold = SystemProperty("geomesa.scan.block-full-table.threshold", "1000")
 }

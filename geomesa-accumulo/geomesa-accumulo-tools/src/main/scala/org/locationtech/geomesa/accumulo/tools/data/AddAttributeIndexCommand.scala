@@ -1,17 +1,18 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.tools.data
 
 import com.beust.jcommander.{Parameter, Parameters}
 import org.locationtech.geomesa.accumulo.tools.data.AddAttributeIndexCommand.AddAttributeIndexParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
-import org.locationtech.geomesa.jobs.accumulo.index.{AttributeIndexArgs, AttributeIndexJob}
+import org.locationtech.geomesa.jobs.accumulo.index.AttributeIndexJob
+import org.locationtech.geomesa.jobs.accumulo.index.AttributeIndexJob.AttributeIndexArgs
 import org.locationtech.geomesa.tools.{Command, RequiredAttributesParam, RequiredTypeNameParam}
 
 class AddAttributeIndexCommand extends AccumuloDataStoreCommand {
@@ -30,7 +31,7 @@ object AddAttributeIndexCommand {
   class AddAttributeIndexParams extends AccumuloDataStoreParams with RequiredTypeNameParam with RequiredAttributesParam {
     @Parameter(names = Array("--coverage"),
       description = "Type of index (join or full)", required = true)
-    var coverage: String = null
+    var coverage: String = _
   }
 }
 

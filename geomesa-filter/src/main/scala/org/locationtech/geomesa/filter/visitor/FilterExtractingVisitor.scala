@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.filter.visitor
 
@@ -20,17 +20,42 @@ import scala.collection.JavaConversions._
   * Extracts filters for a given attribute
   */
 object FilterExtractingVisitor {
+
+  /**
+    * Extract filters on a given attribute. If a schema is available,
+    * prefer `apply(Filter, String, SimpleFeatureType, Predicate)` as that will handle
+    * things like default geometry bboxes
+    *
+    * @param filter filter to evaluate
+    * @param attribute attribute to extract
+    * @param predicate additional predicate on the filters matching the attribute
+    * @return (filter on the attribute, filter on everything else)
+    */
+  def apply(filter: Filter,
+            attribute: String,
+            predicate: Filter => Boolean): (Option[Filter], Option[Filter]) =
+    apply(filter, attribute, null, predicate)
+
+  /**
+    * Extract filters on a given attribute
+    *
+    * @param filter filter to evaluate
+    * @param attribute attribute to extract
+    * @param sft simple feature type
+    * @param predicate additional predicate on the filters matching the attribute
+    * @return (filter on the attribute, filter on everything else)
+    */
   def apply(filter: Filter,
             attribute: String,
             sft: SimpleFeatureType,
-            predicate: (Filter) => Boolean = (_) => true): (Option[Filter], Option[Filter]) = {
+            predicate: Filter => Boolean = _ => true): (Option[Filter], Option[Filter]) = {
     val visitor = new FilterExtractingVisitor(attribute, sft, predicate)
     val (yes, no) = filter.accept(visitor, null).asInstanceOf[(Filter, Filter)]
     (Option(yes), Option(no))
   }
 }
 
-class FilterExtractingVisitor(attribute: String, sft: SimpleFeatureType, predicate: (Filter) => Boolean)
+class FilterExtractingVisitor(attribute: String, sft: SimpleFeatureType, predicate: Filter => Boolean)
     extends FilterVisitor {
 
   import org.locationtech.geomesa.filter.{andOption, ff, orOption}

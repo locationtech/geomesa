@@ -1,16 +1,16 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.hbase.data
 
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -33,11 +33,11 @@ class HBaseIntegrationTest extends Specification {
   "HBaseDataStore" should {
     "work with points" >> {
       val typeName = "testpoints"
-      val params = Map(BigTableNameParam.getName -> "integration_test")
+      val params = Map(HBaseCatalogParam.getName -> "integration_test")
       lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       def createFeatures(sft: SimpleFeatureType) = (0 until 10).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf.setAttribute(0, s"name $i")
         sf.setAttribute(1, s"2014-01-01T0$i:00:01.000Z")
@@ -87,11 +87,11 @@ class HBaseIntegrationTest extends Specification {
 
     "work with points" >> {
       val typeName = "testpolys"
-      val params = Map(BigTableNameParam.getName -> "integration_test")
+      val params = Map(HBaseCatalogParam.getName -> "integration_test")
       lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       def createFeatures(sft: SimpleFeatureType) = (0 until 10).map { i =>
-        val sf = new ScalaSimpleFeature(i.toString, sft)
+        val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf.setAttribute(0, s"name $i")
         sf.setAttribute(1, s"2014-01-01T0$i:00:01.000Z")

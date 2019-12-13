@@ -1,0 +1,24 @@
+/***********************************************************************
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
+
+package org.locationtech.geomesa.spark.jts
+
+import org.apache.spark.sql.SQLContext
+
+package object udf {
+  /** Registration delegation function, called by `initJTS`.
+   * New UDF sets should be added here. */
+  private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
+    GeometricAccessorFunctions.registerFunctions(sqlContext)
+    GeometricCastFunctions.registerFunctions(sqlContext)
+    GeometricConstructorFunctions.registerFunctions(sqlContext)
+    GeometricOutputFunctions.registerFunctions(sqlContext)
+    GeometricProcessingFunctions.registerFunctions(sqlContext)
+    SpatialRelationFunctions.registerFunctions(sqlContext)
+  }
+}

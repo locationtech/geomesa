@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.audit
 
@@ -58,7 +58,7 @@ object AccumuloQueryEventTransform extends AccumuloEventTransform[QueryEvent] {
         case CQ_HINTS    => values.put(CQ_HINTS, e.getValue.toString)
         case CQ_PLANTIME => values.put(CQ_PLANTIME, e.getValue.toString.stripSuffix("ms").toLong)
         case CQ_SCANTIME => values.put(CQ_SCANTIME, e.getValue.toString.stripSuffix("ms").toLong)
-        case CQ_HITS     => values.put(CQ_HITS, e.getValue.toString.toInt)
+        case CQ_HITS     => values.put(CQ_HITS, e.getValue.toString.toLong)
         case CQ_DELETED  => values.put(CQ_DELETED, e.getValue.toString.toBoolean)
         case CQ_TIME     => // time is an aggregate, doesn't need to map back to anything
         case _           => logger.warn(s"Unmapped entry in query stat: ${e.getKey.getColumnQualifier.toString}")
@@ -70,7 +70,7 @@ object AccumuloQueryEventTransform extends AccumuloEventTransform[QueryEvent] {
     val queryFilter = values.getOrElse(CQ_FILTER, "").asInstanceOf[String]
     val planTime = values.getOrElse(CQ_PLANTIME, 0L).asInstanceOf[Long]
     val scanTime = values.getOrElse(CQ_SCANTIME, 0L).asInstanceOf[Long]
-    val hits = values.getOrElse(CQ_HITS, 0).asInstanceOf[Int]
+    val hits = values.getOrElse(CQ_HITS, 0L).asInstanceOf[Long]
     val deleted = values.getOrElse(CQ_DELETED, false).asInstanceOf[Boolean]
 
     QueryEvent(AccumuloAuditService.StoreType, featureName, date, user, queryFilter, queryHints, planTime, scanTime, hits, deleted)

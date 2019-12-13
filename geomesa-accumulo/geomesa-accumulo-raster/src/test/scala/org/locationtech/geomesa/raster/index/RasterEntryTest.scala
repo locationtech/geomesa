@@ -1,17 +1,16 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.raster.index
 
 import java.util.Date
 
 import org.apache.accumulo.core.data.Key
-import org.joda.time.DateTime
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.specs2.mutable.Specification
@@ -22,7 +21,7 @@ class RasterEntryTest extends Specification {
 
   sequential
 
-  val now = new DateTime().toDate
+  val now = new Date()
   val emptyByte = Array.empty[Byte]
 
   def makeKey(cq: Array[Byte]): Key = new Key(emptyByte, emptyByte, cq, emptyByte, Long.MaxValue)

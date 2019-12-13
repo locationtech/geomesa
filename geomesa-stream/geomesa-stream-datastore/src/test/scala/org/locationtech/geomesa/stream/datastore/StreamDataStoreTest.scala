@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.stream.datastore
 
@@ -15,7 +15,6 @@ import com.google.common.io.Resources
 import org.apache.commons.io.IOUtils
 import org.apache.commons.net.DefaultSocketFactory
 import org.geotools.data.DataStoreFinder
-import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -28,13 +27,16 @@ import scala.concurrent.Future
 @RunWith(classOf[JUnitRunner])
 class StreamDataStoreTest extends Specification {
 
+  import org.locationtech.geomesa.filter.ff
+
+  import scala.concurrent.ExecutionContext.Implicits.global
+
   sequential
 
   val count  = new AtomicLong(0)
   val count2 = new AtomicLong(0)
   val count3 = new AtomicLong(0)
 
-  val ff = CommonFactoryFinder.getFilterFactory2()
   val sourceConf =
     """
       |{
@@ -62,8 +64,8 @@ class StreamDataStoreTest extends Specification {
     """.stripMargin
 
   val sds = DataStoreFinder.getDataStore(Map(
-      StreamDataStoreParams.STREAM_DATASTORE_CONFIG.key -> sourceConf,
-      StreamDataStoreParams.CACHE_TIMEOUT.key -> Integer.valueOf(2)
+      StreamDataStoreParams.StreamDatastoreConfig.key -> sourceConf,
+      StreamDataStoreParams.CacheTimeout.key -> Integer.valueOf(2)
     )).asInstanceOf[StreamDataStore]
 
   "StreamDataStore" should {

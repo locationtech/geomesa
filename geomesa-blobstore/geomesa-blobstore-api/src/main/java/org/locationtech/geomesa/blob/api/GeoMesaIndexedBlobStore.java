@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.blob.api;
 
@@ -54,7 +54,7 @@ public interface GeoMesaIndexedBlobStore extends Closeable {
     /**
      * Fetches Blob by id
      * @param id String feature Id of the Blob, from getIds functions
-     * @return Map.Entry<String, byte[]> map entry of filename to file bytes
+     * @return Map.Entry&lt;String, byte[]&gt; map entry of filename to file bytes
      */
     Blob get(String id);
 

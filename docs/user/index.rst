@@ -7,27 +7,32 @@ User Manual
    :numbered:
 
    introduction
-   architecture
-   getting_started
    download
    install
+   getting_started
+   architecture
    datastores/index
-   accumulo/index
-   kafka/index
-   hbase/index
-   bigtable/index
-   cassandra/index
-   geoserver
-   blobstore
+   cli/index
    convert/index
-   geojson
-   metrics
-   native_api
+   geoserver
+   spark/index
    nifi
    process
-   spark/index
+   hbase/index
+   accumulo/index
+   cassandra/index
+   bigtable/index
+   kafka/index
+   redis/index
+   filesystem/index
+   kudu/index
+   lambda/index
+   ds_views
+   geojson
+   blobstore
+   native_api
    stream
-   web_data
+   upgrade
 
 Appendix
 --------
@@ -35,5 +40,7 @@ Appendix
 .. toctree::
    :maxdepth: 2
 
-   appendix/commandline_old_commands
    appendix/utils
+   appendix/memory
+   appendix/metrics
+   appendix/web_data

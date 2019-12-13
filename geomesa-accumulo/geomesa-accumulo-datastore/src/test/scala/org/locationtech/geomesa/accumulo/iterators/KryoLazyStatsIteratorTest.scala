@@ -1,21 +1,20 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.iterators
 
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
-import org.joda.time.{DateTime, DateTimeZone}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.iterators.KryoLazyStatsIterator.decodeStat
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.stats._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -23,16 +22,15 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
 
-  sequential
+  import org.locationtech.geomesa.index.iterators.StatsScan.decodeStat
 
-  import org.locationtech.geomesa.utils.geotools.Conversions._
+  sequential
 
   override val spec = "idt:java.lang.Integer:index=full,attr:java.lang.Long:index=join,dtg:Date,*geom:Point:srid=4326"
 
   addFeatures((0 until 150).toArray.map { i =>
-    val attrs = Array(i.asInstanceOf[AnyRef], (i * 2).asInstanceOf[AnyRef],
-      new DateTime("2012-01-01T19:00:00", DateTimeZone.UTC).toDate, "POINT(-77 38)")
-    val sf = new ScalaSimpleFeature(i.toString, sft)
+    val attrs = Array(i.asInstanceOf[AnyRef], (i * 2).asInstanceOf[AnyRef], "2012-01-01T19:00:00Z", "POINT(-77 38)")
+    val sf = new ScalaSimpleFeature(sft, i.toString)
     sf.setAttributes(attrs)
     sf
   })
@@ -52,29 +50,29 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
 
     "work with the MinMax stat" in {
       val q = getQuery("MinMax(attr)")
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
-      val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
+      val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
       minMaxStat.bounds mustEqual (0, 298)
     }
 
     "work with the IteratorStackCount stat" in {
       val q = getQuery("IteratorStackCount()")
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
-      val isc = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[IteratorStackCount]
+      val isc = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[IteratorStackCount]
       // note: I don't think there is a defined answer here that isn't implementation specific
       isc.count must beGreaterThanOrEqualTo(1L)
     }
 
     "work with the Enumeration stat" in {
       val q = getQuery("Enumeration(idt)")
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
-      val eh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[EnumerationStat[java.lang.Integer]]
+      val eh = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[EnumerationStat[java.lang.Integer]]
       eh.size mustEqual 150
       eh.frequency(0) mustEqual 1
       eh.frequency(149) mustEqual 1
@@ -83,10 +81,10 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
 
     "work with the Histogram stat" in {
       val q = getQuery("Histogram(idt,5,10,14)", Some("idt between 10 and 14"))
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
-      val rh = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[Histogram[java.lang.Integer]]
+      val rh = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[Histogram[java.lang.Integer]]
       rh.length mustEqual 5
       rh.count(rh.indexOf(10)) mustEqual 1
       rh.count(rh.indexOf(11)) mustEqual 1
@@ -97,10 +95,10 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
 
     "work with multiple stats at once" in {
       val q = getQuery("MinMax(attr);IteratorStackCount();Enumeration(idt);Histogram(idt,5,10,14)")
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
-      val seqStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[SeqStat]
+      val seqStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[SeqStat]
       val stats = seqStat.stats
       stats.size mustEqual 4
 
@@ -126,50 +124,50 @@ class KryoLazyStatsIteratorTest extends Specification with TestWithDataStore {
     "work with the stidx index" in {
       val q = getQuery("MinMax(attr)")
       q.setFilter(ECQL.toFilter("bbox(geom,-80,35,-75,40)"))
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
-      val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
+      val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
       minMaxStat.bounds mustEqual (0, 298)
     }
 
     "work with the record index" in {
       val q = getQuery("MinMax(attr)")
       q.setFilter(ECQL.toFilter("IN(0)"))
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
-      val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
+      val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
       minMaxStat.bounds mustEqual (0, 0)
     }
 
     "work with the attribute partial index" in {
       val q = getQuery("MinMax(attr)")
       q.setFilter(ECQL.toFilter("attr > 10"))
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
-      val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
+      val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
       minMaxStat.bounds mustEqual (12, 298)
     }
 
     "work with the attribute join index" in {
       val q = getQuery("MinMax(idt)")
       q.setFilter(ECQL.toFilter("attr > 10"))
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
-      val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Integer]]
+      val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Integer]]
       minMaxStat.bounds mustEqual (6, 149)
     }
 
     "work with the attribute full index" in {
       val q = getQuery("MinMax(attr)")
       q.setFilter(ECQL.toFilter("idt > 10"))
-      val results = fs.getFeatures(q).features().toList
+      val results = SelfClosingIterator(fs.getFeatures(q).features).toList
       val sf = results.head
 
-      val minMaxStat = decodeStat(sf.getAttribute(0).asInstanceOf[String], sft).asInstanceOf[MinMax[java.lang.Long]]
+      val minMaxStat = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[MinMax[java.lang.Long]]
       minMaxStat.bounds mustEqual (22, 298)
     }
 

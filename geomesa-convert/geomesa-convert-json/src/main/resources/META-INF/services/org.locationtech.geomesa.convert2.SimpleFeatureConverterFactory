@@ -1,0 +1,2 @@
+org.locationtech.geomesa.convert.json.JsonConverterFactory
+org.locationtech.geomesa.convert.json.JsonCompositeConverterFactory

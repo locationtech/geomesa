@@ -1,20 +1,22 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.metrics.reporters
 
 import java.io._
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
+import java.time.temporal.ChronoField
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 import com.codahale.metrics._
 import org.apache.commons.csv.{CSVFormat, CSVPrinter}
-import org.joda.time.format.DateTimeFormat
 
 import scala.language.implicitConversions
 
@@ -22,6 +24,7 @@ import scala.language.implicitConversions
  * Reporter for dropwizard metrics that will write to delimited files. In contrast to the
  * dropwizard CSVReporter, allows for either CSV or TSV files and for aggregating metrics by type.
  */
+@deprecated("Will be removed without replacement")
 object DelimitedFileReporter {
 
   val gaugeCols = Array(("value", "%s"))
@@ -129,7 +132,19 @@ class DelimitedFileReporter private (registry: MetricRegistry,
     require(folder.mkdirs(), s"Can't create folder at $path")
   }
 
-  private val timeEncoder = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS").withZoneUTC()
+  private val timeEncoder =
+    new DateTimeFormatterBuilder()
+        .append(DateTimeFormatter.ISO_LOCAL_DATE)
+        .appendLiteral('T')
+        .appendValue(ChronoField.HOUR_OF_DAY, 2)
+        .appendLiteral(':')
+        .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
+        .appendLiteral(':')
+        .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+        .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
+        .appendOffsetId()
+        .toFormatter(Locale.US)
+        .withZone(ZoneOffset.UTC)
 
   def flush(): Unit = writers.synchronized(writers.values.foreach(_.flush()))
 
@@ -142,9 +157,9 @@ class DelimitedFileReporter private (registry: MetricRegistry,
                       counters: java.util.SortedMap[String, Counter],
                       histograms: java.util.SortedMap[String, Histogram],
                       meters: java.util.SortedMap[String, Meter],
-                      timers: java.util.SortedMap[String, Timer]) = {
+                      timers: java.util.SortedMap[String, Timer]): Unit = {
     import scala.collection.JavaConversions._
-    lazy val timestamp = timeEncoder.print(clock.getTime)
+    lazy val timestamp = ZonedDateTime.ofInstant(Instant.ofEpochMilli(clock.getTime), ZoneOffset.UTC).format(timeEncoder)
     gauges.foreach { case (name, metric) => writeGauge(name, timestamp, metric) }
     counters.foreach { case (name, metric) => writeCounter(name, timestamp, metric) }
     histograms.foreach { case (name, metric) => writeHistogram(name, timestamp, metric) }

@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.stats
 
@@ -45,12 +45,12 @@ class CountStatTest extends Specification with StatTestHelper {
 
     "serialize to json" >> {
       val stat = newStat()
-      stat.toJson mustEqual """{ "count": 100 }"""
+      stat.toJson must beEqualTo("""{ "count": 100 }""").ignoreSpace
     }
 
     "serialize empty to json" >> {
       val stat = newStat(observe = false)
-      stat.toJson mustEqual """{ "count": 0 }"""
+      stat.toJson must beEqualTo("""{ "count": 0 }""").ignoreSpace
     }
 
     "serialize and deserialize" >> {

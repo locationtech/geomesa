@@ -1,62 +1,65 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.spark
-
-import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{DataFrame, SQLContext, SQLTypes, SparkSession}
 import org.geotools.data.{Query, Transaction}
-import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloSparkProviderTest extends Specification with TestWithDataStore with LazyLogging {
 
+  import AccumuloDataStoreParams._
+  import org.locationtech.geomesa.filter.ff
+
+  sequential
+
   override lazy val sftName: String = "chicago"
   override def spec: String = SparkSQLTestUtils.ChiSpec
-  private val ff = CommonFactoryFinder.getFilterFactory2
 
-  "sql data tests" should {
-    sequential
+  var spark: SparkSession = _
+  var sc: SQLContext = _
 
-    var spark: SparkSession = null
-    var sc: SQLContext = null
+  var df: DataFrame = _
 
-    var df: DataFrame = null
+  val params = dsParams.filterNot { case (k, _) => k == AccumuloDataStoreParams.ConnectorParam.key } ++
+      Map(AccumuloDataStoreParams.MockParam.key -> true)
 
-    val params = dsParams.filterNot { case (k, _) => k == "connector" } ++ Map("useMock" -> true)
+  // before
+  step {
+    spark = SparkSQLTestUtils.createSparkSession()
+    sc = spark.sqlContext
+    SQLTypes.init(sc)
+    SparkSQLTestUtils.ingestChicago(ds)
 
-    // before
-    step {
-      spark = SparkSQLTestUtils.createSparkSession()
-      sc = spark.sqlContext
-      SQLTypes.init(sc)
-      SparkSQLTestUtils.ingestChicago(ds)
-
-      df = spark.read
+    df = spark.read
         .format("geomesa")
-        .option("instanceId", mockInstanceId)
-        .option("zookeepers", mockZookeepers)
-        .option("user", mockUser)
-        .option("password", mockPassword)
+        .option(InstanceIdParam.key, mockInstanceId)
+        .option(ZookeepersParam.key, mockZookeepers)
+        .option(UserParam.key, mockUser)
+        .option(PasswordParam.key, mockPassword)
         .options(params.map { case (k, v) => k -> v.toString })
         .option("geomesa.feature", "chicago")
         .load()
 
-      logger.debug(df.schema.treeString)
-      df.createOrReplaceTempView("chicago")
-    }
+    logger.debug(df.schema.treeString)
+    df.createOrReplaceTempView("chicago")
+  }
+
+  "sql data tests" should {
 
     "select by secondary indexed attribute" >> {
       val cases = df.select("case_number").where("case_number = 1").collect().map(_.getInt(0))
@@ -78,10 +81,10 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
     "write data and properly index" >> {
       val subset = sc.sql("select case_number,geom,dtg from chicago")
       subset.write.format("geomesa")
-        .option("instanceId", mockInstanceId)
-        .option("zookeepers", mockZookeepers)
-        .option("user", mockUser)
-        .option("password", mockPassword)
+        .option(InstanceIdParam.key, mockInstanceId)
+        .option(ZookeepersParam.key, mockZookeepers)
+        .option(UserParam.key, mockUser)
+        .option(PasswordParam.key, mockPassword)
         .options(params.map { case (k, v) => k -> v.toString })
         .option("geomesa.feature", "chicago2")
         .save()
@@ -94,21 +97,19 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
     "handle reuse __fid__ on write if available" >> {
       val subset = sc.sql("select __fid__,case_number,geom,dtg from chicago")
       subset.write.format("geomesa")
-        .option("instanceId", mockInstanceId)
-        .option("zookeepers", mockZookeepers)
-        .option("user", mockUser)
-        .option("password", mockPassword)
+        .option(InstanceIdParam.key, mockInstanceId)
+        .option(ZookeepersParam.key, mockZookeepers)
+        .option(UserParam.key, mockUser)
+        .option(PasswordParam.key, mockPassword)
         .options(params.map { case (k, v) => k -> v.toString })
         .option("geomesa.feature", "fidOnWrite")
         .save()
-
-      import org.locationtech.geomesa.utils.geotools.Conversions._
       val filter = ff.equals(ff.property("case_number"), ff.literal(1))
       val queryOrig = new Query("chicago", filter)
-      val origResults = ds.getFeatureReader(queryOrig, Transaction.AUTO_COMMIT).toIterator.toList
+      val origResults = SelfClosingIterator(ds.getFeatureReader(queryOrig, Transaction.AUTO_COMMIT)).toList
 
       val query = new Query("fidOnWrite", filter)
-      val results = ds.getFeatureReader(query, Transaction.AUTO_COMMIT).toIterator.toList
+      val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
 
       results.head.getID must be equalTo origResults.head.getID
     }

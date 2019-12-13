@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features.avro.serde
 
@@ -15,9 +15,10 @@ import java.util.UUID
 import org.apache.avro.io.DecoderFactory
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.avro.{AvroSimpleFeature, FeatureSpecificReader}
+import org.locationtech.geomesa.features.avro.FeatureSpecificReader
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -63,9 +64,9 @@ class Version3CompatTest extends Specification {
 
       val fis = new FileInputStream(f)
       val decoder = DecoderFactory.get().binaryDecoder(fis, null)
-      val fsr = new FeatureSpecificReader(sft, sft)
+      val fsr = FeatureSpecificReader(sft)
 
-      val sfList = new ListBuffer[AvroSimpleFeature]()
+      val sfList = new ListBuffer[SimpleFeature]()
       do {
         sfList += fsr.read(null, decoder)
       } while(!decoder.isEnd)

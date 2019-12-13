@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.raster.data
 
@@ -12,36 +12,34 @@ import java.awt.image.BufferedImage
 import java.io.{Closeable, Serializable}
 import java.util.Map.Entry
 import java.util.concurrent.TimeUnit
-import java.util.{Map => JMap}
+import java.util.{Date, Map => JMap}
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.google.common.collect.{ImmutableMap, ImmutableSetMultimap}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{BatchWriterConfig, Connector, TableExistsException}
 import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
-import org.apache.accumulo.core.security.TablePermission
+import org.apache.accumulo.core.security.{Authorizations, TablePermission}
 import org.geotools.coverage.grid.GridEnvelope2D
-import org.joda.time.DateTime
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
-import org.locationtech.geomesa.accumulo.security.AccumuloAuthsProvider
 import org.locationtech.geomesa.raster._
 import org.locationtech.geomesa.raster.index.RasterIndexSchema
 import org.locationtech.geomesa.raster.iterators.BBOXCombiner._
 import org.locationtech.geomesa.raster.util.RasterUtils
+import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geohash.BoundingBox
-import org.locationtech.geomesa.utils.stats.{MethodProfiling, NoOpTimings, Timings, TimingsImpl}
 
 import scala.collection.JavaConversions._
 
 class AccumuloRasterStore(val connector: Connector,
                           val tableName: String,
-                          val authorizationsProvider: AccumuloAuthsProvider,
+                          val authorizationsProvider: AuthorizationsProvider,
                           val writeVisibilities: String,
                           writeMemoryConfig: Option[String] = None,
                           writeThreadsConfig: Option[Int] = None,
                           queryThreadsConfig: Option[Int] = None,
-                          collectStats: Boolean = false) extends Closeable with MethodProfiling with LazyLogging {
+                          collectStats: Boolean = false) extends Closeable with LazyLogging {
 
   val writeMemory = writeMemoryConfig.getOrElse("10000").toLong
   val writeThreads = writeThreadsConfig.getOrElse(10)
@@ -56,7 +54,7 @@ class AccumuloRasterStore(val connector: Connector,
 
   private val usageStats = if (collectStats) new AccumuloAuditService(connector, authorizationsProvider, profileTable, true) else null
 
-  def getAuths = authorizationsProvider.getAuthorizations
+  def getAuths = new Authorizations(authorizationsProvider.getAuthorizations: _*)
 
   /**
    *  Given A Query, return a single buffered image that is a mosaic of the tiles
@@ -67,26 +65,19 @@ class AccumuloRasterStore(val connector: Connector,
    * @return Buffered
    */
   def getMosaicedRaster(query: RasterQuery, params: GeoMesaCoverageQueryParams): BufferedImage = {
-    implicit val timings = if (collectStats) new TimingsImpl else NoOpTimings
-    val rasters = getRasters(query)
-    val (image, numRasters) = profile("mosaic") {
-      RasterUtils.mosaicChunks(rasters, params.width.toInt, params.height.toInt, params.envelope)
-    }
-    image
+    RasterUtils.mosaicChunks(getRasters(query), params.width.toInt, params.height.toInt, params.envelope)._1
   }
 
-  def getRasters(rasterQuery: RasterQuery)(implicit timings: Timings): Iterator[Raster] = {
-    profile("scanning") {
-      val batchScanner = connector.createBatchScanner(tableName, getAuths, numQThreads)
-      val plan = AccumuloRasterQueryPlanner.getQueryPlan(rasterQuery, getResToGeoHashLenMap, getResToBoundsMap)
-      plan match {
-        case Some(qp) =>
-          qp.iterators.foreach(batchScanner.addScanIterator)
-          qp.columnFamilies.foreach(batchScanner.fetchColumnFamily)
-          batchScanner.setRanges(qp.ranges)
-          adaptIteratorToChunks(SelfClosingIterator(batchScanner.iterator, batchScanner.close))
-        case _        => Iterator.empty
-      }
+  def getRasters(rasterQuery: RasterQuery): Iterator[Raster] = {
+    val batchScanner = connector.createBatchScanner(tableName, getAuths, numQThreads)
+    val plan = AccumuloRasterQueryPlanner.getQueryPlan(rasterQuery, getResToGeoHashLenMap, getResToBoundsMap)
+    plan match {
+      case Some(qp) =>
+        qp.iterators.foreach(batchScanner.addScanIterator)
+        qp.columnFamily.foreach(batchScanner.fetchColumnFamily)
+        batchScanner.setRanges(qp.ranges)
+        adaptIteratorToChunks(SelfClosingIterator(batchScanner.iterator, batchScanner.close))
+      case _        => Iterator.empty
     }
   }
 
@@ -165,7 +156,7 @@ class AccumuloRasterStore(val connector: Connector,
     iter.map(entry => RasterIndexSchema.decode((entry.getKey, entry.getValue)))
   }
 
-  private def dateToAccTimestamp(dt: DateTime): Long =  dt.getMillis / 1000
+  private def dateToAccTimestamp(dt: Date): Long =  dt.getTime / 1000
 
   private def createBoundsMutation(raster: Raster): Mutation = {
     // write the bounds mutation
@@ -311,19 +302,18 @@ object AccumuloRasterStore {
   }
 
   def apply(config: JMap[String, Serializable]): AccumuloRasterStore = {
-    import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.RichParam
-    val username: String     = userParam.lookUp(config).asInstanceOf[String]
-    val password: String     = passwordParam.lookUp(config).asInstanceOf[String]
-    val instance: String     = instanceIdParam.lookUp(config).asInstanceOf[String]
-    val zookeepers: String   = zookeepersParam.lookUp(config).asInstanceOf[String]
-    val auths: String        = authsParam.lookupOpt[String](config).getOrElse("")
-    val vis: String          = visibilityParam.lookupOpt[String](config).getOrElse("")
-    val tablename: String    = tableNameParam.lookUp(config).asInstanceOf[String]
-    val useMock: Boolean     = mockParam.lookUp(config).asInstanceOf[String].toBoolean
-    val wMem: Option[String] = RasterParams.writeMemoryParam.lookupOpt[String](config)
-    val wThread: Option[Int] = writeThreadsParam.lookupOpt[Int](config)
-    val qThread: Option[Int] = queryThreadsParam.lookupOpt[Int](config)
-    val cStats: Boolean      = java.lang.Boolean.valueOf(collectQueryStatsParam.lookupOpt[Boolean](config).getOrElse(false))
+    val username: String     = UserParam.lookup(config)
+    val password: String     = PasswordParam.lookup(config)
+    val instance: String     = InstanceIdParam.lookup(config)
+    val zookeepers: String   = ZookeepersParam.lookup(config)
+    val auths: String        = AuthsParam.lookupOpt(config).getOrElse("")
+    val vis: String          = VisibilitiesParam.lookupOpt(config).getOrElse("")
+    val tablename: String    = CatalogParam.lookup(config)
+    val useMock: Boolean     = MockParam.lookup(config).booleanValue
+    val wMem: Option[String] = RasterParams.writeMemoryParam.lookupOpt(config).map(_.toString)
+    val wThread: Option[Int] = WriteThreadsParam.lookupOpt(config).map(_.intValue)
+    val qThread: Option[Int] = QueryThreadsParam.lookupOpt(config).map(_.intValue)
+    val cStats: Boolean      = AuditQueriesParam.lookupOpt(config).exists(_.booleanValue)
 
     AccumuloRasterStore(username, password, instance, zookeepers, tablename,
       auths, vis, useMock, wMem, wThread, qThread, cStats)

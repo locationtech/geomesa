@@ -1,0 +1,18 @@
+<configuration>
+  <property>
+    <name>hbase.client.connection.impl</name>
+    <value>com.google.cloud.bigtable.hbase1_3.BigtableConnection</value>
+  </property>
+  <property>
+    <name>google.bigtable.instance.id</name>
+    <value>[INSTANCE-ID]</value>
+  </property>
+  <property>
+    <name>google.bigtable.project.id</name>
+    <value>[PROJECT-ID]</value>
+  </property>
+  <property>
+    <name>google.bigtable.rpc.timeout.ms</name>
+    <value>60000</value>
+  </property>
+</configuration>

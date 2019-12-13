@@ -1,180 +1,110 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features
 
 import java.util.Collections
+import java.util.concurrent.Phaser
 
-import com.vividsolutions.jts.geom.Geometry
-import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
-import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
-import org.geotools.filter.identity.FeatureIdImpl
-import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.util.Converters
-import org.opengis.feature.`type`.{AttributeDescriptor, Name}
+import org.locationtech.geomesa.features.AbstractSimpleFeature.{AbstractImmutableSimpleFeature, AbstractMutableSimpleFeature}
+import org.locationtech.geomesa.utils.collection.WordBitSet
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.feature.{GeometryAttribute, Property}
-import org.opengis.filter.identity.FeatureId
-import org.opengis.geometry.BoundingBox
-
-import scala.collection.JavaConversions._
 
 /**
- * Simple feature implementation optimized to instantiate from serialization
- *
- * @param initialId simple feature id
- * @param sft simple feature type
- * @param initialValues if provided, must already be converted into the appropriate types
- */
-class ScalaSimpleFeature(initialId: String,
-                         sft: SimpleFeatureType,
-                         initialValues: Array[AnyRef] = null,
-                         initialUserData: java.util.Map[AnyRef, AnyRef] = null)
-    extends SimpleFeature {
+  * Simple feature implementation optimized to instantiate from serialization
+  *
+  * @param sft simple feature type
+  * @param initialId simple feature id
+  * @param initialValues if provided, must already be converted into the appropriate types
+  * @param initialUserData user data
+  */
+class ScalaSimpleFeature(
+    sft: SimpleFeatureType,
+    initialId: String,
+    initialValues: Array[AnyRef] = null,
+    initialUserData: java.util.Map[AnyRef, AnyRef] = null
+  ) extends AbstractMutableSimpleFeature(sft, initialId, initialUserData) {
 
-  val featureId = new FeatureIdImpl(initialId)
-  val values = if (initialValues == null) Array.ofDim[AnyRef](sft.getAttributeCount) else initialValues
-
-  lazy private[this] val geomDesc  = sft.getGeometryDescriptor
-  lazy private[this] val geomIndex = if (geomDesc == null) -1 else sft.indexOf(geomDesc.getLocalName)
-  lazy private[this] val userData  =
-    if (initialUserData == null) {
-      new java.util.HashMap[AnyRef, AnyRef]()
-    } else {
-      new java.util.HashMap[AnyRef, AnyRef](initialUserData)
-    }
-
-  def setId(id: String): Unit = featureId.setID(id)
-
-  override def getFeatureType: SimpleFeatureType = sft
-  override def getType: SimpleFeatureType = sft
-  override def getIdentifier: FeatureId = featureId
-  override def getID: String = featureId.getID // this needs to reference the featureId, as it can be updated
-  override def getName: Name = sft.getName
-  override def getUserData: java.util.Map[AnyRef, AnyRef] = userData
-
-  override def getAttribute(name: Name): AnyRef = getAttribute(name.getLocalPart)
-  override def getAttribute(name: String): AnyRef = {
-    val index = sft.indexOf(name)
-    if (index == -1) null else getAttribute(index)
+  @deprecated("use primary constructor")
+  def this(initialId: String, sft: SimpleFeatureType) = {
+    this(sft, initialId, null, null)
   }
+
+  private val values = if (initialValues == null) { Array.ofDim[AnyRef](sft.getAttributeCount) } else { initialValues }
+
+  override def setAttributeNoConvert(index: Int, value: AnyRef): Unit = values(index) = value
   override def getAttribute(index: Int): AnyRef = values(index)
-
-  override def setAttribute(name: Name, value: Object): Unit = setAttribute(name.getLocalPart, value)
-  override def setAttribute(name: String, value: Object): Unit = {
-    val index = sft.indexOf(name)
-    if (index == -1) {
-      throw new IllegalArgumentException(s"Attribute $name does not exist in type $sft")
-    }
-    setAttribute(index, value)
-  }
-  override def setAttribute(index: Int, value: Object): Unit = {
-    val binding = sft.getDescriptor(index).getType.getBinding
-    values(index) = Converters.convert(value, binding).asInstanceOf[AnyRef]
-  }
-
-  // following methods delegate to setAttribute to get type conversion
-  override def setAttributes(vals: java.util.List[Object]): Unit = {
-    var i = 0
-    while (i < vals.size) {
-      setAttribute(i, vals.get(i))
-      i += 1
-    }
-  }
-  override def setAttributes(vals: Array[Object]): Unit = {
-    var i = 0
-    while (i < vals.length) {
-      setAttribute(i, vals(i))
-      i += 1
-    }
-  }
-
-  override def getAttributeCount: Int = values.length
-  override def getAttributes: java.util.List[Object] =
-    Collections.unmodifiableList(java.util.Arrays.asList(values: _*))
-
-  override def getDefaultGeometry: AnyRef = if (geomIndex == -1) null else getAttribute(geomIndex)
-  override def setDefaultGeometry(geo: Object): Unit = setAttribute(geomIndex, geo)
-
-  override def getBounds: BoundingBox = getDefaultGeometry match {
-    case g: Geometry => new ReferencedEnvelope(g.getEnvelopeInternal, sft.getCoordinateReferenceSystem)
-    case _ => new ReferencedEnvelope(sft.getCoordinateReferenceSystem)
-  }
-
-  override def getDefaultGeometryProperty: GeometryAttribute =
-    if (geomDesc == null) null else new GeometryAttributeImpl(getDefaultGeometry, geomDesc, null)
-  override def setDefaultGeometryProperty(geoAttr: GeometryAttribute): Unit =
-    if (geoAttr == null) setDefaultGeometry(null) else setDefaultGeometry(geoAttr.getValue)
-
-  override def getProperties: java.util.Collection[Property] = {
-    val attributes = getAttributes
-    val descriptors = sft.getAttributeDescriptors
-    assert(attributes.size == descriptors.size)
-    val properties = new java.util.ArrayList[Property](attributes.size)
-    var i = 0
-    while (i < attributes.size) {
-      properties.add(new AttributeImpl(attributes.get(i), descriptors.get(i), featureId))
-      i += 1
-    }
-    properties
-  }
-  override def getProperties(name: Name): java.util.Collection[Property] = getProperties(name.getLocalPart)
-  override def getProperties(name: String): java.util.Collection[Property] = getProperties.filter(_.getName.toString == name)
-  override def getProperty(name: Name): Property = getProperty(name.getLocalPart)
-  override def getProperty(name: String): Property = {
-    val descriptor = sft.getDescriptor(name)
-    if (descriptor == null) null else new AttributeImpl(getAttribute(name), descriptor, featureId)
-  }
-
-  override def getValue: java.util.Collection[Property] = getProperties
-  override def setValue(newValue: Object): Unit = setValue(newValue.asInstanceOf[java.util.Collection[Property]])
-  override def setValue(values: java.util.Collection[Property]): Unit = {
-    var i = 0
-    values.foreach { p =>
-      setAttribute(i, p.getValue)
-      i += 1
-    }
-  }
-
-  override def getDescriptor: AttributeDescriptor =
-    new AttributeDescriptorImpl(sft, sft.getName, 0, Int.MaxValue, true, null)
-
-  override def isNillable = true
-
-  override def validate(): Unit = {
-    var i = 0
-    while (i < values.length) {
-      Types.validate(sft.getDescriptor(i), values(i))
-      i += 1
-    }
-  }
-
-  override def toString = s"ScalaSimpleFeature:$getID:${getAttributes.mkString("|")}"
-
-  override def hashCode: Int = getID.hashCode()
-
-  override def equals(obj: scala.Any): Boolean = obj match {
-    case other: SimpleFeature =>
-      getID == other.getID && getName == other.getName && java.util.Arrays.equals(values, other.getAttributes.toArray)
-    case _ => false
-  }
 }
 
 object ScalaSimpleFeature {
 
-  def create(sft: SimpleFeatureType, copy: SimpleFeature): ScalaSimpleFeature =
-    new ScalaSimpleFeature(copy.getID, sft, copy.getAttributes.toArray, copy.getUserData)
+  import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
+
+  import scala.collection.JavaConverters._
 
   /**
-   * Creates a simple feature, converting the values to the appropriate type
-   */
+    * Copy the feature. This is a shallow copy, in that the attributes and user data values will be shared
+    * between the two features
+    *
+    * @param in feature to copy
+    * @return
+    */
+  def copy(in: SimpleFeature): ScalaSimpleFeature = copy(in.getFeatureType, in)
+
+  /**
+    * Copy the feature, with a new feature type. Attributes are copied by index and not converted, so the new
+    * feature type must have a compatible schema.
+    *
+    * This is a shallow copy, in that the attributes and user data values will be shared between the two features
+    *
+    * @param sft new simple feature type
+    * @param in feature to copy
+    * @return
+    */
+  def copy(sft: SimpleFeatureType, in: SimpleFeature): ScalaSimpleFeature =
+    new ScalaSimpleFeature(sft, in.getID, in.getAttributes.toArray, new java.util.HashMap[AnyRef, AnyRef](in.getUserData))
+
+  /**
+    * Copy the feature with a new feature type. Attributes will be copied by name, and converted
+    * as necessary. As compared to `copy`, the new feature type does not have to have a compatible schema.
+    *
+    * If the feature already has the desired feature type, it will be returned as-is and not copied.
+    *
+    * This is a shallow copy, in that the attributes and user data values will be shared between the two features
+    *
+    * @param sft new feature type
+    * @param in feature to copy
+    * @return
+    */
+  def retype(sft: SimpleFeatureType, in: SimpleFeature): SimpleFeature = {
+    if (sft == in.getFeatureType) { in } else {
+      val out = new ScalaSimpleFeature(sft, in.getID)
+      sft.getAttributeDescriptors.asScala.foreachIndex { case (d, i) =>
+        out.setAttribute(i, in.getAttribute(d.getLocalName))
+      }
+      out.getUserData.putAll(in.getUserData)
+      out
+    }
+  }
+
+  @deprecated("use copy")
+  def create(sft: SimpleFeatureType, in: SimpleFeature): ScalaSimpleFeature = copy(sft, in)
+
+  /**
+    * Creates a simple feature, converting the values to the appropriate type
+    *
+    * @param sft simple feature type
+    * @param id feature id
+    * @param values attributes values, corresponding to the feature type. types will be converted as necessary
+    * @return
+    */
   def create(sft: SimpleFeatureType, id: String, values: Any*): ScalaSimpleFeature = {
-    val sf = new ScalaSimpleFeature(id, sft)
+    val sf = new ScalaSimpleFeature(sft, id)
     var i = 0
     while (i < values.length) {
       sf.setAttribute(i, values(i).asInstanceOf[AnyRef])
@@ -189,4 +119,147 @@ object ScalaSimpleFeature {
   def equalIdAndAttributes(sf1: SimpleFeature, sf2: SimpleFeature): Boolean =
     sf1 != null && sf2 != null && sf1.getIdentifier.equalsExact(sf2.getIdentifier) &&
         java.util.Arrays.equals(sf1.getAttributes.toArray, sf2.getAttributes.toArray)
+
+  /**
+    * Immutable simple feature implementation
+    *
+    * @param sft simple feature type
+    * @param id simple feature id
+    * @param values attribute values, must already be converted into the appropriate types
+    * @param userData user data (not null)
+    */
+  class ImmutableSimpleFeature(
+      sft: SimpleFeatureType,
+      id: String,
+      values: Array[AnyRef],
+      userData: java.util.Map[AnyRef, AnyRef] = Collections.emptyMap()
+    ) extends AbstractImmutableSimpleFeature(sft, id) {
+
+    override lazy val getUserData: java.util.Map[AnyRef, AnyRef] = Collections.unmodifiableMap(userData)
+
+    override def getAttribute(index: Int): AnyRef = values(index)
+  }
+
+  /**
+    * Lazily evaluated, immutable simple feature implementation
+    *
+    * @param sft simple feature type
+    * @param id simple feature id
+    * @param reader lazily read attributes, must be thread-safe and already of the appropriate types
+    * @param userDataReader lazily read user data, must be thread-safe
+    */
+  class LazyImmutableSimpleFeature(
+      sft: SimpleFeatureType,
+      id: String,
+      private var reader: LazyAttributeReader,
+      private var userDataReader: LazyUserDataReader
+    ) extends AbstractImmutableSimpleFeature(sft, id) {
+
+    // we synchronize on the low-level words, in order to minimize contention
+    private val bits = WordBitSet(sft.getAttributeCount)
+    private lazy val attributes = Array.ofDim[AnyRef](sft.getAttributeCount)
+
+    private var phaser: Phaser = new Phaser(sft.getAttributeCount) {
+      override def onAdvance(phase: Int, registeredParties: Int): Boolean = {
+        // once all attributes have been read, dereference any backing resources so that they can be gc'd
+        reader = null
+        phaser = null
+        true
+      }
+    }
+
+    override lazy val getUserData: java.util.Map[AnyRef, AnyRef] = {
+      val read = userDataReader.read()
+      userDataReader = null // dereference any backing resources
+      Collections.unmodifiableMap(read)
+    }
+
+    override def getAttribute(index: Int): AnyRef = {
+      if (reader != null) {
+        val word = bits.word(index)
+        word.synchronized {
+          if (word.add(index)) {
+            attributes(index) = reader.read(index)
+            phaser.arriveAndDeregister()
+          }
+        }
+      }
+      attributes(index)
+    }
+  }
+
+  /**
+    * Lazily evaluated, mutable simple feature implementation
+    *
+    * @param sft simple feature type
+    * @param initialId simple feature id
+    * @param reader lazily read attributes, must be thread-safe and already of the appropriate types
+    * @param userDataReader lazily read user data, must be thread-safe
+    */
+  class LazyMutableSimpleFeature(
+      sft: SimpleFeatureType,
+      initialId: String,
+      private var reader: LazyAttributeReader,
+      private var userDataReader: LazyUserDataReader
+    ) extends AbstractMutableSimpleFeature(sft, initialId, null) {
+
+    // we synchronize on the low-level words, in order to minimize contention
+    private val bits = WordBitSet(sft.getAttributeCount)
+    private lazy val attributes = Array.ofDim[AnyRef](sft.getAttributeCount)
+
+    private var phaser: Phaser = new Phaser(sft.getAttributeCount) {
+      override def onAdvance(phase: Int, registeredParties: Int): Boolean = {
+        // once all attributes have been read, dereference any backing resources so that they can be gc'd
+        reader = null
+        phaser = null
+        true
+      }
+    }
+
+    override lazy val getUserData: java.util.Map[AnyRef, AnyRef] = {
+      val ud = userDataReader.read()
+      userDataReader = null // dereference any backing resources
+      ud
+    }
+
+    override def setAttributeNoConvert(index: Int, value: AnyRef): Unit = {
+      if (reader != null) {
+        val word = bits.word(index)
+        word.synchronized {
+          if (word.add(index)) {
+            phaser.arriveAndDeregister()
+          }
+        }
+      }
+      attributes(index) = value
+    }
+
+    override def getAttribute(index: Int): AnyRef = {
+      if (reader != null) {
+        val word = bits.word(index)
+        word.synchronized {
+          if (word.add(index)) {
+            attributes(index) = reader.read(index)
+            phaser.arriveAndDeregister()
+          }
+        }
+      }
+      attributes(index)
+    }
+  }
+
+
+  /**
+    * Lazy attribute reader
+    */
+  trait LazyAttributeReader {
+    def read(i: Int): AnyRef
+  }
+
+  /**
+    * Lazy user data reader
+    */
+  trait LazyUserDataReader {
+    def read(): java.util.Map[AnyRef, AnyRef]
+  }
 }

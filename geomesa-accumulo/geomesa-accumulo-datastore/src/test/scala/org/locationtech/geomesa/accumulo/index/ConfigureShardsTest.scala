@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
 
@@ -12,7 +12,9 @@ import org.apache.accumulo.core.security.Authorizations
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.IndexZShards
 import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -30,7 +32,7 @@ class ConfigureShardsTest extends Specification with TestWithDataStore {
 
   val features: Seq[ScalaSimpleFeature] = {
     (0 until 100).map { i =>
-      val sf = new ScalaSimpleFeature(s"$i", sft)
+      val sf = new ScalaSimpleFeature(sft, s"$i")
       i match {
         case a if a < 24 => sf.setAttributes(Array[AnyRef](s"name$i", s"2010-05-07T$i:00:00.000Z",
           s"POINT(40 $i)"))
@@ -51,17 +53,21 @@ class ConfigureShardsTest extends Specification with TestWithDataStore {
     "configure from spec" >> {
       addFeatures(features)
       var shardSet: Set[Long] = Set[Long]()
-      ds.connector.createScanner(Z3Index.getTableName(sftName, ds), new Authorizations()).foreach { r =>
-        val bytes = r.getKey.getRow.getBytes
-        val shard = bytes(1).toInt
-        shardSet = shardSet + shard
+      val index = ds.manager.indices(sft).find(_.name == Z3Index.name)
+      index must beSome
+      index.get.getTableNames().foreach { table =>
+        ds.connector.createScanner(table, new Authorizations()).foreach { r =>
+          val bytes = r.getKey.getRow.getBytes
+          val shard = bytes(0).toInt
+          shardSet = shardSet + shard
+        }
       }
       shardSet must haveSize(8)
     }
 
     "throw exception" >> {
       val sftPrivate = SimpleFeatureTypes.createType("private", spec)
-      sftPrivate.setZShards(128)
+      sftPrivate.getUserData.put(IndexZShards, "128")
       GeoMesaSchemaValidator.validate(sftPrivate) must throwAn[IllegalArgumentException]
     }
   }

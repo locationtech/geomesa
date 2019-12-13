@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.stats
 
@@ -12,21 +12,24 @@ import java.util.concurrent.atomic.AtomicLong
 
 import com.typesafe.scalalogging.LazyLogging
 
-trait MethodProfiling {
+trait MethodProfiling extends LazyLogging {
 
-  import java.lang.System.{currentTimeMillis => ctm}
-
-  def profile[R](code: => R)(implicit timing: Timing): R = {
-    val (startTime, r) = (ctm, code)
-    timing.occurrence(ctm - startTime)
-    r
+  protected def profile[R](onComplete: Long => Unit)(code: => R): R = {
+    val start = System.currentTimeMillis
+    val result: R = code
+    onComplete(System.currentTimeMillis - start)
+    result
   }
 
-  def profile[R](identifier: String)(code: => R)(implicit timings: Timings) = {
-    val (startTime, r) = (ctm, code)
-    timings.occurrence(identifier, ctm - startTime)
-    r
+  protected def profile[R](onComplete: (R, Long) => Unit)(code: => R): R = {
+    val start = System.currentTimeMillis
+    val result: R = code
+    onComplete(result, System.currentTimeMillis - start)
+    result
   }
+
+  protected def profile[R](message: String)(code: => R): R =
+    profile(time => logger.debug(s"$message in ${time}ms"))(code)
 }
 
 /**
@@ -40,13 +43,12 @@ class Timing extends Serializable {
   /**
    * Updates this instance with a new timing
    *
-   * @param time
+   * @param time time in millis
    * @return
    */
   def occurrence(time: Long): Unit = {
     total += time
     count += 1
-    this
   }
 
   /**
@@ -76,15 +78,15 @@ trait Timings extends Serializable {
   /**
    * Updates the given identifier with a new timing
    *
-   * @param identifier
-   * @param time
+   * @param identifier identifier
+   * @param time time in millis
    */
   def occurrence(identifier: String, time: Long): Unit
 
   /**
    * Gets the total time for the given identifier
    *
-   * @param identifier
+   * @param identifier identifier
    * @return
    */
   def time(identifier: String): Long
@@ -92,7 +94,7 @@ trait Timings extends Serializable {
   /**
    * Gets the total occurrences for the given identifier
    *
-   * @param identifier
+   * @param identifier identifier
    * @return
    */
   def occurrences(identifier: String): Long
@@ -186,7 +188,7 @@ class ThreadSafeTimingsImpl extends Timings {
     val total = entries.map(_._2.time).sum
     val percentTimes = entries.map { case (id, timing) =>
       timing.synchronized(s"$id: ${(timing.time * 100 / total.toDouble).formatted("%.1f%%")}" +
-          s" ${timing.occurrences} times at ${timing.average.formatted("%.4f")} ms avg")
+          s" ${timing.occurrences} times at ${timing.average().formatted("%.4f")} ms avg")
     }
     percentTimes.mkString(s"Total time: $total ms. Percent of time - ", ", ", "")
   }
@@ -195,13 +197,13 @@ class ThreadSafeTimingsImpl extends Timings {
 /**
  * Useful for sharing timings between instances of a certain class
  *
- * @param moduloToLog
+ * @param moduloToLog how many events to skip between logging
  */
 class AutoLoggingTimings(moduloToLog: Int = 1000) extends ThreadSafeTimingsImpl with LazyLogging {
 
   val count = new AtomicLong()
 
-  override def occurrence(identifier: String, time: Long) = {
+  override def occurrence(identifier: String, time: Long): Unit = {
     super.occurrence(identifier, time)
     if (count.incrementAndGet() % moduloToLog == 0) {
       logger.debug(averageTimes())
@@ -211,7 +213,7 @@ class AutoLoggingTimings(moduloToLog: Int = 1000) extends ThreadSafeTimingsImpl 
 
 object NoOpTimings extends Timings {
 
-  override def occurrence(identifier: String, time: Long) = {}
+  override def occurrence(identifier: String, time: Long): Unit = {}
 
   override def occurrences(identifier: String) = 0L
 

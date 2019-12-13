@@ -1,13 +1,31 @@
 GeoMesa Kafka Quick Start
 =========================
 
-This tutorial will show you how to:
+This tutorial is the fastest and easiest way to get started with GeoMesa using Kafka for streaming data.
+It is a good stepping-stone on the path to the other tutorials, that present increasingly
+involved examples of how to use GeoMesa.
 
-1. Write custom Java code to produce and consume messages in `Apache
-   Kafka <http://kafka.apache.org/>`__ using GeoMesa.
-2. Query the data and replay the messages in a Kafka topic to achieve an
-   earlier state.
-3. Visualize the changes being made in Kafka with GeoServer.
+About this Tutorial
+-------------------
+
+In the spirit of keeping things simple, the code in this tutorial only
+does a few small things:
+
+1. Establishes a new (static) SimpleFeatureType
+2. Prepares the Kafka topic to write this type of data
+3. Creates a few thousand example SimpleFeatures
+4. Writes these SimpleFeatures to the Kafka topic
+5. Visualize the changing data in GeoServer (optional)
+6. Creates event listeners for SimpleFeature updates (optional)
+
+The quick start operates by simultaneously querying and writing several thousand feature updates.
+The same feature identifier is used for each update, so there will only be a single "live" feature
+at any one time.
+
+The data used is from New York City taxi activity data published by the University
+of Illinois. More information about the dataset is available `here <https://publish.illinois.edu/dbwork/open-data/>`__.
+
+For this demo, only a single taxi is being tracked.
 
 Background
 ----------
@@ -17,33 +35,30 @@ messaging rethought as a distributed commit log."
 
 In the context of GeoMesa, Kafka is a useful tool for working with
 streams of geospatial data. Interaction with Kafka in GeoMesa occurs
-with the KafkaDataStore which implements the GeoTools
+through the KafkaDataStore which implements the GeoTools
 `DataStore <http://docs.geotools.org/latest/userguide/library/data/datastore.html>`__
 interface.
 
 Prerequisites
 -------------
 
--  basic knowledge of `GeoTools <http://www.geotools.org>`__,
-   `GeoServer <http://geoserver.org>`__, and Kafka,
--  an instance of Kafka 0.8.2.x, 0.9.0.1, or 0.10.0.1 with (an)
-   appropriate Zookeeper instance(s),
--  an instance of GeoServer version |geoserver_version| with the GeoMesa Kafka plugin
-   installed,
--  `Java JDK
-   8 <http://www.oracle.com/technetwork/java/javase/downloads/index.html>`__
--  `Apache Maven <http://maven.apache.org/>`__ |maven_version|,
--  a `git <http://git-scm.com/>`__ client
+Before you begin, you must have the following installed and configured:
 
-In order to install the GeoMesa Kafka GeoServer plugin, follow the instructions here: :ref:`install_kafka_geoserver`.
+-  `Java <http://java.oracle.com/>`__ JDK 1.8
+-  Apache `Maven <http://maven.apache.org/>`__ |maven_version|
+-  a GitHub client
+-  a Kafka instance version |kafka_version|
 
 Ensure your Kafka and Zookeeper instances are running. You can use
-Kafka's
-`quickstart <http://kafka.apache.org/documentation.html#quickstart>`__
+Kafka's `quickstart <http://kafka.apache.org/documentation.html#quickstart>`__
 to get Kafka/Zookeeper instances up and running quickly.
 
-There are now three versions of Kafka that are supported with GeoMesa,
-and there are separate tutorials for each build.
+Configure GeoServer (optional)
+------------------------------
+
+You can use GeoServer to access and visualize the data stored in GeoMesa. In order to use GeoServer,
+download and install version |geoserver_version|. Then follow the instructions in :ref:`install_kafka_geoserver`
+to enable GeoMesa.
 
 Download and Build the Tutorial
 -------------------------------
@@ -55,313 +70,221 @@ Pick a reasonable directory on your machine, and run:
     $ git clone https://github.com/geomesa/geomesa-tutorials.git
     $ cd geomesa-tutorials
 
-To build, run
-
-For Kafka 0.8.2.1
-
-.. code-block:: bash
-
-    $ mvn clean install -pl geomesa-quickstart-kafka/geomesa-quickstart-kafka-08
-
-For Kafka 0.9.0.1
-
-.. code-block:: bash
-
-    $ mvn clean install -pl geomesa-quickstart-kafka/geomesa-quickstart-kafka-09
-
-For Kafka 0.10.0.1
-
-.. code-block:: bash
-
-    $ mvn clean install -pl geomesa-quickstart-kafka/geomesa-quickstart-kafka-10
-
-    :warning: Note: ensure that the version of Kafka and Zookeeper in
-    the root ``pom.xml`` match your environment.
-
-Run the Code
-------------
-
-On the command-line, run:
-
-For Kafka 0.8.2.1
-
-.. code-block:: bash
-
-    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-08/target/geomesa-quickstart-kafka-08-$VERSION.jar com.example.geomesa.kafka08.KafkaQuickStart \
-    > -brokers <brokers> -zookeepers <zookeepers>
-
-For Kafka 0.9.0.1
-
-.. code-block:: bash
-
-    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-09/target/geomesa-quickstart-kafka-09-$VERSION.jar com.example.geomesa.kafka09.KafkaQuickStart \
-    > -brokers <brokers> -zookeepers <zookeepers>
-
-For Kafka 0.10.0.1
-
-.. code-block:: bash
-
-    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-10/target/geomesa-quickstart-kafka-10-$VERSION.jar com.example.geomesa.kafka10.KafkaQuickStart \
-    > -brokers <brokers> -zookeepers <zookeepers>
-
-where you provide the values for the following arguments:
-
--  ``<brokers>`` your Kafka broker instances, comma separated. For a
-   local install, this would be ``localhost:9092``.
--  ``<zookeepers>`` your Zookeeper nodes, comma separated. For a local
-   install, this would be ``localhost:2181``.
-
-The program will create some metadata in Zookeeper and an associated
-topic in your Kafka instance, and pause execution to let you add the
-newly created ``KafkaDataStore`` to GeoServer. Once GeoServer has been
-configured, we'll pick back up with the paused program.
-
-Optional command-line arguments for ``KafkaQuickStart`` are:
-
--  ``-zkPath <zkpath>``: used for specifying the Zookeeper path for
-   storing GeoMesa metadata. Defaults to "/geomesa/ds/kafka" and
-   ordinarily does not need to be changed
--  ``-automated``: omits the pause in execution for configuring
-   GeoServer.
-
-The class may also be run using Maven via the ``live-test`` profile.
-
-.. code-block:: bash
-
-    $ mvn -Plive-test exec:exec -Dbrokers=<brokers> -Dzookeepers=<zookeepers>
-
-Register the Store in GeoServer
--------------------------------
-
-Log into GeoServer using your credentials. Click “Stores” in the
-left-hand gutter and “Add new Store”. If you do not see the Kafka Data
-Store listed under Vector Data Sources, ensure the plugin and
-dependencies are in the right directory and restart GeoServer.
-
-Select the ``Kafka (GeoMesa)`` vector data source and enter the
-following parameters:
-
--  Basic Store Info
--  ``workspace`` this is dependent upon your GeoServer installation
--  ``data source name`` pick a sensible name, such as,
-   ``geomesa_kafka_quickstart``
--  ``description`` pick a sensible description, such as
-   ``GeoMesa Kafka quick start``
--  Connection Parameters
--  ``brokers`` your Kafka broker instances, comma separated. Use the
-   same ones you used on the command line.
--  ``zookeepers`` your Zookeeper nodes, comma separated. Use the same
-   ones you used on the command line.
-
-Leave all other fields empty or with the default value.
-
-Click "Save" and GeoServer will search your Kafka instance for any
-GeoMesa-managed feature types.
-
-Publish the Layer
------------------
-
-GeoServer should find the ``KafkaQuickStart`` feature type in the data
-store and redirect you to the "New Layer" page, presenting the feature
-type as a layer that can be published. Click on the "Publish" link. You
-will be taken to the "Edit Layer" page.
-
 .. warning::
 
-    If you have not yet run the quick start code as described
-    in **Run the Code** above, the feature type will not have been
-    registered and you will not get a "New Layer" page after saving the
-    store. In this case, run the code as described above, click on
-    "Layers" in the left-hand gutter, click on "Add a new resource", and
-    select your data store in the pulldown next to "Add layer from". The
-    link to publish the ``KafkaQuickStart`` feature should appear.
+    Make sure that you download or checkout the version of the tutorials project that corresponds to
+    your GeoMesa version. See :ref:`tutorial_versions` for more details.
 
-You can leave most fields as default. In the Data pane, you'll need to
-enter values for the bounding boxes. In this case, you can click on the
-links to compute these values from the data. Click "Save".
+To ensure that the quick start works with your environment, modify the ``pom.xml``
+to set the appropriate versions for Kafka, Zookeeper, etc.
 
-View the layer
---------------
+For ease of use, the project builds a bundled artifact that contains all the required
+dependencies in a single JAR. To build, run:
+
+.. code-block:: bash
+
+    $ mvn clean install -pl geomesa-tutorials-kafka/geomesa-tutorials-kafka-quickstart -am
+
+Running the Tutorial
+--------------------
+
+On the command line, run:
+
+.. code-block:: bash
+
+    $ java -cp geomesa-tutorials-kafka/geomesa-tutorials-kafka-quickstart/target/geomesa-tutorials-kafka-quickstart-$VERSION.jar \
+        org.geomesa.example.kafka.KafkaQuickStart \
+        --kafka.brokers <brokers>                 \
+        --kafka.zookeepers <zookeepers>
+
+where you provide the following arguments:
+
+- ``<brokers>`` your Kafka broker instances, comma separated. For a
+  local install, this would be ``localhost:9092``
+- ``<zookeepers>`` your Zookeeper nodes, comma separated. For a local
+  install, this would be ``localhost:2181``
+
+Optionally, you can also specify that the quick start should delete its data upon completion. Use the
+``--cleanup`` flag when you run to enable this behavior.
+
+Once run, the quick start will create the Kafka topic, then pause and prompt you to register the layer in
+GeoServer. If you do not want to use GeoServer, you can skip this step. Otherwise, follow the instructions in
+the next section before returning here.
+
+Once you continue, the tutorial should run for approximately thirty seconds. You should see the following output:
+
+.. code-block:: none
+
+    Loading datastore
+
+    Creating schema: taxiId:String,dtg:Date,geom:Point
+
+    Generating test data
+
+    Feature type created - register the layer 'tdrive-quickstart' in geoserver with bounds: MinX[116.22366] MinY[39.72925] MaxX[116.58804] MaxY[40.09298]
+    Press <enter> to continue
+
+    Writing features to Kafka... refresh GeoServer layer preview to see changes
+    Current consumer state:
+    1277=1277|2008-02-03T04:32:53.000Z|POINT (116.35 39.90003)
+    Current consumer state:
+    1277=1277|2008-02-03T17:58:49.000Z|POINT (116.38812 39.93196)
+    Current consumer state:
+    1277=1277|2008-02-04T06:46:26.000Z|POINT (116.40218 39.94439)
+    Current consumer state:
+    1277=1277|2008-02-04T19:55:45.000Z|POINT (116.3631 39.94646)
+    Current consumer state:
+    1277=1277|2008-02-05T09:39:48.000Z|POINT (116.58264 40.07556)
+    Current consumer state:
+    1277=1277|2008-02-05T22:24:50.000Z|POINT (116.34112 39.95363)
+    Current consumer state:
+    1277=1277|2008-02-06T14:17:29.000Z|POINT (116.54203 39.91476)
+    Current consumer state:
+    1277=1277|2008-02-07T02:53:55.000Z|POINT (116.35683 39.89809)
+    Current consumer state:
+    1277=1277|2008-02-07T15:48:47.000Z|POINT (116.36785 39.99471)
+    Current consumer state:
+    1277=1277|2008-02-08T04:20:19.000Z|POINT (116.42872 39.91531)
+    Current consumer state:
+    1277=1277|2008-02-08T17:14:15.000Z|POINT (116.34609 39.93924)
+
+    Done
+
+Visualize Data With GeoServer (optional)
+----------------------------------------
+
+You can use GeoServer to access and visualize the data stored in GeoMesa. In order to use GeoServer,
+download and install version |geoserver_version|. Then follow the instructions in :ref:`install_kafka_geoserver`
+to enable GeoMesa.
+
+Register the GeoMesa Store with GeoServer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Log into GeoServer using your user and password credentials. Click
+"Stores" and "Add new Store". Select the ``Kafka (GeoMesa)`` vector data
+source, and fill in the required parameters.
+
+Basic store info:
+
+-  ``workspace`` this is dependent upon your GeoServer installation
+-  ``data source name`` pick a sensible name, such as ``geomesa_quick_start``
+-  ``description`` this is strictly decorative; ``GeoMesa quick start``
+
+Connection parameters:
+
+-  these are the same parameter values that you supplied on the
+   command line when you ran the tutorial; they describe how to connect
+   to the Kafka instance where your data reside
+
+Click "Save", and GeoServer will search Zookeeper for any GeoMesa-managed feature types.
+
+Publish the Layer
+~~~~~~~~~~~~~~~~~
+
+If you have already run the command to start the tutorial, then GeoServer should recognize the
+``tdrive-quickstart`` feature type, and should present that as a layer that can be published. Click on the
+"Publish" link. If not, then run the tutorial as described above in **Running the Tutorial**. When
+the tutorial pauses, go to "Layers" and "Add new Layer". Select the GeoMesa Kafka store you just
+created, and then click "publish" on the ``tdrive-quickstart`` layer.
+
+You will be taken to the Edit Layer screen. You will need to enter values for the data bounding
+boxes. For this demo, use the values MinX: 116.22366, MinY: 39.72925, MaxX: 116.58804, MaxY: 40.09298.
+
+Click on the "Save" button when you are done.
+
+Take a Look
+~~~~~~~~~~~
 
 Click on the "Layer Preview" link in the left-hand gutter. If you don't
 see the quick-start layer on the first page of results, enter the name
-of the layer you just created into the search box, and press <Enter>.
+of the layer you just created into the search box, and press
+``<Enter>``.
 
-Once you see your layer, click on the "OpenLayers" link, which will open
-a new tab. At this point, there are no messages in Kafka so nothing will
-be shown.
-
-Produce Some Data
------------------
-
-Resume the program's execution by inputting <Enter> in your terminal now
-that the ``KafkaDataStore`` is registered in GeoServer. The program will
-create two ``SimpleFeature``\ s and then write a stream of updates to
-the two ``SimpleFeature``\ s over the course of about a minute.
-
-You can refresh the GeoServer layer preview repeatedly to visualize the
-updates being written to Kafka.
+At first, there will be no data displayed. Once you have reached this
+point, return to the quick start console and hit "<enter>" to continue the tutorial.
+As the data is updated in Kafka, you can refresh the layer preview page to see
+the feature moving around.
 
 What's Happening in GeoServer
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The layer preview of GeoServer uses the
-``LiveKafkaConsumerFeatureSource`` to show a real time view of the
-current state of the data stream. Two ``SimpleFeature``\ s are being
-updated over time in Kafka which is reflected in the GeoServer display.
+The layer preview of GeoServer uses the ``KafkaFeatureStore`` to show a
+real time view of the current state of the data stream. There is a single
+``SimpleFeature`` being updated over time in Kafka which is
+reflected in the GeoServer display.
 
-As you refresh the page, you should see two ``SimpleFeature``\ s that
-start on the left side gradually move to the right side while crossing
-each other in the middle. As the two ``SimpleFeature``\ s get updated,
-the older ``SimpleFeature``\ s disappear from the display.
+As you refresh the page, you should see the ``SimpleFeature`` move around.
+Due to the nature of the taxi's routes, and the speed up of time in replaying
+the data, there isn't much of a pattern to the movement.
 
-.. figure:: _static/geomesa-quickstart-kafka/layer-preview.png
-   :alt: "GeoServer view"
-
-Consumers Explained
+Looking at the Code
 -------------------
 
-GeoMesa wraps Kafka consumers in two different ways; as a
-``LiveKafkaConsumerFeatureSource`` or a
-``ReplayKafkaConsumerFeatureSource``. Both of these classes implement
-GeoTools'
-`FeatureSource <http://docs.geotools.org/latest/javadocs/org/geotools/data/FeatureSource.html>`__
-API.
+The source code is meant to be accessible for this tutorial. The logic is contained in
+the generic ``org.geomesa.example.quickstart.GeoMesaQuickStart`` in the ``geomesa-quickstart-common`` module,
+and the Kafka-specific ``org.geomesa.example.kafka.KafkaQuickStart`` in the ``geomesa-quickstart-kafka`` module.
+Some relevant methods are:
 
-The ``LiveKafkaConsumerFeatureSource`` will consume messages as they are
-being produced and maintain the real time state of SimpleFeatures
-pertaining to a Kafka topic.
+-  ``createDataStore`` get a datastore instance from the input configuration
+-  ``createSchema`` create the schema in the datastore, as a pre-requisite to writing data
+-  ``writeFeatures`` overridden in the ``KafkaQuickStart`` to simultaneously write and read features from Kafka
+-  ``queryFeatures`` not used in this tutorial
+-  ``cleanup`` delete the sample data and dispose of the datastore instance
 
-The ``ReplayKafkaConsumerFeatureSource`` allows users to specify any
-range of time in order to obtain the state of SimpleFeatures from any
-previous moment.
+The quickstart uses a small subset of taxi data. Code for parsing the data into GeoTools SimpleFeatures is
+contained in ``org.geomesa.example.data.TDriveData``:
 
-View the Consumer Output
-------------------------
+-  ``getSimpleFeatureType`` creates the ``SimpleFeatureType`` representing the data
+-  ``getTestData`` parses an embedded CSV file to create ``SimpleFeature`` objects
+-  ``getTestQueries`` not used in this tutorial
 
-The program will construct the live and replay consumers and log
-SimpleFeatures to the console after all the messages are sent to Kafka
-and therefore after all the updates are made.
-
-The live consumer will log the state of the two SimpleFeatures after all
-updates are finished. The replay consumer will log the state of the two
-SimpleFeatures five seconds earlier than the last update. The replay
-consumer will create a new ``SimpleFeatureType`` with an additional
-attribute ``KafkaLogTime``. By preserving the ``KafkaLogTime`` as an
-attribute, we can create the state of SimpleFeatures at time *x* by
-querying for when ``KafkaLogTime`` equals *x*.
-
-.. code-block:: bash
-
-    Consuming with the live consumer...
-    2 features were written to Kafka
-    Here are the two SimpleFeatures that were obtained with the live consumer:
-    fid:1 | name:James | age:20 | dtg:Mon Dec 14 19:08:23 EST 2015 | geom:POINT (180 90)
-    fid:2 | name:John | age:62 | dtg:Fri Oct 02 09:56:49 EDT 2015 | geom:POINT (180 -90)
-
-    Consuming with the replay consumer...
-    2 features were written to Kafka
-    Here are the two SimpleFeatures that were obtained with the replay consumer:
-    fid:2 | name:John | age:52 | dtg:Thu May 21 21:27:19 EDT 2015 | geom:POINT (132 -66) | KafkaLogTime:Tue Jun 09 13:33:47 EDT 2015
-    fid:1 | name:James | age:59 | dtg:Sat Jan 24 06:26:44 EST 2015 | geom:POINT (132 66) | KafkaLogTime:Tue Jun 09 13:33:47 EDT 2015
-
-For a deeper understanding of what's going on, we recommend exploring
-the source code.
-
-(Optional) Listening for FeatureEvents
---------------------------------------
+Listening for Feature Events (optional)
+---------------------------------------
 
 The GeoTools API also includes a mechanism to fire off a
 `FeatureEvent <http://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__
-each time there is an event (typically when the data are changed) in a
-``DataStore``. A client may implement a
+each time there is an event in a ``DataStore`` (typically when the data is changed). A client may implement a
 `FeatureListener <http://docs.geotools.org/stable/javadocs/index.html?org/geotools/data/FeatureEvent.Type.html>`__,
 which has a single method called ``changed()`` that is invoked as each
 ``FeatureEvent`` is fired.
 
-The code in ``KafkaListener`` implements a simple ``FeatureListener`` that prints the messages received.
-Open up a second terminal window and run (with ``$KAFKA_VERSION`` set to "08", "09", or "10" as appropriate):
+The code in ``KafkaListener`` implements a simple ``FeatureListener``
+that prints the messages received. Open up a second terminal window and
+run:
 
 .. code-block:: bash
 
-    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-$KAFKA_VERSION/target/geomesa-quickstart-kafka-$KAFKA_VERSION-${geomesa.version}.jar \
-    > com.example.geomesa.kafka$KAFKA_VERSION.KafkaListener \
-    > -brokers <brokers> -zookeepers <zookeepers>
+    $ java -cp geomesa-tutorials-kafka/geomesa-tutorials-kafka-quickstart/target/geomesa-tutorials-kafka-quickstart-$VERSION.jar \
+        org.geomesa.example.kafka.KafkaListener \
+        --kafka.brokers <brokers>               \
+        --kafka.zookeepers <zookeepers>
 
-and use the same settings for ``<brokers>`` and ``<zookeepers>``. Then
-in the first terminal window, re-run the ``KafkaQuickStart`` code as
+Use the same settings for ``<brokers>`` and ``<zookeepers>`` that you did previously. Then
+in the original terminal window, re-run the ``KafkaQuickStart`` code as
 before. The ``KafkaListener`` terminal should produce messages like the
 following:
 
-::
+.. code-block:: none
 
-    Received FeatureEvent of Type: CHANGED
-    fid:1 | name:Hannah | age:53 | dtg:Sun Dec 13 11:04:40 EST 2015 | geom:POINT (-66 -33)
-    Received FeatureEvent of Type: CHANGED
-    fid:2 | name:Claire | age:77 | dtg:Thu Feb 26 02:06:41 EST 2015 | geom:POINT (-66 33)
+    Received FeatureEvent from schema 'tdrive-quickstart' of type 'CHANGED'
+    1277=1277|2008-02-02T13:34:51.000Z|POINT (116.32674 39.89577)
 
-The ``KafkaListener`` code will run until interrupted.
+The ``KafkaListener`` code will run until interrupted (typically with ctrl-c).
 
 The portion of ``KafkaListener`` that creates and implements the
 ``FeatureListener`` is:
 
 .. code-block:: java
 
-    // the live consumer must be created before the producer writes features
-    // in order to read streaming data.
-    // i.e. the live consumer will only read data written after its instantiation
-    SimpleFeatureSource consumerFS = consumerDS.getFeatureSource(sftName);
-
-    consumerFS.addFeatureListener(new FeatureListener() {
-        @Override
-        public void changed(FeatureEvent featureEvent) {
-            System.out.println("Received FeatureEvent of Type: " + featureEvent.getType());
-
-            if (featureEvent.getType() == FeatureEvent.Type.CHANGED && 
-                    featureEvent instanceof KafkaFeatureEvent) {
-                printFeature(((KafkaFeatureEvent) featureEvent).feature());
-            }
-
-            if (featureEvent.getType() == FeatureEvent.Type.REMOVED) {
-                System.out.println("Received Delete for filter: " + featureEvent.getFilter());
-            }
+    FeatureListener listener = featureEvent -> {
+        System.out.println("Received FeatureEvent from schema '" + typeName + "' of type '" + featureEvent.getType() + "'");
+        if (featureEvent.getType() == FeatureEvent.Type.CHANGED &&
+            featureEvent instanceof KafkaFeatureChanged) {
+            System.out.println(DataUtilities.encodeFeature(((KafkaFeatureChanged) featureEvent).feature()));
+        } else if (featureEvent.getType() == FeatureEvent.Type.REMOVED) {
+            System.out.println("Received Delete for filter: " + featureEvent.getFilter());
         }
-    });
+    };
+    datastore.getFeatureSource(typeName).addFeatureListener(listener);
 
-Additionally, the ``KafkaQuickStart`` class run above can generate a
-'clear' control message at the end of the run if you specify
-"-Dclear=true" on the commandline. This will generate a Feature removed
-``FeatureEvent`` with a ``Filter.INCLUDE``.
-
-.. code-block:: bash
-
-    $ java -Dclear=true -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-$KAFKA_VERSION/target/geomesa-quickstart-kafka-$KAFKA_VERSION-${geomesa.version}.jar \
-    > com.example.geomesa.kafka$KAFKA_VERSION.KafkaQuickStart \
-    > -brokers <brokers> -zookeepers <zookeepers> 
-
-KafkaDataStore Load Test
-------------------------
-
-For those interested in load testing the KafkaDataStore, there is a
-simple utility with constructs any number of SimpleFeatures, rolls a
-random latitude, and then have them step left or right.
-
-.. code-block:: bash
-
-    $ java -cp geomesa-quickstart-kafka/geomesa-quickstart-kafka-$KAFKA_VERSION/target/geomesa-quickstart-kafka-$KAFKA_VERSION-${geomesa.version}.jar \
-    > com.example.geomesa.kafka$KAFKA_VERSION.KafkaLoadTester \
-    > -brokers <brokers> -zookeepers <zookeepers> -count <count>
-
-The 'count' parameter is optional. Without it, the tool defaults to 1000
-SimpleFeatures.
-
-Conclusion
-----------
-
-Given a stream of geospatial data, GeoMesa's integration with Kafka
-enables users to maintain a real time state of SimpleFeatures or
-retrieve any arbitrary state preserved in history. One can additionally
-process and analyze streams of data by integrating a data processing
-system like `Storm <https://storm.apache.org/>`__ or
-`Samza <http://samza.apache.org>`__. See the :doc:`./geomesa-quickstart-storm`
-tutorial for more information on using Storm with GeoMesa.
+(note the use of a lambda expression to create the listener)

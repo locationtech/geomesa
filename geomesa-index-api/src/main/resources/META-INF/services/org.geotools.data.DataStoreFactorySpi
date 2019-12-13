@@ -1,0 +1,2 @@
+org.locationtech.geomesa.index.view.MergedDataStoreViewFactory
+org.locationtech.geomesa.index.view.RoutedDataStoreViewFactory

@@ -1,0 +1,4 @@
+Sphinx==1.8.2
+sphinx-tabs==1.1.10
+recommonmark==0.4.0
+sphinx-rtd-theme==0.4.2

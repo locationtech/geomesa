@@ -1,17 +1,17 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.text
 
-import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
-import org.apache.commons.pool2.BasePooledObjectFactory
-import org.apache.commons.pool2.impl.{GenericObjectPoolConfig, DefaultPooledObject, GenericObjectPool}
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.jts.io.{WKBReader, WKBWriter, WKTReader, WKTWriter}
+import org.apache.commons.pool2.{BasePooledObjectFactory, PooledObject}
+import org.apache.commons.pool2.impl.{DefaultPooledObject, GenericObjectPool, GenericObjectPoolConfig}
 
 trait ObjectPoolUtils[A] {
   val pool: GenericObjectPool[A]
@@ -28,12 +28,13 @@ trait ObjectPoolUtils[A] {
 
 object ObjectPoolFactory {
   def apply[A](f: => A, size:Int=10): ObjectPoolUtils[A] = new ObjectPoolUtils[A] {
-    val conf = new GenericObjectPoolConfig
+    private val conf = new GenericObjectPoolConfig[A]
     conf.setMaxTotal(size)
-    val pool = new GenericObjectPool[A](new BasePooledObjectFactory[A] {
-      def create() = f
-      def wrap(a: A) = new DefaultPooledObject[A](a)
-    }, conf)
+    private val factory = new BasePooledObjectFactory[A] {
+      override def create(): A = f
+      override def wrap(a: A): PooledObject[A] = new DefaultPooledObject[A](a)
+    }
+    val pool = new GenericObjectPool[A](factory, conf)
   }
 }
 

@@ -1,16 +1,16 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.stats
 
 import java.util.Date
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -33,7 +33,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
     "work with strings" >> {
       "be empty initiallly" >> {
         val stat = newStat[String]("strAttr", observe = false)
-        stat.attribute mustEqual stringIndex
+        stat.property mustEqual "strAttr"
         stat.enumeration must beEmpty
         stat.isEmpty must beTrue
       }
@@ -60,7 +60,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[EnumerationStat[String]]
-        unpacked.asInstanceOf[EnumerationStat[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[String]].property mustEqual stat.property
         unpacked.asInstanceOf[EnumerationStat[String]].enumeration mustEqual stat.enumeration
         unpacked.asInstanceOf[EnumerationStat[String]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[String]].toJson mustEqual stat.toJson
@@ -68,7 +68,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[String]("strAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -128,7 +128,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
     "work with ints" >> {
       "be empty initiallly" >> {
         val stat = newStat[java.lang.Integer]("intAttr", observe = false)
-        stat.attribute mustEqual intIndex
+        stat.property mustEqual "intAttr"
         stat.enumeration must beEmpty
         stat.isEmpty must beTrue
       }
@@ -144,7 +144,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[EnumerationStat[java.lang.Integer]]
-        unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].property mustEqual stat.property
         unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].enumeration mustEqual stat.enumeration
         unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[java.lang.Integer]].toJson mustEqual stat.toJson
@@ -152,7 +152,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[java.lang.Integer]("intAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -169,7 +169,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
         unpacked.toJson mustEqual stat.toJson
       }
 
-      "combine two states" >> {
+      "combine two stats" >> {
         val stat = newStat[java.lang.Integer]("intAttr")
         val stat2 = newStat[java.lang.Integer]("intAttr", observe = false)
 
@@ -200,7 +200,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
     "work with longs" >> {
       "be empty initiallly" >> {
         val stat = newStat[java.lang.Long]("longAttr", observe = false)
-        stat.attribute mustEqual longIndex
+        stat.property mustEqual "longAttr"
         stat.enumeration must beEmpty
         stat.isEmpty must beTrue
       }
@@ -216,7 +216,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[EnumerationStat[java.lang.Long]]
-        unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].property mustEqual stat.property
         unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].enumeration mustEqual stat.enumeration
         unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[java.lang.Long]].toJson mustEqual stat.toJson
@@ -224,7 +224,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[java.lang.Long]("longAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -272,7 +272,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
     "work with floats" >> {
       "be empty initiallly" >> {
         val stat = newStat[java.lang.Float]("floatAttr", observe = false)
-        stat.attribute mustEqual floatIndex
+        stat.property mustEqual "floatAttr"
         stat.enumeration must beEmpty
         stat.isEmpty must beTrue
       }
@@ -288,7 +288,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[EnumerationStat[java.lang.Float]]
-        unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].property mustEqual stat.property
         unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].enumeration mustEqual stat.enumeration
         unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[java.lang.Float]].toJson mustEqual stat.toJson
@@ -296,7 +296,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[java.lang.Float]("floatAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -344,7 +344,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
     "work with doubles" >> {
       "be empty initiallly" >> {
         val stat = newStat[java.lang.Double]("doubleAttr", observe = false)
-        stat.attribute mustEqual doubleIndex
+        stat.property mustEqual "doubleAttr"
         stat.enumeration must beEmpty
         stat.isEmpty must beTrue
       }
@@ -360,7 +360,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[EnumerationStat[java.lang.Double]]
-        unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].property mustEqual stat.property
         unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].enumeration mustEqual stat.enumeration
         unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[java.lang.Double]].toJson mustEqual stat.toJson
@@ -368,7 +368,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[java.lang.Double]("doubleAttr", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -416,14 +416,14 @@ class EnumerationStatTest extends Specification with StatTestHelper {
     "work with dates" >> {
       "be empty initiallly" >> {
         val stat = newStat[Date]("dtg", observe = false)
-        stat.attribute mustEqual dateIndex
+        stat.property mustEqual "dtg"
         stat.enumeration must beEmpty
         stat.isEmpty must beTrue
       }
 
       "observe correct values" >> {
         val stat = newStat[Date]("dtg")
-        val dates = (0 until 24).map(i => GeoToolsDateFormat.parseDateTime(f"2012-01-01T$i%02d:00:00.000Z").toDate)
+        val dates = (0 until 24).map(i => java.util.Date.from(java.time.LocalDateTime.parse(f"2012-01-01T$i%02d:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC)))
         forall(dates.take(4))(d => stat.enumeration(d) mustEqual 5)
         forall(dates.drop(4))(d => stat.enumeration(d) mustEqual 4)
       }
@@ -434,7 +434,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[EnumerationStat[Date]]
-        unpacked.asInstanceOf[EnumerationStat[Date]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[Date]].property mustEqual stat.property
         unpacked.asInstanceOf[EnumerationStat[Date]].enumeration mustEqual stat.enumeration
         unpacked.asInstanceOf[EnumerationStat[Date]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[Date]].toJson mustEqual stat.toJson
@@ -442,7 +442,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[Date]("dtg", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {
@@ -465,8 +465,8 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
         features2.foreach { stat2.observe }
 
-        val dates = (0 until 24).map(i => GeoToolsDateFormat.parseDateTime(f"2012-01-01T$i%02d:00:00.000Z").toDate)
-        val dates2 = (0 until 24).map(i => GeoToolsDateFormat.parseDateTime(f"2012-01-02T$i%02d:00:00.000Z").toDate)
+        val dates = (0 until 24).map(i => java.util.Date.from(java.time.LocalDateTime.parse(f"2012-01-01T$i%02d:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC)))
+        val dates2 = (0 until 24).map(i => java.util.Date.from(java.time.LocalDateTime.parse(f"2012-01-02T$i%02d:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC)))
 
         stat2.enumeration must haveSize(24)
         forall(dates2.slice(4, 8))(d => stat2.enumeration(d) mustEqual 5)
@@ -496,7 +496,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
     "work with geometries" >> {
       "be empty initiallly" >> {
         val stat = newStat[Geometry]("geom", observe = false)
-        stat.attribute mustEqual geomIndex
+        stat.property mustEqual "geom"
         stat.enumeration must beEmpty
         stat.isEmpty must beTrue
       }
@@ -512,7 +512,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
         val unpacked = StatSerializer(sft).deserialize(packed)
 
         unpacked must beAnInstanceOf[EnumerationStat[Geometry]]
-        unpacked.asInstanceOf[EnumerationStat[Geometry]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[EnumerationStat[Geometry]].property mustEqual stat.property
         unpacked.asInstanceOf[EnumerationStat[Geometry]].enumeration mustEqual stat.enumeration
         unpacked.asInstanceOf[EnumerationStat[Geometry]].size mustEqual stat.size
         unpacked.asInstanceOf[EnumerationStat[Geometry]].toJson mustEqual stat.toJson
@@ -520,7 +520,7 @@ class EnumerationStatTest extends Specification with StatTestHelper {
 
       "serialize empty to json" >> {
         val stat = newStat[Geometry]("geom", observe = false)
-        stat.toJson mustEqual "{ }"
+        stat.toJson must beEqualTo("{ }").ignoreSpace
       }
 
       "serialize and deserialize" >> {

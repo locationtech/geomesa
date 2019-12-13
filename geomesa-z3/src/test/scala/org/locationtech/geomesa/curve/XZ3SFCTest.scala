@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.curve
 
@@ -117,7 +117,7 @@ class XZ3SFCTest extends Specification with LazyLogging {
 
       val ranges = sfc.ranges(45.0, 23.0, 900.0, 48.0, 27.0, 1100.0, Some(10000))
       forall(geoms) { geom =>
-        val index = sfc.index((geom._1, geom._2, 1000.0, geom._3, geom._4, 1000.0))
+        val index = sfc.index(geom._1, geom._2, 1000.0, geom._3, geom._4, 1000.0)
         val matches = ranges.exists(r => r.lower <= index && r.upper >= index)
         if (!matches) {
           logger.warn(s"$geom - no match")

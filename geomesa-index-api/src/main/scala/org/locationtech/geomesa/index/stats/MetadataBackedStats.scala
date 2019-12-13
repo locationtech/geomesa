@@ -1,230 +1,197 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.index.stats
 
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
 import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.LazyLogging
-import org.joda.time._
+import org.geotools.data.DataStore
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.curve.BinnedTime
+import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataSerializer}
+import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
+import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, MetadataSerializer, TableBasedMetadata}
+import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.stats._
+import org.locationtech.geomesa.utils.stats.{EnumerationStat, _}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
 
-import scala.collection.JavaConversions._
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 /**
  * Tracks stats via entries stored in metadata
  */
-trait MetadataBackedStats[DS <: GeoMesaDataStore[_, _, _]]
-    extends GeoMesaStats with StatsBasedEstimator with LazyLogging {
+abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat])
+    extends RunnableStats(ds) with StatsBasedEstimator {
 
   import MetadataBackedStats._
 
-  private [geomesa] def metadata: GeoMesaMetadata[Stat]
+  import scala.collection.JavaConverters._
 
-  protected def ds: DS
-  protected def generateStats: Boolean
+  override val writer: GeoMesaStatWriter = new MetadataStatWriter()
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
     if (exact) {
-      runStats[CountStat](sft, Stat.Count(), filter).headOption.map(_.count)
+      query[CountStat](sft, filter, Stat.Count()).map(_.count)
+    } else if (filter == Filter.INCLUDE) {
+      // note: compared to the 'read' method, we want to return empty counts (indicating no features)
+      try { metadata.read(sft.getTypeName, countKey()).collect { case s: CountStat => s.count } } catch {
+        case NonFatal(e) => logger.error("Error reading existing stats:", e); None
+      }
     } else {
       estimateCount(sft, filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
     }
   }
 
-  override def getAttributeBounds[T](sft: SimpleFeatureType,
-                                     attribute: String,
-                                     filter: Filter,
-                                     exact: Boolean): Option[AttributeBounds[T]] = {
-    val stat = if (exact) {
-      runStats[MinMax[T]](sft, Stat.MinMax(attribute), filter).headOption
-    } else {
-      readStat[MinMax[T]](sft, MetadataBackedStats.minMaxKey(attribute))
+  override def getMinMax[T](
+      sft: SimpleFeatureType,
+      attribute: String,
+      filter: Filter,
+      exact: Boolean): Option[MinMax[T]] = {
+    if (exact) { super.getMinMax(sft, attribute, filter, exact) } else {
+      read(sft, filter, minMaxKey(attribute))
     }
-    stat.filterNot(_.isEmpty).map(s => AttributeBounds(s.min, s.max, s.cardinality))
   }
 
-  override def getStats[T <: Stat](sft: SimpleFeatureType,
-                                   attributes: Seq[String],
-                                   options: Seq[Any])(implicit ct: ClassTag[T]): Seq[T] = {
-    val toRetrieve = if (attributes.nonEmpty) {
-      attributes.filter(a => Option(sft.getDescriptor(a)).exists(GeoMesaStats.okForStats))
-    } else {
-      sft.getAttributeDescriptors.filter(GeoMesaStats.okForStats).map(_.getLocalName)
+  // note: enumeration stats aren't persisted, so we don't override the super method
+
+  override def getFrequency[T](
+      sft: SimpleFeatureType,
+      attribute: String,
+      precision: Int,
+      filter: Filter,
+      exact: Boolean): Option[Frequency[T]] = {
+    if (exact) { super.getFrequency(sft, attribute, precision, filter, exact) } else {
+      val keys = extractBins(sft, filter) match {
+        case None => Seq(frequencyKey(attribute))
+        case Some(bins) => bins.map(frequencyKey(attribute, _))
+      }
+      read(sft, filter, keys)
     }
+  }
 
-    val clas = ct.runtimeClass
+  override def getTopK[T](
+      sft: SimpleFeatureType,
+      attribute: String,
+      filter: Filter,
+      exact: Boolean): Option[TopK[T]] = {
+    if (exact) { super.getTopK(sft, attribute, filter, exact) } else {
+      read(sft, filter, topKKey(attribute))
+    }
+  }
 
-    val stats = if (clas == classOf[CountStat]) {
-      readStat[CountStat](sft, countKey()).toSeq
-    } else if (clas == classOf[MinMax[_]]) {
-      toRetrieve.flatMap(a => readStat[MinMax[Any]](sft, minMaxKey(a)))
-    } else if (clas == classOf[TopK[_]]) {
-      toRetrieve.flatMap(a => readStat[TopK[Any]](sft, topKKey(a)))
-    } else if (clas == classOf[Histogram[_]]) {
-      toRetrieve.flatMap(a => readStat[Histogram[Any]](sft, histogramKey(a)))
-    } else if (clas == classOf[Frequency[_]]) {
-      if (options.nonEmpty) {
-        // we are retrieving the frequency by week
-        val weeks = options.asInstanceOf[Seq[Short]]
-        val frequencies = toRetrieve.flatMap { a =>
-          weeks.map(frequencyKey(a, _)).flatMap(readStat[Frequency[Any]](sft, _))
-        }
-        Stat.combine(frequencies).toSeq
-      } else {
-        toRetrieve.flatMap(a => readStat[Frequency[Any]](sft, frequencyKey(a)))
-      }
-    } else if (clas == classOf[Z3Histogram]) {
-      val geomDtgOption = for {
-        geom <- Option(sft.getGeomField)
-        dtg  <- sft.getDtgField
-        if toRetrieve.exists(_ == geom) && toRetrieve.exists(_ == dtg)
-      } yield {
-        (geom, dtg)
-      }
-      geomDtgOption.flatMap { case (geom, dtg) =>
+  override def getHistogram[T](
+      sft: SimpleFeatureType,
+      attribute: String,
+      bins: Int,
+      min: T,
+      max: T,
+      filter: Filter,
+      exact: Boolean): Option[Histogram[T]] = {
+    if (exact) { super.getHistogram(sft, attribute, bins, min, max, filter, exact) } else {
+      read(sft, filter, histogramKey(attribute))
+    }
+  }
+
+  override def getZ3Histogram(
+      sft: SimpleFeatureType,
+      geom: String,
+      dtg: String,
+      period: TimePeriod,
+      bins: Int,
+      filter: Filter,
+      exact: Boolean): Option[Z3Histogram] = {
+    if (exact) { super.getZ3Histogram(sft, geom, dtg, period, bins, filter, exact) } else {
+      val keys = if (sft.getGeomField != geom || !sft.getDtgField.contains(dtg)) { Seq.empty } else {
         // z3 histograms are stored by time bin - calculate the times to retrieve
-        // either use the options if passed in, or else calculate from the time bounds
-        val timeBins: Seq[Short] = if (options.nonEmpty) { options.asInstanceOf[Seq[Short]] } else {
-          readStat[MinMax[Date]](sft, minMaxKey(dtg)).map { bounds =>
+        // either use the filter passed in, or else calculate from the time bounds
+        val timeBins = extractBins(sft, filter).orElse {
+          read[MinMax[Date]](sft, Filter.INCLUDE, minMaxKey(dtg)).map { bounds =>
             val timeToBin = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
             val lBin = timeToBin(bounds.min.getTime).bin
             val uBin = timeToBin(bounds.max.getTime).bin
             Range.inclusive(lBin, uBin).map(_.toShort)
-          }.getOrElse(Seq.empty)
+          }
         }
-        val histograms = timeBins.map(histogramKey(geom, dtg, _)).flatMap(readStat[Z3Histogram](sft, _))
-        // combine the week splits into a single stat
-        Stat.combine(histograms)
-      }.toSeq
-    } else {
-      Seq.empty
+        timeBins.getOrElse(Seq.empty).map(histogramKey(geom, dtg, _))
+      }
+      read(sft, filter, keys)
     }
-
-    stats.asInstanceOf[Seq[T]]
   }
 
-  override def generateStats(sft: SimpleFeatureType): Seq[Stat] = {
-    import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
-
-    // calculate the stats we'll be gathering based on the simple feature type attributes
-    val statString = buildStatsFor(sft)
-
-    logger.debug(s"Calculating stats for ${sft.getTypeName}: $statString")
-
-    val stats = runStats[Stat](sft, statString)
-
-    logger.trace(s"Stats for ${sft.getTypeName}: ${stats.map(_.toJson).mkString(", ")}")
-    logger.debug(s"Writing stats for ${sft.getTypeName}")
-
-    // write the stats in one go - don't merge, this is the authoritative value
-    writeStat(new SeqStat(stats), sft, merge = false)
-
-    // update our last run time
-    val date = GeoToolsDateFormat.print(DateTime.now(DateTimeZone.UTC))
-    ds.metadata.insert(sft.getTypeName, GeoMesaMetadata.STATS_GENERATION_KEY, date)
-
-    stats
+  override def getStat[T <: Stat](
+      sft: SimpleFeatureType,
+      query: String,
+      filter: Filter = Filter.INCLUDE,
+      exact: Boolean = false): Option[T] = {
+    if (exact) { super.getStat(sft, query , filter, exact) } else {
+      def getStat(stat: Stat): Option[Stat] = stat match {
+        case _: CountStat          => read[CountStat](sft, filter, countKey())
+        case s: Histogram[_]       => getHistogram(sft, s.property, s.length, s.min, s.max, filter, exact)
+        case s: Z3Histogram        => getZ3Histogram(sft, s.geom, s.dtg, s.period, s.length, filter, exact)
+        case s: TopK[_]            => getTopK(sft, s.property, filter, exact)
+        case s: Frequency[_]       => getFrequency(sft, s.property, s.precision, filter, exact)
+        case s: EnumerationStat[_] => getEnumeration(sft, s.property, filter, exact)
+        case s: MinMax[_]          => getMinMax(sft, s.property, filter, exact)
+        case s: SeqStat            => Some(new SeqStat(sft, s.stats.flatMap(getStat))).filter(_.stats.nonEmpty)
+        case _ => None
+      }
+      getStat(StatParser.parse(sft, query)).asInstanceOf[Option[T]]
+    }
   }
 
-  override def statUpdater(sft: SimpleFeatureType): StatUpdater =
-    if (generateStats) new MetadataStatUpdater(this, sft, Stat(sft, buildStatsFor(sft))) else NoopStatUpdater
-
-  override def clearStats(sft: SimpleFeatureType): Unit = metadata.delete(sft.getTypeName)
-
-  override def close(): Unit = {}
+  override def close(): Unit = metadata.close()
 
   /**
-    * Write a stat to accumulo. If merge == true, will write the stat but not remove the old stat,
-    * and they will be combined on read in the StatsCombiner
+    * Write stats
     *
-    * @param stat stat to write
-    * @param sft simple feature type
-    * @param merge merge with the existing stat - otherwise overwrite
+    * @param typeName simple feature type name
+    * @param stats stats to write
     */
-  protected [stats] def writeStat(stat: Stat, sft: SimpleFeatureType, merge: Boolean): Unit = {
-    val typeName = sft.getTypeName
-    val toWrite = getKeysAndStatsForWrite(stat, sft)
-
-    if (merge) {
-      writeMerge(typeName, toWrite)
-    } else {
-      writeAuthoritative(typeName, toWrite)
-    }
-  }
-
-  protected def writeMerge(typeName: String, toWrite: Seq[KeyAndStat]): Unit = {
-    toWrite.foreach { ks =>
-      metadata.insert(typeName, ks.key, ks.stat)
-      // invalidate the cache as we would need to reload from accumulo for the combiner to take effect
-      metadata.invalidateCache(typeName, ks.key)
-    }
-  }
-
-  protected def writeAuthoritative(typeName: String, toWrite: Seq[KeyAndStat]): Unit = {
-    toWrite.foreach(ks => metadata.insert(typeName, ks.key, ks.stat))
-  }
+  protected def write(typeName: String, stats: Seq[WritableStat]): Unit
 
   /**
     * Gets keys and stats to write. Some stats end up getting split for writing.
     *
     * @param stat stat to write
     * @param sft simple feature type
+    * @param merge merge or overwrite existing stats
     * @return metadata keys and split stats
     */
-  protected def getKeysAndStatsForWrite(stat: Stat, sft: SimpleFeatureType): Seq[KeyAndStat] = {
-    def name(i: Int) = sft.getDescriptor(i).getLocalName
-
+  private def getStatsForWrite(stat: Stat, sft: SimpleFeatureType, merge: Boolean): Seq[WritableStat] = {
     stat match {
-      case s: SeqStat      => s.stats.flatMap(getKeysAndStatsForWrite(_, sft))
-      case s: CountStat    => Seq(KeyAndStat(countKey(), s))
-      case s: MinMax[_]    => Seq(KeyAndStat(minMaxKey(name(s.attribute)), s))
-      case s: TopK[_]      => Seq(KeyAndStat(topKKey(name(s.attribute)), s))
-      case s: Histogram[_] => Seq(KeyAndStat(histogramKey(name(s.attribute)), s))
+      case s: SeqStat      => s.stats.flatMap(getStatsForWrite(_, sft, merge))
+      case s: CountStat    => Seq(WritableStat(countKey(), s, merge))
+      case s: MinMax[_]    => Seq(WritableStat(minMaxKey(s.property), s, merge))
+      case s: TopK[_]      => Seq(WritableStat(topKKey(s.property), s, merge))
+      case s: Histogram[_] => Seq(WritableStat(histogramKey(s.property), s, merge))
 
       case s: Frequency[_] =>
-        val attribute = name(s.attribute)
-        if (s.dtgIndex == -1) {
-          Seq(KeyAndStat(frequencyKey(attribute), s))
+        if (s.dtg.isEmpty) {
+          Seq(WritableStat(frequencyKey(s.property), s, merge))
         } else {
           // split up the frequency and store by week
-          s.splitByTime.map { case (b, f) => KeyAndStat(frequencyKey(attribute, b), f) }
+          s.splitByTime.map { case (b, f) => WritableStat(frequencyKey(s.property, b), f, merge) }
         }
 
       case s: Z3Histogram  =>
-        val geom = name(s.geomIndex)
-        val dtg  = name(s.dtgIndex)
         // split up the z3 histogram and store by week
-        s.splitByTime.map { case (b, z) => KeyAndStat(histogramKey(geom, dtg, b), z) }
+        s.splitByTime.map { case (b, z) => WritableStat(histogramKey(s.geom, s.dtg, b), z, merge) }
 
       case _ => throw new NotImplementedError("Only Count, Frequency, MinMax, TopK and Histogram stats are tracked")
     }
   }
-
-  /**
-    * Read stat from accumulo
-    *
-    * @param sft simple feature type
-    * @param key metadata key
-    * @tparam T stat type
-    * @return stat if it exists
-    */
-  private def readStat[T <: Stat](sft: SimpleFeatureType, key: String, cache: Boolean = true): Option[T] =
-    metadata.read(sft.getTypeName, key, cache).collect { case s: T if !s.isEmpty => s }
 
   /**
     * Determines the stats to calculate for a given schema.
@@ -232,19 +199,37 @@ trait MetadataBackedStats[DS <: GeoMesaDataStore[_, _, _]]
     * We always collect a total count stat.
     * For the default geometry and default date, we collect a min/max and histogram.
     * If there is both a default geometry and date, we collect a z3 histogram.
-    * For any indexed attributes, we collect a min/max, frequency and histogram.
+    * For any indexed attributes, we collect a min/max, top-k, frequency and histogram.
+    * For any flagged attributes, we collect min/max and top-k
     *
     * @param sft simple feature type
+    * @param bounds lookup function for histogram bounds
     * @return stat string
     */
-  protected def buildStatsFor(sft: SimpleFeatureType): String = {
+  private def buildStatsFor(sft: SimpleFeatureType, bounds: String => Option[MinMax[Any]]): String = {
     import GeoMesaStats._
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
     // get the attributes that we will keep stats for
-    val stAttributes = Option(sft.getGeomField).toSeq ++ sft.getDtgField
-    val indexedAttributes = sft.getAttributeDescriptors.filter(d => d.isIndexed && okForStats(d)).map(_.getLocalName)
-    val flaggedAttributes = sft.getAttributeDescriptors.filter(d => d.isKeepStats && okForStats(d)).map(_.getLocalName)
+
+    val stAttributesBuilder = Seq.newBuilder[String]
+    val indexedAttributesBuilder = Seq.newBuilder[String]
+
+    sft.getIndices.foreach { i =>
+      if (i.attributes.headOption.contains(sft.getGeomField)) {
+        stAttributesBuilder ++= i.attributes
+      } else {
+        i.attributes.headOption.foreach(indexedAttributesBuilder += _)
+      }
+    }
+
+    val stAttributes = stAttributesBuilder.result().distinct
+    val indexedAttributes = indexedAttributesBuilder.result().distinct.filter { a =>
+      !stAttributes.contains(a) && okForStats(sft.getDescriptor(a))
+    }
+    val flaggedAttributes = sft.getAttributeDescriptors.asScala.collect {
+      case d if d.isKeepStats && okForStats(d) => d.getLocalName
+    }.filter(a => !stAttributes.contains(a) && !indexedAttributes.contains(a))
 
     val count = Stat.Count()
 
@@ -275,27 +260,21 @@ trait MetadataBackedStats[DS <: GeoMesaDataStore[_, _, _]]
         val binding = sft.getDescriptor(attribute).getType.getBinding
       // calculate the endpoints for the histogram
       // the histogram will expand as needed, but this is a starting point
-      val bounds = {
-        val mm = try {
-          readStat[MinMax[Any]](sft, minMaxKey(attribute))
-        } catch {
-          case NonFatal(e) =>
-            logger.error("Error reading existing stats - possibly the distributed runtime jar is not available", e)
-            None
-        }
+      val (lower, upper, cardinality) = {
+        val mm = bounds(attribute)
         val (min, max) = mm match {
           case None => defaultBounds(binding)
           // max has to be greater than min for the histogram bounds
           case Some(b) if b.min == b.max => Histogram.buffer(b.min)
           case Some(b) => b.bounds
         }
-        AttributeBounds(min, max, mm.map(_.cardinality).getOrElse(0L))
+        (min, max, mm.map(_.cardinality).getOrElse(0L))
       }
       // estimate 10k entries per bin, but cap at 10k bins (~29k on disk)
       val size = if (attribute == sft.getGeomField) { MaxHistogramSize } else {
-        math.min(MaxHistogramSize, math.max(DefaultHistogramSize, bounds.cardinality / 10000).toInt)
+        math.min(MaxHistogramSize, math.max(DefaultHistogramSize, cardinality / 10000).toInt)
       }
-      Stat.Histogram[Any](attribute, size, bounds.lower, bounds.upper)(ClassTag[Any](binding))
+      Stat.Histogram[Any](attribute, size, lower, upper)(ClassTag[Any](binding))
     }
 
     val z3Histogram = for {
@@ -307,54 +286,224 @@ trait MetadataBackedStats[DS <: GeoMesaDataStore[_, _, _]]
 
     Stat.SeqStat(Seq(count) ++ minMax ++ topK ++ histograms ++ frequencies ++ z3Histogram)
   }
-}
 
-/**
-  * Stores stats as metadata entries
-  *
-  * @param stats persistence
-  * @param sft simple feature type
-  * @param statFunction creates stats for tracking new features - this will be re-created on flush,
-  *                     so that our bounds are more accurate
-  */
-class MetadataStatUpdater(stats: MetadataBackedStats[_], sft: SimpleFeatureType, statFunction: => Stat)
-    extends StatUpdater with LazyLogging {
-
-  private var stat: Stat = statFunction
-
-  override def add(sf: SimpleFeature): Unit = stat.observe(sf)
-
-  override def remove(sf: SimpleFeature): Unit = stat.unobserve(sf)
-
-  override def close(): Unit = {
-    if (!stat.isEmpty) {
-      stats.writeStat(stat, sft, merge = true)
+  /**
+    * Read a stat from the metadata
+    *
+    * @param sft simple feature type
+    * @param filter cql filter
+    * @param key metadata key to read
+    * @tparam T stat type
+    * @return
+    */
+  private def read[T <: Stat](sft: SimpleFeatureType, filter: Filter, key: String): Option[T] = {
+    try {
+      val result = metadata.read(sft.getTypeName, key).collect { case s: T if !s.isEmpty => s }
+      if (result.isDefined && filter != Filter.INCLUDE) {
+        logger.warn(s"Ignoring filter for non-exact stat query: ${ECQL.toCQL(filter)}")
+      }
+      result
+    } catch {
+      case NonFatal(e) => logger.error("Error reading existing stats:", e); None
     }
   }
 
-  override def flush(): Unit = {
-    if (!stat.isEmpty) {
-      stats.writeStat(stat, sft, merge = true)
+  /**
+    * Read a stat from the metadata
+    *
+    * @param sft simple feature type
+    * @param filter cql filter
+    * @param keys metadata keys to read
+    * @tparam T stat type
+    * @return
+    */
+  private def read[T <: Stat](sft: SimpleFeatureType, filter: Filter, keys: Seq[String]): Option[T] = {
+    try {
+      val seq = keys.flatMap(metadata.read(sft.getTypeName, _).collect { case s: T if !s.isEmpty => s })
+      val result = Stat.combine(seq).filterNot(_.isEmpty)
+      if (result.isDefined && filter != Filter.INCLUDE) {
+        logger.warn(s"Ignoring filter for non-exact stat query: ${ECQL.toCQL(filter)}")
+      }
+      result
+    } catch {
+      case NonFatal(e) => logger.error("Error reading existing stats:", e); None
     }
-    // reload the tracker - for long-held updaters, this will refresh the histogram ranges
-    stat = statFunction
-  }
-}
-
-class StatsMetadataSerializer(ds: GeoMesaDataStore[_, _, _]) extends MetadataSerializer[Stat] {
-
-  private val sfts = scala.collection.mutable.Map.empty[String, SimpleFeatureType]
-
-  private def serializer(typeName: String) = {
-    val sft = sfts.synchronized(sfts.getOrElseUpdate(typeName, ds.getSchema(typeName)))
-    StatSerializer(sft) // retrieves a cached value
   }
 
-  override def serialize(typeName: String, key: String, value: Stat): Array[Byte] =
-    serializer(typeName).serialize(value)
+  /**
+    * Extract time period bins from a filter. Used to look up stats that are split by time period
+    *
+    * @param sft simple feature type
+    * @param filter filter
+    * @return
+    */
+  private def extractBins(sft: SimpleFeatureType, filter: Filter): Option[Seq[Short]] = {
+    sft.getDtgField.flatMap { dtg =>
+      val intervals = FilterHelper.extractIntervals(filter, dtg)
+      // don't consider gaps, just get the endpoints of the intervals
+      val bounds = intervals.values.reduceLeftOption[Bounds[ZonedDateTime]] { case (left, right) =>
+        val lower = Bounds.smallerLowerBound(left.lower, right.lower)
+        val upper = Bounds.largerUpperBound(left.upper, right.upper)
+        Bounds(lower, upper)
+      }
+      bounds.flatMap { d =>
+        for { lower <- d.lower.value; upper <- d.upper.value } yield {
+          val lo = lower.toInstant.toEpochMilli
+          val hi = upper.toInstant.toEpochMilli
+          val timeToBinnedTime = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
+          Range.inclusive(timeToBinnedTime(lo).bin, timeToBinnedTime(hi).bin).map(_.toShort)
+        }
+      }
+    }
+  }
 
-  override def deserialize(typeName: String, key: String, value: Array[Byte]): Stat =
-    serializer(typeName).deserialize(value, immutable = true)
+  /**
+    * Stat writer implementation
+    */
+  protected class MetadataStatWriter extends GeoMesaStatWriter {
+
+    override def analyze(sft: SimpleFeatureType): Seq[Stat] = {
+      import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
+
+      // calculate the stats we'll be gathering based on the simple feature type attributes
+      val statString = buildStatsFor(sft, getMinMax(sft, _))
+
+      logger.debug(s"Calculating stats for ${sft.getTypeName}: $statString")
+
+      val stats = getStat[SeqStat](sft, statString, exact = true).getOrElse(new SeqStat(sft, Seq.empty))
+
+      logger.trace(s"Stats for ${sft.getTypeName}: ${stats.stats.map(_.toJson).mkString(", ")}")
+      logger.debug(s"Writing stats for ${sft.getTypeName}")
+
+      // write the stats in one go - don't merge, this is the authoritative value
+      write(sft.getTypeName, getStatsForWrite(stats, sft, merge = false))
+
+      // update our last run time
+      ds match {
+        case hm: HasGeoMesaMetadata[String] =>
+          val date = GeoToolsDateFormat.format(Instant.now().atZone(ZoneOffset.UTC))
+          hm.metadata.insert(sft.getTypeName, GeoMesaMetadata.StatsGenerationKey, date)
+        case _ => // no-op
+      }
+
+      stats.stats
+    }
+
+    override def updater(sft: SimpleFeatureType): StatUpdater =
+      if (sft.statsEnabled) { new MetadataStatUpdater(sft) } else { NoopStatUpdater }
+
+    override def clear(sft: SimpleFeatureType): Unit = metadata.delete(sft.getTypeName)
+
+    override def rename(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = {
+      val names: Map[String, String] = {
+        val local = previous.getAttributeDescriptors.asScala.map(_.getLocalName).zipWithIndex.toMap
+        local.flatMap { case (name, i) =>
+          val update = sft.getDescriptor(i).getLocalName
+          if (update == name) { Map.empty[String, String] } else { Map(name -> update) }
+        }
+      }
+
+      def rename(stat: Stat): Stat = {
+        val copy: Option[Stat] = stat match {
+          case _: CountStat =>
+            None
+
+          case s: MinMax[_] =>
+            names.get(s.property).map(n => new MinMax(sft, n)(s.defaults))
+
+          case s: TopK[_] =>
+            names.get(s.property).map(n => new TopK(sft, n))
+
+          case s: Histogram[AnyRef] =>
+            names.get(s.property).map(n => new Histogram(sft, n, s.length, (s.min, s.max))(s.defaults, s.ct))
+
+          case s: Frequency[_] =>
+            if ((Seq(s.property) ++ s.dtg).forall(n => !names.contains(n))) { None } else {
+              val name = names.getOrElse(s.property, s.property)
+              val dtg = s.dtg.map(d => names.getOrElse(d, d))
+              Some(new Frequency(sft, name, dtg, s.period, s.precision, s.eps, s.confidence)(s.ct))
+            }
+
+          case s: Z3Histogram =>
+            if (Seq(s.geom, s.dtg).forall(n => !names.contains(n))) { None } else {
+              val geom = names.getOrElse(s.geom, s.geom)
+              val dtg = names.getOrElse(s.dtg, s.dtg)
+              Some(new Z3Histogram(sft, geom, dtg, s.period, s.length))
+            }
+
+          case s: SeqStat =>
+            Some(new SeqStat(sft, s.stats.map(rename)))
+
+          case s =>
+            throw new NotImplementedError(s"Unexpected stat: $s")
+        }
+        copy.foreach(_ += stat)
+        copy.getOrElse(stat)
+      }
+
+      if (names.nonEmpty || sft.getTypeName != previous.getTypeName) {
+        val serializer =
+          Some(metadata)
+              .collect { case m: TableBasedMetadata[Stat] => m.serializer }
+              .collect { case s: StatsMetadataSerializer => s }
+
+        // we need to set the old feature type in the serializer cache to read back our current values
+        serializer.foreach(s => s.cache.put(previous.getTypeName, StatSerializer(previous)))
+        val old = try { metadata.scan(previous.getTypeName, "", cache = false).toList } finally {
+          serializer.foreach(s => s.cache.remove(previous.getTypeName)) // will re-load latest from data store
+        }
+        old.foreach { case (key, stat) =>
+          val renamed = getStatsForWrite(rename(stat), sft, merge = false)
+          write(sft.getTypeName, renamed)
+          if (sft.getTypeName != previous.getTypeName || !renamed.exists(_.key == key)) {
+            metadata.remove(previous.getTypeName, key)
+          }
+        }
+      }
+    }
+  }
+
+  /**
+    * Stores stats as metadata entries
+    *
+    * @param sft simple feature type
+    */
+  protected class MetadataStatUpdater(sft: SimpleFeatureType) extends StatUpdater with LazyLogging {
+
+    private var stat: Stat = Stat(sft, buildStatsFor(sft, getMinMax(sft, _)))
+
+    override def add(sf: SimpleFeature): Unit = stat.observe(sf)
+
+    override def remove(sf: SimpleFeature): Unit = stat.unobserve(sf)
+
+    override def close(): Unit = {
+      if (!stat.isEmpty) {
+        write(sft.getTypeName, getStatsForWrite(stat, sft, merge = true))
+      }
+    }
+
+    override def flush(): Unit = {
+      if (!stat.isEmpty) {
+        write(sft.getTypeName, getStatsForWrite(stat, sft, merge = true))
+      }
+      // reload the tracker - for long-held updaters, this will refresh the histogram ranges
+      stat = Stat(sft, buildStatsFor(sft, localBounds))
+    }
+
+    /**
+      * Get the bounds we've seen so far in this updater, but don't re-load from Accumulo as that
+      * can be slow
+      *
+      * @param attribute attribute
+      * @return
+      */
+    private def localBounds(attribute: String): Option[MinMax[Any]] = {
+      stat match {
+        case s: SeqStat => s.stats.collectFirst { case m: MinMax[Any] if m.property == attribute => m }
+        case _ => logger.error(s"Expected to have a SeqStat but got: $stat"); None
+      }
+    }
+  }
 }
 
 object MetadataBackedStats {
@@ -366,28 +515,62 @@ object MetadataBackedStats {
   val HistogramKeyPrefix = "stats-hist"
 
   // gets the key for storing the count
-  private [stats] def countKey(): String = CountKey
+  private def countKey(): String = CountKey
 
   // gets the key for storing a min-max
-  private [stats] def minMaxKey(attribute: String): String = s"$BoundsKeyPrefix-$attribute"
+  private def minMaxKey(attribute: String): String = s"$BoundsKeyPrefix-$attribute"
 
   // gets the key for storing a min-max
-  private [stats] def topKKey(attribute: String): String = s"$TopKKeyPrefix-$attribute"
+  private def topKKey(attribute: String): String = s"$TopKKeyPrefix-$attribute"
 
   // gets the key for storing a frequency attribute
-  private [stats] def frequencyKey(attribute: String): String =
-    s"$FrequencyKeyPrefix-$attribute"
+  private def frequencyKey(attribute: String): String = s"$FrequencyKeyPrefix-$attribute"
 
   // gets the key for storing a frequency attribute by time bin
-  private [stats] def frequencyKey(attribute: String, timeBin: Short): String =
-    frequencyKey(s"$attribute-$timeBin")
+  private def frequencyKey(attribute: String, timeBin: Short): String = frequencyKey(s"$attribute-$timeBin")
 
   // gets the key for storing a histogram
-  private [stats] def histogramKey(attribute: String): String = s"$HistogramKeyPrefix-$attribute"
+  private def histogramKey(attribute: String): String = s"$HistogramKeyPrefix-$attribute"
 
   // gets the key for storing a Z3 histogram
-  private [stats] def histogramKey(geom: String, dtg: String, timeBin: Short): String =
-    histogramKey(s"$geom-$dtg-$timeBin")
+  private def histogramKey(geom: String, dtg: String, timeBin: Short): String = histogramKey(s"$geom-$dtg-$timeBin")
 
-  case class KeyAndStat(key: String, stat: Stat)
+  case class WritableStat(key: String, stat: Stat, merge: Boolean)
+
+  /**
+    * Stat serializer
+    *
+    * @param ds datastore
+    */
+  class StatsMetadataSerializer(ds: DataStore) extends MetadataSerializer[Stat] {
+
+    private [MetadataBackedStats] val cache = new ConcurrentHashMap[String, StatSerializer]()
+
+    private def serializer(typeName: String): StatSerializer = {
+      var serializer = cache.get(typeName)
+      if (serializer == null) {
+        val sft = ds.getSchema(typeName)
+        if (sft == null) {
+          throw new RuntimeException(s"Trying to deserialize stats for type '$typeName' " +
+              "but it doesn't exist in the datastore")
+        }
+        serializer = StatSerializer(sft) // note: retrieves a cached value
+        cache.put(typeName, serializer)
+      }
+      serializer
+    }
+
+    override def serialize(typeName: String, value: Stat): Array[Byte] =
+      serializer(typeName).serialize(value)
+
+    override def deserialize(typeName: String, value: Array[Byte]): Stat =
+      serializer(typeName).deserialize(value, immutable = true)
+  }
+
+  @deprecated("org.locationtech.geomesa.index.stats.RunnableStats")
+  class RunnableStats(ds: DataStore) extends org.locationtech.geomesa.index.stats.RunnableStats(ds)
+
+  @deprecated("org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats")
+  class UnoptimizedRunnableStats(ds: DataStore)
+      extends org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats(ds)
 }

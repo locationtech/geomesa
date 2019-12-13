@@ -6,6 +6,29 @@ in GeoMesa data stores is to use `GeoServer`_,
 an open source server for sharing geospatial data. This chapter describes
 how to work with the GeoMesa GeoServer plugins.
 
+.. _geoserver_versions:
+
+GeoServer Versions
+------------------
+
+Not all versions of GeoServer are compatible with all versions of GeoMesa. Refer to the chart below for which
+version to install. It is recommended to use the latest GeoServer bug-fix release for the compatible minor version.
+
++-------------------+-------------------+
+| GeoMesa Version   | GeoServer Version |
++===================+===================+
+| 2.1.x and earlier | 2.12.x            |
++-------------------+-------------------+
+| 2.2.x and 2.3.x   | 2.14.x            |
++-------------------+-------------------+
+| 2.4.x             | 2.15.x            |
++-------------------+-------------------+
+
+.. warning::
+
+    GeoMesa will not work with an incompatible version of GeoServer. Ensure that your install the correct
+    version according to the chart above.
+
 Installation
 ------------
 
@@ -13,10 +36,11 @@ Instructions for installing the GeoMesa plugins in GeoServer are
 available by datastore:
 
  * :ref:`install_accumulo_geoserver`
- * :ref:`install_kafka_geoserver`
  * :ref:`install_hbase_geoserver`
  * :ref:`install_bigtable_geoserver`
  * :ref:`install_cassandra_geoserver`
+ * :ref:`install_kafka_geoserver`
+ * :ref:`install_lambda_geoserver`
 
 Go to your GeoServer installation at ``http://<hostname>:8080/geoserver``.
 For new installations of GeoServer, the default username is ``admin`` and
@@ -28,10 +52,11 @@ Creating a Data Store
 Specific instructions by data store:
 
  * :doc:`/user/accumulo/geoserver`
- * :doc:`/user/kafka/geoserver`
  * :doc:`/user/hbase/geoserver`
  * :doc:`/user/bigtable/geoserver`
  * :doc:`/user/cassandra/geoserver`
+ * :doc:`/user/kafka/geoserver`
+ * :doc:`/user/lambda/geoserver`
 
 Publish a GeoMesa Layer
 -----------------------
@@ -49,6 +74,12 @@ from the data.
    :align: center
 
 Click on the "Save" button when you are done.
+
+.. warning::
+
+   When configuring a time-enabled layer, generally you should set the presentation to "Continuous interval."
+   Setting presentation to "List" will require displaying all unique time values in the layer, and cause WMS
+   ``GetCapabilities`` requests to be slow.
 
 Preview a Layer
 ---------------
@@ -116,12 +147,22 @@ For massive queries, the standard 60 second timeout may be too short.
 
 .. |"Disable limits"| image:: _static/img/wms_limits.png
 
+Temp Directories
+^^^^^^^^^^^^^^^^
+
+GeoServer creates temporary directories for caching various files. Running in a multi-tenant environment
+can result in permission errors when different users try to write to the same directories. To avoid this,
+configure your application server with the following system properties::
+
+  -DEPSG-HSQL.directory=/tmp/$USER-hsql
+  -DGEOWEBCACHE_CACHE_DIR=/tmp/$USER-gwc
+
 .. _geoserver_explain_query:
 
 Logging Explain Query Planning
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The GeoMesa Accumulo data store can explain its plan for executing queries,
+GeoMesa data stores can explain their plan for executing queries,
 as described in :ref:`explain_query`. To enable the logging of explain query
 planning in GeoServer, add the following to the
 ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties`` file::
@@ -135,32 +176,39 @@ is printed out when you start GeoServer::
     - GEOSERVER_DATA_DIR: /path/to/geoserver-data-dir
     ----------------------------------
 
-Monitoring GeoMesa DataStores
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+It may also be helpful to refer to GeoServer's `Advanced log configuration`__ documentation for the
+specifics of how and where to manage the GeoServer logs.
 
-GeoMesa DataStores can log query metrics as JSON via log4j.  To use this, there are two steps:
+__ http://docs.geoserver.org/stable/en/user/configuration/logging.html
 
-First, GeoServer logging needs to log `TRACE` level messages in the ``org.locationtech.geomesa.utils.monitoring`` package.
-To enable that logging, edit the GeoServer logging
-file (e.g. ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties``) and add entries like::
+Auditing GeoMesa DataStores
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+GeoMesa data stores can audit query metrics. To enabled auditing, check the box for ``geomesa.query.audit``
+when registering the data store in GeoServer.
+
+The Accumulo data store will write audited queries to the ``<catalog>_queries`` table. Other data stores
+will generally write audited queries to logs. To configure an audit log, set the level for
+``org.locationtech.geomesa.utils.audit`` to ``DEBUG``. This can be accomplished by editing the GeoServer logging
+configuration (e.g. ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties``)::
 
    log4j.appender.metrics=org.apache.log4j.FileAppender
    log4j.appender.metrics.File=metrics.log
    log4j.appender.metrics.layout=org.apache.log4j.PatternLayout
    log4j.appender.metrics.layout.ConversionPattern=%m%n
 
-   log4j.category.org.locationtech.geomesa.utils.monitoring=TRACE, metrics
+   log4j.logger.org.locationtech.geomesa.utils.audit=DEBUG, metrics
 
-Second as a DataStore is registered in GeoServer, the `collectQueryStats` box should be ticked for the store.
+See :ref:`audit_provider` for details on query attribution.
 
-GeoMesa GeoServer Community Module
-----------------------------------
+GeoMesa GeoServer Extensions
+----------------------------
 
-The GeoMesa community module adds support for raster imagery to GeoServer. The community module
-requires the Accumulo GeoServer plugin to be installed first.
+Due to licensing, GeoServer-specific code related to GeoMesa is maintained in a separate
+`repository <https://github.com/geomesa/geomesa-geoserver/>`__. It can be downloaded from Maven
+central, or built from source.
 
-The community module can be downloaded from `OpenGeo <http://ares.opengeo.org/geoserver/>`__, or can
-be built from `source <https://github.com/geoserver/geoserver/tree/master/src/community/geomesa>`__.
+It is required for Arrow output in GeoServer, among other things.
 
-Once obtained, the community module can be installed by copying ``geomesa-gs-<version>.jar`` into
+Once obtained, the GeoServer modules can be installed by copying ``geomesa-gs-*.jar`` into
 the GeoServer ``lib`` directory.

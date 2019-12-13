@@ -1,43 +1,53 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.stats
 
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.{Coordinate, Geometry}
+import org.locationtech.jts.geom.{Coordinate, Geometry}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
 /**
- * The histogram's state is stored in an indexed array, where the index is the bin number
- * and the values are the counts.
- *
- * e.g. a range of 0 to 3 with 3 bins will result in these bins: [0, 1), [1, 2), [2, 3) and the
- * array will contain three entries.
- *
- * @param attribute attribute index for the attribute the histogram is being made for
- * @param initialBins number of bins the histogram has
- * @param initialEndpoints lower/upper end of histogram
- * @tparam T a comparable type which must have a StatHelperFunctions type class
- */
-class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T))
-                  (implicit val defaults: MinMax.MinMaxDefaults[T], ct: ClassTag[T])
-    extends Stat with LazyLogging {
+  * The histogram's state is stored in an indexed array, where the index is the bin number
+  * and the values are the counts.
+  *
+  * e.g. a range of 0 to 3 with 3 bins will result in these bins: [0, 1), [1, 2), [2, 3) and the
+  * array will contain three entries.
+  *
+  * @param sft simple feature type
+  * @param property property name for the attribute the histogram is being made for
+  * @param initialBins number of bins the histogram has
+  * @param initialEndpoints lower/upper end of histogram
+  * @tparam T a comparable type which must have a StatHelperFunctions type class
+  */
+class Histogram[T](
+    val sft: SimpleFeatureType,
+    val property: String,
+    initialBins: Int,
+    initialEndpoints: (T, T)
+  )(
+    implicit val defaults: MinMax.MinMaxDefaults[T],
+    val ct: ClassTag[T]
+  ) extends Stat with LazyLogging {
 
   override type S = Histogram[T]
 
+  @deprecated("property")
+  lazy val attribute: Int = i
+
+  private val i = sft.indexOf(property)
   private [stats] var bins: BinnedArray[T] = BinnedArray[T](initialBins, initialEndpoints)
-  lazy val stringify = Stat.stringifier(ct.runtimeClass)
-  private lazy val jsonStringify = Stat.stringifier(ct.runtimeClass, json = true)
 
   def length: Int = bins.length
   def directIndex(value: Long): Int = bins.directIndex(value)
@@ -64,7 +74,7 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
   }
 
   override def observe(sf: SimpleFeature): Unit = {
-    val value = sf.getAttribute(attribute)
+    val value = sf.getAttribute(i)
     if (value != null) {
       try {
         val i = bins.indexOf(value.asInstanceOf[T])
@@ -81,7 +91,7 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
   }
 
   override def unobserve(sf: SimpleFeature): Unit = {
-    val value = sf.getAttribute(attribute)
+    val value = sf.getAttribute(i)
     if (value != null) {
       try {
         val i = bins.indexOf(value.asInstanceOf[T])
@@ -102,7 +112,7 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
     * Bounds and length will both be the greater from each histogram.
     */
   override def +(other: Histogram[T]): Histogram[T] = {
-    val plus = new Histogram(attribute, length, bounds)
+    val plus = new Histogram(sft, property, length, bounds)
     plus += this
     plus += other
     plus
@@ -145,25 +155,16 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
     }
   }
 
-  override def toJson: String = {
-    val sb = new StringBuilder()
-    sb.append(s"""{ "lower-bound" : ${jsonStringify(bounds._1)}, """)
-    sb.append(s""""upper-bound" : ${jsonStringify(bounds._2)}, "bins" : [ """)
-    var i = 0
-    while (i < bins.length) {
-      sb.append(s"""{ "index": $i, "lower-bound": ${jsonStringify(bounds(i)._1)}, """)
-
-      if (i == bins.length-1) {
-        sb.append(s""""upper-bound": ${jsonStringify(bounds(i)._2)}, "count": ${bins.counts(i)}}""")
-      } else {
-        sb.append(s""""upper-bound": ${jsonStringify(bounds(i)._2)}, "count": ${bins.counts(i)}}, """)
-      }
-
-      i += 1
+  override def toJsonObject: Map[String, Any] = {
+    val binSeq = Seq.tabulate(bins.length) { bin =>
+      ListMap[String, Any](
+        "index"       -> bin,
+        "lower-bound" -> bounds(bin)._1,
+        "upper-bound" -> bounds(bin)._2,
+        "count"       -> bins.counts(bin)
+      )
     }
-
-    sb.append("] }")
-    sb.toString()
+    ListMap("lower-bound" -> bounds._1, "upper-bound" -> bounds._2, "bins" -> binSeq)
   }
 
   override def isEmpty: Boolean = bins.counts.forall(_ == 0)
@@ -172,7 +173,7 @@ class Histogram[T](val attribute: Int, initialBins: Int, initialEndpoints: (T, T
 
   override def isEquivalent(other: Stat): Boolean = other match {
     case that: Histogram[T] =>
-      attribute == that.attribute && bounds == that.bounds &&
+      property == that.property && bounds == that.bounds &&
           java.util.Arrays.equals(bins.counts, that.bins.counts)
     case _ => false
   }

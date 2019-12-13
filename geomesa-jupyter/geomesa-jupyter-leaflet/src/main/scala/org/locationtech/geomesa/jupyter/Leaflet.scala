@@ -1,22 +1,22 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.jupyter
 
 object L {
-  import com.vividsolutions.jts.geom._
-  import org.apache.commons.lang3.StringEscapeUtils
+  import org.apache.commons.text.CharacterPredicates.ASCII_ALPHA_NUMERALS
+  import org.apache.commons.text.{RandomStringGenerator, StringEscapeUtils}
+  import org.apache.spark.sql._
+  import org.geotools.geojson.geom.GeometryJSON
+  import org.locationtech.geomesa.spark.SparkUtils
+  import org.locationtech.jts.geom._
   import org.opengis.feature.`type`.AttributeDescriptor
   import org.opengis.feature.simple.SimpleFeature
-  import org.geotools.geojson.geom.GeometryJSON
-  import org.apache.spark.sql._
-  import org.geotools.feature.simple.SimpleFeatureBuilder
-  import org.locationtech.geomesa.spark.{GeoMesaDataSource, SparkUtils}
 
   trait GeoRenderable {
     def render: String
@@ -143,10 +143,10 @@ object L {
   case class DataFrameLayerNonPoint(df: DataFrame, idField: String, style: StyleOption)
     extends GeoRenderable with DataFrameLayer {
     private val dfc = df.collect() // expensive operation
-    private val sft = new GeoMesaDataSource().structType2SFT(df.schema, "sft")
-    private val builder = new SimpleFeatureBuilder(sft)
+    private val sft = SparkUtils.createFeatureType("sft", df.schema)
     // expensive map operation
-    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(sft, r, builder, r.getAs[String](idField))).toSeq
+    private val mappings = SparkUtils.rowsToFeatures(sft, df.schema).copy(id = r => r.getAs[String](idField))
+    private val sftSeq = dfc.map(mappings.apply).toSeq
     private val sftLayer = SimpleFeatureLayerNonPoint(sftSeq, style)
     override def render: String = sftLayer.render
   }
@@ -154,10 +154,10 @@ object L {
   case class DataFrameLayerPoint(df: DataFrame, idField: String, style: StyleOption, radius: Double = 5.0)
     extends GeoRenderable with DataFrameLayer {
     private val dfc = df.collect() // expensive operation
-    private val sft = new GeoMesaDataSource().structType2SFT(df.schema, "sft")
-    private val builder = new SimpleFeatureBuilder(sft)
+    private val sft = SparkUtils.createFeatureType("sft", df.schema)
     // expensive map operation
-    private val sftSeq = dfc.map(r => SparkUtils.row2Sf(sft, r, builder, r.getAs[String](idField))).toSeq
+    private val mappings = SparkUtils.rowsToFeatures(sft, df.schema).copy(id = r => r.getAs[String](idField))
+    private val sftSeq = dfc.map(mappings.apply).toSeq
     private val sftLayer = SimpleFeatureLayerPoint(sftSeq, style, radius)
     override def render: String = sftLayer.render
   }
@@ -217,22 +217,60 @@ object L {
     }
   }
 
-  // TODO: parameterize base url for js and css
-  def buildMap(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8, path: String = "js") =
+  val leafletCssCdn =
+    """
+      |<link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+      |  integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+      |  crossorigin=""/>
+    """.stripMargin
+
+  val leafletJsCdn =
+    """
+      |<script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+      |  integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+      |  crossorigin=""></script>
+    """.stripMargin
+
+  val leafletWmsJsCdn =
+    """
+      |<script src="https://unpkg.com/leaflet.wms@0.2.0/dist/leaflet.wms.js"
+      |  integrity="sha384-ixDRqhwaC8CiUqK6q3rR//gkxROH6Jo2ekssv8GY9ifDKsN53cvFhXof9rfb1Zhs"
+      |  crossorigin=""></script>
+    """.stripMargin
+
+  def buildMap(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8, path: Option[String] = None) = {
+
+    val leafletCss = path match {
+      case Some(p) => s"""<link rel="stylesheet" href="$p/leaflet.css" />"""
+      case None => leafletCssCdn
+    }
+
+    val leafletJs = path match {
+      case Some(p) => s"""<script src="$p/leaflet.js"></script>"""
+      case None => leafletJsCdn
+    }
+
+    val leafletWmsJs = path match {
+      case Some(p) => s"""<script src="$p/leaflet.wms.js"></script>"""
+      case None => leafletWmsJsCdn
+    }
+
+    val countriesJs = path match {
+      case Some(p) => s"""<script src="$p/countries.geo.js"></script>"""
+      case None => "" // data not easily hosted anywhere
+    }
+
     s"""
        |<html>
        |  <head>
-       |    <link rel="stylesheet" href="$path/leaflet.css" />
-       |    <script src="$path/leaflet.js"></script>
-       |    <script src="$path/leaflet.wms.js"></script>
-       |    <script src="$path/countries.geo.json" type="text/javascript"></script>
+       |    $leafletCss
+       |    $leafletJs
+       |    $leafletWmsJs
+       |    $countriesJs
        |  </head>
        |  <body>
        |    <div id='map' style="width:100%;height:500px"></div>
        |    <script>
-       |      // Initialize the Base Layer... Loaded from GeoJson
-       |      var basestyle = {"color": "#717171", "weight": 2, "opacity": 1.0};
-       |      var base = L.geoJson(worldMap, basestyle);
        |
        |      //'map' is the id of the map
        |      var map = L.map('map', {
@@ -241,16 +279,24 @@ object L {
        |        zoom: ${zoom}
        |      });
        |
-       |      map.addLayer(base);
+       |      // Only add country boundaries if the geojson data loaded ok from the script
+       |      if(typeof worldMap !== 'undefined') {
+       |        // Initialize the Base Layer... Loaded from GeoJson
+       |        var basestyle = {"color": "#717171", "weight": 2, "opacity": 1.0};
+       |        var base = L.geoJson(worldMap, basestyle);
+       |        map.addLayer(base);
+       |      }
+       |
        |      ${layers.map(_.render).mkString(sep = "\n")}
        |
        |    </script>
        |  </body>
        |</html>
      """.stripMargin
+  }
 
-  def render(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8, path: String = "js") = {
-    val id = org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric(5)
+  def render(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 8, path: Option[String] = None) = {
+    val id = new RandomStringGenerator.Builder().withinRange('0', 'z').filteredBy(ASCII_ALPHA_NUMERALS).build().generate(5)
     s"""
        |<iframe id="${id}" sandbox="allow-scripts allow-same-origin" style="border:none;width:100%;height:520px" srcdoc="${xml.Utility.escape(buildMap(layers, center, zoom, path))}"></iframe>
        |<script>
@@ -268,7 +314,7 @@ object L {
      """.stripMargin
   }
 
-  def show(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 1, path: String = "js")(implicit disp: String => Unit) = disp(render(layers,center,zoom,path))
+  def show(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 1, path: Option[String] = None)(implicit disp: String => Unit) = disp(render(layers,center,zoom,path))
 
-  def print(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 1, path: String = "js") = println(buildMap(layers,center,zoom,path))
+  def print(layers: Seq[GeoRenderable], center: (Double, Double) = (0,0), zoom: Int = 1, path: Option[String] = None) = println(buildMap(layers,center,zoom,path))
 }

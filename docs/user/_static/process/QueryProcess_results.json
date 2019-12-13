@@ -1,0 +1,149 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        -76.513,
+        -37.4941
+        ]
+      },
+      "properties": {
+        "Who": "Bierce",
+        "What": 931,
+        "When": "2014-07-04T22:25:38.000+0000"
+      },
+      "id": "Observation.931"
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        -76.8815,
+        -37.4016
+        ]
+      },
+      "properties": {
+        "Who": "Bierce",
+        "What": 589,
+        "When": "2014-07-05T06:02:15.000+0000"
+      },
+      "id": "Observation.589"
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        -76.598,
+        -37.1842
+        ]
+      },
+      "properties": {
+        "Who": "Bierce",
+        "What": 886,
+        "When": "2014-07-22T18:12:36.000+0000"
+      },
+      "id": "Observation.886"
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        -77.0176,
+        -37.3093
+        ]
+      },
+      "properties": {
+        "Who": "Bierce",
+        "What": 322,
+        "When": "2014-07-15T21:09:42.000+0000"
+      },
+      "id": "Observation.322"
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        -76.5621,
+        -37.3432
+        ]
+      },
+      "properties": {
+        "Who": "Bierce",
+        "What": 925,
+        "When": "2014-08-18T03:28:33.000+0000"
+      },
+      "id": "Observation.925"
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        -77.4256,
+        -37.2671
+        ]
+      },
+      "properties": {
+        "Who": "Bierce",
+        "What": 394,
+        "When": "2014-08-01T23:55:05.000+0000"
+      },
+      "id": "Observation.394"
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        -76.6683,
+        -37.445
+        ]
+      },
+      "properties": {
+        "Who": "Bierce",
+        "What": 343,
+        "When": "2014-08-06T08:59:22.000+0000"
+      },
+      "id": "Observation.343"
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        -76.9012,
+        -37.1485
+        ]
+      },
+      "properties": {
+        "Who": "Bierce",
+        "What": 259,
+        "When": "2014-08-28T19:59:30.000+0000"
+      },
+      "id": "Observation.259"
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+        -77.3622,
+        -37.1301
+        ]
+      },
+      "properties": {
+        "Who": "Bierce",
+        "What": 640,
+        "When": "2014-09-14T19:48:25.000+0000"
+      },
+      "id": "Observation.640"
+    }
+  ]
+}

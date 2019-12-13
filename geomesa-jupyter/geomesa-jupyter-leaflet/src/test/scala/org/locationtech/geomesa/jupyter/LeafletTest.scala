@@ -1,14 +1,14 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.jupyter
 
-import com.vividsolutions.jts.geom.Coordinate
+import org.locationtech.jts.geom.Coordinate
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -36,6 +36,7 @@ class LeafletTest extends Specification {
           |     format: 'image/png',
           |     version: '1.1.1'
           |  }).getLayer('foo').addTo(map);
+          |
         """.stripMargin) must be equalTo rendered
     }
 
@@ -46,6 +47,17 @@ class LeafletTest extends Specification {
       println(rendered)
       s"L.polygon([[10.0,10.0],[11.0,10.0],[11.0,11.0],[10.0,11.0],[10.0,10.0]],${clean(StyleOptions().render)}).addTo(map);" must be equalTo rendered
     }
+
+  }
+
+  "L without path should include CDN links" >> {
+    val html = L.buildMap(Seq(), (0,0), 8, None)
+    html must contain(L.leafletCssCdn) and contain (L.leafletJsCdn) and contain (L.leafletWmsJsCdn)
+  }
+
+  "L with path should not include CDN links" >> {
+    val html = L.buildMap(Seq(), (0,0), 8, Some("js"))
+    html must not contain(L.leafletCssCdn) and not contain (L.leafletJsCdn) and not contain (L.leafletWmsJsCdn)
   }
 
 

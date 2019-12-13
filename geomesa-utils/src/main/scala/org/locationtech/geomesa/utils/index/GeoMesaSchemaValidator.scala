@@ -1,22 +1,19 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.index
 
-import java.lang.{Boolean => jBoolean}
-
 import com.typesafe.scalalogging.LazyLogging
-import com.vividsolutions.jts.geom.Geometry
-import org.locationtech.geomesa.utils.geotools.FeatureUtils
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
-import org.locationtech.geomesa.utils.stats.IndexCoverage
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConverters._
@@ -27,17 +24,12 @@ object GeoMesaSchemaValidator {
   def validate(sft: SimpleFeatureType): Unit = {
     MixedGeometryCheck.validateGeometryType(sft)
     TemporalIndexCheck.validateDtgField(sft)
-    TemporalIndexCheck.validateDtgIndex(sft)
     ReservedWordCheck.validateAttributeNames(sft)
     IndexConfigurationCheck.validateIndices(sft)
   }
 
-  private [index] def boolean(value: AnyRef): Boolean = value match {
-    case null => false
-    case bool: jBoolean => bool
-    case bool: String => jBoolean.valueOf(bool)
-    case bool => jBoolean.valueOf(bool.toString)
-  }
+  private [geomesa] def declared(sft: SimpleFeatureType, prop: String): Boolean =
+    Option(sft.getUserData.get(prop)).orElse(SystemProperty(prop).option).exists(SimpleFeatureTypes.toBoolean)
 }
 
 /**
@@ -52,9 +44,10 @@ object ReservedWordCheck extends LazyLogging {
     val reservedWords = FeatureUtils.sftReservedWords(sft)
     if (reservedWords.nonEmpty) {
       val msg = "The simple feature type contains attribute name(s) that are reserved words: " +
-          s"${reservedWords.mkString(", ")}. You may override this check by setting '$RESERVED_WORDS=true' " +
-          "in the simple feature type user data, but it may cause errors with some functionality."
-      if (GeoMesaSchemaValidator.boolean(sft.getUserData.get(RESERVED_WORDS))) {
+          s"${reservedWords.mkString(", ")}. You may override this check by putting Boolean.TRUE into the " +
+          s"SimpleFeatureType user data under the key '$OverrideReservedWords' before calling createSchema, or by " +
+          s"setting the system property '$OverrideReservedWords' to 'true', however it may cause errors with some functionality."
+      if (GeoMesaSchemaValidator.declared(sft, OverrideReservedWords)) {
         logger.warn(msg)
       } else {
         throw new IllegalArgumentException(msg)
@@ -82,28 +75,16 @@ object TemporalIndexCheck extends LazyLogging {
         sft.clearDtgField()
       }
       // if there are valid fields, warn and set to the first available
-      dtgCandidates.headOption.foreach { candidate =>
-        lazy val theWarning = s"$DEFAULT_DATE_KEY is not valid or defined for simple feature type $sft. " +
-            "However, the following attribute(s) can be used in GeoMesa's temporal index: " +
-            s"${dtgCandidates.mkString(", ")}. GeoMesa will now point $DEFAULT_DATE_KEY to the first " +
-            s"temporal attribute found: $candidate"
-        logger.warn(theWarning)
-        sft.setDtgField(candidate)
-      }
-    }
-  }
-
-  // note: dtg should be set appropriately before calling this method
-  def validateDtgIndex(sft: SimpleFeatureType): Unit = {
-    sft.getDtgField.foreach { dtg =>
-      if (sft.getDescriptor(dtg).getIndexCoverage == IndexCoverage.JOIN) {
-        val declared = GeoMesaSchemaValidator.boolean(sft.getUserData.get(DEFAULT_DTG_JOIN))
-        if (!declared) {
-          throw new IllegalArgumentException("Trying to create a schema with a partial (join) attribute index " +
-              s"on the default date field '$dtg'. This may cause whole-world queries with time bounds to be much " +
-              "slower. If this is intentional, you may override this message by putting Boolean.TRUE into the " +
-              s"SimpleFeatureType user data under the key '$DEFAULT_DTG_JOIN' before calling createSchema. " +
-              "Otherwise, please either specify a full attribute index or remove it entirely.")
+      if (!GeoMesaSchemaValidator.declared(sft, IndexIgnoreDtg)) {
+        dtgCandidates.headOption.foreach { candidate =>
+          lazy val theWarning = s"$DefaultDtgField is not valid or defined for simple feature type $sft. " +
+              "However, the following attribute(s) can be used in GeoMesa's temporal index: " +
+              s"${dtgCandidates.mkString(", ")}. To disable temporal indexing, put Boolean.TRUE into the " +
+              s"SimpleFeatureType user data under the key '$IndexIgnoreDtg' before calling createSchema, or " +
+              s"set the system property '$IndexIgnoreDtg' to 'true'. GeoMesa will now point $DefaultDtgField " +
+              s"to the first temporal attribute found: $candidate"
+          logger.warn(theWarning)
+          sft.setDtgField(candidate)
         }
       }
     }
@@ -119,13 +100,13 @@ object MixedGeometryCheck extends LazyLogging {
   def validateGeometryType(sft: SimpleFeatureType): Unit = {
     val gd = sft.getGeometryDescriptor
     if (gd != null && gd.getType.getBinding == classOf[Geometry]) {
-      val declared = GeoMesaSchemaValidator.boolean(sft.getUserData.get(MIXED_GEOMETRIES))
-      if (!declared) {
+      if (!GeoMesaSchemaValidator.declared(sft, MixedGeometries)) {
         throw new IllegalArgumentException("Trying to create a schema with mixed geometry type " +
             s"'${gd.getLocalName}:Geometry'. Queries may be slower when using mixed geometries. " +
-            "If this is intentional, you may override this message by putting Boolean.TRUE into the " +
-            s"SimpleFeatureType user data under the key '$MIXED_GEOMETRIES' before calling createSchema. " +
-            "Otherwise, please specify a single geometry type (e.g. Point, LineString, Polygon, etc).")
+            "If this is intentional, you may override this check by putting Boolean.TRUE into the " +
+            s"SimpleFeatureType user data under the key '$MixedGeometries' before calling createSchema, or by " +
+            s"setting the system property '$MixedGeometries' to 'true'. Otherwise, please specify a single " +
+            s"geometry type (e.g. Point, LineString, Polygon, etc).")
       }
     }
   }
@@ -136,5 +117,6 @@ object IndexConfigurationCheck {
   def validateIndices(sft: SimpleFeatureType): Unit = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     require(sft.getZShards > 0 && sft.getZShards < 128, "Z shards must be between 1 and 127")
+    require(sft.getAttributeShards > 0 && sft.getAttributeShards < 128, "Attribute shards must be between 1 and 127")
   }
 }

@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.raster.wcs
 
@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.coverage.CoverageFactoryFinder
 import org.geotools.coverage.grid.io.AbstractGridCoverage2DReader
 import org.geotools.coverage.grid.{GridCoverage2D, GridEnvelope2D}
-import org.geotools.factory.Hints
+import org.geotools.util.factory.Hints
 import org.geotools.geometry.GeneralEnvelope
 import org.geotools.util.Utilities
 import org.locationtech.geomesa.raster.data.{AccumuloRasterStore, GeoMesaCoverageQueryParams}

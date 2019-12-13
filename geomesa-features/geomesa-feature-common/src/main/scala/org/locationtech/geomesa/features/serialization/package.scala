@@ -1,17 +1,17 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features
 
 package object serialization {
 
-  val NULL_BYTE     = 0.asInstanceOf[Byte]
-  val NOT_NULL_BYTE = 1.asInstanceOf[Byte]
+  val NULL_BYTE    : Byte = 0
+  val NOT_NULL_BYTE: Byte = 1
 
   type PrimitiveWriter = AnyRef {
     def writeInt(value: Int): Unit

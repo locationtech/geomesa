@@ -1,15 +1,12 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.spark.converter
-
-import java.io.Serializable
-import java.util
 
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
 import com.typesafe.scalalogging.LazyLogging
@@ -20,16 +17,17 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.geotools.data.Query
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.locationtech.geomesa.convert.{ConverterConfigLoader, SimpleFeatureConverters}
+import org.locationtech.geomesa.convert.ConverterConfigLoader
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.mapreduce.ConverterInputFormat
-import org.locationtech.geomesa.spark.SpatialRDD
-import org.locationtech.geomesa.spark.SpatialRDDProvider
+import org.locationtech.geomesa.spark.{SpatialRDD, SpatialRDDProvider}
 import org.locationtech.geomesa.utils.geotools.{SftArgResolver, SftArgs, SimpleFeatureTypeLoader}
-import org.locationtech.geomesa.utils.io.CloseQuietly
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
 /**
@@ -45,9 +43,9 @@ import scala.util.control.NonFatal
   */
 class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
-  import ConverterSpatialRDDProvider.{ConverterKey, IngestTypeKey, FeatureNameKey, InputFilesKey, SftKey}
+  import ConverterSpatialRDDProvider._
 
-  override def canProcess(params: util.Map[String, Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     ((params.containsKey(ConverterKey) && params.containsKey(SftKey))
       || params.containsKey(IngestTypeKey)) && params.containsKey(InputFilesKey)
 
@@ -55,7 +53,8 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
                    sc: SparkContext,
                    params: Map[String, String],
                    query: Query): SpatialRDD = {
-    val (sft, converterConf) = computeSftConfig(params, query)
+    val sft = loadSft(params, query.getTypeName)
+    val converterConf = loadConverter(sft, params)
 
     ConverterInputFormat.setConverterConfig(conf, converterConf)
     ConverterInputFormat.setSft(conf, sft)
@@ -64,9 +63,12 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     val job = Job.getInstance(conf)
     FileInputFormat.setInputPaths(job, params(InputFilesKey))
     conf.set(FileInputFormat.INPUT_DIR, job.getConfiguration.get(FileInputFormat.INPUT_DIR))
-
-    if (query.getPropertyNames != null && query.getPropertyNames.length > 0) {
-      logger.warn("Ignoring query transform - modify converter definition instead")
+    val queryProperties = query.getPropertyNames
+    val sftProperties = sft.getAttributeDescriptors.map{_.getLocalName}
+    if (queryProperties != null && queryProperties.nonEmpty && sftProperties != queryProperties.toSeq) {
+      logger.debug("Query transform retyping results")
+      val modifiedSft = SimpleFeatureTypeBuilder.retype(sft, query.getPropertyNames)
+      ConverterInputFormat.setRetypeSft(conf, modifiedSft)
     }
 
     if (query.getFilter != null && query.getFilter != Filter.INCLUDE) {
@@ -77,51 +79,58 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     SpatialRDD(rdd.map(_._2), sft)
   }
 
-  // TODO:  Move the logic here and in the next function to utils (aka somewhere more general)
-  //  GEOMESA-1644 Move logic to retrieve SFT/Converter config from classpath to utils
-  private def computeSftConfig(params: Map[String, String], query: Query) = {
-    val (sft, converterConf) = lookupSftConfig(params, query)
+  override def sft(params: Map[String, String], typeName: String): Option[SimpleFeatureType] =
+    Option(loadSft(params, typeName))
 
-    // Verify the config before returning.
-    try {
-      CloseQuietly(SimpleFeatureConverters.build(sft, ConfigFactory.parseString(converterConf)))
-    } catch {
-      case NonFatal(e) => throw new IllegalArgumentException("Could not resolve converter", e)
+  override def save(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit =
+    throw new NotImplementedError("Converter provider is read-only")
+
+  private def loadSft(params: Map[String, String], typeName: String): SimpleFeatureType = {
+    params.get(IngestTypeKey) match {
+      case Some(sftName) =>
+        // NB: Here we assume that the SFT name and Converter name match. (And there is no option to rename the SFT.)
+        //  Further, it is assumed that they can loaded from the classpath.
+        SimpleFeatureTypeLoader.sftForName(sftName).getOrElse {
+          throw new IllegalArgumentException(s"Could not resolve Simple Feature Type by name for $sftName.")
+        }
+
+      case None =>
+        // This is the general case where the SFT and Converter config strings are given.
+        val sftName = params.get(FeatureNameKey).orElse(Option(typeName)).orNull
+
+        SftArgResolver.getArg(SftArgs(params(SftKey), sftName)) match {
+          case Right(s) => s
+          case Left(e) => throw new IllegalArgumentException("Could not resolve simple feature type", e)
+        }
     }
-    (sft, converterConf)
   }
 
-  private def lookupSftConfig(params: Map[String, String], query: Query) = {
+  // TODO:  Move the logic here and in the next function to utils (aka somewhere more general)
+  //  GEOMESA-1644 Move logic to retrieve SFT/Converter config from classpath to utils
+  private def loadConverter(sft: SimpleFeatureType, params: Map[String, String]): String = {
     params.get(IngestTypeKey) match {
       case Some(sftName) =>
         // NB: Here we assume that the SFT name and Converter name match.  (And there is no option to rename the SFT.)
         //  Further, it is assumed that they can loaded from the classpath.
-        val sft = SimpleFeatureTypeLoader.sftForName(sftName)
-          .getOrElse(throw new IllegalArgumentException(s"Could not resolve Simple Feature Type by name for $sftName."))
-        val convertConf =
-          ConverterConfigLoader.confs
-            .getOrElse(sftName, throw new Exception(s"Could not resolve Converter by name for $sftName."))
-            .root().render(ConfigRenderOptions.concise())
+        val config = ConverterConfigLoader.confs.getOrElse(sftName,
+          throw new Exception(s"Could not resolve Converter by name for $sftName."))
 
-        (sft, convertConf)
-
-      case _ =>
-        // This is the general case where the SFT and Converter config strings are given.
-        val sftName = params.get(FeatureNameKey).orElse(Option(query.getTypeName)).orNull
-
-        val sft: SimpleFeatureType = SftArgResolver.getArg(SftArgs(params(SftKey), sftName)) match {
-          case Right(s) => s
-          case Left(e) => throw new IllegalArgumentException("Could not resolve simple feature type", e)
+        // Verify the config before returning.
+        try { SimpleFeatureConverter(sft, config).close() } catch {
+          case NonFatal(e) => throw new IllegalArgumentException("Could not resolve converter", e)
         }
 
-        val converterConf: String = params(ConverterKey)
+        config.root().render(ConfigRenderOptions.concise())
 
-        (sft, converterConf)
+      case None =>
+        val config = params(ConverterKey)
+        // Verify the config before returning.
+        try { SimpleFeatureConverter(sft, ConfigFactory.parseString(config)).close() } catch {
+          case NonFatal(e) => throw new IllegalArgumentException("Could not resolve converter", e)
+        }
+        config
     }
   }
-
-  override def save(rdd: RDD[SimpleFeature], writeDataStoreParams: Map[String, String], writeTypeName: String): Unit =
-    throw new NotImplementedError("Converter provider is read-only")
 }
 
 object ConverterSpatialRDDProvider {

@@ -1,24 +1,19 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.geotools
 
 import java.net.URL
-import java.util.{ServiceLoader, List => JList}
+import java.util.Collections
 
-import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions}
-import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import com.typesafe.config.ConfigFactory
+import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.opengis.feature.simple.SimpleFeatureType
-
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
-
 
 /**
  * Query all SimpleFeatureTypeProviders to expose all available SimpleFeatureTypes
@@ -28,83 +23,65 @@ import scala.collection.JavaConverters._
  */
 object SimpleFeatureTypeLoader {
 
-  private val providers = ServiceLoader.load(classOf[SimpleFeatureTypeProvider]).toList
+  import scala.collection.JavaConverters._
+
+  private lazy val providers = ServiceLoader.load[SimpleFeatureTypeProvider]()
 
   // keep as a method so we can dynamically reload
-  def sfts: List[SimpleFeatureType] = providers.flatMap(_.loadTypes())
+  def sfts: List[SimpleFeatureType] = providers.flatMap(_.loadTypes().asScala)
 
   // Public API
   def listTypeNames: List[String] = sfts.map(_.getTypeName)
   def sftForName(n: String): Option[SimpleFeatureType] = sfts.find(_.getTypeName == n)
-}
 
-trait ConfigSftParsing extends LazyLogging {
+  /**
+    * Class path provider
+    */
+  class ClassPathSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
+    override def loadTypes(): java.util.List[SimpleFeatureType] = {
+      val sfts = parseConf(ConfigFactory.load())
+      logger.debug(s"Loading SFTs from classpath ${sfts.map(_.getTypeName).mkString(", ")}")
+      sfts.asJava
+    }
+  }
 
-  def parseConf(config: Config): java.util.List[SimpleFeatureType] = {
-    import scala.collection.JavaConversions._
-    if (!config.hasPath(ConfigSftParsing.path)) {
-      List.empty[SimpleFeatureType]
-    } else {
-      val confs = config.getConfig(ConfigSftParsing.path)
-      confs.root.keySet.flatMap { name =>
-        val sftConf = confs.getConfig(name)
+  /**
+    * Load types from arbitrary urls
+    */
+  class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
+    override def loadTypes(): java.util.List[SimpleFeatureType] = {
+      val urls = configURLs.toList
+      logger.debug(s"Loading config from urls: ${urls.mkString(", ")}")
+      val configs = urls.flatMap { url =>
+        logger.debug(s"Attempting to parse config from url $url")
         try {
-          val sft = SimpleFeatureTypes.createType(sftConf, Some(name))
-          Some(sft)
+          Some(ConfigFactory.parseURL(url))
         } catch {
-          case e: Exception =>
-            logger.error("Error loading simple feature type from config " +
-              s"${sftConf.root().render(ConfigRenderOptions.concise())}", e)
+          case e: Throwable =>
+            logger.warn(s"Unable to load SFT config from url $url")
+            logger.trace(s"Unable to load SFT config from url $url", e)
             None
         }
-      }.toList.asJava
-    }
-  }
-}
-
-object ConfigSftParsing {
-  val ConfigPathProperty = SystemProperty("org.locationtech.geomesa.sft.config.path", "geomesa.sfts")
-
-  // keep as function so its mutable
-  def path = ConfigPathProperty.get
-}
-
-class ClassPathSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
-  override def loadTypes(): JList[SimpleFeatureType] = {
-    val sfts = parseConf(ConfigFactory.load())
-    logger.debug(s"Loading SFTs from classpath ${sfts.map(_.getTypeName).mkString(", ")}")
-    sfts
-  }
-}
-
-class URLSftProvider extends SimpleFeatureTypeProvider with ConfigSftParsing {
-  import URLSftProvider._
-  override def loadTypes(): JList[SimpleFeatureType] = {
-    val urls = configURLs.toList
-    logger.debug(s"Loading config from urls: ${urls.mkString(", ")}")
-    urls
-      .map(ConfigFactory.parseURL)
-      .reduceLeftOption(_.withFallback(_))
-      .map(parseConf)
-      .getOrElse(List.empty[SimpleFeatureType])
-  }
-  
-  // Will also pick things up from the SystemProperties
-  def configURLs: Seq[URL] = {
-    val config = ConfigFactory.load()
-    if (config.hasPath(SftConfigURLs)) {
-      config.getAnyRef(SftConfigURLs) match {
-        case s: String          => s.split(',').map(s => s.trim).toList.map(new URL(_))
-        case lst: JList[String] => lst.map(new URL(_))
       }
-    } else {
-      Seq.empty[URL]
+      configs.reduceLeftOption(_.withFallback(_)) match {
+        case Some(c) => parseConf(c).asJava
+        case None => Collections.emptyList[SimpleFeatureType]()
+      }
+    }
+
+    // Will also pick things up from the SystemProperties
+    private def configURLs: Seq[URL] = {
+      val config = ConfigFactory.load()
+      if (!config.hasPath(URLSftProvider.SftConfigURLs)) { Seq.empty[URL] } else {
+        config.getAnyRef(URLSftProvider.SftConfigURLs) match {
+          case s: String => s.split(',').map(s => new URL(s.trim)).toList
+          case s: java.util.List[String] => s.asScala.map(new URL(_))
+        }
+      }
     }
   }
-}
 
-object URLSftProvider {
-  val SftConfigURLs = "geomesa.sft.config.urls"
+  object URLSftProvider {
+    val SftConfigURLs = "geomesa.sft.config.urls"
+  }
 }
-
-object SimpleSftParser extends ConfigSftParsing {}

@@ -1,21 +1,22 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.filter
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter._
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.Fragments
+import org.specs2.specification.core.Fragments
 
 import scala.collection.JavaConversions._
 
@@ -33,8 +34,8 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
       val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)
       geoms must haveLength(1)
       nongeoms must haveLength(1)
-      ECQL.toCQL(geoms(0)) mustEqual("BBOX(geom, -45.0,-45.0,45.0,45.0)")
-      ECQL.toCQL(nongeoms(0)) mustEqual("BBOX(g, -30.0,-30.0,30.0,30.0)")
+      ECQL.toCQL(geoms(0)) mustEqual "BBOX(geom, -45.0,-45.0,45.0,45.0)"
+      ECQL.toCQL(nongeoms(0)) mustEqual "BBOX(g, -30.0,-30.0,30.0,30.0)"
     }
     "filter intersect based on default geom" in {
       val filter =
@@ -43,8 +44,8 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
       val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)
       geoms must haveLength(1)
       nongeoms must haveLength(1)
-      ECQL.toCQL(geoms(0)) mustEqual("INTERSECTS(geom, POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)))")
-      ECQL.toCQL(nongeoms(0)) mustEqual("INTERSECTS(g, POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)))")
+      ECQL.toCQL(geoms(0)) mustEqual "INTERSECTS(geom, POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)))"
+      ECQL.toCQL(nongeoms(0)) mustEqual "INTERSECTS(g, POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)))"
     }
     "filter intersect based on default geom regardless of order" in {
       val filter =
@@ -53,18 +54,53 @@ class FilterPackageObjectTest extends Specification with LazyLogging {
       val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)
       geoms must haveLength(1)
       nongeoms must haveLength(1)
-      ECQL.toCQL(geoms(0)) mustEqual("INTERSECTS(POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)), geom)")
-      ECQL.toCQL(nongeoms(0)) mustEqual("INTERSECTS(POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)), g)")
+      ECQL.toCQL(geoms(0)) mustEqual "INTERSECTS(POLYGON ((-45 -45, -45 45, 45 45, 45 -45, -45 -45)), geom)"
+      ECQL.toCQL(nongeoms(0)) mustEqual "INTERSECTS(POLYGON ((-30 -30, -30 30, 30 30, 30 -30, -30 -30)), g)"
     }
 
     "handle ANDs with multiple predicates" in {
-      val filters= Seq(1 && geomFilter && 2, 1 && 2 && geomFilter, geomFilter && 1 && 2)
+      val filters = List(ECQL.toFilter("attr1 = val1"), ECQL.toFilter("attr2 = val2"), geomFilter)
+          .permutations.map(ff.and(_)).toSeq
 
       forall(filters) { filter => 
         val (geoms, nongeoms) = partitionPrimarySpatials(filter, sft)
         geoms must haveLength(1)
         nongeoms must haveLength(2)
       }
+    }
+  }
+
+  "the mergeFilters function" should {
+
+    val ff  = CommonFactoryFinder.getFilterFactory2
+    val f1 = ff.equals(ff.property("test"), ff.literal("a"))
+
+    "ignore Filter.INCLUDE" >> {
+      val f2 = Filter.INCLUDE
+      val combined = mergeFilters(f1, f2)
+      combined mustEqual f1
+
+      val combined2 = mergeFilters(f2, f1)
+      combined2 mustEqual f1
+    }
+
+    "simplify same filters" >> {
+      val f2 = ff.equals(ff.property("test"), ff.literal("a"))
+      val combined = mergeFilters(f1, f2)
+      combined mustEqual f1
+
+      val combined2 = mergeFilters(f2, f1)
+      combined2 mustEqual f1
+    }
+
+    "AND different filters" >> {
+      val f2 = ff.equals(ff.property("test2"), ff.literal("a"))
+      val desired = ff.and(f1, f2)
+      val combined = mergeFilters(f1, f2)
+      combined mustEqual desired
+
+      val combined2 = mergeFilters(f2, f1)
+      combined2 mustEqual desired
     }
   }
 

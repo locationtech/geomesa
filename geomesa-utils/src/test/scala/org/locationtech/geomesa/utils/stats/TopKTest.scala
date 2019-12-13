@@ -1,17 +1,17 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.utils.stats
 
 import java.lang.{Double => jDouble, Long => jLong}
 import java.util.Date
 
-import com.vividsolutions.jts.geom.Geometry
+import org.locationtech.jts.geom.Geometry
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
@@ -78,7 +78,7 @@ class TopKTest extends Specification {
         features1.foreach(stat.observe)
         stat.isEmpty must beFalse
         stat.size mustEqual 5
-        stat.topK(10) mustEqual Seq(("name100", 50), ("name50", 20), ("name30", 15), ("name10", 10), ("name15", 5))
+        stat.topK(10).toSeq mustEqual Seq(("name100", 50), ("name50", 20), ("name30", 15), ("name10", 10), ("name15", 5))
       }
 
       "serialize and deserialize" >> {
@@ -89,7 +89,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
       }
@@ -101,7 +101,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
       }
@@ -114,7 +114,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
 
@@ -132,17 +132,17 @@ class TopKTest extends Specification {
         features2.foreach(stat2.observe)
 
         stat2.size mustEqual 5
-        stat2.topK(10) mustEqual Seq(("name100-2", 50), ("name50-2", 20), ("name30-2", 15), ("name10-2", 10), ("name15-2", 5))
+        stat2.topK(10).toSeq mustEqual Seq(("name100-2", 50), ("name50-2", 20), ("name30-2", 15), ("name10-2", 10), ("name15-2", 5))
 
         stat += stat2
 
         stat.size mustEqual 10
 
-        stat.topK(10) mustEqual Seq(("name100", 50), ("name100-2", 50), ("name50", 20), ("name50-2", 20),
+        stat.topK(10).toSeq mustEqual Seq(("name100", 50), ("name100-2", 50), ("name50", 20), ("name50-2", 20),
           ("name30", 15), ("name30-2", 15), ("name10", 10), ("name10-2", 10), ("name15", 5), ("name15-2", 5))
 
         stat2.size mustEqual 5
-        stat2.topK(10) mustEqual Seq(("name100-2", 50), ("name50-2", 20), ("name30-2", 15), ("name10-2", 10), ("name15-2", 5))
+        stat2.topK(10).toSeq mustEqual Seq(("name100-2", 50), ("name50-2", 20), ("name30-2", 15), ("name10-2", 10), ("name15-2", 5))
       }
 
       "clear" >> {
@@ -152,7 +152,7 @@ class TopKTest extends Specification {
 
         stat.isEmpty must beTrue
         stat.size mustEqual 0
-        stat.topK(10) must beEmpty
+        stat.topK(10).toSeq must beEmpty
       }
     }
 
@@ -162,7 +162,7 @@ class TopKTest extends Specification {
         features1.foreach(stat.observe)
         stat.isEmpty must beFalse
         stat.size mustEqual 5
-        stat.topK(10) mustEqual Seq((100L, 50), (50L, 20), (30L, 15), (10L, 10), (15L, 5))
+        stat.topK(10).toSeq mustEqual Seq((100L, 50), (50L, 20), (30L, 15), (10L, 10), (15L, 5))
       }
 
       "serialize and deserialize" >> {
@@ -173,7 +173,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
       }
@@ -185,7 +185,7 @@ class TopKTest extends Specification {
         features1.foreach(stat.observe)
         stat.isEmpty must beFalse
         stat.size mustEqual 5
-        stat.topK(10) mustEqual Seq((100.0, 50), (50.0, 20), (30.0, 15), (10.0, 10), (15.0, 5))
+        stat.topK(10).toSeq mustEqual Seq((100.0, 50), (50.0, 20), (30.0, 15), (10.0, 10), (15.0, 5))
       }
 
       "serialize and deserialize" >> {
@@ -196,7 +196,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
       }
@@ -204,14 +204,14 @@ class TopKTest extends Specification {
 
     "work with dates" >> {
 
-      def toDate(year: Int) = GeoToolsDateFormat.parseDateTime(f"2$year%03d-01-01T00:00:00.000Z").toDate
+      def toDate(year: Int) = java.util.Date.from(java.time.LocalDateTime.parse(f"2$year%03d-01-01T00:00:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
 
       "correctly calculate values"  >> {
         val stat = dateStat
         features1.foreach(stat.observe)
         stat.isEmpty must beFalse
         stat.size mustEqual 5
-        stat.topK(10) mustEqual Seq((toDate(100), 50), (toDate(50), 20), (toDate(30), 15), (toDate(10), 10), (toDate(15), 5))
+        stat.topK(10).toSeq mustEqual Seq((toDate(100), 50), (toDate(50), 20), (toDate(30), 15), (toDate(10), 10), (toDate(15), 5))
       }
 
       "serialize and deserialize" >> {
@@ -222,7 +222,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
       }
@@ -237,7 +237,7 @@ class TopKTest extends Specification {
         features1.foreach(stat.observe)
         stat.isEmpty must beFalse
         stat.size mustEqual 5
-        stat.topK(10) mustEqual Seq((toGeom(100), 50), (toGeom(50), 20), (toGeom(30), 15), (toGeom(10), 10), (toGeom(15), 5))
+        stat.topK(10).toSeq mustEqual Seq((toGeom(100), 50), (toGeom(50), 20), (toGeom(30), 15), (toGeom(10), 10), (toGeom(15), 5))
       }
 
       "serialize and deserialize" >> {
@@ -248,7 +248,7 @@ class TopKTest extends Specification {
 
         unpacked must beAnInstanceOf[TopK[String]]
         unpacked.asInstanceOf[TopK[String]].size mustEqual stat.size
-        unpacked.asInstanceOf[TopK[String]].attribute mustEqual stat.attribute
+        unpacked.asInstanceOf[TopK[String]].property mustEqual stat.property
         unpacked.asInstanceOf[TopK[String]].toJson mustEqual stat.toJson
         unpacked.isEquivalent(stat) must beTrue
       }

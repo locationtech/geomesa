@@ -23,7 +23,7 @@ Humanitarian Icons 2012</Abstract>
           <PointSymbolizer>
             <Graphic>
               <ExternalGraphic>
-                <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://localhost:8080/images/icons/attack-icon-16px.png"/>
+                <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="http://localhost:8080/icons/fire.png"/>
                 <Format>image/png</Format>
               </ExternalGraphic>                
               <Size>

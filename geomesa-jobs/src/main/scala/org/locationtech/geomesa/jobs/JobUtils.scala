@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.jobs
 
@@ -29,7 +29,9 @@ object JobUtils extends LazyLogging {
     // always prepend GEOMESA_EXTRA_CLASSPATHS first
     val paths = (extra ++ found).map(f => "file://" + f.getAbsolutePath)
     // tmpjars is the hadoop config that corresponds to libjars
-    conf.setStrings("tmpjars", paths: _*)
-    logger.debug(s"Job will use the following libjars=${paths.mkString("\n", "\n", "")}")
+    if (paths.nonEmpty) {
+      conf.setStrings("tmpjars", paths: _*)
+    }
+    logger.debug(s"Job will use the following libjars:${paths.mkString("\n\t", "\n\t", "")}")
   }
 }

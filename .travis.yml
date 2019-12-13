@@ -1,8 +1,15 @@
 # See http://about.travis-ci.org/docs/user/build-configuration/
-sudo: false
+sudo: required
+dist: trusty
+
+before_install:
+  - unset _JAVA_OPTIONS
 
 before_script:
   - export MAVEN_SKIP_RC=true
+
+before_cache:
+  - rm -rf $HOME/.m2/repository/org/locationtech/geomesa
 
 cache:
   directories:

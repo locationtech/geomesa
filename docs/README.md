@@ -8,19 +8,12 @@ The documentation is built using Python's [Sphinx](http://sphinx-doc.org/) modul
 
 Installing Sphinx and its dependencies in a Python ``virtualenv``:
 
-    $ virtualenv sphinx && cd sphinx
-    $ source bin/activate
-    $ pip install sphinx
-    $ pip install recommonmark      # needed to parse Markdown files
-    $ pip install sphinx_rtd_theme  # HTML theme (https://github.com/rtfd/sphinx_rtd_theme)
-    $ pip install sphinx_tabs       # HTML tabs (https://github.com/djungelorm/sphinx-tabs)
-
+    $ virtualenv .sphinx && source .sphinx/bin/activate
+    $ pip install -r requirements.txt
+    
 Alternatively use ``sudo`` with the ``pip`` command to install the packages in the system Python distribution.
 
-    $ sudo pip install sphinx
-    $ sudo pip install recommonmark
-    $ sudo pip install sphinx_rtd_theme
-    $ sudo pip install sphinx_tabs
+    $ sudo pip install -r requirements.txt
 
 Optional:  if you want to build the PDF version of the manual, install LaTeX:
 
@@ -34,7 +27,7 @@ You will also need ``make``.
 
 To build HTML versions of the manuals:
 
-    $ mvn clean install -Pdocs
+    $ mvn clean install -Pdocs -pl docs
 
 If you do not have Sphinx installed the manual will not be built.
 The outputted files are written to the ``target/html`` directory. 

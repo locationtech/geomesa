@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert.scripting
 
@@ -12,8 +12,7 @@ import java.io.File
 
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
-import org.locationtech.geomesa.convert.Transformers.{DefaultCounter, EvaluationContextImpl}
+import org.locationtech.geomesa.convert.{EvaluationContext, SimpleFeatureConverters}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -44,7 +43,7 @@ class ScriptingFunctionFactoryTest extends Specification {
     }
 
     "execute functions" >> {
-      implicit val ec = new EvaluationContextImpl(IndexedSeq.empty[String], Array.empty[Any], new DefaultCounter)
+      implicit val ec = EvaluationContext.empty
       val fn = sff.functions.find(_.names.contains("js:hello")).head
       val res = fn.eval(Array("geomesa"))
       res must beEqualTo("hello: geomesa")

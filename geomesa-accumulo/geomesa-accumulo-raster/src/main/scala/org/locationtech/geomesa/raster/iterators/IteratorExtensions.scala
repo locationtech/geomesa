@@ -1,16 +1,16 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.raster.iterators
 
 import org.apache.accumulo.core.client.IteratorSetting
 import org.geotools.process.vector.TransformProcess
-import org.locationtech.geomesa.accumulo.index.encoders.IndexValueEncoder
+import org.locationtech.geomesa.accumulo.index.IndexValueEncoder.IndexValueEncoderImpl
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features._
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -42,7 +42,6 @@ object IteratorExtensions {
   val GEOMESA_ITERATORS_TRANSFORM                = "geomesa.iterators.transform"
   val GEOMESA_ITERATORS_TRANSFORM_SCHEMA         = "geomesa.iterators.transform.schema"
   val GEOMESA_ITERATORS_IS_DENSITY_TYPE          = "geomesa.iterators.is-density-type"
-  val GEOMESA_ITERATORS_VERSION                  = "geomesa.iterators.version"
 
   val USER_DATA = ".userdata."
 
@@ -97,20 +96,10 @@ trait HasFeatureType {
   }
 }
 
-trait HasVersion extends IteratorExtensions {
-
-  var version: Int = -1
-
-  abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
-    super.init(featureType, options)
-    version = options.get(GEOMESA_ITERATORS_VERSION).toInt
-  }
-}
-
 /**
  * Provides an index value decoder
  */
-trait HasIndexValueDecoder extends HasVersion {
+trait HasIndexValueDecoder extends IteratorExtensions {
 
   var indexSft: SimpleFeatureType = null
   var indexEncoder: SimpleFeatureSerializer = null
@@ -118,12 +107,9 @@ trait HasIndexValueDecoder extends HasVersion {
   // index value encoder/decoder
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
-    val version = options.get(GEOMESA_ITERATORS_VERSION).toInt
     indexSft = SimpleFeatureTypes.createType(featureType.getTypeName,
       options.get(GEOMESA_ITERATORS_SFT_INDEX_VALUE))
-    indexSft.setSchemaVersion(version)
-    // noinspection ScalaDeprecation
-    indexEncoder = IndexValueEncoder(indexSft, featureType)
+    indexEncoder = new IndexValueEncoderImpl(featureType)
   }
 }
 
@@ -134,7 +120,7 @@ trait HasFeatureDecoder extends IteratorExtensions {
 
   var featureDecoder: SimpleFeatureSerializer = null
   var featureEncoder: SimpleFeatureSerializer = null
-  val defaultEncoding = org.locationtech.geomesa.accumulo.data.DEFAULT_ENCODING
+  val defaultEncoding = SerializationType.KRYO
 
   // feature encoder/decoder
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
@@ -159,7 +145,7 @@ trait HasSpatioTemporalFilter extends IteratorExtensions {
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
     if (options.containsKey(ST_FILTER_PROPERTY_NAME)) {
-      val filter = FastFilterFactory.toFilter(options.get(ST_FILTER_PROPERTY_NAME))
+      val filter = FastFilterFactory.toFilter(featureType, options.get(ST_FILTER_PROPERTY_NAME))
       if (filter != Filter.INCLUDE) {
         stFilter = filter
       }
@@ -178,7 +164,7 @@ trait HasFilter extends IteratorExtensions {
   abstract override def init(featureType: SimpleFeatureType, options: OptionMap) = {
     super.init(featureType, options)
     if (options.containsKey(GEOMESA_ITERATORS_ECQL_FILTER)) {
-      val ecql = FastFilterFactory.toFilter(options.get(GEOMESA_ITERATORS_ECQL_FILTER))
+      val ecql = FastFilterFactory.toFilter(featureType, options.get(GEOMESA_ITERATORS_ECQL_FILTER))
       if (ecql != Filter.INCLUDE) {
         filter = ecql
       }
@@ -190,8 +176,6 @@ trait HasFilter extends IteratorExtensions {
  * Provides a feature type transformation if the iterator config specifies one
  */
 trait HasTransforms extends IteratorExtensions {
-
-  import org.locationtech.geomesa.accumulo.data.DEFAULT_ENCODING
 
   type TransformFunction = (SimpleFeature) => Array[Byte]
   var transform: TransformFunction = null
@@ -207,7 +191,7 @@ trait HasTransforms extends IteratorExtensions {
 
       val transformString = options.get(GEOMESA_ITERATORS_TRANSFORM)
       val transformEncoding = Option(options.get(FEATURE_ENCODING)).map(SerializationType.withName)
-          .getOrElse(DEFAULT_ENCODING)
+          .getOrElse(SerializationType.KRYO)
 
       transform = TransformCreator.createTransform(targetFeatureType, transformEncoding, transformString)
     }
@@ -284,7 +268,7 @@ object TransformCreator {
     val encoder = SimpleFeatureSerializers(targetFeatureType, featureEncoding)
     val defs = TransformProcess.toDefinition(transformString)
 
-    val newSf = new ScalaSimpleFeature("reusable", targetFeatureType)
+    val newSf = new ScalaSimpleFeature(targetFeatureType, "reusable")
 
     (feature: SimpleFeature) => {
       newSf.setId(feature.getIdentifier.getID)

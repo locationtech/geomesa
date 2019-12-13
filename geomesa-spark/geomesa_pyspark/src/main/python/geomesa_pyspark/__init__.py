@@ -1,6 +1,7 @@
 import glob
 import os.path
 import pkgutil
+import re
 import sys
 import tempfile
 import zipfile
@@ -9,6 +10,7 @@ import zipfile
 __version__ = '${python.version}'
 
 PACKAGE_EXTENSIONS = {'.zip', '.egg', '.jar'}
+PACKAGE_DEV = re.compile("[.]dev[0-9]*$")
 
 
 def configure(jars=[], packages=[], files=[], spark_home=None, spark_master='yarn', tmp_path=None):
@@ -32,6 +34,7 @@ def configure(jars=[], packages=[], files=[], spark_home=None, spark_master='yar
     assert spark_master is 'yarn', 'only yarn master is supported with this release'
 
     import pyspark
+    import geomesa_pyspark.types
 
     # Need differential behavior based for <= Spark 2.0.x, Spark 2.1.0
     #  is the fist release to provide the module __version__ attribute
@@ -91,7 +94,7 @@ def process_executor_packages(executor_packages, tmp_path=None):
             zip_name = "%s.zip" % executor_package if package_version is None\
                 else "%s-%s.zip" % (executor_package, package_version) 
             zip_path = os.path.join(tmp_path, zip_name)
-            if not os.path.isfile(zip_path):
+            if (not os.path.isfile(zip_path)) or ((package_version and PACKAGE_DEV.search(package_version)) is not None):
                 zip_package(package_path, zip_path)
             executor_files.append(zip_path)
                 
@@ -106,3 +109,7 @@ def zip_package(package_path, zip_path):
                 full_path = os.path.join(root, file)
                 archive_path = full_path[path_offset:]
                 writer.write(full_path, archive_path)
+
+
+def init_sql(spark):
+    spark._jvm.org.apache.spark.sql.SQLTypes.init(spark._jwrapped)

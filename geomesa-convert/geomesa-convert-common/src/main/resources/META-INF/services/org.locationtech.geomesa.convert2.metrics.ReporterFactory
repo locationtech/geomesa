@@ -1,0 +1,2 @@
+org.locationtech.geomesa.convert2.metrics.ConsoleReporterFactory
+org.locationtech.geomesa.convert2.metrics.Slf4jReporterFactory

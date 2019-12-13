@@ -4,10 +4,13 @@ Contributing to GeoMesa
 Project Description
 -------------------
 
-GeoMesa is a suite of tools for working with big geo-spatial data in a distributed fashion.
-GeoMesa's main focus is a GeoTools DataStore implementation backed by Apache Accumulo, but it also
-supports streaming data with Apache Kafka, distributed processing with Apache Spark, tools for
-converting and ingesting data, and much more.
+GeoMesa is an open source suite of tools that enables large-scale geospatial querying and analytics on distributed
+computing systems. GeoMesa provides spatio-temporal indexing on top of the Accumulo, HBase, Google Bigtable and
+Cassandra databases for massive storage of point, line, and polygon data. GeoMesa also provides near real time
+stream processing of spatio-temporal data by layering spatial semantics on top of Apache Kafka. Through GeoServer,
+GeoMesa facilitates integration with a wide range of existing mapping clients over standard OGC (Open Geospatial
+Consortium) APIs and protocols such as WFS and WMS. GeoMesa supports Apache Spark for custom distributed
+geospatial analytics.
 
 - http://www.geomesa.org/
 
@@ -37,11 +40,7 @@ GeoMesa uses JIRA to track ongoing development and issues:
 Building
 --------
 
-GeoMesa requires Maven 3.2.2 or later to build:
-
-```
-geomesa> mvn clean install
-```
+See the instructions in the main README.
 
 Contributing
 ------------
@@ -69,17 +68,28 @@ Coding Standards
   in the commit. This can be done with the `git commit -s` flag.
 * Code must be reasonably formatted. Scala does not conform well to automatic formatting, but in general
   GeoMesa tries to adhere to the official Scala style guide: http://docs.scala-lang.org/style/
-* Code must contain an appropriate license header. GeoMesa is licensed under Apache 2.  When a file is created, the contributor should indicate their copyright in the header.
-  * GeoMesa uses the License Maven Plugin (http://code.mycila.com/license-maven-plugin/) to help manage copyright headers.  In order to handle various headers, files can be put in the `build/` directory and referenced in a `validHeaders` block in the root pom.xml.
 * Code should include unit tests when appropriate.
+
+License and Copyright
+---------------------
+
+GeoMesa is provided under the Apache 2 license, and any contributions must maintain this. To ensure proper
+licensing, source files must contain an appropriate license header. When a file is created or modified,
+the contributor should also indicate their copyright in the header. If copyright is not desired, the contributor
+may delegate the copyright to CCRi, as per the default header.
+
+GeoMesa uses the [License Maven Plugin](http://code.mycila.com/license-maven-plugin/) to help manage copyright
+headers. This plugin runs as part of the default build, and will fail if any files do not contain a valid header.
+To add a new copyright owner, a template file can be placed under `build/copyright/` and added to the
+`<validHeaders>` block in the root pom.xml.
 
 Contact
 -------
 
 Contact the GeoMesa developers via the developers mailing list:
 
-* https://www.locationtech.org/mailman/listinfo/geomesa-dev
+* https://accounts.eclipse.org/mailing-list/geomesa-dev
 
 For user information, use the users mailing list:
 
-* https://www.locationtech.org/mailman/listinfo/geomesa-users
+* https://accounts.eclipse.org/mailing-list/geomesa-users

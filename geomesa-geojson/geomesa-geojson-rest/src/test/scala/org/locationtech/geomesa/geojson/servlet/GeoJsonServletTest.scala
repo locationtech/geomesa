@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.geojson.servlet
 
@@ -14,10 +14,10 @@ import java.nio.file.Files
 import org.json4s.{DefaultFormats, Formats}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.cache.FilePersistence
-import org.locationtech.geomesa.utils.classpath.PathUtils
+import org.locationtech.geomesa.utils.io.PathUtils
 import org.scalatra.test.specs2.MutableScalatraSpec
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.{Fragments, Step}
+import org.specs2.specification.core.Fragments
 
 @RunWith(classOf[JUnitRunner])
 class GeoJsonServletTest extends MutableScalatraSpec {
@@ -36,7 +36,7 @@ class GeoJsonServletTest extends MutableScalatraSpec {
   def urlEncode(s: String): String = URLEncoder.encode(s, "UTF-8")
 
   // cleanup tmp dir after tests run
-  override def map(fragments: => Fragments) = super.map(fragments) ^ Step {
+  override def map(fragments: => Fragments): Fragments = super.map(fragments) ^ step {
     PathUtils.deleteRecursively(tmpDir)
   }
 
@@ -46,8 +46,9 @@ class GeoJsonServletTest extends MutableScalatraSpec {
 
   "GeoJsonServlet" should {
     "register a datastore" in {
-      val params = Map("instanceId" -> "GeoJsonServletTest", "user" -> "root", "zookeepers" -> "myzoo",
-        "password" -> "", "tableName" -> "GeoJsonServletTest", "useMock" -> "true")
+      import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
+      val params = Map(InstanceIdParam.key -> "GeoJsonServletTest", UserParam.key -> "root", ZookeepersParam.key -> "myzoo",
+        PasswordParam.key -> "", CatalogParam.key -> "GeoJsonServletTest", MockParam.key -> "true")
       post("/ds/geojsontest", params) {
         status mustEqual 200
       }

@@ -1,20 +1,21 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.tools.data
+
+import java.util.regex.Pattern
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
 import org.apache.accumulo.core.client.TableNotFoundException
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam, Runner}
-import org.locationtech.geomesa.utils.index.IndexMode
+import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
@@ -22,11 +23,10 @@ class TableConfCommand(val runner: Runner, val jc: JCommander) extends CommandWi
 
   import TableConfCommand._
 
-  override val name = "config-table"
+  override val name = "configure-table"
   override val params = new TableConfParams()
 
-  override val subCommands: Seq[Command] =
-    Seq(new TableConfListCommand, new TableConfDescribeCommand, new TableConfUpdateCommand)
+  override val subCommands: Seq[Command] = Seq(new TableConfListCommand, new TableConfUpdateCommand)
 }
 
 class TableConfListCommand extends AccumuloDataStoreCommand {
@@ -37,21 +37,14 @@ class TableConfListCommand extends AccumuloDataStoreCommand {
   override val params = new ListParams
 
   override def execute(): Unit = {
-    Command.user.info(s"Getting configuration parameters for table: ${params.tableSuffix}")
-    withDataStore((ds) => getProperties(ds, params).toSeq.sortBy(_.getKey).foreach(p => Command.output.info(p.toString)))
-  }
-}
-
-class TableConfDescribeCommand extends AccumuloDataStoreCommand {
-
-  import TableConfCommand._
-
-  override val name = "describe"
-  override val params = new DescribeParams
-
-  override def execute(): Unit = {
-    Command.user.info(s"Finding the value for '${params.param}' on table: ${params.tableSuffix}")
-    withDataStore((ds) => Command.output.info(getProp(ds, params).toString))
+    Command.user.info(s"Reading configuration parameters for index '${params.index}'")
+    withDataStore { ds =>
+      val tables = getTableNames(ds, ds.getSchema(params.featureName), params.index)
+      val properties = tables.flatMap(getProperties(ds, _))
+      val pattern = Option(params.key).map(Pattern.compile)
+      val out = properties.collect { case ((t, k), v) if pattern.forall(_.matcher(k).matches) => (k, v) }
+      out.distinct.sorted.foreach { case (k, v) => Command.output.info(s"  $k=$v") }
+    }
   }
 }
 
@@ -63,20 +56,19 @@ class TableConfUpdateCommand extends AccumuloDataStoreCommand {
   override val params = new UpdateParams
 
   override def execute(): Unit = {
-    val param = params.param
-    val newValue = params.newValue
-    val tableName = params.tableSuffix
+    withDataStore { ds =>
+      Command.user.info(s"Reading configuration parameters for index '${params.index}'")
+      val tables = getTableNames(ds, ds.getSchema(params.featureName), params.index)
+      val values = tables.map(getProp(ds, _, params.key)).distinct
+      values.foreach(v => Command.user.info(s"  current value: ${params.key}=$v"))
 
-    withDataStore { (ds) =>
-      val property = getProp(ds, params)
-      Command.user.info(s"'$param' on table '$tableName' currently set to: \n$property")
-
-      if (newValue != property.getValue) {
-        Command.user.info(s"Attempting to update '$param' to '$newValue'...")
-        val updatedValue = setValue(ds, params)
-        Command.user.info(s"'$param' on table '$tableName' is now set to: \n$updatedValue")
+      if (values != Seq(params.newValue)) {
+        Command.user.info(s"Updating configuration parameter to '${params.newValue}'...")
+        tables.foreach(setValue(ds, _, params.key, params.newValue))
+        val updated = tables.map(getProp(ds, _, params.key)).distinct
+        updated.foreach(v => Command.user.info(s"  updated value: ${params.key}=$v"))
       } else {
-        Command.user.info(s"'$param' already set to '$newValue'. No need to update.")
+        Command.user.info(s"'${params.key}' already set to '${params.newValue}'.")
       }
     }
   }
@@ -84,51 +76,57 @@ class TableConfUpdateCommand extends AccumuloDataStoreCommand {
 
 object TableConfCommand {
 
-  def getProp(ds: AccumuloDataStore, params: DescribeParams) = getProperties(ds, params).find(_.getKey == params.param).getOrElse {
-    throw new Exception(s"Parameter '${params.param}' not found in table: ${params.tableSuffix}")
+  def getProp(ds: AccumuloDataStore, table: String, key: String): String =
+    getProperties(ds, table).getOrElse((table, key),
+      throw new RuntimeException(s"Parameter '$key' not found in table '$table'"))
+
+  def setValue(ds: AccumuloDataStore, table: String, key: String, value: String): Unit = {
+    try {
+      ds.connector.tableOperations.setProperty(table, key, value)
+    } catch {
+      case e: Exception => throw new RuntimeException(s"Error updating table property: ${e.getMessage}", e)
+    }
   }
 
-  def setValue(ds: AccumuloDataStore, params: UpdateParams) =
+  def getProperties(ds: AccumuloDataStore, table: String): Map[(String, String), String] = {
     try {
-      ds.connector.tableOperations.setProperty(getTableName(ds, params), params.param, params.newValue)
-      getProp(ds, params)
+      ds.connector.tableOperations.getProperties(table).map(e => ((table, e.getKey), e.getValue)).toMap
     } catch {
-      case e: Exception =>
-        throw new Exception("Error updating the table property: " + e.getMessage, e)
+      case e: TableNotFoundException =>
+        throw new RuntimeException(s"Error: table $table does not exist: ${e.getMessage}", e)
     }
+  }
 
-  def getProperties(ds: AccumuloDataStore, params: ListParams) =
-    try {
-      ds.connector.tableOperations.getProperties(getTableName(ds, params))
-    } catch {
-      case tnfe: TableNotFoundException =>
-        throw new Exception(s"Error: table ${params.tableSuffix} could not be found: " + tnfe.getMessage, tnfe)
+  def getTableNames(ds: AccumuloDataStore, sft: SimpleFeatureType, index: String): Seq[String] = {
+    val tables = ds.manager.indices(sft).filter(_.name.equalsIgnoreCase(index)).flatMap(_.getTableNames(None))
+    if (tables.isEmpty) {
+      throw new IllegalArgumentException(s"Index '$index' does not exist for schema '${sft.getTypeName}'. " +
+          s"Available indices: ${ds.manager.indices(sft).map(_.name).distinct.mkString(", ")}")
     }
-  
-  def getTableName(ds: AccumuloDataStore, params: ListParams) =
-    AccumuloFeatureIndex.indices(ds.getSchema(params.featureName), IndexMode.Any)
-        .find(_.name == params.tableSuffix)
-        .map(_.getTableName(params.featureName, ds))
-        .getOrElse(throw new Exception(s"Invalid table suffix: ${params.tableSuffix}"))
-  
+    tables
+  }
+
   @Parameters(commandDescription = "Perform table configuration operations")
   class TableConfParams {}
 
   @Parameters(commandDescription = "List the configuration parameters for a geomesa table")
   class ListParams extends AccumuloDataStoreParams with RequiredTypeNameParam {
-    @Parameter(names = Array("-t", "--table-suffix"), description = "Table suffix to operate on (attr_idx, st_idx, or records)", required = true)
-    var tableSuffix: String = null
-  }
+    @Parameter(names = Array("--index"), description = "Index to operate on (z2, z3, etc)", required = true)
+    var index: String = _
 
-  @Parameters(commandDescription = "Describe a given configuration parameter for a table")
-  class DescribeParams extends ListParams {
-    @Parameter(names = Array("-P", "--param"), description = "Accumulo table configuration param name (e.g. table.bloom.enabled)", required = true)
-    var param: String = null
+    @Parameter(names = Array("-k", "--key"), description = "Table configuration key regex (e.g. table\\.bloom.*)")
+    var key: String = _
   }
 
   @Parameters(commandDescription = "Update a given table configuration parameter")
-  class UpdateParams extends DescribeParams {
-    @Parameter(names = Array("-n", "--new-value"), description = "New value of the property", required = true)
-    var newValue: String = null
+  class UpdateParams extends AccumuloDataStoreParams with RequiredTypeNameParam {
+    @Parameter(names = Array("--index"), description = "Index to operate on (z2, z3, etc)", required = true)
+    var index: String = _
+
+    @Parameter(names = Array("-k", "--key"), description = "Table configuration parameter key (e.g. table.bloom.enabled)", required = true)
+    var key: String = _
+
+    @Parameter(names = Array("-v", "--value"), description = "Value to set", required = true)
+    var newValue: String = _
   }
 }

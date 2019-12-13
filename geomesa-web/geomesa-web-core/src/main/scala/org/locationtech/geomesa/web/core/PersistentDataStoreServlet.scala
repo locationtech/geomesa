@@ -1,23 +1,22 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.web.core
 
-import org.locationtech.geomesa.utils.cache.FilePersistence
+import org.locationtech.geomesa.utils.cache.PropertiesPersistence
 
 trait PersistentDataStoreServlet extends GeoMesaScalatraServlet {
-  def persistence: FilePersistence
+
+  def persistence: PropertiesPersistence
 
   override def datastoreParams: Map[String, String] = {
     val ds = super.datastoreParams
-    if (ds.nonEmpty) {
-      ds
-    } else {
+    if (ds.nonEmpty) { ds } else {
       params.get("alias").map(getPersistedDataStore).getOrElse(Map.empty)
     }
   }

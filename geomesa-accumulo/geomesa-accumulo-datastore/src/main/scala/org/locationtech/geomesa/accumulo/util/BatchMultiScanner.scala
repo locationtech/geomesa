@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.util
 
@@ -13,18 +13,29 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{Executors, Future, LinkedBlockingQueue, TimeUnit}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.ScannerBase
+import org.apache.accumulo.core.client.{Connector, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.index.AccumuloQueryPlan.JoinFunction
-import org.locationtech.geomesa.accumulo.index.BatchScanPlan
+import org.apache.accumulo.core.security.Authorizations
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinFunction}
 
 import scala.collection.JavaConversions._
 
-class BatchMultiScanner(ds: AccumuloDataStore,
+/**
+  * Runs a join scan against two tables
+  *
+  * @param connector connector
+  * @param in input scan
+  * @param join join scan
+  * @param joinFunction maps results of input scan to ranges for join scan
+  * @param auths scan authorizations
+  * @param numThreads threads
+  * @param batchSize batch size
+  */
+class BatchMultiScanner(connector: Connector,
                         in: ScannerBase,
                         join: BatchScanPlan,
                         joinFunction: JoinFunction,
+                        auths: Authorizations,
                         numThreads: Int = 12,
                         batchSize: Int = 32768)
   extends Iterable[java.util.Map.Entry[Key, Value]] with AutoCloseable with LazyLogging {
@@ -33,8 +44,6 @@ class BatchMultiScanner(ds: AccumuloDataStore,
   require(numThreads > 0, f"Illegal numThreads ($numThreads%d). Value must be > 0")
   logger.trace(f"Creating BatchMultiScanner with batchSize $batchSize%d and numThreads $numThreads%d")
 
-  // calculate authorizations up front so that our multi-threading doesn't mess up auth providers
-  private val auths = Option(ds.auths)
   private val executor = Executors.newFixedThreadPool(numThreads)
 
   private val inQ  = new LinkedBlockingQueue[Entry[Key, Value]](batchSize)
@@ -64,7 +73,7 @@ class BatchMultiScanner(ds: AccumuloDataStore,
             inQ.drainTo(entries)
             val task = executor.submit(new Runnable {
               override def run(): Unit = {
-                val iterator = join.copy(ranges = entries.map(joinFunction)).scanEntries(ds, auths)
+                val iterator = join.copy(ranges = entries.map(joinFunction)).scan(connector, auths)
                 try {
                   iterator.foreach(outQ.put)
                 } finally {
@@ -85,7 +94,7 @@ class BatchMultiScanner(ds: AccumuloDataStore,
     }
   })
 
-  override def close() {
+  override def close(): Unit = {
     if (!executor.isShutdown) {
       executor.shutdownNow()
     }
@@ -94,9 +103,9 @@ class BatchMultiScanner(ds: AccumuloDataStore,
 
   override def iterator: Iterator[Entry[Key, Value]] = new Iterator[Entry[Key, Value]] {
 
-    private var prefetch: Entry[Key, Value] = null
+    private var prefetch: Entry[Key, Value] = _
 
-    private def prefetchIfNull() = {
+    private def prefetchIfNull(): Unit = {
       // loop while we might have another and we haven't set prefetch
       while (prefetch == null && (!outDone.get || outQ.size > 0)) {
         prefetch = outQ.poll(5, TimeUnit.MILLISECONDS)

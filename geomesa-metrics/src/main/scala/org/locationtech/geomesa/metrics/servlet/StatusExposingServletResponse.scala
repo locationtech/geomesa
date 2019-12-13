@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.metrics.servlet
 
@@ -13,6 +13,7 @@ import javax.servlet.http.{HttpServletResponseWrapper, HttpServletResponse}
 /**
  * Exposes the servlet response so we can track it. Copied from dropwizard metrics-servlet.
  */
+@deprecated("Will be removed without replacement")
 class StatusExposingServletResponse(response: HttpServletResponse)
     extends HttpServletResponseWrapper(response) {
 

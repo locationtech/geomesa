@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 #
-# Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-# Portions Crown Copyright (c) 2017 Dstl
+# Copyright (c) 2013-%%copyright.year%% Commonwealth Computer Research, Inc.
+# Portions Crown Copyright (c) 2017-%%copyright.year%% Dstl
 # All rights reserved. This program and the accompanying materials
 # are made available under the terms of the Apache License, Version 2.0 which
 # accompanies this distribution and is available at
@@ -88,7 +88,7 @@ if [[ -z "$GEOMESA_JAR" ]]; then
     if [ -z "${GEOMESA_ACCUMULO_HOME}" ]; then
         GEOMESA_ACCUMULO_HOME="$(cd "`dirname "$0"`"/..; pwd)"
     fi
-    GEOMESA_JAR=$(find ${GEOMESA_ACCUMULO_HOME}/dist/accumulo -name "geomesa-accumulo-distributed-runtime*" | grep -v "raster")
+    GEOMESA_JAR=$(find -L ${GEOMESA_ACCUMULO_HOME}/dist/accumulo -name "geomesa-accumulo-distributed-runtime*" | grep -v "raster")
     if [[ "x$GEOMESA_JAR" == "x" ]]; then
         echo "Could not find GeoMesa distributed runtime JAR - please specify the JAR using the '-g' flag"
         ERROR=1

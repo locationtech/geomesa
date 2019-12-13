@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.convert.avro
 
@@ -47,10 +47,11 @@ class AvroPathTest extends Specification with AvroUtils {
     "return nested records" in {
       val path = "/content$type=TObj/kvmap"
       val avroPath = AvroPath(path)
-      val result = avroPath.eval(gr1)
-      result.isDefined mustEqual true
-      val arr = result.get.asInstanceOf[GenericArray[GenericRecord]]
+      val result = avroPath.eval(gr1).asInstanceOf[Option[AnyRef]]
+      result must beSome(beAnInstanceOf[java.util.List[AnyRef]])
+      val arr = result.get.asInstanceOf[java.util.List[AnyRef]]
       arr.length mustEqual 5
+      arr.head must beAnInstanceOf[GenericRecord]
     }
 
     "filter arrays of records by a field predicate" in {

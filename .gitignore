@@ -21,3 +21,5 @@ geomesa-*.*.*-*
 **/*.db
 .ipynb_checkpoints
 *.ipynb
+*.sc
+.sphinx

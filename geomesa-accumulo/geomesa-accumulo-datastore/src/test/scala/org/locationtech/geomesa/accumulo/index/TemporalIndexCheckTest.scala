@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.index
 
@@ -24,7 +24,7 @@ class TemporalIndexCheckTest extends Specification {
   def oneDTGType = SimpleFeatureTypes.createType("oneDTGType", s"foo:String,bar:Geometry,baz:String,geom:Point,dtg:Date")
   def twoDTGType = SimpleFeatureTypes.createType("twoDTGType", s"foo:String,bar:Geometry,baz:String,geom:Point,dtg:Date,dtg_end_time:Date")
 
-  val DEFAULT_DATE_KEY = org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.DEFAULT_DATE_KEY
+  val DEFAULT_DATE_KEY = org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.DefaultDtgField
 
   def copy(sft: SimpleFeatureType) = {
     val b = new SimpleFeatureTypeBuilder()
@@ -100,13 +100,13 @@ class TemporalIndexCheckTest extends Specification {
     "return a dtg attribute descriptor if DEFAULT_DATE_KEY is set properly" in {
       val testType = copy(oneDTGType)
       testType.setDtgField("dtg")
-      testType.getDtgDescriptor must beSome(oneDTGType.getDescriptor("dtg"))
+      testType.getDtgIndex.map(testType.getDescriptor) must beSome(oneDTGType.getDescriptor("dtg"))
     }
 
     "not return a dtg attribute descriptor if DEFAULT_DATE_KEY is not set correctly" in {
       val testType = copy(noDTGType)
       testType.setDtgField("dtg") must throwAn[IllegalArgumentException]
-      testType.getDtgDescriptor must beNone
+      testType.getDtgIndex.map(testType.getDescriptor) must beNone
     }
   }
 }

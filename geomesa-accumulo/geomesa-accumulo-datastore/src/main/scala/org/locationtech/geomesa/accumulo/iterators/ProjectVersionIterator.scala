@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.accumulo.iterators
 
@@ -46,8 +46,9 @@ object ProjectVersionIterator {
 
   def configure(): IteratorSetting = new IteratorSetting(30, classOf[ProjectVersionIterator])
 
-  def scanProjectVersion(scanner: Scanner): String = {
+  def scanProjectVersion(scanner: Scanner): Set[String] = {
+    import scala.collection.JavaConversions._
     scanner.addScanIterator(configure())
-    new String(scanner.iterator().next().getValue.get, StandardCharsets.UTF_8)
+    scanner.iterator.map(e => new String(e.getValue.get, StandardCharsets.UTF_8)).toSet
   }
 }

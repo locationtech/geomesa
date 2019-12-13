@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.features.kryo
 
@@ -36,24 +36,22 @@ class KryoGeometrySerializerTest extends Specification {
       ).map(WKTUtils.read)
 
       "using byte arrays" >> {
-        geoms.foreach { geom =>
+        foreach(geoms) { geom =>
           val out = new Output(512)
           KryoGeometrySerialization.serialize(out, geom)
           val in = new Input(out.toBytes)
           val deserialized = KryoGeometrySerialization.deserialize(in)
           deserialized mustEqual geom
         }
-        success
       }
       "using streams" >> {
-        geoms.foreach { geom =>
+        foreach(geoms) { geom =>
           val out = new Output(new ByteArrayOutputStream(), 512)
           KryoGeometrySerialization.serialize(out, geom)
           val in = new Input(new ByteArrayInputStream(out.toBytes))
           val deserialized = KryoGeometrySerialization.deserialize(in)
           deserialized mustEqual geom
         }
-        success
       }
     }
 

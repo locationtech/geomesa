@@ -1,10 +1,10 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.index.metadata
 
@@ -49,6 +49,14 @@ trait GeoMesaMetadata[T] extends Closeable {
   def remove(typeName: String, key: String): Unit
 
   /**
+    * Delete multiple keys at once - may be more efficient than single deletes
+    *
+    * @param typeName simple feature type name
+    * @param keys keys
+    */
+  def remove(typeName: String, keys: Seq[String]): Unit
+
+  /**
    * Reads a value
    *
    * @param typeName simple feature type name
@@ -71,6 +79,16 @@ trait GeoMesaMetadata[T] extends Closeable {
     }
 
   /**
+    * Scan for keys starting with a given prefix
+    *
+    * @param typeName simple feature type name
+    * @param prefix key prefix
+    * @param cache may return a cached value if true, otherwise may use a slower lookup
+    * @return keys -> values
+    */
+  def scan(typeName: String, prefix: String, cache: Boolean = true): Seq[(String, T)]
+
+  /**
     * Invalidates any cached value for the given key
     *
     * @param typeName simple feature type name
@@ -84,21 +102,40 @@ trait GeoMesaMetadata[T] extends Closeable {
    * @param typeName simple feature type name
    */
   def delete(typeName: String)
+
+  /**
+    * Create a back up of this metadata
+    *
+    * @param typeName simple feature type name
+    */
+  def backup(typeName: String): Unit
 }
 
 object GeoMesaMetadata {
 
   // Metadata keys
-  val ATTRIBUTES_KEY       = "attributes"
-  val VERSION_KEY          = "version"
-  val SCHEMA_ID_KEY        = "id"
+  val AttributesKey      = "attributes"
+  val VersionKey         = "version"
+  val StatsGenerationKey = "stats-date"
+  val StatsIntervalKey   = "stats-interval"
 
-  val STATS_GENERATION_KEY = "stats-date"
-  val STATS_INTERVAL_KEY   = "stats-interval"
+  @deprecated("AttributesKey")
+  val ATTRIBUTES_KEY: String = AttributesKey
+  @deprecated("VersionKey")
+  val VERSION_KEY: String = VersionKey
+  @deprecated("StatsGenerationKey")
+  val STATS_GENERATION_KEY: String = StatsGenerationKey
+  @deprecated("StatsIntervalKey")
+  val STATS_INTERVAL_KEY: String = StatsIntervalKey
+
+
+
+  /**
+    * Gets an empty metadata instance. This instance will not persist or return any values
+    *
+    * @tparam T type binding
+    * @return
+    */
+  def empty[T]: GeoMesaMetadata[T] = NoOpMetadata.asInstanceOf[GeoMesaMetadata[T]]
 }
-
-trait HasGeoMesaMetadata[T] {
-  def metadata: GeoMesaMetadata[T]
-}
-
 

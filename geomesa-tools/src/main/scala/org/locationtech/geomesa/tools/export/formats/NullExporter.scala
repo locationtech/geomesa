@@ -1,25 +1,27 @@
 /***********************************************************************
-* Copyright (c) 2013-2016 Commonwealth Computer Research, Inc.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Apache License, Version 2.0
-* which accompanies this distribution and is available at
-* http://www.opensource.org/licenses/apache2.0.php.
-*************************************************************************/
+ * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
 
 package org.locationtech.geomesa.tools.export.formats
 
-import org.geotools.data.simple.SimpleFeatureCollection
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 object NullExporter extends FeatureExporter {
 
-  override def export(features: SimpleFeatureCollection): Option[Long] = {
-    import org.locationtech.geomesa.utils.geotools.Conversions.toRichSimpleFeatureIterator
+  override def start(sft: SimpleFeatureType): Unit = {}
+
+  override def export(features: Iterator[SimpleFeature]): Option[Long] = {
     var count = 0L
-    features.features().foreach(_ => count += 1)
+    features.foreach(_ => count += 1)
     Some(count)
   }
 
-  override def flush(): Unit = {}
+  override def bytes: Long = 0L
+
   override def close(): Unit = {}
 }
 
