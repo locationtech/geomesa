@@ -16,6 +16,7 @@
         <module>geomesa-cassandra-dist</module>
         <module>geomesa-cassandra-gs-plugin</module>
         <module>geomesa-cassandra-tools</module>
+		<module>geomesa-cassandra-spark</module>
     </modules>
 
     <dependencyManagement>
