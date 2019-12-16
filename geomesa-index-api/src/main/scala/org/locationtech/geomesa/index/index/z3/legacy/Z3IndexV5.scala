@@ -108,6 +108,15 @@ object Z3IndexV5 {
           case BoundedRange(lo, hi) =>
             BoundedByteRange(ByteArrays.toBytes(lo.bin, lo.z), ByteArrays.toBytesFollowingPrefix(hi.bin, hi.z))
 
+          case LowerBoundedRange(lo) =>
+            BoundedByteRange(ByteArrays.toBytes(lo.bin, lo.z), ByteRange.UnboundedUpperRange)
+
+          case UpperBoundedRange(hi) =>
+            BoundedByteRange(ByteRange.UnboundedLowerRange, ByteArrays.toBytesFollowingPrefix(hi.bin, hi.z))
+
+          case UnboundedRange(_) =>
+            BoundedByteRange(ByteRange.UnboundedLowerRange, ByteRange.UnboundedUpperRange)
+
           case r =>
             throw new IllegalArgumentException(s"Unexpected range type $r")
         }
@@ -117,6 +126,19 @@ object Z3IndexV5 {
             val lower = ByteArrays.toBytes(lo.bin, lo.z)
             val upper = ByteArrays.toBytesFollowingPrefix(hi.bin, hi.z)
             rangePrefixes.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
+
+          case LowerBoundedRange(lo) =>
+            val lower = ByteArrays.toBytes(lo.bin, lo.z)
+            val upper = ByteRange.UnboundedUpperRange
+            rangePrefixes.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
+
+          case UpperBoundedRange(hi) =>
+            val lower = ByteRange.UnboundedLowerRange
+            val upper = ByteArrays.toBytesFollowingPrefix(hi.bin, hi.z)
+            rangePrefixes.map(p => BoundedByteRange(ByteArrays.concat(p, lower), ByteArrays.concat(p, upper)))
+
+          case UnboundedRange(_) =>
+            Seq(BoundedByteRange(ByteRange.UnboundedLowerRange, ByteRange.UnboundedUpperRange))
 
           case r =>
             throw new IllegalArgumentException(s"Unexpected range type $r")
