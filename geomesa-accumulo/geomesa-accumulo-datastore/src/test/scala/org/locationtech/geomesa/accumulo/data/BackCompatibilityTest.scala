@@ -63,7 +63,8 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     ("name = 'name5' AND bbox(geom, -130, 45, -120, 50) AND dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(5)),
     ("name = 'name5' AND dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(5)),
     ("name = 'name5' AND bbox(geom, -130, 40, -120, 50)", Seq(5)),
-    ("dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(0, 1, 2, 3, 4, 5, 6, 7))
+    ("dtg DURING 2015-01-01T00:00:00.000Z/2015-01-01T07:59:59.999Z", Seq(0, 1, 2, 3, 4, 5, 6, 7)),
+    ("dtg AFTER 2015-01-01T05:30:00.000Z", Seq(6, 7, 8, 9))
   )
 
   val addQueries = Seq(
