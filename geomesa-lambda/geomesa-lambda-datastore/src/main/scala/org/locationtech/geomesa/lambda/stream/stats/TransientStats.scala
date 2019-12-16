@@ -12,6 +12,7 @@ import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, NoopStatWriter}
 import org.locationtech.geomesa.lambda.stream.TransientStore
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -23,7 +24,7 @@ class TransientStats(store: TransientStore) extends GeoMesaStats {
   override val writer: GeoMesaStatWriter = NoopStatWriter
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] =
-    Some(store.read(Option(filter).filter(_ != Filter.INCLUDE)).length)
+    Some(SelfClosingIterator(store.read(Option(filter).filter(_ != Filter.INCLUDE))).length)
 
   override def getMinMax[T](
       sft: SimpleFeatureType,
@@ -95,7 +96,7 @@ class TransientStats(store: TransientStore) extends GeoMesaStats {
       exact: Boolean): Option[T] = {
     if (!exact) { None } else {
       val stat = Stat(sft, query).asInstanceOf[T]
-      store.read(Option(filter).filter(_ != Filter.INCLUDE)).foreach(stat.observe)
+      SelfClosingIterator(store.read(Option(filter).filter(_ != Filter.INCLUDE))).foreach(stat.observe)
       Some(stat)
     }
   }

@@ -16,6 +16,7 @@ import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
+import org.locationtech.geomesa.index.iterators.StatsScan.StatResult
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureTypes}
@@ -26,41 +27,32 @@ import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-trait StatsScan extends AggregatingScan[Stat] with LazyLogging {
+trait StatsScan extends AggregatingScan[StatResult] with LazyLogging {
 
   import org.locationtech.geomesa.index.iterators.StatsScan.Configuration._
-
-  private var serializer: StatSerializer = _
-  private var batchSize: Int = -1
-  private var count: Int = -1
 
   override protected def initResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
-      options: Map[String, String]): Stat = {
-    val finalSft = transform.getOrElse(sft)
-    serializer = StatSerializer(finalSft)
-    count = 0
-    batchSize = StatsScan.BatchSize.toInt.get // has a valid default so should be safe to .get
-    Stat(finalSft, options(STATS_STRING_KEY))
+      options: Map[String, String]): StatResult = {
+    new StatResult(transform.getOrElse(sft), options(STATS_STRING_KEY))
   }
 
-  override protected def aggregateResult(sf: SimpleFeature, result: Stat): Unit = {
+  override protected def aggregateResult(sf: SimpleFeature, result: StatResult): Unit = {
     try { result.observe(sf) } catch {
       case NonFatal(e) => logger.warn(s"Error observing feature $sf", e)
     }
-    count += 1
   }
 
-  override protected def notFull(result: Stat): Boolean = if (count < batchSize) { true } else { count = 0; false }
+  override protected def notFull(result: StatResult): Boolean = result.notFull()
 
   // encode the result as a byte array
-  override protected def encodeResult(result: Stat): Array[Byte] = serializer.serialize(result)
+  override protected def encodeResult(result: StatResult): Array[Byte] = result.serialize()
 }
 
 object StatsScan {
 
-  val BatchSize = SystemProperty("geomesa.stats.batch.size", "100000")
+  val BatchSize: SystemProperty = SystemProperty("geomesa.stats.batch.size", "100000")
 
   val StatsSft: SimpleFeatureType = SimpleFeatureTypes.createType("stats:stats", "stats:String,geom:Geometry")
 
@@ -99,6 +91,36 @@ object StatsScan {
   def decodeStat(sft: SimpleFeatureType): String => Stat = {
     val serializer = StatSerializer(sft)
     encoded => serializer.deserialize(Base64.decodeBase64(encoded))
+  }
+
+  /**
+   * Result wrapper for stats
+   *
+   * @param sft simple feature type
+   * @param definition stat string
+   */
+  class StatResult(sft: SimpleFeatureType, definition: String) {
+
+    private val stat = Stat(sft, definition)
+    private val serializer = StatSerializer(sft)
+    private val batch = StatsScan.BatchSize.toInt.get // has a valid default so should be safe to .get
+    private var _count: Int = 0
+
+    def observe(sf: SimpleFeature): Unit = {
+      _count += 1
+      stat.observe(sf)
+    }
+
+    def notFull(): Boolean = _count < batch
+
+    def serialize(): Array[Byte] = serializer.serialize(stat)
+
+    def isEmpty: Boolean = stat.isEmpty
+
+    def clear(): Unit = {
+      _count = 0
+      stat.clear()
+    }
   }
 
   /**

@@ -20,19 +20,16 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class HBaseVersionAggregator extends HBaseAggregator[VersionAggregator] {
 
-  private var scanned = false
-
   override def setScanner(scanner: RegionScanner): Unit = {}
 
-  // we always return true exactly once so that we trigger aggregation, but then don't actually read any rows
-  override def hasNextData: Boolean = if (scanned) { false } else { scanned = true; true }
+  override protected def initResult(
+      sft: SimpleFeatureType,
+      transform: Option[SimpleFeatureType],
+      options: Map[String, String]): VersionAggregator = new VersionAggregator()
 
-  override protected def initResult(sft: SimpleFeatureType,
-                                    transform: Option[SimpleFeatureType],
-                                    options: Map[String, String]): VersionAggregator = {
-    scanned = false
-    new VersionAggregator
-  }
+  override protected def hasNextData: Boolean = false
+
+  override protected def nextData(setValues: (Array[Byte], Int, Int, Array[Byte], Int, Int) => Unit): Unit = {}
 
   override protected def aggregateResult(sf: SimpleFeature, result: VersionAggregator): Unit = {}
 
@@ -50,7 +47,9 @@ object HBaseVersionAggregator {
   }
 
   class VersionAggregator {
-    def isEmpty: Boolean = false
+    private var seen = false
+    // we always return false exactly once so that we trigger aggregation, but then don't actually read any rows
+    def isEmpty: Boolean = if (seen) { true } else { seen = true; false }
     def clear(): Unit = {}
   }
 }
