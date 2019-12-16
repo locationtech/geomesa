@@ -11,9 +11,10 @@ package org.locationtech.geomesa.tools.export.formats
 import java.io._
 
 import com.beust.jcommander.ParameterException
+import org.apache.arrow.memory.BufferAllocator
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.factory.Hints
-import org.locationtech.geomesa.arrow.ArrowProperties
+import org.locationtech.geomesa.arrow.{ArrowAllocator, ArrowProperties}
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
 import org.locationtech.geomesa.arrow.io.{DictionaryBuildingWriter, SimpleFeatureArrowFileWriter, SimpleFeatureArrowIO}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -29,10 +30,11 @@ import scala.reflect.ClassTag
 class ArrowExporter(hints: Hints, os: OutputStream, queryDictionaries: => Map[String, Array[AnyRef]])
     extends FeatureExporter {
 
-  import org.locationtech.geomesa.arrow.allocator
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
   private var sft: SimpleFeatureType = _
+
+  private var allocator: BufferAllocator = _
 
   private var writer: SimpleFeatureArrowFileWriter = _
 
@@ -55,7 +57,8 @@ class ArrowExporter(hints: Hints, os: OutputStream, queryDictionaries: => Map[St
           id += 1
           k -> ArrowDictionary.create(id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
         }
-        writer = SimpleFeatureArrowFileWriter(sft, os, dictionaries, encoding, sort)
+        allocator = ArrowAllocator("tools-export")
+        writer = SimpleFeatureArrowFileWriter(sft, os, dictionaries, encoding, sort)(allocator)
         writer.start()
         doExport = exportBatches(encoding, sort, batchSize, dictionaries)
       } else {
@@ -70,6 +73,7 @@ class ArrowExporter(hints: Hints, os: OutputStream, queryDictionaries: => Map[St
   override def export(features: Iterator[SimpleFeature]): Option[Long] = doExport(features)
 
   override def close(): Unit = {
+    Option(allocator).foreach(CloseWithLogging.apply)
     Option(writer).foreach(CloseWithLogging.apply)
     os.close()
   }
@@ -108,18 +112,20 @@ class ArrowExporter(hints: Hints, os: OutputStream, queryDictionaries: => Map[St
                           batchSize: Int)
                          (features: Iterator[SimpleFeature]): Option[Long] = {
     var count = 0L
-    WithClose(DictionaryBuildingWriter.create(sft, dictionaryFields, encoding)) { writer =>
-      features.foreach { f =>
-        writer.add(f)
-        count += 1
-        if (count % batchSize == 0) {
+    WithClose(ArrowAllocator("export-dicts")) { allocator =>
+      WithClose(DictionaryBuildingWriter.create(sft, dictionaryFields, encoding)(allocator)) { writer =>
+        features.foreach { f =>
+          writer.add(f)
+          count += 1
+          if (count % batchSize == 0) {
+            writer.encode(os)
+            writer.clear()
+          }
+        }
+        if (count % batchSize != 0) {
           writer.encode(os)
           writer.clear()
         }
-      }
-      if (count % batchSize != 0) {
-        writer.encode(os)
-        writer.clear()
       }
     }
     Some(count)
@@ -127,8 +133,6 @@ class ArrowExporter(hints: Hints, os: OutputStream, queryDictionaries: => Map[St
 }
 
 object ArrowExporter {
-
-  import org.locationtech.geomesa.arrow.allocator
 
   def queryDictionaries(ds: DataStore, query: Query): Map[String, Array[AnyRef]] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
@@ -164,44 +168,48 @@ object ArrowExporter {
 
     val (sortField, reverse) = sort
 
-    val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
-    val batchWriter = new RecordBatchUnloader(vector)
-
-    val ordering = SimpleFeatureOrdering(sft.indexOf(sortField))
-
-    val batches = ArrayBuffer.empty[Array[Byte]]
-    val batch = Array.ofDim[SimpleFeature](batchSize)
-
-    var index = 0
     var count = 0L
 
-    def sortAndUnloadBatch(): Unit = {
-      java.util.Arrays.sort(batch, 0, index, if (reverse) { ordering.reverse } else { ordering })
-      vector.clear()
-      var i = 0
-      while (i < index) {
-        vector.writer.set(i, batch(i))
-        i += 1
+    WithClose(ArrowAllocator("export-sorted-batches")) { allocator =>
+      WithClose(SimpleFeatureVector.create(sft, dictionaries, encoding)(allocator)) { vector =>
+        val batchWriter = new RecordBatchUnloader(vector)
+
+        val ordering = SimpleFeatureOrdering(sft.indexOf(sortField))
+
+        val batches = ArrayBuffer.empty[Array[Byte]]
+        val batch = Array.ofDim[SimpleFeature](batchSize)
+
+        var index = 0
+
+        def sortAndUnloadBatch(): Unit = {
+          java.util.Arrays.sort(batch, 0, index, if (reverse) { ordering.reverse } else { ordering })
+          vector.clear()
+          var i = 0
+          while (i < index) {
+            vector.writer.set(i, batch(i))
+            i += 1
+          }
+          batches.append(batchWriter.unload(index))
+          count += index
+          index = 0
+        }
+
+        features.foreach { feature =>
+          batch(index) = feature
+          index += 1
+          if (index % batchSize == 0) {
+            sortAndUnloadBatch()
+          }
+        }
+
+        if (index > 0) {
+          sortAndUnloadBatch()
+        }
+
+        WithClose(sortBatches(sft, dictionaries, encoding, (sortField, reverse), batchSize, batches.iterator)) { sorted =>
+          sorted.foreach(out.write)
+        }
       }
-      batches.append(batchWriter.unload(index))
-      count += index
-      index = 0
-    }
-
-    features.foreach { feature =>
-      batch(index) = feature
-      index += 1
-      if (index % batchSize == 0) {
-        sortAndUnloadBatch()
-      }
-    }
-
-    if (index > 0) {
-      sortAndUnloadBatch()
-    }
-
-    WithClose(sortBatches(sft, dictionaries, encoding, sortField, reverse, batchSize, batches.iterator)) { sorted =>
-      sorted.foreach(out.write)
     }
 
     count

@@ -138,7 +138,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
 
           // test queries against the transient store
           forall(Seq(ds, readOnly)) { store =>
-            eventually(40, 100.millis)(store.transients.get(sft.getTypeName).read().toSeq must
+            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()).toSeq must
                 containTheSameElementsAs(features))
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
                 containTheSameElementsAs(features)

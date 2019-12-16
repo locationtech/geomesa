@@ -14,12 +14,12 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.index.iterators.StatsScan.StatResult
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
-import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class HBaseStatsAggregator extends HBaseAggregator[Stat] with StatsScan
+class HBaseStatsAggregator extends HBaseAggregator[StatResult] with StatsScan
 
 object HBaseStatsAggregator {
 

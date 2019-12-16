@@ -18,8 +18,8 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.index.iterators.StatsScan.StatResult
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
-import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -28,7 +28,7 @@ import org.opengis.filter.Filter
  *
  * Only works with z3IdxStrategy for now (queries that date filters)
  */
-class StatsIterator extends BaseAggregatingIterator[Stat] with StatsScan
+class StatsIterator extends BaseAggregatingIterator[StatResult] with StatsScan
 
 object StatsIterator extends LazyLogging {
 

@@ -14,6 +14,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.lambda.stream.stats.TransientStats
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -30,7 +31,7 @@ trait TransientStore extends HasGeoMesaStats with Closeable {
   def read(filter: Option[Filter] = None,
            transforms: Option[Array[String]] = None,
            hints: Option[Hints] = None,
-           explain: Explainer = new ExplainLogging): Iterator[SimpleFeature]
+           explain: Explainer = new ExplainLogging): CloseableIterator[SimpleFeature]
 
   def write(feature: SimpleFeature): Unit
 

@@ -15,11 +15,11 @@ import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
-import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
+import org.locationtech.geomesa.arrow.{ArrowAllocator, ArrowProperties}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
@@ -27,6 +27,7 @@ import org.locationtech.geomesa.process.transform.ArrowConversionProcess.ArrowVi
 import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -176,13 +177,12 @@ object ArrowConversionProcess {
                                          batchSize: Int)
       extends ArrowManualVisitor {
 
-    import org.locationtech.geomesa.arrow.allocator
-
     private val out = new ByteArrayOutputStream()
     private val bytes = ListBuffer.empty[Array[Byte]]
     private var count = 0L
 
-    private val writer = SimpleFeatureArrowFileWriter(sft, out, Map.empty, encoding, sort)
+    private val allocator = ArrowAllocator("arrow-wps")
+    private val writer = SimpleFeatureArrowFileWriter(sft, out, Map.empty, encoding, sort)(allocator)
 
     override def visit(feature: SimpleFeature): Unit = {
       writer.add(feature.asInstanceOf[SimpleFeature])
@@ -195,7 +195,7 @@ object ArrowConversionProcess {
     }
 
     override def results: Iterator[Array[Byte]] = {
-      writer.close()
+      CloseWithLogging(writer, allocator)
       bytes.append(out.toByteArray)
       bytes.iterator
     }
@@ -216,8 +216,6 @@ object ArrowConversionProcess {
                                           sort: Option[(String, Boolean)],
                                           preSorted: Boolean,
                                           batchSize: Int) extends ArrowManualVisitor {
-
-    import org.locationtech.geomesa.arrow.allocator
 
     private val features = ArrayBuffer.empty[SimpleFeature]
 
@@ -251,7 +249,8 @@ object ArrowConversionProcess {
       }
 
       val out = new ByteArrayOutputStream()
-      val writer = SimpleFeatureArrowFileWriter(sft, out, dictionaries, encoding, sort)
+      val allocator = ArrowAllocator("arrow-wps")
+      val writer = SimpleFeatureArrowFileWriter(sft, out, dictionaries, encoding, sort)(allocator)
 
       new Iterator[Array[Byte]] {
         override def hasNext: Boolean = sorted.hasNext
@@ -265,7 +264,7 @@ object ArrowConversionProcess {
           if (sorted.hasNext) {
             writer.flush()
           } else {
-            writer.close()
+            CloseWithLogging(writer, allocator)
           }
           out.toByteArray
         }
