@@ -213,6 +213,14 @@ class FilterHelperTest extends Specification {
       // test max expansion limit of 10 chars
       literal("name ilike 'fooooooooooo'", Seq.empty)
       wildcard("name ilike 'fooooooooooo%'", Seq.empty)
+      // test setting sys prop for max expansion limit
+      FilterProperties.CaseInsensitiveLimit.threadLocalValue.set("2")
+      try {
+        literal("name ilike 'foo'", Seq.empty)
+        wildcard("name ilike 'foo%'", Seq.empty)
+      } finally {
+        FilterProperties.CaseInsensitiveLimit.threadLocalValue.remove()
+      }
     }
 
     "deduplicate OR filters" >> {
