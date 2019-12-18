@@ -45,7 +45,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   // TODO: GEOMESA-2360 - Remove global axis order hint from MetadataBackedDataStore
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
-  protected [geomesa] val interceptors = QueryInterceptorFactory(this)
+  protected [geomesa] val interceptors: QueryInterceptorFactory = QueryInterceptorFactory(this)
 
   // hooks to allow extended functionality
 
@@ -390,10 +390,10 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     */
   protected [geomesa] def acquireCatalogLock(): Releasable = {
     import org.locationtech.geomesa.index.DistributedLockTimeout
-    val path = s"/org.locationtech.geomesa/ds/${config.catalog}"
+    val path = s"/org.locationtech.geomesa/${getClass.getSimpleName.replaceAll("[^A-Za-z]", "")}/${config.catalog}"
     val timeout = DistributedLockTimeout.toDuration.getOrElse {
       // note: should always be a valid fallback value so this exception should never be triggered
-      throw new IllegalArgumentException(s"Couldn't convert '${DistributedLockTimeout.get}' to a duration")
+      throw new IllegalStateException(s"Couldn't convert '${DistributedLockTimeout.get}' to a duration")
     }
     acquireDistributedLock(path, timeout.toMillis).getOrElse {
       throw new RuntimeException(s"Could not acquire distributed lock at '$path' within $timeout")
