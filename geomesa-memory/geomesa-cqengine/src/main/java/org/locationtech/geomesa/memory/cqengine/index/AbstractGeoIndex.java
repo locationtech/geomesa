@@ -17,7 +17,6 @@ import com.googlecode.cqengine.persistence.support.ObjectStore;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.ResultSet;
-import org.locationtech.geomesa.memory.cqengine.GeoCQEngine;
 import org.locationtech.geomesa.memory.cqengine.query.Intersects;
 import org.locationtech.geomesa.utils.index.SpatialIndex;
 import org.locationtech.jts.geom.Envelope;
@@ -34,21 +33,26 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-public abstract class AbstractGeoIndex<A extends Geometry, O extends SimpleFeature> extends AbstractAttributeIndex<A, O> implements OnHeapTypeIndex {
+public abstract class AbstractGeoIndex<A extends Geometry, O extends SimpleFeature>
+      extends AbstractAttributeIndex<A, O> implements OnHeapTypeIndex {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGeoIndex.class);
 
     private static final int INDEX_RETRIEVAL_COST = 40;
 
-    protected SpatialIndex<O> index;
-    protected final int geomAttributeIndex;
+    private final SpatialIndex<O> index;
+    private final int geomAttributeIndex;
+
+    public static final ThreadLocal<SpatialIndex<? extends SimpleFeature>> lastUsed = new ThreadLocal<>();
 
     static Set<Class<? extends Query>> supportedQueries = new HashSet<Class<? extends Query>>() {{
         add(Intersects.class);
     }};
 
-    AbstractGeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute) {
+    AbstractGeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute, SpatialIndex<O> index) {
         super(attribute, supportedQueries);
-        geomAttributeIndex = sft.indexOf(attribute.getAttributeName());
+        this.index = index;
+        this.geomAttributeIndex = sft.indexOf(attribute.getAttributeName());
     }
 
 
@@ -96,68 +100,10 @@ public abstract class AbstractGeoIndex<A extends Geometry, O extends SimpleFeatu
         this.index.clear();
     }
 
-
-    private void traceIndexForDebug() {
-        if (GeoCQEngine.isDebugEnabled()) {
-            GeoCQEngine.setLastIndexUsed(index);
-        }
-    }
-
     @Override
     public ResultSet<O> retrieve(final Query<O> query, final QueryOptions queryOptions) {
-        traceIndexForDebug();
-        return new ResultSet<O>() {
-            @Override
-            public Iterator<O> iterator() {
-                scala.collection.Iterator<O> iter =
-                        getSimpleFeatureIteratorInternal((Intersects) query, queryOptions);
-                return (Iterator<O>) JavaConversions.asJavaIterator(iter);
-            }
-
-            @Override
-            public boolean contains(O object) {
-                final Intersects intersects = (Intersects) query;
-                Geometry geom = (Geometry) object.getAttribute(geomAttributeIndex);
-                return intersects.matchesValue(geom, queryOptions);
-            }
-
-            @Override
-            public boolean matches(O object) {
-                return query.matches(object, queryOptions);
-            }
-
-            @Override
-            public Query<O> getQuery() {
-                return query;
-            }
-
-            @Override
-            public QueryOptions getQueryOptions() {
-                return queryOptions;
-            }
-
-            @Override
-            public int getRetrievalCost() {
-                return INDEX_RETRIEVAL_COST;
-            }
-
-            // Returning the size here as the MergeCost.
-            // The geoindex size isn't optimal, so there might be a better
-            // measure of this.
-            @Override
-            public int getMergeCost() {
-                return size();
-            }
-
-            @Override
-            public int size() {
-                return getSimpleFeatureIteratorInternal((Intersects) query, queryOptions).size();
-            }
-
-            @Override
-            public void close() {
-            }
-        };
+        lastUsed.set(this.index);
+        return new GeoIndexResultSet(query, queryOptions);
     }
 
     private scala.collection.Iterator<O> getSimpleFeatureIteratorInternal(Intersects query,
@@ -192,5 +138,67 @@ public abstract class AbstractGeoIndex<A extends Geometry, O extends SimpleFeatu
     @Override
     public Index<O> getEffectiveIndex() {
         return this;
+    }
+
+    public class GeoIndexResultSet extends ResultSet<O> {
+
+        private final Query<O> query;
+        private final QueryOptions queryOptions;
+
+        public GeoIndexResultSet(Query<O> query, QueryOptions queryOptions) {
+            this.query = query;
+            this.queryOptions = queryOptions;
+        }
+
+        @Override
+        public Iterator<O> iterator() {
+            scala.collection.Iterator<O> iter =
+                  getSimpleFeatureIteratorInternal((Intersects) query, queryOptions);
+            return JavaConversions.asJavaIterator(iter);
+        }
+
+        @Override
+        public boolean contains(O object) {
+            final Intersects intersects = (Intersects) query;
+            Geometry geom = (Geometry) object.getAttribute(geomAttributeIndex);
+            return intersects.matchesValue(geom, queryOptions);
+        }
+
+        @Override
+        public boolean matches(O object) {
+            return query.matches(object, queryOptions);
+        }
+
+        @Override
+        public Query<O> getQuery() {
+            return query;
+        }
+
+        @Override
+        public QueryOptions getQueryOptions() {
+            return queryOptions;
+        }
+
+        @Override
+        public int getRetrievalCost() {
+            return INDEX_RETRIEVAL_COST;
+        }
+
+        // Returning the size here as the MergeCost.
+        // The geoindex size isn't optimal, so there might be a better
+        // measure of this.
+        @Override
+        public int getMergeCost() {
+            return size();
+        }
+
+        @Override
+        public int size() {
+            return getSimpleFeatureIteratorInternal((Intersects) query, queryOptions).size();
+        }
+
+        @Override
+        public void close() {
+        }
     }
 }

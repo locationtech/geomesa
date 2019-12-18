@@ -11,8 +11,8 @@ package org.locationtech.geomesa.memory.cqengine.utils
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.memory.cqengine.GeoCQEngine
-import org.locationtech.geomesa.memory.cqengine.index.GeoIndexType
 import org.locationtech.geomesa.memory.cqengine.index.param.STRtreeIndexParam
+import org.locationtech.geomesa.memory.cqengine.index.{AbstractGeoIndex, GeoIndexType}
 import org.locationtech.geomesa.memory.cqengine.utils.SampleFeatures._
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.index.{BucketIndex, SpatialIndex, WrappedQuadtree, WrappedSTRtree}
@@ -23,34 +23,50 @@ import org.specs2.runner.JUnitRunner
 import org.specs2.specification.core.{Fragment, Fragments}
 
 @RunWith(classOf[JUnitRunner])
-class GeoCQEngineIndexChoiseTest extends Specification with LazyLogging {
+class GeoCQEngineIndexChoiceTest extends Specification with LazyLogging {
 
   import SampleFilters._
 
-  System.setProperty("GeoCQEngineDebugEnabled", "true")
-
-  val feats = (0 until 1000).map(SampleFeatures.buildFeature)
+  lazy val feats = Seq.tabulate(1000)(SampleFeatures.buildFeature)
 
   // Set up CQEngine with no indexes
-  val cqNoIndexes = new GeoCQEngine(sft, Seq.empty)
-  cqNoIndexes.insert(feats)
+  lazy val cqNoIndexes = {
+    val cq = new GeoCQEngine(sft, Seq.empty)
+    cq.insert(feats)
+    cq
+  }
 
   // Set up CQEngine with all indexes
-  val cqWithIndexes = new GeoCQEngine(sftWithIndexes, CQIndexType.getDefinedAttributes(sftWithIndexes), enableFidIndex = true)
-  cqWithIndexes.insert(feats)
+  lazy val cqWithIndexes = {
+    val cq = new GeoCQEngine(sftWithIndexes, CQIndexType.getDefinedAttributes(sftWithIndexes), enableFidIndex = true)
+    cq.insert(feats)
+    cq
+  }
 
   // Set up CQEngine with rtree indexes
-  val cqWithSTRtreeIndexes = new GeoCQEngine(sftWithIndexes, CQIndexType.getDefinedAttributes(sftWithIndexes), enableFidIndex = true, GeoIndexType.STRtree)
-  cqWithSTRtreeIndexes.insert(feats)
+  lazy val cqWithSTRtreeIndexes = {
+    val attributes = CQIndexType.getDefinedAttributes(sftWithIndexes)
+    val cq = new GeoCQEngine(sftWithIndexes, attributes, enableFidIndex = true, GeoIndexType.STRtree)
+    cq.insert(feats)
+    cq
+  }
 
   // Set up CQEngine with STRtree indexes and node capacity
-  val cqWithSTRtreeNodeCapacityIndexes = new GeoCQEngine(sftWithIndexes, CQIndexType.getDefinedAttributes(sftWithIndexes), enableFidIndex = true, GeoIndexType.STRtree, Option.apply(new STRtreeIndexParam(20)))
-  cqWithSTRtreeNodeCapacityIndexes.insert(feats)
+  lazy val cqWithSTRtreeNodeCapacityIndexes = {
+    val attributes = CQIndexType.getDefinedAttributes(sftWithIndexes)
+    val geoIndexParam = Some(new STRtreeIndexParam(20))
+    val cq = new GeoCQEngine(sftWithIndexes, attributes, enableFidIndex = true, GeoIndexType.STRtree, geoIndexParam)
+    cq.insert(feats)
+    cq
+  }
 
   // Set up CQEngine with Quadtree indexes
-  val cqWithQuadtreeIndexes = new GeoCQEngine(sftWithIndexes, CQIndexType.getDefinedAttributes(sftWithIndexes), enableFidIndex = true, GeoIndexType.QuadTree)
-  cqWithQuadtreeIndexes.insert(feats)
-
+  lazy val cqWithQuadtreeIndexes = {
+    val attributes = CQIndexType.getDefinedAttributes(sftWithIndexes)
+    val cq = new GeoCQEngine(sftWithIndexes, attributes, enableFidIndex = true, GeoIndexType.QuadTree)
+    cq.insert(feats)
+    cq
+  }
 
   def getGeoToolsCount(filter: Filter) = feats.count(filter.evaluate)
 
@@ -58,46 +74,36 @@ class GeoCQEngineIndexChoiseTest extends Specification with LazyLogging {
     SelfClosingIterator(cq.query(filter)).size
   }
 
-  def checkFilter(filter: Filter, cq: GeoCQEngine, spatialIndex: Option[Class[_ <: SpatialIndex[_]]]): MatchResult[Int] = {
-    val gtCount = getGeoToolsCount(filter)
+  def checkFilter(filter: Filter, cq: GeoCQEngine, spatialIndex: Option[Class[_ <: SpatialIndex[_]]]): MatchResult[_] = {
+    AbstractGeoIndex.lastUsed.remove()
 
-    val cqCount = getCQEngineCount(filter, cq)
-
-    val msg = s"GT: $gtCount CQ: $cqCount Filter: $filter"
-    if (gtCount == cqCount)
-      logger.debug(msg)
-    else
-      logger.error("MISMATCH: " + msg)
-
-    val lastIndexUsed = GeoCQEngine.getLastIndexUsed()
-    if (spatialIndex.isDefined) {
-      val expected = spatialIndex.get
-      lastIndexUsed.nonEmpty must beTrue
-      lastIndexUsed.get.getClass must equalTo(expected)
-    }
-
+    val gtCount = feats.count(filter.evaluate)
+    val cqCount = SelfClosingIterator(cq.query(filter)).length
     // since GT count is (presumably) correct
-    cqCount must equalTo(gtCount)
+    cqCount mustEqual gtCount
+
+    foreach(spatialIndex) { i =>
+      AbstractGeoIndex.lastUsed.get must not(beNull)
+      AbstractGeoIndex.lastUsed.get.getClass mustEqual i
+    }
   }
 
   def buildFilterTests(name: String, filters: Seq[Filter]): Seq[Fragment] = {
-
-    var spatialIndex: Option[Class[_ <: SpatialIndex[_]]] = Option.empty
     for (f <- filters) yield {
       s"return correct number of results for $name filter $f (geo-only index)" >> {
-        checkFilter(f, cqNoIndexes, spatialIndex)
+        checkFilter(f, cqNoIndexes, None)
       }
       s"return correct number of results for $name filter $f (various indices)" >> {
-        checkFilter(f, cqWithIndexes, Option.apply(classOf[BucketIndex[_]]))
+        checkFilter(f, cqWithIndexes, Some(classOf[BucketIndex[_]]))
       }
       s"return correct number of results for $name filter $f (various with geo-SRTree with default config)" >> {
-        checkFilter(f, cqWithSTRtreeIndexes, Option.apply(classOf[WrappedSTRtree[_]]))
+        checkFilter(f, cqWithSTRtreeIndexes, Some(classOf[WrappedSTRtree[_]]))
       }
       s"return correct number of results for $name filter $f (various with geo-SRTree with nodecapacity=20)" >> {
-        checkFilter(f, cqWithSTRtreeNodeCapacityIndexes, Option.apply(classOf[WrappedSTRtree[_]]))
+        checkFilter(f, cqWithSTRtreeNodeCapacityIndexes, Some(classOf[WrappedSTRtree[_]]))
       }
       s"return correct number of results for $name filter $f (various with QuadTree)" >> {
-        checkFilter(f, cqWithQuadtreeIndexes, Option.apply(classOf[WrappedQuadtree[_]]))
+        checkFilter(f, cqWithQuadtreeIndexes, Some(classOf[WrappedQuadtree[_]]))
       }
     }
   }

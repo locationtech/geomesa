@@ -17,18 +17,23 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.MessageFormat;
 import java.util.Optional;
 
 public class STRtreeGeoIndex<A extends Geometry, O extends SimpleFeature> extends AbstractGeoIndex<A, O> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(STRtreeGeoIndex.class);
 
+    public STRtreeGeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute) {
+        this(sft, attribute, new STRtreeIndexParam());
+    }
+
+    public STRtreeGeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute, STRtreeIndexParam geoIndexParams) {
+        super(sft, attribute, new WrappedSTRtree<>(geoIndexParams.getNodeCapacity()));
+        LOGGER.debug("STR Tree Index in use: nodeCapacity={}", geoIndexParams.getNodeCapacity());
+    }
+
+    @Deprecated
     public STRtreeGeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute, Optional<STRtreeIndexParam> geoIndexParams) {
-        super(sft, attribute);
-        STRtreeIndexParam stRtreeIndexParam = geoIndexParams.orElse(new STRtreeIndexParam());
-        int nodeCapacity = stRtreeIndexParam.getNodeCapacity();
-        LOGGER.debug(MessageFormat.format("STR Tree Index in use :nodeCapacity = {0}", nodeCapacity));
-        index = new WrappedSTRtree<>(nodeCapacity);
+        this(sft, attribute, geoIndexParams.orElse(new STRtreeIndexParam()));
     }
 }
