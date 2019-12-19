@@ -390,7 +390,8 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
     */
   protected [geomesa] def acquireCatalogLock(): Releasable = {
     import org.locationtech.geomesa.index.DistributedLockTimeout
-    val path = s"/org.locationtech.geomesa/ds/${getClass.getSimpleName}/${config.catalog}"
+    val dsTypeName = getClass.getSimpleName.replaceAll("[^A-Za-z]", "")
+    val path = s"/org.locationtech.geomesa/ds/$dsTypeName/${config.catalog}"
     val timeout = DistributedLockTimeout.toDuration.getOrElse {
       // note: should always be a valid fallback value so this exception should never be triggered
       throw new IllegalArgumentException(s"Couldn't convert '${DistributedLockTimeout.get}' to a duration")
