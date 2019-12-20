@@ -16,7 +16,6 @@ import org.opengis.feature.simple.SimpleFeatureType;
 
 public class QuadTreeGeoIndex<A extends Geometry, O extends SimpleFeature> extends AbstractGeoIndex<A, O> {
     public QuadTreeGeoIndex(SimpleFeatureType sft, Attribute<O, A> attribute) {
-        super(sft, attribute);
-        index = new WrappedQuadtree<O>();
+        super(sft, attribute, new WrappedQuadtree<O>());
     }
 }

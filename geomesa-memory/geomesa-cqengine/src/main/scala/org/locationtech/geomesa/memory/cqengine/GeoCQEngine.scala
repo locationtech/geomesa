@@ -26,7 +26,7 @@ import org.locationtech.geomesa.memory.cqengine.index.GeoIndexType
 import org.locationtech.geomesa.memory.cqengine.index.param.{BucketIndexParam, GeoIndexParams}
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.memory.cqengine.utils._
-import org.locationtech.geomesa.utils.index.{SimpleFeatureIndex, SpatialIndex}
+import org.locationtech.geomesa.utils.index.SimpleFeatureIndex
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter._
@@ -88,9 +88,8 @@ class GeoCQEngine(val sft: SimpleFeatureType,
   override def query(filter: Filter): Iterator[SimpleFeature] = {
     val query = filter.accept(new CQEngineQueryVisitor(sft), null).asInstanceOf[Query[SimpleFeature]]
     val iter = if (dedupe) {
-      val dedupOpt = QueryFactory.deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION)
-      val queryOptions = QueryFactory.queryOptions(dedupOpt)
-      cqcache.retrieve(query, queryOptions).iterator()
+      val dedupeOpt = QueryFactory.deduplicate(DeduplicationStrategy.LOGICAL_ELIMINATION)
+      cqcache.retrieve(query, QueryFactory.queryOptions(dedupeOpt)).iterator()
     } else {
       cqcache.retrieve(query).iterator()
     }
@@ -157,29 +156,5 @@ class GeoCQEngine(val sft: SimpleFeatureType,
         cqcache.addIndex(index)
       }
     }
-  }
-}
-
-object GeoCQEngine {
-
-  private val lastIndexUsed : Option[ThreadLocal[SpatialIndex[_ <: SimpleFeature]]] =
-    sys.props.get("GeoCQEngineDebugEnabled").collect {
-      case e if e.toBoolean => new ThreadLocal[SpatialIndex[_ <: SimpleFeature]]
-    }
-
-  def isDebugEnabled(): Boolean = lastIndexUsed.nonEmpty
-
-  def setLastIndexUsed(spatialIndex: SpatialIndex[_ <: SimpleFeature]) = {
-    if (lastIndexUsed.isEmpty) {
-      throw new UnsupportedOperationException("GeoCQEngineDebugEnabled = false, debug mode disabled")
-    }
-    lastIndexUsed.foreach(_.set(spatialIndex))
-  }
-
-  def getLastIndexUsed(): Option[SpatialIndex[_ <: SimpleFeature]] = {
-    if (lastIndexUsed.isEmpty) {
-      throw new UnsupportedOperationException("GeoCQEngineDebugEnabled = false, debug mode disabled")
-    }
-    return lastIndexUsed.map(_.get())
   }
 }

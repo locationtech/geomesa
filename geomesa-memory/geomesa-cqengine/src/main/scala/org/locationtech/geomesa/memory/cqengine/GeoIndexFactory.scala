@@ -10,33 +10,39 @@ package org.locationtech.geomesa.memory.cqengine
 
 import com.googlecode.cqengine.attribute.Attribute
 import org.locationtech.geomesa.memory.cqengine.index.param.{BucketIndexParam, GeoIndexParams, STRtreeIndexParam}
-import org.locationtech.geomesa.memory.cqengine.index.{AbstractGeoIndex, BucketGeoIndex, GeoIndexType, QuadTreeGeoIndex, STRtreeGeoIndex}
-import org.opengis.feature.simple.SimpleFeatureType
+import org.locationtech.geomesa.memory.cqengine.index._
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.SimpleFeature
-
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 object GeoIndexFactory{
 
+  def onAttribute[A <: Geometry, O <: SimpleFeature](
+      sft: SimpleFeatureType,
+      attribute: Attribute[O, A],
+      geoIndexType: GeoIndexType,
+      geoIndexParams: Option[GeoIndexParams]): AbstractGeoIndex[A, O] = {
 
-  import org.locationtech.geomesa.utils.conversions.JavaConverters._
-  def onAttribute[A <: Geometry, O <: SimpleFeature](sft: SimpleFeatureType, attribute: Attribute[O, A], geoIndexType: GeoIndexType, geoIndexParams: Option[GeoIndexParams]): AbstractGeoIndex[A, O] = {
-    val geomAttributeIndex = sft.indexOf(attribute.getAttributeName)
-    val attributeDescriptor = sft.getDescriptor(geomAttributeIndex)
-    checkParams(geoIndexType, geoIndexParams)
+    if (geoIndexParams.exists(_.getGeoIndexType != geoIndexType)) {
+      throw new IllegalArgumentException("Index type and parameters does not match")
+    }
+
     geoIndexType match {
       case GeoIndexType.Bucket =>
-        return new BucketGeoIndex[A, O](sft, attribute, geoIndexParams.map(p => p.asInstanceOf[BucketIndexParam]).asJava)
-      case GeoIndexType.STRtree =>
-        return new STRtreeGeoIndex[A, O](sft, attribute, geoIndexParams.map(p => p.asInstanceOf[STRtreeIndexParam]).asJava)
-      case GeoIndexType.QuadTree =>
-        return new QuadTreeGeoIndex[A, O](sft, attribute)
-    }
-    throw new IllegalArgumentException("UNKNOWN GEO INDEX TYPE")
-  }
+        geoIndexParams match {
+          case Some(p: BucketIndexParam) => new BucketGeoIndex[A, O](sft, attribute, p)
+          case _ => new BucketGeoIndex[A, O](sft, attribute)
+        }
 
-  private def checkParams(geoIndexType: GeoIndexType, geoIndexParams: Option[_ <: GeoIndexParams]): Unit = {
-    if (geoIndexParams != null && geoIndexParams.isDefined && geoIndexParams.get.getGeoIndexType != geoIndexType)
-      throw new IllegalArgumentException("Index type and parameters does not match")
+      case GeoIndexType.STRtree =>
+        geoIndexParams match {
+          case Some(p: STRtreeIndexParam) => new STRtreeGeoIndex[A, O](sft, attribute, p)
+          case _ => new STRtreeGeoIndex[A, O](sft, attribute)
+        }
+
+      case GeoIndexType.QuadTree =>
+        new QuadTreeGeoIndex[A, O](sft, attribute)
+
+      case _ => throw new IllegalArgumentException(s"Unexpected geo-index-type: $geoIndexType")
+    }
   }
 }
