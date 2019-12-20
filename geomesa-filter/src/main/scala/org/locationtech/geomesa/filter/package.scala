@@ -30,7 +30,9 @@ package object filter {
   implicit val ff: FilterFactory2 = CommonFactoryFinder.getFilterFactory2
 
   object FilterProperties {
-    val GeometryProcessing = SystemProperty("geomesa.geometry.processing", "spatial4j")
+    val GeometryProcessing: SystemProperty = SystemProperty("geomesa.geometry.processing", "spatial4j")
+    // 10 characters results in 1024 ranges
+    val CaseInsensitiveLimit: SystemProperty = SystemProperty("geomesa.ilike.max.length", "10")
   }
 
   def filterToString(filter: Filter): String = Try(ECQL.toCQL(filter)).getOrElse(filter.toString)

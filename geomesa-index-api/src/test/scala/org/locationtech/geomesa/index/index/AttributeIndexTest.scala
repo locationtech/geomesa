@@ -243,7 +243,9 @@ class AttributeIndexTest extends Specification with LazyLogging {
         "name like 'bo_'"   -> Seq("bob", "bot"),
         "name like 'b_b'"   -> Seq("bob", "bub"),
         "name like 'b%b'"   -> Seq("bob", "bub"),
-        "name like 'b__l'"  -> Seq("bill")
+        "name like 'b__l'"  -> Seq("bill"),
+        "name ilike 'B%b'"  -> Seq("bob", "bub"),
+        "name ilike 'ALi%'" -> Seq("alice")
       )
       val withDates = queries.map { case (filter, expected) =>
         s"$filter AND dtg > '2012-01-01T11:45:00.000Z' AND dtg < '2014-01-01T13:00:00.000Z'" -> expected
