@@ -625,7 +625,7 @@ class JsonConverterTest extends Specification {
           features(0).getAttribute("number").asInstanceOf[Integer] mustEqual 123
           features(0).getAttribute("color").asInstanceOf[String] mustEqual "red"
           features(0).getDefaultGeometry must be equalTo pt1
-  
+
           features(1).getAttribute("number").asInstanceOf[Integer] mustEqual 456
           features(1).getAttribute("color").asInstanceOf[String] mustEqual "blue"
           features(1).getDefaultGeometry must be equalTo pt2
@@ -808,6 +808,7 @@ class JsonConverterTest extends Specification {
           |    { name = "iList", type = "List[Integer]" }
           |    { name = "dList", type = "List[Double]"  }
           |    { name = "uList", type = "List[UUID]"    }
+          |    { name = "nList", type = "List[String]"  }
           |    { name = "geom",  type = "Point"         }
           |  ]
           |}
@@ -868,6 +869,7 @@ class JsonConverterTest extends Specification {
           |     { name = "iList", json-type = "array",    path = "$.things[*].i", transform = "jsonList('integer', $0)" }
           |     { name = "dList", json-type = "array",    path = "$.things[*].d", transform = "jsonList('double', $0)"  }
           |     { name = "uList", json-type = "array",    path = "$.things[*].u", transform = "jsonList('UUID', $0)"    }
+          |     { name = "nList", json-type = "array",    path = "$.things[*].n", transform = "jsonList('string', $0)"  }
           |     { name = "geom",  json-type = "geometry", path = "$.geometry",    transform = "point($0)"               }
           |   ]
           | }
@@ -885,20 +887,21 @@ class JsonConverterTest extends Specification {
           |     { name = "iList", json-type = "array",    path = "$.i",        transform = "jsonList('integer', $0)" }
           |     { name = "dList", json-type = "array",    path = "$.d",        transform = "jsonList('double', $0)"  }
           |     { name = "uList", json-type = "array",    path = "$.u",        transform = "jsonList('UUID', $0)"    }
+          |     { name = "nList", json-type = "array",    path = "$.n",        transform = "jsonList('string', $0)"  }
           |     { name = "geom",  json-type = "geometry", path = "$.geometry", transform = "point($0)"               }
           |   ]
           | }
         """.stripMargin)
 
-      forall(List((nestedJson, nestedConf),(simpleJson, simpleConf))) { case (json, conf) =>
+      forall(List((nestedJson, nestedConf), (simpleJson, simpleConf))) { case (json, conf) =>
         WithClose(SimpleFeatureConverter(advSft, conf)) { converter =>
           import scala.collection.JavaConversions._
 
           val ec = converter.createEvaluationContext()
           val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
           features must haveLength(1)
-          ec.counter.getSuccess mustEqual 1
-          ec.counter.getFailure mustEqual 0
+          ec.success.getCount mustEqual 1L
+          ec.failure.getCount mustEqual 0L
 
           val f = features.head
 
@@ -915,6 +918,13 @@ class JsonConverterTest extends Specification {
           f.getAttribute("uList").asInstanceOf[java.util.List[UUID]].toSeq must containTheSameElementsAs(
             Seq(UUID.fromString("12345678-1234-1234-1234-123456781234"),
               UUID.fromString("00000000-0000-0000-0000-000000000000")))
+
+          if (json eq simpleJson) {
+            f.getAttribute("nList") must beNull
+          } else {
+            f.getAttribute("nList") must beAnInstanceOf[java.util.List[String]]
+            f.getAttribute("nList").asInstanceOf[java.util.List[String]].toSeq must beEmpty
+          }
         }
       }
     }

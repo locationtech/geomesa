@@ -63,7 +63,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
 
   private val jsonListParser = TransformerFunction.pure("jsonList") { args =>
     val array = args(1).asInstanceOf[JsonArray]
-    if (array.isJsonNull) { null } else {
+    if (array == null || array.isJsonNull) { null } else {
       val clazz = determineClazz(args(0).asInstanceOf[String])
       val result = new java.util.ArrayList[Any](array.size())
       val iter = array.iterator()
@@ -82,7 +82,7 @@ class JsonFunctionFactory extends TransformerFunctionFactory with CollectionPars
     val vClass = determineClazz(args(1).asInstanceOf[String])
     val map = args(2).asInstanceOf[JsonObject]
 
-    if (map.isJsonNull) { null } else {
+    if (map == null || map.isJsonNull) { null } else {
       val result = new java.util.HashMap[Any, Any](map.size())
       val iter = map.entrySet().iterator()
       while (iter.hasNext) {
