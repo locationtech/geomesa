@@ -144,7 +144,8 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
         "fs.config.xml",
         "Additional Hadoop configuration properties, as a standard XML `<configuration>` element",
         largeText = true,
-        deprecatedParams = Seq(DeprecatedConfParam))
+        deprecatedParams = Seq(DeprecatedConfParam),
+        supportsNiFiExpressions = true)
 
     val ReadThreadsParam =
       new GeoMesaParam[Integer](

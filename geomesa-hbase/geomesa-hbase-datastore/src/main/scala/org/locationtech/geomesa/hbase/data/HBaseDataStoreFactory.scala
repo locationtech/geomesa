@@ -251,5 +251,6 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
     new GeoMesaParam[String](
       "hbase.config.xml",
       "Additional HBase configuration properties, as a standard XML `<configuration>` element",
-      largeText = true)
+      largeText = true,
+      supportsNiFiExpressions = true)
 }
