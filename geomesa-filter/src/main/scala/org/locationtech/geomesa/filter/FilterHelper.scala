@@ -9,15 +9,15 @@
 package org.locationtech.geomesa.filter
 
 import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
+import java.util.{Date, Locale}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.expression.AttributeExpression.{FunctionLiteral, PropertyLiteral}
 import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.jts.geom._
 import org.opengis.feature.simple.SimpleFeatureType
@@ -344,11 +344,23 @@ object FilterHelper {
             while (i > 1 && literal.charAt(i - 1) == '\\' && literal.charAt(i - 2) == '\\') {
               i = literal.indexWhere(Wildcards.contains, i + 1)
             }
-            val lower = if (i == -1) { literal } else { literal.substring(0, i) }
-            val upper = Bound(Some(lower + WildcardSuffix), inclusive = true).asInstanceOf[Bound[T]]
-            // our ranges fully capture the filter if there's no wildcard or a single trailing multi-char wildcard
-            val exact = i == -1 || (i == literal.length - 1 && literal.charAt(i) == WildcardMultiChar)
-            FilterValues(Seq(Bounds(Bound(Some(lower.asInstanceOf[T]), inclusive = true), upper)), precise = exact)
+            if (i == -1) {
+              val literals = if (f.isMatchingCase) { Seq(literal) } else { casePermutations(literal) }
+              val bounds = literals.map { lit =>
+                val bound = Bound(Some(lit), inclusive = true)
+                Bounds(bound, bound)
+              }
+              FilterValues(bounds.asInstanceOf[Seq[Bounds[T]]], precise = true)
+            } else {
+              val prefix = literal.substring(0, i)
+              val prefixes = if (f.isMatchingCase) { Seq(prefix) } else { casePermutations(prefix) }
+              val bounds = prefixes.map { p =>
+                Bounds(Bound(Some(p), inclusive = true), Bound(Some(p + WildcardSuffix), inclusive = true))
+              }
+              // our ranges fully capture the filter if there's a single trailing multi-char wildcard
+              val exact = i == literal.length - 1 && literal.charAt(i) == WildcardMultiChar
+              FilterValues(bounds.asInstanceOf[Seq[Bounds[T]]], precise = exact)
+            }
           }
         } catch {
           case e: Exception =>
@@ -416,6 +428,54 @@ object FilterHelper {
                                        binding: Class[T]): Option[FilterValues[Bounds[T]]] = {
     // TODO GEOMESA-1990 extract some meaningful bounds from the function
     Some(FilterValues(Seq(Bounds.everything[T]), precise = false))
+  }
+
+  /**
+   * Calculates all the different case permutations of a string.
+   *
+   * For example, "foo" -> Seq("foo", "Foo", "fOo", "foO", "fOO", "FoO", "FOo", "FOO")
+   *
+   * @param string input string
+   * @return
+   */
+  private def casePermutations(string: String): Seq[String] = {
+    val max = FilterProperties.CaseInsensitiveLimit.toInt.getOrElse {
+      // has a valid default value so should never return a none
+      throw new IllegalStateException(
+        s"Error getting default value for ${FilterProperties.CaseInsensitiveLimit.property}")
+    }
+
+    val lower = string.toLowerCase(Locale.US)
+    val upper = string.toUpperCase(Locale.US)
+    // account for chars without upper/lower cases, which we don't need to permute
+    val count = (0 until lower.length).count(i => lower(i) != upper(i))
+
+    if (count > max) {
+      FilterHelperLogger.log.warn(s"Not expanding case-insensitive prefix due to length: $string")
+      Seq.empty
+    } else {
+      // there will be 2^n different permutations, accounting for chars that don't have an upper/lower case
+      val permutations = Array.fill(math.pow(2, count).toInt)(Array(lower: _*))
+      var i = 0 // track the index of the current char
+      var c = 0 // track the index of the bit check, which skips chars that don't have an upper/lower case
+      while (i < string.length) {
+        val upperChar = upper.charAt(i)
+        if (lower.charAt(i) != upperChar) {
+          var j = 0
+          while (j < permutations.length) {
+            // set upper/lower based on the bit
+            if (((j >> c) & 1) != 0) {
+              permutations(j)(i) = upperChar
+            }
+            j += 1
+          }
+          c += 1
+        }
+        i += 1
+      }
+
+      permutations.map(new String(_))
+    }
   }
 
   /**

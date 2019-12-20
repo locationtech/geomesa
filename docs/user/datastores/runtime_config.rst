@@ -131,6 +131,13 @@ While the following filters both specify a 358-degree globe-spanning polygon:
   // no processing
   "intersects(geom, 'POLYGON((-179 90, 179 90, 179 -90, -179 -90, -179 90))')"
 
+geomesa.ilike.max.length
+++++++++++++++++++++++++
+
+Controls the max length of an ``ilike`` predicate that will be parsed by GeoMesa for attribute index queries.
+Case-insensitive matches must be enumerated for each possible case, which will result in exponentially
+increasing query ranges. The default value is ``10``, which will result in 1024 ranges.
+
 geomesa.ingest.local.batch.size
 +++++++++++++++++++++++++++++++
 
