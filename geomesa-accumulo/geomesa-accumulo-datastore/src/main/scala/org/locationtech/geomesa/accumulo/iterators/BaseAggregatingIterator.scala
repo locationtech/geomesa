@@ -18,6 +18,7 @@ import org.locationtech.geomesa.accumulo.index.AccumuloFeatureIndex
 import org.locationtech.geomesa.accumulo.iterators.BaseAggregatingIterator.{DupeOpt, MaxDupeOpt}
 import org.locationtech.geomesa.index.api.GeoMesaIndexManager
 import org.locationtech.geomesa.index.iterators.AggregatingScan
+import org.locationtech.geomesa.index.iterators.AggregatingScan.RowValue
 import org.opengis.feature.simple.SimpleFeature
 
 /**
@@ -31,6 +32,7 @@ abstract class BaseAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; def c
   protected var topKey: Key = _
   private var topValue: Value = new Value()
   private var currentRange: aRange = _
+  private var needToAdvance = false
 
   override val manager: GeoMesaIndexManager[_, _, _] = AccumuloFeatureIndex
 
@@ -49,20 +51,14 @@ abstract class BaseAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; def c
   override def seek(range: aRange, columnFamilies: jCollection[ByteSequence], inclusive: Boolean): Unit = {
     currentRange = range
     source.seek(range, columnFamilies, inclusive)
+    needToAdvance = false
     findTop()
   }
 
-  override def next(): Unit = {
-    if (!source.hasTop) {
-      topKey = null
-      topValue = null
-    } else {
-      findTop()
-    }
-  }
+  override def next(): Unit = findTop()
 
   // noinspection LanguageFeature
-  def findTop(): Unit = {
+  private def findTop(): Unit = {
     val result = aggregate()
     if (result == null) {
       topKey = null // hasTop will be false
@@ -76,13 +72,19 @@ abstract class BaseAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; def c
     }
   }
 
-  override def hasNextData: Boolean = source.hasTop && !currentRange.afterEndKey(source.getTopKey)
+  override protected def hasNextData: Boolean = {
+    if (needToAdvance) {
+      source.next() // advance the source iterator, this may invalidate the top key/value we've already read
+      needToAdvance = false
+    }
+    source.hasTop && !currentRange.afterEndKey(source.getTopKey)
+  }
 
-  override def nextData(setValues: (Array[Byte], Int, Int, Array[Byte], Int, Int) => Unit): Unit = {
+  override protected def nextData(): RowValue = {
+    needToAdvance = true
     topKey = source.getTopKey
     val value = source.getTopValue.get()
-    setValues(topKey.getRow.getBytes, 0, topKey.getRow.getLength, value, 0, value.length)
-    source.next() // Advance the source iterator
+    RowValue(topKey.getRow.getBytes, 0, topKey.getRow.getLength, value, 0, value.length)
   }
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
