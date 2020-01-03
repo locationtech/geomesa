@@ -73,11 +73,9 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
         val scanner = env.getRegion.getScanner(scan)
         aggregator.setScanner(scanner)
         try {
-          while (aggregator.hasNextData) {
-            val agg = aggregator.aggregate()
-            if (agg != null) {
-              results.append(agg)
-            }
+          val agg = aggregator.aggregate()
+          if (agg != null) {
+            results.append(agg)
           }
         } finally {
           scanner.close()
