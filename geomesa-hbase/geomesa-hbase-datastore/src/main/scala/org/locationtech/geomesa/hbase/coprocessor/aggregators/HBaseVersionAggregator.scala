@@ -20,23 +20,26 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class HBaseVersionAggregator extends HBaseAggregator[VersionAggregator] {
 
+  private var scanned = false
+
   override def setScanner(scanner: RegionScanner): Unit = {}
+
+  override def init(options: Map[String, String]): Unit = {}
+
+  override def aggregate(): Array[Byte] =
+    if (scanned) { null } else { scanned = true; GeoMesaProperties.ProjectVersion.getBytes(StandardCharsets.UTF_8) }
 
   override protected def initResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
-      options: Map[String, String]): VersionAggregator = new VersionAggregator()
+      options: Map[String, String]): VersionAggregator = throw new NotImplementedError()
 
-  override protected def hasNextData: Boolean = false
+  override protected def notFull(result: VersionAggregator): Boolean = throw new NotImplementedError()
 
-  override protected def nextData(setValues: (Array[Byte], Int, Int, Array[Byte], Int, Int) => Unit): Unit = {}
+  override protected def aggregateResult(sf: SimpleFeature, result: VersionAggregator): Unit =
+    throw new NotImplementedError()
 
-  override protected def aggregateResult(sf: SimpleFeature, result: VersionAggregator): Unit = {}
-
-  override protected def notFull(result: VersionAggregator): Boolean = true
-
-  override protected def encodeResult(result: VersionAggregator): Array[Byte] =
-    GeoMesaProperties.ProjectVersion.getBytes(StandardCharsets.UTF_8)
+  override protected def encodeResult(result: VersionAggregator): Array[Byte] = throw new NotImplementedError()
 }
 
 object HBaseVersionAggregator {
@@ -47,9 +50,7 @@ object HBaseVersionAggregator {
   }
 
   class VersionAggregator {
-    private var seen = false
-    // we always return false exactly once so that we trigger aggregation, but then don't actually read any rows
-    def isEmpty: Boolean = if (seen) { true } else { seen = true; false }
+    def isEmpty: Boolean = false
     def clear(): Unit = {}
   }
 }

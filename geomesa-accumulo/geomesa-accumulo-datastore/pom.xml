@@ -130,6 +130,10 @@
             <artifactId>specs2-junit_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2-mock_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.arrow</groupId>
             <artifactId>arrow-vector</artifactId>
             <classifier>tests</classifier>
