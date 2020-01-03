@@ -11,6 +11,7 @@ package org.locationtech.geomesa.accumulo.iterators
 import org.apache.accumulo.core.data.{Range => aRange, _}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.index.iterators.AggregatingScan
+import org.locationtech.geomesa.index.iterators.AggregatingScan.RowValue
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 /**
@@ -26,6 +27,7 @@ abstract class BaseAggregatingIterator[T <: AggregatingScan.Result]
   protected var topKey: Key = _
   private var topValue: Value = new Value()
   private var currentRange: aRange = _
+  private var needToAdvance = false
 
   override def init(src: SortedKeyValueIterator[Key, Value],
                     options: java.util.Map[String, String],
@@ -41,6 +43,7 @@ abstract class BaseAggregatingIterator[T <: AggregatingScan.Result]
   override def seek(range: aRange, columnFamilies: java.util.Collection[ByteSequence], inclusive: Boolean): Unit = {
     currentRange = range
     source.seek(range, columnFamilies, inclusive)
+    needToAdvance = false
     findTop()
   }
 
@@ -61,13 +64,19 @@ abstract class BaseAggregatingIterator[T <: AggregatingScan.Result]
     }
   }
 
-  override protected def hasNextData: Boolean = source.hasTop && !currentRange.afterEndKey(source.getTopKey)
+  override protected def hasNextData: Boolean = {
+    if (needToAdvance) {
+      source.next() // advance the source iterator, this may invalidate the top key/value we've already read
+      needToAdvance = false
+    }
+    source.hasTop && !currentRange.afterEndKey(source.getTopKey)
+  }
 
-  override protected def nextData(setValues: (Array[Byte], Int, Int, Array[Byte], Int, Int) => Unit): Unit = {
+  override protected def nextData(): RowValue = {
+    needToAdvance = true
     topKey = source.getTopKey
     val value = source.getTopValue.get()
-    setValues(topKey.getRow.getBytes, 0, topKey.getRow.getLength, value, 0, value.length)
-    source.next() // Advance the source iterator
+    RowValue(topKey.getRow.getBytes, 0, topKey.getRow.getLength, value, 0, value.length)
   }
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
