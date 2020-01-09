@@ -45,7 +45,7 @@ class HBaseMergedDataStoreViewTest extends HBaseTest {
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
-  val params = Map(
+  lazy val params = Map(
     ConnectionParam.getName -> connection,
     HBaseCatalogParam.getName -> getClass.getSimpleName
   )
