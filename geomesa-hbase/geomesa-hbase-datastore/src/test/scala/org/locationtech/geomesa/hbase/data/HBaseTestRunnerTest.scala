@@ -40,6 +40,7 @@ class HBaseTestRunnerTest extends Specification with BeforeAfterAll with LazyLog
     new HBaseStatsAggregatorTest,
     new HBaseVisibilityTest,
     new HBasePartitioningTest,
+    new HBaseMergedDataStoreViewTest,
     new HBaseBackCompatibilityTest
   )
 

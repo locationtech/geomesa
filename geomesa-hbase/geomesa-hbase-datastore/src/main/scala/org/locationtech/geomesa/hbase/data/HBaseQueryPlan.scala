@@ -15,6 +15,7 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.locationtech.geomesa.hbase.coprocessor.CoprocessorConfig
 import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
 import org.locationtech.geomesa.index.PartitionParallelScan
+import org.locationtech.geomesa.index.api.QueryPlan.Reducer
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
@@ -133,6 +134,8 @@ object HBaseQueryPlan {
 
     override def scans: Seq[Scan] = Seq(scan)
 
+    override val reduce: Option[Reducer] = Some(config.reduce)
+
     /**
       * Runs the query plain against the underlying database, returning the raw entries
       *
@@ -146,10 +149,10 @@ object HBaseQueryPlan {
 
       if (PartitionParallelScan.toBoolean.contains(true)) {
         // kick off all the scans at once
-        config.reduce(scans.foldLeft(CloseableIterator.empty[SimpleFeature])(_ ++ _))
+        scans.foldLeft(CloseableIterator.empty[SimpleFeature])(_ ++ _)
       } else {
         // kick off the scans sequentially as they finish
-        config.reduce(SelfClosingIterator(scans).flatMap(s => s))
+        SelfClosingIterator(scans).flatMap(s => s)
       }
     }
 
