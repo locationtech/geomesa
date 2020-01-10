@@ -137,7 +137,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
 
           // test queries against the transient store
           forall(Seq(ds, readOnly)) { store =>
-            eventually(40, 100.millis)(store.transients.get(sft.getTypeName).read().toSeq must
+            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()).toSeq must
                 containTheSameElementsAs(features))
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
                 containTheSameElementsAs(features)
@@ -152,7 +152,8 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
           ds.persist(sft.getTypeName)
           // test mixed queries against both stores
           forall(Seq(ds, readOnly)) { store =>
-            eventually(40, 100.millis)(store.transients.get(sft.getTypeName).read().toSeq must beEqualTo(features.drop(1)))
+            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()).toSeq must
+                beEqualTo(features.drop(1)))
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
                 containTheSameElementsAs(features)
           }
@@ -179,7 +180,7 @@ class LambdaDataStoreTest extends LambdaTest with LazyLogging {
           ds.persist(sft.getTypeName)
           // test queries against the persistent store
           forall(Seq(ds, readOnly)) { store =>
-            eventually(40, 100.millis)(store.transients.get(sft.getTypeName).read() must beEmpty)
+            eventually(40, 100.millis)(SelfClosingIterator(store.transients.get(sft.getTypeName).read()) must beEmpty)
             SelfClosingIterator(store.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toSeq must
                 containTheSameElementsAs(features)
           }

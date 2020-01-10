@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.iterators
 
+import java.io.Closeable
+
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
@@ -20,8 +22,8 @@ import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
 
-trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
-    extends SamplingIterator with ConfiguredScan with LazyLogging {
+trait AggregatingScan[T <: AggregatingScan.Result]
+    extends SamplingIterator with ConfiguredScan with Closeable with LazyLogging {
 
   import AggregatingScan.Configuration._
 
@@ -101,6 +103,13 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
     }
   }
 
+  override def close(): Unit = {
+    result match {
+      case c: Closeable => c.close()
+      case _ => // no-op
+    }
+  }
+
   private def setValues(row: Array[Byte], rowOffset: Int, rowLength: Int,
                         value: Array[Byte], valueOffset: Int, valueLength: Int): Unit = {
     reusableSf.setIdBuffer(row, rowOffset, rowLength)
@@ -108,9 +117,9 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
   }
 
   // returns true if there is more data to read
-  def hasNextData: Boolean
+  protected def hasNextData: Boolean
   // seValues should be invoked with the underlying data
-  def nextData(setValues: (Array[Byte], Int, Int, Array[Byte], Int, Int) => Unit): Unit
+  protected def nextData(setValues: (Array[Byte], Int, Int, Array[Byte], Int, Int) => Unit): Unit
 
   // validate that we should aggregate this feature
   // if overridden, ensure call to super.validateFeature
@@ -131,6 +140,8 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
 }
 
 object AggregatingScan {
+
+  type Result = AnyRef { def isEmpty: Boolean; def clear(): Unit }
 
   // configuration keys
   object Configuration {

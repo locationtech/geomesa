@@ -11,10 +11,10 @@ package org.locationtech.geomesa.hbase.data
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.apache.hadoop.hbase.filter.FilterList
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
@@ -29,8 +29,6 @@ import org.opengis.filter.Filter
 class HBaseArrowTest extends HBaseTest with LazyLogging  {
 
   import scala.collection.JavaConverters._
-
-  implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
   val sft = SimpleFeatureTypes.createType("arrow", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
 
@@ -61,10 +59,12 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       def in() = new ByteArrayInputStream(out.toByteArray)
-      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        // sft name gets dropped, so we can't compare directly
-        SelfClosingIterator(reader.features()).map(f => (f.getID, f.getAttributes)).toSeq must
-            containTheSameElementsAs(features.map(f => (f.getID, f.getAttributes)))
+      WithClose(ArrowAllocator("hbase-file-dict-test")) { allocator =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(in)(allocator)) { reader =>
+          // sft name gets dropped, so we can't compare directly
+          SelfClosingIterator(reader.features()).map(f => (f.getID, f.getAttributes)).toSeq must
+              containTheSameElementsAs(features.map(f => (f.getID, f.getAttributes)))
+        }
       }
     }
   }
@@ -78,9 +78,11 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       def in() = new ByteArrayInputStream(out.toByteArray)
-      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-            containTheSameElementsAs(features)
+      WithClose(ArrowAllocator("hbase-batch-test")) { allocator =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(in)(allocator)) { reader =>
+          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+              containTheSameElementsAs(features)
+        }
       }
     }
     "return arrow dictionary encoded data" in {
@@ -92,9 +94,11 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       def in() = new ByteArrayInputStream(out.toByteArray)
-      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-            containTheSameElementsAs(features)
+      WithClose(ArrowAllocator("hbase-batch-dict-test")) { allocator =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(in)(allocator)) { reader =>
+          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+              containTheSameElementsAs(features)
+        }
       }
     }
     "return arrow dictionary encoded data with provided dictionaries" in {
@@ -107,16 +111,18 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       def in() = new ByteArrayInputStream(out.toByteArray)
-      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        val expected = features.map {
-          case f if f.getAttribute(0) != "name1" => f
-          case f =>
-            val e = ScalaSimpleFeature.copy(sft, f)
-            e.setAttribute(0, "[other]")
-            e
+      WithClose(ArrowAllocator("hbase-batch-provided-dict-test")) { allocator =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(in)(allocator)) { reader =>
+          val expected = features.map {
+            case f if f.getAttribute(0) != "name1" => f
+            case f =>
+              val e = ScalaSimpleFeature.copy(sft, f)
+              e.setAttribute(0, "[other]")
+              e
+          }
+          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+              containTheSameElementsAs(expected)
         }
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-            containTheSameElementsAs(expected)
       }
     }
     "return arrow encoded projections" in {
@@ -128,9 +134,11 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       def in() = new ByteArrayInputStream(out.toByteArray)
-      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        SelfClosingIterator(reader.features()).map(_.getAttributes.asScala).toSeq must
-            containTheSameElementsAs(features.map(f => List(f.getAttribute("dtg"), f.getAttribute("geom"))))
+      WithClose(ArrowAllocator("hbase-batch-project-test")) { allocator =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(in)(allocator)) { reader =>
+          SelfClosingIterator(reader.features()).map(_.getAttributes.asScala).toSeq must
+              containTheSameElementsAs(features.map(f => List(f.getAttribute("dtg"), f.getAttribute("geom"))))
+        }
       }
     }
     "return sorted batches" in {
@@ -143,8 +151,10 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       def in() = new ByteArrayInputStream(out.toByteArray)
-      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features
+      WithClose(ArrowAllocator("hbase-batch-sort-test")) { allocator =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(in)(allocator)) { reader =>
+          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList mustEqual features
+        }
       }
     }
     "return sampled arrow encoded data" in {
@@ -156,10 +166,12 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       def in() = new ByteArrayInputStream(out.toByteArray)
-      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        val results = SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq
-        results must haveLength(4) // TODO this seems to indicate two region servers?
-        foreach(results)(features must contain(_))
+      WithClose(ArrowAllocator("hbase-batch-sample-test")) { allocator =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(in)(allocator)) { reader =>
+          val results = SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq
+          results must haveLength(4) // TODO this seems to indicate two region servers?
+          foreach(results)(features must contain(_))
+        }
       }
     }
     "return arrow dictionary encoded data without caching and with z-values" in {
@@ -179,9 +191,11 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
       val out = new ByteArrayOutputStream
       results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       def in() = new ByteArrayInputStream(out.toByteArray)
-      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
-            containTheSameElementsAs(features.filter(filter.evaluate))
+      WithClose(ArrowAllocator("hbase-batch-z-test")) { allocator =>
+        WithClose(SimpleFeatureArrowFileReader.streaming(in)(allocator)) { reader =>
+          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
+              containTheSameElementsAs(features.filter(filter.evaluate))
+        }
       }
     }
   }
@@ -189,6 +203,5 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
   step {
     logger.info("Cleaning up HBase Arrow Test")
     ds.dispose()
-    allocator.close()
   }
 }
