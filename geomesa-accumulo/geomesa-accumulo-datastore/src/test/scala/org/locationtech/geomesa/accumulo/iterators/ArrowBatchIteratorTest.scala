@@ -10,29 +10,34 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, Closeable}
 
-import org.locationtech.jts.geom.LineString
+import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.accumulo.core.iterators.SortedKeyValueIterator
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{Query, Transaction}
+import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.api.{SingleRowKeyValue, WritableFeature}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.jts.geom.LineString
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
 import org.specs2.matcher.MatchResult
+import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
 
 import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
-class ArrowBatchIteratorTest extends TestWithMultipleSfts {
+class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
 
   sequential
 
@@ -408,6 +413,34 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts {
             compare(reader.features(), features)
           }
         }
+      }
+    }
+    "handle errors in the underlying scan" in {
+      foreach(sfts) { case (sft, features) =>
+        val source = mock[SortedKeyValueIterator[Key, Value]]
+        val idx = ds.manager.indices(sft).find(_.name.contains("z3")).getOrElse {
+          throw new RuntimeException("Couldn't find index")
+        }
+        val options = ArrowIterator.configure(sft, idx, ds.stats, None, None, new Hints())._1.getOptions
+
+        val writable = WritableFeature.wrapper(sft, ds.adapter.groups).wrap(features.head)
+        val kv = idx.createConverter().convert(writable) match {
+          case kv: SingleRowKeyValue[_] => kv
+          case _ => throw new RuntimeException("got multiple kvs")
+        }
+
+        // mocks
+        source.hasTop returns true
+        source.getTopKey returns new Key(kv.row)
+        source.getTopValue returns new Value(kv.values.head.value)
+        source.next() throws new NullPointerException("testing NPE")
+
+        val iter = new ArrowIterator()
+        iter.init(source, options, null)
+        iter.seek(new org.apache.accumulo.core.data.Range(), java.util.Collections.emptyList(), inclusive = true)
+        iter.hasTop must beTrue // we had a valid row before seeing an error, so it gets returned
+        iter.next()
+        iter.hasTop must beFalse // we see the error again, but this time there were no valid rows first
       }
     }
   }
