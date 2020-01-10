@@ -14,6 +14,7 @@ import java.util.Date
 
 import org.geotools.data.Query
 import org.geotools.factory.Hints
+import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
 import org.locationtech.geomesa.arrow.io.{DeltaWriter, DictionaryBuildingWriter}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector
@@ -29,6 +30,7 @@ import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, SimpleFeatureOrdering, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.stats.{Stat, TopK}
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -196,8 +198,6 @@ object LocalQueryRunner {
                              hints: Hints,
                              hook: Option[ArrowDictionaryHook]): CloseableIterator[SimpleFeature] = {
 
-    import org.locationtech.geomesa.arrow.allocator
-
     ArrowScan.setSortHints(hints) // handle any sort hints from the query
 
     val sort = hints.getArrowSort
@@ -230,13 +230,15 @@ object LocalQueryRunner {
       }
     }
 
+    val allocator = ArrowAllocator("arrow-local-scan")
+
     if (hints.isArrowDoublePass ||
         dictionaryFields.forall(f => providedDictionaries.contains(f) || cachedDictionaries.contains(f))) {
       // we have all the dictionary values, or we will run a query to determine them up front
       val dictionaries = ArrowScan.createDictionaries(stats, sft, filter, dictionaryFields,
         providedDictionaries, cachedDictionaries)
 
-      val vector = SimpleFeatureVector.create(arrowSft, dictionaries, encoding)
+      val vector = SimpleFeatureVector.create(arrowSft, dictionaries, encoding)(allocator)
       val batchWriter = new RecordBatchUnloader(vector)
 
       val sf = ArrowScan.resultFeature()
@@ -253,14 +255,14 @@ object LocalQueryRunner {
           sf.setAttribute(0, batchWriter.unload(index))
           sf
         }
-        override def close(): Unit = features.close()
+        override def close(): Unit = CloseWithLogging(Seq(features, vector, allocator))
       }
 
       if (hints.isSkipReduce) { arrows } else {
         ArrowScan.mergeBatches(arrowSft, dictionaries, encoding, batchSize, sort)(arrows)
       }
     } else if (hints.isArrowMultiFile) {
-      val writer = DictionaryBuildingWriter.create(arrowSft, dictionaryFields, encoding)
+      val writer = DictionaryBuildingWriter.create(arrowSft, dictionaryFields, encoding)(allocator)
       val os = new ByteArrayOutputStream()
 
       val sf = ArrowScan.resultFeature()
@@ -279,13 +281,13 @@ object LocalQueryRunner {
           sf.setAttribute(0, os.toByteArray)
           sf
         }
-        override def close(): Unit = features.close()
+        override def close(): Unit = CloseWithLogging(Seq(features, writer, allocator))
       }
       if (hints.isSkipReduce) { arrows } else {
         ArrowScan.mergeFiles(arrowSft, dictionaryFields, encoding, sort)(arrows)
       }
     } else {
-      val writer = new DeltaWriter(arrowSft, dictionaryFields, encoding, None, batchSize)
+      val writer = new DeltaWriter(arrowSft, dictionaryFields, encoding, None, batchSize)(allocator)
       val array = Array.ofDim[SimpleFeature](batchSize)
 
       val sf = ArrowScan.resultFeature()
@@ -301,7 +303,7 @@ object LocalQueryRunner {
           sf.setAttribute(0, writer.encode(array, index))
           sf
         }
-        override def close(): Unit = features.close()
+        override def close(): Unit = CloseWithLogging(Seq(features, writer, allocator))
       }
       if (hints.isSkipReduce) { arrows } else {
         ArrowScan.mergeDeltas(arrowSft, dictionaryFields, encoding, batchSize, sort)(arrows)

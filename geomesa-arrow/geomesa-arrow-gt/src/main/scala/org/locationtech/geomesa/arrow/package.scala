@@ -13,18 +13,38 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
 
 package object arrow {
 
+  @deprecated("Use Allocator.apply() and clean up afterwards")
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
+
+  // noinspection ScalaDeprecation
+  sys.addShutdownHook(CloseWithLogging(allocator))
 
   // need to be lazy to avoid class loading issues before init is called
   lazy val ArrowEncodedSft: SimpleFeatureType =
     SimpleFeatureTypes.createType("arrow", "batch:Bytes,*geom:Point:srid=4326")
 
+  object ArrowAllocator {
+
+    private val root = new RootAllocator(Long.MaxValue)
+
+    sys.addShutdownHook(CloseWithLogging(root))
+
+    /**
+     * Gets a new allocator from the root allocator. Allocator should be disposed of properly after use
+     *
+     * @param name name of the allocator, for bookkeeping
+     * @return
+     */
+    def apply(name: String): BufferAllocator = root.newChildAllocator(name, 0L, Long.MaxValue)
+  }
+
   object ArrowProperties {
-    val BatchSize = SystemProperty("geomesa.arrow.batch.size", "10000")
+    val BatchSize: SystemProperty = SystemProperty("geomesa.arrow.batch.size", "10000")
   }
 
   case class TypeBindings(bindings: Seq[ObjectType], encoding: SimpleFeatureEncoding)

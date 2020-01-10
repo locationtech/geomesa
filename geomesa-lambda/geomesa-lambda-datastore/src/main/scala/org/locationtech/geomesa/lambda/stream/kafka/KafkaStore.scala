@@ -33,6 +33,7 @@ import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -117,7 +118,7 @@ class KafkaStore(ds: DataStore,
   override def read(filter: Option[Filter] = None,
                     transforms: Option[Array[String]] = None,
                     hints: Option[Hints] = None,
-                    explain: Explainer = new ExplainLogging): Iterator[SimpleFeature] = {
+                    explain: Explainer = new ExplainLogging): CloseableIterator[SimpleFeature] = {
     val query = new Query()
     filter.foreach(query.setFilter)
     transforms.foreach(query.setPropertyNames)

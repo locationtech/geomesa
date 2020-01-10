@@ -66,8 +66,8 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
         )
         writer.writeEvent(stat) // note: implementations should be asynchronous
       }
-      CloseableIterator(transients.get(sft.getTypeName).read(Option(query.getFilter),
-        Option(query.getPropertyNames), Option(query.getHints), explain))
+      transients.get(sft.getTypeName)
+          .read(Option(query.getFilter), Option(query.getPropertyNames), Option(query.getHints), explain)
     }
   }
 
@@ -117,8 +117,9 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
   private def standardQuery(sft: SimpleFeatureType, query: Query, explain: Explainer): CloseableIterator[SimpleFeature] = {
     import scala.concurrent.ExecutionContext.Implicits.global
 
-    val transientFeatures = CloseableIterator(transients.get(sft.getTypeName).read(Option(query.getFilter),
-      Option(query.getPropertyNames), Option(query.getHints), explain))
+    val transientFeatures =
+      transients.get(sft.getTypeName)
+        .read(Option(query.getFilter), Option(query.getPropertyNames), Option(query.getHints), explain)
     val fc = persistence.getFeatureSource(sft.getTypeName).getFeatures(query)
     // kick off the persistent query in a future, but don't wait for results yet
     val persistentFeatures = Future(CloseableIterator(fc.features))

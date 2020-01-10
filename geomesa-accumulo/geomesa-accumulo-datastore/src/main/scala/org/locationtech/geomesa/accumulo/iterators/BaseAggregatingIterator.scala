@@ -11,11 +11,12 @@ package org.locationtech.geomesa.accumulo.iterators
 import org.apache.accumulo.core.data.{Range => aRange, _}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.index.iterators.AggregatingScan
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 /**
  * Aggregating iterator - only works on kryo-encoded features
  */
-abstract class BaseAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
+abstract class BaseAggregatingIterator[T <: AggregatingScan.Result]
     extends SortedKeyValueIterator[Key, Value] with AggregatingScan[T] {
 
   import scala.collection.JavaConverters._
@@ -43,19 +44,12 @@ abstract class BaseAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; def c
     findTop()
   }
 
-  override def next(): Unit = {
-    if (!source.hasTop) {
-      topKey = null
-      topValue = null
-    } else {
-      findTop()
-    }
-  }
+  override def next(): Unit = findTop()
 
-  // noinspection LanguageFeature
-  def findTop(): Unit = {
+  private def findTop(): Unit = {
     val result = aggregate()
     if (result == null) {
+      CloseWithLogging(this)
       topKey = null // hasTop will be false
       topValue = null
     } else {
@@ -67,9 +61,9 @@ abstract class BaseAggregatingIterator[T <: AnyRef { def isEmpty: Boolean; def c
     }
   }
 
-  override def hasNextData: Boolean = source.hasTop && !currentRange.afterEndKey(source.getTopKey)
+  override protected def hasNextData: Boolean = source.hasTop && !currentRange.afterEndKey(source.getTopKey)
 
-  override def nextData(setValues: (Array[Byte], Int, Int, Array[Byte], Int, Int) => Unit): Unit = {
+  override protected def nextData(setValues: (Array[Byte], Int, Int, Array[Byte], Int, Int) => Unit): Unit = {
     topKey = source.getTopKey
     val value = source.getTopValue.get()
     setValues(topKey.getRow.getBytes, 0, topKey.getRow.getLength, value, 0, value.length)
