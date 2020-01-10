@@ -24,8 +24,9 @@ class HBaseVersionAggregator extends HBaseAggregator[VersionAggregator] {
 
   override def setScanner(scanner: RegionScanner): Unit = {}
 
-  // we always return true exactly once so that we trigger aggregation, but then don't actually read any rows
-  override def hasNextData: Boolean = if (scanned) { false } else { scanned = true; true }
+  override def aggregate(): Array[Byte] = {
+    if (scanned) { null } else { scanned = true; GeoMesaProperties.ProjectVersion.getBytes(StandardCharsets.UTF_8) }
+  }
 
   override protected def initResult(sft: SimpleFeatureType,
                                     transform: Option[SimpleFeatureType],
@@ -36,8 +37,7 @@ class HBaseVersionAggregator extends HBaseAggregator[VersionAggregator] {
 
   override protected def aggregateResult(sf: SimpleFeature, result: VersionAggregator): Unit = {}
 
-  override protected def encodeResult(result: VersionAggregator): Array[Byte] =
-    GeoMesaProperties.ProjectVersion.getBytes(StandardCharsets.UTF_8)
+  override protected def encodeResult(result: VersionAggregator): Array[Byte] = null
 }
 
 object HBaseVersionAggregator {
