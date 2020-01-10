@@ -11,15 +11,21 @@ package org.locationtech.geomesa.accumulo.iterators
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, Closeable}
 
 import com.vividsolutions.jts.geom.LineString
+import org.apache.accumulo.core.data.{Key, Value}
+import org.apache.accumulo.core.iterators.SortedKeyValueIterator
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{Query, Transaction}
+import org.geotools.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
+import org.locationtech.geomesa.accumulo.data.AccumuloFeature
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
+import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
@@ -27,12 +33,13 @@ import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
 import org.specs2.matcher.MatchResult
+import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
 
 import scala.util.Try
 
 @RunWith(classOf[JUnitRunner])
-class ArrowBatchIteratorTest extends TestWithMultipleSfts {
+class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
 
   sequential
 
@@ -409,6 +416,30 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts {
           }
         }
       }
+    }
+    "handle errors in the underlying scan" in {
+      val (sft, features) = sfts.head
+
+      val source = mock[SortedKeyValueIterator[Key, Value]]
+      val idx = ds.manager.indices(sft, Some("z3")).head
+      val options = {
+        ArrowIterator.configure(sft, idx, ds.stats, None, None, new Hints(), deduplicate = false)._1.getOptions
+      }
+
+      // mocks
+      source.hasTop returns true
+      source.getTopKey returns
+        new Key(idx.writer(sft, ds).apply(AccumuloFeature.wrapper(sft, "").apply(features.head)).head.getRow)
+      source.getTopValue returns
+          new Value(KryoFeatureSerializer(sft, SerializationOptions.withoutId).serialize(features.head))
+      source.next() throws new NullPointerException("testing NPE")
+
+      val iter = new ArrowIterator()
+      iter.init(source, options, null)
+      iter.seek(new org.apache.accumulo.core.data.Range(), java.util.Collections.emptyList(), inclusive = true)
+      iter.hasTop must beTrue // we had a valid row before seeing an error, so it gets returned
+      iter.next()
+      iter.hasTop must beFalse // we see the error again, but this time there were no valid rows first
     }
   }
 

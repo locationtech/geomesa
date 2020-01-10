@@ -14,6 +14,7 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, GeoMesaIndexManager}
+import org.locationtech.geomesa.index.iterators.AggregatingScan.RowValue
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -86,9 +87,18 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
   def aggregate(): Array[Byte] = {
     // noinspection LanguageFeature
     result.clear()
-    while (hasNextData && notFull(result)) {
+
+    var rowValue = advance()
+    if (rowValue == null) {
+      // skip the result.isEmpty check if we haven't read any data
+      // FIXME there are some aggregates that are never empty
+      return null
+    }
+
+    while (rowValue != null) {
       try {
-        nextData(setValues)
+        reusableSf.setBuffer(rowValue.value, rowValue.valueOffset, rowValue.valueLength)
+        reusableSf.setId(getId(rowValue.row, rowValue.rowOffset, rowValue.rowLength, reusableSf))
         if (validateFeature(reusableSf)) {
           // write the record to our aggregated results
           if (hasTransform) {
@@ -100,23 +110,25 @@ trait AggregatingScan[T <: AnyRef { def isEmpty: Boolean; def clear(): Unit }]
       } catch {
         case NonFatal(e) => logger.error("Error aggregating value:", e)
       }
+      rowValue = advance()
     }
+
     // noinspection LanguageFeature
-    if (result.isEmpty) { null } else {
-      encodeResult(result)
-    }
+    if (result.isEmpty) { null } else { encodeResult(result) }
   }
 
-  private def setValues(row: Array[Byte], rowOffset: Int, rowLength: Int,
-                        value: Array[Byte], valueOffset: Int, valueLength: Int): Unit = {
-    reusableSf.setBuffer(value, valueOffset, valueLength)
-    reusableSf.setId(getId(row, rowOffset, rowLength, reusableSf))
+  private def advance(): RowValue = {
+    try {
+      if (notFull(result) && hasNextData) { nextData() } else { null }
+    } catch {
+      case NonFatal(e) => logger.error("Error in underlying scan while aggregating value:", e); null
+    }
   }
 
   // returns true if there is more data to read
-  def hasNextData: Boolean
-  // seValues should be invoked with the underlying data
-  def nextData(setValues: (Array[Byte], Int, Int, Array[Byte], Int, Int) => Unit): Unit
+  protected def hasNextData: Boolean
+  // returns the next row of data
+  protected def nextData(): RowValue
 
   // validate that we should aggregate this feature
   // if overridden, ensure call to super.validateFeature
@@ -171,4 +183,13 @@ object AggregatingScan {
   implicit def StringToConfig(s: String): Either[String, Option[String]] = Left(s)
   // noinspection LanguageFeature
   implicit def OptionToConfig(s: Option[String]): Either[String, Option[String]] = Right(s)
+
+  case class RowValue(
+      row: Array[Byte],
+      rowOffset: Int,
+      rowLength: Int,
+      value: Array[Byte],
+      valueOffset: Int,
+      valueLength: Int
+    )
 }
