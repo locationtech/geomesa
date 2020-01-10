@@ -12,17 +12,18 @@ import java.io.ByteArrayOutputStream
 import java.util.Collections
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Geometry
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.StructVector
 import org.apache.arrow.vector.types.pojo.Schema
+import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.math.Ordering
@@ -39,27 +40,50 @@ object SimpleFeatureArrowIO extends LazyLogging {
       SimpleFeatureOrdering.nullCompare(x._1.asInstanceOf[Comparable[Any]], y._1)
   }
 
+  @deprecated("Use method without allocator")
+  def reduceFiles(
+      sft: SimpleFeatureType,
+      dictionaryFields: Seq[String],
+      encoding: SimpleFeatureEncoding,
+      sort: Option[(String, Boolean)])
+      (files: CloseableIterator[Array[Byte]])
+      (implicit allocator: BufferAllocator): CloseableIterator[Array[Byte]] = {
+    reduceFiles(sft, dictionaryFields, encoding, sort, files)
+  }
+
   /**
-    * Reduce function for concatenating separate arrow files
-    *
-    * @param sft simple feature type
-    * @param dictionaryFields dictionary fields
-    * @param encoding simple feature encoding
-    * @param sort sort
-    * @param files full logical arrow files encoded in arrow streaming format
-    * @return
-    */
-  def reduceFiles(sft: SimpleFeatureType,
-                  dictionaryFields: Seq[String],
-                  encoding: SimpleFeatureEncoding,
-                  sort: Option[(String, Boolean)])
-                 (files: CloseableIterator[Array[Byte]])
-                 (implicit allocator: BufferAllocator): CloseableIterator[Array[Byte]] = {
+   * Reduce function for concatenating separate arrow files
+   *
+   * @param sft simple feature type
+   * @param dictionaryFields dictionary fields
+   * @param encoding simple feature encoding
+   * @param sort sort
+   * @param files full logical arrow files encoded in arrow streaming format
+   * @return
+   */
+  def reduceFiles(
+      sft: SimpleFeatureType,
+      dictionaryFields: Seq[String],
+      encoding: SimpleFeatureEncoding,
+      sort: Option[(String, Boolean)],
+      files: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
     // ensure we return something
     if (files.hasNext) { files } else {
       // files is empty but this will pass it through to be closed
-      createFile(sft, createEmptyDictionaries(dictionaryFields), encoding, sort)(files)
+      createFile(sft, createEmptyDictionaries(dictionaryFields), encoding, sort, files)
     }
+  }
+
+  @deprecated("Use method without allocator")
+  def reduceBatches(
+      sft: SimpleFeatureType,
+      dictionaries: Map[String, ArrowDictionary],
+      encoding: SimpleFeatureEncoding,
+      sort: Option[(String, Boolean)],
+      batchSize: Int)
+      (batches: CloseableIterator[Array[Byte]])
+      (implicit allocator: BufferAllocator): CloseableIterator[Array[Byte]] = {
+    reduceBatches(sft, dictionaries, encoding, sort, batchSize, batches)
   }
 
   /**
@@ -73,18 +97,32 @@ object SimpleFeatureArrowIO extends LazyLogging {
     * @param batches record batches
     * @return
     */
-  def reduceBatches(sft: SimpleFeatureType,
-                    dictionaries: Map[String, ArrowDictionary],
-                    encoding: SimpleFeatureEncoding,
-                    sort: Option[(String, Boolean)],
-                    batchSize: Int)
-                   (batches: CloseableIterator[Array[Byte]])
-                   (implicit allocator: BufferAllocator): CloseableIterator[Array[Byte]] = {
+  def reduceBatches(
+      sft: SimpleFeatureType,
+      dictionaries: Map[String, ArrowDictionary],
+      encoding: SimpleFeatureEncoding,
+      sort: Option[(String, Boolean)],
+      batchSize: Int,
+      batches: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
+    val allocator = ArrowAllocator("reduce-batches")
     val sorted = sort match {
-      case None => batches
-      case Some((field, reverse)) => sortBatches(sft, dictionaries, encoding, field, reverse, batchSize, batches)
+      case None    => batches
+      case Some(s) => sortBatches(sft, dictionaries, encoding, s, batchSize, batches)
     }
-    createFile(sft, dictionaries, encoding, sort)(sorted)
+    createFile(allocator, SimpleFeatureVector.create(sft, dictionaries, encoding, 0)(allocator), sort, sorted)
+  }
+
+  @deprecated("Use method without allocator")
+  def sortBatches(
+      sft: SimpleFeatureType,
+      dictionaries: Map[String, ArrowDictionary],
+      encoding: SimpleFeatureEncoding,
+      sortBy: String,
+      reverse: Boolean,
+      batchSize: Int,
+      iter: CloseableIterator[Array[Byte]])
+      (implicit allocator: BufferAllocator): CloseableIterator[Array[Byte]] = {
+    sortBatches(sft, dictionaries, encoding, (sortBy, reverse), batchSize, iter)
   }
 
   /**
@@ -93,24 +131,24 @@ object SimpleFeatureArrowIO extends LazyLogging {
     * @param sft simple feature type
     * @param dictionaries dictionaries
     * @param encoding encoding options
-    * @param sortBy attribute to sort by, assumed to be comparable
-    * @param reverse sort reversed or not
+    * @param sort attribute to sort by, assumed to be comparable, and whether sort is reversed or not
     * @param batchSize batch size
     * @param iter iterator of batches
     * @return iterator of sorted batches
     */
-  def sortBatches(sft: SimpleFeatureType,
-                  dictionaries: Map[String, ArrowDictionary],
-                  encoding: SimpleFeatureEncoding,
-                  sortBy: String,
-                  reverse: Boolean,
-                  batchSize: Int,
-                  iter: CloseableIterator[Array[Byte]])
-                 (implicit allocator: BufferAllocator): CloseableIterator[Array[Byte]] = {
+  def sortBatches(
+      sft: SimpleFeatureType,
+      dictionaries: Map[String, ArrowDictionary],
+      encoding: SimpleFeatureEncoding,
+      sort: (String, Boolean),
+      batchSize: Int,
+      iter: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
     val batches = iter.toSeq
     if (batches.lengthCompare(2) < 0) {
       CloseableIterator(batches.iterator, iter.close())
     } else {
+      val allocator = ArrowAllocator("sort-batches")
+      val (sortBy, reverse) = sort
       // gets the attribute we're sorting by from the i-th feature in the vector
       val getSortAttribute: (SimpleFeatureVector, Int) => AnyRef = {
         val sortByIndex = sft.indexOf(sortBy)
@@ -122,13 +160,13 @@ object SimpleFeatureArrowIO extends LazyLogging {
         }
       }
 
-      val result = SimpleFeatureVector.create(sft, dictionaries, encoding)
+      val result = SimpleFeatureVector.create(sft, dictionaries, encoding)(allocator)
 
       val inputs: Array[(SimpleFeatureVector, (Int, Int) => Unit)] = batches.map { bytes =>
         // note: for some reason we have to allow the batch loader to create the vectors or this doesn't work
         val field = result.underlying.getField
-        val loader = RecordBatchLoader(field)
-        val vector = SimpleFeatureVector.wrap(loader.vector.asInstanceOf[StructVector], dictionaries)
+        val loader = RecordBatchLoader(field)(allocator)
+        val vector = SimpleFeatureVector.wrap(loader.vector.asInstanceOf[StructVector], dictionaries)(allocator)
         loader.load(bytes)
         val transfers: Seq[(Int, Int) => Unit] = {
           val fromVectors = vector.underlying.getChildrenFromFields
@@ -202,7 +240,8 @@ object SimpleFeatureArrowIO extends LazyLogging {
         }
       }
 
-      val output = new Iterator[Array[Byte]] {
+      val output: CloseableIterator[Array[Byte]] = new CloseableIterator[Array[Byte]] {
+
         private var batch: Array[Byte] = _
 
         override def hasNext: Boolean = {
@@ -217,59 +256,99 @@ object SimpleFeatureArrowIO extends LazyLogging {
           batch = null
           res
         }
+
+        override def close(): Unit = {
+          CloseWithLogging(result)
+          CloseWithLogging(iter)
+          inputs.foreach { case (vector, _) => CloseWithLogging(vector) }
+          CloseWithLogging(allocator)
+        }
       }
 
-      def closeAll(): Unit = {
-        CloseWithLogging(result)
-        CloseWithLogging(iter)
-        inputs.foreach(i => CloseWithLogging(i._1))
-      }
-
-      CloseableIterator(output, closeAll())
+      output
     }
   }
 
+  @deprecated("Use without allocator")
+  def createFile(
+      vector: SimpleFeatureVector,
+      sort: Option[(String, Boolean)])
+     (body: CloseableIterator[Array[Byte]])
+     (implicit allocator: BufferAllocator): CloseableIterator[Array[Byte]] = {
+    createFile(vector, sort, body)
+  }
+
+  @deprecated("Use method without allocator")
+  def createFile(
+      sft: SimpleFeatureType,
+      dictionaries: Map[String, ArrowDictionary],
+      encoding: SimpleFeatureEncoding,
+      sort: Option[(String, Boolean)])
+      (body: CloseableIterator[Array[Byte]])
+      (implicit allocator: BufferAllocator): CloseableIterator[Array[Byte]] = {
+    createFile(sft, dictionaries, encoding, sort, body)
+  }
+
   /**
-    * Creates an arrow streaming format file
-    *
-    * @param vector simple feature vector, used for arrow metadata and dictionaries
-    * @param sort sort
-    * @param body record batches
-    * @return
-    */
-  def createFile(vector: SimpleFeatureVector,
-                 sort: Option[(String, Boolean)])
-                (body: CloseableIterator[Array[Byte]])
-                (implicit allocator: BufferAllocator): CloseableIterator[Array[Byte]] = {
+   * Creates an arrow streaming format file
+   *
+   * @param sft simple feature type
+   * @param dictionaries dictionaries (note: do not get closed)
+   * @param encoding simple feature encoding
+   * @param sort sort
+   * @param body record batches
+   * @return
+   */
+  def createFile(
+      sft: SimpleFeatureType,
+      dictionaries: Map[String, ArrowDictionary],
+      encoding: SimpleFeatureEncoding,
+      sort: Option[(String, Boolean)],
+      body: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
+    val allocator = ArrowAllocator("create-file")
+    createFile(allocator, SimpleFeatureVector.create(sft, dictionaries, encoding, 0)(allocator), sort, body)
+  }
+
+  /**
+   * Creates an arrow streaming format file
+   *
+   * @param vector simple feature vector, used for arrow metadata and dictionaries
+   * @param sort sort
+   * @param body record batches
+   * @return
+   */
+  def createFile(
+      vector: SimpleFeatureVector,
+      sort: Option[(String, Boolean)],
+      body: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
+    createFile(ArrowAllocator("create-file"), vector, sort, body)
+  }
+
+
+  /**
+   * Creates an arrow streaming format file
+   *
+   * @param allocator allocator to use for creating the file, will be closed
+   * @param vector simple feature vector, used for arrow metadata and dictionaries
+   * @param sort sort
+   * @param body record batches
+   * @return
+   */
+  private def createFile(
+      allocator: BufferAllocator,
+      vector: SimpleFeatureVector,
+      sort: Option[(String, Boolean)],
+      body: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
     // header with schema and dictionaries
     val headerBytes = new ByteArrayOutputStream
     // make sure to copy bytes before closing so we get just the header metadata
-    val writer = SimpleFeatureArrowFileWriter(vector, headerBytes, sort)
+    val writer = SimpleFeatureArrowFileWriter(vector, headerBytes, sort)(allocator)
     writer.start()
 
     val header = Iterator.single(headerBytes.toByteArray)
     // per arrow streaming format footer is the encoded int '0'
     val footer = Iterator.single(Array[Byte](0, 0, 0, 0))
-    CloseableIterator(header ++ body ++ footer, { CloseWithLogging(body); CloseWithLogging(writer) })
-  }
-
-  /**
-    * Creates an arrow streaming format file
-    *
-    * @param sft simple feature type
-    * @param dictionaries dictionaries
-    * @param encoding simple feature encoding
-    * @param sort sort
-    * @param body record batches
-    * @return
-    */
-  def createFile(sft: SimpleFeatureType,
-                 dictionaries: Map[String, ArrowDictionary],
-                 encoding: SimpleFeatureEncoding,
-                 sort: Option[(String, Boolean)])
-                (body: CloseableIterator[Array[Byte]])
-                (implicit allocator: BufferAllocator): CloseableIterator[Array[Byte]] = {
-    createFile(SimpleFeatureVector.create(sft, dictionaries, encoding, 0), sort)(body)
+    CloseableIterator(header ++ body ++ footer, CloseWithLogging(Seq(body, writer, allocator)))
   }
 
   /**

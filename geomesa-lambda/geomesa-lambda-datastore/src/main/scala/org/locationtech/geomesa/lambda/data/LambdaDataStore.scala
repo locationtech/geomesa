@@ -104,11 +104,12 @@ class LambdaDataStore(val persistence: DataStore,
       // ensure that we've loaded the entire kafka topic
       logger.debug("Update schema: entering quiet period")
       Thread.sleep(SystemProperty("geomesa.lambda.update.quiet.period", "10 seconds").toDuration.get.toMillis)
-      val toPersist = transient.read()
-      if (toPersist.nonEmpty) {
-        logger.debug("Update schema: persisting transient features")
-        WithClose(persistence.getFeatureWriter(typeName, Transaction.AUTO_COMMIT)) { writer =>
-          toPersist.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+      WithClose(transient.read()) { toPersist =>
+        if (toPersist.nonEmpty) {
+          logger.debug("Update schema: persisting transient features")
+          WithClose(persistence.getFeatureWriter(typeName, Transaction.AUTO_COMMIT)) { writer =>
+            toPersist.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
         }
       }
     }

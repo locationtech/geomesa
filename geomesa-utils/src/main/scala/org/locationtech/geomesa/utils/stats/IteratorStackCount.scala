@@ -20,6 +20,8 @@ class IteratorStackCount private [stats] (val sft: SimpleFeatureType) extends St
 
   private [stats] var counter: Long = 1
 
+  private var empty = false
+
   override type S = IteratorStackCount
 
   def count: Long = counter
@@ -39,7 +41,9 @@ class IteratorStackCount private [stats] (val sft: SimpleFeatureType) extends St
 
   override def toJsonObject: Map[String, Long] = Map("count" -> counter)
 
-  override def isEmpty: Boolean = false
+  // this logic is tied to the scan lifecycle in accumulo/hbase, and ensures that a single
+  // result is returned for each scan that is created, regardless of if there is data or not
+  override def isEmpty: Boolean = if (empty) { true } else { empty = true; false }
 
   override def clear(): Unit = counter = 1L
 
