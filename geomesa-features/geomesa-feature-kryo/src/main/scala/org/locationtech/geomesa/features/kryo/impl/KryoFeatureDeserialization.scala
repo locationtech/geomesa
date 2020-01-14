@@ -6,7 +6,8 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.kryo.impl
+package org.locationtech.geomesa.features.kryo
+package impl
 
 import java.io.InputStream
 import java.util
@@ -22,7 +23,7 @@ import org.locationtech.geomesa.features.kryo.json.KryoJsonSerialization
 import org.locationtech.geomesa.features.kryo.serialization.{KryoGeometrySerialization, KryoUserDataSerialization}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
-import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, SoftThreadLocalCache}
+import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, ThreadLocalCache}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -70,7 +71,7 @@ trait KryoFeatureDeserialization extends SimpleFeatureSerializer with LazyLoggin
 object KryoFeatureDeserialization extends LazyLogging {
 
   private[this] val inputs  = new SoftThreadLocal[Input]()
-  private[this] val readers = new SoftThreadLocalCache[String, Array[Input => AnyRef]]()
+  private[this] val readers = new ThreadLocalCache[String, Array[Input => AnyRef]](SerializerCacheExpiry)
 
   def getInput(bytes: Array[Byte], offset: Int, count: Int): Input = {
     val in = inputs.getOrElseUpdate(new Input)
