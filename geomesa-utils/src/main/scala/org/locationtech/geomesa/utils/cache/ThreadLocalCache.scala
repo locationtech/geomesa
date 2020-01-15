@@ -20,6 +20,10 @@ import scala.concurrent.duration.Duration
 /**
  * Creates a per-thread cache of values with a timed expiration.
  *
+ * Map operations will only affect/reflect the state of the current thread. Additional methods `globalIterator`
+ * and `estimatedGlobalSize` are provided for global views across all threads, which generally should only be used
+ * for debugging.
+ *
  * Since caches are only cleaned up when accessed, uses an asynchronous thread to
  * actively clean up any orphaned thread local values
  *
@@ -37,17 +41,21 @@ class ThreadLocalCache[K <: AnyRef, V <: AnyRef](
   import scala.collection.JavaConverters._
 
   // weak references to our current caches, to allow cleanup + GC
-  private val references = new ConcurrentLinkedQueue[WeakReference[Cache[K, V]]]()
+  private val references = new ConcurrentLinkedQueue[(Long, WeakReference[Cache[K, V]])]()
 
   private val caches = new ThreadLocal[Cache[K, V]]() {
     override def initialValue(): Cache[K, V] = {
       val cache = Caffeine.newBuilder().expireAfterAccess(expiry.toMillis, TimeUnit.MILLISECONDS).build[K, V]()
-      references.offer(new WeakReference(cache)) // this will always succeed as our queue is unbounded
+      // this will always succeed as our queue is unbounded
+      references.offer((Thread.currentThread().getId, new WeakReference(cache)))
       cache
     }
   }
 
   private val cleanup = executor.scheduleWithFixedDelay(this, expiry.toMillis, expiry.toMillis, TimeUnit.MILLISECONDS)
+
+  // show the class name for toString
+  override def stringPrefix : String = "ThreadLocalCache"
 
   override def get(key: K): Option[V] = Option(caches.get.getIfPresent(key))
 
@@ -74,10 +82,40 @@ class ThreadLocalCache[K <: AnyRef, V <: AnyRef](
 
   override def iterator: Iterator[(K, V)] = caches.get.asMap.asScala.iterator
 
+  /**
+   * Gets an iterator across all thread-local values, not just the current thread
+   *
+   * @return iterator of (thread-id, key, value)
+   */
+  def globalIterator: Iterator[(Long, K, V)] = {
+    references.iterator.asScala.flatMap { case (id, ref) =>
+      val cache = ref.get
+      if (cache == null) { Iterator.empty } else {
+        cache.asMap().asScala.iterator.map { case (k, v) => (id, k, v) }
+      }
+    }
+  }
+
+  /**
+   * Gets the estimated total size across all thread-local values
+   *
+   * @return
+   */
+  def estimatedGlobalSize: Long = {
+    var size = 0L
+    references.iterator.asScala.foreach { case (_, ref) =>
+      val cache = ref.get
+      if (cache != null) {
+        size += cache.estimatedSize()
+      }
+    }
+    size
+  }
+
   override def run(): Unit = {
     val iter = references.iterator()
     while (iter.hasNext) {
-      val cache = iter.next.get
+      val cache = iter.next._2.get
       if (cache == null) {
         // cache has been GC'd, remove our reference to it
         iter.remove()
@@ -91,7 +129,7 @@ class ThreadLocalCache[K <: AnyRef, V <: AnyRef](
     cleanup.cancel(true)
     val iter = references.iterator()
     while (iter.hasNext) {
-      val cache = iter.next.get
+      val cache = iter.next._2.get
       if (cache != null) {
         cache.asMap().clear()
       }

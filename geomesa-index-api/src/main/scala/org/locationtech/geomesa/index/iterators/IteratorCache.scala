@@ -11,6 +11,7 @@ package org.locationtech.geomesa.index.iterators
 import java.util.concurrent.TimeUnit
 
 import com.github.benmanes.caffeine.cache.{Cache, Caffeine}
+import com.typesafe.scalalogging.StrictLogging
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -26,7 +27,7 @@ import org.opengis.filter.Filter
 /**
   * Cache for expensive objects used in iterators
   */
-object IteratorCache {
+object IteratorCache extends StrictLogging {
 
   private val expiry = SystemProperty("geomesa.filter.remote.cache.expiry", "10 minutes").toDuration.get
 
@@ -75,8 +76,11 @@ object IteratorCache {
     * @param ecql ecql
     * @return
     */
-  def filter(sft: SimpleFeatureType, spec: String, ecql: String): Filter =
+  def filter(sft: SimpleFeatureType, spec: String, ecql: String): Filter = {
+    logger.debug(s"Filter cache estimated size: ${filterCache.estimatedGlobalSize}")
+    logger.trace(s"Filter cache entries: ${filterCache.globalIterator.map { case (t, (k, v), _) => s"thread $t $k=>$v" }.mkString(", ")}")
     filterCache.getOrElseUpdate((spec, ecql), FastFilterFactory.toFilter(sft, ecql))
+  }
 
   /**
     * Gets a cached feature index instance. Note that the index is not backed by a data store as
