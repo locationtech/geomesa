@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2013-2019 Commonwealth Computer Research, Inc.
- * Portions Crown Copyright (c) 2016-2019 Dstl
+ * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2020 Dstl
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
