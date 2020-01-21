@@ -16,7 +16,7 @@ import org.geotools.feature.collection.{DecoratingFeatureCollection, DecoratingS
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.feature.visitor.CalcResult
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.geometry.jts.JTS
+import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.CRS
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
@@ -210,6 +210,18 @@ class GeoMesaDataStoreTest extends Specification {
         visitor.visited must beFalse
         visitor.executed must beTrue
       }
+    }
+    "support timestamp types with stats" in {
+      val sft = SimpleFeatureTypes.createType("ts", "dtg:Timestamp,*geom:Point:srid=4326")
+      ds.createSchema(sft)
+      val feature = ScalaSimpleFeature.create(sft, "0", "2020-01-20T00:00:00.000Z", "POINT (45 55)")
+      WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+        FeatureUtils.write(writer, feature, useProvidedFid = true)
+      }
+      SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
+          Seq(feature)
+      ds.stats.getBounds(sft) mustEqual
+          new ReferencedEnvelope(feature.getDefaultGeometry.asInstanceOf[Point].getEnvelopeInternal, CRS_EPSG_4326)
     }
   }
 }
