@@ -148,16 +148,16 @@ object GeoMesaCoprocessor extends LazyLogging {
   private val requestNumber = new AtomicLong(0)
 
   lazy private val executor: ScheduledExecutorService = new ScheduledThreadPoolExecutor(1)
-  executor.scheduleWithFixedDelay(runnable, 0, 10, TimeUnit.SECONDS)
+  executor.scheduleWithFixedDelay(runnable, 0, 5, TimeUnit.MINUTES)
 
   lazy val runnable = new Runnable {
-    override def run(): Unit = logVerboseArrow()
+    override def run(): Unit = logMemoryInfo() //logVerboseArrow()
   }
 
   def logMemoryInfo(message: String = s"timestamp ${System.currentTimeMillis()}"): Unit = {
     // Allocate state at (
 
-    logger.debug(s"Arrow Allocator state at $message: ${org.locationtech.geomesa.arrow.allocator.getAllocatedMemory}")
+    logger.debug(s"Arrow Allocator state at $message: ${org.locationtech.geomesa.arrow.allocator.toString}")
     logger.debug(s"Direct Memory state at $message: MAX_DIRECT_MEMORY: ${io.netty.util.internal.PlatformDependent.maxDirectMemory()} DIRECT_MEMORY_COUNTER: ${getNettyMemoryCounter()}")
   }
 
@@ -177,7 +177,7 @@ object GeoMesaCoprocessor extends LazyLogging {
       }
       val field = clazz.getDeclaredField("DIRECT_MEMORY_COUNTER")
       field.setAccessible(true)
-      field.get(clazz).asInstanceOf[Long]
+      field.get(clazz).asInstanceOf[AtomicLong].get
 
     } catch {
       case _: Throwable => 0

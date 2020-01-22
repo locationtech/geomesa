@@ -2522,6 +2522,7 @@
                         </dependency>
                     </dependencies>
                     <configuration>
+                        <enableAssertions>false</enableAssertions>
                         <forkCount>${test.fork.count}</forkCount>
                         <reuseForks>${test.fork.reuse}</reuseForks>
                         <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
