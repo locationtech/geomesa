@@ -27,6 +27,7 @@ import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseAggregator
 import org.locationtech.geomesa.hbase.coprocessor.utils.{GeoMesaHBaseCallBack, GeoMesaHBaseRpcController}
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
+import org.locationtech.geomesa.index.iterators.AggregatingScan.Configuration.CqlOpt
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 
@@ -92,19 +93,19 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
         // TODO: Explore use of MultiRangeFilter
         val scanner = env.getRegion.getScanner(scan)
         try {
-          logger.debug(s"Starting scan for request $queryNumber.")
+          logger.debug(s"Starting scan for request $queryNumber.")  // Logging the CQL is hard since the serialized HBase filters are sent.
           aggregator.setScanner(scanner)
           while (!cancelled && aggregator.hasNextData) {
-            logger.trace(s"Running batch on aggregator $aggregator")
+            logger.trace(s"Running batch on aggregator $aggregator for request $queryNumber")
             val agg = aggregator.aggregate()
             if (agg != null) {
               results.append(agg)
             }
             if (controller.isCanceled) {
-              logger.warn(s"Stopping aggregator $aggregator due to controller being cancelled")
+              logger.warn(s"Stopping aggregator $aggregator for request $queryNumber due to controller being cancelled")
               cancelled = true
             } else if (timeout.exists(_ < System.currentTimeMillis())) {
-              logger.warn(s"Stopping aggregator $aggregator due to timeout of ${timeout.get}ms")
+              logger.warn(s"Stopping aggregator $aggregator for request $queryNumber due to timeout of ${timeout.get}ms")
               cancelled = true
             }
           }
@@ -117,16 +118,16 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
       }
     } catch {
       case e: InterruptedException   =>
-        logger.debug(s"Got exception while handling request " + e.getMessage)
+        logger.debug(s"Got exception while handling request $queryNumber " + e.getMessage)
         e.printStackTrace()
       case e: InterruptedIOException => // stop processing, but don't return an error to prevent retries
-        logger.debug(s"Got exception while handling request " + e.getMessage)
+        logger.debug(s"Got exception while handling request $queryNumber " + e.getMessage)
         e.printStackTrace()
       case e: IOException => ResponseConverter.setControllerException(controller, e)
-        logger.debug(s"Got exception while handling request " + e.getMessage)
+        logger.debug(s"Got exception while handling request $queryNumber " + e.getMessage)
         e.printStackTrace()
       case NonFatal(e) => ResponseConverter.setControllerException(controller, new IOException(e))
-        logger.debug(s"Got exception while handling request " + e.getMessage)
+        logger.debug(s"Got exception while handling request $queryNumber " + e.getMessage)
         e.printStackTrace()
     }
 
@@ -148,7 +149,7 @@ object GeoMesaCoprocessor extends LazyLogging {
   private val requestNumber = new AtomicLong(0)
 
   lazy private val executor: ScheduledExecutorService = new ScheduledThreadPoolExecutor(1)
-  executor.scheduleWithFixedDelay(runnable, 0, 5, TimeUnit.MINUTES)
+  executor.scheduleWithFixedDelay(runnable, 0, 10, TimeUnit.SECONDS)
 
   lazy val runnable = new Runnable {
     override def run(): Unit = logMemoryInfo() //logVerboseArrow()
