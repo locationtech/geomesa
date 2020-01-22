@@ -11,7 +11,7 @@ package org.locationtech.geomesa.hbase.coprocessor
 import java.io.{InterruptedIOException, _}
 import java.util.Collections
 import java.util.concurrent._
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 
 import com.google.protobuf.{ByteString, RpcCallback, RpcController, Service}
 import com.typesafe.scalalogging.LazyLogging
@@ -58,20 +58,28 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
       request: GeoMesaProto.GeoMesaCoprocessorRequest,
       done: RpcCallback[GeoMesaProto.GeoMesaCoprocessorResponse]): Unit = {
 
+    val queryNumber = GeoMesaCoprocessor.requestNumber.incrementAndGet
+
     val results = ArrayBuffer.empty[Array[Byte]]
 
     try {
+      logger.debug(s"Starting to process request $queryNumber.")
+      GeoMesaCoprocessor.logMemoryInfo(s"start of request $queryNumber")
       val options = GeoMesaCoprocessor.deserializeOptions(request.getOptions.toByteArray)
       val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong)
 
       if (!controller.isCanceled && timeout.forall(_ > System.currentTimeMillis())) {
+
         val options = GeoMesaCoprocessor.deserializeOptions(request.getOptions.toByteArray)
         val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong)
         val aggregator = {
           val classname = options(GeoMesaCoprocessor.AggregatorClass)
+          logger.debug(s"Instantiating $classname for request $queryNumber.")
           Class.forName(classname).newInstance().asInstanceOf[HBaseAggregator[_]]
         }
-        logger.debug(s"Initializing aggregator $aggregator with options ${options.mkString(", ")}")
+
+        // Add filter to remove 'scan' (since it is garbage binary)
+        //logger.debug(s"Initializing aggregator $aggregator with options ${options.mkString(", ")}")
         aggregator.init(options)
 
         val scan = ProtobufUtil.toScan(ClientProtos.Scan.parseFrom(Base64.decode(options(GeoMesaCoprocessor.ScanOpt))))
@@ -84,6 +92,7 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
         // TODO: Explore use of MultiRangeFilter
         val scanner = env.getRegion.getScanner(scan)
         try {
+          logger.debug(s"Starting scan for request $queryNumber.")
           aggregator.setScanner(scanner)
           while (!cancelled && aggregator.hasNextData) {
             logger.trace(s"Running batch on aggregator $aggregator")
@@ -100,17 +109,30 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
             }
           }
         } finally {
+          logger.debug(s"Closing scanner for request $queryNumber.")
           scanner.close()
         }
+      } else {
+        logger.debug(s"Request #$queryNumber timed out.")
       }
     } catch {
-      case _: InterruptedException | _ : InterruptedIOException => // stop processing, but don't return an error to prevent retries
+      case e: InterruptedException   =>
+        logger.debug(s"Got exception while handling request " + e.getMessage)
+        e.printStackTrace()
+      case e: InterruptedIOException => // stop processing, but don't return an error to prevent retries
+        logger.debug(s"Got exception while handling request " + e.getMessage)
+        e.printStackTrace()
       case e: IOException => ResponseConverter.setControllerException(controller, e)
+        logger.debug(s"Got exception while handling request " + e.getMessage)
+        e.printStackTrace()
       case NonFatal(e) => ResponseConverter.setControllerException(controller, new IOException(e))
+        logger.debug(s"Got exception while handling request " + e.getMessage)
+        e.printStackTrace()
     }
 
-    logger.debug(s"GeoMesa Coprocessors Results have total size ${results.map(_.length).sum}.  Individually they are size: ${results.map(_.length).mkString(",")}.")
-
+    logger.debug(s"GeoMesa Coprocessors Results for request $queryNumber have total size ${results.map(_.length).sum}.  " +
+      s"Individually they are size: ${results.map(_.size).mkString(",")}.")
+    GeoMesaCoprocessor.logMemoryInfo(s"end of request $queryNumber")
     done.run(GeoMesaCoprocessorResponse.newBuilder.addAllPayload(results.map(ByteString.copyFrom).asJava).build)
   }
 }
@@ -121,7 +143,46 @@ object GeoMesaCoprocessor extends LazyLogging {
 
   private val FilterOpt  = "filter"
   private val ScanOpt    = "scan"
-  private val TimeoutOpt = "timeout"
+  val TimeoutOpt = "timeout"
+
+  private val requestNumber = new AtomicLong(0)
+
+  lazy private val executor: ScheduledExecutorService = new ScheduledThreadPoolExecutor(1)
+  executor.scheduleWithFixedDelay(runnable, 0, 10, TimeUnit.SECONDS)
+
+  lazy val runnable = new Runnable {
+    override def run(): Unit = logVerboseArrow()
+  }
+
+  def logMemoryInfo(message: String = s"timestamp ${System.currentTimeMillis()}"): Unit = {
+    // Allocate state at (
+
+    logger.debug(s"Arrow Allocator state at $message: ${org.locationtech.geomesa.arrow.allocator.getAllocatedMemory}")
+    logger.debug(s"Direct Memory state at $message: MAX_DIRECT_MEMORY: ${io.netty.util.internal.PlatformDependent.maxDirectMemory()} DIRECT_MEMORY_COUNTER: ${getNettyMemoryCounter()}")
+  }
+
+  def logVerboseArrow(message: String = s"timestamp ${System.currentTimeMillis()}") = {
+    logMemoryInfo(message)
+    logger.debug(s"Arrow Allocator state at $message: ${org.locationtech.geomesa.arrow.allocator.toVerboseString}")
+  }
+
+
+  def getNettyMemoryCounter(): Long = {
+    try {
+      val clazz = try {
+        Class.forName("io.netty.util.internal.PlatformDependent")
+      } catch {
+        case _: Throwable =>
+          Class.forName("org.locationtech.geomesa.accumulo.shade.io.netty.util.internal.PlatformDependent")
+      }
+      val field = clazz.getDeclaredField("DIRECT_MEMORY_COUNTER")
+      field.setAccessible(true)
+      field.get(clazz).asInstanceOf[Long]
+
+    } catch {
+      case _: Throwable => 0
+    }
+  }
 
   private def deserializeOptions(bytes: Array[Byte]): Map[String, String] = {
     WithClose(new ByteArrayInputStream(bytes)) { bais =>

@@ -33,6 +33,10 @@
         <priority value="trace"/>
     </category>-->
 
+    <category name="org.locationtech.geomesa.hbase.coprocessor">
+        <priority value="debug"/>
+    </category>
+
     <root>
         <priority value="info"/>
         <appender-ref ref="CONSOLE" />
