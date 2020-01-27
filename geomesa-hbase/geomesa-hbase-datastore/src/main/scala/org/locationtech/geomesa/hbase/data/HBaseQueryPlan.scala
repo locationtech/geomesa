@@ -156,11 +156,12 @@ object HBaseQueryPlan {
     override protected def explain(explainer: Explainer): Unit =
       explainer("Coprocessor options: " + config.options.map(m => s"[${m._1}:${m._2}]").mkString(", "))
 
-    private def singleTableScan(ds: HBaseDataStore,
-                                table: TableName,
-                                copyScans: Boolean): CloseableIterator[SimpleFeature] = {
+    private def singleTableScan(
+        ds: HBaseDataStore,
+        table: TableName,
+        copyScans: Boolean): CloseableIterator[SimpleFeature] = {
       val s = if (copyScans) { new Scan(scan) } else { scan }
-      GeoMesaCoprocessor.execute(ds.connection.getTable(table), s, config.options).collect {
+      GeoMesaCoprocessor.execute(ds.connection, table, s, config.options, ds.config.queryThreads).collect {
         case r if r.size() > 0 => config.bytesToFeatures(r.toByteArray)
       }
     }

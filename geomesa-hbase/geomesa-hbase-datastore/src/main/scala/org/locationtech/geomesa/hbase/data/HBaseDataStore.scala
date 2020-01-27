@@ -75,10 +75,9 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
             val name = TableName.valueOf(table)
             if (connection.getAdmin.tableExists(name)) {
               val options = HBaseVersionAggregator.configure(sft, index)
-              WithClose(connection.getTable(name)) { t =>
-                WithClose(GeoMesaCoprocessor.execute(t, new Scan().setFilter(new FilterList()), options)) { bytes =>
-                  bytes.map(_.toStringUtf8).toList.iterator // force evaluation of the iterator before closing it
-                }
+              val scan = new Scan().setFilter(new FilterList())
+              WithClose(GeoMesaCoprocessor.execute(connection, name, scan, options, config.queryThreads)) { bytes =>
+                bytes.map(_.toStringUtf8).toList.iterator // force evaluation of the iterator before closing it
               }
             } else {
               Iterator.empty
