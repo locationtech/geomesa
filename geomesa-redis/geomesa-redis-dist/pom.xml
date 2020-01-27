@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-redis_2.11</artifactId>
-        <version>2.3.2-3-test</version>
+        <version>2.3.2-4-test</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
