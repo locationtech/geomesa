@@ -263,7 +263,9 @@ object GeoMesaCoprocessor extends LazyLogging {
       }
     }
 
-    lazy private val result = {
+    lazy private val result = if (closed.get) {
+      Iterator.empty
+    } else {
       val callBack = new GeoMesaHBaseCallBack()
       try { table.coprocessorService(classOf[GeoMesaCoprocessorService], null, null, callable, callBack) } catch {
         case e @ (_ :InterruptedException | _ :InterruptedIOException) =>
@@ -276,7 +278,10 @@ object GeoMesaCoprocessor extends LazyLogging {
 
     override def next(): ByteString = result.next
 
-    override def close(): Unit = closed.set(true)
+    override def close(): Unit = {
+      table.close()  // In HBase 1.4.x, it looks like close is idempotent, so yeah, let's just call it!
+      closed.set(true)
+    }
   }
 
   /**
