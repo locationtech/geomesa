@@ -69,7 +69,12 @@ object ShardStrategy {
   }
 
   class ShardStrategyImpl(override val shards: IndexedSeq[Array[Byte]]) extends ShardStrategy {
-    override def apply(feature: WritableFeature): Array[Byte] = shards(feature.idHash % shards.length)
+    override def apply(feature: WritableFeature): Array[Byte] = {
+      try { shards(feature.idHash % shards.length) } catch {
+        // handle case where hash is Int.MinValue, which isn't handled by math.abs
+        case e: IndexOutOfBoundsException => shards.head
+      }
+    }
     override val length: Int = shards.head.length
   }
 }
