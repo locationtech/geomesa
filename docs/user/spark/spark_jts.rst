@@ -49,7 +49,7 @@ The following is a Scala example of loading a DataFrame with user defined types:
 
     val alteredDF = df
       .withColumn("polygon", st_polygonFromText($"polygonText"))
-      .withColumn("point", st_makePoint($"latitude", $"longitude"))
+      .withColumn("point", st_makePoint($"longitude", $"latitude"))
 
 
 Notice how the initial schema does not have a UserDefinedType, but after applying our
