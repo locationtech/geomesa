@@ -89,8 +89,8 @@ function downloadUrls() {
     for url in "${urls[@]}"; do
       fname="$(basename "$url")" # filename we'll save to
       tmpfile=$(mktemp)
-      # -sS disables progress meter but keeps error messages, -f don't save failed files, -o write to destination file
-      downloads+=("(echo fetching $fname && curl -sSfo '$tmpfile' '$url' && mv '$tmpfile' '${dest}/${fname}' && chmod 644 '${dest}/${fname}') || echo [ERROR] Failed to fetch $fname")
+      # -sS disables progress meter but keeps error messages, -f don't save failed files, -o write to destination file, -L follow redirects
+      downloads+=("(echo fetching $fname && curl -LsSfo '$tmpfile' '$url' && mv '$tmpfile' '${dest}/${fname}' && chmod 644 '${dest}/${fname}') || echo [ERROR] Failed to fetch $fname")
     done
     # pass to xargs to run with 4 threads
     # delimit with null char to avoid issues with spaces
