@@ -2330,8 +2330,9 @@
                     <!-- 3.0 was released 2016-08-20 and is the latest as of 2018-11-30. -->
                     <version>3.0</version>
                     <configuration>
-                        <header>build/copyright/ccri.txt</header>
+                        <header>build/copyright/ccri-2020.txt</header>
                         <validHeaders>
+                            <validHeader>build/copyright/ccri.txt</validHeader>
                             <validHeader>build/copyright/ccri-dstl.txt</validHeader>
                             <validHeader>build/copyright/ccri-dstl-2016.txt</validHeader>
                             <validHeader>build/copyright/dstl.txt</validHeader>
