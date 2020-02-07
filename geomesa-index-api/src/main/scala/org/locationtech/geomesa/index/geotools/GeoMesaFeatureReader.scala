@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.geotools
 
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 
 import org.geotools.data.Query
 import org.geotools.data.simple.SimpleFeatureReader
@@ -86,7 +86,7 @@ object GeoMesaFeatureReader {
       timings: Timings = new TimingsImpl
     ) extends GeoMesaFeatureReader(sft, qp, query, timeout) with MethodProfiling {
 
-    private var count = 0L
+    private val count = new AtomicLong(0L)
 
     override def hasNext: Boolean = profile(time => timings.occurrence("hasNext", time))(super.hasNext)
     override def next(): SimpleFeature = profile(time => timings.occurrence("next", time))(super.next())
@@ -99,9 +99,9 @@ object GeoMesaFeatureReader {
           // bin queries pack multiple records into each feature
           // to count the records, we have to count the total bytes coming back, instead of the number of features
           val bytesPerHit = if (query.getHints.getBinLabelField.isDefined) { 24 } else { 16 }
-          base.map { sf => count += sf.getAttribute(0).asInstanceOf[Array[Byte]].length / bytesPerHit; sf }
+          base.map { sf => count.addAndGet(sf.getAttribute(0).asInstanceOf[Array[Byte]].length / bytesPerHit); sf }
         } else {
-          base.map { sf => count += 1; sf }
+          base.map { sf => count.incrementAndGet(); sf }
         }
       }
     }
@@ -117,7 +117,7 @@ object GeoMesaFeatureReader {
           ViewParams.getReadableHints(query),
           timings.time("planning"),
           timings.time("next") + timings.time("hasNext"),
-          count
+          count.get
         )
         auditWriter.writeEvent(stat) // note: implementations should be asynchronous
       }
