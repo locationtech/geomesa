@@ -11,16 +11,18 @@ package org.locationtech.geomesa.index.iterators
 import java.io.Closeable
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.iterators.AggregatingScan.RowValue
+import org.locationtech.geomesa.index.iterators.AggregatingScan.{AggregateCallback, CqlSampleValidator, CqlValidator, RowValidator, RowValue, SampleValidator, ValidateAll}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
+import scala.util.Try
 import scala.util.control.NonFatal
 
 trait AggregatingScan[T <: AggregatingScan.Result]
@@ -28,24 +30,21 @@ trait AggregatingScan[T <: AggregatingScan.Result]
 
   import AggregatingScan.Configuration._
 
-  private var sft: SimpleFeatureType = _
-  private var transformSft: SimpleFeatureType = _
-  // note: index won't have a hook to the data store, so some operations aren't available
-  private var index: GeoMesaFeatureIndex[_, _] = _
-
-  private var validate: SimpleFeature => Boolean = _
+  private var validate: RowValidator = _
 
   // our accumulated result
   private var result: T = _
 
+  private var batchSize: Int = _
+
   private var reusableSf: KryoBufferSimpleFeature = _
-  private var reusableTransformSf: TransformSimpleFeature = _
-  private var hasTransform: Boolean = _
+  private var aggregateSf: SimpleFeature = _
 
   override def init(options: Map[String, String]): Unit = {
     val spec = options(SftOpt)
-    sft = IteratorCache.sft(spec)
-    index = options.get(IndexSftOpt) match {
+    val sft = IteratorCache.sft(spec)
+    // note: index won't have a hook to the data store, so some operations aren't available
+    val index = options.get(IndexSftOpt) match {
       case None => IteratorCache.index(sft, spec, options(IndexOpt))
       case Some(ispec) => IteratorCache.index(IteratorCache.sft(ispec), ispec, options(IndexOpt))
     }
@@ -54,106 +53,164 @@ trait AggregatingScan[T <: AggregatingScan.Result]
     val kryo = if (index.serializedWithId) { SerializationOptions.none } else { SerializationOptions.withoutId }
     reusableSf = IteratorCache.serializer(spec, kryo).getReusableFeature
     reusableSf.setIdParser(index.getIdFromRow(_, _, _, null))
+    aggregateSf = reusableSf
 
-    val transform = options.get(TransformDefsOpt)
-    val transformSchema = options.get(TransformSchemaOpt)
-    for { t <- transform; ts <- transformSchema } {
-      transformSft = IteratorCache.sft(ts)
-      reusableTransformSf = TransformSimpleFeature(IteratorCache.sft(spec), transformSft, t)
+    val transformSft = options.get(TransformDefsOpt).map { t =>
+      val ts = options.getOrElse(TransformSchemaOpt,
+        throw new IllegalArgumentException("Defined a transform but no transform schema"))
+      val transformSft = IteratorCache.sft(ts)
+      val reusableTransformSf = TransformSimpleFeature(IteratorCache.sft(spec), transformSft, t)
       reusableTransformSf.setFeature(reusableSf)
+      aggregateSf = reusableTransformSf // note: side-effect in map
+      transformSft
     }
-    hasTransform = transform.isDefined
-
     val sampling = sample(options)
     val cql = options.get(CqlOpt).map(IteratorCache.filter(sft, spec, _))
     validate = (cql, sampling) match {
-      case (None, None)             => _ => true
-      case (Some(filt), None)       => filt.evaluate(_)
-      case (None, Some(samp))       => samp.apply
-      case (Some(filt), Some(samp)) => f => filt.evaluate(f) && samp.apply(f)
+      case (None, None)             => ValidateAll
+      case (Some(filt), None)       => new CqlValidator(filt)
+      case (None, Some(samp))       => new SampleValidator(samp)
+      case (Some(filt), Some(samp)) => new CqlSampleValidator(filt,  samp)
     }
-    result = initResult(sft, if (hasTransform) { Some(transformSft) } else { None }, options)
+    batchSize = options.get(BatchSizeOpt).map(_.toInt).getOrElse(defaultBatchSize)
+    result = initResult(sft, transformSft, batchSize, options)
   }
 
   /**
-    * Aggregates a batch of data. May not exhaust the underlying data
-    *
-    * @return encoded aggregate batch, or null if no results
-    */
-  def aggregate(): Array[Byte] = {
+   * Aggregates a batch of data. May not exhaust the underlying data
+   *
+   * @param callback callback to provide for results
+   * @return callback
+   */
+  def aggregate[A <: AggregateCallback](callback: A): A = {
     // noinspection LanguageFeature
     result.clear()
 
-    var rowValue = advance()
-    if (rowValue == null) {
-      // skip the result.isEmpty check if we haven't read any data
-      // FIXME there are some aggregates that are never empty
-      return null
+    val status = new AggregateStatus(callback)
+
+    var rowValue = try { if (hasNextData) { nextData() } else { null } } catch {
+      case NonFatal(e) => logger.error("Error in underlying scan while aggregating value:", e); null
     }
 
     while (rowValue != null) {
       try {
         reusableSf.setIdBuffer(rowValue.row, rowValue.rowOffset, rowValue.rowLength)
         reusableSf.setBuffer(rowValue.value, rowValue.valueOffset, rowValue.valueLength)
-        if (validateFeature(reusableSf)) {
+        if (validate(reusableSf)) {
           // write the record to our aggregated results
-          if (hasTransform) {
-            aggregateResult(reusableTransformSf, result)
-          } else {
-            aggregateResult(reusableSf, result)
-          }
+          status.aggregated(aggregateResult(aggregateSf, result))
+        } else {
+          status.skipped()
         }
       } catch {
-        case NonFatal(e) => logger.error("Error aggregating value:", e)
+        case NonFatal(e) =>
+          logger.error(s"Error aggregating value for ${debugSf()}:", e)
+          status.skipped()
       }
-      rowValue = advance()
+
+      rowValue = try { if (status.continue() && hasNextData) { nextData() } else { null } } catch {
+        case NonFatal(e) => logger.error("Error in underlying scan while aggregating value:", e); null
+      }
     }
 
-    // noinspection LanguageFeature
-    if (result.isEmpty) { null } else { encodeResult(result) }
+    status.done()
+
+    callback
   }
 
-  private def advance(): RowValue = {
-    try {
-      if (notFull(result) && hasNextData) { nextData() } else { null }
-    } catch {
-      case NonFatal(e) => logger.error("Error in underlying scan while aggregating value:", e); null
-    }
-  }
+  private def debugSf(): String = Try(DataUtilities.encodeFeature(aggregateSf)).getOrElse(s"$aggregateSf")
 
-  override def close(): Unit = {
-    result match {
-      case c: Closeable => c.close()
-      case _ => // no-op
-    }
-  }
+  override def close(): Unit = closeResult(result)
 
   // returns true if there is more data to read
   protected def hasNextData: Boolean
   // returns the next row of data
   protected def nextData(): RowValue
 
-  // validate that we should aggregate this feature
-  // if overridden, ensure call to super.validateFeature
-  protected def validateFeature(f: SimpleFeature): Boolean = validate(f)
+  // default batch size
+  protected def defaultBatchSize: Int
 
-  // hook to allow result to be chunked up
-  // note: it's important to return false occasionally, so that we can check for cancelled scans
-  protected def notFull(result: T): Boolean
+  /**
+   * Create the result object for the current scan
+   *
+   * @param sft simple feature type
+   * @param transform transform, if any
+   * @param batchSize batch size
+   * @param options scan options
+   * @return
+   */
+  protected def initResult(
+      sft: SimpleFeatureType,
+      transform: Option[SimpleFeatureType],
+      batchSize: Int,
+      options: Map[String, String]): T
 
-  // create the result object for the current scan
-  protected def initResult(sft: SimpleFeatureType, transform: Option[SimpleFeatureType], options: Map[String, String]): T
+  /**
+   * Add the feature to the current aggregated result
+   *
+   * @param sf feature
+   * @param result result
+   * @return count of number of records added
+   */
+  protected def aggregateResult(sf: SimpleFeature, result: T): Int
 
-  // add the feature to the current aggregated result
-  protected def aggregateResult(sf: SimpleFeature, result: T): Unit
-
-  // encode the result as a byte array
+  /**
+   * Encode the result as a byte array. Note that they byte array must remain valid
+   * even after a call to `result.clear()`
+   *
+   * @param result result to encode
+   * @return
+   */
   protected def encodeResult(result: T): Array[Byte]
+
+  protected def closeResult(result: T): Unit
+
+  /**
+   * Class for tracking status of current aggregation
+   *
+   * @param callback results callback
+   */
+  private class AggregateStatus(callback: AggregateCallback) {
+
+    private var count = 0
+    private var skip = 0
+
+    def aggregated(count: Int): Unit = this.count += count
+
+    def skipped(): Unit = skip += 1
+
+    // noinspection LanguageFeature
+    def continue(): Boolean = {
+      if (count >= batchSize) {
+        callback.batch(bytes())
+      } else if (skip >= batchSize) {
+        skip = 0
+        callback.partial(bytes())
+      } else {
+        true
+      }
+    }
+
+    def done(): Unit = {
+      if (count > 0) {
+        callback.batch(bytes())
+      }
+    }
+
+    // noinspection LanguageFeature
+    private def bytes(): Array[Byte] = {
+      val encoded = encodeResult(result)
+      result.clear()
+      count = 0
+      skip = 0
+      encoded
+    }
+  }
 }
 
 object AggregatingScan {
 
-  type Result = AnyRef { def isEmpty: Boolean; def clear(): Unit }
+  type Result = AnyRef { def clear(): Unit }
 
   // configuration keys
   object Configuration {
@@ -163,24 +220,28 @@ object AggregatingScan {
     val CqlOpt             = "cql"
     val TransformSchemaOpt = "tsft"
     val TransformDefsOpt   = "tdefs"
+    val BatchSizeOpt       = "batch"
   }
 
-  def configure(sft: SimpleFeatureType,
-                index: GeoMesaFeatureIndex[_, _],
-                filter: Option[Filter],
-                transform: Option[(String, SimpleFeatureType)],
-                sample: Option[(Float, Option[String])]): Map[String, String] = {
-    import Configuration._
+  def configure(
+      sft: SimpleFeatureType,
+      index: GeoMesaFeatureIndex[_, _],
+      filter: Option[Filter],
+      transform: Option[(String, SimpleFeatureType)],
+      sample: Option[(Float, Option[String])],
+      batchSize: Int): Map[String, String] = {
+
     val indexSftOpt = Some(index.sft).collect {
       case s if s != sft => SimpleFeatureTypes.encodeType(s, includeUserData = true)
     }
     sample.map(SamplingIterator.configure(sft, _)).getOrElse(Map.empty) ++ optionalMap(
-      SftOpt             -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
-      IndexOpt           -> index.identifier,
-      IndexSftOpt        -> indexSftOpt,
-      CqlOpt             -> filter.map(ECQL.toCQL),
-      TransformDefsOpt   -> transform.map(_._1),
-      TransformSchemaOpt -> transform.map(t => SimpleFeatureTypes.encodeType(t._2))
+      Configuration.SftOpt             -> SimpleFeatureTypes.encodeType(sft, includeUserData = true),
+      Configuration.IndexOpt           -> index.identifier,
+      Configuration.IndexSftOpt        -> indexSftOpt,
+      Configuration.CqlOpt             -> filter.map(ECQL.toCQL),
+      Configuration.TransformDefsOpt   -> transform.map(_._1),
+      Configuration.TransformSchemaOpt -> transform.map(t => SimpleFeatureTypes.encodeType(t._2)),
+      Configuration.BatchSizeOpt       -> batchSize.toString
     )
   }
 
@@ -203,4 +264,48 @@ object AggregatingScan {
       valueOffset: Int,
       valueLength: Int
     )
+
+  /**
+   * Callback for handling partial results, so that a scan can be interrupted if it's taking too long
+   */
+  trait AggregateCallback {
+
+    /**
+     * Invoked when a batch of data has been aggregated
+     *
+     * @param bytes aggregated bytes
+     * @return true to continue scanning, false to stop
+     */
+    def batch(bytes: Array[Byte]): Boolean
+
+    /**
+     * Invoked when a partial batch of data has been aggregated, but a batch's worth of data
+     * has been skipped over
+     *
+     * @param bytes partially aggregated bytes, lazily evaluated. if the results are not accessed (i.e. lazy
+     *              statement remains unevaluated), they will be included in the next batch or partial batch
+     * @return true to continue scanning, false to stop
+     */
+    def partial(bytes: => Array[Byte]): Boolean
+  }
+
+  private sealed trait RowValidator {
+    def apply(sf: SimpleFeature): Boolean
+  }
+
+  private case object ValidateAll extends RowValidator {
+    override def apply(sf: SimpleFeature): Boolean = true
+  }
+
+  private class CqlValidator(filter: Filter) extends RowValidator {
+    override def apply(sf: SimpleFeature): Boolean = filter.evaluate(sf)
+  }
+
+  private class SampleValidator(sample: SimpleFeature => Boolean) extends RowValidator {
+    override def apply(sf: SimpleFeature): Boolean = sample(sf)
+  }
+
+  private class CqlSampleValidator(filter: Filter, sample: SimpleFeature => Boolean) extends RowValidator {
+    override def apply(sf: SimpleFeature): Boolean = filter.evaluate(sf) && sample(sf)
+  }
 }

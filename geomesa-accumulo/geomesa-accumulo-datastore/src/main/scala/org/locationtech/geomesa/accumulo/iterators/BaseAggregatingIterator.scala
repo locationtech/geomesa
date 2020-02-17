@@ -10,8 +10,9 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import org.apache.accumulo.core.data.{Range => aRange, _}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
+import org.locationtech.geomesa.accumulo.iterators.BaseAggregatingIterator.BatchScanCallback
 import org.locationtech.geomesa.index.iterators.AggregatingScan
-import org.locationtech.geomesa.index.iterators.AggregatingScan.RowValue
+import org.locationtech.geomesa.index.iterators.AggregatingScan.{RowValue, AggregateCallback}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 /**
@@ -50,7 +51,7 @@ abstract class BaseAggregatingIterator[T <: AggregatingScan.Result]
   override def next(): Unit = findTop()
 
   private def findTop(): Unit = {
-    val result = aggregate()
+    val result = aggregate(new BatchScanCallback()).result
     if (result == null) {
       CloseWithLogging(this)
       topKey = null // hasTop will be false
@@ -81,4 +82,22 @@ abstract class BaseAggregatingIterator[T <: AggregatingScan.Result]
 
   override def deepCopy(env: IteratorEnvironment): SortedKeyValueIterator[Key, Value] =
     throw new NotImplementedError()
+}
+
+object BaseAggregatingIterator {
+
+  private class BatchScanCallback extends AggregateCallback {
+
+    private var bytes: Array[Byte] = _
+
+    override def batch(bytes: Array[Byte]): Boolean = {
+      this.bytes = bytes
+      false // we want to stop scanning and return the batch
+    }
+
+    // we always keep scanning and rely on client connections to stop the scan
+    override def partial(bytes: => Array[Byte]): Boolean = true
+
+    def result: Array[Byte] = bytes
+  }
 }
