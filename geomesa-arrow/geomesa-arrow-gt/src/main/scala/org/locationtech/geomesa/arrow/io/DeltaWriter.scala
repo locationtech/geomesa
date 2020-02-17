@@ -11,6 +11,7 @@ package org.locationtech.geomesa.arrow.io
 import java.io.{ByteArrayOutputStream, Closeable, OutputStream}
 import java.nio.channels.Channels
 import java.util.concurrent.ThreadLocalRandom
+import java.util.concurrent.atomic.AtomicBoolean
 
 import com.google.common.collect.HashBiMap
 import com.google.common.primitives.{Ints, Longs}
@@ -242,23 +243,14 @@ object DeltaWriter extends StrictLogging {
     * @param deltas output from `DeltaWriter.encode`
     * @return single arrow streaming file, with potentially multiple record batches
     */
-  def reduce(sft: SimpleFeatureType,
-             dictionaryFields: Seq[String],
-             encoding: SimpleFeatureEncoding,
-             sort: Option[(String, Boolean)],
-             batchSize: Int,
-             deltas: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
-
-    val threaded = try { deltas.toArray.groupBy(Longs.fromByteArray).values.toArray } finally { deltas.close() }
-
-    logger.trace(s"merging delta batches from ${threaded.length} thread(s)")
-
-    val dictionaries = mergeDictionaries(sft, dictionaryFields, threaded, encoding)
-
-    sort match {
-      case None => reduceNoSort(sft, dictionaryFields, encoding, dictionaries, batchSize, threaded)
-      case Some((s, r)) => reduceWithSort(sft, dictionaryFields, encoding, dictionaries, s, r, batchSize, threaded)
-    }
+  def reduce(
+      sft: SimpleFeatureType,
+      dictionaryFields: Seq[String],
+      encoding: SimpleFeatureEncoding,
+      sort: Option[(String, Boolean)],
+      batchSize: Int,
+      deltas: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
+    new ReducingIterator(sft, dictionaryFields, encoding, sort, batchSize, deltas)
   }
 
   /**
@@ -791,6 +783,45 @@ object DeltaWriter extends StrictLogging {
     override def close(): Unit = {
       CloseWithLogging(writer)
       CloseWithLogging(root) // also closes the vector
+    }
+  }
+
+  private class ReducingIterator(
+      sft: SimpleFeatureType,
+      dictionaryFields: Seq[String],
+      encoding: SimpleFeatureEncoding,
+      sort: Option[(String, Boolean)],
+      batchSize: Int,
+      deltas: CloseableIterator[Array[Byte]]
+    ) extends CloseableIterator[Array[Byte]] {
+
+    private val closed = new AtomicBoolean(false)
+
+    private lazy val reduced = {
+      val grouped = scala.collection.mutable.Map.empty[Long, scala.collection.mutable.ArrayBuilder[Array[Byte]]]
+      while (!closed.get && deltas.hasNext) {
+        val delta = deltas.next
+        val builder = grouped.getOrElseUpdate(Longs.fromByteArray(delta), Array.newBuilder)
+        builder += delta
+      }
+      val threaded = Array.ofDim[Array[Array[Byte]]](grouped.size)
+      var i = 0
+      grouped.foreach { case (_, builder) => threaded(i) = builder.result; i += 1 }
+      logger.trace(s"merging delta batches from ${threaded.length} thread(s)")
+      val dictionaries = mergeDictionaries(sft, dictionaryFields, threaded, encoding)
+      sort match {
+        case None => reduceNoSort(sft, dictionaryFields, encoding, dictionaries, batchSize, threaded)
+        case Some((s, r)) => reduceWithSort(sft, dictionaryFields, encoding, dictionaries, s, r, batchSize, threaded)
+      }
+    }
+
+    override def hasNext: Boolean = reduced.hasNext
+
+    override def next(): Array[Byte] = reduced.next()
+
+    override def close(): Unit = {
+      closed.set(true)
+      CloseWithLogging(deltas, reduced)
     }
   }
 }
