@@ -10,86 +10,100 @@ package org.locationtech.geomesa.convert.osm
 
 import java.io.InputStream
 import java.nio.file.Files
-import java.sql.{Connection, DriverManager}
+import java.sql.DriverManager
 
 import com.typesafe.config.Config
-import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Coordinate
 import de.topobyte.osm4j.core.model.iface._
 import de.topobyte.osm4j.core.model.impl.Node
-import de.topobyte.osm4j.pbf.seq.PbfIterator
-import de.topobyte.osm4j.xml.dynsax.OsmXmlIterator
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.locationtech.geomesa.convert.Transformers.Expr
 import org.locationtech.geomesa.convert._
-import org.locationtech.geomesa.utils.io.PathUtils
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.convert.osm.OsmFormat.OsmFormat
+import org.locationtech.geomesa.convert.osm.OsmWaysConverter.OsmWaysConfig
+import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
+import org.locationtech.geomesa.convert2.transforms.Expression
+import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.io.{CloseQuietly, PathUtils, WithClose}
+import org.locationtech.jts.geom.Coordinate
+import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.collection.immutable.IndexedSeq
+import scala.collection.mutable.ArrayBuffer
+import scala.util.Try
 
-class OsmWaysConverter(val targetSFT: SimpleFeatureType,
-                       val idBuilder: Expr,
-                       val inputFields: IndexedSeq[Field],
-                       val userDataBuilder: Map[String, Expr],
-                       val caches: Map[String, EnrichmentCache],
-                       val parseOpts: ConvertParseOpts,
-                       val pbf: Boolean,
-                       val needsMetadata: Boolean,
-                       connection: Connection) extends ToSimpleFeatureConverter[OsmWay] with LazyLogging {
+class OsmWaysConverter(sft: SimpleFeatureType, config: OsmWaysConfig, fields: Seq[OsmField], options: BasicOptions)
+    extends AbstractConverter[OsmWay, OsmWaysConfig, OsmField, BasicOptions](sft, config, fields, options) {
 
-  private def gf = JTSFactoryFinder.getGeometryFactory
-  private val toArray = if (needsMetadata) { OsmField.toArrayWithMetadata _ } else { OsmField.toArrayNoMetadata _ }
+  private val gf = JTSFactoryFinder.getGeometryFactory
+  private val fetchMetadata = requiresMetadata(fields)
+  private val toArray = if (fetchMetadata) { toArrayWithMetadata _ } else { toArrayNoMetadata _ }
+
+  private val (connection, h2Dir) = config.jdbc match {
+    case Some(url) => (DriverManager.getConnection(url), None)
+    case None =>
+      // create a temporary h2 database to store our nodes
+      // the ways only refer to nodes by reference, but we can't keep the whole file in memory
+      val h2Dir = Files.createTempDirectory("geomesa-convert-h2").toFile
+      Class.forName("org.h2.Driver")
+      (DriverManager.getConnection(s"jdbc:h2:split:${h2Dir.getAbsolutePath}/osm"), Some(h2Dir))
+  }
 
   createNodesTable()
 
   private val insertStatement = connection.prepareStatement("INSERT INTO nodes(id, lon, lat) VALUES (?, ?, ?);")
 
-  override def fromInputType(i: OsmWay, ec: EvaluationContext): Iterator[Array[Any]] = {
-    // TODO some ways are marked as 'area' and maybe should be polygons?
-    // note: nodes may occur more than once in the way
-    val nodeIds = Seq.range(0, i.getNumberOfNodes).map(i.getNodeId)
-    val selected = selectNodes(nodeIds)
-    val nodes = nodeIds.flatMap(selected.get)
-    if (nodes.size != nodeIds.length) {
-      logger.warn(s"Dropping references to non-existing nodes in way '${i.getId}': " +
-          s"${nodeIds.filterNot(nodes.contains).mkString(", ")}")
-    }
-    if (nodes.size < 2) {
-      logger.warn(s"Dropping way '${i.getId}' because it does not have enough valid nodes to form a linestring")
-      Iterator.empty
-    } else {
-      val coords = nodes.map(n => new Coordinate(n.getLongitude, n.getLatitude))
-      Iterator.single(toArray(i, gf.createLineString(coords.toArray)))
+  override def close(): Unit = {
+    val exceptions = ArrayBuffer.empty[Throwable]
+    Try(dropNodesTable()).failed.foreach(exceptions += _)
+    CloseQuietly(insertStatement, connection).foreach(exceptions += _)
+    Try(h2Dir.foreach(d => PathUtils.deleteRecursively(d.toPath))).failed.foreach(exceptions += _)
+    if (exceptions.nonEmpty) {
+      val first = exceptions.head
+      exceptions.tail.foreach(first.addSuppressed)
+      throw first
     }
   }
 
-  override def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] = {
-    val iterator = if (pbf) new PbfIterator(is, needsMetadata) else new OsmXmlIterator(is, needsMetadata)
-    def nextElement = if (iterator.hasNext) iterator.next else null
-    var element = nextElement
+  override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[OsmWay] = {
+    val elements = osmIterator(is, config.format, fetchMetadata)
     // first read in all the nodes and store them for later lookup
-    while (element != null && element.getType == EntityType.Node) {
-      insertNode(element.getEntity.asInstanceOf[OsmNode])
-      element = nextElement
+    val ways = elements.flatMap {
+      case e if e.getType == EntityType.Node => insertNode(e.getEntity.asInstanceOf[OsmNode]); CloseableIterator.empty
+      case e => CloseableIterator.single(e)
     }
-    val entities = new Iterator[OsmWay] {
-      // types are ordered in the file, so we can stop when we hit a non-way type
-      override def hasNext: Boolean = element != null && element.getType == EntityType.Way
-      override def next(): OsmWay = {
-        val ret = element.getEntity.asInstanceOf[OsmWay]
-        element = nextElement
-        ret
+    // types are ordered in the file, so we can stop when we hit a non-way type
+    ways.takeWhile(_.getType == EntityType.Way).map(_.getEntity.asInstanceOf[OsmWay])
+  }
+
+  override protected def values(
+      parsed: CloseableIterator[OsmWay],
+      ec: EvaluationContext): CloseableIterator[Array[Any]] = {
+    parsed.flatMap { way =>
+      // TODO some ways are marked as 'area' and maybe should be polygons?
+      // note: nodes may occur more than once in the way
+      val nodeIds = Seq.range(0, way.getNumberOfNodes).map(way.getNodeId)
+      val selected = selectNodes(nodeIds)
+      val nodes = nodeIds.flatMap(selected.get)
+      if (nodes.size != nodeIds.length) {
+        logger.warn(s"Dropping references to non-existing nodes in way '${way.getId}': " +
+            s"${nodeIds.filterNot(nodes.contains).mkString(", ")}")
+      }
+      if (nodes.size < 2) {
+        logger.warn(s"Dropping way '${way.getId}' because it does not have enough valid nodes to form a linestring")
+        CloseableIterator.empty
+      } else {
+        val coords = nodes.map(n => new Coordinate(n.getLongitude, n.getLatitude))
+        CloseableIterator.single(toArray(way, gf.createLineString(coords.toArray)))
       }
     }
-    processInput(entities, ec)
   }
 
   private def createNodesTable(): Unit = {
     val sql = "create table nodes(id BIGINT NOT NULL PRIMARY KEY, lon DOUBLE, lat DOUBLE);"
-    val stmt = connection.prepareStatement(sql)
-    stmt.execute()
-    stmt.close()
+    WithClose(connection.prepareStatement(sql))(_.execute())
   }
+
+  private def dropNodesTable(): Unit =
+    WithClose(connection.prepareStatement("drop table nodes;"))(_.execute())
 
   private def insertNode(node: OsmNode): Unit = {
     insertStatement.setLong(1, node.getId)
@@ -113,52 +127,17 @@ class OsmWaysConverter(val targetSFT: SimpleFeatureType,
     }
     map.toMap
   }
-
-  protected def dropNodesTable(): Unit = {
-    val sql = "drop table nodes;"
-    val stmt = connection.prepareStatement(sql)
-    stmt.execute()
-    stmt.close()
-  }
-
-  override def close(): Unit = {
-    insertStatement.close()
-    dropNodesTable()
-    connection.close()
-  }
 }
 
-class OsmWaysConverterFactory extends AbstractSimpleFeatureConverterFactory[OsmWay] {
+object OsmWaysConverter {
 
-  override protected val typeToProcess = "osm-ways"
-
-  override protected def buildConverter(sft: SimpleFeatureType,
-                                        conf: Config,
-                                        idBuilder: Expr,
-                                        fields: IndexedSeq[Field],
-                                        userDataBuilder: Map[String, Expr],
-                                        cacheServices: Map[String, EnrichmentCache],
-                                        parseOpts: ConvertParseOpts): SimpleFeatureConverter[OsmWay] = {
-    val pbf = if (conf.hasPath("format")) conf.getString("format").toLowerCase.trim.equals("pbf") else false
-    val needsMetadata = OsmField.requiresMetadata(fields)
-
-    if (conf.hasPath("jdbc")) {
-      val connection = DriverManager.getConnection(conf.getString("jdbc"))
-      new OsmWaysConverter(sft, idBuilder, fields, userDataBuilder, cacheServices, parseOpts, pbf, needsMetadata, connection)
-    } else {
-      // create a temporary h2 database to store our nodes
-      // the ways only refer to nodes by reference, but we can't keep the whole file in memory
-      val h2Dir = Files.createTempDirectory("geomesa-convert-h2").toFile
-      Class.forName("org.h2.Driver")
-      val connection = DriverManager.getConnection(s"jdbc:h2:split:${h2Dir.getAbsolutePath}/osm")
-
-      new OsmWaysConverter(sft, idBuilder, fields, userDataBuilder, cacheServices, parseOpts, pbf, needsMetadata, connection) {
-        override protected def dropNodesTable(): Unit = {
-          PathUtils.deleteRecursively(h2Dir.toPath)
-        }
-      }
-    }
-  }
-
-  override protected def buildField(field: Config): Field = OsmField.build(field)
+  case class OsmWaysConfig(
+      `type`: String,
+      format: OsmFormat,
+      jdbc: Option[String],
+      idField: Option[Expression],
+      caches: Map[String, Config],
+      userData: Map[String, Expression]
+    ) extends ConverterConfig
 }
+

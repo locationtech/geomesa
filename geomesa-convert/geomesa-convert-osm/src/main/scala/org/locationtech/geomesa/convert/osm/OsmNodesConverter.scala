@@ -11,64 +11,45 @@ package org.locationtech.geomesa.convert.osm
 import java.io.InputStream
 
 import com.typesafe.config.Config
-import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Coordinate
 import de.topobyte.osm4j.core.model.iface._
-import de.topobyte.osm4j.pbf.seq.PbfIterator
-import de.topobyte.osm4j.xml.dynsax.OsmXmlIterator
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.locationtech.geomesa.convert.Transformers.Expr
 import org.locationtech.geomesa.convert._
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.locationtech.geomesa.convert.osm.OsmFormat.OsmFormat
+import org.locationtech.geomesa.convert.osm.OsmNodesConverter.OsmNodesConfig
+import org.locationtech.geomesa.convert2.AbstractConverter.BasicOptions
+import org.locationtech.geomesa.convert2.transforms.Expression
+import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.jts.geom.Coordinate
+import org.opengis.feature.simple.SimpleFeatureType
 
-import scala.collection.immutable.IndexedSeq
+class OsmNodesConverter(sft: SimpleFeatureType, config: OsmNodesConfig, fields: Seq[OsmField], options: BasicOptions)
+    extends AbstractConverter[OsmNode, OsmNodesConfig, OsmField, BasicOptions](sft, config, fields, options) {
 
-class OsmNodesConverter(val targetSFT: SimpleFeatureType,
-                        val idBuilder: Expr,
-                        val inputFields: IndexedSeq[Field],
-                        val userDataBuilder: Map[String, Expr],
-                        val caches: Map[String, EnrichmentCache],
-                        val parseOpts: ConvertParseOpts,
-                        val pbf: Boolean,
-                        val needsMetadata: Boolean) extends ToSimpleFeatureConverter[OsmNode] with LazyLogging {
+  private val gf = JTSFactoryFinder.getGeometryFactory
+  private val fetchMetadata = requiresMetadata(fields)
+  private val toArray = if (fetchMetadata) { toArrayWithMetadata _ } else { toArrayNoMetadata _ }
 
-  private def gf = JTSFactoryFinder.getGeometryFactory
-  private val toArray = if (needsMetadata) { OsmField.toArrayWithMetadata _ } else { OsmField.toArrayNoMetadata _ }
-
-  override def fromInputType(i: OsmNode, ec: EvaluationContext): Iterator[Array[Any]] =
-    Iterator.single(toArray(i, gf.createPoint(new Coordinate(i.getLongitude, i.getLatitude))))
-
-  override def process(is: InputStream, ec: EvaluationContext = createEvaluationContext()): Iterator[SimpleFeature] = {
-    val iterator = if (pbf) new PbfIterator(is, needsMetadata) else new OsmXmlIterator(is, needsMetadata)
-    val entities = new Iterator[OsmNode] {
-      private var element = if (iterator.hasNext) { iterator.next } else { null }
-      // nodes are first in the file, so we can stop when we hit another element type
-      override def hasNext: Boolean = element != null && element.getType == EntityType.Node
-      override def next(): OsmNode = {
-        val ret = element.getEntity.asInstanceOf[OsmNode]
-        element = if (iterator.hasNext) iterator.next else null
-        ret
-      }
-    }
-    processInput(entities, ec)
+  override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[OsmNode] = {
+    // nodes are first in the file, so we can stop when we hit another element type
+    osmIterator(is, config.format, fetchMetadata)
+        .takeWhile(_.getType == EntityType.Node)
+        .map(_.getEntity.asInstanceOf[OsmNode])
   }
+
+  override protected def values(
+      parsed: CloseableIterator[OsmNode],
+      ec: EvaluationContext): CloseableIterator[Array[Any]] =
+    parsed.map(n => toArray(n, gf.createPoint(new Coordinate(n.getLongitude, n.getLatitude))))
 }
 
-class OsmNodesConverterFactory extends AbstractSimpleFeatureConverterFactory[OsmNode] {
+object OsmNodesConverter {
 
-  override protected val typeToProcess = "osm-nodes"
-
-  override protected def buildConverter(sft: SimpleFeatureType,
-                                        conf: Config,
-                                        idBuilder: Expr,
-                                        fields: IndexedSeq[Field],
-                                        userDataBuilder: Map[String, Expr],
-                                        cacheServices: Map[String, EnrichmentCache],
-                                        parseOpts: ConvertParseOpts): SimpleFeatureConverter[OsmNode] = {
-    val pbf = if (conf.hasPath("format")) conf.getString("format").toLowerCase.trim.equals("pbf") else false
-    val needsMetadata = OsmField.requiresMetadata(fields)
-    new OsmNodesConverter(sft, idBuilder, fields, userDataBuilder, cacheServices, parseOpts, pbf, needsMetadata)
-  }
-
-  override protected def buildField(field: Config): Field = OsmField.build(field)
+  case class OsmNodesConfig(
+      `type`: String,
+      format: OsmFormat,
+      idField: Option[Expression],
+      caches: Map[String, Config],
+      userData: Map[String, Expression]
+    ) extends ConverterConfig
 }
