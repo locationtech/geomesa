@@ -39,8 +39,7 @@ case object MiniCluster extends LazyLogging {
     AccumuloDataStoreParams.InstanceIdParam.key -> cluster.getInstanceName,
     AccumuloDataStoreParams.ZookeepersParam.key -> cluster.getZooKeepers,
     AccumuloDataStoreParams.UserParam.key -> username,
-    AccumuloDataStoreParams.PasswordParam.key -> password,
-    "accumulo.auth.token" -> password
+    AccumuloDataStoreParams.PasswordParam.key -> password
   )
 
   sys.addShutdownHook({
