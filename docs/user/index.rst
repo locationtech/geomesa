@@ -30,7 +30,6 @@ User Manual
    ds_views
    geojson
    blobstore
-   native_api
    stream
    upgrade
 

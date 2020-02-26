@@ -105,7 +105,6 @@ GeoMesa Project Structure
 * **geomesa-lambda**: ``DataStore`` implementation that seamlessly uses Kafka for frequent updates and Accumulo for long-term persistence
 * **geomesa-memory**: In-memory indexing code
 * **geomesa-metrics**: Extensions and configuration for DropWizard metrics integration
-* **geomesa-native-api**: Non-GeoTools API for persisting and querying data in Accumulo
 * **geomesa-process**: Analytic processes optimized for GeoMesa stores
 * **geomesa-security**: API for managing security and authorization levels in GeoMesa
 * **geomesa-spark**: Apache Spark integration
