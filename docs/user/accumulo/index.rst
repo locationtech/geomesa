@@ -28,5 +28,4 @@ To get started with the Accumulo Data Store, try the :doc:`/tutorials/geomesa-qu
    visibilities
    jobs
    kerberos
-   raster
    examples

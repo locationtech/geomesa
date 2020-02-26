@@ -42,7 +42,6 @@ Data In/Out
     geomesa-blobstore
     geomesa-blobstore-exif
     geomesa-quickstart-storm
-    geomesa-raster
 
 .. _tutorials_analytics:
 
