@@ -19,7 +19,7 @@ import org.locationtech.geomesa.features.kryo.json.KryoJsonSerialization
 import org.locationtech.geomesa.features.kryo.serialization.{KryoGeometrySerialization, KryoUserDataSerialization}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
-import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, SoftThreadLocalCache}
+import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, ThreadLocalCache}
 import org.locationtech.geomesa.utils.collection.IntBitSet
 import org.locationtech.geomesa.utils.geometry.GeometryPrecision
 import org.locationtech.jts.geom.Geometry
@@ -119,7 +119,7 @@ object KryoFeatureSerialization extends LazyLogging {
   val MaxUnsignedShort: Int = 65535
 
   private [this] val outputs = new SoftThreadLocal[Output]()
-  private [this] val writers = new SoftThreadLocalCache[String, Array[KryoAttributeWriter]]()
+  private [this] val writers = new ThreadLocalCache[String, Array[KryoAttributeWriter]](SerializerCacheExpiry)
 
   /**
     * Gets a reusable, thread-local output. Don't hold on to the result, as it may be re-used on a per-thread basis

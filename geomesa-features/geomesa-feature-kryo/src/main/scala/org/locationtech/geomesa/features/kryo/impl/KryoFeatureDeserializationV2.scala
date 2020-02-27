@@ -6,7 +6,8 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.kryo.impl
+package org.locationtech.geomesa.features.kryo
+package impl
 
 import java.util
 import java.util.{Date, UUID}
@@ -18,7 +19,7 @@ import org.locationtech.geomesa.features.kryo.json.KryoJsonSerialization
 import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerialization
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
-import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
+import org.locationtech.geomesa.utils.cache.ThreadLocalCache
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -38,7 +39,7 @@ import scala.util.control.NonFatal
   */
 object KryoFeatureDeserializationV2 extends LazyLogging {
 
-  private val readers = new SoftThreadLocalCache[String, Array[Input => AnyRef]]()
+  private val readers = new ThreadLocalCache[String, Array[Input => AnyRef]](SerializerCacheExpiry)
 
   private [geomesa] def getReaders(key: String, sft: SimpleFeatureType): Array[Input => AnyRef] = {
     readers.getOrElseUpdate(key, sft.getAttributeDescriptors.toArray.map {

@@ -6,7 +6,8 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.kryo.impl
+package org.locationtech.geomesa.features.kryo
+package impl
 
 import java.io.InputStream
 import java.util.{Date, UUID}
@@ -14,13 +15,12 @@ import java.util.{Date, UUID}
 import com.esotericsoftware.kryo.io.Input
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
-import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization.KryoAttributeReader
 import org.locationtech.geomesa.features.kryo.json.KryoJsonSerialization
 import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerialization
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
-import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, SoftThreadLocalCache}
+import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, ThreadLocalCache}
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
@@ -48,7 +48,7 @@ trait KryoFeatureDeserialization extends SimpleFeatureSerializer with LazyLoggin
 object KryoFeatureDeserialization extends LazyLogging {
 
   private val inputs  = new SoftThreadLocal[Input]()
-  private val readers = new SoftThreadLocalCache[String, Array[KryoAttributeReader]]()
+  private val readers = new ThreadLocalCache[String, Array[KryoAttributeReader]](SerializerCacheExpiry)
 
   def getInput(bytes: Array[Byte], offset: Int, count: Int): Input = {
     val in = inputs.getOrElseUpdate(new Input)
