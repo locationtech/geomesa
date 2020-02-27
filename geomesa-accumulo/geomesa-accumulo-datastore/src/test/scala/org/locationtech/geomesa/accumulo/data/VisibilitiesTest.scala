@@ -47,9 +47,12 @@ class VisibilitiesTest extends TestWithDataStore {
   val privDS = {
     rootConnector.securityOperations().createLocalUser( "priv", new PasswordToken(mockPassword))
     rootConnector.securityOperations().changeUserAuthorizations("priv", new Authorizations("user", "admin"))
+    System.out.println("DEBUG - root has created user authorizations: " + rootConnector.securityOperations().getUserAuthorizations("priv"))
     val connector = MiniCluster.getConnector("priv", mockPassword)
     DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connector))
+    
   }
+  System.out.println("DEBUG - data store retrieved for priv")
   val unprivDS = {
     rootConnector.securityOperations().createLocalUser( "unpriv", new PasswordToken(mockPassword))
     
@@ -58,6 +61,7 @@ class VisibilitiesTest extends TestWithDataStore {
     DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connector))
   }
 
+    System.out.println("DEBUG - data store retrieved for unpriv")
   step {
     addFeatures(privFeatures ++ unprivFeatures)
   }

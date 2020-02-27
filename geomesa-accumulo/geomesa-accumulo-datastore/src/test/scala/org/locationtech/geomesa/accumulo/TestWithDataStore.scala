@@ -49,7 +49,7 @@ trait TestWithDataStore extends Specification {
   )
   val MockUserAuthSeq = Seq("A", "B", "C")
 
-  lazy val mockUser = "user"
+  lazy val mockUser = "root"
   lazy val mockPassword = "password"
   lazy val catalog = sftName
 
