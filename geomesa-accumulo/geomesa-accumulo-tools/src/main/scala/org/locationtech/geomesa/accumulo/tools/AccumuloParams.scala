@@ -42,8 +42,3 @@ trait OptionalZookeepersParam {
   @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)")
   var zookeepers: String = _
 }
-
-trait AccumuloRasterTableParam {
-  @Parameter(names = Array("-t", "--raster-table"), description = "Accumulo table for storing raster data", required = true)
-  var table: String = _
-}

@@ -42,7 +42,6 @@
                             <artifactSet>
                                 <excludes>
                                     <exclude>org.slf4j:*</exclude>
-                                    <exclude>org.locationtech.geomesa:geomesa-accumulo-raster*</exclude>
                                 </excludes>
                             </artifactSet>
                             <filters>

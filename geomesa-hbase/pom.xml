@@ -18,7 +18,6 @@
         <module>geomesa-hbase-distributed-runtime</module>
         <module>geomesa-hbase-gs-plugin</module>
         <module>geomesa-hbase-jobs</module>
-        <module>geomesa-hbase-native-api</module>
         <module>geomesa-hbase-spark</module>
         <module>geomesa-hbase-spark-runtime</module>
         <module>geomesa-hbase-tools</module>
