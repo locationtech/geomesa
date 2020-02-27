@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo
 
 import org.apache.accumulo.core.client.Connector
-import org.apache.accumulo.core.client.mock.MockInstance
+import org.locationtech.geomesa.accumulo.data.MiniCluster
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.security.Authorizations
@@ -49,19 +49,16 @@ trait TestWithDataStore extends Specification {
   )
   val MockUserAuthSeq = Seq("A", "B", "C")
 
-  lazy val mockInstanceId = "mycloud"
-  lazy val mockZookeepers = "myzoo"
   lazy val mockUser = "user"
   lazy val mockPassword = "password"
   lazy val catalog = sftName
 
-  lazy val mockInstance = new MockInstance(mockInstanceId)
 
   // assign some default authorizations to this mock user
   lazy val connector: Connector = {
-    val mockConnector = mockInstance.getConnector(mockUser, new PasswordToken(mockPassword))
-    mockConnector.securityOperations().changeUserAuthorizations(mockUser, MockUserAuthorizations)
-    mockConnector
+    val miniConnector = MiniCluster.getConnector()
+    miniConnector.securityOperations().changeUserAuthorizations(mockUser, MockUserAuthorizations)
+    miniConnector
   }
 
   lazy val dsParams = Map(

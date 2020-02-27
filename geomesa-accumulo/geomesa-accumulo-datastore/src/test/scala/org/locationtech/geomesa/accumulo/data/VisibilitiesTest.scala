@@ -20,6 +20,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.runner.JUnitRunner
+import org.locationtech.geomesa.accumulo.data.MiniCluster
 
 import scala.collection.JavaConversions._
 
@@ -42,15 +43,18 @@ class VisibilitiesTest extends TestWithDataStore {
     sf.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true))
     sf
   }
-
+  val rootConnector = MiniCluster.getConnector()
   val privDS = {
-    val connector = mockInstance.getConnector("priv", new PasswordToken(mockPassword))
-    connector.securityOperations().changeUserAuthorizations("priv", new Authorizations("user", "admin"))
+    rootConnector.securityOperations().createLocalUser( "priv", new PasswordToken(mockPassword))
+    rootConnector.securityOperations().changeUserAuthorizations("priv", new Authorizations("user", "admin"))
+    val connector = MiniCluster.getConnector("priv", mockPassword)
     DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connector))
   }
   val unprivDS = {
-    val connector = mockInstance.getConnector("unpriv", new PasswordToken(mockPassword))
-    connector.securityOperations().changeUserAuthorizations("unpriv", new Authorizations("user"))
+    rootConnector.securityOperations().createLocalUser( "unpriv", new PasswordToken(mockPassword))
+    
+    rootConnector.securityOperations().changeUserAuthorizations("unpriv", new Authorizations("user"))
+    val connector = MiniCluster.getConnector("unpriv", mockPassword)
     DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connector))
   }
 

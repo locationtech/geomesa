@@ -17,29 +17,33 @@ import com.google.common.io.Files
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 
 case object MiniCluster extends LazyLogging {
-  val username = "root"
-  val password = "admin"
+  val _username = "root"
+  val _password = "admin"
 
   lazy val cluster: MiniAccumuloCluster = {
 
     logger.info("Starting accumulo minicluster")
     val miniClusterTempDir: File = Files.createTempDir();
     logger.info(miniClusterTempDir.getAbsolutePath())
-    val cluster = new MiniAccumuloCluster(miniClusterTempDir, password)
+    val cluster = new MiniAccumuloCluster(miniClusterTempDir, _password)
 
     cluster.start
     logger.info("Started accmulo minicluster")
     cluster
   }
 
-  lazy val connector: Connector =
+  def getConnector(
+      username: String = _username,
+      password: String = _password
+  ): Connector = {
     cluster.getConnector(username, password)
+  }
 
   lazy val getClusterParams: Map[String, String] = Map(
     AccumuloDataStoreParams.InstanceIdParam.key -> cluster.getInstanceName,
     AccumuloDataStoreParams.ZookeepersParam.key -> cluster.getZooKeepers,
-    AccumuloDataStoreParams.UserParam.key -> username,
-    AccumuloDataStoreParams.PasswordParam.key -> password
+    AccumuloDataStoreParams.UserParam.key -> _username,
+    AccumuloDataStoreParams.PasswordParam.key -> _password
   )
 
   sys.addShutdownHook({
