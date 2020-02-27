@@ -6,8 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-
-package org.locationtech.geomesa.fs.storage.common
+package org.locationtech.geomesa.fs.storage.common.partitions
 
 import java.time.Instant
 import java.time.temporal.ChronoUnit
@@ -18,7 +17,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionSchemeFactory}
-import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, XZ2Scheme, Z2Scheme}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
