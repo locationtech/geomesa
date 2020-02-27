@@ -262,6 +262,7 @@ tec.uom.lib:uom-lib-common	1.0.2	compile
 tec.uom:uom-se	1.0.8	compile
 
 com.101tec:zkclient	0.10	provided
+com.amazonaws:aws-java-sdk-s3	1.11.421	provided
 com.datastax.cassandra:cassandra-driver-core	3.0.0	provided
 com.datastax.cassandra:cassandra-driver-mapping	3.0.0	provided
 io.confluent:kafka-avro-serializer	5.1.0	provided

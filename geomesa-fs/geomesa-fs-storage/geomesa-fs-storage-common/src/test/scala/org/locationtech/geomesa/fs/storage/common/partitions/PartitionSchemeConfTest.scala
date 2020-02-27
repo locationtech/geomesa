@@ -6,11 +6,11 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.common
+package org.locationtech.geomesa.fs.storage.common.partitions
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionSchemeFactory}
-import org.locationtech.geomesa.fs.storage.common.partitions.{CompositeScheme, DateTimeScheme, Z2Scheme}
+import org.locationtech.geomesa.fs.storage.common.StorageSerialization
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
