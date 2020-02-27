@@ -390,18 +390,11 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       }
     }
 
-    if (count) {
+    if (!count) { ok } else {
       ds.getFeatureSource(query.getTypeName).getCount(query) mustEqual -1
       ds.getFeatureSource(query.getTypeName).getFeatures(query).size() mustEqual 0
       query.getHints.put(QueryHints.EXACT_COUNT, true)
       ds.getFeatureSource(query.getTypeName).getFeatures(query).size() mustEqual results.length
-    }
-
-    // verify ranges are grouped appropriately to not cross shard boundaries
-    forall(ds.getQueryPlan(query).flatMap(_.scans)) { scan =>
-      if (scan.getStartRow.isEmpty || scan.getStopRow.isEmpty) { ok } else {
-        scan.getStartRow()(0) mustEqual scan.getStopRow()(0)
-      }
     }
   }
 }

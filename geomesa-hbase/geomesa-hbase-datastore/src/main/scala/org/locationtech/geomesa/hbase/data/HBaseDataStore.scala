@@ -27,6 +27,7 @@ import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, RunnableStats}
 import org.locationtech.geomesa.index.utils._
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.io.WithClose
@@ -74,10 +75,14 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
             val name = TableName.valueOf(table)
             if (connection.getAdmin.tableExists(name)) {
               val options = HBaseVersionAggregator.configure(sft, index)
-              WithClose(connection.getTable(name)) { t =>
-                WithClose(GeoMesaCoprocessor.execute(t, new Scan().setFilter(new FilterList()), options)) { bytes =>
+              val scan = new Scan().setFilter(new FilterList())
+              val pool = new CachedThreadPool(config.coprocessorThreads)
+              try {
+                WithClose(GeoMesaCoprocessor.execute(connection, name, scan, options, pool)) { bytes =>
                   bytes.map(_.toStringUtf8).toList.iterator // force evaluation of the iterator before closing it
                 }
+              } finally {
+                pool.shutdown()
               }
             } else {
               Iterator.empty

@@ -109,6 +109,16 @@ The modules removed are: ``geomesa-accumulo/geomesa-accumulo-compute``,
 
 The classes and methods removed are detailed in `GEOMESA-2284 <https://geomesa.atlassian.net/browse/GEOMESA-2284>`_.
 
+HBase 2 Support
+---------------
+
+GeoMesa 3.0.0 supports both HBase 1.4 and HBase 2.2. HBase 1.3 is no longer supported. HBase 2.0 and 2.1 are
+not officially supported, but may work in some cases.
+
+There are now two separate modules for HBase filters and coprocessor - ``hbase-distributed-runtime-hbase1``
+and ``hbase-distributed-runtime-hbase2``. The previous ``hbase-distributed-runtime`` module has been removed.
+Users should install the distributed runtime corresponding to their HBase installation.
+
 Version 2.4.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
