@@ -9,10 +9,9 @@
 package org.locationtech.geomesa.features
 
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.util.factory.Hints
 import org.geotools.feature.AbstractFeatureFactoryImpl
 import org.geotools.feature.simple.SimpleFeatureBuilder
-import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
+import org.geotools.util.factory.Hints
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -36,21 +35,16 @@ object ScalaSimpleFeatureFactory {
   private val hints = new Hints(Hints.FEATURE_FACTORY, classOf[ScalaSimpleFeatureFactory])
   private val featureFactory = CommonFactoryFinder.getFeatureFactory(hints)
 
-  private val cache = new SoftThreadLocalCache[SimpleFeatureType, SimpleFeatureBuilder]()
-
-  private def getFeatureBuilder(sft: SimpleFeatureType) =
-    cache.getOrElseUpdate(sft, new SimpleFeatureBuilder(sft, featureFactory))
-
-  def init() = Hints.putSystemDefault(Hints.FEATURE_FACTORY, classOf[ScalaSimpleFeatureFactory])
+  def init(): Unit = Hints.putSystemDefault(Hints.FEATURE_FACTORY, classOf[ScalaSimpleFeatureFactory])
 
   def buildFeature(sft: SimpleFeatureType, attrs: Seq[AnyRef], id: String): SimpleFeature = {
-    val builder = getFeatureBuilder(sft)
+    val builder = featureBuilder(sft)
     builder.addAll(attrs)
     builder.buildFeature(id)
   }
 
   def copyFeature(sft: SimpleFeatureType, feature: SimpleFeature, id: String): SimpleFeature = {
-    val builder = getFeatureBuilder(sft)
+    val builder = featureBuilder(sft)
     builder.init(feature)
     builder.buildFeature(id)
   }
