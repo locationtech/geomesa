@@ -6,7 +6,8 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.kryo.impl
+package org.locationtech.geomesa.features.kryo
+package impl
 
 import java.io.OutputStream
 import java.util.{Date, UUID}
@@ -19,7 +20,7 @@ import org.locationtech.geomesa.features.kryo.json.KryoJsonSerialization
 import org.locationtech.geomesa.features.kryo.serialization.{KryoGeometrySerialization, KryoUserDataSerialization}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
-import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, SoftThreadLocalCache}
+import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, ThreadLocalCache}
 import org.locationtech.geomesa.utils.geometry.GeometryPrecision
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -85,8 +86,8 @@ trait KryoFeatureSerialization extends SimpleFeatureSerializer {
 object KryoFeatureSerialization {
 
   private [this] val outputs = new SoftThreadLocal[Output]()
-  private [this] val writers = new SoftThreadLocalCache[String, Array[(Output, AnyRef) => Unit]]()
-  private [this] val offsets = new SoftThreadLocalCache[String, Array[Int]]()
+  private [this] val writers = new ThreadLocalCache[String, Array[(Output, AnyRef) => Unit]](SerializerCacheExpiry)
+  private [this] val offsets = new ThreadLocalCache[String, Array[Int]](SerializerCacheExpiry)
 
   def getOutput(stream: OutputStream): Output = {
     val out = outputs.getOrElseUpdate(new Output(1024, -1))

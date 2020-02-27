@@ -14,7 +14,7 @@ import com.google.common.primitives.Ints
 import org.apache.hadoop.io.serializer.{Deserializer, Serialization, Serializer}
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
 import org.locationtech.geomesa.jobs.mapreduce.SimpleFeatureSerialization._
-import org.locationtech.geomesa.utils.cache.SoftThreadLocalCache
+import org.locationtech.geomesa.utils.cache.ThreadLocalCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 
@@ -31,8 +31,11 @@ class SimpleFeatureSerialization extends Serialization[SimpleFeature] {
 }
 
 object SimpleFeatureSerialization {
+
+  import org.locationtech.geomesa.features.kryo.SerializerCacheExpiry
+
   // re-usable serializers since they are not thread safe
-  val serializers = new SoftThreadLocalCache[String, KryoFeatureSerializer]()
+  val serializers = new ThreadLocalCache[String, KryoFeatureSerializer](SerializerCacheExpiry)
 
   /**
    * Writes a string to the output stream
