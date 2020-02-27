@@ -37,8 +37,6 @@ object AccumuloRunner extends RunnerWithAccumuloEnvironment {
     new export.AccumuloPlaybackCommand,
     new ingest.AccumuloDeleteFeaturesCommand,
     new ingest.AccumuloIngestCommand,
-    new raster.DeleteRasterCommand,
-    new raster.IngestRasterCommand,
     new schema.AccumuloCreateSchemaCommand,
     new schema.AccumuloDeleteCatalogCommand,
     new schema.AccumuloRemoveSchemaCommand,

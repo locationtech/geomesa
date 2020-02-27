@@ -53,11 +53,6 @@ contain GeoMesa code and the Accumulo iterators required for querying GeoMesa da
     GeoMesa requires commons-vfs2.jar 2.1 or later. This JAR ships with Accumulo 1.7.2+, but for older
     installations the JAR needs to be updated in ``$ACCUMULO_HOME/lib`` on all Accumulo servers.
 
-.. warning::
-
-    There are two runtime JARs available, with and without raster support. Only one is
-    needed and including both will cause classpath issues.
-
 The version of the distributed runtime JAR must match the version of the GeoMesa
 data store client JAR (usually installed in GeoServer; see below). If not,
 queries might not work correctly or at all.
@@ -74,9 +69,6 @@ each tablet server.
 
     # something like this for each tablet server
     $ scp dist/accumulo/geomesa-accumulo-distributed-runtime_2.11-$VERSION.jar \
-        tserver1:$ACCUMULO_HOME/lib/ext
-    # or for raster support
-    $ scp dist/accumulo/geomesa-accumulo-raster-distributed-runtime_2.11-$VERSION.jar \
         tserver1:$ACCUMULO_HOME/lib/ext
 
 .. note::
@@ -105,7 +97,7 @@ The command line arguments the script accepts are:
 * -n <Accumulo namespace>
 * -p <Accumulo password>
 * -t <Use a cached Kerberos TGT>
-* -g <Path of GeoMesa distributed runtime JAR> (optional, will default to the distribution folder and without raster support)
+* -g <Path of GeoMesa distributed runtime JAR> (optional, will default to the distribution folder)
 * -h <HDFS URI e.g. hdfs://localhost:9000> (optional, will attempt to determine if not supplied)
 
 Since ``accumulo shell`` does not directly support Kerberos keytabs, if using Kerberos (``-t``) then a cached Kerberos
@@ -200,8 +192,8 @@ Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_ACCUMULO_
 
     See :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
 
-Due to licensing restrictions, dependencies for shape file support and raster
-ingest must be separately installed. Do this with the following commands:
+Due to licensing restrictions, dependencies for shape file support
+must be separately installed. Do this with the following commands:
 
 .. code-block:: bash
 
