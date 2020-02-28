@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.security.Authorizations
+import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.security.{Authorizations, TablePermission}
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.util.factory.Hints
@@ -22,12 +23,22 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.runner.JUnitRunner
 import org.locationtech.geomesa.accumulo.data.MiniCluster
 
+import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
-
+import java.util.{List=> JList}
 @RunWith(classOf[JUnitRunner])
 class VisibilitiesTest extends TestWithDataStore {
-
+  
   sequential
+
+  def grantPermissionToAllTables(connector: Connector, user: String, permission: TablePermission){
+
+    
+    val tables = connector.tableOperations().list().asScala
+    tables.map(table => {
+      rootConnector.securityOperations().grantTablePermission(user, table, permission)
+    })
+  }
 
   override val spec = "name:String:index=full,dtg:Date,*geom:Point:srid=4326"
 
@@ -44,24 +55,26 @@ class VisibilitiesTest extends TestWithDataStore {
     sf
   }
   val rootConnector = MiniCluster.getConnector()
+
+  // create priv user and configure
+  rootConnector.securityOperations().createLocalUser( "priv", new PasswordToken(mockPassword))
+  rootConnector.securityOperations().changeUserAuthorizations("priv", new Authorizations("user", "admin"))
+  grantPermissionToAllTables(rootConnector, "priv", TablePermission.READ)
+  grantPermissionToAllTables(rootConnector, "priv", TablePermission.WRITE)
+
+  rootConnector.securityOperations().createLocalUser( "unpriv", new PasswordToken(mockPassword))    
+  rootConnector.securityOperations().changeUserAuthorizations("unpriv", new Authorizations("user"))
+  grantPermissionToAllTables(rootConnector, "unpriv", TablePermission.READ)
+  grantPermissionToAllTables(rootConnector, "unpriv", TablePermission.WRITE)
   val privDS = {
-    rootConnector.securityOperations().createLocalUser( "priv", new PasswordToken(mockPassword))
-    rootConnector.securityOperations().changeUserAuthorizations("priv", new Authorizations("user", "admin"))
-    System.out.println("DEBUG - root has created user authorizations: " + rootConnector.securityOperations().getUserAuthorizations("priv"))
     val connector = MiniCluster.getConnector("priv", mockPassword)
     DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connector))
-    
-  }
-  System.out.println("DEBUG - data store retrieved for priv")
+  } 
   val unprivDS = {
-    rootConnector.securityOperations().createLocalUser( "unpriv", new PasswordToken(mockPassword))
-    
-    rootConnector.securityOperations().changeUserAuthorizations("unpriv", new Authorizations("user"))
     val connector = MiniCluster.getConnector("unpriv", mockPassword)
     DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connector))
   }
-
-    System.out.println("DEBUG - data store retrieved for unpriv")
+  
   step {
     addFeatures(privFeatures ++ unprivFeatures)
   }
@@ -78,6 +91,7 @@ class VisibilitiesTest extends TestWithDataStore {
 
     "keep unprivileged from reading secured features" in {
       foreach(filters) { filter =>
+       
         val reader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
         SelfClosingIterator(reader).toList must containTheSameElementsAs(unprivFeatures)
       }
@@ -86,11 +100,13 @@ class VisibilitiesTest extends TestWithDataStore {
     "allow privileged to read secured features" in {
       foreach(filters) { filter =>
         val reader = privDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
+
         SelfClosingIterator(reader).toList must containTheSameElementsAs(privFeatures ++ unprivFeatures)
       }
     }
 
     "keep unprivileged from deleting secured features" in {
+     
       unprivDS.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore].removeFeatures(ECQL.toFilter("IN('2')"))
       foreach(filters) { filter =>
         val reader = privDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
