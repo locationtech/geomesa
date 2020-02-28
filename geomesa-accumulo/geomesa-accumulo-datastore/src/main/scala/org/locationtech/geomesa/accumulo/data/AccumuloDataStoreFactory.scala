@@ -16,7 +16,6 @@ import java.util.{Map => JMap}
 
 import com.google.common.collect.ImmutableMap
 import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
-import org.apache.accumulo.core.client.mock.{MockConnector, MockInstance}
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, KerberosToken, PasswordToken}
 import org.apache.accumulo.core.client.{ClientConfiguration, Connector, ZooKeeperInstance}
 import org.geotools.data.DataAccessFactory.Param
@@ -109,51 +108,47 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
   }
 
   def buildAccumuloConnector(params: JMap[String,Serializable], useMock: Boolean): Connector = {
+    if(useMock)
+      throw new IllegalArgumentException("useMock = true has been removed.")
     val instance = InstanceIdParam.lookup(params)
     val user = UserParam.lookup(params)
     val password = PasswordParam.lookup(params)
     val keytabPath = KeytabPathParam.lookup(params)
 
+    
+
     // Build authentication token according to how we are authenticating
     val authToken : AuthenticationToken = if (password != null && keytabPath == null) {
       new PasswordToken(password.getBytes("UTF-8"))
     } else if (password == null && keytabPath != null) {
-      if(!useMock) {
-        // This API is only in Accumulo >=1.7, but canProcess should ensure this isn't actually invoked on earlier
-        new KerberosToken(user, new java.io.File(keytabPath), true)
-      } else {
-        // Mock doesn't support Kerberos, so give it a pretend PasswordTOken
-        new PasswordToken("".getBytes("UTF-8"))
-      }
+      new PasswordToken("".getBytes("UTF-8"))
     } else {
       // Should never reach here thanks to canProcess
       throw new IllegalArgumentException("Neither or both of password & keytabPath are set")
     }
 
-    if (useMock) {
-      new MockInstance(instance).getConnector(user, authToken)
+  
+    val zookeepers = ZookeepersParam.lookup(params)
+    // NB: For those wanting to set this via JAVA_OPTS, this key is "instance.zookeeper.timeout" in Accumulo 1.6.x.
+    val timeout = GeoMesaSystemProperties.getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey)
+    val clientConfiguration = if (timeout !=  null) {
+      new ClientConfiguration()
+        .withInstance(instance)
+        .withZkHosts(zookeepers)
+        .`with`(ClientProperty.INSTANCE_ZK_TIMEOUT, timeout)
     } else {
-      val zookeepers = ZookeepersParam.lookup(params)
-      // NB: For those wanting to set this via JAVA_OPTS, this key is "instance.zookeeper.timeout" in Accumulo 1.6.x.
-      val timeout = GeoMesaSystemProperties.getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey)
-      val clientConfiguration = if (timeout !=  null) {
-        new ClientConfiguration()
-          .withInstance(instance)
-          .withZkHosts(zookeepers)
-          .`with`(ClientProperty.INSTANCE_ZK_TIMEOUT, timeout)
-      } else {
-        new ClientConfiguration().withInstance(instance).withZkHosts(zookeepers)
-      }
-
-      if (authToken.isInstanceOf[PasswordToken]) {
-        // Using password authentication
-        new ZooKeeperInstance(clientConfiguration).getConnector(user, authToken)
-      } else {
-        // Otherwise must be using Kerberos authentication, in which case we explicitly enable SASL.
-        // This shouldn't be required if Accumulo client.conf is set appropriately, but it doesn't seem to work.
-        new ZooKeeperInstance(clientConfiguration.withSasl(true)).getConnector(user, authToken)
-      }
+      new ClientConfiguration().withInstance(instance).withZkHosts(zookeepers)
     }
+
+    if (authToken.isInstanceOf[PasswordToken]) {
+      // Using password authentication
+      new ZooKeeperInstance(clientConfiguration).getConnector(user, authToken)
+    } else {
+      // Otherwise must be using Kerberos authentication, in which case we explicitly enable SASL.
+      // This shouldn't be required if Accumulo client.conf is set appropriately, but it doesn't seem to work.
+      new ZooKeeperInstance(clientConfiguration.withSasl(true)).getConnector(user, authToken)
+    }
+    
   }
 
   def buildConfig(connector: Connector, params: JMap[String, Serializable]): AccumuloDataStoreConfig = {
@@ -163,9 +158,8 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     val auditProvider = buildAuditProvider(params)
 
     // if explicit, use param, else if mocked, false, else use default
-    val auditQueries = if (AuditQueriesParam.exists(params)) { AuditQueriesParam.lookup(params).booleanValue() } else {
-      !connector.isInstanceOf[MockConnector] && AuditQueriesParam.default
-    }
+    val auditQueries = AuditQueriesParam.lookup(params).booleanValue() 
+    
     val auditService = new AccumuloAuditService(connector, authProvider, s"${catalog}_queries", auditQueries)
 
     val generateStats = GenerateStatsParam.lookup(params)
@@ -211,13 +205,13 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     val configuredAuths = AuthsParam.lookupOpt(params).getOrElse("").split(",").filter(s => !s.isEmpty)
 
     // verify that the configured auths are valid for the connector we are using (fail-fast)
-    if (!connector.isInstanceOf[MockConnector]) {
-      val invalidAuths = configuredAuths.filterNot(masterAuthsStrings.contains)
-      if (invalidAuths.nonEmpty) {
-        throw new IllegalArgumentException(s"The authorizations '${invalidAuths.mkString(",")}' " +
-          "are not valid for the Accumulo connection being used")
-      }
+    
+    val invalidAuths = configuredAuths.filterNot(masterAuthsStrings.contains)
+    if (invalidAuths.nonEmpty) {
+      throw new IllegalArgumentException(s"The authorizations '${invalidAuths.mkString(",")}' " +
+        "are not valid for the Accumulo connection being used")
     }
+    
 
     // if the caller provided any non-null string for authorizations, use it;
     // otherwise, grab all authorizations to which the Accumulo user is entitled
