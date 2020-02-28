@@ -11,11 +11,11 @@ import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
-import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{BinResultsToFeatures, ByteBufferResult}
+import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{BinResultsToFeatures, ResultCallback}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
-class HBaseBinAggregator extends BinAggregatingScan with HBaseAggregator[ByteBufferResult]
+class HBaseBinAggregator extends BinAggregatingScan with HBaseAggregator[ResultCallback]
 
 object HBaseBinAggregator {
 

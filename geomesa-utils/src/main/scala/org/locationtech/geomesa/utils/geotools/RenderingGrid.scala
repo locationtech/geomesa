@@ -218,6 +218,7 @@ class RenderingGrid(env: Envelope, xSize: Int, ySize: Int) extends LazyLogging {
         i += 1
       }
     }
+    count += 1
   }
 
   /**

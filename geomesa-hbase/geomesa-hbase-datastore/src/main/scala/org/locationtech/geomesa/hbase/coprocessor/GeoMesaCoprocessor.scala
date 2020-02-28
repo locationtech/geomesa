@@ -28,7 +28,7 @@ import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseAggregator
 import org.locationtech.geomesa.hbase.coprocessor.utils.{GeoMesaHBaseCallBack, GeoMesaHBaseRpcController}
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
-import org.locationtech.geomesa.index.iterators.AggregatingScan.Result
+import org.locationtech.geomesa.index.iterators.AggregatingScan.{AggregateCallback, Result}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
 
@@ -79,21 +79,7 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
           // TODO: Explore use of MultiRangeFilter
           WithClose(env.getRegion.getScanner(scan)) { scanner =>
             aggregator.setScanner(scanner)
-            var done = false
-            while (!done) {
-              logger.trace(s"Running batch on aggregator $aggregator")
-              val agg = aggregator.aggregate()
-              if (agg == null) { done = true } else {
-                results.addPayload(ByteString.copyFrom(agg))
-                if (controller.isCanceled) {
-                  logger.warn(s"Stopping aggregator $aggregator due to controller being cancelled")
-                  done = true
-                } else if (timeout.exists(_ < System.currentTimeMillis())) {
-                  logger.warn(s"Stopping aggregator $aggregator due to timeout of ${timeout.get}ms")
-                  done = true
-                }
-              }
-            }
+            aggregator.aggregate(new CoprocessorAggregateCallback(controller, aggregator, results, timeout))
           }
         }
       }
@@ -108,6 +94,47 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
           s"\n\tBatch sizes: ${results.getPayloadList.asScala.map(_.size()).mkString(", ")}")
 
     done.run(results.build)
+  }
+
+  private class CoprocessorAggregateCallback(
+      controller: RpcController,
+      aggregator: Aggregator,
+      results: GeoMesaCoprocessorResponse.Builder,
+      timeout: Option[Long]
+    ) extends AggregateCallback {
+
+    private val start = System.currentTimeMillis()
+
+    logger.trace(s"Running first batch on aggregator $aggregator" +
+        timeout.map(t => s" with remaining timeout ${t - System.currentTimeMillis()}ms").getOrElse(""))
+
+    override def batch(bytes: Array[Byte]): Boolean = {
+      results.addPayload(ByteString.copyFrom(bytes))
+      continue()
+    }
+
+    override def partial(bytes: => Array[Byte]): Boolean = {
+      if (continue()) { true } else {
+        // add the partial results and stop scanning
+        results.addPayload(ByteString.copyFrom(bytes))
+        false
+      }
+    }
+
+    private def continue(): Boolean = {
+      if (controller.isCanceled) {
+        logger.warn(s"Stopping aggregator $aggregator due to controller being cancelled")
+        false
+      } else if (timeout.exists(_ < System.currentTimeMillis())) {
+        logger.warn(s"Stopping aggregator $aggregator due to timeout of ${timeout.get}ms")
+        false
+      } else {
+        logger.trace(s"Running next batch on aggregator $aggregator " +
+            s"with elapsed time ${System.currentTimeMillis() - start}ms" +
+            timeout.map(t => s" and remaining timeout ${t - System.currentTimeMillis()}ms").getOrElse(""))
+        true
+      }
+    }
   }
 }
 

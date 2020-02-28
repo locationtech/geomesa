@@ -37,16 +37,13 @@ import scala.reflect.ClassTag
 
 trait ArrowScan extends AggregatingScan[ArrowAggregate] {
 
-  private var batchSize: Int = _
-
   override def initResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
+      batchSize: Int,
       options: Map[String, String]): ArrowAggregate = {
 
     import ArrowScan.Configuration._
-
-    batchSize = options(BatchSizeKey).toInt
 
     val typ = options(TypeKey)
     val arrowSft = transform.getOrElse(sft)
@@ -79,11 +76,13 @@ trait ArrowScan extends AggregatingScan[ArrowAggregate] {
     aggregate.init(batchSize)
   }
 
-  override protected def notFull(result: ArrowAggregate): Boolean = result.size < batchSize
+  override protected def defaultBatchSize: Int = throw new IllegalArgumentException("Batch scan is specified per scan")
 
-  override protected def aggregateResult(sf: SimpleFeature, result: ArrowAggregate): Unit = result.add(sf)
+  override protected def aggregateResult(sf: SimpleFeature, result: ArrowAggregate): Int = { result.add(sf); 1 }
 
   override protected def encodeResult(result: ArrowAggregate): Array[Byte] = result.encode()
+
+  override protected def closeResult(result: ArrowAggregate): Unit = result.close()
 }
 
 object ArrowScan {
@@ -96,9 +95,11 @@ object ArrowScan {
     val ProxyFidsKey   = "proxy"
     val DictionaryKey  = "dict"
     val TypeKey        = "type"
-    val BatchSizeKey   = "batch"
     val SortKey        = "sort"
     val SortReverseKey = "sort-rev"
+
+    @deprecated("AggregatingScan.Configuration.BatchSizeOpt")
+    val BatchSizeKey: String = AggregatingScan.Configuration.BatchSizeOpt
 
     object Types {
       val BatchType = "batch"
@@ -142,13 +143,12 @@ object ArrowScan {
     val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids)
 
     val baseConfig = {
-      val base = AggregatingScan.configure(sft, index, ecql, hints.getTransform, hints.getSampling)
+      val base = AggregatingScan.configure(sft, index, ecql, hints.getTransform, hints.getSampling, batchSize)
       base ++ AggregatingScan.optionalMap(
         IncludeFidsKey -> includeFids.toString,
         ProxyFidsKey   -> proxyFids.toString,
         SortKey        -> sort.map(_._1),
-        SortReverseKey -> sort.map(_._2.toString),
-        BatchSizeKey   -> batchSize.toString
+        SortReverseKey -> sort.map(_._2.toString)
       )
     }
 
