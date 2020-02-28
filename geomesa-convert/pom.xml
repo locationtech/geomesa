@@ -26,7 +26,6 @@
         <module>geomesa-convert-osm</module>
         <module>geomesa-convert-parquet</module>
         <module>geomesa-convert-redis-cache</module>
-        <module>geomesa-convert-scripting</module>
         <module>geomesa-convert-shp</module>
         <module>geomesa-convert-simplefeature</module>
         <module>geomesa-convert-text</module>

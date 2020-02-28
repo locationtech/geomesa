@@ -17,7 +17,8 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFea
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.planning.QueryPlanner
-import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess, GeoMesaProcessVisitor}
+import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
+import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
@@ -77,7 +78,7 @@ class QueryVisitor(features: SimpleFeatureCollection, filter: Filter, properties
     } else {
       (sf) => {
         transformFeature.setFeature(sf)
-        ScalaSimpleFeature.create(transformFeature.getFeatureType, transformFeature)
+        ScalaSimpleFeature.copy(transformFeature)
       }
     }
 

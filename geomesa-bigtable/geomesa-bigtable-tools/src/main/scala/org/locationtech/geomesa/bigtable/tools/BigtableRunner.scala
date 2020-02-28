@@ -33,7 +33,6 @@ object BigtableRunner extends Runner {
     new HBaseExportCommand with BigtableDistributedCommand,
     new HelpCommand(this, jc),
     new HBaseIngestCommand with BigtableDistributedCommand,
-    new HBaseKeywordsCommand with BigtableDataStoreCommand,
     new HBaseGetTypeNamesCommand with BigtableDataStoreCommand,
     new HBaseRemoveSchemaCommand with BigtableDataStoreCommand,
     new HBaseUpdateSchemaCommand with BigtableDataStoreCommand,

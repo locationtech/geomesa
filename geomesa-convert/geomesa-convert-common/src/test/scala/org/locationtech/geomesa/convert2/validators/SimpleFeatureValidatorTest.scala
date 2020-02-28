@@ -43,28 +43,6 @@ class SimpleFeatureValidatorTest extends Specification {
         SimpleFeatureValidatorTest.errors.remove()
       }
     }
-    "allow custom SPI loading of deprecated v1 validators" in {
-      val custom = SimpleFeatureValidator(sft, Seq("custom-v1"), ConverterMetrics.empty)
-      custom must not(beNull)
-      custom.validate(null) must beNull
-      SimpleFeatureValidatorTest.errors.set("foo")
-      try {
-        custom.validate(null) mustEqual "foo"
-      } finally {
-        SimpleFeatureValidatorTest.errors.remove()
-      }
-    }
-    "allow custom SPI loading of deprecated v1 validators with options" in {
-      val custom = SimpleFeatureValidator(sft, Seq("custom-v1(foo,bar,baz)"), ConverterMetrics.empty)
-      custom must not(beNull)
-      custom.validate(null) mustEqual "foo,bar,baz"
-      SimpleFeatureValidatorTest.errors.set("foo")
-      try {
-        custom.validate(null) mustEqual "foo"
-      } finally {
-        SimpleFeatureValidatorTest.errors.remove()
-      }
-    }
   }
 }
 
@@ -85,19 +63,5 @@ object SimpleFeatureValidatorTest {
         sft: SimpleFeatureType,
         metrics: ConverterMetrics,
         config: Option[String]): SimpleFeatureValidator = new CustomValidator(config)
-  }
-
-  // v1 deprecated validators for back compatibility tests
-  class CustomValidatorV1(val config: Option[String])
-      extends org.locationtech.geomesa.convert.SimpleFeatureValidator.Validator {
-    override def validate(sf: SimpleFeature): String = Option(errors.get).orElse(config).orNull
-  }
-
-  // note: registered in
-  // src/test/resources/META-INF/services/org.locationtech.geomesa.convert.SimpleFeatureValidator$ValidatorFactory
-  class CustomValidatorFactoryV1 extends org.locationtech.geomesa.convert.SimpleFeatureValidator.ValidatorFactory {
-    override def name: String = "custom-v1"
-    override def validator(sft: SimpleFeatureType, config: Option[String]): org.locationtech.geomesa.convert.SimpleFeatureValidator.Validator
-    = new CustomValidatorV1(config)
   }
 }

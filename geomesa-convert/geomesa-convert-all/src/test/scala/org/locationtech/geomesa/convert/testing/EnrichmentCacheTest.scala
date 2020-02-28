@@ -7,11 +7,14 @@
  ***********************************************************************/
 
 
-package org.locationtech.geomesa.convert.common
+package org.locationtech.geomesa.convert.testing
+
+import java.io.ByteArrayInputStream
+import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -24,7 +27,8 @@ class EnrichmentCacheTest extends Specification {
       val conf = ConfigFactory.parseString(
         """
           | {
-          |   type         = "test"
+          |   type         = "delimited-text"
+          |   format       = "CSV"
           |   id-field     = "$id"
           |   caches = {
           |      test = {
@@ -37,17 +41,17 @@ class EnrichmentCacheTest extends Specification {
           |      }
           |   }
           |   fields = [
-          |     { name = "id",     transform = "toString($0)"      }
+          |     { name = "id",     transform = "toString($1)"      }
           |     { name = "keytolookup", transform = "cacheLookup('test', $id, 'name')"   }
-          |     { name = "lat",    transform = "$1::double"       }
-          |     { name = "lon",    transform = "$2::double"       }
+          |     { name = "lat",    transform = "$2::double"       }
+          |     { name = "lon",    transform = "$3::double"       }
           |     { name = "geom",   transform = "point($lon, $lat)" }
           |   ]
           | }
         """.stripMargin
       )
 
-      val data = "1,35.0,35.0"
+      val data = "1,35.0,35.0".getBytes(StandardCharsets.UTF_8)
 
       val sftConfPoint = ConfigFactory.parseString(
         """{ type-name = "testsft"
@@ -60,9 +64,9 @@ class EnrichmentCacheTest extends Specification {
 
       val sft = SimpleFeatureTypes.createType(sftConfPoint)
 
-      val conv = SimpleFeatureConverters.build[String](sft, conf)
-      val features = conv.processInput(Iterator.apply(data)).toArray
-      features.length must be equalTo 1
+      val conv = SimpleFeatureConverter(sft, conf)
+      val features = conv.process(new ByteArrayInputStream(data)).toArray
+      features must haveLength(1)
       features(0).getAttribute("keytolookup").asInstanceOf[String] must be equalTo "foo"
     }
 
@@ -70,7 +74,8 @@ class EnrichmentCacheTest extends Specification {
       val conf = ConfigFactory.parseString(
         """
           | {
-          |   type         = "test"
+          |   type         = "delimited-text"
+          |   format       = "CSV"
           |   id-field     = "$id"
           |   caches = {
           |      test = {
@@ -81,17 +86,17 @@ class EnrichmentCacheTest extends Specification {
           |      }
           |   }
           |   fields = [
-          |     { name = "id",     transform = "toString($0)"      }
+          |     { name = "id",     transform = "toString($1)"      }
           |     { name = "keytolookup", transform = "cacheLookup('test', $id, 'name')"   }
-          |     { name = "lat",    transform = "$1::double"       }
-          |     { name = "lon",    transform = "$2::double"       }
+          |     { name = "lat",    transform = "$2::double"       }
+          |     { name = "lon",    transform = "$3::double"       }
           |     { name = "geom",   transform = "point($lon, $lat)" }
           |   ]
           | }
         """.stripMargin
       )
 
-      val data = "1,35.0,35.0"
+      val data = "1,35.0,35.0".getBytes(StandardCharsets.UTF_8)
 
       val sftConfPoint = ConfigFactory.parseString(
         """{ type-name = "testsft"
@@ -104,9 +109,9 @@ class EnrichmentCacheTest extends Specification {
 
       val sft = SimpleFeatureTypes.createType(sftConfPoint)
 
-      val conv = SimpleFeatureConverters.build[String](sft, conf)
-      val features = conv.processInput(Iterator.apply(data)).toArray
-      features.length must be equalTo 1
+      val conv = SimpleFeatureConverter(sft, conf)
+      val features = conv.process(new ByteArrayInputStream(data)).toArray
+      features must haveLength(1)
       features(0).getAttribute("keytolookup").asInstanceOf[String] must be equalTo "foo"
 
     }

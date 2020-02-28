@@ -44,7 +44,6 @@ object AccumuloRunner extends RunnerWithAccumuloEnvironment {
     new status.AccumuloDescribeSchemaCommand,
     new status.AccumuloGetSftConfigCommand,
     new status.AccumuloGetTypeNamesCommand,
-    new status.AccumuloKeywordsCommand,
     new status.AccumuloVersionRemoteCommand,
     new stats.AccumuloStatsAnalyzeCommand,
     new stats.AccumuloStatsBoundsCommand,

@@ -11,8 +11,8 @@ package org.locationtech.geomesa.utils.index
 import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Envelope, Geometry, Point}
 import org.locationtech.geomesa.utils.geotools.GridSnap
+import org.locationtech.jts.geom.{Envelope, Geometry, Point}
 
 import scala.annotation.tailrec
 
@@ -44,13 +44,6 @@ class BucketIndex[T](xBuckets: Int = 360,
     buckets(i)(j).put(key, value)
   }
 
-  override def insert(envelope: Envelope, key: String, item: T): Unit = {
-    if (envelope.getArea > 0) {
-      logger.warn(s"This index only supports point inserts, but received $envelope - will insert using the centroid")
-    }
-    insert((envelope.getMinX + envelope.getMaxX) / 2.0, (envelope.getMinY + envelope.getMaxY) / 2.0, key, item)
-  }
-
   override def remove(geom: Geometry, key: String): T = {
     val pt = geom.asInstanceOf[Point]
     val i = snapX(pt.getX)
@@ -58,18 +51,12 @@ class BucketIndex[T](xBuckets: Int = 360,
     buckets(i)(j).remove(key)
   }
 
-  override def remove(envelope: Envelope, key: String): T =
-    remove((envelope.getMinX + envelope.getMaxX) / 2.0, (envelope.getMinY + envelope.getMaxY) / 2.0, key)
-
   override def get(geom: Geometry, key: String): T = {
     val pt = geom.asInstanceOf[Point]
     val i = snapX(pt.getX)
     val j = snapY(pt.getY)
     buckets(i)(j).get(key)
   }
-
-  override def get(envelope: Envelope, key: String): T =
-    get((envelope.getMinX + envelope.getMaxX) / 2.0, (envelope.getMinY + envelope.getMaxY) / 2.0, key)
 
   override def query(xmin: Double, ymin: Double, xmax: Double, ymax: Double): Iterator[T] =
     new BucketIterator(snapX(xmin), snapX(xmax), snapY(ymin), snapY(ymax))

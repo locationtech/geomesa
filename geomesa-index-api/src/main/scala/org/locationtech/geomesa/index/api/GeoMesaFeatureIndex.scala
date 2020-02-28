@@ -563,39 +563,4 @@ object GeoMesaFeatureIndex {
 
   private def stringFromBytes(bytes: Array[Byte], offset: Int, length: Int, ignored: SimpleFeature): String =
     new String(bytes, offset, length, StandardCharsets.UTF_8)
-
-  // deprecated methods
-
-  // noinspection ScalaDeprecation
-  @deprecated("Deprecated with no replacement")
-  def formatTableName(catalog: String, suffix: String, sft: SimpleFeatureType): String = {
-    if (sft.isTableSharing) {
-      formatSharedTableName(catalog, suffix)
-    } else {
-      formatSoloTableName(catalog, suffix, sft.getTypeName)
-    }
-  }
-
-  // noinspection ScalaDeprecation
-  @deprecated("Deprecated with no replacement")
-  def formatSoloTableName(prefix: String, suffix: String, typeName: String): String =
-    concatenate(prefix, hexEncodeNonAlphaNumeric(typeName), suffix)
-
-  // noinspection ScalaDeprecation
-  @deprecated("Deprecated with no replacement")
-  def formatSharedTableName(prefix: String, suffix: String): String =
-    concatenate(prefix, suffix)
-
-  // noinspection ScalaDeprecation
-  @deprecated("Deprecated with no replacement")
-  def tableSuffix(index: GeoMesaFeatureIndex[_, _], partition: Option[String] = None): String = {
-    val base = if (index.version == 1) { index.name } else { concatenate(index.name, s"v${index.version}") }
-    partition.map(concatenate(base, _)).getOrElse(base)
-  }
-
-  @deprecated("Deprecated with no replacement")
-  def concatenate(parts: String *): String = parts.mkString("_")
-
-  @deprecated("Replaced with org.locationtech.geomesa.utils.text.StringSerialization.alphaNumericSafeString")
-  def hexEncodeNonAlphaNumeric(input: String): String = StringSerialization.alphaNumericSafeString(input)
 }

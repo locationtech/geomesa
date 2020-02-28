@@ -14,12 +14,6 @@ package object accumulo {
 
   object AccumuloProperties {
 
-    object AccumuloQueryProperties {
-      // if we generate more ranges than this we will split them up into sequential scans
-      @deprecated("Use 'geomesa.scan.ranges.target'")
-      val SCAN_BATCH_RANGES = SystemProperty("geomesa.scan.ranges.batch", "20000")
-    }
-
     object AccumuloMapperProperties {
       val DESIRED_SPLITS_PER_TSERVER = SystemProperty("geomesa.mapreduce.splits.tserver.max")
       val DESIRED_ABSOLUTE_SPLITS = SystemProperty("geomesa.mapreduce.splits.max")

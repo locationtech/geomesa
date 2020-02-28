@@ -792,8 +792,8 @@ class JsonConverterTest extends Specification {
         val ec = converter.createEvaluationContext()
         val features = WithClose(converter.process(new ByteArrayInputStream(jsonStr.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
         features must haveLength(0)
-        ec.counter.getSuccess mustEqual 0
-        ec.counter.getFailure mustEqual 1
+        ec.success.getCount mustEqual 0
+        ec.failure.getCount mustEqual 1
       }
     }
 
@@ -997,8 +997,8 @@ class JsonConverterTest extends Specification {
         val ec = converter.createEvaluationContext()
         val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
         features must haveLength(1)
-        ec.counter.getSuccess mustEqual 1
-        ec.counter.getFailure mustEqual 0
+        ec.success.getCount mustEqual 1
+        ec.failure.getCount mustEqual 0
 
 
         val f = features.head
@@ -1129,8 +1129,8 @@ class JsonConverterTest extends Specification {
         val ec = converter.createEvaluationContext()
         val features = WithClose(converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec))(_.toList)
         features must haveLength(1)
-        ec.counter.getSuccess mustEqual 1
-        ec.counter.getFailure mustEqual 0
+        ec.success.getCount mustEqual 1
+        ec.failure.getCount mustEqual 0
         val f = features.head
 
         import org.locationtech.geomesa.utils.geotools.Conversions.RichSimpleFeature
@@ -1196,8 +1196,8 @@ class JsonConverterTest extends Specification {
         val iter = converter.process(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), ec)
         val features = iter.toList
         features must haveLength(0)
-        ec.counter.getSuccess mustEqual 0
-        ec.counter.getFailure mustEqual 1
+        ec.success.getCount mustEqual 0
+        ec.failure.getCount mustEqual 1
       }
     }
 

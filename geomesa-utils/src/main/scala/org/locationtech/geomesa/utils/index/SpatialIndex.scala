@@ -79,33 +79,6 @@ trait SpatialIndex[T] {
     * Remove all items from the index
     */
   def clear(): Unit
-
-  @deprecated("use insert(geometry, key, item)")
-  def insert(x: Double, y: Double, key: String, item: T): Unit = insert(SpatialIndex.geometry(x, y), key, item)
-
-  @deprecated("use insert(geometry, key, item)")
-  def insert(envelope: Envelope, key: String, item: T): Unit = insert(SpatialIndex.geometry(envelope), key, item)
-
-  @deprecated("use insert(geometry, key, item)")
-  def insert(envelope: Envelope, item: T): Unit = insert(SpatialIndex.geometry(envelope), item.toString, item)
-
-  @deprecated("use remove(geometry, key)")
-  def remove(x: Double, y: Double, key: String): T = remove(SpatialIndex.geometry(x, y), key)
-
-  @deprecated("use remove(geometry, key)")
-  def remove(envelope: Envelope, key: String): T = remove(SpatialIndex.geometry(envelope), key)
-
-  @deprecated("use remove(geometry, key)")
-  def remove(envelope: Envelope, item: T): Boolean = remove(SpatialIndex.geometry(envelope), item.toString) != null
-
-  @deprecated("use get(geometry, key)")
-  def get(x: Double, y: Double, key: String): T = get(SpatialIndex.geometry(x, y), key)
-
-  @deprecated("use get(geometry, key)")
-  def get(envelope: Envelope, key: String): T = get(SpatialIndex.geometry(envelope), key)
-
-  @deprecated("query(bbox).filter(predicate)")
-  def query(envelope: Envelope, filter: T => Boolean): Iterator[T] = query(envelope).filter(filter.apply)
 }
 
 object SpatialIndex {

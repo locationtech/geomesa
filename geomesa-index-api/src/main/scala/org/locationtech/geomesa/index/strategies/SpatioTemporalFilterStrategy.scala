@@ -67,15 +67,5 @@ trait SpatioTemporalFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 }
 
 object SpatioTemporalFilterStrategy {
-
   val StaticCost = 200L
-
-  /**
-    * Returns true if the temporal filters create a range with an upper and lower bound
-    */
-  @deprecated("deprecated with no replacement")
-  def isBounded(temporalFilter: Filter, sft: SimpleFeatureType, dtg: String): Boolean = {
-    val intervals = FilterHelper.extractIntervals(temporalFilter, dtg)
-    intervals.nonEmpty && intervals.values.forall(_.isBoundedBothSides)
-  }
 }

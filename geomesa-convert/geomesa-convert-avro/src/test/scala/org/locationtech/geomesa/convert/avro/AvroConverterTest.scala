@@ -60,9 +60,9 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
         sf.getAttributeCount must be equalTo 2
         sf.getAttribute("dtg") must not(beNull)
 
-        ec.counter.getFailure mustEqual 0L
-        ec.counter.getSuccess mustEqual 1L
-        ec.counter.getLineCount mustEqual 1L  // only 1 record passed in itr
+        ec.failure.getCount mustEqual 0L
+        ec.success.getCount mustEqual 1L
+        ec.line mustEqual 1L  // only 1 record passed in itr
       }
     }
 
@@ -96,9 +96,9 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
         sf.getAttribute("dtg") must not(beNull)
         sf.getUserData.get("my.user.key") mustEqual 45d
 
-        ec.counter.getFailure mustEqual 0L
-        ec.counter.getSuccess mustEqual 1L
-        ec.counter.getLineCount mustEqual 1L  // only 1 record passed in itr
+        ec.failure.getCount mustEqual 0L
+        ec.success.getCount mustEqual 1L
+        ec.line mustEqual 1L  // only 1 record passed in itr
       }
     }
 
@@ -132,9 +132,9 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
           sf.getAttribute("dtg") must not(beNull)
         }
 
-        ec.counter.getFailure mustEqual 0L
-        ec.counter.getSuccess mustEqual 2L
-        ec.counter.getLineCount mustEqual 2L
+        ec.failure.getCount mustEqual 0L
+        ec.success.getCount mustEqual 2L
+        ec.line mustEqual 2L
       }
     }
 
@@ -175,9 +175,9 @@ class AvroConverterTest extends Specification with AvroUtils with LazyLogging {
           sf.getAttribute("dtg") must not(beNull)
         }
 
-        ec.counter.getFailure mustEqual 0L
-        ec.counter.getSuccess mustEqual 2L
-        ec.counter.getLineCount mustEqual 2L
+        ec.failure.getCount mustEqual 0L
+        ec.success.getCount mustEqual 2L
+        ec.line mustEqual 2L
       }
     }
 

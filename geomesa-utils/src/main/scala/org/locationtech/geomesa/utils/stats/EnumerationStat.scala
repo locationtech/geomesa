@@ -24,9 +24,6 @@ class EnumerationStat[T](val sft: SimpleFeatureType, val property: String)(impli
 
   override type S = EnumerationStat[T]
 
-  @deprecated("property")
-  lazy val attribute: Int = i
-
   private val i = sft.indexOf(property)
   private [stats] val enumeration = scala.collection.mutable.HashMap.empty[T, Long].withDefaultValue(0)
 

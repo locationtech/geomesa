@@ -26,7 +26,7 @@ class BucketIndexTest extends Specification with LazyLogging {
   "BucketIndex" should {
     "be thread safe" in {
       val numFeatures = 100
-      val envelopes = (0 until numFeatures).map(i => (i, WKTUtils.read(s"POINT(45.$i 50)").getEnvelopeInternal)).toArray
+      val points = (0 until numFeatures).map(i => (i, WKTUtils.read(s"POINT(45.$i 50)"))).toArray
       val index = new BucketIndex[Int]()
       val running = new AtomicBoolean(true)
 
@@ -40,7 +40,7 @@ class BucketIndexTest extends Specification with LazyLogging {
           val r = new Random
           while (running.get) {
             val i = r.nextInt(numFeatures)
-            index.insert(envelopes(i)._2, i.toString, i)
+            index.insert(points(i)._2, i.toString, i)
             inserts += 1
           }
         }
@@ -50,7 +50,7 @@ class BucketIndexTest extends Specification with LazyLogging {
           val r = new Random
           while (running.get) {
             val i = r.nextInt(numFeatures)
-            index.query(envelopes(i)._2).foreach(_ => Unit)
+            index.query(points(i)._2.getEnvelopeInternal).foreach(_ => Unit)
             queries += 1
           }
         }
@@ -60,7 +60,7 @@ class BucketIndexTest extends Specification with LazyLogging {
           val r = new Random
           while (running.get) {
             val i = r.nextInt(numFeatures)
-            index.remove(envelopes(i)._2, i.toString)
+            index.remove(points(i)._2, i.toString)
             removes += 1
           }
         }
@@ -80,8 +80,7 @@ class BucketIndexTest extends Specification with LazyLogging {
         s"POINT($x $y)"
       }
       pts.foreach { pt =>
-        val env = WKTUtils.read(pt).getEnvelopeInternal
-        index.insert(env, pt, pt)
+        index.insert(WKTUtils.read(pt), pt, pt)
       }
       pts.foreach { pt =>
         val env = WKTUtils.read(pt).getEnvelopeInternal
@@ -95,7 +94,7 @@ class BucketIndexTest extends Specification with LazyLogging {
       val index = new BucketIndex[Point]()
       val pts = for (x <- -180 to 180; y <- -90 to 90) yield { WKTUtils.read(s"POINT($x $y)").asInstanceOf[Point] }
       pts.foreach { pt =>
-        index.insert(pt.getX, pt.getY, pt.toString, pt)
+        index.insert(pt, pt.toString, pt)
       }
       pts.foreach { pt =>
         val env = pt.getEnvelopeInternal
@@ -111,8 +110,7 @@ class BucketIndexTest extends Specification with LazyLogging {
         s"POINT($x $y)"
       }
       pts.foreach { pt =>
-        val env = WKTUtils.read(pt).getEnvelopeInternal
-        index.insert(env, pt, pt)
+        index.insert(WKTUtils.read(pt), pt, pt)
       }
       val bbox = new Envelope(-10, -8, 8, 10)
       val results = index.query(bbox).toSeq

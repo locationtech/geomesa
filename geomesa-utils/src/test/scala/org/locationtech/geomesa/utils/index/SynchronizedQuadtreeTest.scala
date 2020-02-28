@@ -28,13 +28,12 @@ class SynchronizedQuadtreeTest extends Specification with LazyLogging {
     "be thread safe" in {
       val qt = new SynchronizedQuadtree[Point]
       val pt = WKTUtils.read("POINT(45 50)").asInstanceOf[Point]
-      val env = pt.getEnvelopeInternal
       val wholeWorld = WKTUtils.read("POLYGON((-180 -90,180 -90,180 90,-180 90,-180 -90))").getEnvelopeInternal
       val t1 = new Thread(new Runnable() {
         override def run() = {
           var i = 0
           while (i < 1000) {
-            qt.insert(env, pt)
+            qt.insert(pt, pt.toString, pt)
             Thread.sleep(1)
             i += 1
           }
@@ -63,7 +62,7 @@ class SynchronizedQuadtreeTest extends Specification with LazyLogging {
         val (x, y) = (rand.nextInt(360) - 180 + rand.nextDouble(), rand.nextInt(180) - 90 + rand.nextDouble())
         WKTUtils.read(s"POINT($x $y)").asInstanceOf[Point]
       }
-      points.foreach(pt => qt.insert(pt.getEnvelopeInternal, pt))
+      points.foreach(pt => qt.insert(pt, "", pt))
       qt.writeWait.set(0)
       qt.totalWrites.set(0)
 
@@ -78,7 +77,7 @@ class SynchronizedQuadtreeTest extends Specification with LazyLogging {
             Thread.sleep(rand.nextInt(10))
             val (x, y) = (rand.nextInt(360) - 180 + rand.nextDouble(), rand.nextInt(180) - 90 + rand.nextDouble())
             val pt = WKTUtils.read(s"POINT($x $y)").asInstanceOf[Point]
-            qt.insert(pt.getEnvelopeInternal, pt)
+            qt.insert(pt, pt.toString, pt)
           }
         }
       }))
@@ -88,7 +87,7 @@ class SynchronizedQuadtreeTest extends Specification with LazyLogging {
           while (System.currentTimeMillis() < endTime) {
             Thread.sleep(rand.nextInt(200))
             val pt = points(rand.nextInt(points.size))
-            qt.remove(pt.getEnvelopeInternal, pt)
+            qt.remove(pt, pt.toString)
           }
         }
       }))
