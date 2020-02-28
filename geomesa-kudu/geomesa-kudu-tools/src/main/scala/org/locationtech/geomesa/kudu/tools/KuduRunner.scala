@@ -27,7 +27,6 @@ object KuduRunner extends Runner {
     new ingest.KuduIngestCommand,
     new status.KuduDescribeSchemaCommand,
     new status.KuduExplainCommand,
-    new status.KuduKeywordsCommand,
     new status.KuduGetTypeNamesCommand,
     new status.KuduGetSftConfigCommand,
     new stats.KuduStatsBoundsCommand,

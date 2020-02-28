@@ -21,9 +21,9 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.index.VisibilityLevel.VisibilityLevel
+import org.locationtech.geomesa.utils.stats.Cardinality
 import org.locationtech.geomesa.utils.stats.Cardinality._
 import org.locationtech.geomesa.utils.stats.IndexCoverage._
-import org.locationtech.geomesa.utils.stats.{Cardinality, IndexCoverage}
 import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -112,11 +112,6 @@ object RichAttributeDescriptors {
   // noinspection AccessorLikeMethodIsEmptyParen
   implicit class RichAttributeDescriptor(val ad: AttributeDescriptor) extends AnyVal {
 
-    @deprecated
-    def setIndexCoverage(coverage: IndexCoverage): Unit = ad.getUserData.put(OptIndex, coverage.toString)
-    @deprecated("Use AttributeIndex.indexed()")
-    def getIndexCoverage(): IndexCoverage = IndexCoverage.NONE
-
     def setKeepStats(enabled: Boolean): Unit = if (enabled) {
       ad.getUserData.put(OptStats, "true")
     } else {
@@ -138,11 +133,6 @@ object RichAttributeDescriptors {
 
     def isJson(): Boolean = Option(ad.getUserData.get(OptJson)).contains("true")
 
-    @deprecated
-    def setBinTrackId(opt: Boolean): Unit = {}
-    @deprecated
-    def isBinTrackId(): Boolean = false
-
     def setListType(typ: Class[_]): Unit = ad.getUserData.put(UserDataListType, typ.getName)
 
     def getListType(): Class[_] = tryClass(ad.getUserData.get(UserDataListType).asInstanceOf[String])
@@ -156,9 +146,6 @@ object RichAttributeDescriptors {
       (tryClass(ad.getUserData.get(UserDataMapKeyType)), tryClass(ad.getUserData.get(UserDataMapValueType)))
 
     private def tryClass(value: AnyRef): Class[_] = Try(Class.forName(value.asInstanceOf[String])).getOrElse(null)
-
-    @deprecated("Use AttributeIndex.indexed()")
-    def isIndexed: Boolean = false
 
     def isList: Boolean = ad.getUserData.containsKey(UserDataListType)
 
@@ -210,8 +197,6 @@ object RichSimpleFeatureType {
 
     def getDtgField: Option[String] = userData[String](DefaultDtgField)
     def getDtgIndex: Option[Int] = getDtgField.map(sft.indexOf).filter(_ != -1)
-    @deprecated
-    def getDtgDescriptor: Option[AttributeDescriptor] = getDtgIndex.map(sft.getDescriptor)
     def clearDtgField(): Unit = sft.getUserData.remove(DefaultDtgField)
     def setDtgField(dtg: String): Unit = {
       val descriptor = sft.getDescriptor(dtg)
@@ -224,15 +209,7 @@ object RichSimpleFeatureType {
       Option(sft.getUserData.get(StatsEnabled)).forall(FastConverter.convert(_, classOf[java.lang.Boolean]))
     def setStatsEnabled(enabled: Boolean): Unit = sft.getUserData.put(StatsEnabled, enabled.toString)
 
-    @deprecated("GeoHash index is not longer supported")
-    def getStIndexSchema: String = null
-    @deprecated("GeoHash index is not longer supported")
-    def setStIndexSchema(schema: String): Unit = {}
-
     def isLogicalTime: Boolean = userData[String](TableLogicalTime).forall(_.toBoolean)
-
-    @deprecated
-    def getBinTrackId: Option[String] = None
 
     def isPoints: Boolean = {
       val gd = sft.getGeometryDescriptor
@@ -269,13 +246,10 @@ object RichSimpleFeatureType {
     def setXZPrecision(p: Short): Unit = sft.getUserData.put(IndexXzPrecision, p.toString)
 
     // note: defaults to false now
+    @deprecated("table sharing no longer supported")
     def isTableSharing: Boolean = userData[String](TableSharing).exists(_.toBoolean)
     @deprecated("table sharing no longer supported")
-    def setTableSharing(sharing: Boolean): Unit = sft.getUserData.put(TableSharing, sharing.toString)
-
     def getTableSharingPrefix: String = userData[String](TableSharingPrefix).getOrElse("")
-    @deprecated("table sharing no longer supported")
-    def setTableSharingPrefix(prefix: String): Unit = sft.getUserData.put(TableSharingPrefix, prefix)
 
     def getTableSharingBytes: Array[Byte] = if (sft.isTableSharing) {
       sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
@@ -298,11 +272,6 @@ object RichSimpleFeatureType {
     def getUserDataPrefixes: Seq[String] =
       Seq(GeomesaPrefix) ++ userData[String](UserDataPrefix).map(_.split(",")).getOrElse(Array.empty)
 
-    @deprecated("Table splitter key can vary with partitioning scheme")
-    def getTableSplitter: Option[Class[_]] = userData[String](TableSplitterClass).map(Class.forName)
-    @deprecated("Table splitter options key can vary with partitioning scheme")
-    def getTableSplitterOptions: String = userData[String](TableSplitterOpts).orNull
-
     def setZShards(splits: Int): Unit = sft.getUserData.put(IndexZShards, splits.toString)
     def getZShards: Int = userData[String](IndexZShards).map(_.toInt).getOrElse(4)
 
@@ -324,8 +293,6 @@ object RichSimpleFeatureType {
       userData[String](Configs.FeatureExpiration).map(org.locationtech.geomesa.utils.conf.FeatureExpiration.apply(sft, _))
     def isFeatureExpirationEnabled: Boolean = sft.getUserData.containsKey(Configs.FeatureExpiration)
 
-    @deprecated
-    def setRemoteVersion(version: SemanticVersion): Unit = sft.getUserData.put(RemoteVersion, String.valueOf(version))
     def getRemoteVersion: Option[SemanticVersion] =
       Option(sft.getUserData.get(RemoteVersion).asInstanceOf[String]).map(SemanticVersion.apply)
 

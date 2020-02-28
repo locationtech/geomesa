@@ -6,19 +6,20 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.convert.scripting
+package org.locationtech.geomesa.convert2.transforms
 
 import java.io.File
 import java.net.URI
 import java.nio.file.FileSystems
 import java.util.Collections
-import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager}
 
 import com.google.common.io.Files
 import com.typesafe.scalalogging.LazyLogging
+import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager}
 import org.apache.commons.io.filefilter.TrueFileFilter
 import org.apache.commons.io.{FileUtils, IOUtils}
-import org.locationtech.geomesa.convert.{EvaluationContext, TransformerFn, TransformerFunctionFactory}
+import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 import scala.collection.JavaConversions._
@@ -32,9 +33,7 @@ class ScriptingFunctionFactory extends TransformerFunctionFactory with LazyLoggi
 
   import ScriptingFunctionFactory._
 
-  lazy val functions = init()
-
-  private def init() = {
+  override lazy val functions: Seq[TransformerFunction] = {
     val curClassLoader = Thread.currentThread().getContextClassLoader
     val scriptURIs = loadScriptsFromEnvironment ++ loadScripts(curClassLoader)
 
@@ -68,8 +67,11 @@ class ScriptingFunctionFactory extends TransformerFunctionFactory with LazyLoggi
 }
 
 object ScriptingFunctionFactory extends LazyLogging {
-  final val ConvertScriptsPathProperty = "geomesa.convert.scripts.path"
-  final val ConvertScriptsClassPath    = "geomesa-convert-scripts"
+
+  val ConvertScriptsPathProperty = "geomesa.convert.scripts.path"
+  val ConvertScriptsClassPath    = "geomesa-convert-scripts"
+
+  val ConvertScriptsPath: SystemProperty = SystemProperty(ConvertScriptsPathProperty)
 
   /**
     * <p>Load scripts from the environment using the property "geomesa.convert.scripts.path"
@@ -78,19 +80,17 @@ object ScriptingFunctionFactory extends LazyLogging {
     * kind of script they are (e.g. js = javascript)</p>
     */
   def loadScriptsFromEnvironment: Seq[URI] = {
-    val v = SystemProperty(ConvertScriptsPathProperty).get
-    if (v == null) Seq.empty[URI]
-    else {
-      v.split(":")
-        .map { d => new File(d) }
-        .filter { f => f.exists() && f.canRead && (if (f.isDirectory) f.canExecute else true) }
-        .flatMap { f =>
-          if (f.isDirectory) {
-            FileUtils.listFiles(f, TrueFileFilter.TRUE, TrueFileFilter.TRUE).map(_.toURI)
-          } else {
-            Seq(f.toURI)
-          }
+    ConvertScriptsPath.option.toSeq.flatMap(_.split(":")).flatMap { path =>
+      val f = new File(path)
+      if (!f.exists() || !f.canRead) {
+        Seq.empty
+      } else if (f.isDirectory) {
+        if (!f.canExecute) { Seq.empty } else {
+          FileUtils.listFiles(f, TrueFileFilter.TRUE, TrueFileFilter.TRUE).map(_.toURI)
         }
+      } else {
+        Seq(f.toURI)
+      }
     }
   }
 
@@ -119,13 +119,11 @@ object ScriptingFunctionFactory extends LazyLogging {
       }
     }
   }
-}
 
-class ScriptTransformerFn(ext: String, name: String, engine: Invocable) extends TransformerFn {
-
-  override def names: Seq[String] = Seq(s"$ext:$name")
-
-  override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
-    engine.asInstanceOf[Invocable].invokeFunction(name, args.asInstanceOf[Array[_ <: Object]]: _*)
+  class ScriptTransformerFn(ext: String, name: String, engine: Invocable)
+      extends NamedTransformerFunction(Seq(s"$ext:$name")) {
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
+      engine.asInstanceOf[Invocable].invokeFunction(name, args.asInstanceOf[Array[_ <: Object]]: _*)
   }
 }
+

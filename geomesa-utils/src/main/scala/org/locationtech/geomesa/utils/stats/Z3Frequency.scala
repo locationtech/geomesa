@@ -42,11 +42,6 @@ class Z3Frequency(
 
   override type S = Z3Frequency
 
-  @deprecated("geom")
-  lazy val geomIndex: Int = g
-  @deprecated("dtg")
-  lazy val dtgIndex: Int = d
-
   private val g = sft.indexOf(geom)
   private val d = sft.indexOf(dtg)
 

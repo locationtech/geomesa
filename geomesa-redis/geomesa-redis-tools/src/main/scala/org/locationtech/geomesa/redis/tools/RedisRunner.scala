@@ -27,7 +27,6 @@ object RedisRunner extends Runner {
     new schema.RedisDescribeSchemaCommand,
     new schema.RedisGetSftConfigCommand,
     new schema.RedisGetTypeNamesCommand,
-    new schema.RedisKeywordsCommand,
     new schema.RedisManagePartitionsCommand(this, jc),
     new schema.RedisRemoveSchemaCommand,
     new schema.RedisUpdateSchemaCommand,

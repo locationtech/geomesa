@@ -39,7 +39,6 @@ object HBaseRunner extends Runner {
     new status.HBaseExplainCommand,
     new status.HBaseGetSftConfigCommand,
     new status.HBaseGetTypeNamesCommand,
-    new status.HBaseKeywordsCommand,
     new status.HBaseVersionRemoteCommand,
     // common commands, placeholders for script functions
     new ConvertCommand,

@@ -13,7 +13,7 @@ import java.util.Collections
 
 import org.geotools.data.shapefile.{ShapefileDataStore, ShapefileDataStoreFactory}
 import org.geotools.data.{DataStoreFinder, Query}
-import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.AbstractConverter
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -32,17 +32,6 @@ class ShapefileConverter(sft: SimpleFeatureType, config: BasicConfig, fields: Se
     // used for accessing shapefile properties by name in ShapefileFunctionFactory
     val shpParams = Map(InputSchemaKey -> Array.empty[String], InputValuesKey -> Array.empty[Any])
     super.createEvaluationContext(globalParams ++ shpParams)
-  }
-
-  // noinspection ScalaDeprecation
-  override def createEvaluationContext(
-      globalParams: Map[String, Any],
-      caches: Map[String, EnrichmentCache],
-      counter: org.locationtech.geomesa.convert.Counter): EvaluationContext = {
-    // inject placeholders for shapefile attributes into the evaluation context
-    // used for accessing shapefile properties by name in ShapefileFunctionFactory
-    val shpParams = Map(InputSchemaKey -> Array.empty[String], InputValuesKey -> Array.empty[Any])
-    super.createEvaluationContext(globalParams ++ shpParams, caches, counter)
   }
 
   override protected def parse(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {

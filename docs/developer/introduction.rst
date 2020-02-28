@@ -104,12 +104,10 @@ GeoMesa Project Structure
 * **geomesa-kafka**: ``DataStore`` implementation for Apache Kafka, for near-real-time streaming data
 * **geomesa-lambda**: ``DataStore`` implementation that seamlessly uses Kafka for frequent updates and Accumulo for long-term persistence
 * **geomesa-memory**: In-memory indexing code
-* **geomesa-metrics**: Extensions and configuration for DropWizard metrics integration
 * **geomesa-process**: Analytic processes optimized for GeoMesa stores
 * **geomesa-security**: API for managing security and authorization levels in GeoMesa
 * **geomesa-spark**: Apache Spark integration
 * **geomesa-stream**: ``DataStore`` implementation that reads features from arbitrary URLs
-* **geomesa-test**: Integration testing scripts
 * **geomesa-tools**: Command-line tools for ingesting, querying and managing data in GeoMesa
 * **geomesa-utils**: Common utility code
 * **geomesa-web**: REST-ful web services for integrating with GeoMesa

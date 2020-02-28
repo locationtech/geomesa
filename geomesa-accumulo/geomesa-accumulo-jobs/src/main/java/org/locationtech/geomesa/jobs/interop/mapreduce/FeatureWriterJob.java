@@ -13,6 +13,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.geotools.data.DataStore;
+import org.geotools.data.DataStoreFinder;
 import org.geotools.data.Query;
 import org.geotools.filter.text.ecql.ECQL;
 import org.locationtech.geomesa.features.ScalaSimpleFeature;
@@ -69,7 +71,7 @@ public class FeatureWriterJob {
         job.setMapOutputValueClass(ScalaSimpleFeature.class);
         job.setNumReduceTasks(0);
 
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<>();
         params.put("instanceId", "myinstance");
         params.put("zookeepers", "zoo1,zoo2,zoo3");
         params.put("user", "myuser");
@@ -80,14 +82,17 @@ public class FeatureWriterJob {
 
         GeoMesaAccumuloInputFormat.configure(job, params, query);
 
-        Map<String, String> outParams = new HashMap<String, String>();
+        Map<String, String> outParams = new HashMap<>();
         outParams.put("instanceId", "myinstance");
         outParams.put("zookeepers", "zoo1,zoo2,zoo3");
         outParams.put("user", "myuser");
         outParams.put("password", "mypassword");
         outParams.put("tableName", "mycatalog_2");
 
-        GeoMesaOutputFormat.configureDataStore(job, outParams);
+        DataStore ds = DataStoreFinder.getDataStore(params);
+        SimpleFeatureType sft = ds.getSchema(query.getTypeName());
+        GeoMesaOutputFormat.setOutput(job.getConfiguration(), outParams, sft);
+        ds.dispose();
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }

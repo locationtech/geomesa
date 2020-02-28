@@ -41,9 +41,6 @@ class ParquetConverterFactory
   override protected implicit def fieldConvert: FieldConvert[BasicField] = BasicFieldConvert
   override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
 
-  override def infer(is: InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] =
-    infer(is, sft, None)
-
   /**
     * Handles parquet files (including those produced by the FSDS and CLI export)
     *

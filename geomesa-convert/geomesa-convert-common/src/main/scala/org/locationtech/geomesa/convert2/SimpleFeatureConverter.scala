@@ -12,7 +12,6 @@ import java.io.{Closeable, InputStream}
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
-import org.locationtech.geomesa.convert
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -47,11 +46,7 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
     * @param globalParams global key-values to make accessible through the evaluation context
     * @return
     */
-  def createEvaluationContext(globalParams: Map[String, Any] = Map.empty): EvaluationContext = {
-    logger.warn(s"createEvaluationContext not implemented, using deprecated method: ${getClass.getName}")
-    // noinspection ScalaDeprecation
-    createEvaluationContext(globalParams, Map.empty, new DefaultCounter)
-  }
+  def createEvaluationContext(globalParams: Map[String, Any] = Map.empty): EvaluationContext
 
   /**
     * Java API for `createEvaluationContext`
@@ -61,31 +56,13 @@ trait SimpleFeatureConverter extends Closeable with LazyLogging {
     */
   final def createEvaluationContext(globalParams: java.util.Map[String, Any]): EvaluationContext =
     createEvaluationContext(globalParams.asScala.toMap)
-
-  /**
-    * Creates a context used for local state while processing
-    */
-  // noinspection ScalaDeprecation
-  @deprecated
-  def createEvaluationContext(
-      globalParams: Map[String, Any],
-      caches: Map[String, EnrichmentCache],
-      counter: Counter): EvaluationContext = {
-    val keys = globalParams.keys.toIndexedSeq
-    val values = keys.map(globalParams.apply).toArray
-    EvaluationContext(keys, values, counter, caches)
-  }
 }
 
 object SimpleFeatureConverter extends StrictLogging {
 
   val factories: List[SimpleFeatureConverterFactory] = ServiceLoader.load[SimpleFeatureConverterFactory]()
 
-  // noinspection ScalaDeprecation
-  private val factoriesV1 = ServiceLoader.load[convert.SimpleFeatureConverterFactory[_]]()
-
-  logger.debug(s"Found ${factories.size + factoriesV1.size} factories: " +
-      (factories ++ factoriesV1).map(_.getClass.getName).mkString(", "))
+  logger.debug(s"Found ${factories.size} factories: ${factories.map(_.getClass.getName).mkString(", ")}")
 
   /**
     * Create a converter
@@ -96,12 +73,7 @@ object SimpleFeatureConverter extends StrictLogging {
     */
   def apply(sft: SimpleFeatureType, config: Config): SimpleFeatureConverter = {
     factories.toStream.flatMap(_.apply(sft, config)).headOption.getOrElse {
-      factoriesV1.toStream.filter(_.canProcess(config)).map(_.buildConverter(sft, config)).headOption match {
-        case None => throw new IllegalArgumentException(s"Cannot find factory for ${sft.getTypeName}")
-        case Some(v1) =>
-          logger.warn(s"Wrapping deprecated converter of class ${v1.getClass.getName}, converter will not be closed")
-          new SimpleFeatureConverterWrapper(v1)
-      }
+      throw new IllegalArgumentException(s"Cannot find factory for ${sft.getTypeName}")
     }
   }
 
@@ -147,25 +119,5 @@ object SimpleFeatureConverter extends StrictLogging {
     factories.foldLeft[Option[(SimpleFeatureType, Config)]](None) { (res, f) =>
       res.orElse(WithClose(is())(in => f.infer(in, sft, path)))
     }
-  }
-
-  // noinspection ScalaDeprecation
-  class SimpleFeatureConverterWrapper(converter: convert.SimpleFeatureConverter[_]) extends SimpleFeatureConverter {
-
-    override def targetSft: SimpleFeatureType = converter.targetSFT
-
-    override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] =
-      converter.process(is, ec)
-
-    override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
-      converter.createEvaluationContext(globalParams, new DefaultCounter)
-
-    override def createEvaluationContext(globalParams: Map[String, Any],
-                                         caches: Map[String, EnrichmentCache],
-                                         counter: Counter): EvaluationContext = {
-      converter.createEvaluationContext(globalParams, counter)
-    }
-
-    override def close(): Unit = converter.close()
   }
 }

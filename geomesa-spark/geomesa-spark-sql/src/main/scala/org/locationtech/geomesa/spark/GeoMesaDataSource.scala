@@ -54,10 +54,6 @@ class GeoMesaDataSource extends DataSourceRegister
     GeoMesaRelation(sqlContext, parameters, schema)
   }
 
-  @deprecated("Use SparkUtils.createFeatureType")
-  def structType2SFT(struct: StructType, name: String): SimpleFeatureType =
-    SparkUtils.createFeatureType(name, struct)
-
   override def createRelation(
       sqlContext: SQLContext,
       mode: SaveMode,

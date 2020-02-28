@@ -31,8 +31,8 @@ class SpatialIndexSupportTest extends Specification {
   }
 
   step {
-    sis.index.insert(f1.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal, f1.getID, f1)
-    sis.index.insert(f2.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal, f2.getID, f2)
+    sis.index.insert(f1.getDefaultGeometry.asInstanceOf[Geometry], f1.getID, f1)
+    sis.index.insert(f2.getDefaultGeometry.asInstanceOf[Geometry], f2.getID, f2)
   }
 
   "SpatialIndexSupport" should {

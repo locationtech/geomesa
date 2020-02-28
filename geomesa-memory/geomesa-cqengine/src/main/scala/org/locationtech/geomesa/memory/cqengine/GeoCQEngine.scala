@@ -99,12 +99,6 @@ class GeoCQEngine(val sft: SimpleFeatureType,
   def size(): Int = cqcache.size()
   def clear(): Unit = cqcache.clear()
 
-  @deprecated def add(sf: SimpleFeature): Boolean = cqcache.add(sf)
-  @deprecated def addAll(sfs: util.Collection[SimpleFeature]): Boolean = cqcache.addAll(sfs)
-  @deprecated def remove(sf: SimpleFeature): Boolean = cqcache.remove(sf)
-  @deprecated def getById(id: String): Option[SimpleFeature] = Option(get(id))
-  @deprecated def getReaderForFilter(filter: Filter): Iterator[SimpleFeature] = query(filter)
-
   private def addIndices(): Unit = {
 
     import CQIndexType._

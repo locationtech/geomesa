@@ -30,28 +30,11 @@ trait SimpleFeatureConverterFactory extends LazyLogging {
     *
     * @param is input
     * @param sft simple feature type, if known ahead of time
-    * @return
-    */
-  @deprecated("Use infer(InputStream, Option[SimpleFeatureType], Option[String])")
-  def infer(is: InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] = None
-
-  /**
-    * Infer a configuration and simple feature type from an input stream, if possible
-    *
-    * @param is input
-    * @param sft simple feature type, if known ahead of time
     * @param path file path, if there is a file available
     * @return
     */
   def infer(
       is: InputStream,
       sft: Option[SimpleFeatureType] = None,
-      path: Option[String] = None): Option[(SimpleFeatureType, Config)] = {
-    // noinspection ScalaDeprecation
-    val result = infer(is, sft) // delegate to old method for back compatibility
-    if (result.isDefined) {
-      logger.warn("Using deprecated infer method - please implement new API")
-    }
-    result
-  }
+      path: Option[String] = None): Option[(SimpleFeatureType, Config)] = None
 }
