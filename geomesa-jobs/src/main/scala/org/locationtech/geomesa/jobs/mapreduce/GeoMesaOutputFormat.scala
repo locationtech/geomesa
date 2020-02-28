@@ -79,15 +79,6 @@ object GeoMesaOutputFormat {
     indices.foreach(GeoMesaConfigurator.setIndicesOut(conf, _))
   }
 
-  @deprecated("use setOutput")
-  def configureDataStore(job: Job, params: Map[String, String]): Unit = {
-    WithStore[DataStore](params) { ds =>
-      require(ds != null, "Invalid data store parameters")
-      GeoMesaConfigurator.setDataStoreOutParams(job.getConfiguration, params)
-      ds.getTypeNames.map(ds.getSchema).foreach(GeoMesaConfigurator.setSerialization(job.getConfiguration, _))
-    }
-  }
-
   /**
     * Record writer for GeoMesa datastores.
     *

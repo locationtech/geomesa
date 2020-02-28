@@ -87,9 +87,6 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     */
   def auths: Authorizations = new Authorizations(config.authProvider.getAuthorizations.asScala: _*)
 
-  @deprecated("Use connector.tableOperations()")
-  lazy val tableOps: TableOperations = connector.tableOperations()
-
   override def delete(): Unit = {
     // note: don't delete the query audit table
     val all = getTypeNames.toSeq.flatMap(getAllTableNames).distinct
@@ -359,8 +356,7 @@ object AccumuloDataStore extends LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  @deprecated
-  val DeprecatedSchemaVersionKey = "geomesa.version"
+  private val DeprecatedSchemaVersionKey = "geomesa.version"
 
   /**
     * Configuration options for AccumuloDataStore

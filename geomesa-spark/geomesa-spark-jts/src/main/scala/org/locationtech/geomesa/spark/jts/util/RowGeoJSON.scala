@@ -10,11 +10,10 @@ package org.locationtech.geomesa.spark.jts.util
 
 import java.{lang => jl}
 
+import org.apache.spark.sql.Row
+import org.apache.spark.sql.types._
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.io.geojson.GeoJsonWriter
-import org.apache.spark.sql.{DataFrame, Dataset, Row}
-import org.apache.spark.sql.jts.JTSTypes
-import org.apache.spark.sql.types._
 
 class RowGeoJSON(structType: StructType, geomOrdinal: Int) {
 
@@ -53,37 +52,5 @@ class RowGeoJSON(structType: StructType, geomOrdinal: Int) {
     sb.append("}") // close feature
 
     sb.toString
-  }
-}
-
-@deprecated("Use org.locationtech.geomesa.spark.GeoJSONExtensions")
-object GeoJSONExtensions {
-
-  implicit def geoJsonDataFrame(df: DataFrame): GeoJSONDataFrame = new GeoJSONDataFrame(df)
-
-  class GeoJSONDataFrame(df: DataFrame) extends Serializable {
-
-    import org.locationtech.geomesa.spark.jts.encoders.SparkDefaultEncoders.stringEncoder
-    val schema: StructType = df.schema
-
-    def toGeoJSON(geomOrdinal: Int): Dataset[String] = {
-      df.mapPartitions { iter =>
-        val rowGeoJSON = new RowGeoJSON(schema, geomOrdinal)
-        val res = iter.map{ r => rowGeoJSON.toGeoJSON(r) }
-        res
-      }
-    }
-
-    def toGeoJSON: Dataset[String] = {
-      val foundOrdinal = schema.fields.indexWhere(sf => {
-        JTSTypes.typeMap.values.exists(_.equals(sf.dataType.getClass))
-      })
-
-      if (foundOrdinal == -1) {
-        throw new IllegalArgumentException("Provided schema does not have a geometry type")
-      } else {
-        toGeoJSON(foundOrdinal)
-      }
-    }
   }
 }

@@ -79,7 +79,6 @@ object SimpleFeatureTypes {
   }
 
   object AttributeOptions {
-
     val OptCardinality  = "cardinality"
     val OptColumnGroups = "column-groups"
     val OptCqIndex      = "cq-index"
@@ -90,27 +89,6 @@ object SimpleFeatureTypes {
     val OptPrecision    = "precision"
     val OptSrid         = "srid"
     val OptStats        = "keep-stats"
-
-    @deprecated("OptDefault")
-    val OPT_DEFAULT: String = OptDefault
-    @deprecated("OptSrid")
-    val OPT_SRID: String = OptSrid
-    @deprecated("OptIndexValue")
-    val OPT_INDEX_VALUE: String = OptIndexValue
-    @deprecated("OptIndex")
-    val OPT_INDEX: String = OptIndex
-    @deprecated("OptStats")
-    val OPT_STATS: String = OptStats
-    @deprecated("OptCardinality")
-    val OPT_CARDINALITY: String = OptCardinality
-    @deprecated("OptColumnGroups")
-    val OPT_COL_GROUPS: String = OptColumnGroups
-    @deprecated("OptCqIndex")
-    val OPT_CQ_INDEX: String = OptCqIndex
-    @deprecated("OptJson")
-    val OPT_JSON: String = OptJson
-    @deprecated("OptPrecision")
-    val OPT_PRECISION: String = OptPrecision
   }
 
   private [geomesa] object AttributeConfigs {
@@ -492,13 +470,6 @@ object SimpleFeatureTypes {
       (name.substring(0, nsIndex), name.substring(nsIndex + 1))
     }
     (namespace, local)
-  }
-
-  @deprecated("Use AttributeIndex.indexed()")
-  def getSecondaryIndexedAttributes(sft: SimpleFeatureType): Seq[AttributeDescriptor] = {
-    sft.getIndices.flatMap { i =>
-      i.attributes.headOption.map(sft.getDescriptor).filterNot(_.isInstanceOf[GeometryDescriptor])
-    }
   }
 
   private [utils] def toBoolean(value: AnyRef): Boolean = value match {

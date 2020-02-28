@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.index
 
-import org.locationtech.jts.geom.{Coordinate, Envelope, Geometry, GeometryFactory}
+import org.locationtech.jts.geom.{Envelope, Geometry}
 
 /**
  * Trait for indexing and querying spatial data
@@ -79,29 +79,4 @@ trait SpatialIndex[T] {
     * Remove all items from the index
     */
   def clear(): Unit
-}
-
-object SpatialIndex {
-
-  private val gf = new GeometryFactory()
-
-  @deprecated
-  def getCenter(envelope: Envelope): (Double, Double) = {
-    val x = (envelope.getMinX + envelope.getMaxX) / 2.0
-    val y = (envelope.getMinY + envelope.getMaxY) / 2.0
-    (x, y)
-  }
-
-  private def geometry(x: Double, y: Double): Geometry = gf.createPoint(new Coordinate(x, y))
-
-  private def geometry(envelope: Envelope): Geometry = {
-    val coords = Array(
-      new Coordinate(envelope.getMinX, envelope.getMinY),
-      new Coordinate(envelope.getMaxX, envelope.getMinY),
-      new Coordinate(envelope.getMaxX, envelope.getMaxY),
-      new Coordinate(envelope.getMinX, envelope.getMaxY),
-      new Coordinate(envelope.getMinX, envelope.getMinY)
-    )
-    gf.createPolygon(coords)
-  }
 }

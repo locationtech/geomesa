@@ -116,13 +116,6 @@ object AccumuloVersion extends Enumeration with LazyLogging {
     }
   }
 
-  @deprecated("Replaced with createTableIfNeeded")
-  def ensureTableExists(connector: Connector, table: String, logical: Boolean = true): Unit =
-    createTableIfNeeded(connector, table, logical)
-
-  @deprecated("Replaced with createNamespaceIfNeeded")
-  def ensureNamespaceExists(connector: Connector, namespace: String): Unit = createNamespaceIfNeeded(connector, namespace)
-
   private def nameSpaceExists(nsOps: AnyRef, nsOpsClass: Class[_], ns: String): Boolean = {
     val existsMethod = nsOpsClass.getMethod("exists", classOf[String])
     existsMethod.setAccessible(true)
