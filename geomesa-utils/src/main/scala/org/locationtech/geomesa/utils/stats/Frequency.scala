@@ -55,11 +55,6 @@ class Frequency[T](
 
   override type S = Frequency[T]
 
-  @deprecated("property")
-  lazy val attribute: Int = i
-  @deprecated("dtg")
-  lazy val dtgIndex: Int = d
-
   private val i = sft.indexOf(property)
   private val d = dtg.map(sft.indexOf).getOrElse(-1)
 

@@ -44,7 +44,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.OverrideDtgJoin
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode, VisibilityLevel}
-import org.locationtech.geomesa.utils.io.HadoopUtils.logger
 import org.locationtech.geomesa.utils.io.{CloseQuietly, HadoopUtils, WithClose}
 import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -87,9 +86,6 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     * @return
     */
   def auths: Authorizations = new Authorizations(config.authProvider.getAuthorizations.asScala: _*)
-
-  @deprecated("Use connector.tableOperations()")
-  lazy val tableOps: TableOperations = connector.tableOperations()
 
   override def delete(): Unit = {
     // note: don't delete the query audit table
@@ -303,15 +299,12 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
           sft.getUserData.put(AccumuloDataStore.DeprecatedSchemaVersionKey,
             metadata.readRequired(typeName, GeoMesaMetadata.VersionKey))
 
-          // If no data is written, we default to 'false' in order to support old tables.
+          // if no data is written, we default to 'false' in order to support old tables
           if (metadata.read(typeName, "tables.sharing").exists(_.toBoolean)) {
-            sft.setTableSharing(true)
+            sft.getUserData.put(SimpleFeatureTypes.Configs.TableSharing, "true")
             // use schema id if available or fall back to old type name for backwards compatibility
             val prefix = metadata.read(typeName, "id").getOrElse(s"${sft.getTypeName}~")
-            sft.setTableSharingPrefix(prefix)
-          } else {
-            sft.setTableSharing(false)
-            sft.setTableSharingPrefix("")
+            sft.getUserData.put(SimpleFeatureTypes.InternalConfigs.TableSharingPrefix, prefix)
           }
           SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.foreach { i =>
             metadata.read(typeName, i).foreach(e => sft.getUserData.put(SimpleFeatureTypes.Configs.EnabledIndices, e))
@@ -363,8 +356,7 @@ object AccumuloDataStore extends LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  @deprecated
-  val DeprecatedSchemaVersionKey = "geomesa.version"
+  private val DeprecatedSchemaVersionKey = "geomesa.version"
 
   /**
     * Configuration options for AccumuloDataStore

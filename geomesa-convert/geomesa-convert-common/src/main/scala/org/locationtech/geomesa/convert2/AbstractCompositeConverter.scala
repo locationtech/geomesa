@@ -39,14 +39,6 @@ abstract class AbstractCompositeConverter[T](
   override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
     new CompositeEvaluationContext(converters.map(_.createEvaluationContext(globalParams)))
 
-  // noinspection ScalaDeprecation
-  override def createEvaluationContext(
-      globalParams: Map[String, Any],
-      caches: Map[String, EnrichmentCache],
-      counter: org.locationtech.geomesa.convert.Counter): EvaluationContext = {
-    new CompositeEvaluationContext(converters.map(_.createEvaluationContext(globalParams, caches, counter)))
-  }
-
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
     val cec = ec match {
       case c: CompositeEvaluationContext => c
@@ -100,7 +92,5 @@ object AbstractCompositeConverter {
     override def metrics: ConverterMetrics = current.metrics
     override def success: Counter = current.success
     override def failure: Counter = current.failure
-    // noinspection ScalaDeprecation
-    override def counter: org.locationtech.geomesa.convert.Counter = current.counter
   }
 }

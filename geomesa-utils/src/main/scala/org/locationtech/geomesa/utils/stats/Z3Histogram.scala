@@ -43,11 +43,6 @@ class Z3Histogram(
 
   override type S = Z3Histogram
 
-  @deprecated("geom")
-  lazy val geomIndex: Int = g
-  @deprecated("dtg")
-  lazy val dtgIndex: Int = d
-
   private val g = sft.indexOf(geom)
   private val d = sft.indexOf(dtg)
 

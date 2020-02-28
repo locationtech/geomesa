@@ -81,13 +81,6 @@ trait EvaluationContext {
     * Clear any local (per-entry) state
     */
   def clear(): Unit
-
-  // noinspection ScalaDeprecation
-  @deprecated("Use `success` `failure` or `line`")
-  def counter: Counter
-
-  @deprecated("Use `cache`")
-  def getCache(k: String): EnrichmentCache = cache(k)
 }
 
 object EvaluationContext extends LazyLogging {
@@ -116,21 +109,6 @@ object EvaluationContext extends LazyLogging {
       caches: Map[String, EnrichmentCache] = Map.empty,
       metrics: ConverterMetrics = ConverterMetrics.empty): EvaluationContext = {
     new EvaluationContextImpl(localNames, globalValues, caches, metrics)
-  }
-
-  // noinspection ScalaDeprecation
-  @deprecated
-  def apply(
-      names: IndexedSeq[String],
-      values: Array[Any],
-      count: Counter,
-      caches: Map[String, EnrichmentCache]): EvaluationContext = {
-    logger.warn("Using deprecated evaluation context - counters and line numbers may be incorrect")
-    // check to see what global variables have been set
-    // global variables are at the end of the array
-    val globalValuesOffset = values.takeWhile(_ == null).length
-    val globalValues = names.zip(values).drop(globalValuesOffset).toMap
-    new EvaluationContextImpl(names.take(globalValuesOffset), globalValues, caches, ConverterMetrics.empty)
   }
 
   /**
@@ -191,17 +169,6 @@ object EvaluationContext extends LazyLogging {
         i += 1
       }
     }
-
-    // noinspection ScalaDeprecation
-    override lazy val counter: Counter = new Counter {
-      override def incSuccess(i: Long): Unit = success.inc(i)
-      override def getSuccess: Long = success.getCount
-      override def incFailure(i: Long): Unit = failure.inc(i)
-      override def getFailure: Long = failure.getCount
-      override def incLineCount(i: Long): Unit = line += i
-      override def getLineCount: Long = line
-      override def setLineCount(i: Long): Unit = line = i
-    }
   }
 
   /**
@@ -221,7 +188,5 @@ object EvaluationContext extends LazyLogging {
     override def clear(): Unit = delegate.clear()
     override def metrics: ConverterMetrics = delegate.metrics
     override def cache: Map[String, EnrichmentCache] = delegate.cache
-    // noinspection ScalaDeprecation
-    override def counter: Counter = delegate.counter
   }
 }

@@ -146,7 +146,4 @@ object SimpleFeatureSpecConfig {
       case s: MapAttributeSpec    => s.copy(options = options)
     }
   }
-
-  @deprecated("org.locationtech.geomesa.utils.conf.ConfConversions.normalizeKey")
-  def normalizeKey(k: String): String = org.locationtech.geomesa.utils.conf.ConfConversions.normalizeKey(k)
 }

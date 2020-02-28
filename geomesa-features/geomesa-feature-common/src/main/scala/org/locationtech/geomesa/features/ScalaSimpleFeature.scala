@@ -30,11 +30,6 @@ class ScalaSimpleFeature(
     initialUserData: java.util.Map[AnyRef, AnyRef] = null
   ) extends AbstractMutableSimpleFeature(sft, initialId, initialUserData) {
 
-  @deprecated("use primary constructor")
-  def this(initialId: String, sft: SimpleFeatureType) = {
-    this(sft, initialId, null, null)
-  }
-
   private val values = if (initialValues == null) { Array.ofDim[AnyRef](sft.getAttributeCount) } else { initialValues }
 
   override def setAttributeNoConvert(index: Int, value: AnyRef): Unit = values(index) = value
@@ -91,9 +86,6 @@ object ScalaSimpleFeature {
       out
     }
   }
-
-  @deprecated("use copy")
-  def create(sft: SimpleFeatureType, in: SimpleFeature): ScalaSimpleFeature = copy(sft, in)
 
   /**
     * Creates a simple feature, converting the values to the appropriate type

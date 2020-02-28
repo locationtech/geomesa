@@ -12,7 +12,7 @@ import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.charset.StandardCharsets
 
 import org.apache.commons.io.IOUtils
-import org.locationtech.geomesa.convert.{EnrichmentCache, EvaluationContext}
+import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.AbstractCompositeConverter.CompositeEvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.convert2.transforms.Predicate
@@ -33,14 +33,6 @@ class CompositeConverter(val targetSft: SimpleFeatureType, delegates: Seq[(Predi
 
   override def createEvaluationContext(globalParams: Map[String, Any]): EvaluationContext =
     new CompositeEvaluationContext(converters.map(_.createEvaluationContext(globalParams)))
-
-  // noinspection ScalaDeprecation
-  override def createEvaluationContext(
-      globalParams: Map[String, Any],
-      caches: Map[String, EnrichmentCache],
-      counter: org.locationtech.geomesa.convert.Counter): EvaluationContext = {
-    new CompositeEvaluationContext(converters.map(_.createEvaluationContext(globalParams, caches, counter)))
-  }
 
   override def process(is: InputStream, ec: EvaluationContext): CloseableIterator[SimpleFeature] = {
     val setEc: Int => Unit = ec match {

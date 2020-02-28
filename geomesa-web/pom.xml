@@ -14,7 +14,6 @@
 
     <modules>
         <module>geomesa-web-core</module>
-        <module>geomesa-web-data</module>
         <module>geomesa-web-stats</module>
     </modules>
 

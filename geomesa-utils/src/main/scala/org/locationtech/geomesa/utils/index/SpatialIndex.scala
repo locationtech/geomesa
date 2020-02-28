@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.utils.index
 
-import org.locationtech.jts.geom.{Coordinate, Envelope, Geometry, GeometryFactory}
+import org.locationtech.jts.geom.{Envelope, Geometry}
 
 /**
  * Trait for indexing and querying spatial data
@@ -79,56 +79,4 @@ trait SpatialIndex[T] {
     * Remove all items from the index
     */
   def clear(): Unit
-
-  @deprecated("use insert(geometry, key, item)")
-  def insert(x: Double, y: Double, key: String, item: T): Unit = insert(SpatialIndex.geometry(x, y), key, item)
-
-  @deprecated("use insert(geometry, key, item)")
-  def insert(envelope: Envelope, key: String, item: T): Unit = insert(SpatialIndex.geometry(envelope), key, item)
-
-  @deprecated("use insert(geometry, key, item)")
-  def insert(envelope: Envelope, item: T): Unit = insert(SpatialIndex.geometry(envelope), item.toString, item)
-
-  @deprecated("use remove(geometry, key)")
-  def remove(x: Double, y: Double, key: String): T = remove(SpatialIndex.geometry(x, y), key)
-
-  @deprecated("use remove(geometry, key)")
-  def remove(envelope: Envelope, key: String): T = remove(SpatialIndex.geometry(envelope), key)
-
-  @deprecated("use remove(geometry, key)")
-  def remove(envelope: Envelope, item: T): Boolean = remove(SpatialIndex.geometry(envelope), item.toString) != null
-
-  @deprecated("use get(geometry, key)")
-  def get(x: Double, y: Double, key: String): T = get(SpatialIndex.geometry(x, y), key)
-
-  @deprecated("use get(geometry, key)")
-  def get(envelope: Envelope, key: String): T = get(SpatialIndex.geometry(envelope), key)
-
-  @deprecated("query(bbox).filter(predicate)")
-  def query(envelope: Envelope, filter: T => Boolean): Iterator[T] = query(envelope).filter(filter.apply)
-}
-
-object SpatialIndex {
-
-  private val gf = new GeometryFactory()
-
-  @deprecated
-  def getCenter(envelope: Envelope): (Double, Double) = {
-    val x = (envelope.getMinX + envelope.getMaxX) / 2.0
-    val y = (envelope.getMinY + envelope.getMaxY) / 2.0
-    (x, y)
-  }
-
-  private def geometry(x: Double, y: Double): Geometry = gf.createPoint(new Coordinate(x, y))
-
-  private def geometry(envelope: Envelope): Geometry = {
-    val coords = Array(
-      new Coordinate(envelope.getMinX, envelope.getMinY),
-      new Coordinate(envelope.getMaxX, envelope.getMinY),
-      new Coordinate(envelope.getMaxX, envelope.getMaxY),
-      new Coordinate(envelope.getMinX, envelope.getMaxY),
-      new Coordinate(envelope.getMinX, envelope.getMinY)
-    )
-    gf.createPolygon(coords)
-  }
 }

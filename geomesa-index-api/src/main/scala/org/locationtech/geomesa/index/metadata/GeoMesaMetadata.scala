@@ -119,17 +119,6 @@ object GeoMesaMetadata {
   val StatsGenerationKey = "stats-date"
   val StatsIntervalKey   = "stats-interval"
 
-  @deprecated("AttributesKey")
-  val ATTRIBUTES_KEY: String = AttributesKey
-  @deprecated("VersionKey")
-  val VERSION_KEY: String = VersionKey
-  @deprecated("StatsGenerationKey")
-  val STATS_GENERATION_KEY: String = StatsGenerationKey
-  @deprecated("StatsIntervalKey")
-  val STATS_INTERVAL_KEY: String = StatsIntervalKey
-
-
-
   /**
     * Gets an empty metadata instance. This instance will not persist or return any values
     *

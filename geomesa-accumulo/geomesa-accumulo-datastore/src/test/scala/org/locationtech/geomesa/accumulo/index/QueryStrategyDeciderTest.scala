@@ -64,7 +64,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
   }
 
   // run stats so we have the latest
-  ds.stats.generateStats(sft)
+  ds.stats.writer.analyze(sft)
 
   "Cost-based strategy decisions" should {
 

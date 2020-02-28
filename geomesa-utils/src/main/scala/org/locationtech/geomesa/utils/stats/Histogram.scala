@@ -43,9 +43,6 @@ class Histogram[T](
 
   override type S = Histogram[T]
 
-  @deprecated("property")
-  lazy val attribute: Int = i
-
   private val i = sft.indexOf(property)
   private [stats] var bins: BinnedArray[T] = BinnedArray[T](initialBins, initialEndpoints)
 

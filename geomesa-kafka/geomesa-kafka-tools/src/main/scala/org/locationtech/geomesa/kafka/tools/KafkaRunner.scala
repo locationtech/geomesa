@@ -29,7 +29,6 @@ object KafkaRunner extends Runner {
     new ingest.KafkaIngestCommand,
     new status.KafkaDescribeSchemaCommand,
     new status.KafkaGetTypeNamesCommand,
-    new status.KafkaKeywordsCommand,
     // common commands, placeholders for script functions
     new HelpCommand(this, jc),
     new ConfigureCommand,

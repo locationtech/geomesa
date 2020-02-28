@@ -19,9 +19,6 @@ class DescriptiveStats(val sft: SimpleFeatureType, val properties: Seq[String]) 
 
   override type S = DescriptiveStats
 
-  @deprecated("properties")
-  lazy val attributes: Seq[Int] = properties.map(sft.indexOf)
-
   private val indices = properties.map(sft.indexOf).toArray
 
   private val size = properties.size

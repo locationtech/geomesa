@@ -17,7 +17,8 @@ import org.locationtech.geomesa.convert.jdbc.{JdbcConverter, JdbcConverterFactor
 import org.locationtech.geomesa.convert.json.{JsonConverter, JsonConverterFactory}
 import org.locationtech.geomesa.convert.text.{DelimitedTextConverter, DelimitedTextConverterFactory}
 import org.locationtech.geomesa.convert.xml.{XmlConverter, XmlConverterFactory}
-import org.locationtech.geomesa.convert2
+import org.locationtech.geomesa.convert2.SimpleFeatureConverterFactory
+import org.locationtech.geomesa.convert2.composite.{CompositeConverter, CompositeConverterFactory}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -42,24 +43,19 @@ class FindConvertersTest extends Specification {
       classOf[XmlConverter] must not(throwAn[ClassNotFoundException])
       classOf[XmlConverterFactory] must not(throwAn[ClassNotFoundException])
 
-      classOf[org.locationtech.geomesa.convert.CompositeConverter[_]] must not(throwAn[ClassNotFoundException])
-      classOf[org.locationtech.geomesa.convert.CompositeConverterFactory[_]] must not(throwAn[ClassNotFoundException])
-
-      classOf[org.locationtech.geomesa.convert2.composite.CompositeConverter] must not(throwAn[ClassNotFoundException])
-      classOf[org.locationtech.geomesa.convert2.composite.CompositeConverterFactory] must not(throwAn[ClassNotFoundException])
+      classOf[CompositeConverter] must not(throwAn[ClassNotFoundException])
+      classOf[CompositeConverterFactory] must not(throwAn[ClassNotFoundException])
 
       classOf[JdbcConverter] must not(throwA[ClassNotFoundException])
       classOf[JdbcConverterFactory] must not(throwA[ClassNotFoundException])
-
-      classOf[SimpleFeatureConverterFactory[_]] must not(throwAn[ClassNotFoundException])
     }
 
     "register all the converters" >> {
       import scala.collection.JavaConverters._
 
-      ServiceLoader.load(classOf[convert2.SimpleFeatureConverterFactory]).asScala.map(_.getClass) must containAllOf(
+      ServiceLoader.load(classOf[SimpleFeatureConverterFactory]).asScala.map(_.getClass) must containAllOf(
         Seq(
-          classOf[org.locationtech.geomesa.convert2.composite.CompositeConverterFactory],
+          classOf[CompositeConverterFactory],
           classOf[AvroConverterFactory],
           classOf[FixedWidthConverterFactory],
           classOf[DelimitedTextConverterFactory],

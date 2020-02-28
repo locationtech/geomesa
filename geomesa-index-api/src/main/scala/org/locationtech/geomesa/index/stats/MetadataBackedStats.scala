@@ -566,11 +566,4 @@ object MetadataBackedStats {
     override def deserialize(typeName: String, value: Array[Byte]): Stat =
       serializer(typeName).deserialize(value, immutable = true)
   }
-
-  @deprecated("org.locationtech.geomesa.index.stats.RunnableStats")
-  class RunnableStats(ds: DataStore) extends org.locationtech.geomesa.index.stats.RunnableStats(ds)
-
-  @deprecated("org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats")
-  class UnoptimizedRunnableStats(ds: DataStore)
-      extends org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats(ds)
 }

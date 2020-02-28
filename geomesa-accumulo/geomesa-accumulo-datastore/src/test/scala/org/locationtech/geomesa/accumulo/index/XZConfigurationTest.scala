@@ -33,7 +33,6 @@ class XZConfigurationTest extends Specification with TestWithDataStore {
 
   step {
     addFeatures(features)
-    ds.stats.generateStats(sft) // re-generate stats so that we get accurate query planning costs
   }
 
   "XZIndices" should {

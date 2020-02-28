@@ -43,9 +43,6 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
   override protected implicit def fieldConvert: FieldConvert[BasicField] = BasicFieldConvert
   override protected implicit def optsConvert: ConverterOptionsConvert[BasicOptions] = BasicOptionsConvert
 
-  override def infer(is: InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] =
-    infer(is, sft, None)
-
   /**
     * Note: only works on Avro files with embedded schemas
     *
