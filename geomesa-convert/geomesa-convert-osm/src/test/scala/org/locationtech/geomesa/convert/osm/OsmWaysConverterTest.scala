@@ -13,7 +13,7 @@ import java.util.Date
 import com.typesafe.config.ConfigFactory
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -62,10 +62,10 @@ class OsmWaysConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[Any](simpleSft, parserConf)
+      val converter = SimpleFeatureConverter(simpleSft, parserConf)
       try {
         converter must beAnInstanceOf[OsmWaysConverter]
-        converter.asInstanceOf[OsmWaysConverter].needsMetadata must beFalse
+        requiresMetadata(converter.asInstanceOf[OsmWaysConverter].fields) must beFalse
 
         val features = converter.process(getClass.getClassLoader.getResourceAsStream("small.osm")).toList.sortBy(_.getID)
         features must haveLength(1)
@@ -96,10 +96,10 @@ class OsmWaysConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[Any](sft, parserConf)
+      val converter = SimpleFeatureConverter(sft, parserConf)
       try {
         converter must beAnInstanceOf[OsmWaysConverter]
-        converter.asInstanceOf[OsmWaysConverter].needsMetadata must beTrue
+        requiresMetadata(converter.asInstanceOf[OsmWaysConverter].fields) must beTrue
 
         val features = converter.process(getClass.getClassLoader.getResourceAsStream("small.osm")).toList.sortBy(_.getID)
         features must haveLength(1)
@@ -133,7 +133,7 @@ class OsmWaysConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[Any](simpleSft, parserConf)
+      val converter = SimpleFeatureConverter(simpleSft, parserConf)
       try {
         val features = converter.process(getClass.getClassLoader.getResourceAsStream("small.osm")).toList.sortBy(_.getID)
         features must haveLength(1)

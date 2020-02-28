@@ -10,7 +10,7 @@ package org.locationtech.geomesa.convert.osm
 
 import com.typesafe.config.ConfigFactory
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -55,7 +55,7 @@ class OsmConverterLoadTest extends Specification {
         """.stripMargin)
 
       val nodesSft = SimpleFeatureTypes.createType(sftConf)
-      val converter = SimpleFeatureConverters.build[Any](nodesSft, parserConf)
+      val converter = SimpleFeatureConverter(nodesSft, parserConf)
       val start = System.currentTimeMillis()
       val features = converter.process(getFile)
       val count = features.length
@@ -96,7 +96,7 @@ class OsmConverterLoadTest extends Specification {
         """.stripMargin)
 
       val waysSft = SimpleFeatureTypes.createType(sftConf)
-      val converter = SimpleFeatureConverters.build[Any](waysSft, parserConf)
+      val converter = SimpleFeatureConverter(waysSft, parserConf)
       try {
         val start = System.currentTimeMillis()
         val features = converter.process(getFile)

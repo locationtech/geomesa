@@ -43,7 +43,8 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
 
     if (cluster.getMetadata.getKeyspace(ds.session.getLoggedKeyspace).getTable(table) == null) {
       val columns = CassandraColumnMapper(index).columns
-      val (partitions, pks) = columns.partition(_.partition)
+      require(columns.last.name == SimpleFeatureColumnName, s"Expected final column to be ${SimpleFeatureColumnName}")
+      val (partitions, pks) = columns.dropRight(1).partition(_.partition) // drop serialized feature col
       val create = s"CREATE TABLE $table (${columns.map(c => s"${c.name} ${c.cType}").mkString(", ")}, " +
           s"PRIMARY KEY (${partitions.map(_.name).mkString("(", ", ", ")")}" +
           s"${if (pks.nonEmpty) { pks.map(_.name).mkString(", ", ", ", "")} else { "" }}))"

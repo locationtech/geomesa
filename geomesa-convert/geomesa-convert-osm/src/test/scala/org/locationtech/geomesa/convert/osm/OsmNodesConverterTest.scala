@@ -13,7 +13,7 @@ import java.util.Date
 import com.typesafe.config.ConfigFactory
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -61,9 +61,9 @@ class OsmNodesConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[Any](simpleSft, parserConf)
+      val converter = SimpleFeatureConverter(simpleSft, parserConf)
       converter must beAnInstanceOf[OsmNodesConverter]
-      converter.asInstanceOf[OsmNodesConverter].needsMetadata must beFalse
+      requiresMetadata(converter.asInstanceOf[OsmNodesConverter].fields) must beFalse
 
       val features = converter.process(getClass.getClassLoader.getResourceAsStream("small.osm")).toList.sortBy(_.getID)
       features must haveLength(4)
@@ -89,9 +89,9 @@ class OsmNodesConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[Any](sft, parserConf)
+      val converter = SimpleFeatureConverter(sft, parserConf)
       converter must beAnInstanceOf[OsmNodesConverter]
-      converter.asInstanceOf[OsmNodesConverter].needsMetadata must beTrue
+      requiresMetadata(converter.asInstanceOf[OsmNodesConverter].fields) must beTrue
 
       val features = converter.process(getClass.getClassLoader.getResourceAsStream("small.osm")).toList.sortBy(_.getID)
       features must haveLength(4)
@@ -122,9 +122,9 @@ class OsmNodesConverterTest extends Specification {
           | }
         """.stripMargin)
 
-      val converter = SimpleFeatureConverters.build[Any](simpleSft, parserConf)
+      val converter = SimpleFeatureConverter(simpleSft, parserConf)
       converter must beAnInstanceOf[OsmNodesConverter]
-      converter.asInstanceOf[OsmNodesConverter].needsMetadata must beFalse
+      requiresMetadata(converter.asInstanceOf[OsmNodesConverter].fields) must beFalse
 
       val features = converter.process(getClass.getClassLoader.getResourceAsStream("small.osm")).toList.sortBy(_.getID)
       features must haveLength(4)

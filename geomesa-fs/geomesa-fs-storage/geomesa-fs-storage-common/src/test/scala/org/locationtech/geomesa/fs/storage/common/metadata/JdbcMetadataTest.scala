@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.fs.storage.common
+package org.locationtech.geomesa.fs.storage.common.metadata
 
 import java.io.{File, FileOutputStream}
 import java.nio.file.Files
@@ -17,7 +17,6 @@ import org.apache.hadoop.fs.{FileContext, Path}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions, PartitionSchemeFactory}
-import org.locationtech.geomesa.fs.storage.common.metadata.{JdbcMetadata, JdbcMetadataFactory, MetadataJson}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Envelope

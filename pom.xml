@@ -82,6 +82,7 @@
         <arrow.version>0.10.0</arrow.version>
         <netty.version>4.1.17.Final</netty.version>
         <metrics.version>3.2.6</metrics.version>
+        <aws.sdk.version>1.11.421</aws.sdk.version>
 
         <specs2.version>4.3.2</specs2.version>
         <junit.version>4.12</junit.version>

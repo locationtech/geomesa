@@ -94,6 +94,16 @@ comparison. This property controls the threshold for switching to a hash lookup.
 Note that for datastores with distributed filtering (e.g. HBase and Accumulo), this property needs to be set
 on the distributed processing nodes.
 
+geomesa.filter.remote.cache.expiry
+++++++++++++++++++++++++++++++++++
+
+This property controls how long query filters will be cached in memory in remote processes (i.e. HBase region servers
+and Accumulo tablet servers). For repeated queries, caching the filter can improve query times. However, complex
+filters can require a substantial amount of memory overhead. The expiry is specified as a duration, e.g.
+``10 minutes`` or ``1 hour``. The default is ``10 minutes``.
+
+Note that to take effect, the property must be set on each region or tablet server.
+
 geomesa.force.count
 +++++++++++++++++++
 
@@ -222,6 +232,13 @@ This property provides a rough upper-limit for the number of row ranges that wil
 query. It is specified as a number. In general, more ranges will result in fewer false-positive rows being
 scanned, which will speed up most queries. However, too many ranges can take a long time to generate, and
 overwhelm clients, causing slowdowns. The optimal value depends on the environment.
+
+geomesa.serializer.cache.expiry
++++++++++++++++++++++++++++++++
+
+This property controls how long simple feature serializers will be cached in memory. Lowering this value may
+reduce the memory footprint of your application, at the cost of increased processing time. The expiry is specified
+as a duration, e.g. ``10 minutes`` or ``1 hour``. The default is ``1 hour``.
 
 geomesa.sft.config.urls
 +++++++++++++++++++++++

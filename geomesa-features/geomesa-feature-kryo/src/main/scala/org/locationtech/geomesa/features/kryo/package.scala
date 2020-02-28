@@ -10,8 +10,13 @@ package org.locationtech.geomesa.features
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import org.locationtech.geomesa.utils.collection.IntBitSet
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+
+import scala.concurrent.duration.Duration
 
 package object kryo {
+
+  val SerializerCacheExpiry: Duration = SystemProperty("geomesa.serializer.cache.expiry", "1 hour").toDuration.get
 
   /**
     * Metadata for serialized simple features
