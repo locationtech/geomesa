@@ -12,6 +12,7 @@ import org.geotools.data._
 import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.apache.accumulo.core.security.Authorizations
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
@@ -63,6 +64,8 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithDataStore {
     sf
   }
 
+ val rootConnector = MiniCluster.getConnector()
+ rootConnector.securityOperations().changeUserAuthorizations("root", new Authorizations("user", "admin"))
   // write the feature to the store
   step {
     addFeatures(Seq(user, admin, mixed))

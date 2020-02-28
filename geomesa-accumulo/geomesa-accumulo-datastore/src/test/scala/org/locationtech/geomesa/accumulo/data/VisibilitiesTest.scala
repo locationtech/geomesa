@@ -32,8 +32,6 @@ class VisibilitiesTest extends TestWithDataStore {
   sequential
 
   def grantPermissionToAllTables(connector: Connector, user: String, permission: TablePermission){
-
-    
     val tables = connector.tableOperations().list().asScala
     tables.map(table => {
       rootConnector.securityOperations().grantTablePermission(user, table, permission)
