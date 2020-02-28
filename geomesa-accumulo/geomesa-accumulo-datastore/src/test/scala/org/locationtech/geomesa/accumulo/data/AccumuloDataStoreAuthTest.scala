@@ -37,6 +37,9 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
 
   override val spec = "name:String:index=join,dtg:Date,*geom:Point:srid=4326"
 
+  connector.securityOperations().changeUserAuthorizations("root", new Authorizations("user", "admin", "test"))
+  
+
   step {
     addFeatures((0 until 2).map { i =>
       val sf = new ScalaSimpleFeature(sft, i.toString)
@@ -63,6 +66,7 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
     "provide ability to configure authorizations" >> {
       "by static auths" >> {
         val params = dsParams ++ Map(AuthsParam.key -> "user")
+        println("DEBUG", params)
         val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
         ds must not(beNull)
         ds.config.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]
@@ -96,6 +100,7 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
 
       "replace empty authorizations with the Accumulo user's full authorizations (without the override)" >> {
         val params = dsParams ++ Map(AuthsParam.key -> "")
+        println("DEBUG - params", params)
         val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
         ds must not(beNull)
         ds.config.authProvider must beAnInstanceOf[FilteringAuthorizationsProvider]

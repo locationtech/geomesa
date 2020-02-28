@@ -64,8 +64,8 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithDataStore {
     sf
   }
 
- val rootConnector = MiniCluster.getConnector()
- rootConnector.securityOperations().changeUserAuthorizations("root", new Authorizations("user", "admin"))
+  val rootConnector = MiniCluster.getConnector()
+  rootConnector.securityOperations().changeUserAuthorizations("root", new Authorizations("user", "admin"))
   // write the feature to the store
   step {
     addFeatures(Seq(user, admin, mixed))
