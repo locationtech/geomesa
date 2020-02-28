@@ -8,27 +8,25 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import java.nio.file.Files
+
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.Connector
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.minicluster.MiniAccumuloCluster
-import java.io.File
-import com.google.common.io.Files
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
+import org.locationtech.geomesa.utils.io.PathUtils
 
 case object MiniCluster extends LazyLogging {
+
+  private val miniClusterTempDir = Files.createTempDirectory("gm-mini-acc")
+
   val _username = "root"
   val _password = "admin"
 
   lazy val cluster: MiniAccumuloCluster = {
-
-    logger.info("Starting accumulo minicluster")
-    val miniClusterTempDir: File = Files.createTempDir();
-    logger.info(miniClusterTempDir.getAbsolutePath())
-    val cluster = new MiniAccumuloCluster(miniClusterTempDir, _password)
-
-    cluster.start
-    logger.info("Started accmulo minicluster")
+    logger.info(s"Starting Accumulo minicluster at $miniClusterTempDir")
+    val cluster = new MiniAccumuloCluster(miniClusterTempDir.toFile, _password)
+    cluster.start()
+    logger.info("Started Accmulo minicluster")
     cluster
   }
 
@@ -47,8 +45,9 @@ case object MiniCluster extends LazyLogging {
   )
 
   sys.addShutdownHook({
-    logger.info("Stopping accumulo minicluster")
-    cluster.stop
-    logger.info("Accumulo minicluster stopped")
+    logger.info("Stopping Accumulo minicluster")
+    cluster.stop()
+    PathUtils.deleteRecursively(miniClusterTempDir)
+    logger.info("Stopped Accumulo minicluster")
   })
 }
