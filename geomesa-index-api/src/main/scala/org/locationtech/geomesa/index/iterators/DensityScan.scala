@@ -31,26 +31,28 @@ trait DensityScan extends AggregatingScan[RenderingGrid] {
   // we snap each point into a pixel and aggregate based on that
   protected var renderer: GeometryRenderer = _
 
-  private var batchSize: Int = -1
-
   override protected def initResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
+      batchSize: Int,
       options: Map[String, String]): RenderingGrid = {
     renderer = DensityScan.getRenderer(sft, options.get(DensityScan.Configuration.WeightOpt))
     val bounds = options(DensityScan.Configuration.EnvelopeOpt).split(",").map(_.toDouble)
     val envelope = new Envelope(bounds(0), bounds(1), bounds(2), bounds(3))
     val Array(width, height) = options(DensityScan.Configuration.GridOpt).split(",").map(_.toInt)
-    batchSize = DensityScan.BatchSize.toInt.get // has a valid default so should be safe to .get
     new RenderingGrid(envelope, width, height)
   }
 
-  override protected def aggregateResult(sf: SimpleFeature, result: RenderingGrid): Unit =
-    renderer.render(result, sf)
+  override protected def defaultBatchSize: Int =
+    DensityScan.BatchSize.toInt.get // has a valid default so should be safe to .get
 
-  override protected def notFull(result: RenderingGrid): Boolean = result.size < batchSize
+  override protected def aggregateResult(sf: SimpleFeature, result: RenderingGrid): Int = {
+    renderer.render(result, sf); 1
+  }
 
   override protected def encodeResult(result: RenderingGrid): Array[Byte] = DensityScan.encodeResult(result)
+
+  override protected def closeResult(result: RenderingGrid): Unit = {}
 }
 
 object DensityScan extends LazyLogging {
@@ -60,7 +62,7 @@ object DensityScan extends LazyLogging {
 
   type GridIterator  = SimpleFeature => Iterator[(Double, Double, Double)]
 
-  val BatchSize = SystemProperty("geomesa.density.batch.size", "100000")
+  val BatchSize: SystemProperty = SystemProperty("geomesa.density.batch.size", "100000")
 
   val DensitySft: SimpleFeatureType = SimpleFeatureTypes.createType("density", "*geom:Point:srid=4326")
   val DensityValueKey = new ClassKey(classOf[Array[Byte]])
@@ -82,7 +84,9 @@ object DensityScan extends LazyLogging {
 
     val envelope = hints.getDensityEnvelope.get
     val (width, height) = hints.getDensityBounds.get
-    val base = AggregatingScan.configure(sft, index, filter, None, hints.getSampling) // note: don't pass transforms
+    val batchSize = DensityScan.BatchSize.toInt.get // has a valid default so should be safe to .get
+    // note: don't pass transforms
+    val base = AggregatingScan.configure(sft, index, filter, None, hints.getSampling, batchSize)
     base ++ AggregatingScan.optionalMap(
       EnvelopeOpt -> s"${envelope.getMinX},${envelope.getMaxX},${envelope.getMinY},${envelope.getMaxY}",
       GridOpt     -> s"$width,$height",
