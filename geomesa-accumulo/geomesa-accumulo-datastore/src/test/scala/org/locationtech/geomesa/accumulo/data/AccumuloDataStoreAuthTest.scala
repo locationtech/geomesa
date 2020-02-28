@@ -26,6 +26,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
@@ -37,7 +38,9 @@ class AccumuloDataStoreAuthTest extends Specification with TestWithDataStore {
 
   override val spec = "name:String:index=join,dtg:Date,*geom:Point:srid=4326"
 
-  connector.securityOperations().changeUserAuthorizations("root", new Authorizations("user", "admin", "test"))
+  override val MockUserAuthorizations = new Authorizations("user","admin","test")
+
+  connector.securityOperations().changeUserAuthorizations("root", MockUserAuthorizations)
   
 
   step {
