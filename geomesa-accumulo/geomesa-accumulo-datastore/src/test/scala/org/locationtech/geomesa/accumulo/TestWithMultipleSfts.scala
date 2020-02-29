@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.apache.accumulo.core.client.mock.MockInstance
+import org.locationtech.geomesa.accumulo.data.MiniCluster
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.util.factory.Hints
@@ -38,7 +38,7 @@ trait TestWithMultipleSfts extends Specification {
   private val sftCounter = new AtomicInteger(0)
   private val sfts = ArrayBuffer.empty[SimpleFeatureType]
 
-  val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
+  val connector = MiniCluster.getConnector()
 
   val dsParams = Map(
     AccumuloDataStoreParams.ConnectorParam.key -> connector,
