@@ -26,6 +26,7 @@ import org.geotools.util.URLs
 import org.geotools.wfs.GML
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.data.MiniCluster
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter
@@ -61,8 +62,8 @@ class AccumuloExportCommandTest extends TestWithDataStore {
   def connectedCommand(): AccumuloExportCommand = {
     val command = new AccumuloExportCommand()
     command.params.user        = mockUser
-    command.params.instance    = mockInstanceId
-    command.params.zookeepers  = mockZookeepers
+    command.params.instance    = MiniCluster.cluster.getInstanceName
+    command.params.zookeepers  = MiniCluster.cluster.getZooKeepers
     command.params.password    = mockPassword
     command.params.catalog     = catalog
     command.params.featureName = sftName

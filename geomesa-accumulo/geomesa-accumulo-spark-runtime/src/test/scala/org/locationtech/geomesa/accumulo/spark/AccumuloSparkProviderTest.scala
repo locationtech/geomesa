@@ -13,7 +13,7 @@ import org.apache.spark.sql.{DataFrame, SQLContext, SQLTypes, SparkSession}
 import org.geotools.data.{Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
+import org.locationtech.geomesa.accumulo.data.{AccumuloDataStoreParams, MiniCluster}
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
@@ -47,8 +47,8 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
 
     df = spark.read
         .format("geomesa")
-        .option(InstanceIdParam.key, mockInstanceId)
-        .option(ZookeepersParam.key, mockZookeepers)
+        .option(InstanceIdParam.key, MiniCluster.cluster.getInstanceName)
+        .option(ZookeepersParam.key, MiniCluster.cluster.getZooKeepers)
         .option(UserParam.key, mockUser)
         .option(PasswordParam.key, mockPassword)
         .options(params.map { case (k, v) => k -> v.toString })
@@ -81,8 +81,8 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
     "write data and properly index" >> {
       val subset = sc.sql("select case_number,geom,dtg from chicago")
       subset.write.format("geomesa")
-        .option(InstanceIdParam.key, mockInstanceId)
-        .option(ZookeepersParam.key, mockZookeepers)
+        .option(InstanceIdParam.key, MiniCluster.cluster.getInstanceName)
+        .option(ZookeepersParam.key, MiniCluster.cluster.getZooKeepers)
         .option(UserParam.key, mockUser)
         .option(PasswordParam.key, mockPassword)
         .options(params.map { case (k, v) => k -> v.toString })
@@ -97,8 +97,8 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
     "handle reuse __fid__ on write if available" >> {
       val subset = sc.sql("select __fid__,case_number,geom,dtg from chicago")
       subset.write.format("geomesa")
-        .option(InstanceIdParam.key, mockInstanceId)
-        .option(ZookeepersParam.key, mockZookeepers)
+        .option(InstanceIdParam.key, MiniCluster.cluster.getInstanceName)
+        .option(ZookeepersParam.key, MiniCluster.cluster.getZooKeepers)
         .option(UserParam.key, mockUser)
         .option(PasswordParam.key, mockPassword)
         .options(params.map { case (k, v) => k -> v.toString })

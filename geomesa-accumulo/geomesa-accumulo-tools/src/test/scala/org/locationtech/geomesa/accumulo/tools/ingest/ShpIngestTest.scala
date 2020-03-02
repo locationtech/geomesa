@@ -19,6 +19,7 @@ import org.geotools.util.factory.Hints
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.data.MiniCluster
 import org.locationtech.geomesa.convert.Modes
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -46,8 +47,8 @@ class ShpIngestTest extends TestWithDataStore {
   def connectedCommand(file: String): AccumuloIngestCommand = {
     val command = new AccumuloIngestCommand()
     command.params.user        = mockUser
-    command.params.instance    = mockInstanceId
-    command.params.zookeepers  = mockZookeepers
+    command.params.instance    = MiniCluster.cluster.getInstanceName
+    command.params.zookeepers  = MiniCluster.cluster.getZooKeepers
     command.params.password    = mockPassword
     command.params.catalog     = catalog
     command.params.mock        = true
