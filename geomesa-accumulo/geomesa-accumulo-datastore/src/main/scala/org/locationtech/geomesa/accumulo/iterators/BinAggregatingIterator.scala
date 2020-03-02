@@ -13,14 +13,14 @@ import java.util.Map.Entry
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data._
-import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
-import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{BinResultsToFeatures, ByteBufferResult}
+import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{BinResultsToFeatures, ResultCallback}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
@@ -31,7 +31,7 @@ import org.opengis.filter.Filter
 /**
  * Iterator that computes and aggregates 'bin' entries
  */
-class BinAggregatingIterator extends BaseAggregatingIterator[ByteBufferResult] with BinAggregatingScan
+class BinAggregatingIterator extends BaseAggregatingIterator[ResultCallback] with BinAggregatingScan
 
 object BinAggregatingIterator extends LazyLogging {
 

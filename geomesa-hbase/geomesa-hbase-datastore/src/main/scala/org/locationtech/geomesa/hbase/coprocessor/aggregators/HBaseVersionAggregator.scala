@@ -29,17 +29,13 @@ class HBaseVersionAggregator extends HBaseAggregator[VersionAggregator] {
   override def aggregate(): Array[Byte] =
     if (scanned) { null } else { scanned = true; GeoMesaProperties.ProjectVersion.getBytes(StandardCharsets.UTF_8) }
 
-  override protected def initResult(
+  override protected def createResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
+      batchSize: Int,
       options: Map[String, String]): VersionAggregator = throw new NotImplementedError()
 
-  override protected def notFull(result: VersionAggregator): Boolean = throw new NotImplementedError()
-
-  override protected def aggregateResult(sf: SimpleFeature, result: VersionAggregator): Unit =
-    throw new NotImplementedError()
-
-  override protected def encodeResult(result: VersionAggregator): Array[Byte] = throw new NotImplementedError()
+  override protected def defaultBatchSize: Int = throw new NotImplementedError()
 }
 
 object HBaseVersionAggregator {
@@ -49,8 +45,10 @@ object HBaseVersionAggregator {
         (GeoMesaCoprocessor.AggregatorClass -> classOf[HBaseVersionAggregator].getName)
   }
 
-  class VersionAggregator {
-    def isEmpty: Boolean = false
-    def clear(): Unit = {}
+  class VersionAggregator extends AggregatingScan.Result {
+    override def init(): Unit = {}
+    override def aggregate(sf: SimpleFeature): Int = 1
+    override def encode(): Array[Byte] = GeoMesaProperties.ProjectVersion.getBytes(StandardCharsets.UTF_8)
+    override def cleanup(): Unit = {}
   }
 }
