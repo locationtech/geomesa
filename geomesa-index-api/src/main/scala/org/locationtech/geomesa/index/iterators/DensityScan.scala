@@ -16,7 +16,7 @@ import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, 
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.api.QueryPlan.ResultsToFeatures
-import org.locationtech.geomesa.index.iterators.DensityScan.GeometryRenderer
+import org.locationtech.geomesa.index.iterators.DensityScan.{DensityScanResult, GeometryRenderer}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap, RenderingGrid}
@@ -26,33 +26,25 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
 
-trait DensityScan extends AggregatingScan[RenderingGrid] {
+trait DensityScan extends AggregatingScan[DensityScanResult] {
 
   // we snap each point into a pixel and aggregate based on that
   protected var renderer: GeometryRenderer = _
 
-  override protected def initResult(
+  override protected def createResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
       batchSize: Int,
-      options: Map[String, String]): RenderingGrid = {
-    renderer = DensityScan.getRenderer(sft, options.get(DensityScan.Configuration.WeightOpt))
+      options: Map[String, String]): DensityScanResult = {
+    val renderer = DensityScan.getRenderer(sft, options.get(DensityScan.Configuration.WeightOpt))
     val bounds = options(DensityScan.Configuration.EnvelopeOpt).split(",").map(_.toDouble)
     val envelope = new Envelope(bounds(0), bounds(1), bounds(2), bounds(3))
     val Array(width, height) = options(DensityScan.Configuration.GridOpt).split(",").map(_.toInt)
-    new RenderingGrid(envelope, width, height)
+    new DensityScanResult(renderer, new RenderingGrid(envelope, width, height))
   }
 
   override protected def defaultBatchSize: Int =
     DensityScan.BatchSize.toInt.get // has a valid default so should be safe to .get
-
-  override protected def aggregateResult(sf: SimpleFeature, result: RenderingGrid): Int = {
-    renderer.render(result, sf); 1
-  }
-
-  override protected def encodeResult(result: RenderingGrid): Array[Byte] = DensityScan.encodeResult(result)
-
-  override protected def closeResult(result: RenderingGrid): Unit = {}
 }
 
 object DensityScan extends LazyLogging {
@@ -182,6 +174,19 @@ object DensityScan extends LazyLogging {
       case b if b == classOf[MultiPolygon]    => new MultiPolygonRenderer(sft.getGeomIndex, weigher)
       case _                                  => new MultiRenderer(sft.getGeomIndex, weigher)
     }
+  }
+
+  class DensityScanResult(renderer: GeometryRenderer, grid: RenderingGrid) extends AggregatingScan.Result {
+
+    override def init(): Unit = {}
+
+    override def aggregate(sf: SimpleFeature): Int = {
+      renderer.render(grid, sf); 1
+    }
+
+    override def encode(): Array[Byte] = try { DensityScan.encodeResult(grid) } finally { grid.clear() }
+
+    override def cleanup(): Unit = {}
   }
 
   abstract class DensityResultsToFeatures[T] extends ResultsToFeatures[T] {
