@@ -13,12 +13,12 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan
-import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
+import org.locationtech.geomesa.index.iterators.DensityScan.DensityScanResult
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class HBaseDensityAggregator extends DensityScan with HBaseAggregator[DensityResult]
+class HBaseDensityAggregator extends DensityScan with HBaseAggregator[DensityScanResult]
 
 object HBaseDensityAggregator {
 

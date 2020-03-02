@@ -13,79 +13,42 @@ import java.util.Date
 
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.iterators.BinAggregatingScan.{ByteBufferResult, ResultCallback}
+import org.locationtech.geomesa.index.iterators.BinAggregatingScan.ResultCallback
 import org.locationtech.geomesa.index.utils.bin.BinSorter
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.bin.{BinaryOutputCallback, BinaryOutputEncoder}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-trait BinAggregatingScan extends AggregatingScan[ByteBufferResult] {
+trait BinAggregatingScan extends AggregatingScan[ResultCallback] {
 
   import BinAggregatingScan.Configuration._
 
-  var encoding: EncodingOptions = _
-  var encoder: BinaryOutputEncoder = _
-  var callback: ResultCallback = _
-
-  var binSize: Int = 16
-  var sort: Boolean = false
-
   // create the result object for the current scan
-  override protected def initResult(
+  override protected def createResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
-      options: Map[String, String]): ByteBufferResult = {
+      batchSize: Int,
+      options: Map[String, String]): ResultCallback = {
     val geom = options.get(GeomOpt).map(_.toInt).filter(_ != -1)
     val dtg = options.get(DateOpt).map(_.toInt).filter(_ != -1)
     val track = options.get(TrackOpt).map(_.toInt).filter(_ != -1)
     val label = options.get(LabelOpt).map(_.toInt).filter(_ != -1)
 
-    encoding = EncodingOptions(geom, dtg, track, label)
-    encoder = BinaryOutputEncoder(sft, encoding)
+    val encoder = BinaryOutputEncoder(sft, EncodingOptions(geom, dtg, track, label))
 
-    binSize = if (label.isEmpty) { 16 } else { 24 }
-    sort = options(SortOpt).toBoolean
+    val binSize = if (label.isEmpty) { 16 } else { 24 }
+    val sort = options(SortOpt).toBoolean
 
     val batchSize = options(BatchSizeOpt).toInt * binSize
 
     val buffer = ByteBuffer.wrap(Array.ofDim(batchSize)).order(ByteOrder.LITTLE_ENDIAN)
     val overflow = ByteBuffer.wrap(Array.ofDim(binSize * 16)).order(ByteOrder.LITTLE_ENDIAN)
 
-    callback = new ResultCallback(new ByteBufferResult(buffer, overflow))
-
-    callback.result
+    new ResultCallback(buffer, overflow, encoder, binSize, sort)
   }
 
-  // add the feature to the current aggregated result
-  override protected def aggregateResult(sf: SimpleFeature, result: ByteBufferResult): Unit =
-    encoder.encode(sf, callback)
-
-  override protected def notFull(result: ByteBufferResult): Boolean =
-    result.buffer.position < result.buffer.limit
-
-  // encode the result as a byte array
-  override protected def encodeResult(result: ByteBufferResult): Array[Byte] = {
-    val bytes = if (result.overflow.position() > 0) {
-      // overflow bytes - copy the two buffers into one
-      val copy = Array.ofDim[Byte](result.buffer.position + result.overflow.position)
-      System.arraycopy(result.buffer.array, 0, copy, 0, result.buffer.position)
-      System.arraycopy(result.overflow.array, 0, copy, result.buffer.position, result.overflow.position)
-      copy
-    } else if (result.buffer.position == result.buffer.limit) {
-      // use the existing buffer if possible
-      result.buffer.array
-    } else {
-      // if not, we have to copy it - values do not allow you to specify a valid range
-      val copy = Array.ofDim[Byte](result.buffer.position)
-      System.arraycopy(result.buffer.array, 0, copy, 0, result.buffer.position)
-      copy
-    }
-    if (sort) {
-      BinSorter.quickSort(bytes, 0, bytes.length - binSize, binSize)
-    }
-    bytes
-  }
+  override protected def defaultBatchSize: Int = throw new IllegalStateException("Batch size configured per scan")
 }
 
 object BinAggregatingScan {
@@ -152,9 +115,58 @@ object BinAggregatingScan {
     (Seq(hints.getBinTrackIdField) ++ geom ++ dtg ++ hints.getBinLabelField).distinct.filter(_ != "id")
   }
 
-  // wrapper for java's byte buffer that adds scala methods for the aggregating iterator
-  class ByteBufferResult(val buffer: ByteBuffer, var overflow: ByteBuffer) {
-    def ensureCapacity(size: Int): ByteBuffer = {
+  class ResultCallback(
+      buffer: ByteBuffer,
+      private var overflow: ByteBuffer,
+      encoder: BinaryOutputEncoder,
+      binSize: Int,
+      sort: Boolean
+    ) extends AggregatingScan.Result with BinaryOutputCallback {
+
+    override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long): Unit =
+      put(ensureCapacity(16), trackId, lat, lon, dtg)
+
+    override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long, label: Long): Unit =
+      put(ensureCapacity(24), trackId, lat, lon, dtg, label)
+
+    override def init(): Unit = {}
+
+    override def aggregate(sf: SimpleFeature): Int = {
+      val pos = buffer.position + overflow.position
+      encoder.encode(sf, this)
+      (buffer.position + overflow.position - pos) / binSize
+    }
+
+    override def encode(): Array[Byte] = {
+      val bytes = try {
+        if (overflow.position() > 0) {
+          // overflow bytes - copy the two buffers into one
+          val copy = Array.ofDim[Byte](buffer.position + overflow.position)
+          System.arraycopy(buffer.array, 0, copy, 0, buffer.position)
+          System.arraycopy(overflow.array, 0, copy, buffer.position, overflow.position)
+          copy
+        } else if (buffer.position == buffer.limit) {
+          // use the existing buffer if possible
+          buffer.array
+        } else {
+          // if not, we have to copy it - values do not allow you to specify a valid range
+          val copy = Array.ofDim[Byte](buffer.position)
+          System.arraycopy(buffer.array, 0, copy, 0, buffer.position)
+          copy
+        }
+      } finally {
+        buffer.clear()
+        overflow.clear()
+      }
+      if (sort) {
+        BinSorter.quickSort(bytes, 0, bytes.length - binSize, binSize)
+      }
+      bytes
+    }
+
+    override def cleanup(): Unit = {}
+
+    private def ensureCapacity(size: Int): ByteBuffer = {
       if (buffer.position < buffer.limit - size) {
         buffer
       } else if (overflow.position < overflow.limit - size) {
@@ -167,25 +179,6 @@ object BinAggregatingScan {
         overflow = ByteBuffer.wrap(expanded).order(order).position(position).asInstanceOf[ByteBuffer]
         overflow
       }
-    }
-
-    def isEmpty: Boolean = buffer.position == 0
-
-    def clear(): Unit = {
-      buffer.clear()
-      overflow.clear()
-    }
-  }
-
-  class ResultCallback(val result: ByteBufferResult) extends BinaryOutputCallback {
-    override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long): Unit = {
-      val buffer = result.ensureCapacity(16)
-      put(buffer, trackId, lat, lon, dtg)
-    }
-
-    override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long, label: Long): Unit = {
-      val buffer = result.ensureCapacity(24)
-      put(buffer, trackId, lat, lon, dtg, label)
     }
   }
 }

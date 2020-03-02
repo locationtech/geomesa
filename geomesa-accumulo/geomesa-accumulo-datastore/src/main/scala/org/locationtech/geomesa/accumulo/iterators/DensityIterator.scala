@@ -17,7 +17,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan
-import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
+import org.locationtech.geomesa.index.iterators.DensityScan.DensityScanResult
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -25,7 +25,7 @@ import org.opengis.filter.Filter
 /**
  * Density iterator - only works on kryo-encoded features
  */
-class DensityIterator extends BaseAggregatingIterator[DensityResult] with DensityScan
+class DensityIterator extends BaseAggregatingIterator[DensityScanResult] with DensityScan
 
 object DensityIterator extends LazyLogging {
 

@@ -20,7 +20,7 @@ import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureDeserializers}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
-import org.locationtech.geomesa.index.iterators.BinAggregatingScan.ByteBufferResult
+import org.locationtech.geomesa.index.iterators.BinAggregatingScan.ResultCallback
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.{BIN_ATTRIBUTE_INDEX, EncodingOptions}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
@@ -31,7 +31,7 @@ import org.opengis.filter.Filter
 /**
  * Iterator that computes and aggregates 'bin' entries
  */
-class BinAggregatingIterator extends BaseAggregatingIterator[ByteBufferResult] with BinAggregatingScan
+class BinAggregatingIterator extends BaseAggregatingIterator[ResultCallback] with BinAggregatingScan
 
 object BinAggregatingIterator extends LazyLogging {
 
