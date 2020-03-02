@@ -27,13 +27,8 @@ trait BinAggregatingScan extends AggregatingScan[ResultCallback] {
 
   import BinAggregatingScan.Configuration._
 
-  private var encoder: BinaryOutputEncoder = _
-
-  private var binSize: Int = 16
-  private var sort: Boolean = false
-
   // create the result object for the current scan
-  override protected def initResult(
+  override protected def createResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
       batchSize: Int,
@@ -43,37 +38,19 @@ trait BinAggregatingScan extends AggregatingScan[ResultCallback] {
     val track = options.get(TrackOpt).map(_.toInt).filter(_ != -1)
     val label = options.get(LabelOpt).map(_.toInt).filter(_ != -1)
 
-    encoder = BinaryOutputEncoder(sft, EncodingOptions(geom, dtg, track, label))
+    val encoder = BinaryOutputEncoder(sft, EncodingOptions(geom, dtg, track, label))
 
-    binSize = if (label.isEmpty) { 16 } else { 24 }
-    sort = options(SortOpt).toBoolean
+    val binSize = if (label.isEmpty) { 16 } else { 24 }
+    val sort = options(SortOpt).toBoolean
 
     val buffer = ByteBuffer.wrap(Array.ofDim(batchSize * binSize)).order(ByteOrder.LITTLE_ENDIAN)
     val overflow = ByteBuffer.wrap(Array.ofDim(binSize * 16)).order(ByteOrder.LITTLE_ENDIAN)
 
-    new ResultCallback(buffer, overflow)
+    new ResultCallback(buffer, overflow, encoder, binSize, sort)
   }
 
   override protected def defaultBatchSize: Int =
     throw new IllegalArgumentException("Batch scan is specified per scan")
-
-  // add the feature to the current aggregated result
-  override protected def aggregateResult(sf: SimpleFeature, result: ResultCallback): Int = {
-    val pos = result.position
-    encoder.encode(sf, result)
-    (result.position - pos) / binSize
-  }
-
-  // encode the result as a byte array
-  override protected def encodeResult(result: ResultCallback): Array[Byte] = {
-    val bytes = result.toBytes()
-    if (sort) {
-      BinSorter.quickSort(bytes, 0, bytes.length - binSize, binSize)
-    }
-    bytes
-  }
-
-  override protected def closeResult(result: ResultCallback): Unit = {}
 }
 
 object BinAggregatingScan {
@@ -141,7 +118,13 @@ object BinAggregatingScan {
     (Seq(hints.getBinTrackIdField) ++ geom ++ dtg ++ hints.getBinLabelField).distinct.filter(_ != "id")
   }
 
-  class ResultCallback(buffer: ByteBuffer, private var overflow: ByteBuffer) extends BinaryOutputCallback {
+  class ResultCallback(
+      buffer: ByteBuffer,
+      private var overflow: ByteBuffer,
+      encoder: BinaryOutputEncoder,
+      binSize: Int,
+      sort: Boolean
+    ) extends AggregatingScan.Result with BinaryOutputCallback {
 
     override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long): Unit =
       put(ensureCapacity(16), trackId, lat, lon, dtg)
@@ -149,33 +132,42 @@ object BinAggregatingScan {
     override def apply(trackId: Int, lat: Float, lon: Float, dtg: Long, label: Long): Unit =
       put(ensureCapacity(24), trackId, lat, lon, dtg, label)
 
-    def position: Int = buffer.position + overflow.position
+    override def init(): Unit = {}
 
-    def isEmpty: Boolean = buffer.position == 0
+    override def aggregate(sf: SimpleFeature): Int = {
+      val pos = buffer.position + overflow.position
+      encoder.encode(sf, this)
+      (buffer.position + overflow.position - pos) / binSize
+    }
 
-    // noinspection AccessorLikeMethodIsEmptyParen
-    def toBytes(): Array[Byte] = {
-      if (overflow.position() > 0) {
-        // overflow bytes - copy the two buffers into one
-        val copy = Array.ofDim[Byte](buffer.position + overflow.position)
-        System.arraycopy(buffer.array, 0, copy, 0, buffer.position)
-        System.arraycopy(overflow.array, 0, copy, buffer.position, overflow.position)
-        copy
-      } else if (buffer.position == buffer.limit) {
-        // use the existing buffer if possible
-        buffer.array
-      } else {
-        // if not, we have to copy it - values do not allow you to specify a valid range
-        val copy = Array.ofDim[Byte](buffer.position)
-        System.arraycopy(buffer.array, 0, copy, 0, buffer.position)
-        copy
+    override def encode(): Array[Byte] = {
+      val bytes = try {
+        if (overflow.position() > 0) {
+          // overflow bytes - copy the two buffers into one
+          val copy = Array.ofDim[Byte](buffer.position + overflow.position)
+          System.arraycopy(buffer.array, 0, copy, 0, buffer.position)
+          System.arraycopy(overflow.array, 0, copy, buffer.position, overflow.position)
+          copy
+        } else if (buffer.position == buffer.limit) {
+          // use the existing buffer if possible
+          buffer.array
+        } else {
+          // if not, we have to copy it - values do not allow you to specify a valid range
+          val copy = Array.ofDim[Byte](buffer.position)
+          System.arraycopy(buffer.array, 0, copy, 0, buffer.position)
+          copy
+        }
+      } finally {
+        buffer.clear()
+        overflow.clear()
       }
+      if (sort) {
+        BinSorter.quickSort(bytes, 0, bytes.length - binSize, binSize)
+      }
+      bytes
     }
 
-    def clear(): Unit = {
-      buffer.clear()
-      overflow.clear()
-    }
+    override def cleanup(): Unit = {}
 
     private def ensureCapacity(size: Int): ByteBuffer = {
       if (buffer.position < buffer.limit - size) {

@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.index.iterators
 
-import java.io.{ByteArrayOutputStream, Closeable}
+import java.io.ByteArrayOutputStream
 import java.util.Objects
 
 import org.apache.arrow.memory.BufferAllocator
@@ -37,7 +37,7 @@ import scala.reflect.ClassTag
 
 trait ArrowScan extends AggregatingScan[ArrowAggregate] {
 
-  override def initResult(
+  override def createResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
       batchSize: Int,
@@ -51,38 +51,30 @@ trait ArrowScan extends AggregatingScan[ArrowAggregate] {
     val proxyFids = options.get(ProxyFidsKey).exists(_.toBoolean)
     val dictionary = options(DictionaryKey)
     val sort = options.get(SortKey).map(name => (name, options.get(SortReverseKey).exists(_.toBoolean)))
-
     val encoding = SimpleFeatureEncoding.min(includeFids, proxyFids)
-    val aggregate = if (typ == Types.DeltaType) {
+
+    if (typ == Types.DeltaType) {
       val dictionaries = dictionary.split(",").filter(_.length > 0)
       new DeltaAggregate(arrowSft, dictionaries, encoding, sort, batchSize)
     } else if (typ == Types.BatchType) {
       val dictionaries = ArrowScan.decodeDictionaries(arrowSft, dictionary)
       sort match {
         case None => new BatchAggregate(arrowSft, dictionaries, encoding)
-        case Some((s, r)) => new SortingBatchAggregate(arrowSft, dictionaries, encoding, s, r)
+        case Some((s, r)) => new SortingBatchAggregate(arrowSft, dictionaries, encoding, s, r, batchSize)
       }
     } else if (typ == Types.FileType) {
       val dictionaries = dictionary.split(",").filter(_.length > 0)
       // TODO file metadata created in the iterator has an empty sft name
       sort match {
         case None => new MultiFileAggregate(arrowSft, dictionaries, encoding)
-        case Some((s, r)) => new MultiFileSortingAggregate(arrowSft, dictionaries, encoding, s, r)
+        case Some((s, r)) => new MultiFileSortingAggregate(arrowSft, dictionaries, encoding, s, r, batchSize)
       }
     } else {
       throw new RuntimeException(s"Expected type, got $typ")
     }
-
-    aggregate.init(batchSize)
   }
 
   override protected def defaultBatchSize: Int = throw new IllegalArgumentException("Batch scan is specified per scan")
-
-  override protected def aggregateResult(sf: SimpleFeature, result: ArrowAggregate): Int = { result.add(sf); 1 }
-
-  override protected def encodeResult(result: ArrowAggregate): Array[Byte] = result.encode()
-
-  override protected def closeResult(result: ArrowAggregate): Unit = result.close()
 }
 
 object ArrowScan {
@@ -286,15 +278,7 @@ object ArrowScan {
   /**
     * Trait for aggregating arrow files
     */
-  trait ArrowAggregate extends Closeable {
-    def size: Int
-    def add(sf: SimpleFeature): Unit
-    def encode(): Array[Byte]
-    def clear(): Unit
-    def init(size: Int): ArrowAggregate
-
-    def isEmpty: Boolean = size == 0
-  }
+  trait ArrowAggregate extends AggregatingScan.Result
 
   /**
     * Returns full arrow files, with metadata. Builds dictionaries on the fly. Doesn't sort
@@ -306,49 +290,57 @@ object ArrowScan {
   class MultiFileAggregate(sft: SimpleFeatureType, dictionaryFields: Seq[String], encoding: SimpleFeatureEncoding)
       extends ArrowAggregate {
 
-    implicit private val allocator: BufferAllocator = ArrowAllocator("arrow-scan-multi-file")
-
-    private val writer = DictionaryBuildingWriter.create(sft, dictionaryFields, encoding)
+    private var allocator: BufferAllocator = _
+    private var writer: DictionaryBuildingWriter = _
     private val os = new ByteArrayOutputStream()
 
-    override def add(sf: SimpleFeature): Unit = writer.add(sf)
-
-    override def size: Int = writer.size
-
-    override def clear(): Unit = writer.clear()
-
-    override def encode(): Array[Byte] = {
-      os.reset()
-      writer.encode(os)
-      os.toByteArray
+    override def init(): Unit = {
+      allocator = ArrowAllocator("arrow-scan-multi-file")
+      writer = DictionaryBuildingWriter.create(sft, dictionaryFields, encoding)(allocator)
     }
 
-    override def init(size: Int): ArrowAggregate = this
+    override def aggregate(sf: SimpleFeature): Int = { writer.add(sf); 1 }
 
-    override def close(): Unit = CloseWithLogging(writer, allocator)
+    override def encode(): Array[Byte] = {
+      try {
+        writer.encode(os)
+        os.toByteArray
+      } finally {
+        os.reset()
+      }
+    }
+
+    override def cleanup(): Unit = {
+      CloseWithLogging(writer, allocator)
+      writer = null
+      allocator = null
+    }
   }
 
   /**
-    * Returns full arrow files, with metadata. Builds dictionaries on the fly. Sorts each file, but not between files
-    *
-    * @param sft simple feature type
-    * @param dictionaryFields dictionaries fields
-    * @param encoding encoding
-    * @param sortBy field to sort by
-    * @param reverse sort reverse or not
-    */
-  class MultiFileSortingAggregate(sft: SimpleFeatureType,
-                                  dictionaryFields: Seq[String],
-                                  encoding: SimpleFeatureEncoding,
-                                  sortBy: String,
-                                  reverse: Boolean) extends ArrowAggregate {
+   * Returns full arrow files, with metadata. Builds dictionaries on the fly. Sorts each file, but not between files
+   *
+   * @param sft simple feature type
+   * @param dictionaryFields dictionaries fields
+   * @param encoding encoding
+   * @param sortBy field to sort by
+   * @param reverse sort reverse or not
+   * @param batchSize batch size
+   */
+  class MultiFileSortingAggregate(
+      sft: SimpleFeatureType,
+      dictionaryFields: Seq[String],
+      encoding: SimpleFeatureEncoding,
+      sortBy: String,
+      reverse: Boolean,
+      batchSize: Int
+    ) extends ArrowAggregate {
 
-    implicit private val allocator: BufferAllocator = ArrowAllocator("arrow-scan-multi-file-sort")
-
+    private val features: Array[SimpleFeature] = Array.ofDim[SimpleFeature](batchSize)
     private var index = 0
-    private var features: Array[SimpleFeature] = _
 
-    private val writer = DictionaryBuildingWriter.create(sft, dictionaryFields, encoding)
+    private var allocator: BufferAllocator = _
+    private var writer: DictionaryBuildingWriter = _
     private val os = new ByteArrayOutputStream()
 
     private val ordering = {
@@ -356,42 +348,43 @@ object ArrowScan {
       if (reverse) { o.reverse } else { o }
     }
 
-    override def add(sf: SimpleFeature): Unit = {
+    override def init(): Unit = {
+      allocator = ArrowAllocator("arrow-scan-multi-file-sort")
+      writer = DictionaryBuildingWriter.create(sft, dictionaryFields, encoding)(allocator)
+    }
+
+    override def aggregate(sf: SimpleFeature): Int = {
       // we have to copy since the feature might be re-used
       // TODO we could probably optimize this...
       features(index) = ScalaSimpleFeature.copy(sf)
       index += 1
-    }
-
-    override def size: Int = index
-
-    override def clear(): Unit = {
-      index = 0
-      writer.clear()
+      1
     }
 
     override def encode(): Array[Byte] = {
-      java.util.Arrays.sort(features, 0, index, ordering)
+      try {
+        java.util.Arrays.sort(features, 0, index, ordering)
 
-      var i = 0
-      while (i < index) {
-        writer.add(features(i))
-        i += 1
+        var i = 0
+        while (i < index) {
+          writer.add(features(i))
+          i += 1
+        }
+
+        writer.encode(os)
+        os.toByteArray
+      } finally {
+        index = 0
+        writer.clear()
+        os.reset()
       }
-
-      os.reset()
-      writer.encode(os)
-      os.toByteArray
     }
 
-    override def init(size: Int): ArrowAggregate = {
-      if (features == null || features.length < size) {
-        features = Array.ofDim[SimpleFeature](size)
-      }
-      this
+    override def cleanup(): Unit = {
+      CloseWithLogging(writer, allocator)
+      writer = null
+      allocator = null
     }
-
-    override def close(): Unit = CloseWithLogging(writer, allocator)
   }
 
   /**
@@ -456,98 +449,113 @@ object ArrowScan {
     * @param dictionaries dictionaries
     * @param encoding encoding
     */
-  class BatchAggregate(sft: SimpleFeatureType,
-                       dictionaries: Map[String, ArrowDictionary],
-                       encoding: SimpleFeatureEncoding) extends ArrowAggregate {
+  class BatchAggregate(
+      sft: SimpleFeatureType,
+      dictionaries: Map[String, ArrowDictionary],
+      encoding: SimpleFeatureEncoding
+    ) extends ArrowAggregate {
 
-    implicit private val allocator: BufferAllocator = ArrowAllocator("arrow-scan-batch")
+    private var allocator: BufferAllocator = _
+    private var vector: SimpleFeatureVector = _
+    private var unloader: RecordBatchUnloader = _
 
     private var index = 0
 
-    private val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
-    private val batchWriter = new RecordBatchUnloader(vector)
+    override def init(): Unit = {
+      allocator = ArrowAllocator("arrow-scan-batch")
+      vector = SimpleFeatureVector.create(sft, dictionaries, encoding)(allocator)
+      unloader = new RecordBatchUnloader(vector)
+    }
 
-    override def add(sf: SimpleFeature): Unit = {
+    override def aggregate(sf: SimpleFeature): Int = {
       vector.writer.set(index, sf)
       index += 1
+      1
     }
 
-    override def size: Int = index
-
-    override def clear(): Unit = {
-      vector.clear()
-      index = 0
+    override def encode(): Array[Byte] = {
+      try {
+        unloader.unload(index)
+      } finally {
+        vector.clear()
+        index = 0
+      }
     }
 
-    override def encode(): Array[Byte] = batchWriter.unload(index)
-
-    override def init(size: Int): ArrowAggregate = this
-
-    override def close(): Unit = CloseWithLogging(vector, allocator)
+    override def cleanup(): Unit = {
+      CloseWithLogging(vector, allocator)
+      vector = null
+      allocator = null
+    }
   }
 
   /**
-    * Returns record batches without any metadata. Dictionaries must be known up front. Sorts each batch,
-    * but not between batches
-    *
-    * @param sft simple feature type
-    * @param dictionaries dictionaries
-    * @param encoding encoding
-    * @param sortField sort field
-    * @param reverse sort reverse
-    */
-  class SortingBatchAggregate(sft: SimpleFeatureType,
-                              dictionaries: Map[String, ArrowDictionary],
-                              encoding: SimpleFeatureEncoding,
-                              sortField: String,
-                              reverse: Boolean) extends ArrowAggregate {
+   * Returns record batches without any metadata. Dictionaries must be known up front. Sorts each batch,
+   * but not between batches
+   *
+   * @param sft simple feature type
+   * @param dictionaries dictionaries
+   * @param encoding encoding
+   * @param sortField sort field
+   * @param reverse sort reverse
+   * @param batchSize batch size
+   */
+  class SortingBatchAggregate(
+      sft: SimpleFeatureType,
+      dictionaries: Map[String, ArrowDictionary],
+      encoding: SimpleFeatureEncoding,
+      sortField: String,
+      reverse: Boolean,
+      batchSize: Int) extends ArrowAggregate {
 
-    implicit private val allocator: BufferAllocator = ArrowAllocator("arrow-scan-batch-sort")
+    private val features: Array[SimpleFeature] = Array.ofDim[SimpleFeature](batchSize)
+
+    private var allocator: BufferAllocator = _
+    private var vector: SimpleFeatureVector = _
+    private var unloader: RecordBatchUnloader = _
 
     private var index = 0
-    private var features: Array[SimpleFeature] = _
-
-    private val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
-    private val batchWriter = new RecordBatchUnloader(vector)
 
     private val ordering = {
       val o = SimpleFeatureOrdering(sft.indexOf(sortField))
       if (reverse) { o.reverse } else { o }
     }
 
-    override def add(sf: SimpleFeature): Unit = {
+    override def init(): Unit = {
+      allocator = ArrowAllocator("arrow-scan-batch-sort")
+      vector = SimpleFeatureVector.create(sft, dictionaries, encoding)(allocator)
+      unloader = new RecordBatchUnloader(vector)
+    }
+
+    override def aggregate(sf: SimpleFeature): Int = {
       // we have to copy since the feature might be re-used
       // TODO we could probably optimize this...
       features(index) = ScalaSimpleFeature.copy(sf)
       index += 1
-    }
-
-    override def size: Int = index
-
-    override def clear(): Unit = {
-      index = 0
-      vector.clear()
+      1
     }
 
     override def encode(): Array[Byte] = {
-      java.util.Arrays.sort(features, 0, index, ordering)
+      try {
+        java.util.Arrays.sort(features, 0, index, ordering)
 
-      var i = 0
-      while (i < index) {
-        vector.writer.set(i, features(i))
-        i += 1
+        var i = 0
+        while (i < index) {
+          vector.writer.set(i, features(i))
+          i += 1
+        }
+        unloader.unload(index)
+      } finally {
+        index = 0
+        vector.clear()
       }
-      batchWriter.unload(index)
     }
 
-    override def init(size: Int): ArrowAggregate = {
-      if (features == null || features.length < size) {
-        features = Array.ofDim[SimpleFeature](size)
-      }
-      this
+    override def cleanup(): Unit = {
+      CloseWithLogging(vector, allocator)
+      vector = null
+      allocator = null
     }
-
-    override def close(): Unit = vector.close()
   }
 
   /**
@@ -620,42 +628,43 @@ object ArrowScan {
     * @param dictionaryFields dictionary fields
     * @param encoding arrow encoding
     * @param sort sort field, sort reverse
-    * @param initialSize initial batch size, will grow if needed
+    * @param batchSize batch size
     */
-  class DeltaAggregate(sft: SimpleFeatureType,
-                       dictionaryFields: Seq[String],
-                       encoding: SimpleFeatureEncoding,
-                       sort: Option[(String, Boolean)],
-                       initialSize: Int) extends ArrowAggregate {
+  class DeltaAggregate(
+      sft: SimpleFeatureType,
+      dictionaryFields: Seq[String],
+      encoding: SimpleFeatureEncoding,
+      sort: Option[(String, Boolean)],
+      batchSize: Int
+    ) extends ArrowAggregate {
 
-    implicit private val allocator: BufferAllocator = ArrowAllocator("arrow-scan-delta")
+    private val features = Array.ofDim[SimpleFeature](batchSize)
 
-    private val writer = new DeltaWriter(sft, dictionaryFields, encoding, sort, initialSize)
+    private var allocator: BufferAllocator = _
+    private var writer: DeltaWriter = _
+
     private var index = 0
-    private var features: Array[SimpleFeature] = _
 
-    override def add(sf: SimpleFeature): Unit = {
+    override def init(): Unit = {
+      allocator = ArrowAllocator("arrow-scan-delta")
+      writer = new DeltaWriter(sft, dictionaryFields, encoding, sort, batchSize)(allocator)
+    }
+
+    override def aggregate(sf: SimpleFeature): Int = {
       // we have to copy since the feature might be re-used
       // TODO we could probably optimize this...
       features(index) = ScalaSimpleFeature.copy(sf)
       index += 1
+      1
     }
 
-    override def size: Int = index
+    override def encode(): Array[Byte] = try { writer.encode(features, index) } finally { index = 0 }
 
-    override def clear(): Unit = index = 0
-
-    override def encode(): Array[Byte] = writer.encode(features, index)
-
-    override def init(size: Int): ArrowAggregate = {
-      writer.reset()
-      if (features == null || features.length < size) {
-        features = Array.ofDim(size)
-      }
-      this
+    override def cleanup(): Unit = {
+      CloseWithLogging(writer, allocator)
+      writer = null
+      allocator = null
     }
-
-    override def close(): Unit = CloseWithLogging(writer, allocator)
   }
 
   /**
