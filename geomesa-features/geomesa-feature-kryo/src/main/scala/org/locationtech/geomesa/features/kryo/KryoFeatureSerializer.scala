@@ -46,9 +46,6 @@ object KryoFeatureSerializer {
   val Version3: Byte = 3
   val Version2: Byte = 2
 
-  @deprecated("Version2/3")
-  lazy val VERSION: Int = Version3
-
   val NullByte: Byte    = 0.asInstanceOf[Byte]
   val NonNullByte: Byte = 1.asInstanceOf[Byte]
 

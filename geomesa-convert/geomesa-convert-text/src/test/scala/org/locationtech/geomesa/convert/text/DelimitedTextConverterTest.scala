@@ -18,7 +18,6 @@ import com.typesafe.config.{ConfigFactory, ConfigValueFactory}
 import org.apache.commons.csv.CSVFormat
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.convert.SimpleFeatureConverters
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
@@ -757,34 +756,6 @@ class DelimitedTextConverterTest extends Specification {
         res must haveSize(1)
         res(0).getAttribute("phrase") mustEqual "hello"
         res(0).getAttribute("geom").toString mustEqual "POINT (45 45)"
-      }
-    }
-
-    "not skip lines for v1 processSingleInput" >> {
-      val conf = ConfigFactory.parseString(
-        """
-          | {
-          |   type         = "delimited-text",
-          |   format       = "DEFAULT",
-          |   id-field     = "md5(string2bytes($0))",
-          |   fields = [
-          |     { name = "phrase", transform = "$2" },
-          |     { name = "geom",   transform = "point($3::double, $4::double)" }
-          |   ]
-          |   options = {
-          |     skip-lines = 1
-          |   }
-          | }
-        """.stripMargin)
-
-      val sft = SimpleFeatureTypes.createType("test", "phrase:String,*geom:Point:srid=4326")
-      WithClose(SimpleFeatureConverters.build[String](sft, conf)) { converter =>
-        converter must not(beNull)
-
-        val res = converter.processSingleInput("""1,hello,45.0,45.0""").toList
-        res must haveSize(1)
-        res.head.getAttribute("phrase") mustEqual "hello"
-        res.head.getAttribute("geom").toString mustEqual "POINT (45 45)"
       }
     }
 

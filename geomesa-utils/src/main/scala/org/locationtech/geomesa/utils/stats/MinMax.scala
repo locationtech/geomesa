@@ -41,9 +41,6 @@ class MinMax[T] private [stats] (val sft: SimpleFeatureType,
 
   override type S = MinMax[T]
 
-  @deprecated("property")
-  lazy val attribute: Int = i
-
   private val i = sft.indexOf(property)
 
   def min: T = if (isEmpty) { maxValue } else { minValue }

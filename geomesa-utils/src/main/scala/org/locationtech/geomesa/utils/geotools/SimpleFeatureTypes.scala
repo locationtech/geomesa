@@ -62,58 +62,9 @@ object SimpleFeatureTypes {
     val UpdateBackupMetadata  = "schema.update.backup.metadata"
     val UpdateRenameTables    = "schema.update.rename.tables"
 
-    @deprecated("TableSharing")
-    val TABLE_SHARING_KEY: String = TableSharing
-    @deprecated("DtgDefaultField")
-    val DEFAULT_DATE_KEY: String = DefaultDtgField
-    @deprecated("DtgIgnoreField")
-    val IGNORE_INDEX_DTG: String = IndexIgnoreDtg
-    @deprecated("VisibilityLevel")
-    val VIS_LEVEL_KEY: String = IndexVisibilityLevel
-    @deprecated("Z3Interval")
-    val Z3_INTERVAL_KEY: String = IndexZ3Interval
-    @deprecated("XzPrecision")
-    val XZ_PRECISION_KEY: String = IndexXzPrecision
-    @deprecated("TableSplitterClass")
-    val TABLE_SPLITTER: String = TableSplitterClass
-    @deprecated("TableSplitterOpts")
-    val TABLE_SPLITTER_OPTS: String = TableSplitterOpts
-    @deprecated("MixedGeometries")
-    val MIXED_GEOMETRIES: String = MixedGeometries
-    @deprecated("ReservedWords")
-    val RESERVED_WORDS: String = OverrideReservedWords
-    @deprecated("DtgJoinOverride")
-    val DEFAULT_DTG_JOIN: String = OverrideDtgJoin
-    @deprecated("Keywords")
-    val KEYWORDS_KEY: String = Keywords
-    @deprecated("EnabledIndices")
-    val ENABLED_INDICES: String = EnabledIndices
     // keep around old values for back compatibility
     @deprecated("EnabledIndices")
     val ENABLED_INDEX_OPTS: Seq[String] = Seq(EnabledIndices, "geomesa.indexes.enabled", "table.indexes.enabled")
-    @deprecated("ZIndexShards")
-    val Z_SPLITS_KEY: String = IndexZShards
-    @deprecated("AttributeIndexShards")
-    val ATTR_SPLITS_KEY: String = IndexAttributeShards
-    @deprecated("IdIndexShards")
-    val ID_SPLITS_KEY: String = IndexIdShards
-    @deprecated("LogicalTimestamps")
-    val LOGICAL_TIME_KEY: String = TableLogicalTime
-    @deprecated("TableCompression")
-    val COMPRESSION_ENABLED: String = TableCompression
-    @deprecated("TableCompressionType")
-    val COMPRESSION_TYPE: String = TableCompressionType
-    @deprecated("FidsAreUuids")
-    val FID_UUID_KEY: String = FidsAreUuids
-    @deprecated("FidsAreUuidEncoded")
-    val FID_UUID_ENCODED_KEY: String = FidsAreUuidEncoded
-    @deprecated("TablePartitioning")
-    val TABLE_PARTITIONING: String = TablePartitioning
-    @deprecated("QueryInterceptors")
-    val QUERY_INTERCEPTORS: String = QueryInterceptors
-
-    @deprecated("GeoHash index is no longer supported")
-    val ST_INDEX_SCHEMA_KEY: String = "geomesa.index.st.schema"
   }
 
   private [geomesa] object InternalConfigs {
@@ -128,7 +79,6 @@ object SimpleFeatureTypes {
   }
 
   object AttributeOptions {
-
     val OptCardinality  = "cardinality"
     val OptColumnGroups = "column-groups"
     val OptCqIndex      = "cq-index"
@@ -139,27 +89,6 @@ object SimpleFeatureTypes {
     val OptPrecision    = "precision"
     val OptSrid         = "srid"
     val OptStats        = "keep-stats"
-
-    @deprecated("OptDefault")
-    val OPT_DEFAULT: String = OptDefault
-    @deprecated("OptSrid")
-    val OPT_SRID: String = OptSrid
-    @deprecated("OptIndexValue")
-    val OPT_INDEX_VALUE: String = OptIndexValue
-    @deprecated("OptIndex")
-    val OPT_INDEX: String = OptIndex
-    @deprecated("OptStats")
-    val OPT_STATS: String = OptStats
-    @deprecated("OptCardinality")
-    val OPT_CARDINALITY: String = OptCardinality
-    @deprecated("OptColumnGroups")
-    val OPT_COL_GROUPS: String = OptColumnGroups
-    @deprecated("OptCqIndex")
-    val OPT_CQ_INDEX: String = OptCqIndex
-    @deprecated("OptJson")
-    val OPT_JSON: String = OptJson
-    @deprecated("OptPrecision")
-    val OPT_PRECISION: String = OptPrecision
   }
 
   private [geomesa] object AttributeConfigs {
@@ -541,13 +470,6 @@ object SimpleFeatureTypes {
       (name.substring(0, nsIndex), name.substring(nsIndex + 1))
     }
     (namespace, local)
-  }
-
-  @deprecated("Use AttributeIndex.indexed()")
-  def getSecondaryIndexedAttributes(sft: SimpleFeatureType): Seq[AttributeDescriptor] = {
-    sft.getIndices.flatMap { i =>
-      i.attributes.headOption.map(sft.getDescriptor).filterNot(_.isInstanceOf[GeometryDescriptor])
-    }
   }
 
   private [utils] def toBoolean(value: AnyRef): Boolean = value match {

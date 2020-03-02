@@ -218,9 +218,9 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         val maxGeom = WKTUtils.read("POINT (27 9)")
 
         // execute a stat update so we have the latest values
-        ds.stats.generateStats(sft)
+        ds.stats.writer.analyze(sft)
         // run it twice so that all our bounds are exact for histograms
-        ds.stats.generateStats(sft)
+        ds.stats.writer.analyze(sft)
 
         ds.stats.getCount(sft) must beSome(10L)
         ds.stats.getBounds(sft) mustEqual new ReferencedEnvelope(0, 27, 0, 9, CRS_EPSG_4326)

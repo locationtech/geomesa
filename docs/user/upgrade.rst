@@ -90,6 +90,25 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 3.0.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Removal of Deprecated Modules and Classes
+-----------------------------------------
+
+GeoMesa 3.0.0 removes several less used and supported modules, as well as various classes and methods that were
+no longer used.
+
+The modules removed are: ``geomesa-accumulo/geomesa-accumulo-compute``,
+``geomesa-accumulo/geomesa-accumulo-native-api``, ``geomesa-accumulo/geomesa-accumulo-raster-distributed-runtime``,
+``geomesa-accumulo/geomesa-accumulo-raster``, ``geomesa-accumulo/geomesa-accumulo-security``,
+``geomesa-accumulo/geomesa-accumulo-stats-gs-plugin``, ``geomesa-convert/geomesa-convert-scripting``,
+``geomesa-convert/geomesa-convert-simplefeature``, ``geomesa-hbase/geomesa-hbase-native-api``,
+``geomesa-metrics``, ``geomesa-native-api``, ``geomesa-spark/geomesa-spark-geotools``, and
+``geomesa-web/geomesa-web-data``.
+
+The classes and methods removed are detailed in `GEOMESA-2284 <https://geomesa.atlassian.net/browse/GEOMESA-2284>`_.
+
 Version 2.4.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

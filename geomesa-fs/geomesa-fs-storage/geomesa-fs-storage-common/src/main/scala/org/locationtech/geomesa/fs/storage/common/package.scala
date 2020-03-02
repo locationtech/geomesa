@@ -11,9 +11,7 @@ package org.locationtech.geomesa.fs.storage
 import com.typesafe.config._
 import org.locationtech.geomesa.fs.storage.api.NamedOptions
 import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.PartitionSchemeConfig
-import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserver
-import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly}
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.ConfigConvert
 import pureconfig.generic.semiauto.deriveConvert
 
@@ -62,9 +60,6 @@ package object common {
     val MetadataKey    = "geomesa.fs.metadata"
     val SchemeKey      = "geomesa.fs.scheme"
     val ObserversKey   = "geomesa.fs.observers"
-
-    @deprecated("Replaced with SchemeKey")
-    val PartitionSchemeKey = "geomesa.fs.partition-scheme.config"
   }
 
   /**
@@ -87,7 +82,7 @@ package object common {
       sft.getUserData.put(SchemeKey, serialize(NamedOptions(name, options)))
     // noinspection ScalaDeprecation
     def removeScheme(): Option[NamedOptions] =
-      remove(SchemeKey).map(deserialize).orElse(remove(PartitionSchemeKey).map(deserialize))
+      remove(SchemeKey).map(deserialize).orElse(remove("geomesa.fs.partition-scheme.config").map(deserialize))
 
     def setMetadata(name: String, options: Map[String, String] = Map.empty): Unit =
       sft.getUserData.put(MetadataKey, serialize(NamedOptions(name, options)))

@@ -247,10 +247,6 @@ package object filter {
     filters.partition(isTemporal)
   }
 
-  @deprecated("Deprecated with no replacement")
-  def partitionIndexedAttributes(filters: Seq[Filter], sft: SimpleFeatureType): PartionedFilter =
-    filters.partition(isIndexedAttributeFilter(_, sft))
-
   def partitionID(filter: Filter): (Seq[Filter], Seq[Filter]) = partitionSubFilters(filter, isIdFilter)
 
   def isIdFilter(f: Filter): Boolean = f.isInstanceOf[Id]
@@ -288,16 +284,6 @@ package object filter {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     sft.getDtgField.exists(isTemporalFilter(f, _))
   }
-
-  @deprecated("Replaced with org.locationtech.geomesa.index.index.attribute.AttributeIndex.indexed")
-  def attrIndexed(name: String, sft: SimpleFeatureType): Boolean = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    sft.getIndices.exists(_.attributes.headOption.contains(name))
-  }
-
-  @deprecated("Deprecated with no replacement")
-  def isIndexedAttributeFilter(f: Filter, sft: SimpleFeatureType): Boolean =
-    getAttributeProperty(f).exists(attrIndexed(_, sft))
 
   def getAttributeProperty(f: Filter): Option[String] = {
     f match {

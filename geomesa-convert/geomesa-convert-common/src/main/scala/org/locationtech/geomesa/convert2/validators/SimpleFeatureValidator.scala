@@ -32,11 +32,7 @@ object SimpleFeatureValidator extends LazyLogging {
 
   private lazy val factories = ServiceLoader.load[SimpleFeatureValidatorFactory]()
 
-  // noinspection ScalaDeprecation
-  private lazy val factoriesV1 =
-    ServiceLoader.load[org.locationtech.geomesa.convert.SimpleFeatureValidator.ValidatorFactory]()
-
-  val DefaultValidators = SystemProperty("geomesa.converter.validators", IndexValidatorFactory.Name)
+  val DefaultValidators: SystemProperty = SystemProperty("geomesa.converter.validators", IndexValidatorFactory.Name)
 
   /**
     * Default validator names
@@ -60,9 +56,9 @@ object SimpleFeatureValidator extends LazyLogging {
         require(full.last == ')', s"Invalid option parentheses: $full")
         (full.substring(0, i), Some(full.substring(i + 1, full.length - 1)))
       }
-      val factory = factories.find(_.name.equalsIgnoreCase(name)).orElse(v1(name)).getOrElse {
+      val factory = factories.find(_.name.equalsIgnoreCase(name)).getOrElse {
         throw new IllegalArgumentException(s"No factory found for name '$name'. " +
-            s"Available factories: ${(factories.map(_.name) ++ factoriesV1.map(_.name)).mkString(", ")}")
+            s"Available factories: ${factories.map(_.name).mkString(", ")}")
       }
       factory.apply(sft, metrics, options)
     }
@@ -71,32 +67,6 @@ object SimpleFeatureValidator extends LazyLogging {
       validators.headOption.getOrElse(NoValidator)
     } else {
       new CompositeValidator(validators)
-    }
-  }
-
-  /**
-    * Wrapper for custom version 1 validators
-    *
-    * @param name validator name
-    * @return
-    */
-  private def v1(name: String): Option[SimpleFeatureValidatorFactory] = {
-    factoriesV1.find(_.name.equalsIgnoreCase(name)).map { factory =>
-      logger.warn(s"Using deprecated validator API for factory '${factory.getClass.getName}'. " +
-          s"Please migrate to org.locationtech.geomesa.convert2.validators.SimpleFeatureValidatorFactory")
-      new SimpleFeatureValidatorFactory() {
-        override def name: String = factory.name
-        override def apply(
-            sft: SimpleFeatureType,
-            metrics: ConverterMetrics,
-            config: Option[String]): SimpleFeatureValidator = {
-          new SimpleFeatureValidator() {
-            private val validator = factory.validator(sft, config)
-            override def validate(sf: SimpleFeature): String = validator.validate(sf)
-            override def close(): Unit = {}
-          }
-        }
-      }
     }
   }
 

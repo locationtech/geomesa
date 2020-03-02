@@ -8,16 +8,8 @@
 
 package org.locationtech.geomesa.utils.geotools
 
-import java.util.Date
-
-import org.locationtech.jts.geom.Geometry
-import org.geotools.data.simple.SimpleFeatureIterator
-import org.geotools.feature.collection.{FeatureIteratorImpl, SimpleFeatureIteratorImpl}
-import org.geotools.feature.simple.SimpleFeatureImpl
-import org.geotools.feature.{DefaultFeatureCollection, FeatureIterator}
-import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -95,7 +87,7 @@ class ConversionsTest extends Specification with Mockito {
 
     "set and get table sharing boolean" >> {
       val sft = newSft
-      sft.setTableSharing(true)
+      sft.getUserData.put(SimpleFeatureTypes.Configs.TableSharing, "true")
       sft.isTableSharing must beTrue
     }
 

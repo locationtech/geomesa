@@ -128,7 +128,7 @@ class ShpIngestTest extends TestWithDataStore {
     "should properly ingest a shapefile" in {
       connectedCommand(shpFile).execute()
 
-      ds.stats.generateStats(ds.getSchema(shpFile)) // re-gen stats to invalidate cache
+      ds.stats.writer.analyze(ds.getSchema(shpFile)) // re-gen stats to invalidate cache
 
       val fs = ds.getFeatureSource(shpFile)
 
@@ -149,7 +149,7 @@ class ShpIngestTest extends TestWithDataStore {
       command.params.featureName = "changed"
       command.execute()
 
-      ds.stats.generateStats(ds.getSchema("changed")) // re-gen stats to invalidate cache
+      ds.stats.writer.analyze(ds.getSchema("changed")) // re-gen stats to invalidate cache
 
       val fs = ds.getFeatureSource("changed")
 
@@ -168,7 +168,7 @@ class ShpIngestTest extends TestWithDataStore {
     "reproject to 4326 automatically on ingest" in {
       connectedCommand(shpFileToReproject).execute()
 
-      ds.stats.generateStats(ds.getSchema(shpFileToReproject)) // re-gen stats to invalidate cache
+      ds.stats.writer.analyze(ds.getSchema(shpFileToReproject)) // re-gen stats to invalidate cache
 
       val fs = ds.getFeatureSource(shpFileToReproject)
 
@@ -187,7 +187,7 @@ class ShpIngestTest extends TestWithDataStore {
     "reproject to 4326 automatically on ingest with flipped inputs" in {
       connectedCommand(shpFileToReproject2).execute()
 
-      ds.stats.generateStats(ds.getSchema(shpFileToReproject2)) // re-gen stats to invalidate cache
+      ds.stats.writer.analyze(ds.getSchema(shpFileToReproject2)) // re-gen stats to invalidate cache
 
       val fs = ds.getFeatureSource(shpFileToReproject2)
 
@@ -206,7 +206,7 @@ class ShpIngestTest extends TestWithDataStore {
     "skip records with null dates by default" in {
       connectedCommand(shpFileWithNullDates).execute()
 
-      ds.stats.generateStats(ds.getSchema(shpFileWithNullDates)) // re-gen stats to invalidate cache
+      ds.stats.writer.analyze(ds.getSchema(shpFileWithNullDates)) // re-gen stats to invalidate cache
 
       val fs = ds.getFeatureSource(shpFileWithNullDates)
 
@@ -233,7 +233,7 @@ class ShpIngestTest extends TestWithDataStore {
         Modes.ErrorMode.systemProperty.threadLocalValue.remove()
       }
 
-      ds.stats.generateStats(ds.getSchema("nullDates2")) // re-gen stats to invalidate cache
+      ds.stats.writer.analyze(ds.getSchema("nullDates2")) // re-gen stats to invalidate cache
 
       val fs = ds.getFeatureSource("nullDates2")
 

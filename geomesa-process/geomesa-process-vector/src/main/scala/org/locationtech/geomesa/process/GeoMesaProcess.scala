@@ -17,10 +17,4 @@ import org.geotools.process.vector.VectorProcess
   */
 trait GeoMesaProcess extends VectorProcess
 
-/**
-  * Common trait for visitors, allows for feature collections to execute processing in a standardized way
-  */
-@deprecated("Replaced with org.locationtech.geomesa.index.process.GeoMesaProcessVisitor")
-trait GeoMesaProcessVisitor extends org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
-
 case class FeatureResult(results: SimpleFeatureCollection) extends AbstractCalcResult

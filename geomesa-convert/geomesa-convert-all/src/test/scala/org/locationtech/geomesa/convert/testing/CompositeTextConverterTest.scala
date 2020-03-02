@@ -16,7 +16,6 @@ import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
@@ -123,27 +122,6 @@ class CompositeTextConverterTest extends Specification with LazyLogging {
           iter.close()
         }
       }
-    }
-
-    "be built using old api" in {
-      import org.locationtech.geomesa.convert.SimpleFeatureConverters
-
-      val converter = SimpleFeatureConverters.build[String](sft, localConf)
-      converter must not(beNull)
-
-      val res = converter.processInput(data.split("\n").iterator).toList
-
-      res.size must be equalTo 2
-      res(0).getID must be equalTo "first1"
-      res(1).getID must be equalTo "second2"
-
-      // and get correct line numbers
-      res(0).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 1
-      res(1).getAttribute("lineNr").asInstanceOf[Long] must be equalTo 4
-
-      // and get default string to double values
-      res(0).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
-      res(1).getAttribute("lat").asInstanceOf[Double] must be equalTo 0.0
     }
   }
 }

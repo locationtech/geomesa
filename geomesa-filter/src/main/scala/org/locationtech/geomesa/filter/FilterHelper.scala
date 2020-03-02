@@ -41,10 +41,6 @@ object FilterHelper {
 
   val ff: FilterFactory2 = org.locationtech.geomesa.filter.ff
 
-  @deprecated("Use org.locationtech.geomesa.filter.GeometryProcessing.process")
-  def visitBinarySpatialOp(op: BinarySpatialOperator, sft: SimpleFeatureType, factory: FilterFactory2): Filter =
-    GeometryProcessing.process(op, sft, factory)
-
   def isFilterWholeWorld(f: Filter): Boolean = f match {
       case op: BBOX       => isOperationGeomWholeWorld(op)
       case op: Intersects => isOperationGeomWholeWorld(op)
@@ -137,9 +133,6 @@ object FilterHelper {
         FilterValues.empty
     }
   }
-
-  @deprecated("Use org.locationtech.geomesa.filter.GeometryProcessing.metersMultiplier")
-  def metersMultiplier(units: String): Double = GeometryProcessing.metersMultiplier(units)
 
   /**
     * Extracts intervals from a filter. Intervals will be merged where possible - the resulting sequence

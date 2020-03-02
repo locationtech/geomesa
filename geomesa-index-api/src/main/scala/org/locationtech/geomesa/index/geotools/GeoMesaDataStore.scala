@@ -57,9 +57,6 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
 
   val manager: IndexManager = new IndexManager(this)
 
-  @deprecated
-  protected def catalog: String = config.catalog
-
   // abstract methods to be implemented by subclasses
 
   def adapter: IndexAdapter[DS]
@@ -530,17 +527,6 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
       case Left(e)  => throw e
     }
   }
-
-  @deprecated("use getDistributedVersion")
-  def getDistributeVersion: Option[SemanticVersion] = getDistributedVersion
-
-  /**
-    * Gets the geomesa version
-    *
-    * @return (client version, iterator version)
-    */
-  @deprecated("use getClientVersion and getDistributedVersion")
-  def getVersion: (String, Set[String]) = (GeoMesaProperties.ProjectVersion, loadIteratorVersions)
 
   // end public methods
 }

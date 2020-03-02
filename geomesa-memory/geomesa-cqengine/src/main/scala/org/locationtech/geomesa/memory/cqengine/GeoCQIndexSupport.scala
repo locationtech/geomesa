@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.memory.cqengine
 
-import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport.GeoCQIndex
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
 import org.locationtech.geomesa.utils.index.SpatialIndex
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -46,21 +46,9 @@ object GeoCQIndexSupport {
 
     override def insert(geom: Geometry, key: String, value: SimpleFeature): Unit = engine.insert(value)
 
-    override def insert(x: Double, y: Double, key: String, item: SimpleFeature): Unit = engine.insert(item)
-
-    override def insert(envelope: Envelope, key: String, item: SimpleFeature): Unit = engine.insert(item)
-
     override def remove(geom: Geometry, key: String): SimpleFeature = engine.remove(key)
 
-    override def remove(x: Double, y: Double, key: String): SimpleFeature = engine.remove(key)
-
-    override def remove(envelope: Envelope, key: String): SimpleFeature = engine.remove(key)
-
     override def get(geom: Geometry, key: String): SimpleFeature = engine.get(key)
-
-    override def get(x: Double, y: Double, key: String): SimpleFeature = engine.get(key)
-
-    override def get(envelope: Envelope, key: String): SimpleFeature = engine.get(key)
 
     override def query(): Iterator[SimpleFeature] = engine.query(Filter.INCLUDE)
 

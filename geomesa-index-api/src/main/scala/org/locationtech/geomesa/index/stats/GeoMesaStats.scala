@@ -12,19 +12,15 @@ import java.io.{Closeable, Flushable}
 import java.util.Date
 
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.temporal.`object`.{DefaultInstant, DefaultPeriod, DefaultPosition}
-import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
-import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
+import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.stats._
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-
-import scala.reflect.ClassTag
 
 /**
  * Tracks stats for a schema - spatial/temporal bounds, number of records, etc. Persistence of
@@ -225,110 +221,6 @@ trait GeoMesaStats extends Closeable {
       query: String,
       filter: Filter = Filter.INCLUDE,
       exact: Boolean = false): Option[T]
-
-  @deprecated("writer.analyze")
-  def generateStats(sft: SimpleFeatureType): Seq[Stat] = writer.analyze(sft)
-
-  @deprecated("writer.updater")
-  def statUpdater(sft: SimpleFeatureType): StatUpdater = writer.updater(sft)
-
-  @deprecated("writer.clear")
-  def clearStats(sft: SimpleFeatureType): Unit = writer.clear(sft)
-
-  @deprecated("writer.rename")
-  def rename(sft: SimpleFeatureType, previous: SimpleFeatureType): Unit = writer.rename(sft, previous)
-
-  @deprecated("getMinMax")
-  def getAttributeBounds[T](
-      sft: SimpleFeatureType,
-      attribute: String,
-      filter: Filter = Filter.INCLUDE,
-      exact: Boolean = false): Option[MinMax[T]] = getMinMax(sft, attribute, filter, exact)
-
-  @deprecated("getStat/getSeqStat(exact = true)")
-  def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter = Filter.INCLUDE): Seq[T] = {
-    getStat[Stat](sft, stats, filter, exact = true) match {
-      case Some(s: SeqStat) => s.stats.asInstanceOf[Seq[T]]
-      case Some(s: Stat)    => Seq(s.asInstanceOf[T])
-      case None             => Seq.empty
-    }
-  }
-
-  @deprecated("getSeqStat(exact = false)")
-  def getStats[T <: Stat](
-      sft: SimpleFeatureType,
-      attributes: Seq[String] = Seq.empty,
-      options: Seq[Any] = Seq.empty)
-     (implicit ct: ClassTag[T]): Seq[T] = {
-    import scala.collection.JavaConverters._
-
-    val toRetrieve = if (attributes.nonEmpty) {
-      attributes.filter(a => Option(sft.getDescriptor(a)).exists(GeoMesaStats.okForStats))
-    } else {
-      sft.getAttributeDescriptors.asScala.collect { case d if GeoMesaStats.okForStats(d) => d.getLocalName }
-    }
-    val clas = ct.runtimeClass
-
-    // convert the old options, which were bin weeks, to the new api, which expects a CQL filter
-    def binsToFilter(dtg: String, bins: Seq[Short]): Seq[Filter] = {
-      val binToDate = BinnedTime.binnedTimeToDate(sft.getZ3Interval)
-      val maxOffset = BinnedTime.maxOffset(sft.getZ3Interval)
-      bins.map { w =>
-        val period = new DefaultPeriod(
-          new DefaultInstant(new DefaultPosition(Date.from(binToDate.apply(BinnedTime(w, 0L)).toInstant))),
-          new DefaultInstant(new DefaultPosition(Date.from(binToDate.apply(BinnedTime(w, maxOffset)).toInstant)))
-        )
-        val expr = org.locationtech.geomesa.filter.ff.property(dtg)
-        val range = org.locationtech.geomesa.filter.ff.literal(period)
-        org.locationtech.geomesa.filter.ff.during(expr, range)
-      }
-    }
-
-    val stats = if (clas == classOf[CountStat]) {
-      getStat[CountStat](sft, Stat.Count()).toSeq
-    } else if (clas == classOf[MinMax[_]]) {
-      toRetrieve.flatMap(getMinMax[AnyRef](sft, _))
-    } else if (clas == classOf[TopK[_]]) {
-      toRetrieve.flatMap(getTopK[AnyRef](sft, _))
-    } else if (clas == classOf[Histogram[_]]) {
-      toRetrieve.flatMap(getHistogram[AnyRef](sft, _, -1, null, null))
-    } else if (clas == classOf[Frequency[_]]) {
-      if (options.nonEmpty && sft.getDtgField.isDefined) {
-        // we are retrieving the frequency by week
-        val filters = binsToFilter(sft.getDtgField.get, options.asInstanceOf[Seq[Short]])
-        val frequencies = toRetrieve.flatMap(a => filters.flatMap(getFrequency[AnyRef](sft, a, -1, _)))
-        Stat.combine(frequencies).toSeq
-      } else {
-        toRetrieve.flatMap(getFrequency[AnyRef](sft, _, -1))
-      }
-    } else if (clas == classOf[Z3Histogram]) {
-      val geomDtgOption = for {
-        geom <- Option(sft.getGeomField)
-        dtg  <- sft.getDtgField
-        if toRetrieve.contains(geom) && toRetrieve.contains(dtg)
-      } yield {
-        (geom, dtg)
-      }
-      geomDtgOption.flatMap { case (geom, dtg) =>
-        // z3 histograms are stored by time bin - calculate the times to retrieve
-        // either use the options if passed in, or else calculate from the time bounds
-        val timeBins: Seq[Short] = if (options.nonEmpty) { options.asInstanceOf[Seq[Short]] } else {
-          getMinMax[Date](sft, dtg).map { bounds =>
-            val timeToBin = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
-            val lBin = timeToBin(bounds.min.getTime).bin
-            val uBin = timeToBin(bounds.max.getTime).bin
-            Range.inclusive(lBin, uBin).map(_.toShort)
-          }.getOrElse(Seq.empty)
-        }
-        val histograms = binsToFilter(dtg, timeBins).flatMap(getZ3Histogram(sft, geom, dtg, sft.getZ3Interval, -1, _))
-        // combine the week splits into a single stat
-        Stat.combine(histograms)
-      }.toSeq
-    } else {
-      Seq.empty
-    }
-    stats.asInstanceOf[Seq[T]]
-  }
 }
 
 object GeoMesaStats {

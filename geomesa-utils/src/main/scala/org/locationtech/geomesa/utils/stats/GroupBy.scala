@@ -17,11 +17,6 @@ class GroupBy[T](val sft: SimpleFeatureType, val property: String, val stat: Str
 
   override type S = GroupBy[T]
 
-  @deprecated("property")
-  lazy val attribute: Int = i
-  @deprecated("stat")
-  lazy val exampleStat: String = stat
-
   private val i = sft.indexOf(property)
   private [stats] val groups = scala.collection.mutable.Map.empty[T, Stat]
 

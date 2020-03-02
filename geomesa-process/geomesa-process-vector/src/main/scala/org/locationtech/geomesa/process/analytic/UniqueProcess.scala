@@ -20,7 +20,8 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
+import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
+import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat}

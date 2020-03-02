@@ -60,10 +60,6 @@ object TransformerFunction {
 
   lazy val functions: Map[String, TransformerFunction] = {
     val map = Map.newBuilder[String, TransformerFunction]
-    // noinspection ScalaDeprecation
-    ServiceLoader.load(classOf[org.locationtech.geomesa.convert.TransformerFunctionFactory]).asScala.foreach { factory =>
-      factory.functions.foreach(f => f.names.foreach(n => map += n -> f))
-    }
     ServiceLoader.load(classOf[TransformerFunctionFactory]).asScala.foreach { factory =>
       factory.functions.foreach(f => f.names.foreach(n => map += n -> f))
     }

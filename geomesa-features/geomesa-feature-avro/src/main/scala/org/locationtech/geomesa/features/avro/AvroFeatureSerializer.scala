@@ -120,12 +120,3 @@ class ProjectingAvroFeatureDeserializer(original: SimpleFeatureType, projected: 
     reader.read(null, reuse)
   }
 }
-
-/**
- * @param sft the simple feature type to decode
- * @param options the options what were applied when encoding
- */
-@deprecated("Replaced with AvroFeatureSerializer")
-class AvroFeatureDeserializer(sft: SimpleFeatureType, options: Set[SerializationOption] = Set.empty)
-    extends AvroFeatureSerializer(sft, options)
-

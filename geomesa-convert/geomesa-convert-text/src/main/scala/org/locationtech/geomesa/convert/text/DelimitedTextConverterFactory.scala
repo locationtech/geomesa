@@ -8,15 +8,13 @@
 
 package org.locationtech.geomesa.convert.text
 
-import java.io.{ByteArrayInputStream, InputStream, StringReader}
+import java.io.{InputStream, StringReader}
 import java.nio.charset.{Charset, StandardCharsets}
 
 import com.typesafe.config.Config
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.io.IOUtils
-import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
-import org.locationtech.geomesa.convert.SimpleFeatureConverters.SimpleFeatureConverterWrapper
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter._
 import org.locationtech.geomesa.convert.text.DelimitedTextConverterFactory.{DelimitedTextConfigConvert, DelimitedTextOptionsConvert}
 import org.locationtech.geomesa.convert2.AbstractConverter.BasicField
@@ -29,15 +27,14 @@ import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInferenc
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.error.ConfigReaderFailures
 import pureconfig.{ConfigObjectCursor, ConfigReader}
 
 import scala.util.Try
 
 class DelimitedTextConverterFactory
-    extends AbstractConverterFactory[DelimitedTextConverter, DelimitedTextConfig, BasicField, DelimitedTextOptions]
-      with org.locationtech.geomesa.convert.SimpleFeatureConverterFactory[String] {
+    extends AbstractConverterFactory[DelimitedTextConverter, DelimitedTextConfig, BasicField, DelimitedTextOptions] {
 
   import scala.collection.JavaConverters._
 
@@ -46,9 +43,6 @@ class DelimitedTextConverterFactory
   override protected implicit def configConvert: ConverterConfigConvert[DelimitedTextConfig] = DelimitedTextConfigConvert
   override protected implicit def fieldConvert: FieldConvert[BasicField] = BasicFieldConvert
   override protected implicit def optsConvert: ConverterOptionsConvert[DelimitedTextOptions] = DelimitedTextOptionsConvert
-
-  override def infer(is: InputStream, sft: Option[SimpleFeatureType]): Option[(SimpleFeatureType, Config)] =
-    infer(is, sft, None)
 
   override def infer(
       is: InputStream,
@@ -166,33 +160,6 @@ class DelimitedTextConverterFactory
         (sft.getOrElse(schema), config)
       }
       attempt.toOption
-    }
-  }
-
-  // deprecated version one processing, needed to handle skip lines
-
-  override def canProcess(conf: Config): Boolean =
-    conf.hasPath("type") && conf.getString("type").equalsIgnoreCase(typeToProcess)
-
-  override def buildConverter(
-      sft: SimpleFeatureType,
-      conf: Config): org.locationtech.geomesa.convert.SimpleFeatureConverter[String] = {
-    val converter = apply(sft, conf).orNull.asInstanceOf[DelimitedTextConverter]
-    if (converter == null) {
-      throw new IllegalStateException("Could not create converter - did you call canProcess()?")
-    }
-    // used to handle processSingleInput, which doesn't skip lines
-    lazy val skipless = if (converter.options.skipLines.forall(_ < 1)) { converter } else {
-      new DelimitedTextConverter(converter.targetSft, converter.config, converter.fields,
-        converter.options.copy(skipLines = None))
-    }
-
-    new SimpleFeatureConverterWrapper[String](converter) {
-      override def processInput(is: Iterator[String], ec: EvaluationContext): Iterator[SimpleFeature] =
-        converter.options.skipLines.map(is.drop).getOrElse(is).flatMap(processSingleInput(_, ec))
-
-      override def processSingleInput(i: String, ec: EvaluationContext): Iterator[SimpleFeature] =
-        register(skipless.process(new ByteArrayInputStream(i.getBytes(StandardCharsets.UTF_8)), ec))
     }
   }
 }

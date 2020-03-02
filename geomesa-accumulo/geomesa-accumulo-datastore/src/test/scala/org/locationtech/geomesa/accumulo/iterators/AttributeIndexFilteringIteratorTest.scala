@@ -103,7 +103,6 @@ class AttributeIndexFilteringIteratorTest extends Specification with TestWithDat
     }
 
     "handle corner case with attr idx, bbox, and no temporal filter" in {
-      ds.stats.generateStats(sft)
       val filter = ff.and(ECQL.toFilter("name = 'b'"), ECQL.toFilter("BBOX(geom, 30, 30, 50, 50)"))
       val query = new Query(sftName, filter, Array("geom"))
       ds.getQueryPlan(query).head.filter.index.name mustEqual JoinIndex.name

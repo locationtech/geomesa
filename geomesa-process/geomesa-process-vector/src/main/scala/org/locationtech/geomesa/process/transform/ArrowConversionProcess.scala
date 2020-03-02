@@ -23,8 +23,9 @@ import org.locationtech.geomesa.arrow.{ArrowAllocator, ArrowProperties}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
+import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
+import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.process.transform.ArrowConversionProcess.ArrowVisitor
-import org.locationtech.geomesa.process.{GeoMesaProcess, GeoMesaProcessVisitor}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
 import org.locationtech.geomesa.utils.io.CloseWithLogging

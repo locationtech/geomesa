@@ -25,8 +25,6 @@ import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-import scala.util.control.NonFatal
-
 trait StatsScan extends AggregatingScan[StatResult] with LazyLogging {
 
   import org.locationtech.geomesa.index.iterators.StatsScan.Configuration._
@@ -34,20 +32,20 @@ trait StatsScan extends AggregatingScan[StatResult] with LazyLogging {
   override protected def initResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
+      batchSize: Int,
       options: Map[String, String]): StatResult = {
     new StatResult(transform.getOrElse(sft), options(STATS_STRING_KEY))
   }
 
-  override protected def aggregateResult(sf: SimpleFeature, result: StatResult): Unit = {
-    try { result.observe(sf) } catch {
-      case NonFatal(e) => logger.warn(s"Error observing feature $sf", e)
-    }
-  }
+  override protected def defaultBatchSize: Int =
+    StatsScan.BatchSize.toInt.get // has a valid default so should be safe to .get
 
-  override protected def notFull(result: StatResult): Boolean = result.notFull()
+  override protected def aggregateResult(sf: SimpleFeature, result: StatResult): Int = { result.observe(sf); 1 }
 
   // encode the result as a byte array
   override protected def encodeResult(result: StatResult): Array[Byte] = result.serialize()
+
+  override protected def closeResult(result: StatResult): Unit = {}
 }
 
 object StatsScan {
@@ -67,7 +65,8 @@ object StatsScan {
                 hints: Hints): Map[String, String] = {
     import Configuration.STATS_STRING_KEY
     import org.locationtech.geomesa.index.conf.QueryHints.{RichHints, STATS_STRING}
-    AggregatingScan.configure(sft, index, filter, hints.getTransform, hints.getSampling) ++
+    val batchSize = StatsScan.BatchSize.toInt.get // has a valid default so should be safe to .get
+    AggregatingScan.configure(sft, index, filter, hints.getTransform, hints.getSampling, batchSize) ++
       Map(STATS_STRING_KEY -> hints.get(STATS_STRING).asInstanceOf[String])
   }
 
@@ -103,15 +102,12 @@ object StatsScan {
 
     private val stat = Stat(sft, definition)
     private val serializer = StatSerializer(sft)
-    private val batch = StatsScan.BatchSize.toInt.get // has a valid default so should be safe to .get
     private var _count: Int = 0
 
     def observe(sf: SimpleFeature): Unit = {
       _count += 1
       stat.observe(sf)
     }
-
-    def notFull(): Boolean = _count < batch
 
     def serialize(): Array[Byte] = serializer.serialize(stat)
 

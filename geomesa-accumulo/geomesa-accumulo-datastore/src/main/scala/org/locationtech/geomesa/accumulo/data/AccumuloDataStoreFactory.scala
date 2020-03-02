@@ -52,9 +52,9 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
   override def isAvailable = true
 
-  override def getDisplayName: String = AccumuloDataStoreFactory.DISPLAY_NAME
+  override def getDisplayName: String = AccumuloDataStoreFactory.DisplayName
 
-  override def getDescription: String = AccumuloDataStoreFactory.DESCRIPTION
+  override def getDescription: String = AccumuloDataStoreFactory.Description
 
   override def getParametersInfo: Array[Param] =
     AccumuloDataStoreFactory.ParameterInfo ++ Array(NamespaceParam, DeprecatedGeoServerPasswordParam)
@@ -92,11 +92,6 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       CachingParam,
       ForceEmptyAuthsParam
     )
-
-  @deprecated("Use DisplayName")
-  val DISPLAY_NAME: String = DisplayName
-  @deprecated("Use Description")
-  val DESCRIPTION: String = Description
 
   override def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean = {
     val hasConnector = ConnectorParam.lookupOpt(params).isDefined

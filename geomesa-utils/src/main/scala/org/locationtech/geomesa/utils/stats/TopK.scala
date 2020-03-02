@@ -33,9 +33,6 @@ class TopK[T] private [stats] (
 
   override type S = TopK[T]
 
-  @deprecated("property")
-  lazy val attribute: Int = i
-
   private val i = sft.indexOf(property)
 
   def topK(k: Int): Iterator[(T, Long)] = summary.topK(k)
