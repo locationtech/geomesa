@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.iterators
 
-import java.io.Closeable
-
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataUtilities
 import org.geotools.filter.text.ecql.ECQL
@@ -25,8 +23,7 @@ import org.opengis.filter.Filter
 import scala.util.Try
 import scala.util.control.NonFatal
 
-trait AggregatingScan[T <: AggregatingScan.Result]
-    extends SamplingIterator with ConfiguredScan with Closeable with LazyLogging {
+trait AggregatingScan[T <: AggregatingScan.Result] extends SamplingIterator with ConfiguredScan with LazyLogging {
 
   import AggregatingScan.Configuration._
 
@@ -73,7 +70,7 @@ trait AggregatingScan[T <: AggregatingScan.Result]
       case (Some(filt), Some(samp)) => new CqlSampleValidator(filt,  samp)
     }
     batchSize = options.get(BatchSizeOpt).map(_.toInt).getOrElse(defaultBatchSize)
-    result = initResult(sft, transformSft, batchSize, options)
+    result = createResult(sft, transformSft, batchSize, options)
   }
 
   /**
@@ -84,7 +81,7 @@ trait AggregatingScan[T <: AggregatingScan.Result]
    */
   def aggregate[A <: AggregateCallback](callback: A): A = {
     // noinspection LanguageFeature
-    result.clear()
+    result.init()
 
     val status = new AggregateStatus(callback)
 
@@ -98,7 +95,7 @@ trait AggregatingScan[T <: AggregatingScan.Result]
         reusableSf.setBuffer(rowValue.value, rowValue.valueOffset, rowValue.valueLength)
         if (validate(reusableSf)) {
           // write the record to our aggregated results
-          status.aggregated(aggregateResult(aggregateSf, result))
+          status.aggregated(result.aggregate(aggregateSf))
         } else {
           status.skipped()
         }
@@ -120,8 +117,6 @@ trait AggregatingScan[T <: AggregatingScan.Result]
 
   private def debugSf(): String = Try(DataUtilities.encodeFeature(aggregateSf)).getOrElse(s"$aggregateSf")
 
-  override def close(): Unit = closeResult(result)
-
   // returns true if there is more data to read
   protected def hasNextData: Boolean
   // returns the next row of data
@@ -139,31 +134,11 @@ trait AggregatingScan[T <: AggregatingScan.Result]
    * @param options scan options
    * @return
    */
-  protected def initResult(
+  protected def createResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
       batchSize: Int,
       options: Map[String, String]): T
-
-  /**
-   * Add the feature to the current aggregated result
-   *
-   * @param sf feature
-   * @param result result
-   * @return count of number of records added
-   */
-  protected def aggregateResult(sf: SimpleFeature, result: T): Int
-
-  /**
-   * Encode the result as a byte array. Note that they byte array must remain valid
-   * even after a call to `result.clear()`
-   *
-   * @param result result to encode
-   * @return
-   */
-  protected def encodeResult(result: T): Array[Byte]
-
-  protected def closeResult(result: T): Unit
 
   /**
    * Class for tracking status of current aggregation
@@ -195,22 +170,49 @@ trait AggregatingScan[T <: AggregatingScan.Result]
       if (count > 0) {
         callback.batch(bytes())
       }
+      result.cleanup()
     }
 
     // noinspection LanguageFeature
     private def bytes(): Array[Byte] = {
-      val encoded = encodeResult(result)
-      result.clear()
       count = 0
       skip = 0
-      encoded
+      result.encode()
     }
   }
 }
 
 object AggregatingScan {
 
-  type Result = AnyRef { def clear(): Unit }
+  /**
+   * Aggregation result
+   */
+  trait Result {
+
+    /**
+     * Initialize the result for a scan
+     */
+    def init(): Unit
+
+    /**
+     * Aggregate a feature. May be called anytime after `init`
+     *
+     * @param sf simple feature
+     * @return number of entries aggregated
+     */
+    def aggregate(sf: SimpleFeature): Int
+
+    /**
+     * Encode current aggregation and reset the result. May be called anytime after `init`
+     */
+    def encode(): Array[Byte]
+
+    /**
+     * Dispose of any resources used by the scan. If the result is re-used, `init` will be called
+     * again before anything else
+     */
+    def cleanup(): Unit
+  }
 
   // configuration keys
   object Configuration {

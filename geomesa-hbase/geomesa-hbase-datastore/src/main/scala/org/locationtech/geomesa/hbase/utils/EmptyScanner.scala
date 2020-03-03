@@ -21,7 +21,7 @@ object EmptyScanner extends ResultScanner {
 
   // override for methods in hbase 1.4 - can't mark them as override as it won't compile with 1.3
 
-  // noinspection AccessorLikeMethodIsEmptyParen
+  // noinspection AccessorLikeMethodIsEmptyParen,JavaAccessorMethodOverriddenAsEmptyParen
   def getScanMetrics(): ScanMetrics = null
   def renewLease(): Boolean = false
 }

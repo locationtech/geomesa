@@ -68,7 +68,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
 
   override val adapter: AccumuloIndexAdapter = new AccumuloIndexAdapter(this)
 
-  override val stats = AccumuloGeoMesaStats(this)
+  override val stats: AccumuloGeoMesaStats = AccumuloGeoMesaStats(this)
 
   // If on a secured cluster, create a thread to periodically renew Kerberos tgt
   private val kerberosTgtRenewer = {
@@ -422,6 +422,7 @@ object AccumuloDataStore extends LazyLogging {
     // note: 10 was the last valid value for CURRENT_SCHEMA_VERSION, which is no longer used except
     // to transition old schemas from the 1.2.5 era
     val version = {
+      // noinspection ScalaDeprecation
       val string = sft.getUserData.remove(DeprecatedSchemaVersionKey).asInstanceOf[String]
       if (string != null) { string.toInt } else { 10 }
     }
@@ -442,6 +443,7 @@ object AccumuloDataStore extends LazyLogging {
           s"GeoMesa 1.2.6 to update you data to a newer format. For more information, see $docs")
     }
 
+    // noinspection ScalaDeprecation
     SimpleFeatureTypes.Configs.ENABLED_INDEX_OPTS.map(sft.getUserData.get).find(_ != null) match {
       case None => indices
       case Some(enabled) =>

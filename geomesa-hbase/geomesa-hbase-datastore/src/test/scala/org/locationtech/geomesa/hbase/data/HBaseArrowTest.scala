@@ -14,19 +14,23 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.filter.FilterList
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.CoprocessorPlan
-import org.locationtech.geomesa.hbase.filters.Z3HBaseFilter
+import org.locationtech.geomesa.hbase.rpc.filter.Z3HBaseFilter
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.filter.Filter
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
-class HBaseArrowTest extends HBaseTest with LazyLogging  {
+@RunWith(classOf[JUnitRunner])
+class HBaseArrowTest extends Specification with LazyLogging  {
 
   import scala.collection.JavaConverters._
 
@@ -41,7 +45,10 @@ class HBaseArrowTest extends HBaseTest with LazyLogging  {
   step {
     logger.info("Starting HBase Arrow Test")
     import scala.collection.JavaConversions._
-    val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
+    val params = Map(
+      ConnectionParam.getName -> MiniCluster.connection,
+      HBaseCatalogParam.getName -> HBaseArrowTest.this.getClass.getSimpleName
+    )
     ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
     ds.createSchema(sft)
     val writer = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)
