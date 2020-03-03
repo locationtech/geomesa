@@ -9,16 +9,16 @@
 package org.locationtech.geomesa.utils.zk
 
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.{Lock, ReentrantLock}
 
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
 
+import scala.util.Try
+
 trait ZookeeperLocking extends DistributedLocking {
 
-  protected def mock: Boolean
   protected def zookeepers: String
 
   /**
@@ -29,20 +29,12 @@ trait ZookeeperLocking extends DistributedLocking {
     * @return the lock
     */
   override protected def acquireDistributedLock(key: String): Releasable = {
-    if (mock) {
-      val lock = ZookeeperLocking.mockLocks.synchronized {
-        ZookeeperLocking.mockLocks.getOrElseUpdate(key, new ReentrantLock())
-      }
-      lock.lock()
-      Releasable(lock)
-    } else {
-      val (client, lock) = distributedLock(key)
-      try {
-        lock.acquire()
-        ZookeeperLocking.releasable(lock, client)
-      } catch {
-        case e: Exception => client.close(); throw e
-      }
+    val (client, lock) = distributedLock(key)
+    try {
+      lock.acquire()
+      ZookeeperLocking.releasable(lock, client)
+    } catch {
+      case e: Exception => Try(client.close()).failed.foreach(e.addSuppressed); throw e
     }
   }
 
@@ -55,26 +47,15 @@ trait ZookeeperLocking extends DistributedLocking {
     * @return the lock, if obtained
     */
   override protected def acquireDistributedLock(key: String, timeOut: Long): Option[Releasable] = {
-    if (mock) {
-      val lock = ZookeeperLocking.mockLocks.synchronized {
-        ZookeeperLocking.mockLocks.getOrElseUpdate(key, new ReentrantLock())
-      }
-      if (lock.tryLock(timeOut, TimeUnit.MILLISECONDS)) {
-        Some(Releasable(lock))
+    val (client, lock) = distributedLock(key)
+    try {
+      if (lock.acquire(timeOut, TimeUnit.MILLISECONDS)) {
+        Some(ZookeeperLocking.releasable(lock, client))
       } else {
         None
       }
-    } else {
-      val (client, lock) = distributedLock(key)
-      try {
-        if (lock.acquire(timeOut, TimeUnit.MILLISECONDS)) {
-          Some(ZookeeperLocking.releasable(lock, client))
-        } else {
-          None
-        }
-      } catch {
-        case e: Exception => client.close(); throw e
-      }
+    } catch {
+      case e: Exception => Try(client.close()).failed.foreach(e.addSuppressed); throw e
     }
   }
 
@@ -89,8 +70,6 @@ trait ZookeeperLocking extends DistributedLocking {
 }
 
 object ZookeeperLocking {
-
-  private lazy val mockLocks = scala.collection.mutable.Map.empty[String, Lock]
 
   // delegate lock that will close the curator client upon release
   def releasable(lock: InterProcessSemaphoreMutex, client: CuratorFramework): Releasable =

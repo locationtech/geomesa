@@ -22,16 +22,19 @@ import scala.util.{Success, Try}
 object AccumuloVersion extends Enumeration with LazyLogging {
 
   type AccumuloVersion = Value
-  val V15, V16, V17, V18, V19 = Value
+  val V15, V16, V17, V18, V19, V20 = Value
 
   lazy val accumuloVersion: AccumuloVersion = Try(SemanticVersion(Constants.VERSION, lenient = true)) match {
+    case Success(v) if v.major == 2 && v.minor == 0 => V20
     case Success(v) if v.major == 1 && v.minor == 9 => V19
     case Success(v) if v.major == 1 && v.minor == 8 => V18
     case Success(v) if v.major == 1 && v.minor == 7 => V17
     case Success(v) if v.major == 1 && v.minor == 6 => V16
     case Success(v) if v.major == 1 && v.minor == 5 => V15
-    case Success(v) if (v.major == 1 && v.minor > 9) || v.major > 1 =>
+    case Success(v) if v.major == 1 && v.minor > 9 =>
       logger.warn(s"Found unsupported version ${Constants.VERSION}; using 1.9 compatibility mode"); V19
+    case Success(v) if v.major > 2 || (v.major == 2 && v.minor > 0) =>
+      logger.warn(s"Found unsupported version ${Constants.VERSION}; using 2.0 compatibility mode"); V20
 
     case _ =>
       throw new IllegalStateException(s"GeoMesa does not currently support Accumulo version ${Constants.VERSION}")
