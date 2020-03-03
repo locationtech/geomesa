@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{Put, Scan}
 import org.geotools.data.simple.SimpleFeatureSource
@@ -22,6 +21,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.hbase.HBaseSystemProperties.TableAvailabilityTimeout
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -74,8 +74,6 @@ class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
   )
 
   val path = "src/test/resources/data/" // note: if running through intellij, use an absolute path
-
-  implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
   lazy val params = Map(ConnectionParam.getName -> MiniCluster.connection, HBaseCatalogParam.getName -> name).asJava
 
@@ -204,7 +202,7 @@ class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
     results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
     def in() = new ByteArrayInputStream(out.toByteArray)
     WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-      SelfClosingIterator(reader.features()).map(_.getID.toInt).toSeq
+      WithClose(reader.features())(_.map(_.getID.toInt).toList)
     }
   }
 

@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.config.Config
 import org.apache.commons.text.StringEscapeUtils
+import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.utils.geotools.NameableFeatureTypeFactory.NameableSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.{DefaultDtgField, IndexIgnoreDtg}
@@ -375,6 +376,19 @@ object SimpleFeatureTypes {
     val renamed = builder.buildFeatureType()
     renamed.getUserData.putAll(sft.getUserData)
     renamed
+  }
+
+  /**
+   * Rename an attribute descriptor
+   *
+   * @param descriptor descriptor
+   * @param newName new name
+   * @return
+   */
+  def renameDescriptor(descriptor: AttributeDescriptor, newName: String): AttributeDescriptor = {
+    val builder = new AttributeTypeBuilder()
+    builder.init(descriptor)
+    builder.buildDescriptor(newName)
   }
 
   /**

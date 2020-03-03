@@ -27,9 +27,9 @@ import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector._
-import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
+import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -46,18 +46,20 @@ import scala.math.Ordering
   * @param encoding simple feature encoding
   * @param sort sort
   * @param initialCapacity initial allocation size, will expand if needed
-  * @param allocator buffer allocator
   */
-class DeltaWriter(val sft: SimpleFeatureType,
-                  dictionaryFields: Seq[String],
-                  encoding: SimpleFeatureEncoding,
-                  sort: Option[(String, Boolean)],
-                  initialCapacity: Int)
-                 (implicit allocator: BufferAllocator) extends Closeable with StrictLogging {
+class DeltaWriter(
+    val sft: SimpleFeatureType,
+    dictionaryFields: Seq[String],
+    encoding: SimpleFeatureEncoding,
+    sort: Option[(String, Boolean)],
+    initialCapacity: Int
+  ) extends Closeable with StrictLogging {
 
   import DeltaWriter._
 
   import scala.collection.JavaConversions._
+
+  private val allocator = ArrowAllocator("delta-writer")
 
   // threading key that we use to group results in the reduce phase
   private var threadingKey: Long = math.abs(ThreadLocalRandom.current().nextLong)
@@ -72,17 +74,16 @@ class DeltaWriter(val sft: SimpleFeatureType,
     if (reverse) { o.reverse } else { o }
   }
 
-  private val idWriter = ArrowAttributeWriter.id(sft, Some(vector), encoding)
+  private val idWriter = ArrowAttributeWriter.id(sft, encoding, vector)
+
   private val writers = sft.getAttributeDescriptors.map { descriptor =>
     val name = descriptor.getLocalName
     val isDictionary = dictionaryFields.contains(name)
-    val classBinding = if (isDictionary) { classOf[Integer] } else { descriptor.getType.getBinding }
-    val bindings = ObjectType.selectType(classBinding, descriptor.getUserData)
-    val attribute = ArrowAttributeWriter(name, bindings, Some(vector), None, Map.empty, encoding)
+    val desc = if (isDictionary) { SimpleFeatureTypes.createDescriptor(s"$name:Integer") } else { descriptor }
+    val attribute = ArrowAttributeWriter(sft, desc, None, encoding, vector)
 
     val dictionary = if (!isDictionary) { None } else {
-      val bindings = ObjectType.selectType(descriptor)
-      val attribute = ArrowAttributeWriter(name, bindings, None, None, Map.empty, encoding)
+      val attribute = ArrowAttributeWriter(sft, descriptor, None, encoding, allocator)
       val writer = new BatchWriter(attribute.vector)
       attribute.vector.setInitialCapacity(initialCapacity)
       attribute.vector.allocateNew()
@@ -201,10 +202,13 @@ class DeltaWriter(val sft: SimpleFeatureType,
   override def close(): Unit = {
     CloseWithLogging(writer) // also closes `vector`
     dictionaryWriters.foreach(w => CloseWithLogging(w.writer)) // also closes dictionary vectors
+    CloseWithLogging(allocator)
   }
 }
 
 object DeltaWriter extends StrictLogging {
+
+  import scala.collection.JavaConverters._
 
   // empty provider
   private val provider = new MapDictionaryProvider()
@@ -218,18 +222,6 @@ object DeltaWriter extends StrictLogging {
   private val queueOrdering = new Ordering[(AnyRef, Int, Int)] {
     override def compare(x: (AnyRef, Int, Int), y: (AnyRef, Int, Int)): Int =
       SimpleFeatureOrdering.nullCompare(y._1.asInstanceOf[Comparable[Any]], x._1)
-  }
-
-  @deprecated("Use reduce without an allocator")
-  def reduce(
-      sft: SimpleFeatureType,
-      dictionaryFields: Seq[String],
-      encoding: SimpleFeatureEncoding,
-      sort: Option[(String, Boolean)],
-      batchSize: Int)
-      (deltas: CloseableIterator[Array[Byte]])
-      (implicit allocator: BufferAllocator): CloseableIterator[Array[Byte]] = {
-    reduce(sft, dictionaryFields, encoding, sort, batchSize, deltas)
   }
 
   /**
@@ -272,20 +264,16 @@ object DeltaWriter extends StrictLogging {
       batchSize: Int,
       threadedBatches: Array[Array[Array[Byte]]]): CloseableIterator[Array[Byte]] = {
 
-    val allocator = ArrowAllocator("delta-reduce")
-
-    val result = SimpleFeatureVector.create(sft, mergedDictionaries.dictionaries, encoding, batchSize)(allocator)
-    logger.trace(s"merge unsorted deltas - read schema ${result.underlying.getField}")
-
     val iter: CloseableIterator[Array[Byte]] = new CloseableIterator[Array[Byte]] {
-
-      import scala.collection.JavaConversions._
-
-      private val loader = RecordBatchLoader(result.underlying.getField)(allocator)
+      private var writeHeader = true
+      private val toLoad = SimpleFeatureVector.create(sft, mergedDictionaries.dictionaries, encoding, batchSize)
+      private val result = SimpleFeatureVector.create(sft, mergedDictionaries.dictionaries, encoding, batchSize)
+      logger.trace(s"merge unsorted deltas - read schema ${result.underlying.getField}")
+      private val loader = new RecordBatchLoader(toLoad.underlying)
       private val unloader = new RecordBatchUnloader(result)
 
       private val transfers: Seq[(String, (Int, Int, scala.collection.Map[Integer, Integer]) => Unit)] = {
-        loader.vector.getChildrenFromFields.map { fromVector =>
+        toLoad.underlying.getChildrenFromFields.asScala.map { fromVector =>
           val name = fromVector.getField.getName
           val toVector = result.underlying.getChild(name)
           val transfer: (Int, Int, scala.collection.Map[Integer, Integer]) => Unit =
@@ -323,13 +311,13 @@ object DeltaWriter extends StrictLogging {
       private var mappings: Map[String, scala.collection.Map[Integer, Integer]] = _
       private var count = 0 // records read in current batch
 
-      override def hasNext: Boolean = count < loader.vector.getValueCount || loadNextBatch()
+      override def hasNext: Boolean = count < toLoad.reader.getValueCount || loadNextBatch()
 
       override def next(): Array[Byte] = {
         var total = 0
         while (total < batchSize && hasNext) {
           // read the rest of the current vector, up to the batch size
-          val toRead = math.min(batchSize - total, loader.vector.getValueCount - count)
+          val toRead = math.min(batchSize - total, toLoad.reader.getValueCount - count)
           transfers.foreach { case (name, transfer) =>
             val mapping = mappings.get(name).orNull
             logger.trace(s"dictionary mappings for $name: $mapping")
@@ -343,15 +331,16 @@ object DeltaWriter extends StrictLogging {
           total += toRead
         }
 
-        unloader.unload(total)
+        if (writeHeader) {
+          // write the header in the first result, which includes the metadata and dictionaries
+          writeHeader = false
+          writeHeaderAndFirstBatch(result, mergedDictionaries.dictionaries, None, total)
+        } else {
+          unloader.unload(total)
+        }
       }
 
-      override def close(): Unit = {
-        CloseWithLogging(loader.vector)
-        CloseWithLogging(result)
-        CloseWithLogging(mergedDictionaries)
-        CloseWithLogging(allocator)
-      }
+      override def close(): Unit = CloseWithLogging.raise(Seq(toLoad, result, mergedDictionaries))
 
       /**
         * Read the next batch
@@ -365,13 +354,13 @@ object DeltaWriter extends StrictLogging {
           // skip the dictionary batches
           var offset = 8 // initial threading key offset
           dictionaryFields.foreach { _ =>
-            offset += Ints.fromBytes(batch(offset), batch(offset + 1), batch(offset + 2), batch(offset + 3)) + 4
+            offset += ByteArrays.readInt(batch, offset) + 4
           }
-          val messageLength = Ints.fromBytes(batch(offset), batch(offset + 1), batch(offset + 2), batch(offset + 3))
+          val messageLength = ByteArrays.readInt(batch, offset)
           offset += 4 // skip over message length bytes
           // load the record batch
           loader.load(batch, offset, messageLength)
-          if (loader.vector.getValueCount > 0) {
+          if (toLoad.reader.getValueCount > 0) {
             count = 0 // reset count for this batch
             true
           } else {
@@ -389,7 +378,7 @@ object DeltaWriter extends StrictLogging {
       }
     }
 
-    SimpleFeatureArrowIO.createFile(result, None, iter)
+    createFileFromBatches(sft, mergedDictionaries.dictionaries, encoding, None, iter, firstBatchHasHeader = true)
   }
 
   /**
@@ -417,13 +406,11 @@ object DeltaWriter extends StrictLogging {
 
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
 
-    import scala.collection.JavaConversions._
-
-    val allocator = ArrowAllocator("delta-reduce-sort")
+    val dictionaries = mergedDictionaries.dictionaries
 
     // gets the attribute we're sorting by from the i-th feature in the vector
     val getSortAttribute: (ArrowAttributeReader, scala.collection.Map[Integer, Integer], Int) => AnyRef = {
-      if (mergedDictionaries.dictionaries.contains(sortBy)) {
+      if (dictionaries.contains(sortBy)) {
         // since we've sorted the dictionaries, we can just compare the encoded index values
         (reader, mappings, i) => mappings(reader.asInstanceOf[ArrowDictionaryReader].getEncoded(i))
       } else {
@@ -431,7 +418,7 @@ object DeltaWriter extends StrictLogging {
       }
     }
 
-    val result = SimpleFeatureVector.create(sft, mergedDictionaries.dictionaries, encoding)(allocator)
+    val result = SimpleFeatureVector.create(sft, dictionaries, encoding)
     val unloader = new RecordBatchUnloader(result)
 
     logger.trace(s"merging sorted deltas - read schema: ${result.underlying.getField}")
@@ -445,8 +432,9 @@ object DeltaWriter extends StrictLogging {
       logger.trace(s"loading ${batches.length} batch(es) from a single thread")
 
       batches.foreach { batch =>
-        // note: for some reason we have to allow the batch loader to create the vectors or this doesn't work
-        val loader = RecordBatchLoader(result.underlying.getField)(allocator)
+        val toLoad = SimpleFeatureVector.create(sft, dictionaries, encoding)
+        val loader = new RecordBatchLoader(toLoad.underlying)
+
         // skip the dictionary batches
         var offset = 8
         dictionaryFields.foreach { _ =>
@@ -456,7 +444,7 @@ object DeltaWriter extends StrictLogging {
         offset += 4 // skip the length bytes
         // load the record batch
         loader.load(batch, offset, messageLength)
-        val transfers: Seq[(Int, Int) => Unit] = loader.vector.getChildrenFromFields.map { fromVector =>
+        val transfers: Seq[(Int, Int) => Unit] = toLoad.underlying.getChildrenFromFields.asScala.map { fromVector =>
           val toVector = result.underlying.getChild(fromVector.getField.getName)
           if (fromVector.getField.getDictionary != null) {
             val mapping = mappings(fromVector.getField.getName)
@@ -481,8 +469,8 @@ object DeltaWriter extends StrictLogging {
             (fromIndex: Int, toIndex: Int) => transfer.copyValueSafe(fromIndex, toIndex)
           }
         }
-        val mapVector = loader.vector.asInstanceOf[StructVector]
-        val dict = mergedDictionaries.dictionaries.get(sortBy)
+        val mapVector = toLoad.underlying
+        val dict = dictionaries.get(sortBy)
         val sortReader = ArrowAttributeReader(sft.getDescriptor(sortBy), mapVector.getChild(sortBy), dict, encoding)
         mergeBuilder += ((mapVector, sortReader, transfers, mappings.get(sortBy).orNull))
       }
@@ -503,6 +491,8 @@ object DeltaWriter extends StrictLogging {
       }
     }
 
+    var writtenHeader = false
+
     // gets the next record batch to write - returns null if no further records
     def nextBatch(): Array[Byte] = {
       if (queue.isEmpty) { null } else {
@@ -521,7 +511,14 @@ object DeltaWriter extends StrictLogging {
             queue += ((value, batch, nextBatchIndex))
           }
         } while (queue.nonEmpty && resultIndex < batchSize)
-        unloader.unload(resultIndex)
+
+        if (writtenHeader) {
+          unloader.unload(resultIndex)
+        } else {
+          // write the header in the first result, which includes the metadata and dictionaries
+          writtenHeader = true
+          writeHeaderAndFirstBatch(result, dictionaries, Some(sortBy -> reverse), resultIndex)
+        }
       }
     }
 
@@ -545,11 +542,10 @@ object DeltaWriter extends StrictLogging {
         CloseWithLogging(result)
         toMerge.foreach { case (vector, _,  _, _) => CloseWithLogging(vector) }
         CloseWithLogging(mergedDictionaries)
-        CloseWithLogging(allocator)
       }
     }
 
-    SimpleFeatureArrowIO.createFile(result, Some(sortBy, reverse), merged)
+    createFileFromBatches(sft, dictionaries, encoding, Some(sortBy -> reverse), merged, firstBatchHasHeader = true)
   }
 
   /**
@@ -580,7 +576,7 @@ object DeltaWriter extends StrictLogging {
       dictionaryFields.foreach { f =>
         val descriptor = sft.getDescriptor(f)
         // use the writer to create the appropriate child vector
-        val vector = ArrowAttributeWriter(sft, descriptor, None, None, encoding)(allocator).vector
+        val vector = ArrowAttributeWriter(sft, descriptor, None, encoding, allocator).vector
         builder += ArrowAttributeReader(descriptor, vector, None, encoding)
       }
       builder.result
@@ -608,15 +604,15 @@ object DeltaWriter extends StrictLogging {
         var i = 0
         var offset = 8 // start after threading key
         while (i < dictionaries.length) {
-          val length = Ints.fromBytes(bytes(offset), bytes(offset + 1), bytes(offset + 2), bytes(offset + 3))
+          val length = ByteArrays.readInt(bytes, offset)
           offset += 4 // increment past length
           if (length > 0) {
-            RecordBatchLoader(vectors(i).vector)(allocator).load(bytes, offset, length)
+            new RecordBatchLoader(vectors(i).vector).load(bytes, offset, length)
             offset += length
           }
           i += 1
         }
-        logger.trace(s"dictionary deltas: ${vectors.map(v => (0 until v.getValueCount).map(v.apply).mkString(",")).mkString(";")}")
+        logger.trace(s"dictionary deltas: ${vectors.map(v => Seq.tabulate(v.getValueCount)(v.apply).mkString(",")).mkString(";")}")
         val transfers = vectors.mapWithIndex { case (v, j) => v.vector.makeTransferPair(dictionaries(j).vector) }
         (vectors, transfers)
       }
@@ -716,7 +712,7 @@ object DeltaWriter extends StrictLogging {
     mappingsBuilder.sizeHint(dictionaryFields.length)
 
     dictionaryFields.foreachIndex { case (f, i) =>
-      logger.trace("merged dictionary: " + (0 until results(i).getValueCount).map(results(i).apply).mkString(","))
+      logger.trace("merged dictionary: " + Seq.tabulate(results(i).getValueCount)(results(i).apply).mkString(","))
       val enc = new DictionaryEncoding(i, true, new ArrowType.Int(32, true))
       dictionaryBuilder += ((f, ArrowDictionary.create(enc, results(i).vector, sft.getDescriptor(f), encoding)))
       mappingsBuilder += ((f, mappings(i).asInstanceOf[Array[scala.collection.Map[Integer, Integer]]]))
@@ -758,7 +754,7 @@ object DeltaWriter extends StrictLogging {
     */
   private class BatchWriter(vector: FieldVector) extends Closeable {
 
-    private val root = SimpleFeatureArrowIO.createRoot(vector)
+    private val root = createRoot(vector)
     private val os = new ByteArrayOutputStream()
     private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os))
     writer.start() // start the writer - we'll discard the metadata later, as we only care about the record batches
@@ -801,8 +797,7 @@ object DeltaWriter extends StrictLogging {
       val grouped = scala.collection.mutable.Map.empty[Long, scala.collection.mutable.ArrayBuilder[Array[Byte]]]
       while (!closed.get && deltas.hasNext) {
         val delta = deltas.next
-        val builder = grouped.getOrElseUpdate(Longs.fromByteArray(delta), Array.newBuilder)
-        builder += delta
+        grouped.getOrElseUpdate(Longs.fromByteArray(delta), Array.newBuilder) += delta
       }
       val threaded = Array.ofDim[Array[Array[Byte]]](grouped.size)
       var i = 0
