@@ -15,13 +15,14 @@ import java.security.PrivilegedExceptionAction
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory, HBaseAdmin}
+import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants}
 import org.apache.hadoop.security.UserGroupInformation
 import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{HBaseGeoMesaKeyTab, HBaseGeoMesaPrincipal}
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConfigPathsParam, ConfigsParam, ConnectionParam, ZookeeperParam}
+import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, HadoopUtils}
 
 object HBaseConnectionPool extends LazyLogging {
@@ -114,7 +115,7 @@ object HBaseConnectionPool extends LazyLogging {
       override def run(): Connection = {
         if (validate) {
           logger.debug("Checking configuration availability")
-          HBaseAdmin.checkHBaseAvailable(conf)
+          HBaseVersions.checkAvailable(conf)
         }
         ConnectionFactory.createConnection(conf)
       }

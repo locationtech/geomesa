@@ -22,6 +22,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
@@ -39,8 +40,11 @@ import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
-class HBaseColumnGroupsTest extends HBaseTest with LazyLogging  {
+@RunWith(classOf[JUnitRunner])
+class HBaseColumnGroupsTest extends Specification with LazyLogging  {
 
   import scala.collection.JavaConverters._
 
@@ -121,7 +125,10 @@ class HBaseColumnGroupsTest extends HBaseTest with LazyLogging  {
 
   step {
     logger.info("Starting HBase column groups test")
-    val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
+    val params = Map(
+      ConnectionParam.getName -> MiniCluster.connection,
+      HBaseCatalogParam.getName -> getClass.getSimpleName
+    )
     ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
     ds.createSchema(sft)
     val writer = ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)

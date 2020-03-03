@@ -14,6 +14,7 @@ import java.util.{Collections, Locale, UUID}
 
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.hadoop.fs.Path
+import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
@@ -22,17 +23,16 @@ import org.apache.hadoop.hbase.io.compress.Compression
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
-import org.apache.hadoop.hbase.{Coprocessor, HColumnDescriptor, HTableDescriptor, TableName}
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, TableAvailabilityTimeout}
-import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseArrowAggregator.HBaseArrowResultsToFeatures
-import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseBinAggregator.HBaseBinResultsToFeatures
-import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseDensityAggregator.HBaseDensityResultsToFeatures
-import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseStatsAggregator.HBaseStatsResultsToFeatures
-import org.locationtech.geomesa.hbase.coprocessor.aggregators.{HBaseArrowAggregator, HBaseBinAggregator, HBaseDensityAggregator, HBaseStatsAggregator}
-import org.locationtech.geomesa.hbase.coprocessor.{AllCoprocessors, GeoMesaCoprocessor}
+import org.locationtech.geomesa.hbase.aggregators.HBaseArrowAggregator.HBaseArrowResultsToFeatures
+import org.locationtech.geomesa.hbase.aggregators.HBaseBinAggregator.HBaseBinResultsToFeatures
+import org.locationtech.geomesa.hbase.aggregators.HBaseDensityAggregator.HBaseDensityResultsToFeatures
+import org.locationtech.geomesa.hbase.aggregators.HBaseStatsAggregator.HBaseStatsResultsToFeatures
+import org.locationtech.geomesa.hbase.aggregators.{HBaseArrowAggregator, HBaseBinAggregator, HBaseDensityAggregator, HBaseStatsAggregator}
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, EmptyPlan, ScanPlan}
-import org.locationtech.geomesa.hbase.filters._
+import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
+import org.locationtech.geomesa.hbase.rpc.filter._
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
@@ -83,19 +83,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
             Compression.getCompressionAlgorithmByName(compressionType)
         }
 
-        val descriptor = new HTableDescriptor(name)
+        val cols = groups.apply(index.sft).map(_._1)
+        val bloom = Some(BloomType.NONE)
+        val encoding = if (index.name == IdIndex.name) { None } else { Some(DataBlockEncoding.FAST_DIFF) }
 
-        groups.apply(index.sft).foreach { case (k, _) =>
-          val column = new HColumnDescriptor(k)
-          column.setBloomFilterType(BloomType.NONE)
-          compression.foreach(column.setCompressionType)
-          if (index.name != IdIndex.name) {
-            column.setDataBlockEncoding(DataBlockEncoding.FAST_DIFF)
-          }
-          HBaseVersions.addFamily(descriptor, column)
-        }
-
-        if (ds.config.remoteFilter) {
+        val coprocessor = if (!ds.config.remoteFilter) { None } else {
           lazy val coprocessorUrl = ds.config.coprocessorUrl.orElse(CoprocessorPath.option.map(new Path(_))).orElse {
             try {
               // the jar should be under hbase.dynamic.jars.dir to enable filters, so look there
@@ -111,24 +103,20 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
               case NonFatal(e) => logger.warn("Error checking dynamic jar path:", e); None
             }
           }
-
-          def addCoprocessor(clazz: Class[_ <: Coprocessor], desc: HTableDescriptor): Unit = {
-            val name = clazz.getCanonicalName
-            if (!desc.getCoprocessors.contains(name)) {
-              logger.debug(s"Using coprocessor path ${coprocessorUrl.orNull}")
-              // TODO: Warn if the path given is different from paths registered in other coprocessors
-              // if so, other tables would need updating
-              HBaseVersions.addCoprocessor(desc, name, coprocessorUrl)
-            }
-          }
-
           // if the coprocessors are installed site-wide don't register them in the table descriptor
           val installed = Option(conf.get(CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY))
           val names = installed.map(_.split(":").toSet).getOrElse(Set.empty[String])
-          AllCoprocessors.foreach(c => if (!names.contains(c.getCanonicalName)) { addCoprocessor(c, descriptor) })
+          if (names.contains(CoprocessorClass)) { None } else {
+            logger.debug(s"Using coprocessor path ${coprocessorUrl.orNull}")
+            // TODO: Warn if the path given is different from paths registered in other coprocessors
+            // if so, other tables would need updating
+            Some(CoprocessorClass -> coprocessorUrl)
+          }
         }
 
-        try { admin.createTableAsync(descriptor, splits.toArray) } catch {
+        try {
+          HBaseVersions.createTableAsync(admin, name, cols, bloom, compression, encoding, None, coprocessor, splits)
+        } catch {
           case _: org.apache.hadoop.hbase.TableExistsException => // ignore, another thread created it for us
         }
       }
@@ -159,7 +147,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       tables.par.foreach { name =>
         val table = TableName.valueOf(name)
         if (admin.tableExists(table)) {
-          admin.disableTableAsync(table)
+          HBaseVersions.disableTableAsync(admin, table)
           val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
           logger.debug(s"Waiting for table '$table' to be disabled with " +
               s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
@@ -265,7 +253,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       }
 
       // if there is a coprocessorConfig it handles filter/transform
-      lazy val Seq(cScan) = configureScans(ranges, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
+      lazy val cScans = configureScans(ranges, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
 
       val max = hints.getMaxFeatures
       val projection = hints.getProjection
@@ -275,26 +263,26 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         if (ranges.isEmpty) { EmptyPlan(filter, None) } else {
           val options = HBaseDensityAggregator.configure(schema, index, ecql, hints)
           val results = new HBaseDensityResultsToFeatures()
-          CoprocessorPlan(filter, tables, ranges, cScan, options ++ timeout, results, None, max, projection)
+          CoprocessorPlan(filter, tables, ranges, cScans, options ++ timeout, results, None, max, projection)
         }
       } else if (hints.isArrowQuery) {
         val (options, reducer) = HBaseArrowAggregator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
         if (ranges.isEmpty) { EmptyPlan(filter, Some(reducer)) } else {
           val results = new HBaseArrowResultsToFeatures()
-          CoprocessorPlan(filter, tables, ranges, cScan, options ++ timeout, results, Some(reducer), max, projection)
+          CoprocessorPlan(filter, tables, ranges, cScans, options ++ timeout, results, Some(reducer), max, projection)
         }
       } else if (hints.isStatsQuery) {
         val reducer = Some(StatsScan.StatsReducer(returnSchema, hints))
         if (ranges.isEmpty) { EmptyPlan(filter, reducer) } else {
           val options = HBaseStatsAggregator.configure(schema, index, ecql, hints)
           val results = new HBaseStatsResultsToFeatures()
-          CoprocessorPlan(filter, tables, ranges, cScan, options ++ timeout, results, reducer, max, projection)
+          CoprocessorPlan(filter, tables, ranges, cScans, options ++ timeout, results, reducer, max, projection)
         }
       } else if (hints.isBinQuery) {
         if (ranges.isEmpty) { EmptyPlan(filter,  None) } else {
           val options = HBaseBinAggregator.configure(schema, index, ecql, hints)
           val results = new HBaseBinResultsToFeatures()
-          CoprocessorPlan(filter, tables, ranges, cScan, options ++ timeout, results, None, max, projection)
+          CoprocessorPlan(filter, tables, ranges, cScans, options ++ timeout, results, None, max, projection)
         }
       } else {
         if (ranges.isEmpty) { EmptyPlan(filter, None) } else {
@@ -332,18 +320,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
     logger.debug(s"HBase client scanner: block caching: $cacheBlocks, caching: $cacheSize")
 
-    if (coprocessor) {
-      val scan = new Scan()
-      scan.addFamily(colFamily)
-      // note: mrrf first priority
-      val mrrf = new MultiRowRangeFilter(sortAndMerge(originalRanges))
-      // note: our coprocessors always expect a filter list
-      scan.setFilter(new FilterList(filters.+:(mrrf): _*))
-      scan.setCacheBlocks(cacheBlocks)
-      cacheSize.foreach(scan.setCaching)
-      ds.applySecurity(scan)
-      Seq(scan)
-    } else if (originalRanges.headOption.exists(_.isSmall)) {
+    if (!coprocessor && originalRanges.headOption.exists(_.isSmall)) {
       val filter = filters match {
         case Nil    => None
         case Seq(f) => Some(f)
@@ -370,13 +347,14 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
       def addGroup(group: java.util.List[RowRange]): Unit = {
         val s = new Scan(group.get(0).getStartRow, group.get(group.size() - 1).getStopRow).addFamily(colFamily)
-        if (group.size() > 1) {
+        // note: coprocessors always expect a filter list
+        if (coprocessor || group.size() > 1) {
           // TODO GEOMESA-1806
           // currently, the MultiRowRangeFilter constructor will call sortAndMerge a second time
           // this is unnecessary as we have already sorted and merged
           val mrrf = new MultiRowRangeFilter(group)
           // note: mrrf first priority
-          s.setFilter(if (filters.isEmpty) { mrrf } else { new FilterList(filters.+:(mrrf): _*) })
+          s.setFilter(if (coprocessor || filters.nonEmpty) { new FilterList(filters.+:(mrrf): _*) } else { mrrf })
         } else {
           filters match {
             case Nil    => // no-op
@@ -429,29 +407,15 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       groupedScans.asScala
     }
   }
-
-  /**
-    * Waits for a table to come online after being created
-    *
-    * @param admin hbase admin
-    * @param table table name
-    */
-  private def waitForTable(admin: Admin, table: TableName): Unit = {
-    if (!admin.isTableAvailable(table)) {
-      val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
-      logger.debug(s"Waiting for table '$table' to become available with " +
-          s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
-      val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)
-      while (!admin.isTableAvailable(table) && stop.forall(_ > System.currentTimeMillis())) {
-        Thread.sleep(1000)
-      }
-    }
-  }
 }
 
 object HBaseIndexAdapter extends LazyLogging {
 
   private val distributedJarNamePattern = Pattern.compile("^geomesa-hbase-distributed-runtime.*\\.jar$")
+
+  // these are in the geomesa-hbase-server module, so not accessible directly
+  val CoprocessorClass = "org.locationtech.geomesa.hbase.server.coprocessor.GeoMesaCoprocessor"
+  val AggregatorPackage = "org.locationtech.geomesa.hbase.server.common"
 
   val durability: Durability = HBaseSystemProperties.WalDurability.option match {
     case Some(value) =>
@@ -472,6 +436,24 @@ object HBaseIndexAdapter extends LazyLogging {
     val rowRanges = new java.util.ArrayList[RowRange](ranges.length)
     ranges.foreach(r => rowRanges.add(new RowRange(r.getStartRow, true, r.getStopRow, false)))
     MultiRowRangeFilter.sortAndMerge(rowRanges)
+  }
+
+  /**
+   * Waits for a table to come online after being created
+   *
+   * @param admin hbase admin
+   * @param table table name
+   */
+  def waitForTable(admin: Admin, table: TableName): Unit = {
+    if (!admin.isTableAvailable(table)) {
+      val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
+      logger.debug(s"Waiting for table '$table' to become available with " +
+          s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
+      val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)
+      while (!admin.isTableAvailable(table) && stop.forall(_ > System.currentTimeMillis())) {
+        Thread.sleep(1000)
+      }
+    }
   }
 
   /**

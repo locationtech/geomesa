@@ -44,7 +44,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-server</artifactId>
+            <artifactId>hbase-mapreduce</artifactId>
         </dependency>
 
         <!-- test deps -->

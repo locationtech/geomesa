@@ -16,9 +16,9 @@ import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.security.visibility.Authorizations
 import org.apache.hadoop.hbase.zookeeper.ZKConfig
 import org.geotools.data.Query
-import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
-import org.locationtech.geomesa.hbase.coprocessor.aggregators.HBaseVersionAggregator
+import org.locationtech.geomesa.hbase.aggregators.HBaseVersionAggregator
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
+import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex

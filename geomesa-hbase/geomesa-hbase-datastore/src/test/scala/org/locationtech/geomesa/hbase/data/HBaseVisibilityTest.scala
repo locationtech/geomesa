@@ -26,6 +26,7 @@ import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
@@ -36,11 +37,14 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
-class HBaseVisibilityTest extends HBaseTest with LazyLogging {
+@RunWith(classOf[JUnitRunner])
+class HBaseVisibilityTest extends Specification with LazyLogging {
 
   sequential
 
@@ -82,19 +86,19 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
 
   step {
     logger.info("Starting Visibility Test")
-    adminUser = User.createUserForTesting(cluster.getConfiguration, "admin",    Array[String]("supergroup"))
-    user1     = User.createUserForTesting(cluster.getConfiguration, "user1",    Array.empty[String])
-    user2     = User.createUserForTesting(cluster.getConfiguration, "user2",    Array.empty[String])
-    privUser  = User.createUserForTesting(cluster.getConfiguration, "privUser", Array.empty[String])
-    dynUser   = User.createUserForTesting(cluster.getConfiguration, "dynUser",  Array.empty[String])
+    adminUser = User.createUserForTesting(MiniCluster.cluster.getConfiguration, "admin",    Array[String]("supergroup"))
+    user1     = User.createUserForTesting(MiniCluster.cluster.getConfiguration, "user1",    Array.empty[String])
+    user2     = User.createUserForTesting(MiniCluster.cluster.getConfiguration, "user2",    Array.empty[String])
+    privUser  = User.createUserForTesting(MiniCluster.cluster.getConfiguration, "privUser", Array.empty[String])
+    dynUser   = User.createUserForTesting(MiniCluster.cluster.getConfiguration, "dynUser",  Array.empty[String])
 
     adminUser.runAs(new PrivilegedExceptionAction[Unit]() {
       override def run(): Unit = {
-        cluster.waitTableAvailable(TableName.valueOf("hbase:labels"), 50000)
+        MiniCluster.cluster.waitTableAvailable(TableName.valueOf("hbase:labels"), 50000)
         val labels = Array[String]("extra", "admin", "vis1", "vis2", "vis3", "super")
-        adminConn = ConnectionFactory.createConnection(cluster.getConfiguration)
+        adminConn = ConnectionFactory.createConnection(MiniCluster.cluster.getConfiguration)
         VisibilityClient.addLabels(adminConn, labels)
-        cluster.waitLabelAvailable(10000, labels: _*)
+        MiniCluster.cluster.waitLabelAvailable(10000, labels: _*)
         setAuths("user1", Array[String]("vis1"))
         setAuths("user2", Array[String]("vis2"))
         setAuths("privUser", Array[String]("super", "vis3"))
@@ -103,25 +107,25 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
 
     user1.runAs(new PrivilegedExceptionAction[Unit]() {
       override def run(): Unit = {
-        user1Conn = ConnectionFactory.createConnection(cluster.getConfiguration)
+        user1Conn = ConnectionFactory.createConnection(MiniCluster.cluster.getConfiguration)
       }
     })
 
     user2.runAs(new PrivilegedExceptionAction[Unit]() {
       override def run(): Unit = {
-        user2Conn = ConnectionFactory.createConnection(cluster.getConfiguration)
+        user2Conn = ConnectionFactory.createConnection(MiniCluster.cluster.getConfiguration)
       }
     })
 
     privUser.runAs(new PrivilegedExceptionAction[Unit]() {
       override def run(): Unit = {
-        privConn = ConnectionFactory.createConnection(cluster.getConfiguration)
+        privConn = ConnectionFactory.createConnection(MiniCluster.cluster.getConfiguration)
       }
     })
 
     dynUser.runAs(new PrivilegedExceptionAction[Unit]() {
       override def run(): Unit = {
-        dynConn = ConnectionFactory.createConnection(cluster.getConfiguration)
+        dynConn = ConnectionFactory.createConnection(MiniCluster.cluster.getConfiguration)
       }
     })
 
@@ -130,7 +134,7 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
 
   "HBase cluster" should {
     "have vis enabled" >> {
-      cluster.getHBaseAdmin.getSecurityCapabilities.asScala must contain(SecurityCapability.CELL_VISIBILITY)
+      MiniCluster.cluster.getHBaseAdmin.getSecurityCapabilities.asScala must contain(SecurityCapability.CELL_VISIBILITY)
     }
   }
 
@@ -263,7 +267,7 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
 
       val params = Map(
         ConnectionParam.getName -> user1Conn,
-        HBaseCatalogParam.getName -> catalogTableName)
+        HBaseCatalogParam.getName -> getClass.getSimpleName)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
       ds.getSchema(typeName) must beNull
@@ -292,7 +296,7 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
 
       val adminParams = Map(
         ConnectionParam.getName -> adminConn,
-        HBaseCatalogParam.getName -> catalogTableName)
+        HBaseCatalogParam.getName -> getClass.getSimpleName)
 
       def getDensity(typeName: String, query: String, fs: SimpleFeatureStore): Double = {
         val filter = ECQL.toFilter(query)
@@ -327,9 +331,10 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
         SelfClosingIterator(ds.getFeatureSource(typeName).getFeatures(query).features()).size mustEqual results.length
       }
 
-      forall(Seq(true, false)) { loose =>
+      foreach(Seq(true, false)) { loose =>
         val ds = DataStoreFinder.getDataStore(params ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[HBaseDataStore]
-        forall(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
+        val transforms = null
+        foreach(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
           testQuery(ds, typeName, "INCLUDE", transforms, toAdd.take(5))
           testQuery(ds, typeName, "IN('0', '2')", transforms, Seq(toAdd(0), toAdd(2)))
           testQuery(ds, typeName, "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, toAdd.take(5))
@@ -339,9 +344,9 @@ class HBaseVisibilityTest extends HBaseTest with LazyLogging {
         }
       }
 
-      forall(Seq(true, false)) { loose =>
+      foreach(Seq(true, false)) { loose =>
         val ds = DataStoreFinder.getDataStore(adminParams ++ Map(LooseBBoxParam.getName -> loose)).asInstanceOf[HBaseDataStore]
-        forall(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
+        foreach(Seq(null, Array("geom"), Array("geom", "dtg"), Array("geom", "name"))) { transforms =>
           testQuery(ds, typeName, "INCLUDE", transforms, toAdd)
           testQuery(ds, typeName, "IN('0', '2')", transforms, Seq(toAdd(0), toAdd(2)))
           testQuery(ds, typeName, "bbox(geom,38,48,52,62) and dtg DURING 2014-01-01T00:00:00.000Z/2014-01-08T12:00:00.000Z", transforms, toAdd.take(8))

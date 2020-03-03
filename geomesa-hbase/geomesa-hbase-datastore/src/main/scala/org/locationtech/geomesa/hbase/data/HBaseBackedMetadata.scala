@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.hbase.data
 
+import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
-import org.apache.hadoop.hbase.{HColumnDescriptor, HTableDescriptor, TableName}
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -28,9 +28,8 @@ class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val ser
   override protected def createTable(): Unit = {
     WithClose(connection.getAdmin) { admin =>
       if (!admin.tableExists(catalog)) {
-        val descriptor = new HTableDescriptor(catalog)
-        HBaseVersions.addFamily(descriptor, ColumnFamilyDescriptor)
-        admin.createTable(descriptor)
+        HBaseVersions.createTableAsync(admin, catalog, Seq(ColumnFamily), None, None, None, Some(true), None, Seq.empty)
+        HBaseIndexAdapter.waitForTable(admin, catalog)
       }
     }
   }
@@ -63,6 +62,5 @@ class HBaseBackedMetadata[T](connection: Connection, catalog: TableName, val ser
 
 object HBaseBackedMetadata {
   val ColumnFamily: Array[Byte] = Bytes.toBytes("m")
-  val ColumnFamilyDescriptor = new HColumnDescriptor(ColumnFamily).setInMemory(true)
   val ColumnQualifier: Array[Byte] = Bytes.toBytes("v")
 }
