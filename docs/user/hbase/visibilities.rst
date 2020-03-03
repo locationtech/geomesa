@@ -13,13 +13,13 @@ Setup and Configuration
 
 To configure HBase for visibility filtering follow the setup in the HBase Book under the
 `Visibility Labels <http://hbase.apache.org/book.html#hbase.visibility.labels>`__ section of
-the HBase book which includes enabling the HFile v3 format and visibility coprocessors in your hbase-site.xml:
+the HBase book which includes enabling the visibility coprocessors in your hbase-site.xml:
 
 .. code-block:: xml
 
     <property>
-      <name>hfile.format.version</name>
-      <value>3</value>
+      <name>hbase.security.authorization</name>
+      <value>true</value>
     </property>
     <property>
       <name>hbase.coprocessor.region.classes</name>
@@ -74,5 +74,4 @@ Known Issues
 ^^^^^^^^^^^^
 
 HBase currently does not provide a method of retrieving Cell Visibility Labels from existing data stored within HBase.
-Therefore, deleting data as a non-superuser with per-feature visibility levels cannot be guaranteed as it can be in
-the AccumuloDataStore.
+Therefore, deleting data as a non-superuser with per-feature visibility levels cannot be guaranteed.

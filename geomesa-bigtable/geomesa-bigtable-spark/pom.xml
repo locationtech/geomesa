@@ -13,9 +13,15 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-bigtable-datastore_2.11</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-hbase-spark_2.11</artifactId>
             <version>${project.version}</version>
         </dependency>
+
+        <!-- provided dependencies -->
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.binary.version}</artifactId>
@@ -28,8 +34,8 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-bigtable-datastore_2.11</artifactId>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-mapreduce</artifactId>
         </dependency>
     </dependencies>
 

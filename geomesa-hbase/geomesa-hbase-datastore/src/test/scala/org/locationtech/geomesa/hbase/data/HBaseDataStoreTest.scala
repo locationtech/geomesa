@@ -18,6 +18,7 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.ProxyIdFunction
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
@@ -35,23 +36,24 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
-class HBaseDataStoreTest extends HBaseTest with LazyLogging {
+@RunWith(classOf[JUnitRunner])
+class HBaseDataStoreTest extends Specification with LazyLogging {
 
   sequential
-
-  step {
-    logger.info("Starting the HBase DataStore Test")
-  }
 
   "HBaseDataStore" should {
     "work with points" in {
       val typeName = "testpoints"
 
-      val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
+      val params = Map(
+        ConnectionParam.getName -> MiniCluster.connection,
+        HBaseCatalogParam.getName -> getClass.getSimpleName)
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
 
@@ -193,7 +195,10 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
     "work with polys" in {
       val typeName = "testpolys"
 
-      val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> "HBaseDataStoreTest")
+      val params = Map(
+        ConnectionParam.getName -> MiniCluster.connection,
+        HBaseCatalogParam.getName -> getClass.getSimpleName
+      )
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
 
@@ -242,7 +247,10 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
     "support updates" in {
       val typeName = "test-updates"
 
-      val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
+      val params = Map(
+        ConnectionParam.getName -> MiniCluster.connection,
+        HBaseCatalogParam.getName -> getClass.getSimpleName
+      )
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
 
@@ -284,7 +292,10 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
     "support table splits" in {
       val typeName = "testsplits"
 
-      val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
+      val params = Map(
+        ConnectionParam.getName -> MiniCluster.connection,
+        HBaseCatalogParam.getName -> getClass.getSimpleName
+      )
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
 
@@ -321,7 +332,10 @@ class HBaseDataStoreTest extends HBaseTest with LazyLogging {
       // we can't use the thread local value b/c it's loaded in an asynchronous guava cache
       SchemaProperties.CheckDistributedVersion.set("true")
       try {
-        val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> "HBaseDistributedVersionTest")
+        val params = Map(
+          ConnectionParam.getName -> MiniCluster.connection,
+          HBaseCatalogParam.getName -> "HBaseDistributedVersionTest"
+        )
         val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
         ds must not(beNull)
 

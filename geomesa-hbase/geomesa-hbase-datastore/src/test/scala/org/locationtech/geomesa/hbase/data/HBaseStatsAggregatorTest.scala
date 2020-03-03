@@ -14,16 +14,20 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.SimpleFeatureType
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
-class HBaseStatsAggregatorTest extends HBaseTest with LazyLogging {
+@RunWith(classOf[JUnitRunner])
+class HBaseStatsAggregatorTest extends Specification with LazyLogging {
 
   import org.locationtech.geomesa.index.iterators.StatsScan.decodeStat
 
@@ -41,8 +45,8 @@ class HBaseStatsAggregatorTest extends HBaseTest with LazyLogging {
   }
 
   lazy val params = Map(
-    HBaseDataStoreParams.ConnectionParam.key   -> connection,
-    HBaseDataStoreParams.HBaseCatalogParam.key -> sftName
+    HBaseDataStoreParams.ConnectionParam.key   -> MiniCluster.connection,
+    HBaseDataStoreParams.HBaseCatalogParam.key -> getClass.getSimpleName
   )
 
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
@@ -234,6 +238,10 @@ class HBaseStatsAggregatorTest extends HBaseTest with LazyLogging {
       val calculated = ds.stats.getCount(sft, ECQL.toFilter(filter), exact = true)
       calculated must beSome(0L)
     }
+  }
+
+  step {
+    ds.dispose()
   }
 
   def getQuery(statString: String, ecql: Option[String] = None): Query = {

@@ -14,25 +14,31 @@ import java.nio.charset.StandardCharsets
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
+import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{Put, Scan}
-import org.apache.hadoop.hbase.{HColumnDescriptor, HTableDescriptor, TableName}
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.opengis.feature.simple.SimpleFeature
-import org.locationtech.geomesa.hbase.HBaseSystemProperties.TableAvailabilityTimeout
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
+import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.MatchResult
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
-class HBaseBackCompatibilityTest extends HBaseTest with LazyLogging  {
+@RunWith(classOf[JUnitRunner])
+class HBaseBackCompatibilityTest extends Specification with LazyLogging  {
 
   import scala.collection.JavaConverters._
+
+  sequential
 
   val name = "BackCompatibilityTest"
 
@@ -71,11 +77,7 @@ class HBaseBackCompatibilityTest extends HBaseTest with LazyLogging  {
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
-  lazy val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> name).asJava
-
-  step {
-    logger.info("Starting HBase back-compatibility test")
-  }
+  lazy val params = Map(ConnectionParam.getName -> MiniCluster.connection, HBaseCatalogParam.getName -> name).asJava
 
   "HBase data store" should {
 
@@ -215,10 +217,10 @@ class HBaseBackCompatibilityTest extends HBaseTest with LazyLogging  {
         output.write(value, offset, length)
       }
 
-      val tables = WithClose(connection.getAdmin)(_.listTableNames(s"$name.*"))
+      val tables = WithClose(MiniCluster.connection.getAdmin)(_.listTableNames(s"$name.*"))
       output.writeInt(tables.size)
       tables.foreach { name =>
-        val table = connection.getTable(name)
+        val table = MiniCluster.connection.getTable(name)
         val descriptor = table.getTableDescriptor
         writeBytes(descriptor.getTableName.getName)
         output.writeInt(descriptor.getColumnFamilies.length)
@@ -250,58 +252,48 @@ class HBaseBackCompatibilityTest extends HBaseTest with LazyLogging  {
       input.read(bytes)
       bytes
     }
-    val numTables = input.readInt
-    val tables = (0 until numTables).map { _ =>
-      val descriptor = new HTableDescriptor(TableName.valueOf(readBytes))
-      val numColumns = input.readInt
-      (0 until numColumns).foreach(_ => descriptor.addFamily(new HColumnDescriptor(readBytes)))
-      val numCoprocessors = input.readInt
-      // TODO jar path, etc?
-      (0 until numCoprocessors).foreach(_ => descriptor.addCoprocessor(new String(readBytes, StandardCharsets.UTF_8)))
-      val numMutations = input.readInt
-      val mutations = (0 until numMutations).map { _ =>
-        val row = readBytes
-        val cf = readBytes
-        val cq = readBytes
-        val value = readBytes
-        val mutation = new Put(row)
-        mutation.addColumn(cf, cq, value)
-        mutation
-      }
-      (descriptor, mutations)
-    }
     // reload the tables
-    WithClose(connection.getAdmin) { admin =>
-      tables.foreach { case (descriptor, mutations) =>
-        if (admin.tableExists(descriptor.getTableName)) {
-          admin.disableTable(descriptor.getTableName)
-          admin.deleteTable(descriptor.getTableName)
+    WithClose(MiniCluster.connection.getAdmin) { admin =>
+      val numTables = input.readInt
+      var i = 0
+      while (i < numTables) {
+        i += 1
+        val name = TableName.valueOf(readBytes)
+        val cols = Seq.fill(input.readInt)(readBytes)
+        // TODO jar path, etc?
+        val coprocessors = Seq.fill(input.readInt)(new String(readBytes, StandardCharsets.UTF_8))
+        if (coprocessors.lengthCompare(1) > 0) {
+          throw new IllegalStateException(s"Only expecting one coprocessor, got: ${coprocessors.mkString(", ")}")
         }
-        admin.createTable(descriptor)
-        if (!admin.isTableAvailable(descriptor.getTableName)) {
-          val timeout = TableAvailabilityTimeout.toDuration.filter(_.isFinite())
-          logger.debug(s"Waiting for table '${descriptor.getTableName}' to become available with " +
-              s"${timeout.map(t => s"a timeout of $t").getOrElse("no timeout")}")
-          val stop = timeout.map(t => System.currentTimeMillis() + t.toMillis)
-          while (!admin.isTableAvailable(descriptor.getTableName) && stop.forall(_ > System.currentTimeMillis())) {
-            Thread.sleep(1000)
-          }
+        val coprocessor = coprocessors.headOption.map(s => s -> None)
+        val numMutations = input.readInt
+        val mutations = (0 until numMutations).map { _ =>
+          val row = readBytes
+          val cf = readBytes
+          val cq = readBytes
+          val value = readBytes
+          val mutation = new Put(row)
+          mutation.addColumn(cf, cq, value)
+          mutation
         }
-        WithClose(connection.getBufferedMutator(descriptor.getTableName)) { mutator =>
+
+        if (admin.tableExists(name)) {
+          admin.disableTable(name)
+          admin.deleteTable(name)
+        }
+        HBaseVersions.createTableAsync(admin, name, cols, None, None, None, None, coprocessor, Seq.empty)
+        HBaseIndexAdapter.waitForTable(admin, name)
+        WithClose(MiniCluster.connection.getBufferedMutator(name)) { mutator =>
           mutations.foreach(mutator.mutate)
           mutator.flush()
         }
 
         if (logger.underlying.isTraceEnabled()) {
-          logger.trace(s"restored ${descriptor.getTableName} ${admin.tableExists(descriptor.getTableName)}")
-          val scan = connection.getTable(descriptor.getTableName).getScanner(new Scan())
+          logger.trace(s"restored $name ${admin.tableExists(name)}")
+          val scan = MiniCluster.connection.getTable(name).getScanner(new Scan())
           SelfClosingIterator(scan.iterator.asScala, scan.close()).foreach(r => logger.trace(r.toString))
         }
       }
     }
-  }
-
-  step {
-    logger.info("Cleaning up HBase back-compatibility test")
   }
 }
