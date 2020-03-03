@@ -98,14 +98,14 @@ case class ArrowAdapter(sft: SimpleFeatureType,
         config.providedDictionaries, Map.empty)
       val aggregate = config.sort match {
         case None => new BatchAggregate(arrowSft, dicts, encoding)
-        case Some((sort, reverse)) => new SortingBatchAggregate(arrowSft, dicts, encoding, sort, reverse)
+        case Some((sort, reverse)) => new SortingBatchAggregate(arrowSft, dicts, encoding, sort, reverse, config.batchSize)
       }
       val reduce = new ArrowScan.BatchReducer(arrowSft, dicts, encoding, config.batchSize, config.sort)
       (aggregate, reduce)
     } else if (config.multiFile) {
       val aggregate = config.sort match {
         case None => new MultiFileAggregate(arrowSft, dictionaries, encoding)
-        case Some((sort, reverse)) => new MultiFileSortingAggregate(arrowSft, dictionaries, encoding, sort, reverse)
+        case Some((sort, reverse)) => new MultiFileSortingAggregate(arrowSft, dictionaries, encoding, sort, reverse, config.batchSize)
       }
       val reduce = new ArrowScan.FileReducer(arrowSft, dictionaries, encoding, config.sort)
       (aggregate, reduce)
@@ -126,23 +126,24 @@ case class ArrowAdapter(sft: SimpleFeatureType,
       }
     }
 
-    aggregator.init(config.batchSize)
+    aggregator.init()
 
     val arrows: Iterator[SimpleFeature] = new Iterator[SimpleFeature] {
       private val sf = ArrowScan.resultFeature()
 
       override def hasNext: Boolean = features.hasNext
       override def next(): SimpleFeature = {
-        aggregator.clear()
-        while (features.hasNext && aggregator.size < config.batchSize) {
-          aggregator.add(features.next)
+        var i = 0
+        while (features.hasNext && i < config.batchSize) {
+          aggregator.aggregate(features.next)
+          i += 1
         }
         sf.setAttribute(0, aggregator.encode())
         sf
       }
     }
 
-    val result = CloseableIterator(arrows, features.close())
+    val result = CloseableIterator(arrows, { features.close(); aggregator.cleanup() })
     if (config.skipReduce) { result } else { reduce(result) }
   }
 

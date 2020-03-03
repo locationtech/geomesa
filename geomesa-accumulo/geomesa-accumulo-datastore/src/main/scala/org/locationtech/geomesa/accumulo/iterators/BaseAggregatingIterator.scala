@@ -12,7 +12,6 @@ import org.apache.accumulo.core.data.{Range => aRange, _}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
 import org.locationtech.geomesa.index.iterators.AggregatingScan
 import org.locationtech.geomesa.index.iterators.AggregatingScan.RowValue
-import org.locationtech.geomesa.utils.io.CloseWithLogging
 
 /**
  * Aggregating iterator - only works on kryo-encoded features
@@ -52,7 +51,6 @@ abstract class BaseAggregatingIterator[T <: AggregatingScan.Result]
   private def findTop(): Unit = {
     val result = aggregate()
     if (result == null) {
-      CloseWithLogging(this)
       topKey = null // hasTop will be false
       topValue = null
     } else {
