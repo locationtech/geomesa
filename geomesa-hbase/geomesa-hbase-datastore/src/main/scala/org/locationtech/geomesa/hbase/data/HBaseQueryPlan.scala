@@ -12,7 +12,7 @@ import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.{FilterList, Filter => HFilter}
 import org.apache.hadoop.hbase.util.Bytes
-import org.locationtech.geomesa.hbase.utils.HBaseBatchScan
+import org.locationtech.geomesa.hbase.utils.{CoprocessorBatchScan, HBaseBatchScan}
 import org.locationtech.geomesa.index.PartitionParallelScan
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
@@ -134,7 +134,7 @@ object HBaseQueryPlan {
       filter: FilterStrategy,
       tables: Seq[TableName],
       ranges: Seq[Scan],
-      scan: Scan,
+      scans: Seq[Scan],
       coprocessorOptions: Map[String, String],
       resultsToFeatures: ResultsToFeatures[Array[Byte]],
       reducer: Option[FeatureReducer],
@@ -142,11 +142,8 @@ object HBaseQueryPlan {
       projection: Option[QueryReferenceSystems]
     ) extends HBaseQueryPlan {
 
-    import org.locationtech.geomesa.hbase.coprocessor._
-
     override type Results = Array[Byte]
 
-    override def scans: Seq[Scan] = Seq(scan)
     override def sort: Option[Seq[(String, Boolean)]] = None // client side sorting is not relevant for coprocessors
 
     /**
@@ -176,10 +173,8 @@ object HBaseQueryPlan {
         ds: HBaseDataStore,
         table: TableName,
         copyScans: Boolean): CloseableIterator[Array[Byte]] = {
-      val s = if (copyScans) { new Scan(scan) } else { scan }
-      GeoMesaCoprocessor.execute(ds.connection.getTable(table), s, coprocessorOptions).collect {
-        case r if r.size() > 0 => r.toByteArray
-      }
+      val s = if (copyScans) { scans.map(new Scan(_)) } else { scans }
+      CoprocessorBatchScan(ds.connection, table, s, coprocessorOptions, ds.config.queryThreads)
     }
   }
 }

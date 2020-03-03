@@ -13,6 +13,7 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
 import org.locationtech.geomesa.index.conf.QueryHints.{BIN_BATCH_SIZE, BIN_LABEL, BIN_SORT, BIN_TRACK}
@@ -23,22 +24,24 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
-class HBaseS3IndexTest extends HBaseTest with LazyLogging {
+@RunWith(classOf[JUnitRunner])
+class HBaseS3IndexTest extends Specification with LazyLogging {
 
   import scala.collection.JavaConverters._
 
   sequential
 
-  step {
-    logger.info("Starting the HBase S3 Test")
-  }
-
   "S3Index" should {
     "work with HBase" in {
       val typeName = "testS3"
 
-      val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
+      val params = Map(
+        ConnectionParam.getName -> MiniCluster.connection,
+        HBaseCatalogParam.getName -> getClass.getSimpleName
+      )
       val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
 

@@ -16,6 +16,7 @@ import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
@@ -23,11 +24,13 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.process.transform.BinConversionProcess
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.filter.Filter
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
-
-class HBaseBinAggregatorTest extends HBaseTest with LazyLogging {
+@RunWith(classOf[JUnitRunner])
+class HBaseBinAggregatorTest extends Specification with LazyLogging {
   sequential
 
   lazy val process = new BinConversionProcess
@@ -38,8 +41,9 @@ class HBaseBinAggregatorTest extends HBaseTest with LazyLogging {
   var sft = SimpleFeatureTypes.createType(sftName, spec)
 
   lazy val params = Map(
-    ConnectionParam.getName -> connection,
-    HBaseCatalogParam.getName -> catalogTableName)
+    ConnectionParam.getName -> MiniCluster.connection,
+    HBaseCatalogParam.getName -> getClass.getSimpleName
+  )
 
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
   var fs: SimpleFeatureStore = _

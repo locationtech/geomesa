@@ -59,7 +59,7 @@ ROOTDIR="${ROOTDIR%/}" # standardize to remove trailing slash
 chown -R $GMUSER:$GMUSER ${GMDIR}
 
 # Configure coprocessor auto-registration
-DISTRIBUTED_JAR_NAME=geomesa-hbase-distributed-runtime_2.11-%%project.version%%.jar
+DISTRIBUTED_JAR_NAME=geomesa-hbase-distributed-runtime_2.11-hbase1-%%project.version%%.jar
 
 NL=$'\n'
 echo The HBase Root dir is ${ROOTDIR}.

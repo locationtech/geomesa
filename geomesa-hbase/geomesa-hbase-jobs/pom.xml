@@ -23,9 +23,11 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-jobs_${scala.binary.version}</artifactId>
         </dependency>
+
+        <!-- provided dependencies -->
         <dependency>
             <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-server</artifactId>
+            <artifactId>hbase-mapreduce</artifactId>
         </dependency>
 
         <!-- test dependencies -->

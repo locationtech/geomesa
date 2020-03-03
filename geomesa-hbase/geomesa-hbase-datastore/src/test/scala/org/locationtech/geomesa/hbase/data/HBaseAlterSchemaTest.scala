@@ -11,18 +11,25 @@ package org.locationtech.geomesa.hbase.data
 import org.geotools.data.{Query, Transaction}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, HBaseCatalogParam}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.{WithClose, WithStore}
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
-class HBaseAlterSchemaTest extends HBaseTest {
+@RunWith(classOf[JUnitRunner])
+class HBaseAlterSchemaTest extends Specification {
 
   "HBaseDataStore" should {
     "update schemas" in {
-      val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
+      val params = Map(
+        ConnectionParam.getName -> MiniCluster.connection,
+        HBaseCatalogParam.getName -> getClass.getSimpleName
+      )
       WithStore[HBaseDataStore](params) { ds =>
         var sft = SimpleFeatureTypes.createType("alterschema", "name:String:index=true,age:Int,dtg:Date,*geom:Point:srid=4326")
         ds.createSchema(sft)

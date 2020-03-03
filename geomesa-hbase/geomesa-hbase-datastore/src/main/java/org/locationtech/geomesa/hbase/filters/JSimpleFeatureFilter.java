@@ -14,7 +14,6 @@ import org.apache.hadoop.hbase.exceptions.DeserializationException;
 import org.apache.hadoop.hbase.filter.FilterBase;
 import org.apache.hadoop.hbase.filter.Filter.ReturnCode; // note: don't remove, needed for javadocs
 import org.apache.hadoop.hbase.util.Bytes;
-import org.apache.hadoop.hbase.util.Strings;
 import org.geotools.filter.text.cql2.CQLException;
 import org.geotools.filter.text.ecql.ECQL;
 import org.locationtech.geomesa.features.interop.SerializationOptions;
@@ -267,7 +266,7 @@ public class JSimpleFeatureFilter extends FilterBase {
     }
 
     private static JSimpleFeatureFilter.Transformer buildTransformer(String transformString, String transformSchemaString) {
-        if(Strings.isEmpty(transformString)) {
+        if (transformString == null || transformString.isEmpty()) {
             return new NoTransform();
         } else {
             return new CQLTransfomer(transformString, SimpleFeatureTypes.createType("", transformSchemaString));
