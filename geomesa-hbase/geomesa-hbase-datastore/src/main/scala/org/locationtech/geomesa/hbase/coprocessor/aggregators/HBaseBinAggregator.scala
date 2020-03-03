@@ -12,13 +12,13 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
-import org.locationtech.geomesa.index.iterators.BinAggregatingScan.ByteBufferResult
+import org.locationtech.geomesa.index.iterators.BinAggregatingScan.ResultCallback
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-class HBaseBinAggregator extends BinAggregatingScan with HBaseAggregator[ByteBufferResult]
+class HBaseBinAggregator extends BinAggregatingScan with HBaseAggregator[ResultCallback]
 
 object HBaseBinAggregator {
 

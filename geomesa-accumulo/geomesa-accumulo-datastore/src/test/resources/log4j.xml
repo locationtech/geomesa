@@ -16,6 +16,9 @@
     <category name="org.apache.hadoop">
         <priority value="warn"/>
     </category>
+    <category name="org.apache.curator">
+        <priority value="warn"/>
+    </category>
     <category name="hsqldb">
         <priority value="warn"/>
     </category>

@@ -16,7 +16,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureSerialization}
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.iterators.DensityScan.DensityResult
+import org.locationtech.geomesa.index.iterators.DensityScan.{DensityResult, DensityScanResult}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, GridSnap}
@@ -29,46 +29,32 @@ import org.opengis.filter.expression.Expression
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 
-trait DensityScan extends AggregatingScan[DensityResult] {
+trait DensityScan extends AggregatingScan[DensityScanResult] {
 
-  // we snap each point into a pixel and aggregate based on that
-  protected var gridSnap: GridSnap = _
-  protected var getWeight: SimpleFeature => Double = _
-  protected var writeGeom: (SimpleFeature, Double, DensityResult) => Unit = _
-
-  private var batchSize: Int = -1
-  private var count: Int = -1
-
-  override protected def initResult(
+  override protected def createResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
-      options: Map[String, String]): DensityResult = {
+      batchSize: Int,
+      options: Map[String, String]): DensityScanResult = {
+
     import DensityScan.Configuration._
 
-    gridSnap = {
+    // we snap each point into a pixel and aggregate based on that
+    val gridSnap = {
       val bounds = options(EnvelopeOpt).split(",").map(_.toDouble)
       val envelope = new Envelope(bounds(0), bounds(1), bounds(2), bounds(3))
       val Array(width, height) = options(GridOpt).split(",").map(_.toInt)
       new GridSnap(envelope, width, height)
     }
 
-    getWeight = DensityScan.getWeight(sft, options.get(WeightOpt))
-    writeGeom = DensityScan.writeGeometry(sft, gridSnap)
-    count = 0
-    batchSize = DensityScan.BatchSize.toInt.get // has a valid default so should be safe to .get
+    val getWeight: SimpleFeature => Double = DensityScan.getWeight(sft, options.get(WeightOpt))
+    val writeGeom: (SimpleFeature, Double, DensityResult) => Unit = DensityScan.writeGeometry(sft, gridSnap)
 
-    scala.collection.mutable.Map.empty[(Int, Int), Double].withDefaultValue(0d)
+    new DensityScanResult(getWeight, writeGeom)
   }
 
-  override protected def aggregateResult(sf: SimpleFeature, result: DensityResult): Unit = {
-    writeGeom(sf, getWeight(sf), result)
-    count += 1
-  }
-
-  override protected def notFull(result: DensityResult): Boolean =
-    if (count < batchSize) { true } else { count = 0; false }
-
-  override protected def encodeResult(result: DensityResult): Array[Byte] = DensityScan.encodeResult(result)
+  override protected def defaultBatchSize: Int =
+    DensityScan.BatchSize.toInt.get // has a valid default so should be safe to .get
 }
 
 object DensityScan extends LazyLogging {
@@ -79,7 +65,7 @@ object DensityScan extends LazyLogging {
   type DensityResult = scala.collection.mutable.Map[(Int, Int), Double]
   type GridIterator  = SimpleFeature => Iterator[(Double, Double, Double)]
 
-  val BatchSize = SystemProperty("geomesa.density.batch.size", "100000")
+  val BatchSize: SystemProperty = SystemProperty("geomesa.density.batch.size", "100000")
 
   val DensitySft: SimpleFeatureType = SimpleFeatureTypes.createType("density", "*geom:Point:srid=4326")
   val DensityValueKey = new ClassKey(classOf[Array[Byte]])
@@ -188,6 +174,25 @@ object DensityScan extends LazyLogging {
       case b if b == classOf[MultiLineString] => writeMultiLineString(geomIndex, grid)
       case _                                  => writeGeometry(geomIndex, grid)
     }
+  }
+
+  class DensityScanResult(
+      getWeight: SimpleFeature => Double,
+      writeGeom: (SimpleFeature, Double, DensityResult) => Unit
+    ) extends AggregatingScan.Result {
+
+    private val grid = scala.collection.mutable.Map.empty[(Int, Int), Double].withDefaultValue(0d)
+
+    override def init(): Unit = {}
+
+    override def aggregate(sf: SimpleFeature): Int = {
+      writeGeom(sf, getWeight(sf), grid)
+      1
+    }
+
+    override def encode(): Array[Byte] = try { DensityScan.encodeResult(grid) } finally { grid.clear() }
+
+    override def cleanup(): Unit = {}
   }
 
   /**

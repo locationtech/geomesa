@@ -23,29 +23,20 @@ import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
-import scala.util.control.NonFatal
-
 trait StatsScan extends AggregatingScan[StatResult] with LazyLogging {
 
   import org.locationtech.geomesa.index.iterators.StatsScan.Configuration._
 
-  override protected def initResult(
+  override protected def createResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
+      batchSize: Int,
       options: Map[String, String]): StatResult = {
     new StatResult(transform.getOrElse(sft), options(STATS_STRING_KEY))
   }
 
-  override protected def aggregateResult(sf: SimpleFeature, result: StatResult): Unit = {
-    try { result.observe(sf) } catch {
-      case NonFatal(e) => logger.warn(s"Error observing feature $sf", e)
-    }
-  }
-
-  override protected def notFull(result: StatResult): Boolean = result.notFull()
-
-  // encode the result as a byte array
-  override protected def encodeResult(result: StatResult): Array[Byte] = result.serialize()
+  override protected def defaultBatchSize: Int =
+    StatsScan.BatchSize.toInt.get // has a valid default so should be safe to .get
 }
 
 object StatsScan {
@@ -131,27 +122,20 @@ object StatsScan {
    * @param sft simple feature type
    * @param definition stat string
    */
-  class StatResult(sft: SimpleFeatureType, definition: String) {
+  class StatResult(sft: SimpleFeatureType, definition: String) extends AggregatingScan.Result {
 
     private val stat = Stat(sft, definition)
     private val serializer = StatSerializer(sft)
-    private val batch = StatsScan.BatchSize.toInt.get // has a valid default so should be safe to .get
-    private var _count: Int = 0
 
-    def observe(sf: SimpleFeature): Unit = {
-      _count += 1
+    override def init(): Unit = {}
+
+    override def aggregate(sf: SimpleFeature): Int = {
       stat.observe(sf)
+      1
     }
 
-    def notFull(): Boolean = _count < batch
+    override def encode(): Array[Byte] = try { serializer.serialize(stat) } finally { stat.clear() }
 
-    def serialize(): Array[Byte] = serializer.serialize(stat)
-
-    def isEmpty: Boolean = stat.isEmpty
-
-    def clear(): Unit = {
-      _count = 0
-      stat.clear()
-    }
+    override def cleanup(): Unit = {}
   }
 }
