@@ -54,7 +54,7 @@ class SimpleFeatureArrowFileWriter private (
   }
 
   /**
-   * Writs any currently buffered features to disk. This will create an ArrowBatch
+   * Writes any currently buffered features to disk. This will create an ArrowBatch
    * containing the currently buffered features. Note that if there are no features,
    * an empty record batch will be created
    */
