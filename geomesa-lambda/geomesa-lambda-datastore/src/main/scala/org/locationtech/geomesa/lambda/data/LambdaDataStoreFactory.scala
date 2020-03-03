@@ -127,7 +127,6 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
       val KeytabParam        = copy(AccumuloDataStoreParams.KeytabPathParam)
       val RecordThreadsParam = copy(AccumuloDataStoreParams.RecordThreadsParam)
       val WriteThreadsParam  = copy(AccumuloDataStoreParams.WriteThreadsParam)
-      val MockParam          = copy(AccumuloDataStoreParams.MockParam)
       val CatalogParam       = copy(AccumuloDataStoreParams.CatalogParam)
     }
 

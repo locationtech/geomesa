@@ -61,7 +61,7 @@ class GeoMesaDataStoreServletTest extends MutableScalatraSpec {
 
   import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
   val dsParams = Map(InstanceIdParam.key -> "GeoMesaDataStoreServletTest", ZookeepersParam.key -> "zoo", UserParam.key -> "root",
-    PasswordParam.key -> "", CatalogParam.key -> "GeoMesaDataStoreServlet", MockParam.key -> "true")
+    PasswordParam.key -> "", CatalogParam.key -> "GeoMesaDataStoreServlet", "accumulo.mock" -> "true")
 
   val jsonParams =
     dsParams.filterKeys(_ != PasswordParam.key).map { case (k, v) => s""""$k":"$v"""" } ++ Seq(s""""${PasswordParam.key}":"***"""")

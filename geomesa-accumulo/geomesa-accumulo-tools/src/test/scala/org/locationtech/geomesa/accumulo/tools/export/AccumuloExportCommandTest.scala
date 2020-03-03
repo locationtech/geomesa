@@ -67,7 +67,6 @@ class AccumuloExportCommandTest extends TestWithDataStore {
     command.params.password    = mockPassword
     command.params.catalog     = catalog
     command.params.featureName = sftName
-    command.params.mock        = true
     command
   }
 

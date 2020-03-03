@@ -36,7 +36,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithDataStore wit
   var df: DataFrame = _
 
   val params = dsParams.filterNot { case (k, _) => k == AccumuloDataStoreParams.ConnectorParam.key } ++
-      Map(AccumuloDataStoreParams.MockParam.key -> true)
+      Map("accumulo.mock" -> true)
 
   // before
   step {

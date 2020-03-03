@@ -50,7 +50,7 @@ class TubeSelectProcessTest extends Specification {
       AccumuloDataStoreParams.PasswordParam.key   -> "mypassword",
       AccumuloDataStoreParams.AuthsParam.key      -> "A,B,C",
       AccumuloDataStoreParams.CatalogParam.key    -> "testtube",
-      AccumuloDataStoreParams.MockParam.key       -> "true")).asInstanceOf[AccumuloDataStore]
+      "accumulo.mock"       -> "true")).asInstanceOf[AccumuloDataStore]
 
   "TubeSelect" should {
     "work with an empty input collection" in {

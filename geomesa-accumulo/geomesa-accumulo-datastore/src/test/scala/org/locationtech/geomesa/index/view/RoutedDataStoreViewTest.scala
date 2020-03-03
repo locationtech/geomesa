@@ -55,7 +55,7 @@ class RoutedDataStoreViewTest extends Specification {
     AccumuloDataStoreParams.UserParam.key       -> "user",
     AccumuloDataStoreParams.PasswordParam.key   -> "password",
     AccumuloDataStoreParams.CatalogParam.key    -> sftName,
-    AccumuloDataStoreParams.MockParam.key       -> "true",
+    "accumulo.mock"       -> "true",
     RouteSelectorByAttribute.RouteAttributes   -> Seq(Seq.empty.asJava, "id", "geom", Seq("dtg", "geom").asJava).asJava
   ).asJava
 

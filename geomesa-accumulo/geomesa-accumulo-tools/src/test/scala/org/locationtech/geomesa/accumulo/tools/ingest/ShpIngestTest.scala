@@ -51,7 +51,6 @@ class ShpIngestTest extends TestWithDataStore {
     command.params.zookeepers  = MiniCluster.cluster.getZooKeepers
     command.params.password    = mockPassword
     command.params.catalog     = catalog
-    command.params.mock        = true
     command.params.force       = true
     command.params.files       = Collections.singletonList(new File(dir.toFile, s"$file.shp").getAbsolutePath)
     command

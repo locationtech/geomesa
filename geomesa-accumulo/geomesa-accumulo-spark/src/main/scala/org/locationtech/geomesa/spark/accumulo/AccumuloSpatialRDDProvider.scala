@@ -115,12 +115,8 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
         // Get params and set instance
         val instance = AccumuloDataStoreParams.InstanceIdParam.lookup(paramsAsJava)
         val zookeepers = AccumuloDataStoreParams.ZookeepersParam.lookup(paramsAsJava)
-        if (AccumuloDataStoreParams.MockParam.lookup(paramsAsJava)) {
-          AbstractInputFormat.setMockInstance(jconf, instance)
-        } else {
-          AbstractInputFormat.setZooKeeperInstance(jconf, new ClientConfiguration()
-            .withInstance(instance).withZkHosts(zookeepers).withSasl(authToken.isInstanceOf[KerberosToken]))
-        }
+        AbstractInputFormat.setZooKeeperInstance(jconf, new ClientConfiguration()
+          .withInstance(instance).withZkHosts(zookeepers).withSasl(authToken.isInstanceOf[KerberosToken]))
 
         // Set connectorInfo. If needed, this will add a DelegationToken to jconf.getCredentials
         val user = AccumuloDataStoreParams.UserParam.lookup(paramsAsJava)

@@ -38,7 +38,7 @@ public class AccumuloGeoMesaBlobStoreTest {
         testParams.put(AccumuloDataStoreParams.UserParam().key, "myuser");
         testParams.put(AccumuloDataStoreParams.PasswordParam().key, "mypassword");
         testParams.put(AccumuloDataStoreParams.CatalogParam().key, "geomesaJava");
-        testParams.put(AccumuloDataStoreParams.MockParam().key, "true");
+        testParams.put("accumulo.mock", "true");
         agbs = new AccumuloGeoMesaBlobStore(testParams);
     }
 

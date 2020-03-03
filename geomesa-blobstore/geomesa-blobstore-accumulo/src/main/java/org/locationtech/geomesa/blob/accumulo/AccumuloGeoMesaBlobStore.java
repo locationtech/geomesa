@@ -42,7 +42,7 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaIndexedBlobStore {
                                     final String user,
                                     final String password,
                                     final String auths,
-                                    final Boolean useMock) throws IOException {
+                                    final Boolean mock) throws IOException {
         this(new HashMap<String, Serializable>() {{
             put(AccumuloDataStoreParams.InstanceIdParam().key, instanceId);
             put(AccumuloDataStoreParams.CatalogParam().key, tableName);
@@ -50,7 +50,7 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaIndexedBlobStore {
             put(AccumuloDataStoreParams.UserParam().key, user);
             put(AccumuloDataStoreParams.PasswordParam().key, password);
             put(AccumuloDataStoreParams.AuthsParam().key, auths);
-            put(AccumuloDataStoreParams.MockParam().key, useMock.toString());
+            put("accumulo.mock", mock);
         }});
     }
 

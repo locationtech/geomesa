@@ -31,7 +31,7 @@ class GeoMesaAccumuloBlobStoreTest extends Specification {
     AccumuloDataStoreParams.UserParam.key       -> "myuser",
     AccumuloDataStoreParams.PasswordParam.key   -> "mypassword",
     AccumuloDataStoreParams.CatalogParam.key    -> "geomesa",
-    AccumuloDataStoreParams.MockParam.key       -> "true")
+    "accumulo.mock"       -> "true")
   val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
 
   val bstore = GeoMesaAccumuloBlobStore(ds)

@@ -27,19 +27,6 @@ trait AccumuloDataStoreCommand extends DataStoreCommand[AccumuloDataStore] {
   override def params: AccumuloDataStoreParams
 
   override def connection: Map[String, String] = {
-    if (params.mock) {
-      if (params.instance == null) {
-        // AccumuloDataStoreFactory requires instance ID to be set but it should not be required if mock is set...
-        // so set a fake one but be careful NOT to add a mock zoo since other code will then think it has a
-        // zookeeper when it doesn't
-        params.instance = "mockInstance"
-      }
-      if (params.user == "root" && params.keytab == null) {
-        // mock accumulo sets the root password to blank
-        params.password = ""
-      }
-    }
-
     Map[String, String](
       InstanceIdParam.key   -> params.instance,
       ZookeepersParam.key   -> params.zookeepers,
@@ -48,8 +35,7 @@ trait AccumuloDataStoreCommand extends DataStoreCommand[AccumuloDataStore] {
       KeytabPathParam.key   -> params.keytab,
       CatalogParam.key      -> params.catalog,
       VisibilitiesParam.key -> params.visibilities,
-      AuthsParam.key        -> params.auths,
-      MockParam.key         -> params.mock.toString
+      AuthsParam.key        -> params.auths
     ).filter(_._2 != null)
   }
 }

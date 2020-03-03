@@ -48,7 +48,7 @@ class GeoJsonServletTest extends MutableScalatraSpec {
     "register a datastore" in {
       import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
       val params = Map(InstanceIdParam.key -> "GeoJsonServletTest", UserParam.key -> "root", ZookeepersParam.key -> "myzoo",
-        PasswordParam.key -> "", CatalogParam.key -> "GeoJsonServletTest", MockParam.key -> "true")
+        PasswordParam.key -> "", CatalogParam.key -> "GeoJsonServletTest", "accumulo.mock" -> "true")
       post("/ds/geojsontest", params) {
         status mustEqual 200
       }
