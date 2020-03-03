@@ -188,34 +188,34 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
 
     "support sampling" in {
       val results = execute("INCLUDE", hints = sampleHalfHints).toList
-      results must haveLength(10)
+      results.length must beLessThan(20)
     }
 
     "support sampling with cql" in {
       // run a full table scan to ensure we only get 1 iterator instantiated
       val results = execute("track = 'track1'", hints = sampleHalfHints).toList
-      results must haveLength(5)
+      results.length must beLessThan(10)
       forall(results)(_.getAttribute("track") mustEqual "track1")
     }
 
     "support sampling with transformations" in {
       val results = execute("INCLUDE", Some(Array("name", "geom")), sampleHalfHints).toList
-      results must haveLength(10)
+      results.length must beLessThan(20)
       forall(results)(_.getAttributeCount mustEqual 2)
     }
 
     "support sampling with cql and transformations" in {
       // run a full table scan to ensure we only get 1 iterator instantiated
       val results = execute("track = 'track1'", Some(Array("name", "geom")), sampleHalfHints).toList
-      results must haveLength(5)
+      results.length must beLessThan(10)
       forall(results)(_.getAttributeCount mustEqual 2)
     }
 
     "support sampling by threading key" in {
       val results = execute("INCLUDE", hints = sampleHalfHints.updated(SAMPLE_BY, "track")).toList
-      results.length must beLessThan(12)
-      results.count(_.getAttribute("track") == "track1") must beLessThan(6)
-      results.count(_.getAttribute("track") == "track2") must beLessThan(6)
+      results.length must beLessThan(20)
+      results.count(_.getAttribute("track") == "track1") must beLessThan(10)
+      results.count(_.getAttribute("track") == "track2") must beLessThan(10)
     }
 
     "support sampling with bin queries" in {
@@ -227,10 +227,8 @@ class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
       val results = resultFeatures.map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
-      bins must haveLength(4)
-      bins.map(_.trackId) must containTheSameElementsAs {
-        Seq("track1", "track1", "track2", "track2").map(_.hashCode)
-      }
+      bins.length must beLessThan(20)
+      bins.map(_.trackId) must containAllOf(Seq("track1", "track2").map(_.hashCode))
     }
   }
 

@@ -18,8 +18,7 @@ import org.geotools.data.store.ReprojectingFeatureCollection
 import org.geotools.util.factory.Hints
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.MiniCluster
+import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithDataStore}
 import org.locationtech.geomesa.convert.Modes
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator

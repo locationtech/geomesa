@@ -10,7 +10,6 @@ package org.locationtech.geomesa.accumulo
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.locationtech.geomesa.accumulo.data.MiniCluster
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.util.factory.Hints

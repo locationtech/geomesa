@@ -98,14 +98,14 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
       val query = new Query(sftName, Filter.INCLUDE)
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       val results = runQuery(query).toList
-      results must haveLength(10)
+      results.length must beLessThan(20)
     }
 
     "support sampling with cql" in {
       val query = new Query(sftName, ECQL.toFilter("track = 'track1'"))
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       val results = runQuery(query).toList
-      results must haveLength(5)
+      results.length must beLessThan(10)
       forall(results)(_.getAttribute("track") mustEqual "track1")
     }
 
@@ -113,7 +113,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
       val query = new Query(sftName, Filter.INCLUDE, Array("name", "geom"))
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       val results = runQuery(query).toList
-      results must haveLength(10)
+      results.length must beLessThan(20)
       forall(results)(_.getAttributeCount mustEqual 2)
     }
 
@@ -121,7 +121,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
       val query = new Query(sftName, ECQL.toFilter("track = 'track2'"), Array("name", "geom"))
       query.getHints.put(SAMPLING, new java.lang.Float(.2f))
       val results = runQuery(query).toList
-      results must haveLength(2)
+      results.length must beLessThan(10)
       forall(results)(_.getAttributeCount mustEqual 2)
     }
 
@@ -130,9 +130,9 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
       query.getHints.put(SAMPLING, new java.lang.Float(.5f))
       query.getHints.put(SAMPLE_BY, "track")
       val results = runQuery(query).toList
-      results.length must beLessThan(12)
-      results.count(_.getAttribute("track") == "track1") must beLessThan(6)
-      results.count(_.getAttribute("track") == "track2") must beLessThan(6)
+      results.length must beLessThan(20)
+      results.count(_.getAttribute("track") == "track1") must beLessThan(10)
+      results.count(_.getAttribute("track") == "track2") must beLessThan(10)
     }
 
     "support sampling with bin queries" in {
@@ -147,7 +147,7 @@ class RecordIdxStrategyTest extends Specification with TestWithDataStore {
       val results = runQuery(query).map(_.getAttribute(BIN_ATTRIBUTE_INDEX)).toList
       forall(results)(_ must beAnInstanceOf[Array[Byte]])
       val bins = results.flatMap(_.asInstanceOf[Array[Byte]].grouped(16).map(BinaryOutputEncoder.decode))
-      bins.length must beLessThan(5)
+      bins.length must beLessThan(12)
       bins.map(_.trackId) must containAllOf(Seq("track1", "track2").map(_.hashCode))
     }
   }

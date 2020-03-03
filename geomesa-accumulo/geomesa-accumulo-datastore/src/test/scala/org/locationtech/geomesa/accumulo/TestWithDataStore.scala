@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.accumulo
 
 import org.apache.accumulo.core.client.Connector
-import org.locationtech.geomesa.accumulo.data.MiniCluster
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.security.Authorizations

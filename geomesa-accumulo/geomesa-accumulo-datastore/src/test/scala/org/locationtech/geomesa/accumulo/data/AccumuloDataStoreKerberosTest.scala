@@ -11,9 +11,9 @@ package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.MiniCluster
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.locationtech.geomesa.accumulo.data.MiniCluster
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreKerberosTest extends Specification {

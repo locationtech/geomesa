@@ -104,7 +104,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 
   def buildAccumuloConnector(params: java.util.Map[String, _ <: Serializable]): Connector = {
     if (MockParam.lookup(params)) {
-      throw new IllegalArgumentException("Mock Accumulo connections are no longer supported")
+      throw new IllegalArgumentException("Mock Accumulo connections are not supported")
     }
 
     ConnectorParam.lookupOpt(params).getOrElse {

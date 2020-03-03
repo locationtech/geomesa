@@ -16,16 +16,15 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithDataStore}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.runner.JUnitRunner
-import org.locationtech.geomesa.accumulo.data.MiniCluster
 
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
-import java.util.{List=> JList}
+import java.util.{List => JList}
 @RunWith(classOf[JUnitRunner])
 class VisibilitiesTest extends TestWithDataStore {
   
