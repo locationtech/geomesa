@@ -9,13 +9,15 @@
 package org.locationtech.geomesa.arrow.vector
 
 import java.io.Closeable
+import java.util.concurrent.atomic.AtomicInteger
 
-import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.FieldVector
 import org.apache.arrow.vector.dictionary.Dictionary
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
+import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.`type`.AttributeDescriptor
 
 import scala.reflect.ClassTag
@@ -23,7 +25,7 @@ import scala.reflect.ClassTag
 /**
   * Holder for dictionary values
   */
-trait ArrowDictionary extends Closeable {
+sealed trait ArrowDictionary extends Closeable {
 
   lazy private val map = {
     val builder = scala.collection.mutable.Map.newBuilder[AnyRef, Int]
@@ -47,15 +49,6 @@ trait ArrowDictionary extends Closeable {
     * @return value
     */
   def lookup(i: Int): AnyRef
-
-  /**
-    * Create an arrow vector of this dictionary
-    *
-    * @param precision simple feature encoding
-    * @param allocator buffer allocator
-    * @return
-    */
-  def toDictionary(precision: SimpleFeatureEncoding)(implicit allocator: BufferAllocator): Dictionary
 
   /**
     * Dictionary encode a value to an int
@@ -83,6 +76,14 @@ trait ArrowDictionary extends Closeable {
     override def hasNext: Boolean = i < ArrowDictionary.this.length
     override def next(): AnyRef = try { lookup(i) } finally { i += 1 }
   }
+
+  /**
+   * Create an arrow dictionary vector
+   *
+   * @param precision precision
+   * @return
+   */
+  def toDictionary(precision: SimpleFeatureEncoding): Dictionary with Closeable
 }
 
 object ArrowDictionary {
@@ -95,7 +96,7 @@ object ArrowDictionary {
     * @return dictionary
     */
   def create[T <: AnyRef](id: Long, values: Array[T])(implicit ct: ClassTag[T]): ArrowDictionary =
-    new ArrowDictionaryArray[T](createEncoding(id, values.length), values, values.length)
+    create(id, values, values.length)
 
   /**
     * Create a dictionary based on a subset of a value array
@@ -106,7 +107,7 @@ object ArrowDictionary {
     * @return
     */
   def create[T <: AnyRef](id: Long, values: Array[T], length: Int)(implicit ct: ClassTag[T]): ArrowDictionary =
-    new ArrowDictionaryArray[T](createEncoding(id, length), values, length)
+    new ArrowDictionaryArray[T](createEncoding(id, length), values, length, ct.runtimeClass.asInstanceOf[Class[T]])
 
   /**
     * Create a dictionary based on wrapping an arrow vector
@@ -130,18 +131,20 @@ object ArrowDictionary {
     * @param values dictionary values. When encoded, values are replaced with their index in the seq
     * @param encoding dictionary id and int width, id must be unique per arrow file
     */
-  class ArrowDictionaryArray[T <: AnyRef](override val encoding: DictionaryEncoding,
-                                          values: Array[T],
-                                          override val length: Int)
-                                          (implicit ct: ClassTag[T]) extends ArrowDictionary {
+  class ArrowDictionaryArray[T <: AnyRef](
+      val encoding: DictionaryEncoding,
+      values: Array[T],
+      val length: Int,
+      binding: Class[T]
+    ) extends ArrowDictionary {
 
     override def lookup(i: Int): AnyRef = if (i < length) { values(i) } else { "[other]" }
 
-    override def toDictionary(precision: SimpleFeatureEncoding)(implicit allocator: BufferAllocator): Dictionary = {
-      val name = s"dictionary-$id"
-      val bindings = ObjectType.selectType(ct.runtimeClass)
-      val writer = ArrowAttributeWriter(name, bindings, None, None, Map.empty, precision)
-
+    override def toDictionary(precision: SimpleFeatureEncoding): Dictionary with Closeable = {
+      val allocator = ArrowAllocator("dictionary-array")
+      val name = s"dictionary-${id}"
+      val bindings = ObjectType.selectType(binding)
+      val writer = ArrowAttributeWriter(name, bindings, None, Map.empty, precision, VectorFactory(allocator))
       var i = 0
       while (i < length) {
         writer.apply(i, values(i))
@@ -149,7 +152,9 @@ object ArrowDictionary {
       }
       writer.setValueCount(length)
 
-      new Dictionary(writer.vector, encoding)
+      new Dictionary(writer.vector, encoding) with Closeable {
+        override def close(): Unit = CloseWithLogging.raise(writer.vector, allocator)
+      }
     }
 
     override def close(): Unit = {}
@@ -163,24 +168,71 @@ object ArrowDictionary {
     * @param descriptor attribute descriptor, used for reading values from the arrow vector
     * @param precision simple feature encoding used for the arrow vector
     */
-  class ArrowDictionaryVector(override val encoding: DictionaryEncoding,
-                              vector: FieldVector,
-                              descriptor: AttributeDescriptor,
-                              precision: SimpleFeatureEncoding) extends ArrowDictionary {
+  class ArrowDictionaryVector(
+      val encoding: DictionaryEncoding,
+      vector: FieldVector,
+      descriptor: AttributeDescriptor,
+      precision: SimpleFeatureEncoding
+    ) extends ArrowDictionary {
 
     // we use an attribute reader to get the right type conversion
     private val reader = ArrowAttributeReader(descriptor, vector, None, precision)
+    private var references = 1
 
     override val length: Int = vector.getValueCount
 
     override def lookup(i: Int): AnyRef = if (i < length) { reader.apply(i) } else { "[other]" }
 
-    override def toDictionary(precision: SimpleFeatureEncoding)(implicit allocator: BufferAllocator): Dictionary = {
-      require(precision == this.precision, "Wrapped vector dictionaries can't be re-encoded with a different precision")
-      new Dictionary(vector, encoding)
+    override def toDictionary(precision: SimpleFeatureEncoding): Dictionary with Closeable = synchronized {
+      if (references < 1) {
+        throw new IllegalStateException("Trying to create a dictionary from a closed vector")
+      } else if (precision != this.precision) {
+        throw new IllegalArgumentException("Wrapped dictionary vectors can't be re-encoded with a different precision")
+      }
+      references += 1
+      new Dictionary(vector, encoding) with Closeable {
+        override def close(): Unit = ArrowDictionaryVector.this.close()
+      }
     }
 
-    override def close(): Unit = vector.close()
+    override def close(): Unit = synchronized {
+      references -= 1
+      if (references < 1) {
+        vector.close()
+      }
+    }
+  }
+
+  /**
+   * Tracks values seen and writes dictionary encoded ints instead
+   */
+  class ArrowDictionaryBuilder(val encoding: DictionaryEncoding) extends ArrowDictionary {
+
+    // next dictionary index to use
+    private val counter = new AtomicInteger(0)
+
+    // values that we have seen, and their dictionary index
+    private val values = scala.collection.mutable.LinkedHashMap.empty[AnyRef, Int]
+
+    override def lookup(i: Int): AnyRef = values.find(_._2 == i).map(_._1).getOrElse("[other]")
+
+    override def index(value: AnyRef): Int = values.getOrElseUpdate(value, counter.getAndIncrement())
+
+    override def length: Int = values.size
+
+    // note: iterator will return in insert order
+    // we need to keep it ordered so that dictionary values match up with their index
+    override def iterator: Iterator[AnyRef] = values.keys.iterator
+
+    override def toDictionary(precision: SimpleFeatureEncoding): Dictionary with Closeable =
+      throw new NotImplementedError()
+
+    override def close(): Unit = {}
+
+    def clear(): Unit = {
+      counter.set(0)
+      values.clear()
+    }
   }
 
   // use the smallest int type possible to minimize bytes used

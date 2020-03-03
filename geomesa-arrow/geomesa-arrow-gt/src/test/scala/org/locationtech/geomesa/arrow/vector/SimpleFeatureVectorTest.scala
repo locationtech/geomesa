@@ -10,9 +10,8 @@ package org.locationtech.geomesa.arrow.vector
 
 import java.util.Date
 
-import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.FixedSizeListVector
-import org.apache.arrow.vector.{BigIntVector, DirtyRootAllocator, IntVector}
+import org.apache.arrow.vector.{BigIntVector, IntVector}
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -26,8 +25,6 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class SimpleFeatureVectorTest extends Specification {
-
-  implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
   val features = (0 until 10).map { i =>
@@ -284,9 +281,5 @@ class SimpleFeatureVectorTest extends Specification {
         forall(0 until 10)(i => vector.reader.get(i) mustEqual nulls(i))
       }
     }
-  }
-
-  step {
-    allocator.close()
   }
 }

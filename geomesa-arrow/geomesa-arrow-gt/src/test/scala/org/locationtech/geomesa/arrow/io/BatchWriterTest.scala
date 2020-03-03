@@ -8,13 +8,11 @@
 
 package org.locationtech.geomesa.arrow.io
 
+import java.io.ByteArrayInputStream
 import java.util.Date
 
-import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.DirtyRootAllocator
-import org.apache.arrow.vector.complex.StructVector
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
+import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -24,9 +22,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class SimpleFeatureArrowIOTest extends Specification {
-
-  implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
+class BatchWriterTest extends Specification {
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,foo:String,dtg:Date,*geom:Point:srid=4326")
 
@@ -40,13 +36,13 @@ class SimpleFeatureArrowIOTest extends Specification {
     ScalaSimpleFeature.create(sft, s"$i", s"name$i", s"foo${i % 3}", s"2017-03-15T00:0${i-20}:10.000Z", s"POINT (4${i -20} 5${i -20})")
   }
 
-  "SimpleFeatureArrowIO" should {
+  "BatchWriter" should {
     "merge sort arrow batches" >> {
       val encoding = SimpleFeatureEncoding.min(includeFids = true)
       val dictionaries = Map.empty[String, ArrowDictionary]
-      val (field, batches) = WithClose(SimpleFeatureVector.create(sft, dictionaries, encoding)) { vector =>
+      val batches = WithClose(SimpleFeatureVector.create(sft, dictionaries, encoding)) { vector =>
         val unloader = new RecordBatchUnloader(vector)
-        val batches = Seq(features0, features1, features2).map { features =>
+        Seq(features0, features1, features2).map { features =>
           var i = 0
           while (i < features.length) {
             vector.writer.set(i, features(i))
@@ -54,18 +50,12 @@ class SimpleFeatureArrowIOTest extends Specification {
           }
           unloader.unload(i)
         }
-        (vector.underlying.getField, batches)
       }
 
-      val features = WithClose(SimpleFeatureArrowIO.sortBatches(sft, dictionaries, encoding, "dtg", reverse = false, 10, batches.iterator)) { sorted =>
-        val loader = RecordBatchLoader(field)
-        WithClose(SimpleFeatureVector.wrap(loader.vector.asInstanceOf[StructVector], dictionaries)) { vector =>
-          sorted.flatMap { batch =>
-            vector.clear()
-            loader.load(batch)
-            (0 until vector.reader.getValueCount).map(i => ScalaSimpleFeature.copy(vector.reader.get(i)))
-          }.toList
-        }
+      val bytes = WithClose(BatchWriter.reduce(sft, dictionaries, encoding, Some("dtg" -> false), 10, batches.iterator))(_.reduceLeft(_ ++ _))
+
+      val features = WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+        WithClose(reader.features())(_.map(ScalaSimpleFeature.copy).toList)
       }
 
       features must haveLength(30)
@@ -73,9 +63,5 @@ class SimpleFeatureArrowIOTest extends Specification {
       features.map(_.getAttributes) mustEqual
           (features0 ++ features1 ++ features2).sortBy(_.getAttribute("dtg").asInstanceOf[Date]).map(_.getAttributes)
     }
-  }
-
-  step {
-    allocator.close()
   }
 }

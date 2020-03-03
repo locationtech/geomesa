@@ -11,14 +11,13 @@ package org.locationtech.geomesa.index.iterators
 import java.io.ByteArrayOutputStream
 import java.util.Objects
 
-import org.apache.arrow.memory.BufferAllocator
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
-import org.locationtech.geomesa.arrow.io.{DeltaWriter, DictionaryBuildingWriter, SimpleFeatureArrowIO}
+import org.locationtech.geomesa.arrow.io.{BatchWriter, ConcatenatedFileWriter, DeltaWriter, DictionaryBuildingWriter}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
-import org.locationtech.geomesa.arrow.{ArrowAllocator, ArrowEncodedSft, ArrowProperties}
+import org.locationtech.geomesa.arrow.{ArrowEncodedSft, ArrowProperties}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
@@ -290,13 +289,11 @@ object ArrowScan {
   class MultiFileAggregate(sft: SimpleFeatureType, dictionaryFields: Seq[String], encoding: SimpleFeatureEncoding)
       extends ArrowAggregate {
 
-    private var allocator: BufferAllocator = _
     private var writer: DictionaryBuildingWriter = _
     private val os = new ByteArrayOutputStream()
 
     override def init(): Unit = {
-      allocator = ArrowAllocator("arrow-scan-multi-file")
-      writer = DictionaryBuildingWriter.create(sft, dictionaryFields, encoding)(allocator)
+      writer = new DictionaryBuildingWriter(sft, dictionaryFields, encoding)
     }
 
     override def aggregate(sf: SimpleFeature): Int = { writer.add(sf); 1 }
@@ -311,9 +308,8 @@ object ArrowScan {
     }
 
     override def cleanup(): Unit = {
-      CloseWithLogging(writer, allocator)
+      CloseWithLogging(writer)
       writer = null
-      allocator = null
     }
   }
 
@@ -339,7 +335,6 @@ object ArrowScan {
     private val features: Array[SimpleFeature] = Array.ofDim[SimpleFeature](batchSize)
     private var index = 0
 
-    private var allocator: BufferAllocator = _
     private var writer: DictionaryBuildingWriter = _
     private val os = new ByteArrayOutputStream()
 
@@ -349,8 +344,7 @@ object ArrowScan {
     }
 
     override def init(): Unit = {
-      allocator = ArrowAllocator("arrow-scan-multi-file-sort")
-      writer = DictionaryBuildingWriter.create(sft, dictionaryFields, encoding)(allocator)
+      writer = new DictionaryBuildingWriter(sft, dictionaryFields, encoding)
     }
 
     override def aggregate(sf: SimpleFeature): Int = {
@@ -381,9 +375,8 @@ object ArrowScan {
     }
 
     override def cleanup(): Unit = {
-      CloseWithLogging(writer, allocator)
+      CloseWithLogging(writer)
       writer = null
-      allocator = null
     }
   }
 
@@ -423,7 +416,7 @@ object ArrowScan {
 
     override def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val bytes = features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
-      val result = SimpleFeatureArrowIO.reduceFiles(sft, dictionaryFields, encoding, sort, bytes)
+      val result = ConcatenatedFileWriter.reduce(sft, dictionaryFields, encoding, sort, bytes)
       val sf = resultFeature()
       result.map { bytes => sf.setAttribute(0, bytes); sf }
     }
@@ -455,15 +448,13 @@ object ArrowScan {
       encoding: SimpleFeatureEncoding
     ) extends ArrowAggregate {
 
-    private var allocator: BufferAllocator = _
     private var vector: SimpleFeatureVector = _
     private var unloader: RecordBatchUnloader = _
 
     private var index = 0
 
     override def init(): Unit = {
-      allocator = ArrowAllocator("arrow-scan-batch")
-      vector = SimpleFeatureVector.create(sft, dictionaries, encoding)(allocator)
+      vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
       unloader = new RecordBatchUnloader(vector)
     }
 
@@ -483,9 +474,8 @@ object ArrowScan {
     }
 
     override def cleanup(): Unit = {
-      CloseWithLogging(vector, allocator)
+      CloseWithLogging(vector)
       vector = null
-      allocator = null
     }
   }
 
@@ -510,7 +500,6 @@ object ArrowScan {
 
     private val features: Array[SimpleFeature] = Array.ofDim[SimpleFeature](batchSize)
 
-    private var allocator: BufferAllocator = _
     private var vector: SimpleFeatureVector = _
     private var unloader: RecordBatchUnloader = _
 
@@ -522,8 +511,7 @@ object ArrowScan {
     }
 
     override def init(): Unit = {
-      allocator = ArrowAllocator("arrow-scan-batch-sort")
-      vector = SimpleFeatureVector.create(sft, dictionaries, encoding)(allocator)
+      vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
       unloader = new RecordBatchUnloader(vector)
     }
 
@@ -552,9 +540,8 @@ object ArrowScan {
     }
 
     override def cleanup(): Unit = {
-      CloseWithLogging(vector, allocator)
+      CloseWithLogging(vector)
       vector = null
-      allocator = null
     }
   }
 
@@ -600,7 +587,7 @@ object ArrowScan {
 
     override def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val batches = features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
-      val result = SimpleFeatureArrowIO.reduceBatches(sft, dictionaries, encoding, sort, batchSize, batches)
+      val result = BatchWriter.reduce(sft, dictionaries, encoding, sort, batchSize, batches)
       val sf = resultFeature()
       result.map { bytes => sf.setAttribute(0, bytes); sf }
     }
@@ -640,14 +627,12 @@ object ArrowScan {
 
     private val features = Array.ofDim[SimpleFeature](batchSize)
 
-    private var allocator: BufferAllocator = _
     private var writer: DeltaWriter = _
 
     private var index = 0
 
     override def init(): Unit = {
-      allocator = ArrowAllocator("arrow-scan-delta")
-      writer = new DeltaWriter(sft, dictionaryFields, encoding, sort, batchSize)(allocator)
+      writer = new DeltaWriter(sft, dictionaryFields, encoding, sort, batchSize)
     }
 
     override def aggregate(sf: SimpleFeature): Int = {
@@ -661,9 +646,8 @@ object ArrowScan {
     override def encode(): Array[Byte] = try { writer.encode(features, index) } finally { index = 0 }
 
     override def cleanup(): Unit = {
-      CloseWithLogging(writer, allocator)
+      CloseWithLogging(writer)
       writer = null
-      allocator = null
     }
   }
 

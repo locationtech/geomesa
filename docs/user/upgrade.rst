@@ -109,6 +109,18 @@ The modules removed are: ``geomesa-accumulo/geomesa-accumulo-compute``,
 
 The classes and methods removed are detailed in `GEOMESA-2284 <https://geomesa.atlassian.net/browse/GEOMESA-2284>`_.
 
+Dependency Updates
+------------------
+
+* Apache Arrow: 0.10 -> 0.16
+
+Apache Arrow Updates
+--------------------
+
+As part of the upgrade to Apache Arrow 0.16, the geomesa-arrow modules have been refactored to simplify memory
+management and allocation. Some classes have been removed, and some interfaces have changed. This may impact
+anyone using the geomesa-arrow modules directly.
+
 Version 2.4.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

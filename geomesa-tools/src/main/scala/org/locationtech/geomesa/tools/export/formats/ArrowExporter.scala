@@ -10,14 +10,13 @@ package org.locationtech.geomesa.tools.export.formats
 
 import java.io._
 
-import org.apache.arrow.memory.BufferAllocator
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
-import org.locationtech.geomesa.arrow.io.{DictionaryBuildingWriter, SimpleFeatureArrowFileWriter, SimpleFeatureArrowIO}
+import org.locationtech.geomesa.arrow.io.{BatchWriter, DictionaryBuildingWriter, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
-import org.locationtech.geomesa.arrow.{ArrowAllocator, ArrowProperties}
 import org.locationtech.geomesa.tools.export.formats.ArrowExporter.{BatchDelegate, DictionaryDelegate, EncodedDelegate, SortedBatchDelegate}
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -121,13 +120,11 @@ object ArrowExporter {
       batchSize: Int
     ) extends FeatureExporter {
 
-    private var allocator: BufferAllocator = _
     private var writer: DictionaryBuildingWriter = _
     private var count = 0L
 
     override def start(sft: SimpleFeatureType): Unit = {
-      allocator = ArrowAllocator("arrow-exporter")
-      writer = DictionaryBuildingWriter.create(sft, dictionaryFields, encoding)(allocator)
+      writer = new DictionaryBuildingWriter(sft, dictionaryFields, encoding)
     }
 
     override def export(features: Iterator[SimpleFeature]): Option[Long] = {
@@ -153,9 +150,6 @@ object ArrowExporter {
         }
         CloseWithLogging(writer)
       }
-      if (allocator != null) {
-        CloseWithLogging(allocator)
-      }
     }
   }
 
@@ -166,13 +160,11 @@ object ArrowExporter {
       dictionaries: Map[String, ArrowDictionary]
     ) extends FeatureExporter {
 
-    private var allocator: BufferAllocator = _
     private var writer: SimpleFeatureArrowFileWriter = _
     private var count = 0L
 
     override def start(sft: SimpleFeatureType): Unit = {
-      allocator = ArrowAllocator("arrow-exporter")
-      writer = SimpleFeatureArrowFileWriter(sft, os, dictionaries, encoding, None)(allocator)
+      writer = SimpleFeatureArrowFileWriter(os, sft, dictionaries, encoding, None)
     }
 
     override def export(features: Iterator[SimpleFeature]): Option[Long] = {
@@ -193,9 +185,6 @@ object ArrowExporter {
       if (writer != null) {
         CloseWithLogging(writer)
       }
-      if (allocator != null) {
-        CloseWithLogging(allocator)
-      }
     }
   }
 
@@ -211,7 +200,6 @@ object ArrowExporter {
     private val batches = ArrayBuffer.empty[Array[Byte]]
     private val (sortField, reverse) = sort
 
-    private var allocator: BufferAllocator = _
     private var vector: SimpleFeatureVector = _
     private var batchWriter: RecordBatchUnloader = _
     private var ordering: Ordering[SimpleFeature] = _
@@ -219,8 +207,7 @@ object ArrowExporter {
     private var index = 0 // current index into the batch
 
     override def start(sft: SimpleFeatureType): Unit = {
-      allocator = ArrowAllocator("arrow-exporter")
-      vector = SimpleFeatureVector.create(sft, dictionaries, encoding)(allocator)
+      vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
       batchWriter = new RecordBatchUnloader(vector)
       ordering = SimpleFeatureOrdering(sft.indexOf(sortField))
       if (reverse) {
@@ -245,19 +232,21 @@ object ArrowExporter {
     override def bytes: Long = 0L
 
     override def close(): Unit = {
-      if (index > 0) {
-        sortAndUnloadBatch()
-        index = 0
-      }
-      if (vector != null) {
-        val sft = vector.sft
-        val bytes = batches.iterator
-        val sorted = SimpleFeatureArrowIO.sortBatches(sft, dictionaries, encoding, (sortField, reverse), batchSize, bytes)
-        WithClose(SimpleFeatureArrowIO.createFile(vector, Some(sortField -> reverse), sorted))(_.foreach(os.write))
-        CloseWithLogging(vector)
-      }
-      if (allocator != null) {
-        CloseWithLogging(allocator)
+      try {
+        if (index > 0) {
+          sortAndUnloadBatch()
+          index = 0
+        }
+        if (vector != null) {
+          val sft = vector.sft
+          val bytes = batches.iterator
+          val sort = Some(sortField -> reverse)
+          WithClose(BatchWriter.reduce(sft, dictionaries, encoding, sort, batchSize, bytes))(_.foreach(os.write))
+        }
+      } finally {
+        if (vector != null) {
+          CloseWithLogging(vector)
+        }
       }
     }
 
