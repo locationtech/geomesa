@@ -14,7 +14,6 @@ import java.util.Date
 import org.geotools.data.Query
 import org.geotools.filter.SortByImpl
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -95,10 +94,8 @@ class LocalQueryRunnerTest extends Specification {
       val bytes = WithClose(runner.runQuery(sft, q)) { iter =>
         iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
       }
-      WithClose(ArrowAllocator("local-query-test")) { allocator =>
-        WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))(allocator)) { reader =>
-          SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual expected
-        }
+      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual expected
       }
     }
   }

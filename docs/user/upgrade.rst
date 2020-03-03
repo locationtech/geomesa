@@ -119,6 +119,18 @@ There are now two separate modules for HBase filters and coprocessor - ``hbase-d
 and ``hbase-distributed-runtime-hbase2``. The previous ``hbase-distributed-runtime`` module has been removed.
 Users should install the distributed runtime corresponding to their HBase installation.
 
+Dependency Updates
+------------------
+
+* Apache Arrow: 0.10 -> 0.16
+
+Apache Arrow Updates
+--------------------
+
+As part of the upgrade to Apache Arrow 0.16, the geomesa-arrow modules have been refactored to simplify memory
+management and allocation. Some classes have been removed, and some interfaces have changed. This may impact
+anyone using the geomesa-arrow modules directly.
+
 Version 2.4.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

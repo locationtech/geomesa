@@ -13,8 +13,6 @@ import java.util.Date
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Envelope, Point}
-import org.apache.arrow.memory.RootAllocator
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.util.Bytes
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
@@ -37,6 +35,7 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
+import org.locationtech.jts.geom.{Envelope, Point}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
@@ -215,18 +214,16 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
       val out = new ByteArrayOutputStream
       arrows.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
       def in() = new ByteArrayInputStream(out.toByteArray)
-      WithClose(new RootAllocator(Long.MaxValue)) { allocator =>
-        WithClose(SimpleFeatureArrowFileReader.streaming(in)(allocator)) { reader =>
-          val results = SelfClosingIterator(reader.features()).map { f =>
-            // round the points, as precision is lost due to the arrow encoding
-            val attributes = f.getAttributes.asScala.collect {
-              case p: Point => s"POINT (${Math.round(p.getX * 10) / 10d} ${Math.round(p.getY * 10) / 10d})"
-              case a => a
-            }
-            ScalaSimpleFeature.create(f.getFeatureType, f.getID, attributes: _*)
-          }.toList
-          results must containTheSameElementsAs((4 to 8).toFeatures(query.getPropertyNames))
-        }
+      WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+        val results = SelfClosingIterator(reader.features()).map { f =>
+          // round the points, as precision is lost due to the arrow encoding
+          val attributes = f.getAttributes.asScala.collect {
+            case p: Point => s"POINT (${Math.round(p.getX * 10) / 10d} ${Math.round(p.getY * 10) / 10d})"
+            case a => a
+          }
+          ScalaSimpleFeature.create(f.getFeatureType, f.getID, attributes: _*)
+        }.toList
+        results must containTheSameElementsAs((4 to 8).toFeatures(query.getPropertyNames))
       }
     }
     "work with bin queries" in {

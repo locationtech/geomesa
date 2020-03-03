@@ -20,11 +20,9 @@
         <priority value="warn"/>
     </category>
 
-    <!--
-    <category name="org.locationtech">
+    <!--<category name="org.locationtech">
         <priority value="trace"/>
-    </category>
-    -->
+    </category>-->
 
     <!-- un-comment the following line to enable verbose log messages
          from the index query-planner; this can be helpful in debugging

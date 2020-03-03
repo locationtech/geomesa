@@ -108,7 +108,7 @@ class ArrowDataStoreTest extends Specification {
 
       "only schema" >> {
         withTempFile { url =>
-          WithClose(SimpleFeatureArrowFileWriter(sft, new FileOutputStream(url.getPath))) { _ => }
+          WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(url.getPath), sft)) { _ => }
           foreach(Seq(true, false)) { caching =>
             val ds = DataStoreFinder.getDataStore(Map(UrlParam.key -> url, CachingParam.key -> caching))
             ds.getSchema("test") mustEqual sft
@@ -121,7 +121,7 @@ class ArrowDataStoreTest extends Specification {
       "simple 2 batches" >> {
         val encoding = SimpleFeatureEncoding.min(includeFids = true)
         withTempFile { url =>
-          WithClose(SimpleFeatureArrowFileWriter(sft, new FileOutputStream(url.getPath), encoding = encoding)) { writer =>
+          WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(url.getPath), sft, encoding = encoding)) { writer =>
             features0.foreach(writer.add)
             writer.flush()
             features1.foreach(writer.add)
@@ -142,10 +142,10 @@ class ArrowDataStoreTest extends Specification {
       "multiple logical files" >> {
         val encoding = SimpleFeatureEncoding.min(includeFids = true)
         withTempFile { url =>
-          WithClose(SimpleFeatureArrowFileWriter(sft, new FileOutputStream(url.getPath), encoding = encoding)) { writer =>
+          WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(url.getPath), sft, encoding = encoding)) { writer =>
             features0.foreach(writer.add)
           }
-          WithClose(SimpleFeatureArrowFileWriter(sft, new FileOutputStream(url.getPath, true), encoding = encoding)) { writer =>
+          WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(url.getPath, true), sft, encoding = encoding)) { writer =>
             features1.foreach(writer.add)
           }
           foreach(Seq(true, false)) { caching =>
@@ -168,7 +168,7 @@ class ArrowDataStoreTest extends Specification {
           "foo"  -> ArrowDictionary.create(2L, features.map(_.getAttribute(1).asInstanceOf[String]).toArray)
         )
         withTempFile { url =>
-          WithClose(SimpleFeatureArrowFileWriter(sft, new FileOutputStream(url.getPath), dicts, encoding)) { writer =>
+          WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(url.getPath), sft, dicts, encoding)) { writer =>
             features.foreach(writer.add)
           }
           foreach(Seq(true, false)) { caching =>
@@ -188,7 +188,7 @@ class ArrowDataStoreTest extends Specification {
         val encoding = SimpleFeatureEncoding.min(includeFids = true)
         val dicts = Map("foo"  -> ArrowDictionary.create(1L, Array("foo0", "foo1")))
         withTempFile { url =>
-          WithClose(SimpleFeatureArrowFileWriter(sft, new FileOutputStream(url.getPath), dicts, encoding)) { writer =>
+          WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(url.getPath), sft, dicts, encoding)) { writer =>
             features.foreach(writer.add)
           }
           // the file has only 'foo0' and 'foo1' encoded

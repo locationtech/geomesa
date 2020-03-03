@@ -54,9 +54,8 @@ public abstract class AbstractMultiPointVector<T extends FieldVector>
 
   @Override
   public void set(int index, MultiPoint geom) {
-    if (index == 0) {
-      // need to do this to avoid issues with re-setting the value at index 0
-      vector.setLastSet(0);
+    if (vector.getLastSet() >= index) {
+      vector.setLastSet(index - 1);
     }
     final int position = vector.startNewValue(index);
     if (geom == null) {
