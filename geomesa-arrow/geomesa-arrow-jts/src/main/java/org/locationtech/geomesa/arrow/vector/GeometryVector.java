@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.arrow.vector;
 
+import org.apache.arrow.vector.FieldVector;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.apache.arrow.vector.FieldVector;
 
 /**
  * Complex vector for geometries
@@ -32,23 +32,4 @@ public interface GeometryVector<T extends Geometry, V extends FieldVector> exten
   int getNullCount();
 
   void transfer(int fromIndex, int toIndex, GeometryVector<T, V> to);
-
-  @Deprecated
-  GeometryWriter<T> getWriter();
-
-  @Deprecated
-  GeometryReader<T> getReader();
-
-  @Deprecated
-  interface GeometryWriter<T extends Geometry> {
-    void set(int i, T geom);
-    void setValueCount(int count);
-  }
-
-  @Deprecated
-  interface GeometryReader<T extends Geometry> {
-    T get(int i);
-    int getValueCount();
-    int getNullCount();
-  }
 }

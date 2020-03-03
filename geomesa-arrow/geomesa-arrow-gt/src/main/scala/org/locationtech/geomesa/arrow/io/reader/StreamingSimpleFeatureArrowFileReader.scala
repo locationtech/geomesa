@@ -6,18 +6,23 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.arrow.io.reader
+package org.locationtech.geomesa.arrow.io
+package reader
 
 import java.io.{Closeable, InputStream}
+import java.util.Collections
+import java.util.concurrent.ConcurrentLinkedDeque
 
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.StructVector
 import org.apache.arrow.vector.ipc.ArrowStreamReader
+import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader.{SkipIndicator, VectorToIterator, loadDictionaries}
-import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileReader, SimpleFeatureArrowIO}
+import org.locationtech.geomesa.arrow.io.reader.StreamingSimpleFeatureArrowFileReader.StreamingSingleFileReader
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
-import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -28,12 +33,14 @@ import scala.collection.mutable.ArrayBuffer
   * as the underlying data may be reclaimed
   *
   * @param is creates a new input stream
-  * @param allocator buffer allocator
   */
-class StreamingSimpleFeatureArrowFileReader(is: () => InputStream)(implicit allocator: BufferAllocator)
-    extends SimpleFeatureArrowFileReader  {
+class StreamingSimpleFeatureArrowFileReader(is: () => InputStream) extends SimpleFeatureArrowFileReader  {
 
-  private var initialized = false
+  import scala.collection.JavaConverters._
+
+  private val allocator = ArrowAllocator("streaming-file-reader")
+
+  private val opened = new ConcurrentLinkedDeque[AutoCloseable](Collections.singletonList(allocator))
 
   lazy val (sft, sort) = {
     var sft: SimpleFeatureType = null
@@ -43,31 +50,30 @@ class StreamingSimpleFeatureArrowFileReader(is: () => InputStream)(implicit allo
       require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[StructVector], "Invalid file")
       val underlying = root.getFieldVectors.get(0).asInstanceOf[StructVector]
       sft = SimpleFeatureVector.getFeatureType(underlying)._1
-      sort = SimpleFeatureArrowIO.getSortFromMetadata(reader.getVectorSchemaRoot.getSchema.getCustomMetadata)
+      sort = getSortFromMetadata(root.getSchema.getCustomMetadata)
     }
     (sft, sort)
   }
 
   override lazy val dictionaries: Map[String, ArrowDictionary] = {
-    import scala.collection.JavaConversions._
-
-    initialized = true
-    WithClose(is()) { is =>
+    val dicts = WithClose(is()) { is =>
       val reader = new ArrowStreamReader(is, allocator)
-      WithClose(reader.getVectorSchemaRoot) { root =>
-        require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[StructVector], "Invalid file")
-        val underlying = root.getFieldVectors.get(0).asInstanceOf[StructVector]
-        reader.loadNextBatch() // load the first batch so we get any dictionaries
-        val encoding = SimpleFeatureVector.getFeatureType(underlying)._2
-        // load any dictionaries into memory
-        loadDictionaries(underlying.getField.getChildren, reader, encoding)
-      }
+      opened.addFirst(reader)
+      val root = reader.getVectorSchemaRoot
+      require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[StructVector], "Invalid file")
+      val underlying = root.getFieldVectors.get(0).asInstanceOf[StructVector]
+      reader.loadNextBatch() // load the first batch so we get any dictionaries
+      val encoding = SimpleFeatureVector.getFeatureType(underlying)._2
+      // load any dictionaries into memory
+      loadDictionaries(underlying.getField.getChildren.asScala, reader, encoding)
     }
+    dicts.values.foreach(opened.addFirst)
+    dicts
   }
 
   override def vectors: Seq[SimpleFeatureVector] = throw new NotImplementedError()
 
-  override def features(filter: Filter): Iterator[ArrowSimpleFeature] with Closeable = {
+  override def features(filter: Filter): CloseableIterator[ArrowSimpleFeature] = {
     val stream = is()
     val skip = new SkipIndicator
     val nextBatch = SimpleFeatureArrowFileReader.features(sft, filter, skip, sort, dictionaries)
@@ -77,10 +83,11 @@ class StreamingSimpleFeatureArrowFileReader(is: () => InputStream)(implicit allo
     // reader for current logical 'file'
     var reader: StreamingSingleFileReader = null
 
-    new Iterator[ArrowSimpleFeature] with Closeable {
+    new CloseableIterator[ArrowSimpleFeature] {
       private var done = false
       private var batch: Iterator[ArrowSimpleFeature] = Iterator.empty
 
+      @scala.annotation.tailrec
       override def hasNext: Boolean = {
         if (done) {
           false
@@ -88,7 +95,7 @@ class StreamingSimpleFeatureArrowFileReader(is: () => InputStream)(implicit allo
           true
         } else if (!skip.skip && stream.available() > 0) {
           // new logical file
-          reader = new StreamingSingleFileReader(stream)
+          reader = new StreamingSingleFileReader(stream, allocator)
           readers.append(reader)
           batch = reader.features(nextBatch, skip)
           hasNext
@@ -104,62 +111,59 @@ class StreamingSimpleFeatureArrowFileReader(is: () => InputStream)(implicit allo
     }
   }
 
-  override def close(): Unit = {
-    if (initialized) {
-      dictionaries.foreach(_._2.close())
-    }
-  }
+  override def close(): Unit = CloseWithLogging.raise(opened.asScala)
 }
 
-/**
-  * Reads a single logical arrow 'file' from the stream, which may contain multiple record batches
-  */
-private class StreamingSingleFileReader(is: InputStream)(implicit allocator: BufferAllocator) extends Closeable {
+object StreamingSimpleFeatureArrowFileReader {
 
-  import SimpleFeatureArrowFileReader.loadDictionaries
+  import scala.collection.JavaConverters._
 
-  import scala.collection.JavaConversions._
+  /**
+   * Reads a single logical arrow 'file' from the stream, which may contain multiple record batches
+   */
+  private class StreamingSingleFileReader(is: InputStream, allocator: BufferAllocator) extends Closeable {
 
-  private val reader = new ArrowStreamReader(is, allocator)
-  private val root = reader.getVectorSchemaRoot
-  require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[StructVector], "Invalid file")
-  private val underlying = root.getFieldVectors.get(0).asInstanceOf[StructVector]
-  private var done = !reader.loadNextBatch() // load the first batch so we get any dictionaries
+    private val reader = new ArrowStreamReader(is, allocator)
+    private val root = reader.getVectorSchemaRoot
+    require(root.getFieldVectors.size() == 1 && root.getFieldVectors.get(0).isInstanceOf[StructVector], "Invalid file")
+    private val underlying = root.getFieldVectors.get(0).asInstanceOf[StructVector]
+    private var done = !reader.loadNextBatch() // load the first batch so we get any dictionaries
 
-  val (sft, encoding) = SimpleFeatureVector.getFeatureType(underlying)
+    val (sft, encoding) = SimpleFeatureVector.getFeatureType(underlying)
 
-  // load any dictionaries into memory
-  val dictionaries: Map[String, ArrowDictionary] = loadDictionaries(underlying.getField.getChildren, reader, encoding)
-  private val vector = new SimpleFeatureVector(sft, underlying, dictionaries, encoding)
+    // load any dictionaries into memory
+    val dictionaries: Map[String, ArrowDictionary] =
+      SimpleFeatureArrowFileReader.loadDictionaries(underlying.getField.getChildren.asScala, reader, encoding)
+    private val vector = new SimpleFeatureVector(sft, underlying, dictionaries, encoding, None)
 
-  def metadata: java.util.Map[String, String] = reader.getVectorSchemaRoot.getSchema.getCustomMetadata
+    def metadata: java.util.Map[String, String] = reader.getVectorSchemaRoot.getSchema.getCustomMetadata
 
-  // iterator of simple features read from the input stream
-  def features(nextBatch: VectorToIterator, skip: SkipIndicator): Iterator[ArrowSimpleFeature] = {
-    if (done) { Iterator.empty } else {
-      new Iterator[ArrowSimpleFeature] {
-        private var batch: Iterator[ArrowSimpleFeature] = nextBatch(vector)
-        override def hasNext: Boolean = {
-          if (done) {
-            false
-          } else if (batch.hasNext) {
-            true
-          } else if (!skip.skip && reader.loadNextBatch()) {
-            batch = nextBatch(vector)
-            hasNext
-          } else {
-            done = true
-            false
+    // iterator of simple features read from the input stream
+    def features(nextBatch: VectorToIterator, skip: SkipIndicator): Iterator[ArrowSimpleFeature] = {
+      if (done) { Iterator.empty } else {
+        new Iterator[ArrowSimpleFeature] {
+          private var batch: Iterator[ArrowSimpleFeature] = nextBatch(vector)
+
+          @scala.annotation.tailrec
+          override def hasNext: Boolean = {
+            if (done) {
+              false
+            } else if (batch.hasNext) {
+              true
+            } else if (!skip.skip && reader.loadNextBatch()) {
+              batch = nextBatch(vector)
+              hasNext
+            } else {
+              done = true
+              false
+            }
           }
-        }
 
-        override def next(): ArrowSimpleFeature = batch.next()
+          override def next(): ArrowSimpleFeature = batch.next()
+        }
       }
     }
-  }
 
-  override def close(): Unit = {
-    reader.close()
-    vector.close()
+    override def close(): Unit = CloseWithLogging.raise(dictionaries.values ++ Seq(reader, vector))
   }
 }

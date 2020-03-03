@@ -11,21 +11,24 @@ package org.locationtech.geomesa.arrow.vector
 import java.io.Closeable
 import java.util.{Collections, Date}
 
-import org.locationtech.jts.geom.Geometry
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.{ListVector, StructVector}
 import org.apache.arrow.vector.types.FloatingPointPrecision
 import org.apache.arrow.vector.types.pojo.{ArrowType, FieldType}
 import org.apache.arrow.vector.{BigIntVector, FieldVector}
+import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding.Encoding
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging}
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 /**
   * Abstraction for using simple features in Arrow vectors
@@ -35,66 +38,90 @@ import scala.reflect.ClassTag
   * @param dictionaries map of field names to dictionary values, used for dictionary encoding fields.
   *                     All values must be provided up front.
   * @param encoding options for encoding
-  * @param allocator buffer allocator
   */
-class SimpleFeatureVector private [arrow] (val sft: SimpleFeatureType,
-                                           val underlying: StructVector,
-                                           val dictionaries: Map[String, ArrowDictionary],
-                                           val encoding: SimpleFeatureEncoding)
-                                          (implicit allocator: BufferAllocator) extends Closeable {
+class SimpleFeatureVector private [arrow] (
+    val sft: SimpleFeatureType,
+    val underlying: StructVector,
+    val dictionaries: Map[String, ArrowDictionary],
+    val encoding: SimpleFeatureEncoding,
+    allocator: Option[BufferAllocator]
+  ) extends Closeable {
 
   // note: writer creates the map child vectors based on the sft, and should be instantiated before the reader
-  val writer = new Writer(this)
-  val reader = new Reader(this)
+  val writer = new Writer()
+  val reader = new Reader()
 
   /**
     * Clear any simple features currently stored in the vector
     */
   def clear(): Unit = underlying.setValueCount(0)
 
-  override def close(): Unit = {
-    underlying.close()
-    writer.close()
-  }
+  override def close(): Unit = CloseWithLogging.raise(Seq(underlying) ++ allocator)
 
-  class Writer(vector: SimpleFeatureVector) {
-    private [SimpleFeatureVector] val arrowWriter = vector.underlying.getWriter
-    private val idWriter = ArrowAttributeWriter.id(sft, Some(vector.underlying), vector.encoding)
-    private [arrow] val attributeWriters = ArrowAttributeWriter(sft, Some(vector.underlying), dictionaries, encoding).toArray
+  class Writer {
 
+    private val idWriter = ArrowAttributeWriter.id(sft, encoding, underlying)
+    private val writers = ArrowAttributeWriter(sft, underlying, dictionaries, encoding).toArray
+
+    /**
+     * Sets the feature at the given index
+     *
+     * @param index index to set
+     * @param feature feature to set
+     */
     def set(index: Int, feature: SimpleFeature): Unit = {
-      arrowWriter.setPosition(index)
-      arrowWriter.start()
+      underlying.getWriter.setPosition(index)
+      underlying.getWriter.start()
       idWriter.apply(index, feature)
       var i = 0
-      while (i < attributeWriters.length) {
-        attributeWriters(i).apply(index, feature.getAttribute(i))
+      while (i < writers.length) {
+        writers(i).apply(index, feature.getAttribute(i))
         i += 1
       }
-      arrowWriter.end()
+      underlying.getWriter.end()
     }
 
+    /**
+     * Sets the value count, e.g. the number of features contained in this vector.
+     * Should only be called after all features have been written
+     *
+     * @param count count
+     */
     def setValueCount(count: Int): Unit = {
-      arrowWriter.setValueCount(count)
-      attributeWriters.foreach(_.setValueCount(count))
+      underlying.getWriter.setValueCount(count)
+      writers.foreach(_.setValueCount(count))
     }
-
-    private [vector] def close(): Unit = arrowWriter.close()
   }
 
-  class Reader(vector: SimpleFeatureVector) {
-    val idReader: ArrowAttributeReader = ArrowAttributeReader.id(sft, vector.underlying, vector.encoding)
-    val readers: Array[ArrowAttributeReader] =
-      ArrowAttributeReader(sft, vector.underlying, dictionaries, encoding).toArray
+  class Reader {
+
+    private val idReader = ArrowAttributeReader.id(sft, underlying, encoding)
+    private val readers = ArrowAttributeReader(sft, underlying, dictionaries, encoding).toArray
 
     // feature that can be re-populated with calls to 'load'
     val feature: ArrowSimpleFeature = new ArrowSimpleFeature(sft, idReader, readers, -1)
 
+    /**
+     * Gets the feature at a given index
+     *
+     * @param index index to get
+     * @return
+     */
     def get(index: Int): ArrowSimpleFeature = new ArrowSimpleFeature(sft, idReader, readers, index)
 
+    /**
+     * Loads the re-usable `feature` with the given index
+     *
+     * @param index index to load
+     */
     def load(index: Int): Unit = feature.index = index
 
-    def getValueCount: Int = vector.underlying.getValueCount
+    /**
+     * Gets the value count, e.g. the number of features contained in this vector
+     *
+     * @return
+     */
+    def getValueCount: Int = underlying.getValueCount
   }
 }
 
@@ -109,8 +136,8 @@ object SimpleFeatureVector {
 
   object SimpleFeatureEncoding {
 
-    val Min = SimpleFeatureEncoding(Some(Encoding.Min), Encoding.Min, Encoding.Min)
-    val Max = SimpleFeatureEncoding(Some(Encoding.Max), Encoding.Max, Encoding.Max)
+    val Min: SimpleFeatureEncoding = SimpleFeatureEncoding(Some(Encoding.Min), Encoding.Min, Encoding.Min)
+    val Max: SimpleFeatureEncoding = SimpleFeatureEncoding(Some(Encoding.Max), Encoding.Max, Encoding.Max)
 
     def min(includeFids: Boolean, proxyFids: Boolean = false): SimpleFeatureEncoding = {
       val fids = if (includeFids) { Some(if (proxyFids) { Encoding.Min } else { Encoding.Max }) } else { None }
@@ -131,22 +158,26 @@ object SimpleFeatureVector {
     *                     All values must be provided up front.
     * @param encoding options for encoding
     * @param capacity initial capacity for number of features able to be stored in vectors
-    * @param allocator buffer allocator
     * @return
     */
-  def create(sft: SimpleFeatureType,
-             dictionaries: Map[String, ArrowDictionary],
-             encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min,
-             capacity: Int = DefaultCapacity)
-            (implicit allocator: BufferAllocator): SimpleFeatureVector = {
-    val metadata = Collections.singletonMap(OptionsKey, SimpleFeatureTypes.encodeUserData(sft))
-    val fieldType = new FieldType(true, ArrowType.Struct.INSTANCE, null, metadata)
-    val underlying = new StructVector(sft.getTypeName, allocator, fieldType, null)
-    val vector = new SimpleFeatureVector(sft, underlying, dictionaries, encoding)
-    // set capacity after all child vectors have been created by the writers, then allocate
-    underlying.setInitialCapacity(capacity)
-    underlying.allocateNew()
-    vector
+  def create(
+      sft: SimpleFeatureType,
+      dictionaries: Map[String, ArrowDictionary],
+      encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min,
+      capacity: Int = DefaultCapacity): SimpleFeatureVector = {
+    val allocator = ArrowAllocator("simple-feature-vector")
+    try {
+      val metadata = Collections.singletonMap(OptionsKey, SimpleFeatureTypes.encodeUserData(sft))
+      val fieldType = new FieldType(true, ArrowType.Struct.INSTANCE, null, metadata)
+      val underlying = new StructVector(sft.getTypeName, allocator, fieldType, null)
+      val vector = new SimpleFeatureVector(sft, underlying, dictionaries, encoding, Some(allocator))
+      // set capacity after all child vectors have been created by the writers, then allocate
+      underlying.setInitialCapacity(capacity)
+      underlying.allocateNew()
+      vector
+    } catch {
+      case NonFatal(e) => CloseQuietly(allocator).foreach(e.addSuppressed); throw e
+    }
   }
 
   /**
@@ -155,13 +186,11 @@ object SimpleFeatureVector {
     * @param vector arrow vector
     * @param dictionaries map of field names to dictionary values, used for dictionary encoding fields.
     *                     All values must be provided up front.
-    * @param allocator buffer allocator
     * @return
     */
-  def wrap(vector: StructVector, dictionaries: Map[String, ArrowDictionary])
-          (implicit allocator: BufferAllocator): SimpleFeatureVector = {
+  def wrap(vector: StructVector, dictionaries: Map[String, ArrowDictionary]): SimpleFeatureVector = {
     val (sft, encoding) = getFeatureType(vector)
-    new SimpleFeatureVector(sft, vector, dictionaries, encoding)
+    new SimpleFeatureVector(sft, vector, dictionaries, encoding, None)
   }
 
   /**
@@ -169,13 +198,10 @@ object SimpleFeatureVector {
     *
     * @param vector simple feature vector to copy
     * @param underlying arrow vector
-    * @param allocator buffer allocator
     * @return
     */
-  def clone(vector: SimpleFeatureVector, underlying: StructVector)
-           (implicit allocator: BufferAllocator): SimpleFeatureVector = {
-    new SimpleFeatureVector(vector.sft, underlying, vector.dictionaries, vector.encoding)
-  }
+  def clone(vector: SimpleFeatureVector, underlying: StructVector): SimpleFeatureVector =
+    new SimpleFeatureVector(vector.sft, underlying, vector.dictionaries, vector.encoding, None)
 
   /**
     * Reads the feature type and feature encoding from an existing arrow vector

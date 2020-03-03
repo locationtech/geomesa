@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.conversions
 
 import scala.collection.generic.CanBuildFrom
-import scala.collection.{Iterator, TraversableLike}
+import scala.collection.{GenTraversableOnce, Iterator, TraversableLike}
 import scala.reflect.ClassTag
 
 object ScalaImplicits {
@@ -60,6 +60,11 @@ object ScalaImplicits {
     def mapWithIndex[B](f: (T, Int) => B)(implicit ct: ClassTag[B]): Array[B] = {
       var i = -1
       array.map { v => i += 1; f(v, i) }
+    }
+
+    def flatMapWithIndex[B](f: (T, Int) => GenTraversableOnce[B])(implicit ct: ClassTag[B]): Array[B] = {
+      var i = -1
+      array.flatMap { v => i += 1; f(v, i) }
     }
   }
 }

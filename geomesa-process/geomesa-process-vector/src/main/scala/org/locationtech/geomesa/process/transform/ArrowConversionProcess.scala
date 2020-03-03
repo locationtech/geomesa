@@ -15,11 +15,11 @@ import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.visitor._
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
+import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileWriter
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
-import org.locationtech.geomesa.arrow.{ArrowAllocator, ArrowProperties}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
@@ -182,8 +182,7 @@ object ArrowConversionProcess {
     private val bytes = ListBuffer.empty[Array[Byte]]
     private var count = 0L
 
-    private val allocator = ArrowAllocator("arrow-wps")
-    private val writer = SimpleFeatureArrowFileWriter(sft, out, Map.empty, encoding, sort)(allocator)
+    private val writer = SimpleFeatureArrowFileWriter(out, sft, Map.empty[String, ArrowDictionary], encoding, sort)
 
     override def visit(feature: SimpleFeature): Unit = {
       writer.add(feature.asInstanceOf[SimpleFeature])
@@ -196,7 +195,7 @@ object ArrowConversionProcess {
     }
 
     override def results: Iterator[Array[Byte]] = {
-      CloseWithLogging(writer, allocator)
+      CloseWithLogging(writer)
       bytes.append(out.toByteArray)
       bytes.iterator
     }
@@ -250,8 +249,7 @@ object ArrowConversionProcess {
       }
 
       val out = new ByteArrayOutputStream()
-      val allocator = ArrowAllocator("arrow-wps")
-      val writer = SimpleFeatureArrowFileWriter(sft, out, dictionaries, encoding, sort)(allocator)
+      val writer = SimpleFeatureArrowFileWriter(out, sft, dictionaries, encoding, sort)
 
       new Iterator[Array[Byte]] {
         override def hasNext: Boolean = sorted.hasNext
@@ -265,7 +263,7 @@ object ArrowConversionProcess {
           if (sorted.hasNext) {
             writer.flush()
           } else {
-            CloseWithLogging(writer, allocator)
+            CloseWithLogging(writer)
           }
           out.toByteArray
         }
