@@ -8,28 +8,41 @@
 
 package org.locationtech.geomesa.utils.classpath
 
+import com.typesafe.scalalogging.LazyLogging
+
 import scala.reflect.ClassTag
 
 /**
   * Scala SPI loader helper
   */
-object ServiceLoader {
+object ServiceLoader extends LazyLogging {
 
   import scala.collection.JavaConverters._
 
   /**
-    * Load all services
-    *
-    * @param ct classtag
-    * @tparam T service type
-    * @return list of services
-    */
+   * Load all services
+   *
+   * @param loader optional classloader to use
+   * @param ct classtag
+   * @tparam T service type
+   * @return list of services
+   */
   def load[T](loader: Option[ClassLoader] = None)(implicit ct: ClassTag[T]): List[T] = {
-    val result = loader match {
-      case None      => java.util.ServiceLoader.load(ct.runtimeClass.asInstanceOf[Class[T]])
-      case Some(ldr) => java.util.ServiceLoader.load(ct.runtimeClass.asInstanceOf[Class[T]], ldr)
+    // check if the current class is a child of the context classloader
+    // this fixes service loading in Accumulo's per-namespace classpaths
+    val clas = ct.runtimeClass.asInstanceOf[Class[T]]
+    val ldr = loader.getOrElse {
+      def chain(cl: ClassLoader): Stream[ClassLoader] =
+        if (cl == null) { Stream.empty } else { cl #:: chain(cl.getParent) }
+      val ccl = Thread.currentThread().getContextClassLoader
+      if (ccl == null || chain(clas.getClassLoader).contains(ccl)) {
+        clas.getClassLoader
+      } else {
+        logger.warn(s"Using a context ClassLoader that does not contain the class to load (${clas.getName}): $ccl")
+        ccl
+      }
     }
-    result.asScala.toList
+    java.util.ServiceLoader.load(clas, ldr).asScala.toList
   }
 
   /**
