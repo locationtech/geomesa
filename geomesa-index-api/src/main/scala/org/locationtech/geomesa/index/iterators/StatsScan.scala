@@ -29,7 +29,7 @@ trait StatsScan extends AggregatingScan[StatResult] with LazyLogging {
 
   import org.locationtech.geomesa.index.iterators.StatsScan.Configuration._
 
-  override protected def initResult(
+  override protected def createResult(
       sft: SimpleFeatureType,
       transform: Option[SimpleFeatureType],
       batchSize: Int,
@@ -39,13 +39,6 @@ trait StatsScan extends AggregatingScan[StatResult] with LazyLogging {
 
   override protected def defaultBatchSize: Int =
     StatsScan.BatchSize.toInt.get // has a valid default so should be safe to .get
-
-  override protected def aggregateResult(sf: SimpleFeature, result: StatResult): Int = { result.observe(sf); 1 }
-
-  // encode the result as a byte array
-  override protected def encodeResult(result: StatResult): Array[Byte] = result.serialize()
-
-  override protected def closeResult(result: StatResult): Unit = {}
 }
 
 object StatsScan {
@@ -98,25 +91,21 @@ object StatsScan {
    * @param sft simple feature type
    * @param definition stat string
    */
-  class StatResult(sft: SimpleFeatureType, definition: String) {
+  class StatResult(sft: SimpleFeatureType, definition: String) extends AggregatingScan.Result {
 
     private val stat = Stat(sft, definition)
     private val serializer = StatSerializer(sft)
-    private var _count: Int = 0
 
-    def observe(sf: SimpleFeature): Unit = {
-      _count += 1
+    override def init(): Unit = {}
+
+    override def aggregate(sf: SimpleFeature): Int = {
       stat.observe(sf)
+      1
     }
 
-    def serialize(): Array[Byte] = serializer.serialize(stat)
+    override def encode(): Array[Byte] = try { serializer.serialize(stat) } finally { stat.clear() }
 
-    def isEmpty: Boolean = stat.isEmpty
-
-    def clear(): Unit = {
-      _count = 0
-      stat.clear()
-    }
+    override def cleanup(): Unit = {}
   }
 
   /**

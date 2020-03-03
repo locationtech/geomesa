@@ -66,21 +66,20 @@ class GeoMesaCoprocessor extends GeoMesaCoprocessorService with Coprocessor with
       val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong)
       if (!controller.isCanceled && timeout.forall(_ > System.currentTimeMillis())) {
         val clas = options(GeoMesaCoprocessor.AggregatorClass)
-        WithClose(Class.forName(clas).newInstance().asInstanceOf[Aggregator]) { aggregator =>
-          logger.debug(s"Initializing aggregator $aggregator with options ${options.mkString(", ")}")
-          aggregator.init(options)
+        val aggregator = Class.forName(clas).newInstance().asInstanceOf[Aggregator]
+        logger.debug(s"Initializing aggregator $aggregator with options ${options.mkString(", ")}")
+        aggregator.init(options)
 
-          val scan = ProtobufUtil.toScan(ClientProtos.Scan.parseFrom(Base64.decode(options(GeoMesaCoprocessor.ScanOpt))))
-          scan.setFilter(FilterList.parseFrom(Base64.decode(options(GeoMesaCoprocessor.FilterOpt))))
+        val scan = ProtobufUtil.toScan(ClientProtos.Scan.parseFrom(Base64.decode(options(GeoMesaCoprocessor.ScanOpt))))
+        scan.setFilter(FilterList.parseFrom(Base64.decode(options(GeoMesaCoprocessor.FilterOpt))))
 
-          // enable visibilities by delegating to the region server configured coprocessors
-          env.getRegion.getCoprocessorHost.preScannerOpen(scan)
+        // enable visibilities by delegating to the region server configured coprocessors
+        env.getRegion.getCoprocessorHost.preScannerOpen(scan)
 
-          // TODO: Explore use of MultiRangeFilter
-          WithClose(env.getRegion.getScanner(scan)) { scanner =>
-            aggregator.setScanner(scanner)
-            aggregator.aggregate(new CoprocessorAggregateCallback(controller, aggregator, results, timeout))
-          }
+        // TODO: Explore use of MultiRangeFilter
+        WithClose(env.getRegion.getScanner(scan)) { scanner =>
+          aggregator.setScanner(scanner)
+          aggregator.aggregate(new CoprocessorAggregateCallback(controller, aggregator, results, timeout))
         }
       }
     } catch {
