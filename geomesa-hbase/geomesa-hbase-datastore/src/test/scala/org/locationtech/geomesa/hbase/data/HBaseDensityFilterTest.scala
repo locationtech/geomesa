@@ -20,6 +20,7 @@ import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
@@ -29,11 +30,14 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 import scala.util.Random
 
-class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
+@RunWith(classOf[JUnitRunner])
+class HBaseDensityFilterTest extends Specification with LazyLogging {
 
   sequential
 
@@ -43,8 +47,8 @@ class HBaseDensityFilterTest extends HBaseTest with LazyLogging {
   val typeName = "HBaseDensityFilterTest"
 
   lazy val params = Map(
-    ConnectionParam.getName -> connection,
-    HBaseCatalogParam.getName -> catalogTableName)
+    ConnectionParam.getName -> MiniCluster.connection,
+    HBaseCatalogParam.getName -> getClass.getSimpleName)
 
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 

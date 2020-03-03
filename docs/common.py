@@ -108,11 +108,11 @@ rst_epilog = """
 
 .. |accumulo_supported_versions| replace:: versions 1.7.x, 1.8.x and 1.9.x
 
-.. |hbase_required_version| replace::  1.3.x or 1.4.x
+.. |hbase_required_version| replace::  1.4.x or 2.2.x
 
-.. |hbase_supported_versions| replace:: versions 1.3.x and 1.4.x
+.. |hbase_supported_versions| replace:: versions 1.4.x and 2.2.x
 
-.. |hbase_bundled_version| replace:: 1.3.1
+.. |hbase_bundled_version| replace:: 2.2.3
 
 .. |hadoop_version| replace:: 2.6 or later
 

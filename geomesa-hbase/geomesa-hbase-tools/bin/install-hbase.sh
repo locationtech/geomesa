@@ -13,6 +13,7 @@
 # geomesa tools lib dir or the WEB-INF/lib dir of geoserver.
 
 hbase_version="%%hbase.version.recommended%%"
+hbase_thirdparty_version="%%hbase.thirdparty.version.recommended%%"
 
 # Load common functions and setup
 if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
@@ -26,12 +27,24 @@ install_dir="${1:-${%%gmtools.dist.name%%_HOME}/lib}"
 base_url="${GEOMESA_MAVEN_URL:-https://search.maven.org/remotecontent?filepath=}"
 
 declare -a urls=(
-  "${base_url}org/apache/hbase/hbase-common/${hbase_version}/hbase-common-${hbase_version}.jar"
-  "${base_url}org/apache/hbase/hbase-protocol/${hbase_version}/hbase-protocol-${hbase_version}.jar"
   "${base_url}org/apache/hbase/hbase-client/${hbase_version}/hbase-client-${hbase_version}.jar"
-  "${base_url}org/apache/hbase/hbase-server/${hbase_version}/hbase-server-${hbase_version}.jar"
+  "${base_url}org/apache/hbase/hbase-common/${hbase_version}/hbase-common-${hbase_version}.jar"
   "${base_url}org/apache/hbase/hbase-hadoop-compat/${hbase_version}/hbase-hadoop-compat-${hbase_version}.jar"
+  "${base_url}org/apache/hbase/hbase-protocol/${hbase_version}/hbase-protocol-${hbase_version}.jar"
   "${base_url}com/yammer/metrics/metrics-core/2.2.0/metrics-core-2.2.0.jar"
 )
+
+hbase_maj_ver="$(expr match "$hbase_version" '\([0-9][0-9]*\)\.')"
+
+# add hbase 2.x dependencies
+if [[ "hbase_maj_ver" -ge 2 ]]; then
+  urls+=(
+    "${base_url}org/apache/hbase/hbase-mapreduce/${hbase_version}/hbase-mapreduce-${hbase_version}.jar"
+    "${base_url}org/apache/hbase/hbase-protocol-shaded/${hbase_version}/hbase-protocol-shaded-${hbase_version}.jar"
+    "${base_url}org/apache/hbase/thirdparty/hbase-shaded-miscellaneous/${hbase_thirdparty_version}/hbase-shaded-miscellaneous-${hbase_thirdparty_version}.jar"
+    "${base_url}org/apache/hbase/thirdparty/hbase-shaded-netty/${hbase_thirdparty_version}/hbase-shaded-netty-${hbase_thirdparty_version}.jar"
+    "${base_url}org/apache/hbase/thirdparty/hbase-shaded-protobuf/${hbase_thirdparty_version}/hbase-shaded-protobuf-${hbase_thirdparty_version}.jar"
+  )
+fi
 
 downloadUrls "$install_dir" urls[@]

@@ -10,6 +10,10 @@
     <value>/opt/devel/install/hbase-1.2.3/data/zookeeper</value>
   </property>
   <property>
+    <name>hbase.security.authorization</name>
+    <value>true</value>
+  </property>
+  <property>
     <name>hbase.coprocessor.master.classes</name>
     <value>org.apache.hadoop.hbase.security.visibility.VisibilityController</value>
   </property>

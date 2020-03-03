@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>geomesa-hbase_2.11</artifactId>
+        <groupId>org.locationtech.geomesa</groupId>
+        <version>2.5.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>geomesa-hbase-rpc_2.11</artifactId>
+    <name>GeoMesa HBase RPC</name>
+    <description>RPC interfaces that bridge the connection between client and server-side modules</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-index-api_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+        </dependency>
+
+        <!-- provided deps -->
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-protocol</artifactId>
+        </dependency>
+
+        <!-- test deps -->
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2-core_${scala.binary.version}</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.specs2</groupId>
+            <artifactId>specs2-junit_${scala.binary.version}</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>

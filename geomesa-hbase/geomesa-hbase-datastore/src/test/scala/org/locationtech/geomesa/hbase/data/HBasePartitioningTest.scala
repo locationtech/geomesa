@@ -17,6 +17,7 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
 import org.locationtech.geomesa.index.conf.QueryProperties
@@ -33,24 +34,26 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.MatchResult
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
-class HBasePartitioningTest extends HBaseTest with LazyLogging {
+@RunWith(classOf[JUnitRunner])
+class HBasePartitioningTest extends Specification with LazyLogging {
 
   sequential
-
-  step {
-    logger.info("Starting the HBase partitioning test")
-  }
 
   "HBaseDataStore" should {
     "partition tables based on feature date" in {
       val typeName = "testpartition"
       val spec = "name:String:index=true,attr:String,dtg:Date,*geom:Point:srid=4326;"
 
-      val params = Map(ConnectionParam.getName -> connection, HBaseCatalogParam.getName -> catalogTableName)
+      val params = Map(
+        ConnectionParam.getName -> MiniCluster.connection,
+        HBaseCatalogParam.getName -> getClass.getSimpleName
+      )
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
       ds must not(beNull)
 

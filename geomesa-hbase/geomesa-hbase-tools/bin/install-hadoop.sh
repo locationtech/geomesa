@@ -43,6 +43,8 @@ declare -a urls=(
   "${base_url}org/apache/hadoop/hadoop-client/${hadoop_version}/hadoop-client-${hadoop_version}.jar"
   "${base_url}org/apache/hadoop/hadoop-common/${hadoop_version}/hadoop-common-${hadoop_version}.jar"
   "${base_url}org/apache/hadoop/hadoop-hdfs/${hadoop_version}/hadoop-hdfs-${hadoop_version}.jar"
+  "${base_url}org/apache/hadoop/hadoop-hdfs-client/${hadoop_version}/hadoop-hdfs-client-${hadoop_version}.jar"
+  "${base_url}org/apache/hadoop/hadoop-mapreduce-client-core/${hadoop_version}/hadoop-mapreduce-client-core-${hadoop_version}.jar"
   "${base_url}commons-logging/commons-logging/${com_log_version}/commons-logging-${com_log_version}.jar"
   "${base_url}commons-cli/commons-cli/1.2/commons-cli-1.2.jar"
   "${base_url}commons-io/commons-io/2.5/commons-io-2.5.jar"

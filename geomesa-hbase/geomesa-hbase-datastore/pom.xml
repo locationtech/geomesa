@@ -10,20 +10,10 @@
     <artifactId>geomesa-hbase-datastore_2.11</artifactId>
     <name>GeoMesa HBase DataStore</name>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>${hbase.guava.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
+            <groupId>org.locationtech.geomesa</groupId>
+            <artifactId>geomesa-hbase-rpc_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -71,11 +61,6 @@
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-server</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-common</artifactId>
@@ -101,5 +86,36 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <!-- pull in the coprocessor implementation for tests -->
+    <profiles>
+        <profile>
+            <id>hbase2</id>
+            <activation>
+                <!-- this will be deactivated if another profile in this block (i.e. hbase1) is activated -->
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa-hbase-server-hbase2_2.11</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+        <profile>
+            <id>hbase1</id>
+            <properties>
+                <hbase.version>1.4.12</hbase.version>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.locationtech.geomesa</groupId>
+                    <artifactId>geomesa-hbase-server-hbase1_2.11</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
 </project>

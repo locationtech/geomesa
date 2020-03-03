@@ -49,20 +49,46 @@ More information about developing with GeoMesa may be found in the :doc:`/develo
 Installing the GeoMesa Distributed Runtime JAR
 ----------------------------------------------
 
-GeoMesa uses custom HBase filters and coprocessors to speed up queries. In order to use them, you must deploy the
-distributed runtime jar to the HBase to the directory specified by the HBase configuration variable called
-``hbase.dynamic.jars.dir``.  This is set to ``${hbase.rootdir}/lib`` by default.  Copy the distribute runtime jar to
+GeoMesa uses custom HBase filters and coprocessors to speed up queries. There are two distributed runtime JARs
+provided by GeoMesa, one for HBase 1.x and one for HBase 2.x.
+
+.. warning::
+
+  Make sure that you use the correct GeoMesa distributed JAR for your HBase version
+
+You must deploy the distributed runtime jar to the directory specified by the HBase configuration variable
+``hbase.dynamic.jars.dir``.  This is set to ``${hbase.rootdir}/lib`` by default. Copy the distribute runtime jar to
 this directory as follows:
 
-.. code-block:: bash
+.. tabs::
 
-    hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-$VERSION.jar ${hbase.dynamic.jars.dir}/
+  .. group-tab:: HBase 2.x
+
+    .. code-block:: bash
+
+      hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_2.11-$VERSION.jar ${hbase.dynamic.jars.dir}/
+
+  .. group-tab:: Hbase 1.x
+
+    .. code-block:: bash
+
+      hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_2.11-$VERSION.jar ${hbase.dynamic.jars.dir}/
 
 If running on top of Amazon S3, you will need to use the ``aws s3`` command line tool.
 
-.. code-block:: bash
+.. tabs::
 
-    aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-$VERSION.jar s3://${hbase.dynamic.jars.dir}/
+  .. group-tab:: HBase 2.x
+
+    .. code-block:: bash
+
+      aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_2.11-$VERSION.jar s3://${hbase.dynamic.jars.dir}/
+
+  .. group-tab:: Hbase 1.x
+
+    .. code-block:: bash
+
+      aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase1_2.11-$VERSION.jar s3://${hbase.dynamic.jars.dir}/
 
 If required, you may disable distributed processing by setting the system property ``geomesa.hbase.remote.filtering``
 to ``false``. Note that this may have an adverse effect on performance.
@@ -83,8 +109,8 @@ Configuration and Classpaths
 ----------------------------
 
 GeoMesa HBase requires Hadoop and HBase jars and configuration files to be available on the classpath. This includes
-files such as the hbase-site.xml and core-site.xml files in addition to standard jars and libraries. Configuring the
-classpath is important if you plan to use the GeoMesa HBase command line tools to ingest and manage GeoMesa.
+files such as the hbase-site.xml and core-site.xml files in addition to standard JARs and libraries. Configuring the
+classpath is important if you plan to use the GeoMesa HBase command line tools to ingest and manage data.
 
 By default, GeoMesa HBase will attempt to read various HBase and Hadoop related environmental variables in order to
 build the classpath. You can configure environment variables and classpath settings in
@@ -170,6 +196,10 @@ A few suggested configurations are below:
             cd GEOMESA_HBASE_HOME
             bin/install-hadoop.sh lib
             bin/install-hbase.sh lib
+
+        .. note::
+
+          You should adjust the versions at the top of each ``install-`` script to match your installation.
 
         You will also need to provide the hbase-site.xml file within a the GeoMesa ``conf`` directory, an external
         directory, zip, or JAR archive (an entry referencing the XML file directly will not work with the Java
@@ -293,8 +323,8 @@ be installed using the ``install-shaded-hbase-hadoop.sh`` script included in the
 copying the following JARs into GeoServer's ``WEB-INF/lib`` directory (the versions may vary depending on your
 installation):
 
-  * hbase-shaded-client-1.4.11.jar
-  * htrace-core-3.1.0-incubating.jar
+  * hbase-shaded-client-2.2.2.jar
+  * htrace-core4-4.1.0-incubating.jar
 
 .. note::
 
@@ -329,7 +359,7 @@ Then copy the zip file to  ``${GEOMESA_HBASE_HOME}/conf`` then add the zipped co
 
 .. code-block:: shell
 
-    export SPARK_JARS=file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-${VERSION}.jar,file:///opt/geomesa/conf/hbase-site.zip
+    export SPARK_JARS=file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase1_2.11-${VERSION}.jar,file:///opt/geomesa/conf/hbase-site.zip
 
 Then start up the Spark shell:
 
@@ -347,4 +377,4 @@ the GeoMesa JAR there:
 .. code-block:: shell
 
     hadoop fs -mkdir /hbase/lib
-    hadoop fs -put geomesa-hbase-distributed-runtime-$VERSION.jar /hbase/lib/
+    hadoop fs -put geomesa-hbase-distributed-runtime-hbase1-$VERSION.jar /hbase/lib/
