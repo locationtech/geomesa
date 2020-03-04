@@ -25,7 +25,7 @@ import org.geotools.geojson.feature.FeatureJSON
 import org.geotools.util.URLs
 import org.geotools.wfs.GML
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithDataStore}
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
