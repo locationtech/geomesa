@@ -17,13 +17,12 @@ import org.apache.accumulo.core.client.mock.MockInstance
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
-import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.apache.hadoop.io.Text
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.{DataStoreFinder, DataUtilities, Query, Transaction}
-import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.index.JoinIndex
@@ -49,8 +48,6 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     */
 
   sequential
-
-  implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
   lazy val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
 
@@ -95,7 +92,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
     def in() = new ByteArrayInputStream(out.toByteArray)
     WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
-      SelfClosingIterator(reader.features()).map(_.getID.toInt).toSeq
+      WithClose(reader.features())(_.map(_.getID.toInt).toList)
     }
   }
 
@@ -288,10 +285,6 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   }
 
   def getFile(name: String): File = new File(getClass.getClassLoader.getResource(name).toURI)
-
-  step {
-    allocator.close()
-  }
 
   case class TableMutations(table: String, mutations: Seq[Mutation])
 }

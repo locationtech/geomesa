@@ -16,7 +16,6 @@ import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl
 import org.geotools.util.URLs
-import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata}
@@ -38,14 +37,12 @@ class ArrowDataStore(val url: URL, caching: Boolean) extends ContentDataStore wi
   // note: to avoid cache issues, don't allow writing if caching is enabled
   private lazy val writable = !caching && Try(createOutputStream()).map(_.close()).isSuccess
 
-  private lazy val allocator = ArrowAllocator("arrow-datastore")
-
   private lazy val reader: SimpleFeatureArrowFileReader = {
     initialized = true
     if (caching) {
-      SimpleFeatureArrowFileReader.caching(createInputStream())(allocator)
+      SimpleFeatureArrowFileReader.caching(createInputStream())
     } else {
-      SimpleFeatureArrowFileReader.streaming(() => createInputStream())(allocator)
+      SimpleFeatureArrowFileReader.streaming(() => createInputStream())
     }
   }
 
@@ -71,10 +68,10 @@ class ArrowDataStore(val url: URL, caching: Boolean) extends ContentDataStore wi
     if (!writable) {
       throw new IllegalArgumentException("Can't write to the provided URL, or caching is enabled")
     }
-    WithClose(createOutputStream(false), ArrowAllocator("arrow-datastore-write")) { case (os, allocator) =>
-      WithClose(SimpleFeatureArrowFileWriter(sft, os)(allocator)) { writer =>
-        // just write the schema/metadata
-        writer.start()
+    WithClose(createOutputStream(false)) { os =>
+      WithClose(SimpleFeatureArrowFileWriter(os, sft)) { writer =>
+        // write an empty batch to write out the schema/metadata
+        writer.flush()
       }
     }
   }
@@ -82,7 +79,7 @@ class ArrowDataStore(val url: URL, caching: Boolean) extends ContentDataStore wi
   override def dispose(): Unit = {
     // avoid instantiating the lazy reader if it hasn't actually been used
     if (initialized) {
-      CloseWithLogging(reader, allocator)
+      CloseWithLogging(reader)
     }
   }
 

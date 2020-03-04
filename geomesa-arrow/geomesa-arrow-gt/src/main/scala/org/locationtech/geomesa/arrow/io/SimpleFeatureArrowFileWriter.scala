@@ -11,8 +11,8 @@ package org.locationtech.geomesa.arrow.io
 import java.io.{Closeable, Flushable, OutputStream}
 import java.nio.channels.Channels
 
-import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.dictionary.DictionaryProvider.MapDictionaryProvider
+import com.typesafe.scalalogging.LazyLogging
+import org.apache.arrow.vector.dictionary.{Dictionary, DictionaryProvider}
 import org.apache.arrow.vector.ipc.ArrowStreamWriter
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
@@ -27,27 +27,21 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * @param vector simple feature vector
   * @param provider dictionary provider
   * @param os output stream
-  * @param allocator buffer allocator
   */
-class SimpleFeatureArrowFileWriter private (vector: SimpleFeatureVector,
-                                            provider: MapDictionaryProvider,
-                                            os: OutputStream,
-                                            sort: Option[(String, Boolean)])
-                                           (implicit allocator: BufferAllocator) extends Closeable with Flushable {
+class SimpleFeatureArrowFileWriter private (
+    vector: SimpleFeatureVector,
+    provider: DictionaryProvider with Closeable,
+    os: OutputStream,
+    sort: Option[(String, Boolean)]
+  ) extends Closeable with Flushable with LazyLogging {
 
-  private val metadata = sort.map { case (field, reverse) => SimpleFeatureArrowIO.getSortAsMetadata(field, reverse) }.orNull
-  private val root = SimpleFeatureArrowIO.createRoot(vector.underlying, metadata)
+  private val metadata = sort.map { case (field, reverse) => getSortAsMetadata(field, reverse) }.orNull
+  private val root = createRoot(vector.underlying, metadata)
   private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os))
 
   private var index = 0
 
   def sft: SimpleFeatureType = vector.sft
-
-  /**
-    * Start writing - this will write the schema and any dictionaries. Optional operation,
-    * adding a feature or closing the writer will automatically start if needed.
-    */
-  def start(): Unit = writer.start()
 
   /**
     * Buffer a feature to write
@@ -60,63 +54,72 @@ class SimpleFeatureArrowFileWriter private (vector: SimpleFeatureVector,
   }
 
   /**
-    * Writs any currently buffered features to disk. This will create an ArrowBatch
-    * containing the currently buffered features.
-    */
+   * Writes any currently buffered features to disk. This will create an ArrowBatch
+   * containing the currently buffered features. Note that if there are no features,
+   * an empty record batch will be created
+   */
   override def flush(): Unit = {
-    if (index > 0) {
-      vector.writer.setValueCount(index)
-      root.setRowCount(index)
-      writer.writeBatch()
-      vector.clear()
-      index = 0
-    }
+    vector.writer.setValueCount(index)
+    root.setRowCount(index)
+    writer.writeBatch()
+    vector.clear()
+    index = 0
   }
 
   /**
     * Close the writer and flush any buffered features
     */
   override def close(): Unit = {
-    import scala.collection.JavaConversions._
-
-    flush()
-    writer.end()
-    CloseWithLogging(writer)
-    CloseWithLogging(root)
-    provider.getDictionaryIds.foreach(id => CloseWithLogging(provider.lookup(id).getVector))
+    try {
+      if (index > 0) {
+        flush()
+      }
+      writer.end()
+    } finally {
+      // note: don't close the vector schema root as it closes the vector as well
+      CloseWithLogging.raise(Seq(writer, provider, vector))
+    }
   }
 }
 
 object SimpleFeatureArrowFileWriter {
 
   /**
-    * For writing simple features to an arrow file.
-    *
-    * Uses arrow streaming format (no footer).
-    *
-    * @param sft simple feature type
-    * @param os output stream
-    * @param dictionaries map of field names to dictionary values, used for dictionary encoding fields.
-    *                     All values must be provided up front.
-    * @param encoding encoding options
-    * @param allocator buffer allocator
-    */
-  def apply(sft: SimpleFeatureType,
-            os: OutputStream,
-            dictionaries: Map[String, ArrowDictionary] = Map.empty,
-            encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min,
-            sort: Option[(String, Boolean)] = None)
-           (implicit allocator: BufferAllocator): SimpleFeatureArrowFileWriter = {
-    apply(SimpleFeatureVector.create(sft, dictionaries, encoding), os, sort)
-  }
-
-  def apply(vector: SimpleFeatureVector,
-            os: OutputStream,
-            sort: Option[(String, Boolean)])
-           (implicit allocator: BufferAllocator): SimpleFeatureArrowFileWriter = {
+   * For writing simple features to an arrow file.
+   *
+   * Uses arrow streaming format (no footer).
+   *
+   * @param os output stream
+   * @param sft simple feature type
+   * @param dictionaries map of field names to dictionary values, used for dictionary encoding fields.
+   *                     All values must be provided up front.
+   * @param encoding encoding options
+   */
+  def apply(
+      os: OutputStream,
+      sft: SimpleFeatureType,
+      dictionaries: Map[String, ArrowDictionary] = Map.empty,
+      encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min,
+      sort: Option[(String, Boolean)] = None): SimpleFeatureArrowFileWriter = {
+    val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
     // convert the dictionary values into arrow vectors
     // make sure we load dictionaries before instantiating the stream writer
-    val provider = new MapDictionaryProvider(vector.dictionaries.values.map(_.toDictionary(vector.encoding)).toSeq: _*)
+    val provider: DictionaryProvider with Closeable = new DictionaryProvider with Closeable {
+      private val dictionaries = vector.dictionaries.collect { case (_, d) => d.id -> d.toDictionary(vector.encoding) }
+      override def lookup(id: Long): Dictionary = dictionaries(id)
+      override def close(): Unit = CloseWithLogging(dictionaries.values)
+    }
     new SimpleFeatureArrowFileWriter(vector, provider, os, sort)
+  }
+
+  // convert the dictionary values into arrow vectors
+  def provider(
+      dictionaries: Map[String, ArrowDictionary],
+      encoding: SimpleFeatureEncoding): DictionaryProvider with Closeable = {
+    new DictionaryProvider with Closeable {
+      private val dicts = dictionaries.collect { case (_, d) => d.id -> d.toDictionary(encoding) }
+      override def lookup(id: Long): Dictionary = dicts(id)
+      override def close(): Unit = CloseWithLogging(dicts.values)
+    }
   }
 }

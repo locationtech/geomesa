@@ -10,7 +10,6 @@ package org.locationtech.geomesa.arrow.io
 
 import java.io.{Closeable, InputStream}
 
-import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.dictionary.DictionaryProvider
 import org.apache.arrow.vector.types.pojo.Field
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
@@ -20,6 +19,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.{DescriptorKey,
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -58,7 +58,7 @@ trait SimpleFeatureArrowFileReader extends Closeable {
     * @param filter filter to apply
     * @return
     */
-  def features(filter: Filter = Filter.INCLUDE): Iterator[ArrowSimpleFeature] with Closeable
+  def features(filter: Filter = Filter.INCLUDE): CloseableIterator[ArrowSimpleFeature]
 }
 
 object SimpleFeatureArrowFileReader {
@@ -70,22 +70,18 @@ object SimpleFeatureArrowFileReader {
     * the input stream. Returned features will be valid until `close()` is called
     *
     * @param is input stream
-    * @param allocator buffer allocator
     * @return
     */
-  def caching(is: InputStream)(implicit allocator: BufferAllocator): SimpleFeatureArrowFileReader =
-    new CachingSimpleFeatureArrowFileReader(is)
+  def caching(is: InputStream): SimpleFeatureArrowFileReader = new CachingSimpleFeatureArrowFileReader(is)
 
   /**
     * A reader that streams results. Repeated calls to `features()` will re-read the input stream. Returned
     * features may not be valid after a call to `next()`, as the underlying data may be reclaimed.
     *
     * @param is creates a new input stream for reading
-    * @param allocator buffer allocator
     * @return
     */
-  def streaming(is: () => InputStream)(implicit allocator: BufferAllocator): SimpleFeatureArrowFileReader =
-    new StreamingSimpleFeatureArrowFileReader(is)
+  def streaming(is: () => InputStream): SimpleFeatureArrowFileReader = new StreamingSimpleFeatureArrowFileReader(is)
 
   /**
     *
