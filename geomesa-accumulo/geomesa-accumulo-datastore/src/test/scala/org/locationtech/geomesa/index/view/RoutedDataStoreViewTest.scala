@@ -10,7 +10,7 @@ package org.locationtech.geomesa.index.view
 
 import java.nio.file.{Files, Path}
 import java.util.Date
-
+import org.locationtech.geomesa.accumulo.MiniCluster
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
@@ -48,16 +48,15 @@ class RoutedDataStoreViewTest extends Specification {
   }
 
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
+  val accumuloParams = (
+      MiniCluster.getClusterParams + (
+        AccumuloDataStoreParams.CatalogParam.key   -> sftName,
+        RouteSelectorByAttribute.RouteAttributes   -> Seq(Seq.empty.asJava, "id", "geom", Seq("dtg", "geom").asJava).asJava
+      )
+    ).asJava
 
-  val accumuloParams = Map(
-    AccumuloDataStoreParams.InstanceIdParam.key -> "mycloud",
-    AccumuloDataStoreParams.ZookeepersParam.key -> "myzoo",
-    AccumuloDataStoreParams.UserParam.key       -> "user",
-    AccumuloDataStoreParams.PasswordParam.key   -> "password",
-    AccumuloDataStoreParams.CatalogParam.key    -> sftName,
-    "accumulo.mock"       -> "true",
-    RouteSelectorByAttribute.RouteAttributes   -> Seq(Seq.empty.asJava, "id", "geom", Seq("dtg", "geom").asJava).asJava
-  ).asJava
+  println(accumuloParams)
+
 
   var h2Params: java.util.Map[String, _] = _
 
