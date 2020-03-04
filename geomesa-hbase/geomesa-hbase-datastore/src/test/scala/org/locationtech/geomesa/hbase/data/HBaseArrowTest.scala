@@ -183,8 +183,8 @@ class HBaseArrowTest extends Specification with LazyLogging  {
       query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 5)
       foreach(ds.getQueryPlan(query)) { plan =>
         plan must beAnInstanceOf[CoprocessorPlan]
-        plan.scans.head.getFilter must beAnInstanceOf[FilterList]
-        val filters = plan.scans.head.getFilter.asInstanceOf[FilterList].getFilters
+        plan.scans.head.scans.head.getFilter must beAnInstanceOf[FilterList]
+        val filters = plan.scans.head.scans.head.getFilter.asInstanceOf[FilterList].getFilters
         filters.asScala.map(_.getClass) must contain(classOf[Z3HBaseFilter])
       }
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))

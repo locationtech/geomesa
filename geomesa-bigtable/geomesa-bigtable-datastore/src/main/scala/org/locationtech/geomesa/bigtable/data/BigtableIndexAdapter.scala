@@ -10,10 +10,10 @@ package org.locationtech.geomesa.bigtable.data
 
 import com.google.cloud.bigtable.hbase.BigtableExtendedScan
 import org.apache.hadoop.hbase.TableName
-import org.apache.hadoop.hbase.client.Scan
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.filter.{FilterList, MultiRowRangeFilter, Filter => HFilter}
 import org.locationtech.geomesa.hbase.data.HBaseIndexAdapter
+import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.TableScan
 
 class BigtableIndexAdapter(ds: BigtableDataStore) extends HBaseIndexAdapter(ds) {
 
@@ -28,7 +28,7 @@ class BigtableIndexAdapter(ds: BigtableDataStore) extends HBaseIndexAdapter(ds) 
       small: Boolean,
       colFamily: Array[Byte],
       filters: Seq[HFilter],
-      coprocessor: Boolean): Seq[Scan] = {
+      coprocessor: Boolean): Seq[TableScan] = {
     if (filters.nonEmpty) {
       // bigtable does support some filters, but currently we only use custom filters that aren't supported
       throw new IllegalArgumentException(s"Bigtable does not support filters: ${filters.mkString(", ")}")
@@ -39,17 +39,20 @@ class BigtableIndexAdapter(ds: BigtableDataStore) extends HBaseIndexAdapter(ds) 
     val hbase = super.configureScans(tables, ranges, small, colFamily, filters, coprocessor)
 
     if (small) { hbase } else {
-      hbase.map { original =>
-        val scan = new BigtableExtendedScan()
-        scan.setStartRow(original.getStartRow)
-        scan.setStopRow(original.getStopRow)
-        val mrrf = original.getFilter match {
-          case m: MultiRowRangeFilter => Some(m)
-          case f: FilterList => f.getFilters.asScala.collectFirst { case m: MultiRowRangeFilter => m }
-          case _ => None
+      hbase.map { case TableScan(table, originals) =>
+        val scans = originals.map { original =>
+          val scan = new BigtableExtendedScan()
+          scan.setStartRow(original.getStartRow)
+          scan.setStopRow(original.getStopRow)
+          val mrrf = original.getFilter match {
+            case m: MultiRowRangeFilter => Some(m)
+            case f: FilterList => f.getFilters.asScala.collectFirst { case m: MultiRowRangeFilter => m }
+            case _ => None
+          }
+          mrrf.foreach(filter => filter.getRowRanges.asScala.foreach(r => scan.addRange(r.getStartRow, r.getStopRow)))
+          scan
         }
-        mrrf.foreach(filter => filter.getRowRanges.asScala.foreach(r => scan.addRange(r.getStartRow, r.getStopRow)))
-        scan
+        TableScan(table, scans)
       }
     }
   }

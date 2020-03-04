@@ -55,31 +55,31 @@ class BigtableSparkRDDProvider extends HBaseSpatialRDDProvider {
       def queryPlanToRdd(qp: ScanPlan): RDD[SimpleFeature] = {
         val config = new Configuration(conf)
         // note: we've ensured there is only one table per query plan, below
-        conf.set(TableInputFormat.INPUT_TABLE, qp.tables.head.getNameAsString)
-        val scans = qp.scans.map {
+        config.set(TableInputFormat.INPUT_TABLE, qp.scans.head.table.getNameAsString)
+        val scans = qp.scans.head.scans.map {
           case scan: BigtableExtendedScan =>
             // need to set the table name in each scan
-            scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.tables.head.getName)
+            scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.scans.head.table.getName)
             BigtableInputFormatBase.scanToString(scan)
 
           case scan: org.apache.hadoop.hbase.client.Scan =>
             val bes = new BigtableExtendedScan()
             bes.addRange(scan.getStartRow, scan.getStopRow)
-            bes.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.tables.head.getName)
+            bes.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, qp.scans.head.table.getName)
             BigtableInputFormatBase.scanToString(bes)
         }
-        conf.setStrings(BigtableInputFormat.SCANS, scans: _*)
+        config.setStrings(BigtableInputFormat.SCANS, scans: _*)
 
-        GeoMesaConfigurator.setResultsToFeatures(conf, qp.resultsToFeatures)
+        GeoMesaConfigurator.setResultsToFeatures(config, qp.resultsToFeatures)
 
         // note: simple reducers (e.g. filter/transform) can be handled by the input format,
         // more complex ones should be done in the job reducers
-        qp.reducer.foreach(GeoMesaConfigurator.setReducer(conf, _))
+        qp.reducer.foreach(GeoMesaConfigurator.setReducer(config, _))
         // note: sorting has to be handled in the job reducers
-        qp.sort.foreach(GeoMesaConfigurator.setSorting(conf, _))
-        qp.projection.foreach(GeoMesaConfigurator.setProjection(conf, _))
+        qp.sort.foreach(GeoMesaConfigurator.setSorting(config, _))
+        qp.projection.foreach(GeoMesaConfigurator.setProjection(config, _))
 
-        sc.newAPIHadoopRDD(conf, classOf[GeoMesaBigtableInputFormat], classOf[Text], classOf[SimpleFeature]).map(_._2)
+        sc.newAPIHadoopRDD(config, classOf[GeoMesaBigtableInputFormat], classOf[Text], classOf[SimpleFeature]).map(_._2)
       }
 
       if (ds == null || sft == null || qps.isEmpty) {

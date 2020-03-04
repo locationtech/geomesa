@@ -30,7 +30,7 @@ import org.locationtech.geomesa.hbase.aggregators.HBaseBinAggregator.HBaseBinRes
 import org.locationtech.geomesa.hbase.aggregators.HBaseDensityAggregator.HBaseDensityResultsToFeatures
 import org.locationtech.geomesa.hbase.aggregators.HBaseStatsAggregator.HBaseStatsResultsToFeatures
 import org.locationtech.geomesa.hbase.aggregators.{HBaseArrowAggregator, HBaseBinAggregator, HBaseDensityAggregator, HBaseStatsAggregator}
-import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, EmptyPlan, ScanPlan}
+import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, EmptyPlan, ScanPlan, TableScan}
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.hbase.rpc.filter._
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
@@ -52,7 +52,6 @@ import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging, Wi
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.mutable.ListBuffer
 import scala.util.Random
 import scala.util.control.NonFatal
 
@@ -204,6 +203,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
     val transform: Option[(String, SimpleFeatureType)] = hints.getTransform
 
+    // check for an empty query plan, if there are no tables or ranges to scan
     def empty(reducer: Option[FeatureReducer]): Option[HBaseQueryPlan] =
       if (tables.isEmpty || ranges.isEmpty) { Some(EmptyPlan(filter, reducer)) } else { None }
 
@@ -220,7 +220,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         val sort = hints.getSortFields
         val max = hints.getMaxFeatures
         val project = hints.getProjection
-        ScanPlan(filter, tables, ranges, scans, resultsToFeatures, reducer, sort, max, project)
+        ScanPlan(filter, ranges, scans, resultsToFeatures, reducer, sort, max, project)
       }
     } else {
       // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
@@ -253,35 +253,35 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       val projection = hints.getProjection
       lazy val returnSchema = transform.map(_._2).getOrElse(schema)
       lazy val timeout = strategy.index.ds.config.queryTimeout.map(GeoMesaCoprocessor.timeout)
+      lazy val coprocessorScans =
+        configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
 
       if (hints.isDensityQuery) {
         empty(None).getOrElse {
-          val options = HBaseDensityAggregator.configure(schema, index, ecql, hints)
-          val scans = configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
+          val options = HBaseDensityAggregator.configure(schema, index, ecql, hints) ++ timeout
           val results = new HBaseDensityResultsToFeatures()
-          CoprocessorPlan(filter, tables, ranges, scans, options ++ timeout, results, None, max, projection)
+          CoprocessorPlan(filter, ranges, coprocessorScans, options, results, None, max, projection)
         }
       } else if (hints.isArrowQuery) {
-        val (options, reducer) = HBaseArrowAggregator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
-        empty(Some(reducer)).getOrElse {
-          val scans = configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
+        val config = HBaseArrowAggregator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
+        val reducer = Some(config.reduce)
+        empty(reducer).getOrElse {
+          val options = config.config ++ timeout
           val results = new HBaseArrowResultsToFeatures()
-          CoprocessorPlan(filter, tables, ranges, scans, options ++ timeout, results, Some(reducer), max, projection)
+          CoprocessorPlan(filter, ranges, coprocessorScans, options, results, reducer, max, projection)
         }
       } else if (hints.isStatsQuery) {
         val reducer = Some(StatsScan.StatsReducer(returnSchema, hints))
         empty(reducer).getOrElse {
-          val options = HBaseStatsAggregator.configure(schema, index, ecql, hints)
-          val scans = configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
+          val options = HBaseStatsAggregator.configure(schema, index, ecql, hints) ++ timeout
           val results = new HBaseStatsResultsToFeatures()
-          CoprocessorPlan(filter, tables, ranges, scans, options ++ timeout, results, reducer, max, projection)
+          CoprocessorPlan(filter, ranges, coprocessorScans, options, results, reducer, max, projection)
         }
       } else if (hints.isBinQuery) {
         empty(None).getOrElse {
-          val options = HBaseBinAggregator.configure(schema, index, ecql, hints)
-          val scans = configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
+          val options = HBaseBinAggregator.configure(schema, index, ecql, hints) ++ timeout
           val results = new HBaseBinResultsToFeatures()
-          CoprocessorPlan(filter, tables, ranges, scans, options ++ timeout, results, None, max, projection)
+          CoprocessorPlan(filter, ranges, coprocessorScans, options , results, None, max, projection)
         }
       } else {
         empty(None).getOrElse {
@@ -291,7 +291,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
           val filters = (cqlFilter ++ indexFilter).sortBy(_._1).map(_._2)
           val scans = configureScans(tables, ranges, small, colFamily, filters, coprocessor = false)
           val results = new HBaseResultsToFeatures(index, returnSchema)
-          ScanPlan(filter, tables, ranges, scans, results, None, hints.getSortFields, max, projection)
+          ScanPlan(filter, ranges, scans, results, None, hints.getSortFields, max, projection)
         }
       }
     }
@@ -319,8 +319,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       small: Boolean,
       colFamily: Array[Byte],
       filters: Seq[HFilter],
-      coprocessor: Boolean): Seq[Scan] = {
-
+      coprocessor: Boolean): Seq[TableScan] = {
     val cacheBlocks = HBaseSystemProperties.ScannerBlockCaching.toBoolean.get // has a default value so .get is safe
     val cacheSize = HBaseSystemProperties.ScannerCaching.toInt
 
@@ -332,21 +331,22 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         case Seq(f) => Some(f)
         case f      => Some(new FilterList(f: _*))
       }
-      ranges.map { r =>
-        val scan = new Scan(r.getStartRow, r.getStopRow)
-        scan.addFamily(colFamily).setCacheBlocks(cacheBlocks).setSmall(true)
-        filter.foreach(scan.setFilter)
-        cacheSize.foreach(scan.setCaching)
-        ds.applySecurity(scan)
-        scan
+      // note: we have to copy the ranges for each table scan
+      tables.map { table =>
+        val scans = ranges.map { r =>
+          val scan = new Scan(r.getStartRow, r.getStopRow)
+          scan.addFamily(colFamily).setCacheBlocks(cacheBlocks).setSmall(true)
+          filter.foreach(scan.setFilter)
+          cacheSize.foreach(scan.setCaching)
+          ds.applySecurity(scan)
+          scan
+        }
+        TableScan(table, scans)
       }
     } else {
       // split and group ranges by region server
-      val rangesPerRegionServer = scala.collection.mutable.Map.empty[ServerName, ListBuffer[RowRange]]
-
-      WithClose(ds.connection.getRegionLocator(tables.head)) { locator =>
-        ranges.foreach(addRange(locator, _, rangesPerRegionServer))
-      }
+      // note: we have to copy the ranges for each table scan anyway
+      val rangesPerTable = tables.map(t => t -> groupRangesByRegionServer(t, ranges))
 
       def createGroup(group: java.util.List[RowRange]): Scan = {
         val scan = new Scan(group.get(0).getStartRow, group.get(group.size() - 1).getStopRow)
@@ -372,43 +372,69 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         scan
       }
 
-      val maxRangesPerGroup = {
-        def calcMax(maxPerGroup: Int, threads: Int): Int = {
-          val totalRanges = rangesPerRegionServer.values.map(_.length).sum
-          math.min(maxPerGroup, math.max(1, math.ceil(totalRanges.toDouble / threads).toInt))
+      rangesPerTable.map { case (table, rangesPerRegionServer) =>
+        val maxRangesPerGroup = {
+          def calcMax(maxPerGroup: Int, threads: Int): Int = {
+            val totalRanges = rangesPerRegionServer.values.map(_.size).sum
+            math.min(maxPerGroup, math.max(1, math.ceil(totalRanges.toDouble / threads).toInt))
+          }
+          if (coprocessor) {
+            calcMax(ds.config.maxRangesPerCoprocessorScan, ds.config.coprocessorThreads)
+          } else {
+            calcMax(ds.config.maxRangesPerExtendedScan, ds.config.queryThreads)
+          }
         }
-        if (coprocessor) {
-          calcMax(ds.config.maxRangesPerCoprocessorScan, ds.config.coprocessorThreads)
-        } else {
-          calcMax(ds.config.maxRangesPerExtendedScan, ds.config.queryThreads)
+
+        val groupedScans = Seq.newBuilder[Scan]
+
+        rangesPerRegionServer.foreach { case (_, list) =>
+          // our ranges are non-overlapping, so just sort them but don't bother merging them
+          Collections.sort(list)
+
+          var i = 0
+          while (i < list.size()) {
+            val groupSize = math.min(maxRangesPerGroup, list.size() - i)
+            groupedScans += createGroup(list.subList(i, i + groupSize))
+            i += groupSize
+          }
         }
+
+        // shuffle the ranges, otherwise our threads will tend to all hit the same region server at once
+        TableScan(table, Random.shuffle(groupedScans.result))
       }
-
-      val groupedScans = Seq.newBuilder[Scan]
-
-      rangesPerRegionServer.foreach { case (_, rangeGroup) =>
-        val list = new java.util.ArrayList[RowRange](rangeGroup.asJava)
-        // our ranges are non-overlapping, so just sort them but don't bother merging them
-        Collections.sort(list)
-
-        var i = 0
-        while (i < list.size()) {
-          val groupSize = math.min(maxRangesPerGroup, list.size() - i)
-          groupedScans += createGroup(list.subList(i, i + groupSize))
-          i += groupSize
-        }
-      }
-
-      // shuffle the ranges, otherwise our threads will tend to all hit the same region server at once
-      Random.shuffle(groupedScans.result)
     }
   }
 
+  /**
+   * Split and group ranges by region server
+   *
+   * @param table table being scanned
+   * @param ranges ranges to group
+   * @return
+   */
+  private def groupRangesByRegionServer(
+      table: TableName,
+      ranges: Seq[RowRange]): scala.collection.Map[ServerName, java.util.List[RowRange]] = {
+    val rangesPerRegionServer = scala.collection.mutable.Map.empty[ServerName, java.util.List[RowRange]]
+    WithClose(ds.connection.getRegionLocator(table)) { locator =>
+      ranges.foreach(groupRange(locator, _, rangesPerRegionServer))
+    }
+    rangesPerRegionServer
+  }
+
+  /**
+   * Group the range based on the region server hosting it. Splits ranges as needed if they span
+   * more than one region
+   *
+   * @param locator region locator
+   * @param range range to group
+   * @param result collected results
+   */
   @scala.annotation.tailrec
-  private def addRange(
+  private def groupRange(
       locator: RegionLocator,
       range: RowRange,
-      result: scala.collection.mutable.Map[ServerName, ListBuffer[RowRange]]): Unit = {
+      result: scala.collection.mutable.Map[ServerName, java.util.List[RowRange]]): Unit = {
     var regionServer: ServerName = null
     var split: Array[Byte] = null
     try {
@@ -421,13 +447,13 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     } catch {
       case NonFatal(e) => logger.warn(s"Error checking range location for '$range''", e)
     }
-    val buffer = result.getOrElseUpdate(regionServer, ListBuffer.empty)
+    val buffer = result.getOrElseUpdate(regionServer, new java.util.ArrayList())
     if (split == null) {
-      buffer += range
+      buffer.add(range)
     } else {
       // split the range based on the current region
-      buffer += new RowRange(range.getStartRow, true, split, false)
-      addRange(locator, new RowRange(split, true, range.getStopRow, false), result)
+      buffer.add(new RowRange(range.getStartRow, true, split, false))
+      groupRange(locator, new RowRange(split, true, range.getStopRow, false), result)
     }
   }
 }
