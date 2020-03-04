@@ -10,6 +10,7 @@ package org.locationtech.geomesa.process.tube
 
 import java.util.Date
 
+import org.locationtech.geomesa.accumulo.MiniCluster
 import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{DataStoreFinder, Query}
@@ -33,7 +34,7 @@ import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
 class TubeSelectProcessTest extends Specification {
-
+  import scala.collection.JavaConverters._
   import TubeBuilder.DefaultDtgField
 
   sequential
@@ -43,14 +44,10 @@ class TubeSelectProcessTest extends Specification {
   def createStore: AccumuloDataStore =
   // the specific parameter values should not matter, as we
   // are requesting a mock data store connection to Accumulo
-    DataStoreFinder.getDataStore(Map(
-      AccumuloDataStoreParams.InstanceIdParam.key -> "mycloud",
-      AccumuloDataStoreParams.ZookeepersParam.key -> "zoo1:2181,zoo2:2181,zoo3:2181",
-      AccumuloDataStoreParams.UserParam.key       -> "myuser",
-      AccumuloDataStoreParams.PasswordParam.key   -> "mypassword",
-      AccumuloDataStoreParams.AuthsParam.key      -> "A,B,C",
-      AccumuloDataStoreParams.CatalogParam.key    -> "testtube",
-      "accumulo.mock"       -> "true")).asInstanceOf[AccumuloDataStore]
+    DataStoreFinder.getDataStore((
+      MiniCluster.getClusterParams + 
+      (AccumuloDataStoreParams.CatalogParam.key -> "testtube")
+    ).asJava).asInstanceOf[AccumuloDataStore]
 
   "TubeSelect" should {
     "work with an empty input collection" in {
