@@ -12,6 +12,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.nio.file.{Files, Path}
 import java.util.Date
 
+import org.locationtech.geomesa.accumulo.MiniCluster
 import com.typesafe.config.{Config, ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
@@ -63,16 +64,12 @@ class MergedDataStoreViewTest extends Specification {
   val defaultFilter = ECQL.toFilter("bbox(geom,44,52,46,59) and dtg DURING 2018-01-01T00:02:30.000Z/2018-01-01T00:06:30.000Z")
 
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
-
-  val accumuloParams = Map(
-    AccumuloDataStoreParams.InstanceIdParam.key -> "mycloud",
-    AccumuloDataStoreParams.ZookeepersParam.key -> "myzoo",
-    AccumuloDataStoreParams.UserParam.key       -> "user",
-    AccumuloDataStoreParams.PasswordParam.key   -> "password",
-    AccumuloDataStoreParams.CatalogParam.key    -> sftName,
-    "accumulo.mock"       -> "true"
+  val accumuloParams = (
+    MiniCluster.getClusterParams + (
+      AccumuloDataStoreParams.CatalogParam.key   -> sftName
+    )
   ).asJava
-
+  
   var h2Params: java.util.Map[String, String] = _
 
   var path: Path = _
