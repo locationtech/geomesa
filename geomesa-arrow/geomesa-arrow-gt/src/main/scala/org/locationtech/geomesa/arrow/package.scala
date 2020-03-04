@@ -18,13 +18,6 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 package object arrow {
 
-  @deprecated("Use ArrowAllocator.apply() and clean up afterwards")
-  implicit lazy val allocator: BufferAllocator = {
-    val root = new RootAllocator(Long.MaxValue)
-    sys.addShutdownHook(CloseWithLogging(root))
-    root
-  }
-
   // need to be lazy to avoid class loading issues before init is called
   lazy val ArrowEncodedSft: SimpleFeatureType =
     SimpleFeatureTypes.createType("arrow", "batch:Bytes,*geom:Point:srid=4326")

@@ -10,8 +10,6 @@ package org.locationtech.geomesa.arrow.io
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
-import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.DirtyRootAllocator
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -28,12 +26,10 @@ class DictionaryBuildingWriterTest extends Specification {
     ScalaSimpleFeature.create(sft, s"0$i", s"name0${i % 2}", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
   }
 
-  implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
-
   "SimpleFeatureVector" should {
     "dynamically encode dictionary values" >> {
       val out = new ByteArrayOutputStream()
-      WithClose(DictionaryBuildingWriter.create(sft, Seq("name"), SimpleFeatureEncoding.Max)) { writer =>
+      WithClose(new DictionaryBuildingWriter(sft, Seq("name"), SimpleFeatureEncoding.Max)) { writer =>
         features.foreach(writer.add)
         writer.encode(out)
       }
@@ -45,9 +41,5 @@ class DictionaryBuildingWriterTest extends Specification {
         WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toSeq mustEqual features)
       }
     }
-  }
-
-  step {
-    allocator.close()
   }
 }

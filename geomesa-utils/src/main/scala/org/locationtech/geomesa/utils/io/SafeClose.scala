@@ -32,6 +32,12 @@ trait SafeClose {
     }
     Option(error)
   }
+
+  def raise(c: AnyCloseable): Unit = apply(c).foreach(e => throw e)
+
+  def raise(c1: AnyCloseable, c2: AnyCloseable): Unit = apply(c1, c2).foreach(e => throw e)
+
+  def raise(cs: Iterable[AnyCloseable]): Unit = apply(cs).foreach(e => throw e)
 }
 
 object SafeClose {

@@ -25,8 +25,7 @@ import org.geotools.geojson.feature.FeatureJSON
 import org.geotools.util.URLs
 import org.geotools.wfs.GML
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithDataStore}
-import org.locationtech.geomesa.arrow.ArrowAllocator
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -164,10 +163,8 @@ class AccumuloExportCommandTest extends TestWithDataStore {
   }
 
   def readArrow(file: String): Seq[SimpleFeature] = {
-    WithClose(ArrowAllocator("export-test")) { allocator =>
-      WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))(allocator)) { reader =>
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList
-      }
+    WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file))) { reader =>
+      SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toList
     }
   }
 

@@ -78,7 +78,7 @@
         <json4s.version>3.5.4</json4s.version>
         <scalatra.version>2.6.3</scalatra.version>
         <kryo.version>3.0.3</kryo.version>
-        <arrow.version>0.10.0</arrow.version>
+        <arrow.version>0.16.0</arrow.version>
         <netty.version>4.1.17.Final</netty.version>
         <metrics.version>3.2.6</metrics.version>
         <aws.sdk.version>1.11.421</aws.sdk.version>
