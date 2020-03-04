@@ -88,7 +88,7 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
         foreach(tables)(t => ds.connector.tableOperations().exists(t) must beTrue)
         if (i.name == Z2Index.name) {
           foreach(tables) { table =>
-            WithClose(connector.createScanner(table, new Authorizations))(_.iterator.hasNext must beFalse)
+            WithClose(ds.connector.createScanner(table, new Authorizations))(_.iterator.hasNext must beFalse)
           }
         } else {
           ok

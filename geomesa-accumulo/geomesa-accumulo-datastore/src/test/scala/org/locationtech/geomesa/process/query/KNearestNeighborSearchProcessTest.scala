@@ -30,7 +30,6 @@ class KNearestNeighborSearchProcessTest extends TestWithDataStore {
   sequential
 
   override val spec: String = "label:String,*geom:Point:srid=4326"
-  override val dtgField: Option[String] = None
 
   val knn = new KNearestNeighborSearchProcess()
 

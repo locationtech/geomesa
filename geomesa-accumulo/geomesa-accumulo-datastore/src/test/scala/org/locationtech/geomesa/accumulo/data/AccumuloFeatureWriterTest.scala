@@ -44,7 +44,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
   override def before: Any = {
     sfts.foreach{ sft =>
       ds.manager.indices(sft).flatMap(_.getTableNames()).foreach { name =>
-        val deleter = connector.createBatchDeleter(name, new Authorizations(), 5, new BatchWriterConfig())
+        val deleter = ds.connector.createBatchDeleter(name, new Authorizations(), 5, new BatchWriterConfig())
         deleter.setRanges(Collections.singletonList(new org.apache.accumulo.core.data.Range()))
         deleter.delete()
         deleter.close()
@@ -190,7 +190,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
         }
 
         forall(ds.manager.indices(sft).flatMap(_.getTableNames())) { name =>
-          WithClose(connector.createScanner(name, new Authorizations()))(_.iterator.hasNext must beFalse)
+          WithClose(ds.connector.createScanner(name, new Authorizations()))(_.iterator.hasNext must beFalse)
         }
       }
     }
@@ -388,7 +388,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
         forall(invalid) { feature =>
           addFeatures(sft, Seq(feature)) must throwAn[IllegalArgumentException]
           forall(ds.manager.indices(sft).flatMap(_.getTableNames())) { table =>
-            WithClose(connector.createScanner(table, new Authorizations()))(_.iterator.hasNext must beFalse)
+            WithClose(ds.connector.createScanner(table, new Authorizations()))(_.iterator.hasNext must beFalse)
           }
         }
       }

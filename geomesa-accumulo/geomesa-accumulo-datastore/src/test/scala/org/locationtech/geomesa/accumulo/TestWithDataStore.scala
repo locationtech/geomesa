@@ -8,15 +8,13 @@
 
 package org.locationtech.geomesa.accumulo
 
-import org.apache.accumulo.core.client.Connector
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.Key
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.accumulo.MiniCluster.UserWithAuths
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.index.utils.ExplainString
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
@@ -32,59 +30,45 @@ import scala.collection.JavaConverters._
 trait TestWithDataStore extends Specification {
 
   def spec: String
-  def dtgField: Option[String] = Some("dtg")
-
-  def additionalDsParams(): Map[String, Any] = Map.empty
 
   // we use class name to prevent spillage between unit tests in the mock connector
-  lazy val sftName: String = getClass.getSimpleName
+  lazy val sftName = getClass.getSimpleName
+  lazy val catalog = s"${MiniCluster.namespace}.$sftName"
 
-  val EmptyUserAuthorizations = new Authorizations()
-  val EmptyUserAuthSeq = Seq.empty[String]
+  // note the table needs to be different to prevent tests from conflicting with each other
+  lazy val dsParams = MiniCluster.params ++ Map(AccumuloDataStoreParams.CatalogParam.key -> catalog)
 
-  val MockUserAuthorizationsString = "A,B,C"
-  val MockUserAuthorizations = new Authorizations(
-    MockUserAuthorizationsString.split(",").map(_.getBytes()).toList.asJava
-  )
-  val MockUserAuthSeq = Seq("A", "B", "C")
-
-  lazy val mockUser = "root"
-  lazy val mockPassword = "password"
-  lazy val catalog = sftName
-
-
-  // assign some default authorizations to this mock user
-  lazy val connector: Connector = {
-    val miniConnector = MiniCluster.getConnector()
-    miniConnector.securityOperations().changeUserAuthorizations(mockUser, MockUserAuthorizations)
-    miniConnector
-  }
-
-  lazy val dsParams = Map(
-    AccumuloDataStoreParams.ConnectorParam.key -> connector,
-    AccumuloDataStoreParams.CachingParam.key   -> false,
-    // note the table needs to be different to prevent testing errors
-    AccumuloDataStoreParams.CatalogParam.key   -> catalog
-  ) ++ additionalDsParams()
-
-  lazy val (ds, sft) = {
-    val sft = SimpleFeatureTypes.createType(sftName, spec)
-    dtgField.foreach(sft.setDtgField)
+  lazy val ds = {
     val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
-    ds.createSchema(sft)
-    (ds, ds.getSchema(sftName)) // reload the sft from the ds to ensure all user data is set properly
+    ds.createSchema(SimpleFeatureTypes.createType(sftName, spec))
+    ds
   }
 
   lazy val fs = ds.getFeatureSource(sftName)
 
-  // after all tests, drop the tables we created to free up memory
+  lazy val sft = ds.getSchema(sftName) // reload the sft from the ds to ensure all user data is set properly
+
+  lazy val root  = MiniCluster.root
+  lazy val admin = MiniCluster.admin
+  lazy val user  = MiniCluster.user
+
   override def map(fragments: => Fragments): Fragments = fragments ^ fragmentFactory.step {
-    ds.removeSchema(sftName)
+    // TODO time this
+    // ds.removeSchema(sftName)
     ds.dispose()
   }
 
   /**
-   * Call to load the test features into the data store
+   * Write a feature to the data store
+   *
+   * @param feature feature to write, will use provided fid
+   */
+  def addFeature(feature: SimpleFeature): Unit = addFeatures(Seq(feature))
+
+  /**
+   * Writes features to the data store
+   *
+   * @param features features to write, will use provided fid
    */
   def addFeatures(features: Seq[SimpleFeature]): Unit = {
     WithClose(ds.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)) { writer =>
@@ -92,6 +76,9 @@ trait TestWithDataStore extends Specification {
     }
   }
 
+  /**
+   * Deletes all existing features
+   */
   def clearFeatures(): Unit = {
     val writer = ds.getFeatureWriter(sftName, Filter.INCLUDE, Transaction.AUTO_COMMIT)
     while (writer.hasNext) {

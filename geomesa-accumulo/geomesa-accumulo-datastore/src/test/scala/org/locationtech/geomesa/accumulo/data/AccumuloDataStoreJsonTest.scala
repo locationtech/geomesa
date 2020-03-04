@@ -24,7 +24,6 @@ class AccumuloDataStoreJsonTest extends Specification with TestWithDataStore {
   sequential
 
   override val spec = "json:String:json=true,*geom:Point:srid=4326"
-  override val dtgField = None
 
   def getJson(x: Double, y: Double, props: String = "{}"): String = {
     s"""{"type":"Feature","geometry":{"type":"Point","coordinates":[$x,$y]},"properties":$props}"""

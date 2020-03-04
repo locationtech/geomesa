@@ -60,7 +60,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithDataStore {
     "encode UUIDs as 16 bytes" in {
       foreach(uuids)(_ must haveLength(16))
       foreach(ds.getAllIndexTableNames(sftName)) { table =>
-        WithClose(connector.createScanner(table, new Authorizations)) { scanner =>
+        WithClose(ds.connector.createScanner(table, new Authorizations)) { scanner =>
           // compare the feature id serialized at the end of each row key
           val bytes = scanner.asScala.map(_.getKey.getRow.getBytes.takeRight(16)).toList
           // note: attribute table has each key twice, so can't use containTheSameElementsAs

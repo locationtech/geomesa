@@ -131,7 +131,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
       val keywords = Seq("keywordA", "keywordB", "keywordC")
       val spec = s"name:String;$Keywords=${keywords.mkString(KeywordsDelimiter)}"
-      val sftWithKeywords = createNewSchema(spec, dtgField = None)
+      val sftWithKeywords = createNewSchema(spec)
 
       ds.getFeatureSource(sftWithKeywords.getTypeName).getInfo.getKeywords.toSeq must containAllOf(keywords)
     }
@@ -188,7 +188,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
       val initialKeywords = Set("keywordA=Hello", "keywordB", "keywordC")
       val spec = s"name:String;$Keywords=${initialKeywords.mkString(KeywordsDelimiter)}"
-      val sft = SimpleFeatureTypes.mutable(createNewSchema(spec, dtgField = None))
+      val sft = SimpleFeatureTypes.mutable(createNewSchema(spec))
 
       val keywordsToRemove = Set("keywordA=Hello", "keywordC")
       sft.removeKeywords(keywordsToRemove)
@@ -206,7 +206,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       val keywordsToAdd = Set("keywordA", "~!@#$%^&*()_+`=/.,<>?;:|[]{}\\")
 
       val spec = s"name:String;$Keywords=$originalKeyword"
-      val sft = SimpleFeatureTypes.mutable(createNewSchema(spec, dtgField = None))
+      val sft = SimpleFeatureTypes.mutable(createNewSchema(spec))
 
       sft.addKeywords(keywordsToAdd)
       ds.updateSchema(sft.getTypeName, sft)
@@ -218,7 +218,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     "not allow updating non-keyword user data" in {
       import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.TableSharing
 
-      val sft = SimpleFeatureTypes.mutable(createNewSchema("name:String", dtgField = None))
+      val sft = SimpleFeatureTypes.mutable(createNewSchema("name:String"))
       ds.createSchema(sft)
 
       sft.getUserData.put(TableSharing, "false") // Change table sharing
@@ -252,7 +252,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "create and retrieve a schema without a geometry" in {
 
-      val sft = createNewSchema("name:String", dtgField = None)
+      val sft = createNewSchema("name:String")
 
       val retrievedSft = ds.getSchema(sft.getTypeName)
 
@@ -381,7 +381,7 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "return a list of all accumulo tables associated with a schema" in {
       val indices = ds.manager.indices(defaultSft).flatMap(_.getTableNames())
-      val expected = Seq(sftBaseName, s"${sftBaseName}_stats", s"${sftBaseName}_queries") ++ indices
+      val expected = Seq(catalog, s"${catalog}_stats", s"${catalog}_queries") ++ indices
       ds.getAllTableNames(defaultTypeName) must containTheSameElementsAs(expected)
     }
 
@@ -700,9 +700,9 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
       ds.createSchema(sft)
       val tables = ds.getAllIndexTableNames(sft.getTypeName) ++ Seq(catalog)
       tables must haveSize(5)
-      connector.tableOperations().list().toSeq must containAllOf(tables)
+      ds.connector.tableOperations().list().toSeq must containAllOf(tables)
       ds.delete()
-      connector.tableOperations().list().toSeq must not(containAnyOf(tables))
+      ds.connector.tableOperations().list().toSeq must not(containAnyOf(tables))
     }
 
     "query on bbox and unbounded temporal" >> {

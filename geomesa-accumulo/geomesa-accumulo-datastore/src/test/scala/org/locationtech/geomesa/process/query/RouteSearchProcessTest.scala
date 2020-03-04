@@ -25,7 +25,7 @@ class RouteSearchProcessTest extends TestWithMultipleSfts {
 
   val r = new Random(-10)
 
-  val routeSft = createNewSchema("*geom:LineString:srid=4326", None)
+  val routeSft = createNewSchema("*geom:LineString:srid=4326")
   val sft = createNewSchema("track:String,heading:Double,dtg:Date,*geom:Point:srid=4326")
 
   val process = new RouteSearchProcess

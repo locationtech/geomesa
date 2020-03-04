@@ -164,7 +164,7 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "handle out-of-world bboxes" >> {
-      val sft = createNewSchema("name:String,*geom:Point:srid=4326", None)
+      val sft = createNewSchema("name:String,*geom:Point:srid=4326")
       val typeName = sft.getTypeName
       val feature = ScalaSimpleFeature.create(sft, "1", "name1", "POINT (-100.236523 23)")
       addFeature(sft, feature)

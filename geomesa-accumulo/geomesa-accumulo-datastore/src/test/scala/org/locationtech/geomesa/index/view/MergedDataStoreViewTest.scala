@@ -65,7 +65,7 @@ class MergedDataStoreViewTest extends Specification {
 
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
   val accumuloParams = (
-    MiniCluster.getClusterParams + (
+    MiniCluster.params + (
       AccumuloDataStoreParams.CatalogParam.key   -> sftName
     )
   ).asJava

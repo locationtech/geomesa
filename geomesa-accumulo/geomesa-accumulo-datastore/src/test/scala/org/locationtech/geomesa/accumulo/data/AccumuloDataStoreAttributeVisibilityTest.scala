@@ -9,11 +9,10 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.geotools.data._
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.apache.accumulo.core.security.Authorizations
-import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithDataStore}
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
@@ -33,7 +32,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithDataStore {
 
   override val spec = "name:String:index=full,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.visibility.level='attribute'"
 
-  val user = {
+  val userFeature = {
     val sf = new ScalaSimpleFeature(sft, "user")
     sf.setAttribute(0, "name-user")
     sf.setAttribute(1, "10")
@@ -43,7 +42,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithDataStore {
     sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     sf
   }
-  val admin = {
+  val adminFeature = {
     val sf = new ScalaSimpleFeature(sft, "admin")
     sf.setAttribute(0, "name-admin")
     sf.setAttribute(1, "11")
@@ -53,7 +52,7 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithDataStore {
     sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     sf
   }
-  val mixed = {
+  val mixedFeature = {
     val sf = new ScalaSimpleFeature(sft, "mixed")
     sf.setAttribute(0, "name-mixed")
     sf.setAttribute(1, "12")
@@ -64,11 +63,9 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithDataStore {
     sf
   }
 
-  val rootConnector = MiniCluster.getConnector()
-  rootConnector.securityOperations().changeUserAuthorizations("root", new Authorizations("user", "admin"))
-  // write the feature to the store
   step {
-    addFeatures(Seq(user, admin, mixed))
+    // write the features to the store
+    addFeatures(Seq(userFeature, adminFeature, mixedFeature))
   }
 
   def queryByAuths(auths: String, filter: String, expectedStrategy: String): Seq[SimpleFeature] = {
@@ -91,20 +88,20 @@ class AccumuloDataStoreAttributeVisibilityTest extends TestWithDataStore {
       forall(filters) { case (filter, strategy) =>
         val features = queryByAuths("admin,user", filter, strategy)
         features must haveLength(3)
-        features must containTheSameElementsAs(Seq(user, admin, mixed))
+        features must containTheSameElementsAs(Seq(userFeature, adminFeature, mixedFeature))
       }
     }
     "correctly return some features with appropriate auths" in {
       forall(filters) { case (filter, strategy) =>
         val features = queryByAuths("user", filter, strategy)
         features must haveLength(2)
-        features must contain(user)
+        features must contain(userFeature)
         val m = features.find(_.getID == "mixed")
         m must beSome
         m.get.getAttribute(0) must beNull
         m.get.getAttribute(1) mustEqual 12
         m.get.getAttribute(2) must beNull
-        m.get.getAttribute(3) mustEqual mixed.getAttribute(3)
+        m.get.getAttribute(3) mustEqual mixedFeature.getAttribute(3)
       }
     }
   }

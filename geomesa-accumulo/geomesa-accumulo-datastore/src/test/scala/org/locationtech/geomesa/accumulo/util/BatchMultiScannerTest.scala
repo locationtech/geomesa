@@ -45,12 +45,12 @@ class BatchMultiScannerTest extends TestWithDataStore {
     qp must beAnInstanceOf[JoinPlan]
     qp.ranges must haveLength(sft.getAttributeShards)
 
-    foreach(qp.tables)(table => connector.tableOperations.exists(table) must beTrue)
-    val attrScanner = connector.createBatchScanner(qp.tables.head, new Authorizations(), 1)
+    foreach(qp.tables)(table => ds.connector.tableOperations.exists(table) must beTrue)
+    val attrScanner = ds.connector.createBatchScanner(qp.tables.head, new Authorizations(), 1)
     attrScanner.setRanges(qp.ranges)
 
     val jp = qp.join.get._2.asInstanceOf[BatchScanPlan]
-    foreach(jp.tables)(table => connector.tableOperations.exists(table) must beTrue)
+    foreach(jp.tables)(table => ds.connector.tableOperations.exists(table) must beTrue)
 
     val bms = new BatchMultiScanner(ds.connector, attrScanner, jp, qp.join.get._1, ds.auths, 5, batchSize)
 

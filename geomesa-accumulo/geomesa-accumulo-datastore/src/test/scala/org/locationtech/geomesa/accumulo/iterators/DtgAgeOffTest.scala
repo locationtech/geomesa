@@ -11,13 +11,10 @@ package org.locationtech.geomesa.accumulo.iterators
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.{Collections, Date}
 
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -35,7 +32,7 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
 
   sequential
 
-  override val spec = "dtg:Date,geom:Point:srid=4326"
+  override val spec = "dtg:Date,geom:Point:srid=4326;geomesa.stats.enable=false"
 
   val today: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC)
 
@@ -47,58 +44,50 @@ class DtgAgeOffTest extends Specification with TestWithDataStore {
     addFeatures(features)
   }
 
-  def testDays(ds: DataStore, days: Int): Seq[SimpleFeature] = {
+  def getDataStore(user: String): DataStore =
+    DataStoreFinder.getDataStore((dsParams ++ Map(AccumuloDataStoreParams.UserParam.key -> user)).asJava)
+
+  def configureAgeOff(days: Int): Unit = {
     ds.updateSchema(sft.getTypeName,
       SimpleFeatureTypes.immutable(sft, Collections.singletonMap(Configs.FeatureExpiration, s"dtg($days days)")))
-    SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features).toList
   }
 
+  def query(ds: DataStore): Seq[SimpleFeature] =
+    SelfClosingIterator(ds.getFeatureSource(sft.getTypeName).getFeatures(Filter.INCLUDE).features).toList
+
   "DTGAgeOff" should {
+    "run at scan time with vis" in {
+      add(1 to 10, "id", "user")
+      add(1 to 10, "idx2", "system")
+      add(1 to 10, "idx3", "admin")
 
-    "run at scan time" >> {
-      add(1 to 10, "id", "A")
-      testDays(ds, 11) must haveSize(10)
-      testDays(ds, 10) must haveSize(9)
-      testDays(ds, 5) must haveSize(4)
-      testDays(ds, 1) must haveSize(0)
-    }
+      val userDs = getDataStore(user.name)
+      val adminDs = getDataStore(admin.name)
+      val sysDs = ds
 
-    "respect vis with ageoff (vis trumps ageoff)" >> {
-      // these exist but shouldn't be read!
-      add(1 to 10, "anotherid", "D")
-      testDays(ds, 11) must haveSize(10)
-      testDays(ds, 10) must haveSize(9)
-      testDays(ds, 5) must haveSize(4)
-      testDays(ds, 1) must haveSize(0)
+      query(userDs) must haveSize(10)
+      query(adminDs) must haveSize(20)
+      query(sysDs) must haveSize(30)
 
-      val dsWithExtraAuth = {
-        val connWithExtraAuth = {
-          val mockInstance = new MockInstance("mycloud")
-          val mockConnector = mockInstance.getConnector("user2", new PasswordToken("password2"))
-          mockConnector.securityOperations().changeUserAuthorizations("user2", new Authorizations("A,B,C,D"))
-          mockConnector
-        }
-        val params = dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connWithExtraAuth)
-        DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
-      }
+      configureAgeOff(11)
+      query(userDs) must haveSize(10)
+      query(adminDs) must haveSize(20)
+      query(sysDs) must haveSize(30)
 
-      testDays(dsWithExtraAuth, 11) must haveSize(20)
-      testDays(dsWithExtraAuth, 10) must haveSize(18)
-      testDays(dsWithExtraAuth, 5) must haveSize(8)
-      testDays(dsWithExtraAuth, 1) must haveSize(0)
+      configureAgeOff(10)
+      query(userDs) must haveSize(9)
+      query(adminDs) must haveSize(18)
+      query(sysDs) must haveSize(27)
 
-      // these can be read
-      add(1 to 10, "anotherid", "C")
-      testDays(ds, 11) must haveSize(20)
-      testDays(ds, 10) must haveSize(18)
-      testDays(ds, 5) must haveSize(8)
-      testDays(ds, 1) must haveSize(0)
+      configureAgeOff(5)
+      query(userDs) must haveSize(4)
+      query(adminDs) must haveSize(8)
+      query(sysDs) must haveSize(12)
 
-      // these are 3x
-      testDays(dsWithExtraAuth, 11) must haveSize(30)
-      testDays(dsWithExtraAuth, 10) must haveSize(27)
-      testDays(dsWithExtraAuth, 5) must haveSize(12)
-      testDays(dsWithExtraAuth, 1) must haveSize(0)
+      configureAgeOff(1)
+      query(userDs) must haveSize(0)
+      query(adminDs) must haveSize(0)
+      query(sysDs) must haveSize(0)
     }
   }
 }

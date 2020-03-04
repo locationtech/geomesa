@@ -112,7 +112,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
         if (index.name == AttributeIndex.name || index.name == JoinIndex.name) {
           index.getTableNames().foreach { table =>
             println(table)
-            WithClose(connector.createScanner(table, MockUserAuthorizations))(_.asScala.foreach(println))
+            WithClose(ds.connector.createScanner(table, root.auths))(_.asScala.foreach(println))
           }
           println()
         }

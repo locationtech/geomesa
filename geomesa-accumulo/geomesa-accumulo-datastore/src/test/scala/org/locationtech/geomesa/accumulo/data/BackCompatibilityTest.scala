@@ -319,12 +319,12 @@ class BackCompatibilityWriter extends TestWithDataStore {
         output.write(text.getBytes, 0, text.getLength)
       }
 
-      val tables = connector.tableOperations().list().filter(_.startsWith(sftName))
+      val tables = ds.connector.tableOperations().list().filter(_.startsWith(sftName))
       output.writeInt(tables.size)
       tables.foreach { table =>
         output.writeAscii(table)
-        output.writeInt(connector.createScanner(table, new Authorizations()).size)
-        connector.createScanner(table, new Authorizations()).foreach { entry =>
+        output.writeInt(ds.connector.createScanner(table, new Authorizations()).size)
+        ds.connector.createScanner(table, new Authorizations()).foreach { entry =>
           val key = entry.getKey
           Seq(key.getRow, key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibility).foreach(writeText)
           output.writeLong(key.getTimestamp)

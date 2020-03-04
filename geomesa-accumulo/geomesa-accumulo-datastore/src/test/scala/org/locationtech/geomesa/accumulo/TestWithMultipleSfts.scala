@@ -10,75 +10,82 @@ package org.locationtech.geomesa.accumulo
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
-import org.geotools.util.factory.Hints
-import org.geotools.feature.DefaultFeatureCollection
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
 import org.locationtech.geomesa.index.utils.ExplainString
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.opengis.filter.identity.FeatureId
 import org.specs2.mutable.Specification
 import org.specs2.specification.core.Fragments
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable.ArrayBuffer
 
 /**
  * Trait to simplify tests that require reading and writing features from an AccumuloDataStore
  */
 trait TestWithMultipleSfts extends Specification {
 
-  // we use class name to prevent spillage between unit tests in the mock connector
-  protected val sftBaseName = getClass.getSimpleName
   private val sftCounter = new AtomicInteger(0)
-  private val sfts = ArrayBuffer.empty[SimpleFeatureType]
 
-  val connector = MiniCluster.getConnector()
+  // we use class name to prevent spillage between unit tests in the mock connector
+  lazy val catalog = s"${MiniCluster.namespace}.${getClass.getSimpleName}"
 
-  val dsParams = Map(
-    AccumuloDataStoreParams.ConnectorParam.key -> connector,
-    AccumuloDataStoreParams.CachingParam.key   -> false,
-    // note the table needs to be different to prevent testing errors
-    AccumuloDataStoreParams.CatalogParam.key   -> sftBaseName)
+  // note the table needs to be different to prevent tests from conflicting with each other
+  lazy val dsParams = MiniCluster.params ++ Map(AccumuloDataStoreParams.CatalogParam.key -> catalog)
 
-  val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
+  lazy val ds = DataStoreFinder.getDataStore(dsParams.asJava).asInstanceOf[AccumuloDataStore]
+
+  lazy val root  = MiniCluster.root
+  lazy val admin = MiniCluster.admin
+  lazy val user  = MiniCluster.user
 
   // after all tests, drop the tables we created to free up memory
   override def map(fragments: => Fragments): Fragments = fragments ^ fragmentFactory.step {
-    ds.delete()
+// TODO time this
+    //  ds.delete()
     ds.dispose()
   }
 
-  def createNewSchema(spec: String, dtgField: Option[String] = Some("dtg")): SimpleFeatureType = synchronized {
-    val sftName = sftBaseName + sftCounter.getAndIncrement()
-    val sft = SimpleFeatureTypes.createType(sftName, spec)
-    dtgField.foreach(sft.setDtgField)
-    ds.createSchema(sft)
-    val reloaded = ds.getSchema(sftName) // reload the sft from the ds to ensure all user data is set properly
-    sfts += reloaded
-    reloaded
+  /**
+   * Create a new schema
+   *
+   * @param spec simple feature type spec
+   * @return
+   */
+  def createNewSchema(spec: String): SimpleFeatureType = synchronized {
+    val sftName = s"$catalog${sftCounter.getAndIncrement()}"
+    ds.createSchema(SimpleFeatureTypes.createType(sftName, spec))
+    ds.getSchema(sftName) // reload the sft from the ds to ensure all user data is set properly
   }
-
-  def addFeature(sft: SimpleFeatureType, feature: SimpleFeature): java.util.List[FeatureId] =
-    addFeatures(sft, Seq(feature))
 
   /**
-   * Call to load the test features into the data store
+   * Write a feature to the data store
+   *
+   * @param sft feature type
+   * @param feature feature to write, will use provided fid
    */
-  def addFeatures(sft: SimpleFeatureType, features: Seq[SimpleFeature]): java.util.List[FeatureId] = {
-    val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
-    features.foreach { f =>
-      f.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      featureCollection.add(f)
+  def addFeature(sft: SimpleFeatureType, feature: SimpleFeature): Unit = addFeatures(sft, Seq(feature))
+
+  /**
+   * Writes features to the data store
+   *
+   * @param sft feature type
+   * @param features features to write, will use provided fid
+   * @return feature ids that were added
+   */
+  def addFeatures(sft: SimpleFeatureType, features: Seq[SimpleFeature]): Unit = {
+    WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+      features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
     }
-    // write the feature to the store
-    ds.getFeatureSource(sft.getTypeName).addFeatures(featureCollection)
   }
 
+  /**
+   * Deletes all existing features for the given feature type
+   *
+   * @param sft simple feature type
+   */
   def clearFeatures(sft: SimpleFeatureType): Unit = {
     val writer = ds.getFeatureWriter(sft.getTypeName, Filter.INCLUDE, Transaction.AUTO_COMMIT)
     while (writer.hasNext) {

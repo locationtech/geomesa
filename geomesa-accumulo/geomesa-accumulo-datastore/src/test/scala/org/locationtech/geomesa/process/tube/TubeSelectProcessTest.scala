@@ -45,7 +45,7 @@ class TubeSelectProcessTest extends Specification {
   // the specific parameter values should not matter, as we
   // are requesting a mock data store connection to Accumulo
     DataStoreFinder.getDataStore((
-      MiniCluster.getClusterParams + 
+      MiniCluster.params +
       (AccumuloDataStoreParams.CatalogParam.key -> "testtube")
     ).asJava).asInstanceOf[AccumuloDataStore]
 

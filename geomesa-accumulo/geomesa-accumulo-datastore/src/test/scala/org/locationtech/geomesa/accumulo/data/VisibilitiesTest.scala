@@ -30,13 +30,6 @@ class VisibilitiesTest extends TestWithDataStore {
   
   sequential
 
-  def grantPermissionToAllTables(connector: Connector, user: String, permission: TablePermission){
-    val tables = connector.tableOperations().list().asScala
-    tables.map(table => {
-      rootConnector.securityOperations().grantTablePermission(user, table, permission)
-    })
-  }
-
   override val spec = "name:String:index=full,dtg:Date,*geom:Point:srid=4326"
 
   val privFeatures = (0 until 3).map { i =>
@@ -51,26 +44,8 @@ class VisibilitiesTest extends TestWithDataStore {
     sf.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true))
     sf
   }
-  val rootConnector = MiniCluster.getConnector()
-
-  // create priv user and configure
-  rootConnector.securityOperations().createLocalUser( "priv", new PasswordToken(mockPassword))
-  rootConnector.securityOperations().changeUserAuthorizations("priv", new Authorizations("user", "admin"))
-  grantPermissionToAllTables(rootConnector, "priv", TablePermission.READ)
-  grantPermissionToAllTables(rootConnector, "priv", TablePermission.WRITE)
-
-  rootConnector.securityOperations().createLocalUser( "unpriv", new PasswordToken(mockPassword))    
-  rootConnector.securityOperations().changeUserAuthorizations("unpriv", new Authorizations("user"))
-  grantPermissionToAllTables(rootConnector, "unpriv", TablePermission.READ)
-  grantPermissionToAllTables(rootConnector, "unpriv", TablePermission.WRITE)
-  val privDS = {
-    val connector = MiniCluster.getConnector("priv", mockPassword)
-    DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connector))
-  } 
-  val unprivDS = {
-    val connector = MiniCluster.getConnector("unpriv", mockPassword)
-    DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connector))
-  }
+  val privDS = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.UserParam.key -> admin.name))
+  val unprivDS = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.UserParam.key -> user.name))
   
   step {
     addFeatures(privFeatures ++ unprivFeatures)
@@ -88,7 +63,6 @@ class VisibilitiesTest extends TestWithDataStore {
 
     "keep unprivileged from reading secured features" in {
       foreach(filters) { filter =>
-       
         val reader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
         SelfClosingIterator(reader).toList must containTheSameElementsAs(unprivFeatures)
       }
@@ -97,13 +71,11 @@ class VisibilitiesTest extends TestWithDataStore {
     "allow privileged to read secured features" in {
       foreach(filters) { filter =>
         val reader = privDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
-
         SelfClosingIterator(reader).toList must containTheSameElementsAs(privFeatures ++ unprivFeatures)
       }
     }
 
     "keep unprivileged from deleting secured features" in {
-     
       unprivDS.getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore].removeFeatures(ECQL.toFilter("IN('2')"))
       foreach(filters) { filter =>
         val reader = privDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)

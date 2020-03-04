@@ -26,7 +26,7 @@ class AccumuloDataStoreKerberosTest extends Specification {
   "AccumuloDataStore" should {
 
     "create a password authenticated store" in {
-      val paramsMap = (MiniCluster.getClusterParams + (CatalogParam.key -> "tableName")).asJava
+      val paramsMap = (MiniCluster.params + (CatalogParam.key -> "tableName")).asJava
       AccumuloDataStoreFactory.canProcess(paramsMap) must beTrue
     }
 
