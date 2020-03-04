@@ -386,8 +386,8 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
       val groupedScans = Seq.newBuilder[Scan]
 
-      rangesPerRegionServer.foreach { case (_, ranges) =>
-        val list = new java.util.ArrayList[RowRange](ranges.asJava)
+      rangesPerRegionServer.foreach { case (_, rangeGroup) =>
+        val list = new java.util.ArrayList[RowRange](rangeGroup.asJava)
         // our ranges are non-overlapping, so just sort them but don't bother merging them
         Collections.sort(list)
 

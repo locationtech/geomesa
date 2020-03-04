@@ -8,14 +8,12 @@
 
 package org.locationtech.geomesa.utils.concurrent
 
-import java.util.concurrent.{CountDownLatch, TimeUnit}
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{CountDownLatch, TimeUnit}
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class CachedThreadPoolTest extends Specification {
@@ -24,44 +22,44 @@ class CachedThreadPoolTest extends Specification {
     "execute concurrent tasks up to the thread limit" in {
       val pool = new CachedThreadPool(2)
       val latch = new CountDownLatch(1)
-      val v1 = new AtomicBoolean(false)
-      val v2 = new AtomicBoolean(false)
-      val v3 = new AtomicBoolean(false)
-      val t1 = new Runnable() { override def run(): Unit = { v1.set(true); latch.await() } }
-      val t2 = new Runnable() { override def run(): Unit = { v2.set(true); latch.await() } }
-      val t3 = new Runnable() { override def run(): Unit = { v3.set(true); latch.await() } }
-      pool.submit(t1)
-      pool.submit(t2)
-      pool.submit(t3)
+      val started1 = new AtomicBoolean(false)
+      val started2 = new AtomicBoolean(false)
+      val started3 = new AtomicBoolean(false)
+      val thread1 = new Runnable() { override def run(): Unit = { started1.set(true); latch.await() } }
+      val thread2 = new Runnable() { override def run(): Unit = { started2.set(true); latch.await() } }
+      val thread3 = new Runnable() { override def run(): Unit = { started3.set(true); latch.await() } }
+      pool.submit(thread1)
+      pool.submit(thread2)
+      pool.submit(thread3)
       pool.shutdown()
       // verify threads 1 and 2 started
-      eventually(v1.get must beTrue)
-      eventually(v2.get must beTrue)
+      eventually(started1.get must beTrue)
+      eventually(started2.get must beTrue)
       Thread.sleep(100)
       // verify thread 3 hasn't started
-      v3.get must beFalse
+      started3.get must beFalse
       latch.countDown() // release the running threads
       // verify thread 3 ran
-      eventually(v3.get must beTrue)
+      eventually(started3.get must beTrue)
     }
     "terminate running and future tasks on shutdownNow" in {
       val pool = new CachedThreadPool(1)
       val latch = new CountDownLatch(1)
-      val s1 = new AtomicBoolean(false)
-      val s2 = new AtomicBoolean(false)
-      val e1 = new AtomicBoolean(false)
-      val e2 = new AtomicBoolean(false)
-      val t1 = new Runnable() { override def run(): Unit = { s1.set(true); latch.await(); e1.set(true) } }
-      val t2 = new Runnable() { override def run(): Unit = { s2.set(true); latch.await(); e2.set(true) } }
-      pool.submit(t1)
-      pool.submit(t2)
+      val started1 = new AtomicBoolean(false)
+      val started2 = new AtomicBoolean(false)
+      val ended1 = new AtomicBoolean(false)
+      val ended2 = new AtomicBoolean(false)
+      val thread1 = new Runnable() { override def run(): Unit = { started1.set(true); latch.await(); ended1.set(true) } }
+      val thread2 = new Runnable() { override def run(): Unit = { started2.set(true); latch.await(); ended2.set(true) } }
+      pool.submit(thread1)
+      pool.submit(thread2)
       pool.shutdown()
-      eventually(s1.get must beTrue) // verify thread 1 has started
-      pool.shutdownNow().size() mustEqual 1
+      eventually(started1.get must beTrue) // verify thread 1 has started
+      pool.shutdownNow().size() mustEqual 1 // the one thread that was running
       pool.awaitTermination(1, TimeUnit.SECONDS)
       pool.isTerminated must beTrue
       // verify thread 2 never started, and thread 1 was interrupted before finishing
-      forall(Seq(e1, s2, e1))(_.get must beFalse)
+      forall(Seq(ended1, started2, ended2))(_.get must beFalse)
     }
   }
 }

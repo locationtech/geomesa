@@ -61,7 +61,7 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService {
   override def isTerminated: Boolean = stopped.get && available == maxThreads // should be safe to read a volatile primitive
 
   override def awaitTermination(timeout: Long, unit: TimeUnit): Boolean = {
-    // TODO could probably make a wait instead of a poll
+    // TODO GEOMESA-2795 could probably make a wait instead of a poll
     val end = System.nanoTime() + unit.toNanos(timeout)
     while (!isTerminated && System.nanoTime() < end) {
       Thread.sleep(100)
