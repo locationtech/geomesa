@@ -22,6 +22,8 @@ import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.MiniCluster
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.Z2Iterator
@@ -75,8 +77,14 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
     }
 
     "create a store with old parameters" in {
-      val params = Map("user" -> "myuser", "password" -> "", "instanceId" -> "mock",
-        "zookeepers" -> "zoo", "useMock" -> "true", "tableName" -> "parameters")
+      val macParams: Map[String, String] = MiniCluster.params
+      val params = Map(
+        "user"       ->  macParams.getOrElse(AccumuloDataStoreParams.UserParam.key, "myuser"),
+        "password"   ->  macParams.getOrElse(AccumuloDataStoreParams.PasswordParam.key, ""),
+        "instanceId" ->  macParams.getOrElse(AccumuloDataStoreParams.InstanceIdParam.key,"mock"),
+        "zookeepers" ->  macParams.getOrElse(AccumuloDataStoreParams.ZookeepersParam.key, "zoo"), 
+        "tableName"  -> "parameters"
+      )
       val ds = DataStoreFinder.getDataStore(params)
       ds must not(beNull)
       try {
