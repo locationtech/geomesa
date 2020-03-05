@@ -17,7 +17,7 @@ import org.geotools.data.{Query, Transaction}
 import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.ProxyIdFunction
@@ -32,11 +32,9 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreUuidTest extends Specification with TestWithDataStore {
+class AccumuloDataStoreUuidTest extends Specification with TestWithFeatureType {
 
   import scala.collection.JavaConverters._
-
-  implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 
   override val spec =
     s"name:String:index=true,age:Int:index=join,dtg:Date,*geom:Point:srid=4326;${Configs.FidsAreUuids}=true"
@@ -63,8 +61,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithDataStore {
         WithClose(ds.connector.createScanner(table, new Authorizations)) { scanner =>
           // compare the feature id serialized at the end of each row key
           val bytes = scanner.asScala.map(_.getKey.getRow.getBytes.takeRight(16)).toList
-          // note: attribute table has each key twice, so can't use containTheSameElementsAs
-          bytes.map(ByteArrays.toHex) must containAllOf(uuidStrings)
+          bytes.map(ByteArrays.toHex) must containTheSameElementsAs(uuidStrings)
         }
       }
     }
@@ -156,12 +153,7 @@ class AccumuloDataStoreUuidTest extends Specification with TestWithDataStore {
       val callback = new Query(sftName, ECQL.toFilter(s"$filter AND (proxyId() = ${ids.head} OR proxyId() = ${ids.last})"))
       val callbackResults = SelfClosingIterator(ds.getFeatureReader(callback, Transaction.AUTO_COMMIT)).toList
       callbackResults must haveLength(2)
-      proxy.evaluate(callbackResults.head) mustEqual ids.head
-      proxy.evaluate(callbackResults.last) mustEqual ids.last
+      callbackResults.map(proxy.evaluate) must containTheSameElementsAs(Seq(ids.head, ids.last))
     }
-  }
-
-  step {
-    allocator.close()
   }
 }

@@ -12,7 +12,7 @@ import org.geotools.data._
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -20,7 +20,7 @@ import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreAlterSchemaTest extends TestWithDataStore {
+class AccumuloDataStoreAlterSchemaTest extends TestWithFeatureType {
 
   sequential
 

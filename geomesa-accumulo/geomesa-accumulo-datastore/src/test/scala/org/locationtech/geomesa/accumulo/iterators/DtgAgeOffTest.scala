@@ -13,7 +13,7 @@ import java.util.{Collections, Date}
 
 import org.geotools.data.{DataStore, DataStoreFinder}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
@@ -26,7 +26,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class DtgAgeOffTest extends Specification with TestWithDataStore {
+class DtgAgeOffTest extends Specification with TestWithFeatureType {
 
   import scala.collection.JavaConverters._
 

@@ -13,9 +13,8 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -35,7 +34,7 @@ class ZIntervalTest extends Specification with TestWithMultipleSfts {
   ).map { case (f, results) => (ECQL.toFilter(s"bbox(geom, -121, 69, -120, 80) AND dtg DURING $f"), results) }
 
   def addFeatures(sft: SimpleFeatureType): Unit = {
-    addFeatures(sft, (0 until 10).map { i =>
+    addFeatures((0 until 10).map { i =>
       val sf = new ScalaSimpleFeature(sft, s"$i")
       sf.setAttribute("name", "fred")
       sf.setAttribute("dtg", f"2015-01-${i+1}%02dT12:00:00.000Z")

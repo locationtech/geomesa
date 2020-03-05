@@ -24,7 +24,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.index.JoinIndex
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -290,7 +290,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
 }
 
 @RunWith(classOf[JUnitRunner])
-class BackCompatibilityWriter extends TestWithDataStore {
+class BackCompatibilityWriter extends TestWithFeatureType {
 
   override val spec = "name:String:index=join,dtg:Date,*geom:Point:srid=4326,multi:MultiPolygon:srid=4326"
 

@@ -9,24 +9,26 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.MiniCluster
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreKerberosTest extends Specification {
-  import scala.collection.JavaConverters._
-  // Note that these tests all specify a mock connector, which means they don't
-  // actually authenticate against a KDC, but they do test parameter validation.
+class AccumuloDataStoreFactoryTest extends Specification {
 
   import AccumuloDataStoreParams._
 
-  "AccumuloDataStore" should {
+  import scala.collection.JavaConverters._
+
+  "AccumuloDataStoreFactory" should {
 
     "create a password authenticated store" in {
-      val paramsMap = (MiniCluster.params + (CatalogParam.key -> "tableName")).asJava
+      val paramsMap = Map(
+        InstanceIdParam.key -> "my-instance",
+        ZookeepersParam.key -> "zoo:2181",
+        UserParam.key       -> "user@EXAMPLE.COM",
+        KeytabPathParam.key -> "/path/to/keytab",
+        CatalogParam.key    -> "tableName").asJava
       AccumuloDataStoreFactory.canProcess(paramsMap) must beTrue
     }
 
@@ -73,11 +75,10 @@ class AccumuloDataStoreKerberosTest extends Specification {
         PasswordParam.key      -> "password",
         CatalogParam.key       -> "tableName").asJava
       AccumuloDataStoreFactory.canProcess(real) must beFalse
-      // can't test actual data store since mock without zookeepers is ok
     }
 
     "not accept a missing user" in {
-        val real = Map(
+      val real = Map(
         InstanceIdParam.key -> "my-instance",
         ZookeepersParam.key -> "zoo:2181",
         // UserParam.key    -> "me",

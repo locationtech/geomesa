@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data._
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
@@ -16,7 +15,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.accumulo.index.JoinIndex
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
@@ -45,7 +43,7 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
     builder.addAll(List("1", WKTUtils.read("POINT(45.0 45.0)"), "2012-01-02T05:06:07.000Z"))
     val liveFeature = builder.buildFeature("fid-1")
 
-    addFeature(sft, liveFeature)
+    addFeature(liveFeature)
     sft
   }
 
@@ -140,8 +138,8 @@ class AccumuloDataStoreDeleteTest extends Specification with TestWithMultipleSft
       feature2.setAttribute(1, "POLYGON((41 28, 42 28, 42 29, 41 29, 41 28))")
       feature2.setAttribute(2, "2015-01-01T00:30:00.000Z")
 
-      addFeatures(sft1, Seq(feature1))
-      addFeatures(sft2, Seq(feature2))
+      addFeature(feature1)
+      addFeature(feature2)
 
       val typeNames = Seq(sft1.getTypeName, sft2.getTypeName)
 

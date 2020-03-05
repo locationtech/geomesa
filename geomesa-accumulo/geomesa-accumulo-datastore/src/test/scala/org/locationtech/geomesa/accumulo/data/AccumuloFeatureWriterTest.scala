@@ -61,7 +61,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
           ScalaSimpleFeature.create(sft, "fid3", "kyle", 2, "2014-01-02", "POINT(45.0 49.0)")
         )
 
-        addFeatures(sft, features)
+        addFeatures(features)
 
         val fs = ds.getFeatureSource(sft.getTypeName)
         // turn fred into billy
@@ -139,7 +139,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
           ScalaSimpleFeature.create(sft, "fid4", "karen", 50, "2014-01-02", "POINT(45.0 49.0)"),
           ScalaSimpleFeature.create(sft, "fid5", "bob", 56, "2014-01-02", "POINT(45.0 49.0)")
         )
-        addFeatures(sft, features)
+        addFeatures(features)
 
         val fs = ds.getFeatureSource(sft.getTypeName)
         fs.modifyFeatures("age", Int.box(60), ECQL.toFilter("(age > 50 AND age < 99) OR (name = 'karen')"))
@@ -164,7 +164,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
           ScalaSimpleFeature.create(sft, "fid4", "karen", 50, "2014-01-02", "POINT(45.0 49.0)"),
           ScalaSimpleFeature.create(sft, "fid5", "bob", 56, "2014-01-02", "POINT(45.0 49.0)")
         )
-        addFeatures(sft, features)
+        addFeatures(features)
 
         WithClose(ds.getFeatureWriter(sft.getTypeName, Filter.INCLUDE, Transaction.AUTO_COMMIT)) { writer =>
           while (writer.hasNext) {
@@ -252,7 +252,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
           ScalaSimpleFeature.create(sft, "fid4", "karen", 50, "2014-01-02", "POINT(45.0 49.0)"),
           ScalaSimpleFeature.create(sft, "fid5", "bob", 56, "2014-01-02", "POINT(45.0 49.0)")
         )
-        addFeatures(sft, features)
+        addFeatures(features)
 
         val update = ECQL.toFilter("name = 'bob' or name = 'karen'")
         WithClose(ds.getFeatureWriter(sft.getTypeName, update, Transaction.AUTO_COMMIT)) { writer =>
@@ -328,7 +328,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
           ScalaSimpleFeature.create(sft, "fid4", "karen", 50, "2014-01-02", "POINT(45.0 49.0)"),
           ScalaSimpleFeature.create(sft, "fid5", "bob", 56, "2014-01-02", "POINT(45.0 49.0)")
         )
-        addFeatures(sft, features)
+        addFeatures(features)
 
         // ensure that features are added
         val filters = Seq(
@@ -386,7 +386,7 @@ class AccumuloFeatureWriterTest extends Specification with TestWithMultipleSfts 
           ScalaSimpleFeature.create(sft, "bad-date", "name", 56, "2599-01-01T00:00:00.000Z", "POINT(10 10)")
         )
         forall(invalid) { feature =>
-          addFeatures(sft, Seq(feature)) must throwAn[IllegalArgumentException]
+          addFeatures(Seq(feature)) must throwAn[IllegalArgumentException]
           forall(ds.manager.indices(sft).flatMap(_.getTableNames())) { table =>
             WithClose(ds.connector.createScanner(table, new Authorizations()))(_.iterator.hasNext must beFalse)
           }

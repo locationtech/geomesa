@@ -17,7 +17,7 @@ import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.{AuthorizationsProvider, DefaultAuthorizationsProvider, FilteringAuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -27,7 +27,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreAuthTest extends TestWithDataStore {
+class AccumuloDataStoreAuthTest extends TestWithFeatureType {
 
   import AccumuloDataStoreParams.{AuthsParam, ForceEmptyAuthsParam, VisibilitiesParam}
   import org.locationtech.geomesa.security.AuthProviderParam

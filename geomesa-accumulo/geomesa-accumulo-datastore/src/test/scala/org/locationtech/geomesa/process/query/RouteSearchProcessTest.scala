@@ -30,7 +30,7 @@ class RouteSearchProcessTest extends TestWithMultipleSfts {
 
   val process = new RouteSearchProcess
 
-  addFeature(routeSft, ScalaSimpleFeature.create(routeSft, "r0", "LINESTRING (40 40, 40.5 40.5, 40.5 41)"))
+  addFeature(ScalaSimpleFeature.create(routeSft, "r0", "LINESTRING (40 40, 40.5 40.5, 40.5 41)"))
 
   // features along the lower angled part of the route, headed in the opposite direction
   val features0 = (0 until 10).map { i =>
@@ -73,7 +73,7 @@ class RouteSearchProcessTest extends TestWithMultipleSfts {
     sf
   }
 
-  addFeatures(sft, features0 ++ features1 ++ features2 ++ features3)
+  addFeatures(features0 ++ features1 ++ features2 ++ features3)
 
   "RouteSearch" should {
     "return features along a route" in {

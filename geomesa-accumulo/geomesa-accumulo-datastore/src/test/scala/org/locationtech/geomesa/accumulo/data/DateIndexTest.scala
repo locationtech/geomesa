@@ -27,14 +27,14 @@ class DateIndexTest extends Specification with TestWithMultipleSfts {
   "GeoMesa" should {
     "fail to index dates before the epoch" >> {
       val sft = createNewSchema(spec)
-      addFeature(sft, ScalaSimpleFeature.create(sft, "1", attributeValues: _*)) must throwAn[Exception]
+      addFeature(ScalaSimpleFeature.create(sft, "1", attributeValues: _*)) must throwAn[Exception]
     }
     "allow indexing dates before the epoch with z3 and date disabled" >> {
       import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
       val sft = createNewSchema(spec + ";geomesa.ignore.dtg='true'")
       sft.getDtgField must beNone
       sft.getIndices.map(_.name) must containTheSameElementsAs(Seq(Z2Index.name, AttributeIndex.name, IdIndex.name))
-      addFeature(sft, ScalaSimpleFeature.create(sft, "1", attributeValues: _*)) must not(throwAn[Exception])
+      addFeature(ScalaSimpleFeature.create(sft, "1", attributeValues: _*)) must not(throwAn[Exception])
     }
   }
 }

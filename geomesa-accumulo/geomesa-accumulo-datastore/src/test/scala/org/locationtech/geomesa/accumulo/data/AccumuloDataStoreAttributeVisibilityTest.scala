@@ -12,7 +12,7 @@ import org.geotools.data._
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
@@ -24,7 +24,7 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreAttributeVisibilityTest extends TestWithDataStore {
+class AccumuloDataStoreAttributeVisibilityTest extends TestWithFeatureType {
 
   import scala.collection.JavaConversions._
 

@@ -12,7 +12,7 @@ import org.geotools.data._
 import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.partition.TimePartition
@@ -30,7 +30,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloPartitioningTest extends Specification with TestWithDataStore {
+class AccumuloPartitioningTest extends Specification with TestWithFeatureType {
 
   // note: using `Seq.foreach; ok` instead of `foreach(Seq)` shaves several seconds off the time to run this test
 

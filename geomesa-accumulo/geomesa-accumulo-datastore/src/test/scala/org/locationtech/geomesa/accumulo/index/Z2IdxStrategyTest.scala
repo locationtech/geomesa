@@ -15,7 +15,7 @@ import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.curve.Z2SFC
@@ -34,7 +34,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class Z2IdxStrategyTest extends Specification with TestWithDataStore {
+class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
 
   val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326"
 

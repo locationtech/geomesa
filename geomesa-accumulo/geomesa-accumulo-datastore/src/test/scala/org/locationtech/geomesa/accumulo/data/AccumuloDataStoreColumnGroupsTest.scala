@@ -19,7 +19,7 @@ import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinPlan}
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -41,7 +41,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithDataStore {
+class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatureType {
 
   import scala.collection.JavaConverters._
 

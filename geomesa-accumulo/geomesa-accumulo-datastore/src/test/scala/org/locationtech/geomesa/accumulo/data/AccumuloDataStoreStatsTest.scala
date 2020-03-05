@@ -355,7 +355,7 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         val features = SelfClosingIterator(reader).map { f =>
           ScalaSimpleFeature.create(sft, f.getID, f.getAttribute("name"), f.getAttribute("geom"))
         }
-        addFeatures(sft, features.toSeq)
+        addFeatures(features.toSeq)
         val filters = Seq("name = '5'", "name < '7'", "name > 'foo'", "NOT name = '3'")
         forall(filters.map(ECQL.toFilter)) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)

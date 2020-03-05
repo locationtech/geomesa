@@ -42,8 +42,8 @@ class JoinProcessTest extends Specification with TestWithMultipleSfts {
     sf
   }
 
-  addFeatures(sft1, features1)
-  addFeatures(sft2, features2)
+  addFeatures(features1)
+  addFeatures(features2)
 
   "JoinProcess" should {
     "join between schemas" in {

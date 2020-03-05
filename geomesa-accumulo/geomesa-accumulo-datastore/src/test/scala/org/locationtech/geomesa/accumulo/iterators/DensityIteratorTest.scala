@@ -11,7 +11,6 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.util.{Date, Properties}
 
-import org.locationtech.jts.geom.Envelope
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.ExtractBoundsFilterVisitor
@@ -26,6 +25,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeatureType
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -68,8 +68,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
 
       "add features" >> {
         sft = createNewSchema(spec("Point"))
-        val features =
-        addFeatures(sft, (0 until 150).map { i =>
+        addFeatures((0 until 150).map { i =>
           // space out the points very slightly around 5 primary longitudes 1 degree apart
           val lon = (i / 30) + 1 + (Random.nextDouble() - 0.5) / 1000.0
           val sf = new ScalaSimpleFeature(sft, i.toString)
@@ -128,7 +127,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
 
       "add features" >> {
         sft = createNewSchema(spec("Polygon"))
-        addFeatures(sft, (0 until 15).toArray.map { i =>
+        addFeatures((0 until 15).toArray.map { i =>
           val sf = new ScalaSimpleFeature(sft, i.toString)
           sf.setAttribute(0, i.toString)
           sf.setAttribute(1, "1.0")
@@ -159,7 +158,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
 
       "add features" >> {
         sft = createNewSchema(spec("MultiLineString"))
-        addFeatures(sft, (0 until 15).toArray.map { i =>
+        addFeatures((0 until 15).toArray.map { i =>
           val sf = new ScalaSimpleFeature(sft, i.toString)
           sf.setAttribute(0, i.toString)
           sf.setAttribute(1, "1.0")
@@ -190,7 +189,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
 
       "add features" >> {
         sft = createNewSchema(spec("LineString"))
-        addFeatures(sft, (0 until 15).toArray.map { i =>
+        addFeatures((0 until 15).toArray.map { i =>
           val sf = new ScalaSimpleFeature(sft, i.toString)
           sf.setAttribute(0, i.toString)
           sf.setAttribute(1, "1.0")
@@ -221,7 +220,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
 
       "add features" >> {
         sft = createNewSchema(spec("LineString"))
-        addFeatures(sft, (0 until 15).toArray.map { i =>
+        addFeatures((0 until 15).toArray.map { i =>
           val sf = new ScalaSimpleFeature(sft, i.toString)
           sf.setAttribute(0, i.toString)
           sf.setAttribute(1, "1.0")
@@ -252,7 +251,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
 
       "add features" >> {
         sft = createNewSchema(spec("MultiPolygon"))
-        addFeatures(sft, (0 until 15).toArray.map { i =>
+        addFeatures((0 until 15).toArray.map { i =>
           val sf = new ScalaSimpleFeature(sft, i.toString)
           sf.setAttribute(0, i.toString)
           sf.setAttribute(1, "1.0")
@@ -283,7 +282,7 @@ class DensityIteratorTest extends Specification with TestWithMultipleSfts {
 
       "add features" >> {
         sft = createNewSchema(spec("LineString"))
-        addFeatures(sft, (0 until 15).toArray.map { i =>
+        addFeatures((0 until 15).toArray.map { i =>
           val sf = new ScalaSimpleFeature(sft, i.toString)
           sf.setAttribute(0, i.toString)
           sf.setAttribute(1, "1.0")

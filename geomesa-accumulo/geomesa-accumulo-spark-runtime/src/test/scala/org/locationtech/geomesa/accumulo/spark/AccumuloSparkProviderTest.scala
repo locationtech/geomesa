@@ -12,7 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{DataFrame, SQLContext, SQLTypes, SparkSession}
 import org.geotools.data.{Query, Transaction}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithDataStore}
+import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithFeatureType}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -20,7 +20,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloSparkProviderTest extends Specification with TestWithDataStore with LazyLogging {
+class AccumuloSparkProviderTest extends Specification with TestWithFeatureType with LazyLogging {
 
   import AccumuloDataStoreParams._
   import org.locationtech.geomesa.filter.ff

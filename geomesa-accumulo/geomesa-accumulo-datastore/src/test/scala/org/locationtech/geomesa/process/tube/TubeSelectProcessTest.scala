@@ -10,70 +10,49 @@ package org.locationtech.geomesa.process.tube
 
 import java.util.Date
 
-import org.locationtech.geomesa.accumulo.MiniCluster
-import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.geotools.data.collection.ListFeatureCollection
-import org.geotools.data.{DataStoreFinder, Query}
-import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.util.Converters
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
+import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.index.conf.QueryProperties
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.{Coordinate, GeometryFactory, Point}
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class TubeSelectProcessTest extends Specification {
-  import scala.collection.JavaConverters._
-  import TubeBuilder.DefaultDtgField
+class TubeSelectProcessTest extends TestWithMultipleSfts {
 
   sequential
 
-  val geotimeAttributes = s"*geom:Point:srid=4326,$DefaultDtgField:Date"
+  lazy val sft1 = createNewSchema("type:String,*geom:Point:srid=4326,dtg:Date")
 
-  def createStore: AccumuloDataStore =
-  // the specific parameter values should not matter, as we
-  // are requesting a mock data store connection to Accumulo
-    DataStoreFinder.getDataStore((
-      MiniCluster.params +
-      (AccumuloDataStoreParams.CatalogParam.key -> "testtube")
-    ).asJava).asInstanceOf[AccumuloDataStore]
+  lazy val sft2 = createNewSchema("type:String,*geom:Point:srid=4326,dtg:Date")
+
+  lazy val sft3 = createNewSchema("type:String,*geom:Geometry:srid=4326,dtg:Date;geomesa.mixed.geometries=true")
 
   "TubeSelect" should {
     "work with an empty input collection" in {
-      val sftName = "emptyTubeTestType"
-      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
-
-      val ds = createStore
-
-      ds.createSchema(sft)
-      val fs = ds.getFeatureSource(sftName)
-
-      val featureCollection = new DefaultFeatureCollection(sftName, sft)
-
-      List("a", "b").foreach { name =>
-        List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
-          val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
-          sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-          sf.setAttribute(DefaultDtgField, "2011-01-01T00:00:00Z")
-          sf.setAttribute("type", name)
-          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-          featureCollection.add(sf)
+      addFeatures {
+        List("a", "b").flatMap { name =>
+          List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
+            ScalaSimpleFeature.create(sft1, s"$name$i", name, f"POINT($lat%d $lat%d)", "2011-01-01T00:00:00Z")
+          }
         }
       }
 
-      // write the feature to the store
-      val res = fs.addFeatures(featureCollection)
+      val fs = ds.getFeatureSource(sft1.getTypeName)
 
       // result set to tube on
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
@@ -83,37 +62,15 @@ class TubeSelectProcessTest extends Specification {
           // tube features
           val tubeFeatures = fs.getFeatures(filter)
           val ts = new TubeSelectProcess()
-          val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, fill)
-          results.features().hasNext mustEqual next
+          WithClose(ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, fill).features()) { results =>
+            results.hasNext mustEqual next
+          }
         }
-
       }
     }
 
     "should do a simple tube with geo interpolation" in {
-      val sftName = "tubeTestType"
-      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
-
-      val ds = createStore
-
-      ds.createSchema(sft)
-      val fs = ds.getFeatureSource(sftName)
-
-      val featureCollection = new DefaultFeatureCollection(sftName, sft)
-
-      List("a", "b").foreach { name =>
-        List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
-          val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
-          sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-          sf.setAttribute(DefaultDtgField, "2011-01-01T00:00:00Z")
-          sf.setAttribute("type", name)
-          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-          featureCollection.add(sf)
-        }
-      }
-
-      // write the feature to the store
-      val res = fs.addFeatures(featureCollection)
+      val fs = ds.getFeatureSource(sft1.getTypeName)
 
       // tube features
       val tubeFeatures = fs.getFeatures(CQL.toFilter("type = 'a'"))
@@ -125,37 +82,20 @@ class TubeSelectProcessTest extends Specification {
       val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, null)
 
-      val f = results.features()
-      while (f.hasNext) {
-        val sf = f.next
-        sf.getAttribute("type") mustEqual "b"
-      }
-
+      forall(SelfClosingIterator(results.features()).toList)(_.getAttribute("type") mustEqual "b")
       results.size mustEqual 4
     }
 
     "should do a simple tube with geo + time interpolation" in {
-      val sftName = "tubeTestType"
-      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
+      val fs = ds.getFeatureSource(sft1.getTypeName)
 
-      val ds = createStore
-      val fs = ds.getFeatureSource(sftName)
-
-      val featureCollection = new DefaultFeatureCollection(sftName, sft)
-
-      List("c").foreach { name =>
-        List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
-          val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
-          sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-          sf.setAttribute(DefaultDtgField, "2011-01-02T00:00:00Z")
-          sf.setAttribute("type", name)
-          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-          featureCollection.add(sf)
+      addFeatures {
+        List("c").flatMap { name =>
+          List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
+            ScalaSimpleFeature.create(sft1, s"$name$i", name, f"POINT($lat%d $lat%d)", "2011-01-02T00:00:00Z")
+          }
         }
       }
-
-      // write the feature to the store
-      fs.addFeatures(featureCollection)
 
       // tube features
       val tubeFeatures = fs.getFeatures(CQL.toFilter("type = 'a'"))
@@ -167,42 +107,22 @@ class TubeSelectProcessTest extends Specification {
       val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, null)
 
-      val f = results.features()
-      while (f.hasNext) {
-        val sf = f.next
-        sf.getAttribute("type") mustEqual "b"
-      }
-
+      forall(SelfClosingIterator(results.features()).toList)(_.getAttribute("type") mustEqual "b")
       results.size mustEqual 4
     }
 
     "should properly convert speed/time to distance" in {
-      val sftName = "tubetest2"
-      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
-
-      val ds = createStore
-
-      ds.createSchema(sft)
-
-      val fs = ds.getFeatureSource(sftName)
-
-      val featureCollection = new DefaultFeatureCollection(sftName, sft)
-
-      var i = 0
-      List("a", "b").foreach { name =>
-        for (lon <- 40 until 50; lat <- 40 until 50) {
-          val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
-          i += 1
-          sf.setDefaultGeometry(WKTUtils.read(f"POINT($lon%d $lat%d)"))
-          sf.setAttribute(DefaultDtgField, "2011-01-02T00:00:00Z")
-          sf.setAttribute("type", name)
-          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-          featureCollection.add(sf)
+      var i = -1
+      addFeatures {
+        List("a", "b").flatMap { name =>
+          for (lon <- 40 until 50; lat <- 40 until 50) yield {
+            i += 1
+            ScalaSimpleFeature.create(sft2, s"$name$i", name, f"POINT($lon%d $lat%d)", "2011-01-02T00:00:00Z")
+          }
         }
       }
 
-      // write the feature to the store
-      val res = fs.addFeatures(featureCollection)
+      val fs = ds.getFeatureSource(sft2.getTypeName)
 
       // tube features
       val tubeFeatures = fs.getFeatures(CQL.toFilter("BBOX(geom, 39.999999999,39.999999999, 40.00000000001, 50.000000001) AND type = 'a'"))
@@ -216,24 +136,17 @@ class TubeSelectProcessTest extends Specification {
       // 110 m/s times 1000 seconds is just 100km which is under 1 degree
       val results = ts.execute(tubeFeatures, features, null, 110L, 1000L, 0.0, 5, null)
 
-      val f = results.features()
-      while (f.hasNext) {
-        val sf = f.next
+      forall(SelfClosingIterator(results.features()).toList) { sf =>
         sf.getAttribute("type") mustEqual "b"
         val point = sf.getDefaultGeometry.asInstanceOf[Point]
         point.getX mustEqual 40.0
-        point.getY should be between(40.0, 50.0)
+        point.getY must beBetween(40.0, 50.0)
       }
-
       results.size mustEqual 10
     }
 
     "should properly dedup overlapping results based on buffer size " in {
-      val sftName = "tubetest2"
-
-      val ds = createStore
-
-      val fs = ds.getFeatureSource(sftName)
+      val fs = ds.getFeatureSource(sft2.getTypeName)
 
       // tube features
       val tubeFeatures = fs.getFeatures(CQL.toFilter("BBOX(geom, 39.999999999,39.999999999, 40.00000000001, 50.000000001) AND type = 'a'"))
@@ -248,51 +161,32 @@ class TubeSelectProcessTest extends Specification {
       // but with buffer overlap since the features in the collection are 1 degrees apart
       val results = ts.execute(tubeFeatures, features, null, 112L, 1000L, 0.0, 5, null)
 
-      val f = results.features()
-      while (f.hasNext) {
-        val sf = f.next
+
+      forall(SelfClosingIterator(results.features()).toList) { sf =>
         sf.getAttribute("type") mustEqual "b"
         val point = sf.getDefaultGeometry.asInstanceOf[Point]
-        point.getX should be between(40.0, 41.0)
-        point.getY should be between(40.0, 50.0)
+        point.getX must beBetween(40.0, 41.0)
+        point.getY must beBetween(40.0, 50.0)
       }
 
       results.size mustEqual 20
     }
 
     "should properly handle geometries crossing the IDL" in {
-      val sftName = "tubeTestType"
-      val sft = SimpleFeatureTypes.createType(sftName, s"type:String, $geotimeAttributes")
+      val fs = ds.getFeatureSource(sft1.getTypeName)
 
-      val ds = createStore
-
-      ds.createSchema(sft)
-      val fs = ds.getFeatureSource(sftName)
-
-      val featureCollection = new DefaultFeatureCollection(sftName, sft)
-
-      List("c", "d").foreach { name =>
-        List(1, 2, 3, 4).zip(List(-178, -179, 179, 178)).foreach { case (i, lat) =>
-          val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
-          sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d 0)"))
-          sf.setAttribute(DefaultDtgField, f"2011-01-01T00:0$i%d:00Z")
-          sf.setAttribute("type", name)
-          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-          featureCollection.add(sf)
+      addFeatures {
+        List("c", "d").flatMap { name =>
+          List(1, 2, 3, 4).zip(List(-178, -179, 179, 178)).map { case (i, lat) =>
+            ScalaSimpleFeature.create(sft1, s"$name$i", name, f"POINT($lat%d 0)", f"2011-01-01T00:0$i%d:00Z")
+          }
         }
       }
-      //Add a point that would be in the buffer if it wrapped around the earth
-      //This point falls between the time of C2 & C3 but west of C2. This point
-      //Would be grabbed if the buffer wrapped the globe due to the IDL.
-      val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "d5")
-      sf.setDefaultGeometry(WKTUtils.read(f"POINT(-178.5 0)"))
-      sf.setAttribute(DefaultDtgField, f"2011-01-01T00:02:03Z")
-      sf.setAttribute("type", "d")
-      sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-      featureCollection.add(sf)
 
-      // write the feature to the store
-      val res = fs.addFeatures(featureCollection)
+      // Add a point that would be in the buffer if it wrapped around the earth
+      // This point falls between the time of C2 & C3 but west of C2. This point
+      // would be grabbed if the buffer wrapped the globe due to the IDL.
+      addFeature(ScalaSimpleFeature.create(sft1, "d5", "d", "POINT(-178.5 0)", "2011-01-01T00:02:03Z"))
 
       // tube features
       val tubeFeatures = fs.getFeatures(CQL.toFilter("type = 'c'"))
@@ -304,25 +198,15 @@ class TubeSelectProcessTest extends Specification {
       val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, "line")
 
-      val f = results.features()
-      while (f.hasNext) {
-        val sf = f.next
-        sf.getAttribute("type") mustEqual "d"
-      }
+      forall(SelfClosingIterator(results.features()).toList)(_.getAttribute("type") mustEqual "d")
 
       results.size mustEqual 4
     }
 
     "properly interpolate times and geometries" in {
-      val sftName = "tubeTestType"
-      val sft = SimpleFeatureTypes.createType(sftName, s"type:String, $geotimeAttributes")
+      val fs = ds.getFeatureSource(sft1.getTypeName)
 
-      val ds = createStore
-
-      ds.createSchema(sft)
-      val fs = ds.getFeatureSource(sftName)
-
-      val featureCollection = new DefaultFeatureCollection(sftName, sft)
+      val featureCollection = new DefaultFeatureCollection(sft1.getTypeName, sft1)
       //Make data that actually emulated a track, and two alternate tracks, one offset from the other by a small amount of time
       val calc = new GeodeticCalculator()
       //Configure track generation for 1 hour at 10.2 meters per second @ 80 degrees starting at -141.0, 35.0
@@ -340,16 +224,16 @@ class TubeSelectProcessTest extends Specification {
 
       (startTime to endTime).by(timePerPoint).foreach { t =>
         i+=1
-        val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), i.toString)
+        val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft1, List(), i.toString)
         sf.setDefaultGeometry(curPoint)
-        sf.setAttribute(DefaultDtgField, new Date(t))
+        sf.setAttribute("dtg", new Date(t))
         sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
         featureCollection.add(sf)
         if((t - startTime) % 600000 == 0 ) {         //Create a track point every 10 minutes
           sf.setAttribute("type","track")
           trackCount+=1
         } else if ((t - startTime) % 450000 == 0) { //Create invalid pool points every 7.5 minutes, but put them back in time.
-          sf.setAttribute(DefaultDtgField, new Date(t-450000l))
+          sf.setAttribute("dtg", new Date(t-450000L))
           sf.setAttribute("type", "pool2")
           invalidPoolCount+=1
         } else {                                    //Else create valid pool points where they ought to be in time/space
@@ -367,7 +251,7 @@ class TubeSelectProcessTest extends Specification {
       }
 
       // write the feature to the store
-      val res = fs.addFeatures(featureCollection)
+      fs.addFeatures(featureCollection)
 
       // tube features
       val tubeFeatures = fs.getFeatures(CQL.toFilter("type = 'track'"))
@@ -378,76 +262,38 @@ class TubeSelectProcessTest extends Specification {
       // get back type b from tube
       val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 1000.0, 5, "interpolated")
-      val f = results.features()
-      while (f.hasNext) {
-        val sf = f.next
-        sf.getAttribute("type") mustEqual "pool"
-      }
+      forall(SelfClosingIterator(results.features()).toList)(_.getAttribute("type") mustEqual "pool")
 
       results.size mustEqual poolCount
     }
-  }
 
-
-
-  "TubeSelect" should {
-    "should handle all geometries" in {
-      val sftName = "tubeline"
-      val sft = SimpleFeatureTypes.createType(sftName, "type:String,*geom:Geometry:srid=4326,dtg:Date;geomesa.mixed.geometries=true")
-
-      val ds = createStore
-
-      ds.createSchema(sft)
-      val fs = ds.getFeatureSource(sftName)
-
-      val featureCollection = new DefaultFeatureCollection(sftName, sft)
-
-      List("b").foreach { name =>
-        List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
-          val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
-          sf.setDefaultGeometry(WKTUtils.read(f"POINT(40 $lat%d)"))
-          sf.setAttribute(DefaultDtgField, "2011-01-01T00:00:00Z")
-          sf.setAttribute("type", name)
-          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-          featureCollection.add(sf)
+    "handle all geometries" in {
+      addFeatures {
+        List("b").flatMap { name =>
+          List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
+            ScalaSimpleFeature.create(sft3, s"$name$i", name, f"POINT(40 $lat%d)", "2011-01-01T00:00:00Z")
+          }
         }
       }
-
-      val bLine = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "b-line")
-      bLine.setDefaultGeometry(WKTUtils.read("LINESTRING(40 40, 40 50)"))
-      bLine.setAttribute(DefaultDtgField, "2011-01-01T00:00:00Z")
-      bLine.setAttribute("type", "b")
-      bLine.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-      featureCollection.add(bLine)
-
-      val bPoly = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "b-poly")
-      bPoly.setDefaultGeometry(WKTUtils.read("POLYGON((40 40, 41 40, 41 41, 40 41, 40 40))"))
-      bPoly.setAttribute(DefaultDtgField, "2011-01-01T00:00:00Z")
-      bPoly.setAttribute("type", "b")
-      bPoly.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-      featureCollection.add(bPoly)
-
-
+      addFeature {
+        ScalaSimpleFeature.create(sft3, "b-line", "b", "LINESTRING(40 40, 40 50)", "2011-01-01T00:00:00Z")
+      }
+      addFeature {
+        ScalaSimpleFeature.create(sft3, "b-poly", "b", "POLYGON((40 40, 41 40, 41 41, 40 41, 40 40))", "2011-01-01T00:00:00Z")
+      }
 
       // tube features
-      val aLine = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "a-line")
-      aLine.setDefaultGeometry(WKTUtils.read("LINESTRING(40 40, 40 50)"))
-      aLine.setAttribute(DefaultDtgField, "2011-01-01T00:00:00Z")
-//      aLine.setAttribute("end", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
-      aLine.setAttribute("type", "a")
-      aLine.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-      val tubeFeatures = new ListFeatureCollection(sft, List(aLine))
+      val aLine = ScalaSimpleFeature.create(sft3, "a-line", "a", "LINESTRING(40 40, 40 50)", "2011-01-01T00:00:00Z")
+      // aLine.setAttribute("end", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      val tubeFeatures = new ListFeatureCollection(sft3, List(aLine))
 
-      // write the feature to the store
-      val res = fs.addFeatures(featureCollection)
+      val fs = ds.getFeatureSource(sft3.getTypeName)
 
       // result set to tube on
       val features = fs.getFeatures(CQL.toFilter("type <> 'a'"))
 
       QueryProperties.QueryExactCount.threadLocalValue.set("true")
-      try {
-        features.size mustEqual 6
-      } finally {
+      try { features.size mustEqual 6 } finally {
         QueryProperties.QueryExactCount.threadLocalValue.remove()
       }
 
@@ -455,89 +301,42 @@ class TubeSelectProcessTest extends Specification {
       val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 112L, 1L, 0.0, 5, null)
 
-      val f = results.features()
-      while (f.hasNext) {
-        val sf = f.next
-        sf.getAttribute("type") mustEqual "b"
-      }
+      forall(SelfClosingIterator(results.features()).toList)(_.getAttribute("type") mustEqual "b")
 
       QueryProperties.QueryExactCount.threadLocalValue.set("true")
-      try {
-        results.size mustEqual 6
-      } finally {
+      try { results.size mustEqual 6 } finally {
         QueryProperties.QueryExactCount.threadLocalValue.remove()
       }
     }
-  }
 
-  "TubeBuilder" should {
-    "approximate meters to degrees" in {
-      val geoFac = new GeometryFactory
-
-      val sftName = "tubeline"
-      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
-
-      // calculated km at various latitude by USGS
-      forall(List(0, 30, 60, 89).zip(List(110.57, 110.85, 111.41, 111.69))) { case(lat, dist) =>
-        val deg = new NoGapFill(new DefaultFeatureCollection(sftName, sft), 0, 0).metersToDegrees(110.57*1000, geoFac.createPoint(new Coordinate(0, lat)))
-        (1.0-dist) should beLessThan(.0001)
-      }
-    }
-  }
-
-  "TubeSelect" should {
     "properly handle values for execute" in {
-      val sftName = "tubeline"
-      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
       val ts = new TubeSelectProcess
-      val ds = createStore
 
-      val fs = ds.getFeatureSource(sftName)
+      val fs = ds.getFeatureSource(sft3.getTypeName)
 
-      val q = new Query(sftName, Filter.INCLUDE)
-      val res = fs.getFeatures(q)
+      val res = fs.getFeatures()
 
       // tube features
-      val aLine = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), "a-line")
-      aLine.setDefaultGeometry(WKTUtils.read("LINESTRING(40 40, 40 50)"))
-      aLine.setAttribute(DefaultDtgField, "2011-01-01T00:00:00Z")
-//      aLine.setAttribute("end", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
-      aLine.setAttribute("type", "a")
-      aLine.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-      val tubeFeatures = new ListFeatureCollection(sft, List(aLine))
+      val aLine = ScalaSimpleFeature.create(sft3, "a-line", "a", "LINESTRING(40 40, 40 50)", "2011-01-01T00:00:00Z")
+      // aLine.setAttribute("end", new DateTime("2011-01-01T00:00:00Z", DateTimeZone.UTC).toDate)
+      val tubeFeatures = new ListFeatureCollection(sft3, List(aLine))
 
       // ensure null values work and don't throw exceptions
-      ts.execute( tubeFeatures, res, null, null, null, null, null, null) should not(throwAn[ClassCastException])
+      ts.execute(tubeFeatures, res, null, null, null, null, null, null) should not(throwAn[ClassCastException])
     }
-  }
 
-  "TubeSelect" should {
     "should do a simple tube with geo interpolation with a different date field" in {
-      val nonDefaultDtgField = "datefield"
-      val sftName = "tubeTestType-date"
-      val geotimeAttributes = s"*geom:Point:srid=4326,$nonDefaultDtgField:Date"
-      val sft = SimpleFeatureTypes.createType(sftName, s"type:String,$geotimeAttributes")
+      val sft = createNewSchema("type:String,*geom:Point:srid=4326,datefield:Date")
 
-      val ds = createStore
+      val fs = ds.getFeatureSource(sft.getTypeName)
 
-      ds.createSchema(sft)
-      val fs = ds.getFeatureSource(sftName)
-
-      val featureCollection = new DefaultFeatureCollection(sftName, sft)
-
-      List("a", "b").foreach { name =>
-        List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).foreach { case (i, lat) =>
-          val sf = AvroSimpleFeatureFactory.buildAvroFeature(sft, List(), name + i.toString)
-          sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-          sf.setAttribute(nonDefaultDtgField, "2011-01-01T00:00:00Z")
-          sf.setAttribute("type", name)
-          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-          featureCollection.add(sf)
+      addFeatures {
+        List("a", "b").flatMap { name =>
+          List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
+            ScalaSimpleFeature.create(sft, s"$name$i", name, f"POINT($lat%d $lat%d)", "2011-01-01T00:00:00Z")
+          }
         }
       }
-
-      // write the feature to the store
-      val res = fs.addFeatures(featureCollection)
 
       // tube features
       val tubeFeatures = fs.getFeatures(CQL.toFilter("type = 'a'"))
@@ -549,14 +348,18 @@ class TubeSelectProcessTest extends Specification {
       val ts = new TubeSelectProcess()
       val results = ts.execute(tubeFeatures, features, null, 1L, 1L, 0.0, 5, null)
 
-      val f = results.features()
-      while (f.hasNext) {
-        val sf = f.next
-        sf.getAttribute("type") mustEqual "b"
-      }
-
+      forall(SelfClosingIterator(results.features()).toList)(_.getAttribute("type") mustEqual "b")
       results.size mustEqual 4
     }
   }
 
+  "approximate meters to degrees" in {
+    val geoFac = new GeometryFactory
+    val gf = new NoGapFill(new DefaultFeatureCollection(sft1.getTypeName, sft1), 0, 0)
+    // calculated km at various latitude by USGS
+    forall(List(0, 30, 60, 89).zip(List(110.57, 110.85, 111.41, 111.69))) { case (lat, dist) =>
+      val deg = gf.metersToDegrees(dist * 1000, geoFac.createPoint(new Coordinate(0, lat)))
+      deg must beCloseTo(1d, .0001)
+    }
+  }
 }

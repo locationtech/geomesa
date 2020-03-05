@@ -13,7 +13,7 @@ import java.util.Date
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan
 import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -27,7 +27,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class XZ2IdxStrategyTest extends Specification with TestWithDataStore {
+class XZ2IdxStrategyTest extends Specification with TestWithFeatureType {
 
   val spec = "name:String,track:String,dtg:Date,*geom:Geometry:srid=4326;" +
       "geomesa.mixed.geometries='true',geomesa.indexes.enabled='xz2'"

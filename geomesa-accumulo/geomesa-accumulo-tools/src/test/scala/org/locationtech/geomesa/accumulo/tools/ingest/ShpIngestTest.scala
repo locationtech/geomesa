@@ -18,7 +18,7 @@ import org.geotools.data.store.ReprojectingFeatureCollection
 import org.geotools.util.factory.Hints
 import org.geotools.referencing.CRS
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithDataStore}
+import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithFeatureType}
 import org.locationtech.geomesa.convert.Modes
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -26,7 +26,7 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose, WithStore}
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ShpIngestTest extends TestWithDataStore {
+class ShpIngestTest extends TestWithFeatureType {
 
   sequential
 
