@@ -95,10 +95,6 @@
             <artifactId>accumulo-start</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.accumulo</groupId>
-            <artifactId>accumulo-minicluster</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-client</artifactId>
         </dependency>
@@ -125,9 +121,14 @@
             <artifactId>specs2-mock_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
-                <groupId>jline</groupId>
-                <artifactId>jline</artifactId>
+            <groupId>org.apache.accumulo</groupId>
+            <artifactId>accumulo-minicluster</artifactId>
         </dependency>
+        <!--<dependency>
+            <groupId>jline</groupId>
+            <artifactId>jline</artifactId>
+            <scope>test</scope>
+        </dependency>-->
         <dependency>
             <groupId>org.apache.arrow</groupId>
             <artifactId>arrow-vector</artifactId>
