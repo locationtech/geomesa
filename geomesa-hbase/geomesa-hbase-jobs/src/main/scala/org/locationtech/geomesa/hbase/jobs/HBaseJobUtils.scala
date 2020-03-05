@@ -31,11 +31,11 @@ object HBaseJobUtils {
     }
 
     plans.head match {
-      case p: ScanPlan if p.tables.lengthCompare(1) == 0 => p
+      case p: ScanPlan if p.scans.lengthCompare(1) == 0 => p
 
       case p: ScanPlan =>
           throw new IllegalArgumentException("Query requires multiple tables, which is not supported through " +
-              s"the input format: ${p.tables.mkString(", ")}")
+              s"the input format: ${p.scans.map(_.table).mkString(", ")}")
 
       case p =>
         throw new IllegalArgumentException("Query requires a scan which is not supported through " +
@@ -54,8 +54,8 @@ object HBaseJobUtils {
   @throws(classOf[IllegalArgumentException])
   def getMultiScanPlans(ds: HBaseDataStore, query: Query): Seq[ScanPlan] = {
     ds.getQueryPlan(query).flatMap {
-      case p: ScanPlan if p.tables.lengthCompare(1) == 0 => Seq(p)
-      case p: ScanPlan => p.tables.map(table => p.copy(tables = Seq(table)))
+      case p: ScanPlan if p.scans.lengthCompare(1) == 0 => Seq(p)
+      case p: ScanPlan => p.scans.map(scan => p.copy(scans = Seq(scan)))
       case _: EmptyPlan => Seq.empty
       case p =>
         throw new IllegalArgumentException("Query requires a scan which is not supported through " +

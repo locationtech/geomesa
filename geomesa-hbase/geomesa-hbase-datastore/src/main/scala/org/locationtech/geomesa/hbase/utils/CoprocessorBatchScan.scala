@@ -16,31 +16,35 @@ import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
+import org.locationtech.geomesa.utils.io.WithClose
 
 private class CoprocessorBatchScan(
-    table: Table,
+    connection: Connection,
+    table: TableName,
     ranges: Seq[Scan],
     options: Map[String, String],
     threads: Int,
+    rpcThreads: Int,
     buffer: Int
   ) extends AbstractBatchScan[Scan, Array[Byte]](ranges, threads, buffer, CoprocessorBatchScan.Sentinel) {
 
+  private val pool = new CachedThreadPool(rpcThreads)
+
   override protected def scan(range: Scan, out: BlockingQueue[Array[Byte]]): Unit = {
-    val scan = GeoMesaCoprocessor.execute(table, range, options)
-    try {
-      scan.foreach { r =>
+    WithClose(GeoMesaCoprocessor.execute(connection, table, range, options, pool)) { results =>
+      results.foreach { r =>
         if (r.size() > 0) {
           out.put(r.toByteArray)
         }
       }
-    } finally {
-      scan.close()
     }
   }
 
   override def close(): Unit = {
-    super.close()
-    table.close()
+    try { super.close() } finally {
+      pool.shutdownNow()
+    }
   }
 }
 
@@ -49,12 +53,22 @@ object CoprocessorBatchScan {
   private val Sentinel = Array.empty[Byte]
   private val BufferSize = HBaseSystemProperties.ScanBufferSize.toInt.get
 
+  /**
+   * Start a coprocessor batch scan
+   *
+   * @param connection connection
+   * @param table table
+   * @param ranges ranges to scan
+   * @param options coprocessor configuration
+   * @param rpcThreads size of thread pool used for hbase rpc calls, across all client scan threads
+   * @return
+   */
   def apply(
       connection: Connection,
       table: TableName,
       ranges: Seq[Scan],
       options: Map[String, String],
-      threads: Int): CloseableIterator[Array[Byte]] = {
-    new CoprocessorBatchScan(connection.getTable(table), ranges, options, threads, BufferSize).start()
+      rpcThreads: Int): CloseableIterator[Array[Byte]] = {
+    new CoprocessorBatchScan(connection, table, ranges, options, ranges.length, rpcThreads, BufferSize).start()
   }
 }

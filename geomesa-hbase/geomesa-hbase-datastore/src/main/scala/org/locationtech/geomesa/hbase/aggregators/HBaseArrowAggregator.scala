@@ -11,9 +11,8 @@ package org.locationtech.geomesa.hbase.aggregators
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.api.QueryPlan.FeatureReducer
 import org.locationtech.geomesa.index.iterators.ArrowScan
-import org.locationtech.geomesa.index.iterators.ArrowScan.ArrowResultsToFeatures
+import org.locationtech.geomesa.index.iterators.ArrowScan.{ArrowResultsToFeatures, ArrowScanConfig}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -33,14 +32,15 @@ object HBaseArrowAggregator {
     * @param hints query hints
     * @return
     */
-  def configure(sft: SimpleFeatureType,
-                index: GeoMesaFeatureIndex[_, _],
-                stats: GeoMesaStats,
-                filter: Option[Filter],
-                ecql: Option[Filter],
-                hints: Hints): (Map[String, String], FeatureReducer) = {
+  def configure(
+      sft: SimpleFeatureType,
+      index: GeoMesaFeatureIndex[_, _],
+      stats: GeoMesaStats,
+      filter: Option[Filter],
+      ecql: Option[Filter],
+      hints: Hints): ArrowScanConfig = {
     val conf = ArrowScan.configure(sft, index, stats, filter, ecql, hints)
-    (conf.config + (GeoMesaCoprocessor.AggregatorClass -> s"$AggregatorPackage.HBaseArrowAggregator"), conf.reduce)
+    conf.copy(conf.config + (GeoMesaCoprocessor.AggregatorClass -> s"$AggregatorPackage.HBaseArrowAggregator"))
   }
 
   class HBaseArrowResultsToFeatures extends ArrowResultsToFeatures[Array[Byte]] {

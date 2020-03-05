@@ -29,30 +29,32 @@ HBase Data Store Parameters
 
 The data store takes several parameters (required parameters are marked with ``*``):
 
-====================================== ======= ====================================================================================
-Parameter                              Type    Description
-====================================== ======= ====================================================================================
-``hbase.catalog *``                    String  The name of the GeoMesa catalog table (previously ``bigtable.table.name``)
-``hbase.zookeepers``                   String  A comma-separated list of servers in the HBase zookeeper ensemble. This is optional,
-                                               the preferred method for defining the HBase connection is with ``hbase-site.xml``
-``hbase.coprocessor.url``              String  Path to the GeoMesa jar containing coprocessors, for auto registration
-``hbase.config.paths``                 String  Additional HBase configuration resource files (comma-delimited)
-``hbase.config.xml``                   String  Additional HBase configuration properties, as a standard XML ``<configuration>``
-                                               element
-``hbase.remote.filtering``             Boolean Can be used to disable remote filtering and coprocessors, for environments
-                                               where custom code can't be installed
-``hbase.security.enabled``             Boolean Enable HBase security (visibilities)
-``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries
-``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
-``geomesa.query.audit``                Boolean Audit queries being run. Queries will be written to a log file
-``geomesa.query.timeout``              String  The max time a query will be allowed to run before being killed. The
-                                               timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``
-``geomesa.query.threads``              Integer The number of threads to use per query
-``geomesa.query.loose-bounding-box``   Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
-``hbase.ranges.max-per-extended-scan`` Integer The max number of ranges used for each extended scan
-``geomesa.stats.generate``             Boolean Toggle collection of statistics (currently not implemented)
-``geomesa.query.caching``              Boolean Toggle caching of results
-====================================== ======= ====================================================================================
+========================================= ======= ========================================================================================
+Parameter                                 Type    Description
+========================================= ======= ========================================================================================
+``hbase.catalog *``                       String  The name of the GeoMesa catalog table (previously ``bigtable.table.name``)
+``hbase.zookeepers``                      String  A comma-separated list of servers in the HBase zookeeper ensemble. This is optional,
+                                                  the preferred method for defining the HBase connection is with ``hbase-site.xml``
+``hbase.coprocessor.url``                 String  Path to the GeoMesa jar containing coprocessors, for auto registration
+``hbase.config.paths``                    String  Additional HBase configuration resource files (comma-delimited)
+``hbase.config.xml``                      String  Additional HBase configuration properties, as a standard XML ``<configuration>``
+                                                  element
+``hbase.remote.filtering``                Boolean Can be used to disable remote filtering and coprocessors, for environments
+                                                  where custom code can't be installed
+``hbase.security.enabled``                Boolean Enable HBase security (visibilities)
+``geomesa.security.auths``                String  Comma-delimited superset of authorizations that will be used for queries
+``geomesa.security.force-empty-auths``    Boolean Forces authorizations to be empty
+``geomesa.query.audit``                   Boolean Audit queries being run. Queries will be written to a log file
+``geomesa.query.timeout``                 String  The max time a query will be allowed to run before being killed. The
+                                                  timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``
+``geomesa.query.threads``                 Integer The number of threads to use per query
+``hbase.coprocessor.threads``             Integer The number of HBase RPC threads to use per coprocessor query
+``geomesa.query.loose-bounding-box``      Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
+``hbase.ranges.max-per-extended-scan``    Integer Max ranges per extended scan. Ranges will be grouped into scans based on this setting
+``hbase.ranges.max-per-coprocessor-scan`` Integer Max ranges per coprocessor scan. Ranges will be grouped into scans based on this setting
+``geomesa.stats.generate``                Boolean Toggle collection of statistics (currently not implemented)
+``geomesa.query.caching``                 Boolean Toggle caching of results
+========================================= ======= ========================================================================================
 
 More information on using GeoTools can be found in the `GeoTools user guide
 <http://docs.geotools.org/stable/userguide/>`__.
