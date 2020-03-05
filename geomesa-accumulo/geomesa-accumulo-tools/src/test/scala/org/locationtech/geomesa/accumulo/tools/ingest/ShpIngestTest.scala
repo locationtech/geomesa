@@ -45,10 +45,10 @@ class ShpIngestTest extends TestWithDataStore {
 
   def connectedCommand(file: String): AccumuloIngestCommand = {
     val command = new AccumuloIngestCommand()
-    command.params.user        = mockUser
+    command.params.user        = root.name
     command.params.instance    = MiniCluster.cluster.getInstanceName
     command.params.zookeepers  = MiniCluster.cluster.getZooKeepers
-    command.params.password    = mockPassword
+    command.params.password    = root.password
     command.params.catalog     = catalog
     command.params.force       = true
     command.params.files       = Collections.singletonList(new File(dir.toFile, s"$file.shp").getAbsolutePath)

@@ -59,10 +59,10 @@ class AccumuloExportCommandTest extends TestWithDataStore {
 
   def connectedCommand(): AccumuloExportCommand = {
     val command = new AccumuloExportCommand()
-    command.params.user        = mockUser
+    command.params.user        = root.name
     command.params.instance    = MiniCluster.cluster.getInstanceName
     command.params.zookeepers  = MiniCluster.cluster.getZooKeepers
-    command.params.password    = mockPassword
+    command.params.password    = root.password
     command.params.catalog     = catalog
     command.params.featureName = sftName
     command
