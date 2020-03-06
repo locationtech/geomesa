@@ -15,11 +15,13 @@ import java.util.{Base64, Collections}
 
 import com.google.protobuf.{ByteString, RpcCallback, RpcController}
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.coprocessor.Batch.Call
-import org.apache.hadoop.hbase.client.{Scan, Table}
+import org.apache.hadoop.hbase.client.{Connection, Scan}
 import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.WithClose
 
 /**
@@ -34,6 +36,8 @@ object GeoMesaCoprocessor extends LazyLogging {
   val TimeoutOpt = "timeout"
 
   private val service = classOf[GeoMesaCoprocessorService]
+
+  private val terminator = ByteString.EMPTY
 
   def deserializeOptions(bytes: Array[Byte]): Map[String, String] = {
     WithClose(new ByteArrayInputStream(bytes)) { bais =>
@@ -55,15 +59,23 @@ object GeoMesaCoprocessor extends LazyLogging {
   }
 
   /**
-    * Executes a geomesa coprocessor
-    *
-   * @param table table to execute against (not closed by this method)
-    * @param scan scan to execute
-    * @param options configuration options
-    * @return serialized results
-    */
-  def execute(table: Table, scan: Scan, options: Map[String, String]): CloseableIterator[ByteString] =
-    new RpcIterator(table, scan, options)
+   * Executes a geomesa coprocessor
+   *
+   * @param connection connection
+   * @param table table to execute against
+   * @param scan scan to execute
+   * @param options configuration options
+   * @param executor executor service to use for hbase rpc calls
+   * @return serialized results
+   */
+  def execute(
+      connection: Connection,
+      table: TableName,
+      scan: Scan,
+      options: Map[String, String],
+      executor: ExecutorService): CloseableIterator[ByteString] = {
+    new RpcIterator(connection, table, scan, options, executor)
+  }
 
   /**
    * Timeout configuration option
@@ -80,14 +92,23 @@ object GeoMesaCoprocessor extends LazyLogging {
    * @param scan scan
    * @param options coprocessor options
    */
-  class RpcIterator(table: Table, scan: Scan, options: Map[String, String]) extends CloseableIterator[ByteString] {
+  private class RpcIterator(
+      connection: Connection,
+      table: TableName,
+      scan: Scan,
+      options: Map[String, String],
+      pool: ExecutorService
+    ) extends CloseableIterator[ByteString] {
 
+    private val htable = connection.getTable(table, pool)
     private val closed = new AtomicBoolean(false)
+    private val callback = new GeoMesaHBaseCallBack()
 
     private val request = {
-      val opts = options
-          .updated(FilterOpt, Base64.getEncoder.encodeToString(scan.getFilter.toByteArray))
-          .updated(ScanOpt, Base64.getEncoder.encodeToString(ProtobufUtil.toScan(scan).toByteArray))
+      val opts = options ++ Map(
+        FilterOpt -> Base64.getEncoder.encodeToString(scan.getFilter.toByteArray),
+        ScanOpt   -> Base64.getEncoder.encodeToString(ProtobufUtil.toScan(scan).toByteArray)
+      )
       GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(serializeOptions(opts))).build()
     }
 
@@ -105,7 +126,6 @@ object GeoMesaCoprocessor extends LazyLogging {
 
           if (controller.failed()) {
             logger.error(s"Controller failed with error:\n${controller.errorText()}")
-            throw new IOException(controller.errorText())
           }
 
           callback.get()
@@ -113,26 +133,65 @@ object GeoMesaCoprocessor extends LazyLogging {
       }
     }
 
-    lazy private val result = {
-      val callBack = new GeoMesaHBaseCallBack()
-      try { table.coprocessorService(service, scan.getStartRow, scan.getStopRow, callable, callBack) } catch {
-        case e @ (_ :InterruptedException | _ :InterruptedIOException) =>
-          logger.warn("Interrupted executing coprocessor query:", e)
+    private var staged: ByteString = _
+
+    private val coprocessor = CachedThreadPool.submit(new Runnable() {
+      override def run(): Unit = {
+        try {
+          if (!closed.get) {
+            htable.coprocessorService(service, scan.getStartRow, scan.getStopRow, callable, callback)
+          }
+        } catch {
+          case e @ (_ :InterruptedException | _ :InterruptedIOException) =>
+            logger.warn("Interrupted executing coprocessor query:", e)
+        } finally {
+          callback.result.add(terminator)
+        }
       }
-      callBack.getResult.iterator
+    })
+
+    override def hasNext: Boolean = {
+      if (staged != null) { true } else {
+        try {
+          staged = callback.result.take()
+        } catch {
+          case _ :InterruptedException =>
+            // propagate the interruption through to the rpc call
+            coprocessor.cancel(true)
+            return false
+        }
+        if (terminator eq staged) {
+          callback.result.add(staged)
+          staged = null
+          false
+        } else {
+          true
+        }
+      }
     }
 
-    override def hasNext: Boolean = result.hasNext
+    override def next(): ByteString = {
+      val res = staged
+      staged = null
+      res
+    }
 
-    override def next(): ByteString = result.next
+    override def close(): Unit = {
+      closed.set(true)
+      htable.close()
+    }
+  }
 
-    override def close(): Unit = closed.set(true)
+  private class CoprocessorCall extends Runnable {
+    override def run(): Unit = {
+
+    }
   }
 
   /**
     * Unsynchronized rpc callback
     */
-  class RpcCallbackImpl extends RpcCallback[GeoMesaCoprocessorResponse] {
+  private class RpcCallbackImpl extends RpcCallback[GeoMesaCoprocessorResponse] {
 
     private var result: java.util.List[ByteString] = _
 
@@ -141,4 +200,5 @@ object GeoMesaCoprocessor extends LazyLogging {
     override def run(parameter: GeoMesaCoprocessorResponse): Unit =
       result = Option(parameter).map(_.getPayloadList).orNull
   }
+
 }

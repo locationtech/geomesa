@@ -15,12 +15,15 @@ import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
-private class HBaseBatchScan(table: Table, ranges: Seq[Scan], threads: Int, buffer: Int)
+private class HBaseBatchScan(connection: Connection, table: TableName, ranges: Seq[Scan], threads: Int, buffer: Int)
     extends AbstractBatchScan[Scan, Result](ranges, threads, buffer, HBaseBatchScan.Sentinel) {
 
+  private val htable = connection.getTable(table, new CachedThreadPool(threads))
+
   override protected def scan(range: Scan, out: BlockingQueue[Result]): Unit = {
-    val scan = table.getScanner(range)
+    val scan = htable.getScanner(range)
     try {
       var result = scan.next()
       while (result != null) {
@@ -33,8 +36,9 @@ private class HBaseBatchScan(table: Table, ranges: Seq[Scan], threads: Int, buff
   }
 
   override def close(): Unit = {
-    super.close()
-    table.close()
+    try { super.close() } finally {
+      htable.close()
+    }
   }
 }
 
@@ -43,6 +47,15 @@ object HBaseBatchScan {
   private val Sentinel = new Result
   private val BufferSize = HBaseSystemProperties.ScanBufferSize.toInt.get
 
+  /**
+   * Creates a batch scan with parallelism across the given scans
+   *
+   * @param connection connection
+   * @param table table to scan
+   * @param ranges ranges
+   * @param threads number of concurrently running scans
+   * @return
+   */
   def apply(connection: Connection, table: TableName, ranges: Seq[Scan], threads: Int): CloseableIterator[Result] =
-    new HBaseBatchScan(connection.getTable(table), ranges, threads, BufferSize).start()
+    new HBaseBatchScan(connection, table, ranges, threads, BufferSize).start()
 }

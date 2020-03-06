@@ -53,8 +53,10 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       None
     }
     val queryThreads = QueryThreadsParam.lookup(params)
+    val coprocessorThreads = CoprocessorThreadsParam.lookup(params)
     val queryTimeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis)
     val maxRangesPerExtendedScan = MaxRangesPerExtendedScanParam.lookup(params)
+    val maxRangesPerCoprocessorScan = MaxRangesPerCoprocessorScanParam.lookup(params)
     val looseBBox = LooseBBoxParam.lookup(params)
     val caching = CachingParam.lookup(params)
     val authsProvider = if (!EnableSecurityParam.lookup(params)) { None } else {
@@ -64,8 +66,9 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
     val ns = NamespaceParam.lookupOpt(params)
 
-    val config = HBaseDataStoreConfig(catalog, remoteFilters, generateStats, audit, queryThreads, queryTimeout,
-      maxRangesPerExtendedScan, looseBBox, caching, authsProvider, coprocessorUrl, ns)
+    val config = HBaseDataStoreConfig(catalog, remoteFilters, generateStats, audit, queryThreads,
+      coprocessorThreads, queryTimeout, maxRangesPerExtendedScan, maxRangesPerCoprocessorScan,
+      looseBBox, caching, authsProvider, coprocessorUrl, ns)
 
     val ds = buildDataStore(connection, config)
     GeoMesaDataStore.initRemoteVersion(ds)
@@ -119,7 +122,10 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       ConfigsParam,
       CoprocessorUrlParam,
       QueryThreadsParam,
+      CoprocessorThreadsParam,
       QueryTimeoutParam,
+      MaxRangesPerExtendedScanParam,
+      MaxRangesPerCoprocessorScanParam,
       RemoteFilteringParam,
       EnableSecurityParam,
       GenerateStatsParam,
@@ -138,18 +144,22 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         Option(HBaseConfiguration.create().get(BigTableParamCheck)).forall(_.trim.isEmpty)
   }
 
-  case class HBaseDataStoreConfig(catalog: String,
-                                  remoteFilter: Boolean,
-                                  generateStats: Boolean,
-                                  audit: Option[(AuditWriter, AuditProvider, String)],
-                                  queryThreads: Int,
-                                  queryTimeout: Option[Long],
-                                  maxRangesPerExtendedScan: Int,
-                                  looseBBox: Boolean,
-                                  caching: Boolean,
-                                  authProvider: Option[AuthorizationsProvider],
-                                  coprocessorUrl: Option[Path],
-                                  namespace: Option[String]) extends GeoMesaDataStoreConfig
+  case class HBaseDataStoreConfig(
+      catalog: String,
+      remoteFilter: Boolean,
+      generateStats: Boolean,
+      audit: Option[(AuditWriter, AuditProvider, String)],
+      queryThreads: Int,
+      coprocessorThreads: Int,
+      queryTimeout: Option[Long],
+      maxRangesPerExtendedScan: Int,
+      maxRangesPerCoprocessorScan: Int,
+      looseBBox: Boolean,
+      caching: Boolean,
+      authProvider: Option[AuthorizationsProvider],
+      coprocessorUrl: Option[Path],
+      namespace: Option[String]
+    ) extends GeoMesaDataStoreConfig
 
   def buildAuthsProvider(connection: Connection, params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
     val forceEmptyOpt: Option[java.lang.Boolean] = ForceEmptyAuthsParam.lookupOpt(params)
@@ -191,6 +201,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 }
 
 object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
+
   val HBaseCatalogParam =
     new GeoMesaParam[String](
       "hbase.catalog",
@@ -219,6 +230,13 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       deprecatedKeys = Seq("coprocessor.url"),
       supportsNiFiExpressions = true)
 
+  val CoprocessorThreadsParam =
+    new GeoMesaParam[Integer](
+      "hbase.coprocessor.threads",
+      "The number of HBase RPC threads to use per coprocessor query",
+      default = Int.box(16),
+      supportsNiFiExpressions = true)
+
   val RemoteFilteringParam =
     new GeoMesaParam[java.lang.Boolean](
       "hbase.remote.filtering",
@@ -229,9 +247,16 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
   val MaxRangesPerExtendedScanParam =
     new GeoMesaParam[java.lang.Integer](
       "hbase.ranges.max-per-extended-scan",
-      "Max Ranges per Extended Scan",
+      "Max ranges per extended scan. Ranges will be grouped into scans based on this setting",
       default = 100,
       deprecatedKeys = Seq("max.ranges.per.extended.scan"),
+      supportsNiFiExpressions = true)
+
+  val MaxRangesPerCoprocessorScanParam =
+    new GeoMesaParam[java.lang.Integer](
+      "hbase.ranges.max-per-coprocessor-scan",
+      "Max ranges per coprocessor scan. Ranges will be grouped into scans based on this setting",
+      default = Int.MaxValue,
       supportsNiFiExpressions = true)
 
   val EnableSecurityParam =

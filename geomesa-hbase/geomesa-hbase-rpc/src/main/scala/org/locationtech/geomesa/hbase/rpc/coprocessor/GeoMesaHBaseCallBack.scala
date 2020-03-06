@@ -8,19 +8,15 @@
 
 package org.locationtech.geomesa.hbase.rpc.coprocessor
 
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.{ConcurrentLinkedQueue, LinkedBlockingQueue}
 
 import com.google.protobuf.ByteString
 import org.apache.hadoop.hbase.client.coprocessor.Batch.Callback
 
 class GeoMesaHBaseCallBack extends Callback[java.util.List[ByteString]] {
 
-  import scala.collection.JavaConverters._
-
-  private val finalResult = new ConcurrentLinkedQueue[ByteString]()
-
-  def getResult: List[ByteString] = finalResult.asScala.toList
+  val result = new LinkedBlockingQueue[ByteString]()
 
   override def update(region: Array[Byte], row: Array[Byte], result: java.util.List[ByteString]): Unit =
-    if (result != null) { finalResult.addAll(result) }
+    if (result != null) { this.result.addAll(result) }
 }

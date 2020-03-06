@@ -8,11 +8,11 @@
 
 package org.locationtech.geomesa.index.utils
 
-import java.io.Closeable
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
 import scala.annotation.tailrec
 
@@ -42,7 +42,7 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
 
   private val latch = new CountDownLatch(threads)
   private val terminator = new Terminator()
-  private val pool = Executors.newFixedThreadPool(threads + 1)
+  private val pool = new CachedThreadPool(threads)
 
   private var retrieved: R = _
 
@@ -90,7 +90,7 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
   }
 
   override def close(): Unit = {
-    terminator.close()
+    terminator.terminate(true)
     pool.shutdownNow()
   }
 
@@ -154,19 +154,20 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
   /**
     * Injects the terminal value into the output buffer, once all the scans are complete
     */
-  private class Terminator extends Runnable with Closeable {
+  private class Terminator extends Runnable {
 
-    private val closed = new AtomicBoolean(false)
+    private val done = new AtomicBoolean(false)
 
-    override def run(): Unit = try { latch.await() } finally { terminate() }
-
-    override def close(): Unit = closed.set(true)
+    override def run(): Unit = try { latch.await() } finally { terminate(false) }
 
     @tailrec
-    private def terminate(): Unit = {
+    final def terminate(drop: Boolean): Unit = {
+      if (done.get) {
+        return
+      }
       // it's possible that the queue is full, in which case we can't immediately
       // add the sentinel to the queue to indicate to the client that scans are done
-      if (closed.get) {
+      if (drop) {
         // if the scan has been closed, then the client is done
         // reading and we don't mind dropping some results
         terminateWithDrops()
@@ -175,12 +176,17 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
         val added = try { outQueue.offer(sentinel, 1000, TimeUnit.MILLISECONDS) } catch {
           case _: InterruptedException => terminateWithDrops(); true
         }
-        if (!added) {
-          terminate()
+        if (added) {
+          done.set(true)
+        } else {
+          terminate(false)
         }
       }
     }
 
-    private def terminateWithDrops(): Unit = while (!outQueue.offer(sentinel)) { outQueue.poll() }
+    private def terminateWithDrops(): Unit = {
+      while (!outQueue.offer(sentinel)) { outQueue.poll() }
+      done.set(true)
+    }
   }
 }

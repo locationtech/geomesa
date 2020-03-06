@@ -100,14 +100,14 @@ object GeoMesaHBaseInputFormat {
     * @param plan query plan
     */
   def configure(conf: Configuration, plan: ScanPlan): Unit = {
-    if (plan.tables.lengthCompare(1) != 0) {
-      throw new IllegalArgumentException(s"Query requires multiple tables: ${plan.tables.mkString(", ")}")
+    if (plan.scans.lengthCompare(1) != 0) {
+      throw new IllegalArgumentException(s"Query requires multiple tables: ${plan.scans.map(_.table).mkString(", ")}")
     }
-    conf.set(TableInputFormat.INPUT_TABLE, plan.tables.head.getNameAsString)
+    conf.set(TableInputFormat.INPUT_TABLE, plan.scans.head.table.getNameAsString)
     // note: secondary filter is handled by scan push-down filter
-    val scans = plan.scans.map { scan =>
+    val scans = plan.scans.head.scans.map { scan =>
       // need to set the table name in each scan
-      scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, plan.tables.head.getName)
+      scan.setAttribute(Scan.SCAN_ATTRIBUTES_TABLE_NAME, plan.scans.head.table.getName)
       Base64.getEncoder.encodeToString(ProtobufUtil.toScan(scan).toByteArray)
     }
     conf.setStrings(MultiTableInputFormat.SCANS, scans: _*)
