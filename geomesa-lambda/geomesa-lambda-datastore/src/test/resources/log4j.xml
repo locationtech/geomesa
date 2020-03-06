@@ -8,28 +8,31 @@
     </appender>
 
     <category name="kafka">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
     <category name="org.apache.kafka">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
     <category name="org.I0Itec.zkclient">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
     <category name="org.apache.curator">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
     <category name="org.apache.zookeeper">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
     <category name="org.apache.accumulo">
-        <priority value="warn"/>
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.thrift">
+        <priority value="error"/>
     </category>
     <category name="org.apache.hadoop">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
     <category name="hsqldb">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
 
     <!-- un-comment the following line to enable verbose log messages
