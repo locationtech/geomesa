@@ -88,14 +88,4 @@ object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParam
       default = 10,
       deprecatedKeys = Seq("writeThreads", "accumulo.writeThreads"),
       supportsNiFiExpressions = true)
-
-  // used to handle geoserver password encryption in persisted ds params
-  val DeprecatedGeoServerPasswordParam =
-    new Param(
-      "password",
-      classOf[String],
-      "",
-      false,
-      null,
-      ImmutableMap.of(Parameter.DEPRECATED, true, Parameter.IS_PASSWORD, true))
 }

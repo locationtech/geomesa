@@ -9,92 +9,112 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.MiniCluster
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreFactoryTest extends Specification {
 
-  import AccumuloDataStoreParams._
-
   import scala.collection.JavaConverters._
+
+  // we use class name to prevent spillage between unit tests in the mock connector
+  lazy val catalog = s"${MiniCluster.namespace}.${getClass.getSimpleName}"
 
   "AccumuloDataStoreFactory" should {
 
     "create a password authenticated store" in {
-      val paramsMap = Map(
-        InstanceIdParam.key -> "my-instance",
-        ZookeepersParam.key -> "zoo:2181",
-        UserParam.key       -> "user@EXAMPLE.COM",
-        KeytabPathParam.key -> "/path/to/keytab",
-        CatalogParam.key    -> "tableName").asJava
-      AccumuloDataStoreFactory.canProcess(paramsMap) must beTrue
-    }
-
-    "create a keytab authenticated store" in {
-      val real = Map(
-        InstanceIdParam.key -> "my-instance",
-        ZookeepersParam.key -> "zoo:2181",
-        UserParam.key       -> "user@EXAMPLE.COM",
-        KeytabPathParam.key -> "/path/to/keytab",
-        CatalogParam.key    -> "tableName").asJava
-      if (AccumuloDataStoreFactory.isKerberosAvailable) {
-        AccumuloDataStoreFactory.canProcess(real) must beTrue
-      } else {
-        AccumuloDataStoreFactory.canProcess(real) must beFalse
+      val params = Map(
+        AccumuloDataStoreParams.InstanceIdParam.key -> MiniCluster.cluster.getInstanceName,
+        AccumuloDataStoreParams.ZookeepersParam.key -> MiniCluster.cluster.getZooKeepers,
+        AccumuloDataStoreParams.UserParam.key       -> MiniCluster.Users.root.name,
+        AccumuloDataStoreParams.PasswordParam.key   -> MiniCluster.Users.root.password,
+        AccumuloDataStoreParams.CatalogParam.key    -> catalog
+      ).asJava
+      AccumuloDataStoreFactory.canProcess(params) must beTrue
+      val ds = DataStoreFinder.getDataStore(params)
+      try {
+        ds must beAnInstanceOf[AccumuloDataStore]
+      } finally {
+        if (ds != null) {
+          ds.dispose()
+        }
       }
     }
 
+    "create a keytab authenticated store" in {
+      val params = Map(
+        AccumuloDataStoreParams.InstanceIdParam.key -> MiniCluster.cluster.getInstanceName,
+        AccumuloDataStoreParams.ZookeepersParam.key -> MiniCluster.cluster.getZooKeepers,
+        AccumuloDataStoreParams.UserParam.key       -> MiniCluster.Users.root.name,
+        AccumuloDataStoreParams.KeytabPathParam.key -> "/path/to/keytab",
+        AccumuloDataStoreParams.CatalogParam.key    -> catalog
+      ).asJava
+      if (AccumuloDataStoreFactory.isKerberosAvailable) {
+        AccumuloDataStoreFactory.canProcess(params) must beTrue
+      } else {
+        AccumuloDataStoreFactory.canProcess(params) must beFalse
+      }
+      // TODO test kerberos
+    }
+
     "not accept password and keytab" in {
-      val real = Map(
-        InstanceIdParam.key -> "my-instance",
-        ZookeepersParam.key -> "zoo:2181",
-        UserParam.key       -> "me",
-        PasswordParam.key   -> "password",
-        KeytabPathParam.key -> "/path/to/keytab",
-        CatalogParam.key    -> "tableName").asJava
-      AccumuloDataStoreFactory.canProcess(real) must beFalse
+      val params = Map(
+        AccumuloDataStoreParams.InstanceIdParam.key -> MiniCluster.cluster.getInstanceName,
+        AccumuloDataStoreParams.ZookeepersParam.key -> MiniCluster.cluster.getZooKeepers,
+        AccumuloDataStoreParams.UserParam.key       -> MiniCluster.Users.root.name,
+        AccumuloDataStoreParams.PasswordParam.key   -> MiniCluster.Users.root.password,
+        AccumuloDataStoreParams.KeytabPathParam.key -> "/path/to/keytab",
+        AccumuloDataStoreParams.CatalogParam.key    -> catalog
+      ).asJava
+      AccumuloDataStoreFactory.canProcess(params) must beFalse
+      DataStoreFinder.getDataStore(params) must beNull
     }
 
     "not accept a missing instanceId" in {
-       val real = Map(
-        // InstanceIdParam.key -> "my-instance",
-        ZookeepersParam.key    -> "zoo:2181",
-        UserParam.key          -> "me",
-        PasswordParam.key      -> "password",
-        CatalogParam.key       -> "tableName").asJava
-      AccumuloDataStoreFactory.canProcess(real) must beFalse
+      val params = Map(
+        AccumuloDataStoreParams.ZookeepersParam.key -> MiniCluster.cluster.getZooKeepers,
+        AccumuloDataStoreParams.UserParam.key       -> MiniCluster.Users.root.name,
+        AccumuloDataStoreParams.PasswordParam.key   -> MiniCluster.Users.root.password,
+        AccumuloDataStoreParams.CatalogParam.key    -> catalog
+      ).asJava
+      AccumuloDataStoreFactory.canProcess(params) must beFalse
+      DataStoreFinder.getDataStore(params) must beNull
     }
 
     "not accept a missing zookeepers" in {
-      val real = Map(
-        InstanceIdParam.key    -> "my-instance",
-        // ZookeepersParam.key -> "zoo:2181",
-        UserParam.key          -> "me",
-        PasswordParam.key      -> "password",
-        CatalogParam.key       -> "tableName").asJava
-      AccumuloDataStoreFactory.canProcess(real) must beFalse
+      val params = Map(
+        AccumuloDataStoreParams.InstanceIdParam.key -> MiniCluster.cluster.getInstanceName,
+        AccumuloDataStoreParams.UserParam.key       -> MiniCluster.Users.root.name,
+        AccumuloDataStoreParams.PasswordParam.key   -> MiniCluster.Users.root.password,
+        AccumuloDataStoreParams.CatalogParam.key    -> catalog
+      ).asJava
+      AccumuloDataStoreFactory.canProcess(params) must beFalse
+      DataStoreFinder.getDataStore(params) must beNull
     }
 
     "not accept a missing user" in {
-      val real = Map(
-        InstanceIdParam.key -> "my-instance",
-        ZookeepersParam.key -> "zoo:2181",
-        // UserParam.key    -> "me",
-        PasswordParam.key   -> "password",
-        CatalogParam.key    -> "tableName").asJava
-      AccumuloDataStoreFactory.canProcess(real) must beFalse
+      val params = Map(
+        AccumuloDataStoreParams.InstanceIdParam.key -> MiniCluster.cluster.getInstanceName,
+        AccumuloDataStoreParams.ZookeepersParam.key -> MiniCluster.cluster.getZooKeepers,
+        AccumuloDataStoreParams.PasswordParam.key   -> MiniCluster.Users.root.password,
+        AccumuloDataStoreParams.CatalogParam.key    -> catalog
+      ).asJava
+      AccumuloDataStoreFactory.canProcess(params) must beFalse
+      DataStoreFinder.getDataStore(params) must beNull
     }
 
     "not accept a missing password and keytab" in {
-      val real = Map(
-        InstanceIdParam.key  -> "my-instance",
-        ZookeepersParam.key  -> "zoo:2181",
-        UserParam.key        -> "me",
-        // PasswordParam.key -> "password",
-        CatalogParam.key     -> "tableName").asJava
-      AccumuloDataStoreFactory.canProcess(real) must beFalse
+      val params = Map(
+        AccumuloDataStoreParams.InstanceIdParam.key -> MiniCluster.cluster.getInstanceName,
+        AccumuloDataStoreParams.ZookeepersParam.key -> MiniCluster.cluster.getZooKeepers,
+        AccumuloDataStoreParams.UserParam.key       -> MiniCluster.Users.root.name,
+        AccumuloDataStoreParams.CatalogParam.key    -> catalog
+      ).asJava
+      AccumuloDataStoreFactory.canProcess(params) must beFalse
+      DataStoreFinder.getDataStore(params) must beNull
     }
   }
 }

@@ -35,7 +35,7 @@ public interface AuthorizationsProvider {
      *
      * @param params parameters
      */
-    void configure(Map<String, Serializable> params);
+    void configure(Map<String, ? extends Serializable> params);
 
     /**
      * Static method to load and configure an authorization provider from the classpath
@@ -44,7 +44,7 @@ public interface AuthorizationsProvider {
      * @param authorizations master set of authorizations
      * @return authorizations provider
      */
-    static AuthorizationsProvider apply(Map<String, Serializable> params, List<String> authorizations) {
+    static AuthorizationsProvider apply(Map<String, ? extends Serializable> params, List<String> authorizations) {
         // we wrap the authorizations provider in one that will filter based on the configured max auths
         List<AuthorizationsProvider> providers = new ArrayList<>();
         for (AuthorizationsProvider p: ServiceLoader.load(AuthorizationsProvider.class)) {

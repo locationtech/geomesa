@@ -11,13 +11,13 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.awt.RenderingHints
 import java.io.Serializable
-import java.util.{Map => JMap}
 
+import com.google.common.collect.ImmutableMap
 import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, KerberosToken, PasswordToken}
 import org.apache.accumulo.core.client.{ClientConfiguration, Connector, ZooKeeperInstance}
 import org.geotools.data.DataAccessFactory.Param
-import org.geotools.data.DataStoreFactorySpi
+import org.geotools.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore.AccumuloDataStoreConfig
@@ -30,12 +30,11 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
-  import AccumuloDataStoreParams.{DeprecatedGeoServerPasswordParam, NamespaceParam}
-
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: JMap[String, Serializable]): AccumuloDataStore = createDataStore(params)
+  override def createNewDataStore(params: java.util.Map[String, Serializable]): AccumuloDataStore =
+    createDataStore(params)
 
-  override def createDataStore(params: JMap[String, Serializable]): AccumuloDataStore = {
+  override def createDataStore(params: java.util.Map[String, Serializable]): AccumuloDataStore = {
     val connector = AccumuloDataStoreFactory.buildAccumuloConnector(params)
     val config = AccumuloDataStoreFactory.buildConfig(connector, params)
     val ds = new AccumuloDataStore(connector, config)
@@ -50,7 +49,8 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
   override def getDescription: String = AccumuloDataStoreFactory.Description
 
   override def getParametersInfo: Array[Param] =
-    AccumuloDataStoreFactory.ParameterInfo ++ Array(NamespaceParam, DeprecatedGeoServerPasswordParam)
+    AccumuloDataStoreFactory.ParameterInfo ++
+        Array(AccumuloDataStoreParams.NamespaceParam, AccumuloDataStoreFactory.DeprecatedGeoServerPasswordParam)
 
   override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
     AccumuloDataStoreFactory.canProcess(params)
@@ -93,6 +93,17 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       "accumulo.mock",
       default = false,
       deprecatedKeys = Seq("useMock", "accumulo.useMock"))
+
+
+  // used to handle geoserver password encryption in persisted ds params
+  private val DeprecatedGeoServerPasswordParam =
+    new Param(
+      "password",
+      classOf[String],
+      "",
+      false,
+      null,
+      ImmutableMap.of(Parameter.DEPRECATED, true, Parameter.IS_PASSWORD, true))
 
   override def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean = {
     val hasConnector = ConnectorParam.lookupOpt(params).isDefined
@@ -139,7 +150,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     }
   }
 
-  def buildConfig(connector: Connector, params: JMap[String, Serializable]): AccumuloDataStoreConfig = {
+  def buildConfig(connector: Connector, params: java.util.Map[String, _ <: Serializable]): AccumuloDataStoreConfig = {
     val catalog = CatalogParam.lookup(params)
 
     val authProvider = buildAuthsProvider(connector, params)
@@ -170,7 +181,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     )
   }
 
-  def buildAuditProvider(params: JMap[String, Serializable]): AuditProvider = {
+  def buildAuditProvider(params: java.util.Map[String, _ <: Serializable]): AuditProvider = {
     Option(AuditProvider.Loader.load(params)).getOrElse {
       val provider = new ParamsAuditProvider
       provider.configure(params)
@@ -178,7 +189,9 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     }
   }
 
-  def buildAuthsProvider(connector: Connector, params: JMap[String, Serializable]): AuthorizationsProvider = {
+  def buildAuthsProvider(
+      connector: Connector,
+      params: java.util.Map[String, _ <: Serializable]): AuthorizationsProvider = {
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
     val securityOps = connector.securityOperations
     val masterAuths = securityOps.getUserAuthorizations(connector.whoami).asScala.toArray.map(b => new String(b))

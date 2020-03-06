@@ -32,7 +32,7 @@ class DtgAgeOffTest extends Specification with TestWithFeatureType {
 
   sequential
 
-  override val spec = "dtg:Date,geom:Point:srid=4326;geomesa.stats.enable=false"
+  override val spec = "dtg:Date,geom:Point:srid=4326"
 
   val today: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC)
 

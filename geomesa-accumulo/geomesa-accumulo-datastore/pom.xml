@@ -124,11 +124,6 @@
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-minicluster</artifactId>
         </dependency>
-        <!--<dependency>
-            <groupId>jline</groupId>
-            <artifactId>jline</artifactId>
-            <scope>test</scope>
-        </dependency>-->
         <dependency>
             <groupId>org.apache.arrow</groupId>
             <artifactId>arrow-vector</artifactId>

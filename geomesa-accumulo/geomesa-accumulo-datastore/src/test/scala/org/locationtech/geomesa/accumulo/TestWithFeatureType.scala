@@ -20,7 +20,7 @@ trait TestWithFeatureType extends TestWithDataStore {
   def spec: String
 
   lazy val sft = {
-    // we use class name to prevent spillage between unit tests in the mock connector
+    // we use class name to prevent spillage between unit tests
     ds.createSchema(SimpleFeatureTypes.createType(getClass.getSimpleName, spec))
     ds.getSchema(getClass.getSimpleName) // reload the sft from the ds to ensure all user data is set properly
   }
