@@ -27,8 +27,8 @@ class StatsCombinerTest extends TestWithFeatureType {
 
   step {
     // add two batches so that we have multiple rows to combine in the stats iter
-    addFeatures(Seq(ScalaSimpleFeature.create(sft, "0", "name0", "2017-01-01T00:00:00.000Z", "POINT (40 55)")))
-    addFeatures(Seq(ScalaSimpleFeature.create(sft, "1", "name1", "2017-01-01T01:00:00.000Z", "POINT (41 55)")))
+    addFeature(ScalaSimpleFeature.create(sft, "0", "name0", "2017-01-01T00:00:00.000Z", "POINT (40 55)"))
+    addFeature(ScalaSimpleFeature.create(sft, "1", "name1", "2017-01-01T01:00:00.000Z", "POINT (41 55)"))
   }
 
   // gets a new data store so that we don't read any cached values

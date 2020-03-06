@@ -13,6 +13,7 @@ import java.nio.file.Files
 
 import org.json4s.{DefaultFormats, Formats}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.scalatra.test.specs2.MutableScalatraSpec
@@ -20,7 +21,7 @@ import org.specs2.runner.JUnitRunner
 import org.specs2.specification.core.Fragments
 
 @RunWith(classOf[JUnitRunner])
-class GeoJsonServletTest extends MutableScalatraSpec {
+class GeoJsonServletTest extends TestWithDataStore with MutableScalatraSpec {
 
   sequential
 
@@ -46,10 +47,7 @@ class GeoJsonServletTest extends MutableScalatraSpec {
 
   "GeoJsonServlet" should {
     "register a datastore" in {
-      import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
-      val params = Map(InstanceIdParam.key -> "GeoJsonServletTest", UserParam.key -> "root", ZookeepersParam.key -> "myzoo",
-        PasswordParam.key -> "", CatalogParam.key -> "GeoJsonServletTest", "accumulo.mock" -> "true")
-      post("/ds/geojsontest", params) {
+      post("/ds/geojsontest", dsParams) {
         status mustEqual 200
       }
       post("/index/geojsontest/geojsontest", Map("id" -> "properties.id")) {
@@ -152,7 +150,6 @@ class GeoJsonServletTest extends MutableScalatraSpec {
         status mustEqual 200
       }
       get(s"/index/geojsontest/geojsontest/features/0") {
-        println(body)
         status mustEqual 404
       }
       get("/index/geojsontest/geojsontest/features") {

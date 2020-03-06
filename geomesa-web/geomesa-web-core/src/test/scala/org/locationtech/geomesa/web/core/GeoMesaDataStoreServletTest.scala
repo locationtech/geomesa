@@ -14,6 +14,8 @@ import java.nio.file.Files
 import org.geotools.data.DataStore
 import org.json4s.{DefaultFormats, Formats}
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.utils.cache.FilePersistence
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.scalatra.Ok
@@ -23,7 +25,7 @@ import org.specs2.runner.JUnitRunner
 import org.specs2.specification.core.Fragments
 
 @RunWith(classOf[JUnitRunner])
-class GeoMesaDataStoreServletTest extends MutableScalatraSpec {
+class GeoMesaDataStoreServletTest extends TestWithDataStore with MutableScalatraSpec {
 
   sequential
 
@@ -59,12 +61,9 @@ class GeoMesaDataStoreServletTest extends MutableScalatraSpec {
 
   implicit val formats: Formats = DefaultFormats
 
-  import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams._
-  val dsParams = Map(InstanceIdParam.key -> "GeoMesaDataStoreServletTest", ZookeepersParam.key -> "zoo", UserParam.key -> "root",
-    PasswordParam.key -> "", CatalogParam.key -> "GeoMesaDataStoreServlet", "accumulo.mock" -> "true")
-
   val jsonParams =
-    dsParams.filterKeys(_ != PasswordParam.key).map { case (k, v) => s""""$k":"$v"""" } ++ Seq(s""""${PasswordParam.key}":"***"""")
+    dsParams.collect { case (k, v) if k != AccumuloDataStoreParams.PasswordParam.key => s""""$k":"$v"""" } ++
+        Seq(s""""${AccumuloDataStoreParams.PasswordParam.key}":"***"""")
 
   "GeoMesaDataStoreServlet" should {
     "register a datastore" in {

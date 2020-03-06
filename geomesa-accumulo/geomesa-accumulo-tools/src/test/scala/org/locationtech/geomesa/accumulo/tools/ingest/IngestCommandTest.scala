@@ -202,7 +202,6 @@ class IngestCommandTest extends Specification {
       val base = baseArgs
       val i = base.indexOf("--user")
       val args = base.slice(0, i) ++ base.slice(i + 2, base.length) ++ Array(dataFile.getPath)
-println(args.mkString(" "))
       AccumuloRunner.parseCommand(args) must throwA[com.beust.jcommander.ParameterException]
     }
 

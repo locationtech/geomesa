@@ -30,13 +30,13 @@
          from the index query-planner; this can be helpful in debugging
          query plans -->
     <!--
-    <category name="org.locationtech.geomesa.core.index.IndexQueryPlanner">
+    <category name="org.locationtech.geomesa.index.utils.Explainer">
         <priority value="trace"/>
     </category>
     -->
 
     <root>
-        <priority value="warn"/>
+        <priority value="info"/>
         <appender-ref ref="CONSOLE" />
     </root>
 </log4j:configuration>

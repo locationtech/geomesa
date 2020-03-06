@@ -8,26 +8,12 @@
 
 package org.locationtech.geomesa.geojson
 
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
-import org.specs2.mutable.Specification
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class GeoJsonGtIndexTest extends Specification {
-
-  import scala.collection.JavaConversions._
-
-  val connector = new MockInstance().getConnector("root", new PasswordToken(""))
-
-  val ds = DataStoreFinder.getDataStore(Map(
-    AccumuloDataStoreParams.ConnectorParam.getName -> connector,
-    AccumuloDataStoreParams.CatalogParam.getName   -> "GeoJsonAccumuloIndexTest",
-    "accumulo.mock"      -> "true"
-  ))
+class GeoJsonGtIndexTest extends TestWithDataStore {
 
   val f0 = """{"type":"Feature","geometry":{"type":"Point","coordinates":[30,10]},"properties":{"id":"0","name":"n0"}}"""
   val f1 = """{"type":"Feature","geometry":{"type":"Point","coordinates":[31,10]},"properties":{"id":"1","name":"n1"}}"""
