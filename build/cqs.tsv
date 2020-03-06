@@ -128,7 +128,6 @@ net.sf.trove4j:trove4j	3.0.3	compile
 org.antlr:antlr4-runtime	4.7.1	compile
 org.apache.accumulo:accumulo-core	1.8.1	compile
 org.apache.accumulo:accumulo-fate	1.8.1	compile
-org.apache.accumulo:accumulo-start	1.8.1	compile
 org.apache.arrow:arrow-format	0.16.0	compile
 org.apache.arrow:arrow-memory	0.16.0	compile
 org.apache.arrow:arrow-vector	0.16.0	compile
@@ -145,7 +144,6 @@ org.apache.commons:commons-text	1.4	compile
 org.apache.commons:commons-vfs2	2.1	compile
 org.apache.curator:curator-client	4.0.1	compile
 org.apache.curator:curator-framework	4.0.1	compile
-org.apache.curator:curator-recipes	2.4.0	compile
 org.apache.curator:curator-recipes	4.0.1	compile
 org.apache.hbase:hbase-client	1.4.12	compile
 org.apache.hbase:hbase-client	2.2.3	compile
@@ -170,8 +168,6 @@ org.apache.httpcomponents:httpclient	4.5.3	compile
 org.apache.httpcomponents:httpcore	4.4.6	compile
 org.apache.kudu:kudu-client	1.7.0	compile
 org.apache.kudu:kudu-mapreduce	1.7.0	compile
-org.apache.metamodel:MetaModel-core	4.3.6	compile
-org.apache.metamodel:MetaModel-pojo	4.3.6	compile
 org.apache.orc:orc-core	nohive:1.5.4	compile
 org.apache.orc:orc-mapreduce	nohive:1.5.4	compile
 org.apache.orc:orc-shims	1.5.4	compile
@@ -201,9 +197,7 @@ org.geotools:gt-cql	21.1	compile
 org.geotools:gt-epsg-hsql	21.1	compile
 org.geotools:gt-epsg-wkt	21.1	compile
 org.geotools:gt-geojson	21.1	compile
-org.geotools:gt-geotiff	21.1	compile
 org.geotools:gt-grid	21.1	compile
-org.geotools:gt-imageio-ext-gdal	21.1	compile
 org.geotools:gt-jdbc	21.1	compile
 org.geotools:gt-main	21.1	compile
 org.geotools:gt-metadata	21.1	compile
@@ -276,8 +270,8 @@ com.datastax.cassandra:cassandra-driver-core	3.0.0	provided
 com.datastax.cassandra:cassandra-driver-mapping	3.0.0	provided
 io.confluent:kafka-avro-serializer	5.1.0	provided
 io.confluent:kafka-schema-registry-client	5.1.0	provided
-javax.media:jai_codec	1.1.3	provided
 javax.media:jai_core	1.1.3	provided
+org.apache.accumulo:accumulo-start	1.8.1	provided
 org.apache.avro:avro	1.8.2	provided
 org.apache.hadoop:hadoop-annotations	2.8.5	provided
 org.apache.hadoop:hadoop-client	2.8.5	provided
@@ -295,7 +289,6 @@ org.apache.kafka:kafka-clients	2.1.1	provided
 org.apache.spark:spark-catalyst_2.11	2.3.1	provided
 org.apache.spark:spark-core_2.11	2.3.1	provided
 org.apache.spark:spark-sql_2.11	2.3.1	provided
-org.apache.spark:spark-yarn_2.11	2.3.1	provided
 org.scala-lang:scala-compiler	2.11.7	provided
 org.springframework.security:spring-security-core	5.1.1.RELEASE	provided
 org.springframework.security:spring-security-web	5.1.1.RELEASE	provided
@@ -304,6 +297,7 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 io.confluent:kafka-schema-registry	5.1.0	test
 io.confluent:kafka-schema-registry	tests:5.1.0	test
 junit:junit	4.12	test
+org.apache.accumulo:accumulo-minicluster	1.8.1	test
 org.apache.accumulo:accumulo-test	1.8.1	test
 org.apache.arrow:arrow-vector	tests:0.16.0	test
 org.apache.camel:camel-netty4	2.24.1	test
