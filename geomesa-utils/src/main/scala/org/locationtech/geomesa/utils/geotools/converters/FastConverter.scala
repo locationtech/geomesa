@@ -49,19 +49,7 @@ object FastConverter extends StrictLogging {
     }
 
     val clas = value.getClass
-    var converters = cache.get((clas, binding))
-
-    if (converters == null) {
-      if (clas.eq(binding) || clas == binding || binding.isAssignableFrom(clas)) {
-        converters = Array(IdentityConverter)
-      } else {
-        converters = factories.flatMap(factory => Option(factory.createConverter(clas, binding, null)))
-        if (binding == classOf[String]) {
-          converters = converters :+ ToStringConverter // add toString as a final fallback
-        }
-      }
-      cache.put((clas, binding), converters)
-    }
+    val converters = getConverters(clas, binding)
 
     var i = 0
     while (i < converters.length) {
@@ -79,6 +67,49 @@ object FastConverter extends StrictLogging {
     }
 
     logger.warn(s"Could not convert '$value' (of type ${value.getClass.getName}) to ${binding.getName}")
+
+    null.asInstanceOf[T]
+  }
+
+
+  /**
+   * Convert the value into one of the given type
+   *
+   * @param value value to convert
+   * @param bindings type to convert to, in order of preference
+   * @tparam T type binding
+   * @return converted value, or null if it could not be converted
+   */
+  def convertFirst[T](value: Any, bindings: Iterator[Class[_ <: T]]): T = {
+    if (value == null) {
+      return null.asInstanceOf[T]
+    }
+
+    val clas = value.getClass
+
+    while (bindings.hasNext) {
+      val binding = bindings.next
+      val converters = getConverters(clas, binding)
+
+      var i = 0
+      while (i < converters.length) {
+        try {
+          val result = converters(i).convert(value, binding)
+          if (result != null) {
+            return result
+          }
+        } catch {
+          case NonFatal(e) =>
+            logger.trace(s"Error converting $value (of type ${value.getClass.getName}) " +
+                s"to ${binding.getName} using converter ${converters(i).getClass.getName}:", e)
+        }
+        i += 1
+      }
+    }
+
+    logger.warn(
+      s"Could not convert '$value' (of type ${value.getClass.getName}) " +
+          s"to any of ${bindings.map(_.getName).mkString(", ")}")
 
     null.asInstanceOf[T]
   }
@@ -106,6 +137,31 @@ object FastConverter extends StrictLogging {
     * @return converted value, or null if it could not be converted
     */
   def evaluate[T](expression: Expression, binding: Class[T]): T = convert(expression.evaluate(null), binding)
+
+  /**
+   * Gets a cached converter, loading it if necessary
+   *
+   * @param from from
+   * @param to to
+   * @return
+   */
+  private def getConverters(from: Class[_], to: Class[_]): Array[Converter] = {
+    var converters = cache.get((from, to))
+
+    if (converters == null) {
+      if (from.eq(to) || from == to || to.isAssignableFrom(from)) {
+        converters = Array(IdentityConverter)
+      } else {
+        converters = factories.flatMap(factory => Option(factory.createConverter(from, to, null)))
+        if (to == classOf[String]) {
+          converters = converters :+ ToStringConverter // add toString as a final fallback
+        }
+      }
+      cache.put((from, to), converters)
+    }
+
+    converters
+  }
 
   private object IdentityConverter extends Converter {
     override def convert[T](source: Any, target: Class[T]): T = source.asInstanceOf[T]
