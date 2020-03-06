@@ -13,7 +13,7 @@ import java.io._
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchWriterConfig
-import org.apache.accumulo.core.client.mock.MockInstance
+import org.locationtech.geomesa.accumulo.MiniCluster
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
@@ -49,7 +49,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
 
   sequential
 
-  lazy val connector = new MockInstance("mycloud").getConnector("user", new PasswordToken("password"))
+  lazy val connector = MiniCluster.connector
 
   val queries = Seq(
     ("INCLUDE", Seq(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)),
