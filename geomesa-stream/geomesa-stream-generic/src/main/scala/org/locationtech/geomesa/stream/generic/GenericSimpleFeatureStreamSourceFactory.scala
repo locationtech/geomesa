@@ -22,6 +22,7 @@ import org.apache.camel.scala.dsl.builder.RouteBuilder
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.stream.{SimpleFeatureStreamSource, SimpleFeatureStreamSourceFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.slf4j.LoggerFactory
 
@@ -102,7 +103,10 @@ class GenericSimpleFeatureStreamSource(val ctx: CamelContext,
           }
         }
         try {
-          input.flatMap(i => p.process(new ByteArrayInputStream(i.getBytes(StandardCharsets.UTF_8)))).foreach(outQ.put)
+          input.foreach { i =>
+            val bytes = new ByteArrayInputStream(i.getBytes(StandardCharsets.UTF_8))
+            WithClose(p.process(bytes))(_.foreach(outQ.put))
+          }
         } catch {
           case t: InterruptedException => running = false
         }
