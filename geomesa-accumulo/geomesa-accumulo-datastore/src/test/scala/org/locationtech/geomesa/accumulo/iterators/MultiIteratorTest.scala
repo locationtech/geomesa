@@ -76,7 +76,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     }
   }
 
-  "Mock Accumulo with fullData" should {
+  "Accumulo with fullData" should {
     val sft = createNewSchema(spec)
     val features = TestData.fullData.map(createSF(_, sft))
     addFeatures(features)
@@ -122,7 +122,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     }
   }
 
-  "Mock Accumulo with a small table" should {
+  "Accumulo with a small table" should {
     val sft = createNewSchema(spec)
     val features = TestData.shortListOfPoints.map(createSF(_, sft))
     addFeatures(features)
@@ -143,7 +143,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     }
   }
 
-  "Realistic Mock Accumulo" should {
+  "Realistic Accumulo" should {
     val sft = createNewSchema(spec)
     val features = (TestData.shortListOfPoints ++ TestData.geohashHitActualNotHit).map(createSF(_, sft))
     addFeatures(features)
@@ -162,7 +162,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     }
   }
 
-  "Large Mock Accumulo" should {
+  "Large Accumulo" should {
     val sft = createNewSchema(spec)
     val features = TestData.hugeData.map(createSF(_, sft))
     addFeatures(features)

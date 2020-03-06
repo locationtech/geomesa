@@ -30,7 +30,6 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 //   .option(GM.userParam.getName, "user")
 //   .option(GM.passwordParam.getName, "password")
 //   .option(GM.tableNameParam.getName, "sparksql")
-//   .option(GM.mockParam.getName, "true")
 //   .option("geomesa.feature", "chicago")
 //   .load()
 // }}

@@ -420,10 +420,6 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
           .asInstanceOf[AccumuloDataStore].config.caching must beTrue
     }
 
-    "not use caching by default with mocks" in {
-      ds.config.caching must beFalse
-    }
-
     "support caching for improved WFS performance due to count/getFeatures" in {
       val ds = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> true)).asInstanceOf[AccumuloDataStore]
 

@@ -35,7 +35,6 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
 
   sequential // note: shouldn't need to be sequential, but h2 doesn't do well with concurrent requests
 
-  // we use class name to prevent spillage between unit tests in the mock connector
   override val spec = "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"
 
   val features = Seq.tabulate(10) { i =>

@@ -38,7 +38,6 @@ Parameter                              Type    Description
 ``lambda.accumulo.user *``             String  Accumulo username
 ``lambda.accumulo.password``           String  Accumulo password
 ``lambda.accumulo.keytab.path``        String  Path to a Kerberos keytab file containing an entry for the specified user
-``lambda.accumulo.mock``               Boolean Use a mock connection (for testing)
 ``lambda.kafka.brokers *``             String  A comma separated list of kafka brokers (e.g. ``broker1:9092,broker2:9092``)
 ``lambda.kafka.zookeepers *``          String  A comma separated list of zookeeper servers (e.g. ``zoo1,zoo2,zoo3`` or ``localhost:2181``)
 ``lambda.kafka.partitions``            Integer Number of partitions used to create new topics. You should generally set this to the number of

@@ -26,7 +26,7 @@ import scala.collection.JavaConverters._
  */
 trait TestWithDataStore extends Specification {
 
-  // we use class name to prevent spillage between unit tests in the mock connector
+  // we use class name to prevent spillage between unit tests
   lazy val catalog = s"${MiniCluster.namespace}.${getClass.getSimpleName}"
 
   // note the table needs to be different to prevent tests from conflicting with each other

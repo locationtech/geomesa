@@ -153,7 +153,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
   def configure(job: Job, params: java.util.Map[String, _], plan: AccumuloQueryPlan): Unit = {
     job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
 
-    // set Mock or Zookeeper instance
+    // set zookeeper instance
     val instance = AccumuloDataStoreParams.InstanceIdParam.lookup(params)
     val zookeepers = AccumuloDataStoreParams.ZookeepersParam.lookup(params)
     val keytabPath = AccumuloDataStoreParams.KeytabPathParam.lookup(params)

@@ -52,7 +52,6 @@ Parameter                              Type    Description
 ``accumulo.write.threads``             Integer The number of threads to use for writing records
 ``geomesa.stats.generate``             Boolean Toggle collection of statistics for newly created feature types
 ``geomesa.query.caching``              Boolean Toggle caching of results
-``accumulo.mock``                      Boolean Use a mock connection (for testing)
 ====================================== ======= ==========================================================================
 
 Note: one (but not both) of ``accumulo.password`` and ``accumulo.keytab.path`` must be provided.

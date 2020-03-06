@@ -26,9 +26,7 @@ trait GeoMesaScalatraServlet extends ScalatraServlet with LazyLogging {
 
   def root: String
 
-  // note: accumulo.mock isn't included in the public parameter info
-  private val dsKeys =
-    DataStoreFinder.getAllDataStores.asScala.flatMap(_.getParametersInfo).map(_.key).toSet + "accumulo.mock"
+  private val dsKeys = DataStoreFinder.getAllDataStores.asScala.flatMap(_.getParametersInfo).map(_.key).toSet
 
   // This may be causing issues within scalatra, to paraphrase a comment:
   //   "Wrapped requests are probably wrapped for a reason"
