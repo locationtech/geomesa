@@ -115,8 +115,8 @@
         <skip.installers.deploy>false</skip.installers.deploy>
 
         <!-- testing properties -->
-        <maven.test.jvmargs>-Xms1g -Xmx8g -XX:-UseGCOverheadLimit</maven.test.jvmargs>
-        <test.fork.count>1</test.fork.count>
+        <maven.test.jvmargs>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit</maven.test.jvmargs>
+        <test.fork.count>4</test.fork.count>
         <test.fork.reuse>true</test.fork.reuse>
         <!-- arrow tests become extremely slow with assertions enabled-->
         <test.enable.assertions>false</test.enable.assertions>
@@ -2100,7 +2100,7 @@
                 <!-- marked provided due to license issues -->
                 <groupId>jline</groupId>
                 <artifactId>jline</artifactId>
-                <version>1.0</version>
+                <version>2.11</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
@@ -2149,6 +2149,12 @@
             <dependency>
                 <groupId>org.apache.accumulo</groupId>
                 <artifactId>accumulo-test</artifactId>
+                <version>${accumulo.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.accumulo</groupId>
+                <artifactId>accumulo-minicluster</artifactId>
                 <version>${accumulo.version}</version>
                 <scope>test</scope>
             </dependency>

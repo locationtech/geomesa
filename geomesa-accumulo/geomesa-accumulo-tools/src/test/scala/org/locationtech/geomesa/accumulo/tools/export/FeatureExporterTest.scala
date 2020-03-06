@@ -13,70 +13,47 @@ import java.nio.charset.StandardCharsets
 import java.util.Date
 import java.util.zip.Deflater
 
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.geotools.data.{DataStoreFinder, Query}
-import org.geotools.util.factory.Hints
-import org.geotools.feature.DefaultFeatureCollection
+import org.geotools.data.Query
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
-import org.locationtech.geomesa.features.ScalaSimpleFeatureFactory
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroDataFileReader
 import org.locationtech.geomesa.tools.export.formats.{AvroExporter, DelimitedExporter}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter.Filter
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FeatureExporterTest extends Specification {
+class FeatureExporterTest extends TestWithFeatureType {
 
-  sequential
+  override val spec = "name:String,geom:Point:srid=4326,dtg:Date"
 
-  def getDataStoreAndSft(sftName: String, numFeatures: Int = 1) = {
-    import scala.collection.JavaConversions._
+  lazy val features =
+    Seq.tabulate(10)(i => ScalaSimpleFeature.create(sft, s"fid-$i", "myname", "POINT(45.0 49.0)", new Date(0)))
 
-    val sft = SimpleFeatureTypes.createType(sftName, "name:String,geom:Point:srid=4326,dtg:Date")
-
-    val featureCollection = new DefaultFeatureCollection(sft.getTypeName, sft)
-
-    val attributes = Array("myname", "POINT(45.0 49.0)", new Date(0))
-    (1 to numFeatures).foreach { i =>
-      val feature = ScalaSimpleFeatureFactory.buildFeature(sft, attributes, s"fid-$i")
-      feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      featureCollection.add(feature)
-    }
-
-    val connector = new MockInstance().getConnector("", new PasswordToken(""))
-
-    val ds = DataStoreFinder.getDataStore(Map(AccumuloDataStoreParams.ConnectorParam.key -> connector,
-      AccumuloDataStoreParams.CatalogParam.key -> sftName, AccumuloDataStoreParams.CachingParam.key -> false))
-    ds.createSchema(sft)
-    ds.asInstanceOf[AccumuloDataStore].getFeatureSource(sftName).addFeatures(featureCollection)
-    (ds, sft)
+  step {
+    addFeatures(features)
   }
 
   "DelimitedExporter" >> {
-    val sftName = "DelimitedExportTest"
-    val (ds, sft) = getDataStoreAndSft(sftName)
 
     "should properly export to CSV" >> {
       val query = new Query(sftName, Filter.INCLUDE)
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteArrayOutputStream()
-      val export = DelimitedExporter.csv(os, null, withHeader = true, includeIds = true)
+      val export = DelimitedExporter.csv(os, null, withHeader = true) // includeIds = true
       export.start(features.getSchema)
       export.export(SelfClosingIterator(features.features()))
       export.close()
 
-      val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n")
-      val (header, data) = (result(0), result(1))
-
-      header mustEqual "id,name:String,*geom:Point:srid=4326,dtg:Date"
-      data mustEqual "fid-1,myname,POINT (45 49),1970-01-01T00:00:00.000Z"
+      val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n").toSeq
+      result must haveLength(11)
+      result.head mustEqual "id,name:String,*geom:Point:srid=4326,dtg:Date"
+      result.tail.map(_.split(',').head) must containTheSameElementsAs(this.features.map(_.getID))
+      foreach(result.tail.map(_.substring(5)))(_ mustEqual ",myname,POINT (45 49),1970-01-01T00:00:00.000Z")
     }
 
     "should handle projections" >> {
@@ -84,16 +61,16 @@ class FeatureExporterTest extends Specification {
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteArrayOutputStream()
-      val export = DelimitedExporter.csv(os, null, withHeader = true, includeIds = true)
+      val export = DelimitedExporter.csv(os, null, withHeader = true) // includeIds = true
       export.start(features.getSchema)
       export.export(SelfClosingIterator(features.features()))
       export.close()
 
-      val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n")
-      val (header, data) = (result(0), result(1))
-
-      header mustEqual "id,*geom:Point:srid=4326,dtg:Date"
-      data mustEqual "fid-1,POINT (45 49),1970-01-01T00:00:00.000Z"
+      val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n").toSeq
+      result must haveLength(11)
+      result.head mustEqual "id,*geom:Point:srid=4326,dtg:Date"
+      result.tail.map(_.split(',').head) must containTheSameElementsAs(this.features.map(_.getID))
+      foreach(result.tail.map(_.substring(5)))(_ mustEqual ",POINT (45 49),1970-01-01T00:00:00.000Z")
     }
 
     "should handle transforms" >> {
@@ -101,16 +78,16 @@ class FeatureExporterTest extends Specification {
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteArrayOutputStream()
-      val export = DelimitedExporter.csv(os, null, withHeader = true, includeIds = true)
+      val export = DelimitedExporter.csv(os, null, withHeader = true) // includeIds = true
       export.start(features.getSchema)
       export.export(SelfClosingIterator(features.features()))
       export.close()
 
-      val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n")
-      val (header, data) = (result(0), result(1))
-
-      header mustEqual "id,derived:String,*geom:Point:srid=4326,dtg:Date"
-      data mustEqual "fid-1,myname-test,POINT (45 49),1970-01-01T00:00:00.000Z"
+      val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n").toSeq
+      result must haveLength(11)
+      result.head mustEqual "id,derived:String,*geom:Point:srid=4326,dtg:Date"
+      result.tail.map(_.split(',').head) must containTheSameElementsAs(this.features.map(_.getID))
+      foreach(result.tail.map(_.substring(5)))(_ mustEqual ",myname-test,POINT (45 49),1970-01-01T00:00:00.000Z")
     }
 
     "should handle escapes" >> {
@@ -118,22 +95,20 @@ class FeatureExporterTest extends Specification {
       val features = ds.getFeatureSource(sftName).getFeatures(query)
 
       val os = new ByteArrayOutputStream()
-      val export = DelimitedExporter.csv(os, null, withHeader = true, includeIds = true)
+      val export = DelimitedExporter.csv(os, null, withHeader = true) // includeIds = true
       export.start(features.getSchema)
       export.export(SelfClosingIterator(features.features()))
       export.close()
 
-      val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n")
-      val (header, data) = (result(0), result(1))
-
-      header mustEqual "id,*geom:Point:srid=4326,dtg:Date,derived:String"
-      data mustEqual "fid-1,POINT (45 49),1970-01-01T00:00:00.000Z,\"myname,test\""
+      val result = new String(os.toByteArray, StandardCharsets.UTF_8).split("\r\n").toSeq
+      result must haveLength(11)
+      result.head mustEqual "id,*geom:Point:srid=4326,dtg:Date,derived:String"
+      result.tail.map(_.split(',').head) must containTheSameElementsAs(this.features.map(_.getID))
+      foreach(result.tail.map(_.substring(5)))(_ mustEqual ",POINT (45 49),1970-01-01T00:00:00.000Z,\"myname,test\"")
     }
   }
 
   "Avro Export" >> {
-    val sftName = "AvroExportTest"
-    val (ds, sft) = getDataStoreAndSft(sftName, 10)
 
     "should handle transforms" >> {
       val query = new Query(sftName, Filter.INCLUDE, Array("geom", "dtg", "derived=strConcat(name, '-test')"))
@@ -150,11 +125,11 @@ class FeatureExporterTest extends Specification {
 
       val features = result.toList
       features must haveLength(10)
-      features.map(_.getID) must containTheSameElementsAs((1 to 10).map("fid-" + _))
+      features.map(_.getID) must containTheSameElementsAs(this.features.map(_.getID))
       forall(features) { feature =>
-        features.head.getAttribute(0) mustEqual WKTUtils.read("POINT(45 49)")
-        features.head.getAttribute(1) mustEqual new Date(0)
-        features.head.getAttribute(2) mustEqual "myname-test" // derived variable gets bumped to the end
+        feature.getAttribute(0) mustEqual WKTUtils.read("POINT(45 49)")
+        feature.getAttribute(1) mustEqual new Date(0)
+        feature.getAttribute(2) mustEqual "myname-test" // derived variable gets bumped to the end
       }
     }
   }

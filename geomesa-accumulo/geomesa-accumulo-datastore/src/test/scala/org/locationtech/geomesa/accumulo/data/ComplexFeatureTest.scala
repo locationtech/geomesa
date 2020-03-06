@@ -14,7 +14,7 @@ import org.geotools.util.factory.Hints
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -23,7 +23,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class ComplexFeatureTest extends Specification with TestWithDataStore {
+class ComplexFeatureTest extends Specification with TestWithFeatureType {
 
   override val spec =
     """

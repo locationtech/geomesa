@@ -79,7 +79,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
   "Mock Accumulo with fullData" should {
     val sft = createNewSchema(spec)
     val features = TestData.fullData.map(createSF(_, sft))
-    addFeatures(sft, features)
+    addFeatures(features)
     val fs = ds.getFeatureSource(sft.getTypeName)
 
     "return the same result for our iterators" in {
@@ -125,7 +125,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
   "Mock Accumulo with a small table" should {
     val sft = createNewSchema(spec)
     val features = TestData.shortListOfPoints.map(createSF(_, sft))
-    addFeatures(sft, features)
+    addFeatures(features)
     val fs = ds.getFeatureSource(sft.getTypeName)
 
     "cover corner cases" in {
@@ -146,7 +146,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
   "Realistic Mock Accumulo" should {
     val sft = createNewSchema(spec)
     val features = (TestData.shortListOfPoints ++ TestData.geohashHitActualNotHit).map(createSF(_, sft))
-    addFeatures(sft, features)
+    addFeatures(features)
     val fs = ds.getFeatureSource(sft.getTypeName)
 
     "handle edge intersection false positives" in {
@@ -165,7 +165,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
   "Large Mock Accumulo" should {
     val sft = createNewSchema(spec)
     val features = TestData.hugeData.map(createSF(_, sft))
-    addFeatures(sft, features)
+    addFeatures(features)
     val fs = ds.getFeatureSource(sft.getTypeName)
 
     "return a partial results-set with a meaningful attribute-filter" in {
@@ -242,7 +242,7 @@ class MultiIteratorTest extends Specification with TestWithMultipleSfts with Laz
     val features: Seq[SimpleFeature] = wkts.zipWithIndex.map {
       case (wkt, i) => createSF(Entry(wkt, s"fid_$i"), sft)
     }
-    addFeatures(sft, features)
+    addFeatures(features)
     val fs = ds.getFeatureSource(sft.getTypeName)
 
     def doesQueryRun(filterString: String, optExpectedCount: Option[Int] = None): Boolean = {

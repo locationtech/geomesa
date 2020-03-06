@@ -9,12 +9,10 @@
 package org.locationtech.geomesa.accumulo.audit
 
 import java.io.Serializable
-import java.util.{Map => jMap}
+import java.util.Collections
 
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.utils.audit.AuditProvider
-
-import scala.collection.JavaConversions._
 
 class ParamsAuditProvider extends AuditProvider {
 
@@ -22,9 +20,9 @@ class ParamsAuditProvider extends AuditProvider {
 
   override def getCurrentUserId: String = id
 
-  override val getCurrentUserDetails: jMap[AnyRef, AnyRef] = Map.empty[AnyRef, AnyRef]
+  override val getCurrentUserDetails: java.util.Map[AnyRef, AnyRef] = Collections.emptyMap()
 
-  override def configure(params: jMap[String, Serializable]): Unit = {
+  override def configure(params: java.util.Map[String, _ <: Serializable]): Unit = {
     import AccumuloDataStoreParams._
     val user = if (ConnectorParam.exists(params)) {
       ConnectorParam.lookup(params).whoami()

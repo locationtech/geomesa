@@ -9,23 +9,25 @@
 package org.locationtech.geomesa.accumulo.data
 
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
-import org.apache.accumulo.core.security.Authorizations
+import org.apache.accumulo.core.client.Connector
+import org.apache.accumulo.core.security.{Authorizations, TablePermission}
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithFeatureType}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.runner.JUnitRunner
 
+import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
-
+import java.util.{List => JList}
 @RunWith(classOf[JUnitRunner])
-class VisibilitiesTest extends TestWithDataStore {
-
+class VisibilitiesTest extends TestWithFeatureType {
+  
   sequential
 
   override val spec = "name:String:index=full,dtg:Date,*geom:Point:srid=4326"
@@ -42,18 +44,9 @@ class VisibilitiesTest extends TestWithDataStore {
     sf.getUserData.put(Hints.USE_PROVIDED_FID, Boolean.box(true))
     sf
   }
-
-  val privDS = {
-    val connector = mockInstance.getConnector("priv", new PasswordToken(mockPassword))
-    connector.securityOperations().changeUserAuthorizations("priv", new Authorizations("user", "admin"))
-    DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connector))
-  }
-  val unprivDS = {
-    val connector = mockInstance.getConnector("unpriv", new PasswordToken(mockPassword))
-    connector.securityOperations().changeUserAuthorizations("unpriv", new Authorizations("user"))
-    DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.ConnectorParam.key -> connector))
-  }
-
+  val privDS = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.UserParam.key -> admin.name))
+  val unprivDS = DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.UserParam.key -> user.name))
+  
   step {
     addFeatures(privFeatures ++ unprivFeatures)
   }

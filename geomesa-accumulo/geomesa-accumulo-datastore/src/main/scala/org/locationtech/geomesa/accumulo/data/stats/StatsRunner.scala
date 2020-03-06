@@ -15,10 +15,10 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{Callable, Executors, Future, TimeUnit}
 
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
-import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.text.StringSerialization
+import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
@@ -105,7 +105,7 @@ class StatsRunner(ds: AccumuloDataStore) extends Runnable with Closeable {
 class StatRunner(ds: AccumuloDataStore, sft: SimpleFeatureType, lockTimeout: Option[Long] = None)
     extends Callable[Instant] with ZookeeperLocking {
 
-  override val connector = ds.connector
+  override protected def zookeepers: String = ds.connector.getInstance.getZooKeepers
 
   /**
     * Runs stats for the simple feature type

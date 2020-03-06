@@ -20,9 +20,6 @@ trait AccumuloDataStoreParams extends AccumuloConnectionParams with CatalogParam
 trait InstanceNameParams extends OptionalZookeepersParam {
   @Parameter(names = Array("-i", "--instance"), description = "Accumulo instance name")
   var instance: String = _
-
-  @Parameter(names = Array("--mock"), description = "Run everything with a mock accumulo instance instead of a real one")
-  var mock: Boolean = false
 }
 
 trait AccumuloConnectionParams extends InstanceNameParams with RequiredCredentialsParams with KerberosParams {

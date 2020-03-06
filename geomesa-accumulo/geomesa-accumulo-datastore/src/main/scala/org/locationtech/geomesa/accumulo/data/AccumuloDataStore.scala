@@ -13,7 +13,6 @@ import java.util.Locale
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client._
-import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.security.UserGroupInformation
@@ -25,7 +24,6 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore.AccumuloDataStor
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator, ProjectVersionIterator}
-import org.locationtech.geomesa.accumulo.util.ZookeeperLocking
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
@@ -46,6 +44,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs.Overri
 import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.io.{CloseQuietly, HadoopUtils, WithClose}
 import org.locationtech.geomesa.utils.stats.{IndexCoverage, Stat}
+import org.locationtech.geomesa.utils.zk.ZookeeperLocking
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
@@ -69,6 +68,8 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   override val adapter: AccumuloIndexAdapter = new AccumuloIndexAdapter(this)
 
   override val stats: AccumuloGeoMesaStats = AccumuloGeoMesaStats(this)
+
+  override protected def zookeepers: String = connector.getInstance.getZooKeepers
 
   // If on a secured cluster, create a thread to periodically renew Kerberos tgt
   private val kerberosTgtRenewer = {

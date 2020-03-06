@@ -64,12 +64,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
       splits: => Seq[Array[Byte]]): Unit = {
     val table = index.configureTableName(partition) // writes table name to metadata
     // create table if it doesn't exist
-    val created = if (ds.connector.isInstanceOf[org.apache.accumulo.core.client.mock.MockConnector]) {
-      // we need to synchronize creation of tables in mock accumulo as it's not thread safe
-      ds.connector.synchronized(AccumuloVersion.createTableIfNeeded(ds.connector, table, index.sft.isLogicalTime))
-    } else {
-      AccumuloVersion.createTableIfNeeded(ds.connector, table, index.sft.isLogicalTime)
-    }
+    val created = AccumuloVersion.createTableIfNeeded(ds.connector, table, index.sft.isLogicalTime)
 
     // even if the table existed, we still need to check the splits and locality groups if its shared
     if (created || index.keySpace.sharing.nonEmpty) {
@@ -113,26 +108,14 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
 
   override def renameTable(from: String, to: String): Unit = {
     if (tableOps.exists(from)) {
-      // noinspection ScalaDeprecation
-      if (ds.connector.isInstanceOf[org.apache.accumulo.core.client.mock.MockConnector]) {
-        // we need to synchronize renaming tables in mock accumulo as it's not thread safe
-        ds.connector.synchronized(tableOps.rename(from, to))
-      } else {
-        tableOps.rename(from, to)
-      }
+      tableOps.rename(from, to)
     }
   }
 
   override def deleteTables(tables: Seq[String]): Unit = {
     tables.par.foreach { table =>
       if (tableOps.exists(table)) {
-        // noinspection ScalaDeprecation
-        if (ds.connector.isInstanceOf[org.apache.accumulo.core.client.mock.MockConnector]) {
-          // we need to synchronize deleting of tables in mock accumulo as it's not thread safe
-          ds.connector.synchronized(tableOps.delete(table))
-        } else {
-          tableOps.delete(table)
-        }
+        tableOps.delete(table)
       }
     }
   }

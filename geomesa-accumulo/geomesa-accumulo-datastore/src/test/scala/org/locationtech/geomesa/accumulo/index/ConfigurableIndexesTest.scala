@@ -12,7 +12,7 @@ import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
@@ -25,7 +25,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ConfigurableIndexesTest extends Specification with TestWithDataStore {
+class ConfigurableIndexesTest extends Specification with TestWithFeatureType {
 
   sequential
 
@@ -88,7 +88,7 @@ class ConfigurableIndexesTest extends Specification with TestWithDataStore {
         foreach(tables)(t => ds.connector.tableOperations().exists(t) must beTrue)
         if (i.name == Z2Index.name) {
           foreach(tables) { table =>
-            WithClose(connector.createScanner(table, new Authorizations))(_.iterator.hasNext must beFalse)
+            WithClose(ds.connector.createScanner(table, new Authorizations))(_.iterator.hasNext must beFalse)
           }
         } else {
           ok

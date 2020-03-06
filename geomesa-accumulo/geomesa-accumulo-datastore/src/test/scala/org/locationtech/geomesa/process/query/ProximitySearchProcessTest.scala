@@ -100,7 +100,7 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
     "work for a complex case with dates" in {
       // create lineBuffer SFC
       val lineSft = createNewSchema("*geom:LineString:srid=4326,dtg:Date")
-      addFeature(lineSft, ScalaSimpleFeature.create(lineSft, "query", "LINESTRING (-45 0, -90 45)", "2014-06-07T12:00:00.000Z"))
+      addFeature(ScalaSimpleFeature.create(lineSft, "query", "LINESTRING (-45 0, -90 45)", "2014-06-07T12:00:00.000Z"))
       val queryLine = ds.getFeatureSource(lineSft.getTypeName).getFeatures
 
       // create the data store
@@ -109,12 +109,12 @@ class ProximitySearchProcessTest extends Specification with TestWithMultipleSfts
 
       // add the 150 excluded points
       TestData.excludedDwithinPoints.zipWithIndex.foreach{ case (p, i) =>
-        addFeature(sftPoints, ScalaSimpleFeature.create(sftPoints, s"exfid$i", p, "2014-06-07T12:00:00.000Z"))
+        addFeature(ScalaSimpleFeature.create(sftPoints, s"exfid$i", p, "2014-06-07T12:00:00.000Z"))
       }
 
       // add the 50 included points
       TestData.includedDwithinPoints.zipWithIndex.foreach{ case (p, i) =>
-        addFeature(sftPoints, ScalaSimpleFeature.create(sftPoints, "infid$i", p, "2014-06-07T12:00:00.000Z"))
+        addFeature(ScalaSimpleFeature.create(sftPoints, "infid$i", p, "2014-06-07T12:00:00.000Z"))
       }
 
       // compose the query

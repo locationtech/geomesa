@@ -25,7 +25,8 @@ import org.geotools.geojson.feature.FeatureJSON
 import org.geotools.util.URLs
 import org.geotools.wfs.GML
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -42,7 +43,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class AccumuloExportCommandTest extends TestWithDataStore {
+class AccumuloExportCommandTest extends TestWithFeatureType {
 
   import scala.collection.JavaConverters._
 
@@ -57,15 +58,15 @@ class AccumuloExportCommandTest extends TestWithDataStore {
     ScalaSimpleFeature.create(sft, "id2", "name2", "2016-01-02T00:00:00.000Z", "POINT(0 2)")
   )
 
-  def connectedCommand(): AccumuloExportCommand = {
+  def createCommand(): AccumuloExportCommand = {
     val command = new AccumuloExportCommand()
-    command.params.user        = mockUser
-    command.params.instance    = mockInstanceId
-    command.params.zookeepers  = mockZookeepers
-    command.params.password    = mockPassword
-    command.params.catalog     = catalog
+    command.params.user        = dsParams(AccumuloDataStoreParams.UserParam.key)
+    command.params.instance    = dsParams(AccumuloDataStoreParams.InstanceIdParam.key)
+    command.params.zookeepers  = dsParams(AccumuloDataStoreParams.ZookeepersParam.key)
+    command.params.password    = dsParams(AccumuloDataStoreParams.PasswordParam.key)
+    command.params.catalog     = dsParams(AccumuloDataStoreParams.CatalogParam.key)
     command.params.featureName = sftName
-    command.params.mock        = true
+    command.params.maxFeatures = 100 // suppress leaflet complaints
     command
   }
 
@@ -80,7 +81,7 @@ class AccumuloExportCommandTest extends TestWithDataStore {
     "export to different file formats" in {
       forall(formats) { format =>
         val file = s"$out/${format.name}/base/out.${format.extensions.head}"
-        val command = connectedCommand()
+        val command = createCommand()
         command.params.file = file
         command.execute()
         readFeatures(format, file) must containTheSameElementsAs(features)
@@ -89,7 +90,7 @@ class AccumuloExportCommandTest extends TestWithDataStore {
     "support filtering" in {
       forall(formats) { format =>
         val file = s"$out/${format.name}/filter/out.${format.extensions.head}"
-        val command = connectedCommand()
+        val command = createCommand()
         command.params.file = file
         command.params.cqlFilter = ECQL.toFilter("dtg = '2016-01-01T00:00:00.000Z'")
         command.execute()
@@ -99,7 +100,7 @@ class AccumuloExportCommandTest extends TestWithDataStore {
     "support relational projections" in {
       forall(formats) { format =>
         val file = s"$out/${format.name}/project/out.${format.extensions.head}"
-        val command = connectedCommand()
+        val command = createCommand()
         command.params.file = file
         command.params.attributes = List("dtg", "geom", "id").asJava
         command.execute()
@@ -108,9 +109,10 @@ class AccumuloExportCommandTest extends TestWithDataStore {
       }
     }
     "support sorting" in {
-      forall(formats) { format =>
+      // exclude BIN as we only sort per-batch but not globally
+      forall(formats.filter(_ != ExportFormat.Bin)) { format =>
         val file = s"$out/${format.name}/sort/out.${format.extensions.head}"
-        val command = connectedCommand()
+        val command = createCommand()
         command.params.file = file
         command.params.sortFields = Collections.singletonList("dtg")
         command.execute()
@@ -119,7 +121,7 @@ class AccumuloExportCommandTest extends TestWithDataStore {
       // exclude BIN as we only support sort in ascending order
       forall(formats.filter(_ != ExportFormat.Bin)) { format =>
         val file = s"$out/${format.name}/sort-rev/out.${format.extensions.head}"
-        val command = connectedCommand()
+        val command = createCommand()
         command.params.file = file
         command.params.sortFields = Collections.singletonList("dtg")
         command.params.sortDescending = true
@@ -131,7 +133,7 @@ class AccumuloExportCommandTest extends TestWithDataStore {
       // note: arrow and bin use server side aggregation, so we can't get an exact feature limit
       forall(formats.filter(f => f != ExportFormat.Arrow && f != ExportFormat.Bin)) { format =>
         val file = s"$out/${format.name}/max/out.${format.extensions.head}"
-        val command = connectedCommand()
+        val command = createCommand()
         command.params.file = file
         command.params.maxFeatures = 1
         command.execute()

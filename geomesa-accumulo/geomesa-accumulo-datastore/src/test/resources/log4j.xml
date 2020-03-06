@@ -8,19 +8,25 @@
     </appender>
 
     <category name="org.apache.zookeeper">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
     <category name="org.apache.accumulo">
-        <priority value="warn"/>
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.thrift">
+        <priority value="error"/>
     </category>
     <category name="org.apache.hadoop">
-        <priority value="warn"/>
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.curator">
+        <priority value="error"/>
     </category>
     <category name="org.apache.curator">
         <priority value="warn"/>
     </category>
     <category name="hsqldb">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
 
     <!-- un-comment the following line to enable verbose log messages

@@ -18,7 +18,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.accumulo.iterators.TestData
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -32,7 +32,7 @@ import org.specs2.runner.JUnitRunner
 
 
 @RunWith(classOf[JUnitRunner])
-class FilterTest extends Specification with TestWithDataStore with LazyLogging {
+class FilterTest extends Specification with TestWithFeatureType with LazyLogging {
 
   override val spec = SimpleFeatureTypes.encodeType(TestData.featureType, includeUserData = true)
 
@@ -106,7 +106,7 @@ class FilterTest extends Specification with TestWithDataStore with LazyLogging {
 }
 
 @RunWith(classOf[JUnitRunner])
-class IdQueryTest extends Specification with TestWithDataStore {
+class IdQueryTest extends Specification with TestWithFeatureType {
 
   import org.locationtech.geomesa.filter.ff
 

@@ -403,7 +403,7 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
         }
       }
 
-      def rename(stat: Stat): Stat = {
+      def rename(stat: Stat): Option[Stat] = {
         val copy: Option[Stat] = stat match {
           case _: CountStat =>
             None
@@ -432,13 +432,16 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
             }
 
           case s: SeqStat =>
-            Some(new SeqStat(sft, s.stats.map(rename)))
+            val children = s.stats.map(rename)
+            if (children.forall(_.isEmpty)) { None } else {
+              Some(new SeqStat(sft, children.zip(s.stats).map { case (opt, default) => opt.getOrElse(default) }))
+            }
 
           case s =>
             throw new NotImplementedError(s"Unexpected stat: $s")
         }
         copy.foreach(_ += stat)
-        copy.getOrElse(stat)
+        copy
       }
 
       if (names.nonEmpty || sft.getTypeName != previous.getTypeName) {
@@ -452,11 +455,19 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
         val old = try { metadata.scan(previous.getTypeName, "", cache = false).toList } finally {
           serializer.foreach(s => s.cache.remove(previous.getTypeName)) // will re-load latest from data store
         }
-        old.foreach { case (key, stat) =>
-          val renamed = getStatsForWrite(rename(stat), sft, merge = false)
-          write(sft.getTypeName, renamed)
-          if (sft.getTypeName != previous.getTypeName || !renamed.exists(_.key == key)) {
+        // note: we can avoid a compaction by setting merge = true, since there won't be any previous values
+        if (sft.getTypeName != previous.getTypeName) {
+          old.foreach { case (key, stat) =>
+            val renamed = getStatsForWrite(rename(stat).getOrElse(stat), sft, merge = true)
+            write(sft.getTypeName, renamed)
             metadata.remove(previous.getTypeName, key)
+          }
+        } else {
+          old.foreach { case (key, stat) =>
+            rename(stat).foreach { r =>
+              write(sft.getTypeName, getStatsForWrite(r, sft, merge = true))
+              metadata.remove(previous.getTypeName, key)
+            }
           }
         }
       }

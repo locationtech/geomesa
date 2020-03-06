@@ -12,23 +12,20 @@ import java.nio.file.{Files, Path}
 import java.util.Date
 
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions, ConfigValueFactory}
-import org.apache.arrow.memory.BufferAllocator
-import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 import org.locationtech.jts.geom.Point
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class RoutedDataStoreViewTest extends Specification {
+class RoutedDataStoreViewTest extends TestWithFeatureType {
 
   import scala.collection.JavaConverters._
 
@@ -39,30 +36,20 @@ class RoutedDataStoreViewTest extends Specification {
   sequential // note: shouldn't need to be sequential, but h2 doesn't do well with concurrent requests
 
   // we use class name to prevent spillage between unit tests in the mock connector
-  val sftName: String = getClass.getSimpleName
-  val spec = "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"
-  val sft = SimpleFeatureTypes.createType(sftName, spec)
+  override val spec = "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"
 
   val features = Seq.tabulate(10) { i =>
     ScalaSimpleFeature.create(sft, s"$i", s"name$i", 20 + i, s"2018-01-01T00:0$i:00.000Z", s"POINT (45 5$i)")
   }
 
-  implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
-
-  val accumuloParams = Map(
-    AccumuloDataStoreParams.InstanceIdParam.key -> "mycloud",
-    AccumuloDataStoreParams.ZookeepersParam.key -> "myzoo",
-    AccumuloDataStoreParams.UserParam.key       -> "user",
-    AccumuloDataStoreParams.PasswordParam.key   -> "password",
-    AccumuloDataStoreParams.CatalogParam.key    -> sftName,
-    AccumuloDataStoreParams.MockParam.key       -> "true",
-    RouteSelectorByAttribute.RouteAttributes   -> Seq(Seq.empty.asJava, "id", "geom", Seq("dtg", "geom").asJava).asJava
-  ).asJava
+  val accumuloParams =
+    (dsParams +
+      (RouteSelectorByAttribute.RouteAttributes -> Seq(Seq.empty.asJava, "id", "geom", Seq("dtg", "geom").asJava).asJava)).asJava
 
   var h2Params: java.util.Map[String, _] = _
 
   var path: Path = _
-  var ds: RoutedDataStoreView = _
+  var routedDs: RoutedDataStoreView = _
 
   def comboParams(params: java.util.Map[String, _]*): java.util.Map[String, String] = {
     val configs = params.map(ConfigValueFactory.fromMap).asJava
@@ -95,16 +82,16 @@ class RoutedDataStoreViewTest extends Specification {
     h2Ds.dispose()
     accumuloDs.dispose()
 
-    ds = DataStoreFinder.getDataStore(comboParams(h2Params, accumuloParams)).asInstanceOf[RoutedDataStoreView]
-    ds must not(beNull)
+    routedDs = DataStoreFinder.getDataStore(comboParams(h2Params, accumuloParams)).asInstanceOf[RoutedDataStoreView]
+    routedDs must not(beNull)
   }
 
   "MergedDataStoreView" should {
     "load multiple datastores" in {
-      ds.getTypeNames mustEqual Array(sftName)
-      ds.getNames.asScala mustEqual Seq(new NameImpl(sftName))
+      routedDs.getTypeNames mustEqual Array(sftName)
+      routedDs.getNames.asScala mustEqual Seq(new NameImpl(sftName))
 
-      val sft = ds.getSchema(sftName)
+      val sft = routedDs.getSchema(sftName)
 
       sft.getAttributeCount mustEqual 4
       sft.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual Seq("name", "age", "dtg", "geom")
@@ -113,7 +100,7 @@ class RoutedDataStoreViewTest extends Specification {
     }
 
     "query multiple data stores" in {
-      val results = SelfClosingIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList
+      val results = SelfClosingIterator(routedDs.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList
 
       results must haveLength(10)
       foreach(results.sortBy(_.getAttribute(0).asInstanceOf[String]).zip(features)) { case (actual, expected) =>
@@ -135,7 +122,7 @@ class RoutedDataStoreViewTest extends Specification {
         val ecql = ECQL.toFilter(filter)
         foreach(transforms) { transform =>
           val query = new Query(sftName, ecql, transform)
-          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          val results = SelfClosingIterator(routedDs.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           results must haveLength(4)
           val attributes = Option(transform).getOrElse(sft.getAttributeDescriptors.asScala.map(_.getLocalName).toArray)
           forall(results) { feature =>
@@ -153,9 +140,8 @@ class RoutedDataStoreViewTest extends Specification {
   }
 
   step {
-    ds.dispose()
+    routedDs.dispose()
     PathUtils.deleteRecursively(path)
-    allocator.close()
   }
 }
 

@@ -208,7 +208,7 @@ class HBaseVisibilityTest extends Specification with LazyLogging {
       var auths = List.empty[String]
       val authsProvider = new AuthorizationsProvider {
         override def getAuthorizations: util.List[String] = auths
-        override def configure(params: util.Map[String, Serializable]): Unit = {}
+        override def configure(params: util.Map[String, _ <: Serializable]): Unit = {}
       }
 
       val typeName = "vistest1"

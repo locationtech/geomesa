@@ -24,7 +24,7 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.index.JoinIndex
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -290,7 +290,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
 }
 
 @RunWith(classOf[JUnitRunner])
-class BackCompatibilityWriter extends TestWithDataStore {
+class BackCompatibilityWriter extends TestWithFeatureType {
 
   override val spec = "name:String:index=join,dtg:Date,*geom:Point:srid=4326,multi:MultiPolygon:srid=4326"
 
@@ -319,12 +319,12 @@ class BackCompatibilityWriter extends TestWithDataStore {
         output.write(text.getBytes, 0, text.getLength)
       }
 
-      val tables = connector.tableOperations().list().filter(_.startsWith(sftName))
+      val tables = ds.connector.tableOperations().list().filter(_.startsWith(sftName))
       output.writeInt(tables.size)
       tables.foreach { table =>
         output.writeAscii(table)
-        output.writeInt(connector.createScanner(table, new Authorizations()).size)
-        connector.createScanner(table, new Authorizations()).foreach { entry =>
+        output.writeInt(ds.connector.createScanner(table, new Authorizations()).size)
+        ds.connector.createScanner(table, new Authorizations()).foreach { entry =>
           val key = entry.getKey
           Seq(key.getRow, key.getColumnFamily, key.getColumnQualifier, key.getColumnVisibility).foreach(writeText)
           output.writeLong(key.getTimestamp)
