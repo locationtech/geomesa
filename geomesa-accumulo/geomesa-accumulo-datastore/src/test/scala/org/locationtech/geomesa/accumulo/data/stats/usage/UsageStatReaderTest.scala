@@ -10,46 +10,38 @@ package org.locationtech.geomesa.accumulo.data.stats.usage
 
 import java.time.{Instant, ZoneOffset, ZonedDateTime}
 
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.audit._
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.utils.text.DateParsing
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class UsageStatReaderTest extends Specification {
+class UsageStatReaderTest extends TestWithDataStore {
 
-  val catalogTable = "geomesa_catalog"
   val featureName = "stat_reader_test"
-  val statsTable = s"${catalogTable}_${featureName}_queries"
+  val statsTable = s"${catalog}_${featureName}_queries"
 
   implicit val transform: AccumuloEventTransform[QueryEvent] = AccumuloQueryEventTransform
 
-  val connector = new MockInstance().getConnector("user", new PasswordToken("password"))
-
   val auths = new Authorizations()
 
-  val writer = new AccumuloEventWriter(connector, statsTable)
+  lazy val writer = new AccumuloEventWriter(ds.connector, statsTable)
+  lazy val reader = new AccumuloEventReader(ds.connector, statsTable)
 
-  def writeStat(stats: Seq[QueryEvent], tableName: String): Unit = {
-    stats.foreach(writer.queueStat(_))
-    writer.run()
-  }
-
-  "QueryStatReader" should {
-
+  step {
     val stats = Seq(
       QueryEvent(AccumuloAuditService.StoreType, featureName, DateParsing.parseMillis("2014-07-26T13:20:01Z"), "user1", "query1", "hint1=true", 101L, 201L, 11),
       QueryEvent(AccumuloAuditService.StoreType, featureName, DateParsing.parseMillis("2014-07-26T14:20:01Z"), "user1", "query2", "hint2=true", 102L, 202L, 12),
       QueryEvent(AccumuloAuditService.StoreType, featureName, DateParsing.parseMillis("2014-07-27T13:20:01Z"), "user1", "query3", "hint3=true", 102L, 202L, 12)
     )
-    writeStat(stats, statsTable)
+    stats.foreach(writer.queueStat(_))
+    writer.run()
+  }
 
-    val reader = new AccumuloEventReader(connector, statsTable)
+  "QueryStatReader" should {
 
     "query all stats in order" in {
       val dates = (ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC), ZonedDateTime.now(ZoneOffset.UTC))
@@ -92,5 +84,4 @@ class UsageStatReaderTest extends Specification {
       list(0).filter mustEqual "query1"
     }
   }
-
 }
