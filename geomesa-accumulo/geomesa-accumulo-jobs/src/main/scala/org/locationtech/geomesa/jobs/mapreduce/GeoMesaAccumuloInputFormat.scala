@@ -17,7 +17,7 @@ import java.util.Collections
 import java.util.Map.Entry
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.mapreduce.{AbstractInputFormat, AccumuloInputFormat, InputFormatBase, RangeInputSplit}
+import org.apache.accumulo.core.client.mapreduce.{AccumuloInputFormat, InputFormatBase, RangeInputSplit}
 import org.apache.accumulo.core.client.security.tokens.{KerberosToken, PasswordToken}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
@@ -153,16 +153,12 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
   def configure(job: Job, params: java.util.Map[String, _], plan: AccumuloQueryPlan): Unit = {
     job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
 
-    // set Mock or Zookeeper instance
+    // set zookeeper instance
     val instance = AccumuloDataStoreParams.InstanceIdParam.lookup(params)
     val zookeepers = AccumuloDataStoreParams.ZookeepersParam.lookup(params)
     val keytabPath = AccumuloDataStoreParams.KeytabPathParam.lookup(params)
 
-    if (AccumuloDataStoreParams.MockParam.lookup(params)) {
-      AbstractInputFormat.setMockInstance(job, instance)
-    } else {
-      InputFormatBaseAdapter.setZooKeeperInstance(job, instance, zookeepers, keytabPath != null)
-    }
+    InputFormatBaseAdapter.setZooKeeperInstance(job, instance, zookeepers, keytabPath != null)
 
     // set connector info
     val user = AccumuloDataStoreParams.UserParam.lookup(params)

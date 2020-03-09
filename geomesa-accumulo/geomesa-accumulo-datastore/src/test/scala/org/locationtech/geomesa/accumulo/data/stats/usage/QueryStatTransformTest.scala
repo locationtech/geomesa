@@ -8,46 +8,42 @@
 
 package org.locationtech.geomesa.accumulo.data.stats.usage
 
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.Query
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, AccumuloQueryEventTransform}
 import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
 import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class QueryStatTransformTest extends Specification {
+class QueryStatTransformTest extends TestWithDataStore {
 
-  val table = "QueryStatTransformTest"
   val featureName = "stat-writer-test"
-
-  val connector = new MockInstance().getConnector("user", new PasswordToken("password"))
-  connector.tableOperations().create(table)
 
   "QueryStatTransform" should {
 
     "convert query stats to and from accumulo" in {
 
+      ds.connector.tableOperations().create(catalog)
+
       // currently we don't restore table and feature in the query stat - thus setting them null here
       val stat = QueryEvent(AccumuloAuditService.StoreType, featureName, 500L, "user1", "attr=1", "hint1=true", 101L, 201L, 11)
 
-      val writer = connector.createBatchWriter(table, GeoMesaBatchWriterConfig())
+      val writer = ds.connector.createBatchWriter(catalog, GeoMesaBatchWriterConfig())
 
       writer.addMutation(AccumuloQueryEventTransform.toMutation(stat))
       writer.flush()
       writer.close()
 
-      val scanner = connector.createScanner(table, new Authorizations())
+      val scanner = ds.connector.createScanner(catalog, new Authorizations())
 
       val converted = AccumuloQueryEventTransform.toEvent(scanner.iterator().asScala.toList)
 

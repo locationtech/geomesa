@@ -45,6 +45,5 @@ abstract class AbstractConverterIngest(dsParams: Map[String, String], sft: Simpl
 
   protected def runIngest(ds: DataStore, sft: SimpleFeatureType, callback: StatusCallback): Unit
 
-  private def createCallback(): StatusCallback =
-    StatusCallback(Seq("accumulo.mock", "useMock").exists(dsParams.get(_).exists(_.toBoolean)))
+  private def createCallback(): StatusCallback = StatusCallback()
 }

@@ -15,7 +15,7 @@ import org.apache.accumulo.core.security.Authorizations
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.iterators.{BinAggregatingIterator, Z3Iterator}
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -33,7 +33,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class Z3IdxStrategyTest extends Specification with TestWithDataStore {
+class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
 
   sequential // note: test doesn't need to be sequential but it actually runs faster this way
 

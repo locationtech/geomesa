@@ -225,8 +225,7 @@ class KafkaDataStore(
   }
 
   // zookeeper locking methods
-  override def mock: Boolean = false
-  override def zookeepers: String = config.zookeepers
+  override protected def zookeepers: String = config.zookeepers
 }
 
 object KafkaDataStore extends LazyLogging {

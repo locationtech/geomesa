@@ -19,7 +19,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.iterators.DensityScan
@@ -30,7 +30,7 @@ import org.specs2.runner.JUnitRunner
 import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
-class KryoLazyDensityIteratorTest extends Specification with TestWithDataStore {
+class KryoLazyDensityIteratorTest extends Specification with TestWithFeatureType {
 
   sequential
 

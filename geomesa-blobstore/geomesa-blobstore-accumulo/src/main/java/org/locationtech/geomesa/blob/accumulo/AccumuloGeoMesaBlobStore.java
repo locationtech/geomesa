@@ -36,13 +36,13 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaIndexedBlobStore {
         }
     }
 
-    public AccumuloGeoMesaBlobStore(final String instanceId,
-                                    final String tableName,
-                                    final String zookeepers,
-                                    final String user,
-                                    final String password,
-                                    final String auths,
-                                    final Boolean useMock) throws IOException {
+    public AccumuloGeoMesaBlobStore(
+          final String instanceId,
+          final String tableName,
+          final String zookeepers,
+          final String user,
+          final String password,
+          final String auths) throws IOException {
         this(new HashMap<String, Serializable>() {{
             put(AccumuloDataStoreParams.InstanceIdParam().key, instanceId);
             put(AccumuloDataStoreParams.CatalogParam().key, tableName);
@@ -50,7 +50,6 @@ public class AccumuloGeoMesaBlobStore implements GeoMesaIndexedBlobStore {
             put(AccumuloDataStoreParams.UserParam().key, user);
             put(AccumuloDataStoreParams.PasswordParam().key, password);
             put(AccumuloDataStoreParams.AuthsParam().key, auths);
-            put(AccumuloDataStoreParams.MockParam().key, useMock.toString());
         }});
     }
 

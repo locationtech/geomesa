@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.audit
 
 import org.apache.accumulo.core.client.BatchWriterConfig
-import org.apache.accumulo.core.client.mock.MockInstance
+import org.locationtech.geomesa.accumulo.MiniCluster
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.Authorizations
 import org.junit.runner.RunWith
@@ -20,13 +20,7 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class AccumuloQueryEventTransformTest extends Specification {
-
-  lazy val mockInstanceId = "mycloud"
-  lazy val mockUser = "user"
-  lazy val mockPassword = "password"
-
-  lazy val mockInstance = new MockInstance(mockInstanceId)
-  lazy val connector = mockInstance.getConnector(mockUser, new PasswordToken(mockPassword))
+  lazy val connector = MiniCluster.connector
 
   "AccumuloQueryEventTransform" should {
     "Convert from and to mutations" in {

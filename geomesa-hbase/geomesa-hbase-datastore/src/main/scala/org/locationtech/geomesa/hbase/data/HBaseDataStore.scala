@@ -52,7 +52,6 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
   override val stats: GeoMesaStats = new RunnableStats(this)
 
   // zookeeper locking
-  override protected val mock: Boolean = false
   override protected val zookeepers: String = ZKConfig.getZKQuorumServersString(connection.getConfiguration)
 
   override def getQueryPlan(query: Query, index: Option[String], explainer: Explainer): Seq[HBaseQueryPlan] =

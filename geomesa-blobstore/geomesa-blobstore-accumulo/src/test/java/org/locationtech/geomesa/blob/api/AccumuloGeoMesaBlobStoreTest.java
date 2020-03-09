@@ -11,6 +11,7 @@ package org.locationtech.geomesa.blob.api;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.locationtech.geomesa.accumulo.MiniCluster;
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams;
 import org.locationtech.geomesa.blob.accumulo.AccumuloGeoMesaBlobStore;
 import org.opengis.filter.Filter;
@@ -33,12 +34,11 @@ public class AccumuloGeoMesaBlobStoreTest {
     @Before
     public void before()  throws Exception {
         Map<String, Serializable> testParams = new HashMap<>();
-        testParams.put(AccumuloDataStoreParams.InstanceIdParam().key, "mycloud");
-        testParams.put(AccumuloDataStoreParams.ZookeepersParam().key, "zoo1:2181,zoo2:2181,zoo3:2181");
-        testParams.put(AccumuloDataStoreParams.UserParam().key, "myuser");
-        testParams.put(AccumuloDataStoreParams.PasswordParam().key, "mypassword");
+        testParams.put(AccumuloDataStoreParams.InstanceIdParam().key, MiniCluster.cluster().getInstanceName());
+        testParams.put(AccumuloDataStoreParams.ZookeepersParam().key, MiniCluster.cluster().getZooKeepers());
+        testParams.put(AccumuloDataStoreParams.UserParam().key, MiniCluster.Users$.MODULE$.root().name());
+        testParams.put(AccumuloDataStoreParams.PasswordParam().key, MiniCluster.Users$.MODULE$.root().password());
         testParams.put(AccumuloDataStoreParams.CatalogParam().key, "geomesaJava");
-        testParams.put(AccumuloDataStoreParams.MockParam().key, "true");
         agbs = new AccumuloGeoMesaBlobStore(testParams);
     }
 
@@ -77,7 +77,6 @@ public class AccumuloGeoMesaBlobStoreTest {
             postDeleteIds.next();
             assertFalse(postDeleteIds.hasNext());
         }
-
     }
 
     @Test
@@ -99,14 +98,13 @@ public class AccumuloGeoMesaBlobStoreTest {
 
     @Test
     public void testOtherConstructor() throws Exception {
-        final String instance = "mycloud2";
-        final String zoo = "zoo1";
-        final String user = "myuser";
-        final String pass = "mypassword";
+        final String instance = MiniCluster.cluster().getInstanceName();
+        final String zoo = MiniCluster.cluster().getZooKeepers();
+        final String user = MiniCluster.Users$.MODULE$.root().name();
+        final String pass = MiniCluster.Users$.MODULE$.root().password();
         final String table = "geomesatest2";
         final String auths = "";
-        final Boolean mock = Boolean.TRUE;
-        final AccumuloGeoMesaBlobStore bs = new AccumuloGeoMesaBlobStore(instance, table, zoo, user, pass, auths, mock);
+        final AccumuloGeoMesaBlobStore bs = new AccumuloGeoMesaBlobStore(instance, table, zoo, user, pass, auths);
 
         final Map<String, String> params = new HashMap<>();
         params.put("geom", "POINT (5 5)");

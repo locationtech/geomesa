@@ -56,7 +56,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
     "handle transformations" >> {
       val sft = createNewSchema(spec)
       val sftName = sft.getTypeName
-      addFeatures(sft, createFeature(sft))
+      addFeatures(createFeature(sft))
 
       "with derived values" >> {
         val query = new Query(sftName, Filter.INCLUDE,
@@ -123,7 +123,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
     "handle transformations" >> {
       val sft = createNewSchema(spec2)
       val sftName = sft.getTypeName
-      addFeatures(sft, createFeature2(sft, "v1"))
+      addFeatures(createFeature2(sft, "v1"))
 
       "across multiple fields" >> {
         val query = new Query(sftName, Filter.INCLUDE,
@@ -181,7 +181,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       import scala.collection.JavaConverters._
 
       val sft = createNewSchema("name:String:index=join,age:Int:index=full,dtg:Date,*geom:Point:srid=4326")
-      addFeature(sft, ScalaSimpleFeature.create(sft, "fid-1", "name1", "20", "2010-05-07T12:30:00.000Z", "POINT(45 49)"))
+      addFeature(ScalaSimpleFeature.create(sft, "fid-1", "name1", "20", "2010-05-07T12:30:00.000Z", "POINT(45 49)"))
       val filters = Seq(
         "bbox(geom,40,40,60,60) AND dtg BETWEEN '2010-05-07T12:00:00.000Z' AND '2010-05-07T13:00:00.000Z'",
         "bbox(geom,40,40,60,60)",
@@ -206,7 +206,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
 
       val baseDate = Converters.convert("2014-01-01T00:00:00.000Z", classOf[Date]).getTime
 
-      addFeatures(sft, {
+      addFeatures({
         (0 until 5).map { i =>
           val sf = new ScalaSimpleFeature(sft, s"f$i")
           sf.setAttribute(0, s"trk$i")

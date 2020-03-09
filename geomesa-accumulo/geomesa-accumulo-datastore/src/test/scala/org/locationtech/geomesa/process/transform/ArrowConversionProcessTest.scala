@@ -14,7 +14,7 @@ import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -23,7 +23,7 @@ import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ArrowConversionProcessTest extends TestWithDataStore {
+class ArrowConversionProcessTest extends TestWithFeatureType {
 
   import scala.collection.JavaConversions._
 

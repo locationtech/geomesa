@@ -14,7 +14,7 @@ import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -23,7 +23,7 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ArrowFileIteratorTest extends TestWithDataStore {
+class ArrowFileIteratorTest extends TestWithFeatureType {
 
   override val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
 

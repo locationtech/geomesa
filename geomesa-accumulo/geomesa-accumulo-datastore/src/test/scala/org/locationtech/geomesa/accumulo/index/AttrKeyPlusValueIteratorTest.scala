@@ -48,7 +48,7 @@ class AttrKeyPlusValueIteratorTest extends Specification with TestWithMultipleSf
   lazy val sft = createNewSchema(spec)
 
   step {
-    addFeatures(sft, features(sft))
+    addFeatures(features(sft))
   }
 
   "Query planning" should {

@@ -13,7 +13,7 @@ import java.util.Date
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.index.z2.XZ2Index
@@ -25,7 +25,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class BinLineStringTest extends Specification with TestWithDataStore {
+class BinLineStringTest extends Specification with TestWithFeatureType {
 
   import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
 

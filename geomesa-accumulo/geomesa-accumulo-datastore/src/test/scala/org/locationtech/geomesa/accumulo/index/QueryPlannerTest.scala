@@ -15,7 +15,7 @@ import org.apache.hadoop.io.Text
 import org.geotools.data.Query
 import org.geotools.factory.CommonFactoryFinder
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.AccumuloResultsToFeatures
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureSerializers}
@@ -29,7 +29,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class QueryPlannerTest extends Specification with TestWithDataStore {
+class QueryPlannerTest extends Specification with TestWithFeatureType {
 
   override val spec = "*geom:Point,dtg:Date,s:String"
   val sf = new ScalaSimpleFeature(sft, "id")

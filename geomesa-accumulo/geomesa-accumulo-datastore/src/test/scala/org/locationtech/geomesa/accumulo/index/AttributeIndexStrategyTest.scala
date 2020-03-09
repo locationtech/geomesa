@@ -17,7 +17,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinPlan}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter._
@@ -42,7 +42,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
-class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
+class AttributeIndexStrategyTest extends Specification with TestWithFeatureType {
 
   sequential
 
@@ -112,7 +112,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithDataStore {
         if (index.name == AttributeIndex.name || index.name == JoinIndex.name) {
           index.getTableNames().foreach { table =>
             println(table)
-            WithClose(connector.createScanner(table, MockUserAuthorizations))(_.asScala.foreach(println))
+            WithClose(ds.connector.createScanner(table, root.auths))(_.asScala.foreach(println))
           }
           println()
         }

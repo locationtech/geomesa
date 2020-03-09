@@ -13,7 +13,7 @@ import java.util.Date
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints.{BIN_BATCH_SIZE, BIN_LABEL, BIN_SORT, BIN_TRACK, SAMPLE_BY, SAMPLING}
 import org.locationtech.geomesa.index.conf.QueryProperties
@@ -24,7 +24,7 @@ import org.opengis.feature.simple.SimpleFeature
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class S3IndexTest extends TestWithDataStore {
+class S3IndexTest extends TestWithFeatureType {
 
   override val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled=s3:geom:dtg"
 

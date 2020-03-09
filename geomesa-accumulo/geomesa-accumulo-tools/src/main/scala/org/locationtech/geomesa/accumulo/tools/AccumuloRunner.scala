@@ -78,11 +78,11 @@ trait RunnerWithAccumuloEnvironment extends Runner {
     params.collect {
       case p: AccumuloConnectionParams if p.password != null && p.keytab != null =>
         throw new ParameterException("Cannot specify both password and keytab")
-      case p: AccumuloConnectionParams if p.password == null && p.keytab == null && !p.mock => p
+      case p: AccumuloConnectionParams if p.password == null && p.keytab == null => p
     }.foreach(_.password = Prompt.readPassword())
 
-    // Attempt to look up the instance ONLY if we are not in mock mode
-    params.collect { case p: InstanceNameParams if !p.mock => p }.foreach { p =>
+    // attempt to look up the instance
+    params.collect { case p: InstanceNameParams => p }.foreach { p =>
       if (p.zookeepers == null) {
         p.zookeepers = {
           val accumuloSiteXml = SystemProperty("geomesa.tools.accumulo.site.xml").option.getOrElse {

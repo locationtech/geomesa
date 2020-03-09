@@ -8,220 +8,111 @@
 
 package org.locationtech.geomesa.accumulo.data
 
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.Date
-
 import org.geotools.data._
-import org.geotools.data.simple.SimpleFeatureStore
-import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
-import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.io.WithClose
-import org.opengis.filter.Filter
 import org.specs2.runner.JUnitRunner
 
-import scala.collection.JavaConversions._
-
 @RunWith(classOf[JUnitRunner])
-class AccumuloDataStoreAlterSchemaTest extends TestWithDataStore {
+class AccumuloDataStoreAlterSchemaTest extends TestWithFeatureType {
 
   sequential
 
-  override val spec = "dtg:Date,*geom:Point:srid=4326"
+  override val spec = "name:String:index=true,dtg:Date,*geom:Point:srid=4326"
 
-  step {
-    addFeatures {
-      (0 until 10).filter(_ % 2 == 0).map { i =>
-        val sf = new ScalaSimpleFeature(sft, s"f$i")
-        sf.setAttribute(0, s"2014-01-01T0$i:00:00.000Z")
-        sf.setAttribute(1, s"POINT(5$i 50)")
-        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-        sf
-      }
-    }
+  def filters(name: String = "name") = Seq(
+    s"$name = 'name0' OR $name = 'name1'",
+    "bbox(geom,38,53,42,57)",
+    "bbox(geom,38,53,42,57) AND dtg during 2018-01-01T00:00:00.000Z/2018-01-01T12:00:00.000Z",
+    "IN ('0', '1')"
+  ).map(ECQL.toFilter)
 
-    val builder = new SimpleFeatureTypeBuilder()
-    builder.init(sft)
-    builder.userData("index", "join")
-    builder.add("attr1", classOf[String])
-    val updatedSft = builder.buildFeatureType()
-    updatedSft.getUserData.putAll(sft.getUserData)
-
-    ds.updateSchema(sftName, updatedSft)
-
-    // use a new data store to avoid cached sft issues in the stat serializer
-    DataStoreFinder.getDataStore(dsParams).getFeatureSource(sftName).asInstanceOf[SimpleFeatureStore].addFeatures {
-      val sft = ds.getSchema(sftName)
-      val collection = new DefaultFeatureCollection()
-      collection.addAll {
-        (0 until 10).filter(_ % 2 == 1).map { i =>
-          val sf = new ScalaSimpleFeature(sft, s"f$i")
-          sf.setAttribute(0, s"2014-01-01T0$i:00:00.000Z")
-          sf.setAttribute(1, s"POINT(5$i 50)")
-          sf.setAttribute(2, s"$i")
-          sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-          sf
-        }
-      }
-      collection
-    }
-  }
+  lazy val feature = ScalaSimpleFeature.create(sft, "0", "name0", "2018-01-01T06:00:00.000Z", "POINT (40 55)")
+  lazy val feature2 = ScalaSimpleFeature.create(ds.getSchema(sftName), "1", "name1", "2018-01-01T06:01:00.000Z", "POINT (41 55)", "1")
 
   "AccumuloDataStore" should {
-    "work with an altered schema" >> {
-      val query = new Query(sftName, Filter.INCLUDE)
-      val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
-      features.map(_.getID) must containTheSameElementsAs((0 until 10).map("f" + _))
-      forall(features)(_.getAttribute("dtg") must not(beNull))
-      forall(features)(_.getAttribute("geom") must not(beNull))
-      forall(features.filter(_.getID.substring(1).toInt % 2 == 0))(_.getAttribute("attr1") must beNull)
-      forall(features.filter(_.getID.substring(1).toInt % 2 == 1))(_.getAttribute("attr1") must not(beNull))
-    }
-    "handle transformations to updated types" >> {
-      "for old attributes with new and old features" >> {
-        val query = new Query(sftName, ECQL.toFilter("IN ('f1', 'f2')"), Array("geom", "dtg"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
-        features.map(_.getID) must containTheSameElementsAs(Seq("f1", "f2"))
-        features.sortBy(_.getID).map(_.getAttribute("geom").toString) mustEqual Seq("POINT (51 50)", "POINT (52 50)")
-        features.sortBy(_.getID).map(_.getAttribute("dtg"))
-            .map(d => ZonedDateTime.ofInstant(toInstant(d.asInstanceOf[Date]), ZoneOffset.UTC).getHour) mustEqual Seq(1, 2)
-      }
-      "for old attributes with new features" >> {
-        val query = new Query(sftName, ECQL.toFilter("IN ('f1')"), Array("geom", "dtg"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
-        features.map(_.getID) must containTheSameElementsAs(Seq("f1"))
-        features.head.getAttribute("geom").toString mustEqual "POINT (51 50)"
-        ZonedDateTime.ofInstant(toInstant(features.head.getAttribute("dtg").asInstanceOf[Date]), ZoneOffset.UTC).getHour mustEqual 1
-      }
-      "for old attributes with old features" >> {
-        val query = new Query(sftName, ECQL.toFilter("IN ('f2')"), Array("geom", "dtg"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
-        features.map(_.getID) must containTheSameElementsAs(Seq("f2"))
-        features.head.getAttribute("geom").toString mustEqual "POINT (52 50)"
-        ZonedDateTime.ofInstant(toInstant(features.head.getAttribute("dtg").asInstanceOf[Date]), ZoneOffset.UTC).getHour mustEqual 2
-      }
-      "for new attributes with new and old features" >> {
-        val query = new Query(sftName, ECQL.toFilter("IN ('f1', 'f2')"), Array("geom", "attr1"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
-        features.map(_.getID) must containTheSameElementsAs(Seq("f1", "f2"))
-        features.sortBy(_.getID).map(_.getAttribute("geom").toString) mustEqual Seq("POINT (51 50)", "POINT (52 50)")
-        features.sortBy(_.getID).map(_.getAttribute("attr1")) mustEqual Seq("1", null)
-      }
-      "for new attributes with new features" >> {
-        val query = new Query(sftName, ECQL.toFilter("IN ('f1')"), Array("geom", "attr1"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
-        features.map(_.getID) must containTheSameElementsAs(Seq("f1"))
-        features.head.getAttribute("geom").toString mustEqual "POINT (51 50)"
-        features.head.getAttribute("attr1") mustEqual "1"
-      }
-      "for new attributes with old features" >> {
-        val query = new Query(sftName, ECQL.toFilter("IN ('f2')"), Array("geom", "attr1"))
-        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList
-        features.map(_.getID) must containTheSameElementsAs(Seq("f2"))
-        features.head.getAttribute("geom").toString mustEqual "POINT (52 50)"
-        features.head.getAttribute("attr1") must beNull
-      }
-    }
-    "update schemas" in {
-      var sft = SimpleFeatureTypes.createType("test", "name:String:index=true,age:Int,dtg:Date,*geom:Point:srid=4326")
-      ds.createSchema(sft)
-      sft = ds.getSchema(sft.getTypeName)
-      val feature = ScalaSimpleFeature.create(sft, "0", "name0", 0, "2018-01-01T06:00:00.000Z", "POINT (40 55)")
-      WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
-        FeatureUtils.write(writer, feature, useProvidedFid = true)
-      }
-
-      var filters = Seq(
-        "name = 'name0'",
-        "bbox(geom,38,53,42,57)",
-        "bbox(geom,38,53,42,57) AND dtg during 2018-01-01T00:00:00.000Z/2018-01-01T12:00:00.000Z",
-        "IN ('0')"
-      ).map(ECQL.toFilter)
-
-      forall(filters) { filter =>
+    "add features and query them" in {
+      addFeatures(Seq(feature))
+      forall(filters()) { filter =>
         val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
         SelfClosingIterator(reader).toList mustEqual Seq(feature)
       }
       ds.stats.getCount(sft) must beSome(1L)
-
+    }
+    "rename schema and still query features" in {
       // rename
-      ds.updateSchema(sft.getTypeName, SimpleFeatureTypes.renameSft(sft, "rename"))
+      val update = SimpleFeatureTypes.renameSft(this.sft, "rename")
+      ds.updateSchema(this.sft.getTypeName, update)
 
-      sft = ds.getSchema("rename")
+      val sft = ds.getSchema("rename")
       sft must not(beNull)
       sft.getTypeName mustEqual "rename"
-      ds.getSchema("test") must beNull
+      ds.getSchema(sftName) must beNull
 
-      forall(filters) { filter =>
+      forall(filters()) { filter =>
         val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
         SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
       }
       ds.stats.getCount(sft) must beSome(1L)
       ds.stats.getMinMax[String](sft, "name", exact = false).map(_.max) must beSome("name0")
-
-      // rename column
-      Some(new SimpleFeatureTypeBuilder()).foreach { builder =>
-        builder.init(sft)
-        builder.set(0, SimpleFeatureSpecParser.parseAttribute("names:String:index=true").toDescriptor)
-        val update = builder.buildFeatureType()
-        update.getUserData.putAll(sft.getUserData)
-        ds.updateSchema("rename", update)
-      }
+    }
+    "rename column and still query features" in {
+      var sft = ds.getSchema("rename")
+      val builder = new SimpleFeatureTypeBuilder()
+      builder.init(sft)
+      builder.set(0, SimpleFeatureSpecParser.parseAttribute("names:String:index=true").toDescriptor)
+      val update = builder.buildFeatureType()
+      update.getUserData.putAll(sft.getUserData)
+      ds.updateSchema("rename", update)
 
       sft = ds.getSchema("rename")
       sft must not(beNull)
       sft.getDescriptor(0).getLocalName mustEqual "names"
       sft.getDescriptor("names") mustEqual sft.getDescriptor(0)
 
-      filters = Seq(ECQL.toFilter("names = 'name0'")) ++ filters.drop(1)
-
-      forall(filters) { filter =>
+      forall(filters("names")) { filter =>
         val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
         SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
       }
       ds.stats.getCount(sft) must beSome(1L)
       ds.stats.getMinMax[String](sft, "names", exact = false).map(_.max) must beSome("name0")
-
-      // rename it again
-      Some(new SimpleFeatureTypeBuilder()).foreach { builder =>
-        builder.init(sft)
-        builder.set(0, SimpleFeatureSpecParser.parseAttribute("nam:String:index=true").toDescriptor)
-        val update = builder.buildFeatureType()
-        update.getUserData.putAll(sft.getUserData)
-        ds.updateSchema("rename", update)
-      }
+    }
+    "rename column a second time and still query features" in {
+      var sft = ds.getSchema("rename")
+      val builder = new SimpleFeatureTypeBuilder()
+      builder.init(sft)
+      builder.set(0, SimpleFeatureSpecParser.parseAttribute("nam:String:index=true").toDescriptor)
+      val update = builder.buildFeatureType()
+      update.getUserData.putAll(sft.getUserData)
+      ds.updateSchema("rename", update)
 
       sft = ds.getSchema("rename")
       sft must not(beNull)
       sft.getDescriptor(0).getLocalName mustEqual "nam"
       sft.getDescriptor("nam") mustEqual sft.getDescriptor(0)
 
-      filters = Seq(ECQL.toFilter("nam = 'name0'")) ++ filters.drop(1)
-
-      forall(filters) { filter =>
+      forall(filters("nam")) { filter =>
         val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
         SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
       }
       ds.stats.getCount(sft) must beSome(1L)
       ds.stats.getMinMax[String](sft, "nam", exact = false).map(_.max) must beSome("name0")
-
-      // rename type and column
-      Some(new SimpleFeatureTypeBuilder()).foreach { builder =>
-        builder.init(sft)
-        builder.set(0, SimpleFeatureSpecParser.parseAttribute("n:String").toDescriptor)
-        builder.setName("foo")
-        val update = builder.buildFeatureType()
-        update.getUserData.putAll(sft.getUserData)
-        ds.updateSchema("rename", update)
-      }
+    }
+    "rename type and column and still query features" in {
+      var sft = ds.getSchema("rename")
+      val builder = new SimpleFeatureTypeBuilder()
+      builder.init(sft)
+      builder.set(0, SimpleFeatureSpecParser.parseAttribute("n:String").toDescriptor)
+      builder.setName("foo")
+      val update = builder.buildFeatureType()
+      update.getUserData.putAll(sft.getUserData)
+      ds.updateSchema("rename", update)
 
       sft = ds.getSchema("foo")
       sft must not(beNull)
@@ -229,14 +120,58 @@ class AccumuloDataStoreAlterSchemaTest extends TestWithDataStore {
       sft.getDescriptor(0).getLocalName mustEqual "n"
       sft.getDescriptor("n") mustEqual sft.getDescriptor(0)
 
-      filters = Seq(ECQL.toFilter("n = 'name0'")) ++ filters.drop(1)
-
-      forall(filters) { filter =>
+      forall(filters("n")) { filter =>
         val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
         SelfClosingIterator(reader).toList mustEqual Seq(ScalaSimpleFeature.copy(sft, feature))
       }
       ds.stats.getCount(sft) must beSome(1L)
       ds.stats.getMinMax[String](sft, "n", exact = false).map(_.max) must beSome("name0")
+    }
+    "alter schema by adding a new column with an index" in {
+      var sft = ds.getSchema("foo")
+      val builder = new SimpleFeatureTypeBuilder()
+      builder.init(sft)
+      builder.userData("index", "join")
+      builder.add("age", classOf[java.lang.Integer])
+      builder.setName(sftName)
+      val update = builder.buildFeatureType()
+      update.getUserData.putAll(sft.getUserData)
+
+      ds.updateSchema("foo", update)
+      sft = ds.getSchema(sftName)
+      sft must not(beNull)
+      sft.getTypeName mustEqual sftName
+      sft.getAttributeCount mustEqual 4
+      sft.getDescriptor(3).getLocalName mustEqual "age"
+      sft.getDescriptor("age").getType.getBinding mustEqual classOf[java.lang.Integer]
+    }
+    "add features and query them after altering schema columns" in {
+      addFeatures(Seq(feature2))
+      foreach(filters("n")) { filter =>
+        val query = new Query(sftName, filter)
+        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
+        features.map(_.getID) mustEqual Seq("0", "1")
+        features.map(_.getAttribute("dtg")) mustEqual Seq(feature, feature2).map(_.getAttribute("dtg"))
+        features.map(_.getAttribute("geom")) mustEqual Seq(feature, feature2).map(_.getAttribute("geom"))
+        features.map(_.getAttribute("age")) mustEqual Seq(feature, feature2).map(_.getAttribute("age"))
+      }
+    }
+    "handle transformations for old attributes with new and old features" in {
+      foreach(filters("n")) { filter =>
+        val query = new Query(sftName, filter, Array("geom", "dtg"))
+        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
+        features.map(_.getID) mustEqual Seq("0", "1")
+        features.map(_.getAttribute("geom")) mustEqual Seq(feature, feature2).map(_.getAttribute("geom"))
+      }
+    }
+    "handle transformations for new attributes with new and old features" >> {
+      foreach(filters("n")) { filter =>
+        val query = new Query(sftName, filter, Array("geom", "age"))
+        val features = SelfClosingIterator(ds.getFeatureSource(sftName).getFeatures(query).features).toList.sortBy(_.getID)
+        features.map(_.getID) mustEqual Seq("0", "1")
+        features.map(_.getAttribute("geom")) mustEqual Seq(feature, feature2).map(_.getAttribute("geom"))
+        features.map(_.getAttribute("age")) mustEqual Seq(feature, feature2).map(_.getAttribute("age"))
+      }
     }
   }
 }

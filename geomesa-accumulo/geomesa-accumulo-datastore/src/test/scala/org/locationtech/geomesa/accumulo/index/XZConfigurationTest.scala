@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.index
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.index.z2.XZ2Index
 import org.locationtech.geomesa.index.index.z3.XZ3Index
@@ -20,7 +20,7 @@ import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class XZConfigurationTest extends Specification with TestWithDataStore {
+class XZConfigurationTest extends Specification with TestWithFeatureType {
 
   val spec = "name:String,dtg:Date,*geom:Polygon:srid=4326;geomesa.xz.precision='10',geomesa.indexes.enabled='xz2,xz3'"
 

@@ -38,14 +38,14 @@ if [[ $RESULT -ne 0 ]]; then
   end_build "[ERROR] Build failed!\n"
 fi
 
-mvn -o surefire:test -DargLine="-Xmx4g -XX:-UseGCOverheadLimit" 2>&1 | tee -a $BUILD_OUTPUT | grep -e 'Building GeoMesa' -e '\(maven-surefire-plugin\|maven-jar-plugin\|scala-maven-plugin.*:compile\)'
+mvn -o surefire:test -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit" 2>&1 | tee -a $BUILD_OUTPUT | grep -e 'Building GeoMesa' -e '\(maven-surefire-plugin\|maven-jar-plugin\|scala-maven-plugin.*:compile\)'
 RESULT=${PIPESTATUS[0]} # capture the status of the maven build
 if [[ $RESULT -ne 0 ]]; then
   end_build "[ERROR] Build failed!\n"
 fi
 
 # run hbase 1.x tests
-mvn -o surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -DargLine="-Xmx4g -XX:-UseGCOverheadLimit" 2>&1 | tee -a $BUILD_OUTPUT | grep -e 'Building GeoMesa' -e '\(maven-surefire-plugin\|maven-jar-plugin\|scala-maven-plugin.*:compile\)'
+mvn -o surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit" 2>&1 | tee -a $BUILD_OUTPUT | grep -e 'Building GeoMesa' -e '\(maven-surefire-plugin\|maven-jar-plugin\|scala-maven-plugin.*:compile\)'
 RESULT=${PIPESTATUS[0]} # capture the status of the maven build
 if [[ $RESULT -ne 0 ]]; then
   end_build "[ERROR] Build failed!\n"

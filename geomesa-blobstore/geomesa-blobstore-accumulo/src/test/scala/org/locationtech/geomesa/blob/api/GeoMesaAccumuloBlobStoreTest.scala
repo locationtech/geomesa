@@ -11,32 +11,21 @@ package org.locationtech.geomesa.blob.api
 import java.io.File
 
 import com.google.common.io.{ByteStreams, Files}
-import org.geotools.data.DataStoreFinder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreParams}
+import org.locationtech.geomesa.accumulo.TestWithDataStore
 import org.locationtech.geomesa.blob.accumulo.GeoMesaAccumuloBlobStore
 import org.opengis.filter._
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class GeoMesaAccumuloBlobStoreTest extends Specification {
-
-  val dsParams = Map(
-    AccumuloDataStoreParams.InstanceIdParam.key -> "mycloud",
-    AccumuloDataStoreParams.ZookeepersParam.key -> "zoo1:2181,zoo2:2181,zoo3:2181",
-    AccumuloDataStoreParams.UserParam.key       -> "myuser",
-    AccumuloDataStoreParams.PasswordParam.key   -> "mypassword",
-    AccumuloDataStoreParams.CatalogParam.key    -> "geomesa",
-    AccumuloDataStoreParams.MockParam.key       -> "true")
-  val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[AccumuloDataStore]
-
-  val bstore = GeoMesaAccumuloBlobStore(ds)
+class GeoMesaAccumuloBlobStoreTest extends TestWithDataStore {
 
   sequential
+
+  lazy val bstore = GeoMesaAccumuloBlobStore(ds)
 
   val testfile1 = "testFile.txt"
   val testfile2 = "testFile2.txt"

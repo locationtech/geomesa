@@ -11,9 +11,8 @@ package org.locationtech.geomesa.lambda
 import java.time.{Clock, Instant, ZoneId, ZoneOffset}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.accumulo.core.client.mock.MockInstance
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.accumulo.MiniCluster
 import org.locationtech.geomesa.lambda.LambdaTestRunnerTest.LambdaTest
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -54,13 +53,9 @@ class LambdaTestRunnerTest extends Specification with BeforeAfterAll with LazyLo
 
 object LambdaTestRunnerTest {
 
-  val connector = new MockInstance("lambda").getConnector("root", new PasswordToken(""))
-
   trait LambdaTest extends Specification {
 
     val sftName = getClass.getSimpleName
-
-    val connector = LambdaTestRunnerTest.connector
 
     val clock = new TestClock()
     val offsetManager = new InMemoryOffsetManager
@@ -69,10 +64,10 @@ object LambdaTestRunnerTest {
     var zookeepers: String = _
 
     lazy val dsParams = Map(
-      "lambda.accumulo.connector"  -> connector,
+      "lambda.accumulo.connector"  -> MiniCluster.connector,
       // note the table needs to be different to prevent testing errors
       "lambda.accumulo.catalog"    -> sftName,
-      "lambda.accumulo.zookeepers" -> zookeepers,
+      "lambda.accumulo.zookeepers" -> MiniCluster.cluster.getZooKeepers,
       "lambda.kafka.brokers"       -> brokers,
       "lambda.kafka.zookeepers"    -> zookeepers,
       "lambda.kafka.partitions"    -> 2,

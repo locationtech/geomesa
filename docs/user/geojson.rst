@@ -260,7 +260,6 @@ Registers a data store to make it available for querying.
 |                 | * ``geomesa.query.audit=[Boolean]``                                                  |
 |                 | * ``geomesa.query.caching=[Boolean]``                                                |
 |                 | * ``geomesa.security.force-empty-auths=[Boolean]``                                   |
-|                 | * ``accumulo.mock=[Boolean]``                                                        |
 +-----------------+--------------------------------------------------------------------------------------+
 | **Success**     | **Code:** 200                                                                        |
 | **Response**    |                                                                                      |

@@ -13,7 +13,7 @@ import org.geotools.data.Query
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.index.JoinIndex
 import org.locationtech.geomesa.index.index.NamedIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
@@ -27,7 +27,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AttributeIndexFilteringIteratorTest extends Specification with TestWithDataStore {
+class AttributeIndexFilteringIteratorTest extends Specification with TestWithFeatureType {
 
   import org.locationtech.geomesa.filter.ff
 

@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.data
 import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SchemaBuilder
@@ -23,7 +23,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class HighCardinalityAttributeOrQueryTest extends Specification with TestWithDataStore {
+class HighCardinalityAttributeOrQueryTest extends Specification with TestWithFeatureType {
 
   val spec = SchemaBuilder.builder()
     .addString("high").withIndex(Cardinality.HIGH)

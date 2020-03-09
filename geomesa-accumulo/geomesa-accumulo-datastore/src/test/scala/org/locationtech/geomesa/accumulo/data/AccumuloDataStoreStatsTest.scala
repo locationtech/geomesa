@@ -350,12 +350,12 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
       }
 
       "estimate counts for schemas without a date" >> {
-        val sft = createNewSchema("name:String:index=join,*geom:Point:srid=4326", None)
+        val sft = createNewSchema("name:String:index=join,*geom:Point:srid=4326")
         val reader = ds.getFeatureReader(new Query(AccumuloDataStoreStatsTest.this.sftName), Transaction.AUTO_COMMIT)
         val features = SelfClosingIterator(reader).map { f =>
           ScalaSimpleFeature.create(sft, f.getID, f.getAttribute("name"), f.getAttribute("geom"))
         }
-        addFeatures(sft, features.toSeq)
+        addFeatures(features.toSeq)
         val filters = Seq("name = '5'", "name < '7'", "name > 'foo'", "NOT name = '3'")
         forall(filters.map(ECQL.toFilter)) { filter =>
           val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)

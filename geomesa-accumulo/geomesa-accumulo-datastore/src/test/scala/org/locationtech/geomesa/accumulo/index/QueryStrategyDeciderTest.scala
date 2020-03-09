@@ -11,7 +11,7 @@ package org.locationtech.geomesa.accumulo.index
 import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.filter.TestFilters._
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -33,13 +33,13 @@ import scala.util.Random
 
 //Expand the test - https://geomesa.atlassian.net/browse/GEOMESA-308
 @RunWith(classOf[JUnitRunner])
-class QueryStrategyDeciderTest extends Specification with TestWithDataStore {
+class QueryStrategyDeciderTest extends Specification with TestWithFeatureType {
 
   import org.locationtech.geomesa.filter.ff
 
   override val spec = "nameHighCardinality:String:index=join:cardinality=high,ageJoinIndex:Long:index=join," +
       "heightFullIndex:Float:index=full,dtgJoinIndex:Date:index=join,weightNoIndex:String," +
-      "dtgNoIndex:Date,dtg:Date,*geom:Point:srid=4326"
+      "dtgNoIndex:Date,dtg:Date,*geom:Point:srid=4326;geomesa.index.dtg=dtg"
 
   addFeatures {
     val r = new Random(-57L)

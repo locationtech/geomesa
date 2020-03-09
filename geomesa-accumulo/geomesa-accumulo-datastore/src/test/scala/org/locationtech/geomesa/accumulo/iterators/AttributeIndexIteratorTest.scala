@@ -29,7 +29,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class AttributeIndexIteratorTest extends Specification with TestWithDataStore {
+class AttributeIndexIteratorTest extends Specification with TestWithFeatureType {
 
   sequential
 

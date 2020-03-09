@@ -38,9 +38,6 @@ The ``--auths`` and ``--visibilities`` arguments correspond to the ``AccumuloDat
 ``geomesa.security.auths`` and ``geomesa.security.visibilities``, respectively. See :ref:`authorizations`
 and :ref:`accumulo_visibilities` for more information.
 
-The ``--mock`` argument can be used to run against a mock Accumulo instance, for testing. In particular,
-this can be useful for verifying ingest converters.
-
 Commands
 --------
 

@@ -10,7 +10,7 @@ package org.locationtech.geomesa.accumulo.index
 
 import org.apache.accumulo.core.security.Authorizations
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithDataStore
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -22,7 +22,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class ConfigureShardsTest extends Specification with TestWithDataStore {
+class ConfigureShardsTest extends Specification with TestWithFeatureType {
 
   sequential
 
