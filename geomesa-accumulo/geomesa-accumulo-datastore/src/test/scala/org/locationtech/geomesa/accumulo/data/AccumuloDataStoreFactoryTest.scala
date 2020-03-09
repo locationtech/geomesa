@@ -57,7 +57,7 @@ class AccumuloDataStoreFactoryTest extends Specification {
       } else {
         AccumuloDataStoreFactory.canProcess(params) must beFalse
       }
-      // TODO test kerberos
+      // TODO GEOMESA-2797 test kerberos
     }
 
     "not accept password and keytab" in {
