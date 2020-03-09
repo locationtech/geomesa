@@ -211,7 +211,7 @@ class IngestCommandTest extends Specification {
       AccumuloRunner.parseCommand(args) must throwA[com.beust.jcommander.ParameterException]
     }
 
-    // TODO get kerberos tests working
+    // TODO GEOMESA-2797 get kerberos tests working
     //    "work with user and keytab" >> {
     //
     //      val authArgs = Array("--user", "root", "--keytab", "/path/to/some/file")
