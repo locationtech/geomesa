@@ -131,6 +131,16 @@ As part of the upgrade to Apache Arrow 0.16, the geomesa-arrow modules have been
 management and allocation. Some classes have been removed, and some interfaces have changed. This may impact
 anyone using the geomesa-arrow modules directly.
 
+AuthorizationsProvider and AuditProvider API Change
+---------------------------------------------------
+
+The signature for ``org.locationtech.geomesa.security.AuthorizationsProvider#configure`` and
+``org.locationtech.geomesa.utils.audit.AuditProvider#configure`` have changed slightly from
+``void configure(Map<String, Serializable> params)`` to
+``public void configure(Map<String, ? extends Serializable> params)``. Any classes implementing either of these
+interfaces will need to update their method signature. Any classes invoking these methods should not need to updated,
+as the new signature is compatible with the old one.
+
 Version 2.4.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
