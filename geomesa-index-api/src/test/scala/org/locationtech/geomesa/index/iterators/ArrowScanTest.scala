@@ -75,7 +75,7 @@ class ArrowScanTest extends Specification with LazyLogging {
           SelfClosingIterator(reader.features()).foreach {
             f =>
               count += 1
-              println(s"\tFeature: ${f.getID}: ${f.getAttributes}")
+              logger.debug(s"\tFeature: ${f.getID}: ${f.getAttributes}")
           }
         }
         count
