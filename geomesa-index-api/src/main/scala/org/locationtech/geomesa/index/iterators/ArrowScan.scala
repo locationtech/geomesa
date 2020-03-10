@@ -409,6 +409,7 @@ object ArrowScan {
         writer.encode(os)
         os.toByteArray
       } finally {
+        writer.clear()
         os.reset()
       }
     }
