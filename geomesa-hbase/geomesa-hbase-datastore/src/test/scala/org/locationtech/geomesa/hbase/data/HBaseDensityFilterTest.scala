@@ -48,7 +48,9 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
 
   lazy val params = Map(
     ConnectionParam.getName -> MiniCluster.connection,
-    HBaseCatalogParam.getName -> getClass.getSimpleName)
+    HBaseCatalogParam.getName -> getClass.getSimpleName //,
+//    CoprocessorThreadsParam.getName -> "2"
+  )
 
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
 
@@ -64,35 +66,35 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
   }
 
   "HBaseDensityCoprocessor" should {
-    "work with filters" in {
-      clearFeatures()
-
-      val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(sft, i.toString)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, "2012-01-01T19:00:00Z")
-        sf.setAttribute(3, "POINT(-77 38)")
-        sf
-      }  :+ {
-        val sf2 = new ScalaSimpleFeature(sft, "200")
-        sf2.setAttribute(0, "200")
-        sf2.setAttribute(1, "1.0")
-        sf2.setAttribute(2, "2010-01-01T19:00:00Z")
-        sf2.setAttribute(3, "POINT(1 1)")
-        sf2
-      }
-
-      val features_list = new ListFeatureCollection(sft, toAdd)
-      fs.addFeatures(features_list)
-
-      val q = "BBOX(geom, 0, 0, 10, 10)"
-      val density = getDensity(typeName, q, fs)
-      density.length must equalTo(1)
-    }
+//    "work with filters" in {
+//      clearFeatures()
+//
+//      val toAdd = (0 until 150).map { i =>
+//        val sf = new ScalaSimpleFeature(sft, i.toString)
+//        sf.setAttribute(0, i.toString)
+//        sf.setAttribute(1, "1.0")
+//        sf.setAttribute(2, "2012-01-01T19:00:00Z")
+//        sf.setAttribute(3, "POINT(-77 38)")
+//        sf
+//      }  :+ {
+//        val sf2 = new ScalaSimpleFeature(sft, "200")
+//        sf2.setAttribute(0, "200")
+//        sf2.setAttribute(1, "1.0")
+//        sf2.setAttribute(2, "2010-01-01T19:00:00Z")
+//        sf2.setAttribute(3, "POINT(1 1)")
+//        sf2
+//      }
+//
+//      val features_list = new ListFeatureCollection(sft, toAdd)
+//      fs.addFeatures(features_list)
+//
+//      val q = "BBOX(geom, 0, 0, 10, 10)"
+//      val density = getDensity(typeName, q, fs)
+//      density.length must equalTo(1)
+//    }
 
     "reduce total features returned" in {
-      clearFeatures()
+//      clearFeatures()
 
       val toAdd = (0 until 150).map { i =>
         val sf = new ScalaSimpleFeature(sft, i.toString)
@@ -100,6 +102,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, "2012-01-01T19:00:00Z")
         sf.setAttribute(3, "POINT(-77 38)")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf
       }
 
@@ -108,85 +111,86 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
 
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
       val density = getDensity(typeName, q, fs)
+      //println(s"Density length ${density.length}")
       density.length must beLessThan(150)
       density.map(_._3).sum must beEqualTo(150)
     }
 
-    "maintain total weight of points" in {
-      clearFeatures()
-
-      val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(sft, i.toString)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, "2012-01-01T19:00:00Z")
-        sf.setAttribute(3, "POINT(-77 38)")
-        sf
-      }
-
-      val features_list = new ListFeatureCollection(sft, toAdd)
-      fs.addFeatures(features_list)
-
-      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
-      val density = getDensity(typeName, q, fs)
-      density.length must beLessThan(150)
-      density.map(_._3).sum must beEqualTo(150)
-    }
-
-    "maintain weights irrespective of dates" in {
-      clearFeatures()
-
-      val toAdd = (0 until 150).map { i =>
-        val sf = new ScalaSimpleFeature(sft, i.toString)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, Date.from(ZonedDateTime.of(2012, 1, 1, 19, 0, 0, 0, ZoneOffset.UTC).plusSeconds(i).toInstant))
-        sf.setAttribute(3, "POINT(-77 38)")
-        sf
-      }
-
-      val features_list = new ListFeatureCollection(sft, toAdd)
-      fs.addFeatures(features_list)
-
-      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
-      val density = getDensity(typeName, q, fs)
-      density.length must beLessThan(150)
-      density.map(_._3).sum must beEqualTo(150)
-    }
-
-    "correctly bin points" in {
-      clearFeatures()
-
-      val toAdd = (0 until 150).map { i =>
-        // space out the points very slightly around 5 primary latitudes 1 degree apart
-        val lat = (i / 30) + 1 + (Random.nextDouble() - 0.5) / 1000.0
-        val sf = new ScalaSimpleFeature(sft, i.toString)
-        sf.setAttribute(0, i.toString)
-        sf.setAttribute(1, "1.0")
-        sf.setAttribute(2, Date.from(ZonedDateTime.of(2012, 1, 1, 19, 0, 0, 0, ZoneOffset.UTC).plusSeconds(i).toInstant))
-        sf.setAttribute(3, s"POINT($lat 37)")
-        sf
-      }
-
-      val features_list = new ListFeatureCollection(sft, toAdd)
-      fs.addFeatures(features_list)
-      QueryProperties.QueryExactCount.threadLocalValue.set("true")
-      try {
-        fs.getCount(Query.ALL) mustEqual 150
-      } finally {
-        QueryProperties.QueryExactCount.threadLocalValue.remove()
-      }
-
-      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -1, 33, 6, 40)"
-      val density = getDensity(typeName, q, fs)
-      density.map(_._3).sum mustEqual 150
-
-      val compiled = density.groupBy(d => (d._1, d._2)).map { case (_, group) => group.map(_._3).sum }
-
-      // should be 5 bins of 30
-      compiled must haveLength(5)
-      forall(compiled){ _ mustEqual 30 }
-    }
+//    "maintain total weight of points" in {
+//      clearFeatures()
+//
+//      val toAdd = (0 until 150).map { i =>
+//        val sf = new ScalaSimpleFeature(sft, i.toString)
+//        sf.setAttribute(0, i.toString)
+//        sf.setAttribute(1, "1.0")
+//        sf.setAttribute(2, "2012-01-01T19:00:00Z")
+//        sf.setAttribute(3, "POINT(-77 38)")
+//        sf
+//      }
+//
+//      val features_list = new ListFeatureCollection(sft, toAdd)
+//      fs.addFeatures(features_list)
+//
+//      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
+//      val density = getDensity(typeName, q, fs)
+//      density.length must beLessThan(150)
+//      density.map(_._3).sum must beEqualTo(150)
+//    }
+//
+//    "maintain weights irrespective of dates" in {
+//      clearFeatures()
+//
+//      val toAdd = (0 until 150).map { i =>
+//        val sf = new ScalaSimpleFeature(sft, i.toString)
+//        sf.setAttribute(0, i.toString)
+//        sf.setAttribute(1, "1.0")
+//        sf.setAttribute(2, Date.from(ZonedDateTime.of(2012, 1, 1, 19, 0, 0, 0, ZoneOffset.UTC).plusSeconds(i).toInstant))
+//        sf.setAttribute(3, "POINT(-77 38)")
+//        sf
+//      }
+//
+//      val features_list = new ListFeatureCollection(sft, toAdd)
+//      fs.addFeatures(features_list)
+//
+//      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
+//      val density = getDensity(typeName, q, fs)
+//      density.length must beLessThan(150)
+//      density.map(_._3).sum must beEqualTo(150)
+//    }
+//
+//    "correctly bin points" in {
+//      clearFeatures()
+//
+//      val toAdd = (0 until 150).map { i =>
+//        // space out the points very slightly around 5 primary latitudes 1 degree apart
+//        val lat = (i / 30) + 1 + (Random.nextDouble() - 0.5) / 1000.0
+//        val sf = new ScalaSimpleFeature(sft, i.toString)
+//        sf.setAttribute(0, i.toString)
+//        sf.setAttribute(1, "1.0")
+//        sf.setAttribute(2, Date.from(ZonedDateTime.of(2012, 1, 1, 19, 0, 0, 0, ZoneOffset.UTC).plusSeconds(i).toInstant))
+//        sf.setAttribute(3, s"POINT($lat 37)")
+//        sf
+//      }
+//
+//      val features_list = new ListFeatureCollection(sft, toAdd)
+//      fs.addFeatures(features_list)
+//      QueryProperties.QueryExactCount.threadLocalValue.set("true")
+//      try {
+//        fs.getCount(Query.ALL) mustEqual 150
+//      } finally {
+//        QueryProperties.QueryExactCount.threadLocalValue.remove()
+//      }
+//
+//      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -1, 33, 6, 40)"
+//      val density = getDensity(typeName, q, fs)
+//      density.map(_._3).sum mustEqual 150
+//
+//      val compiled = density.groupBy(d => (d._1, d._2)).map { case (_, group) => group.map(_._3).sum }
+//
+//      // should be 5 bins of 30
+//      compiled must haveLength(5)
+//      forall(compiled){ _ mustEqual 30 }
+//    }
   }
 
   step {

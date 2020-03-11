@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.hbase.rpc.coprocessor
 
 import java.io.{InterruptedIOException, _}
+import java.util
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.{Base64, Collections}
@@ -22,6 +23,7 @@ import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 
 /**
@@ -104,7 +106,7 @@ object GeoMesaCoprocessor extends LazyLogging {
     private val closed = new AtomicBoolean(false)
     private val callback = new GeoMesaHBaseCallBack()
 
-    private val request = {
+    private def request = {
       val opts = options ++ Map(
         FilterOpt -> Base64.getEncoder.encodeToString(scan.getFilter.toByteArray),
         ScanOpt   -> Base64.getEncoder.encodeToString(ProtobufUtil.toScan(scan).toByteArray)
@@ -112,13 +114,15 @@ object GeoMesaCoprocessor extends LazyLogging {
       GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(serializeOptions(opts))).build()
     }
 
-    private val callable = new Call[GeoMesaCoprocessorService, java.util.List[ByteString]]() {
-      override def call(instance: GeoMesaCoprocessorService): java.util.List[ByteString] = {
-        if (closed.get) { Collections.emptyList() } else {
+    private def callable: Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse] = new Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse]() {
+      val interalRequest = request
+
+      override def call(instance: GeoMesaCoprocessorService): GeoMesaCoprocessorResponse = {
+        if (closed.get) { null } else {
           val controller: RpcController = new GeoMesaHBaseRpcController()
           val callback = new RpcCallbackImpl()
           // note: synchronous call
-          try { instance.getResult(controller, request, callback) } catch {
+          try { instance.getResult(controller, interalRequest, callback) } catch {
             case _: InterruptedException | _: InterruptedIOException | _: CancellationException =>
               logger.warn("Cancelling remote coprocessor call")
               controller.startCancel()
@@ -139,12 +143,38 @@ object GeoMesaCoprocessor extends LazyLogging {
       override def run(): Unit = {
         try {
           if (!closed.get) {
+            //println(s"Calling htable.coproService (first time): ${ByteArrays.printable(scan.getStartRow)} to ${ByteArrays.printable(scan.getStopRow)}")
             htable.coprocessorService(service, scan.getStartRow, scan.getStopRow, callable, callback)
           }
+          //println(s"Close: ${ByteArrays.printable(scan.getStartRow)} to ${ByteArrays.printable(scan.getStopRow)}")
+          //println(s"Closed: ${closed.get}.  Callback.isDone: ${callback.isDone}  Callback.lastRow: ${ByteArrays.printable(callback.lastRow)}")
+
+          // If the scan hasn't been killed and we are not done, then re-issue the request!
+          while (!closed.get() && !callback.isDone) {
+            // TODO: Use 'nextRow mojo to advance and not re-read a row.
+            val lastRow = callback.lastRow
+            val nextRow = ByteArrays.rowFollowingRow(lastRow)
+
+            //println(s"Scan continuing from row: ${ByteArrays.printable(callback.lastRow)}.  Next row is ${ByteArrays.printable(nextRow)}")
+
+            // Reset the callback's status
+            callback.isDone = false
+            callback.lastRow = null
+            // Need to rebuild the 'request' and then the 'callable' from that.
+            //scan.setStartRow(lastRow)
+            scan.setStartRow(nextRow)
+            //println(s"Calling htable.coproService (second time(s)): ${ByteArrays.printable(nextRow)} to ${ByteArrays.printable(scan.getStopRow)}")
+
+            htable.coprocessorService(service, nextRow, scan.getStopRow, callable, callback)
+          }
+
+
         } catch {
           case e @ (_ :InterruptedException | _ :InterruptedIOException) =>
+            //println("Caught an exception" + e)
             logger.warn("Interrupted executing coprocessor query:", e)
         } finally {
+          //println(s"Adding terminator to callback")
           callback.result.add(terminator)
         }
       }
@@ -194,11 +224,15 @@ object GeoMesaCoprocessor extends LazyLogging {
   private class RpcCallbackImpl extends RpcCallback[GeoMesaCoprocessorResponse] {
 
     private var result: java.util.List[ByteString] = _
+    private var response: GeoMesaCoprocessorResponse = _
 
-    def get(): java.util.List[ByteString] = result
+    def get(): GeoMesaCoprocessorResponse = response
 
-    override def run(parameter: GeoMesaCoprocessorResponse): Unit =
+    override def run(parameter: GeoMesaCoprocessorResponse): Unit = {
       result = Option(parameter).map(_.getPayloadList).orNull
+      response = parameter
+      //println(s" RUNNING RpcCallbackImpl.  Size is ${result.size} Size of lastscanned is ${response.getLastscanned.size()}")
+    }
   }
 
 }

@@ -29,6 +29,7 @@ private class CoprocessorBatchScan(
     buffer: Int
   ) extends AbstractBatchScan[Scan, Array[Byte]](ranges, threads, buffer, CoprocessorBatchScan.Sentinel) {
 
+  println(s"Created a CoprocessorBatchScan with ${ranges.size} scans.")
   private val pool = new CachedThreadPool(rpcThreads)
 
   override protected def scan(range: Scan, out: BlockingQueue[Array[Byte]]): Unit = {
