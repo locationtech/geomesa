@@ -32,6 +32,14 @@ class LeafletMapExporter(os: OutputStream, counter: ByteCounter)
   private val writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)
   private val coordMap = scala.collection.mutable.Map.empty[Coordinate, Int].withDefaultValue(0)
 
+  private val wrapper = new Writer {
+    override def write(cbuf: Array[Char], off: Int, len: Int): Unit = writer.write(cbuf, off, len)
+
+    override def flush(): Unit = writer.flush
+
+    override def close(): Unit = { /* lol, nope */}
+  }
+
   private var first = true
   private var featureInfo = ""
 
@@ -58,7 +66,7 @@ class LeafletMapExporter(os: OutputStream, counter: ByteCounter)
   }
 
   private def write(feature: SimpleFeature): Unit = {
-    json.writeFeature(feature, writer)
+    json.writeFeature(feature, wrapper)
     val geom = feature.getDefaultGeometry.asInstanceOf[Geometry]
     if (geom != null) {
       geom.getCoordinates.foreach(c => coordMap(c) += 1)

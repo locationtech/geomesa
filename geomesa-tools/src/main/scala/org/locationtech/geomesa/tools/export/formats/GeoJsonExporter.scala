@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io.{OutputStream, OutputStreamWriter}
+import java.io.{OutputStream, OutputStreamWriter, Writer}
 import java.nio.charset.StandardCharsets
 
 import org.geotools.geojson.feature.FeatureJSON
@@ -20,6 +20,16 @@ class GeoJsonExporter(os: OutputStream, counter: ByteCounter) extends ByteCounte
   private val json = new FeatureJSON()
   private val writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)
 
+  val wrapper = new Writer {
+    override def write(cbuf: Array[Char], off: Int, len: Int): Unit = writer.write(cbuf, off, len)
+
+    override def flush(): Unit = writer.flush
+
+    override def close(): Unit = {
+      // lol, no
+    }
+  }
+
   private var first = true
 
   override def start(sft: SimpleFeatureType): Unit = writer.write("""{"type":"FeatureCollection","features":[""")
@@ -29,12 +39,12 @@ class GeoJsonExporter(os: OutputStream, counter: ByteCounter) extends ByteCounte
     if (first && features.hasNext) {
       first = false
       writer.write('\n')
-      json.writeFeature(features.next, writer)
+      json.writeFeature(features.next, wrapper)
       count += 1L
     }
     while (features.hasNext) {
       writer.write(",\n")
-      json.writeFeature(features.next, writer)
+      json.writeFeature(features.next, wrapper)
       count += 1L
     }
     writer.flush()

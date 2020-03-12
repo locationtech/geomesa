@@ -74,14 +74,14 @@ class GeoMesaFeatureStore(ds: DataStore with HasGeoMesaStats, sft: SimpleFeature
   override def modifyFeatures(attributes: Array[String], values: Array[AnyRef], filter: Filter): Unit =
     modifyFeatures(attributes.map(new NameImpl(_).asInstanceOf[Name]), values, filter)
 
-  override def modifyFeatures(attributes: Array[AttributeDescriptor], values: Array[AnyRef], filter: Filter): Unit =
-    modifyFeatures(attributes.map(_.getName), values, filter)
+//  override def modifyFeatures(attributes: Array[AttributeDescriptor], values: Array[AnyRef], filter: Filter): Unit =
+//    modifyFeatures(attributes.map(_.getName), values, filter)
 
   override def modifyFeatures(attribute: String, value: AnyRef, filter: Filter): Unit =
     modifyFeatures(Array[Name](new NameImpl(attribute)), Array(value), filter)
 
-  override def modifyFeatures(attribute: AttributeDescriptor, value: AnyRef, filter: Filter): Unit =
-    modifyFeatures(attribute.getName, value, filter)
+//  override def modifyFeatures(attribute: AttributeDescriptor, value: AnyRef, filter: Filter): Unit =
+//    modifyFeatures(attribute.getName, value, filter)
 
   override def modifyFeatures(attribute: Name, value: AnyRef, filter: Filter): Unit =
     modifyFeatures(Array(attribute), Array(value), filter)

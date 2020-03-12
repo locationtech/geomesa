@@ -315,7 +315,7 @@ class AttributeIndexTest extends Specification with LazyLogging {
 
       ds.getSchema(typeName).getDescriptor("name").getCardinality mustEqual Cardinality.HIGH
 
-      val notNull = ECQL.toFilter("name IS NOT NULL")
+      val notNull = FastFilterFactory.toFilter(sft, "name IS NOT NULL")
       val notNullPlans = ds.getQueryPlan(new Query(typeName, notNull))
       notNullPlans must haveLength(1)
       notNullPlans.head.filter.index must beAnInstanceOf[AttributeIndex]
