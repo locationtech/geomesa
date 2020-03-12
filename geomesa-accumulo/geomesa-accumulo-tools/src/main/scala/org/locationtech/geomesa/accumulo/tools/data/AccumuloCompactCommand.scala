@@ -14,7 +14,6 @@ import java.util.concurrent.{Executors, TimeUnit}
 import java.util.{Date, UUID}
 
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
-import com.google.common.primitives.UnsignedBytes
 import org.apache.accumulo.core.client.admin.TableOperations
 import org.apache.accumulo.core.data.Key
 import org.apache.hadoop.io.Text
@@ -154,8 +153,8 @@ class AccumuloCompactCommand extends AccumuloDataStoreCommand {
           val splits = if (sft.isTableSharing) {
             val Array(prefix) = sft.getTableSharingBytes // should be one byte
             (head ++ middle ++ last).filter { case Seq(s, e) =>
-              (s == null || UnsignedBytes.compare(s.getBytes.apply(0), prefix) <= 0) &&
-                  (e == null || UnsignedBytes.compare(e.getBytes.apply(0), prefix) >= 0)
+              (s == null || ByteArrays.UnsignedByteOrdering.compare(s.getBytes.apply(0), prefix) <= 0) &&
+                  (e == null || ByteArrays.UnsignedByteOrdering.compare(e.getBytes.apply(0), prefix) >= 0)
             }
           } else {
             head ++ middle ++ last

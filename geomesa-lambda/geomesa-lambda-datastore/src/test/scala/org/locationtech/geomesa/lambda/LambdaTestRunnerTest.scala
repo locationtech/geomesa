@@ -64,16 +64,18 @@ object LambdaTestRunnerTest {
     var zookeepers: String = _
 
     lazy val dsParams = Map(
-      "lambda.accumulo.connector"  -> MiniCluster.connector,
+      "lambda.accumulo.instance.id" -> MiniCluster.cluster.getInstanceName,
+      "lambda.accumulo.zookeepers"  -> MiniCluster.cluster.getZooKeepers,
+      "lambda.accumulo.user"        -> MiniCluster.Users.root.name,
+      "lambda.accumulo.password"    -> MiniCluster.Users.root.password,
       // note the table needs to be different to prevent testing errors
-      "lambda.accumulo.catalog"    -> sftName,
-      "lambda.accumulo.zookeepers" -> MiniCluster.cluster.getZooKeepers,
-      "lambda.kafka.brokers"       -> brokers,
-      "lambda.kafka.zookeepers"    -> zookeepers,
-      "lambda.kafka.partitions"    -> 2,
-      "lambda.expiry"              -> "100ms",
-      "lambda.clock"               -> clock,
-      "lambda.offset-manager"      -> offsetManager
+      "lambda.accumulo.catalog"     -> sftName,
+      "lambda.kafka.brokers"        -> brokers,
+      "lambda.kafka.zookeepers"     -> zookeepers,
+      "lambda.kafka.partitions"     -> 2,
+      "lambda.expiry"               -> "100ms",
+      "lambda.clock"                -> clock,
+      "lambda.offset-manager"       -> offsetManager
     )
   }
 

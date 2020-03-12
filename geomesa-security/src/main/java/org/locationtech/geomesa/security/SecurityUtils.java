@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.security;
 
-import com.google.common.base.Joiner;
 import org.opengis.feature.simple.SimpleFeature;
 
 /**
@@ -44,7 +43,7 @@ public class SecurityUtils {
      * @return {@code feature}
      */
     public static SimpleFeature setFeatureVisibilities(SimpleFeature feature, String... visibilities) {
-        return setFeatureVisibility(feature, Joiner.on("&").join(visibilities));
+        return setFeatureVisibility(feature, String.join("&", visibilities));
     }
 
     /**

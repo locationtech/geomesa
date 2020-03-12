@@ -37,11 +37,11 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
 
   override val spec = "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"
 
-  val features = Seq.tabulate(10) { i =>
+  lazy val features = Seq.tabulate(10) { i =>
     ScalaSimpleFeature.create(sft, s"$i", s"name$i", 20 + i, s"2018-01-01T00:0$i:00.000Z", s"POINT (45 5$i)")
   }
 
-  val accumuloParams =
+  lazy val accumuloParams =
     (dsParams +
       (RouteSelectorByAttribute.RouteAttributes -> Seq(Seq.empty.asJava, "id", "geom", Seq("dtg", "geom").asJava).asJava)).asJava
 
@@ -66,20 +66,17 @@ class RoutedDataStoreViewTest extends TestWithFeatureType {
     ).asJava
 
     val h2Ds = DataStoreFinder.getDataStore(h2Params)
-    val accumuloDs = DataStoreFinder.getDataStore(accumuloParams)
-
-    Seq(h2Ds, accumuloDs).foreach { ds =>
-      ds.createSchema(sft)
-      WithClose(ds.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)) { writer =>
-        features.iterator.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
-      }
+    h2Ds.createSchema(sft)
+    WithClose(h2Ds.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)) { writer =>
+      features.iterator.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
     }
 
-    foreach(Seq(h2Ds, accumuloDs)) { ds =>
+    addFeatures(features)
+
+    foreach(Seq(h2Ds, ds)) { ds =>
       SelfClosingIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).toList must haveLength(10)
     }
     h2Ds.dispose()
-    accumuloDs.dispose()
 
     routedDs = DataStoreFinder.getDataStore(comboParams(h2Params, accumuloParams)).asInstanceOf[RoutedDataStoreView]
     routedDs must not(beNull)

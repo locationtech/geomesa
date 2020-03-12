@@ -23,9 +23,9 @@ class Z3SFC(period: TimePeriod, precision: Int = 21) extends SpaceTimeFillingCur
 
   require(precision > 0 && precision < 22, "Precision (bits) per dimension must be in [1,21]")
 
-  override val lon: NormalizedDimension  = NormalizedLon(precision)
-  override val lat: NormalizedDimension  = NormalizedLat(precision)
-  override val time: NormalizedDimension = NormalizedTime(precision, BinnedTime.maxOffset(period).toDouble)
+  val lon: NormalizedDimension  = NormalizedLon(precision)
+  val lat: NormalizedDimension  = NormalizedLat(precision)
+  val time: NormalizedDimension = NormalizedTime(precision, BinnedTime.maxOffset(period).toDouble)
 
   val wholePeriod = Seq((time.min.toLong, time.max.toLong))
 

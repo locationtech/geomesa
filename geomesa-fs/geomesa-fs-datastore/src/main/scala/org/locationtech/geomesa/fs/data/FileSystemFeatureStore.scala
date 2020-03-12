@@ -12,7 +12,7 @@ import java.io.{Closeable, Flushable}
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
 
-import com.google.common.cache._
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, RemovalCause, RemovalListener}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.DelegateSimpleFeatureReader
 import org.geotools.data.store.{ContentEntry, ContentFeatureStore}
@@ -126,18 +126,17 @@ object FileSystemFeatureStore {
       extends FeatureWriter[SimpleFeatureType, SimpleFeature] with LazyLogging {
 
     private val removalListener = new RemovalListener[String, Closeable with Flushable]() {
-      override def onRemoval(notification: RemovalNotification[String, Closeable with Flushable]): Unit = {
-        if (notification.getCause == RemovalCause.EXPIRED) {
-          logger.info(s"Flushing writer for partition: ${notification.getKey}")
-          val writer = notification.getValue
-          FlushWithLogging(writer)
-          CloseWithLogging(writer)
+      override def onRemoval(key: String, value: Closeable with Flushable, cause: RemovalCause): Unit = {
+        if (cause == RemovalCause.EXPIRED) {
+          logger.info(s"Flushing writer for partition: $key")
+          FlushWithLogging(value)
+          CloseWithLogging(value)
         }
       }
     }
 
     private val writers =
-      CacheBuilder.newBuilder()
+      Caffeine.newBuilder()
         .expireAfterAccess(timeout.toMillis, TimeUnit.MILLISECONDS)
         .removalListener[String, FileSystemWriter](removalListener)
         .build(new CacheLoader[String, FileSystemWriter]() {

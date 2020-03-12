@@ -59,6 +59,12 @@
             <version>${hbase.version}</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${hbase.guava.version}</version>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- only needed for packaging into the shaded jar -->
         <dependency>

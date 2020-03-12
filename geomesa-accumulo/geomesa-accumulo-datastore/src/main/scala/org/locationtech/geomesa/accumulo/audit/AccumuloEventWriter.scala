@@ -12,13 +12,12 @@ import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
-import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{BatchWriter, Connector}
 import org.apache.accumulo.core.data.Mutation
-import org.locationtech.geomesa.accumulo.AccumuloVersion
-import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
+import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, TableUtils}
 import org.locationtech.geomesa.utils.audit.AuditedEvent
+import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 
 /**
@@ -70,7 +69,7 @@ class AccumuloEventWriter(connector: Connector, table: String) extends Runnable 
 
   private def getWriter: BatchWriter = synchronized {
     if (maybeWriter == null) {
-      AccumuloVersion.createTableIfNeeded(connector, table)
+      TableUtils.createTableIfNeeded(connector, table)
       maybeWriter = connector.createBatchWriter(table, batchWriterConfig)
     }
     maybeWriter
@@ -79,8 +78,7 @@ class AccumuloEventWriter(connector: Connector, table: String) extends Runnable 
 
 object AccumuloEventWriter {
 
-  val WriteInterval = SystemProperty("geomesa.accumulo.audit.interval", "5 seconds")
+  val WriteInterval: SystemProperty = SystemProperty("geomesa.accumulo.audit.interval", "5 seconds")
 
-  private val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(5))
-  sys.addShutdownHook(executor.shutdownNow())
+  private val executor = ExitingExecutor(new ScheduledThreadPoolExecutor(5), force = true)
 }

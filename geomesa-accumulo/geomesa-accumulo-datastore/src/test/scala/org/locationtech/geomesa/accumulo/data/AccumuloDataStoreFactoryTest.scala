@@ -52,11 +52,7 @@ class AccumuloDataStoreFactoryTest extends Specification {
         AccumuloDataStoreParams.KeytabPathParam.key -> "/path/to/keytab",
         AccumuloDataStoreParams.CatalogParam.key    -> catalog
       ).asJava
-      if (AccumuloDataStoreFactory.isKerberosAvailable) {
-        AccumuloDataStoreFactory.canProcess(params) must beTrue
-      } else {
-        AccumuloDataStoreFactory.canProcess(params) must beFalse
-      }
+      AccumuloDataStoreFactory.canProcess(params) must beTrue
       // TODO GEOMESA-2797 test kerberos
     }
 

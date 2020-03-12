@@ -26,11 +26,12 @@ class IngestCommandTest extends Specification {
 
   def baseArgs: Array[String] = Array(
     "ingest",
-    "--instance",   MiniCluster.cluster.getInstanceName,
-    "--zookeepers", MiniCluster.cluster.getZooKeepers,
-    "--user",       MiniCluster.Users.root.name,
-    "--password",   MiniCluster.Users.root.password,
-    "--catalog",    s"${MiniCluster.namespace}.${getClass.getSimpleName}${sftCounter.getAndIncrement()}"
+    "--instance",      MiniCluster.cluster.getInstanceName,
+    "--zookeepers",    MiniCluster.cluster.getZooKeepers,
+    "--user",          MiniCluster.Users.root.name,
+    "--password",      MiniCluster.Users.root.password,
+    "--catalog",       s"${MiniCluster.namespace}.${getClass.getSimpleName}${sftCounter.getAndIncrement()}",
+    "--compact-stats", "false"
   )
 
   "GeoMesa Accumulo Ingest Command" should {

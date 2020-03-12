@@ -8,9 +8,9 @@
 
 package org.locationtech.geomesa.blob.api
 
-import java.io.File
+import java.io.{File, FileInputStream}
 
-import com.google.common.io.{ByteStreams, Files}
+import org.apache.commons.io.IOUtils
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithDataStore
@@ -53,7 +53,8 @@ class GeoMesaAccumuloBlobStoreTest extends TestWithDataStore {
 
       val ret = bstore.get(storeId)
 
-      val inputStream = ByteStreams.toByteArray(Files.newInputStreamSupplier(file))
+      val is = new FileInputStream(file)
+      val inputStream = try { IOUtils.toByteArray(is) } finally { is.close() }
 
       ret.getLocalName mustEqual testfile1
       inputStream mustEqual ret.getPayload

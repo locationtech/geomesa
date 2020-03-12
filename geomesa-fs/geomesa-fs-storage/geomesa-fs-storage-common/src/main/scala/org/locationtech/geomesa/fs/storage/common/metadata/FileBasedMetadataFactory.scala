@@ -11,7 +11,6 @@ package org.locationtech.geomesa.fs.storage.common.metadata
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ConcurrentHashMap, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 
-import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Options.CreateOpts
 import org.apache.hadoop.fs.{CreateFlag, FileContext, Path}
@@ -19,6 +18,7 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory.MetadataLoader
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
+import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.simple.SimpleFeatureType
@@ -76,7 +76,7 @@ object FileBasedMetadataFactory extends MethodProfiling with LazyLogging {
   private val MetadataDirectory = "metadata"
   private val StoragePath = s"$MetadataDirectory/storage.json"
 
-  private val executor = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(1))
+  private val executor = ExitingExecutor(new ScheduledThreadPoolExecutor(1))
 
   private val cache = new ConcurrentHashMap[String, MetadataLoader]()
 

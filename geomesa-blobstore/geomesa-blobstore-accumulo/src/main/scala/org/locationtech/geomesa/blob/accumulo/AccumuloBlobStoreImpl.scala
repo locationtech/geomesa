@@ -15,8 +15,7 @@ import org.apache.accumulo.core.client.{BatchWriterConfig, Connector}
 import org.apache.accumulo.core.data.{Mutation, Range, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.AccumuloVersion
-import org.locationtech.geomesa.accumulo.data._
+import org.locationtech.geomesa.accumulo.util.TableUtils
 import org.locationtech.geomesa.blob.api.{Blob, BlobStore}
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.AuditProvider
@@ -31,7 +30,7 @@ class AccumuloBlobStoreImpl(val connector: Connector,
 
   import scala.collection.JavaConverters._
 
-  AccumuloVersion.createTableIfNeeded(connector, blobTableName)
+  TableUtils.createTableIfNeeded(connector, blobTableName)
 
   protected val bw = connector.createBatchWriter(blobTableName, bwConf)
   protected val tableOps = connector.tableOperations()

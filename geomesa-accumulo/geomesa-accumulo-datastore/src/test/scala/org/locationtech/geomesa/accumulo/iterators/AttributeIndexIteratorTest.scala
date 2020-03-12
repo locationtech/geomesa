@@ -42,22 +42,24 @@ class AttributeIndexIteratorTest extends Specification with TestWithFeatureType 
     sdf.parse("20140102")
   }
 
-  addFeatures({
-    List("a", "b", "c", "d", null).flatMap { name =>
-      List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
-        val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
-        sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
-        sf.setAttribute("dtg", dateToIndex)
-        sf.setAttribute("age", i)
-        sf.setAttribute("name", name)
-        sf.setAttribute("scars", Collections.singletonList("face"))
-        sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-        sf
+  step {
+    addFeatures({
+      List("a", "b", "c", "d", null).flatMap { name =>
+        List(1, 2, 3, 4).zip(List(45, 46, 47, 48)).map { case (i, lat) =>
+          val sf = SimpleFeatureBuilder.build(sft, List(), name + i.toString)
+          sf.setDefaultGeometry(WKTUtils.read(f"POINT($lat%d $lat%d)"))
+          sf.setAttribute("dtg", dateToIndex)
+          sf.setAttribute("age", i)
+          sf.setAttribute("name", name)
+          sf.setAttribute("scars", Collections.singletonList("face"))
+          sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
+          sf
+        }
       }
-    }
-  })
+    })
+  }
 
-  val queryPlanner = ds.queryPlanner
+  lazy val queryPlanner = ds.queryPlanner
 
   def query(filter: String, attributes: Array[String] = Array.empty, explain: Explainer = ExplainNull) = {
     val query = new Query(sftName, ECQL.toFilter(filter), if (attributes.length == 0) null else attributes)

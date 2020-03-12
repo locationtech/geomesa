@@ -24,6 +24,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloDataStore.AccumuloDataStor
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator, ProjectVersionIterator}
+import org.locationtech.geomesa.accumulo.util.TableUtils
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
@@ -164,7 +165,7 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
       case -1 => ""
       case i  => config.catalog.substring(0, i)
     }
-    AccumuloVersion.createNamespaceIfNeeded(connector, namespace)
+    TableUtils.createNamespaceIfNeeded(connector, namespace)
     val canLoad = connector.namespaceOperations().testClassLoad(namespace,
       classOf[ProjectVersionIterator].getName, classOf[SortedKeyValueIterator[_, _]].getName)
 
@@ -350,6 +351,9 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
   override def dispose(): Unit = {
     super.dispose()
     CloseQuietly(kerberosTgtRenewer)
+    try { AccumuloVersion.close(connector) } catch {
+      case NonFatal(e) => logger.warn("Error closing Accumulo client:", e)
+    }
   }
 }
 

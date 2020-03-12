@@ -10,17 +10,6 @@
     <name>GeoMesa Spark Converter RDD Provider</name>
     <artifactId>geomesa-spark-converter_2.11</artifactId>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <!-- Hadoop FileInputFormat requires older guava version -->
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>12.0.1</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
     <dependencies>
         <dependency>
             <groupId>org.apache.spark</groupId>

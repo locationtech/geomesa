@@ -19,6 +19,9 @@
     <category name="org.apache.hadoop">
         <priority value="error"/>
     </category>
+    <category name="org.apache.curator">
+        <priority value="error"/>
+    </category>
     <category name="hsqldb">
         <priority value="error"/>
     </category>
@@ -26,6 +29,13 @@
     <category name="org.locationtech.geomesa.convert.text.DelimitedTextConverter">
         <priority value="error"/>
     </category>
+    <category name="org.locationtech.geomesa.tools.user">
+        <priority value="error"/>
+    </category>
+    <category name="org.locationtech.geomesa.tools.output">
+        <priority value="error"/>
+    </category>
+
     <!-- un-comment the following line to enable verbose log messages
          from the index query-planner; this can be helpful in debugging
          query plans -->

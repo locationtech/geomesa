@@ -8,13 +8,14 @@
 
 package org.locationtech.geomesa.accumulo
 
+import java.io.{File, FileWriter}
 import java.nio.file.Files
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.security.{Authorizations, NamespacePermission, SystemPermission}
-import org.apache.accumulo.minicluster.MiniAccumuloCluster
-import org.locationtech.geomesa.utils.io.PathUtils
+import org.apache.accumulo.minicluster.{MiniAccumuloCluster, MiniAccumuloConfig}
+import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
 case object MiniCluster extends LazyLogging {
 
@@ -38,9 +39,16 @@ case object MiniCluster extends LazyLogging {
 
   lazy val cluster: MiniAccumuloCluster = {
     logger.info(s"Starting Accumulo minicluster at $miniClusterTempDir")
-    val cluster = new MiniAccumuloCluster(miniClusterTempDir.toFile, Users.root.password)
+    val config = new MiniAccumuloConfig(miniClusterTempDir.toFile, Users.root.password)
+    sys.props.get("geomesa.accumulo.test.tablet.servers").map(_.toInt).foreach(config.setNumTservers)
+    val cluster = new MiniAccumuloCluster(config)
+    // required for zookeeper 3.5
+    WithClose(new FileWriter(new File(miniClusterTempDir.toFile, "conf/zoo.cfg"), true)) { writer =>
+      writer.write("admin.enableServer=false\n") // disable the admin server, which tries to bind to 8080
+      writer.write("4lw.commands.whitelist=*\n") // enable 'ruok', which the minicluster uses to check zk status
+    }
     cluster.start()
-    logger.info("Started Accmulo minicluster")
+
     // set up users and authorizations
     val connector = cluster.getConnector(Users.root.name, Users.root.password)
     connector.namespaceOperations().create(namespace)
@@ -52,15 +60,19 @@ case object MiniCluster extends LazyLogging {
       }
       connector.securityOperations().changeUserAuthorizations(name, auths)
     }
+
+    AccumuloVersion.close(connector)
+
+    logger.info("Started Accmulo minicluster")
+
     cluster
   }
 
-  lazy val connector = cluster.getConnector(Users.root.name, Users.root.password)
-
   sys.addShutdownHook({
     logger.info("Stopping Accumulo minicluster")
-    cluster.stop()
-    PathUtils.deleteRecursively(miniClusterTempDir)
+    try { cluster.stop() } finally {
+      PathUtils.deleteRecursively(miniClusterTempDir)
+    }
     logger.info("Stopped Accumulo minicluster")
   })
 
