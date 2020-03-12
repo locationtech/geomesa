@@ -116,7 +116,7 @@
 
         <!-- testing properties -->
         <maven.test.jvmargs>-Xms512m -Xmx4g -XX:-UseGCOverheadLimit</maven.test.jvmargs>
-        <test.fork.count>4</test.fork.count>
+        <test.fork.count>1</test.fork.count>
         <test.fork.reuse>true</test.fork.reuse>
         <!-- arrow tests become extremely slow with assertions enabled-->
         <test.enable.assertions>false</test.enable.assertions>
@@ -2335,7 +2335,8 @@
                     </dependencies>
                     <configuration>
                         <forkCount>${test.fork.count}</forkCount>
-                        <reuseForks>${test.fork.reuse}</reuseForks>
+			<reuseForks>${test.fork.reuse}</reuseForks>
+			<parallel>methods</parallel>
                         <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <includes>
