@@ -10,11 +10,12 @@ package org.locationtech.geomesa.utils.io
 
 import java.io.Closeable
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{Executors, TimeUnit}
+import java.util.concurrent.{ScheduledThreadPoolExecutor, TimeUnit}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.security.UserGroupInformation
+import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.io.fs.HadoopDelegate
 
 import scala.util.control.NonFatal
@@ -78,7 +79,7 @@ object HadoopUtils extends LazyLogging {
    */
   private class TicketLogin extends Runnable with Closeable with LazyLogging {
 
-    private val executor = Executors.newSingleThreadScheduledExecutor()
+    private val executor = ExitingExecutor(new ScheduledThreadPoolExecutor(1))
     executor.scheduleAtFixedRate(this, 0, 10, TimeUnit.MINUTES)
 
     var registrations = 0
