@@ -13,11 +13,13 @@
 
 hadoop_version="%%hadoop.version.recommended%%"
 
-# this version required for hadoop 2.8, earlier hadoop versions use 3.1.0-incubating
-htrace_core_version="4.1.0-incubating"
+# htrace 3 required for hadoop before 2.8
+# htrace 4 required for hadoop 2.8 and later
+# since they have separate package names, should be safe to install both
+htrace3_core_version="3.1.0-incubating"
+htrace4_core_version="4.1.0-incubating"
 
-# for hadoop 2.5 and 2.6 to work we need these
-# These should match up to what the hadoop version desires
+# required for hadoop 2.5 and 2.6 - make sure they match the version expected by hadoop
 guava_version="%%guava.version%%"
 com_log_version="1.1.3"
 commons_config_version="1.6"
@@ -48,13 +50,17 @@ declare -a urls=(
   "${base_url}commons-cli/commons-cli/1.2/commons-cli-1.2.jar"
   "${base_url}com/google/protobuf/protobuf-java/2.5.0/protobuf-java-2.5.0.jar"
   "${base_url}commons-io/commons-io/2.5/commons-io-2.5.jar"
+  "${base_url}org/apache/htrace/htrace-core/${htrace3_core_version}/htrace-core-${htrace3_core_version}.jar"
+  "${base_url}org/apache/htrace/htrace-core4/${htrace4_core_version}/htrace-core4-${htrace4_core_version}.jar"
 )
 
-# compare the first digit of htrace core version to determine the artifact name
-if [[ "${htrace_core_version%%.*}" -lt 4 ]]; then
-  urls+=("${base_url}org/apache/htrace/htrace-core/${htrace_core_version}/htrace-core-${htrace_core_version}.jar")
-else
-  urls+=("${base_url}org/apache/htrace/htrace-core4/${htrace_core_version}/htrace-core4-${htrace_core_version}.jar")
+# add hadoop 3+ jars if needed
+hadoop_maj_ver="$(expr match "$hadoop_version" '\([0-9][0-9]*\)\.')"
+if [[ "$hadoop_maj_ver" -ge 3 ]]; then
+  urls+=(
+    "${base_url}org/apache/hadoop/hadoop-client-api/${hadoop_version}/hadoop-client-api-${hadoop_version}.jar"
+    "${base_url}org/apache/hadoop/hadoop-client-runtime/${hadoop_version}/hadoop-client-runtime-${hadoop_version}.jar"
+  )
 fi
 
 # if there's already a guava jar (e.g. geoserver) don't install guava to avoid conflicts

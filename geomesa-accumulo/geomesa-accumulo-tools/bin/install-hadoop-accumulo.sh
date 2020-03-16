@@ -16,13 +16,13 @@ hadoop_version="%%hadoop.version.recommended%%"
 zookeeper_version="%%zookeeper.version.recommended%%"
 thrift_version="%%thrift.version%%"
 
-# accumulo up to 1.9.2 are using this
-# it's possible hadoop uses it too ... def 2.7.x does
+# htrace 3 required for hadoop before 2.8, accumulo up to 1.9.2
+# htrace 4 required for hadoop 2.8 and later
+# since they have separate package names, should be safe to install both
 htrace3_core_version="3.1.0-incubating"
-
-# this version required for hadoop 2.8 and older but has separate package names, so should be safe to install
 htrace4_core_version="4.1.0-incubating"
 
+# required for hadoop 2.5 and 2.6 - make sure they match the version expected by hadoop
 guava_version="%%guava.version%%"
 com_log_version="1.1.3"
 commons_vfs2_version="2.3"
@@ -57,11 +57,21 @@ declare -a urls=(
   "${base_url}org/apache/htrace/htrace-core4/${htrace4_core_version}/htrace-core4-${htrace4_core_version}.jar"
 )
 
+# add accumulo 1.x jars if needed
 accumulo_maj_ver="$(expr match "$accumulo_version" '\([0-9][0-9]*\)\.')"
 if [[ "$accumulo_maj_ver" -lt 2 ]]; then
   urls+=(
     "${base_url}org/apache/accumulo/accumulo-fate/${accumulo_version}/accumulo-fate-${accumulo_version}.jar"
     "${base_url}org/apache/accumulo/accumulo-trace/${accumulo_version}/accumulo-trace-${accumulo_version}.jar"
+  )
+fi
+
+# add hadoop 3+ jars if needed
+hadoop_maj_ver="$(expr match "$hadoop_version" '\([0-9][0-9]*\)\.')"
+if [[ "$hadoop_maj_ver" -ge 3 ]]; then
+  urls+=(
+    "${base_url}org/apache/hadoop/hadoop-client-api/${hadoop_version}/hadoop-client-api-${hadoop_version}.jar"
+    "${base_url}org/apache/hadoop/hadoop-client-runtime/${hadoop_version}/hadoop-client-runtime-${hadoop_version}.jar"
   )
 fi
 

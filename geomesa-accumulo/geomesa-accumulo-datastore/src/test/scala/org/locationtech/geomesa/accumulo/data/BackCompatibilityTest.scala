@@ -22,9 +22,8 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.MiniCluster.Users
 import org.locationtech.geomesa.accumulo.index.JoinIndex
-import org.locationtech.geomesa.accumulo.{AccumuloVersion, MiniCluster, TestWithDataStore, TestWithFeatureType}
+import org.locationtech.geomesa.accumulo.{TestWithDataStore, TestWithFeatureType}
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -48,8 +47,6 @@ class BackCompatibilityTest extends TestWithDataStore with LazyLogging {
     */
 
   sequential
-
-  lazy val connector = MiniCluster.cluster.getConnector(Users.root.name, Users.root.password)
 
   val queries = Seq(
     ("INCLUDE", Seq(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)),
@@ -217,11 +214,11 @@ class BackCompatibilityTest extends TestWithDataStore with LazyLogging {
   def restoreTables(tables: Seq[TableMutations]): String = {
     // reload the tables
     tables.foreach { case TableMutations(table, mutations) =>
-      if (connector.tableOperations.exists(table)) {
-        connector.tableOperations.delete(table)
+      if (ds.connector.tableOperations.exists(table)) {
+        ds.connector.tableOperations.delete(table)
       }
-      connector.tableOperations.create(table)
-      WithClose(connector.createBatchWriter(table, new BatchWriterConfig)) { bw =>
+      ds.connector.tableOperations.create(table)
+      WithClose(ds.connector.createBatchWriter(table, new BatchWriterConfig)) { bw =>
         bw.addMutations(mutations)
       }
     }
@@ -283,10 +280,6 @@ class BackCompatibilityTest extends TestWithDataStore with LazyLogging {
   def getFile(name: String): File = new File(getClass.getClassLoader.getResource(name).toURI)
 
   case class TableMutations(table: String, mutations: Seq[Mutation])
-
-  step {
-    AccumuloVersion.close(connector)
-  }
 }
 
 @RunWith(classOf[JUnitRunner])

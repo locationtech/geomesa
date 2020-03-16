@@ -46,7 +46,7 @@ Installing the Accumulo Distributed Runtime Library
 The ``geomesa-accumulo_2.11-$VERSION/dist/accumulo/`` directory contains the distributed
 runtime JAR that contains server-side code for Accumulo that must be made
 available on each of the Accumulo tablet servers in the cluster. This JAR
-contain GeoMesa code and the Accumulo iterators required for querying GeoMesa data.
+contains GeoMesa code and the Accumulo iterators required for querying GeoMesa data.
 
 .. warning::
 
