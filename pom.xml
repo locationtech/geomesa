@@ -997,7 +997,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift</artifactId>
+                        <artifactId>jgridshift-core</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1020,7 +1020,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift</artifactId>
+                        <artifactId>jgridshift-core</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1037,7 +1037,7 @@
                     <exclusion>
                         <!-- excluded due to license issues -->
                         <groupId>jgridshift</groupId>
-                        <artifactId>jgridshift</artifactId>
+                        <artifactId>jgridshift-core</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
