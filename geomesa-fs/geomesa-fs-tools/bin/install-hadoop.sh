@@ -19,7 +19,7 @@ hadoop_version="%%hadoop.version.recommended%%"
 htrace3_core_version="3.1.0-incubating"
 htrace4_core_version="4.1.0-incubating"
 
-# required for hadoop 2.5 and 2.6 - make sure they match the version expected by hadoop
+# required for hadoop - make sure they correspond to the hadoop installed version
 guava_version="%%guava.version%%"
 com_log_version="1.1.3"
 commons_config_version="1.6"

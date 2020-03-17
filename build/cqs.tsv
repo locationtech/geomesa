@@ -125,7 +125,7 @@ org.apache.arrow:arrow-vector	0.16.0	compile
 org.apache.avro:avro	1.7.5	compile
 org.apache.camel:camel-core	2.24.1	compile
 org.apache.camel:camel-scala	2.24.1	compile
-org.apache.commons:commons-collections4	4.3	compile
+org.apache.commons:commons-collections4	4.4	compile
 org.apache.commons:commons-compress	1.18	compile
 org.apache.commons:commons-configuration2	2.5	compile
 org.apache.commons:commons-crypto	1.0.0	compile
