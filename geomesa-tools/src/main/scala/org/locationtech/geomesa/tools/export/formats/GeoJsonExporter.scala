@@ -39,12 +39,12 @@ class GeoJsonExporter(os: OutputStream, counter: ByteCounter) extends ByteCounte
     if (first && features.hasNext) {
       first = false
       writer.write('\n')
-      json.writeFeature(features.next, wrapper)
+      json.writeFeature(features.next, writer)
       count += 1L
     }
     while (features.hasNext) {
       writer.write(",\n")
-      json.writeFeature(features.next, wrapper)
+      json.writeFeature(features.next, writer)
       count += 1L
     }
     writer.flush()

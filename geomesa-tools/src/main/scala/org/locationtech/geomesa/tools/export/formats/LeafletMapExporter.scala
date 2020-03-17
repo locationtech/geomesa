@@ -66,7 +66,7 @@ class LeafletMapExporter(os: OutputStream, counter: ByteCounter)
   }
 
   private def write(feature: SimpleFeature): Unit = {
-    json.writeFeature(feature, wrapper)
+    json.writeFeature(feature, writer)
     val geom = feature.getDefaultGeometry.asInstanceOf[Geometry]
     if (geom != null) {
       geom.getCoordinates.foreach(c => coordMap(c) += 1)

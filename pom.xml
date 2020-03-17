@@ -1153,7 +1153,7 @@
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-geojson</artifactId>
-                <version>${gt.version}</version>
+                <version>24-SNAPSHOT</version>
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->
