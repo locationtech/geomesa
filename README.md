@@ -122,8 +122,8 @@ To download from the LocationTech Maven repository (required for older versions)
 
 ```xml
 <repository>
-  <id>locationtech-releases</id>
-  <url>https://repo.locationtech.org/content/groups/releases</url>
+  <id>eclipse-releases</id>
+  <url>https://repo.eclipse.org/content/groups/releases</url>
   <snapshots>
     <enabled>false</enabled>
   </snapshots>
@@ -135,7 +135,7 @@ For snapshot integration, add:
 ```xml
 <repository>
   <id>geomesa-snapshots</id>
-  <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots</url>
+  <url>https://repo.eclipse.org/content/repositories/geomesa-snapshots</url>
   <releases>
     <enabled>false</enabled>
   </releases>
@@ -152,7 +152,7 @@ Similarly, integration with `sbt` is straightforward:
 ```scala
 // Add necessary resolvers
 resolvers ++= Seq(
-  "locationtech-releases" at "https://repo.locationtech.org/content/groups/releases",
+  "eclipse-releases" at "https://repo.eclipse.org/content/groups/releases",
   "boundlessgeo" at "https://repo.boundlessgeo.com/main",
   "osgeo" at "https://download.osgeo.org/webdav/geotools",
   "confluent" at "https://packages.confluent.io/maven"
