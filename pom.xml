@@ -83,7 +83,7 @@
         <metrics.version>3.2.6</metrics.version>
         <aws.sdk.version>1.11.421</aws.sdk.version>
 
-        <specs2.version>4.3.2</specs2.version>
+        <specs2.version>4.9.2</specs2.version>
         <junit.version>4.12</junit.version>
 
         <!-- *** provided artifacts, not bundled to support multiple environments *** -->
@@ -2353,6 +2353,23 @@
                         </systemPropertyVariables>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>3.0.0-M3</version>
+                    <executions>
+                        <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <testSourceDirectory>src/test/scala</testSourceDirectory>
+                    </configuration>
+                </plugin>
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>

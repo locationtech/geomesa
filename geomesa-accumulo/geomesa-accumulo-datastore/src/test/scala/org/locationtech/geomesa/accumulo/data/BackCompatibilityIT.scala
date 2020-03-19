@@ -40,7 +40,7 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class BackCompatibilityTest extends Specification with LazyLogging {
+class BackCompatibilityIT extends Specification with LazyLogging {
 
   /**
     * Runs version tests against old data. To add more versions, generate a new data file by running
@@ -260,6 +260,7 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   }
 
   def testVersion(version: String): MatchResult[Any] = {
+    logger.info("BACKCOMPATIBILITY")
     val data = readVersion(getFile(s"data/versioned-data-$version.kryo"))
     logger.info(s"Running back compatible test on version $version")
     runVersionTest(data)
