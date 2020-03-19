@@ -69,7 +69,6 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
           case _: GeoJsonFeature => None
           case _: Seq[GeoJsonFeature] => Some("$.features[*]")
         }
-        val idField = Some(Expression("md5(string2bytes(json2string($0)))"))
 
         // flatten out any feature collections into features
         val features = geojson.flatMap {
@@ -77,13 +76,21 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
           case g: Seq[GeoJsonFeature] => g
         }
 
-        // track the 'properties' and geometry type in each feature
+        // track the 'properties', geometry type nad 'id' in each feature
         val props = scala.collection.mutable.Map.empty[String, ListBuffer[String]]
         val geoms = scala.collection.mutable.Set.empty[ObjectType]
+        var hasId = true
 
         features.take(AbstractConverterFactory.inferSampleSize).foreach { feature =>
           geoms += TypeInference.infer(Seq(Seq(feature.geom))).head.typed
           feature.properties.foreach { case (k, v) => props.getOrElseUpdate(k, ListBuffer.empty) += v }
+          hasId = hasId && feature.id.isDefined
+        }
+
+        val idJsonField = if (hasId) { Some(new StringJsonField("id", "$.id", false, None)) } else { None }
+        val idField = idJsonField match {
+          case None    => Some(Expression("md5(string2bytes(json2string($0)))"))
+          case Some(f) => Some(Expression(s"$$${f.name}"))
         }
 
         // track the names we use for each column to ensure no duplicates
@@ -104,8 +111,8 @@ class JsonConverterFactory extends AbstractConverterFactory[JsonConverter, JsonC
         // track the inferred types of 'properties' entries
         val inferredTypes = ArrayBuffer[InferredType]()
 
-        // field definitions - call .toSeq first to ensure consistent ordering with types
-        val fields = props.toSeq.map { case (path, values) =>
+        // field definitions - call props.toSeq first to ensure consistent ordering with types
+        val fields = idJsonField.toSeq ++ props.toSeq.map { case (path, values) =>
           val attr = name(path)
           val inferred = TypeInference.infer(values.map(Seq(_))).head
           inferredTypes += inferred.copy(name = attr) // note: side-effect in map

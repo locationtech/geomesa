@@ -1152,8 +1152,20 @@
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
+                <artifactId>gt-geojsondatastore</artifactId>
+                <version>${gt.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>javax.media</groupId>
+                        <artifactId>jai_core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.geotools</groupId>
                 <artifactId>gt-geojson</artifactId>
-                <version>24-SNAPSHOT</version>
+                <version>${gt.version}</version>
                 <exclusions>
                     <exclusion>
                         <!-- excluded due to license issues -->

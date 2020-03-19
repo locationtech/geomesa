@@ -8,54 +8,29 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io.{OutputStream, OutputStreamWriter, Writer}
-import java.nio.charset.StandardCharsets
+import java.io.OutputStream
 
-import org.geotools.geojson.feature.FeatureJSON
+import org.geotools.data.geojson.GeoJSONWriter
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class GeoJsonExporter(os: OutputStream, counter: ByteCounter) extends ByteCounterExporter(counter) {
 
-  private val json = new FeatureJSON()
-  private val writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)
+  private var writer: GeoJSONWriter = _
 
-  val wrapper = new Writer {
-    override def write(cbuf: Array[Char], off: Int, len: Int): Unit = writer.write(cbuf, off, len)
-
-    override def flush(): Unit = writer.flush
-
-    override def close(): Unit = {
-      // lol, no
-    }
+  override def start(sft: SimpleFeatureType): Unit = {
+    writer = new GeoJSONWriter(os)
   }
-
-  private var first = true
-
-  override def start(sft: SimpleFeatureType): Unit = writer.write("""{"type":"FeatureCollection","features":[""")
 
   override def export(features: Iterator[SimpleFeature]): Option[Long] = {
     var count = 0L
-    if (first && features.hasNext) {
-      first = false
-      writer.write('\n')
-      json.writeFeature(features.next, writer)
-      count += 1L
-    }
     while (features.hasNext) {
-      writer.write(",\n")
-      json.writeFeature(features.next, writer)
+      writer.write(features.next)
       count += 1L
     }
-    writer.flush()
+    // TODO writer.flush()
     Some(count)
   }
 
-  override def close(): Unit  = {
-    if (!first) {
-      writer.write('\n')
-    }
-    writer.write("]}\n")
-    writer.close()
-  }
+  override def close(): Unit = if (writer != null) { writer.close() }
 }
