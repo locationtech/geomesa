@@ -50,23 +50,12 @@
             <artifactId>cassandra-driver-mapping</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-compiler</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
         </dependency>
         <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
-        </dependency>
-
-        <!-- provided dependencies -->
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-geojson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -75,6 +64,13 @@
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-epsg-wkt</artifactId>
+        </dependency>
+
+        <!-- provided dependencies -->
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-compiler</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

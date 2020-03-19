@@ -49,16 +49,32 @@
             <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-xml</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-epsg-wkt</artifactId>
+        </dependency>
+
+        <!-- provided dependencies -->
+        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-compiler</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-csv</artifactId>
-        </dependency>
-
-        <!-- provided dependencies -->
         <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-core</artifactId>
@@ -76,37 +92,12 @@
             <artifactId>kafka-clients</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.avro</groupId>
-            <artifactId>avro</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-geojson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-native_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-xml</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.accumulo</groupId>
             <artifactId>accumulo-start</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.beust</groupId>
-            <artifactId>jcommander</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-epsg-wkt</artifactId>
         </dependency>
 
         <!-- test deps -->

@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FilenameUtils
-import org.geotools.geojson.feature.FeatureJSON
+import org.locationtech.geomesa.features.serialization.GeoJsonSerializer
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
@@ -28,65 +28,65 @@ import scala.io.Source
 class LeafletMapExporter(os: OutputStream, counter: ByteCounter)
     extends ByteCounterExporter(counter) with LazyLogging {
 
-  private val json = new FeatureJSON()
   private val writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)
+  private val jsonWriter = GeoJsonSerializer.writer(writer)
   private val coordMap = scala.collection.mutable.Map.empty[Coordinate, Int].withDefaultValue(0)
 
-  private var first = true
+  private var jsonSerializer: GeoJsonSerializer = _
+
   private var featureInfo = ""
 
   override def start(sft: SimpleFeatureType): Unit = {
     featureInfo = LeafletMapExporter.getFeatureInfo(sft)
     writer.write(LeafletMapExporter.IndexHead)
-    writer.write("""var points = {"type":"FeatureCollection","features":[""")
+    writer.write("var points = ")
+    writer.flush()
+    jsonSerializer = new GeoJsonSerializer(sft)
+    jsonSerializer.startFeatureCollection(jsonWriter)
   }
 
   override def export(features: Iterator[SimpleFeature]): Option[Long] = {
     var count = 0L
-    if (first && features.hasNext) {
-      first = false
-      write(features.next)
-      count += 1L
-    }
     while (features.hasNext) {
-      writer.write(',')
-      write(features.next)
+      val feature = features.next
+      jsonSerializer.write(jsonWriter, feature)
+      val geom = feature.getDefaultGeometry.asInstanceOf[Geometry]
+      if (geom != null) {
+        geom.getCoordinates.foreach(c => coordMap(c) += 1)
+      }
       count += 1L
     }
-    writer.flush()
+    jsonWriter.flush()
     Some(count)
   }
 
-  private def write(feature: SimpleFeature): Unit = {
-    json.writeFeature(feature, writer)
-    val geom = feature.getDefaultGeometry.asInstanceOf[Geometry]
-    if (geom != null) {
-      geom.getCoordinates.foreach(c => coordMap(c) += 1)
-    }
-  }
-
   override def close(): Unit  = {
-    // Finish writing GeoJson
-    writer.write("]};\n\n")
-    writer.write(featureInfo)
-    // Write Heatmap Data
-    writer.write("var heat = L.heatLayer([\n")
-    if (coordMap.nonEmpty) {
-      val max = coordMap.maxBy(_._2)._2
-      val iter = coordMap.iterator
-      iter.take(1).foreach { case (coord, weight) =>
-        writer.write(s"        [${coord.y}, ${coord.x}, ${weight / max}]")
+    try {
+      // finish writing GeoJson
+      if (jsonSerializer != null) {
+        jsonSerializer.endFeatureCollection(jsonWriter)
+        jsonWriter.flush()
       }
-      iter.foreach { case (coord, weight) =>
-        writer.write(s",\n        [${coord.y}, ${coord.x}, ${weight / max}]")
+      writer.write(";\n\n")
+      writer.write(featureInfo)
+      // Write Heatmap Data
+      writer.write("var heat = L.heatLayer([\n")
+      if (coordMap.isEmpty) {
+        Command.user.warn("No features were exported - the map will not render correctly")
+      } else {
+        val max = coordMap.maxBy(_._2)._2
+        val iter = coordMap.iterator
+        iter.take(1).foreach { case (coord, weight) =>
+          writer.write(s"        [${coord.y}, ${coord.x}, ${weight / max}]")
+        }
+        iter.foreach { case (coord, weight) =>
+          writer.write(s",\n        [${coord.y}, ${coord.x}, ${weight / max}]")
+        }
       }
-    }
-    writer.write("\n    ], { radius: 25 });\n\n")
-    writer.write(LeafletMapExporter.IndexTail)
-    writer.close()
-
-    if (first) {
-      Command.user.warn("No features were exported - the map will not render correctly")
+      writer.write("\n    ], { radius: 25 });\n\n")
+      writer.write(LeafletMapExporter.IndexTail)
+    } finally {
+      jsonWriter.close()
     }
   }
 }

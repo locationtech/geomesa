@@ -12,19 +12,19 @@ import java.io.Closeable
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Geometry, Point}
 import org.geotools.data.{DataStore, FeatureWriter, Query, Transaction}
 import org.geotools.util.factory.Hints
-import org.geotools.geojson.geom.GeometryJSON
 import org.json4s.native.JsonMethods._
 import org.json4s.{JObject, _}
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser
-import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{PathAttribute, PathElement}
+import org.locationtech.geomesa.features.kryo.json.JsonPathParser.PathElement
 import org.locationtech.geomesa.geojson.query.{GeoJsonQuery, PropertyTransformer}
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.jts.geom.{Geometry, Point}
+import org.locationtech.jts.io.geojson.GeoJsonReader
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.parboiled.errors.ParsingException
 
@@ -244,7 +244,7 @@ object GeoJsonGtIndex {
   private type ExtractDate = (JObject) => Option[AnyRef]
   private type JsonExtractors = (ExtractGeometry, ExtractId, ExtractDate)
 
-  private val jsonGeometry = new GeometryJSON()
+  private val geometryReader = new GeoJsonReader()
 
   private val extractorCache = Caffeine.newBuilder().build[String, JsonExtractors]()
 
@@ -362,7 +362,7 @@ object GeoJsonGtIndex {
     * @return geometry, if present
     */
   private def getGeometry(feature: JObject): Geometry =
-    getByKey(feature, "geometry").map(g => jsonGeometry.read(compact(render(g)))).orNull
+    getByKey(feature, "geometry").map(g => geometryReader.read(compact(render(g)))).orNull
 
   /**
     * Gets a value from a json object by it's key

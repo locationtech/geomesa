@@ -33,11 +33,15 @@ class GeoJSONExtensionsTest extends Specification {
       import org.locationtech.geomesa.spark.sql.GeoJSONExtensions.GeoJSONDataFrame
       import s.implicits._
 
-      val rows = Seq(("1", 1, WKTUtils.read("POINT(1 2)")))
+      val rows = Seq(("1", 1, WKTUtils.read("POINT(1 2)")), ("2", 2, WKTUtils.read("POINT(1 3)")))
       val df = spark.sparkContext.parallelize(rows).toDF("__fid__", "name", "geom")
 
-      df.toGeoJSON.head() mustEqual
-          """{"type":"Feature","geometry":{"type":"Point","coordinates":[1,2]},"properties":{"name":1},"id":"1"}"""
+      val result = df.toGeoJSON.collect()
+      result must haveLength(2)
+      result.head mustEqual
+          """{"type":"Feature","id":"1","geometry":{"type":"Point","coordinates":[1,2]},"properties":{"name":1}}"""
+      result.last mustEqual
+          """{"type":"Feature","id":"2","geometry":{"type":"Point","coordinates":[1,3]},"properties":{"name":2}}"""
     }
 
     "convert polygons" >> {
@@ -50,8 +54,8 @@ class GeoJSONExtensionsTest extends Specification {
       val df = spark.sparkContext.parallelize(rows).toDF("__fid__", "name", "geom")
 
       df.toGeoJSON.head() mustEqual
-          """{"type":"Feature","geometry":{"type":"Polygon","coordinates":""" +
-              """[[[1,1],[1,2],[2,2],[2,1],[1,1]]]},"properties":{"name":1},"id":"1"}"""
+          """{"type":"Feature","id":"1","geometry":{"type":"Polygon","coordinates":""" +
+              """[[[1,1],[1,2],[2,2],[2,1],[1,1]]]},"properties":{"name":1}}"""
     }
 
     "handle multiple rows" >> {
@@ -60,16 +64,12 @@ class GeoJSONExtensionsTest extends Specification {
       import org.locationtech.geomesa.spark.sql.GeoJSONExtensions.GeoJSONDataFrame
       import s.implicits._
 
-      val rows = Seq(
-        ("1", 1, WKTUtils.read("POINT(1 1)")),
-        ("2", 2, WKTUtils.read("POINT(2 2)")),
-        ("3", 3, WKTUtils.read("POINT(3 3)"))
-      )
+      val rows = (1 to 10).map { i => (s"$i", i, WKTUtils.read(s"POINT($i $i)")) }
 
       val df = spark.sparkContext.parallelize(rows).toDF("__fid__", "name", "geom")
 
-      df.toGeoJSON.collect mustEqual Array(1, 2, 3).map { i =>
-        s"""{"type":"Feature","geometry":{"type":"Point","coordinates":[$i,$i]},"properties":{"name":$i},"id":"$i"}"""
+      df.toGeoJSON.collect mustEqual Array.range(1, 11).map { i =>
+        s"""{"type":"Feature","id":"$i","geometry":{"type":"Point","coordinates":[$i,$i]},"properties":{"name":$i}}"""
       }
     }
 
@@ -88,8 +88,8 @@ class GeoJSONExtensionsTest extends Specification {
       val df = spark.sparkContext.parallelize(rows).toDF("__fid__", "name", "geom")
 
       df.toGeoJSON.collect mustEqual Array(1, 2, 3).map {
-        case 2 => """{"type":"Feature","properties":{},"id":"2"}"""
-        case i => s"""{"type":"Feature","geometry":{"type":"Point","coordinates":[$i,$i]},"properties":{"name":$i},"id":"$i"}"""
+        case 2 => """{"type":"Feature","id":"2","geometry":null,"properties":{"name":null}}"""
+        case i => s"""{"type":"Feature","id":"$i","geometry":{"type":"Point","coordinates":[$i,$i]},"properties":{"name":$i}}"""
       }
     }
   }

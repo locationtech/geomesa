@@ -32,28 +32,9 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
         </dependency>
-
-        <!-- provided dependencies -->
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-compiler</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hadoop</groupId>
-            <artifactId>hadoop-client</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.json4s</groupId>
-            <artifactId>json4s-native_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-geojson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.geotools</groupId>
@@ -70,6 +51,17 @@
         <dependency>
             <groupId>com.beust</groupId>
             <artifactId>jcommander</artifactId>
+        </dependency>
+
+        <!-- provided dependencies -->
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-compiler</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
         </dependency>
 
         <!-- test deps -->

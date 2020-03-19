@@ -20,8 +20,8 @@
             <artifactId>gt-main</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.geotools</groupId>
-            <artifactId>gt-geojson</artifactId>
+            <groupId>org.locationtech.jts.io</groupId>
+            <artifactId>jts-io-common</artifactId>
         </dependency>
         <dependency>
             <groupId>org.parboiled</groupId>
