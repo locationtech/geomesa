@@ -10,7 +10,7 @@ package org.locationtech.geomesa.convert.shp
 
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.shp.ShapefileFunctionFactory.{ShapefileAttribute, ShapefileFeatureId}
-import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
+import org.locationtech.geomesa.convert2.transforms.{Expression, TransformerFunction, TransformerFunctionFactory}
 
 class ShapefileFunctionFactory extends TransformerFunctionFactory {
 
@@ -32,7 +32,7 @@ object ShapefileFunctionFactory {
 
     override val names: Seq[String] = Seq("shp")
 
-    override def getInstance: ShapefileAttribute = new ShapefileAttribute()
+    override def getInstance(args: List[Expression]): ShapefileAttribute = new ShapefileAttribute()
 
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       if (i == -1) {
@@ -62,7 +62,7 @@ object ShapefileFunctionFactory {
 
     override val names: Seq[String] = Seq("shpFeatureId")
 
-    override def getInstance: ShapefileFeatureId = new ShapefileFeatureId()
+    override def getInstance(args: List[Expression]): ShapefileFeatureId = new ShapefileFeatureId()
 
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
       if (values == null) {

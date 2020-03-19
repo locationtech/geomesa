@@ -12,15 +12,16 @@ import java.nio.ByteBuffer
 
 import org.apache.avro.generic.GenericRecord
 import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
-import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
+import org.locationtech.geomesa.convert2.transforms.{Expression, TransformerFunction, TransformerFunctionFactory}
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils
 
 class AvroFunctionFactory extends TransformerFunctionFactory {
 
   override def functions: Seq[TransformerFunction] = Seq(avroPath, binaryList, binaryMap, binaryUuid)
 
-  private val avroPath = new AvroPathFn()
+  private val avroPath = new AvroPathFn(null)
 
   // parses a list encoded by the geomesa avro writer
   private val binaryList = TransformerFunction.pure("avroBinaryList") { args =>
@@ -37,14 +38,17 @@ class AvroFunctionFactory extends TransformerFunctionFactory {
     AvroSimpleFeatureUtils.decodeUUID(ByteBuffer.wrap(args(0).asInstanceOf[Array[Byte]]))
   }
 
-  class AvroPathFn extends NamedTransformerFunction(Seq("avroPath"), pure = true) {
-    private var path: AvroPath = _
-    override def getInstance: AvroPathFn = new AvroPathFn()
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
-      if (path == null) {
-        path = AvroPath(args(1).asInstanceOf[String])
+  class AvroPathFn(path: AvroPath) extends NamedTransformerFunction(Seq("avroPath"), pure = true) {
+
+    override def getInstance(args: List[Expression]): AvroPathFn = {
+      val path = args match {
+        case _ :: LiteralString(s) :: _ => AvroPath(s)
+        case _ => throw new IllegalArgumentException(s"Expected Avro path but got: ${args.headOption.orNull}")
       }
-      path.eval(args(0).asInstanceOf[GenericRecord]).orNull
+      new AvroPathFn(path)
     }
+
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
+      path.eval(args(0).asInstanceOf[GenericRecord]).orNull
   }
 }

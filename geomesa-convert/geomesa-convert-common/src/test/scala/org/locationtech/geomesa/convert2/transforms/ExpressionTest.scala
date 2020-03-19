@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.convert2.transforms
 
-import java.lang.ClassCastException
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDateTime, ZoneOffset}
 import java.util.Date
@@ -18,6 +17,7 @@ import org.apache.commons.codec.binary.Base64
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert2.transforms.Expression.{FunctionExpression, Literal}
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
 import org.specs2.mutable.Specification
@@ -574,6 +574,13 @@ class ExpressionTest extends Specification {
       buf.asInstanceOf[Polygon].getCentroid.getY must beCloseTo(1, 0.0001)
       // note: area is not particularly close as there aren't very many points in the polygon
       buf.asInstanceOf[Polygon].getArea must beCloseTo(math.Pi * 4.0, 0.2)
+    }
+    "pass literals through to cql functions" >> {
+      val exp = Expression("cql:intersects(geometry('POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))'), $1)")
+      exp must beAnInstanceOf[FunctionExpression]
+      exp.asInstanceOf[FunctionExpression].arguments.headOption must beSome(beAnInstanceOf[Literal[_]])
+      exp.eval(Array(null, "POINT(27.8 31.1)")) mustEqual true
+      exp.eval(Array(null, "POINT(1 1)")) mustEqual false
     }
     "convert stringToDouble zero default" >> {
       val exp = Expression("stringToDouble($1, 0.0)")
