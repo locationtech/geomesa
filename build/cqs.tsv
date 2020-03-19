@@ -33,6 +33,7 @@ com.google.guava:guava	14.0.1	compile
 com.google.guava:guava	17.0	compile
 com.google.guava:guava	18.0	compile
 com.google.protobuf:protobuf-java	2.5.0	compile
+com.graphhopper.external:jackson-datatype-jts	1.0-2.7	compile
 com.h2database:h2	1.4.192	compile
 com.jayway.jsonpath:json-path	2.2.0	compile
 commons-beanutils:commons-beanutils	1.7.0	compile
@@ -197,6 +198,7 @@ org.geotools:gt-cql	23-RC	compile
 org.geotools:gt-epsg-hsql	23-RC	compile
 org.geotools:gt-epsg-wkt	23-RC	compile
 org.geotools:gt-geojson	23-RC	compile
+org.geotools:gt-geojsondatastore	23-RC	compile
 org.geotools:gt-grid	23-RC	compile
 org.geotools:gt-jdbc	23-RC	compile
 org.geotools:gt-main	23-RC	compile
