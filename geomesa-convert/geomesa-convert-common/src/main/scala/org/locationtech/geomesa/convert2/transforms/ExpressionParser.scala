@@ -80,7 +80,7 @@ private [transforms] class ExpressionParser extends BasicParser {
         val name = ns.map(_ + ":" + fn).getOrElse(fn)
         val function = TransformerFunction.functions.getOrElse(name,
           throw new ParsingException(s"Invalid function name: $name"))
-        val expr = FunctionExpression(function.getInstance, args.toArray)
+        val expr = FunctionExpression(function.getInstance(args), args.toArray)
         if (function.pure && args.forall(a => a.isInstanceOf[Literal[_]])) {
           LiteralAny(expr.eval(Array.empty))
         } else {

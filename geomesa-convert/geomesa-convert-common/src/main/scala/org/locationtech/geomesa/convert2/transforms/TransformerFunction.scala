@@ -40,7 +40,7 @@ trait TransformerFunction {
     *
     * @return
     */
-  def getInstance: TransformerFunction = this
+  def getInstance(args: List[Expression]): TransformerFunction = this
 
   /**
     * Is the a 'pure' function? Pure functions a) given the same inputs, always return the same result, and

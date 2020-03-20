@@ -14,6 +14,7 @@ import java.util.{Date, Locale}
 
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.DateFunctionFactory.{CustomFormatDateParser, DateToString, StandardDateParser}
+import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.utils.text.DateParsing
 
@@ -152,9 +153,9 @@ class DateFunctionFactory extends TransformerFunctionFactory {
             .withZone(ZoneOffset.UTC)
     }
 
-  private val customFormatDateParser = new CustomFormatDateParser()
+  private val customFormatDateParser = new CustomFormatDateParser(null)
 
-  private val dateToString = new DateToString()
+  private val dateToString = new DateToString(null)
 }
 
 object DateFunctionFactory {
@@ -170,16 +171,17 @@ object DateFunctionFactory {
     }
   }
 
-  class CustomFormatDateParser extends NamedTransformerFunction(Seq("date"), pure = true) {
+  class CustomFormatDateParser(format: DateTimeFormatter) extends NamedTransformerFunction(Seq("date"), pure = true) {
 
-    private var format: DateTimeFormatter = _
-
-    override def getInstance: CustomFormatDateParser = new CustomFormatDateParser()
+    override def getInstance(args: List[Expression]): CustomFormatDateParser = {
+      val format = args match {
+        case LiteralString(s) :: _ => DateTimeFormatter.ofPattern(s).withZone(ZoneOffset.UTC)
+        case _ => throw new IllegalArgumentException(s"Expected date pattern but got: ${args.headOption.orNull}")
+      }
+      new CustomFormatDateParser(format)
+    }
 
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
-      if (format == null) {
-        format = DateTimeFormatter.ofPattern(args(0).asInstanceOf[String]).withZone(ZoneOffset.UTC)
-      }
       args(1) match {
         case null => null
         case d: String => DateParsing.parseDate(d, format)
@@ -188,17 +190,17 @@ object DateFunctionFactory {
     }
   }
 
-  class DateToString extends NamedTransformerFunction(Seq("dateToString"), pure = true) {
+  class DateToString(format: DateTimeFormatter) extends NamedTransformerFunction(Seq("dateToString"), pure = true) {
 
-    private var format: DateTimeFormatter = _
-
-    override def getInstance: DateToString = new DateToString()
-
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
-      if (format == null) {
-        format = DateTimeFormatter.ofPattern(args(0).asInstanceOf[String]).withZone(ZoneOffset.UTC)
+    override def getInstance(args: List[Expression]): DateToString = {
+      val format = args match {
+        case LiteralString(s) :: _ => DateTimeFormatter.ofPattern(s).withZone(ZoneOffset.UTC)
+        case _ => throw new IllegalArgumentException(s"Expected date pattern but got: ${args.headOption.orNull}")
       }
-      DateParsing.formatDate(args(1).asInstanceOf[java.util.Date], format)
+      new DateToString(format)
     }
+
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any =
+      DateParsing.formatDate(args(1).asInstanceOf[java.util.Date], format)
   }
 }

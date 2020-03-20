@@ -10,19 +10,19 @@ package org.locationtech.geomesa.convert2.transforms
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.factory.CommonFactoryFinder
-import org.geotools.util.factory.Hints
 import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory}
-import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-
+import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.convert.EvaluationContext
+import org.locationtech.geomesa.convert2.transforms.CqlFunctionFactory.{CqlTransformerFunction, arrayIndexProperty}
+import org.locationtech.geomesa.convert2.transforms.Expression.Literal
+import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
+import org.opengis.filter.expression.PropertyName
 
 class CqlFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  override def functions: Seq[TransformerFunction] = cqlFunctions
-
-  private val cqlFunctions = {
-    val ff = CommonFactoryFinder.getFilterFactory2
+  override val functions: Seq[TransformerFunction] = {
     val builder = Seq.newBuilder[TransformerFunction]
 
     CommonFactoryFinder.getFunctionFactories(null).asScala.toSeq.foreach { factory =>
@@ -38,14 +38,8 @@ class CqlFunctionFactory extends TransformerFunctionFactory with LazyLogging {
       }
       names.foreach { f =>
         val name = f.getFunctionName.toString
-        // use alphas for the array indices, as used by the ArrayPropertyAccessor, below
-        val expressions = Array.tabulate(f.getArguments.size()) { i =>
-          ff.property(('a' + i).toChar.toString)
-        }
-        try {
-          val fn = ff.function(name, expressions: _*)
-          builder += TransformerFunction(s"cql:$name") { args => fn.evaluate(args) }
-        } catch {
+        val expressions = Array.tabulate(f.getArguments.size())(arrayIndexProperty)
+        try { builder += new CqlTransformerFunction(name, expressions) } catch {
           case e: Exception => logger.warn(s"Couldn't create cql function '$name': ${e.toString}")
         }
       }
@@ -55,6 +49,31 @@ class CqlFunctionFactory extends TransformerFunctionFactory with LazyLogging {
 }
 
 object CqlFunctionFactory {
+
+  private val ff = CommonFactoryFinder.getFilterFactory2
+
+  // use alphas for the array indices, as used by the ArrayPropertyAccessor, below
+  private def arrayIndexProperty(i: Int): PropertyName = ff.property(('a' + i).toChar.toString)
+
+  class CqlTransformerFunction(name: String, expressions: Array[_ <: org.opengis.filter.expression.Expression])
+      extends NamedTransformerFunction(Seq(s"cql:$name")) {
+
+    private val fn = ff.function(name, expressions: _*)
+
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = fn.evaluate(args)
+
+    override def getInstance(args: List[Expression]): CqlTransformerFunction = {
+      // remap literals to cql literals so that they can be optimized (e.g. prepared geometries, etc)
+      val expressions = Array.tabulate(fn.getFunctionName.getArguments.size()) { i =>
+        if (i < args.length && args(i).isInstanceOf[Literal[_]]) {
+          ff.literal(args(i).asInstanceOf[Literal[_]].value)
+        } else {
+          arrayIndexProperty(i)
+        }
+      }
+      new CqlTransformerFunction(name, expressions)
+    }
+  }
 
   /**
     * For accessing 'properties' of arrays (instead of simple features)
@@ -81,10 +100,10 @@ object CqlFunctionFactory {
     }
 
     override def set[T](obj: Any, xpath: String, value: T, target: Class[T]): Unit =
-      obj.asInstanceOf[Array[Any]].update(toIndex(xpath), FastConverter.convert(value, target))
+      obj.asInstanceOf[Array[Any]].update(toIndex(xpath), value)
 
     override def get[T](obj: Any, xpath: String, target: Class[T]): T =
-      FastConverter.convert(obj.asInstanceOf[Array[Any]].apply(toIndex(xpath)), target)
+      obj.asInstanceOf[Array[Any]].apply(toIndex(xpath)).asInstanceOf[T]
 
     private def toIndex(xpath: String): Int = {
       if (xpath.length == 1) {
