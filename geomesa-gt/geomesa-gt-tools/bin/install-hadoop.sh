@@ -23,7 +23,7 @@ htrace3_core_version="3.1.0-incubating"
 htrace4_core_version="4.1.0-incubating"
 
 # for hadoop 2.5 and 2.6 to work we need these
-guava_version="11.0.2"
+guava_version="%%guava.version%%"
 com_log_version="1.1.3"
 
 # Load common functions and setup

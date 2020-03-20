@@ -167,7 +167,11 @@ object IndexParam {
     val sft = ds.getSchema(typeName)
     val indices = ds.manager.indices(sft, mode)
 
-    lazy val available = indices.flatMap(i => Seq(i.name, i.identifier)).distinct.mkString(", ")
+    lazy val available = {
+      val names = scala.collection.mutable.Map.empty[String, Int].withDefaultValue(0)
+      indices.foreach(i => names.put(i.name, names(i.name) + 1))
+      (indices.map(_.identifier) ++ names.collect { case (n, 1) => n }).distinct.sorted.mkString(", ")
+    }
 
     def single(indices: Seq[GeoMesaFeatureIndex[_, _]]): Option[GeoMesaFeatureIndex[_, _]] = indices match {
       case Nil => None

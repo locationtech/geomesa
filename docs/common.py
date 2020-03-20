@@ -104,9 +104,9 @@ rst_epilog = """
 
 .. |geotools_version| replace:: 21.x
 
-.. |accumulo_required_version| replace:: 1.7.x, 1.8.x or 1.9.x
+.. |accumulo_required_version| replace:: 1.7.x, 1.8.x, 1.9.x or 2.0.x
 
-.. |accumulo_supported_versions| replace:: versions 1.7.x, 1.8.x and 1.9.x
+.. |accumulo_supported_versions| replace:: versions 1.7.x, 1.8.x, 1.9.x and 2.0.x
 
 .. |hbase_required_version| replace::  1.4.x or 2.2.x
 
@@ -114,7 +114,7 @@ rst_epilog = """
 
 .. |hbase_bundled_version| replace:: 2.2.3
 
-.. |hadoop_version| replace:: 2.6 or later
+.. |hadoop_version| replace:: 2.8 or later
 
 .. |zookeeper_version| replace:: 3.4.5 or later
 

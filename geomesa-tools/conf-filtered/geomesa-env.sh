@@ -13,22 +13,6 @@
 #
 # You can use alternate configuration files by setting $GEOMESA_CONF_DIR to another
 # location before running commands.
-#
-# By default existing environment variables take precedent. If you would prefer the variables
-# set in this config to take precedent set the following variable to "1". This can be helpful if you
-# frequently use multiple configuration files/folders.
-configPriority="0"
-
-# ------------------- Do not alter this section --------------------
-existingEnvVars=()
-function setvar() {
-  if [[ "$configPriority" == "0" ]]; then
-    test -z "$(eval "echo \$$1")" && export $1=$2 || existingEnvVars=("${existingEnvVars[@]}" $1)
-  else
-    export $1=$2
-  fi
-}
-# ------------------------------------------------------------------
 
 # ==================================================================
 # General Environment Variables
@@ -37,7 +21,7 @@ function setvar() {
 # Maven repository
 # Used for downloading dependencies in the various 'install-xxx.sh' scripts
 #
-# setvar GEOMESA_MAVEN_URL "https://search.maven.org/remotecontent?filepath="
+# export GEOMESA_MAVEN_URL="${GEOMESA_MAVEN_URL:-https://search.maven.org/remotecontent?filepath=}"
 
 # ==================================================================
 # GeoMesa Environment Variables
@@ -50,13 +34,13 @@ function setvar() {
 # This resides inside GeoMesa tools by default but can be moved elsewhere. If this is
 # not set but %%gmtools.dist.name%%_HOME is, this will default to %%gmtools.dist.name%%_HOME/lib.
 #
-# setvar GEOMESA_LIB /path/to/geomesa-$VERSION/dist/tools/geomesa-tools-$VERSION/lib
+# export GEOMESA_LIB="{GEOMESA_LIB:-$%%gmtools.dist.name%%_HOME/lib}"
 
 # GeoMesa logs directory.
 # This resides inside GeoMesa tools by default but can be moved elsewhere. If this is
 # not set but %%gmtools.dist.name%%_HOME is, this will default to %%gmtools.dist.name%%_HOME/logs.
 #
-# setvar GEOMESA_LOG_DIR /path/to/geomesa-$VERSION/dist/tools/geomesa-tools-$VERSION/logs
+# export GEOMESA_LOG_DIR="{GEOMESA_LOG_DIR:-$%%gmtools.dist.name%%_HOME/logs}"
 
 # ==================================================================
 # Accumulo Environment Variables
@@ -64,19 +48,19 @@ function setvar() {
 
 # Accumulo directory.
 #
-# setvar ACCUMULO_HOME /path/to/accumulo
+# export ACCUMULO_HOME="{ACCUMULO_HOME:-/path/to/accumulo}"
 
 # Accumulo lib directory.
 # This resides inside Accumulo home by default. If this is not set but ACCUMULO_HOME is,
 # this will default to ACCUMULO_HOME/lib.
 #
-# setvar ACCUMULO_LIB /path/to/accumulo/lib
+# export ACCUMULO_LIB="{ACCUMULO_LIB:-$ACCUMULO_HOME/lib}"
 
 # Accumulo conf directory.
 # This resides inside Accumulo home by default. If this is not set but ACCUMULO_HOME is,
 # this will default to ACCUMULO_HOME/conf.
 #
-# setvar ACCUMULO_CONF_DIR /path/to/accumulo/conf
+# export ACCUMULO_CONF_DIR="${ACCUMULO_CONF_DIR:-$ACCUMULO_HOME/conf}"
 
 # ==================================================================
 # Hadoop Environment Variables
@@ -84,17 +68,17 @@ function setvar() {
 
 # Set this variable to provide GeoMesa with Hadoop jars. A good starting point is to run
 # the "hadoop classpath" command and set the value to its output
-# export GEOMESA_HADOOP_CLASSPATH=
+# export GEOMESA_HADOOP_CLASSPATH=${GEOMESA_HADOOP_CLASSPATH:-$(hadoop classpath)}"
 
 # Hadoop directory.
 #
-# setvar HADOOP_HOME /path/to/hadoop
+# export HADOOP_HOME="${HADOOP_HOME:-/path/to/hadoop}"
 
 # Hadoop conf directory.
 # This resides inside ${HADOOP_HOME}/etc/hadoop by default. If this is
 # not set but HADOOP_HOME is, this will default to HADOOP_HOME/etc/hadoop.
 #
-# setvar HADOOP_CONF_DIR /path/to/hadoop/etc/hadoop
+# export HADOOP_CONF_DIR="${HADOOP_CONF_DIR:-/path/to/hadoop/etc/hadoop}"
 
 # Hadoop CDH configuration
 # Setting this variable to "1" will configure classpath settings for Hadoop
@@ -106,11 +90,11 @@ hadoopCDH="0"
 # Depending on your installation configuration these may not be needed.
 # These are all loaded into the classpath. slf4j jars will be excluded.
 #
-# setvar HADOOP_COMMON_HOME /path/to/hadoop/common/home
-# setvar HADOOP_HDFS_HOME /path/to/hadoop/hdfs/home
-# setvar YARN_HOME /path/to/yarn/home
-# setvar HADOOP_MAPRED_HOME /path/to/map/reduce/home
-# setvar HADOOP_CUSTOM_CP /path/to/jars:/path/to/jars
+# export HADOOP_COMMON_HOME="${HADOOP_COMMON_HOME:-/path/to/hadoop/common/home}"
+# export HADOOP_HDFS_HOME="${HADOOP_HDFS_HOME:-/path/to/hadoop/hdfs/home}"
+# export YARN_HOME="${YARN_HOME:-/path/to/yarn/home}"
+# export HADOOP_MAPRED_HOME="${HADOOP_MAPRED_HOME:-/path/to/map/reduce/home}"
+# export HADOOP_CUSTOM_CP="${HADOOP_CUSTOM_CP:-/path/to/jars:/path/to/jars}"
 
 # ==================================================================
 # Zookeeper Environment Variables
@@ -118,7 +102,7 @@ hadoopCDH="0"
 
 # Zookeeper directory.
 #
-# setvar ZOOKEEPER_HOME /path/to/zookeeper
+# export ZOOKEEPER_HOME="${ZOOKEEPER_HOME:-/path/to/zookeeper}"
 
 # ==================================================================
 # Java Environment Variables
@@ -127,15 +111,15 @@ hadoopCDH="0"
 # Prepend user defined classpaths to the GEOMESA_CP (class path variable)
 # Follows the standard Java classpaths syntax
 #
-# setvar GEOMESA_EXTRA_CLASSPATHS /some/dir/:/another/dir/
+# export GEOMESA_EXTRA_CLASSPATHS="${GEOMESA_EXTRA_CLASSPATHS:-/some/dir/:/another/dir/}"
 
 # Java library path. Used to set GeoMesa Options.
 #
-# setvar JAVA_LIBRARY_PATH /path/to/java/library
+# export JAVA_LIBRARY_PATH="${JAVA_LIBRARY_PATH:-/path/to/java/library}"
 
 # Java command parameters.
 # $JAVA_OPTS is included by default, editing this option will overwrite this default.
 # Add additional options after {$JAVA_OPTS} to preserve current JAVA_OPTS.
 # Replace {$JAVA_OPTS} to use different java options.
 #
-# setvar CUSTOM_JAVA_OPTS "${JAVA_OPTS}"
+# export CUSTOM_JAVA_OPTS="${CUSTOM_JAVA_OPTS:-$JAVA_OPTS}"

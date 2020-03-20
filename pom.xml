@@ -83,15 +83,16 @@
         <metrics.version>3.2.6</metrics.version>
         <aws.sdk.version>1.11.421</aws.sdk.version>
 
-        <specs2.version>4.3.2</specs2.version>
-        <junit.version>4.12</junit.version>
+        <specs2.version>4.9.2</specs2.version>
+        <junit.version>4.13</junit.version>
 
         <!-- *** provided artifacts, not bundled to support multiple environments *** -->
 
-        <accumulo.version>1.8.1</accumulo.version>
-        <zookeeper.version>3.4.10</zookeeper.version>
-        <thrift.version>0.9.3</thrift.version>
+        <accumulo.version>2.0.0</accumulo.version>
+        <zookeeper.version>3.4.14</zookeeper.version>
+        <thrift.version>0.12.0</thrift.version>
         <hadoop.version>2.8.5</hadoop.version>
+        <guava.version>27.0-jre</guava.version>
         <spark.version>2.3.1</spark.version>
         <hbase.version>2.2.3</hbase.version>
         <hbase-1.version>1.4.12</hbase-1.version>
@@ -129,8 +130,8 @@
         <copyright.year>2020</copyright.year>
 
         <!-- recommended installation versions -->
-        <accumulo.version.recommended>1.9.3</accumulo.version.recommended>
-        <hbase.version.recommended>2.2.2</hbase.version.recommended>
+        <accumulo.version.recommended>2.0.0</accumulo.version.recommended>
+        <hbase.version.recommended>2.2.3</hbase.version.recommended>
         <hbase.thirdparty.version.recommended>2.2.1</hbase.thirdparty.version.recommended>
         <cassandra.server.version.recommended>3.11.4</cassandra.server.version.recommended>
         <cassandra.driver.version.recommended>3.7.2</cassandra.driver.version.recommended>
@@ -1336,7 +1337,23 @@
                 <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
                 <version>2.15.0</version>
             </dependency>
-
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>1.9.3</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-configuration</groupId>
+                <artifactId>commons-configuration</artifactId>
+                <version>1.6</version>
+                <exclusions>
+                    <exclusion>
+                        <!-- exclude commons-beanutils-core, which doesn't exist in 1.9.3 -->
+                        <groupId>commons-beanutils</groupId>
+                        <artifactId>commons-beanutils-core</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
             <dependency>
                 <groupId>commons-pool</groupId>
                 <artifactId>commons-pool</artifactId>
@@ -1387,13 +1404,6 @@
                 <groupId>org.calrissian.mango</groupId>
                 <artifactId>mango-core</artifactId>
                 <version>1.2.0</version>
-            </dependency>
-            <!-- note: accumulo uses guava 17, but geotools uses 11. The methods we use happen to exist
-                 in both, but try to use guava sparingly. -->
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>17.0</version>
             </dependency>
             <dependency>
                 <groupId>com.github.ben-manes.caffeine</groupId>
@@ -1501,8 +1511,13 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>4.4</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
                 <artifactId>commons-text</artifactId>
-                <version>1.4</version>
+                <version>1.6</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.avro</groupId>
@@ -1658,6 +1673,17 @@
                 <artifactId>curator-recipes</artifactId>
                 <version>4.0.1</version>
             </dependency>
+            <!-- standardize httpcomponents version, used by various libraries including hadoop and thrift -->
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpclient</artifactId>
+                <version>4.5.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.httpcomponents</groupId>
+                <artifactId>httpcore</artifactId>
+                <version>4.4.6</version>
+            </dependency>
             <dependency>
                 <groupId>com.thoughtworks.paranamer</groupId>
                 <artifactId>paranamer</artifactId>
@@ -1770,22 +1796,55 @@
                 <artifactId>accumulo-core</artifactId>
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
+                <exclusions>
+                    <!-- exclude hadoop 3+ only jars, since we're still compiling against haddop 2.8 -->
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-client-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-client-runtime</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.accumulo</groupId>
                 <artifactId>accumulo-server-base</artifactId>
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.accumulo</groupId>
-                <artifactId>cloudtrace</artifactId>
-                <version>${accumulo.version}</version>
-                <scope>provided</scope>
+                <exclusions>
+                    <!-- exclude hadoop 3+ only jars, since we're still compiling against haddop 2.8 -->
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-client-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-client-runtime</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.accumulo</groupId>
                 <artifactId>accumulo-start</artifactId>
+                <version>${accumulo.version}</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <!-- exclude hadoop 3+ only jars, since we're still compiling against haddop 2.8 -->
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-client-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-client-runtime</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.accumulo</groupId>
+                <artifactId>cloudtrace</artifactId>
                 <version>${accumulo.version}</version>
                 <scope>provided</scope>
             </dependency>
@@ -1923,6 +1982,38 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>listenablefuture</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.guava</groupId>
+                        <artifactId>failureaccess</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.checkerframework</groupId>
+                        <artifactId>checker-qual</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.j2objc</groupId>
+                        <artifactId>j2objc-annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>animal-sniffer-annotations</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.zookeeper</groupId>
                 <artifactId>zookeeper</artifactId>
                 <version>${zookeeper.version}</version>
@@ -1946,6 +2037,10 @@
                     <exclusion>
                         <groupId>io.netty</groupId>
                         <artifactId>netty</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.github.spotbugs</groupId>
+                        <artifactId>spotbugs-annotations</artifactId>
                     </exclusion>
                 </exclusions>
                 <scope>provided</scope>
@@ -2324,13 +2419,13 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <!-- 3.0.0-M1 was released 2018-11-07. -->
-                    <version>3.0.0-M1</version>
+                    <!-- 3.0.0-M4 was released 2019-11-13 -->
+                    <version>3.0.0-M4</version>
                     <dependencies>
                         <dependency>
                             <groupId>org.apache.maven.surefire</groupId>
                             <artifactId>surefire-junit4</artifactId>
-                            <version>3.0.0-M1</version>
+                            <version>3.0.0-M4</version>
                         </dependency>
                     </dependencies>
                     <configuration>
@@ -2349,8 +2444,11 @@
                             <user.language>en</user.language>
                             <user.region>US</user.region>
                             <geomesa.scan.ranges.target>500</geomesa.scan.ranges.target>
-                            <geomesa.hbase.test.servers>2</geomesa.hbase.test.servers>
+                            <geomesa.accumulo.test.tablet.servers>1</geomesa.accumulo.test.tablet.servers>
+                            <geomesa.hbase.test.region.servers>1</geomesa.hbase.test.region.servers>
                         </systemPropertyVariables>
+                        <!-- these can interfere with the mini clusters we spin up for unit tests -->
+                        <excludedEnvironmentVariables>HADOOP_HOME,ZOOKEEPER_HOME,ACCUMULO_HOME,HBASE_HOME</excludedEnvironmentVariables>
                     </configuration>
                 </plugin>
                 <plugin>

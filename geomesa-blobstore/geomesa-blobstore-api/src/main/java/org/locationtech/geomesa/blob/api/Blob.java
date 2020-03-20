@@ -8,8 +8,7 @@
 
 package org.locationtech.geomesa.blob.api;
 
-
-import com.google.common.base.Objects;
+import java.util.Arrays;
 
 public class Blob {
 
@@ -37,9 +36,10 @@ public class Blob {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
-                .add("id", id)
-                .add("localName", localName)
-                .toString();
+        return "Blob{" +
+               "id='" + id + '\'' +
+               ", localName='" + localName + '\'' +
+               ", payload=" + Arrays.toString(payload) +
+               '}';
     }
 }

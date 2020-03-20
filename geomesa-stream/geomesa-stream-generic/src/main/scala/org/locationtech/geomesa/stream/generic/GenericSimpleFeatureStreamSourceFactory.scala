@@ -14,7 +14,6 @@ import java.util.Collections
 import java.util.concurrent.{ExecutorService, Executors, LinkedBlockingQueue, TimeUnit}
 import java.util.function.Function
 
-import com.google.common.collect.{Maps, Queues}
 import com.typesafe.config.Config
 import org.apache.camel.CamelContext
 import org.apache.camel.impl._
@@ -28,7 +27,7 @@ import org.slf4j.LoggerFactory
 import scala.util.Try
 
 object GenericSimpleFeatureStreamSourceFactory {
-  val contexts: java.util.Map[String, CamelContext] = Collections.synchronizedMap(Maps.newHashMap[String, CamelContext]())
+  val contexts: java.util.Map[String, CamelContext] = Collections.synchronizedMap(new java.util.HashMap[String, CamelContext]())
 
   def getContext(namespace: String): CamelContext = {
     contexts.computeIfAbsent(namespace, new Function[String, CamelContext] {
@@ -72,8 +71,8 @@ class GenericSimpleFeatureStreamSource(val ctx: CamelContext,
 
   override def init(): Unit = {
     super.init()
-    inQ = Queues.newLinkedBlockingQueue[String]()
-    outQ = Queues.newLinkedBlockingQueue[SimpleFeature]()
+    inQ = new LinkedBlockingQueue[String]()
+    outQ = new LinkedBlockingQueue[SimpleFeature]()
     val route = getProcessingRoute(inQ)
     ctx.addRoutes(route)
     parsers = List.fill(threads)(parserFactory())

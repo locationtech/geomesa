@@ -28,6 +28,7 @@ object SparkSQLTestUtils {
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .config("spark.kryo.registrator", classOf[GeoMesaSparkKryoRegistrator].getName)
       .config("spark.sql.crossJoin.enabled", "true")
+      .config("spark.ui.enabled", value = false)
       .master("local[*]")
       .getOrCreate()
   }

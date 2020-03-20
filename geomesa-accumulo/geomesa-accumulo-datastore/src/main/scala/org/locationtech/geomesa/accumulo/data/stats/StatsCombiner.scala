@@ -13,9 +13,9 @@ import org.apache.accumulo.core.client.{Connector, IteratorSetting}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.accumulo.core.iterators.{Combiner, IteratorEnvironment, SortedKeyValueIterator}
-import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata.SingleRowAccumuloMetadata
 import org.locationtech.geomesa.accumulo.data.stats.AccumuloGeoMesaStats.CombinerName
+import org.locationtech.geomesa.accumulo.util.TableUtils
 import org.locationtech.geomesa.index.metadata.KeyValueStoreMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.{Stat, StatSerializer}
@@ -91,7 +91,7 @@ object StatsCombiner {
   val SeparatorOption = "sep"
 
   def configure(sft: SimpleFeatureType, connector: Connector, table: String, separator: String): Unit = {
-    AccumuloVersion.createTableIfNeeded(connector, table)
+    TableUtils.createTableIfNeeded(connector, table)
 
     val sftKey = getSftKey(sft)
     val sftOpt = SimpleFeatureTypes.encodeType(sft)

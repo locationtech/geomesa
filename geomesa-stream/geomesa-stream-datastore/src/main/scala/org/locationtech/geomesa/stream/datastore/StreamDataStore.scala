@@ -16,7 +16,6 @@ import java.util.logging.Level
 import java.{util => ju}
 
 import com.github.benmanes.caffeine.cache.{Cache, Caffeine, RemovalCause, RemovalListener}
-import com.google.common.collect.{Lists, Maps}
 import com.typesafe.config.ConfigFactory
 import org.apache.camel.CamelContext
 import org.apache.camel.impl.DefaultCamelContext
@@ -125,9 +124,11 @@ class StreamDataStore(source: SimpleFeatureStreamSource, timeout: Int, ns: Optio
 
   def registerListener(listener: StreamListener): Unit = listeners.add(listener)
 
-  override def createTypeNames(): ju.List[Name] = ns match {
-    case None            => Lists.newArrayList(sft.getName)
-    case Some(namespace) => Lists.newArrayList(new NameImpl(namespace, sft.getTypeName))
+  override def createTypeNames(): ju.List[Name] = {
+    ns match {
+      case None            => Collections.singletonList(sft.getName)
+      case Some(namespace) => Collections.singletonList(new NameImpl(namespace, sft.getTypeName))
+    }
   }
 
   def close(): Unit = {
@@ -181,7 +182,7 @@ object StreamDataStoreParams {
 }
 
 object StreamDataStoreFactory {
-  val stores: ju.Map[String, StreamDataStore] = Collections.synchronizedMap(Maps.newHashMap[String, StreamDataStore]())
+  val stores: ju.Map[String, StreamDataStore] = Collections.synchronizedMap(new java.util.HashMap[String, StreamDataStore]())
 }
 
 class StreamDataStoreFactory extends DataStoreFactorySpi {

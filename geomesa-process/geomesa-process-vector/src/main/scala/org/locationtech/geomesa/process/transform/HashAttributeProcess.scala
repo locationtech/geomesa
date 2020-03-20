@@ -8,8 +8,8 @@
 
 package org.locationtech.geomesa.process.transform
 
-import com.google.common.base.Charsets
-import com.google.common.hash.Hashing
+import java.nio.charset.StandardCharsets
+
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureCollection
 import org.geotools.feature.simple.{SimpleFeatureBuilder, SimpleFeatureTypeBuilder}
@@ -18,9 +18,9 @@ import org.geotools.process.factory.{DescribeParameter, DescribeProcess, Describ
 import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 
-trait HashAttribute {
+import scala.util.hashing.MurmurHash3
 
-  private val hashFn = Hashing.goodFastHash(64)
+trait HashAttribute {
 
   def transformHash(hash: Int): AnyRef
   // note - augmentSft needs to add an attribute called 'hash'
@@ -49,7 +49,7 @@ trait HashAttribute {
       featureBuilder.reset()
       featureBuilder.init(sf)
       val attr = Option(sf.getAttribute(attribute)).map(_.toString).getOrElse("")
-      val hash = math.abs(hashFn.hashString(attr, Charsets.UTF_16LE).asInt()) % modulo
+      val hash = math.abs(MurmurHash3.bytesHash(attr.getBytes(StandardCharsets.UTF_16LE))) % modulo
       featureBuilder.set(hashIndex, transformHash(hash))
       results.add(featureBuilder.buildFeature(sf.getID))
     }

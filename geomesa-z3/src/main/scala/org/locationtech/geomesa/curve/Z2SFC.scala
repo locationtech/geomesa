@@ -21,8 +21,8 @@ object Z2SFC extends Z2SFC(31)
   */
 class Z2SFC(precision: Int) extends SpaceFillingCurve[Z2] {
 
-  override val lon: NormalizedDimension = NormalizedLon(precision)
-  override val lat: NormalizedDimension = NormalizedLat(precision)
+  val lon: NormalizedDimension = NormalizedLon(precision)
+  val lat: NormalizedDimension = NormalizedLat(precision)
 
   override def index(x: Double, y: Double, lenient: Boolean = false): Z2 = {
     try {

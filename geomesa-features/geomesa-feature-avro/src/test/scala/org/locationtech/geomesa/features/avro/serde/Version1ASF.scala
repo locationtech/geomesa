@@ -10,12 +10,10 @@ package org.locationtech.geomesa.features.avro.serde
 
 import java.io.OutputStream
 import java.nio._
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 import java.util.{Date, UUID, Collection => JCollection, List => JList}
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
-import com.google.common.collect.Maps
-import org.locationtech.jts.geom.Geometry
 import org.apache.avro.generic.{GenericData, GenericDatumWriter, GenericRecord}
 import org.apache.avro.io.{BinaryEncoder, EncoderFactory}
 import org.apache.avro.{Schema, SchemaBuilder}
@@ -25,6 +23,7 @@ import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
@@ -232,7 +231,7 @@ object Version1ASF {
       new GenericDatumWriter[GenericRecord](avroSchemaCache.get(sft))
     }
 
-  val attributeNameLookUp = Maps.newConcurrentMap[String, String]()
+  val attributeNameLookUp = new ConcurrentHashMap[String, String]()
 
   final val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   final val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"

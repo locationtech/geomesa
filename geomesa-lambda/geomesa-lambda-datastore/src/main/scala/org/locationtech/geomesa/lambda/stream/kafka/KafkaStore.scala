@@ -11,7 +11,6 @@ package org.locationtech.geomesa.lambda.stream.kafka
 import java.time.Clock
 import java.util.{Properties, UUID}
 
-import com.google.common.primitives.Longs
 import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.AdminUtils
 import kafka.common.TopicAlreadyMarkedForDeletionException
@@ -35,6 +34,7 @@ import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -249,7 +249,7 @@ object KafkaStore {
     result
   }
 
-  private [kafka] def deserializeKey(key: Array[Byte]): (Long, Byte) = (Longs.fromByteArray(key), key(8))
+  private [kafka] def deserializeKey(key: Array[Byte]): (Long, Byte) = (ByteArrays.readLong(key), key(8))
 
   private [kafka] class OffsetRebalanceListener(consumer: Consumer[Array[Byte], Array[Byte]],
                                                 manager: OffsetManager,

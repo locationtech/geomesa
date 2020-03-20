@@ -56,10 +56,6 @@ class S2SFC(minLevel: Int, maxLevel: Int, levelMod: Int, maxCells: Int) extends 
     val latLon = i.toLatLng
     (latLon.lngDegrees(), latLon.latDegrees())
   }
-
-  // TODO remove from interface
-  override def lat: NormalizedDimension = ???
-  override def lon: NormalizedDimension = ???
 }
 
 object S2SFC {

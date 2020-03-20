@@ -17,7 +17,6 @@ import org.apache.accumulo.core.data.{Key, Mutation, Range, Value}
 import org.apache.accumulo.core.file.keyfunctor.RowFunctor
 import org.apache.accumulo.core.security.ColumnVisibility
 import org.apache.hadoop.io.Text
-import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.{AccumuloIndexWriter, AccumuloResultsToFeatures, ZIterPriority}
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, EmptyPlan}
 import org.locationtech.geomesa.accumulo.index.{AccumuloJoinIndex, JoinIndex}
@@ -26,7 +25,7 @@ import org.locationtech.geomesa.accumulo.iterators.BinAggregatingIterator.Accumu
 import org.locationtech.geomesa.accumulo.iterators.DensityIterator.AccumuloDensityResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators.StatsIterator.AccumuloStatsResultsToFeatures
 import org.locationtech.geomesa.accumulo.iterators._
-import org.locationtech.geomesa.accumulo.util.GeoMesaBatchWriterConfig
+import org.locationtech.geomesa.accumulo.util.{GeoMesaBatchWriterConfig, TableUtils}
 import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
@@ -64,7 +63,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
       splits: => Seq[Array[Byte]]): Unit = {
     val table = index.configureTableName(partition) // writes table name to metadata
     // create table if it doesn't exist
-    val created = AccumuloVersion.createTableIfNeeded(ds.connector, table, index.sft.isLogicalTime)
+    val created = TableUtils.createTableIfNeeded(ds.connector, table, index.sft.isLogicalTime)
 
     // even if the table existed, we still need to check the splits and locality groups if its shared
     if (created || index.keySpace.sharing.nonEmpty) {

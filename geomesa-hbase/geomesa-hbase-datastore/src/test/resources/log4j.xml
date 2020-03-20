@@ -8,25 +8,25 @@
     </appender>
 
     <category name="org.apache.zookeeper">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
     <category name="org.apache.hadoop">
         <priority value="error"/>
     </category>
     <category name="org.apache.curator">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
     <category name="org.mortbay.log">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
     <category name="BlockStateChange">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
     <category name="SecurityLogger.org.apache.hadoop.hbase.Server">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
     <category name="hsqldb">
-        <priority value="warn"/>
+        <priority value="error"/>
     </category>
 
     <!-- un-comment the following line to enable verbose log messages

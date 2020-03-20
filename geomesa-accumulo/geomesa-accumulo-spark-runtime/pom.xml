@@ -46,6 +46,12 @@
             <artifactId>accumulo-core</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <!-- include guava so we can relocate it -->
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>compile</scope>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.spark</groupId>

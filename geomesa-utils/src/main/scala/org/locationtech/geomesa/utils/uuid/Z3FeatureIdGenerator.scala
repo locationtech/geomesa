@@ -10,12 +10,12 @@ package org.locationtech.geomesa.utils.uuid
 
 import java.util.{Date, UUID}
 
-import com.google.common.primitives.{Bytes, Longs, Shorts}
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.{Geometry, Point}
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+import org.locationtech.geomesa.utils.index.ByteArrays
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.hashing.MurmurHash3
@@ -119,7 +119,7 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator with LazyLogging {
     val z3 = {
       val BinnedTime(b, t) = BinnedTime.timeToBinnedTime(period)(time)
       val z = Z3SFC(period).index(pt.getX, pt.getY, t).z
-      Bytes.concat(Shorts.toByteArray(b), Longs.toByteArray(z))
+      ByteArrays.toBytes(b, z)
     }
 
     // shard is first 4 bits of our uuid (e.g. 1 hex char) - this allows nice pre-splitting
@@ -141,7 +141,7 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator with LazyLogging {
     // set the UUID version - we skipped those bits when writing
     setVersion(msb)
     // create the long
-    val mostSigBits = Longs.fromByteArray(msb)
+    val mostSigBits = ByteArrays.readLong(msb)
 
     new UUID(mostSigBits, leastSigBits)
   }
@@ -164,7 +164,7 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator with LazyLogging {
     */
   def timeBin(b0: Byte, b1: Byte, b2: Byte): Short = {
     // undo the lo-hi byte merging to get the two bytes for the time period
-    Shorts.fromBytes(lohi(b0, b1), lohi(b1, b2))
+    ByteArrays.readShort(Array(lohi(b0, b1), lohi(b1, b2)))
   }
 
   // takes 4 low bits from b1 as the new hi bits, and 4 high bits of b2 as the new low bits, of a new byte

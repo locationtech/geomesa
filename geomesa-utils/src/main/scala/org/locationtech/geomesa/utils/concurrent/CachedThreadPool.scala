@@ -12,8 +12,6 @@ import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 
-import com.google.common.util.concurrent.MoreExecutors
-
 /**
  * Executor service that will grow up to the number of threads specified.
  *
@@ -118,8 +116,7 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService {
 object CachedThreadPool {
 
   // unlimited size but re-uses cached threads
-  private val pool =
-    MoreExecutors.getExitingExecutorService(Executors.newCachedThreadPool().asInstanceOf[ThreadPoolExecutor])
+  private val pool = ExitingExecutor(Executors.newCachedThreadPool().asInstanceOf[ThreadPoolExecutor])
 
   /**
    * Execute a single command in a potentially cached thread

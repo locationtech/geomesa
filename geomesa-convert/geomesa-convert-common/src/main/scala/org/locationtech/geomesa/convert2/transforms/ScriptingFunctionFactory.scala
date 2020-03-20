@@ -13,11 +13,10 @@ import java.net.URI
 import java.nio.file.FileSystems
 import java.util.Collections
 
-import com.google.common.io.Files
 import com.typesafe.scalalogging.LazyLogging
 import javax.script.{Invocable, ScriptContext, ScriptEngine, ScriptEngineManager}
 import org.apache.commons.io.filefilter.TrueFileFilter
-import org.apache.commons.io.{FileUtils, IOUtils}
+import org.apache.commons.io.{FileUtils, FilenameUtils, IOUtils}
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -42,7 +41,7 @@ class ScriptingFunctionFactory extends TransformerFunctionFactory with LazyLoggi
     scriptURIs
       .map { f =>
         // Always use the scheme specific part for URIs
-        val ext = Files.getFileExtension(f.getSchemeSpecificPart)
+        val ext = FilenameUtils.getExtension(f.getSchemeSpecificPart)
         (f, ext)
       }.groupBy { case (_, ext) => ext }
       .flatMap { case (ext, files) =>

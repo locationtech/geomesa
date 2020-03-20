@@ -14,7 +14,6 @@ import java.util.concurrent.ThreadLocalRandom
 import java.util.concurrent.atomic.AtomicBoolean
 
 import com.google.common.collect.HashBiMap
-import com.google.common.primitives.{Ints, Longs}
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.StructVector
@@ -133,7 +132,7 @@ class DeltaWriter(
   def encode(features: Array[SimpleFeature], count: Int): Array[Byte] = {
 
     result.reset()
-    result.write(Longs.toByteArray(threadingKey))
+    result.write(ByteArrays.toBytes(threadingKey))
 
     ordering.foreach(java.util.Arrays.sort(features, 0, count, _))
 
@@ -438,9 +437,9 @@ object DeltaWriter extends StrictLogging {
         // skip the dictionary batches
         var offset = 8
         dictionaryFields.foreach { _ =>
-          offset += Ints.fromBytes(batch(offset), batch(offset + 1), batch(offset + 2), batch(offset + 3)) + 4
+          offset += ByteArrays.readInt(batch, offset) + 4
         }
-        val messageLength = Ints.fromBytes(batch(offset), batch(offset + 1), batch(offset + 2), batch(offset + 3))
+        val messageLength = ByteArrays.readInt(batch, offset)
         offset += 4 // skip the length bytes
         // load the record batch
         loader.load(batch, offset, messageLength)
@@ -765,13 +764,13 @@ object DeltaWriter extends StrictLogging {
       os.reset()
       if (count < 1) {
         logger.trace("writing 0 bytes")
-        to.write(Ints.toByteArray(0))
+        to.write(ByteArrays.toBytes(0))
       } else {
         vector.setValueCount(count)
         root.setRowCount(count)
         writer.writeBatch()
         logger.trace(s"writing ${os.size} bytes")
-        to.write(Ints.toByteArray(os.size()))
+        to.write(ByteArrays.toBytes(os.size()))
         os.writeTo(to)
       }
     }
@@ -797,7 +796,7 @@ object DeltaWriter extends StrictLogging {
       val grouped = scala.collection.mutable.Map.empty[Long, scala.collection.mutable.ArrayBuilder[Array[Byte]]]
       while (!closed.get && deltas.hasNext) {
         val delta = deltas.next
-        grouped.getOrElseUpdate(Longs.fromByteArray(delta), Array.newBuilder) += delta
+        grouped.getOrElseUpdate(ByteArrays.readLong(delta), Array.newBuilder) += delta
       }
       val threaded = Array.ofDim[Array[Array[Byte]]](grouped.size)
       var i = 0

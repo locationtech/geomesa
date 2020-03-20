@@ -13,8 +13,6 @@ import java.io._
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.BatchWriterConfig
-import org.locationtech.geomesa.accumulo.MiniCluster
-import org.apache.accumulo.core.client.security.tokens.PasswordToken
 import org.apache.accumulo.core.data.Mutation
 import org.apache.accumulo.core.security.{Authorizations, ColumnVisibility}
 import org.apache.hadoop.io.Text
@@ -24,8 +22,8 @@ import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.index.JoinIndex
+import org.locationtech.geomesa.accumulo.{TestWithDataStore, TestWithFeatureType}
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
@@ -34,13 +32,14 @@ import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.filter.Filter
 import org.specs2.matcher.MatchResult
-import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class BackCompatibilityTest extends Specification with LazyLogging {
+class BackCompatibilityTest extends TestWithDataStore with LazyLogging {
+
+  import scala.collection.JavaConverters._
 
   /**
     * Runs version tests against old data. To add more versions, generate a new data file by running
@@ -48,8 +47,6 @@ class BackCompatibilityTest extends Specification with LazyLogging {
     */
 
   sequential
-
-  lazy val connector = MiniCluster.connector
 
   val queries = Seq(
     ("INCLUDE", Seq(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)),
@@ -97,87 +94,83 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   }
 
   def runVersionTest(tables: Seq[TableMutations]): MatchResult[Any] = {
-    import scala.collection.JavaConversions._
-
     val sftName = restoreTables(tables)
 
     // get the data store
-    val ds = DataStoreFinder.getDataStore(Map(
-      AccumuloDataStoreParams.ConnectorParam.key -> connector,
-      AccumuloDataStoreParams.CachingParam.key   -> false,
-      AccumuloDataStoreParams.CatalogParam.key   -> sftName
-    )).asInstanceOf[AccumuloDataStore]
-    val fs = ds.getFeatureSource(sftName)
+    val params = dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> sftName)
+    val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
+    try {
+      val fs = ds.getFeatureSource(sftName)
 
-    // test adding features
-    val writer = ds.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)
-    val feature = writer.next()
-    feature.getIdentifier.asInstanceOf[FeatureIdImpl].setID("10")
-    feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-    feature.setAttribute(0, "name10")
-    feature.setAttribute(1, "2016-01-01T00:30:00.000Z")
-    feature.setAttribute(2, "POINT(-110 45)")
-    if (feature.getFeatureType.getAttributeCount > 3) {
-      feature.setAttribute(3, "MULTIPOLYGON(((40 40, 20 45, 45 30, 40 40)),((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),(30 20, 20 15, 20 25, 30 20)))")
-    }
-    writer.write()
-    writer.close()
-
-    // make sure we can read it back
-    forall(addQueries) { query =>
-      val filter = ECQL.toFilter(query)
-      doQuery(fs, new Query(sftName, filter)) mustEqual Seq(10)
-      forall(transforms) { transform =>
-        doQuery(fs, new Query(sftName, filter, transform)) mustEqual Seq(10)
+      // test adding features
+      val writer = ds.getFeatureWriterAppend(sftName, Transaction.AUTO_COMMIT)
+      val feature = writer.next()
+      feature.getIdentifier.asInstanceOf[FeatureIdImpl].setID("10")
+      feature.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+      feature.setAttribute(0, "name10")
+      feature.setAttribute(1, "2016-01-01T00:30:00.000Z")
+      feature.setAttribute(2, "POINT(-110 45)")
+      if (feature.getFeatureType.getAttributeCount > 3) {
+        feature.setAttribute(3, "MULTIPOLYGON(((40 40, 20 45, 45 30, 40 40)),((20 35, 10 30, 10 10, 30 5, 45 20, 20 35),(30 20, 20 15, 20 25, 30 20)))")
       }
-    }
+      writer.write()
+      writer.close()
 
-    // delete it
-    var remover = ds.getFeatureWriter(sftName, ECQL.toFilter("IN ('10')"), Transaction.AUTO_COMMIT)
-    remover.hasNext must beTrue
-    remover.next
-    remover.remove()
-    remover.hasNext must beFalse
-    remover.close()
-
-    // make sure that it no longer comes back
-    forall(addQueries) { query =>
-      val filter = ECQL.toFilter(query)
-      doQuery(fs, new Query(sftName, filter)) must beEmpty
-      forall(transforms) { transform =>
-        doQuery(fs, new Query(sftName, filter, transform)) must beEmpty
+      // make sure we can read it back
+      forall(addQueries) { query =>
+        val filter = ECQL.toFilter(query)
+        doQuery(fs, new Query(sftName, filter)) mustEqual Seq(10)
+        forall(transforms) { transform =>
+          doQuery(fs, new Query(sftName, filter, transform)) mustEqual Seq(10)
+        }
       }
-    }
 
-    // test queries
-    forall(queries) { case (q, results) =>
-      val filter = ECQL.toFilter(q)
-      logger.debug(s"Running query $q")
-      doQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results)
-      doArrowQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results)
-      forall(transforms) { transform =>
-        doQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
-        doArrowQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
+      // delete it
+      var remover = ds.getFeatureWriter(sftName, ECQL.toFilter("IN ('10')"), Transaction.AUTO_COMMIT)
+      remover.hasNext must beTrue
+      remover.next
+      remover.remove()
+      remover.hasNext must beFalse
+      remover.close()
+
+      // make sure that it no longer comes back
+      forall(addQueries) { query =>
+        val filter = ECQL.toFilter(query)
+        doQuery(fs, new Query(sftName, filter)) must beEmpty
+        forall(transforms) { transform =>
+          doQuery(fs, new Query(sftName, filter, transform)) must beEmpty
+        }
       }
+
+      // test queries
+      forall(queries) { case (q, results) =>
+        val filter = ECQL.toFilter(q)
+        logger.debug(s"Running query $q")
+        doQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results)
+        doArrowQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results)
+        forall(transforms) { transform =>
+          doQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
+          doArrowQuery(fs, new Query(sftName, filter, transform)) must containTheSameElementsAs(results)
+        }
+      }
+
+      // delete one of the old features
+      remover = ds.getFeatureWriter(sftName, ECQL.toFilter("IN ('5')"), Transaction.AUTO_COMMIT)
+      remover.hasNext must beTrue
+      remover.next
+      remover.remove()
+      remover.hasNext must beFalse
+      remover.close()
+
+      // make sure that it no longer comes back
+      forall(queries) { case (q, results) =>
+        val filter = ECQL.toFilter(q)
+        logger.debug(s"Running query $q")
+        doQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results.filter(_ != 5))
+      }
+    } finally {
+      ds.dispose()
     }
-
-    // delete one of the old features
-    remover = ds.getFeatureWriter(sftName, ECQL.toFilter("IN ('5')"), Transaction.AUTO_COMMIT)
-    remover.hasNext must beTrue
-    remover.next
-    remover.remove()
-    remover.hasNext must beFalse
-    remover.close()
-
-    // make sure that it no longer comes back
-    forall(queries) { case (q, results) =>
-      val filter = ECQL.toFilter(q)
-      logger.debug(s"Running query $q")
-      doQuery(fs, new Query(sftName, filter)) must containTheSameElementsAs(results.filter(_ != 5))
-    }
-
-    ds.dispose()
-    ok
   }
 
   def testBoundsDelete(): MatchResult[Any] = {
@@ -187,32 +180,33 @@ class BackCompatibilityTest extends Specification with LazyLogging {
       logger.info(s"Running back compatible deletion test on $name")
 
       val sftName = restoreTables(readVersion(getFile(s"data/versioned-data-$name.kryo")))
-      val ds = DataStoreFinder.getDataStore(Map(
-        AccumuloDataStoreParams.ConnectorParam.key -> connector,
-        AccumuloDataStoreParams.CachingParam.key   -> false,
-        AccumuloDataStoreParams.CatalogParam.key   -> sftName
-      )).asInstanceOf[AccumuloDataStore]
+      val params = dsParams ++ Map(AccumuloDataStoreParams.CatalogParam.key -> sftName)
+      val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[AccumuloDataStore]
 
-      val sft = ds.getSchema(sftName)
+      try {
+        val sft = ds.getSchema(sftName)
 
-      // verify the features are there
-      foreach(sft.getIndices) { index =>
-        val filter = if (index.name == JoinIndex.name) { ECQL.toFilter("name is not null") } else { Filter.INCLUDE }
-        val query = new Query(sftName, filter)
-        query.getHints.put(QueryHints.QUERY_INDEX, GeoMesaFeatureIndex.identifier(index))
-        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must haveLength(4)
-      }
+        // verify the features are there
+        foreach(sft.getIndices) { index =>
+          val filter = if (index.name == JoinIndex.name) { ECQL.toFilter("name is not null") } else { Filter.INCLUDE }
+          val query = new Query(sftName, filter)
+          query.getHints.put(QueryHints.QUERY_INDEX, GeoMesaFeatureIndex.identifier(index))
+          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must haveLength(4)
+        }
 
-      // delete the features
-      val filter = SelfClosingIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).map(_.getID).mkString("IN('", "', '", "')")
-      ds.getFeatureSource(sftName).removeFeatures(ECQL.toFilter(filter))
+        // delete the features
+        val filter = SelfClosingIterator(ds.getFeatureReader(new Query(sftName), Transaction.AUTO_COMMIT)).map(_.getID).mkString("IN('", "', '", "')")
+        ds.getFeatureSource(sftName).removeFeatures(ECQL.toFilter(filter))
 
-      // verify the delete
-      foreach(sft.getIndices) { index =>
-        val filter = if (index.name == JoinIndex.name) { ECQL.toFilter("name is not null") } else { Filter.INCLUDE }
-        val query = new Query(sftName, filter)
-        query.getHints.put(QueryHints.QUERY_INDEX, GeoMesaFeatureIndex.identifier(index))
-        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) must beEmpty
+        // verify the delete
+        foreach(sft.getIndices) { index =>
+          val filter = if (index.name == JoinIndex.name) { ECQL.toFilter("name is not null") } else { Filter.INCLUDE }
+          val query = new Query(sftName, filter)
+          query.getHints.put(QueryHints.QUERY_INDEX, GeoMesaFeatureIndex.identifier(index))
+          SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)) must beEmpty
+        }
+      } finally {
+        ds.dispose()
       }
     }
   }
@@ -220,14 +214,13 @@ class BackCompatibilityTest extends Specification with LazyLogging {
   def restoreTables(tables: Seq[TableMutations]): String = {
     // reload the tables
     tables.foreach { case TableMutations(table, mutations) =>
-      if (connector.tableOperations.exists(table)) {
-        connector.tableOperations.delete(table)
+      if (ds.connector.tableOperations.exists(table)) {
+        ds.connector.tableOperations.delete(table)
       }
-      connector.tableOperations.create(table)
-      val bw = connector.createBatchWriter(table, new BatchWriterConfig)
-      bw.addMutations(mutations)
-      bw.flush()
-      bw.close()
+      ds.connector.tableOperations.create(table)
+      WithClose(ds.connector.createBatchWriter(table, new BatchWriterConfig)) { bw =>
+        bw.addMutations(mutations)
+      }
     }
 
     tables.map(_.table).minBy(_.length)

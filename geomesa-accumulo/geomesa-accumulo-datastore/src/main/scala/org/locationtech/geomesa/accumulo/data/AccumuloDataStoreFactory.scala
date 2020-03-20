@@ -11,14 +11,14 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.awt.RenderingHints
 import java.io.Serializable
+import java.nio.charset.StandardCharsets
 
-import com.google.common.collect.ImmutableMap
 import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, KerberosToken, PasswordToken}
 import org.apache.accumulo.core.client.{ClientConfiguration, Connector, ZooKeeperInstance}
+import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
-import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore.AccumuloDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -103,14 +103,12 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       "",
       false,
       null,
-      ImmutableMap.of(Parameter.DEPRECATED, true, Parameter.IS_PASSWORD, true))
+      Map(Parameter.DEPRECATED -> true, Parameter.IS_PASSWORD -> true).asJava)
 
   override def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean = {
-    val hasConnector = ConnectorParam.lookupOpt(params).isDefined
-    def hasConnection = InstanceIdParam.exists(params) && ZookeepersParam.exists(params) && UserParam.exists(params)
-    def hasPassword = PasswordParam.exists(params) && !KeytabPathParam.exists(params)
-    def hasKeytab = !PasswordParam.exists(params) && KeytabPathParam.exists(params) && isKerberosAvailable
-    hasConnector || (hasConnection && (hasPassword || hasKeytab))
+    val hasConnection = InstanceIdParam.exists(params) && ZookeepersParam.exists(params) && UserParam.exists(params)
+    // exactly one of password or keytab
+    hasConnection && (PasswordParam.exists(params) != KeytabPathParam.exists(params))
   }
 
   def buildAccumuloConnector(params: java.util.Map[String, _ <: Serializable]): Connector = {
@@ -118,36 +116,37 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       throw new IllegalArgumentException("Mock Accumulo connections are not supported")
     }
 
-    ConnectorParam.lookupOpt(params).getOrElse {
-      val instance = InstanceIdParam.lookup(params)
-      val zookeepers = ZookeepersParam.lookup(params)
-      // NB: For those wanting to set this via JAVA_OPTS, this key is "instance.zookeeper.timeout" in Accumulo 1.6.x.
-      val timeout = GeoMesaSystemProperties.getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey)
-      val conf = new ClientConfiguration().withInstance(instance).withZkHosts(zookeepers)
-      if (timeout != null) {
-        conf.`with`(ClientProperty.INSTANCE_ZK_TIMEOUT, timeout)
-      }
-
-      val user = UserParam.lookup(params)
-      val password = PasswordParam.lookup(params)
-      val keytabPath = KeytabPathParam.lookup(params)
-
-      // build authentication token according to how we are authenticating
-      val auth: AuthenticationToken = if (password != null && keytabPath == null) {
-        new PasswordToken(password.getBytes("UTF-8"))
-      } else if (password == null && keytabPath != null) {
-        // explicitly enable SASL for kerberos connections
-        // this shouldn't be required if Accumulo client.conf is set appropriately, but it doesn't seem to work
-        conf.withSasl(true)
-        // this API is only in Accumulo >=1.7, but canProcess should ensure this isn't actually invoked on earlier
-        new KerberosToken(user, new java.io.File(keytabPath), true)
-      } else {
-        // should never reach here thanks to canProcess
-        throw new IllegalArgumentException("Neither or both of password & keytabPath are set")
-      }
-
-      new ZooKeeperInstance(conf).getConnector(user, auth)
+    val instance = InstanceIdParam.lookup(params)
+    val zookeepers = ZookeepersParam.lookup(params)
+    // NB: For those wanting to set this via JAVA_OPTS, this key is "instance.zookeeper.timeout" in Accumulo 1.6.x.
+    val timeout = GeoMesaSystemProperties.getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey)
+    val conf = ClientConfiguration.create().withInstance(instance).withZkHosts(zookeepers)
+    if (timeout != null) {
+      conf.`with`(ClientProperty.INSTANCE_ZK_TIMEOUT, timeout)
     }
+
+    val user = UserParam.lookup(params)
+    val password = PasswordParam.lookup(params)
+    val keytabPath = KeytabPathParam.lookup(params)
+
+    // build authentication token according to how we are authenticating
+    val auth: AuthenticationToken = if (password != null && keytabPath == null) {
+      new PasswordToken(password.getBytes(StandardCharsets.UTF_8))
+    } else if (password == null && keytabPath != null) {
+      // explicitly enable SASL for kerberos connections
+      // this shouldn't be required if Accumulo client.conf is set appropriately, but it doesn't seem to work
+      conf.withSasl(true)
+      val file = new java.io.File(keytabPath)
+      // mimic behavior from accumulo 1.9 and earlier:
+      // `public KerberosToken(String principal, File keytab, boolean replaceCurrentUser)`
+      UserGroupInformation.loginUserFromKeytab(user, file.getAbsolutePath)
+      new KerberosToken(user, file)
+    } else {
+      // should never reach here thanks to canProcess
+      throw new IllegalArgumentException("Neither or both of password & keytabPath are set")
+    }
+
+    new ZooKeeperInstance(conf).getConnector(user, auth)
   }
 
   def buildConfig(connector: Connector, params: java.util.Map[String, _ <: Serializable]): AccumuloDataStoreConfig = {
@@ -217,9 +216,4 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 
     AuthorizationsProvider.apply(params, java.util.Arrays.asList(auths: _*))
   }
-
-  // Kerberos is only available in Accumulo >= 1.7.
-  // Note: doesn't confirm whether correctly configured for Kerberos e.g. core-site.xml on CLASSPATH
-  def isKerberosAvailable: Boolean =
-    AccumuloVersion.accumuloVersion != AccumuloVersion.V15 && AccumuloVersion.accumuloVersion != AccumuloVersion.V16
 }
