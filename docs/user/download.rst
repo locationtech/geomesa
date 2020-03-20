@@ -21,7 +21,7 @@ __ https://github.com/locationtech/geomesa/releases
 
 Older versions can be downloaded from the `LocationTech Maven repository`__.
 
-__ https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa
+__ https://repo.eclipse.org/content/repositories/geomesa-releases/org/locationtech/geomesa
 
 Maven Integration
 -----------------
@@ -63,7 +63,7 @@ Snapshot artifacts are available in the LocationTech snapshots repository:
 
     <repository>
       <id>geomesa-snapshots</id>
-      <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots</url>
+      <url>https://repo.eclipse.org/content/repositories/geomesa-snapshots</url>
       <releases>
         <enabled>false</enabled>
       </releases>
