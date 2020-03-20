@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.tools.ingest
 
 import java.io.Flushable
-import java.util.concurrent.{ConcurrentHashMap, Executors}
 import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
+import java.util.concurrent.{ConcurrentHashMap, Executors}
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -105,28 +105,29 @@ class LocalConverterIngest(
               WithClose(file.open) { streams =>
                 streams.foreach { case (name, is) =>
                   ec.setInputFilePath(name.getOrElse(file.path))
-                  val features = LocalConverterIngest.this.features(converter.process(is, ec))
-                  writers.borrow { writer =>
-                    var count = batches.get(writer)
-                    if (count == null) {
-                      count = new AtomicInteger(0)
-                      batches.put(writer, count)
-                    }
-                    features.foreach { sf =>
-                      try {
-                        FeatureUtils.write(writer, sf, useProvidedFid = true)
-                        written.incrementAndGet()
-                        count.incrementAndGet()
-                      } catch {
-                        case NonFatal(e) =>
-                          logger.error(s"Failed to write '${DataUtilities.encodeFeature(sf)}'", e)
-                          failed.incrementAndGet()
+                  WithClose(LocalConverterIngest.this.features(converter.process(is, ec))) { features =>
+                    writers.borrow { writer =>
+                      var count = batches.get(writer)
+                      if (count == null) {
+                        count = new AtomicInteger(0)
+                        batches.put(writer, count)
                       }
-                      if (count.get % batch == 0) {
-                        count.set(0)
-                        writer match {
-                          case f: Flushable => f.flush()
-                          case _ => // no-op
+                      features.foreach { sf =>
+                        try {
+                          FeatureUtils.write(writer, sf, useProvidedFid = true)
+                          written.incrementAndGet()
+                          count.incrementAndGet()
+                        } catch {
+                          case NonFatal(e) =>
+                            logger.error(s"Failed to write '${DataUtilities.encodeFeature(sf)}'", e)
+                            failed.incrementAndGet()
+                        }
+                        if (count.get % batch == 0) {
+                          count.set(0)
+                          writer match {
+                            case f: Flushable => f.flush()
+                            case _ => // no-op
+                          }
                         }
                       }
                     }
