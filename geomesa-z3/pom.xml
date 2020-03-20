@@ -20,7 +20,7 @@
         <dependency>
             <groupId>org.locationtech.sfcurve</groupId>
             <artifactId>sfcurve-zorder_${scala.binary.version}</artifactId>
-            <version>0.2.0</version>
+            <version>0.2.2</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe.scala-logging</groupId>
