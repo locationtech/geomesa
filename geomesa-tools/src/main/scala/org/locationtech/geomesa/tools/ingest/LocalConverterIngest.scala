@@ -96,29 +96,30 @@ class LocalConverterIngest(
               WithClose(file.open) { streams =>
                 streams.foreach { case (name, is) =>
                   ec.setInputFilePath(name.getOrElse(file.path))
-                  val features = LocalConverterIngest.this.features(converter.process(is, ec))
-                  writers.borrow { writer =>
-                    var count = batches.get(writer)
-                    if (count == null) {
-                      count = new AtomicInteger(0)
-                      batches.put(writer, count)
-                    }
-                    features.foreach { sf =>
-                      FeatureUtils.copyToWriter(writer, sf, useProvidedFid = true)
-                      try {
-                        writer.write()
-                        written.incrementAndGet()
-                        count.incrementAndGet()
-                      } catch {
-                        case NonFatal(e) =>
-                          logger.error(s"Failed to write '${DataUtilities.encodeFeature(sf)}'", e)
-                          failed.incrementAndGet()
+                  WithClose(LocalConverterIngest.this.features(converter.process(is, ec))) { features =>
+                    writers.borrow { writer =>
+                      var count = batches.get(writer)
+                      if (count == null) {
+                        count = new AtomicInteger(0)
+                        batches.put(writer, count)
                       }
-                      if (count.get % batch == 0) {
-                        count.set(0)
-                        writer match {
-                          case f: Flushable => f.flush()
-                          case _ => // no-op
+                      features.foreach { sf =>
+                        FeatureUtils.copyToWriter(writer, sf, useProvidedFid = true)
+                        try {
+                          writer.write()
+                          written.incrementAndGet()
+                          count.incrementAndGet()
+                        } catch {
+                          case NonFatal(e) =>
+                            logger.error(s"Failed to write '${DataUtilities.encodeFeature(sf)}'", e)
+                            failed.incrementAndGet()
+                        }
+                        if (count.get % batch == 0) {
+                          count.set(0)
+                          writer match {
+                            case f: Flushable => f.flush()
+                            case _ => // no-op
+                          }
                         }
                       }
                     }
