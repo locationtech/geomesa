@@ -8,8 +8,10 @@
 
 package org.locationtech.geomesa.geojson.query
 
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.json4s.{JArray, JObject, JValue}
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser
+import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 import org.locationtech.jts.geom.Geometry
 import org.locationtech.jts.io.geojson.{GeoJsonReader, GeoJsonWriter}
 import org.opengis.filter.Filter
@@ -340,8 +342,10 @@ object GeoJsonQuery {
     * @param ymax max y value
     */
   case class Bbox(prop: String, xmin: Double, ymin: Double, xmax: Double, ymax: Double) extends GeoJsonQuery {
-    override def toFilter(propertyTransformer: PropertyTransformer): Filter =
-      ff.bbox(ff.property(propertyTransformer.transform(prop)), xmin, ymin, xmax, ymax, "4326")
+    override def toFilter(propertyTransformer: PropertyTransformer): Filter = {
+      val env = new ReferencedEnvelope(xmin, xmax, ymin, ymax, CRS_EPSG_4326)
+      ff.bbox(ff.property(propertyTransformer.transform(prop)), env)
+    }
 
     override def toString = s"""{"$prop":{"$$bbox":[$xmin,$ymin,$xmax,$ymax]}}"""
   }

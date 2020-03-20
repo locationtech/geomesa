@@ -24,6 +24,7 @@
             <groupId>org.geotools</groupId>
             <artifactId>gt-cql</artifactId>
         </dependency>
+
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-transform</artifactId>
@@ -44,6 +45,11 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-feature-all_${scala.binary.version}</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-epsg-wkt</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

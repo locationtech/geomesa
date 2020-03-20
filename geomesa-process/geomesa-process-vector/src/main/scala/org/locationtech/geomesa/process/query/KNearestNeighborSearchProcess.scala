@@ -13,17 +13,18 @@ import org.geotools.data.Query
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.factory.{DescribeParameter, DescribeProcess, DescribeResult}
 import org.geotools.referencing.GeodeticCalculator
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.ff
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
-import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
 import org.locationtech.geomesa.process.query.KNearestNeighborSearchProcess.KNNVisitor
+import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geometry.DistanceCalculator
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, GeometryUtils}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Point
 import org.opengis.feature.Feature
@@ -549,7 +550,7 @@ object KNearestNeighborSearchProcess {
       * @return
       */
     def toFilter(geom: PropertyName): Filter =
-      org.locationtech.geomesa.filter.ff.bbox(geom, xmin, ymin, xmax, ymax, "EPSG:4326")
+      ff.bbox(geom, new ReferencedEnvelope(xmin, xmax, ymin, ymax, CRS_EPSG_4326))
 
     /**
       * Convert to a JTS envelope

@@ -14,7 +14,7 @@ geospatial analytics.
   <img align="center" height="150px" src="http://www.geomesa.org/img/geomesa-overview-848x250.png"></img>
 </p>
 
-#### ![LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) GeoMesa is a member of the [LocationTech](http://www.locationtech.org) working group of the Eclipse Foundation.
+#### ![LocationTech](https://pbs.twimg.com/profile_images/2552421256/hv2oas84tv7n3maianiq_normal.png) GeoMesa is a member of the [LocationTech](https://projects.eclipse.org/projects/locationtech.geomesa) working group of the Eclipse Foundation.
 
 ## Join the Community
 

@@ -14,7 +14,7 @@ import org.geotools.data._
 import org.geotools.feature.NameImpl
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.geometry.jts.{JTSFactoryFinder, ReferencedEnvelope}
 import org.geotools.util.Converters
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
@@ -34,7 +34,7 @@ import org.locationtech.geomesa.index.utils.{ExplainNull, ExplainString}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
 import org.locationtech.jts.geom.Coordinate
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -142,8 +142,9 @@ class AccumuloDataStoreQueryTest extends Specification with TestWithMultipleSfts
     }
 
     "handle bboxes without property name" in {
-      val filterNull = ff.bbox(ff.property(null.asInstanceOf[String]), 40, 44, 50, 54, "EPSG:4326")
-      val filterEmpty = ff.bbox(ff.property(""), 40, 44, 50, 54, "EPSG:4326")
+      val env = new ReferencedEnvelope(40, 50, 44, 54, CRS_EPSG_4326)
+      val filterNull = ff.bbox(ff.property(null.asInstanceOf[String]), env)
+      val filterEmpty = ff.bbox(ff.property(""), env)
       val queryNull = new Query(defaultSft.getTypeName, filterNull)
       val queryEmpty = new Query(defaultSft.getTypeName, filterEmpty)
 

@@ -943,7 +943,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
     }
 
     "merge PropertyIsEqualTo when secondary matches" >> {
-      val bbox = ff.bbox("geom", 1, 2, 3, 4, "EPSG:4326")
+      val bbox = ff.bbox(ff.property("geom"), new ReferencedEnvelope(1, 3, 2, 4, CRS_EPSG_4326))
       val q1 = ff.equals(ff.property("name"), ff.literal("1"))
       val q2 = ff.equals(ff.property("name"), ff.literal("2"))
       val q3 = ff.equals(ff.property("name"), ff.literal("3"))
@@ -957,7 +957,7 @@ class AttributeIndexStrategyTest extends Specification with TestWithFeatureType 
     }
 
     "not merge PropertyIsEqualTo when secondary does not match" >> {
-      val bbox = ff.bbox("geom", 1, 2, 3, 4, "EPSG:4326")
+      val bbox = ff.bbox(ff.property("geom"), new ReferencedEnvelope(1, 3, 2, 4, CRS_EPSG_4326))
       val q1 = ff.equals(ff.property("name"), ff.literal("1"))
       val q2 = ff.equals(ff.property("name"), ff.literal("2"))
       val qf1 = FilterStrategy(new AttributeIndex(ds, sft, "name", Seq.empty, IndexMode.ReadWrite), Some(q1), Some(bbox), 0L)
