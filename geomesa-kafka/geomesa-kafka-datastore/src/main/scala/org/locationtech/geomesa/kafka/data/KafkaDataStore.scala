@@ -79,6 +79,7 @@ class KafkaDataStore(
         KafkaCacheLoader.NoOpLoader
       } else {
         val sft = getSchema(key)
+        // if the expiry is zero, this will return a NoOpFeatureCache
         val cache = KafkaFeatureCache(sft, config.indices)
         val topic = KafkaDataStore.topic(sft)
         val consumers = KafkaDataStore.consumers(config, topic)
