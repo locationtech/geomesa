@@ -43,7 +43,12 @@ object KafkaFeatureCache extends LazyLogging {
     * @param config cache config
     * @return
     */
-  def apply(sft: SimpleFeatureType, config: IndexConfig): KafkaFeatureCache = new KafkaFeatureCacheImpl(sft, config)
+  def apply(sft: SimpleFeatureType, config: IndexConfig): KafkaFeatureCache =
+    if (config.expiry.isFinite() && config.expiry.length == 0) {
+      NoOpFeatureCache
+    } else {
+      new KafkaFeatureCacheImpl(sft, config)
+    }
 
   /**
     * No-op cache
@@ -162,6 +167,17 @@ object KafkaFeatureCache extends LazyLogging {
     override def put(feature: SimpleFeature): Unit = throw new NotImplementedError("Empty feature cache")
     override def remove(id: String): Unit = throw new NotImplementedError("Empty feature cache")
     override def clear(): Unit = throw new NotImplementedError("Empty feature cache")
+    override def size(): Int = 0
+    override def size(filter: Filter): Int = 0
+    override def query(id: String): Option[SimpleFeature] = None
+    override def query(filter: Filter): Iterator[SimpleFeature] = Iterator.empty
+    override def close(): Unit = {}
+  }
+
+  object NoOpFeatureCache extends KafkaFeatureCache {
+    override def put(feature: SimpleFeature): Unit = {}
+    override def remove(id: String): Unit = {}
+    override def clear(): Unit = {}
     override def size(): Int = 0
     override def size(filter: Filter): Int = 0
     override def query(id: String): Option[SimpleFeature] = None

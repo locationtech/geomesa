@@ -1,3 +1,5 @@
+.. _kafka_feature_events:
+
 Listening for Feature Events
 ----------------------------
 
