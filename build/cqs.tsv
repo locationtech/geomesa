@@ -229,8 +229,8 @@ org.json4s:json4s-native_2.11	3.5.4	compile
 org.json4s:json4s-scalap_2.11	3.5.4	compile
 org.locationtech.jts.io:jts-io-common	1.16.0	compile
 org.locationtech.jts:jts-core	1.16.0	compile
-org.locationtech.sfcurve:sfcurve-api_2.11	0.2.0	compile
-org.locationtech.sfcurve:sfcurve-zorder_2.11	0.2.0	compile
+org.locationtech.sfcurve:sfcurve-api_2.11	0.2.2	compile
+org.locationtech.sfcurve:sfcurve-zorder_2.11	0.2.2	compile
 org.locationtech.spatial4j:spatial4j	0.7	compile
 org.mortbay.jetty:jetty-util	6.1.26	compile
 org.objenesis:objenesis	1.0	compile
@@ -239,8 +239,8 @@ org.parboiled:parboiled-scala_2.11	1.1.7	compile
 org.postgresql:postgresql	42.2.2	compile
 org.scala-lang.modules:scala-parser-combinators_2.11	1.0.6	compile
 org.scala-lang.modules:scala-xml_2.11	1.0.6	compile
-org.scala-lang:scala-library	2.11.7	compile
-org.scala-lang:scala-reflect	2.11.7	compile
+org.scala-lang:scala-library	2.11.12	compile
+org.scala-lang:scala-reflect	2.11.12	compile
 org.scalatra:scalatra_2.11	2.6.3	compile
 org.scalatra:scalatra-auth_2.11	2.6.3	compile
 org.scalatra:scalatra-common_2.11	2.6.3	compile
@@ -282,7 +282,7 @@ org.apache.kafka:kafka-clients	2.1.1	provided
 org.apache.spark:spark-catalyst_2.11	2.3.1	provided
 org.apache.spark:spark-core_2.11	2.3.1	provided
 org.apache.spark:spark-sql_2.11	2.3.1	provided
-org.scala-lang:scala-compiler	2.11.7	provided
+org.scala-lang:scala-compiler	2.11.12	provided
 org.springframework.security:spring-security-core	5.1.1.RELEASE	provided
 org.springframework.security:spring-security-web	5.1.1.RELEASE	provided
 org.springframework:spring-web	4.3.18.RELEASE	provided
