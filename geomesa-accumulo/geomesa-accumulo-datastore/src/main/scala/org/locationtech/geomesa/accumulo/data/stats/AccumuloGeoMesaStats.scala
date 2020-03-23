@@ -11,18 +11,15 @@ package org.locationtech.geomesa.accumulo.data.stats
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 
-import com.google.common.collect.ImmutableSortedSet
-import com.google.common.util.concurrent.MoreExecutors
 import org.apache.accumulo.core.client.Connector
 import org.apache.hadoop.io.Text
 import org.locationtech.geomesa.accumulo.data.{AccumuloBackedMetadata, _}
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.{StatsMetadataSerializer, WritableStat}
 import org.locationtech.geomesa.index.stats._
+import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.simple.SimpleFeatureType
-
-import scala.collection.JavaConversions._
 
 /**
   * Accumulo stats implementation handling table compactions
@@ -34,6 +31,8 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
 
   import AccumuloGeoMesaStats._
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  import scala.collection.JavaConverters._
 
   private val compactionScheduled = new AtomicBoolean(false)
   private val lastCompaction = new AtomicLong(0L)
@@ -79,9 +78,8 @@ class AccumuloGeoMesaStats(ds: AccumuloDataStore, val metadata: AccumuloBackedMe
     StatsCombiner.configure(sft, connector, metadata.table, metadata.typeNameSeparator.toString)
 
     val keys = Seq(CountKey, BoundsKeyPrefix, TopKKeyPrefix, FrequencyKeyPrefix, HistogramKeyPrefix)
-    val splits = keys.map(k => new Text(metadata.encodeRow(sft.getTypeName, k)))
-    // noinspection RedundantCollectionConversion
-    connector.tableOperations().addSplits(metadata.table, ImmutableSortedSet.copyOf(splits.toIterable))
+    val splits = new java.util.TreeSet[Text](keys.map(k => new Text(metadata.encodeRow(sft.getTypeName, k))).asJava)
+    connector.tableOperations().addSplits(metadata.table, splits)
   }
 
   /**
@@ -158,9 +156,5 @@ object AccumuloGeoMesaStats {
     new AccumuloGeoMesaStats(ds, new AccumuloBackedMetadata(ds.connector, table, new StatsMetadataSerializer(ds)))
   }
 
-  private [stats] val executor = {
-    val es = MoreExecutors.getExitingScheduledExecutorService(new ScheduledThreadPoolExecutor(3))
-    sys.addShutdownHook(es.shutdownNow())
-    es
-  }
+  private [stats] val executor = ExitingExecutor(new ScheduledThreadPoolExecutor(3), force = true)
 }

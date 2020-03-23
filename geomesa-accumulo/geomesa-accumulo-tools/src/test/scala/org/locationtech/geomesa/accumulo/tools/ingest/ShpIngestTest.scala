@@ -55,6 +55,7 @@ class ShpIngestTest extends Specification {
     command.params.catalog     = s"${MiniCluster.namespace}.${getClass.getSimpleName}${sftCounter.getAndIncrement()}"
     command.params.force       = true
     command.params.files       = Collections.singletonList(new File(dir.toFile, s"$file.shp").getAbsolutePath)
+    command.params.compact     = false
     command
   }
 

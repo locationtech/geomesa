@@ -22,9 +22,6 @@
     <category name="org.apache.curator">
         <priority value="error"/>
     </category>
-    <category name="org.apache.curator">
-        <priority value="warn"/>
-    </category>
     <category name="hsqldb">
         <priority value="error"/>
     </category>

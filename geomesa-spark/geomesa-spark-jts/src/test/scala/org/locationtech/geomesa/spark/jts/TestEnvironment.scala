@@ -18,6 +18,7 @@ trait TestEnvironment {
   implicit lazy val spark: SparkSession = {
     SparkSession.builder()
       .appName("testSpark")
+      .config("spark.ui.enabled", value = false)
       .master("local[*]")
       .getOrCreate()
       .withJTS

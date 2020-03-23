@@ -13,7 +13,7 @@ import java.lang.ref.WeakReference
 import java.util.concurrent._
 
 import com.github.benmanes.caffeine.cache.{Cache, Caffeine}
-import com.google.common.util.concurrent.MoreExecutors
+import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 
 import scala.concurrent.duration.Duration
 
@@ -140,7 +140,5 @@ class ThreadLocalCache[K <: AnyRef, V <: AnyRef](
 
 object ThreadLocalCache {
   // use a 2 thread executor service for all the caches - we only use a handful across the code base
-  private val executor = MoreExecutors.getExitingScheduledExecutorService {
-    Executors.newScheduledThreadPool(2).asInstanceOf[ScheduledThreadPoolExecutor]
-  }
+  private val executor = ExitingExecutor(Executors.newScheduledThreadPool(2).asInstanceOf[ScheduledThreadPoolExecutor])
 }

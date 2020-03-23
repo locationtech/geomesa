@@ -215,6 +215,7 @@ class Z3Test extends Specification {
         foreach(ranges) { r =>
           val ret = Z3.zranges(Array(ZRange(r._1, r._2)), maxRanges = Some(1000))
           ret.length must beGreaterThan(0)
+          ret.length must beLessThanOrEqualTo(1000)
         }
       }
     }

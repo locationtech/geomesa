@@ -8,23 +8,16 @@
 
 package org.locationtech.geomesa.index.index
 
-import java.util.Date
-
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.{Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
-import org.locationtech.geomesa.index.conf.QueryHints.{BIN_BATCH_SIZE, BIN_LABEL, BIN_SORT, BIN_TRACK, SAMPLE_BY, SAMPLING}
-import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.utils.ExplainPrintln
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
-import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -36,12 +29,11 @@ class S3IndexTest extends Specification with LazyLogging {
 
   val spec = "name:String,track:String,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled=s3:geom:dtg"
 
-  val sft = SimpleFeatureTypes.createType("test", spec)
+  lazy val sft = SimpleFeatureTypes.createType("test", spec)
 
-  val ds = new TestGeoMesaDataStore(false) // requires strict bbox...
-  ds.createSchema(sft)
+  lazy val ds = new TestGeoMesaDataStore(false) // requires strict bbox...
 
-  val features =
+  lazy val features =
     (0 until 10).map { i =>
       ScalaSimpleFeature.create(sft, s"$i", s"name$i", "track1", s"2010-05-07T0$i:00:00.000Z", s"POINT(4$i 60)")
     } ++ (10 until 20).map { i =>
@@ -51,8 +43,10 @@ class S3IndexTest extends Specification with LazyLogging {
     }
 
   step {
-    features.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
-    ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features.toArray[SimpleFeature]))
+    ds.createSchema(sft)
+    WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+      features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+    }
   }
 
   def execute(query: Query): Seq[SimpleFeature] =

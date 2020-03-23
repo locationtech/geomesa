@@ -103,6 +103,7 @@ function downloadUrls() {
     fi
   else
     echo "Download cancelled"
+    return 1
   fi
 }
 

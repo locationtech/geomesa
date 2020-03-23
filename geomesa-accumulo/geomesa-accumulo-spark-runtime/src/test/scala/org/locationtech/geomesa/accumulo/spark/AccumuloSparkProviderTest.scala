@@ -12,8 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.spark.sql.{DataFrame, SQLContext, SQLTypes, SparkSession}
 import org.geotools.data.{Query, Transaction}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.accumulo.{MiniCluster, TestWithFeatureType}
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
+import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.spark.SparkSQLTestUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.specs2.mutable.Specification
@@ -22,7 +21,6 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class AccumuloSparkProviderTest extends Specification with TestWithFeatureType with LazyLogging {
 
-  import AccumuloDataStoreParams._
   import org.locationtech.geomesa.filter.ff
 
   sequential
@@ -35,8 +33,6 @@ class AccumuloSparkProviderTest extends Specification with TestWithFeatureType w
 
   var df: DataFrame = _
 
-  val params = dsParams.filterNot { case (k, _) => k == AccumuloDataStoreParams.ConnectorParam.key }
-
   // before
   step {
     spark = SparkSQLTestUtils.createSparkSession()
@@ -46,11 +42,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithFeatureType w
 
     df = spark.read
         .format("geomesa")
-        .option(InstanceIdParam.key, MiniCluster.cluster.getInstanceName)
-        .option(ZookeepersParam.key, MiniCluster.cluster.getZooKeepers)
-        .option(UserParam.key, root.name)
-        .option(PasswordParam.key, root.password)
-        .options(params.map { case (k, v) => k -> v.toString })
+        .options(dsParams)
         .option("geomesa.feature", "chicago")
         .load()
 
@@ -80,11 +72,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithFeatureType w
     "write data and properly index" >> {
       val subset = sc.sql("select case_number,geom,dtg from chicago")
       subset.write.format("geomesa")
-        .option(InstanceIdParam.key, MiniCluster.cluster.getInstanceName)
-        .option(ZookeepersParam.key, MiniCluster.cluster.getZooKeepers)
-        .option(UserParam.key, root.name)
-        .option(PasswordParam.key, root.password)
-        .options(params.map { case (k, v) => k -> v.toString })
+        .options(dsParams)
         .option("geomesa.feature", "chicago2")
         .save()
 
@@ -96,11 +84,7 @@ class AccumuloSparkProviderTest extends Specification with TestWithFeatureType w
     "handle reuse __fid__ on write if available" >> {
       val subset = sc.sql("select __fid__,case_number,geom,dtg from chicago")
       subset.write.format("geomesa")
-        .option(InstanceIdParam.key, MiniCluster.cluster.getInstanceName)
-        .option(ZookeepersParam.key, MiniCluster.cluster.getZooKeepers)
-        .option(UserParam.key, root.name)
-        .option(PasswordParam.key, root.password)
-        .options(params.map { case (k, v) => k -> v.toString })
+        .options(dsParams)
         .option("geomesa.feature", "fidOnWrite")
         .save()
       val filter = ff.equals(ff.property("case_number"), ff.literal(1))

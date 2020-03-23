@@ -10,8 +10,8 @@ package org.locationtech.geomesa.utils.uuid
 
 import java.security.SecureRandom
 
-import com.google.common.primitives.Longs
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
+import org.locationtech.geomesa.utils.index.ByteArrays
 
 /**
  *
@@ -24,7 +24,7 @@ trait Version4UuidGenerator {
   /**
    * Gets a reusable byte array of length 8. This is a thread-local value, so be careful how it's used.
    */
-  def getTempByteArray = byteCache.getOrElseUpdate(Array.ofDim[Byte](8))
+  def getTempByteArray: Array[Byte] = byteCache.getOrElseUpdate(Array.ofDim[Byte](8))
 
   /**
    * Sets the variant number for the UUID. This overwrites the first 2 bits of the 1st byte.
@@ -60,6 +60,6 @@ trait RandomLsbUuidGenerator extends Version4UuidGenerator {
     // set the random bytes
     r.nextBytes(bytes)
     setVariant(bytes)
-    Longs.fromByteArray(bytes)
+    ByteArrays.readLong(bytes)
   }
 }

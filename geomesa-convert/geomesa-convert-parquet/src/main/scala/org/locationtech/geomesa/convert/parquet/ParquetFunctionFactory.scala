@@ -12,8 +12,9 @@ import org.apache.avro.generic.GenericRecord
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.avro.AvroPath
+import org.locationtech.geomesa.convert2.transforms.Expression.LiteralString
 import org.locationtech.geomesa.convert2.transforms.TransformerFunction.NamedTransformerFunction
-import org.locationtech.geomesa.convert2.transforms.{TransformerFunction, TransformerFunctionFactory}
+import org.locationtech.geomesa.convert2.transforms.{Expression, TransformerFunction, TransformerFunctionFactory}
 import org.locationtech.geomesa.parquet.io.{SimpleFeatureParquetSchema, SimpleFeatureReadSupport}
 import org.locationtech.jts.geom._
 
@@ -22,12 +23,12 @@ class ParquetFunctionFactory extends TransformerFunctionFactory {
   override def functions: Seq[TransformerFunction] = geometries
 
   private val geometries = Seq(
-    new ParquetPointFn,
-    new ParquetMultiPointFn,
-    new ParquetLineStringFn,
-    new ParquetMultiLineStringFn,
-    new ParquetPolygonFn,
-    new ParquetMultiPolygonFn
+    new ParquetPointFn(null),
+    new ParquetMultiPointFn(null),
+    new ParquetLineStringFn(null),
+    new ParquetMultiLineStringFn(null),
+    new ParquetPolygonFn(null),
+    new ParquetMultiPolygonFn(null)
   )
 
   private val gf = JTSFactoryFinder.getGeometryFactory
@@ -39,45 +40,51 @@ class ParquetFunctionFactory extends TransformerFunctionFactory {
     * @tparam T geometry type
     * @tparam U column type
     */
-  abstract class ParquetGeometryFn[T <: Geometry, U](name: String)
+  abstract class ParquetGeometryFn[T <: Geometry, U](name: String, path: AvroPath)
       extends NamedTransformerFunction(Seq(name), pure = true) {
 
     import SimpleFeatureParquetSchema.{GeometryColumnX, GeometryColumnY}
-    private var path: AvroPath = _
 
     override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Any = {
-      if (path == null) {
-        path = AvroPath(args(1).asInstanceOf[String])
-      }
       path.eval(args(0).asInstanceOf[GenericRecord]).collect {
         case r: GenericRecord => eval(r.get(GeometryColumnX).asInstanceOf[U], r.get(GeometryColumnY).asInstanceOf[U])
       }.orNull
     }
 
+    protected def getPath(args: List[Expression]): AvroPath = {
+      args match {
+        case _ :: LiteralString(s) :: _ => AvroPath(s)
+        case _ => throw new IllegalArgumentException(s"Expected Avro path but got: ${args.headOption.orNull}")
+      }
+    }
+
     protected def eval(x: U, y: U): T
   }
 
-  class ParquetPointFn extends ParquetGeometryFn[Point, Double]("parquetPoint") {
-    override def getInstance: ParquetPointFn = new ParquetPointFn()
+  class ParquetPointFn(path: AvroPath) extends ParquetGeometryFn[Point, Double]("parquetPoint", path) {
+    override def getInstance(args: List[Expression]): ParquetPointFn = new ParquetPointFn(getPath(args))
     override protected def eval(x: Double, y: Double): Point = gf.createPoint(new Coordinate(x, y))
   }
 
-  class ParquetMultiPointFn extends ParquetGeometryFn[MultiPoint, java.util.List[Double]]("parquetMultiPoint") {
-    override def getInstance: ParquetMultiPointFn = new ParquetMultiPointFn()
+  class ParquetMultiPointFn(path: AvroPath)
+      extends ParquetGeometryFn[MultiPoint, java.util.List[Double]]("parquetMultiPoint", path) {
+    override def getInstance(args: List[Expression]): ParquetMultiPointFn = new ParquetMultiPointFn(getPath(args))
     override protected def eval(x: java.util.List[Double], y: java.util.List[Double]): MultiPoint =
       gf.createMultiPointFromCoords(SimpleFeatureReadSupport.zip(x, y))
   }
 
-  class ParquetLineStringFn extends ParquetGeometryFn[LineString, java.util.List[Double]]("parquetLineString") {
-    override def getInstance: ParquetLineStringFn = new ParquetLineStringFn()
+  class ParquetLineStringFn(path: AvroPath)
+      extends ParquetGeometryFn[LineString, java.util.List[Double]]("parquetLineString", path) {
+    override def getInstance(args: List[Expression]): ParquetLineStringFn = new ParquetLineStringFn(getPath(args))
     override protected def eval(x: java.util.List[Double], y: java.util.List[Double]): LineString =
       gf.createLineString(SimpleFeatureReadSupport.zip(x, y))
   }
 
   type ParquetMultiLineString = ParquetGeometryFn[MultiLineString, java.util.List[java.util.List[Double]]]
 
-  class ParquetMultiLineStringFn extends ParquetMultiLineString("parquetMultiLineString") {
-    override def getInstance: ParquetMultiLineStringFn = new ParquetMultiLineStringFn()
+  class ParquetMultiLineStringFn(path: AvroPath) extends ParquetMultiLineString("parquetMultiLineString", path) {
+    override def getInstance(args: List[Expression]): ParquetMultiLineStringFn =
+      new ParquetMultiLineStringFn(getPath(args))
     override protected def eval(
         x: java.util.List[java.util.List[Double]],
         y: java.util.List[java.util.List[Double]]): MultiLineString = {
@@ -90,8 +97,8 @@ class ParquetFunctionFactory extends TransformerFunctionFactory {
 
   type ParquetPolygon = ParquetGeometryFn[Polygon, java.util.List[java.util.List[Double]]]
 
-  class ParquetPolygonFn extends ParquetPolygon("parquetPolygon") {
-    override def getInstance: ParquetPolygonFn = new ParquetPolygonFn()
+  class ParquetPolygonFn(path: AvroPath) extends ParquetPolygon("parquetPolygon", path) {
+    override def getInstance(args: List[Expression]): ParquetPolygonFn = new ParquetPolygonFn(getPath(args))
     override protected def eval(
         x: java.util.List[java.util.List[Double]],
         y: java.util.List[java.util.List[Double]]): Polygon = {
@@ -107,8 +114,8 @@ class ParquetFunctionFactory extends TransformerFunctionFactory {
 
   type ParquetMultiPolygon = ParquetGeometryFn[MultiPolygon, java.util.List[java.util.List[java.util.List[Double]]]]
 
-  class ParquetMultiPolygonFn extends ParquetMultiPolygon("parquetMultiPolygon") {
-    override def getInstance: ParquetMultiPolygonFn = new ParquetMultiPolygonFn()
+  class ParquetMultiPolygonFn(path: AvroPath) extends ParquetMultiPolygon("parquetMultiPolygon", path) {
+    override def getInstance(args: List[Expression]): ParquetMultiPolygonFn = new ParquetMultiPolygonFn(getPath(args))
     override protected def eval(
         x: java.util.List[java.util.List[java.util.List[Double]]],
         y: java.util.List[java.util.List[java.util.List[Double]]]): MultiPolygon = {

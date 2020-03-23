@@ -136,8 +136,9 @@ class Z2Test extends Specification {
           (math.round(z._1 * 1000.0) / 1000.0, math.round(z._2 * 1000.0) / 1000.0)
 
         foreach(ranges) { r =>
-          val ret = Z2.zranges(ZRange(r._1, r._2))
+          val ret = Z2.zranges(Array(ZRange(r._1, r._2)), maxRanges = Some(1000))
           ret.length must beGreaterThan(0)
+          ret.length must beLessThanOrEqualTo(1000)
         }
       }
     }

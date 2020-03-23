@@ -14,7 +14,6 @@ import java.util.Collections
 import java.util.concurrent.{ExecutorService, Executors, LinkedBlockingQueue, TimeUnit}
 import java.util.function.Function
 
-import com.google.common.collect.{Maps, Queues}
 import com.typesafe.config.Config
 import org.apache.camel.CamelContext
 import org.apache.camel.impl._
@@ -22,13 +21,14 @@ import org.apache.camel.scala.dsl.builder.RouteBuilder
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.stream.{SimpleFeatureStreamSource, SimpleFeatureStreamSourceFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.slf4j.LoggerFactory
 
 import scala.util.Try
 
 object GenericSimpleFeatureStreamSourceFactory {
-  val contexts: java.util.Map[String, CamelContext] = Collections.synchronizedMap(Maps.newHashMap[String, CamelContext]())
+  val contexts: java.util.Map[String, CamelContext] = Collections.synchronizedMap(new java.util.HashMap[String, CamelContext]())
 
   def getContext(namespace: String): CamelContext = {
     contexts.computeIfAbsent(namespace, new Function[String, CamelContext] {
@@ -72,8 +72,8 @@ class GenericSimpleFeatureStreamSource(val ctx: CamelContext,
 
   override def init(): Unit = {
     super.init()
-    inQ = Queues.newLinkedBlockingQueue[String]()
-    outQ = Queues.newLinkedBlockingQueue[SimpleFeature]()
+    inQ = new LinkedBlockingQueue[String]()
+    outQ = new LinkedBlockingQueue[SimpleFeature]()
     val route = getProcessingRoute(inQ)
     ctx.addRoutes(route)
     parsers = List.fill(threads)(parserFactory())
@@ -102,7 +102,10 @@ class GenericSimpleFeatureStreamSource(val ctx: CamelContext,
           }
         }
         try {
-          input.flatMap(i => p.process(new ByteArrayInputStream(i.getBytes(StandardCharsets.UTF_8)))).foreach(outQ.put)
+          input.foreach { i =>
+            val bytes = new ByteArrayInputStream(i.getBytes(StandardCharsets.UTF_8))
+            WithClose(p.process(bytes))(_.foreach(outQ.put))
+          }
         } catch {
           case t: InterruptedException => running = false
         }

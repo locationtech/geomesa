@@ -15,7 +15,6 @@ import java.util
 
 import com.datastax.driver.core._
 import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, TokenAwarePolicy}
-import com.google.common.collect.ImmutableMap
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.CassandraDataStoreConfig
@@ -105,7 +104,8 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
   override def getDescription: String = CassandraDataStoreFactory.Description
 
   override def getParametersInfo: Array[Param] =
-    CassandraDataStoreFactory.ParameterInfo ++ Array(NamespaceParam, DeprecatedGeoServerPasswordParam)
+    CassandraDataStoreFactory.ParameterInfo ++
+        Array(NamespaceParam, CassandraDataStoreFactory.DeprecatedGeoServerPasswordParam)
 
   override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
     CassandraDataStoreFactory.canProcess(params)
@@ -114,6 +114,18 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
 }
 
 object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
+
+  import scala.collection.JavaConverters._
+
+  // used to handle geoserver password encryption in persisted ds params
+  private val DeprecatedGeoServerPasswordParam =
+    new Param(
+      "password",
+      classOf[String],
+      "",
+      false,
+      null,
+      Map(Parameter.DEPRECATED -> true, Parameter.IS_PASSWORD -> true).asJava)
 
   override val DisplayName = "Cassandra (GeoMesa)"
   override val Description = "Apache Cassandra\u2122 distributed key/value store"
@@ -178,10 +190,6 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
         password = true,
         deprecatedKeys = Seq("geomesa.cassandra.password"),
         supportsNiFiExpressions = true)
-
-    // used to handle geoserver password encryption in persisted ds params
-    val DeprecatedGeoServerPasswordParam =
-      new Param("password", classOf[String], "", false, null, ImmutableMap.of(Parameter.DEPRECATED, true, Parameter.IS_PASSWORD, true))
   }
 
   case class CassandraDataStoreConfig(

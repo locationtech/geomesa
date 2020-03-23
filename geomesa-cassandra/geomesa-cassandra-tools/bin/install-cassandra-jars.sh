@@ -11,7 +11,7 @@ cassandra_version="%%cassandra.server.version.recommended%%"
 driver_version="%%cassandra.driver.version.recommended%%"
 netty_version="%%netty.version%%"
 metrics_version="%%metrics.version%%"
-guava_version="18.0"
+guava_version="%%cassandra.guava.version%%"
 
 # Load common functions and setup
 if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then

@@ -20,7 +20,7 @@ case object MiniCluster extends LazyLogging {
     logger.info("Starting embedded hbase")
     cluster.getConfiguration.set("hbase.superuser", "admin")
     cluster.getConfiguration.set(CoprocessorHost.USER_REGION_COPROCESSOR_CONF_KEY, HBaseIndexAdapter.CoprocessorClass)
-    cluster.startMiniCluster(sys.props.get("geomesa.hbase.test.servers").map(_.toInt).getOrElse(3))
+    cluster.startMiniCluster(sys.props.get("geomesa.hbase.test.region.servers").map(_.toInt).getOrElse(2))
     logger.info("Started embedded hbase")
     cluster
   }

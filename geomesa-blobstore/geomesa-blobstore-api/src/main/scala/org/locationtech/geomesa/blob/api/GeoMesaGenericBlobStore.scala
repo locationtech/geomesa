@@ -11,7 +11,7 @@ package org.locationtech.geomesa.blob.api
 import java.io.File
 import java.util
 
-import com.google.common.io.Files
+import org.apache.commons.io.FileUtils
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.data.{DataStore, Query}
@@ -37,7 +37,7 @@ abstract class GeoMesaGenericBlobStore(ds: DataStore, bs: BlobStore) extends Geo
 
   override def put(file: File, params: util.Map[String, String]): String = {
     BlobStoreFileHandler.buildSimpleFeature(file, params.toMap).map { sf =>
-      val bytes = Files.toByteArray(file)
+      val bytes = FileUtils.readFileToByteArray(file)
       putInternalSF(sf, bytes)
     }.orNull
   }

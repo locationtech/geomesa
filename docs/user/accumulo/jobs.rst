@@ -70,17 +70,7 @@ catalog table.
 Map/Reduce Jobs
 ---------------
 
-To facilitate running jobs, you may wish to build a shaded JAR that
-contains all the required dependencies. Ensure that the ``pom.xml`` references
-the correct versions of Hadoop, Accumulo, etc. for your cluster, then
-build the project using the ``assemble`` profile:
-
-.. code-block:: shell
-
-    geomesa-accumulo$ mvn clean install -P assemble -pl geomesa-accumulo-jobs
-
-The following instructions assume you have built a shaded JAR; if not
-you will need to use the ``-libjars`` argument to ensure the correct JARs
+The following instructions require that you use the ``-libjars`` argument to ensure the correct JARs
 are available on the distributed classpath.
 
 .. _attribute_indexing_job:
@@ -113,8 +103,7 @@ slightly):
 
 .. note::
 
-    If you did not build with the ``assemble`` profile, you will also need to
-    include an extensive ``-libjars`` argument with all dependent JARs.
+    You will also need to include an extensive ``-libjars`` argument with all dependent JARs.
 
 .. _update_index_format_job:
 
@@ -152,5 +141,5 @@ slightly):
 
 .. note::
 
-    If you did not build with the ``assemble`` profile, you will also need to
-    include an extensive ``-libjars`` argument with all dependent JARs.
+    You will also need to include an extensive ``-libjars`` argument with all dependent JARs.
+

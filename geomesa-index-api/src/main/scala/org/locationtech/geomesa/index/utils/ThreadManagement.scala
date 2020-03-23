@@ -11,8 +11,8 @@ package org.locationtech.geomesa.index.utils
 import java.io.Closeable
 import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 
-import com.google.common.util.concurrent.MoreExecutors
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 
 import scala.util.control.NonFatal
 
@@ -24,9 +24,8 @@ object ThreadManagement extends LazyLogging {
   private val executor = {
     val ex = new ScheduledThreadPoolExecutor(2)
     ex.setRemoveOnCancelPolicy(true)
-    MoreExecutors.getExitingScheduledExecutorService(ex)
+    ExitingExecutor(ex, force = true)
   }
-  sys.addShutdownHook(executor.shutdownNow())
 
   /**
    * Register a query with the thread manager

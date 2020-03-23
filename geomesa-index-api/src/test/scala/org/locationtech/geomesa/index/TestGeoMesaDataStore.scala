@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.index
 
-import com.google.common.primitives.UnsignedBytes
 import org.geotools.data.Query
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
@@ -170,8 +169,8 @@ object TestGeoMesaDataStore {
 
     override def explain(explainer: Explainer, prefix: String): Unit = {
       explainer(s"ranges (${ranges.length}): ${ranges.take(5).map(r =>
-        s"[${r.start.map(UnsignedBytes.toString).mkString(";")}::" +
-            s"${r.end.map(UnsignedBytes.toString).mkString(";")})").mkString(",")}")
+        s"[${r.start.map(ByteArrays.toHex).mkString(";")}::" +
+            s"${r.end.map(ByteArrays.toHex).mkString(";")})").mkString(",")}")
       explainer(s"ecql: ${ecql.map(org.locationtech.geomesa.filter.filterToString).getOrElse("INCLUDE")}")
     }
   }
