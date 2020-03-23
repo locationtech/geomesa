@@ -38,6 +38,9 @@ parameter. When a producer writes an update to an existing feature, the consumer
 Once the timeout is hit without any updates, the feature will be removed from the consumer cache and will no
 longer be returned when querying.
 
+If the expiry is set to zero, features will not be indexed or searchable. However, they will still be passed
+to any :ref:`feature listeners <kafka_feature_events>` that are configured.
+
 .. _kafka_event_time:
 
 Feature Event Time
