@@ -37,10 +37,9 @@ import org.specs2.runner.JUnitRunner
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class BackCompatibilityTest extends TestWithDataStore with LazyLogging {
+class BackCompatibilityIT extends TestWithDataStore with LazyLogging {
 
   import scala.collection.JavaConverters._
-
   /**
     * Runs version tests against old data. To add more versions, generate a new data file by running
     * 'BackCompatibilityWriter' against the git tag, then add another call to 'testVersion'.
