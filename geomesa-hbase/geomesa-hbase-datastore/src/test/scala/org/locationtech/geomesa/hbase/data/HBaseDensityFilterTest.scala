@@ -101,14 +101,14 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, "2012-01-01T19:00:00Z")
-        sf.setAttribute(3, "POINT(-77 38)")
+        sf.setAttribute(3, "POINT(77 38)")
         sf
       }
 
       val features_list = new ListFeatureCollection(sft, toAdd)
       fs.addFeatures(features_list)
 
-      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
+      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, 70, 33, 80, 40)"
       val density = getDensity(typeName, q, fs)
       density.length must beLessThan(150)
       density.map(_._3).sum must beEqualTo(150)
@@ -117,22 +117,22 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     "maintain total weight of points" in {
       clearFeatures()
 
-      val toAdd = (0 until 150).map { i =>
+      val toAdd = (0 until 250).map { i =>
         val sf = new ScalaSimpleFeature(sft, i.toString)
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, "2012-01-01T19:00:00Z")
-        sf.setAttribute(3, "POINT(-77 38)")
+        sf.setAttribute(3, "POINT(-77 58)")
         sf
       }
 
       val features_list = new ListFeatureCollection(sft, toAdd)
       fs.addFeatures(features_list)
 
-      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
+      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 53, -70, 60)"
       val density = getDensity(typeName, q, fs)
-      density.length must beLessThan(150)
-      density.map(_._3).sum must beEqualTo(150)
+      density.length must beLessThan(250)
+      density.map(_._3).sum must beEqualTo(250)
     }
 
     "maintain weights irrespective of dates" in {
@@ -143,14 +143,14 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, Date.from(ZonedDateTime.of(2012, 1, 1, 19, 0, 0, 0, ZoneOffset.UTC).plusSeconds(i).toInstant))
-        sf.setAttribute(3, "POINT(-77 38)")
+        sf.setAttribute(3, "POINT(-27 38)")
         sf
       }
 
       val features_list = new ListFeatureCollection(sft, toAdd)
       fs.addFeatures(features_list)
 
-      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
+      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -20, 33, -30, 40)"
       val density = getDensity(typeName, q, fs)
       density.length must beLessThan(150)
       density.map(_._3).sum must beEqualTo(150)
@@ -166,7 +166,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
         sf.setAttribute(0, i.toString)
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, Date.from(ZonedDateTime.of(2012, 1, 1, 19, 0, 0, 0, ZoneOffset.UTC).plusSeconds(i).toInstant))
-        sf.setAttribute(3, s"POINT($lat 37)")
+        sf.setAttribute(3, s"POINT($lat 7)")
         sf
       }
 
@@ -179,14 +179,18 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
         QueryProperties.QueryExactCount.threadLocalValue.remove()
       }
 
-      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -1, 33, 6, 40)"
-      val density = getDensity(typeName, q, fs)
-      density.map(_._3).sum mustEqual 150
+      val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -1, 0, 6, 10)"
+      val density: Seq[(Double, Double, Double)] = getDensity(typeName, q, fs)
+
+      println("Dumping density")
+      density.foreach { foo => println(s"Count(${foo._1}, ${foo._2}): ${foo._3}")}
+      density.foreach { foo => logger.warn(s"Count(${foo._1}, ${foo._2}): ${foo._3}")}
 
       val compiled = density.groupBy(d => (d._1, d._2)).map { case (_, group) => group.map(_._3).sum }
 
       // should be 5 bins of 30
       compiled must haveLength(5)
+      density.map(_._3).sum mustEqual 150
       forall(compiled){ _ mustEqual 30 }
     }
   }
@@ -216,6 +220,8 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     q.getHints.put(QueryHints.DENSITY_WIDTH, 500)
     q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
     val decode = DensityScan.decodeResult(envelope, 500, 500)
-    SelfClosingIterator(fs.getFeatures(q).features).flatMap(decode).toList
+    val ret = SelfClosingIterator(fs.getFeatures(q).features).flatMap(decode).toList
+    ret.foreach { println }
+    ret
   }
 }
