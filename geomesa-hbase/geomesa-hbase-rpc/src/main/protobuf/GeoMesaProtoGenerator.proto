@@ -6,7 +6,8 @@
 * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-// Execute : protoc --java_out=./geomesa-hbase/geomesa-hbase-datastore/src/main/java ./geomesa-hbase/geomesa-hbase-datastore/src/main/protobuf/GeoMesaProtoGenerator.proto
+// Execute : protoc --java_out=./geomesa-hbase/geomesa-hbase-rpc/src/main/java ./geomesa-hbase/geomesa-hbase-rpc/src/main/protobuf/GeoMesaProtoGenerator.proto
+syntax = "proto2";
 
 option java_package = "org.locationtech.geomesa.hbase.proto";
 option java_outer_classname = "GeoMesaProto";
@@ -20,6 +21,7 @@ message GeoMesaCoprocessorRequest {
 
 message GeoMesaCoprocessorResponse {
     repeated bytes payload = 1;
+    optional bytes lastscanned = 2;
 }
 
 service GeoMesaCoprocessorService {

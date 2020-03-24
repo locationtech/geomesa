@@ -24,13 +24,17 @@ trait HBaseAggregator[T <: AggregatingScan.Result] extends AggregatingScan[T] {
   private var scanner: RegionScanner = _
   private var more: Boolean = false
   private var iter: java.util.Iterator[Cell] = _
+  private var lastscanned: Array[Byte] = _
 
   def setScanner(scanner: RegionScanner): Unit = {
+    lastscanned = null
     this.scanner = scanner
     results.clear()
     more = scanner.next(results)
     iter = results.iterator()
   }
+
+  def getLastScanned: Array[Byte] = lastscanned
 
   override protected def hasNextData: Boolean = iter.hasNext || more && {
     results.clear()
@@ -41,6 +45,8 @@ trait HBaseAggregator[T <: AggregatingScan.Result] extends AggregatingScan[T] {
 
   override protected def nextData(): RowValue = {
     val cell = iter.next()
+    //println(s"Scanned ${ByteArrays.printable(cell.getRowArray)}")
+    lastscanned = cell.getRowArray
     RowValue(cell.getRowArray, cell.getRowOffset, cell.getRowLength,
       cell.getValueArray, cell.getValueOffset, cell.getValueLength)
   }
