@@ -11,10 +11,12 @@ package org.locationtech.geomesa.hbase.aggregators
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResultsToFeatures
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -36,7 +38,8 @@ object HBaseDensityAggregator {
 
   class HBaseDensityResultsToFeatures extends DensityResultsToFeatures[Array[Byte]] {
     override protected def bytes(result: Array[Byte]): Array[Byte] = {
-      val sf = apply(result)
+      val sf = new ScalaSimpleFeature(DensityScan.DensitySft, "", Array(GeometryUtils.zeroPoint))
+      sf.getUserData.put(DensityScan.DensityValueKey, result)
       println("Adding records to result")
       DensityScan.decodeResult(env, 500, 500)(sf).foreach { println }
       result
