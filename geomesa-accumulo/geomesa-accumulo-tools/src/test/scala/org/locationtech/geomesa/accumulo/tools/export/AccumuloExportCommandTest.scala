@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.accumulo.tools.export
 
-import java.io.{File, FileInputStream}
+import java.io.{File, FileInputStream, FileWriter}
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.{Collections, Date}
@@ -21,7 +21,6 @@ import org.apache.parquet.filter2.compat.FilterCompat
 import org.geotools.data.DataUtilities
 import org.geotools.data.shapefile.ShapefileDataStore
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.geojson.feature.FeatureJSON
 import org.geotools.util.URLs
 import org.geotools.wfs.GML
 import org.junit.runner.RunWith
@@ -29,6 +28,7 @@ import org.locationtech.geomesa.accumulo.TestWithFeatureType
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreParams
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.convert.text.DelimitedTextConverter
+import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.avro.AvroDataFileReader
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
@@ -193,27 +193,34 @@ class AccumuloExportCommandTest extends TestWithFeatureType {
     DelimitedTextConverter.magicParsing(sft.getTypeName, new FileInputStream(file)).toList
 
   def readJson(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
-    WithClose(new FeatureJSON().streamFeatureCollection(new FileInputStream(file))) { iter =>
-      val result = Seq.newBuilder[SimpleFeature]
-      while (iter.hasNext) {
-        val f = iter.next
-        result += ScalaSimpleFeature.create(sft, f.getID, f.getAttributes.toArray: _*)
-      }
-      result.result()
+    val converter = SimpleFeatureConverter.infer(() => new FileInputStream(file), None, Some(file)) match {
+      case None => ko(s"could not create converter from $file"); null: SimpleFeatureConverter
+      case Some((s, c)) => SimpleFeatureConverter(s, c)
     }
+    val result = Seq.newBuilder[SimpleFeature]
+    val names = sft.getAttributeDescriptors.asScala.map(_.getLocalName)
+    WithClose(converter.process(new FileInputStream(file))) { features =>
+      features.foreach { f =>
+        val copy = new ScalaSimpleFeature(sft, f.getID)
+        names.foreach(a => copy.setAttribute(a, f.getAttribute(a)))
+        result += copy
+      }
+    }
+    result.result()
   }
 
   def readLeaflet(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
     val html = IOUtils.toString(new FileInputStream(file), StandardCharsets.UTF_8)
     val i = html.indexOf("var points = ") + 13
     val json = html.substring(i, html.indexOf(";", i))
-    WithClose(new FeatureJSON().streamFeatureCollection(json)) { iter =>
-      val result = Seq.newBuilder[SimpleFeature]
-      while (iter.hasNext) {
-        val f = iter.next
-        result += ScalaSimpleFeature.create(sft, f.getID, f.getAttributes.toArray: _*)
+    val tmp = Files.createTempFile("gm-export-leaflet", ".json").toFile
+    try {
+      WithClose(new FileWriter(tmp))(IOUtils.write(json, _))
+      readJson(tmp.getAbsolutePath, sft)
+    } finally {
+      if (!tmp.delete()) {
+        tmp.deleteOnExit()
       }
-      result.result()
     }
   }
 

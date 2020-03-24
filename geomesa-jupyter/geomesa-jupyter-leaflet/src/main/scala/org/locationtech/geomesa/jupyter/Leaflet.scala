@@ -12,7 +12,6 @@ object L {
   import org.apache.commons.text.CharacterPredicates.ASCII_ALPHA_NUMERALS
   import org.apache.commons.text.{RandomStringGenerator, StringEscapeUtils}
   import org.apache.spark.sql._
-  import org.geotools.geojson.geom.GeometryJSON
   import org.locationtech.geomesa.spark.SparkUtils
   import org.locationtech.jts.geom._
   import org.opengis.feature.`type`.AttributeDescriptor
@@ -116,6 +115,9 @@ object L {
   }
 
   trait SimpleFeatureLayer {
+    private val writer = new org.locationtech.jts.io.geojson.GeoJsonWriter()
+    writer.setEncodeCRS(false)
+
     def features: Seq[SimpleFeature]
     def style: StyleOption
 
@@ -130,9 +132,10 @@ object L {
                       .map { case (d, a) => propToJson(d, a) }.mkString(sep =",\n")
                    }
          |    },
-         |    "geometry": ${new GeometryJSON().toString(sf.getDefaultGeometry.asInstanceOf[Geometry])}
+         |    "geometry": ${writer.write(sf.getDefaultGeometry.asInstanceOf[Geometry])}
          |}
        """.stripMargin
+
     }
 
     def propToJson(ad: AttributeDescriptor, a: Object) =

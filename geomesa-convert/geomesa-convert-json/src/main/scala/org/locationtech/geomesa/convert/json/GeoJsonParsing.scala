@@ -61,12 +61,16 @@ trait GeoJsonParsing {
     */
   def parseFeature(el: JsonElement): GeoJsonFeature = {
     val obj = el.getAsJsonObject
+    val id = obj.get(IdKey) match {
+      case s: JsonPrimitive if s.isString => Some(s.getAsString)
+      case _ => None
+    }
     val geometry = parseGeometry(obj.get(GeometryKey))
     val props: Map[String, String] = obj.get(PropertiesKey) match {
       case o: JsonObject => parseProperties(o, s"$$['$PropertiesKey']")
       case _ => Map.empty
     }
-    GeoJsonFeature(geometry, props)
+    GeoJsonFeature(id, geometry, props)
   }
 
   /**
@@ -161,13 +165,14 @@ trait GeoJsonParsing {
 object GeoJsonParsing {
 
   /**
-    * Parsed geojson feature element
-    *
-    * @param geom geometry
-    * @param properties 'properties' values - key is json path to value, value is a primitive converted to a string
-    *                   nested elements will be flattened out, with a path pointing into the element
-    */
-  case class GeoJsonFeature(geom: Geometry, properties: Map[String, String])
+   * Parsed geojson feature element
+   *
+   * @param id id, if present
+   * @param geom geometry
+   * @param properties 'properties' values - key is json path to value, value is a primitive converted to a string
+   *                   nested elements will be flattened out, with a path pointing into the element
+   */
+  case class GeoJsonFeature(id: Option[String], geom: Geometry, properties: Map[String, String])
 
   private val FeatureType = "Feature"
   private val FeatureCollectionType = "FeatureCollection"
@@ -178,4 +183,5 @@ object GeoJsonParsing {
   private val PropertiesKey = "properties"
   private val GeometryKey = "geometry"
   private val GeometriesKey = "geometries"
+  private val IdKey = "id"
 }

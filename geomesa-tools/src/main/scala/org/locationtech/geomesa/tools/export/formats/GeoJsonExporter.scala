@@ -9,43 +9,41 @@
 package org.locationtech.geomesa.tools.export.formats
 
 import java.io.{OutputStream, OutputStreamWriter}
-import java.nio.charset.StandardCharsets
 
-import org.geotools.geojson.feature.FeatureJSON
+import org.locationtech.geomesa.features.serialization.GeoJsonSerializer
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class GeoJsonExporter(os: OutputStream, counter: ByteCounter) extends ByteCounterExporter(counter) {
 
-  private val json = new FeatureJSON()
-  private val writer = new OutputStreamWriter(os, StandardCharsets.UTF_8)
+  private val writer = GeoJsonSerializer.writer(new OutputStreamWriter(os))
 
-  private var first = true
+  private var serializer: GeoJsonSerializer = _
 
-  override def start(sft: SimpleFeatureType): Unit = writer.write("""{"type":"FeatureCollection","features":[""")
+  override def start(sft: SimpleFeatureType): Unit = {
+    serializer = new GeoJsonSerializer(sft)
+    serializer.startFeatureCollection(writer)
+  }
 
   override def export(features: Iterator[SimpleFeature]): Option[Long] = {
     var count = 0L
-    if (first && features.hasNext) {
-      first = false
-      writer.write('\n')
-      json.writeFeature(features.next, writer)
-      count += 1L
-    }
     while (features.hasNext) {
-      writer.write(",\n")
-      json.writeFeature(features.next, writer)
+      serializer.write(writer, features.next)
       count += 1L
     }
     writer.flush()
     Some(count)
   }
 
-  override def close(): Unit  = {
-    if (!first) {
-      writer.write('\n')
+  override def close(): Unit = {
+    try {
+      if (serializer != null) {
+        serializer.endFeatureCollection(writer)
+        writer.flush()
+        os.write('\n')
+      }
+    } finally {
+      writer.close() // also closes underlying writer and output stream
     }
-    writer.write("]}\n")
-    writer.close()
   }
 }

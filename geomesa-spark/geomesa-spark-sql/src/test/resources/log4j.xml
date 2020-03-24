@@ -57,7 +57,7 @@
     </category>-->
 
     <root>
-        <priority value="info"/>
+        <priority value="warn"/>
         <appender-ref ref="CONSOLE" />
     </root>
 </log4j:configuration>

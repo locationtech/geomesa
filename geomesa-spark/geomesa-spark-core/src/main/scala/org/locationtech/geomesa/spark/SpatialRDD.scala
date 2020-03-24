@@ -13,7 +13,7 @@ import java.io.{BufferedWriter, StringWriter}
 import org.apache.spark.geomesa.GeoMesaSparkKryoRegistratorEndpoint
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{Partition, TaskContext}
-import org.geotools.geojson.feature.FeatureJSON
+import org.locationtech.geomesa.features.serialization.GeoJsonSerializer
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -57,14 +57,16 @@ object SpatialRDD {
     in.map(_.getProperties.asScala.map(p => (p.getName.getLocalPart, p.getValue)).toMap)
 
   implicit def toGeoJSONString(in: RDD[SimpleFeature] with Schema): RDD[String] = {
+    val sft = in.schema
     in.mapPartitions { features =>
-      val json = new FeatureJSON
+      val json = new GeoJsonSerializer(sft)
       val sw = new StringWriter
-      val bw = new BufferedWriter(sw)
+      // note: we don't need to close this since we're writing to a string
+      val jw = GeoJsonSerializer.writer(sw)
       features.map { f =>
         sw.getBuffer.setLength(0)
-        json.writeFeature(f, bw)
-        bw.flush()
+        json.write(jw, f)
+        jw.flush()
         sw.toString
       }
     }
