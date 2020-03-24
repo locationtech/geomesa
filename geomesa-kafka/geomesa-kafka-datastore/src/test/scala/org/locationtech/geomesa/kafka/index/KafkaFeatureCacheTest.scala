@@ -10,13 +10,13 @@ package org.locationtech.geomesa.kafka.index
 
 import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 
+import com.github.benmanes.caffeine.cache.Ticker
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.kafka.ExpirationMocking.{ScheduledExpiry, WrappedRunnable}
+import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.IndexConfig
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
-import org.locationtech.geomesa.utils.cache.Ticker
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.mockito.ArgumentMatchers
 import org.opengis.feature.simple.SimpleFeature
@@ -132,7 +132,7 @@ class KafkaFeatureCacheTest extends Specification with Mockito {
 
     "expire" >> {
       val ex = mock[ScheduledExecutorService]
-      val ticker = Ticker.mock(System.currentTimeMillis())
+      val ticker = new MockTicker()
       foreach(caches(Some((Duration("100ms"), ex, ticker)))) { cache =>
         try {
           val expire = new WrappedRunnable(100L)

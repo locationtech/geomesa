@@ -12,7 +12,7 @@ import java.io.Closeable
 import java.lang.ref.WeakReference
 import java.util.concurrent._
 
-import com.github.benmanes.caffeine.cache.{Cache, Caffeine}
+import com.github.benmanes.caffeine.cache.{Cache, Caffeine, Ticker}
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
 
 import scala.concurrent.duration.Duration
@@ -32,7 +32,8 @@ import scala.concurrent.duration.Duration
  */
 class ThreadLocalCache[K <: AnyRef, V <: AnyRef](
     expiry: Duration,
-    executor: ScheduledExecutorService = ThreadLocalCache.executor
+    executor: ScheduledExecutorService = ThreadLocalCache.executor,
+    ticker: Option[Ticker] = None
   ) extends scala.collection.mutable.Map[K, V]
     with scala.collection.mutable.MapLike[K, V, ThreadLocalCache[K, V]]
     with Runnable
@@ -45,7 +46,9 @@ class ThreadLocalCache[K <: AnyRef, V <: AnyRef](
 
   private val caches = new ThreadLocal[Cache[K, V]]() {
     override def initialValue(): Cache[K, V] = {
-      val cache = Caffeine.newBuilder().expireAfterAccess(expiry.toMillis, TimeUnit.MILLISECONDS).build[K, V]()
+      val builder = Caffeine.newBuilder().expireAfterAccess(expiry.toMillis, TimeUnit.MILLISECONDS)
+      ticker.foreach(builder.ticker)
+      val cache = builder.build[K, V]()
       // this will always succeed as our queue is unbounded
       references.offer((Thread.currentThread().getId, new WeakReference(cache)))
       cache

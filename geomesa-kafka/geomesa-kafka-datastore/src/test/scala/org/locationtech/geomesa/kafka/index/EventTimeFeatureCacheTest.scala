@@ -14,9 +14,8 @@ import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.kafka.ExpirationMocking.{ScheduledExpiry, WrappedRunnable}
+import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.{EventTimeConfig, IndexConfig}
-import org.locationtech.geomesa.utils.cache.Ticker
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.mockito.ArgumentMatchers
@@ -106,7 +105,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
 
     "expire by event time with ordering" in {
       val ex = mock[ScheduledExecutorService]
-      val ticker = new Ticker.MockTicker(System.currentTimeMillis())
+      val ticker = new MockTicker()
       val ev = Some(EventTimeConfig("dtg", ordering = true))
       val config = IndexConfig(Duration("100ms"), ev, 180, 90, Seq.empty, Seq.empty, lazyDeserialization = true, Some((ex, ticker)))
 
@@ -171,7 +170,7 @@ class EventTimeFeatureCacheTest extends Specification with Mockito {
 
     "expire by event time without ordering" in {
       val ex = mock[ScheduledExecutorService]
-      val ticker = new Ticker.MockTicker(System.currentTimeMillis())
+      val ticker = new MockTicker()
       val ev = Some(EventTimeConfig("dtg", ordering = false))
       val config = IndexConfig(Duration("100ms"), ev, 180, 90, Seq.empty, Seq.empty, lazyDeserialization = true, Some((ex, ticker)))
 

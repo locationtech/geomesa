@@ -10,12 +10,12 @@ package org.locationtech.geomesa.kafka.index
 
 import java.util.concurrent._
 
+import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.StrictLogging
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.index.{BucketIndexSupport, SizeSeparatedBucketIndexSupport}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.IndexConfig
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.{FeatureExpiration, FeatureState}
-import org.locationtech.geomesa.utils.cache.Ticker
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -54,7 +54,7 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig)
         // remove tasks when canceled, otherwise they will only be removed from the task queue
         // when they would be executed. we expect frequent cancellations due to feature updates
         ex.setRemoveOnCancelPolicy(true)
-        (ex, Ticker.SystemTicker)
+        (ex, Ticker.systemTicker())
       }
       Some((this, executor, ticker, config.expiry.toMillis))
     }
