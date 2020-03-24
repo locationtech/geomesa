@@ -40,7 +40,7 @@ object HBaseDensityAggregator {
     override protected def bytes(result: Array[Byte]): Array[Byte] = {
       val sf = new ScalaSimpleFeature(DensityScan.DensitySft, "", Array(GeometryUtils.zeroPoint))
       sf.getUserData.put(DensityScan.DensityValueKey, result)
-      println("Adding records to result")
+      println("HBaseDensityResultsToFeatures: Adding records to result")
       DensityScan.decodeResult(env, 500, 500)(sf).foreach { println }
       result
     }

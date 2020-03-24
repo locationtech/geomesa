@@ -12,9 +12,17 @@ import java.util.concurrent.LinkedBlockingQueue
 
 import com.google.protobuf.ByteString
 import org.apache.hadoop.hbase.client.coprocessor.Batch.Callback
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.referencing.crs.DefaultGeographicCRS
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.GeoMesaCoprocessorResponse
+import org.locationtech.geomesa.index.iterators.DensityScan
+import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.jts.geom.Envelope
 
 class GeoMesaHBaseCallBack extends Callback[GeoMesaCoprocessorResponse] {
+  val env = ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
+
   var isDone = false
   var lastRow: Array[Byte] = _
 
@@ -36,6 +44,13 @@ class GeoMesaHBaseCallBack extends Callback[GeoMesaCoprocessorResponse] {
 
     if (result != null) {
       //println(s"In update for region ${region} row: ${ByteArrays.printable(row)}")
+      import scala.collection.JavaConversions._
+      result.foreach { r =>
+        val sf = new ScalaSimpleFeature(DensityScan.DensitySft, "", Array(GeometryUtils.zeroPoint))
+        sf.getUserData.put(DensityScan.DensityValueKey, r)
+        println("GeoMesaHBaseCallBack: Adding records to result")
+        DensityScan.decodeResult(env, 500, 500)(sf).foreach { println }
+      }
       this.result.addAll(result)
     }
   }

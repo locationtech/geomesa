@@ -65,7 +65,7 @@ trait CoprocessorScan extends StrictLogging {
       if (!controller.isCanceled && timeout.forall(_ > System.currentTimeMillis())) {
         val clas = options(GeoMesaCoprocessor.AggregatorClass)
         val aggregator = Class.forName(clas).newInstance().asInstanceOf[Aggregator]
-        logger.debug(s"Initializing aggregator $aggregator with options ${options.mkString(", ")}")
+        logger.debug(s"Initializing aggregator $aggregator with options ${options.map { e => (e._1.substring(0, 10), e._2.substring(0, 10)) } .mkString(", ")}")
         //aggregator.init(options)
         // JNH: Test with the below to see if partialResults are working.
         aggregator.init(options.updated("batch", "2"))
