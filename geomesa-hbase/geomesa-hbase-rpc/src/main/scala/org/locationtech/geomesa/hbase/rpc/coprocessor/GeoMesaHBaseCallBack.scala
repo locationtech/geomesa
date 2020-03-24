@@ -49,7 +49,7 @@ class GeoMesaHBaseCallBack extends Callback[GeoMesaCoprocessorResponse] {
         val sf = new ScalaSimpleFeature(DensityScan.DensitySft, "", Array(GeometryUtils.zeroPoint))
         sf.getUserData.put(DensityScan.DensityValueKey, r)
         println("GeoMesaHBaseCallBack: Adding records to result")
-        DensityScan.decodeResult(env, 500, 500)(sf).foreach { println }
+        DensityScan.decodeResult(env, 500, 500)(sf).foreach { i =>  println(s"\tIn callback: %i" }
       }
       this.result.addAll(result)
     }
