@@ -45,10 +45,10 @@ class GeoMesaHBaseCallBack extends Callback[GeoMesaCoprocessorResponse] {
     if (result != null) {
       //println(s"In update for region ${region} row: ${ByteArrays.printable(row)}")
       import scala.collection.JavaConversions._
+      println("GeoMesaHBaseCallBack: Adding records to result")
       result.foreach { r =>
         val sf = new ScalaSimpleFeature(DensityScan.DensitySft, "", Array(GeometryUtils.zeroPoint))
         sf.getUserData.put(DensityScan.DensityValueKey, r.toByteArray)
-        println("GeoMesaHBaseCallBack: Adding records to result")
         DensityScan.decodeResult(env, 500, 500)(sf).foreach { i =>  println(s"\tIn callback: $i") }
       }
       this.result.addAll(result)
