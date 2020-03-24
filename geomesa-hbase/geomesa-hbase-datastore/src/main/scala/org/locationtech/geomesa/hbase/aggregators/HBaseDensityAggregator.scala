@@ -8,11 +8,14 @@
 
 package org.locationtech.geomesa.hbase.aggregators
 
+import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.iterators.DensityScan.DensityResultsToFeatures
+import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -32,6 +35,13 @@ object HBaseDensityAggregator {
   }
 
   class HBaseDensityResultsToFeatures extends DensityResultsToFeatures[Array[Byte]] {
-    override protected def bytes(result: Array[Byte]): Array[Byte] = result
+    override protected def bytes(result: Array[Byte]): Array[Byte] = {
+      val sf = apply(result)
+      println("Adding records to result")
+      DensityScan.decodeResult(env, 500, 500)(sf).foreach { println }
+      result
+    }
   }
+
+  val env = ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
 }
