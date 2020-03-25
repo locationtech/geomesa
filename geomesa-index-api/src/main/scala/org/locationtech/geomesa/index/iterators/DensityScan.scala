@@ -91,6 +91,11 @@ object DensityScan extends LazyLogging {
     */
   def encodeResult(result: RenderingGrid): Array[Byte] = {
     val output = KryoFeatureSerialization.getOutput(null)
+    println("Encoding grid.")
+    result.iterator.foreach { case (a, b) =>
+      println(s"\t(${a._1}, ${a._2})= $b")
+
+    }
     result.iterator.toList.groupBy(_._1._1).foreach { case (row, cols) =>
       output.writeInt(row, true)
       output.writeInt(cols.size, true)
