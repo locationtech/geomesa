@@ -38,6 +38,9 @@
     <category name="org.locationtech.geomesa.index.iterators">
         <priority value="debug"/>
     </category>
+    <category name="org.locationtech.geomesa.hbase.rpc.coprocessor">
+        <priority value="debug"/>
+    </category>
 
     <root>
         <priority value="info"/>

@@ -24,6 +24,7 @@ import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.hbase.server.common.CoprocessorScan.Aggregator
 import org.locationtech.geomesa.index.iterators.AggregatingScan
 import org.locationtech.geomesa.index.iterators.AggregatingScan.AggregateCallback
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 
 import scala.util.control.NonFatal
@@ -152,6 +153,7 @@ trait CoprocessorScan extends StrictLogging {
       count += 1
       if (count >= 10) {  // We've got 10 batches.  Let's return
         logger.warn(s"Stopping aggregator $aggregator due to having 10 batches!")
+        logger.warn(s"Scan stopped at row ${ByteArrays.printable(aggregator.getLastScanned)}")
         results.setLastscanned(ByteString.copyFrom(aggregator.getLastScanned))
         println(s"Stopping aggregator $aggregator due to having 10 batches!")
         false

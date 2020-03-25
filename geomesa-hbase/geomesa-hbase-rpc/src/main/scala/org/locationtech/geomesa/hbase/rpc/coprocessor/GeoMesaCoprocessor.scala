@@ -103,7 +103,8 @@ object GeoMesaCoprocessor extends LazyLogging {
 
     private val htable = connection.getTable(table, pool)
     private val closed = new AtomicBoolean(false)
-    private val callback = new GeoMesaHBaseCallBack()
+
+    private val resultQueue = new LinkedBlockingQueue[ByteString]()
 
     private def request = {
       val opts = options ++ Map(
@@ -117,6 +118,7 @@ object GeoMesaCoprocessor extends LazyLogging {
       val interalRequest: GeoMesaCoprocessorRequest = request
 
       override def call(instance: GeoMesaCoprocessorService): GeoMesaCoprocessorResponse = {
+        logger.debug("Calling the call() method")
         if (closed.get) {
           println("***** RETURNED A NULL GeoMesa Coprocessor Response *****")
           null
@@ -143,21 +145,22 @@ object GeoMesaCoprocessor extends LazyLogging {
 
     private val coprocessor = CachedThreadPool.submit(new Runnable() {
       override def run(): Unit = {
+        val callback = new GeoMesaHBaseCallBack(resultQueue)
         try {
           if (!closed.get) {
-            //println(s"Calling htable.coproService (first time): ${ByteArrays.printable(scan.getStartRow)} to ${ByteArrays.printable(scan.getStopRow)}")
+            logger.debug(s"Calling htable.coproService (first time): ${ByteArrays.printable(scan.getStartRow)} to ${ByteArrays.printable(scan.getStopRow)}")
             htable.coprocessorService(service, scan.getStartRow, scan.getStopRow, callable, callback)
           }
           //println(s"Close: ${ByteArrays.printable(scan.getStartRow)} to ${ByteArrays.printable(scan.getStopRow)}")
-          //println(s"Closed: ${closed.get}.  Callback.isDone: ${callback.isDone}  Callback.lastRow: ${ByteArrays.printable(callback.lastRow)}")
+          logger.debug(s"Closed: ${closed.get}. Callback $callback Callback.isDone: ${callback.isDone}  Callback.lastRow: ${ByteArrays.printable(callback.lastRow)}")
 
           // If the scan hasn't been killed and we are not done, then re-issue the request!
-          while (!closed.get() && !callback.isDone) {
+          while (!closed.get() && callback.lastRow != null) {
             // TODO: Use 'nextRow mojo to advance and not re-read a row.
             val lastRow = callback.lastRow
             val nextRow = ByteArrays.rowFollowingRow(lastRow)
 
-            //println(s"Scan continuing from row: ${ByteArrays.printable(callback.lastRow)}.  Next row is ${ByteArrays.printable(nextRow)}")
+            logger.debug(s"Scan continuing from row: ${ByteArrays.printable(callback.lastRow)}.  Next row is ${ByteArrays.printable(nextRow)}")
 
             // Reset the callback's status
             callback.isDone = false
@@ -167,6 +170,7 @@ object GeoMesaCoprocessor extends LazyLogging {
             scan.setStartRow(nextRow)
             //println(s"Calling htable.coproService (second time(s)): ${ByteArrays.printable(nextRow)} to ${ByteArrays.printable(scan.getStopRow)}")
             htable.coprocessorService(service, nextRow, scan.getStopRow, callable, callback)
+            logger.debug(s"Closed: ${closed.get}. Callback $callback Callback.isDone: ${callback.isDone}  Callback.lastRow: ${ByteArrays.printable(callback.lastRow)}")
           }
 
 
@@ -174,7 +178,7 @@ object GeoMesaCoprocessor extends LazyLogging {
           case e @ (_ :InterruptedException | _ :InterruptedIOException) =>
             logger.warn("Interrupted executing coprocessor query:", e)
         } finally {
-          callback.result.add(terminator)
+          resultQueue.add(terminator)
         }
       }
     })
@@ -182,7 +186,7 @@ object GeoMesaCoprocessor extends LazyLogging {
     override def hasNext: Boolean = {
       if (staged != null) { true } else {
         try {
-          staged = callback.result.take()
+          staged = resultQueue.take()
         } catch {
           case _ :InterruptedException =>
             // propagate the interruption through to the rpc call
@@ -190,7 +194,8 @@ object GeoMesaCoprocessor extends LazyLogging {
             return false
         }
         if (terminator eq staged) {
-          callback.result.add(staged)
+          logger.debug(s"Size of queue when terminator seen: ${resultQueue.size()}")
+          resultQueue.add(staged)
           staged = null
           false
         } else {
@@ -206,6 +211,7 @@ object GeoMesaCoprocessor extends LazyLogging {
     }
 
     override def close(): Unit = {
+      logger.debug("****** Called close() on GeoMesaCoprocessor!!!!!")
       closed.set(true)
       htable.close()
     }

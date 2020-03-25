@@ -430,7 +430,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
    * @param range range to group
    * @param result collected results
    */
-  @scala.annotation.tailrec
+  //@scala.annotation.tailrec
   private def groupRange(
       locator: RegionLocator,
       range: RowRange,
@@ -441,7 +441,8 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       val region = locator.getRegionLocation(range.getStartRow)
       regionServer = region.getServerName
       val regionEndKey = region.getRegionInfo.getEndKey
-      if (regionEndKey.nonEmpty && ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) < 0) {
+      if (regionEndKey.nonEmpty &&
+        (range.getStopRow.isEmpty || ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) <= 0)) {
         split = regionEndKey
       }
     } catch {
