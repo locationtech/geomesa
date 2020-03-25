@@ -64,7 +64,8 @@ trait CoprocessorScan extends StrictLogging {
       if (!controller.isCanceled && timeout.forall(_ > System.currentTimeMillis())) {
         val clas = options(GeoMesaCoprocessor.AggregatorClass)
         val aggregator = Class.forName(clas).newInstance().asInstanceOf[Aggregator]
-        logger.debug(s"Initializing aggregator $aggregator with options ${options.mkString(", ")}")
+        logger.debug(s"Initializing aggregator $aggregator.")
+        logger.trace(s"Initializing aggregator $aggregator with options ${options.mkString(", ")}")
         //aggregator.init(options)
         // JNH: Test with the below to see if partialResults are working.
         aggregator.init(options.updated("batch", "2"))
@@ -101,6 +102,13 @@ trait CoprocessorScan extends StrictLogging {
       s"Results total size: ${results.getPayloadList.asScala.map(_.size()).sum}" +
         s"\n\tBatch sizes: ${results.getPayloadList.asScala.map(_.size()).mkString(", ")}")
     //println(s"Read ${lastRead.count} and finished on row ${ByteArrays.printable(lastRead.lastRead)}")
+    val size = results.getPayloadList.asScala.map(_.size()).sum
+    if (size > 0) {
+      logger.debug(
+        s"Results total size: ${results.getPayloadList.asScala.map(_.size()).sum}" +
+          s"\n\tBatch sizes: ${results.getPayloadList.asScala.map(_.size()).mkString(", ")}")
+    }
+
     done.run(results.build)
   }
 

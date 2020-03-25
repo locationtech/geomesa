@@ -75,6 +75,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, "2012-01-01T19:00:00Z")
         sf.setAttribute(3, "POINT(-77 38)")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf
       }  :+ {
         val sf2 = new ScalaSimpleFeature(sft, "200")
@@ -82,6 +83,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
         sf2.setAttribute(1, "1.0")
         sf2.setAttribute(2, "2010-01-01T19:00:00Z")
         sf2.setAttribute(3, "POINT(1 1)")
+        sf2.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf2
       }
 
@@ -102,6 +104,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, "2012-01-01T19:00:00Z")
         sf.setAttribute(3, "POINT(77 38)")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf
       }
 
@@ -123,6 +126,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, "2012-01-01T19:00:00Z")
         sf.setAttribute(3, "POINT(-77 58)")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf
       }
 
@@ -144,6 +148,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, Date.from(ZonedDateTime.of(2012, 1, 1, 19, 0, 0, 0, ZoneOffset.UTC).plusSeconds(i).toInstant))
         sf.setAttribute(3, "POINT(-27 38)")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf
       }
 
@@ -167,6 +172,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
         sf.setAttribute(1, "1.0")
         sf.setAttribute(2, Date.from(ZonedDateTime.of(2012, 1, 1, 19, 0, 0, 0, ZoneOffset.UTC).plusSeconds(i).toInstant))
         sf.setAttribute(3, s"POINT($lat 7)")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
         sf
       }
 
@@ -192,6 +198,50 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
       compiled must haveLength(5)
       density.map(_._3).sum mustEqual 150
       forall(compiled){ _ mustEqual 30 }
+    }
+
+    "cover a diagonal" in {
+      clearFeatures()
+      logger.warn("Starting diagonal test")
+
+      val toAdd = (0 until 500).map { i =>
+        // Let's run up the x=2y diagonal
+        val lat = (i - 250.0) * 9.0 / 25
+        val lon = lat * 2
+        val sf = new ScalaSimpleFeature(sft, i.toString)
+        sf.setAttribute(0, i.toString)
+        sf.setAttribute(1, "1.0")
+        sf.setAttribute(2, Date.from(ZonedDateTime.of(2012, 1, 1, 19, 0, 0, 0, ZoneOffset.UTC).plusSeconds(i).toInstant))
+        sf.setAttribute(3, s"POINT($lon $lat)")
+        sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+        sf
+      }
+
+      val features_list = new ListFeatureCollection(sft, toAdd)
+      fs.addFeatures(features_list)
+      QueryProperties.QueryExactCount.threadLocalValue.set("true")
+      try {
+        fs.getCount(Query.ALL) mustEqual 500
+      } finally {
+        QueryProperties.QueryExactCount.threadLocalValue.remove()
+      }
+
+
+      val q = "INCLUDE"
+      val density: Seq[(Double, Double, Double)] = getDensity(typeName, q, fs)
+
+      println("Dumping density")
+//      density.foreach { foo => println(s"Count(${foo._1}, ${foo._2}): ${foo._3}")}
+      density.foreach { foo => logger.warn(s"Count(${foo._1}, ${foo._2}): ${foo._3}")}
+
+      val compiled = density.groupBy(d => (d._1, d._2)).map { case (_, group) => group.map(_._3).sum }
+
+      // should be 5 bins of 30
+      //compiled must haveLength(5)
+      logger.warn("Finishing diagonal test")
+
+      density.map(_._3).sum mustEqual 500
+      //forall(compiled){ _ mustEqual 30 }
     }
   }
 
@@ -221,7 +271,6 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
     q.getHints.put(QueryHints.DENSITY_HEIGHT, 500)
     val decode = DensityScan.decodeResult(envelope, 500, 500)
     val ret = SelfClosingIterator(fs.getFeatures(q).features).flatMap(decode).toList
-    ret.foreach { println }
     ret
   }
 }
