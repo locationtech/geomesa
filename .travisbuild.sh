@@ -51,4 +51,11 @@ if [[ $RESULT -ne 0 ]]; then
   end_build "[ERROR] Build failed!\n"
 fi
 
+# run integraton tests
+mvn -o failsafe:integration-test -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit" 2>&1 | tee -a $BUILD_OUTPUT | grep -e 'Building GeoMesa' -e '\(maven-surefire-plugin\|maven-jar-plugin\|scala-maven-plugin.*:compile\|maven-failsafe-plugin\)'
+RESULT=${PIPESTATUS[0]} # capture the status of the maven build
+if [[ $RESULT -ne 0 ]]; then
+  end_build "[ERROR] Build failed!\n"
+fi
+
 end_build "[INFO] Build complete\n"
