@@ -170,6 +170,7 @@ class ExpressionTest extends Specification {
         exp.eval(Array("", 1D)) mustEqual 1
         exp.eval(Array("", 1F)) mustEqual 1
         exp.eval(Array("", 1L)) mustEqual 1
+        exp.eval(Array("", null)) must throwA[NullPointerException]
       }
     }
     "cast to long" >> {
@@ -180,6 +181,7 @@ class ExpressionTest extends Specification {
       exp.eval(Array("", 1D)) mustEqual 1L
       exp.eval(Array("", 1F)) mustEqual 1L
       exp.eval(Array("", 1L)) mustEqual 1L
+      exp.eval(Array("", null)) must throwA[NullPointerException]
     }
     "cast to float" >> {
       val exp = Expression("$1::float")
@@ -189,6 +191,7 @@ class ExpressionTest extends Specification {
       exp.eval(Array("", 1D)) mustEqual 1F
       exp.eval(Array("", 1F)) mustEqual 1F
       exp.eval(Array("", 1L)) mustEqual 1F
+      exp.eval(Array("", null)) must throwA[NullPointerException]
     }
     "cast to double" >> {
       val exp = Expression("$1::double")
@@ -198,18 +201,21 @@ class ExpressionTest extends Specification {
       exp.eval(Array("", 1D)) mustEqual 1D
       exp.eval(Array("", 1F)) mustEqual 1D
       exp.eval(Array("", 1L)) mustEqual 1D
+      exp.eval(Array("", null)) must throwA[NullPointerException]
     }
     "cast to boolean" >> {
       foreach(Seq("bool", "boolean")) { cast =>
         val exp = Expression(s"$$1::$cast")
         exp.eval(Array("", "true")) mustEqual true
         exp.eval(Array("", "false")) mustEqual false
+        exp.eval(Array("", null)) must throwA[NullPointerException]
       }
     }
     "cast to string" >> {
       val exp = Expression("$1::string")
       exp.eval(Array("", "1")) mustEqual "1"
       exp.eval(Array("", 1)) mustEqual "1"
+      exp.eval(Array("", null)) must throwA[NullPointerException]
     }
     "parse dates with custom format" >> {
       val exp = Expression("date('yyyyMMdd', $1)")

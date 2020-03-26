@@ -103,6 +103,7 @@ object Expression {
         case n: Float  => n.toInt
         case n: Long   => n.toInt
         case n: Any    => n.toString.toInt
+        case null      => throw new NullPointerException("Trying to cast 'null' to int")
       }
   }
 
@@ -114,6 +115,7 @@ object Expression {
         case n: Float  => n.toLong
         case n: Long   => n
         case n: Any    => n.toString.toLong
+        case null      => throw new NullPointerException("Trying to cast 'null' to long")
       }
   }
 
@@ -125,6 +127,7 @@ object Expression {
         case n: Float  => n
         case n: Long   => n.toFloat
         case n: Any    => n.toString.toFloat
+        case null      => throw new NullPointerException("Trying to cast 'null' to float")
       }
   }
 
@@ -136,15 +139,28 @@ object Expression {
         case n: Float  => n.toDouble
         case n: Long   => n.toDouble
         case n: Any    => n.toString.toDouble
+        case null      => throw new NullPointerException("Trying to cast 'null' to double")
       }
   }
 
   case class CastToBoolean(e: Expression) extends CastExpression(e, "boolean") {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean = e.eval(args).toString.toBoolean
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): Boolean = {
+      e.eval(args) match {
+        case b: Boolean => b
+        case b: Any     => b.toString.toBoolean
+        case null       => throw new NullPointerException("Trying to cast 'null' to boolean")
+      }
+    }
   }
 
   case class CastToString(e: Expression) extends CastExpression(e, "string") {
-    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): String = e.eval(args).toString
+    override def eval(args: Array[Any])(implicit ctx: EvaluationContext): String = {
+      e.eval(args) match {
+        case s: String => s
+        case s: Any    => s.toString
+        case null      => throw new NullPointerException("Trying to cast 'null' to String")
+      }
+    }
   }
 
   case class Column(i: Int) extends Expression {
