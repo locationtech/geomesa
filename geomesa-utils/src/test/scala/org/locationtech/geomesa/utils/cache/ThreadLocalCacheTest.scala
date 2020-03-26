@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.cache
 
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
+import com.github.benmanes.caffeine.cache.Ticker
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.io.WithClose
 import org.mockito.ArgumentMatchers
@@ -57,11 +58,14 @@ class ThreadLocalCacheTest extends Specification with Mockito {
       val future = mock[ScheduledFuture[Unit]]
       es.scheduleWithFixedDelay(ArgumentMatchers.any(), ArgumentMatchers.eq(100L),
         ArgumentMatchers.eq(100L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS)) returns future
-      WithClose(new ThreadLocalCache[String, String](100.millis, es)) { cache =>
+      var nanos = 0L
+      val ticker = new Ticker() { override def read(): Long = nanos }
+      WithClose(new ThreadLocalCache[String, String](100.millis, es, Some(ticker))) { cache =>
         there was one(es).scheduleWithFixedDelay(cache, 100, 100, TimeUnit.MILLISECONDS)
         cache.put("k1", "v1")
         cache.get("k1") must beSome("v1")
-        eventually(10, 100.millis)(cache.get("k1") must beNone)
+        nanos = 200L * 1000000
+        cache.get("k1") must beNone
       }
       there was one(future).cancel(true)
     }
@@ -71,11 +75,14 @@ class ThreadLocalCacheTest extends Specification with Mockito {
       val future = mock[ScheduledFuture[Unit]]
       es.scheduleWithFixedDelay(ArgumentMatchers.any(), ArgumentMatchers.eq(100L),
         ArgumentMatchers.eq(100L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS)) returns future
-      WithClose(new ThreadLocalCache[String, String](100.millis, es)) { cache =>
+      var nanos = 0L
+      val ticker = new Ticker() { override def read(): Long = nanos }
+      WithClose(new ThreadLocalCache[String, String](100.millis, es, Some(ticker))) { cache =>
         there was one(es).scheduleWithFixedDelay(cache, 100, 100, TimeUnit.MILLISECONDS)
         cache.put("k1", "v1")
         cache.get("k1") must beSome("v1")
-        eventually(10, 100.millis)(cache.get("k1") must beNone)
+        nanos = 200L * 1000000
+        cache.get("k1") must beNone
         cache.getOrElseUpdate("k1", "v2") mustEqual "v2"
         cache.get("k1") must beSome("v2")
         cache("k1") mustEqual "v2"

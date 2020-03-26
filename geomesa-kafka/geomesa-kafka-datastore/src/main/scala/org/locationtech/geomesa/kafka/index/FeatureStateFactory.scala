@@ -12,12 +12,12 @@ import java.io.Closeable
 import java.util.Date
 import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, TimeUnit}
 
+import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.FeatureState
-import org.locationtech.geomesa.utils.cache.Ticker
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.SpatialIndex
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.expression.Expression
 
@@ -218,7 +218,7 @@ object FeatureStateFactory extends LazyLogging {
                                expiry: Long) extends FeatureStateFactory {
 
     override def createState(feature: SimpleFeature): FeatureState = {
-      val expiry = FeatureStateFactory.time(eventTime, feature) + this.expiry - ticker.currentTimeMillis()
+      val expiry = FeatureStateFactory.time(eventTime, feature) + this.expiry - (ticker.read() / 1000000L)
       if (expiry < 1L) {
         new ExpiredState(feature, 0L, expiration)
       } else {
@@ -250,7 +250,7 @@ object FeatureStateFactory extends LazyLogging {
 
     override def createState(feature: SimpleFeature): FeatureState = {
       val time = FeatureStateFactory.time(eventTime, feature)
-      val expiry = time + this.expiry - ticker.currentTimeMillis()
+      val expiry = time + this.expiry - (ticker.read() / 1000000L)
       if (expiry < 1L) {
         new ExpiredState(feature, time, expiration)
       } else {

@@ -18,19 +18,18 @@ import kafka.admin.AdminUtils
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.geotools.data._
-import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.kafka.EmbeddedKafka
-import org.locationtech.geomesa.kafka.ExpirationMocking.{ScheduledExpiry, WrappedRunnable}
+import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
 import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureChanged
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
-import org.locationtech.geomesa.utils.cache.Ticker
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
@@ -292,7 +291,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
     "expire entries" >> {
       foreach(Seq(true, false)) { cqEngine =>
         val executor = mock[ScheduledExecutorService]
-        val ticker = Ticker.mock(System.currentTimeMillis())
+        val ticker = new MockTicker()
         val params = if (cqEngine) {
           Map("kafka.cache.expiry" -> "100ms",
             "kafka.cache.executor" -> (executor, ticker),
