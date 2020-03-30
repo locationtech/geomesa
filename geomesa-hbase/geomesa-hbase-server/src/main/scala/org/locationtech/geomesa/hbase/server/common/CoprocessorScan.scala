@@ -14,7 +14,6 @@ import java.util.Base64
 import com.google.protobuf.{ByteString, RpcCallback, RpcController}
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.hadoop.hbase.client.Scan
-import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.apache.hadoop.hbase.protobuf.generated.ClientProtos
 import org.apache.hadoop.hbase.regionserver.RegionScanner
@@ -67,8 +66,10 @@ trait CoprocessorScan extends StrictLogging {
         logger.debug(s"Initializing aggregator $aggregator with options ${options.mkString(", ")}")
         aggregator.init(options)
 
-        val scan = ProtobufUtil.toScan(ClientProtos.Scan.parseFrom(Base64.getDecoder.decode(options(GeoMesaCoprocessor.ScanOpt))))
-        scan.setFilter(FilterList.parseFrom(Base64.getDecoder.decode(options(GeoMesaCoprocessor.FilterOpt))))
+        val scan = {
+          val bytes = Base64.getDecoder.decode(options(GeoMesaCoprocessor.ScanOpt))
+          ProtobufUtil.toScan(ClientProtos.Scan.parseFrom(bytes))
+        }
 
         WithClose(getScanner(scan)) { scanner =>
           aggregator.setScanner(scanner)
