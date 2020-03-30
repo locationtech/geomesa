@@ -357,12 +357,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
           // note: mrrf first priority
           filters.+:(new MultiRowRangeFilter(group))
         }
-        // note: coprocessors always expect a filter list
-        val filter = mrrf match {
-          case f if coprocessor || f.lengthCompare(1) > 0 => new FilterList(f: _*)
-          case f => f.headOption.orNull
-        }
-        scan.setFilter(filter)
+        scan.setFilter(if (mrrf.lengthCompare(1) > 0) { new FilterList(mrrf: _*) } else { mrrf.headOption.orNull })
         scan.addFamily(colFamily).setCacheBlocks(cacheBlocks)
         cacheSize.foreach(scan.setCaching)
 

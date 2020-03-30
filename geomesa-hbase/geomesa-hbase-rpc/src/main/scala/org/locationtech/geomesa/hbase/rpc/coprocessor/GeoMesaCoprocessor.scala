@@ -105,10 +105,7 @@ object GeoMesaCoprocessor extends LazyLogging {
     private val callback = new GeoMesaHBaseCallBack()
 
     private val request = {
-      val opts = options ++ Map(
-        FilterOpt -> Base64.getEncoder.encodeToString(scan.getFilter.toByteArray),
-        ScanOpt   -> Base64.getEncoder.encodeToString(ProtobufUtil.toScan(scan).toByteArray)
-      )
+      val opts = options ++ Map(ScanOpt -> Base64.getEncoder.encodeToString(ProtobufUtil.toScan(scan).toByteArray))
       GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(serializeOptions(opts))).build()
     }
 
