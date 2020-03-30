@@ -203,11 +203,11 @@ class Z3Test extends Specification {
           (sfc.index(39.999, 60.999, day + 3000), sfc.index(40.001, 61.001, day + 3120)), // small bounds
           (sfc.index(51.0, 51.0, 6000), sfc.index(51.1, 51.1, 6100)), // small bounds
           (sfc.index(51.0, 51.0, 30000), sfc.index(51.001, 51.001, 30100)), // small bounds
-          (Z3(sfc.index(51.0, 51.0, 30000).z - 1), Z3(sfc.index(51.0, 51.0, 30000).z + 1)) // 62 bits in common
+          (sfc.index(51.0, 51.0, 30000) - 1, sfc.index(51.0, 51.0, 30000) + 1) // 62 bits in common
         )
 
         def print(l: Z3, u: Z3, size: Int): Unit =
-          println(s"${round(sfc.invert(l))} ${round(sfc.invert(u))}\t$size")
+          println(s"${round(sfc.invert(l.z))} ${round(sfc.invert(u.z))}\t$size")
         def round(z: (Double, Double, Long)): (Double, Double, Long) =
           (math.round(z._1 * 1000.0) / 1000.0, math.round(z._2 * 1000.0) / 1000.0, z._3)
 

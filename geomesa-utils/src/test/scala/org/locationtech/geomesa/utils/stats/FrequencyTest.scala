@@ -59,8 +59,8 @@ class FrequencyTest extends Specification with StatTestHelper {
   "Frequency stat" should {
 
     "enumerate ranges" >> {
-      val min = Z2SFC.invert(Z2(2, 2))
-      val max = Z2SFC.invert(Z2(3, 6))
+      val min = Z2SFC.invert(Z2(2, 2).z)
+      val max = Z2SFC.invert(Z2(3, 6).z)
       val ranges = Z2SFC.ranges(Seq((min._1, min._2, max._1, max._2)))
       val indices = Frequency.enumerate(ranges, 64).toSeq
       indices must containTheSameElementsAs(Seq(12, 13, 14, 15, 36, 37, 38, 39, 44, 45))

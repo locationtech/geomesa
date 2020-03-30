@@ -290,7 +290,7 @@ object Frequency {
   private [stats] def geomToKey(value: Geometry, mask: Long): Long = {
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
     val centroid = value.safeCentroid()
-    Z2SFC.index(centroid.getX, centroid.getY).z & mask
+    Z2SFC.index(centroid.getX, centroid.getY) & mask
   }
 
   private [stats] def stringToKey(value: String, precision: Int): String = {

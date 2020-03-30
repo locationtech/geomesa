@@ -20,11 +20,11 @@ class LegacyZ3SFC(period: TimePeriod) extends {
   override val time = SemiNormalizedTime(math.pow(2, 20).toLong - 1, BinnedTime.maxOffset(period).toDouble)
 } with Z3SFC(period, 21) {
   // old impl required for deleting existing values that may have been written
-  override protected def lenientIndex(x: Double, y: Double, t: Long): Z3 = {
+  override protected def lenientIndex(x: Double, y: Double, t: Long): Long = {
     val nx = math.max(lon.min, math.ceil((x - lon.min) / (lon.max - lon.min) * lon.precision)).toInt
     val ny = math.max(lat.min, math.ceil((y - lat.min) / (lat.max - lat.min) * lat.precision)).toInt
     val nt = math.max(time.min, math.ceil((t - time.min) / (time.max - time.min) * time.precision)).toInt
-    Z3(nx, ny, nt)
+    Z3(nx, ny, nt).z
   }
 }
 

@@ -20,6 +20,7 @@ import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, 
 import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerialization
 import org.locationtech.geomesa.utils.collection.IntBitSet
 import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
+import org.locationtech.geomesa.utils.kryo.NonMutatingInput
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -32,7 +33,7 @@ class KryoBufferSimpleFeature(serializer: KryoFeatureDeserialization) extends Si
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-  private val input = new Input()
+  private val input = new NonMutatingInput()
 
   private val idParser = if (serializer.withoutId) { new IdParser() } else { new WithIdParser() }
   private val delegateV3 = new KryoBufferV3(serializer, input)

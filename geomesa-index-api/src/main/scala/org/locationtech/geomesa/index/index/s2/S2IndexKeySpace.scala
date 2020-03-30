@@ -97,15 +97,15 @@ class S2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
     val bytes = Array.ofDim[Byte](shard.length + 8 + id.length)
 
     if (shard.isEmpty) {
-      ByteArrays.writeLong(s.id(), bytes)
+      ByteArrays.writeLong(s, bytes)
       System.arraycopy(id, 0, bytes, 8, id.length)
     } else {
       bytes(0) = shard.head // shard is only a single byte
-      ByteArrays.writeLong(s.id(), bytes, 1)
+      ByteArrays.writeLong(s, bytes, 1)
       System.arraycopy(id, 0, bytes, 9, id.length)
     }
 
-    SingleRowKeyValue(bytes, sharing, shard, s.id(), tier, id, writable.values)
+    SingleRowKeyValue(bytes, sharing, shard, s, tier, id, writable.values)
   }
 
   /**

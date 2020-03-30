@@ -25,7 +25,6 @@ import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.sfcurve.zorder.Z3
 import org.opengis.feature.simple.SimpleFeature
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -84,7 +83,7 @@ class Z3IdxStrategyTest extends Specification with TestWithFeatureType {
           val prefix = 2 // table sharing + split
           val bytes = r.getKey.getRow.getBytes
           val keyZ = Longs.fromByteArray(bytes.drop(prefix))
-          val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(Z3(keyZ))
+          val (x, y, t) = Z3SFC(sft.getZ3Interval).invert(keyZ)
           val weeks = Shorts.fromBytes(bytes(prefix), bytes(prefix + 1))
           println(s"row: $weeks $x $y $t")
         }

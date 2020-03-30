@@ -65,7 +65,7 @@ object Z2IndexV4 {
       if (geom == null) {
         throw new IllegalArgumentException(s"Null geometry in feature ${writable.feature.getID}")
       }
-      val z = try { sfc.index(geom.getX, geom.getY, lenient).z } catch {
+      val z = try { sfc.index(geom.getX, geom.getY, lenient) } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry: $geom", e)
       }
       val shard = sharding(writable)

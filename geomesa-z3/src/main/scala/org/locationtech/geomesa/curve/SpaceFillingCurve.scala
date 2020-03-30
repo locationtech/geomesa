@@ -10,12 +10,12 @@ package org.locationtech.geomesa.curve
 
 import org.locationtech.sfcurve.IndexRange
 
-trait SpaceFillingCurve[T] {
+trait SpaceFillingCurve {
 
   import SpaceFillingCurve.FullPrecision
 
-  def index(x: Double, y: Double, lenient: Boolean = false): T
-  def invert(i: T): (Double, Double)
+  def index(x: Double, y: Double, lenient: Boolean = false): Long
+  def invert(i: Long): (Double, Double)
 
   def ranges(x: (Double, Double), y: (Double, Double)): Seq[IndexRange] =
     ranges(Seq((x._1, y._1, x._2, y._2)), FullPrecision, None)

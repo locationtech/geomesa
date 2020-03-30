@@ -11,10 +11,9 @@ package org.locationtech.geomesa.utils.stats
 import java.lang.{Double => jDouble, Float => jFloat, Long => jLong}
 import java.util.{Date, Locale}
 
-import org.locationtech.jts.geom.{Coordinate, Geometry, Point}
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
-import org.locationtech.sfcurve.zorder.Z2
+import org.locationtech.jts.geom.{Coordinate, Geometry, Point}
 
 import scala.reflect.ClassTag
 
@@ -218,11 +217,11 @@ class BinnedGeometryArray(length: Int, bounds: (Geometry, Geometry))
       case p: Point => p
       case g => g.safeCentroid()
     }
-    Z2SFC.index(centroid.getX, centroid.getY, lenient = true).z
+    Z2SFC.index(centroid.getX, centroid.getY, lenient = true)
   }
 
   override protected def convertFromLong(value: Long): Geometry = {
-    val (x, y) = Z2SFC.invert(new Z2(value))
+    val (x, y) = Z2SFC.invert(value)
     GeometryUtils.geoFactory.createPoint(new Coordinate(x, y))
   }
 }

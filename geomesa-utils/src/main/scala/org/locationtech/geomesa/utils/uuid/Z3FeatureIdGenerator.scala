@@ -118,7 +118,7 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator with LazyLogging {
 
     val z3 = {
       val BinnedTime(b, t) = BinnedTime.timeToBinnedTime(period)(time)
-      val z = Z3SFC(period).index(pt.getX, pt.getY, t).z
+      val z = Z3SFC(period).index(pt.getX, pt.getY, t)
       ByteArrays.toBytes(b, z)
     }
 

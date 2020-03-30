@@ -118,18 +118,18 @@ class S3IndexKeySpace(val sft: SimpleFeatureType,
 
     if (shard.isEmpty) {
       ByteArrays.writeShort(b, bytes)
-      ByteArrays.writeLong(s.id(), bytes, 2)
+      ByteArrays.writeLong(s, bytes, 2)
       ByteArrays.writeInt(t.toInt, bytes, 10)
       System.arraycopy(id, 0, bytes, 14, id.length)
     } else {
       bytes(0) = shard.head // shard is only a single byte
       ByteArrays.writeShort(b, bytes, 1)
-      ByteArrays.writeLong(s.id(), bytes, 3)
+      ByteArrays.writeLong(s, bytes, 3)
       ByteArrays.writeInt(t.toInt, bytes, 11)
       System.arraycopy(id, 0, bytes, 15, id.length)
     }
 
-    SingleRowKeyValue(bytes, sharing, shard, S3IndexKey(b, s.id(), t.toInt), tier, id, writable.values)
+    SingleRowKeyValue(bytes, sharing, shard, S3IndexKey(b, s, t.toInt), tier, id, writable.values)
   }
 
   /**

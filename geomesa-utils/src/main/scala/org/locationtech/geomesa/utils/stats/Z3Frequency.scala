@@ -11,10 +11,10 @@ package org.locationtech.geomesa.utils.stats
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Geometry
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.utils.clearspring.CountMinSketch
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable.ListMap
@@ -56,7 +56,7 @@ class Z3Frequency(
     import org.locationtech.geomesa.utils.geotools.Conversions.RichGeometry
     val BinnedTime(b, o) = timeToBin(dtg.getTime)
     val centroid = geom.safeCentroid()
-    val z = sfc.index(centroid.getX, centroid.getY, o).z & mask
+    val z = sfc.index(centroid.getX, centroid.getY, o) & mask
     (b, z)
   }
 

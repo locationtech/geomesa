@@ -131,7 +131,7 @@ class Z2Test extends Specification {
         )
 
         def print(l: Z2, u: Z2, size: Int): Unit =
-          println(s"${round(sfc.invert(l))} ${round(sfc.invert(u))}\t$size")
+          println(s"${round(sfc.invert(l.z))} ${round(sfc.invert(u.z))}\t$size")
         def round(z: (Double, Double)): (Double, Double) =
           (math.round(z._1 * 1000.0) / 1000.0, math.round(z._2 * 1000.0) / 1000.0)
 
