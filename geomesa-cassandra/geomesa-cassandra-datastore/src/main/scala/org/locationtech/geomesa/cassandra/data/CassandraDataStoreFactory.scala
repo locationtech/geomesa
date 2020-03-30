@@ -17,8 +17,8 @@ import com.datastax.driver.core._
 import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, TokenAwarePolicy}
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi, Parameter}
-import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.CassandraDataStoreConfig
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
+import org.locationtech.geomesa.cassandra.data.CassandraDataStoreFactory.{CassandraDataStoreConfig, CassandraQueryConfig}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
@@ -40,7 +40,7 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
           s"expected '<host>:<port>' but got '${parts.mkString(":")}'")
     }
     val port = try { portString.toInt } catch {
-      case NonFatal(e) => throw new IllegalArgumentException(s"Invalid parameter '${ContactPointParam.key}', " +
+      case NonFatal(_) => throw new IllegalArgumentException(s"Invalid parameter '${ContactPointParam.key}', " +
           s"expected '<host>:<port>' but port is not a number: '$cp:$portString'")
     }
     val ks = KeySpaceParam.lookup(params)
@@ -50,7 +50,6 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     } else {
       None
     }
-    val caching = CachingParam.lookup(params)
 
     val clusterBuilder =
       Cluster.builder()
@@ -84,15 +83,16 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     val session = cluster.connect(ks)
     val catalog = CatalogParam.lookup(params)
 
-    val looseBBox = LooseBBoxParam.lookup(params)
-
-    // not used but required for config inheritance
-    val queryThreads = QueryThreadsParam.lookup(params)
-    val queryTimeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis)
+    val queries = CassandraQueryConfig(
+      threads = QueryThreadsParam.lookup(params),
+      timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
+      looseBBox = LooseBBoxParam.lookup(params),
+      caching = CachingParam.lookup(params)
+    )
 
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
 
-    val cfg = CassandraDataStoreConfig(catalog, generateStats, audit, caching, queryThreads, queryTimeout, looseBBox, ns)
+    val cfg = CassandraDataStoreConfig(catalog, generateStats, audit, queries, ns)
 
     new CassandraDataStore(session, cfg)
   }
@@ -196,10 +196,14 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       catalog: String,
       generateStats: Boolean,
       audit: Option[(AuditWriter, AuditProvider, String)],
-      caching: Boolean,
-      queryThreads: Int,
-      queryTimeout: Option[Long],
-      looseBBox: Boolean,
+      queries: CassandraQueryConfig,
       namespace: Option[String]
     ) extends GeoMesaDataStoreConfig
+
+  case class CassandraQueryConfig(
+      threads: Int,
+      timeout: Option[Long],
+      looseBBox: Boolean,
+      caching: Boolean
+    ) extends DataStoreQueryConfig
 }

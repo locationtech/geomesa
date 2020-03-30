@@ -52,6 +52,10 @@ Parameter                                 Type    Description
 ``geomesa.query.loose-bounding-box``      Boolean Use loose bounding boxes - queries will be faster but may return extraneous results
 ``hbase.ranges.max-per-extended-scan``    Integer Max ranges per extended scan. Ranges will be grouped into scans based on this setting
 ``hbase.ranges.max-per-coprocessor-scan`` Integer Max ranges per coprocessor scan. Ranges will be grouped into scans based on this setting
+``hbase.coprocessor.arrow.enable``        Boolean Disable coprocessor scans for Arrow queries, and use local encoding instead
+``hbase.coprocessor.bin.enable``          Boolean Disable coprocessor scans for Bin queries, and use local encoding instead
+``hbase.coprocessor.density.enable``      Boolean Disable coprocessor scans for density queries, and use local processing instead
+``hbase.coprocessor.stats.enable``        Boolean Disable coprocessor scans for stat queries, and use local processing instead
 ``geomesa.stats.generate``                Boolean Toggle collection of statistics (currently not implemented)
 ``geomesa.query.caching``                 Boolean Toggle caching of results
 ========================================= ======= ========================================================================================

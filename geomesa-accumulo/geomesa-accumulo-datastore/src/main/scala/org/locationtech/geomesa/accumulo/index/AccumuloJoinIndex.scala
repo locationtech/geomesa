@@ -284,7 +284,7 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
     val reducer = new LocalTransformReducer(resultSft, None, None, None, hints, hook)
 
     val recordTables = recordIndex.getTablesForQuery(filter.filter)
-    val recordThreads = ds.asInstanceOf[AccumuloDataStore].config.recordThreads
+    val recordThreads = ds.asInstanceOf[AccumuloDataStore].config.queries.recordThreads
 
     // function to join the attribute index scan results to the record table
     // have to pull the feature id from the row

@@ -132,7 +132,7 @@ object RedisQueryPlan {
         }
         result.result.iterator.flatMap(_.get.iterator().asScala)
       } else {
-        RedisBatchScan(ds.connection, table, ranges, ds.config.queryThreads)
+        RedisBatchScan(ds.connection, table, ranges, ds.config.queries.threads)
       }
     }
   }

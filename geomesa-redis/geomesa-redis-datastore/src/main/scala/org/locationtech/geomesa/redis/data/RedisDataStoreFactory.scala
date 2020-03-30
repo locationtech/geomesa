@@ -17,11 +17,11 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
-import org.locationtech.geomesa.redis.data.RedisDataStore.RedisDataStoreConfig
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo}
 import org.locationtech.geomesa.redis.data.index.RedisAgeOff
 import org.locationtech.geomesa.security
-import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAuditProvider}
+import org.locationtech.geomesa.security.AuthorizationsProvider
+import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 import redis.clients.jedis.JedisPool
 import redis.clients.jedis.util.JedisURIHelper
@@ -119,10 +119,6 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val catalog = RedisCatalogParam.lookup(params)
     val generateStats = GenerateStatsParam.lookup(params)
     val pipeline = PipelineParam.lookup(params)
-    val queryThreads = QueryThreadsParam.lookup(params)
-    val queryTimeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis)
-    val looseBBox = LooseBBoxParam.lookup(params).booleanValue()
-    val caching = CachingParam.lookup(params)
 
     val audit = if (!AuditQueriesParam.lookup(params)) { None } else {
       Some((AuditLogger, Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider), "redis"))
@@ -131,12 +127,35 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val authProvider = security.getAuthorizationsProvider(params,
       AuthsParam.lookupOpt(params).map(_.split(",").toSeq.filterNot(_.isEmpty)).getOrElse(Seq.empty))
 
+    val queries = RedisQueryConfig(
+      threads = QueryThreadsParam.lookup(params),
+      timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
+      looseBBox = LooseBBoxParam.lookup(params).booleanValue(),
+      caching = CachingParam.lookup(params)
+    )
+
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
 
-    RedisDataStoreConfig(
-      catalog, generateStats, audit, pipeline, queryThreads, queryTimeout, looseBBox, caching, authProvider, ns)
+    RedisDataStoreConfig(catalog, generateStats, audit, authProvider, queries, pipeline, ns)
   }
 
   private def parse(url: String): Try[URI] = Try(new URI(url)).filter(JedisURIHelper.isValid)
+
+  case class RedisDataStoreConfig(
+      catalog: String,
+      generateStats: Boolean,
+      audit: Option[(AuditWriter, AuditProvider, String)],
+      authProvider: AuthorizationsProvider,
+      queries: RedisQueryConfig,
+      pipeline: Boolean,
+      namespace: Option[String]
+    ) extends GeoMesaDataStoreConfig
+
+  case class RedisQueryConfig(
+      threads: Int,
+      timeout: Option[Long],
+      looseBBox: Boolean,
+      caching: Boolean
+    ) extends DataStoreQueryConfig
 }
 

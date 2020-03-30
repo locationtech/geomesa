@@ -92,7 +92,7 @@ class CassandraIndexAdapter(ds: CassandraDataStore) extends IndexAdapter[Cassand
       val ks = ds.session.getLoggedKeyspace
       val statements = tables.flatMap(table => ranges.map(r => CassandraIndexAdapter.statement(ks, table, r.clauses)))
       val rowsToFeatures = new CassandraResultsToFeatures(strategy.index, strategy.index.sft)
-      val threads = ds.config.queryThreads
+      val threads = ds.config.queries.threads
       val sort = hints.getSortFields
       val max = hints.getMaxFeatures
       val project = hints.getProjection

@@ -20,11 +20,10 @@ import org.apache.hadoop.security.UserGroupInformation
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStoreFactorySpi, Parameter}
 import org.locationtech.geomesa.accumulo.audit.{AccumuloAuditService, ParamsAuditProvider}
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore.AccumuloDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
 import org.locationtech.geomesa.security.AuthorizationsProvider
-import org.locationtech.geomesa.utils.audit.AuditProvider
+import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
@@ -158,25 +157,23 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     
     val auditService = new AccumuloAuditService(connector, authProvider, s"${catalog}_queries", auditQueries)
 
-    val generateStats = GenerateStatsParam.lookup(params)
-    val queryTimeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis)
-    val visibility = VisibilitiesParam.lookupOpt(params).getOrElse("")
-
-    val ns = NamespaceParam.lookupOpt(params)
+    val queries = AccumuloQueryConfig(
+      threads = QueryThreadsParam.lookup(params),
+      recordThreads = RecordThreadsParam.lookup(params),
+      timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
+      looseBBox = LooseBBoxParam.lookup(params),
+      caching = CachingParam.lookup(params)
+    )
 
     AccumuloDataStoreConfig(
-      catalog,
-      visibility,
-      generateStats,
-      authProvider,
-      Some(auditService, auditProvider, AccumuloAuditService.StoreType),
-      queryTimeout,
-      LooseBBoxParam.lookup(params),
-      CachingParam.lookup(params),
-      WriteThreadsParam.lookup(params),
-      QueryThreadsParam.lookup(params),
-      RecordThreadsParam.lookup(params),
-      ns
+      catalog = catalog,
+      defaultVisibilities = VisibilitiesParam.lookupOpt(params).getOrElse(""),
+      generateStats = GenerateStatsParam.lookup(params),
+      authProvider = authProvider,
+      audit = Some(auditService, auditProvider, AccumuloAuditService.StoreType),
+      queries = queries,
+      writeThreads = WriteThreadsParam.lookup(params),
+      namespace = NamespaceParam.lookupOpt(params)
     )
   }
 
@@ -216,4 +213,34 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 
     AuthorizationsProvider.apply(params, java.util.Arrays.asList(auths: _*))
   }
+
+  /**
+   * Configuration options for AccumuloDataStore
+   *
+   * @param catalog table in Accumulo used to store feature type metadata
+   * @param defaultVisibilities default visibilities applied to any data written
+   * @param generateStats write stats on data during ingest
+   * @param authProvider provides the authorizations used to access data
+   * @param audit optional implementations to audit queries
+   * @param queries query config
+   * @param writeThreads number of threads used for writing
+   */
+  case class AccumuloDataStoreConfig(
+      catalog: String,
+      defaultVisibilities: String,
+      generateStats: Boolean,
+      authProvider: AuthorizationsProvider,
+      audit: Option[(AuditWriter with AuditReader, AuditProvider, String)],
+      queries: AccumuloQueryConfig,
+      writeThreads: Int,
+      namespace: Option[String]
+    ) extends GeoMesaDataStoreConfig
+
+  case class AccumuloQueryConfig(
+      threads: Int,
+      recordThreads: Int,
+      timeout: Option[Long],
+      looseBBox: Boolean,
+      caching: Boolean
+    ) extends DataStoreQueryConfig
 }

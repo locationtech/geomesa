@@ -10,15 +10,12 @@ package org.locationtech.geomesa.redis.data
 
 import org.geotools.data.Query
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils._
-import org.locationtech.geomesa.redis.data.RedisDataStore.RedisDataStoreConfig
+import org.locationtech.geomesa.redis.data.RedisDataStoreFactory.RedisDataStoreConfig
 import org.locationtech.geomesa.redis.data.index.{RedisAgeOff, RedisIndexAdapter, RedisQueryPlan}
 import org.locationtech.geomesa.redis.data.util.{RedisBackedMetadata, RedisGeoMesaStats, RedisLocking}
-import org.locationtech.geomesa.security.AuthorizationsProvider
-import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
@@ -90,19 +87,4 @@ class RedisDataStore(val connection: JedisPool, override val config: RedisDataSt
     CloseWithLogging(aging)
     super.dispose()
   }
-}
-
-object RedisDataStore {
-
-  case class RedisDataStoreConfig(
-      catalog: String,
-      generateStats: Boolean,
-      audit: Option[(AuditWriter, AuditProvider, String)],
-      pipeline: Boolean,
-      queryThreads: Int,
-      queryTimeout: Option[Long],
-      looseBBox: Boolean,
-      caching: Boolean,
-      authProvider: AuthorizationsProvider,
-      namespace: Option[String]) extends GeoMesaDataStoreConfig
 }

@@ -19,7 +19,7 @@ import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFe
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{WritableFeature, _}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, DataStoreQueryConfig}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
 import org.locationtech.geomesa.index.stats._
@@ -211,9 +211,12 @@ object TestGeoMesaDataStore {
     override val catalog: String = "test"
     override val audit: Option[(AuditWriter, AuditProvider, String)] = None
     override val generateStats: Boolean = true
-    override val queryThreads: Int = 1
-    override val queryTimeout: Option[Long] = None
-    override val caching: Boolean = false
+    override val queries: DataStoreQueryConfig = new DataStoreQueryConfig() {
+      override val threads: Int = 1
+      override val timeout: Option[Long] = None
+      override val caching: Boolean = false
+      override def looseBBox: Boolean = TestConfig.this.looseBBox
+    }
     override val namespace: Option[String] = None
   }
 

@@ -27,7 +27,7 @@ import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.conf.SemanticVersion.MinorOrdering
-import org.locationtech.geomesa.utils.conf.{FeatureExpiration, GeoMesaProperties, IndexId, SemanticVersion}
+import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, IndexId, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOptions, Configs, InternalConfigs}
@@ -371,7 +371,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     if (sft == null) {
       throw new IOException(s"Schema '$typeName' has not been initialized. Please call 'createSchema' first.")
     }
-    if (config.caching) {
+    if (config.queries.caching) {
       new GeoMesaFeatureStore(this, sft, queryPlanner) with GeoMesaFeatureSource.CachingFeatureSource
     } else {
       new GeoMesaFeatureStore(this, sft, queryPlanner)
@@ -405,7 +405,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     * @return
     */
   private [geotools] def getFeatureReader(sft: SimpleFeatureType, query: Query): GeoMesaFeatureReader =
-    GeoMesaFeatureReader(sft, query, queryPlanner, config.queryTimeout, config.audit)
+    GeoMesaFeatureReader(sft, query, queryPlanner, config.queries.timeout, config.audit)
 
   /**
    * Create a general purpose writer that is capable of updates and deletes.
@@ -570,7 +570,8 @@ object GeoMesaDataStore extends LazyLogging {
     }
   }
 
-  private val versions = Caffeine.newBuilder().refreshAfterWrite(1, TimeUnit.DAYS)
+  private val versions =
+    Caffeine.newBuilder().refreshAfterWrite(1, TimeUnit.DAYS)
       .buildAsync[VersionKey, Either[Exception, Option[SemanticVersion]]](loader)
 
   /**
