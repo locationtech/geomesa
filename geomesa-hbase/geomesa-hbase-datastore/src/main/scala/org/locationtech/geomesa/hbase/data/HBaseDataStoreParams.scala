@@ -13,6 +13,7 @@ import org.apache.hadoop.hbase.client.Connection
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.SystemPropertyBooleanParam
 
 object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
 
@@ -55,8 +56,9 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
     new GeoMesaParam[java.lang.Boolean](
       "hbase.remote.filtering",
       "Remote filtering",
-      default = true,
-      deprecatedKeys = Seq("remote.filtering"))
+      default = java.lang.Boolean.TRUE,
+      deprecatedKeys = Seq("remote.filtering"),
+      systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteFilterProperty)))
 
   val MaxRangesPerExtendedScanParam =
     new GeoMesaParam[java.lang.Integer](
@@ -77,7 +79,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
     new GeoMesaParam[java.lang.Boolean](
       "hbase.security.enabled",
       "Enable HBase Security (Visibilities)",
-      default = false,
+      default = java.lang.Boolean.FALSE,
       deprecatedKeys = Seq("security.enabled"))
 
   val ConfigPathsParam =
@@ -97,7 +99,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
     new GeoMesaParam[java.lang.Boolean](
       "hbase.coprocessor.arrow.enable",
       "Processes Arrow encoding in HBase region servers as a coprocessor call",
-      default = Boolean.box(false),
+      default = java.lang.Boolean.FALSE,
       supportsNiFiExpressions = true
     )
 
@@ -105,7 +107,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
     new GeoMesaParam[java.lang.Boolean](
       "hbase.coprocessor.bin.enable",
       "Processes binary encoding in HBase region servers as a coprocessor call",
-      default = Boolean.box(true),
+      default = java.lang.Boolean.TRUE,
       supportsNiFiExpressions = true
     )
 
@@ -113,7 +115,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
     new GeoMesaParam[java.lang.Boolean](
       "hbase.coprocessor.density.enable",
       "Processes heatmap encoding in HBase region servers as a coprocessor call",
-      default = Boolean.box(true),
+      default = java.lang.Boolean.TRUE,
       supportsNiFiExpressions = true
     )
 
@@ -121,7 +123,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
     new GeoMesaParam[java.lang.Boolean](
       "hbase.coprocessor.stats.enable",
       "Processes statistical calculations in HBase region servers as a coprocessor call",
-      default = Boolean.box(true),
+      default = java.lang.Boolean.TRUE,
       supportsNiFiExpressions = true
     )
 }

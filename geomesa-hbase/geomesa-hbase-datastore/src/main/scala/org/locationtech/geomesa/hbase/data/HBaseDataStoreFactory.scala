@@ -39,9 +39,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     // TODO HBase Connections don't seem to be Serializable...deal with it
     val connection = HBaseConnectionPool.getConnection(params, validateConnection)
 
-    val remoteFilters = RemoteFilteringParam.lookupOpt(params).map(_.booleanValue)
-      .getOrElse(HBaseDataStoreFactory.RemoteFilterProperty.get.toBoolean)
-    logger.debug(s"Using ${if (remoteFilters) "remote" else "local" } filtering")
+    val remoteFilters = RemoteFilteringParam.lookup(params).booleanValue
 
     val audit = if (!AuditQueriesParam.lookup(params)) { None } else {
       Some(AuditLogger, Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider), "hbase")
@@ -78,6 +76,15 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       audit = audit,
       namespace = NamespaceParam.lookupOpt(params)
     )
+
+    logger.debug(s"Using ${if (remoteFilters) "remote" else "local" } filtering")
+    lazy val enabled =
+      Seq(ArrowCoprocessorParam, BinCoprocessorParam, DensityCoprocessorParam, StatsCoprocessorParam).collect {
+        case p if p.exists(params) && p.lookup(params).booleanValue() => p.key
+      }
+    if (!remoteFilters && enabled.nonEmpty) {
+      logger.warn(s"Ignoring configs '${enabled.mkString("', '")}' due to remote filtering being disabled")
+    }
 
     val ds = buildDataStore(connection, config)
     GeoMesaDataStore.initRemoteVersion(ds)

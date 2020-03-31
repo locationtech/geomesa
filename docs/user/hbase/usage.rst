@@ -60,5 +60,7 @@ Parameter                                 Type    Description
 ``geomesa.query.caching``                 Boolean Toggle caching of results
 ========================================= ======= ========================================================================================
 
+Note: the ``hbase.coprocessor.*.enable`` parameters will be superseded by ``hbase.remote.filtering=false``.
+
 More information on using GeoTools can be found in the `GeoTools user guide
 <http://docs.geotools.org/stable/userguide/>`__.

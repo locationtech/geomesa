@@ -19,6 +19,9 @@
     <category name="org.mortbay.log">
         <priority value="error"/>
     </category>
+    <category name="org.eclipse.jetty">
+        <priority value="error"/>
+    </category>
     <category name="BlockStateChange">
         <priority value="error"/>
     </category>
