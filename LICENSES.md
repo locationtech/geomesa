@@ -22,11 +22,10 @@ should look to the Redistributor's license for terms and conditions of use.
 
 ### Kryo 
 
-GeoMesa includes some code from the Kryo project. This code has been licensed under the 3-clause BSD License[1].
+GeoMesa includes some code from the Kryo project. This code has been licensed under the
+[3-Clause BSD License](https://opensource.org/licenses/BSD-3-Clause).
 
 ### Protocol Buffers
 
-GeoMesa includes some code from the Google protocol buffers project. This code has been licensed under the 3-clause
-BSD License[1].
-
-[1]: https://opensource.org/licenses/BSD-3-Clause
+GeoMesa includes some code from the Google protocol buffers project. This code has been licensed under the
+[3-Clause BSD License](https://opensource.org/licenses/BSD-3-Clause).
