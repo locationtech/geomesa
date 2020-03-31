@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.hbase.data
 
 import java.nio.charset.StandardCharsets
+import java.util
 import java.util.regex.Pattern
 import java.util.{Collections, Locale, UUID}
 
@@ -346,7 +347,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     } else {
       // split and group ranges by region server
       // note: we have to copy the ranges for each table scan anyway
-      val rangesPerTable = tables.map(t => t -> groupRangesByRegionServer(t, ranges))
+      val rangesPerTable: Seq[(TableName, collection.Map[ServerName, util.List[RowRange]])] = tables.map(t => t -> groupRangesByRegionServer(t, ranges))
 
       def createGroup(group: java.util.List[RowRange]): Scan = {
         val scan = new Scan(group.get(0).getStartRow, group.get(group.size() - 1).getStopRow)
@@ -442,7 +443,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       regionServer = region.getServerName
       val regionEndKey = region.getRegionInfo.getEndKey
       if (regionEndKey.nonEmpty &&
-        (range.getStopRow.isEmpty || ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) <= 0)) {
+        (range.getStopRow.isEmpty || ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) < 0)) {
         split = regionEndKey
       }
     } catch {
