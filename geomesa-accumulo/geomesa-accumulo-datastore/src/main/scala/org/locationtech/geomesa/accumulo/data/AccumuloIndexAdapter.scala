@@ -124,7 +124,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
     tables.par.foreach { table =>
       if (tableOps.exists(table)) {
         val config = GeoMesaBatchWriterConfig().setMaxWriteThreads(ds.config.writeThreads)
-        WithClose(ds.connector.createBatchDeleter(table, auths, ds.config.queryThreads, config)) { deleter =>
+        WithClose(ds.connector.createBatchDeleter(table, auths, ds.config.queries.threads, config)) { deleter =>
           val range = prefix.map(p => Range.prefix(new Text(p))).getOrElse(new Range())
           deleter.setRanges(Collections.singletonList(range))
           deleter.delete()
@@ -149,7 +149,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
       case SingleRowByteRange(row) =>
         new Range(new Text(row))
     }
-    val numThreads = if (index.name == IdIndex.name) { ds.config.recordThreads } else { ds.config.queryThreads }
+    val numThreads = if (index.name == IdIndex.name) { ds.config.queries.recordThreads } else { ds.config.queries.threads }
     val tables = index.getTablesForQuery(filter.filter)
     val (colFamily, schema) = {
       val (cf, s) = groups.group(index.sft, hints.getTransformDefinition, ecql)

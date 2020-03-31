@@ -20,22 +20,19 @@ import org.geotools.data.Query
 import org.locationtech.geomesa.accumulo._
 import org.locationtech.geomesa.accumulo.audit.AccumuloAuditService
 import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata.SingleRowAccumuloMetadata
-import org.locationtech.geomesa.accumulo.data.AccumuloDataStore.AccumuloDataStoreConfig
+import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.AccumuloDataStoreConfig
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator, ProjectVersionIterator}
 import org.locationtech.geomesa.accumulo.util.TableUtils
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, MetadataStringSerializer}
 import org.locationtech.geomesa.index.utils.Explainer
-import org.locationtech.geomesa.security.AuthorizationsProvider
-import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
 import org.locationtech.geomesa.utils.conf.FeatureExpiration.{FeatureTimeExpiration, IngestTimeExpiration}
 import org.locationtech.geomesa.utils.conf.IndexId
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -362,35 +359,6 @@ object AccumuloDataStore extends LazyLogging {
   import scala.collection.JavaConverters._
 
   private val DeprecatedSchemaVersionKey = "geomesa.version"
-
-  /**
-    * Configuration options for AccumuloDataStore
-    *
-    * @param catalog table in Accumulo used to store feature type metadata
-    * @param defaultVisibilities default visibilities applied to any data written
-    * @param generateStats write stats on data during ingest
-    * @param authProvider provides the authorizations used to access data
-    * @param audit optional implementations to audit queries
-    * @param queryTimeout optional timeout (in millis) before a long-running query will be terminated
-    * @param looseBBox sacrifice some precision for speed
-    * @param caching cache feature results - WARNING can use large amounts of memory
-    * @param writeThreads numer of threads used for writing
-    * @param queryThreads number of threads used per-query
-    * @param recordThreads number of threads used to join against the record table. Because record scans
-    *                      are single-row ranges, increasing this too much can cause performance to decrease
-    */
-  case class AccumuloDataStoreConfig(catalog: String,
-                                     defaultVisibilities: String,
-                                     generateStats: Boolean,
-                                     authProvider: AuthorizationsProvider,
-                                     audit: Option[(AuditWriter with AuditReader, AuditProvider, String)],
-                                     queryTimeout: Option[Long],
-                                     looseBBox: Boolean,
-                                     caching: Boolean,
-                                     writeThreads: Int,
-                                     queryThreads: Int,
-                                     recordThreads: Int,
-                                     namespace: Option[String]) extends GeoMesaDataStoreConfig
 
   /**
     * Converts the old 'index schema' into the appropriate index identifiers

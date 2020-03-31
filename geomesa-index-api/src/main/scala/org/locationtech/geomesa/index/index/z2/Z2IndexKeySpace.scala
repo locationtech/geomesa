@@ -131,7 +131,7 @@ class Z2IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, g
     // don't need to apply the filter on top of it. this may cause some minor errors at extremely
     // fine resolutions, but the performance is worth it
     // if we have a complicated geometry predicate, we need to pass it through to be evaluated
-    val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(config.forall(_.looseBBox))
+    val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(config.forall(_.queries.looseBBox))
     lazy val simpleGeoms = values.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
 
     !looseBBox || !simpleGeoms

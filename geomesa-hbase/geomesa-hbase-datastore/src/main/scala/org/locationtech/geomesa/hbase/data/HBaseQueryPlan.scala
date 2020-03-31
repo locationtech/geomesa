@@ -114,7 +114,7 @@ object HBaseQueryPlan {
     override type Results = Result
 
     override protected def singleTableScan(ds: HBaseDataStore, scan: TableScan): CloseableIterator[Result] =
-      HBaseBatchScan(ds.connection, scan.table, scan.scans, ds.config.queryThreads)
+      HBaseBatchScan(ds.connection, scan.table, scan.scans, ds.config.queries.threads)
   }
 
   case class CoprocessorPlan(
@@ -134,7 +134,7 @@ object HBaseQueryPlan {
 
     override protected def singleTableScan(ds: HBaseDataStore, scan: TableScan): CloseableIterator[Array[Byte]] = {
       // send out all requests at once, but restrict the total rpc threads used
-      CoprocessorBatchScan(ds.connection, scan.table, scan.scans, coprocessorOptions, ds.config.coprocessorThreads)
+      CoprocessorBatchScan(ds.connection, scan.table, scan.scans, coprocessorOptions, ds.config.coprocessors.threads)
     }
 
     override protected def explain(explainer: Explainer): Unit =

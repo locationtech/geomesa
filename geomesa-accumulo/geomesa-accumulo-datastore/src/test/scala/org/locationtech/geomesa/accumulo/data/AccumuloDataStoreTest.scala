@@ -415,9 +415,9 @@ class AccumuloDataStoreTest extends Specification with TestWithMultipleSfts {
 
     "allow caching to be configured" in {
       DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> false))
-          .asInstanceOf[AccumuloDataStore].config.caching must beFalse
+          .asInstanceOf[AccumuloDataStore].config.queries.caching must beFalse
       DataStoreFinder.getDataStore(dsParams ++ Map(AccumuloDataStoreParams.CachingParam.key -> true))
-          .asInstanceOf[AccumuloDataStore].config.caching must beTrue
+          .asInstanceOf[AccumuloDataStore].config.queries.caching must beTrue
     }
 
     "support caching for improved WFS performance due to count/getFeatures" in {

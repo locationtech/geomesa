@@ -16,9 +16,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.kudu.client.KuduClient
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
 import org.locationtech.geomesa.kudu.KuduSystemProperties.{AdminOperationTimeout, OperationTimeout, SocketReadTimeout}
-import org.locationtech.geomesa.kudu.data.KuduDataStoreFactory.KuduDataStoreConfig
+import org.locationtech.geomesa.kudu.data.KuduDataStoreFactory.{KuduDataStoreConfig, KuduQueryConfig}
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, AuditWriter, NoOpAuditProvider}
@@ -45,20 +45,18 @@ class KuduDataStoreFactory extends DataStoreFactorySpi {
       security.getAuthorizationsProvider(params, auths)
     }
 
-    val caching = CachingParam.lookup(params)
-
     val catalog = CatalogParam.lookup(params)
 
-    val looseBBox = LooseBBoxParam.lookup(params)
-
-    // not used but required for config inheritance
-    val queryThreads = QueryThreadsParam.lookup(params)
-    val queryTimeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis)
+    val queries = KuduQueryConfig(
+      threads = QueryThreadsParam.lookup(params),
+      timeout = QueryTimeoutParam.lookupOpt(params).map(_.toMillis),
+      looseBBox = LooseBBoxParam.lookup(params),
+      caching = CachingParam.lookup(params)
+    )
 
     val ns = Option(NamespaceParam.lookUp(params).asInstanceOf[String])
 
-    val cfg = KuduDataStoreConfig(catalog, generateStats, authProvider, audit, caching,
-      queryThreads, queryTimeout, looseBBox, ns)
+    val cfg = KuduDataStoreConfig(catalog, generateStats, authProvider, audit, queries, ns)
 
     new KuduDataStore(client, cfg)
   }
@@ -175,13 +173,19 @@ object KuduDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     client
   }
 
-  case class KuduDataStoreConfig(catalog: String,
-                                 generateStats: Boolean,
-                                 authProvider: AuthorizationsProvider,
-                                 audit: Option[(AuditWriter, AuditProvider, String)],
-                                 caching: Boolean,
-                                 queryThreads: Int,
-                                 queryTimeout: Option[Long],
-                                 looseBBox: Boolean,
-                                 namespace: Option[String]) extends GeoMesaDataStoreConfig
+  case class KuduDataStoreConfig(
+      catalog: String,
+      generateStats: Boolean,
+      authProvider: AuthorizationsProvider,
+      audit: Option[(AuditWriter, AuditProvider, String)],
+      queries: KuduQueryConfig,
+      namespace: Option[String]
+    ) extends GeoMesaDataStoreConfig
+
+  case class KuduQueryConfig(
+      threads: Int,
+      timeout: Option[Long],
+      looseBBox: Boolean,
+      caching: Boolean
+    ) extends DataStoreQueryConfig
 }

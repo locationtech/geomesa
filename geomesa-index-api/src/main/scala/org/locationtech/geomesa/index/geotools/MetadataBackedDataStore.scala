@@ -45,7 +45,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   // TODO: GEOMESA-2360 - Remove global axis order hint from MetadataBackedDataStore
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 
-  protected [geomesa] val interceptors = QueryInterceptorFactory(this)
+  protected [geomesa] val interceptors: QueryInterceptorFactory = QueryInterceptorFactory(this)
 
   // hooks to allow extended functionality
 

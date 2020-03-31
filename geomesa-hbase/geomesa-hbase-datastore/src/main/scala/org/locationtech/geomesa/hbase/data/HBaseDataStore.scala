@@ -75,7 +75,7 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
             if (connection.getAdmin.tableExists(name)) {
               val options = HBaseVersionAggregator.configure(sft, index)
               val scan = new Scan().setFilter(new FilterList())
-              val pool = new CachedThreadPool(config.coprocessorThreads)
+              val pool = new CachedThreadPool(config.coprocessors.threads)
               try {
                 WithClose(GeoMesaCoprocessor.execute(connection, name, scan, options, pool)) { bytes =>
                   bytes.map(_.toStringUtf8).toList.iterator // force evaluation of the iterator before closing it

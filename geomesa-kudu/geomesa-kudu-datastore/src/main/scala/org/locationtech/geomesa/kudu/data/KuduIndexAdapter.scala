@@ -119,7 +119,7 @@ class KuduIndexAdapter(ds: KuduDataStore) extends IndexAdapter[KuduDataStore] {
       val sort = hints.getSortFields
       val max = hints.getMaxFeatures
       val project = hints.getProjection
-      val threads = ds.config.queryThreads
+      val threads = ds.config.queries.threads
       ScanPlan(filter, tables, ranges, predicates, ecql, adapter, sort, max, project, threads)
     }
   }
