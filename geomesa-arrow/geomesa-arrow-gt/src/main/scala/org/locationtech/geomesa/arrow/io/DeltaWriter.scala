@@ -423,7 +423,7 @@ object DeltaWriter extends StrictLogging {
     logger.trace(s"merging sorted deltas - read schema: ${result.underlying.getField}")
 
     // builder for our merge array - (vector, reader for sort values, transfers to result, dictionary mappings)
-    val mergeBuilder = Array.newBuilder[(StructVector, ArrowAttributeReader, Seq[(Int, Int) => Unit], scala.collection.Map[Integer, Integer])]
+    val mergeBuilder = Array.newBuilder[(SimpleFeatureVector, ArrowAttributeReader, Seq[(Int, Int) => Unit], scala.collection.Map[Integer, Integer])]
     mergeBuilder.sizeHint(threadedBatches.foldLeft(0)((sum, a) => sum + a.length))
 
     threadedBatches.foreachIndex { case (batches, batchIndex) =>
@@ -471,7 +471,7 @@ object DeltaWriter extends StrictLogging {
         val mapVector = toLoad.underlying
         val dict = dictionaries.get(sortBy)
         val sortReader = ArrowAttributeReader(sft.getDescriptor(sortBy), mapVector.getChild(sortBy), dict, encoding)
-        mergeBuilder += ((mapVector, sortReader, transfers, mappings.get(sortBy).orNull))
+        mergeBuilder += ((toLoad, sortReader, transfers, mappings.get(sortBy).orNull))
       }
     }
 
@@ -485,7 +485,7 @@ object DeltaWriter extends StrictLogging {
     }
 
     toMerge.foreachIndex { case ((vector, sort, _, mappings), i) =>
-      if (vector.getValueCount > 0) {
+      if (vector.reader.getValueCount > 0) {
         queue += ((getSortAttribute(sort, mappings, 0), i, 0))
       }
     }
@@ -505,7 +505,7 @@ object DeltaWriter extends StrictLogging {
           result.underlying.setIndexDefined(resultIndex)
           resultIndex += 1
           val nextBatchIndex = i + 1
-          if (vector.getValueCount > nextBatchIndex) {
+          if (vector.reader.getValueCount > nextBatchIndex) {
             val value = getSortAttribute(sort, mappings, nextBatchIndex)
             queue += ((value, batch, nextBatchIndex))
           }
