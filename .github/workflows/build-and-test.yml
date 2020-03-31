@@ -1,0 +1,30 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+                ${{ runner.os }}-maven-
+      - name: Build with Maven
+        run: mvn clean install -DskipTests -T4 2>&1| grep -e 'Building GeoMesa' -e '\(maven-surefire-plugin\|maven-jar-plugin\|scala-maven-plugin.*:compile\)'
+      - name: Unit Tests
+        run: mvn -o surefire:test -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit" 2>&1| grep -e 'Building GeoMesa' -e '\(maven-surefire-plugin\|maven-jar-plugin\|scala-maven-plugin.*:compile\)'
+      - name: HBase Test
+        run: mvn -o surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit" 2>&1 | grep -e 'Building GeoMesa' -e '\(maven-surefire-plugin\|maven-jar-plugin\|scala-maven-plugin.*:compile\)'      
+      - name: Integration Test
+        run: mvn failsafe:integration-test -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"  2>&1 | grep -e 'Building GeoMesa' -e '\(maven-surefire-plugin\|maven-failsafe-plugin\|maven-jar-plugin\|scala-maven-plugin.*:compile\)'      
+   
