@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.utils.concurrent
 
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{CountDownLatch, TimeUnit}
+import java.util.concurrent.{CountDownLatch, Executors, TimeUnit}
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -60,6 +60,31 @@ class CachedThreadPoolTest extends Specification {
       pool.isTerminated must beTrue
       // verify thread 2 never started, and thread 1 was interrupted before finishing
       forall(Seq(ended1, started2, ended2))(_.get must beFalse)
+    }
+    "await termination" in {
+      val pool = new CachedThreadPool(2)
+      val latch = new CountDownLatch(1)
+      val start = new AtomicBoolean(false)
+      val done = new AtomicBoolean(false)
+      val waiter = Executors.newSingleThreadExecutor()
+      waiter.submit(new Runnable() { override def run(): Unit = {
+        start.set(true)
+        done.set(pool.awaitTermination(1, TimeUnit.MINUTES))
+      }})
+      waiter.shutdown()
+      eventually(start.get must beTrue)
+
+      pool.submit(new Runnable() { override def run(): Unit = { latch.await() } })
+      pool.submit(new Runnable() { override def run(): Unit = { latch.await() } })
+      pool.submit(new Runnable() { override def run(): Unit = { latch.await() } })
+      pool.shutdown()
+
+      pool.isTerminated must beFalse
+
+      latch.countDown()
+
+      eventually(done.get must beTrue)
+      pool.isTerminated must beTrue
     }
   }
 }

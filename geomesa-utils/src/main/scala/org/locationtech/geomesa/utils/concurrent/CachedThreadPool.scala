@@ -34,6 +34,7 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService {
   private val tasks = new java.util.HashSet[Future[_]]()
   private val stopped = new AtomicBoolean(false)
   private val lock = new ReentrantLock()
+  private val done = lock.newCondition()
 
   override def shutdown(): Unit = stopped.set(true)
 
@@ -59,12 +60,15 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService {
   override def isTerminated: Boolean = stopped.get && available == maxThreads // should be safe to read a volatile primitive
 
   override def awaitTermination(timeout: Long, unit: TimeUnit): Boolean = {
-    // TODO GEOMESA-2795 could probably make a wait instead of a poll
-    val end = System.nanoTime() + unit.toNanos(timeout)
-    while (!isTerminated && System.nanoTime() < end) {
-      Thread.sleep(100)
+    lock.lock()
+    try {
+      if (isTerminated) { true } else {
+        done.await(timeout, unit)
+        isTerminated
+      }
+    } finally {
+      lock.unlock()
     }
-    isTerminated
   }
 
   override def execute(command: Runnable): Unit = {
@@ -105,6 +109,8 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService {
         val next = queue.poll()
         if (next != null) {
           runOrQueueTask(next) // note: this may briefly use more than maxThreads as this thread finishes up
+        } else if (isTerminated) {
+          CachedThreadPool.this.done.signalAll()
         }
       } finally {
         lock.unlock()
