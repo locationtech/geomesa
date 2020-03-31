@@ -67,9 +67,8 @@ object LazyDeserialization {
     override def read(i: Int): AnyRef = {
       if (i >= count || nulls.contains(i)) { null } else {
         // read the offset and go to the position for reading
-        // we create a new kryo input each time, so that position and offset are not affected by other reads
-        // this should be thread-safe, as long as the same attribute is not being read in multiple threads
-        // (since kryo can mutate the bytes during read)
+        // to make it thread safe, we create a new kryo input each time,
+        // so that position and offset are not affected by other reads
         val input = new NonMutatingInput()
         input.setBuffer(bytes, offset + (2 * i), length - (2 * i))
         input.setPosition(offset + input.readShortUnsigned())
@@ -99,10 +98,8 @@ object LazyDeserialization {
     override def read(i: Int): AnyRef = {
       if (i >= count || nulls.contains(i)) { null } else {
         // read the offset and go to the position for reading
-        // we create a new kryo input each time, so that position and offset are not affected by other reads
-        // this should be thread-safe, as long as the same attribute is not being read in multiple threads
-        // (since kryo can mutate the bytes during read)
-
+        // to make it thread safe, we create a new kryo input each time,
+        // so that position and offset are not affected by other reads
         val input = new NonMutatingInput()
         input.setBuffer(bytes, offset + (4 * i), length - (4 * i))
         input.setPosition(offset + input.readInt())
