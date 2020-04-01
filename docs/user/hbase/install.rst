@@ -105,46 +105,51 @@ registered manually. See :ref:`coprocessor_alternate` for details.
 For more information on managing coprocessors see
 `Coprocessor Introduction <https://blogs.apache.org/hbase/entry/coprocessor_introduction>`_ on Apache's Blog.
 
-Configuration and Classpaths
-----------------------------
+.. _setting_up_hbase_commandline:
 
-GeoMesa HBase requires Hadoop and HBase jars and configuration files to be available on the classpath. This includes
-files such as the hbase-site.xml and core-site.xml files in addition to standard JARs and libraries. Configuring the
-classpath is important if you plan to use the GeoMesa HBase command line tools to ingest and manage data.
+Setting up the HBase Command Line Tools
+---------------------------------------
 
-By default, GeoMesa HBase will attempt to read various HBase and Hadoop related environmental variables in order to
-build the classpath. You can configure environment variables and classpath settings in
-``geomesa-hbase_2.11-$VERSION/conf/geomesa-env.sh`` or in your external env (e.g. bashrc file). The logic GeoMesa
-uses to determine which external entries to include on the classpath is:
+.. warning::
 
-    1. If the environmental variables ``GEOMESA_HADOOP_CLASSPATH`` and ``GEOMESA_HBASE_CLASSPATH`` are set then GeoMesa
-    HBase will use these variables to set the classpath and skip all other logic.
+    To use the HBase data store with the command line tools, you need to install
+    the distributed runtime first. See :ref:`hbase_deploy_distributed_runtime`.
 
-    2. Next, if ``$HBASE_HOME`` and ``$HADOOP_HOME`` are set then GeoMesa HBase will attempt to build the classpath by
-    searching for jar files and configuration in standard locations. Note that this is very specific to the
-    installation or distribution of Hadoop you are using and may not be reliable.
+GeoMesa comes with a set of command line tools for managing HBase features located in
+``geomesa-hbase_2.11-$VERSION/bin/`` of the binary distribution.
 
-    3. If no environmental variables are set but the ``hbase`` and ``hadoop`` commands are available then GeoMesa will
-    interrogate them for their classpaths by running the ``hadoop classpath`` and ``hbase classpath`` commands. This
-    method of classpath determination is slow due to the fact that the ``hbase classpath`` command forks a new JVM. It
-    is therefore recommended that you set manually set these variables in your environment or the
-    ``conf/geomesa-env.sh`` file.
+GeoMesa requires ``java`` to be available on the default path.
 
-In addition, ``geomesa-hbase`` will pull any additional entries from the ``GEOMESA_EXTRA_CLASSPATHS``
-environment variable.
+Configuring the Classpath
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Note that the ``GEOMESA_EXTRA_CLASSPATHS``, ``GEOMESA_HADOOP_CLASSPATH``, and ``GEOMESA_HBASE_CLASSPATH`` variables
-all follow standard
-`Java Classpath <http://docs.oracle.com/javase/8/docs/technotes/tools/windows/classpath.html>`_ conventions, which
-generally means that entries must be directories, JAR, or zip files. Individual XML files will be ignored. For example,
-to add a ``hbase-site.xml`` or ``core-site.xml`` file to the classpath you must either include a directory on the
-classpath or add the file to a zip or JAR archive to be included on the classpath.
+GeoMesa needs HBase and Hadoop JARs on the classpath. These are not bundled by default, as they should match
+the versions installed on the target system.
 
-Use the ``geomesa classpath`` command in order to see what JARs are being used.
+If the environment variables ``$HBASE_HOME`` and ``$HADOOP_HOME`` are set, then GeoMesa will load the appropriate
+JARs and configuration files from those locations and no further configuration is required. For simplicity,
+environment variables can be specified in ``geomesa-hbase_2.11-$VERSION/conf/geomesa-env.sh``.
 
-A few suggested configurations are below:
+For advanced scenarios, the environmental variables ``GEOMESA_HADOOP_CLASSPATH`` and ``GEOMESA_HBASE_CLASSPATH``
+can be set to override all other logic.
+
+If no environment variables are set but the ``hbase`` and ``hadoop`` commands are available, then
+GeoMesa will interrogate them for their classpaths by running the ``hadoop classpath`` and ``hbase classpath``
+commands. Note that this can be slow, so it is usually better to use ``GEOMESA_HADOOP_CLASSPATH`` and
+``GEOMESA_HBASE_CLASSPATH`` as described above.
 
 .. tabs::
+
+    .. group-tab:: Standard
+
+        Configure GeoMesa to use pre-installed HBase and Hadoop distributions:
+
+        .. code-block:: bash
+
+            export HADOOP_HOME=/path/to/hadoop
+            export HBASE_HOME=/path/to/hbase
+            export GEOMESA_HBASE_HOME=/opt/geomesa
+            export PATH="${PATH}:${GEOMESA_HOME}/bin"
 
     .. group-tab:: Amazon EMR
 
@@ -163,20 +168,9 @@ A few suggested configurations are below:
             export GEOMESA_HBASE_HOME=/opt/geomesa
             export PATH="${PATH}:${GEOMESA_HBASE_HOME}/bin"
 
-    .. group-tab:: Standard
-
-        Configure GeoMesa to use pre-installed HBase and Hadoop distributions:
-
-        .. code-block:: bash
-
-            export HADOOP_HOME=/path/to/hadoop
-            export HBASE_HOME=/path/to/hbase
-            export GEOMESA_HBASE_HOME=/opt/geomesa
-            export PATH="${PATH}:${GEOMESA_HOME}/bin"
-
     .. group-tab:: HDP
 
-        Configure the environment to use an HDP install
+        Configure the environment to use an HDP install:
 
         .. code-block:: bash
 
@@ -185,97 +179,26 @@ A few suggested configurations are below:
             export GEOMESA_HBASE_HOME=/opt/geomesa
             export PATH="${PATH}:${GEOMESA_HBASE_HOME}/bin"
 
-    .. group-tab:: Manual Install
+    .. group-tab:: Standalone
 
-        If no HBase or Hadoop distribution is installed, try manually installing the JARs from maven:
-
-        .. code-block:: bash
-
-            export GEOMESA_HBASE_HOME=/opt/geomesa
-            export PATH="${PATH}:${GEOMESA_HBASE_HOME}/bin"
-            cd GEOMESA_HBASE_HOME
-            bin/install-hadoop.sh lib
-            bin/install-hbase.sh lib
-
-        .. note::
-
-          You should adjust the versions at the top of each ``install-`` script to match your installation.
-
-        You will also need to provide the hbase-site.xml file within a the GeoMesa ``conf`` directory, an external
-        directory, zip, or JAR archive (an entry referencing the XML file directly will not work with the Java
-        classpath). 
-
-        When creating a zip or jar file, the hbase-site.xml should be at the root level of the archive
-        and not nested within any packages or subfolders. For example:
+        If there is no local HBase instance, the necessary JARs can be installed by downloading them. Modify the
+        version numbers in ``geomesa-hbase_2.11-$VERSION/bin/install-hadoop.sh`` and
+        ``geomesa-hbase_2.11-$VERSION/bin/install-hbase.sh`` to match the target system, then run them:
 
         .. code-block:: bash
 
-            $ jar tf my.jar
-            META-INF/
-            META-INF/MANIFEST.MF
-            hbase-site.xml 
+            $ cd geomesa-hbase_2.11-$VERSION/bin
+            $ ./install-hadoop.sh
+            $ ./install-hbase.sh
 
-        .. code-block:: bash
+        In order to connect to a cluster, an appropriate ``hbase-site.xml`` is required. Copy it from your cluster
+        into ``geomesa-hbase_2.11-$VERSION/conf/``.
 
-            # try this
-            cp /path/to/hbase-site.xml ${GEOMESA_HBASE_HOME}/conf/
+        In order to run map/reduce jobs, copy the Hadoop ``*-site.xml`` configuration files
+        from your Hadoop installation into ``geomesa-hbase_2.11-$VERSION/conf``.
 
-            # or this
-            cd /path/to/hbase-conf-dir
-            jar cvf conf.jar hbase-site.xml
-            export GEOMESA_EXTRA_CLASSPATHS=/path/to/confdir:/path/to/conf.zip:/path/to/conf.jar
-
-
-Due to licensing restrictions, dependencies for shape file support must be separately installed.
-Do this with the following commands:
-
-.. code-block:: bash
-
-    $ bin/install-jai.sh
-    $ bin/install-jline.sh
-
-.. _setting_up_hbase_commandline:
-
-Setting up the HBase Command Line Tools
----------------------------------------
-
-.. warning::
-
-    To use HBase with the command line tools, you need to install the coprocessors first, as described above.
-
-GeoMesa comes with a set of command line tools for managing HBase features located in
-``geomesa-hbase_2.11-$VERSION/bin/`` of the binary distribution.
-
-.. note::
-
-    You can configure environment variables and classpath settings in geomesa-hbase_2.11-$VERSION/conf/geomesa-env.sh.
-
-If desired, you may use the included script ``bin/geomesa-hbase configure`` to help set up the environment variables
-used by the tools. Otherwise, you may invoke the ``geomesa-hbase`` script using the fully-qualified path, and
-use the default configuration.
-
-The tools will read the ``$HBASE_HOME`` and ``$HADOOP_HOME`` environment variables to load the
-appropriate JAR files for HBase and Hadoop. If installing on a system without HBase and/or Hadoop,
-the ``install-hbase.sh`` and ``install-hadoop.sh`` scripts in the ``bin`` directory may be used to download
-the required HBase and Hadoop JARs into the ``lib`` directory. You should edit this script to match the versions
-used by your installation.
-
-.. note::
-
-    See :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
-
-.. note::
-
-    GeoMesa provides the ability to provide additional jars on the classpath using the environmental variable
-    ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
-    classpath giving it highest precedence in the classpath. Users can provide directories of jar files or individual
-    files using a colon (``:``) as a delimiter. These entries will also be added the the map-reduce libjars variable.
-    Use the ``geomesa-hbase classpath`` command to print the final classpath that will be used when executing geomesa
-    commands.
-
-The tools also need access to the ``hbase-site.xml`` for your cluster. If ``$HBASE_HOME`` is defined, it will pick
-it up from there. However, it may not be available for map/reduce jobs. To ensure it's availability,
-add it at the root level of the ``geomesa-hbase-datastore`` JAR in the lib folder:
+In order to run map/reduce and Spark jobs, you will need to put ``hbase-site.xml`` into a JAR on the distributed
+classpath. Add it at the root level of the ``geomesa-hbase-datastore`` JAR in the ``lib`` folder:
 
 .. code-block:: bash
 
@@ -285,24 +208,51 @@ add it at the root level of the ``geomesa-hbase-datastore`` JAR in the lib folde
 
     Ensure that the ``hbase-site.xml`` is at the root (top) level of your JAR, otherwise it will not be picked up.
 
-Due to licensing restrictions, certain dependencies for shape file support must be separately
-installed. Do this with the following commands:
+GeoMesa also provides the ability to add additional JARs to the classpath using the environmental variable
+``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
+classpath, giving it highest precedence in the classpath. Users can provide directories of jar files or individual
+files using a colon (``:``) as a delimiter. These entries will also be added the the map-reduce libjars variable.
+
+Due to licensing restrictions, dependencies for shape file support must be separately installed. Do this with
+the following commands:
 
 .. code-block:: bash
 
     $ bin/install-jai.sh
     $ bin/install-jline.sh
 
+For logging, see :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
+
+Use the ``geomesa-hbase classpath`` command to print the final classpath that will be used when executing GeoMesa
+commands.
+
+Configuring the Path
+^^^^^^^^^^^^^^^^^^^^
+
+In order to be able to run the ``geomesa-hbase`` command from anywhere, you can set the environment
+variable ``GEOMESA_HBASE_HOME`` and add it to your path by modifying your bashrc file:
+
+.. code-block:: bash
+
+    $ echo 'export GEOMESA_HBASE_HOME=/path/to/geomesa-hbase_2.11-$VERSION' >> ~/.bashrc
+    $ echo 'export PATH=${GEOMESA_HBASE_HOME}/bin:$PATH' >> ~/.bashrc
+    $ source ~/.bashrc
+    $ which geomesa-hbae
+    /path/to/geomesa-hbase_2.11-$VERSION/bin/geomesa-hbase
+
+Running Commands
+^^^^^^^^^^^^^^^^
+
 Test the command that invokes the GeoMesa Tools:
 
 .. code::
 
-    $ bin/geomesa-hbase
-    INFO  Usage: geomesa-hbase [command] [command options]
+    $ geomesa-hbase
+    Usage: geomesa-hbase [command] [command options]
       Commands:
       ...
 
-For more details, see :ref:`hbase_tools`.
+For details on the available commands, see :ref:`hbase_tools`.
 
 .. _install_hbase_geoserver:
 
@@ -317,26 +267,70 @@ The HBase GeoServer plugin is bundled by default in a GeoMesa binary distributio
 ``$GEOMESA_HBASE_HOME/dist/gs-plugins/geomesa-hbase-gs-plugin_2.11-$VERSION-install.tar.gz`` into GeoServer's
 ``WEB-INF/lib`` directory.
 
-This distribution does not include the HBase client, Hadoop or Zookeeper JARs. Due to conflicts between the
-required JAR versions of HBase and GeoServer, it is recommended to use the HBase client shaded JAR. This can
-be installed using the ``install-shaded-hbase-hadoop.sh`` script included in the binary distribution, or by
-copying the following JARs into GeoServer's ``WEB-INF/lib`` directory (the versions may vary depending on your
-installation):
-
-  * hbase-shaded-client-2.2.2.jar
-  * htrace-core4-4.1.0-incubating.jar
-
-.. note::
-
-  You can use the bundled ``$GEOMESA_HBASE_HOME/bin/install-shaded-hbase-hadoop.sh`` script to install these JARs.
+This distribution does not include the HBase client, Hadoop or Zookeeper JARs. These JARs can be installed
+using the ``install-hbase.sh`` and ``install-hadoop.sh`` scripts included in the binary distribution. Before
+running them, set the version numbers at the top of the script to match your target installation as needed.
 
 The HBase data store requires the configuration file ``hbase-site.xml`` to be on the classpath. This can
 be accomplished by placing the file in ``geoserver/WEB-INF/classes`` (you should make the directory if it
-doesn't exist). Utilizing a symbolic link will be useful here so any changes are reflected in GeoServer.
+doesn't exist).
 
-.. code-block:: bash
+The specific JARs needed for some common configurations are listed below:
 
-  ln -s /path/to/hbase-site.xml /path/to/geoserver/WEB-INF/classes/hbase-site.xml
+.. tabs::
+
+    .. tab:: HBase 2.2
+
+        * commons-cli-1.2.jar
+        * commons-configuration-1.6.jar
+        * commons-io-2.5.jar
+        * commons-logging-1.1.3.jar
+        * hadoop-auth-2.8.5.jar
+        * hadoop-client-2.8.5.jar
+        * hadoop-common-2.8.5.jar
+        * hadoop-hdfs-2.8.5.jar
+        * hadoop-hdfs-client-2.8.5.jar
+        * hadoop-mapreduce-client-core-2.8.5.jar
+        * hbase-client-2.2.3.jar
+        * hbase-common-2.2.3.jar
+        * hbase-hadoop-compat-2.2.3.jar
+        * hbase-mapreduce-2.2.3.jar
+        * hbase-protocol-2.2.3.jar
+        * hbase-protocol-shaded-2.2.3.jar
+        * hbase-shaded-miscellaneous-2.2.1.jar
+        * hbase-shaded-netty-2.2.1.jar
+        * hbase-shaded-protobuf-2.2.1.jar
+        * htrace-core4-4.1.0-incubating.jar
+        * metrics-core-2.2.0.jar
+        * metrics-core-3.2.6.jar
+        * netty-3.6.2.Final.jar
+        * netty-all-4.1.48.Final.jar
+        * protobuf-java-2.5.0.jar
+        * zookeeper-3.4.14.jar
+
+    .. tab:: HBase 1.4
+
+        * commons-cli-1.2.jar
+        * commons-configuration-1.6.jar
+        * commons-io-2.5.jar
+        * commons-logging-1.1.3.jar
+        * hadoop-auth-2.8.5.jar
+        * hadoop-client-2.8.5.jar
+        * hadoop-common-2.8.5.jar
+        * hadoop-hdfs-2.8.5.jar
+        * hadoop-hdfs-client-2.8.5.jar
+        * hadoop-mapreduce-client-core-2.8.5.jar
+        * hbase-client-1.4.13.jar
+        * hbase-common-1.4.13.jar
+        * hbase-hadoop-compat-1.4.13.jar
+        * hbase-protocol-1.4.13.jar
+        * htrace-core-3.1.0-incubating.jar
+        * htrace-core4-4.1.0-incubating.jar
+        * metrics-core-2.2.0.jar
+        * netty-3.6.2.Final.jar
+        * netty-all-4.1.48.Final.jar
+        * protobuf-java-2.5.0.jar
+        * zookeeper-3.4.14.jar
 
 Restart GeoServer after the JARs are installed.
 
@@ -347,25 +341,8 @@ To use a EMR cluster to connect to an existing, external HBase Cluster first fol
 new cluster and install GeoMesa.
 
 The next step is to obtain the ``hbase-site.xml`` for the external HBase Cluster, copy to the new EMR cluster and
-copy it into ``${GEOMESA_HBASE_HOME}/conf``. At this point you may run the geomesa-hbase command line tools.
-
-If you wish to execute SQL queries using Spark, you must first zip the ``hbase-site.xml`` file for the external cluster:
-
-.. code-block:: shell
-
-    zip hbase-site.zip hbase-site.xml
-
-Then copy the zip file to  ``${GEOMESA_HBASE_HOME}/conf`` then add the zipped configuration file to the Spark classpath:
-
-.. code-block:: shell
-
-    export SPARK_JARS=file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase1_2.11-${VERSION}.jar,file:///opt/geomesa/conf/hbase-site.zip
-
-Then start up the Spark shell:
-
-.. code-block:: shell
-
-    spark-shell --jars $SPARK_JARS
+copy it into ``${GEOMESA_HBASE_HOME}/conf``. At this point you may run the ``geomesa-hbase`` command line tools.
+In order to run Spark or Map/Reduce jobs, ensure that ``hbase-site.xml`` is zipped into a JAR, as described above.
 
 Configuring HBase on Azure HDInsight
 ------------------------------------
