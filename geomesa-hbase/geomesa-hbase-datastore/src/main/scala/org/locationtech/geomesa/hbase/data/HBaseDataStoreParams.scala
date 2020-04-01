@@ -100,7 +100,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       "hbase.coprocessor.arrow.enable",
       "Processes Arrow encoding in HBase region servers as a coprocessor call",
       default = java.lang.Boolean.FALSE,
-      supportsNiFiExpressions = true
+      systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteArrowProperty))
     )
 
   val BinCoprocessorParam =
@@ -108,7 +108,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       "hbase.coprocessor.bin.enable",
       "Processes binary encoding in HBase region servers as a coprocessor call",
       default = java.lang.Boolean.TRUE,
-      supportsNiFiExpressions = true
+      systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteBinProperty))
     )
 
   val DensityCoprocessorParam =
@@ -116,7 +116,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       "hbase.coprocessor.density.enable",
       "Processes heatmap encoding in HBase region servers as a coprocessor call",
       default = java.lang.Boolean.TRUE,
-      supportsNiFiExpressions = true
+      systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteDensityProperty))
     )
 
   val StatsCoprocessorParam =
@@ -124,6 +124,6 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       "hbase.coprocessor.stats.enable",
       "Processes statistical calculations in HBase region servers as a coprocessor call",
       default = java.lang.Boolean.TRUE,
-      supportsNiFiExpressions = true
+      systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteStatsProperty))
     )
 }
