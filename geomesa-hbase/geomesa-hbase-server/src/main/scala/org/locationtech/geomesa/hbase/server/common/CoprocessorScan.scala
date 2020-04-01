@@ -69,7 +69,7 @@ trait CoprocessorScan extends StrictLogging {
         //aggregator.init(options)
         // JNH: Test with the below to see if partialResults are working.
         // TODO: Need to move this into a unit test...
-        aggregator.init(options.updated("batch", "2"))
+        aggregator.init(options.updated("batch", "20"))
 
         val scan = ProtobufUtil.toScan(ClientProtos.Scan.parseFrom(Base64.getDecoder.decode(options(GeoMesaCoprocessor.ScanOpt))))
         // JNH: It seems that this can be safely ignored.
@@ -130,7 +130,7 @@ trait CoprocessorScan extends StrictLogging {
 
     private def continue(): Boolean = {
       count += 1
-      if (count >= 10) {  // We've got 10 batches.  Let's return
+      if (count >= 100) {  // We've got 10 batches.  Let's return
         logger.warn(s"Stopping aggregator $aggregator due to having 10 batches!")
         logger.warn(s"Scan stopped at row ${ByteArrays.printable(aggregator.getLastScanned)}")
         results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))
