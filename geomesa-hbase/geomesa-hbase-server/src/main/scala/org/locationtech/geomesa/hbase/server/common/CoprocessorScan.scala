@@ -130,7 +130,7 @@ trait CoprocessorScan extends StrictLogging {
 
     private def continue(): Boolean = {
       count += 1
-      if (count >= 100) {  // We've got 10 batches.  Let's return
+      if (count >= 10) {  // We've got 10 batches.  Let's return
         logger.warn(s"Stopping aggregator $aggregator due to having 10 batches!")
         logger.warn(s"Scan stopped at row ${ByteArrays.printable(aggregator.getLastScanned)}")
         results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))

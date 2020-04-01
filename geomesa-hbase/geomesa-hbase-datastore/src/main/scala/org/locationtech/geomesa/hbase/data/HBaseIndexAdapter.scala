@@ -254,6 +254,10 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       val projection = hints.getProjection
       lazy val returnSchema = transform.map(_._2).getOrElse(schema)
       lazy val timeout = strategy.index.ds.config.queryTimeout.map(GeoMesaCoprocessor.timeout)
+
+      // JNH Batch size override
+
+
       lazy val coprocessorScans =
         configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
 
