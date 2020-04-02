@@ -398,6 +398,9 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
           var i = 0
           while (i < list.size()) {
+            println(s"groupSize: ${math.min(maxRangesPerGroup, list.size() - i)}")
+            logger.debug(s"groupSize: ${math.min(maxRangesPerGroup, list.size() - i)}")
+
             val groupSize = math.min(maxRangesPerGroup, list.size() - i)
             groupedScans += createGroup(list.subList(i, i + groupSize))
             i += groupSize
@@ -447,7 +450,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       regionServer = region.getServerName
       val regionEndKey = region.getRegionInfo.getEndKey
       if (regionEndKey.nonEmpty &&
-        (range.getStopRow.isEmpty || ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) < 0)) {
+        (range.getStopRow.isEmpty || ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) <= 0)) {
         split = regionEndKey
       }
     } catch {

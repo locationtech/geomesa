@@ -3,7 +3,7 @@
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
     <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
         <layout class="org.apache.log4j.EnhancedPatternLayout">
-            <param name="ConversionPattern" value="[%d] %5p %c{1}: %m%n"/>
+            <param name="ConversionPattern" value="[%d] %t %5p %c{1}: %m%n"/>
         </layout>
     </appender>
 
@@ -37,6 +37,9 @@
     </category>-->
 
     <category name="org.locationtech.geomesa.hbase.server">
+        <priority value="debug"/>
+    </category>
+    <category name="org.locationtech.geomesa.hbase.rpc.coprocessor">
         <priority value="debug"/>
     </category>
 

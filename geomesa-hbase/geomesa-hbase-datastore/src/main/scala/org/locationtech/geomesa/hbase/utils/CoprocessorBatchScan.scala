@@ -10,7 +10,8 @@ package org.locationtech.geomesa.hbase.utils
 
 import java.util.concurrent._
 
-import org.apache.hadoop.hbase.TableName
+import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.hbase.{HConstants, TableName}
 import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
@@ -27,10 +28,15 @@ private class CoprocessorBatchScan(
     threads: Int,
     rpcThreads: Int,
     buffer: Int
-  ) extends AbstractBatchScan[Scan, Array[Byte]](ranges, threads, buffer, CoprocessorBatchScan.Sentinel) {
+  ) extends AbstractBatchScan[Scan, Array[Byte]](ranges, threads, buffer, CoprocessorBatchScan.Sentinel) with LazyLogging {
 
   println(s"Made a CoprocessorBatchScan with ${ranges.size} ranges!")
   println(s"Ranges are ${ranges.map( r => s"${r.getStartRow.map(_.toInt).mkString(",")} to ${r.getStopRow.map(_.toInt).mkString(",")}").mkString(", ")}")
+
+  if(ranges.head.getStopRow.sameElements(HConstants.EMPTY_END_ROW) && ranges.head.getStartRow.sameElements(HConstants.EMPTY_START_ROW)) {
+    logger.error("This is bad!")
+    throw new Exception("This is bad!")
+  }
 
   private val pool = new CachedThreadPool(rpcThreads)
 

@@ -1,3 +1,11 @@
+/***********************************************************************
+ * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
+
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
@@ -50,11 +58,14 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
   lazy val dsFullLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false)).asInstanceOf[HBaseDataStore]
   lazy val dsThreads1 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "1")).asInstanceOf[HBaseDataStore]
   lazy val dsThreads2 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "2")).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads3 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "3")).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads4 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "4")).asInstanceOf[HBaseDataStore]
 
   //  lazy val dsFullLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false)).asInstanceOf[HBaseDataStore]
 
   //lazy val dataStores = Seq(ds, dsFullLocal) //, dsThreads1, dsThreads2)
-  lazy val dataStores = Seq(ds, dsFullLocal, dsThreads1, dsThreads2)
+  //lazy val dataStores = Seq(ds, dsFullLocal, dsThreads1, dsThreads2)
+  lazy val dataStores = Seq(dsThreads3) //, dsThreads2)
 
   var sft: SimpleFeatureType = _
   var fs: SimpleFeatureStore = _
