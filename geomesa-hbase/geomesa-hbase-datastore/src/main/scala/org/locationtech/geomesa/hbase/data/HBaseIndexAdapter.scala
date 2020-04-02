@@ -378,37 +378,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       }
 
       rangesPerTable.map { case (table, rangesPerRegion) =>
-//        val maxRangesPerGroup = {
-//          def calcMax(maxPerGroup: Int, threads: Int): Int = {
-//            val totalRanges = rangesPerRegion.values.map(_.size).sum
-//            math.min(maxPerGroup, math.max(1, math.ceil(totalRanges.toDouble / threads).toInt))
-//          }
-//          if (coprocessor) {
-//            calcMax(ds.config.maxRangesPerCoprocessorScan, ds.config.coprocessorThreads)
-//          } else {
-//            calcMax(ds.config.maxRangesPerExtendedScan, ds.config.queryThreads)
-//          }
-//        }
-
         val groupedScans = Seq.newBuilder[Scan]
 
-        import scala.collection.JavaConversions._
-
         rangesPerRegion.foreach { case (region, list) =>
-          //println(s"Region: $region list: ${list.mkString(", ")}")
+          Collections.sort(list)
           groupedScans += createGroup(list)
-//          // our ranges are non-overlapping, so just sort them but don't bother merging them
-//          Collections.sort(list)
-//
-//          var i = 0
-//          while (i < list.size()) {
-//            println(s"groupSize: ${math.min(maxRangesPerGroup, list.size() - i)}")
-//            logger.debug(s"groupSize: ${math.min(maxRangesPerGroup, list.size() - i)}")
-//
-//            val groupSize = math.min(maxRangesPerGroup, list.size() - i)
-//            groupedScans += createGroup(list.subList(i, i + groupSize))
-//            i += groupSize
-//          }
         }
 
         // shuffle the ranges, otherwise our threads will tend to all hit the same region server at once
