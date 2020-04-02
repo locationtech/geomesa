@@ -23,7 +23,7 @@ import org.apache.hadoop.hbase.io.compress.Compression
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
-import org.apache.hadoop.hbase.{ServerName, TableName}
+import org.apache.hadoop.hbase.{HRegionLocation, ServerName, TableName}
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, TableAvailabilityTimeout}
 import org.locationtech.geomesa.hbase.aggregators.HBaseArrowAggregator.HBaseArrowResultsToFeatures
@@ -351,7 +351,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     } else {
       // split and group ranges by region server
       // note: we have to copy the ranges for each table scan anyway
-      val rangesPerTable: Seq[(TableName, collection.Map[ServerName, util.List[RowRange]])] = tables.map(t => t -> groupRangesByRegionServer(t, ranges))
+      val rangesPerTable: Seq[(TableName, collection.Map[Array[Byte], util.List[RowRange]])] = tables.map(t => t -> groupRangesByRegion(t, ranges))
 
       def createGroup(group: java.util.List[RowRange]): Scan = {
         val scan = new Scan(group.get(0).getStartRow, group.get(group.size() - 1).getStopRow)
@@ -377,34 +377,38 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         scan
       }
 
-      rangesPerTable.map { case (table, rangesPerRegionServer) =>
-        val maxRangesPerGroup = {
-          def calcMax(maxPerGroup: Int, threads: Int): Int = {
-            val totalRanges = rangesPerRegionServer.values.map(_.size).sum
-            math.min(maxPerGroup, math.max(1, math.ceil(totalRanges.toDouble / threads).toInt))
-          }
-          if (coprocessor) {
-            calcMax(ds.config.maxRangesPerCoprocessorScan, ds.config.coprocessorThreads)
-          } else {
-            calcMax(ds.config.maxRangesPerExtendedScan, ds.config.queryThreads)
-          }
-        }
+      rangesPerTable.map { case (table, rangesPerRegion) =>
+//        val maxRangesPerGroup = {
+//          def calcMax(maxPerGroup: Int, threads: Int): Int = {
+//            val totalRanges = rangesPerRegion.values.map(_.size).sum
+//            math.min(maxPerGroup, math.max(1, math.ceil(totalRanges.toDouble / threads).toInt))
+//          }
+//          if (coprocessor) {
+//            calcMax(ds.config.maxRangesPerCoprocessorScan, ds.config.coprocessorThreads)
+//          } else {
+//            calcMax(ds.config.maxRangesPerExtendedScan, ds.config.queryThreads)
+//          }
+//        }
 
         val groupedScans = Seq.newBuilder[Scan]
 
-        rangesPerRegionServer.foreach { case (_, list) =>
-          // our ranges are non-overlapping, so just sort them but don't bother merging them
-          Collections.sort(list)
+        import scala.collection.JavaConversions._
 
-          var i = 0
-          while (i < list.size()) {
-            println(s"groupSize: ${math.min(maxRangesPerGroup, list.size() - i)}")
-            logger.debug(s"groupSize: ${math.min(maxRangesPerGroup, list.size() - i)}")
-
-            val groupSize = math.min(maxRangesPerGroup, list.size() - i)
-            groupedScans += createGroup(list.subList(i, i + groupSize))
-            i += groupSize
-          }
+        rangesPerRegion.foreach { case (region, list) =>
+          println(s"Region: $region list: ${list.mkString(", ")}")
+          groupedScans += createGroup(list)
+//          // our ranges are non-overlapping, so just sort them but don't bother merging them
+//          Collections.sort(list)
+//
+//          var i = 0
+//          while (i < list.size()) {
+//            println(s"groupSize: ${math.min(maxRangesPerGroup, list.size() - i)}")
+//            logger.debug(s"groupSize: ${math.min(maxRangesPerGroup, list.size() - i)}")
+//
+//            val groupSize = math.min(maxRangesPerGroup, list.size() - i)
+//            groupedScans += createGroup(list.subList(i, i + groupSize))
+//            i += groupSize
+//          }
         }
 
         // shuffle the ranges, otherwise our threads will tend to all hit the same region server at once
@@ -420,14 +424,14 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
    * @param ranges ranges to group
    * @return
    */
-  private def groupRangesByRegionServer(
+  private def groupRangesByRegion(
       table: TableName,
-      ranges: Seq[RowRange]): scala.collection.Map[ServerName, java.util.List[RowRange]] = {
-    val rangesPerRegionServer = scala.collection.mutable.Map.empty[ServerName, java.util.List[RowRange]]
+      ranges: Seq[RowRange]): scala.collection.Map[Array[Byte], java.util.List[RowRange]] = {
+    val rangesPerRegion = scala.collection.mutable.Map.empty[Array[Byte], java.util.List[RowRange]]
     WithClose(ds.connection.getRegionLocator(table)) { locator =>
-      ranges.foreach(groupRange(locator, _, rangesPerRegionServer))
+      ranges.foreach(groupRange(locator, _, rangesPerRegion))
     }
-    rangesPerRegionServer
+    rangesPerRegion
   }
 
   /**
@@ -442,12 +446,12 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
   private def groupRange(
       locator: RegionLocator,
       range: RowRange,
-      result: scala.collection.mutable.Map[ServerName, java.util.List[RowRange]]): Unit = {
-    var regionServer: ServerName = null
+      result: scala.collection.mutable.Map[Array[Byte], java.util.List[RowRange]]): Unit = {
+    val region: HRegionLocation = locator.getRegionLocation(range.getStartRow)
     var split: Array[Byte] = null
     try {
-      val region = locator.getRegionLocation(range.getStartRow)
-      regionServer = region.getServerName
+
+      //regionServer = region.getServerName
       val regionEndKey = region.getRegionInfo.getEndKey
       if (regionEndKey.nonEmpty &&
         (range.getStopRow.isEmpty || ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) <= 0)) {
@@ -456,7 +460,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     } catch {
       case NonFatal(e) => logger.warn(s"Error checking range location for '$range''", e)
     }
-    val buffer = result.getOrElseUpdate(regionServer, new java.util.ArrayList())
+    val buffer = result.getOrElseUpdate(region.getRegionInfo.getStartKey, new java.util.ArrayList())
     if (split == null) {
       buffer.add(range)
     } else {

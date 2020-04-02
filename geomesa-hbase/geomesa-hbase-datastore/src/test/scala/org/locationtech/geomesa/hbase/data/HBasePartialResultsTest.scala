@@ -48,9 +48,9 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
 
   lazy val params = Map(
     ConnectionParam.getName -> MiniCluster.connection,
-    HBaseCatalogParam.getName -> getClass.getSimpleName
+    HBaseCatalogParam.getName -> getClass.getSimpleName,
     // JNH abstract over Copro Threads
-    //CoprocessorThreadsParam.getName -> "1"
+    CoprocessorThreadsParam.getName -> "1"
   )
 
   lazy val ds: HBaseDataStore = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
@@ -65,7 +65,7 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
 
   //lazy val dataStores = Seq(ds, dsFullLocal) //, dsThreads1, dsThreads2)
   //lazy val dataStores = Seq(ds, dsFullLocal, dsThreads1, dsThreads2)
-  lazy val dataStores = Seq(dsThreads3) //, dsThreads2)
+  lazy val dataStores = Seq(dsThreads1) //, dsThreads2)
 
   var sft: SimpleFeatureType = _
   var fs: SimpleFeatureStore = _

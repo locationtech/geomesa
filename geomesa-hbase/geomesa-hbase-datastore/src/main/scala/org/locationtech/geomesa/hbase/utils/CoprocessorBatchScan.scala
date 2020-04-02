@@ -28,7 +28,7 @@ private class CoprocessorBatchScan(
     threads: Int,
     rpcThreads: Int,
     buffer: Int
-  ) extends AbstractBatchScan[Scan, Array[Byte]](ranges, threads, buffer, CoprocessorBatchScan.Sentinel) with LazyLogging {
+  ) extends AbstractBatchScan[Scan, Array[Byte]](ranges, rpcThreads, buffer, CoprocessorBatchScan.Sentinel) with LazyLogging {
 
   println(s"Made a CoprocessorBatchScan with ${ranges.size} ranges!")
   println(s"Ranges are ${ranges.map( r => s"${r.getStartRow.map(_.toInt).mkString(",")} to ${r.getStopRow.map(_.toInt).mkString(",")}").mkString(", ")}")
