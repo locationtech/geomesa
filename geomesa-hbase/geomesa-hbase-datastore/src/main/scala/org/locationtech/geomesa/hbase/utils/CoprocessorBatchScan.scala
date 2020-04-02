@@ -33,10 +33,10 @@ private class CoprocessorBatchScan(
   println(s"Made a CoprocessorBatchScan with ${ranges.size} ranges!")
   println(s"Ranges are ${ranges.map( r => s"${r.getStartRow.map(_.toInt).mkString(",")} to ${r.getStopRow.map(_.toInt).mkString(",")}").mkString(", ")}")
 
-  if(ranges.head.getStopRow.sameElements(HConstants.EMPTY_END_ROW) && ranges.head.getStartRow.sameElements(HConstants.EMPTY_START_ROW)) {
-    logger.error("This is bad!")
-    throw new Exception("This is bad!")
-  }
+//  if(ranges.head.getStopRow.sameElements(HConstants.EMPTY_END_ROW) && ranges.head.getStartRow.sameElements(HConstants.EMPTY_START_ROW)) {
+//    logger.error("This is bad!")
+//    throw new Exception("This is bad!")
+//  }
 
   private val pool = new CachedThreadPool(rpcThreads)
 
