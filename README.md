@@ -50,8 +50,10 @@ geospatial analytics.
   [**Source**](https://github.com/locationtech/geomesa/archive/geomesa_2.11-2.4.0.tar.gz) |
   [**CheckSums**](https://github.com/locationtech/geomesa/releases/geomesa_2.11-2.4.0)
 
-**Development version: 2.5.0-SNAPSHOT** &nbsp;
-  [![Build Status](https://api.travis-ci.org/locationtech/geomesa.svg?branch=master)](https://travis-ci.org/locationtech/geomesa)
+**Development version: 2.5.0-SNAPSHOT**
+
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  [![Build Status](https://github.com/locationtech/geomesa/workflows/CI/badge.svg?branch=master)](https://github.com/locationtech/geomesa/actions?query=branch%3Amaster+workflow%3ACI)
 
 ### Verifying Downloads
 
