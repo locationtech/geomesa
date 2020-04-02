@@ -351,7 +351,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     } else {
       // split and group ranges by region server
       // note: we have to copy the ranges for each table scan anyway
-      val rangesPerTable: Seq[(TableName, collection.Map[Array[Byte], util.List[RowRange]])] = tables.map(t => t -> groupRangesByRegion(t, ranges))
+      val rangesPerTable: Seq[(TableName, collection.Map[String, util.List[RowRange]])] = tables.map(t => t -> groupRangesByRegion(t, ranges))
 
       def createGroup(group: java.util.List[RowRange]): Scan = {
         val scan = new Scan(group.get(0).getStartRow, group.get(group.size() - 1).getStopRow)
@@ -426,8 +426,8 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
    */
   private def groupRangesByRegion(
       table: TableName,
-      ranges: Seq[RowRange]): scala.collection.Map[Array[Byte], java.util.List[RowRange]] = {
-    val rangesPerRegion = scala.collection.mutable.Map.empty[Array[Byte], java.util.List[RowRange]]
+      ranges: Seq[RowRange]): scala.collection.Map[String, java.util.List[RowRange]] = {
+    val rangesPerRegion = scala.collection.mutable.Map.empty[String, java.util.List[RowRange]]
     WithClose(ds.connection.getRegionLocator(table)) { locator =>
       ranges.foreach(groupRange(locator, _, rangesPerRegion))
     }
@@ -446,7 +446,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
   private def groupRange(
       locator: RegionLocator,
       range: RowRange,
-      result: scala.collection.mutable.Map[Array[Byte], java.util.List[RowRange]]): Unit = {
+      result: scala.collection.mutable.Map[String, java.util.List[RowRange]]): Unit = {
     val region: HRegionLocation = locator.getRegionLocation(range.getStartRow)
     var split: Array[Byte] = null
     try {
@@ -460,7 +460,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     } catch {
       case NonFatal(e) => logger.warn(s"Error checking range location for '$range''", e)
     }
-    val buffer = result.getOrElseUpdate(region.getRegionInfo.getStartKey, new java.util.ArrayList())
+    val buffer = result.getOrElseUpdate(region.getRegionInfo.getEncodedName, new java.util.ArrayList())
     if (split == null) {
       buffer.add(range)
     } else {
