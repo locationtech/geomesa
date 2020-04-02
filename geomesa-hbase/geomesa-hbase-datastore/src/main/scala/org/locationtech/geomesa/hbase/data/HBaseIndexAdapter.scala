@@ -395,7 +395,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         import scala.collection.JavaConversions._
 
         rangesPerRegion.foreach { case (region, list) =>
-          println(s"Region: $region list: ${list.mkString(", ")}")
+          //println(s"Region: $region list: ${list.mkString(", ")}")
           groupedScans += createGroup(list)
 //          // our ranges are non-overlapping, so just sort them but don't bother merging them
 //          Collections.sort(list)

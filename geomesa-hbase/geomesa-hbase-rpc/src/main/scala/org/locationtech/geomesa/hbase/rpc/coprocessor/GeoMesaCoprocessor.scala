@@ -118,6 +118,7 @@ object GeoMesaCoprocessor extends LazyLogging {
       val interalRequest: GeoMesaCoprocessorRequest = request
 
       override def call(instance: GeoMesaCoprocessorService): GeoMesaCoprocessorResponse = {
+        logger.debug(s"Working in the callback.")
         if (closed.get) {
           // JNH: Should this be an empty response instead?  Maybe not since we can do a null check later?
           null
@@ -135,6 +136,7 @@ object GeoMesaCoprocessor extends LazyLogging {
             logger.error(s"Controller failed with error:\n${controller.errorText()}")
           }
 
+          logger.debug("Finishing work in the callback")
           callback.get()
         }
       }
