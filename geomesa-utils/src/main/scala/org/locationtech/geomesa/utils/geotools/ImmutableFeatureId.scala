@@ -10,6 +10,6 @@ package org.locationtech.geomesa.utils.geotools
 
 import org.geotools.filter.identity.FeatureIdImpl
 
-class ImmutableFeatureId(id: String) extends FeatureIdImpl(id) {
+class ImmutableFeatureId(id: String) extends FeatureIdImpl(id) 
   override def setID(id: String): Unit = throw new UnsupportedOperationException()
 }
