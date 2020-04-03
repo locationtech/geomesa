@@ -62,7 +62,7 @@ class Z3IteratorTest extends Specification {
       "keep in bounds values" >> {
         val test1 = Z3SFC(TimePeriod.Week).index(-76.0, 38.5, 500)
         val prefix = Array[Byte](0, 0)
-        val row = Bytes.concat(prefix, Longs.toByteArray(test1.z))
+        val row = Bytes.concat(prefix, Longs.toByteArray(test1))
         srcIter.key = new Key(new Text(row))
         iter.next()
         iter.hasTop must beTrue
@@ -71,7 +71,7 @@ class Z3IteratorTest extends Specification {
       "drop out of bounds values" >> {
         val test2 = Z3SFC(TimePeriod.Week).index(-70.0, 38.5, 500)
         val prefix = Array[Byte](0, 0)
-        val row = Bytes.concat(prefix, Longs.toByteArray(test2.z))
+        val row = Bytes.concat(prefix, Longs.toByteArray(test2))
         srcIter.key = new Key(new Text(row))
         iter.next()
         iter.hasTop must beFalse

@@ -76,7 +76,7 @@ object Z3IndexV5 {
       val dtg = writable.getAttribute[Date](dtgIndex)
       val time = if (dtg == null) { 0 } else { dtg.getTime }
       val BinnedTime(b, t) = timeToIndex(time)
-      val z = try { sfc.index(geom.getX, geom.getY, t, lenient).z } catch {
+      val z = try { sfc.index(geom.getX, geom.getY, t, lenient) } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Invalid z value from geometry/time: $geom,$dtg", e)
       }
       val shard = sharding(writable)

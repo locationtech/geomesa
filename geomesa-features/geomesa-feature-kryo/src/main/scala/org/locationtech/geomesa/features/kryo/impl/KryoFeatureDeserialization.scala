@@ -21,6 +21,7 @@ import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerializ
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, ThreadLocalCache}
+import org.locationtech.geomesa.utils.kryo.NonMutatingInput
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
@@ -51,13 +52,13 @@ object KryoFeatureDeserialization extends LazyLogging {
   private val readers = new ThreadLocalCache[String, Array[KryoAttributeReader]](SerializerCacheExpiry)
 
   def getInput(bytes: Array[Byte], offset: Int, count: Int): Input = {
-    val in = inputs.getOrElseUpdate(new Input)
+    val in = inputs.getOrElseUpdate(new NonMutatingInput())
     in.setBuffer(bytes, offset, count)
     in
   }
 
   def getInput(stream: InputStream): Input = {
-    val in = inputs.getOrElseUpdate(new Input)
+    val in = inputs.getOrElseUpdate(new NonMutatingInput())
     in.setBuffer(Array.ofDim(1024))
     in.setInputStream(stream)
     in

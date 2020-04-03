@@ -25,7 +25,6 @@ import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.BIN_ATTRIBUTE_INDEX
-import org.locationtech.sfcurve.zorder.Z2
 import org.opengis.feature.simple.SimpleFeature
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -66,7 +65,7 @@ class Z2IdxStrategyTest extends Specification with TestWithFeatureType {
         ds.connector.createScanner(table, new Authorizations()).foreach { r =>
           val bytes = r.getKey.getRow.getBytes
           val keyZ = Longs.fromByteArray(bytes.drop(2))
-          val (x, y) = Z2SFC.invert(Z2(keyZ))
+          val (x, y) = Z2SFC.invert(keyZ)
           println(s"row: $x $y")
         }
       }

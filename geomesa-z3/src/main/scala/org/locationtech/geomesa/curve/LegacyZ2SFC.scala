@@ -17,9 +17,9 @@ object LegacyZ2SFC extends Z2SFC(31) {
   override val lat = SemiNormalizedLat(math.pow(2, 31).toLong - 1)
 
   // old impl required for deleting existing values that may have been written
-  override protected def lenientIndex(x: Double, y: Double): Z2 = {
+  override protected def lenientIndex(x: Double, y: Double): Long = {
     val nx = math.max(lon.min, math.ceil((x - lon.min) / (lon.max - lon.min) * lon.precision)).toInt
     val ny = math.max(lat.min, math.ceil((y - lat.min) / (lat.max - lat.min) * lat.precision)).toInt
-    Z2(nx, ny)
+    Z2(nx, ny).z
   }
 }

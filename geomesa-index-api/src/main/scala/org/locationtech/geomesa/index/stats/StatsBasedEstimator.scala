@@ -261,7 +261,7 @@ trait StatsBasedEstimator {
         val (zLo, zHi) = {
           val (xmin, ymin, _, _) = GeometryUtils.bounds(histogram.min)
           val (_, _, xmax, ymax) = GeometryUtils.bounds(histogram.max)
-          (Z2SFC.index(xmin, ymin).z, Z2SFC.index(xmax, ymax).z)
+          (Z2SFC.index(xmin, ymin), Z2SFC.index(xmax, ymax))
         }
         def inRange(r: IndexRange) = r.lower < zHi && r.upper > zLo
 
