@@ -452,10 +452,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       locator: RegionLocator,
       range: RowRange,
       result: scala.collection.mutable.Map[String, java.util.List[RowRange]]): Unit = {
-    var regionInfo: HRegionInfo = null
+    var encodedName: String = null
     var split: Array[Byte] = null
     try {
-      regionInfo = locator.getRegionLocation(range.getStartRow).getRegionInfo
+      val regionInfo = locator.getRegionLocation(range.getStartRow).getRegionInfo
+      encodedName = regionInfo.getEncodedName
       val regionEndKey = regionInfo.getEndKey
       if (regionEndKey.nonEmpty && ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) < 0) {
         split = regionEndKey
@@ -463,7 +464,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     } catch {
       case NonFatal(e) => logger.warn(s"Error checking range location for '$range''", e)
     }
-    val buffer = result.getOrElseUpdate(regionInfo.getEncodedName, new java.util.ArrayList())
+    val buffer = result.getOrElseUpdate(encodedName, new java.util.ArrayList())
     if (split == null) {
       buffer.add(range)
     } else {
