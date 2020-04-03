@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.hbase.data
 
 import java.nio.charset.StandardCharsets
+import java.util
 import java.util.regex.Pattern
 import java.util.{Collections, Locale, UUID}
 
@@ -22,7 +23,7 @@ import org.apache.hadoop.hbase.io.compress.Compression
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
-import org.apache.hadoop.hbase.{HRegionInfo, TableName}
+import org.apache.hadoop.hbase.{HRegionLocation, ServerName, TableName}
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, TableAvailabilityTimeout}
 import org.locationtech.geomesa.hbase.aggregators.HBaseArrowAggregator.HBaseArrowResultsToFeatures
@@ -368,7 +369,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     } else {
       // split and group ranges by region server
       // note: we have to copy the ranges for each table scan anyway
-      val rangesPerTable: Seq[(TableName, collection.Map[String, java.util.List[RowRange]])] = tables.map(t => t -> groupRangesByRegion(t, ranges))
+      val rangesPerTable: Seq[(TableName, collection.Map[String, util.List[RowRange]])] = tables.map(t => t -> groupRangesByRegion(t, ranges))
 
       def createGroup(group: java.util.List[RowRange]): Scan = {
         val scan = new Scan(group.get(0).getStartRow, group.get(group.size() - 1).getStopRow)
@@ -390,30 +391,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       }
 
       rangesPerTable.map { case (table, rangesPerRegion) =>
-        val maxRangesPerGroup = {
-          def calcMax(maxPerGroup: Int, threads: Int): Int = {
-            val totalRanges = rangesPerRegion.values.map(_.size).sum
-            math.min(maxPerGroup, math.max(1, math.ceil(totalRanges.toDouble / threads).toInt))
-          }
-          if (coprocessor) {
-            calcMax(ds.config.coprocessors.maxRangesPerExtendedScan, ds.config.coprocessors.threads)
-          } else {
-            calcMax(ds.config.queries.maxRangesPerExtendedScan, ds.config.queries.threads)
-          }
-        }
-
         val groupedScans = Seq.newBuilder[Scan]
 
-        rangesPerRegion.foreach { case (_, list) =>
-          // our ranges are non-overlapping, so just sort them but don't bother merging them
+        rangesPerRegion.foreach { case (region, list) =>
           Collections.sort(list)
-
-          var i = 0
-          while (i < list.size()) {
-            val groupSize = math.min(maxRangesPerGroup, list.size() - i)
-            groupedScans += createGroup(list.subList(i, i + groupSize))
-            i += groupSize
-          }
+          groupedScans += createGroup(list)
         }
 
         // shuffle the ranges, otherwise our threads will tend to all hit the same region server at once
@@ -458,7 +440,9 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       val regionInfo = locator.getRegionLocation(range.getStartRow).getRegionInfo
       encodedName = regionInfo.getEncodedName
       val regionEndKey = regionInfo.getEndKey
-      if (regionEndKey.nonEmpty && ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) < 0) {
+      if (regionEndKey.nonEmpty &&
+        (range.getStopRow.isEmpty || ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) <= 0)) {
+//      if (regionEndKey.nonEmpty && ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) < 0) {
         split = regionEndKey
       }
     } catch {

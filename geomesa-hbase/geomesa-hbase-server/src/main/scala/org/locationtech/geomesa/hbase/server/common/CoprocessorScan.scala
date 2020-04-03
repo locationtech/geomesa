@@ -24,6 +24,7 @@ import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.hbase.server.common.CoprocessorScan.Aggregator
 import org.locationtech.geomesa.index.iterators.AggregatingScan
 import org.locationtech.geomesa.index.iterators.AggregatingScan.AggregateCallback
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 
 import scala.util.control.NonFatal
@@ -63,9 +64,11 @@ trait CoprocessorScan extends StrictLogging {
       if (!controller.isCanceled && timeout.forall(_ > System.currentTimeMillis())) {
         val clas = options(GeoMesaCoprocessor.AggregatorClass)
         val aggregator = Class.forName(clas).newInstance().asInstanceOf[Aggregator]
-        logger.debug(s"Initializing aggregator $aggregator with options ${options.mkString(", ")}")
-        aggregator.init(options)
-
+        logger.debug(s"Initializing aggregator $aggregator.")
+        //aggregator.init(options)
+        // JNH: Test with the below to see if partialResults are working.
+        // TODO: Need to move this into a unit test...
+        aggregator.init(options.updated("batch", "20"))
         val scan = {
           val bytes = Base64.getDecoder.decode(options(GeoMesaCoprocessor.ScanOpt))
           ProtobufUtil.toScan(ClientProtos.Scan.parseFrom(bytes))
@@ -105,6 +108,8 @@ trait CoprocessorScan extends StrictLogging {
     ) extends AggregateCallback {
 
     private val start = System.currentTimeMillis()
+    // JNH: Initial testing for how to wire up a count based check.
+    private var count = 0
 
     logger.trace(s"Running first batch on aggregator $aggregator" +
         timeout.map(t => s" with remaining timeout ${t - System.currentTimeMillis()}ms").getOrElse(""))
@@ -123,11 +128,23 @@ trait CoprocessorScan extends StrictLogging {
     }
 
     private def continue(): Boolean = {
-      if (controller.isCanceled) {
+      count += 1
+      if (count >= 10) {  // We've got 10 batches.  Let's return
+        // JNH: Fix up this log message
+        logger.warn(s"Stopping aggregator $aggregator due having seen enough batches")
+        logger.warn(s"Scan stopped at row ${ByteArrays.printable(aggregator.getLastScanned)}")
+        results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))
+        false
+      } else if (controller.isCanceled) {
         logger.warn(s"Stopping aggregator $aggregator due to controller being cancelled")
         false
       } else if (timeout.exists(_ < System.currentTimeMillis())) {
+        // JNH: TODO make the time out version work.
+        // In the 'partialResultsTimeout case, we would want to return
+        //       results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))
         logger.warn(s"Stopping aggregator $aggregator due to timeout of ${timeout.get}ms")
+        // JNH: Do we need this here?  I think 'yes', but I'm trying to think how to test in a unit test.
+        results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))
         false
       } else {
         logger.trace(s"Running next batch on aggregator $aggregator " +
