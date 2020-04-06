@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.hbase.data
 
 import com.typesafe.scalalogging.LazyLogging
-import org.geotools.data.{DataStore, DataStoreFinder, Query}
+import org.geotools.data.{DataStore, DataStoreFinder, Query, Transaction}
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.filter.text.ecql.ECQL
@@ -24,9 +24,11 @@ import org.locationtech.geomesa.hbase.data.HBasePartialResultsFilterTest.TestTab
 import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties, SchemaProperties, TableSplitter}
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.iterators.DensityScan.GridIterator
+import org.locationtech.geomesa.index.iterators.StatsScan.decodeStat
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.stats.{CountStat, IteratorStackCount, SeqStat}
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
@@ -55,6 +57,7 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
   sequential
 
   System.setProperty("geomesa.density.batch.size", "100")
+  System.setProperty("geomesa.stats.batch.size", "100")
 
   val splitterClassName = "org.locationtech.geomesa.hbase.data.HBasePartialResultsTest$TestTableSplit"
 
@@ -70,24 +73,26 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
     //CoprocessorThreadsParam.getName -> "1"
   )
 
-  lazy val ds: HBaseDataStore = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
   //lazy val dsSemiLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.DensityCoprocessorParam.key -> false)).asInstanceOf[HBaseDataStore]
-  lazy val dsFullLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false)).asInstanceOf[HBaseDataStore]
+  lazy val dsFullLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false, HBaseDataStoreParams.StatsCoprocessorParam.key -> false)).asInstanceOf[HBaseDataStore]
   lazy val dsThreads1 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "1")).asInstanceOf[HBaseDataStore]
   lazy val dsThreads2 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "2")).asInstanceOf[HBaseDataStore]
   lazy val dsThreads3 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "3")).asInstanceOf[HBaseDataStore]
   lazy val dsThreads4 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "4")).asInstanceOf[HBaseDataStore]
-
+  lazy val dsThreads8 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "4")).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads15 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "4")).asInstanceOf[HBaseDataStore]
   lazy val dsNoPartials = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.YieldPartialResultsParam.key -> false)).asInstanceOf[HBaseDataStore]
 
   //lazy val dataStores = Seq(ds, dsFullLocal) //, dsThreads1, dsThreads2)
   //lazy val dataStores = Seq(ds, dsFullLocal, dsThreads1, dsThreads2)
-  lazy val dataStores = Seq(dsThreads3, dsFullLocal, dsThreads4, dsNoPartials, dsThreads1) //, dsThreads2)
+  lazy val dataStores = Seq(dsFullLocal, dsThreads1, dsThreads2, dsThreads3, dsThreads4, dsThreads8, dsThreads15, dsNoPartials)
 
   var sft: SimpleFeatureType = _
   var fs: SimpleFeatureStore = _
 
   step {
+    lazy val ds: HBaseDataStore = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+
     logger.info("Starting the Partial Results Test")
     ds.getSchema(typeName) must beNull
     ds.createSchema(SimpleFeatureTypes.createType(typeName, TEST_FAMILY))
@@ -108,9 +113,9 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
     fs.addFeatures(new ListFeatureCollection(sft, features))
 
     // Check initial count
-//    QueryProperties.QueryExactCount.threadLocalValue.set("true")
-//    fs.getCount(Query.ALL) mustEqual 8192
-//    QueryProperties.QueryExactCount.threadLocalValue.remove()
+    QueryProperties.QueryExactCount.threadLocalValue.set("true")
+    fs.getCount(Query.ALL) mustEqual 8192
+    QueryProperties.QueryExactCount.threadLocalValue.remove()
 
     ds
   }
@@ -251,6 +256,32 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
 
     "work with Stats Scans" in {
       "by blah" >> {
+        forall(dataStores) { dataStore =>
+
+          val query = new Query(typeName, ECQL.toFilter("INCLUDE"))
+          query.getHints.put(QueryHints.STATS_STRING, "IteratorStackCount();Count()")
+          query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
+
+          val results = SelfClosingIterator(dataStore.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
+          val sf = results.head
+
+          val stats = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[SeqStat]
+          val isc = stats.stats(0).asInstanceOf[IteratorStackCount]
+          // note: I don't think there is a defined answer here that isn't implementation specific
+
+
+          if (dataStore.config.remoteFilter) {
+            if (dataStore.config.coprocessors.yieldPartialResults) {
+              isc.count must beGreaterThan(4L)
+            } else {
+//              isc.count mustEqual 4L
+            }
+          } else { // local case, we get one result.
+            isc.count mustEqual 1L
+          }
+
+          stats.stats(1).asInstanceOf[CountStat].count mustEqual(8192)
+        }
         ok
       }
     }
@@ -258,7 +289,7 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
 
   step {
     logger.info("Cleaning up HBase Density Test")
-    ds.dispose()
+    dataStores.foreach { _.dispose() }
     // JNH dispose other DSes!
   }
 }
