@@ -260,6 +260,10 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         (cqlFilter ++ indexFilter).sortBy(_._1).map(_._2)
       }
       lazy val timeout = strategy.index.ds.config.queries.timeout.map(GeoMesaCoprocessor.timeout)
+      lazy val coprocessorOptions: Map[String, String] = Map[String, String](GeoMesaCoprocessor.YieldOpt -> ds.config.coprocessors.yieldPartialResults.toString) ++
+        strategy.index.ds.config.queries.timeout.map(GeoMesaCoprocessor.timeout)
+
+      
       lazy val scans = configureScans(tables, ranges, small, colFamily, filters, coprocessor = false)
       lazy val coprocessorScans =
         configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
@@ -272,7 +276,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       if (hints.isDensityQuery) {
         empty(None).getOrElse {
           if (ds.config.coprocessors.enabled.density) {
-            val options = HBaseDensityAggregator.configure(schema, index, ecql, hints) ++ timeout
+            val options: Map[String, String] = HBaseDensityAggregator.configure(schema, index, ecql, hints) ++ coprocessorOptions
             val results = new HBaseDensityResultsToFeatures()
             CoprocessorPlan(filter, ranges, coprocessorScans, options, results, None, max, projection)
           } else {
@@ -284,7 +288,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         val reducer = Some(config.reduce)
         empty(reducer).getOrElse {
           if (ds.config.coprocessors.enabled.arrow) {
-            val options = config.config ++ timeout
+            val options = config.config ++ coprocessorOptions
             val results = new HBaseArrowResultsToFeatures()
             CoprocessorPlan(filter, ranges, coprocessorScans, options, results, reducer, max, projection)
           } else {
@@ -295,7 +299,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         val reducer = Some(StatsScan.StatsReducer(returnSchema, hints))
         empty(reducer).getOrElse {
           if (ds.config.coprocessors.enabled.stats) {
-            val options = HBaseStatsAggregator.configure(schema, index, ecql, hints) ++ timeout
+            val options = HBaseStatsAggregator.configure(schema, index, ecql, hints) ++ coprocessorOptions
             val results = new HBaseStatsResultsToFeatures()
             CoprocessorPlan(filter, ranges, coprocessorScans, options, results, reducer, max, projection)
           } else {
@@ -305,7 +309,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       } else if (hints.isBinQuery) {
         empty(None).getOrElse {
           if (ds.config.coprocessors.enabled.bin) {
-            val options = HBaseBinAggregator.configure(schema, index, ecql, hints) ++ timeout
+            val options = HBaseBinAggregator.configure(schema, index, ecql, hints) ++ coprocessorOptions
             val results = new HBaseBinResultsToFeatures()
             CoprocessorPlan(filter, ranges, coprocessorScans, options , results, None, max, projection)
           } else {

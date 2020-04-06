@@ -61,6 +61,7 @@ trait CoprocessorScan extends StrictLogging {
     try {
       val options = GeoMesaCoprocessor.deserializeOptions(request.getOptions.toByteArray)
       val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong)
+      val yieldPartialResults = options.get(GeoMesaCoprocessor.YieldOpt).exists(_.toBoolean)  // This should
       if (!controller.isCanceled && timeout.forall(_ > System.currentTimeMillis())) {
         val clas = options(GeoMesaCoprocessor.AggregatorClass)
         val aggregator = Class.forName(clas).newInstance().asInstanceOf[Aggregator]
@@ -77,7 +78,7 @@ trait CoprocessorScan extends StrictLogging {
 
         WithClose(getScanner(scan)) { scanner =>
           aggregator.setScanner(scanner)
-          aggregator.aggregate(new CoprocessorAggregateCallback(controller, aggregator, results, timeout))
+          aggregator.aggregate(new CoprocessorAggregateCallback(controller, aggregator, results, yieldPartialResults, timeout))
         }
       }
     } catch {
@@ -105,9 +106,11 @@ trait CoprocessorScan extends StrictLogging {
       controller: RpcController,
       aggregator: Aggregator,
       results: GeoMesaCoprocessorResponse.Builder,
+      yieldPartialResults: Boolean,
       timeout: Option[Long]
     ) extends AggregateCallback {
 
+    logger.debug(s"Made a CoproAggCallback with yield: $yieldPartialResults")
     private val start = System.currentTimeMillis()
     // JNH: Initial testing for how to wire up a count based check.
     private var count = 0
@@ -132,7 +135,7 @@ trait CoprocessorScan extends StrictLogging {
     private def continue(): Boolean = {
       count += 1
       // JNH: if (returnPartialResults)
-      if (count >= 1) {  // We've got 10 batches.  Let's return
+      if (yieldPartialResults) {  // We've got 10 batches.  Let's return
         // JNH: Fix up this log message
         logger.warn(s"Stopping aggregator $aggregator due having seen enough batches")
         logger.warn(s"Scan stopped at row ${ByteArrays.printable(aggregator.getLastScanned)}")

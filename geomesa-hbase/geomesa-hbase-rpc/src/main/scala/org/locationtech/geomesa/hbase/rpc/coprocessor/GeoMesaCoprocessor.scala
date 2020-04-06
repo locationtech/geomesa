@@ -35,6 +35,7 @@ object GeoMesaCoprocessor extends LazyLogging {
   val FilterOpt  = "filter"
   val ScanOpt    = "scan"
   val TimeoutOpt = "timeout"
+  val YieldOpt   = "yield"
 
   private val service = classOf[GeoMesaCoprocessorService]
 
