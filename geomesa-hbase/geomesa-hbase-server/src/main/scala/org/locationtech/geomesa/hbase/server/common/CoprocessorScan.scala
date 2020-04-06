@@ -65,10 +65,11 @@ trait CoprocessorScan extends StrictLogging {
         val clas = options(GeoMesaCoprocessor.AggregatorClass)
         val aggregator = Class.forName(clas).newInstance().asInstanceOf[Aggregator]
         logger.debug(s"Initializing aggregator $aggregator.")
-        //aggregator.init(options)
+        aggregator.init(options)
         // JNH: Test with the below to see if partialResults are working.
         // TODO: Need to move this into a unit test...
-        aggregator.init(options.updated("batch", "20"))
+        //aggregator.init(options.updated("batch", "20"))
+
         val scan = {
           val bytes = Base64.getDecoder.decode(options(GeoMesaCoprocessor.ScanOpt))
           ProtobufUtil.toScan(ClientProtos.Scan.parseFrom(bytes))
@@ -129,7 +130,8 @@ trait CoprocessorScan extends StrictLogging {
 
     private def continue(): Boolean = {
       count += 1
-      if (count >= 10) {  // We've got 10 batches.  Let's return
+      // JNH: if (returnPartialResults)
+      if (count >= 2) {  // We've got 10 batches.  Let's return
         // JNH: Fix up this log message
         logger.warn(s"Stopping aggregator $aggregator due having seen enough batches")
         logger.warn(s"Scan stopped at row ${ByteArrays.printable(aggregator.getLastScanned)}")

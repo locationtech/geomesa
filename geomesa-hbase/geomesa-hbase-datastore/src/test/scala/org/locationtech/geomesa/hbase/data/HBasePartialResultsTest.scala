@@ -123,6 +123,28 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
 
     "work with Bin Scans" in {
       "by blah" >> {
+        def getBinFeatures(typeName: String, query: String, ds: DataStore): Seq[SimpleFeature] = {
+          val fs: SimpleFeatureStore = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+          val filter = ECQL.toFilter(query)
+          //          val envelope = FilterHelper.extractGeometries(filter, "geom").values.headOption match {
+          //            case None    => ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
+          //            case Some(g) => ReferencedEnvelope.create(g.getEnvelopeInternal,  DefaultGeographicCRS.WGS84)
+          //          }
+
+          val q = new Query(typeName, filter)
+          q.getHints.put(QueryHints.BIN_TRACK, "id")
+          q.getHints.put(QueryHints.BIN_BATCH_SIZE, 100)
+
+          val features: Seq[SimpleFeature] = SelfClosingIterator(fs.getFeatures(q).features).toList
+          features
+        }
+
+        var i = 0
+        getBinFeatures(typeName, "INCLUDE", ds).foreach {
+          feature =>
+            i += 1
+            println(s"Feature $i: $feature")
+        }
         ok
       }
     }
