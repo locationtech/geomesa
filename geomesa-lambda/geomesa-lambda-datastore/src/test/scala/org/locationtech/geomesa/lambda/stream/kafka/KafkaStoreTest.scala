@@ -67,7 +67,7 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
         val om = new InMemoryOffsetManager
         WithClose(KafkaStore.producer(config)) { producer =>
           def newStore(): KafkaStore =
-            new KafkaStore(ds, sft, None, om, producer, config, LambdaConfig(zookeepers, ns, 2, 1, Duration(1000, "ms"), None, persist = true))
+            new KafkaStore(ds, sft, None, om, producer, config, LambdaConfig(zookeepers, ns, 2, 1, Duration(1000, "ms"), persist = true))
           WithClose(newStore(), newStore()) { (store1, store2) =>
             store1.write(feature)
             producer.flush()
@@ -101,7 +101,7 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
         val om = new InMemoryOffsetManager
         WithClose(KafkaStore.producer(config)) { producer =>
           def newStore(): KafkaStore =
-            new KafkaStore(ds, sft, None, om, producer, config, LambdaConfig(zookeepers, ns, 2, 1, Duration(1000, "ms"), None, persist = true))
+            new KafkaStore(ds, sft, None, om, producer, config, LambdaConfig(zookeepers, ns, 2, 1, Duration(1000, "ms"), persist = true))
           WithClose(newStore(), newStore()) { (store1, store2) =>
             store1.write(feature)
             producer.flush()
@@ -147,7 +147,7 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
         val om = new InMemoryOffsetManager
         WithClose(KafkaStore.producer(config)) { producer =>
           def newStore(): KafkaStore =
-            new KafkaStore(ds, sft, None, om, producer, config, LambdaConfig(zookeepers, ns, 2, 1, Duration(1000, "ms"), None, persist = true))
+            new KafkaStore(ds, sft, None, om, producer, config, LambdaConfig(zookeepers, ns, 2, 1, Duration(1000, "ms"), persist = true))
           WithClose(newStore(), newStore()) { (store1, store2) =>
             store1.write(feature1)
             store2.write(feature2)
@@ -210,7 +210,7 @@ class KafkaStoreTest extends LambdaTest with LazyLogging {
         val om = new InMemoryOffsetManager
         WithClose(KafkaStore.producer(config)) { producer =>
           def newStore(): KafkaStore =
-            new KafkaStore(ds, sft, None, om, producer, config, LambdaConfig(zookeepers, ns, 2, 1, Duration(1000, "ms"), None, persist = true))
+            new KafkaStore(ds, sft, None, om, producer, config, LambdaConfig(zookeepers, ns, 2, 1, Duration(1000, "ms"), persist = true))
           WithClose(newStore(), newStore()) { (store1, store2) =>
             store1.write(feature1)
             producer.flush()

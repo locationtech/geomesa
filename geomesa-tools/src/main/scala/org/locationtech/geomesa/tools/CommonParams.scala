@@ -61,12 +61,7 @@ trait KerberosParams {
   var keytab: String = _
 }
 
-trait RequiredCredentialsParams extends PasswordParams {
-  @Parameter(names = Array("-u", "--user"), description = "Connection user name", required = true)
-  var user: String = _
-}
-
-trait OptionalCredentialsParams extends PasswordParams {
+trait CredentialsParams extends PasswordParams {
   @Parameter(names = Array("-u", "--user"), description = "Connection user name")
   var user: String = _
 }

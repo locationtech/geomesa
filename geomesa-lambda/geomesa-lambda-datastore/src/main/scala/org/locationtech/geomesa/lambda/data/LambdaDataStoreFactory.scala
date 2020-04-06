@@ -38,7 +38,6 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
     val partitions = Kafka.PartitionsParam.lookup(params).intValue
     val consumers = Kafka.ConsumersParam.lookup(params).intValue
     val persist = PersistParam.lookup(params).booleanValue
-    val defaultVisibility = VisibilitiesParam.lookupOpt(params)
 
     val consumerConfig = parsePropertiesParam(Kafka.ConsumerOptsParam.lookup(params)) ++ Map("bootstrap.servers" -> brokers)
     val producer = {
@@ -57,7 +56,7 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
 
     val clock = ClockParam.lookupOpt(params).getOrElse(Clock.systemUTC())
 
-    val config = LambdaConfig(zk, zkNamespace, partitions, consumers, expiry, defaultVisibility, persist)
+    val config = LambdaConfig(zk, zkNamespace, partitions, consumers, expiry, persist)
 
     new LambdaDataStore(persistence, producer, consumerConfig, offsetManager, config)(clock)
   }
@@ -106,7 +105,6 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
       Params.Kafka.ConsumersParam,
       Params.Kafka.ProducerOptsParam,
       Params.Kafka.ConsumerOptsParam,
-      Params.VisibilitiesParam,
       Params.LooseBBoxParam,
       Params.GenerateStatsParam,
       Params.AuditQueriesParam

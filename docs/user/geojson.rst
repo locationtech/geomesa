@@ -250,7 +250,6 @@ Registers a data store to make it available for querying.
 |                 | **Optional**                                                                         |
 |                 |                                                                                      |
 |                 | * ``geomesa.security.auths=[alphanumeric]``                                          |
-|                 | * ``geomesa.security.visibilities=[alphanumeric]``                                   |
 |                 | * ``geomesa.query.timeout=[alphanumeric]``                                           |
 |                 | * ``geomesa.query.threads=[integer]``                                                |
 |                 | * ``accumulo.query.record-threads=[integer]``                                        |

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.accumulo.tools
 
 import com.beust.jcommander.Parameter
-import org.locationtech.geomesa.tools.{CatalogParam, KerberosParams, RequiredCredentialsParams}
+import org.locationtech.geomesa.tools.{CatalogParam, CredentialsParams, KerberosParams}
 
 /**
   * Shared Accumulo-specific command line parameters
@@ -17,25 +17,20 @@ import org.locationtech.geomesa.tools.{CatalogParam, KerberosParams, RequiredCre
 
 trait AccumuloDataStoreParams extends AccumuloConnectionParams with CatalogParam
 
-trait InstanceNameParams extends OptionalZookeepersParam {
+trait InstanceNameParams extends ZookeepersParam {
   @Parameter(names = Array("-i", "--instance"), description = "Accumulo instance name")
   var instance: String = _
 }
 
-trait AccumuloConnectionParams extends InstanceNameParams with RequiredCredentialsParams with KerberosParams {
+trait AccumuloConnectionParams extends InstanceNameParams with CredentialsParams with KerberosParams {
   @Parameter(names = Array("--auths"), description = "Accumulo authorizations")
   var auths: String = _
-
-  @Parameter(names = Array("--visibilities"), description = "Default feature visibilities")
-  var visibilities: String = _
 }
 
 trait ZookeepersParam {
-  @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)", required = true)
-  var zookeepers: String = _
-}
-
-trait OptionalZookeepersParam {
   @Parameter(names = Array("-z", "--zookeepers"), description = "Zookeepers (host[:port], comma separated)")
   var zookeepers: String = _
+
+  @Parameter(names = Array("--zookeepers-timeout"), description = "Zookeepers timeout")
+  var zkTimeout: String = _
 }

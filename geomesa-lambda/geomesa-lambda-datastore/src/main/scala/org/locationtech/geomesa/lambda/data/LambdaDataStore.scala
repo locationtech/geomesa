@@ -176,6 +176,5 @@ object LambdaDataStore {
                           partitions: Int,
                           consumers: Int,
                           expiry: Duration,
-                          visibility: Option[String],
                           persist: Boolean)
 }

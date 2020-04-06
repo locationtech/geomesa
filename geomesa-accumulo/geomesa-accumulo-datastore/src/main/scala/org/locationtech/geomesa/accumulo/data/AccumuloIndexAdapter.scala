@@ -324,8 +324,7 @@ object AccumuloIndexAdapter {
     private val colFamilyMappings = indices.map(mapColumnFamily).toArray
     private val timestamps = indices.exists(i => !i.sft.isLogicalTime)
 
-    // cache our vis to avoid the re-parsing done in the ColumnVisibility constructor
-    private val defaultVisibility = new ColumnVisibility(ds.config.defaultVisibilities)
+    private val defaultVisibility = new ColumnVisibility()
     private val visibilities = new java.util.HashMap[VisHolder, ColumnVisibility]()
 
     private var i = 0

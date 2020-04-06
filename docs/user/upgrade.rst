@@ -141,6 +141,12 @@ The signature for ``org.locationtech.geomesa.security.AuthorizationsProvider#con
 interfaces will need to update their method signature. Any classes invoking these methods should not need to updated,
 as the new signature is compatible with the old one.
 
+Accumulo Default Visibilities Removed
+-------------------------------------
+
+The Accumulo data store parameter ``geomesa.security.visibilities`` have been removed. Visibilities should be set
+per-feature, as per :ref:`accumulo_visibilities`.
+
 Version 2.4.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

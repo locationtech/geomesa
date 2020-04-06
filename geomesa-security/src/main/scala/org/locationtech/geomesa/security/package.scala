@@ -18,8 +18,8 @@ package object security {
 
   import scala.collection.JavaConverters._
 
-  val GEOMESA_AUDIT_PROVIDER_IMPL = SystemProperty("geomesa.audit.provider.impl")
-  val GEOMESA_AUTH_PROVIDER_IMPL  = SystemProperty("geomesa.auth.provider.impl")
+  val GEOMESA_AUDIT_PROVIDER_IMPL: SystemProperty = SystemProperty("geomesa.audit.provider.impl")
+  val GEOMESA_AUTH_PROVIDER_IMPL : SystemProperty = SystemProperty("geomesa.auth.provider.impl")
 
   val AuthsParam =
     new GeoMesaParam[String](
@@ -41,17 +41,9 @@ package object security {
       "Authorizations provider",
       deprecatedKeys = Seq("authProvider"))
 
-  val VisibilitiesParam =
-    new GeoMesaParam[String](
-      "geomesa.security.visibilities",
-      "Default visibilities to apply to all written data",
-      deprecatedKeys = Seq("visibilities"),
-      supportsNiFiExpressions = true)
-
   trait SecurityParams {
     val AuthsParam: GeoMesaParam[String] = org.locationtech.geomesa.security.AuthsParam
     val ForceEmptyAuthsParam: GeoMesaParam[java.lang.Boolean] = org.locationtech.geomesa.security.ForceEmptyAuthsParam
-    val VisibilitiesParam: GeoMesaParam[String] = org.locationtech.geomesa.security.VisibilitiesParam
   }
 
   implicit class SecureSimpleFeature(val sf: SimpleFeature) extends AnyVal {

@@ -4,17 +4,25 @@ Using the Accumulo Data Store Programmatically
 Creating a Data Store
 ---------------------
 
-An instance of an Accumulo data store can be obtained through the normal GeoTools discovery methods, assuming that the GeoMesa code is on the classpath:
+An instance of an Accumulo data store can be obtained through the normal GeoTools discovery methods, assuming
+that the GeoMesa code is on the classpath:
 
 .. code-block:: java
 
+    import org.geotools.data.*;
+
     Map<String, String> parameters = new HashMap<>;
     parameters.put("accumulo.instance.id", "myInstance");
-    parameters.put("accumulo.zookeepers", "zoo1,zoo2,zoo3");
+    parameters.put("accumulo.zookeepers", "myZoo1,myZoo2,myZoo3");
     parameters.put("accumulo.user", "myUser");
     parameters.put("accumulo.password", "myPassword");
-    parameters.put("accumulo.catalog", "my_table");
-    org.geotools.data.DataStore dataStore = org.geotools.data.DataStoreFinder.getDataStore(parameters);
+    parameters.put("accumulo.catalog", "myNamespace.myTable");
+    DataStore dataStore = DataStoreFinder.getDataStore(parameters);
+
+Instead of specifying the cluster connection explicitly, an appropriate ``accumulo-client.properties`` (for Accumulo
+2) or ``client.conf`` (for Accumulo 1) may be added to the classpath. See the
+`Accumulo documentation <https://accumulo.apache.org/docs/2.x/getting-started/clients#creating-an-accumulo-client>`_
+for information on the necessary configuration keys.
 
 More information on using GeoTools can be found in the `GeoTools user guide <http://docs.geotools.org/stable/userguide/>`_.
 
@@ -28,19 +36,18 @@ The Accumulo Data Store takes several parameters (required parameters are marked
 ====================================== ======= ==========================================================================
 Parameter                              Type    Description
 ====================================== ======= ==========================================================================
-``accumulo.instance.id *``             String  The ID of the Accumulo instance
-``accumulo.zookeepers *``              String  A comma separated list of zookeeper servers (e.g. "zoo1,zoo2,zoo3"
+``accumulo.catalog *``                 String  The name of the GeoMesa catalog table, including the Accumulo namespace
+                                               (e.g. "myNamespace.myCatalog")
+``accumulo.instance.id``               String  The ID of the Accumulo instance
+``accumulo.zookeepers``                String  A comma separated list of zookeeper servers (e.g. "zoo1,zoo2,zoo3"
                                                or "localhost:2181")
-``accumulo.user *``                    String  Accumulo username
-``accumulo.password``                  String  Accumulo password
+``accumulo.user``                      String  The username used to connect to Accumulo
+``accumulo.password``                  String  The password for the Accumulo user
 ``accumulo.keytab.path``               String  Path to a Kerberos keytab file containing an entry for the specified user
-``accumulo.catalog *``                 String  The name of the GeoMesa catalog table, including Accumulo namespace,
-                                               if any (previously ``tableName``)
 ``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for
                                                queries via Accumulo
 ``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
 ``geomesa.security.auth-provider``     String  Class name for an ``AuthorizationsProvider`` implementation
-``geomesa.security.visibilities``      String  Visibilities to apply to all written data
 ``geomesa.query.audit``                Boolean Audit queries being run. Queries will be stored in a
                                                ``<catalog>_queries`` table
 ``geomesa.query.timeout``              String  The max time a query will be allowed to run before being killed. The
@@ -54,4 +61,4 @@ Parameter                              Type    Description
 ``geomesa.query.caching``              Boolean Toggle caching of results
 ====================================== ======= ==========================================================================
 
-Note: one (but not both) of ``accumulo.password`` and ``accumulo.keytab.path`` must be provided.
+Note: it is an error to specify both ``accumulo.password`` and ``accumulo.keytab.path``.

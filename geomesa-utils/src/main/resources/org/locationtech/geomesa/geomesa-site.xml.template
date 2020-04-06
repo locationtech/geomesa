@@ -31,16 +31,6 @@
     </property>
 
     <property>
-        <name>geomesa.tools.accumulo.site.xml</name>
-        <value></value>
-        <description>Path to the accumulo site xml config file. This is used
-            to look up information about the accumulo cluster such as the
-            master or zookeeper names.
-        </description>
-        <final>false</final>
-    </property>
-
-    <property>
         <name>geomesa.audit.provider.impl</name>
         <value></value>
         <description>Fully-qualified classname of the implementation of the

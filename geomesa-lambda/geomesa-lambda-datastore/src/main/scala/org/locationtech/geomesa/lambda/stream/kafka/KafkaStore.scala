@@ -31,7 +31,7 @@ import org.locationtech.geomesa.kafka.{AdminUtilsVersions, KafkaConsumerVersions
 import org.locationtech.geomesa.lambda.data.LambdaDataStore.LambdaConfig
 import org.locationtech.geomesa.lambda.stream.kafka.KafkaStore.MessageTypes
 import org.locationtech.geomesa.lambda.stream.{OffsetManager, TransientStore}
-import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
+import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -78,16 +78,6 @@ class KafkaStore(ds: DataStore,
     Some(new DataStorePersistence(ds, sft, offsetManager, cache, topic, config.expiry.toMillis, config.persist))
   }
 
-  private val setVisibility: SimpleFeature => SimpleFeature = config.visibility match {
-    case None => f => f
-    case Some(vis) => f => {
-      if (SecurityUtils.getVisibility(f) == null) {
-        SecurityUtils.setFeatureVisibility(f, vis)
-      }
-      f
-    }
-  }
-
   // register as a listener for offset changes
   offsetManager.addOffsetListener(topic, cache)
 
@@ -127,7 +117,7 @@ class KafkaStore(ds: DataStore,
   }
 
   override def write(original: SimpleFeature): Unit = {
-    val feature = prepFeature(original)
+    val feature = GeoMesaFeatureWriter.featureWithFid(sft, original)
     val key = KafkaStore.serializeKey(clock.millis(), MessageTypes.Write)
     producer.send(new ProducerRecord(topic, key, serializer.serialize(feature)))
     logger.trace(s"Wrote feature to [$topic]: $feature")
@@ -136,7 +126,7 @@ class KafkaStore(ds: DataStore,
   override def delete(original: SimpleFeature): Unit = {
     import org.locationtech.geomesa.filter.ff
     // send a message to delete from all transient stores
-    val feature = prepFeature(original)
+    val feature = GeoMesaFeatureWriter.featureWithFid(sft, original)
     val key = KafkaStore.serializeKey(clock.millis(), MessageTypes.Delete)
     producer.send(new ProducerRecord(topic, key, serializer.serialize(feature)))
     // also delete from persistent store
@@ -162,10 +152,6 @@ class KafkaStore(ds: DataStore,
     persistence.foreach(CloseWithLogging.apply)
     offsetManager.removeOffsetListener(topic, cache)
   }
-
-  private def prepFeature(original: SimpleFeature): SimpleFeature =
-    setVisibility(GeoMesaFeatureWriter.featureWithFid(sft, original))
-
 }
 
 object KafkaStore {

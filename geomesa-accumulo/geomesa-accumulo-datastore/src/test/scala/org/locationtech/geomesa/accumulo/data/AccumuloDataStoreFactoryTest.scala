@@ -9,6 +9,8 @@
 
 package org.locationtech.geomesa.accumulo.data
 
+import java.io.IOException
+
 import org.geotools.data.DataStoreFinder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.MiniCluster
@@ -65,8 +67,8 @@ class AccumuloDataStoreFactoryTest extends Specification {
         AccumuloDataStoreParams.KeytabPathParam.key -> "/path/to/keytab",
         AccumuloDataStoreParams.CatalogParam.key    -> catalog
       ).asJava
-      AccumuloDataStoreFactory.canProcess(params) must beFalse
-      DataStoreFinder.getDataStore(params) must beNull
+      AccumuloDataStoreFactory.canProcess(params) must beTrue
+      DataStoreFinder.getDataStore(params) must throwAn[IllegalArgumentException]
     }
 
     "not accept a missing instanceId" in {
@@ -76,8 +78,8 @@ class AccumuloDataStoreFactoryTest extends Specification {
         AccumuloDataStoreParams.PasswordParam.key   -> MiniCluster.Users.root.password,
         AccumuloDataStoreParams.CatalogParam.key    -> catalog
       ).asJava
-      AccumuloDataStoreFactory.canProcess(params) must beFalse
-      DataStoreFinder.getDataStore(params) must beNull
+      AccumuloDataStoreFactory.canProcess(params) must beTrue
+      DataStoreFinder.getDataStore(params) must throwAn[IOException]
     }
 
     "not accept a missing zookeepers" in {
@@ -87,8 +89,8 @@ class AccumuloDataStoreFactoryTest extends Specification {
         AccumuloDataStoreParams.PasswordParam.key   -> MiniCluster.Users.root.password,
         AccumuloDataStoreParams.CatalogParam.key    -> catalog
       ).asJava
-      AccumuloDataStoreFactory.canProcess(params) must beFalse
-      DataStoreFinder.getDataStore(params) must beNull
+      AccumuloDataStoreFactory.canProcess(params) must beTrue
+      DataStoreFinder.getDataStore(params) must throwAn[IOException]
     }
 
     "not accept a missing user" in {
@@ -98,8 +100,8 @@ class AccumuloDataStoreFactoryTest extends Specification {
         AccumuloDataStoreParams.PasswordParam.key   -> MiniCluster.Users.root.password,
         AccumuloDataStoreParams.CatalogParam.key    -> catalog
       ).asJava
-      AccumuloDataStoreFactory.canProcess(params) must beFalse
-      DataStoreFinder.getDataStore(params) must beNull
+      AccumuloDataStoreFactory.canProcess(params) must beTrue
+      DataStoreFinder.getDataStore(params) must throwAn[IOException]
     }
 
     "not accept a missing password and keytab" in {
@@ -109,8 +111,8 @@ class AccumuloDataStoreFactoryTest extends Specification {
         AccumuloDataStoreParams.UserParam.key       -> MiniCluster.Users.root.name,
         AccumuloDataStoreParams.CatalogParam.key    -> catalog
       ).asJava
-      AccumuloDataStoreFactory.canProcess(params) must beFalse
-      DataStoreFinder.getDataStore(params) must beNull
+      AccumuloDataStoreFactory.canProcess(params) must beTrue
+      DataStoreFinder.getDataStore(params) must throwAn[IOException]
     }
   }
 }
