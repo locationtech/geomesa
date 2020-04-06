@@ -43,7 +43,7 @@ trait LocalLocking extends DistributedLocking {
     Releasable(lock)
   }
 
-  protected def acquireDistributedLock(key: String, timeOut: Long): Option[Releasable] = {
+  override protected def acquireDistributedLock(key: String, timeOut: Long): Option[Releasable] = {
     val lock = locks.synchronized(locks.getOrElseUpdate(key, new ReentrantLock()))
     if (lock.tryLock(timeOut, TimeUnit.MILLISECONDS)) { Some(Releasable(lock)) } else { None }
   }
