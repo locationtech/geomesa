@@ -35,9 +35,9 @@
     <!-- un-comment the following line to enable verbose log messages
          from the index query-planner; this can be helpful in debugging
          query plans -->
-    <!--<category name="org.locationtech.geomesa.index.utils.Explainer">
+    <category name="org.locationtech.geomesa.index.utils.Explainer">
         <priority value="trace"/>
-    </category>-->
+    </category>
 
     <category name="org.locationtech.geomesa.hbase.server">
         <priority value="debug"/>

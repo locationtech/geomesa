@@ -21,10 +21,11 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.{ConnectionParam, CoprocessorThreadsParam, HBaseCatalogParam}
 import org.locationtech.geomesa.hbase.data.HBasePartialResultsFilterTest.TestTableSplit
-import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties, TableSplitter}
+import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties, SchemaProperties, TableSplitter}
 import org.locationtech.geomesa.index.iterators.DensityScan
 import org.locationtech.geomesa.index.iterators.DensityScan.GridIterator
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -53,7 +54,7 @@ object HBasePartialResultsFilterTest {
 class HBasePartialResultsTest extends Specification with LazyLogging {
   sequential
 
-  //System.setProperty("geomesa.density.batch.size", "100")
+  System.setProperty("geomesa.density.batch.size", "100")
 
   val splitterClassName = "org.locationtech.geomesa.hbase.data.HBasePartialResultsTest$TestTableSplit"
 
@@ -64,9 +65,9 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
 
   lazy val params = Map(
     ConnectionParam.getName -> MiniCluster.connection,
-    HBaseCatalogParam.getName -> getClass.getSimpleName,
+    HBaseCatalogParam.getName -> getClass.getSimpleName
     // JNH abstract over Copro Threads
-    CoprocessorThreadsParam.getName -> "1"
+    //CoprocessorThreadsParam.getName -> "1"
   )
 
   lazy val ds: HBaseDataStore = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
@@ -77,11 +78,11 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
   lazy val dsThreads3 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "3")).asInstanceOf[HBaseDataStore]
   lazy val dsThreads4 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "4")).asInstanceOf[HBaseDataStore]
 
-  //  lazy val dsFullLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false)).asInstanceOf[HBaseDataStore]
+  lazy val dsNoPartials = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.YieldPartialResultsParam.key -> false)).asInstanceOf[HBaseDataStore]
 
   //lazy val dataStores = Seq(ds, dsFullLocal) //, dsThreads1, dsThreads2)
   //lazy val dataStores = Seq(ds, dsFullLocal, dsThreads1, dsThreads2)
-  lazy val dataStores = Seq(dsThreads3) //, dsThreads2)
+  lazy val dataStores = Seq(dsThreads3, dsFullLocal, dsThreads4, dsNoPartials, dsThreads1) //, dsThreads2)
 
   var sft: SimpleFeatureType = _
   var fs: SimpleFeatureStore = _
@@ -93,12 +94,13 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
     sft = ds.getSchema(typeName)
     fs = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
 
-    val features = (0 until 2048).map { i =>
+    val features = (0 until 8192).map { i =>
       val sf = new ScalaSimpleFeature(sft, i.toString)
       sf.setAttribute(0, i.toString)
       sf.setAttribute(1, s"$i.0")
       sf.setAttribute(2, "2012-01-01T19:00:00Z")
-      sf.setAttribute(3, s"POINT(${i % 64} ${i / 64})")
+      // JNH: lattice of [0x127]x[0x63]
+      sf.setAttribute(3, s"POINT(${i / 64} ${i % 64})")
       sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       sf
     }
@@ -106,56 +108,80 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
     fs.addFeatures(new ListFeatureCollection(sft, features))
 
     // Check initial count
-    QueryProperties.QueryExactCount.threadLocalValue.set("true")
-    try {
-      fs.getCount(Query.ALL) mustEqual 2048
-    } finally {
-      QueryProperties.QueryExactCount.threadLocalValue.remove()
-    }
+//    QueryProperties.QueryExactCount.threadLocalValue.set("true")
+//    fs.getCount(Query.ALL) mustEqual 8192
+//    QueryProperties.QueryExactCount.threadLocalValue.remove()
+
+    ds
   }
 
   "Partial Results" should {
+    // JNH: Temporarily borrowed from the HBaseDataStoreTest.
+    "work with the HBase Version Aggregator" in {
+      // note: we have to use a unique catalog to avoid getting a cached version
+      // we can't use the thread local value b/c it's loaded in an asynchronous guava cache
+      SchemaProperties.CheckDistributedVersion.set("true")
+      try {
+        val params = Map(
+          ConnectionParam.getName -> MiniCluster.connection,
+          HBaseCatalogParam.getName -> "HBaseDistributedVersionTest"
+        )
+        val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+        ds must not(beNull)
+
+        try {
+          ds.createSchema(SimpleFeatureTypes.createType("test-version", "dtg:Date,*geom:Point:srid=4326"))
+          ds.getDistributedVersion must beSome(SemanticVersion(GeoMesaProperties.ProjectVersion))
+        } finally {
+          ds.dispose()
+        }
+      } finally {
+        SchemaProperties.CheckDistributedVersion.clear()
+      }
+    }
+
+
     "work with Arrow Scans" in {
       "by blah" >> {
         ok
       }
     }
 
-    "work with Bin Scans" in {
-      "by blah" >> {
-        def getBinFeatures(typeName: String, query: String, ds: DataStore): Seq[SimpleFeature] = {
-          val fs: SimpleFeatureStore = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
-          val filter = ECQL.toFilter(query)
-          //          val envelope = FilterHelper.extractGeometries(filter, "geom").values.headOption match {
-          //            case None    => ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
-          //            case Some(g) => ReferencedEnvelope.create(g.getEnvelopeInternal,  DefaultGeographicCRS.WGS84)
-          //          }
-
-          val q = new Query(typeName, filter)
-          q.getHints.put(QueryHints.BIN_TRACK, "id")
-          q.getHints.put(QueryHints.BIN_BATCH_SIZE, 100)
-
-          val features: Seq[SimpleFeature] = SelfClosingIterator(fs.getFeatures(q).features).toList
-          features
-        }
-
-        var i = 0
-        getBinFeatures(typeName, "INCLUDE", ds).foreach {
-          feature =>
-            i += 1
-            println(s"Feature $i: $feature")
-        }
-        ok
-      }
-    }
+//    "work with Bin Scans" in {
+//      "by blah" >> {
+//        def getBinFeatures(typeName: String, query: String, ds: DataStore): Seq[SimpleFeature] = {
+//          val fs: SimpleFeatureStore = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
+//          val filter = ECQL.toFilter(query)
+//          //          val envelope = FilterHelper.extractGeometries(filter, "geom").values.headOption match {
+//          //            case None    => ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
+//          //            case Some(g) => ReferencedEnvelope.create(g.getEnvelopeInternal,  DefaultGeographicCRS.WGS84)
+//          //          }
+//
+//          val q = new Query(typeName, filter)
+//          q.getHints.put(QueryHints.BIN_TRACK, "id")
+//          q.getHints.put(QueryHints.BIN_BATCH_SIZE, 100)
+//
+//          val features: Seq[SimpleFeature] = SelfClosingIterator(fs.getFeatures(q).features).toList
+//          features
+//        }
+//
+//        var i = 0
+//        getBinFeatures(typeName, "INCLUDE", ds).foreach {
+//          feature =>
+//            i += 1
+//            println(s"Feature $i: $feature")
+//        }
+//        ok
+//      }
+//    }
 
     "work with Density Scans" in {
       def getDensity(typeName: String, query: String, ds: DataStore): (Seq[SimpleFeature], List[(Double, Double, Double)]) = {
         val fs: SimpleFeatureStore = ds.getFeatureSource(typeName).asInstanceOf[SimpleFeatureStore]
         val filter = ECQL.toFilter(query)
         val envelope = FilterHelper.extractGeometries(filter, "geom").values.headOption match {
-          case None    => ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
-          case Some(g) => ReferencedEnvelope.create(g.getEnvelopeInternal,  DefaultGeographicCRS.WGS84)
+          case None => ReferencedEnvelope.create(new Envelope(-180, 180, -90, 90), DefaultGeographicCRS.WGS84)
+          case Some(g) => ReferencedEnvelope.create(g.getEnvelopeInternal, DefaultGeographicCRS.WGS84)
         }
         val q = new Query(typeName, filter)
         q.getHints.put(QueryHints.DENSITY_BBOX, envelope)
@@ -167,7 +193,7 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
         (features, grid)
       }
 
-      "by blah" >> {
+      "using full-table scans" >> {
         forall(dataStores) { dataStore =>
           val q = "INCLUDE"
           val (features, density) = getDensity(typeName, q, dataStore)
@@ -177,17 +203,49 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
           println(s"Datastore remote filter flag: ${dataStore.config.remoteFilter} Size: ${features.size}")
 
           if (dataStore.config.remoteFilter) {
+            if(dataStore.config.coprocessors.yieldPartialResults) {
+              features.size must beGreaterThan(4)
+            } else {
+              // No Partial results.  We should see exactly 4 returns.
+              features.size must beGreaterThan(1)
+              features.size must beLessThanOrEqualTo(4)
+            }
+
             // JNH: Find batch
           } else { // local case, we get one result.
             features.size mustEqual 1
           }
 
           // should be 5 bins of 30
-          compiled must haveLength(2048)
-          density.map(_._3).sum mustEqual 2048
+          compiled must haveLength(8192)
+          density.map(_._3).sum mustEqual 8192
           forall(compiled){ _ mustEqual 1 }
         }
       }
+
+      "using exclusive scans (which trigger the partial calls for skipped records)" >> {
+        forall(dataStores) { dataStore =>
+          val q = "attr < 1.1"
+          val (features, density) = getDensity(typeName, q, dataStore)
+
+          val compiled = density.groupBy(d => (d._1, d._2)).map { case (_, group) => group.map(_._3).sum }
+
+          println(s"Datastore remote filter flag: ${dataStore.config.remoteFilter} Size: ${features.size}")
+
+          if (dataStore.config.remoteFilter) {
+            // JNH: Meh, it should be larger than 1.
+            features.size mustNotEqual 1
+            // JNH: Find batch
+          } else { // local case, we get one result.
+            features.size mustEqual 1
+          }
+
+          // should be 5 bins of 30
+          compiled must haveLength(2)
+          density.map(_._3).sum mustEqual 2
+        }
+      }
+
     }
 
     "work with Stats Scans" in {

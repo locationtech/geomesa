@@ -63,6 +63,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     val coprocessors = CoprocessorConfig(
       enabled = enabledCoprocessors,
       threads = CoprocessorThreadsParam.lookup(params),
+      yieldPartialResults = YieldPartialResultsParam.lookup(params),
       maxRangesPerExtendedScan = MaxRangesPerCoprocessorScanParam.lookup(params),
       url = CoprocessorUrlParam.lookupOpt(params)
     )
@@ -190,6 +191,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   case class CoprocessorConfig(
       enabled: EnabledCoprocessors,
       threads: Int,
+      yieldPartialResults: Boolean,
       maxRangesPerExtendedScan: Int,
       url: Option[Path]
     )

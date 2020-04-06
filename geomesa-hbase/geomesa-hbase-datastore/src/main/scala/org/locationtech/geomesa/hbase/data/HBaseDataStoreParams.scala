@@ -60,6 +60,14 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       deprecatedKeys = Seq("remote.filtering"),
       systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteFilterProperty)))
 
+  val YieldPartialResultsParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "hbase.yield.partial.results",
+      "Yield Partial Results",
+      default = java.lang.Boolean.TRUE,
+      deprecatedKeys = Seq(),
+      systemProperty = None) //Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteFilterProperty)))
+
   val MaxRangesPerExtendedScanParam =
     new GeoMesaParam[java.lang.Integer](
       "hbase.ranges.max-per-extended-scan",

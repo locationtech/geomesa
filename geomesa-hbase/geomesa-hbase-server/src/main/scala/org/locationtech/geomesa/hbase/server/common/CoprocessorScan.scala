@@ -121,6 +121,7 @@ trait CoprocessorScan extends StrictLogging {
     }
 
     override def partial(bytes: => Array[Byte]): Boolean = {
+      logger.debug(s"Called partial()")
       if (continue()) { true } else {
         // add the partial results and stop scanning
         results.addPayload(ByteString.copyFrom(bytes))
@@ -131,11 +132,13 @@ trait CoprocessorScan extends StrictLogging {
     private def continue(): Boolean = {
       count += 1
       // JNH: if (returnPartialResults)
-      if (count >= 2) {  // We've got 10 batches.  Let's return
+      if (count >= 1) {  // We've got 10 batches.  Let's return
         // JNH: Fix up this log message
         logger.warn(s"Stopping aggregator $aggregator due having seen enough batches")
         logger.warn(s"Scan stopped at row ${ByteArrays.printable(aggregator.getLastScanned)}")
-        results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))
+        if (aggregator.getLastScanned != null && !aggregator.getLastScanned.isEmpty) { // This check makes covers the HBase Version Aggregator case
+          results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))
+        }
         false
       } else if (controller.isCanceled) {
         logger.warn(s"Stopping aggregator $aggregator due to controller being cancelled")
