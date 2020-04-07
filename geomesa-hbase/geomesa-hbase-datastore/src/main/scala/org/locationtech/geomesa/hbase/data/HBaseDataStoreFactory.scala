@@ -105,8 +105,9 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   val HBaseGeoMesaPrincipal = "hbase.geomesa.principal"
   val HBaseGeoMesaKeyTab    = "hbase.geomesa.keytab"
 
-  val RemoteFilterProperty = SystemProperty("geomesa.hbase.remote.filtering", "true")
-  val ConfigPathProperty   = SystemProperty("geomesa.hbase.config.paths")
+  val ConfigPathProperty  : SystemProperty = SystemProperty("geomesa.hbase.config.paths")
+  val RemoteFilterProperty: SystemProperty = SystemProperty("geomesa.hbase.remote.filtering", "true")
+  val RemoteArrowProperty : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.arrow.enable")
 
   override val DisplayName = "HBase (GeoMesa)"
   override val Description = "Apache HBase\u2122 distributed key/value store"

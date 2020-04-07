@@ -35,7 +35,7 @@ import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{CoprocessorPlan, Empt
 import org.locationtech.geomesa.hbase.filters._
 import org.locationtech.geomesa.hbase.utils.HBaseVersions
 import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
-import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
+import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, IndexResultsToFeatures}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{WritableFeature, _}
 import org.locationtech.geomesa.index.filters.{S2Filter, S3Filter, Z2Filter, Z3Filter}
@@ -213,6 +213,10 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
     val transform: Option[(String, SimpleFeatureType)] = hints.getTransform
 
+    // check for an empty query plan, if there are no tables or ranges to scan
+    def empty(reducer: Option[FeatureReducer]): Option[HBaseQueryPlan] =
+      if (tables.isEmpty || ranges.isEmpty) { Some(EmptyPlan(filter, reducer)) } else { None }
+
     if (!ds.config.remoteFilter) {
       // everything is done client side
       val arrowHook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
@@ -221,7 +225,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       // for some attribute queries we wouldn't need the full filter...
       val reducer = Some(new LocalTransformReducer(schema, filter.filter, None, transform, hints, arrowHook))
 
-      if (ranges.isEmpty) { EmptyPlan(filter, reducer) } else {
+      empty(reducer).getOrElse {
         val scans = configureScans(ranges, colFamily, Seq.empty, coprocessor = false)
         val resultsToFeatures = new HBaseResultsToFeatures(index, schema)
         val sort = hints.getSortFields
@@ -272,32 +276,41 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       lazy val timeout = strategy.index.ds.config.queryTimeout.map(GeoMesaCoprocessor.timeout)
 
       if (hints.isDensityQuery) {
-        if (ranges.isEmpty) { EmptyPlan(filter, None) } else {
+        empty(None).getOrElse {
           val options = HBaseDensityAggregator.configure(schema, index, ecql, hints)
           val results = new HBaseDensityResultsToFeatures()
           CoprocessorPlan(filter, tables, ranges, cScan, options ++ timeout, results, None, max, projection)
         }
       } else if (hints.isArrowQuery) {
         val (options, reducer) = HBaseArrowAggregator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
-        if (ranges.isEmpty) { EmptyPlan(filter, Some(reducer)) } else {
-          val results = new HBaseArrowResultsToFeatures()
-          CoprocessorPlan(filter, tables, ranges, cScan, options ++ timeout, results, Some(reducer), max, projection)
+        empty(Some(reducer)).getOrElse {
+          if (HBaseDataStoreFactory.RemoteArrowProperty.toBoolean.getOrElse(true)) {
+            val results = new HBaseArrowResultsToFeatures()
+            CoprocessorPlan(filter, tables, ranges, cScan, options ++ timeout, results, Some(reducer), max, projection)
+          } else {
+            val filters = (cqlFilter ++ indexFilter).sortBy(_._1).map(_._2)
+            val scans = configureScans(ranges, colFamily, filters, coprocessor = false)
+            val results = new HBaseResultsToFeatures(index, returnSchema)
+            val arrowHook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
+            val reducer = Some(new LocalTransformReducer(returnSchema, None, None, None, hints, arrowHook))
+            ScanPlan(filter, tables, ranges, scans, results, reducer, None, max, projection)
+          }
         }
       } else if (hints.isStatsQuery) {
         val reducer = Some(StatsScan.StatsReducer(returnSchema, hints))
-        if (ranges.isEmpty) { EmptyPlan(filter, reducer) } else {
+        empty(reducer).getOrElse {
           val options = HBaseStatsAggregator.configure(schema, index, ecql, hints)
           val results = new HBaseStatsResultsToFeatures()
           CoprocessorPlan(filter, tables, ranges, cScan, options ++ timeout, results, reducer, max, projection)
         }
       } else if (hints.isBinQuery) {
-        if (ranges.isEmpty) { EmptyPlan(filter,  None) } else {
+        empty(None).getOrElse {
           val options = HBaseBinAggregator.configure(schema, index, ecql, hints)
           val results = new HBaseBinResultsToFeatures()
           CoprocessorPlan(filter, tables, ranges, cScan, options ++ timeout, results, None, max, projection)
         }
       } else {
-        if (ranges.isEmpty) { EmptyPlan(filter, None) } else {
+        empty(None).getOrElse {
           val filters = (cqlFilter ++ indexFilter).sortBy(_._1).map(_._2)
           val scans = configureScans(ranges, colFamily, filters, coprocessor = false)
           val results = new HBaseResultsToFeatures(index, returnSchema)
