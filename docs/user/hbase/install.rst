@@ -68,7 +68,7 @@ this directory as follows:
 
       hadoop fs -put ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_2.11-$VERSION.jar ${hbase.dynamic.jars.dir}/
 
-  .. group-tab:: Hbase 1.x
+  .. group-tab:: HBase 1.x
 
     .. code-block:: bash
 
@@ -84,7 +84,7 @@ If running on top of Amazon S3, you will need to use the ``aws s3`` command line
 
       aws s3 cp ${GEOMESA_HBASE_HOME}/dist/hbase/geomesa-hbase-distributed-runtime-hbase2_2.11-$VERSION.jar s3://${hbase.dynamic.jars.dir}/
 
-  .. group-tab:: Hbase 1.x
+  .. group-tab:: HBase 1.x
 
     .. code-block:: bash
 
