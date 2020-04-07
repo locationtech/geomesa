@@ -29,6 +29,7 @@ import org.locationtech.geomesa.utils.io.WithClose
  * Client-side coprocessor execution and common functions
  */
 object GeoMesaCoprocessor extends LazyLogging {
+  val GeoMesaHBaseRequestVersion = 1
 
   val AggregatorClass = "geomesa.hbase.aggregator.class"
 
@@ -108,7 +109,10 @@ object GeoMesaCoprocessor extends LazyLogging {
 
     private def request = {
       val opts = options ++ Map(ScanOpt -> Base64.getEncoder.encodeToString(ProtobufUtil.toScan(scan).toByteArray))
-      GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(serializeOptions(opts))).build()
+      GeoMesaCoprocessorRequest
+        .newBuilder()
+        .setVersion(GeoMesaHBaseRequestVersion)
+        .setOptions(ByteString.copyFrom(serializeOptions(opts))).build()
     }
 
     private def callable: Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse] = new Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse]() {
@@ -214,7 +218,7 @@ object GeoMesaCoprocessor extends LazyLogging {
   /**
     * Unsynchronized rpc callback
     */
-  private class RpcCallbackImpl extends RpcCallback[GeoMesaCoprocessorResponse] {
+  class RpcCallbackImpl extends RpcCallback[GeoMesaCoprocessorResponse] {
     private var response: GeoMesaCoprocessorResponse = _
 
     def get(): GeoMesaCoprocessorResponse = response

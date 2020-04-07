@@ -10,9 +10,14 @@ package org.locationtech.geomesa.hbase.data
 
 import java.io.File
 import java.util.Collections
+import java.util.concurrent.LinkedBlockingQueue
 
+import com.google.protobuf.{ByteString, RpcController}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.hbase.TableName
+import org.apache.hadoop.hbase.{HConstants, TableName}
+import org.apache.hadoop.hbase.client.Table
+import org.apache.hadoop.hbase.client.coprocessor.Batch
+import org.apache.hadoop.hbase.client.coprocessor.Batch.Call
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
@@ -22,6 +27,9 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.ProxyIdFunction
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
+import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
+import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor.RpcCallbackImpl
+import org.locationtech.geomesa.hbase.rpc.coprocessor.{GeoMesaHBaseCallBack, GeoMesaHBaseRpcController}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties, SchemaProperties}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
@@ -364,6 +372,48 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
 
       conf.get("foo.embedded") mustEqual "bar"
       conf.get("foo.resource") mustEqual "baz"
+    }
+
+    "handle new coprocessor 'request' versions properly" in {
+      val typeName = "testpoints"
+
+      val params = Map(
+        ConnectionParam.getName -> MiniCluster.connection,
+        HBaseCatalogParam.getName -> getClass.getSimpleName)
+      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      ds must not(beNull)
+
+      // Just get the first table.:)
+      val htable: Table = ds.connection.getTable(
+        TableName.valueOf(ds.manager.indices(ds.getSchema(typeName)).head.getTableNames(None).head))
+
+
+      val callable: Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse] =
+        new Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse]() {
+        val request: GeoMesaCoprocessorRequest = GeoMesaCoprocessorRequest.newBuilder()
+          .setVersion(2)
+          .setOptions(ByteString.EMPTY).build()
+
+        override def call(instance: GeoMesaCoprocessorService): GeoMesaCoprocessorResponse = {
+          val controller: RpcController = new GeoMesaHBaseRpcController()
+          val callback = new RpcCallbackImpl()
+
+          instance.getResult(controller, request, callback)
+          callback.get()
+        }
+      }
+
+      val resultQueue = new LinkedBlockingQueue[ByteString]()
+      val callback = new GeoMesaHBaseCallBack(resultQueue)
+
+      htable.coprocessorService(
+        classOf[GeoMesaCoprocessorService],
+        HConstants.EMPTY_START_ROW,
+        HConstants.EMPTY_END_ROW,
+        callable,
+        callback)
+
+      ok
     }
   }
 

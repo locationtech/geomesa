@@ -17,11 +17,13 @@ option optimize_for = SPEED;
 
 message GeoMesaCoprocessorRequest {
     required bytes options = 1;
+    required int32 version = 2;
 }
 
 message GeoMesaCoprocessorResponse {
     repeated bytes payload = 1;
     optional bytes lastScanned = 2;
+    optional int32 version = 3;
 }
 
 service GeoMesaCoprocessorService {

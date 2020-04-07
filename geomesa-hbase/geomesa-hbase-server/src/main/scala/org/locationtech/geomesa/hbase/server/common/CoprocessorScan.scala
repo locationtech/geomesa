@@ -58,40 +58,48 @@ trait CoprocessorScan extends StrictLogging {
 
     val results = GeoMesaCoprocessorResponse.newBuilder()
 
-    try {
-      val options = GeoMesaCoprocessor.deserializeOptions(request.getOptions.toByteArray)
-      val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong)
-      val yieldPartialResults = options.get(GeoMesaCoprocessor.YieldOpt).exists(_.toBoolean)  // This should
-      if (!controller.isCanceled && timeout.forall(_ > System.currentTimeMillis())) {
-        val clas = options(GeoMesaCoprocessor.AggregatorClass)
-        val aggregator = Class.forName(clas).newInstance().asInstanceOf[Aggregator]
-        logger.debug(s"Initializing aggregator $aggregator.")
-        aggregator.init(options)
-        // JNH: Test with the below to see if partialResults are working.
-        // TODO: Need to move this into a unit test...
-        //aggregator.init(options.updated("batch", "20"))
+    if (request.getVersion != CoprocessorScan.AllowableRequestVersion) {
+      // We cannot handle this request.
+      // Immediately return an empty response indicating the highest response version
+      logger.error(s"Got a request with version ${request.getVersion}.  Can handle version ${CoprocessorScan.AllowableRequestVersion}.")
+      results.setVersion(CoprocessorScan.GeoMesaCoprocessorResponseVersion)
+      done.run(results.build)
+    } else {
+      try {
+        val options = GeoMesaCoprocessor.deserializeOptions(request.getOptions.toByteArray)
+        val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong)
+        val yieldPartialResults = options.get(GeoMesaCoprocessor.YieldOpt).exists(_.toBoolean) // This should
+        if (!controller.isCanceled && timeout.forall(_ > System.currentTimeMillis())) {
+          val clas = options(GeoMesaCoprocessor.AggregatorClass)
+          val aggregator = Class.forName(clas).newInstance().asInstanceOf[Aggregator]
+          logger.debug(s"Initializing aggregator $aggregator.")
+          aggregator.init(options)
+          // JNH: Test with the below to see if partialResults are working.
+          // TODO: Need to move this into a unit test...
+          //aggregator.init(options.updated("batch", "20"))
 
-        val scan = {
-          val bytes = Base64.getDecoder.decode(options(GeoMesaCoprocessor.ScanOpt))
-          ProtobufUtil.toScan(ClientProtos.Scan.parseFrom(bytes))
-        }
+          val scan = {
+            val bytes = Base64.getDecoder.decode(options(GeoMesaCoprocessor.ScanOpt))
+            ProtobufUtil.toScan(ClientProtos.Scan.parseFrom(bytes))
+          }
 
-        WithClose(getScanner(scan)) { scanner =>
-          aggregator.setScanner(scanner)
-          aggregator.aggregate(new CoprocessorAggregateCallback(controller, aggregator, results, yieldPartialResults, timeout))
+          WithClose(getScanner(scan)) { scanner =>
+            aggregator.setScanner(scanner)
+            aggregator.aggregate(new CoprocessorAggregateCallback(controller, aggregator, results, yieldPartialResults, timeout))
+          }
         }
+      } catch {
+        case _: InterruptedException | _: InterruptedIOException => // stop processing, but don't return an error to prevent retries
+        case e: IOException => ResponseConverter.setControllerException(controller, e)
+        case NonFatal(e) => ResponseConverter.setControllerException(controller, new IOException(e))
       }
-    } catch {
-      case _: InterruptedException | _ : InterruptedIOException => // stop processing, but don't return an error to prevent retries
-      case e: IOException => ResponseConverter.setControllerException(controller, e)
-      case NonFatal(e) => ResponseConverter.setControllerException(controller, new IOException(e))
-    }
 
-    logger.debug(
-      s"Results total size: ${results.getPayloadList.asScala.map(_.size()).sum}" +
+      logger.debug(
+        s"Results total size: ${results.getPayloadList.asScala.map(_.size()).sum}" +
           s"\n\tBatch sizes: ${results.getPayloadList.asScala.map(_.size()).mkString(", ")}")
 
-    done.run(results.build)
+      done.run(results.build)
+    }
   }
 
   /**
@@ -166,4 +174,6 @@ trait CoprocessorScan extends StrictLogging {
 
 object CoprocessorScan {
   type Aggregator = HBaseAggregator[_ <: AggregatingScan.Result]
+  val AllowableRequestVersion = 1
+  val GeoMesaCoprocessorResponseVersion = 1
 }

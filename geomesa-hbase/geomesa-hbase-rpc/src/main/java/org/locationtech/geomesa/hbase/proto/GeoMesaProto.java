@@ -28,6 +28,16 @@ public final class GeoMesaProto {
      * <code>required bytes options = 1;</code>
      */
     com.google.protobuf.ByteString getOptions();
+
+    // required int32 version = 2;
+    /**
+     * <code>required int32 version = 2;</code>
+     */
+    boolean hasVersion();
+    /**
+     * <code>required int32 version = 2;</code>
+     */
+    int getVersion();
   }
   /**
    * Protobuf type {@code GeoMesaCoprocessorRequest}
@@ -83,6 +93,11 @@ public final class GeoMesaProto {
             case 10: {
               bitField0_ |= 0x00000001;
               options_ = input.readBytes();
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              version_ = input.readInt32();
               break;
             }
           }
@@ -141,8 +156,25 @@ public final class GeoMesaProto {
       return options_;
     }
 
+    // required int32 version = 2;
+    public static final int VERSION_FIELD_NUMBER = 2;
+    private int version_;
+    /**
+     * <code>required int32 version = 2;</code>
+     */
+    public boolean hasVersion() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>required int32 version = 2;</code>
+     */
+    public int getVersion() {
+      return version_;
+    }
+
     private void initFields() {
       options_ = com.google.protobuf.ByteString.EMPTY;
+      version_ = 0;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -150,6 +182,10 @@ public final class GeoMesaProto {
       if (isInitialized != -1) return isInitialized == 1;
 
       if (!hasOptions()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasVersion()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -163,6 +199,9 @@ public final class GeoMesaProto {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeBytes(1, options_);
       }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt32(2, version_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -175,6 +214,10 @@ public final class GeoMesaProto {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(1, options_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(2, version_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -204,6 +247,11 @@ public final class GeoMesaProto {
         result = result && getOptions()
             .equals(other.getOptions());
       }
+      result = result && (hasVersion() == other.hasVersion());
+      if (hasVersion()) {
+        result = result && (getVersion()
+            == other.getVersion());
+      }
       result = result &&
           getUnknownFields().equals(other.getUnknownFields());
       return result;
@@ -220,6 +268,10 @@ public final class GeoMesaProto {
       if (hasOptions()) {
         hash = (37 * hash) + OPTIONS_FIELD_NUMBER;
         hash = (53 * hash) + getOptions().hashCode();
+      }
+      if (hasVersion()) {
+        hash = (37 * hash) + VERSION_FIELD_NUMBER;
+        hash = (53 * hash) + getVersion();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -332,6 +384,8 @@ public final class GeoMesaProto {
         super.clear();
         options_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000001);
+        version_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
@@ -364,6 +418,10 @@ public final class GeoMesaProto {
           to_bitField0_ |= 0x00000001;
         }
         result.options_ = options_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.version_ = version_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -383,12 +441,19 @@ public final class GeoMesaProto {
         if (other.hasOptions()) {
           setOptions(other.getOptions());
         }
+        if (other.hasVersion()) {
+          setVersion(other.getVersion());
+        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
 
       public final boolean isInitialized() {
         if (!hasOptions()) {
+          
+          return false;
+        }
+        if (!hasVersion()) {
           
           return false;
         }
@@ -450,6 +515,39 @@ public final class GeoMesaProto {
         return this;
       }
 
+      // required int32 version = 2;
+      private int version_ ;
+      /**
+       * <code>required int32 version = 2;</code>
+       */
+      public boolean hasVersion() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>required int32 version = 2;</code>
+       */
+      public int getVersion() {
+        return version_;
+      }
+      /**
+       * <code>required int32 version = 2;</code>
+       */
+      public Builder setVersion(int value) {
+        bitField0_ |= 0x00000002;
+        version_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required int32 version = 2;</code>
+       */
+      public Builder clearVersion() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        version_ = 0;
+        onChanged();
+        return this;
+      }
+
       // @@protoc_insertion_point(builder_scope:GeoMesaCoprocessorRequest)
     }
 
@@ -487,6 +585,16 @@ public final class GeoMesaProto {
      * <code>optional bytes lastScanned = 2;</code>
      */
     com.google.protobuf.ByteString getLastScanned();
+
+    // optional int32 version = 3;
+    /**
+     * <code>optional int32 version = 3;</code>
+     */
+    boolean hasVersion();
+    /**
+     * <code>optional int32 version = 3;</code>
+     */
+    int getVersion();
   }
   /**
    * Protobuf type {@code GeoMesaCoprocessorResponse}
@@ -550,6 +658,11 @@ public final class GeoMesaProto {
             case 18: {
               bitField0_ |= 0x00000001;
               lastScanned_ = input.readBytes();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000002;
+              version_ = input.readInt32();
               break;
             }
           }
@@ -634,9 +747,26 @@ public final class GeoMesaProto {
       return lastScanned_;
     }
 
+    // optional int32 version = 3;
+    public static final int VERSION_FIELD_NUMBER = 3;
+    private int version_;
+    /**
+     * <code>optional int32 version = 3;</code>
+     */
+    public boolean hasVersion() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional int32 version = 3;</code>
+     */
+    public int getVersion() {
+      return version_;
+    }
+
     private void initFields() {
       payload_ = java.util.Collections.emptyList();
       lastScanned_ = com.google.protobuf.ByteString.EMPTY;
+      version_ = 0;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -655,6 +785,9 @@ public final class GeoMesaProto {
       }
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeBytes(2, lastScanned_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeInt32(3, version_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -677,6 +810,10 @@ public final class GeoMesaProto {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(2, lastScanned_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(3, version_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -708,6 +845,11 @@ public final class GeoMesaProto {
         result = result && getLastScanned()
             .equals(other.getLastScanned());
       }
+      result = result && (hasVersion() == other.hasVersion());
+      if (hasVersion()) {
+        result = result && (getVersion()
+            == other.getVersion());
+      }
       result = result &&
           getUnknownFields().equals(other.getUnknownFields());
       return result;
@@ -728,6 +870,10 @@ public final class GeoMesaProto {
       if (hasLastScanned()) {
         hash = (37 * hash) + LASTSCANNED_FIELD_NUMBER;
         hash = (53 * hash) + getLastScanned().hashCode();
+      }
+      if (hasVersion()) {
+        hash = (37 * hash) + VERSION_FIELD_NUMBER;
+        hash = (53 * hash) + getVersion();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -842,6 +988,8 @@ public final class GeoMesaProto {
         bitField0_ = (bitField0_ & ~0x00000001);
         lastScanned_ = com.google.protobuf.ByteString.EMPTY;
         bitField0_ = (bitField0_ & ~0x00000002);
+        version_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000004);
         return this;
       }
 
@@ -879,6 +1027,10 @@ public final class GeoMesaProto {
           to_bitField0_ |= 0x00000001;
         }
         result.lastScanned_ = lastScanned_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.version_ = version_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -907,6 +1059,9 @@ public final class GeoMesaProto {
         }
         if (other.hasLastScanned()) {
           setLastScanned(other.getLastScanned());
+        }
+        if (other.hasVersion()) {
+          setVersion(other.getVersion());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -1039,6 +1194,39 @@ public final class GeoMesaProto {
       public Builder clearLastScanned() {
         bitField0_ = (bitField0_ & ~0x00000002);
         lastScanned_ = getDefaultInstance().getLastScanned();
+        onChanged();
+        return this;
+      }
+
+      // optional int32 version = 3;
+      private int version_ ;
+      /**
+       * <code>optional int32 version = 3;</code>
+       */
+      public boolean hasVersion() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional int32 version = 3;</code>
+       */
+      public int getVersion() {
+        return version_;
+      }
+      /**
+       * <code>optional int32 version = 3;</code>
+       */
+      public Builder setVersion(int value) {
+        bitField0_ |= 0x00000004;
+        version_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int32 version = 3;</code>
+       */
+      public Builder clearVersion() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        version_ = 0;
         onChanged();
         return this;
       }
@@ -1307,13 +1495,14 @@ public final class GeoMesaProto {
     java.lang.String[] descriptorData = {
       "\nMgeomesa-hbase/geomesa-hbase-rpc/src/ma" +
       "in/protobuf/GeoMesaProtoGenerator.proto\"" +
-      ",\n\031GeoMesaCoprocessorRequest\022\017\n\007options\030" +
-      "\001 \002(\014\"B\n\032GeoMesaCoprocessorResponse\022\017\n\007p" +
-      "ayload\030\001 \003(\014\022\023\n\013lastScanned\030\002 \001(\0142a\n\031Geo" +
-      "MesaCoprocessorService\022D\n\tgetResult\022\032.Ge" +
-      "oMesaCoprocessorRequest\032\033.GeoMesaCoproce" +
-      "ssorResponseB<\n$org.locationtech.geomesa" +
-      ".hbase.protoB\014GeoMesaProtoH\001\210\001\001\240\001\001"
+      "=\n\031GeoMesaCoprocessorRequest\022\017\n\007options\030" +
+      "\001 \002(\014\022\017\n\007version\030\002 \002(\005\"S\n\032GeoMesaCoproce" +
+      "ssorResponse\022\017\n\007payload\030\001 \003(\014\022\023\n\013lastSca" +
+      "nned\030\002 \001(\014\022\017\n\007version\030\003 \001(\0052a\n\031GeoMesaCo" +
+      "processorService\022D\n\tgetResult\022\032.GeoMesaC" +
+      "oprocessorRequest\032\033.GeoMesaCoprocessorRe" +
+      "sponseB<\n$org.locationtech.geomesa.hbase" +
+      ".protoB\014GeoMesaProtoH\001\210\001\001\240\001\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -1325,13 +1514,13 @@ public final class GeoMesaProto {
           internal_static_GeoMesaCoprocessorRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_GeoMesaCoprocessorRequest_descriptor,
-              new java.lang.String[] { "Options", });
+              new java.lang.String[] { "Options", "Version", });
           internal_static_GeoMesaCoprocessorResponse_descriptor =
             getDescriptor().getMessageTypes().get(1);
           internal_static_GeoMesaCoprocessorResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_GeoMesaCoprocessorResponse_descriptor,
-              new java.lang.String[] { "Payload", "LastScanned", });
+              new java.lang.String[] { "Payload", "LastScanned", "Version", });
           return null;
         }
       };

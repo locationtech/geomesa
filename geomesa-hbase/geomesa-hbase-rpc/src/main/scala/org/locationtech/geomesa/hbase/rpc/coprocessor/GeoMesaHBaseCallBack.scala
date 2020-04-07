@@ -22,6 +22,10 @@ class GeoMesaHBaseCallBack(result: LinkedBlockingQueue[ByteString]) extends Call
   var lastRow: Array[Byte] = _
 
   override def update(region: Array[Byte], row: Array[Byte], response: GeoMesaCoprocessorResponse): Unit = {
+    Option(response).map(_.getVersion).foreach { i =>
+      print(s"Got an empty response.  Coprocessors responded with version $i.")
+    }
+
     logger.debug(s"$id: In update for region ${ByteArrays.printable(region)} for row ${ByteArrays.printable(row)}")
     val result =  Option(response).map(_.getPayloadList).orNull
     val lastScanned: ByteString = Option(response).map(_.getLastScanned).orNull
@@ -36,6 +40,8 @@ class GeoMesaHBaseCallBack(result: LinkedBlockingQueue[ByteString]) extends Call
 
     if (result != null) {
       this.result.addAll(result)
+    } else {
+      logger.warn("Coprocessor response was empty.")
     }
   }
 }
