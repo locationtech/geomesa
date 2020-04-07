@@ -47,6 +47,14 @@ class HBaseBinAggregatorTest extends Specification with LazyLogging {
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
   lazy val dsSemiLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.BinCoprocessorParam.key -> false)).asInstanceOf[HBaseDataStore]
   lazy val dsFullLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false)).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads1 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "1")).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads2 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "2")).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads3 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "3")).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads4 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "4")).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads8 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "4")).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads15 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "4")).asInstanceOf[HBaseDataStore]
+  lazy val dsNoPartials = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.YieldPartialResultsParam.key -> false)).asInstanceOf[HBaseDataStore]
+  lazy val dataStores = Seq(ds, dsSemiLocal, dsFullLocal, dsThreads1, dsThreads2, dsThreads3, dsThreads4, dsThreads8, dsThreads15, dsNoPartials)
 
   lazy val features = (0 until 10).map { i =>
     val sf = new ScalaSimpleFeature(sft, s"0$i")
@@ -96,7 +104,7 @@ class HBaseBinAggregatorTest extends Specification with LazyLogging {
 
   "BinConversionProcess" should {
     "encode a feature collection in distributed fashion" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val fc = ds.getFeatureSource(sftName).getFeatures(Filter.INCLUDE)
         val bytes = process.execute(fc, "name", null, null, null, "lonlat").toList
         bytes.length must beLessThan(10)
@@ -106,7 +114,7 @@ class HBaseBinAggregatorTest extends Specification with LazyLogging {
     }
 
     "encode a feature collection in distributed fashion with alternate values" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val fc = ds.getFeatureSource(sftName).getFeatures(Filter.INCLUDE)
         val bytes = process.execute(fc, "name", "geom2", "dtg2", null, "lonlat").toList
         bytes.length must beLessThan(10)
@@ -116,7 +124,7 @@ class HBaseBinAggregatorTest extends Specification with LazyLogging {
     }
 
     "encode a feature collection in distributed fashion with labels" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val fc = ds.getFeatureSource(sftName).getFeatures(Filter.INCLUDE)
         val bytes = process.execute(fc, "name", null, null, "track", "lonlat").toList
         bytes.length must beLessThan(10)
@@ -128,7 +136,7 @@ class HBaseBinAggregatorTest extends Specification with LazyLogging {
 
   step {
     logger.info("Cleaning up HBase Bin Test")
-    ds.dispose()
+    dataStores.foreach { _.dispose() }
   }
 }
 
