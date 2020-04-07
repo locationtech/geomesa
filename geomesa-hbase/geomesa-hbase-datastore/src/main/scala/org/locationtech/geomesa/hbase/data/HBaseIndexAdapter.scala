@@ -186,7 +186,6 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
-
     val QueryStrategy(filter, byteRanges, _, _, ecql, hints, _) = strategy
     val index = filter.index
 
@@ -203,6 +202,10 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
     val transform: Option[(String, SimpleFeatureType)] = hints.getTransform
 
+    // check for an empty query plan, if there are no tables or ranges to scan
+    def empty(reducer: CloseableIterator[Result] => CloseableIterator[SimpleFeature]): Option[HBaseQueryPlan] =
+      if (tables.isEmpty || ranges.isEmpty) { Some(EmptyPlan(filter, reducer)) } else { None }
+
     if (!ds.config.remoteFilter) {
       // everything is done client side
       val resultsToFeatures: CloseableIterator[Result] => CloseableIterator[SimpleFeature] = rows => {
@@ -213,7 +216,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         }
         LocalQueryRunner.transform(schema, features, transform, hints, arrowHook)
       }
-      if (strategy.ranges.isEmpty) { EmptyPlan(strategy.filter, resultsToFeatures) } else {
+      empty(resultsToFeatures).getOrElse {
         val scans = configureScans(ranges, colFamily, Seq.empty, coprocessor = false)
         ScanPlan(filter, tables, ranges, scans, resultsToFeatures)
       }
@@ -224,7 +227,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       val coprocessorConfig = if (hints.isDensityQuery) {
         val options = HBaseDensityAggregator.configure(schema, index, ecql, hints)
         Some(CoprocessorConfig(options ++ timeout, HBaseDensityAggregator.bytesToFeatures))
-      } else if (hints.isArrowQuery) {
+      } else if (hints.isArrowQuery && HBaseDataStoreFactory.RemoteArrowProperty.toBoolean.getOrElse(true)) {
         val (options, reduce) = HBaseArrowAggregator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
         Some(CoprocessorConfig(options ++ timeout, HBaseArrowAggregator.bytesToFeatures, reduce))
       } else if (hints.isStatsQuery) {
@@ -269,15 +272,21 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
 
       coprocessorConfig match {
         case None =>
-          val resultsToFeatures = HBaseIndexAdapter.resultsToFeatures(index, returnSchema)
-          if (ranges.isEmpty) { EmptyPlan(strategy.filter, resultsToFeatures) } else {
+          val resultsToFeatures: CloseableIterator[Result] => CloseableIterator[SimpleFeature] = {
+            val toFeatures = HBaseIndexAdapter.resultsToFeatures(index, returnSchema)
+            if (hints.isArrowQuery) {
+              val arrowHook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
+              rows => LocalQueryRunner.transform(returnSchema, toFeatures(rows), None, hints, arrowHook)
+            } else {
+              toFeatures
+            }
+          }
+          empty(resultsToFeatures).getOrElse {
             ScanPlan(filter, tables, ranges, scans, resultsToFeatures)
           }
 
         case Some(c) =>
-          if (ranges.isEmpty) {
-            EmptyPlan(strategy.filter, _ => c.reduce(CloseableIterator.empty))
-          } else {
+          empty(_ => c.reduce(CloseableIterator.empty)).getOrElse {
             val Seq(scan) = scans
             CoprocessorPlan(filter, tables, ranges, scan, c)
           }
