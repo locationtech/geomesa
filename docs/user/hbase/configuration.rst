@@ -13,6 +13,11 @@ Additional configuration file paths, comma-delimited. The files will be added to
 to creating a ``Connection``. This property will be overridden by the data store configuration parameter,
 if both are specified.
 
+geomesa.hbase.coprocessor.arrow.enable
+++++++++++++++++++++++++++++++++++++++
+
+Disable coprocessor scans for Arrow queries, and use local encoding instead.
+
 geomesa.hbase.remote.filtering
 ++++++++++++++++++++++++++++++
 
