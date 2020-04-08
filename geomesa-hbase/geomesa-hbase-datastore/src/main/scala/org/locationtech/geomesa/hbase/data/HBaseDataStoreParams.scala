@@ -131,7 +131,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
     new GeoMesaParam[java.lang.Boolean](
       "hbase.coprocessor.yield.partial.results",
       "Yield Partial Results",
-      default = java.lang.Boolean.TRUE,
+      default = java.lang.Boolean.FALSE,
       deprecatedKeys = Seq(),
-      systemProperty = None) //Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteFilterProperty)))
+      systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.YieldPartialResultsProperty)))
 }
