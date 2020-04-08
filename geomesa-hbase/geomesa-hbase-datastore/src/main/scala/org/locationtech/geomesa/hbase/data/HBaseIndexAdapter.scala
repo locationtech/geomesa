@@ -458,7 +458,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     try {
       val regionInfo = locator.getRegionLocation(range.getStartRow).getRegionInfo
       encodedName = regionInfo.getEncodedName
-      val regionEndKey = regionInfo.getEndKey
+      val regionEndKey = regionInfo.getEndKey // Note this is exclusive.
       if (regionEndKey.nonEmpty &&
         (range.getStopRow.isEmpty || ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) <= 0)) {
         split = regionEndKey
