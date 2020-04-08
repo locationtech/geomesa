@@ -21,7 +21,7 @@ class GeoMesaHBaseCallBack(result: LinkedBlockingQueue[ByteString]) extends Call
 
   override def update(region: Array[Byte], row: Array[Byte], response: GeoMesaCoprocessorResponse): Unit = {
     Option(response).map(_.getVersion).foreach { i =>
-      logger.warn(s"Got an empty response.  Coprocessors responded with version $i.")
+      logger.debug(s"Got an empty response.  Coprocessors responded with version $i.")
     }
 
     logger.trace(s"In update for region ${ByteArrays.printable(region)} for row ${ByteArrays.printable(row)}")

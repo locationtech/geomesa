@@ -135,21 +135,20 @@ trait CoprocessorScan extends StrictLogging {
     }
 
     private def continue(): Boolean = {
-      if (yieldPartialResults) {
+      if (controller.isCanceled) {
+        logger.warn(s"Stopping aggregator $aggregator due to controller being cancelled")
+        false
+      } else if (timeout.exists(_ < System.currentTimeMillis())) {
+        logger.warn(s"Stopping aggregator $aggregator due to timeout of ${timeout.get}ms")
+        results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))
+        false
+      } else if (yieldPartialResults) {
         logger.trace(s"Stopping aggregator $aggregator at row ${ByteArrays.printable(aggregator.getLastScanned)} and" +
           s"returning intermediate results.")
         // This check makes covers the HBase Version Aggregator case
         if (aggregator.getLastScanned != null && !aggregator.getLastScanned.isEmpty) {
           results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))
         }
-        false
-      } else if (controller.isCanceled) {
-        logger.warn(s"Stopping aggregator $aggregator due to controller being cancelled")
-        false
-      } else if (timeout.exists(_ < System.currentTimeMillis())) {
-        logger.warn(s"Stopping aggregator $aggregator due to timeout of ${timeout.get}ms")
-        // JNH: Do we need this here?  I think 'yes', but I'm trying to think how to test in a unit test.
-        results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))
         false
       } else {
         logger.trace(s"Running next batch on aggregator $aggregator " +
