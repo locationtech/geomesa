@@ -27,3 +27,7 @@ jobs:
         run: mvn -o surefire:test -pl geomesa-hbase/geomesa-hbase-datastore -Phbase1 -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit" 
       - name: Integration Test
         run: mvn failsafe:integration-test -Pbigtable -Dtest.fork.count=1 -Dmaven.test.jvmargs="-Xmx4g -XX:-UseGCOverheadLimit"
+      - name: Remove geomesa artifacts
+        run: |
+          find . -name '*.tar.gz' -exec rm {} \;
+          rm -rf $HOME/.m2/repository/org/locationtech/geomesa
