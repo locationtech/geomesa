@@ -140,7 +140,6 @@ trait CoprocessorScan extends StrictLogging {
         false
       } else if (timeout.exists(_ < System.currentTimeMillis())) {
         logger.warn(s"Stopping aggregator $aggregator due to timeout of ${timeout.get}ms")
-        results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))
         false
       } else if (yieldPartialResults) {
         logger.trace(s"Stopping aggregator $aggregator at row ${ByteArrays.printable(aggregator.getLastScanned)} and" +

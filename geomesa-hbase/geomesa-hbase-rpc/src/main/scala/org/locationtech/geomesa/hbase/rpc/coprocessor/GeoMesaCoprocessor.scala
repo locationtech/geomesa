@@ -107,7 +107,7 @@ object GeoMesaCoprocessor extends LazyLogging {
     private val closed = new AtomicBoolean(false)
     private val resultQueue = new LinkedBlockingQueue[ByteString]()
 
-    private def request = {
+    private val request = {
       val opts = options ++ Map(ScanOpt -> Base64.getEncoder.encodeToString(ProtobufUtil.toScan(scan).toByteArray))
       GeoMesaCoprocessorRequest
         .newBuilder()
@@ -115,11 +115,7 @@ object GeoMesaCoprocessor extends LazyLogging {
         .setOptions(ByteString.copyFrom(serializeOptions(opts))).build()
     }
 
-    private def callable: Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse] = new Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse]() {
-      // Doing this so that each callable has its own copy of the request.
-      // Notably, the 'scan' is mutated between calls.
-      val interalRequest: GeoMesaCoprocessorRequest = request
-
+    private val callable: Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse] = new Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse]() {
       override def call(instance: GeoMesaCoprocessorService): GeoMesaCoprocessorResponse = {
         if (closed.get) {
           // Should this be an empty response instead?  Maybe not since we can do a null check later?
@@ -128,7 +124,7 @@ object GeoMesaCoprocessor extends LazyLogging {
           val controller: RpcController = new GeoMesaHBaseRpcController()
           val callback = new RpcCallbackImpl()
           // note: synchronous call
-          try { instance.getResult(controller, interalRequest, callback) } catch {
+          try { instance.getResult(controller, request, callback) } catch {
             case _: InterruptedException | _: InterruptedIOException | _: CancellationException =>
               logger.warn("Cancelling remote coprocessor call")
               controller.startCancel()
