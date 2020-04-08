@@ -36,32 +36,11 @@ import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 
-object HBasePartialResultsFilterTest {
-  val splits: Array[Array[Byte]] = Array()
-
-  class TestTableSplit extends TableSplitter {
-    /**
-      * Get splits for a table
-      *
-      * @param sft     simple feature type
-      * @param index   name of the index being configured
-      * @param options splitter options
-      * @return split points
-      */
-    override def getSplits(sft: SimpleFeatureType, index: String, options: String): Array[Array[Byte]] = splits
-  }
-}
-
 @RunWith(classOf[JUnitRunner])
 class HBasePartialResultsTest extends Specification with LazyLogging {
   sequential
 
-  System.setProperty("geomesa.density.batch.size", "100")
-  System.setProperty("geomesa.stats.batch.size", "100")
-
-  val splitterClassName = "org.locationtech.geomesa.hbase.data.HBasePartialResultsTest$TestTableSplit"
-
-  val TEST_FAMILY = s"an_id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326;table.splitter.class=${splitterClassName}"
+  val TEST_FAMILY = s"an_id:java.lang.Integer,attr:java.lang.Double,dtg:Date,geom:Point:srid=4326"
   val TEST_HINT = new Hints()
   val sftName = "test_sft"
   val typeName = "HBasePartialResultsTest"
@@ -69,23 +48,13 @@ class HBasePartialResultsTest extends Specification with LazyLogging {
   lazy val params = Map(
     ConnectionParam.getName -> MiniCluster.connection,
     HBaseCatalogParam.getName -> getClass.getSimpleName
-    // JNH abstract over Copro Threads
-    //CoprocessorThreadsParam.getName -> "1"
   )
 
-  //lazy val dsSemiLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.DensityCoprocessorParam.key -> false)).asInstanceOf[HBaseDataStore]
+  lazy val dsSemiLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.DensityCoprocessorParam.key -> false)).asInstanceOf[HBaseDataStore]
   lazy val dsFullLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false, HBaseDataStoreParams.StatsCoprocessorParam.key -> false)).asInstanceOf[HBaseDataStore]
   lazy val dsThreads1 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "1")).asInstanceOf[HBaseDataStore]
-  lazy val dsThreads2 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "2")).asInstanceOf[HBaseDataStore]
-  lazy val dsThreads3 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "3")).asInstanceOf[HBaseDataStore]
-  lazy val dsThreads4 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "4")).asInstanceOf[HBaseDataStore]
-  lazy val dsThreads8 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "4")).asInstanceOf[HBaseDataStore]
-  lazy val dsThreads15 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "4")).asInstanceOf[HBaseDataStore]
-  lazy val dsNoPartials = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.YieldPartialResultsParam.key -> false)).asInstanceOf[HBaseDataStore]
-
-  //lazy val dataStores = Seq(ds, dsFullLocal) //, dsThreads1, dsThreads2)
-  //lazy val dataStores = Seq(ds, dsFullLocal, dsThreads1, dsThreads2)
-  lazy val dataStores = Seq(dsFullLocal, dsThreads1, dsThreads2, dsThreads3, dsThreads4, dsThreads8, dsThreads15, dsNoPartials)
+  lazy val dsYieldPartials = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.YieldPartialResultsParam.key -> true)).asInstanceOf[HBaseDataStore]
+  lazy val dataStores = Seq(dsSemiLocal, dsFullLocal, dsThreads1, dsYieldPartials)
 
   var sft: SimpleFeatureType = _
   var fs: SimpleFeatureStore = _

@@ -373,48 +373,6 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
       conf.get("foo.embedded") mustEqual "bar"
       conf.get("foo.resource") mustEqual "baz"
     }
-
-    "handle new coprocessor 'request' versions properly" in {
-      val typeName = "testpoints"
-
-      val params = Map(
-        ConnectionParam.getName -> MiniCluster.connection,
-        HBaseCatalogParam.getName -> getClass.getSimpleName)
-      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
-      ds must not(beNull)
-
-      // Just get the first table.:)
-      val htable: Table = ds.connection.getTable(
-        TableName.valueOf(ds.manager.indices(ds.getSchema(typeName)).head.getTableNames(None).head))
-
-
-      val callable: Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse] =
-        new Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse]() {
-        val request: GeoMesaCoprocessorRequest = GeoMesaCoprocessorRequest.newBuilder()
-          .setVersion(2)
-          .setOptions(ByteString.EMPTY).build()
-
-        override def call(instance: GeoMesaCoprocessorService): GeoMesaCoprocessorResponse = {
-          val controller: RpcController = new GeoMesaHBaseRpcController()
-          val callback = new RpcCallbackImpl()
-
-          instance.getResult(controller, request, callback)
-          callback.get()
-        }
-      }
-
-      val resultQueue = new LinkedBlockingQueue[ByteString]()
-      val callback = new GeoMesaHBaseCallBack(resultQueue)
-
-      htable.coprocessorService(
-        classOf[GeoMesaCoprocessorService],
-        HConstants.EMPTY_START_ROW,
-        HConstants.EMPTY_END_ROW,
-        callable,
-        callback)
-
-      ok
-    }
   }
 
   def testQuery(ds: HBaseDataStore,

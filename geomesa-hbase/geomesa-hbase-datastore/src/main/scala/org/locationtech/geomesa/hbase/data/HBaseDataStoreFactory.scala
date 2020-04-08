@@ -153,6 +153,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       BinCoprocessorParam,
       DensityCoprocessorParam,
       StatsCoprocessorParam,
+      YieldPartialResultsParam,
       EnableSecurityParam,
       GenerateStatsParam,
       AuditQueriesParam,
