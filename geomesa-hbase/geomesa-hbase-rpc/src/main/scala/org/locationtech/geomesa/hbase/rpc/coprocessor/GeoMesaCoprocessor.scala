@@ -160,7 +160,6 @@ object GeoMesaCoprocessor extends LazyLogging {
             val nextRow = ByteArrays.rowFollowingRow(callback.lastRow)
             logger.trace(s"Scan continuing from next row is ${ByteArrays.printable(nextRow)}")
 
-            scan.setStartRow(nextRow)
             htable.coprocessorService(service, nextRow, scan.getStopRow, callable, callback)
             logger.trace(s"Closed: ${closed.get}. Callback.lastRow: ${ByteArrays.printable(callback.lastRow)}")
           }
