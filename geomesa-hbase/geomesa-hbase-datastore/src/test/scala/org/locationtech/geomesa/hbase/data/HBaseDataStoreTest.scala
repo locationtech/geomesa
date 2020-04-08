@@ -10,14 +10,9 @@ package org.locationtech.geomesa.hbase.data
 
 import java.io.File
 import java.util.Collections
-import java.util.concurrent.LinkedBlockingQueue
 
-import com.google.protobuf.{ByteString, RpcController}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.hbase.{HConstants, TableName}
-import org.apache.hadoop.hbase.client.Table
-import org.apache.hadoop.hbase.client.coprocessor.Batch
-import org.apache.hadoop.hbase.client.coprocessor.Batch.Call
+import org.apache.hadoop.hbase.TableName
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
@@ -27,9 +22,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.function.ProxyIdFunction
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
-import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
-import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor.RpcCallbackImpl
-import org.locationtech.geomesa.hbase.rpc.coprocessor.{GeoMesaHBaseCallBack, GeoMesaHBaseRpcController}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.{QueryHints, QueryProperties, SchemaProperties}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
