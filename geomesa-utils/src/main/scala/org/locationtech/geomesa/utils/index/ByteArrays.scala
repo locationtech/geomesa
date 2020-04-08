@@ -551,7 +551,11 @@ object ByteArrays {
    * @param bytes bytes
    * @return
    */
-  def printable(bytes: Array[Byte]): String = bytes.map(printable).mkString("")
+  def printable(bytes: Array[Byte]): String = {
+    if(bytes == null) { "null" } else {
+      bytes.map(printable).mkString("")
+    }
+  }
 
   /**
     * Increment the last byte in the array, if it's not equal to MaxByte. Otherwise,

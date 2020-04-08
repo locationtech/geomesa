@@ -9,9 +9,9 @@
 package org.locationtech.geomesa.hbase.rpc.coprocessor
 
 import java.io.{InterruptedIOException, _}
+import java.util.Base64
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.{Base64, Collections}
 
 import com.google.protobuf.{ByteString, RpcCallback, RpcController}
 import com.typesafe.scalalogging.LazyLogging
@@ -22,18 +22,21 @@ import org.apache.hadoop.hbase.protobuf.ProtobufUtil
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 
 /**
  * Client-side coprocessor execution and common functions
  */
 object GeoMesaCoprocessor extends LazyLogging {
+  val GeoMesaHBaseRequestVersion = 1
 
   val AggregatorClass = "geomesa.hbase.aggregator.class"
 
   val FilterOpt  = "filter"
   val ScanOpt    = "scan"
   val TimeoutOpt = "timeout"
+  val YieldOpt   = "yield"
 
   private val service = classOf[GeoMesaCoprocessorService]
 
@@ -102,20 +105,30 @@ object GeoMesaCoprocessor extends LazyLogging {
 
     private val htable = connection.getTable(table, pool)
     private val closed = new AtomicBoolean(false)
-    private val callback = new GeoMesaHBaseCallBack()
+    private val resultQueue = new LinkedBlockingQueue[ByteString]()
 
-    private val request = {
+    private def request = {
       val opts = options ++ Map(ScanOpt -> Base64.getEncoder.encodeToString(ProtobufUtil.toScan(scan).toByteArray))
-      GeoMesaCoprocessorRequest.newBuilder().setOptions(ByteString.copyFrom(serializeOptions(opts))).build()
+      GeoMesaCoprocessorRequest
+        .newBuilder()
+        .setVersion(GeoMesaHBaseRequestVersion)
+        .setOptions(ByteString.copyFrom(serializeOptions(opts))).build()
     }
 
-    private val callable = new Call[GeoMesaCoprocessorService, java.util.List[ByteString]]() {
-      override def call(instance: GeoMesaCoprocessorService): java.util.List[ByteString] = {
-        if (closed.get) { Collections.emptyList() } else {
+    private def callable: Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse] = new Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse]() {
+      // Doing this so that each callable has its own copy of the request.
+      // Notably, the 'scan' is mutated between calls.
+      val interalRequest: GeoMesaCoprocessorRequest = request
+
+      override def call(instance: GeoMesaCoprocessorService): GeoMesaCoprocessorResponse = {
+        if (closed.get) {
+          // Should this be an empty response instead?  Maybe not since we can do a null check later?
+          null
+        } else {
           val controller: RpcController = new GeoMesaHBaseRpcController()
           val callback = new RpcCallbackImpl()
           // note: synchronous call
-          try { instance.getResult(controller, request, callback) } catch {
+          try { instance.getResult(controller, interalRequest, callback) } catch {
             case _: InterruptedException | _: InterruptedIOException | _: CancellationException =>
               logger.warn("Cancelling remote coprocessor call")
               controller.startCancel()
@@ -134,15 +147,32 @@ object GeoMesaCoprocessor extends LazyLogging {
 
     private val coprocessor = CachedThreadPool.submit(new Runnable() {
       override def run(): Unit = {
+        val callback = new GeoMesaHBaseCallBack(resultQueue)
         try {
           if (!closed.get) {
+            logger.trace(s"Calling htable.coproService (first time): " +
+              s"${ByteArrays.printable(scan.getStartRow)} to ${ByteArrays.printable(scan.getStopRow)}")
             htable.coprocessorService(service, scan.getStartRow, scan.getStopRow, callable, callback)
+          }
+          logger.trace(s"Closed: ${closed.get}. Callback.lastRow: ${ByteArrays.printable(callback.lastRow)}")
+
+          // If the scan hasn't been killed and we are not done, then re-issue the request.
+          while (!closed.get() && callback.lastRow != null) {
+            // Reset the callback's status
+            callback.lastRow = null
+
+            val nextRow = ByteArrays.rowFollowingRow(callback.lastRow)
+            logger.trace(s"Scan continuing from next row is ${ByteArrays.printable(nextRow)}")
+
+            scan.setStartRow(nextRow)
+            htable.coprocessorService(service, nextRow, scan.getStopRow, callable, callback)
+            logger.trace(s"Closed: ${closed.get}. Callback.lastRow: ${ByteArrays.printable(callback.lastRow)}")
           }
         } catch {
           case e @ (_ :InterruptedException | _ :InterruptedIOException) =>
             logger.warn("Interrupted executing coprocessor query:", e)
         } finally {
-          callback.result.add(terminator)
+          resultQueue.add(terminator)
         }
       }
     })
@@ -150,7 +180,7 @@ object GeoMesaCoprocessor extends LazyLogging {
     override def hasNext: Boolean = {
       if (staged != null) { true } else {
         try {
-          staged = callback.result.take()
+          staged = resultQueue.take()
         } catch {
           case _ :InterruptedException =>
             // propagate the interruption through to the rpc call
@@ -158,7 +188,7 @@ object GeoMesaCoprocessor extends LazyLogging {
             return false
         }
         if (terminator eq staged) {
-          callback.result.add(staged)
+          resultQueue.add(staged)
           staged = null
           false
         } else {
@@ -188,14 +218,14 @@ object GeoMesaCoprocessor extends LazyLogging {
   /**
     * Unsynchronized rpc callback
     */
-  private class RpcCallbackImpl extends RpcCallback[GeoMesaCoprocessorResponse] {
+  class RpcCallbackImpl extends RpcCallback[GeoMesaCoprocessorResponse] {
+    private var response: GeoMesaCoprocessorResponse = _
 
-    private var result: java.util.List[ByteString] = _
+    def get(): GeoMesaCoprocessorResponse = response
 
-    def get(): java.util.List[ByteString] = result
-
-    override def run(parameter: GeoMesaCoprocessorResponse): Unit =
-      result = Option(parameter).map(_.getPayloadList).orNull
+    override def run(parameter: GeoMesaCoprocessorResponse): Unit = {
+      response = parameter
+    }
   }
 
 }

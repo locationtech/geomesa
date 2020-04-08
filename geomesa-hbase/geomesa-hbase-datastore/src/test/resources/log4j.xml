@@ -3,7 +3,7 @@
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
     <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
         <layout class="org.apache.log4j.EnhancedPatternLayout">
-            <param name="ConversionPattern" value="[%d] %5p %c{1}: %m%n"/>
+            <param name="ConversionPattern" value="[%d] %t %5p %c{1}: %m%n"/>
         </layout>
     </appender>
 
@@ -35,9 +35,17 @@
     <!-- un-comment the following line to enable verbose log messages
          from the index query-planner; this can be helpful in debugging
          query plans -->
-    <!--<category name="org.locationtech.geomesa.index.utils.Explainer">
+    <category name="org.locationtech.geomesa.index.utils.Explainer">
         <priority value="trace"/>
-    </category>-->
+    </category>
+
+    <category name="org.locationtech.geomesa.hbase.server">
+        <priority value="debug"/>
+    </category>
+    <category name="org.locationtech.geomesa.hbase.rpc.coprocessor">
+        <priority value="debug"/>
+    </category>
+
 
     <root>
         <priority value="info"/>

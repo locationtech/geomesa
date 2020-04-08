@@ -37,6 +37,13 @@ geomesa.hbase.coprocessor.stats.enable
 Disable coprocessor scans for stat queries, and use local processing instead. This property will be overridden by
 the data store configuration parameter, if both are specified.
 
+geomesa.hbase.coprocessor.yield.partial.results
++++++++++++++++++++++++++++++++++++++++++++++++
+
+When true, this property has GeoMesa coprocessor calls yield and return to the client when the configured batch size
+for that query is reached. When false, the coprocessor will attempt to complete its query (making multiple batches)
+while respecting the ``geomesa.query.timeout``.
+
 geomesa.hbase.remote.filtering
 ++++++++++++++++++++++++++++++
 

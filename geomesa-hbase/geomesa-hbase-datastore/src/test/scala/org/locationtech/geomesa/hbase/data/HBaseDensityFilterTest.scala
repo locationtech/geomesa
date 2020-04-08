@@ -52,6 +52,9 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
   lazy val dsSemiLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.DensityCoprocessorParam.key -> false)).asInstanceOf[HBaseDataStore]
   lazy val dsFullLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false)).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads1 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "1")).asInstanceOf[HBaseDataStore]
+  lazy val dsNoPartials = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.YieldPartialResultsParam.key -> false)).asInstanceOf[HBaseDataStore]
+  lazy val dataStores = Seq(ds, dsSemiLocal, dsFullLocal, dsThreads1, dsNoPartials)
 
   var sft: SimpleFeatureType = _
 
@@ -95,7 +98,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
       addFeatures(toAdd)
 
       val q = "BBOX(geom, 0, 0, 10, 10)"
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val density = getDensity(typeName, q, ds)
         density.length must equalTo(1)
       }
@@ -116,7 +119,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
       addFeatures(toAdd)
 
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val density = getDensity(typeName, q, ds)
         density.length must beLessThan(150)
         density.map(_._3).sum must beEqualTo(150)
@@ -138,7 +141,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
       addFeatures(toAdd)
 
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val density = getDensity(typeName, q, ds)
         density.length must beLessThan(150)
         density.map(_._3).sum must beEqualTo(150)
@@ -160,7 +163,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
       addFeatures(toAdd)
 
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -80, 33, -70, 40)"
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val density = getDensity(typeName, q, ds)
         density.length must beLessThan(150)
         density.map(_._3).sum must beEqualTo(150)
@@ -184,7 +187,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
       addFeatures(toAdd)
 
       val q = "(dtg between '2012-01-01T18:00:00.000Z' AND '2012-01-01T23:00:00.000Z') and BBOX(geom, -1, 33, 6, 40)"
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val density = getDensity(typeName, q, ds)
         density.map(_._3).sum mustEqual 150
 
@@ -199,9 +202,7 @@ class HBaseDensityFilterTest extends Specification with LazyLogging {
 
   step {
     logger.info("Cleaning up HBase Density Test")
-    ds.dispose()
-    dsSemiLocal.dispose()
-    dsFullLocal.dispose()
+    dataStores.foreach { _.dispose() }
   }
 
   def addFeatures(features: Seq[SimpleFeature]): Unit = {
