@@ -63,6 +63,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     val coprocessors = CoprocessorConfig(
       enabled = enabledCoprocessors,
       threads = CoprocessorThreadsParam.lookup(params),
+      yieldPartialResults = YieldPartialResultsParam.lookup(params),
       maxRangesPerExtendedScan = MaxRangesPerCoprocessorScanParam.lookup(params),
       url = CoprocessorUrlParam.lookupOpt(params)
     )
@@ -124,12 +125,13 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   val HBaseGeoMesaPrincipal = "hbase.geomesa.principal"
   val HBaseGeoMesaKeyTab    = "hbase.geomesa.keytab"
 
-  val ConfigPathProperty   : SystemProperty = SystemProperty("geomesa.hbase.config.paths")
-  val RemoteFilterProperty : SystemProperty = SystemProperty("geomesa.hbase.remote.filtering", "true")
-  val RemoteArrowProperty  : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.arrow.enable")
-  val RemoteBinProperty    : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.bin.enable")
-  val RemoteDensityProperty: SystemProperty = SystemProperty("geomesa.hbase.coprocessor.density.enable")
-  val RemoteStatsProperty  : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.stats.enable")
+  val ConfigPathProperty          : SystemProperty = SystemProperty("geomesa.hbase.config.paths")
+  val RemoteFilterProperty        : SystemProperty = SystemProperty("geomesa.hbase.remote.filtering", "true")
+  val RemoteArrowProperty         : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.arrow.enable")
+  val RemoteBinProperty           : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.bin.enable")
+  val RemoteDensityProperty       : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.density.enable")
+  val RemoteStatsProperty         : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.stats.enable")
+  val YieldPartialResultsProperty : SystemProperty = SystemProperty("geomesa.hbase.coprocessor.yield.partial.results")
 
   override val DisplayName = "HBase (GeoMesa)"
   override val Description = "Apache HBase\u2122 distributed key/value store"
@@ -151,6 +153,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       BinCoprocessorParam,
       DensityCoprocessorParam,
       StatsCoprocessorParam,
+      YieldPartialResultsParam,
       EnableSecurityParam,
       GenerateStatsParam,
       AuditQueriesParam,
@@ -190,6 +193,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   case class CoprocessorConfig(
       enabled: EnabledCoprocessors,
       threads: Int,
+      yieldPartialResults: Boolean,
       maxRangesPerExtendedScan: Int,
       url: Option[Path]
     )

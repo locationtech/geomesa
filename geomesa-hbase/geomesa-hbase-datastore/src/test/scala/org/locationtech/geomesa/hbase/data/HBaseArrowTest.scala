@@ -27,6 +27,9 @@ import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
+import scala.collection.JavaConversions._
+
+
 @RunWith(classOf[JUnitRunner])
 class HBaseArrowTest extends Specification with LazyLogging  {
 
@@ -46,7 +49,10 @@ class HBaseArrowTest extends Specification with LazyLogging  {
 
   lazy val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
   lazy val dsSemiLocal = DataStoreFinder.getDataStore((params ++ Map(HBaseDataStoreParams.ArrowCoprocessorParam.key -> false)).asJava).asInstanceOf[HBaseDataStore]
-  lazy val dsFullLocal = DataStoreFinder.getDataStore((params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false)).asJava).asInstanceOf[HBaseDataStore]
+  lazy val dsFullLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false)).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads1 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "1")).asInstanceOf[HBaseDataStore]
+  lazy val dsYieldPartials = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.YieldPartialResultsParam.key -> true)).asInstanceOf[HBaseDataStore]
+  lazy val dataStores = Seq(ds, dsSemiLocal, dsFullLocal, dsThreads1, dsYieldPartials)
 
   step {
     logger.info("Starting HBase Arrow Test")
@@ -68,7 +74,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
 
   "ArrowFileCoprocessor" should {
     "return arrow dictionary encoded data" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val query = new Query(sft.getTypeName, Filter.INCLUDE)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name,age")
@@ -88,7 +94,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
 
   "ArrowBatchCoprocessor" should {
     "return arrow encoded data" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val query = new Query(sft.getTypeName, Filter.INCLUDE)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 5)
@@ -103,7 +109,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
       }
     }
     "return arrow dictionary encoded data" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val query = new Query(sft.getTypeName, Filter.INCLUDE)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name,age")
@@ -119,7 +125,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
       }
     }
     "return arrow dictionary encoded data with provided dictionaries" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val query = new Query(sft.getTypeName, Filter.INCLUDE)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
@@ -143,7 +149,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
       }
     }
     "return arrow encoded projections" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val query = new Query(sft.getTypeName, Filter.INCLUDE, Array("dtg", "geom"))
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 5)
@@ -166,7 +172,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
         "bbox(geom,38,65.5,42,69.5) and dtg DURING 2017-02-03T00:00:00.000Z/2017-02-03T00:08:00.000Z" -> features.slice(6, 8)
       )
       val transforms = Seq(Array("name", "dtg", "geom"), null)
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         foreach(filters) { case (ecql, expected) =>
           foreach(transforms) { transform =>
             val query = new Query(sft.getTypeName, ECQL.toFilter(ecql), transform)
@@ -191,7 +197,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
       }
     }
     "return sampled arrow encoded data" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val query = new Query(sft.getTypeName, Filter.INCLUDE)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.SAMPLING, 0.2f)
@@ -209,7 +215,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
     }
     "return arrow dictionary encoded data without caching and with z-values" in {
       val filter = ECQL.toFilter("bbox(geom, 38, 59, 42, 70) and dtg DURING 2017-02-03T00:00:00.000Z/2017-02-03T01:00:00.000Z")
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val query = new Query(sft.getTypeName, filter)
         query.getHints.put(QueryHints.ARROW_ENCODE, true)
         query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
@@ -243,8 +249,6 @@ class HBaseArrowTest extends Specification with LazyLogging  {
 
   step {
     logger.info("Cleaning up HBase Arrow Test")
-    ds.dispose()
-    dsSemiLocal.dispose()
-    dsFullLocal.dispose()
+    dataStores.foreach { _.dispose() }
   }
 }
