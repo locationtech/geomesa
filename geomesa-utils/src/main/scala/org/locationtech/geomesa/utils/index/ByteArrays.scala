@@ -552,7 +552,7 @@ object ByteArrays {
    * @return
    */
   def printable(bytes: Array[Byte]): String = {
-    if(bytes == null) { "null" } else {
+    if (bytes == null) { "null" } else {
       bytes.map(printable).mkString("")
     }
   }

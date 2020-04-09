@@ -27,9 +27,9 @@ trait HBaseAggregator[T <: AggregatingScan.Result] extends AggregatingScan[T] {
   private var lastscanned: Array[Byte] = _
 
   def setScanner(scanner: RegionScanner): Unit = {
-    lastscanned = null
     this.scanner = scanner
     results.clear()
+    lastscanned = null
     more = scanner.next(results)
     iter = results.iterator()
   }

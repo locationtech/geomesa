@@ -61,9 +61,10 @@ trait CoprocessorScan extends StrictLogging {
     if (request.getVersion != CoprocessorScan.AllowableRequestVersion) {
       // We cannot handle this request.
       // Immediately return an empty response indicating the highest response version
-      logger.error(s"Got a coprocessor request with version ${request.getVersion}.  " +
-        s"Can handle version ${CoprocessorScan.AllowableRequestVersion}.")
-      results.setVersion(CoprocessorScan.GeoMesaCoprocessorResponseVersion)
+      logger.error(
+        s"Got a coprocessor request with version ${request.getVersion}, " +
+            s"but can only handle ${CoprocessorScan.AllowableRequestVersion}.")
+      results.setVersion(CoprocessorScan.AllowableRequestVersion)
       done.run(results.build)
     } else {
       try {
@@ -83,7 +84,8 @@ trait CoprocessorScan extends StrictLogging {
 
           WithClose(getScanner(scan)) { scanner =>
             aggregator.setScanner(scanner)
-            aggregator.aggregate(new CoprocessorAggregateCallback(controller, aggregator, results, yieldPartialResults, timeout))
+            aggregator.aggregate(
+              new CoprocessorAggregateCallback(controller, aggregator, results, yieldPartialResults, timeout))
           }
         }
       } catch {
@@ -118,7 +120,8 @@ trait CoprocessorScan extends StrictLogging {
 
     private val start = System.currentTimeMillis()
 
-    logger.trace(s"Running first batch on aggregator $aggregator" +
+    logger.trace(
+      s"Running first batch on aggregator $aggregator" +
         timeout.map(t => s" with remaining timeout ${t - System.currentTimeMillis()}ms").getOrElse(""))
 
     override def batch(bytes: Array[Byte]): Boolean = {
@@ -142,15 +145,17 @@ trait CoprocessorScan extends StrictLogging {
         logger.warn(s"Stopping aggregator $aggregator due to timeout of ${timeout.get}ms")
         false
       } else if (yieldPartialResults) {
-        logger.trace(s"Stopping aggregator $aggregator at row ${ByteArrays.printable(aggregator.getLastScanned)} and" +
-          s"returning intermediate results.")
+        logger.trace(
+          s"Stopping aggregator $aggregator at row ${ByteArrays.printable(aggregator.getLastScanned)} and " +
+              "returning intermediate results")
         // This check makes covers the HBase Version Aggregator case
         if (aggregator.getLastScanned != null && !aggregator.getLastScanned.isEmpty) {
           results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))
         }
         false
       } else {
-        logger.trace(s"Running next batch on aggregator $aggregator " +
+        logger.trace(
+          s"Running next batch on aggregator $aggregator " +
             s"with elapsed time ${System.currentTimeMillis() - start}ms" +
             timeout.map(t => s" and remaining timeout ${t - System.currentTimeMillis()}ms").getOrElse(""))
         true
@@ -162,5 +167,4 @@ trait CoprocessorScan extends StrictLogging {
 object CoprocessorScan {
   type Aggregator = HBaseAggregator[_ <: AggregatingScan.Result]
   val AllowableRequestVersion = 1
-  val GeoMesaCoprocessorResponseVersion = 1
 }

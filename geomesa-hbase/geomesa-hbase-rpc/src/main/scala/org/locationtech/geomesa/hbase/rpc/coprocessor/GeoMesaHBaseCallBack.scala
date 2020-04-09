@@ -20,28 +20,27 @@ class GeoMesaHBaseCallBack(result: LinkedBlockingQueue[ByteString]) extends Call
   var lastRow: Array[Byte] = _
 
   override def update(region: Array[Byte], row: Array[Byte], response: GeoMesaCoprocessorResponse): Unit = {
-    Option(response).map(_.getVersion).foreach { i =>
-      if (response.getPayloadCount == 0) {
-        logger.warn(s"Got an empty response.  Coprocessors responded with version $i.")
-      }
+    logger.trace(s"In update for region ${ByteArrays.printable(region)} and row ${ByteArrays.printable(row)}")
+
+    val opt = Option(response)
+    opt.collect { case r if r.hasVersion => r.getVersion }.foreach { i =>
+      logger.warn(s"Coprocessors responded with incompatible version: $i")
     }
 
-    logger.trace(s"In update for region ${ByteArrays.printable(region)} for row ${ByteArrays.printable(row)}")
-    val result =  Option(response).map(_.getPayloadList).orNull
-    val lastScanned: ByteString = Option(response).map(_.getLastScanned).orNull
+    val result = opt.map(_.getPayloadList).orNull
+    val lastScanned = opt.collect { case r if r.hasLastScanned => r.getLastScanned }.orNull
 
     if (lastScanned != null && !lastScanned.isEmpty) {
       if (lastRow != null) {
-        logger.error(s"Last row was not null.  Region: ${ByteArrays.printable(row)} This should not happen.  " +
-          "This indicates that one range was split up by the RS into more than one non-trivial, results producing ranges.")
+        logger.error(
+          s"Last row was not null for region ${ByteArrays.printable(region)} and row ${ByteArrays.printable(row)}\n" +
+              "This indicates that one range spanned multiple regions - results might be incorrect.")
       }
       lastRow = lastScanned.toByteArray
     }
 
     if (result != null) {
       this.result.addAll(result)
-    } else {
-      logger.warn("Coprocessor response was empty.")
     }
   }
 }

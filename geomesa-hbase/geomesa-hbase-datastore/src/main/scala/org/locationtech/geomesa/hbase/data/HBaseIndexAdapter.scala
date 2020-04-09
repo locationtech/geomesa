@@ -258,8 +258,9 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         }
         (cqlFilter ++ indexFilter).sortBy(_._1).map(_._2)
       }
-      lazy val coprocessorOptions: Map[String, String] = Map[String, String](GeoMesaCoprocessor.YieldOpt -> ds.config.coprocessors.yieldPartialResults.toString) ++
-        strategy.index.ds.config.queries.timeout.map(GeoMesaCoprocessor.timeout)
+      lazy val coprocessorOptions: Map[String, String] =
+        Map[String, String](GeoMesaCoprocessor.YieldOpt -> ds.config.coprocessors.yieldPartialResults.toString) ++
+            strategy.index.ds.config.queries.timeout.map(GeoMesaCoprocessor.timeout)
       lazy val scans = configureScans(tables, ranges, small, colFamily, filters, coprocessor = false)
       lazy val coprocessorScans =
         configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
@@ -272,7 +273,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       if (hints.isDensityQuery) {
         empty(None).getOrElse {
           if (ds.config.coprocessors.enabled.density) {
-            val options: Map[String, String] = HBaseDensityAggregator.configure(schema, index, ecql, hints) ++ coprocessorOptions
+            val options = HBaseDensityAggregator.configure(schema, index, ecql, hints) ++ coprocessorOptions
             val results = new HBaseDensityResultsToFeatures()
             CoprocessorPlan(filter, ranges, coprocessorScans, options, results, None, max, projection)
           } else {
@@ -460,7 +461,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       encodedName = regionInfo.getEncodedName
       val regionEndKey = regionInfo.getEndKey // Note this is exclusive.
       if (regionEndKey.nonEmpty &&
-        (range.getStopRow.isEmpty || ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) <= 0)) {
+          (range.getStopRow.isEmpty || ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) <= 0)) {
         split = regionEndKey
       }
     } catch {
