@@ -2890,13 +2890,21 @@
         </repository>
         <!-- geotools -->
         <repository>
-            <id>boundlessgeo</id>
-            <url>https://repo.boundlessgeo.com/main</url>
-        </repository>
-        <!-- jai -->
-        <repository>
             <id>osgeo</id>
-            <url>https://download.osgeo.org/webdav/geotools</url>
+            <url>https://repo.osgeo.org/repository/release</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>osgeo-snapshots</id>
+            <url>https://repo.osgeo.org/repository/snapshot</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
         <repository>
             <id>confluent</id>
