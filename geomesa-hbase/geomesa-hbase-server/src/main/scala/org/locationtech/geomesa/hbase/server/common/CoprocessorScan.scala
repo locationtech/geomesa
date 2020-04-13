@@ -24,6 +24,7 @@ import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.hbase.server.common.CoprocessorScan.Aggregator
 import org.locationtech.geomesa.index.iterators.AggregatingScan
 import org.locationtech.geomesa.index.iterators.AggregatingScan.AggregateCallback
+import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 
 import scala.util.control.NonFatal
@@ -57,36 +58,48 @@ trait CoprocessorScan extends StrictLogging {
 
     val results = GeoMesaCoprocessorResponse.newBuilder()
 
-    try {
-      val options = GeoMesaCoprocessor.deserializeOptions(request.getOptions.toByteArray)
-      val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong)
-      if (!controller.isCanceled && timeout.forall(_ > System.currentTimeMillis())) {
-        val clas = options(GeoMesaCoprocessor.AggregatorClass)
-        val aggregator = Class.forName(clas).newInstance().asInstanceOf[Aggregator]
-        logger.debug(s"Initializing aggregator $aggregator with options ${options.mkString(", ")}")
-        aggregator.init(options)
+    if (request.getVersion != CoprocessorScan.AllowableRequestVersion) {
+      // We cannot handle this request.
+      // Immediately return an empty response indicating the highest response version
+      logger.error(
+        s"Got a coprocessor request with version ${request.getVersion}, " +
+            s"but can only handle ${CoprocessorScan.AllowableRequestVersion}.")
+      results.setVersion(CoprocessorScan.AllowableRequestVersion)
+      done.run(results.build)
+    } else {
+      try {
+        val options = GeoMesaCoprocessor.deserializeOptions(request.getOptions.toByteArray)
+        val timeout = options.get(GeoMesaCoprocessor.TimeoutOpt).map(_.toLong)
+        val yieldPartialResults = options.get(GeoMesaCoprocessor.YieldOpt).exists(_.toBoolean)
+        if (!controller.isCanceled && timeout.forall(_ > System.currentTimeMillis())) {
+          val clas = options(GeoMesaCoprocessor.AggregatorClass)
+          val aggregator = Class.forName(clas).newInstance().asInstanceOf[Aggregator]
+          logger.debug(s"Initializing aggregator $aggregator.")
+          aggregator.init(options)
 
-        val scan = {
-          val bytes = Base64.getDecoder.decode(options(GeoMesaCoprocessor.ScanOpt))
-          ProtobufUtil.toScan(ClientProtos.Scan.parseFrom(bytes))
-        }
+          val scan = {
+            val bytes = Base64.getDecoder.decode(options(GeoMesaCoprocessor.ScanOpt))
+            ProtobufUtil.toScan(ClientProtos.Scan.parseFrom(bytes))
+          }
 
-        WithClose(getScanner(scan)) { scanner =>
-          aggregator.setScanner(scanner)
-          aggregator.aggregate(new CoprocessorAggregateCallback(controller, aggregator, results, timeout))
+          WithClose(getScanner(scan)) { scanner =>
+            aggregator.setScanner(scanner)
+            aggregator.aggregate(
+              new CoprocessorAggregateCallback(controller, aggregator, results, yieldPartialResults, timeout))
+          }
         }
+      } catch {
+        case _: InterruptedException | _: InterruptedIOException => // stop processing, but don't return an error to prevent retries
+        case e: IOException => ResponseConverter.setControllerException(controller, e)
+        case NonFatal(e) => ResponseConverter.setControllerException(controller, new IOException(e))
       }
-    } catch {
-      case _: InterruptedException | _ : InterruptedIOException => // stop processing, but don't return an error to prevent retries
-      case e: IOException => ResponseConverter.setControllerException(controller, e)
-      case NonFatal(e) => ResponseConverter.setControllerException(controller, new IOException(e))
-    }
 
-    logger.debug(
-      s"Results total size: ${results.getPayloadList.asScala.map(_.size()).sum}" +
+      logger.debug(
+        s"Results total size: ${results.getPayloadList.asScala.map(_.size()).sum}" +
           s"\n\tBatch sizes: ${results.getPayloadList.asScala.map(_.size()).mkString(", ")}")
 
-    done.run(results.build)
+      done.run(results.build)
+    }
   }
 
   /**
@@ -101,12 +114,14 @@ trait CoprocessorScan extends StrictLogging {
       controller: RpcController,
       aggregator: Aggregator,
       results: GeoMesaCoprocessorResponse.Builder,
+      yieldPartialResults: Boolean,
       timeout: Option[Long]
     ) extends AggregateCallback {
 
     private val start = System.currentTimeMillis()
 
-    logger.trace(s"Running first batch on aggregator $aggregator" +
+    logger.trace(
+      s"Running first batch on aggregator $aggregator" +
         timeout.map(t => s" with remaining timeout ${t - System.currentTimeMillis()}ms").getOrElse(""))
 
     override def batch(bytes: Array[Byte]): Boolean = {
@@ -129,8 +144,18 @@ trait CoprocessorScan extends StrictLogging {
       } else if (timeout.exists(_ < System.currentTimeMillis())) {
         logger.warn(s"Stopping aggregator $aggregator due to timeout of ${timeout.get}ms")
         false
+      } else if (yieldPartialResults) {
+        logger.trace(
+          s"Stopping aggregator $aggregator at row ${ByteArrays.printable(aggregator.getLastScanned)} and " +
+              "returning intermediate results")
+        // This check makes covers the HBase Version Aggregator case
+        if (aggregator.getLastScanned != null && !aggregator.getLastScanned.isEmpty) {
+          results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))
+        }
+        false
       } else {
-        logger.trace(s"Running next batch on aggregator $aggregator " +
+        logger.trace(
+          s"Running next batch on aggregator $aggregator " +
             s"with elapsed time ${System.currentTimeMillis() - start}ms" +
             timeout.map(t => s" and remaining timeout ${t - System.currentTimeMillis()}ms").getOrElse(""))
         true
@@ -141,4 +166,5 @@ trait CoprocessorScan extends StrictLogging {
 
 object CoprocessorScan {
   type Aggregator = HBaseAggregator[_ <: AggregatingScan.Result]
+  val AllowableRequestVersion = 1
 }

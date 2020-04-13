@@ -14,6 +14,7 @@ import java.util.{Collections, Locale, UUID}
 
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.hadoop.fs.Path
+import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.coprocessor.CoprocessorHost
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
@@ -22,7 +23,6 @@ import org.apache.hadoop.hbase.io.compress.Compression
 import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
-import org.apache.hadoop.hbase.{HRegionInfo, TableName}
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, TableAvailabilityTimeout}
 import org.locationtech.geomesa.hbase.aggregators.HBaseArrowAggregator.HBaseArrowResultsToFeatures
@@ -258,7 +258,9 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         }
         (cqlFilter ++ indexFilter).sortBy(_._1).map(_._2)
       }
-      lazy val timeout = strategy.index.ds.config.queries.timeout.map(GeoMesaCoprocessor.timeout)
+      lazy val coprocessorOptions: Map[String, String] =
+        Map[String, String](GeoMesaCoprocessor.YieldOpt -> ds.config.coprocessors.yieldPartialResults.toString) ++
+            strategy.index.ds.config.queries.timeout.map(GeoMesaCoprocessor.timeout)
       lazy val scans = configureScans(tables, ranges, small, colFamily, filters, coprocessor = false)
       lazy val coprocessorScans =
         configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
@@ -271,7 +273,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       if (hints.isDensityQuery) {
         empty(None).getOrElse {
           if (ds.config.coprocessors.enabled.density) {
-            val options = HBaseDensityAggregator.configure(schema, index, ecql, hints) ++ timeout
+            val options = HBaseDensityAggregator.configure(schema, index, ecql, hints) ++ coprocessorOptions
             val results = new HBaseDensityResultsToFeatures()
             CoprocessorPlan(filter, ranges, coprocessorScans, options, results, None, max, projection)
           } else {
@@ -283,7 +285,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         val reducer = Some(config.reduce)
         empty(reducer).getOrElse {
           if (ds.config.coprocessors.enabled.arrow) {
-            val options = config.config ++ timeout
+            val options = config.config ++ coprocessorOptions
             val results = new HBaseArrowResultsToFeatures()
             CoprocessorPlan(filter, ranges, coprocessorScans, options, results, reducer, max, projection)
           } else {
@@ -294,7 +296,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         val reducer = Some(StatsScan.StatsReducer(returnSchema, hints))
         empty(reducer).getOrElse {
           if (ds.config.coprocessors.enabled.stats) {
-            val options = HBaseStatsAggregator.configure(schema, index, ecql, hints) ++ timeout
+            val options = HBaseStatsAggregator.configure(schema, index, ecql, hints) ++ coprocessorOptions
             val results = new HBaseStatsResultsToFeatures()
             CoprocessorPlan(filter, ranges, coprocessorScans, options, results, reducer, max, projection)
           } else {
@@ -304,7 +306,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
       } else if (hints.isBinQuery) {
         empty(None).getOrElse {
           if (ds.config.coprocessors.enabled.bin) {
-            val options = HBaseBinAggregator.configure(schema, index, ecql, hints) ++ timeout
+            val options = HBaseBinAggregator.configure(schema, index, ecql, hints) ++ coprocessorOptions
             val results = new HBaseBinResultsToFeatures()
             CoprocessorPlan(filter, ranges, coprocessorScans, options , results, None, max, projection)
           } else {
@@ -457,8 +459,9 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
     try {
       val regionInfo = locator.getRegionLocation(range.getStartRow).getRegionInfo
       encodedName = regionInfo.getEncodedName
-      val regionEndKey = regionInfo.getEndKey
-      if (regionEndKey.nonEmpty && ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) < 0) {
+      val regionEndKey = regionInfo.getEndKey // Note this is exclusive.
+      if (regionEndKey.nonEmpty &&
+          (range.getStopRow.isEmpty || ByteArrays.ByteOrdering.compare(regionEndKey, range.getStopRow) <= 0)) {
         split = regionEndKey
       }
     } catch {

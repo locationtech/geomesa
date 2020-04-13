@@ -51,6 +51,9 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
   lazy val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
   lazy val dsSemiLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.StatsCoprocessorParam.key -> false)).asInstanceOf[HBaseDataStore]
   lazy val dsFullLocal = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.RemoteFilteringParam.key -> false)).asInstanceOf[HBaseDataStore]
+  lazy val dsThreads1 = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.CoprocessorThreadsParam.key -> "1")).asInstanceOf[HBaseDataStore]
+  lazy val dsYieldPartials = DataStoreFinder.getDataStore(params ++ Map(HBaseDataStoreParams.YieldPartialResultsParam.key -> true)).asInstanceOf[HBaseDataStore]
+  lazy val dataStores = Seq(ds, dsSemiLocal, dsFullLocal, dsThreads1, dsYieldPartials)
 
   var sft: SimpleFeatureType = _
 
@@ -79,7 +82,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
    */
   "StatsIterator" should {
     "work with the MinMax stat" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val q = getQuery("MinMax(attr)")
         val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
@@ -89,7 +92,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     }
 
     "work with the IteratorStackCount stat" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val q = getQuery("IteratorStackCount()")
         val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
@@ -101,7 +104,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     }
 
     "work with the Enumeration stat" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val q = getQuery("Enumeration(idt)")
         val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
@@ -115,7 +118,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     }
 
     "work with the Histogram stat" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val q = getQuery("Histogram(idt,5,10,14)", Some("idt between 10 and 14"))
         val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
@@ -131,7 +134,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     }
 
     "work with the Histogram and Count stats" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val q = getQuery("Histogram(idt,5,10,14);Count()", Some("idt between 10 and 14"))
         val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
@@ -152,7 +155,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     }
 
     "work with the count stat" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val q = getQuery("Count()", Some("idt between 10 and 14"))
         val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
@@ -164,7 +167,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     }
 
     "work with multiple stats at once" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val q = getQuery("MinMax(attr);IteratorStackCount();Enumeration(idt);Histogram(idt,5,10,14)")
         val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
         val sf = results.head
@@ -194,7 +197,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     }
 
     "work with the z2 index" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val q = getQuery("MinMax(attr)")
         q.setFilter(ECQL.toFilter("bbox(geom,-80,35,-75,40)"))
         val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
@@ -206,7 +209,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     }
 
     "work with the id index" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val q = getQuery("MinMax(attr)")
         q.setFilter(ECQL.toFilter("IN('149', '100')"))
         val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
@@ -218,7 +221,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     }
 
     "work with the attribute index" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val q = getQuery("MinMax(attr)")
         q.setFilter(ECQL.toFilter("attr > 10"))
         val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
@@ -230,7 +233,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     }
 
     "work with the attribute index on other fields" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val q = getQuery("MinMax(idt)")
         q.setFilter(ECQL.toFilter("attr > 10"))
         val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
@@ -242,7 +245,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     }
 
     "work with the attribute index on flipped fields" in {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val q = getQuery("MinMax(attr)")
         q.setFilter(ECQL.toFilter("idt > 10"))
         val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
@@ -254,7 +257,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
     }
 
     "handle empty queries with exact stats" >> {
-      foreach(Seq(ds, dsSemiLocal, dsFullLocal)) { ds =>
+      foreach(dataStores) { ds =>
         val filter = "dtg > '2019-01-01T00:00:00.000Z' AND dtg < '2019-01-02T00:00:00.000Z' AND dtg > currentDate('-P1D')"
         val calculated = ds.stats.getCount(sft, ECQL.toFilter(filter), exact = true)
         calculated must beSome(0L)
@@ -263,9 +266,7 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
   }
 
   step {
-    ds.dispose()
-    dsSemiLocal.dispose()
-    dsFullLocal.dispose()
+    dataStores.foreach { _.dispose() }
   }
 
   def getQuery(statString: String, ecql: Option[String] = None): Query = {
