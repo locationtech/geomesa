@@ -14,7 +14,7 @@ import com.typesafe.config.ConfigFactory
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors._
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOptions, Configs}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecConfig
@@ -455,6 +455,41 @@ class SimpleFeatureTypesTest extends Specification {
       sft.getTypeName must be equalTo "testconf"
     }
 
+    "set default date field from conf" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          |{
+          |  type-name = "test"
+          |  fields = [
+          |    { name = "dtg1", type = "Date"  },
+          |    { name = "dtg2", type = "Date", default = true },
+          |    { name = "dtg3", type = "Date" },
+          |    { name = "geom", type = "Point", srid = 4326, default = true }
+          |  ]
+          |}
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(conf)
+      sft.getUserData.get(Configs.DefaultDtgField) mustEqual "dtg2"
+    }
+
+    "set default date field with timestamps from conf" >> {
+      val conf = ConfigFactory.parseString(
+        """
+          |{
+          |  type-name = "test"
+          |  fields = [
+          |    { name = "dtg1", type = "Timestamp"  },
+          |    { name = "dtg2", type = "Timestamp", default = true },
+          |    { name = "dtg3", type = "Timestamp" },
+          |    { name = "geom", type = "Point", srid = 4326, default = true }
+          |  ]
+          |}
+        """.stripMargin)
+
+      val sft = SimpleFeatureTypes.createType(conf)
+      sft.getUserData.get(Configs.DefaultDtgField) mustEqual "dtg2"
+    }
 
     "allow user data in conf" >> {
       val conf = ConfigFactory.parseString(
