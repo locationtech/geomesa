@@ -457,7 +457,7 @@ object SimpleFeatureTypes {
           .map(_.name)
     }
     val defaultDate = if (spec.options.get(IndexIgnoreDtg).exists(toBoolean)) { None } else {
-      val dateAttributes = spec.attributes.filter(_.clazz.isAssignableFrom(classOf[Date]))
+      val dateAttributes = spec.attributes.filter(a => classOf[Date].isAssignableFrom(a.clazz))
       spec.options.get(DefaultDtgField).flatMap(dtg => dateAttributes.find(_.name == dtg))
           .orElse(dateAttributes.find(_.options.get(OptDefault).exists(_.toBoolean)))
           .orElse(dateAttributes.headOption)
