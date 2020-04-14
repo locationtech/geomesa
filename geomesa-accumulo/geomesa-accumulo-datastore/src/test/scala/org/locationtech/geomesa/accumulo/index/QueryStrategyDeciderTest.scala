@@ -330,7 +330,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithFeatureType {
               "AND ageJoinIndex = 'dummy'",
           "weightNoIndex = 'dummy' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
           "ageJoinIndex ILIKE '%1' AND INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
-          "dtgNonIdx DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND " +
+          "dtgNoIndex DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND " +
               "INTERSECTS(geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND ageJoinIndex = '100'",
           "ageJoinIndex = '100001' AND INTERSECTS(geom, POLYGON ((45 20, 48 20, 48 27, 45 27, 45 20)))",
           "ageJoinIndex = '100001' AND INTERSECTS(geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
@@ -350,7 +350,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithFeatureType {
               "ns:ageJoinIndex = 'dummy'",
           "ns:weightNoIndex = 'dummy' AND INTERSECTS(ns:geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",
           "ns:ageJoinIndex ILIKE '%1' AND INTERSECTS(ns:geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23)))",
-          "ns:dtgNonIdx DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND " +
+          "ns:dtgNoIndex DURING 2010-08-08T00:00:00.000Z/2010-08-08T23:59:59.000Z AND " +
               "INTERSECTS(ns:geom, POLYGON ((45 23, 48 23, 48 27, 45 27, 45 23))) AND ns:ageJoinIndex = '100'",
           "ns:ageJoinIndex = '100001' AND INTERSECTS(ns:geom, POLYGON ((45 20, 48 20, 48 27, 45 27, 45 20)))",
           "ns:ageJoinIndex = '100001' AND INTERSECTS(ns:geom, POLYGON ((41 28, 42 28, 42 29, 41 29, 41 28)))",

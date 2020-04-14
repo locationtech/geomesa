@@ -81,6 +81,18 @@ class GeoMesaDataStoreTest extends Specification {
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
       results must beEmpty
     }
+    "throw an exception on invalid attributes" in {
+      val filters = Seq(
+        "names = 'foo'",
+        "bbox(g,-10,-10,10,10)",
+        "foo DURING 2018-01-01T00:00:00.000Z/2018-01-01T12:00:00.000Z",
+        "bbox(geom,-10,-10,10,10) AND foo DURING 2018-01-01T00:00:00.000Z/2018-01-01T12:00:00.000Z"
+      )
+      foreach(filters) { filter =>
+        val query = new Query("test", ECQL.toFilter(filter))
+        ds.getFeatureReader(query, Transaction.AUTO_COMMIT) must throwAn[IllegalArgumentException]
+      }
+    }
     "intercept and rewrite queries" in {
       val sft = SimpleFeatureTypes.createType("rewrite", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
       sft.getUserData.put(SimpleFeatureTypes.Configs.QueryInterceptors, classOf[TestQueryInterceptor].getName)
