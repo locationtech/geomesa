@@ -37,7 +37,7 @@ import org.locationtech.geomesa.utils.geotools.{GeometryUtils, RenderingGrid, Si
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.stats.{Stat, TopK}
-import org.locationtech.jts.geom.Envelope
+import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -237,7 +237,11 @@ object LocalQueryRunner {
     } else if (hints.isDensityQuery) {
       val Some(envelope) = hints.getDensityEnvelope
       val Some((width, height)) = hints.getDensityBounds
-      densityTransform(sampled, sft, envelope, width, height, hints.getDensityWeight)
+      val geom = hints.getDensityGeometry.getOrElse(sft.getGeometryDescriptor.getLocalName)
+      require(
+        sft.indexOf(geom) != -1 && classOf[Geometry].isAssignableFrom(sft.getDescriptor(geom).getType.getBinding),
+        s"Invalid geometry field: $geom")
+      densityTransform(sampled, sft, geom, envelope, width, height, hints.getDensityWeight)
     } else if (hints.isStatsQuery) {
       statsTransform(sampled, sft, transform, hints.getStatsQuery, hints.isStatsEncode || hints.isSkipReduce)
     } else {
@@ -400,11 +404,12 @@ object LocalQueryRunner {
   private def densityTransform(
       features: CloseableIterator[SimpleFeature],
       sft: SimpleFeatureType,
+      geom: String,
       envelope: Envelope,
       width: Int,
       height: Int,
       weight: Option[String]): CloseableIterator[SimpleFeature] = {
-    val renderer = DensityScan.getRenderer(sft, weight)
+    val renderer = DensityScan.getRenderer(sft, geom, weight)
     val grid = new RenderingGrid(envelope, width, height)
     try { features.foreach(renderer.render(grid, _)) } finally { features.close() }
 

@@ -15,6 +15,7 @@ import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.ByteBuffers.ExpandingByteBuffer
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -80,9 +81,13 @@ object KuduResultAdapter {
         hints.isArrowMultiFile)
       ArrowAdapter(sft, auths, ecql, hints.getTransform, config)
     } else if (hints.isDensityQuery) {
+      val geom = hints.getDensityGeometry.getOrElse(sft.getGeometryDescriptor.getLocalName)
+      require(
+        sft.indexOf(geom) != -1 && classOf[Geometry].isAssignableFrom(sft.getDescriptor(geom).getType.getBinding),
+        s"Invalid geometry field: $geom")
       val Some(envelope) = hints.getDensityEnvelope
       val Some((width, height)) = hints.getDensityBounds
-      DensityAdapter(sft, auths, ecql, envelope, width, height, hints.getDensityWeight)
+      DensityAdapter(sft, auths, ecql, geom, envelope, width, height, hints.getDensityWeight)
     } else if (hints.isStatsQuery) {
       val encode = hints.isStatsEncode || hints.isSkipReduce
       StatsAdapter(sft, auths, ecql, hints.getTransform, hints.getStatsQuery, encode)
