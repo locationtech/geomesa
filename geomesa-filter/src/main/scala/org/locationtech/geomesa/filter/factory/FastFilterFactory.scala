@@ -259,10 +259,10 @@ class FastFilterFactory private extends org.geotools.filter.FilterFactoryImpl wi
       new FastPropertyNameAttribute(name, index)
     } else {
       val sf = new SimpleFeatureBuilder(sft).buildFeature("")
-      SimpleFeaturePropertyAccessor.getAccessor(sf, name) match {
-        case Some(a) => new FastPropertyNameAccessor(name, a)
-        case None    => super.property(name)
+      val accessor = SimpleFeaturePropertyAccessor.getAccessor(sf, name).getOrElse {
+        throw new IllegalArgumentException(s"Property '$name' does not exist in feature type ${sft.getTypeName}")
       }
+      new FastPropertyNameAccessor(name, accessor)
     }
   }
 
