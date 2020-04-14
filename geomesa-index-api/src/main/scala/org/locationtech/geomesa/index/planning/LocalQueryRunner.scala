@@ -37,7 +37,7 @@ import org.locationtech.geomesa.utils.geotools.{GeometryUtils, RenderingGrid, Si
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.stats.{Stat, TopK}
-import org.locationtech.jts.geom.{Envelope, Geometry}
+import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -237,10 +237,7 @@ object LocalQueryRunner {
     } else if (hints.isDensityQuery) {
       val Some(envelope) = hints.getDensityEnvelope
       val Some((width, height)) = hints.getDensityBounds
-      val geom = hints.getDensityGeometry.getOrElse(sft.getGeometryDescriptor.getLocalName)
-      require(
-        sft.indexOf(geom) != -1 && classOf[Geometry].isAssignableFrom(sft.getDescriptor(geom).getType.getBinding),
-        s"Invalid geometry field: $geom")
+      val geom = DensityScan.getDensityGeometry(sft, hints)
       densityTransform(sampled, sft, geom, envelope, width, height, hints.getDensityWeight)
     } else if (hints.isStatsQuery) {
       statsTransform(sampled, sft, transform, hints.getStatsQuery, hints.isStatsEncode || hints.isSkipReduce)

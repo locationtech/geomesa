@@ -75,10 +75,7 @@ object DensityScan extends LazyLogging {
       hints: Hints): Map[String, String] = {
     import AggregatingScan.{OptionToConfig, StringToConfig}
 
-    val geom = hints.getDensityGeometry.getOrElse(sft.getGeomField)
-    require(
-      sft.indexOf(geom) != -1 && classOf[Geometry].isAssignableFrom(sft.getDescriptor(geom).getType.getBinding),
-      s"Invalid geometry field: $geom")
+    val geom = getDensityGeometry(sft, hints)
     val envelope = hints.getDensityEnvelope.get
     val (width, height) = hints.getDensityBounds.get
     val batchSize = DensityScan.BatchSize.toInt.get // has a valid default so should be safe to .get
@@ -184,6 +181,21 @@ object DensityScan extends LazyLogging {
       case b if b == classOf[MultiPolygon]    => new MultiPolygonRenderer(i, weigher)
       case _                                  => new MultiRenderer(i, weigher)
     }
+  }
+
+  /**
+   * Get the geometry to render and validate it against the feature type
+   *
+   * @param sft simple feature type
+   * @param hints query hints
+   * @return
+   */
+  def getDensityGeometry(sft: SimpleFeatureType, hints: Hints): String = {
+    val geom = hints.getDensityGeometry.getOrElse(sft.getGeomField)
+    require(
+      sft.indexOf(geom) != -1 && classOf[Geometry].isAssignableFrom(sft.getDescriptor(geom).getType.getBinding),
+      s"Invalid geometry field: $geom")
+    geom
   }
 
   class DensityScanResult(renderer: GeometryRenderer, grid: RenderingGrid) extends AggregatingScan.Result {
