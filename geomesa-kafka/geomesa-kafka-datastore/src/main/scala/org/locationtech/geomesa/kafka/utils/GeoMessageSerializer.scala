@@ -244,7 +244,7 @@ class GeoMessageSerializer(sft: SimpleFeatureType,
     * @return
     */
   private def deserialize(key: Array[Byte], value: Array[Byte], deserializer: SimpleFeatureSerializer): GeoMessage = {
-    if (key.isEmpty) { Clear } else {
+    if (key.isEmpty && value.isEmpty) { Clear } else {
       val id = new String(key, StandardCharsets.UTF_8)
       if (value == null) { Delete(id) } else { Change(deserializer.deserialize(id, value)) }
     }
