@@ -21,9 +21,9 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class GeoMessageSerializerTest extends Specification {
 
-  private val sft = SimpleFeatureTypes.createType("KafkaGeoMessageTest", "name:String,*geom:Point:srid=4326")
-  private val serializers = SerializationType.values.toSeq.map(GeoMessageSerializer(sft, _))
-  private val feature = ScalaSimpleFeature.create(sft, "test_id", "foo", "POINT(1 -1)")
+  lazy val sft = SimpleFeatureTypes.createType("KafkaGeoMessageTest", "name:String,*geom:Point:srid=4326")
+  lazy val serializers = SerializationType.values.toSeq.map(GeoMessageSerializer(sft, _))
+  lazy val feature = ScalaSimpleFeature.create(sft, "test_id", "foo", "POINT(1 -1)")
 
   "GeoMessageSerializer" should {
     "serialize a clear message" >> {
@@ -65,14 +65,34 @@ class GeoMessageSerializerTest extends Specification {
     "serialize a change message" >> {
       val msg = GeoMessage.change(feature)
 
-      forall(serializers) { serializer =>
+      foreach(serializers) { serializer =>
         val (key, value, headers) = serializer.serialize(msg)
 
         key must not(beNull)
         value must not(beNull)
         headers must not(beNull)
 
-        forall(serializers) { deserializer =>
+        foreach(serializers) { deserializer =>
+          deserializer.deserialize(key, value, headers) mustEqual msg
+          // check compatibility with older kafka versions that don't support headers
+          serializer.deserialize(key, value) mustEqual msg
+        }
+      }
+    }
+
+    "serialize an empty feature ID" >> {
+      val feature = ScalaSimpleFeature.copy(this.feature)
+      feature.setId("")
+      val msg = GeoMessage.change(feature)
+
+      foreach(serializers) { serializer =>
+        val (key, value, headers) = serializer.serialize(msg)
+
+        key must not(beNull)
+        value must not(beNull)
+        headers must not(beNull)
+
+        foreach(serializers) { deserializer =>
           deserializer.deserialize(key, value, headers) mustEqual msg
           // check compatibility with older kafka versions that don't support headers
           serializer.deserialize(key, value) mustEqual msg

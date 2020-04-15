@@ -18,6 +18,7 @@ import org.locationtech.jts.io.WKBWriter
 import org.apache.avro.{Schema, SchemaBuilder}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
+import org.locationtech.geomesa.utils.text.WKBUtils
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -111,7 +112,7 @@ object AvroSimpleFeatureUtils extends LazyLogging {
 
   // Resulting functions in map are not thread-safe...use only as
   // member variable, not in a static context
-  def createTypeMap(sft: SimpleFeatureType, wkbWriter: WKBWriter, nameEncoder: FieldNameEncoder): Map[String, Binding] = {
+  def createTypeMap(sft: SimpleFeatureType, nameEncoder: FieldNameEncoder): Map[String, Binding] = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
     sft.getAttributeDescriptors.map { ad =>
@@ -123,7 +124,7 @@ object AvroSimpleFeatureUtils extends LazyLogging {
       } else if (classOf[Date].isAssignableFrom(binding)) {
         (value: AnyRef) => value.asInstanceOf[Date].getTime
       } else if (classOf[Geometry].isAssignableFrom(binding) ) {
-        (value: AnyRef) => ByteBuffer.wrap(wkbWriter.write(value.asInstanceOf[Geometry]))
+        (value: AnyRef) => ByteBuffer.wrap(WKBUtils.write(value.asInstanceOf[Geometry]))
       } else if (ad.isList) {
         (value: AnyRef) => encodeList(value.asInstanceOf[java.util.List[_]], ad.getListType())
       } else if (ad.isMap) {
