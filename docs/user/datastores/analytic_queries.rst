@@ -67,6 +67,8 @@ heatmap from the query result. See :ref:`gdelt_heatmaps` for more information.
 +===========================+========================+======================+
 | QueryHints.DENSITY_BBOX   | ``ReferencedEnvelope`` | Use WPS              |
 +---------------------------+------------------------+                      +
+| QueryHints.DENSITY_GEOM   | String                 |                      |
++---------------------------+------------------------+                      +
 | QueryHints.DENSITY_WEIGHT | String                 |                      |
 +---------------------------+------------------------+                      +
 | QueryHints.DENSITY_WIDTH  | Integer                |                      |

@@ -237,7 +237,8 @@ object LocalQueryRunner {
     } else if (hints.isDensityQuery) {
       val Some(envelope) = hints.getDensityEnvelope
       val Some((width, height)) = hints.getDensityBounds
-      densityTransform(sampled, sft, envelope, width, height, hints.getDensityWeight)
+      val geom = DensityScan.getDensityGeometry(sft, hints)
+      densityTransform(sampled, sft, geom, envelope, width, height, hints.getDensityWeight)
     } else if (hints.isStatsQuery) {
       statsTransform(sampled, sft, transform, hints.getStatsQuery, hints.isStatsEncode || hints.isSkipReduce)
     } else {
@@ -400,11 +401,12 @@ object LocalQueryRunner {
   private def densityTransform(
       features: CloseableIterator[SimpleFeature],
       sft: SimpleFeatureType,
+      geom: String,
       envelope: Envelope,
       width: Int,
       height: Int,
       weight: Option[String]): CloseableIterator[SimpleFeature] = {
-    val renderer = DensityScan.getRenderer(sft, weight)
+    val renderer = DensityScan.getRenderer(sft, geom, weight)
     val grid = new RenderingGrid(envelope, width, height)
     try { features.foreach(renderer.render(grid, _)) } finally { features.close() }
 

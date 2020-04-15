@@ -39,22 +39,24 @@ import org.opengis.filter.Filter
   * @param height height in pixels
   * @param weight weight expression, for non-uniform feature weighting
   */
-case class DensityAdapter(sft: SimpleFeatureType,
-                          auths: Seq[Array[Byte]],
-                          ecql: Option[Filter],
-                          envelope: Envelope,
-                          width: Int,
-                          height: Int,
-                          weight: Option[String]) extends KuduResultAdapter {
+case class DensityAdapter(
+    sft: SimpleFeatureType,
+    auths: Seq[Array[Byte]],
+    ecql: Option[Filter],
+    geom: String,
+    envelope: Envelope,
+    width: Int,
+    height: Int,
+    weight: Option[String]
+  ) extends KuduResultAdapter {
 
   private val requiresFid = ecql.exists(FilterHelper.hasIdFilter)
 
   // determine all the attributes that we need to be able to evaluate the transform and filter
   private val attributes = {
-    val fromGeom = Seq(sft.getGeometryDescriptor.getLocalName)
     val fromWeight = weight.map(w => FilterHelper.propertyNames(ECQL.toExpression(w), sft)).getOrElse(Seq.empty)
     val fromFilter = ecql.map(FilterHelper.propertyNames(_, sft)).getOrElse(Seq.empty)
-    (fromGeom ++ fromWeight ++ fromFilter).distinct
+    (Seq(geom) ++ fromWeight ++ fromFilter).distinct
   }
 
   private val schema = KuduSimpleFeatureSchema(sft)
@@ -68,7 +70,7 @@ case class DensityAdapter(sft: SimpleFeatureType,
   override def result: SimpleFeatureType = DensityScan.DensitySft
 
   override def adapt(results: CloseableIterator[RowResult]): CloseableIterator[SimpleFeature] = {
-    val renderer = DensityScan.getRenderer(sft, weight)
+    val renderer = DensityScan.getRenderer(sft, geom, weight)
     val grid = new RenderingGrid(envelope, width, height)
     try {
       results.foreach { row =>
@@ -104,6 +106,7 @@ object DensityAdapter extends KuduResultAdapterSerialization[DensityAdapter] {
     bb.putInt(adapter.auths.length)
     adapter.auths.foreach(bb.putBytes)
     bb.putString(adapter.ecql.map(ECQL.toCQL).orNull)
+    bb.putString(adapter.geom)
     bb.putDouble(adapter.envelope.getMinX)
     bb.putDouble(adapter.envelope.getMaxX)
     bb.putDouble(adapter.envelope.getMinY)
@@ -119,11 +122,12 @@ object DensityAdapter extends KuduResultAdapterSerialization[DensityAdapter] {
     val sft = SimpleFeatureTypes.createType(bb.getString, bb.getString)
     val auths = Seq.fill(bb.getInt)(bb.getBytes)
     val ecql = Option(bb.getString).map(FastFilterFactory.toFilter(sft, _))
+    val geom = bb.getString
     val envelope = new Envelope(bb.getDouble, bb.getDouble, bb.getDouble, bb.getDouble)
     val width = bb.getInt
     val height = bb.getInt
     val weight = Option(bb.getString)
 
-    DensityAdapter(sft, auths, ecql, envelope, width, height, weight)
+    DensityAdapter(sft, auths, ecql, geom, envelope, width, height, weight)
   }
 }

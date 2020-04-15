@@ -87,10 +87,11 @@ trait QueryRunner {
 
     // add the bbox from the density query to the filter, if there is no more restrictive filter
     query.getHints.getDensityEnvelope.foreach { env =>
-      val geoms = FilterHelper.extractGeometries(query.getFilter, sft.getGeomField)
+      val geom = query.getHints.getDensityGeometry.getOrElse(sft.getGeomField)
+      val geoms = FilterHelper.extractGeometries(query.getFilter, geom)
       if (geoms.isEmpty || geoms.exists(g => !env.contains(g.getEnvelopeInternal))) {
         val split = GeometryUtils.splitBoundingBox(env.asInstanceOf[ReferencedEnvelope])
-        val bbox = orFilters(split.map(ff.bbox(ff.property(sft.getGeomField), _)))
+        val bbox = orFilters(split.map(ff.bbox(ff.property(geom), _)))
         if (query.getFilter == Filter.INCLUDE) {
           query.setFilter(bbox)
         } else {

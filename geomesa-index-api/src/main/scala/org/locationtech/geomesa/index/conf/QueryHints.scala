@@ -26,7 +26,8 @@ object QueryHints {
   val COST_EVALUATION  = new ClassKey(classOf[CostEvaluation])
 
   val DENSITY_BBOX     = new ClassKey(classOf[ReferencedEnvelope])
-  val DENSITY_WEIGHT   = new ClassKey(classOf[java.lang.String])
+  val DENSITY_GEOM     = new ClassKey(classOf[String])
+  val DENSITY_WEIGHT   = new ClassKey(classOf[String])
   val DENSITY_WIDTH    = new IntegerKey(256)
   val DENSITY_HEIGHT   = new IntegerKey(256)
 
@@ -120,6 +121,7 @@ object QueryHints {
     def getSampling: Option[(Float, Option[String])] = getSamplePercent.map((_, getSampleByField))
     def isDensityQuery: Boolean = hints.containsKey(DENSITY_BBOX)
     def getDensityEnvelope: Option[Envelope] = Option(hints.get(DENSITY_BBOX).asInstanceOf[Envelope])
+    def getDensityGeometry: Option[String] = Option(hints.get(DENSITY_GEOM).asInstanceOf[String])
     def getDensityBounds: Option[(Int, Int)] =
       for { w <- Option(hints.get(DENSITY_WIDTH).asInstanceOf[Int])
             h <- Option(hints.get(DENSITY_HEIGHT).asInstanceOf[Int]) } yield (w, h)

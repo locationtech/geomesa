@@ -41,19 +41,22 @@ class DensityProcess extends GeoMesaProcess {
 
   @throws(classOf[ProcessException])
   @DescribeResult(name = "result", description = "Output raster")
-  def execute(@DescribeParameter(name = "data", description = "Input features")
-              obsFeatures: SimpleFeatureCollection,
-              @DescribeParameter(name = "radiusPixels", description = "Radius of the density kernel in pixels")
-              argRadiusPixels: Integer,
-              @DescribeParameter(name = "weightAttr", description = "Name of the attribute to use for data point weight", min = 0, max = 1)
-              argWeightAttr: String,
-              @DescribeParameter(name = "outputBBOX", description = "Bounding box of the output")
-              argOutputEnv: ReferencedEnvelope,
-              @DescribeParameter(name = "outputWidth", description = "Width of output raster in pixels")
-              argOutputWidth: Integer,
-              @DescribeParameter(name = "outputHeight", description = "Height of output raster in pixels")
-              argOutputHeight: Integer,
-              monitor: ProgressListener): GridCoverage2D = {
+  def execute(
+      @DescribeParameter(name = "data", description = "Input features")
+      obsFeatures: SimpleFeatureCollection,
+      @DescribeParameter(name = "radiusPixels", description = "Radius of the density kernel in pixels")
+      argRadiusPixels: Integer,
+      @DescribeParameter(name = "geomAttr", description = "Name of the geometry attribute to render", min = 0, max = 1)
+      argGeomAttr: String,
+      @DescribeParameter(name = "weightAttr", description = "Name of the attribute to use for data point weight", min = 0, max = 1)
+      argWeightAttr: String,
+      @DescribeParameter(name = "outputBBOX", description = "Bounding box of the output")
+      argOutputEnv: ReferencedEnvelope,
+      @DescribeParameter(name = "outputWidth", description = "Width of output raster in pixels")
+      argOutputWidth: Integer,
+      @DescribeParameter(name = "outputHeight", description = "Height of output raster in pixels")
+      argOutputHeight: Integer,
+      monitor: ProgressListener): GridCoverage2D = {
 
     val pixels = Option(argRadiusPixels).map(_.intValue).getOrElse(DefaultRadiusPixels)
 
@@ -120,18 +123,21 @@ class DensityProcess extends GeoMesaProcess {
    * @return The transformed query
    */
   @throws(classOf[ProcessException])
-  def invertQuery(@DescribeParameter(name = "radiusPixels", description = "Radius to use for the kernel", min = 0, max = 1)
-                  argRadiusPixels: Integer,
-                  @DescribeParameter(name = "weightAttr", description = "Name of the attribute to use for data point weight", min = 0, max = 1)
-                  argWeightAttr: String,
-                  @DescribeParameter(name = "outputBBOX", description = "Georeferenced bounding box of the output")
-                  argOutputEnv: ReferencedEnvelope,
-                  @DescribeParameter(name = "outputWidth", description = "Width of the output raster")
-                  argOutputWidth: Integer,
-                  @DescribeParameter(name = "outputHeight", description = "Height of the output raster")
-                  argOutputHeight: Integer,
-                  targetQuery: Query,
-                  targetGridGeometry: GridGeometry): Query = {
+  def invertQuery(
+      @DescribeParameter(name = "radiusPixels", description = "Radius to use for the kernel", min = 0, max = 1)
+      argRadiusPixels: Integer,
+      @DescribeParameter(name = "geomAttr", description = "Name of the geometry attribute to render", min = 0, max = 1)
+      argGeomAttr: String,
+      @DescribeParameter(name = "weightAttr", description = "Name of the attribute to use for data point weight", min = 0, max = 1)
+      argWeightAttr: String,
+      @DescribeParameter(name = "outputBBOX", description = "Georeferenced bounding box of the output")
+      argOutputEnv: ReferencedEnvelope,
+      @DescribeParameter(name = "outputWidth", description = "Width of the output raster")
+      argOutputWidth: Integer,
+      @DescribeParameter(name = "outputHeight", description = "Height of the output raster")
+      argOutputHeight: Integer,
+      targetQuery: Query,
+      targetGridGeometry: GridGeometry): Query = {
     if (argOutputWidth == null || argOutputHeight == null) {
       throw new IllegalArgumentException("outputWidth and/or outputHeight not specified")
     } else if (argOutputWidth < 0 || argOutputHeight < 0) {
@@ -161,6 +167,9 @@ class DensityProcess extends GeoMesaProcess {
     invertedQuery.getHints.put(QueryHints.DENSITY_BBOX, envelope)
     invertedQuery.getHints.put(QueryHints.DENSITY_WIDTH, outputWidth)
     invertedQuery.getHints.put(QueryHints.DENSITY_HEIGHT, outputHeight)
+    if (argGeomAttr != null) {
+      invertedQuery.getHints.put(QueryHints.DENSITY_GEOM, argGeomAttr)
+    }
     if (argWeightAttr != null) {
       invertedQuery.getHints.put(QueryHints.DENSITY_WEIGHT, argWeightAttr)
     }

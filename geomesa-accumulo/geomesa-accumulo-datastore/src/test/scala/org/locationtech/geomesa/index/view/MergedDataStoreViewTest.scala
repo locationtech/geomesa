@@ -325,6 +325,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       val query = process.invertQuery(
         radiusPixels,
         null,
+        null,
         envelope,
         width,
         height,
@@ -335,6 +336,7 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
       val coverage = process.execute(
         mergedDs.getFeatureSource(sftName).getFeatures(query),
         radiusPixels,
+        null,
         null,
         envelope,
         width,
