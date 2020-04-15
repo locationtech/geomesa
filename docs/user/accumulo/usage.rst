@@ -22,7 +22,8 @@ that the GeoMesa code is on the classpath:
 Instead of specifying the cluster connection explicitly, an appropriate ``accumulo-client.properties`` (for Accumulo
 2) or ``client.conf`` (for Accumulo 1) may be added to the classpath. See the
 `Accumulo documentation <https://accumulo.apache.org/docs/2.x/getting-started/clients#creating-an-accumulo-client>`_
-for information on the necessary configuration keys.
+for information on the necessary configuration keys. Any explicit data store parameters will take precedence over
+the configuration file.
 
 More information on using GeoTools can be found in the `GeoTools user guide <http://docs.geotools.org/stable/userguide/>`_.
 

@@ -32,7 +32,8 @@ without any further constraints, it should be protected appropriately.
 Instead of specifying the cluster connection explicitly, an appropriate ``accumulo-client.properties`` (for Accumulo
 2) or ``client.conf`` (for Accumulo 1) may be added to the classpath. See the
 `Accumulo documentation <https://accumulo.apache.org/docs/2.x/getting-started/clients#creating-an-accumulo-client>`_
-for information on the necessary configuration keys.
+for information on the necessary configuration keys. Any explicit command-line arguments will take precedence over
+the configuration file.
 
 The ``--auths`` argument corresponds to the ``AccumuloDataStore`` parameter ``geomesa.security.auths``. See
 :ref:`authorizations` and :ref:`accumulo_visibilities` for more information.
