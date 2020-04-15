@@ -10,44 +10,44 @@
 package org.locationtech.geomesa.accumulo.tools
 
 import com.beust.jcommander.{JCommander, ParameterException}
+import org.locationtech.geomesa.accumulo.data.AccumuloClientConfig
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.export.{ConvertCommand, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.status._
 import org.locationtech.geomesa.tools.utils.Prompt
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-
-import scala.xml.XML
 
 object AccumuloRunner extends RunnerWithAccumuloEnvironment {
+
+  import org.locationtech.geomesa.accumulo.tools
 
   override val name: String = "geomesa-accumulo"
 
   override def createCommands(jc: JCommander): Seq[Command] = Seq(
-    new data.AccumuloAgeOffCommand,
-    new data.AccumuloCompactCommand,
-    new data.AccumuloManagePartitionsCommand(this, jc),
-    new data.AddAttributeIndexCommand,
-    new data.AddIndexCommand,
-    new data.TableConfCommand(this, jc),
-    new export.AccumuloExplainCommand,
-    new export.AccumuloExportCommand,
-    new export.AccumuloPlaybackCommand,
-    new ingest.AccumuloDeleteFeaturesCommand,
-    new ingest.AccumuloIngestCommand,
-    new schema.AccumuloCreateSchemaCommand,
-    new schema.AccumuloDeleteCatalogCommand,
-    new schema.AccumuloRemoveSchemaCommand,
-    new schema.AccumuloUpdateSchemaCommand,
-    new status.AccumuloDescribeSchemaCommand,
-    new status.AccumuloGetSftConfigCommand,
-    new status.AccumuloGetTypeNamesCommand,
-    new status.AccumuloVersionRemoteCommand,
-    new stats.AccumuloStatsAnalyzeCommand,
-    new stats.AccumuloStatsBoundsCommand,
-    new stats.AccumuloStatsConfigureCommand,
-    new stats.AccumuloStatsCountCommand,
-    new stats.AccumuloStatsTopKCommand,
-    new stats.AccumuloStatsHistogramCommand,
+    new tools.data.AccumuloAgeOffCommand,
+    new tools.data.AccumuloCompactCommand,
+    new tools.data.AccumuloManagePartitionsCommand(this, jc),
+    new tools.data.AddAttributeIndexCommand,
+    new tools.data.AddIndexCommand,
+    new tools.data.TableConfCommand(this, jc),
+    new tools.export.AccumuloExplainCommand,
+    new tools.export.AccumuloExportCommand,
+    new tools.export.AccumuloPlaybackCommand,
+    new tools.ingest.AccumuloDeleteFeaturesCommand,
+    new tools.ingest.AccumuloIngestCommand,
+    new tools.schema.AccumuloCreateSchemaCommand,
+    new tools.schema.AccumuloDeleteCatalogCommand,
+    new tools.schema.AccumuloRemoveSchemaCommand,
+    new tools.schema.AccumuloUpdateSchemaCommand,
+    new tools.status.AccumuloDescribeSchemaCommand,
+    new tools.status.AccumuloGetSftConfigCommand,
+    new tools.status.AccumuloGetTypeNamesCommand,
+    new tools.status.AccumuloVersionRemoteCommand,
+    new tools.stats.AccumuloStatsAnalyzeCommand,
+    new tools.stats.AccumuloStatsBoundsCommand,
+    new tools.stats.AccumuloStatsConfigureCommand,
+    new tools.stats.AccumuloStatsCountCommand,
+    new tools.stats.AccumuloStatsTopKCommand,
+    new tools.stats.AccumuloStatsHistogramCommand,
     // common commands, placeholders for script functions
     new ConvertCommand,
     new ConfigureCommand,
@@ -63,39 +63,33 @@ object AccumuloRunner extends RunnerWithAccumuloEnvironment {
 trait RunnerWithAccumuloEnvironment extends Runner {
 
   /**
-    * Loads geomesa system properties from geomesa-site.xml
-    * Loads accumulo properties for instance and zookeepers from the accumulo installation found via
-    * the system path in ACCUMULO_HOME in the case that command line parameters are not provided
+    * Loads Accumulo properties from `accumulo-client.properties` or `accumulo.conf`
     */
   override def resolveEnvironment(command: Command): Unit = {
-    val params = Option(command.params)
+    lazy val config = AccumuloClientConfig.load()
 
-    // If password not supplied, and not using keytab, prompt for it
-    // Error if both password and keytab supplied
-    params.collect {
-      case p: AccumuloConnectionParams if p.password != null && p.keytab != null =>
+    Option(command.params).collect { case p: AccumuloConnectionParams => p }.foreach { p =>
+      if (p.user == null) {
+        p.user = config.principal.getOrElse(throw new ParameterException("Parameter '--user' is required"))
+      }
+      if (p.password != null && p.keytab != null) {
+        // error if both password and keytab supplied
         throw new ParameterException("Cannot specify both password and keytab")
-      case p: AccumuloConnectionParams if p.password == null && p.keytab == null => p
-    }.foreach(_.password = Prompt.readPassword())
+      } else if (p.password == null && p.keytab == null &&
+          (config.authType.isEmpty || config.authType.contains(AccumuloClientConfig.PasswordAuthType))) {
+        // if password not supplied, and not using keytab, prompt for it
+        p.password = config.token.getOrElse(Prompt.readPassword())
+      }
+    }
 
-    // attempt to look up the instance
-    params.collect { case p: InstanceNameParams => p }.foreach { p =>
+    Option(command.params).collect { case p: InstanceNameParams => p }.foreach { p =>
+      if (p.instance == null) {
+        config.instance.foreach(p.instance = _)
+      }
       if (p.zookeepers == null) {
-        p.zookeepers = {
-          val accumuloSiteXml = SystemProperty("geomesa.tools.accumulo.site.xml").option.getOrElse {
-            s"${System.getenv("ACCUMULO_HOME")}/conf/accumulo-site.xml"
-          }
-
-          try {
-            (XML.loadFile(accumuloSiteXml) \\ "property")
-                .filter(x => (x \ "name").text == "instance.zookeeper.host")
-                .map(y => (y \ "value").text)
-                .head
-          } catch {
-            case e: Throwable => throw new ParameterException("Accumulo Site XML was not found or was unable to be read, unable to locate zookeepers. " +
-                "Please provide the --zookeepers parameter or ensure the file $ACCUMULO_HOME/conf/accumulo-site.xml exists or optionally, " +
-                "specify a different configuration file with the System Property 'geomesa.tools.accumulo.site.xml'.", e)
-          }
+        config.zookeepers.foreach(p.zookeepers = _)
+        if (p.zkTimeout == null) {
+          config.zkTimeout.foreach(p.zkTimeout = _)
         }
       }
     }

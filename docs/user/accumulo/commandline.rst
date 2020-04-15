@@ -21,22 +21,22 @@ here are Accumulo-specific.
 General Arguments
 -----------------
 
-Most commands require you to specify the connection to Accumulo. This generally includes a username and
-password (or Kerberos keytab file). Specify the username and password with ``--user`` and ``--password``
-(or ``-u`` and ``-p``). In order to avoid plaintext passwords in the bash history and process list,
-the password argument may be omitted, in which case it will be prompted for instead.
+Most commands require you to specify the connection to Accumulo. This generally includes the instance name,
+zookeeper hosts, username, and password (or Kerberos keytab file). Specify the instance with ``--instance-name``
+and ``--zookeepers``, and the username and password with ``--user`` and ``--password``. The password argument may be
+omitted in order to avoid plaintext credentials in the bash history and process list - in this case it will be
+prompted case for later. To use Kerberos authentication instead of a password, use ``--keytab`` with a path to a
+Kerberos keytab file containing an entry for the specified user. Since a keytab file allows authentication
+without any further constraints, it should be protected appropriately.
 
-To use Kerberos authentication instead of a password, use ``--keytab`` with a path to a Kerberos keytab
-file containing an entry for the specified user. Since a keytab file allows authentication without any
-further constraints, it should be protected appropriately.
+Instead of specifying the cluster connection explicitly, an appropriate ``accumulo-client.properties`` (for Accumulo
+2) or ``client.conf`` (for Accumulo 1) may be added to the classpath. See the
+`Accumulo documentation <https://accumulo.apache.org/docs/2.x/getting-started/clients#creating-an-accumulo-client>`_
+for information on the necessary configuration keys. Any explicit command-line arguments will take precedence over
+the configuration file.
 
-If the necessary environment variables are set (generally as part of the install process), the tools should
-connect automatically to the Accumulo instance. To specify the connection instead, use ``--instance-name``
-and ``--zookeepers`` (or ``-i`` and ``-z``).
-
-The ``--auths`` and ``--visibilities`` arguments correspond to the ``AccumuloDataStore`` parameters
-``geomesa.security.auths`` and ``geomesa.security.visibilities``, respectively. See :ref:`authorizations`
-and :ref:`accumulo_visibilities` for more information.
+The ``--auths`` argument corresponds to the ``AccumuloDataStore`` parameter ``geomesa.security.auths``. See
+:ref:`authorizations` and :ref:`accumulo_visibilities` for more information.
 
 Commands
 --------

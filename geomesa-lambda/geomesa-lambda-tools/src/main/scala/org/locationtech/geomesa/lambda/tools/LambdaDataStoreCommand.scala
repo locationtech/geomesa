@@ -26,7 +26,6 @@ trait LambdaDataStoreCommand extends DataStoreCommand[LambdaDataStore] {
       LambdaDataStoreFactory.Params.Accumulo.PasswordParam.getName   -> params.password,
       LambdaDataStoreFactory.Params.Accumulo.KeytabParam.getName     -> params.keytab,
       LambdaDataStoreFactory.Params.Accumulo.CatalogParam.getName    -> params.catalog,
-      LambdaDataStoreFactory.Params.VisibilitiesParam.getName        -> params.visibilities,
       LambdaDataStoreFactory.Params.AuthsParam.getName               -> params.auths,
       LambdaDataStoreFactory.Params.Kafka.BrokersParam.getName       -> params.brokers,
       LambdaDataStoreFactory.Params.Kafka.ZookeepersParam.getName    -> Option(params.kafkaZookeepers).getOrElse(params.zookeepers),

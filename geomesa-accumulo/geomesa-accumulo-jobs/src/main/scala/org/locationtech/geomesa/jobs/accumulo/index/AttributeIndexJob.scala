@@ -109,7 +109,7 @@ object AttributeIndexJob {
         wrapper = AccumuloWritableFeature.wrapper(sft, WritableFeature.wrapper(sft, ds.adapter.groups))
         converters = indices.map(_.createConverter()).zipWithIndex
         colFamilyMappings = indices.map(AccumuloIndexAdapter.mapColumnFamily).toIndexedSeq
-        defaultVis = new ColumnVisibility(ds.config.defaultVisibilities)
+        defaultVis = new ColumnVisibility()
         tables = TablePartition(ds, sft) match {
           case Some(tp) =>
             val tables = scala.collection.mutable.Map.empty[String, IndexedSeq[Text]]

@@ -10,8 +10,9 @@
 package org.locationtech.geomesa.accumulo.data
 
 import java.awt.RenderingHints
-import java.io.Serializable
+import java.io.{IOException, Serializable}
 import java.nio.charset.StandardCharsets
+import java.util.Locale
 
 import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty
 import org.apache.accumulo.core.client.security.tokens.{AuthenticationToken, KerberosToken, PasswordToken}
@@ -24,7 +25,6 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
-import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
@@ -70,12 +70,12 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     Array(
       InstanceIdParam,
       ZookeepersParam,
+      ZookeeperTimeoutParam,
       CatalogParam,
       UserParam,
       PasswordParam,
       KeytabPathParam,
       AuthsParam,
-      VisibilitiesParam,
       QueryTimeoutParam,
       QueryThreadsParam,
       RecordThreadsParam,
@@ -93,7 +93,6 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       default = false,
       deprecatedKeys = Seq("useMock", "accumulo.useMock"))
 
-
   // used to handle geoserver password encryption in persisted ds params
   private val DeprecatedGeoServerPasswordParam =
     new Param(
@@ -104,45 +103,60 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       null,
       Map(Parameter.DEPRECATED -> true, Parameter.IS_PASSWORD -> true).asJava)
 
-  override def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean = {
-    val hasConnection = InstanceIdParam.exists(params) && ZookeepersParam.exists(params) && UserParam.exists(params)
-    // exactly one of password or keytab
-    hasConnection && (PasswordParam.exists(params) != KeytabPathParam.exists(params))
-  }
+  override def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean =
+    CatalogParam.exists(params)
 
   def buildAccumuloConnector(params: java.util.Map[String, _ <: Serializable]): Connector = {
     if (MockParam.lookup(params)) {
       throw new IllegalArgumentException("Mock Accumulo connections are not supported")
     }
 
-    val instance = InstanceIdParam.lookup(params)
-    val zookeepers = ZookeepersParam.lookup(params)
-    // NB: For those wanting to set this via JAVA_OPTS, this key is "instance.zookeeper.timeout" in Accumulo 1.6.x.
-    val timeout = GeoMesaSystemProperties.getProperty(ClientProperty.INSTANCE_ZK_TIMEOUT.getKey)
+    def lookup[T <: AnyRef](param: GeoMesaParam[T], fallback: => Option[T]): T =
+      param.lookupOpt(params).orElse(fallback).getOrElse {
+        throw new IOException(s"Parameter ${param.key} is required: ${param.description}")
+      }
+
+    lazy val config = AccumuloClientConfig.load()
+    val instance = lookup(InstanceIdParam, config.instance)
+    val zookeepers = lookup(ZookeepersParam, config.zookeepers)
+
     val conf = ClientConfiguration.create().withInstance(instance).withZkHosts(zookeepers)
-    if (timeout != null) {
+    ZookeeperTimeoutParam.lookupOpt(params).orElse(config.zkTimeout).foreach { timeout =>
       conf.`with`(ClientProperty.INSTANCE_ZK_TIMEOUT, timeout)
     }
 
-    val user = UserParam.lookup(params)
-    val password = PasswordParam.lookup(params)
-    val keytabPath = KeytabPathParam.lookup(params)
+    val user = lookup(UserParam, config.principal)
+
+    if (PasswordParam.exists(params) && KeytabPathParam.exists(params)) {
+      throw new IllegalArgumentException(
+        s"'${PasswordParam.key}' and '${KeytabPathParam.key}' are mutually exclusive, but are both set")
+    }
+
+    val authType =
+      if (PasswordParam.exists(params)) {
+        AccumuloClientConfig.PasswordAuthType
+      } else if (KeytabPathParam.exists(params)) {
+        AccumuloClientConfig.KerberosAuthType
+      } else {
+        config.authType.map(_.trim.toLowerCase(Locale.US)).getOrElse {
+          throw new IOException(s"Parameter ${PasswordParam.key} is required: ${PasswordParam.description}")
+        }
+      }
 
     // build authentication token according to how we are authenticating
-    val auth: AuthenticationToken = if (password != null && keytabPath == null) {
-      new PasswordToken(password.getBytes(StandardCharsets.UTF_8))
-    } else if (password == null && keytabPath != null) {
+    val auth: AuthenticationToken = if (authType == AccumuloClientConfig.PasswordAuthType) {
+      new PasswordToken(lookup(PasswordParam, config.token).getBytes(StandardCharsets.UTF_8))
+    } else if (authType == AccumuloClientConfig.KerberosAuthType) {
       // explicitly enable SASL for kerberos connections
       // this shouldn't be required if Accumulo client.conf is set appropriately, but it doesn't seem to work
       conf.withSasl(true)
-      val file = new java.io.File(keytabPath)
+      val file = new java.io.File(lookup(KeytabPathParam, config.token))
       // mimic behavior from accumulo 1.9 and earlier:
       // `public KerberosToken(String principal, File keytab, boolean replaceCurrentUser)`
       UserGroupInformation.loginUserFromKeytab(user, file.getAbsolutePath)
       new KerberosToken(user, file)
     } else {
-      // should never reach here thanks to canProcess
-      throw new IllegalArgumentException("Neither or both of password & keytabPath are set")
+      throw new IllegalArgumentException(s"Unsupported auth type: $authType")
     }
 
     new ZooKeeperInstance(conf).getConnector(user, auth)
@@ -167,7 +181,6 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 
     AccumuloDataStoreConfig(
       catalog = catalog,
-      defaultVisibilities = VisibilitiesParam.lookupOpt(params).getOrElse(""),
       generateStats = GenerateStatsParam.lookup(params),
       authProvider = authProvider,
       audit = Some(auditService, auditProvider, AccumuloAuditService.StoreType),
@@ -218,7 +231,6 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
    * Configuration options for AccumuloDataStore
    *
    * @param catalog table in Accumulo used to store feature type metadata
-   * @param defaultVisibilities default visibilities applied to any data written
    * @param generateStats write stats on data during ingest
    * @param authProvider provides the authorizations used to access data
    * @param audit optional implementations to audit queries
@@ -227,7 +239,6 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
    */
   case class AccumuloDataStoreConfig(
       catalog: String,
-      defaultVisibilities: String,
       generateStats: Boolean,
       authProvider: AuthorizationsProvider,
       audit: Option[(AuditWriter with AuditReader, AuditProvider, String)],
@@ -243,4 +254,5 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       looseBBox: Boolean,
       caching: Boolean
     ) extends DataStoreQueryConfig
+
 }

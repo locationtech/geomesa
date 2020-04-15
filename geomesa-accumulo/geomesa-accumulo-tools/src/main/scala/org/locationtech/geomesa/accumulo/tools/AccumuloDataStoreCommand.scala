@@ -23,7 +23,6 @@ trait AccumuloDataStoreCommand extends DataStoreCommand[AccumuloDataStore] {
 
   import AccumuloDataStoreParams._
 
-
   override def params: AccumuloDataStoreParams
 
   override def connection: Map[String, String] = {
@@ -34,7 +33,6 @@ trait AccumuloDataStoreCommand extends DataStoreCommand[AccumuloDataStore] {
       PasswordParam.key     -> params.password,
       KeytabPathParam.key   -> params.keytab,
       CatalogParam.key      -> params.catalog,
-      VisibilitiesParam.key -> params.visibilities,
       AuthsParam.key        -> params.auths
     ).filter(_._2 != null)
   }

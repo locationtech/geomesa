@@ -53,7 +53,6 @@ Parameter                              Type    Description
 ``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries via Accumulo
 ``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
 ``geomesa.security.auth-provider``     String  Class name for an ``AuthorizationsProvider`` implementation
-``geomesa.security.visibilities``      String  Visibilities to apply to all written data
 ``geomesa.query.audit``                Boolean Audit queries being run. Queries will be stored in a ``<catalog>_queries`` table
 ``geomesa.query.timeout``              String  The max time a query will be allowed to run before being killed. The
                                                timeout is specified as a duration, e.g. ``1 minute`` or ``60 seconds``

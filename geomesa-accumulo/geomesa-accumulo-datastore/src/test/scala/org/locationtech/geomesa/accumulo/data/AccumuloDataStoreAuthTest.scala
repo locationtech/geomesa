@@ -29,7 +29,7 @@ import scala.collection.JavaConversions._
 @RunWith(classOf[JUnitRunner])
 class AccumuloDataStoreAuthTest extends TestWithFeatureType {
 
-  import AccumuloDataStoreParams.{AuthsParam, ForceEmptyAuthsParam, VisibilitiesParam}
+  import AccumuloDataStoreParams.{AuthsParam, ForceEmptyAuthsParam}
   import org.locationtech.geomesa.security.AuthProviderParam
 
   sequential
@@ -189,7 +189,7 @@ class AccumuloDataStoreAuthTest extends TestWithFeatureType {
     }
 
     "allow users with sufficient auths to write data" >> {
-      val params = dsParams ++ Map(AuthsParam.key -> "user,admin", VisibilitiesParam.key -> "user&admin")
+      val params = dsParams ++ Map(AuthsParam.key -> "user,admin")
       val ds = DataStoreFinder.getDataStore(params).asInstanceOf[AccumuloDataStore]
       ds must not(beNull)
 
@@ -200,6 +200,7 @@ class AccumuloDataStoreAuthTest extends TestWithFeatureType {
       val fs = ds.getFeatureSource("canwrite").asInstanceOf[SimpleFeatureStore]
       val feat = new ScalaSimpleFeature(sft, "1")
       feat.setAttribute("geom", "POINT(45 55)")
+      SecurityUtils.setFeatureVisibility(feat, "user&admin")
       val written = fs.addFeatures(new ListFeatureCollection(sft, List(feat)))
 
       written must not(beNull)

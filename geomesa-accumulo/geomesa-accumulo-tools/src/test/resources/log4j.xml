@@ -26,6 +26,9 @@
         <priority value="error"/>
     </category>
 
+    <category name="org.locationtech.geomesa.accumulo.data.AccumuloClientConfig">
+        <priority value="warn"/>
+    </category>
     <category name="org.locationtech.geomesa.convert.text.DelimitedTextConverter">
         <priority value="error"/>
     </category>

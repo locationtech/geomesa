@@ -11,7 +11,9 @@ package org.locationtech.geomesa.accumulo.data
 
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreParams
 import org.locationtech.geomesa.security.SecurityParams
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.SystemPropertyStringParam
 
 // keep params in a separate object so we don't require accumulo classes on the build path to access it
 object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
@@ -20,7 +22,6 @@ object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParam
     new GeoMesaParam[String](
       "accumulo.instance.id",
       "Accumulo Instance ID",
-      optional = false,
       deprecatedKeys = Seq("instanceId", "accumulo.instanceId"),
       supportsNiFiExpressions = true)
 
@@ -28,15 +29,20 @@ object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParam
     new GeoMesaParam[String](
       "accumulo.zookeepers",
       "Zookeepers",
-      optional = false,
       deprecatedKeys = Seq("zookeepers"),
       supportsNiFiExpressions = true)
+
+  val ZookeeperTimeoutParam =
+    new GeoMesaParam[String](
+      "accumulo.zookeepers.timeout",
+      "The timeout used for connections to Zookeeper",
+      supportsNiFiExpressions = true,
+      systemProperty = Some(SystemPropertyStringParam(SystemProperty("instance.zookeeper.timeout"))))
 
   val UserParam =
     new GeoMesaParam[String](
       "accumulo.user",
       "Accumulo user",
-      optional = false,
       deprecatedKeys = Seq("user"),
       supportsNiFiExpressions = true)
 

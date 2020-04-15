@@ -3,24 +3,10 @@
 Accumulo Visibilities
 ---------------------
 
-GeoMesa support Accumulo visibilities for securing data. Visibilities can be set at the data store,
-feature, or individual attribute levels.
+GeoMesa support Accumulo visibilities for securing data. Visibilities can be set at the feature level or on
+individual attributes.
 
 See :ref:`authorizations` for details on querying data with visibilities.
-
-Data Store Level Visibilities
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-When creating your data store, a default visibility can be configured for all features:
-
-.. code-block:: java
-
-    Map<String, String> parameters = ...
-    parameters.put("geomesa.security.visibilities", "admin&user");
-    DataStore ds = DataStoreFinder.getDataStore(parameters);
-
-If present, visibilities set at the feature or attribute level will take priority over the data store configuration.
-
 
 Feature Level Visibilities
 ^^^^^^^^^^^^^^^^^^^^^^^^^^

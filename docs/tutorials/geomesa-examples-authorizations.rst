@@ -78,21 +78,7 @@ to show how authorizations work.
 Visibilities in GeoMesa
 -----------------------
 
-GeoMesa supports applying a single set of visibilities to all data in a
-``DataStore``. When configuring a ``DataStore``, the visibilities can be
-set with the ``geomesa.security.visibilities`` parameter:
-
-.. code-block:: java
-
-    // create a map containing initialization data for the GeoMesa data store
-    Map<String, String> configuration = new HashMap<>();
-    configuration.put("geomesa.security.visibilities", "user&admin");
-    DataStore dataStore = DataStoreFinder.getDataStore(configuration);
-
-Any data written by this ``DataStore`` will have the visibilities
-"user&admin" applied.
-
-Alternatively, GeoMesa also supports feature-level visibilities. This
+GeoMesa supports setting the visibility for each feature that is written. This
 can be set through user data in a simple feature:
 
 .. code-block:: java
@@ -105,8 +91,7 @@ can be set through user data in a simple feature:
     // alternatively, use static utility methods
     SecurityUtils.setFeatureVisibilities(sf, "user", "admin");
 
-This tutorial uses DataStore level visibilities. For more information on feature-level visibilities, see
-:doc:`./geomesa-examples-featurelevelvis`.
+For more information on feature-level visibilities, see :doc:`./geomesa-examples-featurelevelvis`.
 
 Authorizations in GeoMesa
 -------------------------
@@ -264,13 +249,14 @@ On the command line, run:
 
     $ java -cp geomesa-tutorials-accumulo/geomesa-tutorials-accumulo-authorizations/target/geomesa-tutorials-accumulo-authorizations-${geomesa.version}.jar \
         org.geomesa.example.accumulo.auths.AuthorizationsTutorial \
-        --accumulo.instance.id <instance>                                  \
-        --accumulo.zookeepers <zookeepers>                                 \
-        --accumulo.user <user>                                             \
-        --accumulo.password <password>                                     \
-        --accumulo.catalog <table>                                         \
-        --geomesa.security.visibilities <visibilities>                     \
-        --geomesa.security.auths <authorizations>
+        --accumulo.instance.id <instance>                         \
+        --accumulo.zookeepers <zookeepers>                        \
+        --accumulo.user <user>                                    \
+        --accumulo.password <password>                            \
+        --accumulo.catalog <table>                                \
+        --geomesa.security.auths <authorizations>                 \
+        --visibilities <visibilities>
+
 
 where you provide the following arguments:
 
@@ -458,7 +444,6 @@ Connection parameters:
    command line when you ran the tutorial; they describe how to connect
    to the Accumulo instance where your data reside
 -  ``geomesa.security.auths`` leave this field empty
--  ``geomesa.security.visibilities`` use the same values as when you ran the tutorial, above
 
 Click "Save", and GeoServer will search your Accumulo table for any
 GeoMesa-managed feature types.
