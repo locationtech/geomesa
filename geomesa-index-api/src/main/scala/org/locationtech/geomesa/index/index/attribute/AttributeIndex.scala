@@ -30,14 +30,15 @@ import org.opengis.feature.simple.SimpleFeatureType
   * @param secondaries secondary fields used for the index tiering
   * @param mode mode of the index (read/write/both)
   */
-class AttributeIndex protected (ds: GeoMesaDataStore[_],
-                                sft: SimpleFeatureType,
-                                version: Int,
-                                val attribute: String,
-                                secondaries: Seq[String],
-                                mode: IndexMode)
-    extends GeoMesaFeatureIndex[AttributeIndexValues[Any], AttributeIndexKey](ds, sft, AttributeIndex.name, version, secondaries.+:(attribute), mode)
-        with AttributeFilterStrategy[AttributeIndexValues[Any], AttributeIndexKey] {
+class AttributeIndex protected (
+    ds: GeoMesaDataStore[_],
+    sft: SimpleFeatureType,
+    version: Int,
+    attribute: String,
+    secondaries: Seq[String],
+    mode: IndexMode
+  ) extends GeoMesaFeatureIndex[AttributeIndexValues[Any], AttributeIndexKey](ds, sft, AttributeIndex.name, version, secondaries.+:(attribute), mode)
+      with AttributeFilterStrategy[AttributeIndexValues[Any], AttributeIndexKey] {
 
   def this(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, attribute: String, secondaries: Seq[String], mode: IndexMode) =
     this(ds, sft, AttributeIndex.version, attribute, secondaries, mode)

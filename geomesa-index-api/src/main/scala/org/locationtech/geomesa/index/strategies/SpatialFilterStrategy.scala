@@ -19,13 +19,14 @@ trait SpatialFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 
   import SpatialFilterStrategy.{StaticCost, spatialCheck}
 
-  def geom: String
+  // attributes are assumed to be a single geometry field
+  lazy private val Seq(geom) = attributes
 
   override def getFilterStrategy(filter: Filter,
                                  transform: Option[SimpleFeatureType],
                                  stats: Option[GeoMesaStats]): Option[FilterStrategy] = {
     if (filter == Filter.INCLUDE) {
-      Some(FilterStrategy(this, None, None, Long.MaxValue))
+      Some(FilterStrategy(this, None, None, temporal = false, Long.MaxValue))
     } else if (filter == Filter.EXCLUDE) {
       None
     } else {
@@ -33,9 +34,9 @@ trait SpatialFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
       if (spatial.nonEmpty) {
         // add one so that we prefer the z3 index even if geometry is the limiting factor, resulting in the same count
         lazy val cost = stats.flatMap(_.getCount(sft, spatial.get, exact = false).map(c => if (c == 0L) 0L else c + 1L))
-        Some(FilterStrategy(this, spatial, nonSpatial, cost.getOrElse(StaticCost)))
+        Some(FilterStrategy(this, spatial, nonSpatial, temporal = false, cost.getOrElse(StaticCost)))
       } else {
-        Some(FilterStrategy(this, None, Some(filter), Long.MaxValue))
+        Some(FilterStrategy(this, None, Some(filter), temporal = false, Long.MaxValue))
       }
     }
   }

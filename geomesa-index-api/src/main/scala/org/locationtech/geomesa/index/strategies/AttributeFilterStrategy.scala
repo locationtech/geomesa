@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.strategies
 
+import java.util.Date
+
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
@@ -20,7 +22,13 @@ import org.opengis.filter.temporal.{After, Before, During, TEquals}
 
 trait AttributeFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 
-  def attribute: String
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+  import scala.collection.JavaConverters._
+
+  private val Seq(attribute, tiered @ _*) = attributes
+  private val descriptor = sft.getDescriptor(attribute)
+  private val binding = if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
 
   /**
     * Static cost - equals 100, range 250, not null 5000
@@ -30,24 +38,30 @@ trait AttributeFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
     *
     * Compare with id at 1, z3 at 200, z2 at 400
     */
-  override def getFilterStrategy(filter: Filter,
-                                 transform: Option[SimpleFeatureType],
-                                 stats: Option[GeoMesaStats]): Option[FilterStrategy] = {
-    import org.locationtech.geomesa.index.strategies.AttributeFilterStrategy.attributeCheck
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+  override def getFilterStrategy(
+      filter: Filter,
+      transform: Option[SimpleFeatureType],
+      stats: Option[GeoMesaStats]): Option[FilterStrategy] = {
 
-    val (primary, secondary) = FilterExtractingVisitor(filter, attribute, sft, attributeCheck(sft))
+    val (primary, secondary) =
+      FilterExtractingVisitor(filter, attribute, sft,  AttributeFilterStrategy.attributeCheck(sft))
+
     primary.map { extracted =>
+      lazy val bounds = FilterHelper.extractAttributeBounds(extracted, attribute, binding)
+      lazy val isEquals = bounds.precise && bounds.nonEmpty && bounds.forall(_.isEquals)
+      lazy val secondaryFilterAttributes = secondary.toSeq.flatMap(FilterHelper.propertyNames)
+      val temporal = sft.getAttributeDescriptors.asScala.exists { ad =>
+        val dtg = ad.getLocalName
+        classOf[Date].isAssignableFrom(ad.getType.getBinding) &&
+            (attribute == dtg || (tiered.contains(dtg) && secondaryFilterAttributes.contains(dtg) && isEquals))
+      }
       lazy val cost = {
-        val descriptor = sft.getDescriptor(attribute)
         val base = stats.flatMap(_.getCount(sft, extracted, exact = false)).getOrElse {
-          val binding = if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
-          val bounds = FilterHelper.extractAttributeBounds(extracted, attribute, binding)
-          if (bounds.isEmpty || !bounds.forall(_.isBounded)) {
-            AttributeFilterStrategy.StaticNotNullCost
-          } else if (bounds.precise && !bounds.exists(_.isRange)) {
+          if (isEquals) {
             AttributeFilterStrategy.StaticEqualsCost // TODO account for secondary index
-          } else {
+          } else if (bounds.isEmpty || !bounds.forall(_.isBounded)) {
+            AttributeFilterStrategy.StaticNotNullCost
+          } else  {
             AttributeFilterStrategy.StaticRangeCost
           }
         }
@@ -58,7 +72,7 @@ trait AttributeFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
           case Cardinality.LOW     => base * 10
         }
       }
-      FilterStrategy(this, primary, secondary, cost)
+      FilterStrategy(this, primary, secondary, temporal, cost)
     }
   }
 }

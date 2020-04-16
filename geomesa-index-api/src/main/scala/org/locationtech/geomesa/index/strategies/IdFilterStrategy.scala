@@ -17,20 +17,22 @@ import org.opengis.filter.{And, Filter, Id, Or}
 
 trait IdFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 
-  override def getFilterStrategy(filter: Filter,
-                                 transform: Option[SimpleFeatureType],
-                                 stats: Option[GeoMesaStats]): Option[FilterStrategy] = {
+  override def getFilterStrategy(
+      filter: Filter,
+      transform: Option[SimpleFeatureType],
+      stats: Option[GeoMesaStats]): Option[FilterStrategy] = {
     if (filter == Filter.INCLUDE) {
-      Some(FilterStrategy(this, None, None, Long.MaxValue))
+      Some(FilterStrategy(this, None, None, temporal = false, Long.MaxValue))
     } else if (filter == Filter.EXCLUDE) {
       None
     } else {
       val (ids, notIds) = IdExtractingVisitor(filter)
       if (ids.isDefined) {
         // top-priority index - always 1 if there are actually ID filters
-        Some(FilterStrategy(this, ids, notIds, IdFilterStrategy.StaticCost))
+        // note: although there's no temporal predicate, there's an implied exact date for the given feature
+        Some(FilterStrategy(this, ids, notIds, temporal = true, IdFilterStrategy.StaticCost))
       } else {
-        Some(FilterStrategy(this, None, Some(filter), Long.MaxValue))
+        Some(FilterStrategy(this, None, Some(filter), temporal = false, Long.MaxValue))
       }
     }
   }

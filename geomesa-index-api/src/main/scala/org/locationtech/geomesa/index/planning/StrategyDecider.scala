@@ -131,23 +131,39 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
                 indices.map(i => s"${i.name}, ${i.identifier}").mkString(", "))
           }
       val secondary = if (filter == Filter.INCLUDE) { None } else { Some(filter) }
-      FilterPlan(Seq(FilterStrategy(index, None, secondary, 0L)))
+      FilterPlan(Seq(FilterStrategy(index, None, secondary, temporal = false, 0L)))
     }
 
     byId.orElse(byName).orElse(byJoin).getOrElse(fallback)
   }
 
   class CostBasedStrategyDecider extends StrategyDecider with MethodProfiling {
-    override def selectFilterPlan(sft: SimpleFeatureType,
-                                  options: Seq[FilterPlan],
-                                  explain: Explainer): FilterPlan = {
-      val costs = options.map { option =>
-        var time = 0L
-        val optionCosts = profile(t => time = t)(option.strategies.map(_.cost))
-        (option, optionCosts.sum, time)
-      }.sortBy(_._2)
-      explain(s"Costs: ${costs.map(c => s"${c._1} (Cost ${c._2} in ${c._3}ms)").mkString("; ")}")
-      costs.head._1
+
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+    override def selectFilterPlan(
+        sft: SimpleFeatureType,
+        options: Seq[FilterPlan],
+        explain: Explainer): FilterPlan = {
+
+      val costs = options.map(cost).sorted
+      explain(s"Costs: ${costs.mkString("; ")}")
+
+      val temporal = if (!sft.isTemporalPriority) { None } else {
+        costs.find(c => c.plan.strategies.nonEmpty && c.plan.strategies.forall(_.temporal))
+      }
+      temporal.getOrElse(costs.head).plan
+    }
+
+    private def cost(option: FilterPlan): FilterPlanCost = {
+      profile((fpc: FilterPlanCost, time: Long) => fpc.copy(time = time)) {
+        FilterPlanCost(option, option.strategies.map(_.cost).sum, 0L)
+      }
+    }
+
+    private case class FilterPlanCost(plan: FilterPlan, cost: Long, time: Long) extends Comparable[FilterPlanCost] {
+      override def compareTo(o: FilterPlanCost): Int = java.lang.Long.compare(cost, o.cost)
+      override def toString: String = s"$plan (Cost $cost in ${time}ms)"
     }
   }
 }

@@ -60,6 +60,7 @@ object SimpleFeatureTypes {
     val TableSharing          = "geomesa.table.sharing"
     val TableSplitterClass    = "table.splitter.class"
     val TableSplitterOpts     = "table.splitter.options"
+    val TemporalPriority      = "geomesa.temporal.priority"
     val UpdateBackupMetadata  = "schema.update.backup.metadata"
     val UpdateRenameTables    = "schema.update.rename.tables"
 

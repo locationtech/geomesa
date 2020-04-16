@@ -16,7 +16,7 @@ import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
-class Z2Index protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, version: Int, val geom: String, mode: IndexMode)
+class Z2Index protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, version: Int, geom: String, mode: IndexMode)
     extends GeoMesaFeatureIndex[Z2IndexValues, Long](ds, sft, Z2Index.name, version, Seq(geom), mode)
         with SpatialFilterStrategy[Z2IndexValues, Long] {
 
