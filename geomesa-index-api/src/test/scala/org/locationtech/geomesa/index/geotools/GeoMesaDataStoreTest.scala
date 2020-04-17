@@ -24,6 +24,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreTest.{TestFeatureCollection, TestQueryInterceptor, TestSimpleFeatureCollection, TestVisitor}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
@@ -247,7 +248,8 @@ class GeoMesaDataStoreTest extends Specification {
       val filters = Seq(
         ("name like 'a%' and dtg DURING 2020-01-01T00:00:00.00Z/2020-01-02T00:00:00.00Z", AttributeIndex, Z3Index),
         ("name > 'a' AND name < 'b' and dtg DURING 2020-01-01T00:00:00.00Z/2020-01-02T00:00:00.00Z", AttributeIndex, Z3Index),
-        ("name = 'a' and dtg DURING 2020-01-01T00:00:00.00Z/2020-01-02T00:00:00.00Z", AttributeIndex, AttributeIndex)
+        ("name = 'a' and dtg DURING 2020-01-01T00:00:00.00Z/2020-01-02T00:00:00.00Z", AttributeIndex, AttributeIndex),
+        ("IN('0') and bbox(geom,-10,-10,10,10) and dtg DURING 2020-01-01T00:00:00.00Z/2020-01-02T00:00:00.00Z", IdIndex, IdIndex)
       )
 
       foreach(filters) { case (f, default, temporal) =>
