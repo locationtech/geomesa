@@ -46,7 +46,6 @@ import org.locationtech.geomesa.index.index.z2.{Z2Index, Z2IndexValues}
 import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, FlushWithLogging, WithClose}
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -58,6 +57,7 @@ import scala.util.control.NonFatal
 class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore] with StrictLogging {
 
   import HBaseIndexAdapter._
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
 
@@ -73,15 +73,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         logger.debug(s"Creating table $name")
 
         val conf = admin.getConfiguration
-        val compression = Option(index.sft.getUserData.get(Configs.TableCompression)).collect {
-          case e: String if e.toBoolean =>
-            // note: all compression types in HBase are case-sensitive and lower-cased
-            val compressionType = index.sft.getUserData.get(Configs.TableCompressionType) match {
-              case null => "gz"
-              case t: String => t.toLowerCase(Locale.US)
-            }
-            logger.debug(s"Setting compression '$compressionType' on table $name for feature ${index.sft.getTypeName}")
-            Compression.getCompressionAlgorithmByName(compressionType)
+
+        val compression = index.sft.getCompression.map { alg =>
+          logger.debug(s"Setting compression '$alg' on table $name for feature ${index.sft.getTypeName}")
+          // note: all compression types in HBase are case-sensitive and lower-cased
+          Compression.getCompressionAlgorithmByName(alg.toLowerCase(Locale.US))
         }
 
         val cols = groups.apply(index.sft).map(_._1)
