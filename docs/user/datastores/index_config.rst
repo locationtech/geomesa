@@ -649,6 +649,19 @@ For example:
 
 See :ref:`cli_analytic` and :ref:`stats_api` for information on reading cached stats.
 
+Configuring Temporal Priority
+-----------------------------
+
+For some large time-based datasets, an index that leverages a temporal predicate will almost always be faster
+to query than one that doesn't. A schema can be configured to prioritize temporal predicates by setting the
+user-data key ``geomesa.temporal.priority``:
+
+.. code-block:: java
+
+    sft.getUserData().put("geomesa.temporal.priority", "true");
+
+This may be configured before calling ``createSchema``, or updated by calling ``updateSchema``.
+
 Mixed Geometry Types
 --------------------
 

@@ -33,7 +33,6 @@ import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionary
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode, VisibilityLevel}
 import org.locationtech.geomesa.utils.stats.{Cardinality, Stat}
-import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -52,17 +51,19 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
 
   import scala.collection.JavaConverters._
 
-  protected val attributeIndex: Int = sft.indexOf(attribute)
-  protected val descriptor: AttributeDescriptor = sft.getDescriptor(attributeIndex)
-  protected val binding: Class[_] = descriptor.getType.getBinding
-  protected val indexSft: SimpleFeatureType = IndexValueEncoder.getIndexSft(sft)
+  private val attribute = attributes.head
+  private val attributeIndex = sft.indexOf(attribute)
+  private val descriptor = sft.getDescriptor(attributeIndex)
+  private val binding = descriptor.getType.getBinding
+  private val indexSft = IndexValueEncoder.getIndexSft(sft)
 
   override val name: String = JoinIndex.name
   override val identifier: String = GeoMesaFeatureIndex.identifier(name, version, attributes)
 
-  abstract override def getFilterStrategy(filter: Filter,
-                                          transform: Option[SimpleFeatureType],
-                                          stats: Option[GeoMesaStats]): Option[FilterStrategy] = {
+  abstract override def getFilterStrategy(
+      filter: Filter,
+      transform: Option[SimpleFeatureType],
+      stats: Option[GeoMesaStats]): Option[FilterStrategy] = {
     super.getFilterStrategy(filter, transform, stats).flatMap { strategy =>
       val join = requiresJoin(strategy.secondary, transform)
       // verify that it's ok to return join plans, and filter them out if not
@@ -82,7 +83,7 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
             }
             statCost.getOrElse(indexBasedCost(f, join))
         }
-        Some(FilterStrategy(strategy.index, strategy.primary, strategy.secondary, cost))
+        Some(FilterStrategy(strategy.index, strategy.primary, strategy.secondary, strategy.temporal, cost))
       }
     }
   }

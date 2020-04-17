@@ -12,6 +12,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.IdDetectingFilterVisitor
 import org.locationtech.geomesa.index.api.{FilterPlan, FilterStrategy, GeoMesaFeatureIndex}
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
@@ -162,7 +163,7 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
             case Some(n) => Seq(n)
             case None => Seq.empty
           }
-          groups.update(i, f.copy(orOption(current ++ f.secondary)))
+          groups.update(i, f.copy(orOption(current ++ f.secondary), f.temporal && groups(i).temporal))
         }
       }
       FilterPlan(groups)
@@ -253,7 +254,7 @@ object FilterSplitter {
     if (mergeTo.primary.forall(_ == Filter.INCLUDE)) {
       // this is a full table scan, we can just append the OR to the secondary filter
       mergeTo.copy(orOption(mergeTo.secondary.toSeq ++ toMerge.filter))
-    } else if (toMerge.index.name == "attr" && mergeTo.index.name == "attr") {
+    } else if (toMerge.index.name == AttributeIndex.name && mergeTo.index.name == AttributeIndex.name) {
       // TODO extract this out into the API?
       tryMergeAttrStrategy(toMerge, mergeTo)
     } else {
@@ -285,7 +286,9 @@ object FilterSplitter {
     }
 
     if (canMergePrimary && toMerge.secondary == mergeTo.secondary) {
-      FilterStrategy(mergeTo.index, orOption(toMerge.primary.toSeq ++ mergeTo.primary), mergeTo.secondary, mergeTo.cost)
+      val primary = orOption(toMerge.primary.toSeq ++ mergeTo.primary)
+      val temporal = mergeTo.temporal && toMerge.temporal // should be the same...
+      FilterStrategy(mergeTo.index, primary,  mergeTo.secondary, temporal, mergeTo.cost)
     } else {
       null
     }

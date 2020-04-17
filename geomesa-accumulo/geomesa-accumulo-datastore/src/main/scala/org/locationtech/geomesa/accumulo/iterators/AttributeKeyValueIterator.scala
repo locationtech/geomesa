@@ -91,7 +91,7 @@ object AttributeKeyValueIterator {
     is.addOption(INDEX_OPT, index.identifier)
     is.addOption(SFT_OPT, SimpleFeatureTypes.encodeType(index.sft, includeUserData = true))
     is.addOption(TRANSFORM_OPT, SimpleFeatureTypes.encodeType(transform, includeUserData = true))
-    is.addOption(ATTRIBUTE_OPT, transform.indexOf(index.attribute).toString)
+    is.addOption(ATTRIBUTE_OPT, transform.indexOf(index.attributes.head).toString)
     is
   }
 }

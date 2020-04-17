@@ -23,6 +23,9 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreTest.{TestFeatureCollection, TestQueryInterceptor, TestSimpleFeatureCollection, TestVisitor}
+import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.locationtech.geomesa.index.index.id.IdIndex
+import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -234,6 +237,25 @@ class GeoMesaDataStoreTest extends Specification {
           Seq(feature)
       ds.stats.getBounds(sft) mustEqual
           new ReferencedEnvelope(feature.getDefaultGeometry.asInstanceOf[Point].getEnvelopeInternal, CRS_EPSG_4326)
+    }
+    "prioritize temporal filter plans" in {
+      val spec = "name:String:index=true,age:Int,dtg:Date,*geom:Point:srid=4326"
+
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(SimpleFeatureTypes.createType("default", spec))
+      ds.createSchema(SimpleFeatureTypes.createType("temporal", s"$spec;geomesa.temporal.priority=true"))
+
+      val filters = Seq(
+        ("name like 'a%' and dtg DURING 2020-01-01T00:00:00.00Z/2020-01-02T00:00:00.00Z", AttributeIndex, Z3Index),
+        ("name > 'a' AND name < 'b' and dtg DURING 2020-01-01T00:00:00.00Z/2020-01-02T00:00:00.00Z", AttributeIndex, Z3Index),
+        ("name = 'a' and dtg DURING 2020-01-01T00:00:00.00Z/2020-01-02T00:00:00.00Z", AttributeIndex, AttributeIndex),
+        ("IN('0') and bbox(geom,-10,-10,10,10) and dtg DURING 2020-01-01T00:00:00.00Z/2020-01-02T00:00:00.00Z", IdIndex, IdIndex)
+      )
+
+      foreach(filters) { case (f, default, temporal) =>
+        ds.getQueryPlan(new Query("default", ECQL.toFilter(f))).map(_.filter.index.name) mustEqual Seq(default.name)
+        ds.getQueryPlan(new Query("temporal", ECQL.toFilter(f))).map(_.filter.index.name) mustEqual Seq(temporal.name)
+      }
     }
   }
 }

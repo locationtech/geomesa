@@ -228,18 +228,21 @@ package object api {
   }
 
   /**
-    * A query filter split up into a 'primary' that will be used with the given feature index for range planning,
-    * and a 'secondary' that is not captured in the ranges.
-    *
-    * @param index feature index to scan
-    * @param primary primary filter used for range generation
-    * @param secondary secondary filter not captured in the ranges
-    * @param toCost estimated cost of executing the query against this index
-    */
-  class FilterStrategy(val index: GeoMesaFeatureIndex[_, _],
-                       val primary: Option[Filter],
-                       val secondary: Option[Filter],
-                       toCost: => Long) {
+   * A query filter split up into a 'primary' that will be used with the given feature index for range planning,
+   * and a 'secondary' that is not captured in the ranges.
+   *
+   * @param index feature index to scan
+   * @param primary primary filter used for range generation
+   * @param secondary secondary filter not captured in the ranges
+   * @param temporal does the filter strategy have a temporal component
+   * @param toCost estimated cost of executing the query against this index
+   */
+  class FilterStrategy(
+      val index: GeoMesaFeatureIndex[_, _],
+      val primary: Option[Filter],
+      val secondary: Option[Filter],
+      val temporal: Boolean,
+      toCost: => Long) {
 
     lazy val cost: Long = toCost
     lazy val filter: Option[Filter] = andOption(primary.toSeq ++ secondary)
@@ -247,20 +250,33 @@ package object api {
     def getQueryStrategy(hints: Hints, explain: Explainer = ExplainNull): QueryStrategy =
       index.getQueryStrategy(this, hints, explain)
 
-    def copy(secondary: Option[Filter]): FilterStrategy = new FilterStrategy(index, primary, secondary, toCost)
+    /**
+     * Copy without evaluating the cost
+     *
+     * @param secondary new secondary filter
+     * @param temporal new temporal flag
+     * @return
+     */
+    def copy(secondary: Option[Filter], temporal: Boolean = this.temporal): FilterStrategy =
+      new FilterStrategy(index, primary, secondary, temporal, toCost)
 
     override lazy val toString: String =
       s"$index[${primary.map(filterToString).getOrElse("INCLUDE")}][${secondary.map(filterToString).getOrElse("None")}]"
   }
 
   object FilterStrategy {
-    def apply(index: GeoMesaFeatureIndex[_, _],
-              primary: Option[Filter],
-              secondary: Option[Filter],
-              toCost: => Long): FilterStrategy = new FilterStrategy(index, primary, secondary, toCost)
 
-    def unapply(f: FilterStrategy): Option[(GeoMesaFeatureIndex[_, _], Option[Filter], Option[Filter], Long)] =
-      Some((f.index, f.primary, f.secondary, f.cost))
+    def apply(
+        index: GeoMesaFeatureIndex[_, _],
+        primary: Option[Filter],
+        secondary: Option[Filter],
+        temporal: Boolean,
+        toCost: => Long): FilterStrategy = {
+      new FilterStrategy(index, primary, secondary, temporal, toCost)
+    }
+
+    def unapply(f: FilterStrategy): Option[(GeoMesaFeatureIndex[_, _], Option[Filter], Option[Filter], Boolean, Long)] =
+      Some((f.index, f.primary, f.secondary, f.temporal, f.cost))
   }
 
   /**

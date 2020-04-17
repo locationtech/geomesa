@@ -296,6 +296,8 @@ object RichSimpleFeatureType {
       userData[String](Configs.FeatureExpiration).map(org.locationtech.geomesa.utils.conf.FeatureExpiration.apply(sft, _))
     def isFeatureExpirationEnabled: Boolean = sft.getUserData.containsKey(Configs.FeatureExpiration)
 
+    def isTemporalPriority: Boolean = userData[String](TemporalPriority).exists(java.lang.Boolean.parseBoolean)
+
     def getRemoteVersion: Option[SemanticVersion] =
       Option(sft.getUserData.get(RemoteVersion).asInstanceOf[String]).map(SemanticVersion.apply)
 
