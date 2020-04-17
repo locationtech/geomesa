@@ -257,9 +257,12 @@ object RichSimpleFeatureType {
       Array.empty[Byte]
     }
 
-    def setCompression(c: String): Unit = {
-      sft.getUserData.put(TableCompression, "true")
-      sft.getUserData.put(TableCompressionType, c)
+    def setCompression(c: String): Unit = sft.getUserData.put(TableCompressionType, c)
+    def getCompression: Option[String] = {
+      userData[String](TableCompressionType).orElse {
+        // check deprecated 'enabled' config, which defaults to 'gz'
+        userData[String]("geomesa.table.compression.enabled").collect { case e if e.toBoolean => "gz" }
+      }
     }
 
     // gets indices configured for this sft

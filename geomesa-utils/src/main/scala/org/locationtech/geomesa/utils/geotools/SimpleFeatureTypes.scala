@@ -53,7 +53,6 @@ object SimpleFeatureTypes {
     val OverrideReservedWords = "override.reserved.words"
     val QueryInterceptors     = "geomesa.query.interceptors"
     val StatsEnabled          = "geomesa.stats.enable"
-    val TableCompression      = "geomesa.table.compression.enabled"
     val TableCompressionType  = "geomesa.table.compression.type" // valid: gz(default), snappy, lzo, bzip2, lz4, zstd
     val TableLogicalTime      = "geomesa.logical.time"
     val TablePartitioning     = "geomesa.table.partition"
