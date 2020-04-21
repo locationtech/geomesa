@@ -10,20 +10,21 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.util.Date
 
-import org.locationtech.jts.geom.Point
 import org.geotools.data._
 import org.geotools.data.simple.SimpleFeatureCollection
-import org.geotools.util.factory.Hints
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.cql2.CQL
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Point
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -88,7 +89,7 @@ class AccumuloDataStoreTransformsTest extends Specification with TestWithMultipl
       }
 
       "with setPropertyNames" in {
-        val filter = ff.bbox("geom", 44.0, 48.0, 46.0, 50.0, "EPSG:4326")
+        val filter = ff.bbox(ff.property("geom"), new ReferencedEnvelope(44.0, 46.0, 48.0, 50.0, CRS_EPSG_4326))
         val query = new Query(sftName, filter)
         query.setPropertyNames(Array("geom"))
 

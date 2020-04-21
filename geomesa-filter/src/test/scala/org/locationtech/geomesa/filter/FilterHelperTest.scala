@@ -68,13 +68,13 @@ class FilterHelperTest extends Specification {
     }
 
     "fix out of bounds bbox" >> {
-      val filter = ff.bbox(ff.property("geom"), -181, -91, 181, 91, "4326")
+      val filter = ECQL.toFilter("bbox(geom,-181,-91,181,91)")
       val updated = updateFilter(filter)
       updated mustEqual Filter.INCLUDE
     }
 
     "be idempotent with bbox" >> {
-      val filter = ff.bbox(ff.property("geom"), -181, -91, 181, 91, "4326")
+      val filter = ECQL.toFilter("bbox(geom,-181,-91,181,91)")
       val updated = updateFilter(filter)
       val reupdated = updateFilter(updated)
       ECQL.toCQL(updated) mustEqual ECQL.toCQL(reupdated)

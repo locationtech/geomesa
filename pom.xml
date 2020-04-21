@@ -65,8 +65,8 @@
         <scala.xml.version>1.0.6</scala.xml.version>
         <scala.parsers.version>1.0.6</scala.parsers.version>
 
-        <gt.version>21.1</gt.version>
-        <geoserver.version>2.15.1</geoserver.version>
+        <gt.version>23.0</gt.version>
+        <geoserver.version>2.17.0</geoserver.version>
         <jts.version>1.16.0</jts.version>
         <avro.version>1.7.5</avro.version> <!-- see also confluent.avro.version -->
         <parquet.version>1.9.0</parquet.version>
@@ -1000,6 +1000,11 @@
                         <groupId>jgridshift</groupId>
                         <artifactId>jgridshift</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>jgridshift</groupId>
+                        <artifactId>jgridshift-core</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -1023,6 +1028,11 @@
                         <groupId>jgridshift</groupId>
                         <artifactId>jgridshift</artifactId>
                     </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>jgridshift</groupId>
+                        <artifactId>jgridshift-core</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
             <dependency>
@@ -1039,6 +1049,11 @@
                         <!-- excluded due to license issues -->
                         <groupId>jgridshift</groupId>
                         <artifactId>jgridshift</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <!-- excluded due to license issues -->
+                        <groupId>jgridshift</groupId>
+                        <artifactId>jgridshift-core</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>

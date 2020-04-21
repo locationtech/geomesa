@@ -23,6 +23,8 @@ version to install. It is recommended to use the latest GeoServer bug-fix releas
 +-------------------+-------------------+
 | 2.4.x             | 2.15.x            |
 +-------------------+-------------------+
+| 3.0.x             | 2.15.x-2.17.x     |
++-------------------+-------------------+
 
 .. warning::
 
