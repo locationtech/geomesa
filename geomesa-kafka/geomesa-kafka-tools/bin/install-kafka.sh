@@ -9,6 +9,7 @@
 zookeeper_version="%%zookeeper.version.recommended%%"
 
 # kafka versions
+guava_version="%%guava.version%%"
 kafka_version="%%kafka.version%%"
 zkclient_version="%%zkclient.version%%"
 jopt_version="%%kafka.jopt.version%%"
@@ -40,6 +41,11 @@ zk_bug_ver="$(expr match "$zookeeper_version" '[0-9][0-9]*\.[0-9][0-9]*\.\([0-9]
 # compare the version of zookeeper to determine if we need zookeeper-jute (version >= 3.5.5)
 if [[ "$zk_maj_ver" -ge 3 && "$zk_min_ver" -ge 5 && "$zk_bug_ver" -ge 5 ]]; then
   urls+=("${base_url}org/apache/zookeeper/zookeeper-jute/$zookeeper_version/zookeeper-jute-$zookeeper_version.jar")
+fi
+
+# if there's already a guava jar (e.g. geoserver) don't install guava to avoid conflicts
+if [ -z "$(find -L $install_dir -maxdepth 1 -name 'guava-*' -print -quit)" ]; then
+  urls+=("${base_url}com/google/guava/guava/${guava_version}/guava-${guava_version}.jar")
 fi
 
 downloadUrls "$install_dir" urls[@]

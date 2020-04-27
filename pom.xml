@@ -1676,17 +1676,17 @@
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-client</artifactId>
-                <version>4.0.1</version>
+                <version>4.3.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-framework</artifactId>
-                <version>4.0.1</version>
+                <version>4.3.0</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-recipes</artifactId>
-                <version>4.0.1</version>
+                <version>4.3.0</version>
             </dependency>
             <!-- standardize httpcomponents version, used by various libraries including hadoop and thrift -->
             <dependency>
@@ -2298,7 +2298,7 @@
             <dependency>
                 <groupId>org.apache.curator</groupId>
                 <artifactId>curator-test</artifactId>
-                <version>4.0.1</version>
+                <version>4.3.0</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -2865,3 +2865,4 @@
     </repositories>
 
 </project>
+
