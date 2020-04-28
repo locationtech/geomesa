@@ -23,11 +23,11 @@ class SuffixesTest extends Specification {
 
       hours("1h").get mustEqual 1
       hours("24h").get mustEqual 24
-      hours("120m").get mustEqual 2
+      hours("120min").get mustEqual 2
       hours("30d").get mustEqual 30*24
 
       millis("30s").get mustEqual 30*1000
-      millis("5m").get mustEqual 5*60*1000
+      millis("5min").get mustEqual 5*60*1000
 
       millis("5000").get mustEqual 5000L
     }

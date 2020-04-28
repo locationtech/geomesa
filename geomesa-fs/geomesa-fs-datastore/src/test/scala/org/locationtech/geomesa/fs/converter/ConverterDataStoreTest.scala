@@ -36,7 +36,7 @@ class ConverterDataStoreTest extends Specification {
       |  <property><name>fs.partition-scheme.opts.step-unit</name><value>MINUTES</value></property>
       |  <property><name>fs.partition-scheme.opts.step</name><value>15</value></property>
       |  <property><name>fs.partition-scheme.opts.dtg-attribute</name><value>dtg</value></property>
-      |  <property><name>fs.partition-scheme.opts.leaf-storage</name><value>true</value></property>
+      |  <property><name>fs.options.leaf-storage</name><value>true</value></property>
       |</configuration>
       |""".stripMargin
   }

@@ -234,7 +234,7 @@ org.mortbay.jetty:jetty-util	6.1.26	compile
 org.objenesis:objenesis	1.0	compile
 org.parboiled:parboiled-core	1.1.7	compile
 org.parboiled:parboiled-scala_2.11	1.1.7	compile
-org.postgresql:postgresql	42.2.2	compile
+org.postgresql:postgresql	42.2.12	compile
 org.scala-lang.modules:scala-parser-combinators_2.11	1.0.6	compile
 org.scala-lang.modules:scala-xml_2.11	1.0.6	compile
 org.scala-lang:scala-library	2.11.7	compile
@@ -306,6 +306,7 @@ org.geotools.jdbc:gt-jdbc-h2	23.0	test
 org.jruby:jruby	9.0.4.0	test
 org.mortbay.jetty:jetty	6.1.26	test
 org.scalatra:scalatra-specs2_2.11	2.6.3	test
+org.slf4j:jul-to-slf4j	1.7.25	test
 org.specs2:specs2-core_2.11	4.9.2	test
 org.specs2:specs2-junit_2.11	4.9.2	test
 org.specs2:specs2-mock_2.11	4.9.2	test

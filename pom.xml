@@ -966,7 +966,7 @@
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
-                <version>42.2.2</version>
+                <version>42.2.12</version>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
@@ -2233,6 +2233,12 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jul-to-slf4j</artifactId>
+                <version>${slf4j.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.specs2</groupId>
                 <artifactId>specs2-core_${scala.binary.version}</artifactId>
                 <version>${specs2.version}</version>
@@ -2461,6 +2467,8 @@
                             <geomesa.scan.ranges.target>500</geomesa.scan.ranges.target>
                             <geomesa.accumulo.test.tablet.servers>1</geomesa.accumulo.test.tablet.servers>
                             <geomesa.hbase.test.region.servers>1</geomesa.hbase.test.region.servers>
+                            <java.util.logging.config.file>logging.properties</java.util.logging.config.file>
+                            <org.jboss.logging.provider>slf4j</org.jboss.logging.provider>
                         </systemPropertyVariables>
                         <!-- these can interfere with the mini clusters we spin up for unit tests -->
                         <excludedEnvironmentVariables>HADOOP_HOME,ZOOKEEPER_HOME,ACCUMULO_HOME,HBASE_HOME</excludedEnvironmentVariables>

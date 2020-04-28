@@ -83,7 +83,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
         .options(dsParams)
         .option("geomesa.feature", "points")
         .load()
-      logger.info(dfPoints.schema.treeString)
+      logger.debug(dfPoints.schema.treeString)
       dfPoints.createOrReplaceTempView("points")
 
       SparkSQLTestUtils.ingestGeometries(ds, "lines", lines)
@@ -92,7 +92,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
         .options(dsParams)
         .option("geomesa.feature", "lines")
         .load()
-      logger.info(dfLines.schema.treeString)
+      logger.debug(dfLines.schema.treeString)
       dfLines.createOrReplaceTempView("lines")
 
       SparkSQLTestUtils.ingestGeometries(ds, "boxes", boxes)
@@ -101,7 +101,7 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
         .options(dsParams)
         .option("geomesa.feature", "boxes")
         .load()
-      logger.info(dfBoxes.schema.treeString)
+      logger.debug(dfBoxes.schema.treeString)
       dfBoxes.createOrReplaceTempView("boxes")
     }
 
