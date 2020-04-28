@@ -33,7 +33,8 @@ object BatchWriter {
    * @param sft simple feature type
    * @param dictionaries dictionaries
    * @param encoding simple feature encoding
-   * @param sort sort
+   * @param sort sort metadata, if defined each batch is assumed to be sorted
+   * @param sorted whether the batches are already globally sorted
    * @param batchSize batch size
    * @param batches record batches
    * @return
@@ -43,13 +44,14 @@ object BatchWriter {
       dictionaries: Map[String, ArrowDictionary],
       encoding: SimpleFeatureEncoding,
       sort: Option[(String, Boolean)],
+      sorted: Boolean,
       batchSize: Int,
       batches: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
-    val (sorted, firstBatchHasHeader) = sort match {
-      case None => (batches, false)
-      case Some((f, r)) => (new BatchSortingIterator(sft, dictionaries, encoding, f, r, batchSize, batches), true)
+    val (iter, firstBatchHasHeader) = if (sorted || sort.isEmpty) { (batches, false) } else {
+      val Some((f, r)) = sort
+      (new BatchSortingIterator(sft, dictionaries, encoding, f, r, batchSize, batches), true)
     }
-    createFileFromBatches(sft, dictionaries, encoding, sort, sorted, firstBatchHasHeader)
+    createFileFromBatches(sft, dictionaries, encoding, sort, iter, firstBatchHasHeader)
   }
 
   /**

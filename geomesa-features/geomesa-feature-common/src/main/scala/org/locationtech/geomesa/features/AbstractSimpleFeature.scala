@@ -8,14 +8,14 @@
 
 package org.locationtech.geomesa.features
 
-import org.locationtech.jts.geom.Geometry
 import org.geotools.feature.`type`.{AttributeDescriptorImpl, Types}
 import org.geotools.feature.{AttributeImpl, GeometryAttributeImpl}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor, Name}
+import org.locationtech.jts.geom.Geometry
+import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
 import org.opengis.filter.identity.FeatureId
@@ -30,14 +30,15 @@ object AbstractSimpleFeature {
     * Base class for immutable simple features
     *
     * @param sft simple feature type
-    * @param getID feature id
     */
-  abstract class AbstractImmutableSimpleFeature(sft: SimpleFeatureType, override val getID: String)
-      extends AbstractSimpleFeature(sft) {
+  abstract class AbstractImmutableSimpleFeature(sft: SimpleFeatureType) extends AbstractSimpleFeature(sft) {
 
     // TODO collection attributes (lists, maps, byte arrays) are still mutable...
 
-    override lazy val getIdentifier = new ImmutableFeatureId(getID)
+    protected var id: String = _ // this is expected to be set by the constructor
+
+    override def getID: String = id
+    override def getIdentifier = new ImmutableFeatureId(id)
 
     override def setAttribute(name: Name, value: Object): Unit = throw new UnsupportedOperationException()
     override def setAttribute(name: String, value: Object): Unit = throw new UnsupportedOperationException()
@@ -55,21 +56,15 @@ object AbstractSimpleFeature {
     *
     * @param sft simple feature type
     */
-  abstract class AbstractMutableSimpleFeature(sft: SimpleFeatureType,
-                                              initialId: String,
-                                              initialUserData: java.util.Map[AnyRef, AnyRef])
-      extends AbstractSimpleFeature(sft) {
+  abstract class AbstractMutableSimpleFeature(sft: SimpleFeatureType) extends AbstractSimpleFeature(sft) {
 
-    private val featureId = new FeatureIdImpl(initialId)
-    private lazy val userData =
-      if (initialUserData == null) { new java.util.HashMap[AnyRef, AnyRef]() } else { initialUserData }
+    protected var id: String = _
 
     def setAttributeNoConvert(index: Int, value: AnyRef): Unit
-    def setId(id: String): Unit = featureId.setID(id)
+    def setId(id: String): Unit = this.id = id
 
-    override def getIdentifier: FeatureId = featureId
-    override def getID: String = featureId.getID // this needs to reference the featureId, as it can be updated
-    override def getUserData: java.util.Map[AnyRef, AnyRef] = userData
+    override def getIdentifier: FeatureId = new MutableFeatureIdReference()
+    override def getID: String = id
 
     override def setAttribute(name: Name, value: Object): Unit = setAttribute(name.getLocalPart, value)
     override def setAttribute(name: String, value: Object): Unit = {
@@ -103,7 +98,7 @@ object AbstractSimpleFeature {
         i += 1
       }
     }
-    override def setDefaultGeometry(geo: Object): Unit = setAttribute(geomIndex, geo)
+    override def setDefaultGeometry(geo: Object): Unit = setAttribute(sft.getGeometryDescriptor.getLocalName, geo)
     override def setValue(newValue: Object): Unit = setValue(newValue.asInstanceOf[java.util.Collection[Property]])
     override def setValue(values: java.util.Collection[Property]): Unit = {
       import scala.collection.JavaConversions._
@@ -115,6 +110,24 @@ object AbstractSimpleFeature {
     }
     override def setDefaultGeometryProperty(geoAttr: GeometryAttribute): Unit =
       if (geoAttr == null) { setDefaultGeometry(null) } else { setDefaultGeometry(geoAttr.getValue) }
+
+    /**
+     * Mutable feature ID implementation that references back to the parent class. This allows us to
+     * avoid allocating a new object unless `getIdentifier` is called.
+     */
+    class MutableFeatureIdReference extends FeatureIdImpl("") {
+      override def getID: String = id
+      override def setID(id: String): Unit = AbstractMutableSimpleFeature.this.id = id
+      override def toString: String = id
+      override def equals(obj: Any): Boolean = obj match {
+        case fid: FeatureId => id == fid.getID
+        case _ => false
+      }
+      override def hashCode: Int = id.hashCode
+      override def equalsFID(fid: FeatureId): Boolean = fid != null && fid.getID == id
+      override def equalsExact(obj: FeatureId): Boolean =
+        equalsFID(obj) && id == obj.getRid && obj.getPreviousRid == null && obj.getFeatureVersion == null
+    }
   }
 }
 
@@ -124,9 +137,6 @@ object AbstractSimpleFeature {
   * @param sft simple feature type
   */
 abstract class AbstractSimpleFeature(sft: SimpleFeatureType) extends SimpleFeature {
-
-  lazy protected val geomDesc: GeometryDescriptor = sft.getGeometryDescriptor
-  lazy protected val geomIndex: Int = if (geomDesc == null) { -1 } else { sft.indexOf(geomDesc.getLocalName) }
 
   override def getFeatureType: SimpleFeatureType = sft
   override def getType: SimpleFeatureType = sft
@@ -149,15 +159,19 @@ abstract class AbstractSimpleFeature(sft: SimpleFeatureType) extends SimpleFeatu
     list
   }
 
-  override def getDefaultGeometry: AnyRef = if (geomIndex == -1) { null } else { getAttribute(geomIndex) }
+  override def getDefaultGeometry: AnyRef =
+    if (sft.getGeometryDescriptor == null) { null } else { getAttribute(sft.getGeometryDescriptor.getLocalName) }
 
   override def getBounds: BoundingBox = getDefaultGeometry match {
     case g: Geometry => new ReferencedEnvelope(g.getEnvelopeInternal, sft.getCoordinateReferenceSystem)
     case _ => new ReferencedEnvelope(sft.getCoordinateReferenceSystem)
   }
 
-  override def getDefaultGeometryProperty: GeometryAttribute =
-    if (geomDesc == null) { null } else { new GeometryAttributeImpl(getDefaultGeometry, geomDesc, null) }
+  override def getDefaultGeometryProperty: GeometryAttribute = {
+    if (sft.getGeometryDescriptor == null) { null } else {
+      new GeometryAttributeImpl(getDefaultGeometry, sft.getGeometryDescriptor, null)
+    }
+  }
 
   override def getProperties: java.util.Collection[Property] = {
     val attributes = getAttributes
@@ -214,8 +228,6 @@ abstract class AbstractSimpleFeature(sft: SimpleFeatureType) extends SimpleFeatu
     case _ => false
   }
 
-  override def toString: String = {
-    import scala.collection.JavaConversions._
-    s"${this.getClass.getSimpleName}:$getID:${getAttributes.mkString("|")}"
-  }
+  override def toString: String =
+    s"${this.getClass.getSimpleName}:$getID:${Seq.tabulate(getAttributeCount)(getAttribute).mkString("|")}"
 }

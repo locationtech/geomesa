@@ -48,18 +48,18 @@ trait KryoFeatureDeserialization extends SimpleFeatureSerializer with LazyLoggin
 
 object KryoFeatureDeserialization extends LazyLogging {
 
-  private val inputs  = new SoftThreadLocal[Input]()
-  private val readers = new ThreadLocalCache[String, Array[KryoAttributeReader]](SerializerCacheExpiry)
+  private val inputBytes   = new SoftThreadLocal[Input]()
+  private val inputStreams = new SoftThreadLocal[Input]()
+  private val readers      = new ThreadLocalCache[String, Array[KryoAttributeReader]](SerializerCacheExpiry)
 
   def getInput(bytes: Array[Byte], offset: Int, count: Int): Input = {
-    val in = inputs.getOrElseUpdate(new NonMutatingInput())
+    val in = inputBytes.getOrElseUpdate(new NonMutatingInput())
     in.setBuffer(bytes, offset, count)
     in
   }
 
   def getInput(stream: InputStream): Input = {
-    val in = inputs.getOrElseUpdate(new NonMutatingInput())
-    in.setBuffer(Array.ofDim(1024))
+    val in = inputStreams.getOrElseUpdate(new NonMutatingInput(Array.ofDim(1024)))
     in.setInputStream(stream)
     in
   }

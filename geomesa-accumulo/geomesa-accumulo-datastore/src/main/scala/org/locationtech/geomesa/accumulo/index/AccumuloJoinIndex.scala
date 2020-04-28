@@ -26,6 +26,7 @@ import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter.{FilterHelper, andOption, partitionPrimarySpatials, partitionPrimaryTemporals}
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api._
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey, AttributeIndexValues}
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
@@ -124,15 +125,33 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
 
     val transform = hints.getTransformSchema
 
+    // used when remote processing is disabled
+    lazy val returnSchema = hints.getTransformSchema.getOrElse(indexSft)
+    lazy val fti = visibilityIter(indexSft) ++ FilterTransformIterator.configure(indexSft, this, ecql, hints).toSeq
+    lazy val resultsToFeatures = AccumuloResultsToFeatures(this, returnSchema)
+    lazy val localReducer = {
+      val arrowHook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
+      Some(new LocalTransformReducer(returnSchema, None, None, None, hints, arrowHook))
+    }
+
     val qp = if (hints.isBinQuery) {
       // check to see if we can execute against the index values
       if (indexSft.indexOf(hints.getBinTrackIdField) != -1 &&
           hints.getBinGeomField.forall(indexSft.indexOf(_) != -1) &&
           hints.getBinLabelField.forall(indexSft.indexOf(_) != -1) &&
           supportsFilter(ecql)) {
-        val iter = BinAggregatingIterator.configure(indexSft, this, ecql, hints)
-        val iters = visibilityIter(indexSft) :+ iter
-        plan(iters, new AccumuloBinResultsToFeatures(), None)
+        if (ds.asInstanceOf[AccumuloDataStore].config.remote.bin) {
+          val iter = BinAggregatingIterator.configure(indexSft, this, ecql, hints)
+          val iters = visibilityIter(indexSft) :+ iter
+          plan(iters, new AccumuloBinResultsToFeatures(), None)
+        } else {
+          if (hints.isSkipReduce) {
+            // override the return sft to reflect what we're actually returning,
+            // since the bin sft is only created in the local reduce step
+            hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+          }
+          plan(fti, resultsToFeatures, localReducer)
+        }
       } else {
         // have to do a join against the record table
         createJoinPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
@@ -140,9 +159,18 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
     } else if (hints.isArrowQuery) {
       // check to see if we can execute against the index values
       if (canUseIndexSchema(ecql, transform)) {
-        val (iter, reduce) = ArrowIterator.configure(indexSft, this, ds.stats, filter.filter, ecql, hints)
-        val iters = visibilityIter(indexSft) :+ iter
-        plan(iters, new AccumuloArrowResultsToFeatures(), Some(reduce))
+        if (ds.asInstanceOf[AccumuloDataStore].config.remote.bin) {
+          val (iter, reduce) = ArrowIterator.configure(indexSft, this, ds.stats, filter.filter, ecql, hints)
+          val iters = visibilityIter(indexSft) :+ iter
+          plan(iters, new AccumuloArrowResultsToFeatures(), Some(reduce))
+        } else {
+          if (hints.isSkipReduce) {
+            // override the return sft to reflect what we're actually returning,
+            // since the arrow sft is only created in the local reduce step
+            hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+          }
+          plan(fti, resultsToFeatures, localReducer)
+        }
       } else if (canUseIndexSchemaPlusKey(ecql, transform)) {
         val transformSft = transform.getOrElse {
           throw new IllegalStateException("Must have a transform for attribute key plus value scan")
@@ -153,10 +181,19 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
         hints.clearTransforms()
         // next add the attribute value from the row key
         val rowValueIter = AttributeKeyValueIterator.configure(this, transformSft, 24)
-        // finally apply the arrow iterator on the resulting features
-        val (iter, reduce) = ArrowIterator.configure(transformSft, this, ds.stats, None, None, hints)
-        val iters = visibilityIter(indexSft) ++ Seq(filterTransformIter, rowValueIter, iter)
-        plan(iters, new AccumuloArrowResultsToFeatures(), Some(reduce))
+        if (ds.asInstanceOf[AccumuloDataStore].config.remote.bin) {
+          // finally apply the arrow iterator on the resulting features
+          val (iter, reduce) = ArrowIterator.configure(transformSft, this, ds.stats, None, None, hints)
+          val iters = visibilityIter(indexSft) ++ Seq(filterTransformIter, rowValueIter, iter)
+          plan(iters, new AccumuloArrowResultsToFeatures(), Some(reduce))
+        } else {
+          if (hints.isSkipReduce) {
+            // override the return sft to reflect what we're actually returning,
+            // since the arrow sft is only created in the local reduce step
+            hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+          }
+          plan(fti, resultsToFeatures, localReducer)
+        }
       } else {
         // have to do a join against the record table
         createJoinPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
@@ -165,31 +202,40 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
       // check to see if we can execute against the index values
       val weightIsAttribute = hints.getDensityWeight.contains(attribute)
       if (supportsFilter(ecql) && (weightIsAttribute || hints.getDensityWeight.forall(indexSft.indexOf(_) != -1))) {
-        val visIter = visibilityIter(indexSft)
-        val iters = if (weightIsAttribute) {
-          // create a transform sft with the attribute added
-          val transform = {
-            val builder = new SimpleFeatureTypeBuilder()
-            builder.setNamespaceURI(null: String)
-            builder.setName(indexSft.getTypeName + "--attr")
-            builder.setAttributes(indexSft.getAttributeDescriptors)
-            builder.add(sft.getDescriptor(attribute))
-            if (indexSft.getGeometryDescriptor != null) {
-              builder.setDefaultGeometry(indexSft.getGeometryDescriptor.getLocalName)
+        if (ds.asInstanceOf[AccumuloDataStore].config.remote.bin) {
+          val visIter = visibilityIter(indexSft)
+          val iters = if (weightIsAttribute) {
+            // create a transform sft with the attribute added
+            val transform = {
+              val builder = new SimpleFeatureTypeBuilder()
+              builder.setNamespaceURI(null: String)
+              builder.setName(indexSft.getTypeName + "--attr")
+              builder.setAttributes(indexSft.getAttributeDescriptors)
+              builder.add(sft.getDescriptor(attribute))
+              if (indexSft.getGeometryDescriptor != null) {
+                builder.setDefaultGeometry(indexSft.getGeometryDescriptor.getLocalName)
+              }
+              builder.setCRS(indexSft.getCoordinateReferenceSystem)
+              val tmp = builder.buildFeatureType()
+              tmp.getUserData.putAll(indexSft.getUserData)
+              tmp
             }
-            builder.setCRS(indexSft.getCoordinateReferenceSystem)
-            val tmp = builder.buildFeatureType()
-            tmp.getUserData.putAll(indexSft.getUserData)
-            tmp
+            // priority needs to be between vis iter (21) and density iter (25)
+            val keyValueIter = AttributeKeyValueIterator.configure(this, transform, 23)
+            val densityIter = DensityIterator.configure(transform, this, ecql, hints)
+            visIter :+ keyValueIter :+ densityIter
+          } else {
+            visIter :+ DensityIterator.configure(indexSft, this, ecql, hints)
           }
-          // priority needs to be between vis iter (21) and density iter (25)
-          val keyValueIter = AttributeKeyValueIterator.configure(this, transform, 23)
-          val densityIter = DensityIterator.configure(transform, this, ecql, hints)
-          visIter :+ keyValueIter :+ densityIter
+          plan(iters, new AccumuloDensityResultsToFeatures(), None)
         } else {
-          visIter :+ DensityIterator.configure(indexSft, this, ecql, hints)
+          if (hints.isSkipReduce) {
+            // override the return sft to reflect what we're actually returning,
+            // since the density sft is only created in the local reduce step
+            hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+          }
+          plan(fti, resultsToFeatures, localReducer)
         }
-        plan(iters, new AccumuloDensityResultsToFeatures(), None)
       } else {
         // have to do a join against the record table
         createJoinPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)
@@ -197,10 +243,19 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
     } else if (hints.isStatsQuery) {
       // check to see if we can execute against the index values
       if (Try(Stat(indexSft, hints.getStatsQuery)).isSuccess && supportsFilter(ecql)) {
-        val iter = StatsIterator.configure(indexSft, this, ecql, hints)
-        val iters = visibilityIter(indexSft) :+ iter
-        val reduce = Some(StatsScan.StatsReducer(indexSft, hints))
-        plan(iters, new AccumuloStatsResultsToFeatures(), reduce)
+        if (ds.asInstanceOf[AccumuloDataStore].config.remote.bin) {
+          val iter = StatsIterator.configure(indexSft, this, ecql, hints)
+          val iters = visibilityIter(indexSft) :+ iter
+          val reduce = Some(StatsScan.StatsReducer(indexSft, hints))
+          plan(iters, new AccumuloStatsResultsToFeatures(), reduce)
+        } else {
+          if (hints.isSkipReduce) {
+            // override the return sft to reflect what we're actually returning,
+            // since the stats sft is only created in the local reduce step
+            hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+          }
+          plan(fti, resultsToFeatures, localReducer)
+        }
       } else {
         // have to do a join against the record table
         createJoinPlan(filter, tables, ranges, colFamily, schema, ecql, hints, numThreads)

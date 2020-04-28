@@ -13,6 +13,7 @@ import java.util.{Collection => jCollection, List => jList, Map => jMap}
 import org.locationtech.jts.geom.Geometry
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.process.vector.TransformProcess
+import org.locationtech.geomesa.utils.io.Sizable
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
@@ -26,15 +27,22 @@ import org.opengis.geometry.BoundingBox
   * @param transformSchema transformed feature type
   * @param attributes attribute evaluations, in order
   */
-class TransformSimpleFeature(transformSchema: SimpleFeatureType,
-                             attributes: Array[SimpleFeature => AnyRef],
-                             private var underlying: SimpleFeature = null) extends SimpleFeature {
+class TransformSimpleFeature(
+    transformSchema: SimpleFeatureType,
+    attributes: Array[SimpleFeature => AnyRef],
+    private var underlying: SimpleFeature = null
+  ) extends SimpleFeature with Sizable {
 
   private lazy val geomIndex = transformSchema.indexOf(transformSchema.getGeometryDescriptor.getLocalName)
 
   def setFeature(sf: SimpleFeature): TransformSimpleFeature = {
     underlying = sf
     this
+  }
+
+  override def calculateSizeOf(): Long = underlying match {
+    case s: Sizable => s.calculateSizeOf()
+    case _ => Sizable.sizeOf(underlying) + Sizable.deepSizeOf(underlying.getAttributes, underlying.getUserData)
   }
 
   override def getAttribute(index: Int): AnyRef = attributes(index).apply(underlying)
@@ -118,16 +126,11 @@ object TransformSimpleFeature {
 
   import scala.collection.JavaConversions._
 
-  def apply(sft: SimpleFeatureType, transformSchema: SimpleFeatureType, transforms: String): TransformSimpleFeature = {
-    val a = attributes(sft, transformSchema, transforms)
-    new TransformSimpleFeature(transformSchema, a)
-  }
+  def apply(sft: SimpleFeatureType, transformSchema: SimpleFeatureType, transforms: String): TransformSimpleFeature =
+    new TransformSimpleFeature(transformSchema, attributes(sft, transforms))
 
-  def attributes(sft: SimpleFeatureType,
-                 transformSchema: SimpleFeatureType,
-                 transforms: String): Array[SimpleFeature => AnyRef] = {
+  def attributes(sft: SimpleFeatureType, transforms: String): Array[SimpleFeature => AnyRef] =
     TransformProcess.toDefinition(transforms).map(attribute(sft, _)).toArray
-  }
 
   private def attribute(sft: SimpleFeatureType, d: TransformProcess.Definition): SimpleFeature => AnyRef = {
     d.expression match {

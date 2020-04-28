@@ -68,8 +68,7 @@ object SparkSQLTestUtils {
     ds.createSchema(sft)
 
     val features = DataUtilities.collection(points.map(x => {
-      new ScalaSimpleFeature(sft, x._1,
-        initialValues=Array(x._1, WKTUtils.read(x._2).asInstanceOf[Point]))
+      new ScalaSimpleFeature(sft, x._1, Array(x._1, WKTUtils.read(x._2).asInstanceOf[Point]))
     }).toList)
 
     val fs = ds.getFeatureSource(name).asInstanceOf[SimpleFeatureStore]
@@ -84,8 +83,7 @@ object SparkSQLTestUtils {
     ds.createSchema(sft)
 
     val features = DataUtilities.collection(geoms.map(x => {
-      new ScalaSimpleFeature(sft, x._1,
-        initialValues=Array(x._1, WKTUtils.read(x._2)))
+      new ScalaSimpleFeature(sft, x._1, Array(x._1, WKTUtils.read(x._2)))
     }).toList)
 
     val fs = ds.getFeatureSource(name).asInstanceOf[SimpleFeatureStore]

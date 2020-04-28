@@ -127,7 +127,7 @@ object KafkaExportCommand {
                               queue: BlockingQueue[SimpleFeature]) extends FeatureListener {
 
     private val attributes = transform.map { case (tdefs, tsft) =>
-      (tsft, TransformSimpleFeature.attributes(sft, tsft, tdefs))
+      (tsft, TransformSimpleFeature.attributes(sft, tdefs))
     }
 
     override def changed(event: FeatureEvent): Unit = {

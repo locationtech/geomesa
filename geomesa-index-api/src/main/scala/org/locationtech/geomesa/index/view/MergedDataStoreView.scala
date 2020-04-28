@@ -16,6 +16,7 @@ import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, Sta
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
 import org.locationtech.geomesa.index.view.MergedDataStoreView.MergedStats
+import org.locationtech.geomesa.index.view.MergedQueryRunner.DataStoreQueryable
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.`type`.Name
@@ -33,7 +34,7 @@ class MergedDataStoreView(val stores: Seq[(DataStore, Option[Filter])], namespac
 
   require(stores.nonEmpty, "No delegate stores configured")
 
-  private [view] val runner = new MergedQueryRunner(this, stores)
+  private [view] val runner = new MergedQueryRunner(this, stores.map { case (ds, f) => DataStoreQueryable(ds) -> f })
 
   override val stats: GeoMesaStats = new MergedStats(stores)
 
