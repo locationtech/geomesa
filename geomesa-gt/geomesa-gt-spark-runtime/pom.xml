@@ -88,9 +88,9 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <artifactSet>
                                 <excludes>
+                                    <exclude>org.locationtech.geomesa:geomesa-*-runtime*</exclude>
                                     <exclude>io.netty:*</exclude>
                                     <exclude>org.slf4j:*</exclude>
                                     <exclude>org.geotools:gt-render:*</exclude>
@@ -102,6 +102,7 @@
                                     <exclude>org.json4s:*</exclude>
                                 </excludes>
                             </artifactSet>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <filters>
                                 <filter>
                                     <artifact>*:*</artifact>
