@@ -195,7 +195,7 @@ object SortingSimpleFeatureIterator extends LazyLogging {
    * @param files files to merge
    * @param serializer serializer
    * @param mem left-over in-memory features, already sorted
-   * @param closeable link to the original feature iterator, for cleaning up on close
+   * @param closeable link to the original (now-empty) feature iterator, for cleaning up on close
    * @param ordering feature ordering
    */
   private class MergeSortingIterator(
