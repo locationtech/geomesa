@@ -25,6 +25,7 @@ import org.opengis.feature.simple.SimpleFeature
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
+import scala.util.control.NonFatal
 
 /**
   * In memory sorting of simple features, with optional spill to disk
@@ -85,9 +86,13 @@ object SortingSimpleFeatureIterator extends LazyLogging {
     // use ArrayList for sort-in-place of the underlying array
     val list = new java.util.ArrayList[SimpleFeature](100)
     list.add(head)
-    // note: we already ensured tail.hasNext == true before calling this method
-    do { list.add(tail.next()) } while (tail.hasNext && !closed.get)
+
+    while (tail.hasNext && !closed.get) {
+      list.add(tail.next())
+    }
+
     if (closed.get) {
+      // don't bother sorting, just return an empty iterator
       CloseableIterator(Iterator.empty, tail.close())
     } else {
       list.sort(ordering)
@@ -136,8 +141,7 @@ object SortingSimpleFeatureIterator extends LazyLogging {
     list.add(head)
     var size = sizable.sizeOf(head)
 
-    // note: we already ensured tail.hasNext == true before calling this method
-    do {
+    while (tail.hasNext && !closed.get) {
       if (size >= threshold) {
         // write out the sorted list to disk
         list.sort(ordering)
@@ -158,15 +162,20 @@ object SortingSimpleFeatureIterator extends LazyLogging {
       val next = tail.next()
       list.add(next)
       size += sizable.sizeOf(next)
-    } while (tail.hasNext && !closed.get)
+    }
 
     if (closed.get) {
       files.foreach { file =>
-        if (!file.delete()) {
-          logger.warn(s"Unable to delete tmp file '${file.getAbsolutePath}''")
-          file.deleteOnExit()
+        try {
+          if (!file.delete()) {
+            logger.warn(s"Unable to delete tmp file '${file.getAbsolutePath}''")
+            file.deleteOnExit()
+          }
+        } catch {
+          case NonFatal(e) => logger.warn(s"Unable to delete tmp file '${file.getAbsolutePath}''", e)
         }
       }
+      // don't bother sorting, just return an empty iterator
       CloseableIterator(Iterator.empty, tail.close())
     } else {
       if (!list.isEmpty) {
