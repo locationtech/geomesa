@@ -41,7 +41,8 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
 
       "when hasNext is called first" >> {
         val features = mock[CloseableIterator[SimpleFeature]]
-        features.hasNext returns true thenReturns true thenReturns false
+        // note: hasNext gets called twice consecutively
+        features.hasNext returns true thenReturns true thenReturns true thenReturns false
         features.next returns b thenReturns a thenThrows new NoSuchElementException
 
         val test = new SortingSimpleFeatureIterator(features, Seq(("", false)))
@@ -52,7 +53,7 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
 
         test.hasNext must beTrue
 
-        there were three(features).hasNext
+        there were exactly(4)(features).hasNext
         there were two(features).next
         there were no(features).close
 
@@ -62,7 +63,8 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
 
       "or when next is called first" >> {
         val features = mock[CloseableIterator[SimpleFeature]]
-        features.hasNext returns true thenReturns true thenReturns false
+        // note: hasNext gets called twice consecutively
+        features.hasNext returns true thenReturns true thenReturns true thenReturns false
         features.next returns b thenReturns a thenThrows new NoSuchElementException
 
         val test = new SortingSimpleFeatureIterator(features, Seq(("", false)))
@@ -73,7 +75,7 @@ class SortingSimpleFeatureIteratorTest extends Specification with Mockito {
 
         test.next mustEqual a
 
-        there were three(features).hasNext
+        there were exactly(4)(features).hasNext
         there were two(features).next
         there were no(features).close
 
