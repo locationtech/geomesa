@@ -248,7 +248,7 @@ process memory, since the supported back-end databases don't offer native orderi
 result sets exceed the client memory capacity, a memory threshold can be set. Once the size of a result set
 exceeds this threshold, additional results will be written to disk and sorted there. Note that the actual memory
 used may exceed the threshold, as the memory footprint calculation is an estimation. The threshold is specified
-as a number of bytes, e.g. ``10MB``. The default is to always sort in memory.
+as a number of bytes, e.g. ``10MB`` or ``1GB``. The default is to always sort in memory.
 
 Note that distributed Arrow queries will never use disk to sort, due to the nature of Arrow result batches. For
 supported back-ends, sorting on disk for Arrow queries can be achieved by disabling remote Arrow processing.
