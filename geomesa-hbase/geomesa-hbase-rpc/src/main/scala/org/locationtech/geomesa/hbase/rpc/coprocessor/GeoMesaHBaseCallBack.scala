@@ -8,16 +8,65 @@
 
 package org.locationtech.geomesa.hbase.rpc.coprocessor
 
-import java.util.concurrent.LinkedBlockingQueue
+import java.io.InterruptedIOException
+import java.util.Base64
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{CancellationException, LinkedBlockingQueue}
 
-import com.google.protobuf.ByteString
+import com.google.protobuf.{ByteString, RpcCallback}
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.hbase.client.coprocessor.Batch.Callback
-import org.locationtech.geomesa.hbase.proto.GeoMesaProto.GeoMesaCoprocessorResponse
+import org.apache.hadoop.hbase.client.Scan
+import org.apache.hadoop.hbase.client.coprocessor.Batch.{Call, Callback}
+import org.apache.hadoop.hbase.protobuf.ProtobufUtil
+import org.locationtech.geomesa.hbase.proto.GeoMesaProto.{GeoMesaCoprocessorRequest, GeoMesaCoprocessorResponse, GeoMesaCoprocessorService}
+import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor.{GeoMesaHBaseRequestVersion, ScanOpt}
 import org.locationtech.geomesa.utils.index.ByteArrays
 
-class GeoMesaHBaseCallBack(result: LinkedBlockingQueue[ByteString]) extends Callback[GeoMesaCoprocessorResponse] with LazyLogging {
-  var lastRow: Array[Byte] = _
+/**
+ * Callback class for invoking htable services
+ *
+ * @param scan initial scan (warning: may be mutated)
+ * @param options coprocessor configuration options
+ * @param result queue for storing results
+ * @param closed indicates if the call has been closed and we should stop querying
+ */
+class GeoMesaHBaseCallBack(
+    scan: Scan,
+    options: Map[String, String],
+    result: LinkedBlockingQueue[ByteString],
+    closed: AtomicBoolean
+  ) extends Callback[GeoMesaCoprocessorResponse] with Iterator[Scan] with LazyLogging {
+
+  private var updated: Array[Byte] = _ // tracks our status per invocation to detect multiple region updates
+
+  val callable: Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse] =
+    new Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse]() {
+      override def call(instance: GeoMesaCoprocessorService): GeoMesaCoprocessorResponse = {
+        if (closed.get) { null } else {
+          val controller = new GeoMesaHBaseRpcController()
+          val callback = new RpcCallbackImpl()
+          // note: synchronous call
+          try { instance.getResult(controller, buildRequest, callback) } catch {
+            case _: InterruptedException | _: InterruptedIOException | _: CancellationException =>
+              logger.warn("Cancelling remote coprocessor call")
+              controller.startCancel()
+          }
+
+          if (controller.failed()) {
+            logger.error(s"Controller failed with error:\n${controller.errorText()}")
+          }
+
+          callback.get()
+        }
+      }
+    }
+
+  override def hasNext: Boolean = !closed.get() && scan.getStartRow != null
+
+  override def next: Scan = {
+    updated = null // reset the status for the next region update
+    scan
+  }
 
   override def update(region: Array[Byte], row: Array[Byte], response: GeoMesaCoprocessorResponse): Unit = {
     logger.trace(s"In update for region ${ByteArrays.printable(region)} and row ${ByteArrays.printable(row)}")
@@ -27,20 +76,45 @@ class GeoMesaHBaseCallBack(result: LinkedBlockingQueue[ByteString]) extends Call
       logger.warn(s"Coprocessors responded with incompatible version: $i")
     }
 
-    val result = opt.map(_.getPayloadList).orNull
     val lastScanned = opt.collect { case r if r.hasLastScanned => r.getLastScanned }.orNull
-
     if (lastScanned != null && !lastScanned.isEmpty) {
-      if (lastRow != null) {
+      if (updated != null) {
         logger.error(
           s"Last row was not null for region ${ByteArrays.printable(region)} and row ${ByteArrays.printable(row)}\n" +
               "This indicates that one range spanned multiple regions - results might be incorrect.")
       }
-      lastRow = lastScanned.toByteArray
+      updated = lastScanned.toByteArray
+      scan.setStartRow(ByteArrays.rowFollowingRow(updated))
+    } else {
+      scan.setStartRow(null)
     }
 
+    val result = opt.map(_.getPayloadList).orNull
     if (result != null) {
       this.result.addAll(result)
+    }
+  }
+
+  // since we mutate the scan start row, we need to rebuild the request for each call
+  private def buildRequest: GeoMesaCoprocessorRequest = {
+    val opts = options ++ Map(ScanOpt -> Base64.getEncoder.encodeToString(ProtobufUtil.toScan(scan).toByteArray))
+    GeoMesaCoprocessorRequest.newBuilder()
+        .setVersion(GeoMesaHBaseRequestVersion)
+        .setOptions(ByteString.copyFrom(GeoMesaCoprocessor.serializeOptions(opts)))
+        .build()
+  }
+
+  /**
+   * Unsynchronized rpc callback
+   */
+  class RpcCallbackImpl extends RpcCallback[GeoMesaCoprocessorResponse] {
+
+    private var response: GeoMesaCoprocessorResponse = _
+
+    def get(): GeoMesaCoprocessorResponse = response
+
+    override def run(parameter: GeoMesaCoprocessorResponse): Unit = {
+      response = parameter
     }
   }
 }
