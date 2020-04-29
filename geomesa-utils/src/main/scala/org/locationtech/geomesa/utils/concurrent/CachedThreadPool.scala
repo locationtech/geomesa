@@ -28,7 +28,7 @@ import com.typesafe.scalalogging.LazyLogging
  *
  * @param maxThreads max threads to use at once
  */
-class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService {
+class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService with LazyLogging {
 
   @volatile
   private var available = maxThreads
@@ -92,7 +92,7 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService {
         try { CachedThreadPool.pool.execute(task) } catch {
           case e: RejectedExecutionException =>
             // we still need to execute the task to fulfill the executor API
-            CachedThreadPool.logger.warn(
+            logger.warn(
               "CachedThreadPool rejected queued task (likely due to shutdown)," +
                 s"creating new single thread executor: $task: $e")
             val pool = Executors.newSingleThreadExecutor()
@@ -132,7 +132,7 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService {
   }
 }
 
-object CachedThreadPool extends LazyLogging {
+object CachedThreadPool {
 
   // unlimited size but re-uses cached threads
   private val pool = ExitingExecutor(Executors.newCachedThreadPool().asInstanceOf[ThreadPoolExecutor])
