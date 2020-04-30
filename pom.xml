@@ -2335,6 +2335,11 @@
                 <directory>src/test/resources</directory>
                 <filtering>false</filtering>
             </testResource>
+            <testResource>
+                <!-- user.dir points to the directory mvn was executed in, i.e. the top-level folder -->
+                <directory>${user.dir}/build/test/resources</directory>
+                <filtering>false</filtering>
+            </testResource>
         </testResources>
 
         <pluginManagement>
