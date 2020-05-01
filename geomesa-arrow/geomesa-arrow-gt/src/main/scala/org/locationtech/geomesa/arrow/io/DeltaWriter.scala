@@ -320,9 +320,9 @@ object DeltaWriter extends StrictLogging {
       private var mappings: Map[String, java.util.Map[Integer, Integer]] = _
       private var count = 0 // records read in current batch
 
-      override def hasNext: Boolean = count < toLoad.reader.getValueCount || loadNextBatch()
+      override def hasNext: Boolean = synchronized { count < toLoad.reader.getValueCount || loadNextBatch() }
 
-      override def next(): Array[Byte] = {
+      override def next(): Array[Byte] = synchronized {
         var total = 0
         while (total < batchSize && hasNext) {
           // read the rest of the current vector, up to the batch size
@@ -349,7 +349,7 @@ object DeltaWriter extends StrictLogging {
         }
       }
 
-      override def close(): Unit = CloseWithLogging.raise(Seq(toLoad, result, mergedDictionaries))
+      override def close(): Unit = synchronized { CloseWithLogging.raise(Seq(toLoad, result, mergedDictionaries)) }
 
       /**
         * Read the next batch
@@ -628,7 +628,7 @@ object DeltaWriter extends StrictLogging {
           v.vector.makeTransferPair(dictionaries(j).vector)
         }
 
-        DictionaryMerger(vectors, transfers, off, null, -1) // we don't care about the batch number here
+        new DictionaryMerger(vectors, transfers, off, null, -1) // we don't care about the batch number here
       }
 
       val transfers = Array.ofDim[TransferPair](dictionaries.length)
@@ -658,7 +658,7 @@ object DeltaWriter extends StrictLogging {
         i += 1
       }
 
-      DictionaryMerger(dictionaries, transfers, Array.empty, mappings, batch)
+      new DictionaryMerger(dictionaries, transfers, Array.empty, mappings, batch)
     }
 
     // now merge the separate threads together
@@ -684,7 +684,7 @@ object DeltaWriter extends StrictLogging {
         }
         // update the dictionary mapping from the per-thread to the global dictionary
         logger.trace(s"remap ${merger.value} ${merger.batch} ${merger.mappings(i)} ${merger.index} -> ${count - 1}")
-        val remap = merger.mappings(i).inverse().get(merger.index)
+        val remap = merger.remap
         if (remap != null) {
           mappings(i)(merger.batch).put(remap, count - 1)
         }
@@ -848,12 +848,12 @@ object DeltaWriter extends StrictLogging {
    * @param mappings mappings from the local threaded batch dictionary to the global dictionary
    * @param batch the batch number
    */
-  case class DictionaryMerger(
+  class DictionaryMerger(
       readers: Array[ArrowAttributeReader],
       transfers: Array[TransferPair],
       offsets: Array[Int],
-      mappings: Array[HashBiMap[Integer, Integer]],
-      batch: Int
+      val mappings: Array[HashBiMap[Integer, Integer]],
+      val batch: Int
     ) extends Ordered[DictionaryMerger] {
 
     private var current: Int = 0
@@ -899,6 +899,13 @@ object DeltaWriter extends StrictLogging {
      * @param to destination index to transfer to
      */
     def transfer(to: Int): Unit = transfers(current).copyValueSafe(_index, to)
+
+    /**
+     * Get the reverse global mapping for the current dictionary and value
+     *
+     * @return
+     */
+    def remap: Integer = mappings(current).inverse().get(_index)
 
     /**
      * Read the next value from the current dictionary. Closes the current dictionary if there are no more values.
