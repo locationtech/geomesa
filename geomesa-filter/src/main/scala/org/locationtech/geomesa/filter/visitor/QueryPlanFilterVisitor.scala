@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.filter.visitor
 
+import java.util.regex.{Pattern, PatternSyntaxException}
 import java.util.{Collections, Date}
 
 import org.geotools.filter.visitor.{DuplicatingFilterVisitor, ExpressionTypeVisitor, IsStaticExpressionVisitor}
@@ -314,6 +315,17 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
     } else {
       super.visit(expression, extraData)
     }
+  }
+
+  override def visit(filter: PropertyIsLike, extraData: Any): AnyRef = {
+    val pattern = filter.getLiteral
+    try {
+      Pattern.compile(pattern)
+    } catch {
+      case e: PatternSyntaxException =>
+        throw new IllegalArgumentException("The regex for the (i)like filter is invalid.", e)
+    }
+    super.visit(filter, extraData)
   }
 
   private def binding(expressions: Seq[Expression]): Class[_] = {
