@@ -80,5 +80,11 @@ class FastFilterFactoryTest extends Specification {
         or.evaluate(ScalaSimpleFeature.create(sft, "1", name, "POINT (45 55)")) must beFalse
       }
     }
+    "kick out bad filters from optimize" >> {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,*geom:Point:srid=4326")
+      FastFilterFactory.toFilter(sft, "name ilike '%abc\\'") must throwA[IllegalArgumentException]
+      FastFilterFactory.toFilter(sft, "name like '%abc\\'") must throwA[IllegalArgumentException]
+      ok
+    }
   }
 }
