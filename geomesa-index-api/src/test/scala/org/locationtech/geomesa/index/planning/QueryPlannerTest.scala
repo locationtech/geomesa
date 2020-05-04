@@ -57,6 +57,13 @@ class QueryPlannerTest extends Specification {
       }
     }
 
+    "fail to return a query plan for a bad ilike filter" in {
+      val filter = ECQL.toFilter("name ilike '%abc\\'")
+      val query = new Query(sft.getTypeName, filter)
+
+      ds.getQueryPlan(query) must throwA[IllegalArgumentException]
+    }
+
     "be able to sort by id asc" >> {
       val query = new Query(sft.getTypeName)
       query.setSortBy(Array(SortBy.NATURAL_ORDER))
