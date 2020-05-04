@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.filter.visitor
 
+import java.util.regex.Pattern
 import java.util.{Collections, Date}
 
 import org.geotools.filter.LikeToRegexConverter
@@ -320,10 +321,11 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
 
   override def visit(filter: PropertyIsLike, extraData: Any): AnyRef = {
     try {
-      new LikeToRegexConverter(filter).getPattern
+      val pattern = new LikeToRegexConverter(filter).getPattern
+      Pattern.compile(pattern)
     } catch {
       case e: Exception =>
-        throw new IllegalArgumentException(s"The regex filter (${ECQL.toCQL(filter)}) for the (i)like filter is invalid.", e)
+        throw new IllegalArgumentException(s"The regex filter (${filter.getLiteral}) for the (i)like filter is invalid.", e)
     }
     super.visit(filter, extraData)
   }
