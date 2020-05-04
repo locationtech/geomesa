@@ -15,30 +15,29 @@ import com.google.protobuf.{RpcCallback, RpcController}
   */
 class GeoMesaHBaseRpcController extends RpcController {
 
-  private [coprocessor] var errorText: String = _
+  private var _errorText: String = _
+  private var _cancelled: Boolean = false
+  private var _failed: Boolean = false
 
-  private var cancelled: Boolean = false
-
-  private [coprocessor] var failed: Boolean = false
-
-  override def isCanceled: Boolean = this.cancelled
+  override def isCanceled: Boolean = _cancelled
+  override def failed(): Boolean = _failed
+  override def errorText(): String = _errorText
 
   override def reset(): Unit = {
-    this.errorText = null
-    this.cancelled = false
-    this.failed = false
+    _errorText = null
+    _cancelled = false
+    _failed = false
   }
 
   override def setFailed(errorText: String): Unit = {
-    this.failed = true
-    this.errorText = errorText
+    _failed = true
+    _errorText = errorText
   }
 
   override def startCancel(): Unit = {
-    this.cancelled = true
+    _cancelled = true
   }
 
-  override def notifyOnCancel(rpcCallback: RpcCallback[AnyRef]): Unit = {
+  override def notifyOnCancel(rpcCallback: RpcCallback[AnyRef]): Unit =
     throw new UnsupportedOperationException()
-  }
 }

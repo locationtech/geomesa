@@ -15,6 +15,7 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -163,6 +164,21 @@ class HBaseStatsAggregatorTest extends Specification with LazyLogging {
         val ch = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[CountStat]
 
         ch.count mustEqual 5
+      }
+    }
+
+    "work with multiple batches" in {
+      StatsScan.BatchSize.threadLocalValue.set("20")
+      try {
+        foreach(dataStores) { ds =>
+          val q = getQuery("Count()", None)
+          val results = SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList
+          val sf = results.head
+          val ch = decodeStat(sft)(sf.getAttribute(0).asInstanceOf[String]).asInstanceOf[CountStat]
+          ch.count mustEqual 150
+        }
+      } finally {
+        StatsScan.BatchSize.threadLocalValue.remove()
       }
     }
 

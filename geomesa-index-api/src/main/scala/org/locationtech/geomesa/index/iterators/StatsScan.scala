@@ -43,7 +43,7 @@ trait StatsScan extends AggregatingScan[StatResult] with LazyLogging {
 
 object StatsScan {
 
-  val BatchSize: SystemProperty = SystemProperty("geomesa.stats.batch.size", "100000")
+  val BatchSize: SystemProperty = SystemProperty("geomesa.stats.batch.size", "10000")
 
   val StatsSft: SimpleFeatureType = SimpleFeatureTypes.createType("stats:stats", "stats:String,geom:Geometry")
 

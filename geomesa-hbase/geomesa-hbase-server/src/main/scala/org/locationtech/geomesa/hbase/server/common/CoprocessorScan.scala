@@ -145,12 +145,13 @@ trait CoprocessorScan extends StrictLogging {
         logger.warn(s"Stopping aggregator $aggregator due to timeout of ${timeout.get}ms")
         false
       } else if (yieldPartialResults) {
+        val lastScanned = aggregator.getLastScanned
         logger.trace(
-          s"Stopping aggregator $aggregator at row ${ByteArrays.printable(aggregator.getLastScanned)} and " +
+          s"Stopping aggregator $aggregator at row ${ByteArrays.printable(lastScanned)} and " +
               "returning intermediate results")
-        // This check makes covers the HBase Version Aggregator case
-        if (aggregator.getLastScanned != null && !aggregator.getLastScanned.isEmpty) {
-          results.setLastScanned(ByteString.copyFrom(aggregator.getLastScanned))
+        // This check covers the HBase Version Aggregator case
+        if (lastScanned != null && !lastScanned.isEmpty) {
+          results.setLastScanned(ByteString.copyFrom(lastScanned))
         }
         false
       } else {
