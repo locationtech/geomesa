@@ -32,12 +32,18 @@ trait StatsCountCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreC
 
     if (params.exact) {
       Command.user.info("Running stat query...")
+      val count = ds.stats.getCount(sft, filter, params.exact).map(_.toString).getOrElse("Unknown")
+      Command.output.info(s"Count: $count")
+    } else {
+      ds.stats.getCount(sft, filter, params.exact).map(_.toString) match {
+        case None =>
+          Command.output.info("Estimated count: Unknown")
+          Command.output.info("Re-run with --no-cache to get an exact count")
+
+        case Some(count) =>
+          Command.output.info(s"Estimated count: $count")
+      }
     }
-
-    val count = ds.stats.getCount(sft, filter, params.exact).map(_.toString).getOrElse("Unknown")
-
-    val label = if (params.exact) "Count" else "Estimated count"
-    Command.output.info(s"$label: $count")
   }
 }
 

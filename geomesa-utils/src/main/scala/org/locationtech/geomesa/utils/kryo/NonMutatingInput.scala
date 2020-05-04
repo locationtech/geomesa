@@ -38,6 +38,11 @@ import com.esotericsoftware.kryo.io.Input
  */
 class NonMutatingInput extends Input {
 
+  def this(buffer: Array[Byte]) = {
+    this()
+    setBuffer(buffer)
+  }
+
   override def readString(): String = {
     if (position == limit) {
       require(1)

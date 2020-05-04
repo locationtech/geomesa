@@ -13,7 +13,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.SystemPropertyStringParam
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{SystemPropertyBooleanParam, SystemPropertyStringParam}
 
 // keep params in a separate object so we don't require accumulo classes on the build path to access it
 object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
@@ -84,4 +84,36 @@ object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParam
       default = 10,
       deprecatedKeys = Seq("writeThreads", "accumulo.writeThreads"),
       supportsNiFiExpressions = true)
+
+  val RemoteArrowParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "accumulo.remote.arrow.enable",
+      "Process Arrow encoding in Accumulo tablets servers as a distributed call",
+      default = java.lang.Boolean.TRUE,
+      systemProperty = Some(SystemPropertyBooleanParam(AccumuloDataStoreFactory.RemoteArrowProperty))
+    )
+
+  val RemoteBinParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "accumulo.remote.bin.enable",
+      "Process binary encoding in Accumulo tablets servers as a distributed call",
+      default = java.lang.Boolean.TRUE,
+      systemProperty = Some(SystemPropertyBooleanParam(AccumuloDataStoreFactory.RemoteBinProperty))
+    )
+
+  val RemoteDensityParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "accumulo.remote.density.enable",
+      "Process heatmap encoding in Accumulo tablets servers as a distributed call",
+      default = java.lang.Boolean.TRUE,
+      systemProperty = Some(SystemPropertyBooleanParam(AccumuloDataStoreFactory.RemoteDensityProperty))
+    )
+
+  val RemoteStatsParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "accumulo.remote.stats.enable",
+      "Process statistical calculations in Accumulo tablets servers as a distributed call",
+      default = java.lang.Boolean.TRUE,
+      systemProperty = Some(SystemPropertyBooleanParam(AccumuloDataStoreFactory.RemoteStatsProperty))
+    )
 }

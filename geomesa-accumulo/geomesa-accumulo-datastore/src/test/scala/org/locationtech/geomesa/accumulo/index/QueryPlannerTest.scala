@@ -20,8 +20,8 @@ import org.locationtech.geomesa.accumulo.data.AccumuloIndexAdapter.AccumuloResul
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationType, SimpleFeatureSerializers}
 import org.locationtech.geomesa.index.index.id.IdIndex
+import org.locationtech.geomesa.index.utils.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.index.IndexMode
-import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.opengis.filter.sort.SortBy
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner

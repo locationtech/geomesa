@@ -280,6 +280,11 @@ object ExportCommand extends LazyLogging {
       }
       val order = if (params.sortDescending) { SortOrder.DESCENDING } else { SortOrder.ASCENDING }
       query.setSortBy(fields.map(f => org.locationtech.geomesa.filter.ff.sort(f, order)).toArray)
+    } else if (hints.isArrowQuery) {
+      hints.getArrowSort.foreach { case (f, r) =>
+        val order = if (r) { SortOrder.DESCENDING } else { SortOrder.ASCENDING }
+        query.setSortBy(Array(org.locationtech.geomesa.filter.ff.sort(f, order)))
+      }
     }
 
     logger.debug(s"Applying CQL filter ${ECQL.toCQL(filter)}")

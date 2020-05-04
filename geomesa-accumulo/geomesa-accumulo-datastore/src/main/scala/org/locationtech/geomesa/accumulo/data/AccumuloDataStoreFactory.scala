@@ -25,6 +25,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory._
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditReader, AuditWriter}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
@@ -63,6 +64,11 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 
   import scala.collection.JavaConverters._
 
+  val RemoteArrowProperty   : SystemProperty = SystemProperty("geomesa.accumulo.remote.arrow.enable")
+  val RemoteBinProperty     : SystemProperty = SystemProperty("geomesa.accumulo.remote.bin.enable")
+  val RemoteDensityProperty : SystemProperty = SystemProperty("geomesa.accumulo.remote.density.enable")
+  val RemoteStatsProperty   : SystemProperty = SystemProperty("geomesa.accumulo.remote.stats.enable")
+
   override val DisplayName = "Accumulo (GeoMesa)"
   override val Description = "Apache Accumulo\u2122 distributed key/value store"
 
@@ -75,15 +81,19 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       UserParam,
       PasswordParam,
       KeytabPathParam,
-      AuthsParam,
-      QueryTimeoutParam,
       QueryThreadsParam,
       RecordThreadsParam,
       WriteThreadsParam,
-      LooseBBoxParam,
+      QueryTimeoutParam,
+      RemoteArrowParam,
+      RemoteBinParam,
+      RemoteDensityParam,
+      RemoteStatsParam,
       GenerateStatsParam,
       AuditQueriesParam,
+      LooseBBoxParam,
       CachingParam,
+      AuthsParam,
       ForceEmptyAuthsParam
     )
 
@@ -179,12 +189,20 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       caching = CachingParam.lookup(params)
     )
 
+    val remote = RemoteScansEnabled(
+      arrow = RemoteArrowParam.lookup(params),
+      bin = RemoteBinParam.lookup(params),
+      density = RemoteDensityParam.lookup(params),
+      stats = RemoteStatsParam.lookup(params)
+    )
+
     AccumuloDataStoreConfig(
       catalog = catalog,
       generateStats = GenerateStatsParam.lookup(params),
       authProvider = authProvider,
       audit = Some(auditService, auditProvider, AccumuloAuditService.StoreType),
       queries = queries,
+      remote = remote,
       writeThreads = WriteThreadsParam.lookup(params),
       namespace = NamespaceParam.lookupOpt(params)
     )
@@ -235,6 +253,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
    * @param authProvider provides the authorizations used to access data
    * @param audit optional implementations to audit queries
    * @param queries query config
+   * @param remote remote query configs
    * @param writeThreads number of threads used for writing
    */
   case class AccumuloDataStoreConfig(
@@ -243,6 +262,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       authProvider: AuthorizationsProvider,
       audit: Option[(AuditWriter with AuditReader, AuditProvider, String)],
       queries: AccumuloQueryConfig,
+      remote: RemoteScansEnabled,
       writeThreads: Int,
       namespace: Option[String]
     ) extends GeoMesaDataStoreConfig
@@ -255,4 +275,5 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       caching: Boolean
     ) extends DataStoreQueryConfig
 
+  case class RemoteScansEnabled(arrow: Boolean, bin: Boolean, density: Boolean, stats: Boolean)
 }

@@ -224,42 +224,46 @@ object DeltaWriter extends StrictLogging {
   }
 
   /**
-    * Reduce function for delta records created by DeltaWriter
-    *
-    * @param sft simple feature type
-    * @param dictionaryFields dictionary fields
-    * @param encoding simple feature encoding
-    * @param sort sort
-    * @param batchSize batch size
-    * @param deltas output from `DeltaWriter.encode`
-    * @return single arrow streaming file, with potentially multiple record batches
-    */
+   * Reduce function for delta records created by DeltaWriter
+   *
+   * @param sft simple feature type
+   * @param dictionaryFields dictionary fields
+   * @param encoding simple feature encoding
+   * @param sort sort metadata, if defined each delta is assumed to be sorted
+   * @param sorted whether features are already globally sorted or not
+   * @param batchSize batch size
+   * @param deltas output from `DeltaWriter.encode`
+   * @return single arrow streaming file, with potentially multiple record batches
+   */
   def reduce(
       sft: SimpleFeatureType,
       dictionaryFields: Seq[String],
       encoding: SimpleFeatureEncoding,
       sort: Option[(String, Boolean)],
+      sorted: Boolean,
       batchSize: Int,
       deltas: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
-    new ReducingIterator(sft, dictionaryFields, encoding, sort, batchSize, deltas)
+    new ReducingIterator(sft, dictionaryFields, encoding, sort, sorted, batchSize, deltas)
   }
 
   /**
-    * Merge without sorting
-    *
-    * @param sft simple feature type
-    * @param dictionaryFields dictionary fields
-    * @param encoding simple feature encoding
-    * @param mergedDictionaries merged dictionaries and batch mappings
-    * @param batchSize record batch size
-    * @param threadedBatches record batches, grouped by threading key
-    * @return
-    */
+   * Merge without sorting
+   *
+   * @param sft simple feature type
+   * @param dictionaryFields dictionary fields
+   * @param encoding simple feature encoding
+   * @param mergedDictionaries merged dictionaries and batch mappings
+   * @param sort sort metadata for file headers
+   * @param batchSize record batch size
+   * @param threadedBatches record batches, grouped by threading key
+   * @return
+   */
   private def reduceNoSort(
       sft: SimpleFeatureType,
       dictionaryFields: Seq[String],
       encoding: SimpleFeatureEncoding,
       mergedDictionaries: MergedDictionaries,
+      sort: Option[(String, Boolean)],
       batchSize: Int,
       threadedBatches: Array[Array[Array[Byte]]]): CloseableIterator[Array[Byte]] = {
 
@@ -333,7 +337,7 @@ object DeltaWriter extends StrictLogging {
         if (writeHeader) {
           // write the header in the first result, which includes the metadata and dictionaries
           writeHeader = false
-          writeHeaderAndFirstBatch(result, mergedDictionaries.dictionaries, None, total)
+          writeHeaderAndFirstBatch(result, mergedDictionaries.dictionaries, sort, total)
         } else {
           unloader.unload(total)
         }
@@ -786,6 +790,7 @@ object DeltaWriter extends StrictLogging {
       dictionaryFields: Seq[String],
       encoding: SimpleFeatureEncoding,
       sort: Option[(String, Boolean)],
+      sorted: Boolean,
       batchSize: Int,
       deltas: CloseableIterator[Array[Byte]]
     ) extends CloseableIterator[Array[Byte]] {
@@ -803,9 +808,11 @@ object DeltaWriter extends StrictLogging {
       grouped.foreach { case (_, builder) => threaded(i) = builder.result; i += 1 }
       logger.trace(s"merging delta batches from ${threaded.length} thread(s)")
       val dictionaries = mergeDictionaries(sft, dictionaryFields, threaded, encoding)
-      sort match {
-        case None => reduceNoSort(sft, dictionaryFields, encoding, dictionaries, batchSize, threaded)
-        case Some((s, r)) => reduceWithSort(sft, dictionaryFields, encoding, dictionaries, s, r, batchSize, threaded)
+      if (sorted || sort.isEmpty) {
+        reduceNoSort(sft, dictionaryFields, encoding, dictionaries, sort, batchSize, threaded)
+      } else {
+        val Some((s, r)) = sort
+        reduceWithSort(sft, dictionaryFields, encoding, dictionaries, s, r, batchSize, threaded)
       }
     }
 

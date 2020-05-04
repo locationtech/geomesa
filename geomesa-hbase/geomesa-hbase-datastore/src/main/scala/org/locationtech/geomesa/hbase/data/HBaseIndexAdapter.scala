@@ -38,6 +38,7 @@ import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, IndexResultsToFeatures}
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{WritableFeature, _}
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.filters.{S2Filter, S3Filter, Z2Filter, Z3Filter}
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.s2.{S2Index, S2IndexValues}
@@ -273,6 +274,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
             val results = new HBaseDensityResultsToFeatures()
             CoprocessorPlan(filter, ranges, coprocessorScans, options, results, None, max, projection)
           } else {
+            if (hints.isSkipReduce) {
+              // override the return sft to reflect what we're actually returning,
+              // since the density sft is only created in the local reduce step
+              hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+            }
             ScanPlan(filter, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
           }
         }
@@ -285,6 +291,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
             val results = new HBaseArrowResultsToFeatures()
             CoprocessorPlan(filter, ranges, coprocessorScans, options, results, reducer, max, projection)
           } else {
+            if (hints.isSkipReduce) {
+              // override the return sft to reflect what we're actually returning,
+              // since the arrow sft is only created in the local reduce step
+              hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+            }
             ScanPlan(filter, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
           }
         }
@@ -296,6 +307,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
             val results = new HBaseStatsResultsToFeatures()
             CoprocessorPlan(filter, ranges, coprocessorScans, options, results, reducer, max, projection)
           } else {
+            if (hints.isSkipReduce) {
+              // override the return sft to reflect what we're actually returning,
+              // since the stats sft is only created in the local reduce step
+              hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+            }
             ScanPlan(filter, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
           }
         }
@@ -306,6 +322,11 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
             val results = new HBaseBinResultsToFeatures()
             CoprocessorPlan(filter, ranges, coprocessorScans, options , results, None, max, projection)
           } else {
+            if (hints.isSkipReduce) {
+              // override the return sft to reflect what we're actually returning,
+              // since the bin sft is only created in the local reduce step
+              hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+            }
             ScanPlan(filter, ranges, scans, resultsToFeatures, localReducer, None, max, projection)
           }
         }

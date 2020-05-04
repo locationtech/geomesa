@@ -52,7 +52,7 @@ class BatchWriterTest extends Specification {
         }
       }
 
-      val bytes = WithClose(BatchWriter.reduce(sft, dictionaries, encoding, Some("dtg" -> false), 10, batches.iterator))(_.reduceLeft(_ ++ _))
+      val bytes = WithClose(BatchWriter.reduce(sft, dictionaries, encoding, Some("dtg" -> false), sorted = false, 10, batches.iterator))(_.reduceLeft(_ ++ _))
 
       val features = WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         WithClose(reader.features())(_.map(ScalaSimpleFeature.copy).toList)

@@ -56,7 +56,7 @@ class DeltaWriterTest extends Specification {
         result.append(writer.encode(features.drop(10).toArray, 5))
       }
 
-      val bytes = WithClose(DeltaWriter.reduce(sft, dictionaries, encoding, None, 5, result.iterator)) { iter =>
+      val bytes = WithClose(DeltaWriter.reduce(sft, dictionaries, encoding, None, sorted = false, 5, result.iterator)) { iter =>
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 
@@ -86,7 +86,7 @@ class DeltaWriterTest extends Specification {
         result.append(writer.encode(features.drop(10).toArray, 5))
       }
 
-      val bytes = WithClose(DeltaWriter.reduce(sft, dictionaries, encoding, sort, 5, result.iterator)) { iter =>
+      val bytes = WithClose(DeltaWriter.reduce(sft, dictionaries, encoding, sort, sorted = false, 5, result.iterator)) { iter =>
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 
@@ -110,7 +110,7 @@ class DeltaWriterTest extends Specification {
         result.append(writer.encode(lineFeatures.drop(8).toArray, 2))
       }
 
-      val bytes = WithClose(DeltaWriter.reduce(lineSft, Seq.empty, encoding, None, 10, result.iterator)) { iter =>
+      val bytes = WithClose(DeltaWriter.reduce(lineSft, Seq.empty, encoding, None, sorted = false, 10, result.iterator)) { iter =>
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 
@@ -130,7 +130,7 @@ class DeltaWriterTest extends Specification {
         result.append(writer.encode(lineFeatures.drop(8).toArray, 2))
       }
 
-      val bytes = WithClose(DeltaWriter.reduce(lineSft, Seq.empty, encoding, sort, 10, result.iterator)) { iter =>
+      val bytes = WithClose(DeltaWriter.reduce(lineSft, Seq.empty, encoding, sort, sorted = false, 10, result.iterator)) { iter =>
         iter.foldLeft(Array.empty[Byte])(_ ++ _)
       }
 

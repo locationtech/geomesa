@@ -59,6 +59,14 @@ Parameter                              Type    Description
 ``accumulo.query.record-threads``      Integer The number of threads to use for record retrieval
 ``accumulo.write.threads``             Integer The number of threads to use for writing records
 ``geomesa.stats.generate``             Boolean Toggle collection of statistics for newly created feature types
+``accumulo.remote.arrow.enable``       Boolean Process Arrow encoding in Accumulo tablets servers as a
+                                               distributed call
+``accumulo.remote.bin.enable``         Boolean Process binary encoding in Accumulo tablets servers as a
+                                               distributed call
+``accumulo.remote.density.enable``     Boolean Process heatmap encoding in Accumulo tablets servers as a
+                                               distributed call
+``accumulo.remote.stats.enable``       Boolean Process statistical calculations in Accumulo tablets servers as a
+                                               distributed call
 ``geomesa.query.caching``              Boolean Toggle caching of results
 ====================================== ======= ==========================================================================
 

@@ -100,7 +100,7 @@ case class ArrowAdapter(sft: SimpleFeatureType,
         case None => new BatchAggregate(arrowSft, dicts, encoding)
         case Some((sort, reverse)) => new SortingBatchAggregate(arrowSft, dicts, encoding, sort, reverse, config.batchSize)
       }
-      val reduce = new ArrowScan.BatchReducer(arrowSft, dicts, encoding, config.batchSize, config.sort)
+      val reduce = new ArrowScan.BatchReducer(arrowSft, dicts, encoding, config.batchSize, config.sort, sorted = false)
       (aggregate, reduce)
     } else if (config.multiFile) {
       val aggregate = config.sort match {
@@ -111,7 +111,7 @@ case class ArrowAdapter(sft: SimpleFeatureType,
       (aggregate, reduce)
     } else {
       val aggregate = new DeltaAggregate(arrowSft, dictionaries, encoding, config.sort, config.batchSize)
-      val reduce = new ArrowScan.DeltaReducer(arrowSft, dictionaries, encoding, config.batchSize, config.sort)
+      val reduce = new ArrowScan.DeltaReducer(arrowSft, dictionaries, encoding, config.batchSize, config.sort, sorted = false)
       (aggregate, reduce)
     }
 

@@ -13,19 +13,15 @@ import java.io._
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.ArrowProperties
-import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
-import org.locationtech.geomesa.arrow.io.{BatchWriter, DictionaryBuildingWriter, SimpleFeatureArrowFileWriter}
+import org.locationtech.geomesa.arrow.io.{DictionaryBuildingWriter, SimpleFeatureArrowFileWriter}
+import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
-import org.locationtech.geomesa.tools.export.formats.ArrowExporter.{BatchDelegate, DictionaryDelegate, EncodedDelegate, SortedBatchDelegate}
+import org.locationtech.geomesa.tools.export.formats.ArrowExporter.{BatchDelegate, DictionaryDelegate, EncodedDelegate}
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.mutable.ArrayBuffer
-import scala.math.Ordering
 import scala.reflect.ClassTag
 
 class ArrowExporter(
@@ -55,10 +51,8 @@ class ArrowExporter(
           id += 1
           k -> ArrowDictionary.create(id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
         }
-        sort match {
-          case None    => new BatchDelegate(os, encoding, batchSize, dictionaries)
-          case Some(s) => new SortedBatchDelegate(os, encoding, s, batchSize, dictionaries)
-        }
+        // note: features should be sorted already, even if arrow encoding wasn't performed
+        new BatchDelegate(os, encoding, sort, batchSize, dictionaries)
       } else {
         if (sort.isDefined) {
           throw new NotImplementedError("Sorting and calculating dictionaries at the same time is not supported")
@@ -156,6 +150,7 @@ object ArrowExporter {
   private class BatchDelegate(
       os: OutputStream,
       encoding: SimpleFeatureEncoding,
+      sort: Option[(String, Boolean)],
       batchSize: Int,
       dictionaries: Map[String, ArrowDictionary]
     ) extends FeatureExporter {
@@ -164,7 +159,7 @@ object ArrowExporter {
     private var count = 0L
 
     override def start(sft: SimpleFeatureType): Unit = {
-      writer = SimpleFeatureArrowFileWriter(os, sft, dictionaries, encoding, None)
+      writer = SimpleFeatureArrowFileWriter(os, sft, dictionaries, encoding, sort)
     }
 
     override def export(features: Iterator[SimpleFeature]): Option[Long] = {
@@ -185,80 +180,6 @@ object ArrowExporter {
       if (writer != null) {
         CloseWithLogging(writer)
       }
-    }
-  }
-
-  private class SortedBatchDelegate(
-      os: OutputStream,
-      encoding: SimpleFeatureEncoding,
-      sort: (String, Boolean),
-      batchSize: Int,
-      dictionaries: Map[String, ArrowDictionary]
-    ) extends FeatureExporter {
-
-    private val batch = Array.ofDim[SimpleFeature](batchSize)
-    private val batches = ArrayBuffer.empty[Array[Byte]]
-    private val (sortField, reverse) = sort
-
-    private var vector: SimpleFeatureVector = _
-    private var batchWriter: RecordBatchUnloader = _
-    private var ordering: Ordering[SimpleFeature] = _
-
-    private var index = 0 // current index into the batch
-
-    override def start(sft: SimpleFeatureType): Unit = {
-      vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
-      batchWriter = new RecordBatchUnloader(vector)
-      ordering = SimpleFeatureOrdering(sft.indexOf(sortField))
-      if (reverse) {
-        ordering = ordering.reverse
-      }
-    }
-
-    override def export(features: Iterator[SimpleFeature]): Option[Long] = {
-      var count = 0L - index
-      features.foreach { feature =>
-        batch(index) = feature
-        index += 1
-        if (index % batchSize == 0) {
-          sortAndUnloadBatch()
-          count += index
-          index = 0
-        }
-      }
-      Some(count + index)
-    }
-
-    override def bytes: Long = 0L
-
-    override def close(): Unit = {
-      try {
-        if (index > 0) {
-          sortAndUnloadBatch()
-          index = 0
-        }
-        if (vector != null) {
-          val sft = vector.sft
-          val bytes = batches.iterator
-          val sort = Some(sortField -> reverse)
-          WithClose(BatchWriter.reduce(sft, dictionaries, encoding, sort, batchSize, bytes))(_.foreach(os.write))
-        }
-      } finally {
-        if (vector != null) {
-          CloseWithLogging(vector)
-        }
-      }
-    }
-
-    private def sortAndUnloadBatch(): Unit = {
-      java.util.Arrays.sort(batch, 0, index, ordering)
-      vector.clear()
-      var i = 0
-      while (i < index) {
-        vector.writer.set(i, batch(i))
-        i += 1
-      }
-      batches.append(batchWriter.unload(index))
     }
   }
 }

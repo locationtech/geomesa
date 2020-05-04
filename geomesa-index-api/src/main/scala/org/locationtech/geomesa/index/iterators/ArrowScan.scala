@@ -158,7 +158,7 @@ object ArrowScan {
         TypeKey       -> Configuration.Types.BatchType,
         DictionaryKey -> encodeDictionaries(dictionaries)
       )
-      ArrowScanConfig(config, new BatchReducer(arrowSft, dictionaries, encoding, batchSize, sort))
+      ArrowScanConfig(config, new BatchReducer(arrowSft, dictionaries, encoding, batchSize, sort, sorted = false))
     } else if (hints.isArrowMultiFile) {
       val config = baseConfig ++ Map(
         TypeKey       -> Configuration.Types.FileType,
@@ -170,7 +170,7 @@ object ArrowScan {
         TypeKey       -> Configuration.Types.DeltaType,
         DictionaryKey -> dictionaryFields.mkString(",")
       )
-      ArrowScanConfig(config, new DeltaReducer(arrowSft, dictionaryFields, encoding, batchSize, sort))
+      ArrowScanConfig(config, new DeltaReducer(arrowSft, dictionaryFields, encoding, batchSize, sort, sorted = false))
     }
   }
 
@@ -564,10 +564,11 @@ object ArrowScan {
       private var dictionaries: Map[String, ArrowDictionary],
       private var encoding: SimpleFeatureEncoding,
       private var batchSize: Int,
-      private var sort: Option[(String, Boolean)]
+      private var sort: Option[(String, Boolean)],
+      private var sorted: Boolean
   ) extends FeatureReducer {
 
-    def this() = this(null, null, null, -1, null) // no-arg constructor required for serialization
+    def this() = this(null, null, null, -1, null, false) // no-arg constructor required for serialization
 
     override def init(state: Map[String, String]): Unit = {
       sft = ReducerConfig.sft(state)
@@ -575,6 +576,7 @@ object ArrowScan {
       encoding = ReducerConfig.encoding(state)
       batchSize = ReducerConfig.batch(state)
       sort = ReducerConfig.sort(state)
+      sorted = ReducerConfig.sorted(state)
     }
 
     override def state: Map[String, String] = Map(
@@ -583,12 +585,13 @@ object ArrowScan {
       ReducerConfig.sftSpec(sft),
       ReducerConfig.encoding(encoding),
       ReducerConfig.batch(batchSize),
-      ReducerConfig.sort(sort)
+      ReducerConfig.sort(sort),
+      ReducerConfig.sorted(sorted)
     )
 
     override def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val batches = features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
-      val result = BatchWriter.reduce(sft, dictionaries, encoding, sort, batchSize, batches)
+      val result = BatchWriter.reduce(sft, dictionaries, encoding, sort, sorted, batchSize, batches)
       val sf = resultFeature()
       result.map { bytes => sf.setAttribute(0, bytes); sf }
     }
@@ -598,12 +601,12 @@ object ArrowScan {
     override def equals(other: Any): Boolean = other match {
       case that: BatchReducer if that.canEqual(this) =>
         sft == that.sft && dictionaries == that.dictionaries && encoding == that.encoding &&
-            batchSize == that.batchSize && sort == that.sort
+            batchSize == that.batchSize && sort == that.sort && sorted == that.sorted
       case _ => false
     }
 
     override def hashCode(): Int = {
-      val state = Seq(sft, dictionaries, encoding, batchSize, sort)
+      val state = Seq(sft, dictionaries, encoding, batchSize, sort, sorted)
       state.map(Objects.hashCode).foldLeft(0)((a, b) => 31 * a + b)
     }
   }
@@ -670,10 +673,11 @@ object ArrowScan {
       private var dictionaryFields: Seq[String],
       private var encoding: SimpleFeatureEncoding,
       private var batchSize: Int,
-      private var sort: Option[(String, Boolean)]
+      private var sort: Option[(String, Boolean)],
+      private var sorted: Boolean
     ) extends FeatureReducer {
 
-    def this() = this(null, null, null, -1, null) // no-arg constructor required for serialization
+    def this() = this(null, null, null, -1, null, false) // no-arg constructor required for serialization
 
     override def init(state: Map[String, String]): Unit = {
       sft = ReducerConfig.sft(state)
@@ -681,6 +685,7 @@ object ArrowScan {
       encoding = ReducerConfig.encoding(state)
       batchSize = ReducerConfig.batch(state)
       sort = ReducerConfig.sort(state)
+      sorted = ReducerConfig.sorted(state)
     }
 
     override def state: Map[String, String] = Map(
@@ -689,12 +694,13 @@ object ArrowScan {
       ReducerConfig.sftSpec(sft),
       ReducerConfig.batch(batchSize),
       ReducerConfig.sort(sort),
+      ReducerConfig.sorted(sorted),
       ReducerConfig.encoding(encoding)
     )
 
     override def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val files = features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
-      val result = DeltaWriter.reduce(sft, dictionaryFields, encoding, sort, batchSize, files)
+      val result = DeltaWriter.reduce(sft, dictionaryFields, encoding, sort, sorted, batchSize, files)
       val sf = resultFeature()
       result.map { bytes => sf.setAttribute(0, bytes); sf }
     }
@@ -704,7 +710,7 @@ object ArrowScan {
     override def equals(other: Any): Boolean = other match {
       case that: DeltaReducer if that.canEqual(this) =>
         sft == that.sft && dictionaryFields == that.dictionaryFields && encoding == that.encoding &&
-            batchSize == that.batchSize && sort == that.sort
+            batchSize == that.batchSize && sort == that.sort && sorted == that.sorted
       case _ => false
     }
 
@@ -722,6 +728,7 @@ object ArrowScan {
     val EncodingKey     = "enc"
     val BatchKey        = "batch"
     val SortKey         = "sort"
+    val SortedKey       = "sorted"
 
     def sftName(sft: SimpleFeatureType): (String, String) = SftKey -> sft.getTypeName
     def sftSpec(sft: SimpleFeatureType): (String, String) =
@@ -751,6 +758,9 @@ object ArrowScan {
         (f, rev.toBoolean)
       }
     }
+
+    def sorted(s: Boolean): (String, String) = SortedKey -> s.toString
+    def sorted(options: Map[String, String]): Boolean = options.get(SortedKey).exists(_.toBoolean)
   }
 
   /**

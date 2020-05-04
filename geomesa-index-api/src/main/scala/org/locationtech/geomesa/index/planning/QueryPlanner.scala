@@ -22,12 +22,11 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, DensityScan}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
-import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, Reprojection}
+import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, Reprojection, SortingSimpleFeatureIterator}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
-import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, StatParser}
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.`type`.{AttributeDescriptor, GeometryDescriptor}

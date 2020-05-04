@@ -182,6 +182,7 @@ org.eclipse.emf:org.eclipse.emf.common	2.15.0	compile
 org.eclipse.emf:org.eclipse.emf.ecore	2.15.0	compile
 org.eclipse.emf:org.eclipse.emf.ecore.xmi	2.15.0	compile
 org.eclipse.xsd:org.eclipse.xsd	2.12.0	compile
+org.ehcache:sizeof	0.3.0	compile
 org.ejml:ejml-core	0.34	compile
 org.ejml:ejml-ddense	0.34	compile
 org.gdal:gdal	2.0.0	compile

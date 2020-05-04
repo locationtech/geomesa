@@ -21,16 +21,18 @@ import org.opengis.filter.identity.FeatureId
   * @param sft simple feature type
   * @param readers column readers
   */
-class RowResultSimpleFeature(sft: SimpleFeatureType,
-                             fid: KuduColumnAdapter[String],
-                             readers: IndexedSeq[KuduColumnAdapter[_ <: AnyRef]])
-    extends AbstractMutableSimpleFeature(sft, "", null) {
+class RowResultSimpleFeature(
+    sft: SimpleFeatureType,
+    fid: KuduColumnAdapter[String],
+    readers: IndexedSeq[KuduColumnAdapter[_ <: AnyRef]]
+  ) extends AbstractMutableSimpleFeature(sft) {
 
   private var row: RowResult = _
 
   // tracks the attributes that have been read, plus the feature id in the last element
   private val bits = AtomicBitSet(sft.getAttributeCount + 1)
   private val attributes = Array.ofDim[AnyRef](sft.getAttributeCount)
+  private val userData = new java.util.HashMap[AnyRef,AnyRef]()
 
   /**
     * Set the underlying data. Any prior changes are discarded.
@@ -40,7 +42,7 @@ class RowResultSimpleFeature(sft: SimpleFeatureType,
   def setRowResult(row: RowResult): Unit = {
     this.row = row
     bits.clear()
-    getUserData.clear()
+    userData.clear()
   }
 
   override def getIdentifier: FeatureId = {
@@ -71,4 +73,6 @@ class RowResultSimpleFeature(sft: SimpleFeatureType,
       attributes(index)
     }
   }
+
+  override def getUserData: java.util.Map[AnyRef, AnyRef] = userData
 }

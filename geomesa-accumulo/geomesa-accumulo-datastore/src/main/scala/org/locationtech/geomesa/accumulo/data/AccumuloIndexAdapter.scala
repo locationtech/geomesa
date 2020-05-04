@@ -30,7 +30,7 @@ import org.locationtech.geomesa.index.api.IndexAdapter.BaseIndexWriter
 import org.locationtech.geomesa.index.api.QueryPlan.IndexResultsToFeatures
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api._
-import org.locationtech.geomesa.index.conf.ColumnGroups
+import org.locationtech.geomesa.index.conf.{ColumnGroups, QueryHints}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.s2.{S2Index, S2IndexValues}
@@ -38,6 +38,7 @@ import org.locationtech.geomesa.index.index.s3.{S3Index, S3IndexValues}
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index, Z2IndexValues}
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index, Z3IndexValues}
 import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.io.WithClose
@@ -155,6 +156,14 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
       val (cf, s) = groups.group(index.sft, hints.getTransformDefinition, ecql)
       (Some(new Text(AccumuloIndexAdapter.mapColumnFamily(index)(cf))), s)
     }
+    // used when remote processing is disabled
+    lazy val returnSchema = hints.getTransformSchema.getOrElse(schema)
+    lazy val fti = FilterTransformIterator.configure(schema, index, ecql, hints).toSeq
+    lazy val resultsToFeatures = AccumuloResultsToFeatures(index, returnSchema)
+    lazy val localReducer = {
+      val arrowHook = Some(ArrowDictionaryHook(ds.stats, filter.filter))
+      Some(new LocalTransformReducer(returnSchema, None, None, None, hints, arrowHook))
+    }
 
     index match {
       case i: AccumuloJoinIndex =>
@@ -162,22 +171,56 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
 
       case _ =>
         val (iter, eToF, reduce) = if (strategy.hints.isBinQuery) {
-          val iter = BinAggregatingIterator.configure(schema, index, ecql, hints)
-          (Seq(iter), new AccumuloBinResultsToFeatures(), None)
+          if (ds.config.remote.bin) {
+            val iter = BinAggregatingIterator.configure(schema, index, ecql, hints)
+            (Seq(iter), new AccumuloBinResultsToFeatures(), None)
+          } else {
+            if (hints.isSkipReduce) {
+              // override the return sft to reflect what we're actually returning,
+              // since the bin sft is only created in the local reduce step
+              hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+            }
+            (fti, resultsToFeatures, localReducer)
+          }
         } else if (strategy.hints.isArrowQuery) {
-          val (iter, reduce) = ArrowIterator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
-          (Seq(iter), new AccumuloArrowResultsToFeatures(), Some(reduce))
+          if (ds.config.remote.arrow) {
+            val (iter, reduce) = ArrowIterator.configure(schema, index, ds.stats, filter.filter, ecql, hints)
+            (Seq(iter), new AccumuloArrowResultsToFeatures(), Some(reduce))
+          } else {
+            if (hints.isSkipReduce) {
+              // override the return sft to reflect what we're actually returning,
+              // since the arrow sft is only created in the local reduce step
+              hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+            }
+            (fti, resultsToFeatures, localReducer)
+          }
         } else if (strategy.hints.isDensityQuery) {
-          val iter = DensityIterator.configure(schema, index, ecql, hints)
-          (Seq(iter), new AccumuloDensityResultsToFeatures(), None)
+          if (ds.config.remote.density) {
+            val iter = DensityIterator.configure(schema, index, ecql, hints)
+            (Seq(iter), new AccumuloDensityResultsToFeatures(), None)
+          } else {
+            if (hints.isSkipReduce) {
+              // override the return sft to reflect what we're actually returning,
+              // since the density sft is only created in the local reduce step
+              hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+            }
+            (fti, resultsToFeatures, localReducer)
+          }
         } else if (strategy.hints.isStatsQuery) {
-          val iter = StatsIterator.configure(schema, index, ecql, hints)
-          val reduce = Some(StatsScan.StatsReducer(schema, hints))
-          (Seq(iter), new AccumuloStatsResultsToFeatures(), reduce)
+          if (ds.config.remote.stats) {
+            val iter = StatsIterator.configure(schema, index, ecql, hints)
+            val reduce = Some(StatsScan.StatsReducer(schema, hints))
+            (Seq(iter), new AccumuloStatsResultsToFeatures(), reduce)
+          } else {
+            if (hints.isSkipReduce) {
+              // override the return sft to reflect what we're actually returning,
+              // since the stats sft is only created in the local reduce step
+              hints.hints.put(QueryHints.Internal.RETURN_SFT, returnSchema)
+            }
+            (fti, resultsToFeatures, localReducer)
+          }
         } else {
-          val iter = FilterTransformIterator.configure(schema, index, ecql, hints).toSeq
-          val toFeatures = AccumuloResultsToFeatures(index, hints.getReturnSft)
-          (iter, toFeatures, None)
+          (fti, resultsToFeatures, None)
         }
 
         if (ranges.isEmpty) { EmptyPlan(strategy.filter, reduce) } else {

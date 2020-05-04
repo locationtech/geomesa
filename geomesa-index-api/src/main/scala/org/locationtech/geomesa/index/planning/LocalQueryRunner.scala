@@ -10,7 +10,6 @@ package org.locationtech.geomesa.index.planning
 
 import java.io.ByteArrayOutputStream
 import java.nio.charset.StandardCharsets
-import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
@@ -27,15 +26,14 @@ import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.ArrowDictionaryHook
 import org.locationtech.geomesa.index.stats.GeoMesaStats
-import org.locationtech.geomesa.index.utils.{Explainer, FeatureSampler, Reprojection}
+import org.locationtech.geomesa.index.utils.{Explainer, FeatureSampler, Reprojection, SortingSimpleFeatureIterator}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils, VisibilityEvaluator}
 import org.locationtech.geomesa.utils.bin.BinaryEncodeCallback.ByteStreamCallback
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodingOptions
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, RenderingGrid, SimpleFeatureOrdering, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, RenderingGrid, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.iterators.SortingSimpleFeatureIterator
 import org.locationtech.geomesa.utils.stats.{Stat, TopK}
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -83,10 +81,6 @@ abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[Author
     val hook = Some(ArrowDictionaryHook(stats, filter))
     var result = transform(sft, iter, query.getHints.getTransform, query.getHints, hook)
 
-    query.getHints.getSortFields.foreach { sort =>
-      result = new SortingSimpleFeatureIterator(result, sort)
-    }
-
     query.getHints.getMaxFeatures.foreach { maxFeatures =>
       if (query.getHints.getReturnSft == BinaryOutputEncoder.BinEncodedSft) {
         // bin queries pack multiple records into each feature
@@ -124,6 +118,7 @@ abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[Author
 object LocalQueryRunner {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConversions._
 
@@ -217,11 +212,12 @@ object LocalQueryRunner {
     * @param arrow stats hook and cql filter - used for dictionary building in certain arrow queries
     * @return
     */
-  def transform(sft: SimpleFeatureType,
-                features: CloseableIterator[SimpleFeature],
-                transform: Option[(String, SimpleFeatureType)],
-                hints: Hints,
-                arrow: Option[ArrowDictionaryHook] = None): CloseableIterator[SimpleFeature] = {
+  def transform(
+      sft: SimpleFeatureType,
+      features: CloseableIterator[SimpleFeature],
+      transform: Option[(String, SimpleFeatureType)],
+      hints: Hints,
+      arrow: Option[ArrowDictionaryHook] = None): CloseableIterator[SimpleFeature] = {
     val sampled = hints.getSampling match {
       case None => features
       case Some((percent, field)) => sample(sft, percent, field)(features)
@@ -243,29 +239,24 @@ object LocalQueryRunner {
       statsTransform(sampled, sft, transform, hints.getStatsQuery, hints.isStatsEncode || hints.isSkipReduce)
     } else {
       transform match {
-        case None =>
-          val sort = hints.getSortFields.map(SimpleFeatureOrdering(sft, _))
-          noTransform(sft, sampled, sort)
-        case Some((defs, tsft)) =>
-          val sort = hints.getSortFields.map(SimpleFeatureOrdering(tsft, _))
-          projectionTransform(sampled, sft, tsft, defs, sort)
+        case None => noTransform(sampled, hints.getSortFields)
+        case Some((defs, tsft)) => projectionTransform(sampled, sft, tsft, defs, hints.getSortFields)
       }
     }
   }
 
-  private def binTransform(features: CloseableIterator[SimpleFeature],
-                           sft: SimpleFeatureType,
-                           trackId: Option[Int],
-                           geom: Option[Int],
-                           dtg: Option[Int],
-                           label: Option[Int],
-                           sorting: Boolean): CloseableIterator[SimpleFeature] = {
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-
+  private def binTransform(
+      features: CloseableIterator[SimpleFeature],
+      sft: SimpleFeatureType,
+      trackId: Option[Int],
+      geom: Option[Int],
+      dtg: Option[Int],
+      label: Option[Int],
+      sorting: Boolean): CloseableIterator[SimpleFeature] = {
     val encoder = BinaryOutputEncoder(sft, EncodingOptions(geom, dtg, trackId, label))
     val sorted = if (!sorting) { features } else {
       val i = dtg.orElse(sft.getDtgIndex).getOrElse(throw new IllegalArgumentException("Can't sort BIN features by date"))
-      CloseableIterator(features.toList.sortBy(_.getAttribute(i).asInstanceOf[Date]).iterator, features.close())
+      new SortingSimpleFeatureIterator(features, Seq(sft.getDescriptor(i).getLocalName -> false))
     }
 
     val os = new ByteArrayOutputStream(1024)
@@ -282,27 +273,20 @@ object LocalQueryRunner {
     }
   }
 
-  private def arrowTransform(original: CloseableIterator[SimpleFeature],
-                             sft: SimpleFeatureType,
-                             transform: Option[(String, SimpleFeatureType)],
-                             hints: Hints,
-                             hook: Option[ArrowDictionaryHook]): CloseableIterator[SimpleFeature] = {
+  private def arrowTransform(
+      original: CloseableIterator[SimpleFeature],
+      sft: SimpleFeatureType,
+      transform: Option[(String, SimpleFeatureType)],
+      hints: Hints,
+      hook: Option[ArrowDictionaryHook]): CloseableIterator[SimpleFeature] = {
 
-    val sort = hints.getArrowSort
+    val sort = hints.getArrowSort.map(Seq.fill(1)(_))
     val batchSize = ArrowScan.getBatchSize(hints)
     val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid)
 
     val (features, arrowSft) = transform match {
-      case None =>
-        val sorting = sort.map { case (field, reverse) =>
-          if (reverse) { SimpleFeatureOrdering(sft, field).reverse } else { SimpleFeatureOrdering(sft, field) }
-        }
-        (noTransform(sft, original, sorting), sft)
-      case Some((definitions, tsft)) =>
-        val sorting = sort.map { case (field, reverse) =>
-          if (reverse) { SimpleFeatureOrdering(tsft, field).reverse } else { SimpleFeatureOrdering(tsft, field) }
-        }
-        (projectionTransform(original, sft, tsft, definitions, sorting), tsft)
+      case None => (noTransform(original, sort), sft)
+      case Some((definitions, tsft)) => (projectionTransform(original, sft, tsft, definitions, sort), tsft)
     }
 
     lazy val ArrowDictionaryHook(stats, filter) = hook.getOrElse {
@@ -346,7 +330,7 @@ object LocalQueryRunner {
       }
 
       if (hints.isSkipReduce) { arrows } else {
-        new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, batchSize, sort)(arrows)
+        new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, batchSize, sort.map(_.head), sorted = true)(arrows)
       }
     } else if (hints.isArrowMultiFile) {
       val writer = new DictionaryBuildingWriter(arrowSft, dictionaryFields, encoding)
@@ -371,7 +355,7 @@ object LocalQueryRunner {
         override def close(): Unit = CloseWithLogging(Seq(features, writer))
       }
       if (hints.isSkipReduce) { arrows } else {
-        new ArrowScan.FileReducer(arrowSft, dictionaryFields, encoding, sort)(arrows)
+        new ArrowScan.FileReducer(arrowSft, dictionaryFields, encoding, sort.map(_.head))(arrows)
       }
     } else {
       val writer = new DeltaWriter(arrowSft, dictionaryFields, encoding, None, batchSize)
@@ -393,7 +377,7 @@ object LocalQueryRunner {
         override def close(): Unit = CloseWithLogging(Seq(features, writer))
       }
       if (hints.isSkipReduce) { arrows } else {
-        new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, batchSize, sort)(arrows)
+        new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, batchSize, sort.map(_.head), sorted = true)(arrows)
       }
     }
   }
@@ -431,12 +415,13 @@ object LocalQueryRunner {
     CloseableIterator(Iterator(new ScalaSimpleFeature(StatsScan.StatsSft, "stat", Array(encoded, GeometryUtils.zeroPoint))))
   }
 
-  private def projectionTransform(features: CloseableIterator[SimpleFeature],
-                                  sft: SimpleFeatureType,
-                                  transform: SimpleFeatureType,
-                                  definitions: String,
-                                  ordering: Option[Ordering[SimpleFeature]]): CloseableIterator[SimpleFeature] = {
-    val attributes = TransformSimpleFeature.attributes(sft, transform, definitions)
+  private def projectionTransform(
+      features: CloseableIterator[SimpleFeature],
+      sft: SimpleFeatureType,
+      transform: SimpleFeatureType,
+      definitions: String,
+      sort: Option[Seq[(String, Boolean)]]): CloseableIterator[SimpleFeature] = {
+    val attributes = TransformSimpleFeature.attributes(sft, definitions)
 
     def setValues(from: SimpleFeature, to: ScalaSimpleFeature): ScalaSimpleFeature = {
       var i = 0
@@ -450,18 +435,18 @@ object LocalQueryRunner {
 
     val result = features.map(setValues(_, new ScalaSimpleFeature(transform, "")))
 
-    ordering match {
+    sort match {
       case None    => result
-      case Some(o) => CloseableIterator(result.toList.sorted(o).iterator, result.close())
+      case Some(s) => new SortingSimpleFeatureIterator(result, s)
     }
   }
 
-  private def noTransform(sft: SimpleFeatureType,
-                          features: CloseableIterator[SimpleFeature],
-                          ordering: Option[Ordering[SimpleFeature]]): CloseableIterator[SimpleFeature] = {
-    ordering match {
+  private def noTransform(
+      features: CloseableIterator[SimpleFeature],
+      sort: Option[Seq[(String, Boolean)]]): CloseableIterator[SimpleFeature] = {
+    sort match {
       case None    => features
-      case Some(o) => CloseableIterator(features.toList.sorted(o).iterator, features.close())
+      case Some(s) => new SortingSimpleFeatureIterator(features, s)
     }
   }
 

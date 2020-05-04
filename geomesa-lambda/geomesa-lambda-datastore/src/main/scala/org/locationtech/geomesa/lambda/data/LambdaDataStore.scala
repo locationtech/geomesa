@@ -61,7 +61,7 @@ class LambdaDataStore(val persistence: DataStore,
     case _ => NoopStats
   }
 
-  private val runner = new LambdaQueryRunner(persistence, transients, stats)
+  private val runner = new LambdaQueryRunner(this, persistence, transients)
 
   def persist(typeName: String): Unit = transients.get(typeName).persist()
 

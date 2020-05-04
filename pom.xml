@@ -72,7 +72,7 @@
         <parquet.version>1.9.0</parquet.version>
         <orc.version>1.5.4</orc.version>
         <fasterxml.jackson.version>2.9.10</fasterxml.jackson.version> <!-- used by geoserver (2.9.7), spark (2.6.7) and arrow (2.7.1) -->
-        <fasterxml.jackson.databind.version>2.9.10.3</fasterxml.jackson.databind.version> <!-- used by spark (2.6.7.1) and arrow (2.7.1) -->
+        <fasterxml.jackson.databind.version>2.9.10.4</fasterxml.jackson.databind.version> <!-- used by spark (2.6.7.1) and arrow (2.7.1) -->
         <codehaus.jackson.version>1.9.3</codehaus.jackson.version>
         <gdal.version>2.0.0</gdal.version>
         <json4s.version>3.5.4</json4s.version>
@@ -1783,6 +1783,11 @@
                 <artifactId>jackson-module-scala_${scala.binary.version}</artifactId>
                 <version>${fasterxml.jackson.version}</version>
                 <scope>provided</scope> <!-- from spark -->
+            </dependency>
+            <dependency>
+                <groupId>org.ehcache</groupId>
+                <artifactId>sizeof</artifactId>
+                <version>0.3.0</version>
             </dependency>
             <dependency>
                 <groupId>org.scalatra</groupId>

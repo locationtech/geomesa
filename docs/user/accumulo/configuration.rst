@@ -40,6 +40,39 @@ The timeout is defined as a duration, e.g. ``60 seconds`` or ``100 millis``. See
 
 __ https://accumulo.apache.org/1.9/apidocs/org/apache/accumulo/core/client/BatchWriterConfig.html#setTimeout(long,%20java.util.concurrent.TimeUnit)
 
+Remote Processing Properties
+----------------------------
+
+The following properties control the push-down processing for certain queries to the Accumulo tablet servers, vs
+processing in the client. Enabling push-down processing can result in faster queries, but also puts additional
+load on the Accumulo cluster, which may negatively impact concurrent clients.
+
+See also `ref:accumulo_parameters` for configuring these properties directly in the data store parameters.
+
+geomesa.accumulo.remote.arrow.enable
+++++++++++++++++++++++++++++++++++++
+
+Enable processing Arrow encoding in Accumulo tablets servers as a distributed call, instead of encoding
+locally in the client. Default is ``true``.
+
+geomesa.accumulo.remote.bin.enable
+++++++++++++++++++++++++++++++++++
+
+Enable processing binary encoding in Accumulo tablets servers as a distributed call, instead of encoding
+locally in the client. Default is ``true``.
+
+geomesa.accumulo.remote.density.enable
+++++++++++++++++++++++++++++++++++++++
+
+Enable processing heatmap encoding in Accumulo tablets servers as a distributed call, instead of encoding
+locally in the client. Default is ``true``.
+
+geomesa.accumulo.remote.stats.enable
+++++++++++++++++++++++++++++++++++++
+
+Enable processing statistical calculations in Accumulo tablets servers as a distributed call, instead of
+encoding locally in the client. Default is ``true``.
+
 Map Reduce Input Splits Properties
 ----------------------------------
 

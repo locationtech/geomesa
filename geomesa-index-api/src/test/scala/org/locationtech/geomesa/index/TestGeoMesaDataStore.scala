@@ -128,7 +128,7 @@ object TestGeoMesaDataStore {
     override type Results = SimpleFeature
 
     private val attributes = transform.map { case (tdefs, tsft) =>
-      (tsft, TransformSimpleFeature.attributes(sft, tsft, tdefs))
+      (tsft, TransformSimpleFeature.attributes(sft, tdefs))
     }
 
     override val resultsToFeatures: ResultsToFeatures[SimpleFeature] =

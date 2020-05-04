@@ -19,7 +19,9 @@ import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.planning.{LocalQueryRunner, QueryPlanner, QueryRunner}
+import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.view.MergedQueryRunner.Queryable
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureOrdering, SimpleFeatureTypes}
@@ -34,7 +36,7 @@ import org.opengis.filter.Filter
   * @param ds merged data store
   * @param stores delegate stores
   */
-class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[(DataStore, Option[Filter])])
+class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filter])])
     extends QueryRunner with LazyLogging {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
@@ -42,7 +44,10 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[(DataStore, Option[
   // query interceptors are handled by the individual data stores
   override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
 
-  override def runQuery(sft: SimpleFeatureType, original: Query, explain: Explainer): CloseableIterator[SimpleFeature] = {
+  override def runQuery(
+      sft: SimpleFeatureType,
+      original: Query,
+      explain: Explainer): CloseableIterator[SimpleFeature] = {
 
     val query = configureQuery(sft, original)
     val hints = query.getHints
@@ -148,11 +153,11 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[(DataStore, Option[
         providedDictionaries, cachedDictionaries)
       // set the merged dictionaries in the query where they'll be picked up by our delegates
       hints.setArrowDictionaryEncodedValues(dictionaries.map { case (k, v) => (k, v.iterator.toSeq) })
-      new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, batchSize, sort)
+      new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, batchSize, sort, sorted = false)
     } else if (hints.isArrowMultiFile) {
       new ArrowScan.FileReducer(arrowSft, dictionaryFields, encoding, sort)
     } else {
-      new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, batchSize, sort)
+      new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, batchSize, sort, sorted = false)
     }
 
     // now that we have standardized dictionaries, we can query the delegate stores
@@ -241,5 +246,17 @@ class MergedQueryRunner(ds: MergedDataStoreView, stores: Seq[(DataStore, Option[
     } else {
       super.getReturnSft(sft, hints)
     }
+  }
+}
+
+object MergedQueryRunner {
+
+  trait Queryable {
+    def getFeatureReader(q: Query, t: Transaction): FeatureReader[SimpleFeatureType, SimpleFeature]
+  }
+
+  case class DataStoreQueryable(ds: DataStore) extends Queryable {
+    override def getFeatureReader(q: Query, t: Transaction): FeatureReader[SimpleFeatureType, SimpleFeature] =
+      ds.getFeatureReader(q, t)
   }
 }

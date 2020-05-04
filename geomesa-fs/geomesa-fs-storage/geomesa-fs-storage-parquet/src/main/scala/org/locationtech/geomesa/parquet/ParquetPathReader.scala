@@ -35,7 +35,7 @@ class ParquetPathReader(
   private val transformFeature: SimpleFeature => SimpleFeature = transform match {
     case None => null
     case Some((tdefs, tsft)) =>
-      val attributes = TransformSimpleFeature.attributes(readSft, tsft, tdefs)
+      val attributes = TransformSimpleFeature.attributes(readSft, tdefs)
       f => new TransformSimpleFeature(tsft, attributes, f)
   }
 
