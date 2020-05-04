@@ -98,7 +98,7 @@ in other repositories. To include GeoMesa in your project, add the following rep
   </repository>
   <repository>
     <id>osgeo</id>
-    <url>http://download.osgeo.org/webdav/geotools</url>
+    <url>https:///repo.osgeo.org/repository/release</url>
   </repository>
   <repository>
     <id>conjars.org</id>
@@ -154,8 +154,8 @@ Similarly, integration with `sbt` is straightforward:
 resolvers ++= Seq(
   "locationtech-releases" at "https://repo.locationtech.org/content/groups/releases",
   "boundlessgeo" at "https://repo.boundlessgeo.com/main",
-  "osgeo" at "http://download.osgeo.org/webdav/geotools",
-  "conjars.org" at "http://conjars.org/repo"
+  "osgeo" at "https:///repo.osgeo.org/repository/release",
+  "confluent" at "https://packages.confluent.io/maven"
 )
 
 // Select desired modules
