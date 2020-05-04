@@ -17,6 +17,7 @@ import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.FileSystemPathReader
 import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.annotation.tailrec
@@ -35,8 +36,8 @@ class ParquetPathReader(
   private val transformFeature: SimpleFeature => SimpleFeature = transform match {
     case None => null
     case Some((tdefs, tsft)) =>
-      val attributes = TransformSimpleFeature.attributes(readSft, tdefs)
-      f => new TransformSimpleFeature(tsft, attributes, f)
+      val definitions = Transforms(readSft, tdefs).toArray
+      f => new TransformSimpleFeature(tsft, definitions, f)
   }
 
   override def read(path: Path): CloseableIterator[SimpleFeature] = {

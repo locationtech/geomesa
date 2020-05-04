@@ -67,16 +67,18 @@ class QueryVisitor(features: SimpleFeatureCollection, filter: Filter, properties
 
   private val (sft, transformFeature) = if (properties == null) { (features.getSchema, null) } else {
     val original = features.getSchema
-    val (transforms, transformSft) = QueryPlanner.buildTransformSFT(original, properties)
-    val transformSf = TransformSimpleFeature(original, transformSft, transforms)
-    (transformSft, transformSf)
+    val query = new Query(original.getTypeName, Filter.INCLUDE, properties)
+    QueryPlanner.extractQueryTransforms(original, query) match {
+      case None => (original, null)
+      case Some((tsft, tdefs, _)) => (tsft, TransformSimpleFeature(tsft, tdefs))
+    }
   }
 
-  private val retype: (SimpleFeature) => SimpleFeature =
+  private val retype: SimpleFeature => SimpleFeature =
     if (transformFeature == null) {
-      (sf) => sf
+      sf => sf
     } else {
-      (sf) => {
+      sf => {
         transformFeature.setFeature(sf)
         ScalaSimpleFeature.copy(transformFeature)
       }

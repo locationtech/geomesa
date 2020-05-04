@@ -76,7 +76,7 @@ trait QueryRunner {
     ViewParams.setHints(query)
 
     // set transformations in the query
-    QueryPlanner.setQueryTransforms(query, sft)
+    QueryPlanner.setQueryTransforms(sft, query)
     // set return SFT in the query
     query.getHints.put(QueryHints.Internal.RETURN_SFT, getReturnSft(sft, query.getHints))
 

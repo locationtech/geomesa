@@ -29,7 +29,7 @@ class IndexPackageObjectTest extends Specification {
       origSFT.setDtgField("dtg")
 
       val query = new Query(sftName, Filter.INCLUDE, Array("name", "helloName=strConcat('hello', name)", "geom"))
-      QueryPlanner.setQueryTransforms(query, origSFT)
+      QueryPlanner.setQueryTransforms(origSFT, query)
 
       val transform = query.getHints.getTransformSchema
       transform must beSome

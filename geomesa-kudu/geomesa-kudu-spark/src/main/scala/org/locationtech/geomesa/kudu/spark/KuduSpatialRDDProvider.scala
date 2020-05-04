@@ -38,7 +38,7 @@ class KuduSpatialRDDProvider extends SpatialRDDProvider {
     // get the query plan to set up the iterators, ranges, etc
     lazy val sft = ds.getSchema(query.getTypeName)
     lazy val transform = {
-      QueryPlanner.setQueryTransforms(query, sft)
+      QueryPlanner.setQueryTransforms(sft, query)
       query.getHints.getTransformSchema
     }
 

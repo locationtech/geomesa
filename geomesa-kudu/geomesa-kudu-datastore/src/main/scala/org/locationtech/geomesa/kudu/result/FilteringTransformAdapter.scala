@@ -13,7 +13,6 @@ import java.nio.charset.StandardCharsets
 
 import org.apache.kudu.client.RowResult
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.{FilterHelper, filterToString}
@@ -23,10 +22,10 @@ import org.locationtech.geomesa.kudu.schema.{KuduSimpleFeatureSchema, RowResultS
 import org.locationtech.geomesa.security.{SecurityUtils, VisibilityEvaluator}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.io.ByteBuffers.ExpandingByteBuffer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.opengis.filter.expression.{Expression, PropertyName}
 
 /**
   * Converts rows into simple features, first filtering and then transforming
@@ -43,14 +42,11 @@ case class FilteringTransformAdapter(sft: SimpleFeatureType,
                                      tsft: SimpleFeatureType,
                                      tdefs: String) extends KuduResultAdapter {
 
-  import scala.collection.JavaConverters._
+  import org.locationtech.geomesa.filter.RichTransform.RichTransform
 
   // determine all the attributes that we need to be able to evaluate the transform and filter
   private val attributes = {
-    val fromTransform = TransformProcess.toDefinition(tdefs).asScala.map(_.expression).flatMap {
-      case p: PropertyName => Seq(p.getPropertyName)
-      case e: Expression   => FilterHelper.propertyNames(e, sft)
-    }
+    val fromTransform = Transforms(sft, tdefs).flatMap(_.properties)
     val fromFilter = FilterHelper.propertyNames(ecql, sft)
     (fromTransform ++ fromFilter).distinct
   }

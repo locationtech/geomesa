@@ -10,14 +10,14 @@ package org.locationtech.geomesa.features
 
 import java.util.{Collection => jCollection, List => jList, Map => jMap}
 
-import org.locationtech.jts.geom.Geometry
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.process.vector.TransformProcess
+import org.locationtech.geomesa.utils.geotools.Transform
+import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.io.Sizable
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
-import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
 
@@ -29,7 +29,7 @@ import org.opengis.geometry.BoundingBox
   */
 class TransformSimpleFeature(
     transformSchema: SimpleFeatureType,
-    attributes: Array[SimpleFeature => AnyRef],
+    attributes: Array[Transform],
     private var underlying: SimpleFeature = null
   ) extends SimpleFeature with Sizable {
 
@@ -45,7 +45,7 @@ class TransformSimpleFeature(
     case _ => Sizable.sizeOf(underlying) + Sizable.deepSizeOf(underlying.getAttributes, underlying.getUserData)
   }
 
-  override def getAttribute(index: Int): AnyRef = attributes(index).apply(underlying)
+  override def getAttribute(index: Int): AnyRef = attributes(index).evaluate(underlying)
 
   override def getIdentifier: FeatureId = underlying.getIdentifier
   override def getID: String = underlying.getID
@@ -124,18 +124,17 @@ class TransformSimpleFeature(
 
 object TransformSimpleFeature {
 
-  import scala.collection.JavaConversions._
-
-  def apply(sft: SimpleFeatureType, transformSchema: SimpleFeatureType, transforms: String): TransformSimpleFeature =
-    new TransformSimpleFeature(transformSchema, attributes(sft, transforms))
-
-  def attributes(sft: SimpleFeatureType, transforms: String): Array[SimpleFeature => AnyRef] =
-    TransformProcess.toDefinition(transforms).map(attribute(sft, _)).toArray
-
-  private def attribute(sft: SimpleFeatureType, d: TransformProcess.Definition): SimpleFeature => AnyRef = {
-    d.expression match {
-      case p: PropertyName => val i = sft.indexOf(p.getPropertyName); sf => sf.getAttribute(i)
-      case e: Expression   => sf => e.evaluate(sf)
-    }
+  def apply(
+      sft: SimpleFeatureType,
+      transformSchema: SimpleFeatureType,
+      transforms: String): TransformSimpleFeature = {
+    new TransformSimpleFeature(transformSchema, Transforms(sft, transforms).toArray)
   }
+
+  def apply(transformSchema: SimpleFeatureType, transforms: Seq[Transform]): TransformSimpleFeature =
+    new TransformSimpleFeature(transformSchema, transforms.toArray)
+
+  @deprecated("replaced with org.locationtech.geomesa.utils.geotools.Transform")
+  def attributes(sft: SimpleFeatureType, transforms: String): Array[SimpleFeature => AnyRef] =
+    Transforms(sft, transforms).map(t => t.evaluate _).toArray
 }

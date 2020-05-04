@@ -12,10 +12,10 @@ import java.util.Date
 
 import org.apache.kudu.client.RowResult
 import org.geotools.data.{DataUtilities, Query}
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.Converters
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -66,7 +66,7 @@ class KuduResultAdapterTest extends Specification with Mockito {
             foreach(Seq(new Hints, arrowHints, binHints, densityHints, statsHints)) { hints =>
               val query = new Query("test", ecql.getOrElse(Filter.INCLUDE), transform)
               query.getHints.asInstanceOf[java.util.Map[AnyRef, AnyRef]].putAll(hints)
-              QueryPlanner.setQueryTransforms(query, sft)
+              QueryPlanner.setQueryTransforms(sft, query)
               val adapter = KuduResultAdapter(sft, auths, ecql, query.getHints)
               KuduResultAdapter.deserialize(KuduResultAdapter.serialize(adapter)).toString mustEqual adapter.toString
             }
@@ -106,7 +106,7 @@ class KuduResultAdapterTest extends Specification with Mockito {
     "adapt features with transforms" in {
       val props = Array("name", "geom")
       val query = new Query(sft.getTypeName, Filter.INCLUDE, props)
-      QueryPlanner.setQueryTransforms(query, sft)
+      QueryPlanner.setQueryTransforms(sft, query)
 
       val adapter = KuduResultAdapter(sft, Seq.empty, None, query.getHints)
       adapter must beAnInstanceOf[TransformAdapter]
@@ -122,7 +122,7 @@ class KuduResultAdapterTest extends Specification with Mockito {
     "adapt features with filter and transforms" in {
       val props = Array("geom")
       val query = new Query(sft.getTypeName, Filter.INCLUDE, props)
-      QueryPlanner.setQueryTransforms(query, sft)
+      QueryPlanner.setQueryTransforms(sft, query)
 
       val adapter = KuduResultAdapter(sft, Seq.empty, Some(ECQL.toFilter("name = 'name0'")), query.getHints)
       adapter must beAnInstanceOf[FilteringTransformAdapter]
