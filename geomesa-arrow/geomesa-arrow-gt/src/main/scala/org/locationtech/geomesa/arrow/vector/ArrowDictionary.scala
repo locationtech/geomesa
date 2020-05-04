@@ -17,6 +17,7 @@ import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.`type`.AttributeDescriptor
 
@@ -118,11 +119,29 @@ object ArrowDictionary {
     * @param precision simple feature encoding used on the dictionary values
     * @return
     */
-  def create(encoding: DictionaryEncoding,
-             values: FieldVector,
-             descriptor: AttributeDescriptor,
-             precision: SimpleFeatureEncoding): ArrowDictionary = {
-    new ArrowDictionaryVector(encoding, values, descriptor, precision)
+  def create(
+      encoding: DictionaryEncoding,
+      values: FieldVector,
+      descriptor: AttributeDescriptor,
+      precision: SimpleFeatureEncoding): ArrowDictionary = {
+    new ArrowDictionaryVector(encoding, values, ObjectType.selectType(descriptor), precision)
+  }
+
+  /**
+   * Create a dictionary based on wrapping an arrow vector
+   *
+   * @param encoding dictionary id and metadata
+   * @param values dictionary vector
+   * @param bindings attribute descriptor bindings, used for reading values from the arrow vector
+   * @param precision simple feature encoding used on the dictionary values
+   * @return
+   */
+  def create(
+      encoding: DictionaryEncoding,
+      values: FieldVector,
+      bindings: Seq[ObjectType],
+      precision: SimpleFeatureEncoding): ArrowDictionary = {
+    new ArrowDictionaryVector(encoding, values, bindings, precision)
   }
 
   /**
@@ -165,18 +184,18 @@ object ArrowDictionary {
     *
     * @param encoding dictionary id and metadata
     * @param vector arrow vector
-    * @param descriptor attribute descriptor, used for reading values from the arrow vector
+    * @param bindings attribute descriptor bindings, used for reading values from the arrow vector
     * @param precision simple feature encoding used for the arrow vector
     */
   class ArrowDictionaryVector(
       val encoding: DictionaryEncoding,
       vector: FieldVector,
-      descriptor: AttributeDescriptor,
+      bindings: Seq[ObjectType],
       precision: SimpleFeatureEncoding
     ) extends ArrowDictionary {
 
     // we use an attribute reader to get the right type conversion
-    private val reader = ArrowAttributeReader(descriptor, vector, None, precision)
+    private val reader = ArrowAttributeReader(bindings, vector, None, precision)
     private var references = 1
 
     override val length: Int = vector.getValueCount

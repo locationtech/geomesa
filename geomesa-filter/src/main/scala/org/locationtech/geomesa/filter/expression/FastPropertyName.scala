@@ -50,12 +50,10 @@ object FastPropertyName extends LazyLogging {
   class FastPropertyNameAttribute(name: String, index: Int) extends FastPropertyName(name) {
     override def evaluate(obj: AnyRef): AnyRef = {
       // usually obj is a simple feature, but this is also expected to return descriptors for SimpleFeatureTypes
-      try { obj.asInstanceOf[SimpleFeature].getAttribute(index) } catch {
-        case _: ClassCastException =>
-          obj match {
-            case s: SimpleFeatureType => s.getDescriptor(name)
-            case _ => logger.error(s"Unable to evaluate property name against '$obj'"); null
-          }
+      obj match {
+        case s: SimpleFeature => s.getAttribute(index)
+        case s: SimpleFeatureType => s.getDescriptor(name)
+        case _ => logger.error(s"Unable to evaluate property name against '$obj'"); null
       }
     }
   }
@@ -69,12 +67,10 @@ object FastPropertyName extends LazyLogging {
   class FastPropertyNameAccessor(name: String, accessor: PropertyAccessor) extends FastPropertyName(name) {
     override def evaluate(obj: AnyRef): AnyRef = {
       // usually obj is a simple feature, but this is also expected to return descriptors for SimpleFeatureTypes
-      try { accessor.get(obj, name, classOf[AnyRef]) } catch {
-        case _: ClassCastException =>
-          obj match {
-            case s: SimpleFeatureType => s.getDescriptor(name)
-            case _ => logger.error(s"Unable to evaluate property name against '$obj'"); null
-          }
+      obj match {
+        case s: SimpleFeature => accessor.get(obj, name, classOf[AnyRef])
+        case s: SimpleFeatureType => s.getDescriptor(name)
+        case _ => logger.error(s"Unable to evaluate property name against '$obj'"); null
       }
     }
   }
