@@ -68,7 +68,7 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
     val dsParams = Map(
       "fs.path" -> directory,
       "fs.encoding" -> typeName,
-      "fs.config" -> "parquet.compression=gzip")
+      "fs.config.xml" -> "<configuration><property><name>parquet.compression</name><value>gzip</value></property></configuration>")
     DataStoreFinder.getDataStore(dsParams)
   }
 

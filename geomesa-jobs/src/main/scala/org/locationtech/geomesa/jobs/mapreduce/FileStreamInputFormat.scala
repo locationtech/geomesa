@@ -131,7 +131,7 @@ abstract class FileStreamRecordReader() extends RecordReader[LongWritable, Simpl
         fs.open(path)
       }
     iter = createIterator(stream, path, context)
-    logger.info(s"Initialized record reader on split ${path.toString}")
+    logger.debug(s"Initialized record reader on split ${path.toString}")
   }
 
   override def getCurrentKey: LongWritable = curKey

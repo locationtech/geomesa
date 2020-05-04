@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+    <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+        <layout class="org.apache.log4j.EnhancedPatternLayout">
+            <param name="ConversionPattern" value="[%d] %5p %c{1}: %m%n"/>
+        </layout>
+    </appender>
+
+    <category name="org.apache.hadoop">
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.accumulo">
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.thrift">
+        <priority value="error"/>
+    </category>
+    <category name="kafka">
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.kafka">
+        <priority value="error"/>
+    </category>
+    <category name="io.confluent">
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.zookeeper">
+        <priority value="error"/>
+    </category>
+    <category name="org.I0Itec.zkclient">
+        <priority value="warn"/>
+    </category>
+    <category name="org.apache.kudu">
+        <priority value="info"/>
+    </category>
+    <category name="BlockStateChange">
+        <priority value="warn"/>
+    </category>
+    <category name="SecurityLogger.org.apache.hadoop.hbase.Server">
+        <priority value="warn"/>
+    </category>
+    <category name="org.apache.cassandra">
+        <priority value="error"/>
+    </category>
+    <category name="com.datastax.driver">
+        <priority value="error"/>
+    </category>
+    <category name="redis">
+        <priority value="warn"/>
+    </category>
+    <category name="org.apache.redis">
+        <priority value="warn"/>
+    </category>
+    <category name="org.apache.spark">
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.parquet">
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.orc">
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.curator">
+        <priority value="error"/>
+    </category>
+    <category name="org.ehcache.sizeof">
+        <priority value="warn"/>
+    </category>
+    <category name="hsqldb">
+        <priority value="error"/>
+    </category>
+    <category name="org.geotools.jdbc.JDBCDataStore">
+        <priority value="error"/>
+    </category>
+    <category name="org.eclipse.jetty">
+        <priority value="error"/>
+    </category>
+    <category name="org.spark_project.jetty">
+        <priority value="error"/>
+    </category>
+    <category name="org.mortbay.log">
+        <priority value="error"/>
+    </category>
+    <category name="org.apache.camel">
+        <priority value="error"/>
+    </category>
+
+    <!-- some geomesa messages that we want to suppress -->
+    <category name="org.locationtech.geomesa.utils.index.TemporalIndexCheck$">
+        <priority value="error"/>
+    </category>
+    <category name="org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor$">
+        <priority value="error"/>
+    </category>
+    <category name="org.locationtech.geomesa.utils.geotools.GeoMesaSystemProperties$">
+        <priority value="error"/>
+    </category>
+    <category name="org.locationtech.geomesa.convert">
+        <priority value="error"/>
+    </category>
+    <category name="org.locationtech.geomesa.convert2">
+        <priority value="error"/>
+    </category>
+    <category name="org.locationtech.geomesa.kafka">
+        <priority value="warn"/>
+    </category>
+    <category name="org.locationtech.geomesa.tools.user">
+        <priority value="error"/>
+    </category>
+    <category name="org.locationtech.geomesa.tools.output">
+        <priority value="warn"/>
+    </category>
+    <category name="org.locationtech.geomesa.tools.export.formats.FileSystemExporter$">
+        <priority value="warn"/>
+    </category>
+
+    <!-- suppress errors that we intentionally throw in the test suite -->
+    <category name="org.locationtech.geomesa.accumulo.iterators.ArrowIterator">
+        <priority value="fatal"/>
+    </category>
+
+    <!-- uncomment the following line to enable verbose log messages from the index query-planner -->
+
+    <!--
+    <category name="org.locationtech.geomesa.index.utils.Explainer">
+        <priority value="trace"/>
+    </category>
+    -->
+
+    <!-- uncomment the following lines to enable verbose log messages from the Spark SQL query-planner -->
+
+    <!--
+    <category name="org.locationtech.geomesa.spark">
+        <priority value="info"/>
+    </category>
+    <category name="org.apache.spark.sql.execution">
+        <priority value="trace"/>
+    </category>
+    <category name="org.apache.spark.sql">
+        <priority value="debug"/>
+    </category>
+    -->
+
+    <root>
+        <priority value="info"/>
+        <appender-ref ref="CONSOLE" />
+    </root>
+</log4j:configuration>
+

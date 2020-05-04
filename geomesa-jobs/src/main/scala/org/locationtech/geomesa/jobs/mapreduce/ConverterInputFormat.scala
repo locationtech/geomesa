@@ -142,7 +142,7 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
       new DelegateSimpleFeatureReader(sft, new DelegateSimpleFeatureIterator(iter.asJava))
     }
 
-    logger.info(s"Initialized record reader on split ${filePath.toString} with " +
+    logger.debug(s"Initialized record reader on split ${filePath.toString} with " +
       s"type name ${sft.getTypeName} and convert conf $confStr")
 
     new Iterator[SimpleFeature] with Closeable {

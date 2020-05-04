@@ -30,7 +30,7 @@ class FilteringAuthorizationsProviderTest extends Specification {
   "FilteringAuthorizationsProvider" should {
     "filter wrapped authorizations" in {
       val filter = new FilteringAuthorizationsProvider(wrapped)
-      filter.configure(Map[String, Serializable]("auths" -> "admin"))
+      filter.configure(Map[String, Serializable]("geomesa.security.auths" -> "admin"))
       val auths = filter.getAuthorizations
 
       auths should not be null
@@ -40,7 +40,7 @@ class FilteringAuthorizationsProviderTest extends Specification {
 
     "filter multiple authorizations" in {
       val filter = new FilteringAuthorizationsProvider(wrapped)
-      filter.configure(Map[String, Serializable]("auths" -> "user,test"))
+      filter.configure(Map[String, Serializable]("geomesa.security.auths" -> "user,test"))
       val auths = filter.getAuthorizations
 
       auths should not be null

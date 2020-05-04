@@ -19,7 +19,7 @@ import org.locationtech.geomesa.utils.io.{PathUtils, WithClose}
 
 case object MiniCluster extends LazyLogging {
 
-  private val miniClusterTempDir = Files.createTempDirectory("gm-mini-acc")
+  private val miniClusterTempDir = Files.createTempDirectory("gm-mini-acc-")
 
   private val systemPermissions = Seq(
     SystemPermission.CREATE_NAMESPACE,
