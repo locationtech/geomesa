@@ -8,11 +8,13 @@
 
 package org.locationtech.geomesa.index.planning
 
+import java.util
+
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
 import org.geotools.feature.AttributeTypeBuilder
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.filter.MathExpressionImpl
+import org.geotools.filter.{AttributeExpressionImpl, MathExpressionImpl}
 import org.geotools.process.vector.TransformProcess
 import org.geotools.process.vector.TransformProcess.Definition
 import org.locationtech.geomesa.index.api.QueryPlan
@@ -210,9 +212,20 @@ object QueryPlanner extends LazyLogging {
   }
 
   def buildTransformSFT(sft: SimpleFeatureType, properties: Seq[String]): (String, SimpleFeatureType) = {
+    def stringToDefinition(definitionString: String): Seq[Definition] = {
+      if (definitionString.contains('=')) {
+        TransformProcess.toDefinition(definitionString).asScala
+      } else {
+        val transform = new TransformProcess.Definition
+        transform.name = definitionString
+        transform.expression = new AttributeExpressionImpl(definitionString)
+        Seq(transform)
+      }
+    }
+
     val transforms = properties.map(p => if (p.contains('=')) { p } else { s"$p=$p" }).mkString(";")
-    val transformDefs = TransformProcess.toDefinition(transforms)
-    val derivedSchema = computeSchema(sft, transformDefs.asScala)
+    val transformDefs: Seq[Definition] = properties.flatMap(stringToDefinition)
+    val derivedSchema = computeSchema(sft, transformDefs)
     (transforms, derivedSchema)
   }
 

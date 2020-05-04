@@ -56,7 +56,12 @@ class SimpleFeatureVector private [arrow] (
     */
   def clear(): Unit = underlying.setValueCount(0)
 
-  override def close(): Unit = CloseWithLogging.raise(Seq(underlying) ++ allocator)
+  override def close(): Unit = {
+    CloseWithLogging.raise(Seq(underlying))
+    this.synchronized {
+      allocator.foreach { CloseWithLogging.raise(_) }
+    }
+  }
 
   class Writer {
 
@@ -170,6 +175,7 @@ object SimpleFeatureVector {
       val metadata = Collections.singletonMap(OptionsKey, SimpleFeatureTypes.encodeUserData(sft))
       val fieldType = new FieldType(true, ArrowType.Struct.INSTANCE, null, metadata)
       val underlying = new StructVector(sft.getTypeName, allocator, fieldType, null)
+      // JNH
       val vector = new SimpleFeatureVector(sft, underlying, dictionaries, encoding, Some(allocator))
       // set capacity after all child vectors have been created by the writers, then allocate
       underlying.setInitialCapacity(capacity)
