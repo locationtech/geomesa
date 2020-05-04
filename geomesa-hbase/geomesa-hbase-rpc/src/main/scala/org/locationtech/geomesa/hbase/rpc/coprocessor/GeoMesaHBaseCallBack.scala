@@ -61,6 +61,8 @@ class GeoMesaHBaseCallBack(
       }
     }
 
+  // in `update` (below), we use scan.startRow as a sentinel to indicate we're done
+  // we won't ever start with a null row, as we use an empty byte array to indicate no start row
   override def hasNext: Boolean = !closed.get() && scan.getStartRow != null
 
   override def next: Scan = {
