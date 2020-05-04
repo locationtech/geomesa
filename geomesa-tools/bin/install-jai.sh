@@ -19,14 +19,14 @@ fi
 
 install_dir="${1:-${%%gmtools.dist.name%%_HOME}/lib}"
 
-osgeo_url="${GEOMESA_MAVEN_URL:-http://download.osgeo.org/webdav/}"
-mvn_url="${GEOMESA_MAVEN_URL:-https://nexus.geomatys.com/repository/}"
+# Resource download location
+mvn_url="${GEOMESA_MAVEN_URL:-https://search.maven.org/remotecontent?filepath}"
 
 declare -a urls=(
-  "${mvn_url}maven-public/org/jaitools/jt-utils/${jt_version}/jt-utils-${jt_version}.jar"
-  "${mvn_url}geotoolkit/javax/media/jai_codec/${jai_version}/jai_codec-${jai_version}.jar"
-  "${mvn_url}geotoolkit/javax/media/jai_core/${jai_version}/jai_core-${jai_version}.jar"
-  "${mvn_url}geotoolkit/javax/media/jai_imageio/${imageio_version}/jai_imageio-${imageio_version}.jar"
+  "${mvn_url}jaitools/jt-utils/${jt_version}/jt-utils-${jt_version}.jar"
+  "${mvn_url}jai_codec/${jai_version}/jai_codec-${jai_version}.jar"
+  "${mvn_url}jai_core/${jai_version}/jai_core-${jai_version}.jar"
+  "${mvn_url}jai_imageio/${imageio_version}/jai_imageio-${imageio_version}.jar"
 )
 
 echo "Warning: Java Advanced Imaging (JAI) is LGPL licensed, and thus not distributed with GeoMesa. However, you may download it yourself."
