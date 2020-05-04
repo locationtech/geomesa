@@ -424,8 +424,10 @@ object DeltaWriter extends StrictLogging {
 
     // we do a merge sort of each batch
     // queue sorted by current value in each batch
-    val queue =
-      new PriorityQueue[BatchMerger[Any]](if (reverse) { BatchMergerOrdering.reverse } else { BatchMergerOrdering })
+    val queue = {
+      val ordering = if (reverse) { BatchMergerOrdering.reverse } else { BatchMergerOrdering }
+      new PriorityQueue[BatchMerger[Any]](ordering)
+    }
 
     // track our open vectors to close later
     val cleanup = ArrayBuffer.empty[SimpleFeatureVector]
