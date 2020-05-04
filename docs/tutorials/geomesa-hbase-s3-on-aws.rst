@@ -149,7 +149,7 @@ Version (e.g. 1.3.4) or setting the ``VERSION`` environment variable.
 
 .. code-block:: shell
 
-   $ wget "https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-hbase-dist_2.11/${VERSION}/geomesa-hbase_2.11-${VERSION}-bin.tar.gz" -o /tmp/geomesa-hbase_2.11-${VERSION}-bin.tar.gz
+   $ wget "https://repo.eclipse.org/content/repositories/geomesa-releases/org/locationtech/geomesa/geomesa-hbase-dist_2.11/${VERSION}/geomesa-hbase_2.11-${VERSION}-bin.tar.gz" -o /tmp/geomesa-hbase_2.11-${VERSION}-bin.tar.gz
    $ cd /opt
    $ sudo tar zxvf /tmp/geomesa-hbase_2.11-${VERSION}-bin.tar.gz
 

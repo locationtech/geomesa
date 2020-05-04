@@ -68,7 +68,7 @@ release_1_2 = '1.2.7.3'
 release_eclipse = '1.2.0'
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
 
-url_locationtech_release = "https://repo.locationtech.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
+url_locationtech_release = "https://repo.eclipse.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
 
 
 # RST appended to every file. Used for global substitions.
