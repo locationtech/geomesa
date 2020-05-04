@@ -145,9 +145,10 @@ object SortingSimpleFeatureIterator extends LazyLogging {
       if (size >= threshold) {
         // write out the sorted list to disk
         list.sort(ordering)
-        files += Files.createTempFile(s"gm-sort-$id-", ".kryo").toFile
-        logger.trace(s"Created temp sort file '${files.last.getAbsolutePath}'")
-        WithClose(new FileOutputStream(files.last)) { os =>
+        val file = Files.createTempFile(s"gm-sort-$id-", ".kryo").toFile
+        files += file
+        logger.trace(s"Created temp sort file '${file.getAbsolutePath}'")
+        WithClose(new FileOutputStream(file)) { os =>
           var i = 0
           while (i < list.size()) {
             val bytes = serializer.serialize(list.get(i))
