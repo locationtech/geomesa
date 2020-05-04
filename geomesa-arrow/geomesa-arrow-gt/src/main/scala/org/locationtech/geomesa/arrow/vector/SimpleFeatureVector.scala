@@ -56,10 +56,7 @@ class SimpleFeatureVector private [arrow] (
     */
   def clear(): Unit = underlying.setValueCount(0)
 
-  override def close(): Unit = {
-    CloseWithLogging.raise(Seq(underlying))
-    allocator.foreach { CloseWithLogging.raise(_) }
-  }
+  override def close(): Unit = CloseWithLogging.raise(Seq(underlying) ++ allocator)
 
   class Writer {
 
