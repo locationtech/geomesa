@@ -105,23 +105,5 @@ class QueryPlannerTest extends Specification {
       QueryPlanner.setQuerySort(sft, query)
       query.getHints.getSortFields must beSome(Seq(("age", true), ("name", false)))
     }
-
-    "handle transforms appropriately" >> {
-      import scala.collection.JavaConversions._
-
-      val (_, projectedSFT) = QueryPlanner.buildTransformSFT(sft, Seq("name", "geom"))
-      projectedSFT.getAttributeCount mustEqual(2)
-      projectedSFT.getAttributeDescriptors.map(_.getLocalName) mustEqual Seq("name", "geom")
-
-      val (_, renamingSFT) = QueryPlanner.buildTransformSFT(sft, Seq("name", "geom", "the_geom=geom"))
-      renamingSFT.getAttributeCount mustEqual(3)
-      renamingSFT.getAttributeDescriptors.map(_.getLocalName) mustEqual Seq("name", "geom", "the_geom")
-
-      val (_, expressionSFT) = QueryPlanner.buildTransformSFT(sft, Seq("name", "geom", "age=age+6"))
-      expressionSFT.getAttributeCount mustEqual(3)
-      expressionSFT.getAttributeDescriptors.map(_.getLocalName) mustEqual Seq("name", "geom", "age")
-
-      ok
-    }
   }
 }
