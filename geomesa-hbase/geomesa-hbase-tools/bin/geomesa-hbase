@@ -56,6 +56,9 @@ if [[ -z "${GEOMESA_HBASE_CLASSPATH}" ]]; then
     HBASE_CP=$(hbase classpath)
   fi
 
+  # if there's a geomesa runtime jar in hbase, exclude it from the classpath
+  HBASE_CP="$(echo "$HBASE_CP" | sed 's/[^:]*geomesa-hbase-distributed-runtime[^:]*jar//')"
+
   GEOMESA_HBASE_CLASSPATH="${HBASE_CP}"
 fi
 

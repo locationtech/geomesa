@@ -12,6 +12,8 @@ import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 
+import com.typesafe.scalalogging.LazyLogging
+
 /**
  * Executor service that will grow up to the number of threads specified.
  *
@@ -26,7 +28,7 @@ import java.util.concurrent.locks.ReentrantLock
  *
  * @param maxThreads max threads to use at once
  */
-class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService {
+class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService with LazyLogging {
 
   @volatile
   private var available = maxThreads
@@ -86,10 +88,19 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService {
     lock.lock()
     try {
       if (available > 0) {
+        // note that we could fairly easily create a global thread limit by backing this with a different pool
+        try { CachedThreadPool.pool.execute(task) } catch {
+          case e: RejectedExecutionException =>
+            // we still need to execute the task to fulfill the executor API
+            logger.warn(
+              "CachedThreadPool rejected queued task (likely due to shutdown)," +
+                s"creating new single thread executor: $task: $e")
+            val pool = Executors.newSingleThreadExecutor()
+            pool.execute(task)
+            pool.shutdown()
+        }
         available -= 1
         tasks.add(task)
-        // note that we could fairly easily create a global thread limit by backing this with a different pool
-        CachedThreadPool.pool.execute(task)
       } else {
         queue.offer(task) // unbounded queue so should always succeed
       }
@@ -116,6 +127,8 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService {
         lock.unlock()
       }
     }
+
+    override def toString: String = s"TrackableFutureTask[$runnable]"
   }
 }
 

@@ -44,6 +44,8 @@ if [[ -n "${GEOMESA_EXTRA_CLASSPATHS}" ]]; then
 fi
 
 ACCUMULO_CP="$(findJars $ACCUMULO_LIB true true)"
+# if there's a geomesa runtime jar in accumulo, exclude it from the classpath
+ACCUMULO_CP="$(echo "$ACCUMULO_CP" | sed 's/[^:]*geomesa-accumulo-distributed-runtime[^:]*jar//')"
 
 # Get the hadoop jars, ignoring jars with names containing slf4j and test
 # Copied from accumulo classpath
