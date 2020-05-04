@@ -132,7 +132,7 @@ The following sample notebook shows how you can use Leaflet for data visualizati
 
 .. code-block:: scala
 
-   classpath.addRepository("http://download.osgeo.org/webdav/geotools")
+   classpath.addRepository("http:///repo.osgeo.org/repository/release")
    classpath.addRepository("http://central.maven.org/maven2")
    classpath.addRepository("https://repo.eclipse.org/content/repositories/geomesa-releases")
    classpath.addRepository("file:///home/username/.m2/repository")

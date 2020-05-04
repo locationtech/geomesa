@@ -38,7 +38,7 @@ in other repositories. To include GeoMesa in your project, add the following rep
       </repository>
       <repository>
         <id>osgeo</id>
-        <url>http://download.osgeo.org/webdav/geotools</url>
+        <url>http:///repo.osgeo.org/repository/release</url>
       </repository>
       <repository>
         <id>conjars.org</id>

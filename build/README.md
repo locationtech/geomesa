@@ -100,7 +100,7 @@ in other repositories. To include GeoMesa in your project, add the following rep
   </repository>
   <repository>
     <id>osgeo</id>
-    <url>https://download.osgeo.org/webdav/geotools</url>
+    <url>https:///repo.osgeo.org/repository/release</url>
   </repository>
   <repository>
     <id>confluent</id>
@@ -156,7 +156,7 @@ Similarly, integration with `sbt` is straightforward:
 resolvers ++= Seq(
   "eclipse-releases" at "https://repo.eclipse.org/content/groups/releases",
   "boundlessgeo" at "https://repo.boundlessgeo.com/main",
-  "osgeo" at "https://download.osgeo.org/webdav/geotools",
+  "osgeo" at "https:///repo.osgeo.org/repository/release",
   "confluent" at "https://packages.confluent.io/maven"
 )
 
