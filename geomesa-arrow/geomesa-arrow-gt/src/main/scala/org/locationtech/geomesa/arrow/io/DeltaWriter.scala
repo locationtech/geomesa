@@ -420,6 +420,7 @@ object DeltaWriter extends StrictLogging {
     val queue =
       new PriorityQueue[BatchMerger[Any]](if (reverse) { BatchMergerOrdering.reverse } else { BatchMergerOrdering })
 
+    // track our open vectors to close later
     val cleanup = ArrayBuffer.empty[SimpleFeatureVector]
     cleanup.sizeHint(threadedBatches.foldLeft(0)((sum, a) => sum + a.length))
 
@@ -579,15 +580,14 @@ object DeltaWriter extends StrictLogging {
     val results = createNewVectors
 
     // re-used queue, gets emptied after each dictionary field
-    // [(dictionary value, batch index, index of value in the batch)]
-    // TODO ordering reverse?
+    // batch state is tracked in the DictionaryMerger instances
     val queue = new PriorityQueue[DictionaryMerger](Ordering.ordered[DictionaryMerger])
 
     // merge each threaded delta vector into a single dictionary for that thread
-    // Array[(dictionary vector, transfers to result, batch delta mappings)]
-//    val allMerges: Array[(Array[ArrowAttributeReader], Array[TransferPair], Array[HashBiMap[Integer, Integer]])] = deltas.map { deltas =>
-    val allMerges: Array[DictionaryMerger] = deltas.mapWithIndex { case (deltas, batch) =>
+    var batch = -1
+    val allMerges: Array[DictionaryMerger] = deltas.map { deltas =>
       // deltas are threaded batches containing partial dictionary vectors
+      batch += 1
 
       // per-dictionary vectors for our final merged results for this threaded batch
       val dictionaries = createNewVectors
@@ -620,23 +620,9 @@ object DeltaWriter extends StrictLogging {
           offsets(j) += v.getValueCount // note: side-effect in map - update our offsets for the next batch
           v.vector.makeTransferPair(dictionaries(j).vector)
         }
-//        (vectors, transfers)
 
         DictionaryMerger(vectors, transfers, off, null, -1) // we don't care about the batch number here
       }
-
-      // set the count for each batch so we can offset mappings later
-      // batch[dictionary[count]]
-//      val offsets: Array[Array[Int]] = Array.tabulate(toMerge.length) { batch =>
-//        var i = 0
-//        val offset = Array.fill(dictionaries.length)(0)
-//        while (i < batch) {
-//          // set the count for each batch so we can offset mappings later
-//          toMerge(i).readers.foreachIndex { case (v, j) => offset(j) += v.getValueCount }
-//          i += 1
-//        }
-//        offset
-//      }
 
       val transfers = Array.ofDim[TransferPair](dictionaries.length)
       val mappings = Array.fill(dictionaries.length)(HashBiMap.create[Integer, Integer]())
@@ -654,10 +640,7 @@ object DeltaWriter extends StrictLogging {
 
         var count = 0
         while (!queue.isEmpty) {
-//          val (_, batch, j) = queue.dequeue()
           val merger = queue.remove()
-//          val (vectors, transfers) = toMerge(batch)
-//          transfers(i).copyValueSafe(j, count)
           merger.transfer(count)
           mappings(i).put(merger.offset, count)
           if (merger.advance()) {
@@ -672,7 +655,6 @@ object DeltaWriter extends StrictLogging {
         i += 1
       }
 
-//      (dictionaries, transfers, mappings)
       DictionaryMerger(dictionaries, transfers, Array.empty, mappings, batch)
     }
 
@@ -683,30 +665,20 @@ object DeltaWriter extends StrictLogging {
     val mappings = Array.fill(results.length)(Array.fill(allMerges.length)(new java.util.HashMap[Integer, Integer]()))
 
     results.foreachIndex { case (result, i) =>
-//      allMerges.foreachIndex { case ((vectors, _, _), batch) =>
       allMerges.foreach { merger =>
         if (merger.setCurrent(i)) {
           queue.add(merger)
         } else {
           merger.closeCurrent()
         }
-//        if (vectors(i).getValueCount > 0) {
-//          queue += ((vectors(i).apply(0), batch, 0))
-//        } else {
-//          CloseWithLogging(vectors(i).vector)
-//        }
       }
 
       var count = 0
       while (!queue.isEmpty) {
-//        val (value, batch, j) = queue.dequeue()
         val merger = queue.remove()
-//        val (vectors, transfers, mapping) = allMerges.apply(batch)
-
         // check for duplicates
         if (count == 0 || result.apply(count - 1) != merger.value) {
           merger.transfer(count)
-//          transfers(i).copyValueSafe(j, count)
           count += 1
         }
         // update the dictionary mapping from the per-thread to the global dictionary
@@ -802,6 +774,14 @@ object DeltaWriter extends StrictLogging {
     protected def load(): Unit
   }
 
+  /**
+   * Batch merger for dictionary-encoded values
+   *
+   * @param vector vector for this batch
+   * @param transfers transfer functions to the result batch
+   * @param sort vector holding the values being sorted on
+   * @param dictionaryMappings mappings from the batch to the global dictionary
+   */
   private class DictionaryBatchMerger(
       vector: SimpleFeatureVector,
       transfers: Seq[(Int, Int) => Unit],
@@ -819,6 +799,13 @@ object DeltaWriter extends StrictLogging {
     override def compare(that: DictionaryBatchMerger): Int = java.lang.Integer.compare(value, that.value)
   }
 
+  /**
+   * Merger for date values. We can avoid allocating a Date object and just compare the millisecond timestamp
+   *
+   * @param vector vector for this batch
+   * @param transfers transfer functions to the result batch
+   * @param sort vector holding the values being sorted on
+   */
   private class DateBatchMerger(
       vector: SimpleFeatureVector,
       transfers: Seq[(Int, Int) => Unit],
@@ -832,6 +819,13 @@ object DeltaWriter extends StrictLogging {
     override def compare(that: DateBatchMerger): Int = java.lang.Long.compare(value, that.value)
   }
 
+  /**
+   * Generic batch merger for non-specialized attribute types
+   *
+   * @param vector vector for this batch
+   * @param transfers transfer functions to the result batch
+   * @param sort vector holding the values being sorted on
+   */
   private class AttributeBatchMerger(
       vector: SimpleFeatureVector,
       transfers: Seq[(Int, Int) => Unit],
@@ -840,7 +834,7 @@ object DeltaWriter extends StrictLogging {
 
     private var value: Comparable[Any] = sort.apply(0).asInstanceOf[Comparable[Any]]
 
-    override protected def load(): Unit = sort.apply(index).asInstanceOf[Comparable[Any]]
+    override protected def load(): Unit = value = sort.apply(index).asInstanceOf[Comparable[Any]]
 
     override def compare(that: AttributeBatchMerger): Int = SimpleFeatureOrdering.nullCompare(value, that.value)
   }
