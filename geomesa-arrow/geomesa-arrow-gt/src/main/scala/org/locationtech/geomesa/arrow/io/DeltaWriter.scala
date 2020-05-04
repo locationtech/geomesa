@@ -221,12 +221,6 @@ object DeltaWriter extends StrictLogging {
       SimpleFeatureOrdering.nullCompare(x.asInstanceOf[Comparable[Any]], y)
   }
 
-  // note: ordering is flipped as higher values come off the queue first
-//  private val queueOrdering = new Ordering[(AnyRef, Int, Int)] {
-//    override def compare(x: (AnyRef, Int, Int), y: (AnyRef, Int, Int)): Int =
-//      SimpleFeatureOrdering.nullCompare(y._1.asInstanceOf[Comparable[Any]], x._1)
-//  }
-
   /**
    * Reduce function for delta records created by DeltaWriter
    *

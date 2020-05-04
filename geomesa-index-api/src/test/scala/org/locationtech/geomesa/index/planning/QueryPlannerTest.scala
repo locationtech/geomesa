@@ -108,20 +108,18 @@ class QueryPlannerTest extends Specification {
 
     "handle transforms appropriately" >> {
       import scala.collection.JavaConversions._
-      //val sft = SimpleFeatureTypes.createType("query-planner", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
 
-      val (projectedTransforms, projectedSFT) = QueryPlanner.buildTransformSFT(sft, Seq("name", "geom"))
+      val (_, projectedSFT) = QueryPlanner.buildTransformSFT(sft, Seq("name", "geom"))
       projectedSFT.getAttributeCount mustEqual(2)
       projectedSFT.getAttributeDescriptors.map(_.getLocalName) mustEqual Seq("name", "geom")
 
-      val (renamingTransforms, renamingSFT) = QueryPlanner.buildTransformSFT(sft, Seq("name", "geom", "the_geom=geom"))
+      val (_, renamingSFT) = QueryPlanner.buildTransformSFT(sft, Seq("name", "geom", "the_geom=geom"))
       renamingSFT.getAttributeCount mustEqual(3)
       renamingSFT.getAttributeDescriptors.map(_.getLocalName) mustEqual Seq("name", "geom", "the_geom")
 
-      val (expressionTransforms, expressionSFT) = QueryPlanner.buildTransformSFT(sft, Seq("name", "geom", "age=age+6"))
+      val (_, expressionSFT) = QueryPlanner.buildTransformSFT(sft, Seq("name", "geom", "age=age+6"))
       expressionSFT.getAttributeCount mustEqual(3)
       expressionSFT.getAttributeDescriptors.map(_.getLocalName) mustEqual Seq("name", "geom", "age")
-
 
       ok
     }
