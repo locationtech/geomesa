@@ -132,9 +132,9 @@ The following sample notebook shows how you can use Leaflet for data visualizati
 
 .. code-block:: scala
 
-   classpath.addRepository("http://download.osgeo.org/webdav/geotools")
-   classpath.addRepository("http://central.maven.org/maven2")
-   classpath.addRepository("https://repo.locationtech.org/content/repositories/geomesa-releases")
+   classpath.addRepository("https:///repo.osgeo.org/repository/release")
+   classpath.addRepository("https://central.maven.org/maven2")
+   classpath.addRepository("https://repo.eclipse.org/content/repositories/geomesa-releases")
    classpath.addRepository("file:///home/username/.m2/repository")
    classpath.add("org.locationtech.jts" % "jts" % "1.13")
    classpath.add("org.locationtech.geomesa" % "geomesa-accumulo-datastore" % "1.3.0")
