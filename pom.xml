@@ -601,6 +601,13 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- Managing version of Hatbox so that 2.1.x will build.-->
+            <dependency>
+                <groupId>net.sourceforge.hatbox</groupId>
+                <artifactId>hatbox</artifactId>
+                <version>1.0.b10</version>
+                <scope>test</scope>
+            </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-imageio-ext-gdal</artifactId>
