@@ -246,14 +246,14 @@
             </build>-->
             <distributionManagement>
                 <repository>
-                    <id>repo.locationtech.org</id>
+                    <id>repo.eclipse.org</id>
                     <name>GeoMesa Repository - Releases</name>
-                    <url>https://repo.locationtech.org/content/repositories/geomesa-releases/</url>
+                    <url>https://repo.eclipse.org/content/repositories/geomesa-releases/</url>
                 </repository>
                 <snapshotRepository>
-                    <id>repo.locationtech.org</id>
+                    <id>repo.eclipse.org</id>
                     <name>GeoMesa Repository - Snapshots</name>
-                    <url>https://repo.locationtech.org/content/repositories/geomesa-snapshots/</url>
+                    <url>https://repo.eclipse.org/content/repositories/geomesa-snapshots/</url>
                 </snapshotRepository>
             </distributionManagement>
         </profile>
@@ -2814,14 +2814,14 @@
         </repository>
         <repository>
             <id>locationtech-releases</id>
-            <url>https://repo.locationtech.org/content/groups/releases</url>
+            <url>https://repo.eclipse.org/content/groups/releases</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
         </repository>
         <repository>
             <id>locationtech-snapshots</id>
-            <url>https://repo.locationtech.org/content/groups/snapshots</url>
+            <url>https://repo.eclipse.org/content/groups/snapshots</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
