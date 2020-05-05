@@ -117,7 +117,7 @@ trait JsonPathPropertyAccessor extends PropertyAccessor {
   }
 
   private def parse(json: String, path: Seq[PathElement]): AnyRef = {
-    val list = JsonPath.using(pathConfig).parse(json).read[java.util.List[AnyRef]](JsonPathParser.print(path.tail))
+    val list = JsonPath.using(pathConfig).parse(json).read[java.util.List[AnyRef]](JsonPathParser.print(path))
     if (list == null || list.isEmpty) { null } else if (list.size == 1) { list.get(0) } else { list }
   }
 }
@@ -136,11 +136,9 @@ object JsonPathPropertyAccessor extends JsonPathPropertyAccessor {
         xpath: String,
         target: Class[_],
         hints: Hints): PropertyAccessor = {
-      if (xpath == null || !xpath.startsWith("$.")) {
-        null
-      } else if (classOf[SimpleFeature].isAssignableFrom(typ)) {
-        JsonPathPropertyAccessor
-      } else if (classOf[SimpleFeatureType].isAssignableFrom(typ)) {
+      if (xpath != null &&
+          xpath.startsWith("$.") &&
+          (classOf[SimpleFeature].isAssignableFrom(typ) || classOf[SimpleFeatureType].isAssignableFrom(typ))) {
         JsonPathPropertyAccessor
       } else {
         null
