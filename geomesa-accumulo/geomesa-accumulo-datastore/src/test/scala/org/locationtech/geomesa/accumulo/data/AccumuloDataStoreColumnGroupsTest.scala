@@ -26,17 +26,16 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints.{BIN_BATCH_SIZE, BIN_TRACK}
 import org.locationtech.geomesa.index.conf.{ColumnGroups, QueryHints}
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
-import org.locationtech.geomesa.index.planning.{QueryPlanner, Transforms}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder.EncodedValues
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.Transform.Transforms
+import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, Transform}
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.locationtech.jts.geom.{Envelope, Point}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.opengis.filter.expression.Expression
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -56,10 +55,11 @@ class AccumuloDataStoreColumnGroupsTest extends Specification with TestWithFeatu
   }
 
   val transformCache = Caffeine.newBuilder().build(
-    new CacheLoader[Array[String], (SimpleFeatureType, Seq[Expression])]() {
-      override def load(transform: Array[String]): (SimpleFeatureType, Seq[Expression]) = {
-        val (tdefs, tsft) = QueryPlanner.buildTransformSFT(sft, transform)
-        (tsft, Transforms.definitions(tdefs).map(_.expression))
+    new CacheLoader[Array[String], (SimpleFeatureType, Seq[Transform])]() {
+      override def load(transform: Array[String]): (SimpleFeatureType, Seq[Transform]) = {
+        val definitions = Transforms.apply(sft, transform)
+        val schema = Transforms.schema(sft, definitions)
+        (schema, definitions)
       }
     }
   )

@@ -19,7 +19,7 @@ import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFe
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{WritableFeature, _}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, DataStoreQueryConfig}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
 import org.locationtech.geomesa.index.stats._
@@ -27,6 +27,7 @@ import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -127,9 +128,7 @@ object TestGeoMesaDataStore {
 
     override type Results = SimpleFeature
 
-    private val attributes = transform.map { case (tdefs, tsft) =>
-      (tsft, TransformSimpleFeature.attributes(sft, tdefs))
-    }
+    private val attributes = transform.map { case (tdefs, tsft) => (tsft, Transforms(sft, tdefs).toArray) }
 
     override val resultsToFeatures: ResultsToFeatures[SimpleFeature] =
       ResultsToFeatures.identity(transform.map(_._2).getOrElse(sft))

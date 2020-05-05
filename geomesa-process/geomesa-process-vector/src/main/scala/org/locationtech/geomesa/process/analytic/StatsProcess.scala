@@ -17,10 +17,10 @@ import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFea
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureCollection
 import org.locationtech.geomesa.index.iterators.StatsScan
-import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.process.{FeatureResult, GeoMesaProcess}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.SimpleFeature
@@ -74,10 +74,11 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
 
   private val origSft = features.getSchema
 
-  private lazy val (transforms, transformSFT) = QueryPlanner.buildTransformSFT(origSft, properties)
-  private lazy val transformSF: TransformSimpleFeature = TransformSimpleFeature(origSft, transformSFT, transforms)
+  private lazy val transformDefinitions = Transforms(origSft, properties)
+  private lazy val transformSft = Transforms.schema(origSft, transformDefinitions)
+  private lazy val transformSf = TransformSimpleFeature(transformSft, transformDefinitions)
 
-  private lazy val statSft = if (properties == null) { origSft } else { transformSFT }
+  private lazy val statSft = if (properties == null) { origSft } else { transformSft }
 
   private lazy val stat: Stat = Stat(statSft, statString)
 
@@ -88,8 +89,8 @@ class StatsVisitor(features: SimpleFeatureCollection, statString: String, encode
     val sf = feature.asInstanceOf[SimpleFeature]
     if (properties != null) {
       // There are transforms!
-      transformSF.setFeature(sf)
-      stat.observe(transformSF)
+      transformSf.setFeature(sf)
+      stat.observe(transformSf)
     } else {
       stat.observe(sf)
     }

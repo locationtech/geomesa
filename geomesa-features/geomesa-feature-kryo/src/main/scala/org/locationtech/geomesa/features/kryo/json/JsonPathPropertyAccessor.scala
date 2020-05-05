@@ -17,10 +17,9 @@ import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessorFactory
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.features.kryo.json.JsonPathParser.{PathAttribute, PathAttributeWildCard, PathDeepScan, PathElement}
-import org.locationtech.geomesa.features.kryo.json.JsonPathPropertyAccessor.pathFor
+import org.locationtech.geomesa.features.kryo.json.JsonPathPropertyAccessor.{pathConfig, pathFor}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.control.NonFatal
@@ -35,10 +34,9 @@ import scala.util.control.NonFatal
   */
 trait JsonPathPropertyAccessor extends PropertyAccessor {
 
-  import scala.collection.JavaConverters._
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-  protected def getFeatureType(obj: AnyRef): SimpleFeatureType
-  protected def getValue(descriptor: AttributeDescriptor, attribute: Int, path: Seq[PathElement], obj: AnyRef): Any
+  import scala.collection.JavaConverters._
 
   override def canHandle(obj: AnyRef, xpath: String, target: Class[_]): Boolean = {
     val path = try { pathFor(xpath) } catch { case NonFatal(_) => Seq.empty }
@@ -46,35 +44,52 @@ trait JsonPathPropertyAccessor extends PropertyAccessor {
     if (path.isEmpty) { false } else {
       path.head match {
         case PathAttribute(name: String, _) =>
-          val descriptor = getFeatureType(obj).getDescriptor(name)
+          val descriptor = obj match {
+            case s: SimpleFeature => s.getFeatureType.getDescriptor(name)
+            case s: SimpleFeatureType => s.getDescriptor(name)
+            case _ => null
+          }
           descriptor != null && descriptor.getType.getBinding == classOf[String]
+
         case PathAttributeWildCard | PathDeepScan =>
-          getFeatureType(obj).getAttributeDescriptors.asScala.exists(_.getType.getBinding == classOf[String])
+          val sft = obj match {
+            case s: SimpleFeature => s.getFeatureType
+            case s: SimpleFeatureType => s
+            case _ => null
+          }
+          sft != null && sft.getAttributeDescriptors.asScala.exists(_.getType.getBinding == classOf[String])
+
         case _ => false
       }
     }
   }
 
   override def get[T](obj: AnyRef, xpath: String, target: Class[T]): T = {
-    import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
     val path = pathFor(xpath)
-    val sft = getFeatureType(obj)
 
-    val attribute = path.head match {
-      case PathAttribute(name: String, _) => sft.indexOf(name)
-      case _ =>
-        // we know it will be a wildcard due to canHandle
-        // prioritize fields marked json over generic strings
-        // note: will only match first json attribute if more than 1
-        import scala.collection.JavaConversions._
-        val i = sft.getAttributeDescriptors.indexWhere(_.isJson())
-        if (i != -1) { i } else {
-          sft.getAttributeDescriptors.indexWhere(_.getType.getBinding == classOf[String])
+    val result = obj match {
+      case s: KryoBufferSimpleFeature =>
+        val i = attribute(s.getFeatureType, path.head)
+        if (s.getFeatureType.getDescriptor(i).isJson()) {
+          s.getInput(i).map(KryoJsonSerialization.deserialize(_, path.tail)).orNull
+        } else {
+          parse(s.getAttribute(i).asInstanceOf[String], path.tail)
         }
-    }
 
-    val result = getValue(sft.getDescriptor(attribute), attribute, path.tail, obj)
+      case s: SimpleFeature =>
+        parse(s.getAttribute(attribute(s.getFeatureType, path.head)).asInstanceOf[String], path.tail)
+
+      case s: SimpleFeatureType =>
+        // remove the json flag, so that transform serializations don't try to serialize
+        // json path results that aren't valid json objects or arrays
+        val descriptor = s.getDescriptor(attribute(s, path.head))
+        val builder = new AttributeTypeBuilder()
+        builder.init(descriptor)
+        val result = builder.buildDescriptor(descriptor.getLocalName)
+        result.getUserData.remove(SimpleFeatureTypes.AttributeOptions.OptJson)
+        result
+    }
 
     if (target == null) {
       result.asInstanceOf[T]
@@ -84,11 +99,30 @@ trait JsonPathPropertyAccessor extends PropertyAccessor {
   }
 
   override def set[T](obj: Any, xpath: String, value: T, target: Class[T]): Unit = throw new NotImplementedError()
+
+  private def attribute(sft: SimpleFeatureType, head: PathElement): Int = {
+    head match {
+      case PathAttribute(name: String, _) =>
+        sft.indexOf(name)
+
+      case _ =>
+        // we know it will be a wildcard due to canHandle
+        // prioritize fields marked json over generic strings
+        // note: will only match first json attribute if more than 1
+        val i = sft.getAttributeDescriptors.asScala.indexWhere(_.isJson())
+        if (i != -1) { i } else {
+          sft.getAttributeDescriptors.asScala.indexWhere(_.getType.getBinding == classOf[String])
+        }
+    }
+  }
+
+  private def parse(json: String, path: Seq[PathElement]): AnyRef = {
+    val list = JsonPath.using(pathConfig).parse(json).read[java.util.List[AnyRef]](JsonPathParser.print(path))
+    if (list == null || list.isEmpty) { null } else if (list.size == 1) { list.get(0) } else { list }
+  }
 }
 
-object JsonPathPropertyAccessor {
-
-  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+object JsonPathPropertyAccessor extends JsonPathPropertyAccessor {
 
   // cached references to parsed json path expressions
   private val paths = new java.util.concurrent.ConcurrentHashMap[String, SoftReference[Seq[PathElement]]]()
@@ -97,63 +131,18 @@ object JsonPathPropertyAccessor {
 
   class JsonPropertyAccessorFactory extends PropertyAccessorFactory {
 
-    override def createPropertyAccessor(typ: Class[_],
-                                        xpath: String,
-                                        target: Class[_],
-                                        hints: Hints): PropertyAccessor = {
-      if (xpath == null || !xpath.startsWith("$.")) {
-        null
-      } else if (classOf[SimpleFeature].isAssignableFrom(typ)) {
-        JsonPathFeatureAccessor
-      } else if (classOf[SimpleFeatureType].isAssignableFrom(typ)) {
-        JsonPathTypeAccessor
+    override def createPropertyAccessor(
+        typ: Class[_],
+        xpath: String,
+        target: Class[_],
+        hints: Hints): PropertyAccessor = {
+      if (xpath != null &&
+          xpath.startsWith("$.") &&
+          (classOf[SimpleFeature].isAssignableFrom(typ) || classOf[SimpleFeatureType].isAssignableFrom(typ))) {
+        JsonPathPropertyAccessor
       } else {
         null
       }
-    }
-  }
-
-  object JsonPathFeatureAccessor extends JsonPathPropertyAccessor {
-
-    // note: we know object is a simple feature due to checks in factory.createPropertyAccessor
-
-    override protected def getFeatureType(obj: AnyRef): SimpleFeatureType =
-      obj.asInstanceOf[SimpleFeature].getFeatureType
-
-    override protected def getValue(
-        descriptor: AttributeDescriptor,
-        attribute: Int,
-        path: Seq[PathElement],
-        obj: AnyRef): Any = {
-      obj match {
-        case s: KryoBufferSimpleFeature if descriptor.isJson() =>
-          s.getInput(attribute).map(KryoJsonSerialization.deserialize(_, path)).orNull
-
-        case s: SimpleFeature =>
-          val json = s.getAttribute(attribute).asInstanceOf[String]
-          val list = JsonPath.using(pathConfig).parse(json).read[java.util.List[AnyRef]](JsonPathParser.print(path))
-          if (list == null || list.isEmpty) { null } else if (list.size == 1) { list.get(0) } else { list }
-      }
-    }
-  }
-
-  object JsonPathTypeAccessor extends JsonPathPropertyAccessor {
-
-    // note: we know object is a simple feature type due to checks in factory.createPropertyAccessor
-
-    override protected def getFeatureType(obj: AnyRef): SimpleFeatureType = obj.asInstanceOf[SimpleFeatureType]
-
-    override protected def getValue(descriptor: AttributeDescriptor,
-                                    attribute: Int,
-                                    path: Seq[PathElement],
-                                    obj: AnyRef): Any = {
-      // remove the json flag, so that transform serializations don't try to serialize
-      // json path results that aren't valid json objects or arrays
-      val builder = new AttributeTypeBuilder()
-      builder.init(descriptor)
-      val result = builder.buildDescriptor(descriptor.getLocalName)
-      result.getUserData.remove(SimpleFeatureTypes.AttributeOptions.OptJson)
-      result
     }
   }
 

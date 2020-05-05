@@ -16,16 +16,18 @@ import org.geotools.feature.simple.SimpleFeatureTypeBuilder
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureSerializer}
+import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
-import org.locationtech.geomesa.index.planning.Transforms
 import org.locationtech.geomesa.utils.cache.CacheKeyGenerator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.Transform.Transforms
+import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, Transform}
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 class ColumnGroups {
 
+  import org.locationtech.geomesa.filter.RichTransform.RichTransform
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -95,13 +97,13 @@ class ColumnGroups {
     */
   def group(sft: SimpleFeatureType, transform: Option[String], ecql: Option[Filter]): (Array[Byte], SimpleFeatureType) = {
     val groups = apply(sft)
-    transform.map(Transforms.definitions) match {
+    transform.map(Transforms(sft, _)) match {
       case None => groups.last
       case Some(definitions) =>
         val iter = groups.iterator
         var group = iter.next
         // last group has all the columns, so just return the last one if nothing else matches
-        while (iter.hasNext && !Transforms.supports(group._2, definitions, ecql)) {
+        while (iter.hasNext && !supports(group._2, definitions, ecql)) {
           group = iter.next
         }
         group
@@ -125,6 +127,20 @@ class ColumnGroups {
       throw new IllegalArgumentException("Column groups are not supported when using attribute-level visibility")
     }
   }
+
+  /**
+   * Does the simple feature type contain the fields required to evaluate the transform and filter
+   *
+   * @param sft simple feature type
+   * @param transforms transform definitions
+   * @param filter filter
+   * @return
+   */
+  private def supports(sft: SimpleFeatureType, transforms: Seq[Transform], filter: Option[Filter]): Boolean = {
+    filter.forall(FilterHelper.propertyNames(_, sft).forall(sft.indexOf(_) != -1)) &&
+        transforms.flatMap(_.properties).forall(sft.indexOf(_) != -1)
+  }
+
 }
 
 object ColumnGroups {

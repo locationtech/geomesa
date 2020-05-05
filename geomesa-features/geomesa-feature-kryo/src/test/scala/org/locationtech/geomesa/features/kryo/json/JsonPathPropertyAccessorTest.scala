@@ -14,7 +14,6 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.kryo.json.JsonPathPropertyAccessor.JsonPathFeatureAccessor
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.specs2.mutable.Specification
@@ -34,7 +33,7 @@ class JsonPathPropertyAccessorTest extends Specification {
       val accessors =
         PropertyAccessors.findPropertyAccessors(new ScalaSimpleFeature(sft, ""), "$.json.foo", classOf[String], null)
       accessors must not(beNull)
-      accessors.asScala must contain(JsonPathFeatureAccessor)
+      accessors.asScala must contain(JsonPathPropertyAccessor)
     }
 
     "access json values in simple features" in {

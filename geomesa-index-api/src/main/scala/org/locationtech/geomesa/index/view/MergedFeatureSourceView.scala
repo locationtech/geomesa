@@ -102,7 +102,7 @@ class MergedFeatureSourceView(
       // copy the query so that we don't set any hints for transforms, etc
       val copy = new Query(query)
       copy.setHints(new Hints(query.getHints))
-      QueryPlanner.setQueryTransforms(copy, sft)
+      QueryPlanner.setQueryTransforms(sft, copy)
       ds.runner.getReturnSft(sft, copy.getHints)
     }
 

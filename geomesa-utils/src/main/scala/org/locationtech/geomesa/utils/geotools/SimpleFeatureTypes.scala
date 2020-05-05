@@ -311,19 +311,12 @@ object SimpleFeatureTypes {
         var geom: GeometryDescriptor = null
         var i = 0
         while (i < sft.getAttributeCount) {
-          sft.getDescriptor(i) match {
-            case gd: GeometryDescriptor =>
-              val descriptor = new ImmutableGeometryDescriptor(gd.getType, gd.getName, gd.getMinOccurs,
-                gd.getMaxOccurs, gd.isNillable, gd.getDefaultValue, gd.getUserData)
-              if (gd == sft.getGeometryDescriptor) {
-                geom = descriptor
-              }
-              schema.add(descriptor)
-
-            case ad =>
-              schema.add(new ImmutableAttributeDescriptor(ad.getType, ad.getName, ad.getMinOccurs, ad.getMaxOccurs,
-                ad.isNillable, ad.getDefaultValue, ad.getUserData))
+          val descriptor = sft.getDescriptor(i)
+          val im = immutable(descriptor)
+          if (descriptor == sft.getGeometryDescriptor) {
+            geom = im.asInstanceOf[GeometryDescriptor]
           }
+          schema.add(im)
           i += 1
         }
         val userData = Option(extraData).filterNot(_.isEmpty).map { data =>
@@ -335,6 +328,20 @@ object SimpleFeatureTypes {
 
         new ImmutableSimpleFeatureType(sft.getName, schema, geom, sft.isAbstract, sft.getRestrictions, sft.getSuper,
           sft.getDescription, userData.getOrElse(sft.getUserData))
+    }
+  }
+
+  def immutable(descriptor: AttributeDescriptor): AttributeDescriptor = {
+    descriptor match {
+      case d: ImmutableAttributeDescriptor => d
+      case d: ImmutableGeometryDescriptor => d
+      case d: GeometryDescriptor =>
+        new ImmutableGeometryDescriptor(
+          d.getType, d.getName, d.getMinOccurs, d.getMaxOccurs, d.isNillable, d.getDefaultValue, d.getUserData)
+      case d =>
+        new ImmutableAttributeDescriptor(
+          d.getType, d.getName, d.getMinOccurs, d.getMaxOccurs, d.isNillable, d.getDefaultValue, d.getUserData)
+      case null => throw new NullPointerException("Descriptor is null")
     }
   }
 

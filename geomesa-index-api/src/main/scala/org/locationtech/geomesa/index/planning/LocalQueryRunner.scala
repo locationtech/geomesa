@@ -421,12 +421,13 @@ object LocalQueryRunner {
       transform: SimpleFeatureType,
       definitions: String,
       sort: Option[Seq[(String, Boolean)]]): CloseableIterator[SimpleFeature] = {
-    val attributes = TransformSimpleFeature.attributes(sft, definitions)
+    val transformSf = TransformSimpleFeature(sft, transform, definitions)
 
     def setValues(from: SimpleFeature, to: ScalaSimpleFeature): ScalaSimpleFeature = {
+      transformSf.setFeature(from)
       var i = 0
-      while (i < attributes.length) {
-        to.setAttributeNoConvert(i, attributes(i).apply(from))
+      while (i < transform.getAttributeCount) {
+        to.setAttributeNoConvert(i, transformSf.getAttribute(i))
         i += 1
       }
       to.setId(from.getID)

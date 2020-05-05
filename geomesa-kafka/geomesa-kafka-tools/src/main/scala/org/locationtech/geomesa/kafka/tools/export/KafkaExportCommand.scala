@@ -22,6 +22,7 @@ import org.locationtech.geomesa.tools.export.ExportCommand
 import org.locationtech.geomesa.tools.export.ExportCommand.ExportParams
 import org.locationtech.geomesa.tools.export.formats.FeatureExporter
 import org.locationtech.geomesa.tools.{Command, RequiredTypeNameParam}
+import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -127,7 +128,7 @@ object KafkaExportCommand {
                               queue: BlockingQueue[SimpleFeature]) extends FeatureListener {
 
     private val attributes = transform.map { case (tdefs, tsft) =>
-      (tsft, TransformSimpleFeature.attributes(sft, tdefs))
+      (tsft, Transforms(sft, tdefs).toArray)
     }
 
     override def changed(event: FeatureEvent): Unit = {

@@ -10,8 +10,6 @@ package org.locationtech.geomesa.features.kryo
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import org.geotools.geometry.jts.ReferencedEnvelope
-import org.geotools.process.vector.TransformProcess
-import org.geotools.process.vector.TransformProcess.Definition
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature.{KryoBufferV3, _}
@@ -19,13 +17,13 @@ import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization.Kr
 import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureDeserializationV2}
 import org.locationtech.geomesa.features.kryo.serialization.KryoUserDataSerialization
 import org.locationtech.geomesa.utils.collection.IntBitSet
-import org.locationtech.geomesa.utils.geotools.ImmutableFeatureId
+import org.locationtech.geomesa.utils.geotools.Transform.{PropertyTransform, RenameTransform, Transforms}
+import org.locationtech.geomesa.utils.geotools.{ImmutableFeatureId, Transform}
 import org.locationtech.geomesa.utils.kryo.NonMutatingInput
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.`type`.{AttributeDescriptor, Name}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.feature.{GeometryAttribute, Property}
-import org.opengis.filter.expression.PropertyName
 import org.opengis.filter.identity.FeatureId
 import org.opengis.geometry.BoundingBox
 
@@ -55,7 +53,7 @@ class KryoBufferSimpleFeature(serializer: KryoFeatureDeserialization) extends Si
 
   private var transforms: String = _
   private var transformSchema: SimpleFeatureType = _
-  private var transformDefinitions: java.util.List[Definition] = _
+  private var transformDefinitions: Array[Transform] = _
 
   private var userData: java.util.Map[AnyRef, AnyRef] = _
 
@@ -89,7 +87,7 @@ class KryoBufferSimpleFeature(serializer: KryoFeatureDeserialization) extends Si
   def setTransforms(transforms: String, transformSchema: SimpleFeatureType): Unit = {
     this.transforms = transforms
     this.transformSchema = transformSchema
-    this.transformDefinitions = TransformProcess.toDefinition(transforms)
+    this.transformDefinitions = Transforms(serializer.out, transforms).toArray
     delegateV3.setTransforms(transformSchema, transformDefinitions)
     if (seenV2) {
       delegateV2.setTransforms(transformSchema, transformDefinitions)
@@ -268,7 +266,7 @@ object KryoBufferSimpleFeature {
       * @param schema schema that results from applying the transform
       * @param transforms transform definitions
       */
-    def setTransforms(schema: SimpleFeatureType, transforms: java.util.List[Definition]): Unit
+    def setTransforms(schema: SimpleFeatureType, transforms: Array[Transform]): Unit
 
     /**
       * Deserialize the feature ID (assuming options.withId)
@@ -336,12 +334,11 @@ object KryoBufferSimpleFeature {
 
     override def reset(): Unit = metadata = Metadata(input) // reads count, size, nulls, etc
 
-    override def setTransforms(schema: SimpleFeatureType, transforms: java.util.List[Definition]): Unit = {
-      val indices = Array.tabulate(transforms.size()) { i =>
-        transforms.get(i).expression match {
-          case p: PropertyName => serializer.out.indexOf(p.getPropertyName)
-          case _ => -1
-        }
+    override def setTransforms(schema: SimpleFeatureType, transforms: Array[Transform]): Unit = {
+      val indices = transforms.map {
+        case t: PropertyTransform => t.i
+        case t: RenameTransform => t.i
+        case _ => -1
       }
       if (indices.contains(-1)) {
         transformer = new ReserializeTransformer(schema, transforms, serializer.options)
@@ -499,12 +496,11 @@ object KryoBufferSimpleFeature {
       userDataOffset = input.position()
     }
 
-    override def setTransforms(schema: SimpleFeatureType, transforms: java.util.List[Definition]): Unit = {
-      val indices = Array.tabulate(transforms.size()) { i =>
-        transforms.get(i).expression match {
-          case p: PropertyName => serializer.out.indexOf(p.getPropertyName)
-          case _ => -1
-        }
+    override def setTransforms(schema: SimpleFeatureType, transforms: Array[Transform]): Unit = {
+      val indices = transforms.map {
+        case t: PropertyTransform => t.i
+        case t: RenameTransform => t.i
+        case _ => -1
       }
 
       // transforms by evaluating the transform expressions and then serializing the resulting feature
@@ -606,7 +602,7 @@ object KryoBufferSimpleFeature {
     */
   private class ReserializeTransformer(
       schema: SimpleFeatureType,
-      transforms: java.util.List[Definition],
+      transforms: Array[Transform],
       options: Set[SerializationOption]
     ) extends Transformer {
 
@@ -616,8 +612,8 @@ object KryoBufferSimpleFeature {
     override def transform(original: SimpleFeature): Array[Byte] = {
       sf.setId(original.getID)
       var i = 0
-      while (i < transforms.size) {
-        sf.setAttribute(i, transforms.get(i).expression.evaluate(original))
+      while (i < transforms.length) {
+        sf.setAttribute(i, transforms(i).evaluate(original))
         i += 1
       }
       serializer.serialize(sf)

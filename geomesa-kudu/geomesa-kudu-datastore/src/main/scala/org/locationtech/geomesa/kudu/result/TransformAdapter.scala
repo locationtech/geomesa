@@ -12,8 +12,6 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import org.apache.kudu.client.RowResult
-import org.geotools.data.DataUtilities
-import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.kudu.result.KuduResultAdapter.KuduResultAdapterSerialization
 import org.locationtech.geomesa.kudu.schema.KuduIndexColumnAdapter.{FeatureIdAdapter, VisibilityAdapter}
@@ -21,9 +19,9 @@ import org.locationtech.geomesa.kudu.schema.{KuduSimpleFeatureSchema, RowResultS
 import org.locationtech.geomesa.security.{SecurityUtils, VisibilityEvaluator}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.io.ByteBuffers.ExpandingByteBuffer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.expression.{Expression, PropertyName}
 
 /**
   * Converts rows into simple features, with transforming
@@ -38,13 +36,10 @@ case class TransformAdapter(sft: SimpleFeatureType,
                             tsft: SimpleFeatureType,
                             tdefs: String) extends KuduResultAdapter {
 
-  import scala.collection.JavaConverters._
+  import org.locationtech.geomesa.filter.RichTransform.RichTransform
 
   // determine all the attributes that we need to be able to evaluate the transform
-  private val attributes = TransformProcess.toDefinition(tdefs).asScala.map(_.expression).flatMap {
-    case p: PropertyName => Seq(p.getPropertyName)
-    case e: Expression   => DataUtilities.attributeNames(e, sft)
-  }.distinct
+  private val attributes = Transforms(sft, tdefs).flatMap(_.properties).distinct
 
   private val schema = KuduSimpleFeatureSchema(sft)
   private val feature = new RowResultSimpleFeature(sft, FeatureIdAdapter, schema.adapters)

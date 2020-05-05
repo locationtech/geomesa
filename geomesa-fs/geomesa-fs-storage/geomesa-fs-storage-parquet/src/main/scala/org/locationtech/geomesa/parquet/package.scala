@@ -10,16 +10,12 @@ package org.locationtech.geomesa
 
 import org.apache.parquet.filter2.predicate.FilterPredicate
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.process.vector.TransformProcess
 import org.locationtech.geomesa.filter.FilterHelper
-import org.locationtech.geomesa.parquet.FilterConverter.reduce
+import org.locationtech.geomesa.utils.geotools.Transform.{ExpressionTransform, PropertyTransform, RenameTransform, Transforms}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
-import org.opengis.filter.expression.{Expression, PropertyName}
 
 package object parquet {
-
-  import scala.collection.JavaConverters._
 
   /**
     * Schema to read and schema to return.
@@ -42,6 +38,8 @@ package object parquet {
 
   object ReadSchema {
 
+    import org.locationtech.geomesa.filter.RichTransform.RichTransform
+
     /**
       * Calculates the read schema
       *
@@ -57,15 +55,13 @@ package object parquet {
       transform match {
         case None => ReadSchema(sft, None)
         case Some((tdefs, _)) =>
-          var secondary = false
-          // note: update `secondary` in our .flatMap to avoid a second pass over the expressions
-          val transformCols = {
-            val all = TransformProcess.toDefinition(tdefs).asScala.map(_.expression).flatMap {
-              case p: PropertyName => Seq(p.getPropertyName)
-              case e: Expression => secondary = true; FilterHelper.propertyNames(e, sft)
-            }
-            all.distinct
+          val definitions = Transforms(sft, tdefs)
+          val secondary = definitions.exists {
+            case _: PropertyTransform   => false
+            case _: RenameTransform     => false
+            case _: ExpressionTransform => true
           }
+          val transformCols = definitions.flatMap(_.properties).distinct
           val filterCols = filter match {
             case None => Seq.empty
             case Some(f) => FilterHelper.propertyNames(f, sft).filterNot(transformCols.contains)

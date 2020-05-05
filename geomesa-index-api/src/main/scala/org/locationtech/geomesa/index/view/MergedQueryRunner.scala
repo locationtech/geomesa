@@ -81,12 +81,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
         Option(query.getSortBy).filterNot(_.isEmpty) match {
           case None => SelfClosingIterator(readers.iterator).flatMap(SelfClosingIterator(_))
           case Some(sort) =>
-            val sortSft = {
-              val copy = new Query(query)
-              copy.setHints(new Hints(hints))
-              QueryPlanner.setQueryTransforms(copy, sft)
-              copy.getHints.getTransformSchema.getOrElse(sft)
-            }
+            val sortSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
             // the delegate stores should sort their results, so we can sort merge them
             new SortedMergeIterator(readers.map(SelfClosingIterator(_)))(SimpleFeatureOrdering(sortSft, sort))
         }
@@ -124,13 +119,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
     // handle any sorting here
     QueryPlanner.setQuerySort(sft, query)
 
-    val arrowSft = {
-      // determine transforms but don't modify the original query and hints
-      val copy = new Query(query)
-      copy.setHints(new Hints(hints))
-      QueryPlanner.setQueryTransforms(copy, sft)
-      copy.getHints.getTransformSchema.getOrElse(sft)
-    }
+    val arrowSft = QueryPlanner.extractQueryTransforms(sft, query).map(_._1).getOrElse(sft)
     val sort = hints.getArrowSort
     val batchSize = ArrowScan.getBatchSize(hints)
     val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid)
