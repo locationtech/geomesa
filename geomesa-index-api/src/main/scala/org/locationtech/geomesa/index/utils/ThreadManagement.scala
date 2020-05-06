@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index.utils
 
 import java.io.Closeable
 import java.util.concurrent.{ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
+import java.util.function.Consumer
 
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
@@ -27,11 +28,17 @@ object ThreadManagement extends LazyLogging {
     ExitingExecutor(ex, force = true)
   }
 
+  if (logger.underlying.isTraceEnabled) {
+    executor.scheduleAtFixedRate(QueryReporter, 0l, 5l, TimeUnit.SECONDS)
+
+  }
+
   /**
    * Register a query with the thread manager
    */
-  def register(query: ManagedQuery): ScheduledFuture[_] =
-    executor.schedule(new QueryKiller(query), query.getTimeout, TimeUnit.MILLISECONDS)
+  def register(query: ManagedQuery): ScheduledFuture[_] = {
+      executor.schedule(new QueryKiller(query), query.getTimeout, TimeUnit.MILLISECONDS)
+    }
 
   /**
     * Trait for classes to be managed for timeouts
@@ -42,7 +49,32 @@ object ThreadManagement extends LazyLogging {
     def debug: String
   }
 
-  private class QueryKiller(query: ManagedQuery) extends Runnable {
+  private lazy val QueryReporter: Runnable = new Runnable {
+    override def run(): Unit = {
+      val queue = executor.getQueue
+      logger.trace(s"ThreadManagement has a queue of ${queue.size} queries.")
+
+        executor.getQueue.forEach(new Consumer[Runnable] {
+          override def accept(t: Runnable): Unit = t match {
+            case qk: QueryKiller => logQuery(qk)
+            case _ => // This reporter may be in the queue
+          }
+        })
+    }
+
+    private def logQuery(qk: QueryKiller): Unit = {
+
+      logger.trace(s"Query started at ${qk.start} has been running for " +
+        s"${(System.currentTimeMillis()-qk.start)/1000.0} seconds for filter ${qk.query.debug}")
+    }
+  }
+
+
+
+
+  private class QueryKiller(val query: ManagedQuery) extends Runnable {
+    val start: Long = System.currentTimeMillis()
+
     override def run(): Unit = {
       if (!query.isClosed) {
         logger.warn(s"Stopping ${query.debug} based on timeout of ${query.getTimeout}ms")

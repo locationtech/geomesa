@@ -15,6 +15,7 @@ import org.apache.accumulo.core.client.{Connector, IteratorSetting, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.accumulo.util.BatchMultiScanner
 import org.locationtech.geomesa.index.PartitionParallelScan
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
@@ -173,8 +174,13 @@ object AccumuloQueryPlan extends LazyLogging {
         auths: Authorizations): CloseableIterator[Entry[Key, Value]] = {
       val scanner = connector.createBatchScanner(table, auths, numThreads)
       scanner.setRanges(ranges.asJava)
+      // JNH We can set the timeout on the Accumulo BS
+      //scanner.setTimeout(0)
       configure(scanner)
-      SelfClosingIterator(scanner.iterator.asScala, scanner.close())
+      SelfClosingIterator(scanner.iterator.asScala, {
+        logger.debug(s"Closing batch scan for ${this.filter.filter.map{ECQL.toCQL}}");
+        scanner.close()
+      })
     }
   }
 
