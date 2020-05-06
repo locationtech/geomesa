@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import java.util.Map.Entry
+import java.util.concurrent.TimeUnit
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{Connector, IteratorSetting, ScannerBase}
@@ -36,6 +37,7 @@ sealed trait AccumuloQueryPlan extends QueryPlan[AccumuloDataStore] {
   def ranges: Seq[org.apache.accumulo.core.data.Range]
   def iterators: Seq[IteratorSetting]
   def numThreads: Int
+  def timeoutMillis: Option[Long] = None
 
   def join: Option[(AccumuloQueryPlan.JoinFunction, AccumuloQueryPlan)] = None
 
@@ -45,6 +47,10 @@ sealed trait AccumuloQueryPlan extends QueryPlan[AccumuloDataStore] {
   protected def configure(scanner: ScannerBase): Unit = {
     iterators.foreach(scanner.addScanIterator)
     columnFamily.foreach(scanner.fetchColumnFamily)
+    timeoutMillis.foreach { timeout =>
+      scanner.setTimeout(timeout, TimeUnit.MILLISECONDS)
+      scanner.setBatchTimeout(timeout, TimeUnit.MILLISECONDS)
+    }
   }
 }
 
@@ -144,7 +150,8 @@ object AccumuloQueryPlan extends LazyLogging {
       sort: Option[Seq[(String, Boolean)]],
       maxFeatures: Option[Int],
       projection: Option[QueryReferenceSystems],
-      numThreads: Int
+      numThreads: Int,
+      override val timeoutMillis: Option[Long]
     ) extends AccumuloQueryPlan {
 
     override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] =
@@ -193,7 +200,8 @@ object AccumuloQueryPlan extends LazyLogging {
       columnFamily: Option[Text],
       numThreads: Int,
       joinFunction: JoinFunction,
-      joinQuery: BatchScanPlan
+      joinQuery: BatchScanPlan,
+      override val timeoutMillis: Option[Long]
     ) extends AccumuloQueryPlan {
 
     override val join = Some((joinFunction, joinQuery))

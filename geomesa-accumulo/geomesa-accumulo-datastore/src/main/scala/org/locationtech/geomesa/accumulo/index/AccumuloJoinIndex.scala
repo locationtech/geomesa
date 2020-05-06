@@ -121,7 +121,7 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
         iters: Seq[IteratorSetting],
         kvsToFeatures: ResultsToFeatures[Entry[Key, Value]],
         reduce: Option[FeatureReducer]) =
-      BatchScanPlan(filter, tables, ranges, iters, colFamily, kvsToFeatures, reduce, sort, max, project, numThreads)
+      BatchScanPlan(filter, tables, ranges, iters, colFamily, kvsToFeatures, reduce, sort, max, project, numThreads, ds.config.queries.timeout)
 
     val transform = hints.getTransformSchema
 
@@ -354,12 +354,12 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
     }
 
     val joinQuery = BatchScanPlan(filter, recordTables, Seq.empty, recordIterators, recordColFamily, toFeatures,
-      Some(reducer), hints.getSortFields, hints.getMaxFeatures, hints.getProjection, recordThreads)
+      Some(reducer), hints.getSortFields, hints.getMaxFeatures, hints.getProjection, recordThreads, ds.config.queries.timeout)
 
     val attributeIters = visibilityIter(indexSft) ++
         FilterTransformIterator.configure(indexSft, this, stFilter, None, hints.getSampling).toSeq
 
-    JoinPlan(filter, tables, ranges, attributeIters, colFamily, recordThreads, joinFunction, joinQuery)
+    JoinPlan(filter, tables, ranges, attributeIters, colFamily, recordThreads, joinFunction, joinQuery, ds.config.queries.timeout)
   }
 
   private def visibilityIter(schema: SimpleFeatureType): Seq[IteratorSetting] = sft.getVisibilityLevel match {

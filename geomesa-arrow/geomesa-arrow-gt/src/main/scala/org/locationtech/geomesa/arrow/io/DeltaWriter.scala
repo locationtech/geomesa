@@ -976,15 +976,17 @@ object DeltaWriter extends StrictLogging {
 
     private val closed = new AtomicBoolean(false)
 
+    // Gathering results from underlying data sources / scanners
+    val grouped = scala.collection.mutable.Map.empty[Long, scala.collection.mutable.ArrayBuilder[Array[Byte]]]
+    while (!closed.get && deltas.hasNext) {
+      val delta = deltas.next
+      grouped.getOrElseUpdate(ByteArrays.readLong(delta), Array.newBuilder) += delta
+    }
+    val threaded = Array.ofDim[Array[Array[Byte]]](grouped.size)
+    var i = 0
+    grouped.foreach { case (_, builder) => threaded(i) = builder.result; i += 1 }
+
     private lazy val reduced = {
-      val grouped = scala.collection.mutable.Map.empty[Long, scala.collection.mutable.ArrayBuilder[Array[Byte]]]
-      while (!closed.get && deltas.hasNext) {
-        val delta = deltas.next
-        grouped.getOrElseUpdate(ByteArrays.readLong(delta), Array.newBuilder) += delta
-      }
-      val threaded = Array.ofDim[Array[Array[Byte]]](grouped.size)
-      var i = 0
-      grouped.foreach { case (_, builder) => threaded(i) = builder.result; i += 1 }
       logger.trace(s"merging delta batches from ${threaded.length} thread(s)")
       val dictionaries = mergeDictionaries(sft, dictionaryFields, threaded, encoding)
       if (sorted || sort.isEmpty) {
@@ -1001,7 +1003,8 @@ object DeltaWriter extends StrictLogging {
 
     override def close(): Unit = {
       closed.set(true)
-      CloseWithLogging(deltas, reduced)
+      CloseWithLogging(deltas)
+      CloseWithLogging(reduced)
     }
   }
 }

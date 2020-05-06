@@ -258,7 +258,7 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
           val max = hints.getMaxFeatures
           val project = hints.getProjection
 
-          BatchScanPlan(filter, tables, ranges, iters, colFamily, eToF, reduce, sort, max, project, numThreads)
+          BatchScanPlan(filter, tables, ranges, iters, colFamily, eToF, reduce, sort, max, project, numThreads, ds.config.queries.timeout)
         }
     }
   }

@@ -54,6 +54,14 @@ object ThreadManagement extends LazyLogging {
       val queue = executor.getQueue
       logger.trace(s"ThreadManagement has a queue of ${queue.size} queries.")
 
+      import scala.collection.JavaConversions._
+      executor.getQueue.foreach { runnable =>
+        runnable match {
+          case qk: QueryKiller => logQuery(qk)
+          case _ => logger.trace(s"Queue has $runnable")
+        }
+      }
+
         executor.getQueue.forEach(new Consumer[Runnable] {
           override def accept(t: Runnable): Unit = t match {
             case qk: QueryKiller => logQuery(qk)
