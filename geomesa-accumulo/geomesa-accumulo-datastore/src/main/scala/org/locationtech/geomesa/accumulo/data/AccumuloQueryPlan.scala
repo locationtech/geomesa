@@ -202,7 +202,7 @@ object AccumuloQueryPlan extends LazyLogging {
 
         override def debug: String = s"Accumulo Batch Scanner for table: $table"
 
-        override def close(): Unit = {
+        override def interrupt: Unit = {
           closed.set(true)
           scanner.close()
         }
