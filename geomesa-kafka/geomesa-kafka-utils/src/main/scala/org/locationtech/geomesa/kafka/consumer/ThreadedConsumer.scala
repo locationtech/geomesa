@@ -31,7 +31,7 @@ abstract class ThreadedConsumer(
 
   protected def consume(record: ConsumerRecord[Array[Byte], Array[Byte]]): Unit
 
-  private lazy val topics = consumers.flatMap(_.subscription().asScala).distinct
+  private val topics = scala.collection.mutable.Set.empty[String]
 
   private val executor: ExecutorService = Executors.newFixedThreadPool(consumers.length)
 
@@ -53,6 +53,7 @@ abstract class ThreadedConsumer(
     val format = if (consumers.lengthCompare(10) > 0) { "%02d" } else { "%d" }
     var i = 0
     consumers.foreach { c =>
+      c.subscription().asScala.foreach(topics.add)
       executor.execute(new ConsumerRunnable(c, String.format(format, Int.box(i)), handler))
       i += 1
     }
