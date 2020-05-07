@@ -14,38 +14,40 @@ import org.specs2.runner.JUnitRunner
 class ThreadManagementTest extends Specification with LazyLogging {
   sequential
 
-  val sorterTime = 500
-  val scannerTime = 1000
+  val sorterTime  = 2000
+  val scannerTime = 3000
   var startTime: Long = System.currentTimeMillis()
 
   "Slow code" should {
-    "be slow" >> {
-      startTime = System.currentTimeMillis()
+//    "be slow" >> {
+//      startTime = System.currentTimeMillis()
+//
+//      val bs = getScans
+//      val sorted = FirstClass(bs).toList
+//
+//      printTime("Total scan and sort")
+//      sorted.size must equalTo(5)
+//      ok
+//    }
 
-      val bs = getScans
-      val sorted = FirstClass(bs).toList
-
-      printTime("Total scan and sort")
-      sorted.size must equalTo(5)
-      ok
-    }
-
-    "be slow and run to completion with a long timeout" >> {
-      startTime = System.currentTimeMillis()
-
-      val bs = getScans
-      val sorted = new TimeoutWrapper(FirstClass(bs), 10000, "Long Timeout").toList
-
-      printTime("Total scan and sort")
-      sorted.size must equalTo(5)
-      ok
-    }
+//    "be slow and run to completion with a long timeout" >> {
+//      startTime = System.currentTimeMillis()
+//
+//      val bs = getScans
+//      val sorted = new TimeoutWrapper(FirstClass(bs), 10000, "Long Timeout").toList
+//
+//      printTime("Total scan and sort")
+//      sorted.size must equalTo(5)
+//      ok
+//    }
 
     "be slow and do something with a short timeout?!" >> {
       startTime = System.currentTimeMillis()
 
       val bs = getScans
-      val sorted = new TimeoutWrapper(FirstClass(bs), 1000, "short timeout").toList
+      val sorted: Seq[String] = new TimeoutWrapper(SelfClosingIterator((0 until 1).toIterator).flatMap{i => FirstClass(bs).map(_.toInt).map(_.toString)},
+        1000,
+        "short timeout").toList
 
       printTime("Total scan and sort")
       sorted.size must equalTo(5)
@@ -58,27 +60,34 @@ class ThreadManagementTest extends Specification with LazyLogging {
   }
 
   def getScans(): CloseableIterator[Integer] = {
-    ReportingClosureIterator(SlowBatchScanner((1 to 5).map(new Integer(_)), 2, 100))
+    ReportingClosureIterator(SlowBatchScanner((1 to 5).map(new Integer(_)), 8, 100))
   }
 
   case class FirstClass(scans: CloseableIterator[Integer]) extends CloseableIterator[Integer] {
     logger.warn(s"\tCreating BatchScanner and scanning")
+    val closed = new AtomicBoolean(false)
 
     lazy val reduced = {
-      val results = SelfClosingIterator(scans).toList
+      val results = scans.toList
       printTime("\tGathering results took")
       //logger.warn(s"\tGotResults.  Calling to sorter at ${System.currentTimeMillis()}.")
 
-      val sortStart = System.currentTimeMillis()
-      val sorter = new Sorter(results)
-      val sorted: Seq[Integer] = sorter.doWork
-      printTime("\tSorting", sortStart)
+      if (closed.get) {
+        CloseableIterator.empty
+      } else {
+        val sortStart = System.currentTimeMillis()
+        val sorter = new Sorter(results)
+        val sorted: Seq[Integer] = sorter.doWork
+        printTime("\tSorting", sortStart)
 
-      CloseableIterator(sorted.toIterator, {})
+        CloseableIterator(sorted.toIterator, {})
+      }
     }
 
     override def close(): Unit = {
+      closed.set(true)
       scans.close()
+      reduced.close()
     }
 
     override def hasNext: Boolean = reduced.hasNext
@@ -98,7 +107,10 @@ class ThreadManagementTest extends Specification with LazyLogging {
 
     override def close(): Unit = {
       if (closed.compareAndSet(false, true)) {
-        try { } finally {
+        try {
+          logger.warn(s"Trying to close the ci for Timeout Wrapper for $testName")
+          ci.close()
+        } finally {
           logger.warn(s"Canceling the QueryKiller for Timeout Wrapper for $testName")
           cancel.cancel(false)
         }
@@ -153,7 +165,13 @@ class ThreadManagementTest extends Specification with LazyLogging {
   class SlowScanner(i: Integer) {
 
     def scan(): Integer = {
-      Thread.sleep(scannerTime)
+      try {
+        Thread.sleep(scannerTime)
+      } catch {
+        case e: InterruptedException =>
+          logger.warn(s"Scan for $i was interrupted with InterruptedException")
+          throw e
+      }
       i
     }
   }
@@ -163,11 +181,11 @@ class ThreadManagementTest extends Specification with LazyLogging {
 
     def doWork: Seq[Integer] = {
       try {
-        logger.warn(s"\t\tSorter starting at ${System.currentTimeMillis()}")
+        //logger.warn(s"\t\tSorter starting at ${System.currentTimeMillis()}")
         Thread.sleep(sorterTime)
         input.sorted
       } finally {
-        logger.warn(s"\t\tSorter finishing at ${System.currentTimeMillis()}")
+        //logger.warn(s"\t\tSorter finishing at ${System.currentTimeMillis()}")
         allocatedMemory = 0
       }
     }

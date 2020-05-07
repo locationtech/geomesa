@@ -1001,7 +1001,8 @@ object DeltaWriter extends StrictLogging {
 
     override def close(): Unit = {
       closed.set(true)
-      CloseWithLogging(deltas, reduced)
+      CloseWithLogging(deltas)
+      CloseWithLogging(reduced)
     }
   }
 }
