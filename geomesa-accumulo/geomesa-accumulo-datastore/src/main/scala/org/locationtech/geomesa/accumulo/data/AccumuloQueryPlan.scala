@@ -28,7 +28,7 @@ import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosing
 /**
   * Accumulo-specific query plan
   */
-sealed trait AccumuloQueryPlan extends QueryPlan[AccumuloDataStore] {
+sealed trait AccumuloQueryPlan extends QueryPlan[AccumuloDataStore] with LazyLogging {
 
   override type Results = Entry[Key, Value]
 
@@ -48,6 +48,7 @@ sealed trait AccumuloQueryPlan extends QueryPlan[AccumuloDataStore] {
     iterators.foreach(scanner.addScanIterator)
     columnFamily.foreach(scanner.fetchColumnFamily)
     timeoutMillis.foreach { timeout =>
+      logger.debug(s"Setting Accumulo scanner timeouts to $timeoutMillis milliseconds.")
       scanner.setTimeout(timeout, TimeUnit.MILLISECONDS)
       scanner.setBatchTimeout(timeout, TimeUnit.MILLISECONDS)
     }
@@ -185,7 +186,7 @@ object AccumuloQueryPlan extends LazyLogging {
       //scanner.setTimeout(0)
       configure(scanner)
       SelfClosingIterator(scanner.iterator.asScala, {
-        logger.debug(s"Closing batch scan for ${this.filter.filter.map{ECQL.toCQL}}");
+        logger.debug(s"Closing batch scan for ${this.filter.filter.map{ECQL.toCQL}}")
         scanner.close()
       })
     }
