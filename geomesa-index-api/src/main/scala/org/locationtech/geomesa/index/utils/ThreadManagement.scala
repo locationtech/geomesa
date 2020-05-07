@@ -43,10 +43,11 @@ object ThreadManagement extends LazyLogging {
   /**
     * Trait for classes to be managed for timeouts
     */
-  trait ManagedQuery extends Closeable {
+  trait ManagedQuery {
     def getTimeout: Long
     def isClosed: Boolean
     def debug: String
+    def interrupt: Unit
   }
 
   private lazy val QueryReporter: Runnable = new Runnable {
@@ -86,7 +87,7 @@ object ThreadManagement extends LazyLogging {
     override def run(): Unit = {
       if (!query.isClosed) {
         logger.warn(s"Stopping ${query.debug} based on timeout of ${query.getTimeout}ms")
-        try { query.close() } catch {
+        try { query.stop() } catch {
           case NonFatal(e) => logger.warn("Error cancelling query:", e)
         }
       }

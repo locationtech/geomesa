@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.data
 
 import java.util.Map.Entry
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.{Connector, IteratorSetting, ScannerBase}
@@ -21,8 +22,9 @@ import org.locationtech.geomesa.accumulo.util.BatchMultiScanner
 import org.locationtech.geomesa.index.PartitionParallelScan
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
-import org.locationtech.geomesa.index.utils.Explainer
+import org.locationtech.geomesa.index.utils.{Explainer, ThreadManagement}
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
+import org.locationtech.geomesa.index.utils.ThreadManagement.ManagedQuery
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 
 /**
@@ -185,10 +187,28 @@ object AccumuloQueryPlan extends LazyLogging {
       // JNH We can set the timeout on the Accumulo BS
       //scanner.setTimeout(0)
       configure(scanner)
-      SelfClosingIterator(scanner.iterator.asScala, {
+      val closed = new AtomicBoolean(false)
+
+      val iter = SelfClosingIterator(scanner.iterator.asScala, {
         logger.debug(s"Closing batch scan for ${this.filter.filter.map{ECQL.toCQL}}")
+        closed.set(true)
         scanner.close()
       })
+
+      ThreadManagement.register(new ManagedQuery {
+        override def getTimeout: Long = timeoutMillis.getOrElse(30000)
+
+        override def isClosed: Boolean = closed.get()
+
+        override def debug: String = s"Accumulo Batch Scanner for table: $table"
+
+        override def close(): Unit = {
+          closed.set(true)
+          scanner.close()
+        }
+      })
+
+      iter
     }
   }
 

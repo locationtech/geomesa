@@ -29,18 +29,31 @@ class GeoMesaFeatureReader private (sft: SimpleFeatureType, qp: QueryRunner, que
     extends SimpleFeatureReader with ManagedQuery {
 
   private val closed = new AtomicBoolean(false)
+  private val interrupted = new AtomicBoolean(false)
   private val iter = runQuery()
   private val cancel = timeout.map(_ => ThreadManagement.register(this))
 
-  override def hasNext: Boolean = iter.hasNext
+  override def hasNext: Boolean = {
+    if (interrupted.get) {
+      throw new Exception("Query timed out!")
+    } else {
+      iter.hasNext
+    }
+  }
 
-  override def next(): SimpleFeature = iter.next()
+  override def next(): SimpleFeature = {
+    if (interrupted.get) {
+      throw new Exception("Query timed out!")
+    } else {
+      iter.next()
+    }
+  }
 
   override def getFeatureType: SimpleFeatureType = query.getHints.getReturnSft
 
   override def getTimeout: Long = timeout.getOrElse(-1L)
 
-  override def isClosed: Boolean = closed.get()
+  override def isClosed: Boolean = closed.get() || interrupted.get()
 
   override def close(): Unit = {
     if (closed.compareAndSet(false, true)) {
@@ -56,6 +69,11 @@ class GeoMesaFeatureReader private (sft: SimpleFeatureType, qp: QueryRunner, que
 
   override def debug: String =
     s"query on schema '${query.getTypeName}' with filter '${filterToString(query.getFilter)}'"
+
+  override def interrupt: Unit = {
+    interrupted.set(true)
+    close()  // This may hang?!
+  }
 }
 
 object GeoMesaFeatureReader {
