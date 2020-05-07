@@ -87,7 +87,7 @@ object ThreadManagement extends LazyLogging {
     override def run(): Unit = {
       if (!query.isClosed) {
         logger.warn(s"Stopping ${query.debug} based on timeout of ${query.getTimeout}ms")
-        try { query.stop() } catch {
+        try { query.interrupt } catch {
           case NonFatal(e) => logger.warn("Error cancelling query:", e)
         }
       }
