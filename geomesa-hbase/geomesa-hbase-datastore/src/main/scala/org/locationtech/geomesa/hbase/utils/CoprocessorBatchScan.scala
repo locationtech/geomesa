@@ -26,9 +26,10 @@ private class CoprocessorBatchScan(
     table: TableName,
     ranges: Seq[Scan],
     options: Map[String, String],
+    scanThreads: Int,
     rpcThreads: Int,
     buffer: Int
-  ) extends AbstractBatchScan[Scan, Array[Byte]](ranges, rpcThreads * 2, buffer, CoprocessorBatchScan.Sentinel) {
+  ) extends AbstractBatchScan[Scan, Array[Byte]](ranges, scanThreads, buffer, CoprocessorBatchScan.Sentinel) {
 
   protected val pool = new CachedThreadPool(rpcThreads)
 
@@ -73,10 +74,11 @@ object CoprocessorBatchScan {
       table: TableName,
       ranges: Seq[Scan],
       options: Map[String, String],
+      scanThreads: Int,
       rpcThreads: Int,
       timeout: Option[Timeout]): CloseableIterator[Array[Byte]] = {
     val opts = options ++ timeout.map(GeoMesaCoprocessor.timeout)
-    val scanner = new CoprocessorBatchScan(connection, table, ranges, opts, rpcThreads, BufferSize)
+    val scanner = new CoprocessorBatchScan(connection, table, ranges, opts, scanThreads, rpcThreads, BufferSize)
     timeout match {
       case None => scanner.start()
       case Some(t) => new ManagedCoprocessorIterator(t, new CoprocessorScanner(scanner), plan)

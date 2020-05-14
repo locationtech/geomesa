@@ -41,7 +41,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
   val CoprocessorUrlParam =
     new GeoMesaParam[Path](
       "hbase.coprocessor.url",
-      "Coprocessor Url",
+      "URL pointing to the GeoMesa coprocessor JAR",
       deprecatedKeys = Seq("coprocessor.url"),
       supportsNiFiExpressions = true)
 
@@ -52,10 +52,17 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       default = Int.box(16),
       supportsNiFiExpressions = true)
 
+  val CoprocessorParallelScanParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "hbase.coprocessor.scan.parallel",
+      "Invoke all coprocessor RPC calls in parallel",
+      default = java.lang.Boolean.TRUE,
+      supportsNiFiExpressions = true)
+
   val RemoteFilteringParam =
     new GeoMesaParam[java.lang.Boolean](
       "hbase.remote.filtering",
-      "Remote filtering",
+      "Enable remote filtering, i.e. filters and coprocessors",
       default = java.lang.Boolean.TRUE,
       deprecatedKeys = Seq("remote.filtering"),
       systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteFilterProperty)))
