@@ -23,6 +23,7 @@ import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.Transform
 import org.locationtech.geomesa.utils.geotools.Transform.Transforms
+import org.locationtech.geomesa.utils.iterators.ExceptionalIterator
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, StatParser}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.sort.SortOrder
@@ -88,7 +89,8 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
       iterator = iterator.map(project.apply)
     }
 
-    iterator
+    // wrap in an exceptional iterator to prevent geoserver from suppressing any exceptions
+    ExceptionalIterator(iterator)
   }
 
   /**

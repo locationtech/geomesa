@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.index.utils
 
 import java.util.concurrent._
-import java.util.concurrent.atomic.AtomicBoolean
 
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
@@ -156,13 +155,14 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
     */
   private class Terminator extends Runnable {
 
-    private val done = new AtomicBoolean(false)
+    @volatile
+    private var done = false
 
     override def run(): Unit = try { latch.await() } finally { terminate(false) }
 
     @tailrec
     final def terminate(drop: Boolean): Unit = {
-      if (done.get) {
+      if (done) {
         return
       }
       // it's possible that the queue is full, in which case we can't immediately
@@ -177,7 +177,7 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
           case _: InterruptedException => terminateWithDrops(); true
         }
         if (added) {
-          done.set(true)
+          done = true
         } else {
           terminate(false)
         }
@@ -186,7 +186,7 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
 
     private def terminateWithDrops(): Unit = {
       while (!outQueue.offer(sentinel)) { outQueue.poll() }
-      done.set(true)
+      done = true
     }
   }
 }

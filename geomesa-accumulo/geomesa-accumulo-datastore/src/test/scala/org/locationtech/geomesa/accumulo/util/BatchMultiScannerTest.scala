@@ -52,9 +52,9 @@ class BatchMultiScannerTest extends TestWithFeatureType {
     val jp = qp.join.get._2.asInstanceOf[BatchScanPlan]
     foreach(jp.tables)(table => ds.connector.tableOperations.exists(table) must beTrue)
 
-    val bms = new BatchMultiScanner(ds.connector, attrScanner, jp, qp.join.get._1, ds.auths, 5, batchSize)
+    val bms = new BatchMultiScanner(ds.connector, attrScanner, jp, qp.join.get._1, ds.auths, None, 5, batchSize)
 
-    val retrieved = bms.iterator.map(jp.resultsToFeatures.apply).toList
+    val retrieved = bms.map(jp.resultsToFeatures.apply).toList
     forall(retrieved)(_.getAttribute(attr) mustEqual value)
 
     retrieved.size

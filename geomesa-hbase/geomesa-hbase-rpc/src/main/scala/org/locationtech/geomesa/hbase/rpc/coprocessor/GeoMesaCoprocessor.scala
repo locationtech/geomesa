@@ -10,13 +10,13 @@ package org.locationtech.geomesa.hbase.rpc.coprocessor
 
 import java.io.{InterruptedIOException, _}
 import java.util.concurrent._
-import java.util.concurrent.atomic.AtomicBoolean
 
 import com.google.protobuf.ByteString
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{Connection, Scan}
 import org.locationtech.geomesa.hbase.proto.GeoMesaProto.GeoMesaCoprocessorService
+import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.index.ByteArrays
@@ -79,12 +79,12 @@ object GeoMesaCoprocessor extends LazyLogging {
   }
 
   /**
-   * Timeout configuration option
+   * Timeout coprocessor configuration options
    *
-   * @param millis milliseconds
+   * @param t timeout
    * @return
    */
-  def timeout(millis: Long): (String, String) = TimeoutOpt -> (millis + System.currentTimeMillis()).toString
+  def timeout(t: Timeout): (String, String) = TimeoutOpt -> java.lang.Long.toString(t.absolute)
 
   /**
    * Closeable iterator implementation for invoking coprocessor rpcs
@@ -104,7 +104,6 @@ object GeoMesaCoprocessor extends LazyLogging {
     private var staged: ByteString = _
 
     private val htable = connection.getTable(table, pool)
-    private val closed = new AtomicBoolean(false)
     private val resultQueue = new LinkedBlockingQueue[ByteString]()
     private val call = CachedThreadPool.submit(new CoprocessorInvoker())
 
@@ -134,15 +133,12 @@ object GeoMesaCoprocessor extends LazyLogging {
       res
     }
 
-    override def close(): Unit = {
-      closed.set(true)
-      htable.close()
-    }
+    override def close(): Unit = htable.close()
 
     class CoprocessorInvoker extends Runnable() {
       override def run(): Unit = {
         try {
-          val callback = new GeoMesaHBaseCallBack(scan, options, resultQueue, closed)
+          val callback = new GeoMesaHBaseCallBack(scan, options, resultQueue)
           var i = 0
           // if the scan hasn't been killed and we are not done, issue a new request
           while (callback.hasNext) {

@@ -17,6 +17,8 @@ import org.apache.accumulo.core.client.{Connector, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, JoinFunction}
+import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
+import org.locationtech.geomesa.utils.collection.CloseableIterator
 
 import scala.collection.JavaConversions._
 
@@ -31,14 +33,16 @@ import scala.collection.JavaConversions._
   * @param numThreads threads
   * @param batchSize batch size
   */
-class BatchMultiScanner(connector: Connector,
-                        in: ScannerBase,
-                        join: BatchScanPlan,
-                        joinFunction: JoinFunction,
-                        auths: Authorizations,
-                        numThreads: Int = 12,
-                        batchSize: Int = 32768)
-  extends Iterable[java.util.Map.Entry[Key, Value]] with AutoCloseable with LazyLogging {
+class BatchMultiScanner(
+    connector: Connector,
+    in: ScannerBase,
+    join: BatchScanPlan,
+    joinFunction: JoinFunction,
+    auths: Authorizations,
+    timeout: Option[Timeout],
+    numThreads: Int = 12,
+    batchSize: Int = 32768
+  ) extends CloseableIterator[java.util.Map.Entry[Key, Value]] with LazyLogging {
 
   require(batchSize > 0, f"Illegal batchSize ($batchSize%d). Value must be > 0")
   require(numThreads > 0, f"Illegal numThreads ($numThreads%d). Value must be > 0")
@@ -51,6 +55,30 @@ class BatchMultiScanner(connector: Connector,
 
   private val inDone  = new AtomicBoolean(false)
   private val outDone = new AtomicBoolean(false)
+
+  private var prefetch: Entry[Key, Value] = _
+
+  private def prefetchIfNull(): Unit = {
+    // loop while we might have another and we haven't set prefetch
+    while (prefetch == null && (!outDone.get || outQ.size > 0)) {
+      prefetch = outQ.poll(5, TimeUnit.MILLISECONDS)
+    }
+  }
+
+  // must attempt a prefetch since we don't know whether or not the outQ
+  // will actually be filled with an item (filters may not match and the
+  // in scanner may never return a range)
+  override def hasNext(): Boolean = {
+    prefetchIfNull()
+    prefetch != null
+  }
+
+  override def next(): Entry[Key, Value] = {
+    prefetchIfNull()
+    val ret = prefetch
+    prefetch = null
+    ret
+  }
 
   executor.submit(new Runnable {
     override def run(): Unit = {
@@ -73,7 +101,7 @@ class BatchMultiScanner(connector: Connector,
             inQ.drainTo(entries)
             val task = executor.submit(new Runnable {
               override def run(): Unit = {
-                val iterator = join.copy(ranges = entries.map(joinFunction)).scan(connector, auths)
+                val iterator = join.copy(ranges = entries.map(joinFunction)).scan(connector, auths, timeout)
                 try {
                   iterator.foreach(outQ.put)
                 } finally {
@@ -99,32 +127,5 @@ class BatchMultiScanner(connector: Connector,
       executor.shutdownNow()
     }
     in.close()
-  }
-
-  override def iterator: Iterator[Entry[Key, Value]] = new Iterator[Entry[Key, Value]] {
-
-    private var prefetch: Entry[Key, Value] = _
-
-    private def prefetchIfNull(): Unit = {
-      // loop while we might have another and we haven't set prefetch
-      while (prefetch == null && (!outDone.get || outQ.size > 0)) {
-        prefetch = outQ.poll(5, TimeUnit.MILLISECONDS)
-      }
-    }
-
-    // must attempt a prefetch since we don't know whether or not the outQ
-    // will actually be filled with an item (filters may not match and the
-    // in scanner may never return a range)
-    override def hasNext(): Boolean = {
-      prefetchIfNull()
-      prefetch != null
-    }
-
-    override def next(): Entry[Key, Value] = {
-      prefetchIfNull()
-      val ret = prefetch
-      prefetch = null
-      ret
-    }
   }
 }

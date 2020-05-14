@@ -21,7 +21,9 @@ import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFe
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
+import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
+import org.opengis.filter.Filter
 
 /**
   * Accumulo-specific query plan
@@ -91,46 +93,6 @@ object AccumuloQueryPlan extends LazyLogging {
     override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = CloseableIterator.empty
   }
 
-  // sequential scan plan
-  case class ScanPlan(
-      filter: FilterStrategy,
-      tables: Seq[String],
-      range: org.apache.accumulo.core.data.Range,
-      iterators: Seq[IteratorSetting],
-      columnFamily: Option[Text],
-      resultsToFeatures: ResultsToFeatures[Entry[Key, Value]],
-      reducer: Option[FeatureReducer],
-      sort: Option[Seq[(String, Boolean)]],
-      maxFeatures: Option[Int],
-      projection: Option[QueryReferenceSystems]
-    ) extends AccumuloQueryPlan {
-
-    override val numThreads = 1
-    override val ranges: Seq[org.apache.accumulo.core.data.Range] = Seq(range)
-
-    override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
-      // calculate authorizations up front so that multi-threading doesn't mess up auth providers
-      val auths = ds.auths
-      if (PartitionParallelScan.toBoolean.contains(true)) {
-        // kick off all the scans at once
-        tables.map(scanner(ds.connector, _, auths)).foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ ++ _)
-      } else {
-        // kick off the scans sequentially as they finish
-        SelfClosingIterator(tables.iterator).flatMap(scanner(ds.connector, _, auths))
-      }
-    }
-
-    private def scanner(
-        connector: Connector,
-        table: String,
-        auths: Authorizations): CloseableIterator[Entry[Key, Value]] = {
-      val scanner = connector.createScanner(table, auths)
-      scanner.setRange(range)
-      configure(scanner)
-      SelfClosingIterator(scanner.iterator.asScala, scanner.close())
-    }
-  }
-
   // batch scan plan
   case class BatchScanPlan(
       filter: FilterStrategy,
@@ -146,35 +108,54 @@ object AccumuloQueryPlan extends LazyLogging {
       numThreads: Int
     ) extends AccumuloQueryPlan {
 
-    override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] =
-      // calculate authorizations up front so that multi-threading doesn't mess up auth providers
-      scan(ds.connector, ds.auths)
+    override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
+      // convert the relative timeout to an absolute timeout up front
+      val timeout = ds.config.queries.timeout.map(Timeout.apply)
+      // note: calculate authorizations up front so that multi-threading doesn't mess up auth providers
+      scan(ds.connector, ds.auths, timeout)
+    }
 
     /**
-      * Scan with pre-computed auths
-      *
-      * @param connector connector
-      * @param auths auths
-      * @return
-      */
-    def scan(connector: Connector, auths: Authorizations): CloseableIterator[Entry[Key, Value]] = {
+     * Scan with pre-computed auths
+     *
+     * @param connector connector
+     * @param auths auths
+     * @param timeout absolute stop time, as sys time
+     * @return
+     */
+    def scan(
+        connector: Connector,
+        auths: Authorizations,
+        timeout: Option[Timeout]): CloseableIterator[Entry[Key, Value]] = {
       if (PartitionParallelScan.toBoolean.contains(true)) {
         // kick off all the scans at once
-        tables.map(scanner(connector, _, auths)).foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ ++ _)
+        tables.map(scanner(connector, _, auths, timeout)).foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ ++ _)
       } else {
         // kick off the scans sequentially as they finish
-        SelfClosingIterator(tables.iterator).flatMap(scanner(connector, _, auths))
+        SelfClosingIterator(tables.iterator).flatMap(scanner(connector, _, auths, timeout))
       }
     }
 
+    /**
+     *
+     * @param connector connector
+     * @param table table
+     * @param auths auths
+     * @param timeout absolute stop time, as sys time
+     * @return
+     */
     private def scanner(
         connector: Connector,
         table: String,
-        auths: Authorizations): CloseableIterator[Entry[Key, Value]] = {
+        auths: Authorizations,
+        timeout: Option[Timeout]): CloseableIterator[Entry[Key, Value]] = {
       val scanner = connector.createBatchScanner(table, auths, numThreads)
       scanner.setRanges(ranges.asJava)
       configure(scanner)
-      SelfClosingIterator(scanner.iterator.asScala, scanner.close())
+      timeout match {
+        case None => new ScanIterator(scanner)
+        case Some(t) => new ManagedScanIterator(t, new AccumuloScanner(scanner), this)
+      }
     }
   }
 
@@ -190,7 +171,7 @@ object AccumuloQueryPlan extends LazyLogging {
       joinQuery: BatchScanPlan
     ) extends AccumuloQueryPlan {
 
-    override val join = Some((joinFunction, joinQuery))
+    override val join: Some[(JoinFunction, BatchScanPlan)] = Some((joinFunction, joinQuery))
     override def resultsToFeatures: ResultsToFeatures[Entry[Key, Value]] = joinQuery.resultsToFeatures
     override def reducer: Option[FeatureReducer] = joinQuery.reducer
     override def sort: Option[Seq[(String, Boolean)]] = joinQuery.sort
@@ -198,16 +179,18 @@ object AccumuloQueryPlan extends LazyLogging {
     override def projection: Option[QueryReferenceSystems] = joinQuery.projection
 
     override def scan(ds: AccumuloDataStore): CloseableIterator[Entry[Key, Value]] = {
+      // convert the relative timeout to an absolute timeout up front
+      val timeout = ds.config.queries.timeout.map(Timeout.apply)
       // calculate authorizations up front so that multi-threading doesn't mess up auth providers
       val auths = ds.auths
       val joinTables = joinQuery.tables.iterator
       if (PartitionParallelScan.toBoolean.contains(true)) {
         // kick off all the scans at once
-        tables.map(scanner(ds.connector, _, joinTables.next, auths))
+        tables.map(scanner(ds.connector, _, joinTables.next, auths, timeout))
             .foldLeft(CloseableIterator.empty[Entry[Key, Value]])(_ ++ _)
       } else {
         // kick off the scans sequentially as they finish
-        SelfClosingIterator(tables.iterator).flatMap(scanner(ds.connector, _, joinTables.next, auths))
+        SelfClosingIterator(tables.iterator).flatMap(scanner(ds.connector, _, joinTables.next, auths, timeout))
       }
     }
 
@@ -215,7 +198,8 @@ object AccumuloQueryPlan extends LazyLogging {
         connector: Connector,
         table: String,
         joinTable: String,
-        auths: Authorizations): CloseableIterator[Entry[Key, Value]] = {
+        auths: Authorizations,
+        timeout: Option[Timeout]): CloseableIterator[Entry[Key, Value]] = {
       val primary = if (ranges.lengthCompare(1) == 0) {
         val scanner = connector.createScanner(table, auths)
         scanner.setRange(ranges.head)
@@ -227,8 +211,28 @@ object AccumuloQueryPlan extends LazyLogging {
       }
       configure(primary)
       val join = joinQuery.copy(tables = Seq(joinTable))
-      val bms = new BatchMultiScanner(connector, primary, join, joinFunction, auths)
-      SelfClosingIterator(bms.iterator, bms.close())
+      new BatchMultiScanner(connector, primary, join, joinFunction, auths, timeout)
     }
+  }
+
+  private class ScanIterator(scanner: ScannerBase) extends CloseableIterator[Entry[Key, Value]] {
+    private val iter = scanner.iterator.asScala
+    override def hasNext: Boolean = iter.hasNext
+    override def next(): Entry[Key, Value] = iter.next()
+    override def close(): Unit = scanner.close()
+  }
+
+  private class ManagedScanIterator(
+      override val timeout: Timeout,
+      override protected val underlying: AccumuloScanner,
+      plan: AccumuloQueryPlan
+    ) extends ManagedScan[Entry[Key, Value]] {
+    override protected def typeName: String = plan.filter.index.sft.getTypeName
+    override protected def filter: Option[Filter] = plan.filter.filter
+  }
+
+  private class AccumuloScanner(scanner: ScannerBase) extends LowLevelScanner[Entry[Key, Value]] {
+    override def iterator: Iterator[Entry[Key, Value]] = scanner.iterator.asScala
+    override def close(): Unit = scanner.close()
   }
 }

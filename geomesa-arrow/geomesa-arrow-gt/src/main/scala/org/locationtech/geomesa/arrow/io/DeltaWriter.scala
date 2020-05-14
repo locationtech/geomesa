@@ -12,7 +12,6 @@ import java.io.{ByteArrayOutputStream, Closeable, OutputStream}
 import java.nio.channels.Channels
 import java.util.PriorityQueue
 import java.util.concurrent.ThreadLocalRandom
-import java.util.concurrent.atomic.AtomicBoolean
 
 import com.google.common.collect.HashBiMap
 import com.typesafe.scalalogging.StrictLogging
@@ -39,6 +38,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
 import scala.math.Ordering
+import scala.util.control.NonFatal
 
 /**
   * Builds up dictionaries and write record batches. Dictionaries are encoded as deltas
@@ -320,9 +320,9 @@ object DeltaWriter extends StrictLogging {
       private var mappings: Map[String, java.util.Map[Integer, Integer]] = _
       private var count = 0 // records read in current batch
 
-      override def hasNext: Boolean = synchronized { count < toLoad.reader.getValueCount || loadNextBatch() }
+      override def hasNext: Boolean = count < toLoad.reader.getValueCount || loadNextBatch()
 
-      override def next(): Array[Byte] = synchronized {
+      override def next(): Array[Byte] = {
         var total = 0
         while (total < batchSize && hasNext) {
           // read the rest of the current vector, up to the batch size
@@ -349,7 +349,7 @@ object DeltaWriter extends StrictLogging {
         }
       }
 
-      override def close(): Unit = synchronized { CloseWithLogging.raise(Seq(toLoad, result, mergedDictionaries)) }
+      override def close(): Unit = CloseWithLogging.raise(Seq(toLoad, result, mergedDictionaries))
 
       /**
         * Read the next batch
@@ -518,12 +518,9 @@ object DeltaWriter extends StrictLogging {
 
     val merged: CloseableIterator[Array[Byte]] = new CloseableIterator[Array[Byte]] {
 
-      // note: we synchronize the hasNext and close methods so that query timeouts don't asynchronously
-      // close any arrow vectors while they're being loaded/unloaded, as that can cause memory leaks
-
       private var batch: Array[Byte] = _
 
-      override def hasNext: Boolean = synchronized {
+      override def hasNext: Boolean = {
         if (batch == null) {
           batch = nextBatch()
         }
@@ -536,7 +533,7 @@ object DeltaWriter extends StrictLogging {
         res
       }
 
-      override def close(): Unit = synchronized {
+      override def close(): Unit = {
         CloseWithLogging(result)
         CloseWithLogging(cleanup)
         CloseWithLogging(mergedDictionaries)
@@ -974,24 +971,32 @@ object DeltaWriter extends StrictLogging {
       deltas: CloseableIterator[Array[Byte]]
     ) extends CloseableIterator[Array[Byte]] {
 
-    private val closed = new AtomicBoolean(false)
-
     private lazy val reduced = {
-      val grouped = scala.collection.mutable.Map.empty[Long, scala.collection.mutable.ArrayBuilder[Array[Byte]]]
-      while (!closed.get && deltas.hasNext) {
-        val delta = deltas.next
-        grouped.getOrElseUpdate(ByteArrays.readLong(delta), Array.newBuilder) += delta
-      }
-      val threaded = Array.ofDim[Array[Array[Byte]]](grouped.size)
-      var i = 0
-      grouped.foreach { case (_, builder) => threaded(i) = builder.result; i += 1 }
-      logger.trace(s"merging delta batches from ${threaded.length} thread(s)")
-      val dictionaries = mergeDictionaries(sft, dictionaryFields, threaded, encoding)
-      if (sorted || sort.isEmpty) {
-        reduceNoSort(sft, dictionaryFields, encoding, dictionaries, sort, batchSize, threaded)
-      } else {
-        val Some((s, r)) = sort
-        reduceWithSort(sft, dictionaryFields, encoding, dictionaries, s, r, batchSize, threaded)
+      try {
+        val grouped = scala.collection.mutable.Map.empty[Long, scala.collection.mutable.ArrayBuilder[Array[Byte]]]
+        while (deltas.hasNext) {
+          val delta = deltas.next
+          grouped.getOrElseUpdate(ByteArrays.readLong(delta), Array.newBuilder) += delta
+        }
+        val threaded = Array.ofDim[Array[Array[Byte]]](grouped.size)
+        var i = 0
+        grouped.foreach { case (_, builder) => threaded(i) = builder.result; i += 1 }
+        logger.trace(s"merging delta batches from ${threaded.length} thread(s)")
+        val dictionaries = mergeDictionaries(sft, dictionaryFields, threaded, encoding)
+        if (sorted || sort.isEmpty) {
+          reduceNoSort(sft, dictionaryFields, encoding, dictionaries, sort, batchSize, threaded)
+        } else {
+          val Some((s, r)) = sort
+          reduceWithSort(sft, dictionaryFields, encoding, dictionaries, s, r, batchSize, threaded)
+        }
+      } catch {
+        case NonFatal(e) =>
+          // if we get an error, re-throw it on next()
+          new CloseableIterator[Array[Byte]] {
+            override def hasNext: Boolean = true
+            override def next(): Array[Byte] = throw e
+            override def close(): Unit = {}
+          }
       }
     }
 
@@ -999,9 +1004,6 @@ object DeltaWriter extends StrictLogging {
 
     override def next(): Array[Byte] = reduced.next()
 
-    override def close(): Unit = {
-      closed.set(true)
-      CloseWithLogging(deltas, reduced)
-    }
+    override def close(): Unit = CloseWithLogging(deltas, reduced)
   }
 }
