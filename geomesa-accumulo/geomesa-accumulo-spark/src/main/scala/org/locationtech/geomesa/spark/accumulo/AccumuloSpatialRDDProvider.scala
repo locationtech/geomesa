@@ -18,7 +18,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.deploy.SparkHadoopUtil
 import org.apache.spark.rdd.{NewHadoopRDD, RDD}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
-import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, EmptyPlan, ScanPlan}
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, EmptyPlan}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloQueryPlan}
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.jobs.accumulo.AccumuloJobUtils
@@ -99,7 +99,6 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
         // flatten and duplicate the query plans so each one only has a single table
         val expanded = qps.flatMap {
           case qp: BatchScanPlan => qp.tables.map(t => qp.copy(tables = Seq(t)))
-          case qp: ScanPlan => qp.tables.map(t => qp.copy(tables = Seq(t)))
           case qp: EmptyPlan => Seq(qp)
           case qp => throw new NotImplementedError(s"Unexpected query plan type: $qp")
         }

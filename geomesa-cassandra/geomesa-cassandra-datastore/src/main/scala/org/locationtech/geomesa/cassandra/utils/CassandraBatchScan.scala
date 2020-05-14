@@ -12,8 +12,11 @@ import java.nio.ByteBuffer
 import java.util.concurrent._
 
 import com.datastax.driver.core._
+import org.locationtech.geomesa.cassandra.data.CassandraQueryPlan
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
+import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.opengis.filter.Filter
 
 private class CassandraBatchScan(session: Session, ranges: Seq[Statement], threads: Int, buffer: Int)
     extends AbstractBatchScan[Statement, Row](ranges, threads, buffer, CassandraBatchScan.Sentinel) {
@@ -40,6 +43,30 @@ object CassandraBatchScan {
     override def getCodecRegistry: CodecRegistry = null
   }
 
-  def apply(session: Session, ranges: Seq[Statement], threads: Int): CloseableIterator[Row] =
-    new CassandraBatchScan(session, ranges, threads, 100000).start()
+  def apply(
+      plan: CassandraQueryPlan,
+      session: Session,
+      ranges: Seq[Statement],
+      threads: Int,
+      timeout: Option[Timeout]): CloseableIterator[Row] = {
+    val scanner = new CassandraBatchScan(session, ranges, threads, 100000)
+    timeout match {
+      case None => scanner.start()
+      case Some(t) => new ManagedScanIterator(t, new CassandraScanner(scanner), plan)
+    }
+  }
+
+  private class ManagedScanIterator(
+      override val timeout: Timeout,
+      override protected val underlying: CassandraScanner,
+      plan: CassandraQueryPlan
+    ) extends ManagedScan[Row] {
+    override protected def typeName: String = plan.filter.index.sft.getTypeName
+    override protected def filter: Option[Filter] = plan.filter.filter
+  }
+
+  private class CassandraScanner(scanner: CassandraBatchScan) extends LowLevelScanner[Row] {
+    override def iterator: Iterator[Row] = scanner.start()
+    override def close(): Unit = scanner.close()
+  }
 }

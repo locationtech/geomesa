@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.arrow.io
 
-import java.util.concurrent.atomic.AtomicBoolean
-
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector._
@@ -84,8 +82,6 @@ object BatchWriter {
 
     private var batch: Array[Byte] = _
 
-    private val closed = new AtomicBoolean(false)
-
     // gets the attribute we're sorting by from the i-th feature in the vector
     val getSortAttribute: (SimpleFeatureVector, Int) => AnyRef = {
       val sortByIndex = sft.indexOf(sortBy)
@@ -98,10 +94,9 @@ object BatchWriter {
     }
 
     // this is lazy to allow the query plan to be instantiated without pulling back all the batches first
-    // we also allow for early termination by checking the `closed` flag
     private lazy val inputs: Array[(SimpleFeatureVector, (Int, Int) => Unit)] = {
       val builder = Array.newBuilder[(SimpleFeatureVector, (Int, Int) => Unit)]
-      while (!closed.get && batches.hasNext) {
+      while (batches.hasNext) {
         val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
         RecordBatchLoader.load(vector.underlying, batches.next)
 
@@ -186,7 +181,6 @@ object BatchWriter {
     }
 
     override def close(): Unit = {
-      closed.set(true)
       CloseWithLogging(result, batches)
       inputs.foreach { case (vector, _) => CloseWithLogging(vector) }
     }

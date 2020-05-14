@@ -13,9 +13,12 @@ import java.util.concurrent._
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
+import org.locationtech.geomesa.hbase.data.HBaseQueryPlan
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
+import org.locationtech.geomesa.index.utils.ThreadManagement.{LowLevelScanner, ManagedScan, Timeout}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
+import org.opengis.filter.Filter
 
 private class HBaseBatchScan(connection: Connection, table: TableName, ranges: Seq[Scan], threads: Int, buffer: Int)
     extends AbstractBatchScan[Scan, Result](ranges, threads, buffer, HBaseBatchScan.Sentinel) {
@@ -56,6 +59,31 @@ object HBaseBatchScan {
    * @param threads number of concurrently running scans
    * @return
    */
-  def apply(connection: Connection, table: TableName, ranges: Seq[Scan], threads: Int): CloseableIterator[Result] =
-    new HBaseBatchScan(connection, table, ranges, threads, BufferSize).start()
+  def apply(
+      plan: HBaseQueryPlan,
+      connection: Connection,
+      table: TableName,
+      ranges: Seq[Scan],
+      threads: Int,
+      timeout: Option[Timeout]): CloseableIterator[Result] = {
+    val scanner = new HBaseBatchScan(connection, table, ranges, threads, BufferSize)
+    timeout match {
+      case None => scanner.start()
+      case Some(t) => new ManagedScanIterator(t, new HBaseScanner(scanner), plan)
+    }
+  }
+
+  private class ManagedScanIterator(
+      override val timeout: Timeout,
+      override protected val underlying: HBaseScanner,
+      plan: HBaseQueryPlan
+    ) extends ManagedScan[Result] {
+    override protected def typeName: String = plan.filter.index.sft.getTypeName
+    override protected def filter: Option[Filter] = plan.filter.filter
+  }
+
+  private class HBaseScanner(scanner: HBaseBatchScan) extends LowLevelScanner[Result] {
+    override def iterator: Iterator[Result] = scanner.start()
+    override def close(): Unit = scanner.close()
+  }
 }

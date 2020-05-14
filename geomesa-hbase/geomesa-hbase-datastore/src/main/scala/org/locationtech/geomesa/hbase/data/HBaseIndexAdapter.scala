@@ -255,9 +255,8 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         }
         (cqlFilter ++ indexFilter).sortBy(_._1).map(_._2)
       }
-      lazy val coprocessorOptions: Map[String, String] =
-        Map[String, String](GeoMesaCoprocessor.YieldOpt -> ds.config.coprocessors.yieldPartialResults.toString) ++
-            strategy.index.ds.config.queries.timeout.map(GeoMesaCoprocessor.timeout)
+      lazy val coprocessorOptions =
+        Map(GeoMesaCoprocessor.YieldOpt -> String.valueOf(ds.config.coprocessors.yieldPartialResults))
       lazy val scans = configureScans(tables, ranges, small, colFamily, filters, coprocessor = false)
       lazy val coprocessorScans =
         configureScans(tables, ranges, small, colFamily, indexFilter.toSeq.map(_._2), coprocessor = true)
