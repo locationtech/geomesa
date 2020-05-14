@@ -181,8 +181,9 @@ object BatchWriter {
     }
 
     override def close(): Unit = {
-      CloseWithLogging(result, batches)
+      CloseWithLogging(batches)
       inputs.foreach { case (vector, _) => CloseWithLogging(vector) }
+      CloseWithLogging(result)
     }
   }
 }
