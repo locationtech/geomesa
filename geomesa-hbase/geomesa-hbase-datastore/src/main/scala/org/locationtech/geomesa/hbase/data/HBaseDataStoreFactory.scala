@@ -64,6 +64,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       enabled = enabledCoprocessors,
       threads = CoprocessorThreadsParam.lookup(params),
       yieldPartialResults = YieldPartialResultsParam.lookup(params),
+      parallel = CoprocessorParallelScanParam.lookup(params).booleanValue,
       maxRangesPerExtendedScan = MaxRangesPerCoprocessorScanParam.lookup(params),
       url = CoprocessorUrlParam.lookupOpt(params)
     )
@@ -154,6 +155,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       DensityCoprocessorParam,
       StatsCoprocessorParam,
       YieldPartialResultsParam,
+      CoprocessorParallelScanParam,
       EnableSecurityParam,
       GenerateStatsParam,
       AuditQueriesParam,
@@ -194,6 +196,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       enabled: EnabledCoprocessors,
       threads: Int,
       yieldPartialResults: Boolean,
+      parallel: Boolean,
       maxRangesPerExtendedScan: Int,
       url: Option[Path]
     )

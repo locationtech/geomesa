@@ -57,6 +57,7 @@ Parameter                                    Type    Description
 ``hbase.coprocessor.density.enable``         Boolean Disable coprocessor scans for density queries, and use local processing instead
 ``hbase.coprocessor.stats.enable``           Boolean Disable coprocessor scans for stat queries, and use local processing instead
 ``hbase.coprocessor.yield.partial.results``  Boolean Toggle coprocessors yielding partial results
+``hbase.coprocessor.scan.parallel``          Boolean Toggle extremely parallel coprocessor scans (bounded by RPC threads)
 ``geomesa.stats.generate``                   Boolean Toggle collection of statistics (currently not implemented)
 ``geomesa.query.caching``                    Boolean Toggle caching of results
 ===========================================  ======= ========================================================================================
