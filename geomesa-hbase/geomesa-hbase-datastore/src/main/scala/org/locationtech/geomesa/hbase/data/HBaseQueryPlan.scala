@@ -20,6 +20,7 @@ import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFe
 import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
+import org.locationtech.geomesa.index.utils.ThreadManagement.Timeout
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.index.ByteArrays
 
@@ -40,7 +41,9 @@ sealed trait HBaseQueryPlan extends QueryPlan[HBaseDataStore] {
   def scans: Seq[TableScan]
 
   override def scan(ds: HBaseDataStore): CloseableIterator[Results] = {
-    val iter = scans.iterator.map(singleTableScan(ds, _))
+    // convert the relative timeout to an absolute timeout up front
+    val timeout = ds.config.queries.timeout.map(Timeout.apply)
+    val iter = scans.iterator.map(singleTableScan(_, ds.connection, threads(ds), timeout))
     if (PartitionParallelScan.toBoolean.contains(true)) {
       // kick off all the scans at once
       iter.foldLeft(CloseableIterator.empty[Results])(_ ++ _)
@@ -61,7 +64,13 @@ sealed trait HBaseQueryPlan extends QueryPlan[HBaseDataStore] {
     explainer.popLevel()
   }
 
-  protected def singleTableScan(ds: HBaseDataStore, scan: TableScan): CloseableIterator[Results]
+  protected def threads(ds: HBaseDataStore): Int
+
+  protected def singleTableScan(
+      scan: TableScan,
+      connection: Connection,
+      threads: Int,
+      timeout: Option[Timeout]): CloseableIterator[Results]
 
   // additional explaining, if any
   protected def explain(explainer: Explainer): Unit = {}
@@ -96,8 +105,12 @@ object HBaseQueryPlan {
     override val maxFeatures: Option[Int] = None
     override val projection: Option[QueryReferenceSystems] = None
     override def scan(ds: HBaseDataStore): CloseableIterator[Result] = CloseableIterator.empty
-    override protected def singleTableScan(ds: HBaseDataStore, scan: TableScan): CloseableIterator[Result] =
-      CloseableIterator.empty
+    override protected def threads(ds: HBaseDataStore): Int = 0
+    override protected def singleTableScan(
+        scan: TableScan,
+        connection: Connection,
+        threads: Int,
+        timeout: Option[Timeout]): CloseableIterator[Result] = CloseableIterator.empty
   }
 
   case class ScanPlan(
@@ -113,8 +126,15 @@ object HBaseQueryPlan {
 
     override type Results = Result
 
-    override protected def singleTableScan(ds: HBaseDataStore, scan: TableScan): CloseableIterator[Result] =
-      HBaseBatchScan(ds.connection, scan.table, scan.scans, ds.config.queries.threads)
+    override protected def threads(ds: HBaseDataStore): Int = ds.config.queries.threads
+
+    override protected def singleTableScan(
+        scan: TableScan,
+        connection: Connection,
+        threads: Int,
+        timeout: Option[Timeout]): CloseableIterator[Result] = {
+      HBaseBatchScan(this, connection, scan.table, scan.scans, threads, timeout)
+    }
   }
 
   case class CoprocessorPlan(
@@ -132,9 +152,15 @@ object HBaseQueryPlan {
 
     override def sort: Option[Seq[(String, Boolean)]] = None // client side sorting is not relevant for coprocessors
 
-    override protected def singleTableScan(ds: HBaseDataStore, scan: TableScan): CloseableIterator[Array[Byte]] = {
+    override protected def threads(ds: HBaseDataStore): Int = ds.config.coprocessors.threads
+
+    override protected def singleTableScan(
+        scan: TableScan,
+        connection: Connection,
+        threads: Int,
+        timeout: Option[Timeout]): CloseableIterator[Array[Byte]] = {
       // send out all requests at once, but restrict the total rpc threads used
-      CoprocessorBatchScan(ds.connection, scan.table, scan.scans, coprocessorOptions, ds.config.coprocessors.threads)
+      CoprocessorBatchScan(this, connection, scan.table, scan.scans, coprocessorOptions, threads, timeout)
     }
 
     override protected def explain(explainer: Explainer): Unit =

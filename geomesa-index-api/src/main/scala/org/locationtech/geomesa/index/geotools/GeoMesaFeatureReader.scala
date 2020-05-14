@@ -17,8 +17,6 @@ import org.locationtech.geomesa.index.audit.QueryEvent
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.planning.QueryRunner
-import org.locationtech.geomesa.index.utils.ThreadManagement
-import org.locationtech.geomesa.index.utils.ThreadManagement.ManagedQuery
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -26,11 +24,10 @@ import org.locationtech.geomesa.utils.stats.{MethodProfiling, Timings, TimingsIm
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 class GeoMesaFeatureReader private (sft: SimpleFeatureType, qp: QueryRunner, query: Query, timeout: Option[Long])
-    extends SimpleFeatureReader with ManagedQuery {
+    extends SimpleFeatureReader {
 
   private val closed = new AtomicBoolean(false)
   private val iter = runQuery()
-  private val cancel = timeout.map(_ => ThreadManagement.register(this))
 
   override def hasNext: Boolean = iter.hasNext
 
@@ -38,24 +35,15 @@ class GeoMesaFeatureReader private (sft: SimpleFeatureType, qp: QueryRunner, que
 
   override def getFeatureType: SimpleFeatureType = query.getHints.getReturnSft
 
-  override def getTimeout: Long = timeout.getOrElse(-1L)
-
-  override def isClosed: Boolean = closed.get()
-
   override def close(): Unit = {
     if (closed.compareAndSet(false, true)) {
-      try { closeOnce() } finally {
-        cancel.foreach(_.cancel(false))
-      }
+      closeOnce()
     }
   }
 
   protected def runQuery(): CloseableIterator[SimpleFeature] = qp.runQuery(sft, query)
 
   protected def closeOnce(): Unit = iter.close()
-
-  override def debug: String =
-    s"query on schema '${query.getTypeName}' with filter '${filterToString(query.getFilter)}'"
 }
 
 object GeoMesaFeatureReader {

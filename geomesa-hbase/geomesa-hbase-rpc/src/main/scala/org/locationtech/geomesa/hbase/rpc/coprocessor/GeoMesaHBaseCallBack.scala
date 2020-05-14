@@ -28,42 +28,37 @@ import org.locationtech.geomesa.utils.index.ByteArrays
  * @param scan initial scan (warning: may be mutated)
  * @param options coprocessor configuration options
  * @param result queue for storing results
- * @param closed indicates if the call has been closed and we should stop querying
  */
-class GeoMesaHBaseCallBack(
-    scan: Scan,
-    options: Map[String, String],
-    result: LinkedBlockingQueue[ByteString],
-    closed: AtomicBoolean
-  ) extends Callback[GeoMesaCoprocessorResponse] with Iterator[Scan] with LazyLogging {
+class GeoMesaHBaseCallBack(scan: Scan, options: Map[String, String], result: LinkedBlockingQueue[ByteString])
+    extends Callback[GeoMesaCoprocessorResponse] with Iterator[Scan] with LazyLogging {
 
   private var updated: Array[Byte] = _ // tracks our status per invocation to detect multiple region updates
 
   val callable: Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse] =
     new Call[GeoMesaCoprocessorService, GeoMesaCoprocessorResponse]() {
       override def call(instance: GeoMesaCoprocessorService): GeoMesaCoprocessorResponse = {
-        if (closed.get) { null } else {
-          val controller = new GeoMesaHBaseRpcController()
-          val callback = new RpcCallbackImpl()
-          // note: synchronous call
-          try { instance.getResult(controller, buildRequest, callback) } catch {
-            case _: InterruptedException | _: InterruptedIOException | _: CancellationException =>
-              logger.warn("Cancelling remote coprocessor call")
-              controller.startCancel()
-          }
-
-          if (controller.failed()) {
-            logger.error(s"Controller failed with error:\n${controller.errorText()}")
-          }
-
-          callback.get()
+        val controller = new GeoMesaHBaseRpcController()
+        val callback = new RpcCallbackImpl()
+        var cancelled = false
+        // note: synchronous call
+        try { instance.getResult(controller, buildRequest, callback) } catch {
+          case _: InterruptedException | _: InterruptedIOException | _: CancellationException =>
+            logger.warn("Cancelling remote coprocessor call")
+            controller.startCancel()
+            cancelled = true
         }
+
+        if (controller.failed() && !cancelled) {
+          logger.error(s"Controller failed with error:\n${controller.errorText()}")
+        }
+
+        callback.get()
       }
     }
 
   // in `update` (below), we use scan.startRow as a sentinel to indicate we're done
   // we won't ever start with a null row, as we use an empty byte array to indicate no start row
-  override def hasNext: Boolean = !closed.get() && scan.getStartRow != null
+  override def hasNext: Boolean = scan.getStartRow != null
 
   override def next: Scan = {
     updated = null // reset the status for the next region update
