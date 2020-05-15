@@ -6,6 +6,12 @@ HBase Configuration
 This section details HBase specific configuration properties. For general properties,
 see :ref:`geomesa_site_xml`.
 
+geomesa.hbase.client.scanner.caching.size
++++++++++++++++++++++++++++++++++++++++++
+
+Set the number of rows that scanners will read ahead. If not set, the default caching will apply as configured in
+``hbase-site.xml``. Higher caching values will enable faster scanners but will use more memory.
+
 geomesa.hbase.config.paths
 ++++++++++++++++++++++++++
 
@@ -31,6 +37,18 @@ geomesa.hbase.coprocessor.density.enable
 Disable coprocessor scans for density queries, and use local processing instead. This property will be overridden by
 the data store configuration parameter, if both are specified.
 
+geomesa.hbase.coprocessor.maximize.threads
+++++++++++++++++++++++++++++++++++++++++++
+
+Create a listener thread for each region when making coprocessor calls. If disabled, the number of listener threads
+will be based on the data store configuration parameter ``hbase.coprocessor.threads``.
+
+geomesa.hbase.coprocessor.url
++++++++++++++++++++++++++++++
+
+Path to the GeoMesa jar containing coprocessors, for auto registration. This property will be overridden by
+the data store configuration parameter, if both are specified.
+
 geomesa.hbase.coprocessor.stats.enable
 ++++++++++++++++++++++++++++++++++++++
 
@@ -51,6 +69,18 @@ Disable remote filtering. Remote filtering and coprocessors speed up queries, ho
 of custom JARs in HBase. Since this is not always possible, they can be disabled by setting this to ``false``.
 This property will be overridden by the data store configuration parameter, if both are specified.
 
+geomesa.hbase.scan.buffer
++++++++++++++++++++++++++
+
+Specify the maximum number of results to pre-buffer in local memory when executing a scan, if the client is not
+consuming the results as fast as they are being returned.
+
+geomesa.hbase.table.availability.timeout
+++++++++++++++++++++++++++++++++++++++++
+
+Specify the amount of time to wait for a table to become available after it has been created. The timeout
+is specified as a duration, e.g. ``5 minutes``.
+
 geomesa.hbase.wal.durability
 ++++++++++++++++++++++++++++
 
@@ -66,11 +96,10 @@ ingests where performance is of more concern than reliability. Available setting
 For addtional information see `HBase documentation
 <https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/client/Durability.html>`__.
 
-geomesa.hbase.client.scanner.caching.size
-+++++++++++++++++++++++++++++++++++++++++
+geomesa.hbase.write.batch
++++++++++++++++++++++++++
 
-Set the number of rows that scanners will read ahead. If not set, the default caching will apply as configured in
-``hbase-site.xml``. Higher caching values will enable faster scanners but will use more memory.
+Specify the number of bytes that will be buffered before flushing to disk during write operations.
 
 geomesa.hbase.query.block.caching.enabled
 +++++++++++++++++++++++++++++++++++++++++
