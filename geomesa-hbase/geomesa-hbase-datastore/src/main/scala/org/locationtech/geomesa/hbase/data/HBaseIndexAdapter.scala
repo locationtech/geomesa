@@ -24,7 +24,8 @@ import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
-import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, TableAvailabilityTimeout}
+// noinspection ScalaDeprecation
+import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, CoprocessorUrl, TableAvailabilityTimeout}
 import org.locationtech.geomesa.hbase.aggregators.HBaseArrowAggregator.HBaseArrowResultsToFeatures
 import org.locationtech.geomesa.hbase.aggregators.HBaseBinAggregator.HBaseBinResultsToFeatures
 import org.locationtech.geomesa.hbase.aggregators.HBaseDensityAggregator.HBaseDensityResultsToFeatures
@@ -85,8 +86,10 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
         val bloom = Some(BloomType.NONE)
         val encoding = if (index.name == IdIndex.name) { None } else { Some(DataBlockEncoding.FAST_DIFF) }
 
+        // noinspection ScalaDeprecation
         val coprocessor = if (!ds.config.remoteFilter) { None } else {
-          lazy val coprocessorUrl = ds.config.coprocessors.url.orElse(CoprocessorPath.option.map(new Path(_))).orElse {
+          def urlFromSysProp: Option[Path] = CoprocessorUrl.option.orElse(CoprocessorPath.option).map(new Path(_))
+          lazy val coprocessorUrl = ds.config.coprocessors.url.orElse(urlFromSysProp).orElse {
             try {
               // the jar should be under hbase.dynamic.jars.dir to enable filters, so look there
               val dir = new Path(conf.get("hbase.dynamic.jars.dir"))

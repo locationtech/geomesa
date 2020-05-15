@@ -43,8 +43,7 @@ class HBaseArrowTest extends Specification with LazyLogging  {
 
   lazy val params = Map(
     HBaseDataStoreParams.ConnectionParam.getName   -> MiniCluster.connection,
-    HBaseDataStoreParams.HBaseCatalogParam.getName -> HBaseArrowTest.this.getClass.getSimpleName,
-    HBaseDataStoreParams.ArrowCoprocessorParam.key -> true
+    HBaseDataStoreParams.HBaseCatalogParam.getName -> HBaseArrowTest.this.getClass.getSimpleName
   )
 
   lazy val ds = DataStoreFinder.getDataStore(params.asJava).asInstanceOf[HBaseDataStore]
