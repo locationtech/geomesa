@@ -89,6 +89,7 @@
         <!-- *** provided artifacts, not bundled to support multiple environments *** -->
 
         <accumulo.version>2.0.0</accumulo.version>
+        <accumulo-1.version>1.9.3</accumulo-1.version>
         <zookeeper.version>3.4.14</zookeeper.version>
         <thrift.version>0.12.0</thrift.version>
         <hadoop.version>2.8.5</hadoop.version>
