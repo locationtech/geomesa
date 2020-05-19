@@ -43,6 +43,9 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
   private val terminator = new Terminator()
   private val pool = new CachedThreadPool(threads)
 
+  @volatile
+  protected var closed: Boolean = false
+
   private var retrieved: R = _
 
   /**
@@ -89,8 +92,9 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
   }
 
   override def close(): Unit = {
+    closed = true
     terminator.terminate(true)
-    pool.shutdownNow()
+    pool.shutdown()
   }
 
   /**
@@ -140,7 +144,7 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
     override def run(): Unit = {
       try {
         var range = inQueue.poll()
-        while (range != null && !Thread.currentThread().isInterrupted) {
+        while (range != null && !closed) {
           scan(range, outQueue)
           range = inQueue.poll()
         }
@@ -167,7 +171,7 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
       }
       // it's possible that the queue is full, in which case we can't immediately
       // add the sentinel to the queue to indicate to the client that scans are done
-      if (drop) {
+      if (drop || closed) {
         // if the scan has been closed, then the client is done
         // reading and we don't mind dropping some results
         terminateWithDrops()

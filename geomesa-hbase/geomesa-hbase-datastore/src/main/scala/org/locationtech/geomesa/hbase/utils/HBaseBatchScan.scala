@@ -23,13 +23,14 @@ import org.opengis.filter.Filter
 private class HBaseBatchScan(connection: Connection, table: TableName, ranges: Seq[Scan], threads: Int, buffer: Int)
     extends AbstractBatchScan[Scan, Result](ranges, threads, buffer, HBaseBatchScan.Sentinel) {
 
+
   private val htable = connection.getTable(table, new CachedThreadPool(threads))
 
   override protected def scan(range: Scan, out: BlockingQueue[Result]): Unit = {
     val scan = htable.getScanner(range)
     try {
       var result = scan.next()
-      while (result != null) {
+      while (result != null && !closed) {
         out.put(result)
         result = scan.next()
       }
