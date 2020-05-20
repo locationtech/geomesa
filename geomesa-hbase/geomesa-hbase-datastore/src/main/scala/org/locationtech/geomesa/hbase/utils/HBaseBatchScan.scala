@@ -30,9 +30,9 @@ private class HBaseBatchScan(connection: Connection, table: TableName, ranges: S
     val scan = htable.getScanner(range)
     try {
       var result = scan.next()
-      while (result != null && !closed) {
+      while (result != null) {
         out.put(result)
-        result = scan.next()
+        result = if (closed) { null } else { scan.next() }
       }
     } finally {
       scan.close()
