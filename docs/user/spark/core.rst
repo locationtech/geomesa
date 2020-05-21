@@ -52,10 +52,14 @@ to the ``spark-submit`` command via the ``--jars`` option:
 
 .. code-block:: bash
 
-    --jars file://path/to/geomesa-accumulo-spark-runtime_2.11-$VERSION.jar
+    --jars file://path/to/geomesa-accumulo-spark-runtime-accumulo2_2.11-$VERSION.jar
 
 or passed to Spark via the appropriate mechanism in notebook servers such as
 Jupyter (see :doc:`jupyter`) or Zeppelin.
+
+.. note::
+
+  See :ref:`spatial_rdd_providers` for details on choosing the correct GeoMesa Spark runtime JAR.
 
 The shaded JAR should also provide the dependencies needed for the
 :ref:`converter_rdd_provider` and :ref:`geotools_rdd_provider`, so these JARs

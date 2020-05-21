@@ -9,8 +9,15 @@ Accumulo RDD Provider
 ^^^^^^^^^^^^^^^^^^^^^
 
 The ``AccumuloSpatialRDDProvider`` is a spatial RDD provider for Accumulo data stores. The core code is in
-the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies (which contains all the required
-dependencies for execution) is available in the ``geomesa-accumulo-spark-runtime`` module.
+the ``geomesa-accumulo-spark`` module, and the shaded JAR-with-dependencies are available in the
+``geomesa-accumulo-spark-runtime-accumulo1`` and ``geomesa-accumulo-spark-runtime-accumulo2`` modules.
+
+.. note::
+
+    The GeoMesa Spark runtime JARs are convenient bundles of all the required dependencies for each data store.
+    There are two Accumulo Spark runtime JARs, one for Accumulo 1.x (``geomesa-accumulo-spark-runtime-accumulo1``)
+    and one for Accumulo 2.x (``geomesa-accumulo-spark-runtime-accumulo2``). Make sure that you use the JAR
+    corresponding to your Accumulo version.
 
 This provider can read from and write to a GeoMesa ``AccumuloDataStore``. The configuration parameters
 are the same as those passed to ``DataStoreFinder.getDataStore()``. See :ref:`accumulo_parameters` for details.
@@ -41,13 +48,15 @@ HBase RDD Provider
 
 The ``HBaseSpatialRDDProvider`` is a spatial RDD provider for HBase data stores. The core code is in
 the ``geomesa-hbase-spark`` module, and the shaded JAR-with-dependencies (which contains all the required
-dependencies for execution) is available in the ``geomesa-hbase-spark-runtime-hbase1`` and ``geomesa-hbase-spark-runtime-hbase2``
-modules.
+dependencies for execution) is available in the ``geomesa-hbase-spark-runtime-hbase1`` and
+``geomesa-hbase-spark-runtime-hbase2`` modules.
 
 .. note::
 
-    For HBase 2.x, use the ``geomesa-hbase-spark-runtime-hbase2_2.11-$VERSION.jar`` JAR. For HBase 1.x, use
-    the ``geomesa-hbase-spark-runtime-hbase1_2.11-$VERSION.jar`` JAR.
+    The GeoMesa Spark runtime JARs are convenient bundles of all the required dependencies for each data store.
+    There are two HBase Spark runtime JARs, one for HBase 1.x (``geomesa-hbase-spark-runtime-hbase1``)
+    and one for HBase 2.x (``geomesa-hbase-spark-runtime-hbase2``). Make sure that you use the JAR
+    corresponding to your HBase version.
 
 This provider can read from and write to a GeoMesa ``HBaseDataStore``. The configuration parameters
 are the same as those passed to ``DataStoreFinder.getDataStore()``. See :ref:`hbase_parameters` for details.
