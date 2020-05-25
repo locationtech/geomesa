@@ -34,24 +34,44 @@ Install the Processors
 ~~~~~~~~~~~~~~~~~~~~~~
 
 To install the GeoMesa processors you will need to copy the nar files into the ``lib`` directory of your
-NiFi installation. There are currently three nar files:
+NiFi installation. There currently two common nar files, and seven datastore-specific nar files.
 
-* ``geomesa-nifi-controllers-api-nar-$VERSION.nar``
-* ``geomesa-nifi-controllers-nar-$VERSION.nar``
-* ``geomesa-nifi-processors-nar-$VERSION.nar``
+Common nar files:
+
+* ``geomesa-datastore-services-api-nar-$VERSION.nar
+* ``geomesa-datastore-services-nar-$VERSION.nar
+
+Datastore nar files:
+
+* ``geomesa-kafka-nar-$VERSION.nar``
+* ``geomesa-hbase1-nar-$VERSION.nar``
+* ``geomesa-hbase2-nar-$VERSION.nar``
+* ``geomesa-redis-nar-$VERSION.nar``
+* ``geomesa-accumulo1-nar-$VERSION.nar``
+* ``geomesa-accumulo2-nar-$VERSION.nar``
+* ``geomesa-fs-nar-$VERSION.nar``
+
+The common nar files are required for all datastores. The datastore-specific nars can be installed as needed.
+
+.. note::
+
+  There are two HBase and Accumulo nars, respectively, that correspond to HBase/Accumulo 1.x and HBase/Accumulo 2.x.
+  Be sure to choose the appropriate nar for your database version.
 
 If you downloaded the nars from GitHub:
 
 .. code-block:: bash
 
-    $ wget "https://github.com/geomesa/geomesa-nifi/releases/download/geomesa-nifi-$VERSION/geomesa-nifi-$VERSION-dist.tar.gz"
-    $ tar -xf geomesa-nifi-$VERSION-dist.tar.gz --directory $NIFI_HOME/lib/
+    $ export NARS="geomesa-hbase2-nar geomesa-datastore-services-api-nar geomesa-datastore-services-nar"
+    $ for nar in $NARS; do wget "https://github.com/geomesa/geomesa-nifi/releases/download/geomesa-nifi-$VERSION/$nar-$VERSION.nar"; done
+    $ mv *.nar $NIFI_HOME/lib/
 
 Or, to install the nars after building from source:
 
 .. code-block:: bash
 
-    $ tar -xf geomesa-nifi-dist/target/geomesa-nifi-$VERSION-dist.tar.gz --directory $NIFI_HOME/lib/
+    $ export NARS="geomesa-hbase2-nar geomesa-datastore-services-api-nar geomesa-datastore-services-nar"
+    $ for nar in $NARS; do find . -name $nar-$VERSION.nar -exec cp {} $NIFI_HOME/lib/ \;; done
 
 Processors
 ----------
@@ -149,6 +169,22 @@ Defining SimpleFeatureTypes and Converters via the UI
 
 You may also provide SimpleFeatureTypes and Converters directly in the Processor configuration via the NiFi UI.
 Simply paste your TypeSafe configuration into the ``SftSpec`` and ``ConverterSpec`` property fields.
+
+Defining SimpleFeatureTypes and Converters via Flowfile Attributes
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+You may also override the Processor configuration fields with flowfile attributes. The following attributes
+are available:
+
+* ``geomesa.sft.name`` corresponds to the Processor configuration ``FeatureNameOverride``
+* ``geomesa.sft.spec`` corresponds to the Processor configuration ``SftSpec``
+* ``geomesa.converter`` corresponds to the Processor configuration ``ConverterSpec``
+
+.. warning::
+
+    Configuration via flowfile attributes should be used with care, as any misconfigurations may multiply.
+    For example, setting ``geomesa.sft.name`` to a non-recurring value could end up creating a new schema for each
+    flowfile, potentially crashing your database by creating too many tables.
 
 Feature Writer Caching
 ^^^^^^^^^^^^^^^^^^^^^^
