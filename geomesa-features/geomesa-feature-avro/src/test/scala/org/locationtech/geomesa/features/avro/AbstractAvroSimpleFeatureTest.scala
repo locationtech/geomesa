@@ -13,12 +13,15 @@ import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.UUID
 
+import org.apache.avro.file.DataFileStream
+import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.locationtech.jts.geom.{Point, Polygon}
 import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 
@@ -79,7 +82,13 @@ trait AbstractAvroSimpleFeatureTest {
     sf
   }
 
-  def getFeatures(f: File) = {
+  def getFeatures(f: File): List[SimpleFeature] = {
+    // verify file can be read as generic records
+    WithClose(new DataFileStream[GenericRecord](new FileInputStream(f), new GenericDatumReader[GenericRecord]())) { dfs =>
+      import scala.collection.JavaConverters._
+      dfs.iterator().asScala.toList
+    }
+
     val dfr = new AvroDataFileReader(new FileInputStream(f))
     try {
       dfr.toList
