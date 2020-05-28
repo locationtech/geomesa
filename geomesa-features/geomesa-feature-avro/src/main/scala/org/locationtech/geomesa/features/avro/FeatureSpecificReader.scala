@@ -16,7 +16,8 @@ import org.locationtech.geomesa.features.SerializationOption.SerializationOption
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureUtils._
 import org.locationtech.geomesa.features.avro.FeatureSpecificReader.AttributeReader
 import org.locationtech.geomesa.features.avro.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
-import org.locationtech.geomesa.features.avro.serialization.AvroUserDataSerialization
+// noinspection ScalaDeprecation
+import org.locationtech.geomesa.features.avro.serialization.{AvroUserDataSerialization, AvroUserDataSerializationV4}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -62,7 +63,12 @@ class FeatureSpecificReader(opts: SerializationOptions) extends DatumReader[Simp
     val feature = attributeReader.read(version, in)
 
     if (includeUserData) {
-      feature.getUserData.putAll(AvroUserDataSerialization.deserialize(in))
+      if (version < 5) {
+        // noinspection ScalaDeprecation
+        feature.getUserData.putAll(AvroUserDataSerializationV4.deserialize(in))
+      } else {
+        feature.getUserData.putAll(AvroUserDataSerialization.deserialize(in))
+      }
     }
 
     feature

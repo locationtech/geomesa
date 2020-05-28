@@ -34,7 +34,8 @@ object AvroSimpleFeatureUtils extends LazyLogging {
   // Version 3 adds byte array types to the schema...and is backwards compatible with V2
   // Version 4 adds a custom name encoder function for the avro schema
   //           v4 can read version 2 and 3 files but version 3 cannot read version 4
-  val VERSION: Int = 4
+  // Version 5 fixes the user data serialization to match the declared avro schema
+  val VERSION: Int = 5
   val AVRO_NAMESPACE: String = "org.geomesa"
 
   def generateSchema(sft: SimpleFeatureType,
@@ -61,10 +62,11 @@ object AvroSimpleFeatureUtils extends LazyLogging {
 
     val fullSchema = if (withUserData) {
       withFields.name(AVRO_SIMPLE_FEATURE_USERDATA).`type`.array().items().record("userDataItem").fields()
-        .name("keyClass").`type`.stringType().noDefault()
-        .name("key").`type`.stringType().noDefault()
-        .name("valueClass").`type`.stringType().noDefault()
-        .name("value").`type`.stringType().noDefault().endRecord().noDefault()
+        .name("keyClass").`type`.unionOf().nullType().and().stringType().endUnion().noDefault()
+        .name("key").`type`.unionOf().nullType().and().stringType().endUnion().noDefault()
+        .name("valueClass").`type`.unionOf().nullType().and().stringType().endUnion().noDefault()
+        .name("value").`type`.unionOf().nullType().and().stringType().endUnion().noDefault()
+          .endRecord().noDefault()
     } else {
       withFields
     }

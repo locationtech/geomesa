@@ -121,15 +121,19 @@ object AvroPath extends BasicParser {
     }
 
     private def pathExpression: Rule1[PathExpr] = rule("PathExpression") {
-      "/" ~ unquotedString ~ optional("$type=" ~ unquotedString) ~~> {
+      "/" ~ identifier ~ optional("$type=" ~ identifier) ~~> {
         (field, typed) => PathExpr(field, typed.map(UnionTypeFilter.apply).getOrElse(_ => true))
       }
     }
 
     private def arrayRecord: Rule1[ArrayRecordExpr] = rule("ArrayRecord") {
-      ("[$" ~ unquotedString ~ "=" ~ unquotedString ~ "]") ~~> {
+      ("[$" ~ identifier ~ "=" ~ identifier ~ "]") ~~> {
         (field, matched) => ArrayRecordExpr(field, matched)
       }
+    }
+
+    private def identifier: Rule1[String] = rule("Identifier") {
+      oneOrMore(char | anyOf(".-")) ~> { s => s }
     }
   }
 }
