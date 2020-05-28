@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.features.avro.serialization
 
 import org.apache.avro.io.{Decoder, Encoder}
-import org.locationtech.geomesa.features.serialization.GenericMapSerialization
+import org.locationtech.geomesa.features.serialization.{GenericMapSerialization, HintKeySerialization}
 
 @deprecated("does not match declared schema")
 object AvroUserDataSerializationV4 extends GenericMapSerialization[Encoder, Decoder] {
@@ -66,7 +66,10 @@ object AvroUserDataSerializationV4 extends GenericMapSerialization[Encoder, Deco
     var remaining = size
     while (remaining > 0) {
       val keyClass = in.readString()
-      val key = if (keyClass == NullMarkerString) { null } else { read(in, Class.forName(keyClass)) }
+      val key =
+        if (keyClass == NullMarkerString) { null }
+        else if (keyClass == "org.geotools.factory.Hints$Key") {HintKeySerialization.idToKey(in.readString())}
+        else { read(in, Class.forName(keyClass)) }
       val valueClass = in.readString()
       val value = if (valueClass == NullMarkerString) { null } else { read(in, Class.forName(valueClass))}
       map.put(key, value)
