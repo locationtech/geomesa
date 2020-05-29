@@ -133,6 +133,13 @@ There are now two separate modules for Accumulo Spark support - ``geomesa-accumu
 ``geomesa-accumulo-spark-runtime-accumulo2``. The previous ``geomesa-accumulo-spark-runtime`` module has been removed.
 Users should use the Spark runtime corresponding to their Accumulo installation.
 
+NiFi Processors
+---------------
+
+The GeoMesa NiFi processors have been split out into separate nar files for each supported back-end database.
+Additionally, there are separate nar files for HBase 1.4/2.2 and Accumulo 1.9/2.0, respectively. The processor
+classes and configurations have also changed. See :ref:`nifi_bundle` for details.
+
 Dependency Updates
 ------------------
 
