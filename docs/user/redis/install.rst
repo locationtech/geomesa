@@ -1,6 +1,10 @@
 Installing GeoMesa Redis
 ========================
 
+.. note::
+
+    GeoMesa currently supports Redis version |redis_version|.
+
 Installing the Binary Distribution
 ----------------------------------
 
