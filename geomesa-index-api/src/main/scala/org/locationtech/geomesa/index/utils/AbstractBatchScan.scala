@@ -8,12 +8,14 @@
 
 package org.locationtech.geomesa.index.utils
 
+import java.io.InterruptedIOException
 import java.util.concurrent._
 
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
 import scala.annotation.tailrec
+import scala.util.control.NonFatal
 
 /**
   * Provides parallelism for scanning multiple ranges at a given time, for systems that don't
@@ -39,11 +41,13 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
   private val inQueue = new ConcurrentLinkedQueue(ranges.asJava)
   private val outQueue = new LinkedBlockingQueue[R](buffer)
 
+  private val pool = new CachedThreadPool(threads)
+  private val starting = new CountDownLatch(1)
   private val latch = new CountDownLatch(threads)
   private val terminator = new Terminator()
-  private val pool = new CachedThreadPool(threads)
 
   private var retrieved: R = _
+  private var error: Throwable = _
 
   /**
     * Scan a single range, putting the results in the provided queue
@@ -63,6 +67,9 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
       i += 1
     }
     pool.submit(terminator)
+    // notify threads to start once all threads are scheduled,
+    // to prevent pool being shutdown prematurely due to errors
+    starting.countDown()
     pool.shutdown()
     this
   }
@@ -77,6 +84,11 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
       } else {
         outQueue.put(sentinel) // re-queue in case hasNext is called again
         retrieved = null.asInstanceOf[R]
+        this.synchronized {
+          if (error != null) {
+            throw error
+          }
+        }
         false
       }
     }
@@ -139,11 +151,19 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
   private class SingleThreadScan extends Runnable {
     override def run(): Unit = {
       try {
+        starting.await() // ensure all threads have been scheduled before starting to scan
         var range = inQueue.poll()
         while (range != null && !Thread.currentThread().isInterrupted) {
           scan(range, outQueue)
           range = inQueue.poll()
         }
+      } catch {
+        case _: InterruptedException | _: InterruptedIOException => // ignore
+        case NonFatal(e) =>
+          AbstractBatchScan.this.synchronized {
+            if (error == null) { error = e } else { error.addSuppressed(e) }
+          }
+          close()
       } finally {
         latch.countDown()
       }

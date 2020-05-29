@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.utils
 import java.util.concurrent.BlockingQueue
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -27,6 +27,16 @@ class AbstractBatchScanTest extends Specification {
   object TestBatchScan {
     def apply(ranges: Seq[String], threads: Int, buffer: Int): TestBatchScan =
       new TestBatchScan(ranges, threads, buffer).start().asInstanceOf[TestBatchScan]
+  }
+
+  class ErrorScan(ranges: Seq[String], err: String) extends TestBatchScan(ranges, 2, 100) {
+    override protected def scan(range: String, out: BlockingQueue[String]): Unit = {
+      if (range == err) { throw new RuntimeException(err) } else { super.scan(range, out) }
+    }
+  }
+
+  object ErrorScan {
+    def apply(ranges: Seq[String], err: String): CloseableIterator[String] = new ErrorScan(ranges, err).start()
   }
 
   "AbstractBatchScan" should {
@@ -54,6 +64,17 @@ class AbstractBatchScanTest extends Specification {
       iter.waitForDone(1000) must beTrue
       // verify that the terminator dropped a result to set the terminal value
       iter.toList must haveLength(1)
+    }
+    "re-throw exceptions from scanning" in {
+      val ranges = Seq("foo", "bar", "baz")
+      foreach(ranges) { r =>
+        val iter = ErrorScan(ranges, r)
+        try {
+          iter.toList must throwA[RuntimeException](r)
+        } finally {
+          iter.close()
+        }
+      }
     }
   }
 }
