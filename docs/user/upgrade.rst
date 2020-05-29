@@ -115,9 +115,23 @@ HBase 2 Support
 GeoMesa 3.0.0 supports both HBase 1.4 and HBase 2.2. HBase 1.3 is no longer supported. HBase 2.0 and 2.1 are
 not officially supported, but may work in some cases.
 
-There are now two separate modules for HBase filters and coprocessor - ``hbase-distributed-runtime-hbase1``
-and ``hbase-distributed-runtime-hbase2``. The previous ``hbase-distributed-runtime`` module has been removed.
-Users should install the distributed runtime corresponding to their HBase installation.
+There are now two separate modules for HBase filters and coprocessors - ``geomesa-hbase-distributed-runtime-hbase1``
+and ``geomesa-hbase-distributed-runtime-hbase2``. The previous ``geomesa-hbase-distributed-runtime`` module has
+been removed. Users should install the distributed runtime corresponding to their HBase installation.
+
+Similarly, there are now two separate modules for HBase Spark support - ``geomesa-hbase-spark-runtime-hbase1`` and
+``geomesa-hbase-spark-runtime-hbase2``. The previous ``geomesa-hbase-spark-runtime`` module has been removed.
+Users should use the Spark runtime corresponding to their HBase installation.
+
+Accumulo 2 Support
+------------------
+
+GeoMesa 3.0.0 supports both Accumulo 1.9 with Hadoop 2.8 and Accumulo 2.0 with Hadoop 3.
+Earlier versions of Accumulo are no longer supported, but may work in some cases.
+
+There are now two separate modules for Accumulo Spark support - ``geomesa-accumulo-spark-runtime-accumulo1`` and
+``geomesa-accumulo-spark-runtime-accumulo2``. The previous ``geomesa-accumulo-spark-runtime`` module has been removed.
+Users should use the Spark runtime corresponding to their Accumulo installation.
 
 Dependency Updates
 ------------------
