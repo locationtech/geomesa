@@ -17,27 +17,42 @@ object AvroUserDataSerialization {
 
   import scala.collection.JavaConverters._
 
-  private lazy val HintsKeyClass = classOf[Hints.Key].getName
+  private val HintsKeyClass = "Hints.Key"
 
   def serialize(out: Encoder, map: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
     out.writeArrayStart()
     out.setItemCount(map.size)
 
+    def writeNull(): Unit = {
+      out.writeIndex(0)
+      out.writeNull()
+      out.writeIndex(0)
+      out.writeNull()
+    }
+
+    def writeNonNull(clas: String, value: String): Unit = {
+      out.writeIndex(1)
+      out.writeString(clas)
+      out.writeIndex(1)
+      out.writeString(value)
+    }
+
     def writePair(value: Any): Unit = {
-      val string = value match {
-        case key: Hints.Key if HintKeySerialization.canSerialize(key) => HintKeySerialization.keyToId(key)
-        case _ => FastConverter.convert(value, classOf[String])
-      }
-      if (string == null) {
-        out.writeIndex(0)
-        out.writeNull()
-        out.writeIndex(0)
-        out.writeNull()
-      } else {
-        out.writeIndex(1)
-        out.writeString(value.getClass.getName)
-        out.writeIndex(1)
-        out.writeString(string)
+      value match {
+        case key: Hints.Key =>
+          if (HintKeySerialization.canSerialize(key)) {
+            writeNonNull(HintsKeyClass, HintKeySerialization.keyToId(key))
+          } else {
+            writeNull()
+          }
+
+        case _ =>
+          val string = FastConverter.convert(value, classOf[String])
+          if (string == null) {
+            writeNull()
+          } else {
+            writeNonNull(value.getClass.getName, string)
+          }
       }
     }
 
@@ -67,7 +82,7 @@ object AvroUserDataSerialization {
         case 0 => in.readNull(); in.readIndex(); in.readNull(); null
         case 1 =>
           val clas = in.readString()
-          in.readIndex()
+          in.readIndex() // assumed to be 1
           val string = in.readString()
           if (clas == HintsKeyClass) {
             HintKeySerialization.idToKey(string)
@@ -76,6 +91,7 @@ object AvroUserDataSerialization {
           }
       }
     }
+
     var remaining = size
     while (remaining > 0) {
       val key = readPair()

@@ -107,7 +107,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       there was three(encoder).writeString("java.lang.String")
 
       // 1 key  and 0 values have type Hints.Key
-      there was one(encoder).writeString(classOf[Hints.Key].getName)
+      there was one(encoder).writeString("Hints.Key")
 
       // 0 keys and 1 value  have type Boolean
       there was one(encoder).writeString("java.lang.Boolean")

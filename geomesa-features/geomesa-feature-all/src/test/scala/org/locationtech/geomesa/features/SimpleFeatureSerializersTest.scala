@@ -427,7 +427,7 @@ class SimpleFeatureSerializersTest extends Specification {
       }
 
       doTest(SerializationType.KRYO)
-      doTest(SerializationType.AVRO).pendingUntilFixed("Avro user data serialization")
+      doTest(SerializationType.AVRO).pendingUntilFixed("GEOMESA-2861 Avro complex user data serialization")
     }
   }
 
