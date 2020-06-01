@@ -115,8 +115,8 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       // 1 key  and 0 values have type Integer
       there was one(encoder).writeString("java.lang.Boolean")
 
-      // 1 key  and 1 value  are null
-      there was two(encoder).writeString(AvroUserDataSerialization.NullMarkerString)
+      // 1 key  and 1 value  are null - results in 2 null calls for each, class name + value
+      there was 4.times(encoder).writeNull()
 
       // visibility data
       there was one(encoder).writeString(SecurityUtils.FEATURE_VISIBILITY)
@@ -124,10 +124,10 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
 
       // hint data
       there was one(encoder).writeString(HintKeySerialization.keyToId(Hints.USE_PROVIDED_FID))
-      there was one(encoder).writeBoolean(true)
+      there was one(encoder).writeString("true")
 
       // key = 5, value = null
-      there was one(encoder).writeInt(5)
+      there was one(encoder).writeString("5")
 
       // key = null, value = "null key"
       there was one(encoder).writeString("null key")
