@@ -9,110 +9,82 @@
 package org.locationtech.geomesa.features.avro.serialization
 
 import org.apache.avro.io.{Decoder, Encoder}
-import org.locationtech.geomesa.features.serialization.GenericMapSerialization
+import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.features.serialization.HintKeySerialization
+import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 
-object AvroUserDataSerialization extends GenericMapSerialization[Encoder, Decoder] {
+object AvroUserDataSerialization {
 
   import scala.collection.JavaConverters._
 
-  val NullMarkerString = "<null>"
+  private lazy val HintsKeyClass = classOf[Hints.Key].getName
 
-  override def serialize(out: Encoder, map: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
-    // may not be able to write all entries - must pre-filter to know correct count
-    val filtered = map.asScala.filter { case (key, value) =>
-      if (canSerialize(key)) {
-        true
+  def serialize(out: Encoder, map: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
+    out.writeArrayStart()
+    out.setItemCount(map.size)
+
+    def writePair(value: Any): Unit = {
+      val string = value match {
+        case key: Hints.Key if HintKeySerialization.canSerialize(key) => HintKeySerialization.keyToId(key)
+        case _ => FastConverter.convert(value, classOf[String])
+      }
+      if (string == null) {
+        out.writeIndex(0)
+        out.writeNull()
+        out.writeIndex(0)
+        out.writeNull()
       } else {
-        logger.warn(s"Can't serialize Map entry ($key,$value) - it will be skipped.")
-        false
+        out.writeIndex(1)
+        out.writeString(value.getClass.getName)
+        out.writeIndex(1)
+        out.writeString(string)
       }
     }
 
-    out.writeArrayStart()
-    out.setItemCount(filtered.size)
-
-    filtered.foreach { case (key, value) =>
+    map.asScala.foreach { case (key, value) =>
       out.startItem()
-      if (key == null) {
-        out.writeString(NullMarkerString)
-      } else {
-        out.writeString(key.getClass.getName)
-        write(out, key)
-      }
-      if (value == null) {
-        out.writeString(NullMarkerString)
-      } else {
-        out.writeString(value.getClass.getName)
-        write(out, value)
-      }
+      writePair(key)
+      writePair(value)
     }
 
     out.writeArrayEnd()
   }
 
-  override def deserialize(in: Decoder): java.util.Map[AnyRef, AnyRef] = {
+  def deserialize(in: Decoder): java.util.Map[AnyRef, AnyRef] = {
     val size = in.readArrayStart().toInt
     val map = new java.util.HashMap[AnyRef, AnyRef](size)
     deserializeWithSize(in, size, map)
     map
   }
 
-  override def deserialize(in: Decoder, map: java.util.Map[AnyRef, AnyRef]): Unit = {
+  def deserialize(in: Decoder, map: java.util.Map[AnyRef, AnyRef]): Unit = {
     deserializeWithSize(in, in.readArrayStart().toInt, map)
   }
 
   private def deserializeWithSize(in: Decoder, size: Int, map: java.util.Map[AnyRef, AnyRef]): Unit = {
+    def readPair(): AnyRef = {
+      in.readIndex() match {
+        case 0 => in.readNull(); in.readIndex(); in.readNull(); null
+        case 1 =>
+          val clas = in.readString()
+          in.readIndex()
+          val string = in.readString()
+          if (clas == HintsKeyClass) {
+            HintKeySerialization.idToKey(string)
+          } else {
+            FastConverter.convert(string, Class.forName(clas)).asInstanceOf[AnyRef]
+          }
+      }
+    }
     var remaining = size
     while (remaining > 0) {
-      val keyClass = in.readString()
-      val key = if (keyClass == NullMarkerString) { null } else { read(in, Class.forName(keyClass)) }
-      val valueClass = in.readString()
-      val value = if (valueClass == NullMarkerString) { null } else { read(in, Class.forName(valueClass))}
+      val key = readPair()
+      val value = readPair()
       map.put(key, value)
       remaining -= 1
       if (remaining == 0) {
         remaining = in.arrayNext().toInt
       }
     }
-  }
-
-  override protected def writeBytes(out: Encoder, bytes: Array[Byte]): Unit = out.writeBytes(bytes)
-
-  override protected def readBytes(in: Decoder): Array[Byte] = {
-    val buffer = in.readBytes(null)
-    val bytes = Array.ofDim[Byte](buffer.remaining())
-    buffer.get(bytes)
-    bytes
-  }
-
-  override protected def writeList(out: Encoder, list: java.util.List[AnyRef]): Unit = {
-    out.writeArrayStart()
-    out.setItemCount(list.size())
-    list.asScala.foreach { value =>
-      out.startItem()
-      if (value == null) {
-        out.writeString(NullMarkerString)
-      } else {
-        out.writeString(value.getClass.getName)
-        write(out, value)
-      }
-    }
-    out.writeArrayEnd()
-  }
-
-  override protected def readList(in: Decoder): java.util.List[AnyRef] = {
-    val size = in.readArrayStart().toInt
-    val list = new java.util.ArrayList[AnyRef](size)
-    var remaining = size
-    while (remaining > 0) {
-      val clas = in.readString()
-      val value = if (clas == NullMarkerString) { null } else { read(in, Class.forName(clas)) }
-      list.add(value)
-      remaining -= 1
-      if (remaining == 0) {
-        remaining = in.arrayNext().toInt
-      }
-    }
-    list
   }
 }

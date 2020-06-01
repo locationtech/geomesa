@@ -13,6 +13,7 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.filter.FilterList
 import org.apache.hadoop.hbase.filter.MultiRowRangeFilter.RowRange
 import org.apache.hadoop.hbase.util.Bytes
+import org.locationtech.geomesa.hbase.HBaseSystemProperties
 import org.locationtech.geomesa.hbase.data.HBaseQueryPlan.{TableScan, filterToString, rangeToString, scanToString}
 import org.locationtech.geomesa.hbase.utils.{CoprocessorBatchScan, HBaseBatchScan}
 import org.locationtech.geomesa.index.PartitionParallelScan
@@ -43,7 +44,7 @@ sealed trait HBaseQueryPlan extends QueryPlan[HBaseDataStore] {
   override def scan(ds: HBaseDataStore): CloseableIterator[Results] = {
     // convert the relative timeout to an absolute timeout up front
     val timeout = ds.config.queries.timeout.map(Timeout.apply)
-    val iter = scans.iterator.map(singleTableScan(_, ds, timeout))
+    val iter = scans.iterator.map(singleTableScan(_, ds.connection, threads(ds), timeout))
     if (PartitionParallelScan.toBoolean.contains(true)) {
       // kick off all the scans at once
       iter.foldLeft(CloseableIterator.empty[Results])(_ ++ _)
@@ -64,9 +65,12 @@ sealed trait HBaseQueryPlan extends QueryPlan[HBaseDataStore] {
     explainer.popLevel()
   }
 
+  protected def threads(ds: HBaseDataStore): Int
+
   protected def singleTableScan(
       scan: TableScan,
-      ds: HBaseDataStore,
+      connection: Connection,
+      threads: Int,
       timeout: Option[Timeout]): CloseableIterator[Results]
 
   // additional explaining, if any
@@ -102,9 +106,11 @@ object HBaseQueryPlan {
     override val maxFeatures: Option[Int] = None
     override val projection: Option[QueryReferenceSystems] = None
     override def scan(ds: HBaseDataStore): CloseableIterator[Result] = CloseableIterator.empty
+    override protected def threads(ds: HBaseDataStore): Int = 0
     override protected def singleTableScan(
         scan: TableScan,
-        ds: HBaseDataStore,
+        connection: Connection,
+        threads: Int,
         timeout: Option[Timeout]): CloseableIterator[Result] = CloseableIterator.empty
   }
 
@@ -121,11 +127,14 @@ object HBaseQueryPlan {
 
     override type Results = Result
 
+    override protected def threads(ds: HBaseDataStore): Int = ds.config.queries.threads
+
     override protected def singleTableScan(
         scan: TableScan,
-        ds: HBaseDataStore,
+        connection: Connection,
+        threads: Int,
         timeout: Option[Timeout]): CloseableIterator[Result] = {
-      HBaseBatchScan(this, ds.connection, scan.table, scan.scans, ds.config.queries.threads, timeout)
+      HBaseBatchScan(this, connection, scan.table, scan.scans, threads, timeout)
     }
   }
 
@@ -142,16 +151,19 @@ object HBaseQueryPlan {
 
     override type Results = Array[Byte]
 
+    private lazy val maximizeThreads = HBaseSystemProperties.CoprocessorMaxThreads.toBoolean.get
+
     override def sort: Option[Seq[(String, Boolean)]] = None // client side sorting is not relevant for coprocessors
+
+    override protected def threads(ds: HBaseDataStore): Int = ds.config.coprocessors.threads
 
     override protected def singleTableScan(
         scan: TableScan,
-        ds: HBaseDataStore,
+        connection: Connection,
+        threads: Int,
         timeout: Option[Timeout]): CloseableIterator[Array[Byte]] = {
-      val rpcThreads = ds.config.coprocessors.threads
-      val scanThreads = if (ds.config.coprocessors.parallel) { scan.scans.length } else { rpcThreads * 2 }
-      val opts = coprocessorOptions
-      CoprocessorBatchScan(this, ds.connection, scan.table, scan.scans, opts, scanThreads, rpcThreads, timeout)
+      val scanThreads = if (maximizeThreads) { scan.scans.length } else { threads * 2 }
+      CoprocessorBatchScan(this, connection, scan.table, scan.scans, coprocessorOptions, scanThreads, threads, timeout)
     }
 
     override protected def explain(explainer: Explainer): Unit =

@@ -49,11 +49,7 @@ class HBaseColumnGroupsTest extends Specification with LazyLogging  {
 
   lazy val params = Map(
     HBaseDataStoreParams.ConnectionParam.getName     -> MiniCluster.connection,
-    HBaseDataStoreParams.HBaseCatalogParam.getName   -> getClass.getSimpleName,
-    HBaseDataStoreParams.ArrowCoprocessorParam.key   -> true,
-    HBaseDataStoreParams.BinCoprocessorParam.key     -> true,
-    HBaseDataStoreParams.DensityCoprocessorParam.key -> true,
-    HBaseDataStoreParams.StatsCoprocessorParam.key   -> true
+    HBaseDataStoreParams.HBaseCatalogParam.getName   -> getClass.getSimpleName
   )
 
   lazy val semiLocalParams = params ++ Map(

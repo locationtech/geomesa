@@ -52,13 +52,6 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       default = Int.box(16),
       supportsNiFiExpressions = true)
 
-  val CoprocessorParallelScanParam =
-    new GeoMesaParam[java.lang.Boolean](
-      "hbase.coprocessor.scan.parallel",
-      "Invoke all coprocessor RPC calls in parallel",
-      default = java.lang.Boolean.TRUE,
-      supportsNiFiExpressions = true)
-
   val RemoteFilteringParam =
     new GeoMesaParam[java.lang.Boolean](
       "hbase.remote.filtering",
@@ -106,7 +99,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
     new GeoMesaParam[java.lang.Boolean](
       "hbase.coprocessor.arrow.enable",
       "Processes Arrow encoding in HBase region servers as a coprocessor call",
-      default = java.lang.Boolean.FALSE,
+      default = java.lang.Boolean.TRUE,
       systemProperty = Some(SystemPropertyBooleanParam(HBaseDataStoreFactory.RemoteArrowProperty))
     )
 
