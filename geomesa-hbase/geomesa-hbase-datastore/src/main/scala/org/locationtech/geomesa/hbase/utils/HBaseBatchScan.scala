@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.utils
 
-import java.util.concurrent._
-
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
@@ -23,26 +21,39 @@ import org.opengis.filter.Filter
 private class HBaseBatchScan(connection: Connection, table: TableName, ranges: Seq[Scan], threads: Int, buffer: Int)
     extends AbstractBatchScan[Scan, Result](ranges, threads, buffer, HBaseBatchScan.Sentinel) {
 
-
   private val htable = connection.getTable(table, new CachedThreadPool(threads))
 
-  override protected def scan(range: Scan, out: BlockingQueue[Result]): Unit = {
-    val scan = htable.getScanner(range)
-    try {
-      var result = scan.next()
-      while (result != null) {
-        out.put(result)
-        result = if (closed) { null } else { scan.next() }
-      }
-    } finally {
-      scan.close()
-    }
-  }
+  override protected def scan(range: Scan): CloseableIterator[Result] = new RangeScanner(range)
 
   override def close(): Unit = {
     try { super.close() } finally {
       htable.close()
     }
+  }
+
+  private class RangeScanner(range: Scan) extends CloseableIterator[Result] {
+
+    private val scan = htable.getScanner(range)
+    private var result: Result = _
+
+    override def hasNext: Boolean = {
+      if (result != null) {
+        true
+      } else if (closed) {
+        false
+      } else {
+        result = scan.next()
+        result != null
+      }
+    }
+
+    override def next(): Result = {
+      val r = result
+      result = null
+      r
+    }
+
+    override def close(): Unit = scan.close()
   }
 }
 

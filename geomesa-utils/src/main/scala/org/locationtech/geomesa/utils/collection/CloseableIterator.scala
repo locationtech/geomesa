@@ -34,6 +34,9 @@ object CloseableIterator {
   def apply[A](iter: Iterator[A], close: => Unit = Unit): CloseableIterator[A] =
     new CloseableIteratorImpl[A](iter, close)
 
+  // for wrapping java iterators
+  def apply[A](iter: java.util.Iterator[A]): CloseableIterator[A] = new CloseableIteratorJavaWrapper[A](iter)
+
   // This apply method provides us with a simple interface for creating new CloseableIterators.
   def apply[A <: Feature, B <: FeatureType](iter: FeatureReader[B, A]): CloseableIterator[A] =
     new CloseableFeatureReaderIterator(iter)
@@ -58,6 +61,12 @@ object CloseableIterator {
     override def hasNext: Boolean = iter.hasNext
     override def next(): A = iter.next()
     override def close(): Unit = closeIter
+  }
+
+  class CloseableIteratorJavaWrapper[A](iter: java.util.Iterator[A]) extends CloseableIterator[A] {
+    override def hasNext: Boolean = iter.hasNext
+    override def next(): A = iter.next()
+    override def close(): Unit = {}
   }
 
   private final class CloseableFeatureReaderIterator[A <: Feature, B <: FeatureType](iter: FeatureReader[B, A])

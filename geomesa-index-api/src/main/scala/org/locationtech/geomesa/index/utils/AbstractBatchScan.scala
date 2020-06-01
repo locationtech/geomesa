@@ -13,8 +13,6 @@ import java.util.concurrent._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
-import scala.annotation.tailrec
-
 /**
   * Provides parallelism for scanning multiple ranges at a given time, for systems that don't
   * natively support that.
@@ -43,18 +41,17 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
   private val terminator = new Terminator()
   private val pool = new CachedThreadPool(threads)
 
+  private var retrieved: R = _
+
   @volatile
   protected var closed: Boolean = false
 
-  private var retrieved: R = _
-
   /**
-    * Scan a single range, putting the results in the provided queue
+    * Scan a single range
     *
     * @param range range to scan
-    * @param out results queue
     */
-  protected def scan(range: T, out: BlockingQueue[R])
+  protected def scan(range: T): CloseableIterator[R]
 
   /**
     * Start the threaded scans executing
@@ -93,8 +90,8 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
 
   override def close(): Unit = {
     closed = true
+    inQueue.clear()
     terminator.terminate(true)
-    pool.shutdown()
   }
 
   /**
@@ -144,8 +141,20 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
     override def run(): Unit = {
       try {
         var range = inQueue.poll()
-        while (range != null && !closed) {
-          scan(range, outQueue)
+        while (range != null) {
+          val result = scan(range)
+          try {
+            while (result.hasNext) {
+              val r = result.next
+              while (!outQueue.offer(r, 100, TimeUnit.MILLISECONDS)) {
+                if (closed) {
+                  return
+                }
+              }
+            }
+          } finally {
+            result.close()
+          }
           range = inQueue.poll()
         }
       } finally {
@@ -164,32 +173,16 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
 
     override def run(): Unit = try { latch.await() } finally { terminate(false) }
 
-    @tailrec
     final def terminate(drop: Boolean): Unit = {
-      if (done) {
-        return
-      }
       // it's possible that the queue is full, in which case we can't immediately
       // add the sentinel to the queue to indicate to the client that scans are done
-      if (drop || closed) {
-        // if the scan has been closed, then the client is done
-        // reading and we don't mind dropping some results
-        terminateWithDrops()
-      } else {
-        // otherwise we wait and give the client a chance to empty the queue
-        val added = try { outQueue.offer(sentinel, 1000, TimeUnit.MILLISECONDS) } catch {
-          case _: InterruptedException => terminateWithDrops(); true
-        }
-        if (added) {
-          done = true
-        } else {
-          terminate(false)
-        }
+      // if the scan has been closed, then the client is done
+      // reading and we don't mind dropping some results
+      // otherwise we wait and give the client a chance to empty the queue
+      if (!done && (drop || closed || !outQueue.offer(sentinel, 1000, TimeUnit.MILLISECONDS))) {
+        // terminate with drops
+        while (!outQueue.offer(sentinel)) { outQueue.poll() }
       }
-    }
-
-    private def terminateWithDrops(): Unit = {
-      while (!outQueue.offer(sentinel)) { outQueue.poll() }
       done = true
     }
   }

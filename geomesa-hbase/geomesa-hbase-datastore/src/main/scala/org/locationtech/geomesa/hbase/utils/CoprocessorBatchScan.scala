@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.hbase.utils
 
-import java.util.concurrent._
-
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client._
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
@@ -33,16 +31,9 @@ private class CoprocessorBatchScan(
 
   protected val pool = new CachedThreadPool(rpcThreads)
 
-  override protected def scan(range: Scan, out: BlockingQueue[Array[Byte]]): Unit = {
-    val results = GeoMesaCoprocessor.execute(connection, table, range, options, pool)
-    try {
-      results.foreach { r =>
-        if (r.size() > 0) {
-          out.put(r.toByteArray)
-        }
-      }
-    } finally {
-      results.close()
+  override protected def scan(range: Scan): CloseableIterator[Array[Byte]] = {
+    GeoMesaCoprocessor.execute(connection, table, range, options, pool).collect {
+      case r if r.size() > 0 => r.toByteArray
     }
   }
 

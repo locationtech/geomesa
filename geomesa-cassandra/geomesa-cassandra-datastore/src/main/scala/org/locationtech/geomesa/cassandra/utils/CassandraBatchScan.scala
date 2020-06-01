@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.cassandra.utils
 
 import java.nio.ByteBuffer
-import java.util.concurrent._
 
 import com.datastax.driver.core._
 import org.locationtech.geomesa.cassandra.data.CassandraQueryPlan
@@ -21,12 +20,8 @@ import org.opengis.filter.Filter
 private class CassandraBatchScan(session: Session, ranges: Seq[Statement], threads: Int, buffer: Int)
     extends AbstractBatchScan[Statement, Row](ranges, threads, buffer, CassandraBatchScan.Sentinel) {
 
-  override protected def scan(range: Statement, out: BlockingQueue[Row]): Unit = {
-    val results = session.execute(range).iterator()
-    while (results.hasNext) {
-      out.put(results.next)
-    }
-  }
+  override protected def scan(range: Statement): CloseableIterator[Row] =
+    CloseableIterator(session.execute(range).iterator())
 }
 
 object CassandraBatchScan {
