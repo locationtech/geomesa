@@ -8,13 +8,11 @@
 
 package org.locationtech.geomesa.index.utils
 
-import java.io.InterruptedIOException
 import java.util.concurrent._
 
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
-import scala.annotation.tailrec
 import scala.util.control.NonFatal
 
 /**
@@ -42,20 +40,21 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
   private val outQueue = new LinkedBlockingQueue[R](buffer)
 
   private val pool = new CachedThreadPool(threads)
-  private val starting = new CountDownLatch(1)
   private val latch = new CountDownLatch(threads)
   private val terminator = new Terminator()
 
   private var retrieved: R = _
   private var error: Throwable = _
 
+  @volatile
+  protected var closed: Boolean = false
+
   /**
-    * Scan a single range, putting the results in the provided queue
+    * Scan a single range
     *
     * @param range range to scan
-    * @param out results queue
     */
-  protected def scan(range: T, out: BlockingQueue[R])
+  protected def scan(range: T): CloseableIterator[R]
 
   /**
     * Start the threaded scans executing
@@ -67,9 +66,6 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
       i += 1
     }
     pool.submit(terminator)
-    // notify threads to start once all threads are scheduled,
-    // to prevent pool being shutdown prematurely due to errors
-    starting.countDown()
     pool.shutdown()
     this
   }
@@ -101,8 +97,9 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
   }
 
   override def close(): Unit = {
+    closed = true
+    inQueue.clear()
     terminator.terminate(true)
-    pool.shutdownNow()
   }
 
   /**
@@ -151,14 +148,24 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
   private class SingleThreadScan extends Runnable {
     override def run(): Unit = {
       try {
-        starting.await() // ensure all threads have been scheduled before starting to scan
         var range = inQueue.poll()
-        while (range != null && !Thread.currentThread().isInterrupted) {
-          scan(range, outQueue)
+        while (range != null) {
+          val result = scan(range)
+          try {
+            while (result.hasNext) {
+              val r = result.next
+              while (!outQueue.offer(r, 100, TimeUnit.MILLISECONDS)) {
+                if (closed) {
+                  return
+                }
+              }
+            }
+          } finally {
+            result.close()
+          }
           range = inQueue.poll()
         }
       } catch {
-        case _: InterruptedException | _: InterruptedIOException => // ignore
         case NonFatal(e) =>
           AbstractBatchScan.this.synchronized {
             if (error == null) { error = e } else { error.addSuppressed(e) }
@@ -180,32 +187,16 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
 
     override def run(): Unit = try { latch.await() } finally { terminate(false) }
 
-    @tailrec
     final def terminate(drop: Boolean): Unit = {
-      if (done) {
-        return
-      }
       // it's possible that the queue is full, in which case we can't immediately
       // add the sentinel to the queue to indicate to the client that scans are done
-      if (drop) {
-        // if the scan has been closed, then the client is done
-        // reading and we don't mind dropping some results
-        terminateWithDrops()
-      } else {
-        // otherwise we wait and give the client a chance to empty the queue
-        val added = try { outQueue.offer(sentinel, 1000, TimeUnit.MILLISECONDS) } catch {
-          case _: InterruptedException => terminateWithDrops(); true
-        }
-        if (added) {
-          done = true
-        } else {
-          terminate(false)
-        }
+      // if the scan has been closed, then the client is done
+      // reading and we don't mind dropping some results
+      // otherwise we wait and give the client a chance to empty the queue
+      if (!done && (drop || closed || !outQueue.offer(sentinel, 1000, TimeUnit.MILLISECONDS))) {
+        // terminate with drops
+        while (!outQueue.offer(sentinel)) { outQueue.poll() }
       }
-    }
-
-    private def terminateWithDrops(): Unit = {
-      while (!outQueue.offer(sentinel)) { outQueue.poll() }
       done = true
     }
   }

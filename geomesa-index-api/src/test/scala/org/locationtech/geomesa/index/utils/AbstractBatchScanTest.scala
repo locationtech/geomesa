@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.index.utils
 
-import java.util.concurrent.BlockingQueue
-
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.specs2.mutable.Specification
@@ -20,8 +18,8 @@ class AbstractBatchScanTest extends Specification {
 
   class TestBatchScan(ranges: Seq[String], threads: Int, buffer: Int)
       extends AbstractBatchScan[String, String](ranges, threads, buffer, "SENTINEL") {
-    override protected def scan(range: String, out: BlockingQueue[String]): Unit =
-      range.foreach(c => out.put(c.toString))
+    override protected def scan(range: String): CloseableIterator[String] =
+      CloseableIterator(range.iterator.map(_.toString))
   }
 
   object TestBatchScan {
@@ -30,9 +28,8 @@ class AbstractBatchScanTest extends Specification {
   }
 
   class ErrorScan(ranges: Seq[String], err: String) extends TestBatchScan(ranges, 2, 100) {
-    override protected def scan(range: String, out: BlockingQueue[String]): Unit = {
-      if (range == err) { throw new RuntimeException(err) } else { super.scan(range, out) }
-    }
+    override protected def scan(range: String): CloseableIterator[String] =
+      if (range == err) { throw new RuntimeException(err) } else { super.scan(range) }
   }
 
   object ErrorScan {
