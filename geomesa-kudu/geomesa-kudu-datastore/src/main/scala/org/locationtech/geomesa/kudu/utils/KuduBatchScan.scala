@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.kudu.utils
 
-import java.util.concurrent._
-
 import org.apache.kudu.Schema
 import org.apache.kudu.client._
 import org.apache.kudu.util.Slice
@@ -43,19 +41,16 @@ private class KuduBatchScan(
     buffer: Int
   ) extends KuduAbstractBatchScan(ranges, threads, buffer, KuduBatchScan.Sentinel) {
 
-  override protected def scan(range: (Option[PartialRow], Option[PartialRow]),
-                              out: BlockingQueue[RowResultIterator]): Unit = {
+  override protected def scan(range: (Option[PartialRow], Option[PartialRow])): CloseableIterator[RowResultIterator] = {
     val builder = client.newScannerBuilder(table).setProjectedColumnIndexes(columns)
     range._1.foreach(builder.lowerBound)
     range._2.foreach(builder.exclusiveUpperBound)
     predicates.foreach(builder.addPredicate)
     val scanner = builder.build()
-    try {
-      while (scanner.hasMoreRows) {
-        out.put(scanner.nextRows())
-      }
-    } finally {
-      scanner.close()
+    new CloseableIterator[RowResultIterator] {
+      override def hasNext: Boolean = scanner.hasMoreRows
+      override def next(): RowResultIterator = scanner.nextRows()
+      override def close(): Unit = scanner.close()
     }
   }
 }
