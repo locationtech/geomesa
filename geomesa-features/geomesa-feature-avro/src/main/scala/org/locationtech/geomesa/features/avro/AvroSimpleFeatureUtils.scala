@@ -13,12 +13,13 @@ import java.nio.charset.StandardCharsets
 import java.util.{Date, Locale, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.jts.geom.Geometry
-import org.locationtech.jts.io.WKBWriter
+import org.apache.avro.SchemaBuilder.{ArrayDefault, FieldTypeBuilder, NullDefault}
 import org.apache.avro.{Schema, SchemaBuilder}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.locationtech.geomesa.features.serialization.HintKeySerialization
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.text.WKBUtils
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
@@ -34,9 +35,18 @@ object AvroSimpleFeatureUtils extends LazyLogging {
   // Version 3 adds byte array types to the schema...and is backwards compatible with V2
   // Version 4 adds a custom name encoder function for the avro schema
   //           v4 can read version 2 and 3 files but version 3 cannot read version 4
-  // Version 5 fixes the user data serialization to match the declared avro schema
+  // Version 5 changes user data to be a union type and fixes the coding to match the declared avro schema
   val VERSION: Int = 5
   val AVRO_NAMESPACE: String = "org.geomesa"
+
+  implicit class RichBuilder(val builder: FieldTypeBuilder[ArrayDefault[Schema]]) extends AnyVal {
+    def simpleTypeUnion(hints: String): NullDefault[ArrayDefault[Schema]] = {
+      builder.unionOf.nullType.and.stringType.and.intType.and.longType
+          .and.floatType.and.doubleType.and.booleanType.and.bytesType
+          .and.enumeration("hints").namespace(hints).symbols(HintKeySerialization.keyToId.values.toSeq: _*)
+          .endUnion()
+    }
+  }
 
   def generateSchema(sft: SimpleFeatureType,
                      withUserData: Boolean,
@@ -61,11 +71,10 @@ object AvroSimpleFeatureUtils extends LazyLogging {
       }
 
     val fullSchema = if (withUserData) {
-      withFields.name(AVRO_SIMPLE_FEATURE_USERDATA).`type`.array().items().record("userDataItem").fields()
-        .name("keyClass").`type`.unionOf().nullType().and().stringType().endUnion().noDefault()
-        .name("key").`type`.unionOf().nullType().and().stringType().endUnion().noDefault()
-        .name("valueClass").`type`.unionOf().nullType().and().stringType().endUnion().noDefault()
-        .name("value").`type`.unionOf().nullType().and().stringType().endUnion().noDefault()
+      withFields.name(AVRO_SIMPLE_FEATURE_USERDATA).`type`.array().items()
+          .record("userDataItem").fields()
+          .name("key").`type`.simpleTypeUnion("key").noDefault()
+          .name("value").`type`.simpleTypeUnion("value").noDefault()
           .endRecord().noDefault()
     } else {
       withFields

@@ -90,7 +90,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
 
       val userData = sf.getUserData
       userData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      userData.put(java.lang.Integer.valueOf(5), null)
+      userData.put(java.lang.Integer.valueOf(55), null)
       userData.put(null, "null key")
 
       val afw = new AvroSimpleFeatureWriter(sf.getType, SerializationOptions.withUserData)
@@ -103,31 +103,19 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       there was one(encoder).setItemCount(4)
       there was 4.times(encoder).startItem()
 
-      // 1 key  and 2 values have type String
-      there was three(encoder).writeString("java.lang.String")
-
-      // 1 key  and 0 values have type Hints.Key
-      there was one(encoder).writeString(classOf[Hints.Key].getName)
-
-      // 0 keys and 1 value  have type Boolean
-      there was one(encoder).writeString("java.lang.Boolean")
-
-      // 1 key  and 0 values have type Integer
-      there was one(encoder).writeString("java.lang.Boolean")
-
-      // 1 key  and 1 value  are null - results in 2 null calls for each, class name + value
-      there was 4.times(encoder).writeNull()
+      // 1 key and 1 value are null
+      there was 2.times(encoder).writeNull()
 
       // visibility data
       there was one(encoder).writeString(SecurityUtils.FEATURE_VISIBILITY)
       there was one(encoder).writeString(vis)
 
       // hint data
-      there was one(encoder).writeString(HintKeySerialization.keyToId(Hints.USE_PROVIDED_FID))
-      there was one(encoder).writeString("true")
+      there was one(encoder).writeEnum(HintKeySerialization.keyToEnum(Hints.USE_PROVIDED_FID))
+      there was one(encoder).writeBoolean(true)
 
-      // key = 5, value = null
-      there was one(encoder).writeString("5")
+      // key = 55, value = null
+      there was one(encoder).writeInt(55)
 
       // key = null, value = "null key"
       there was one(encoder).writeString("null key")

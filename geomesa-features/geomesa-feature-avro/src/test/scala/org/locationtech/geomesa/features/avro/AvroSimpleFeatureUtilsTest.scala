@@ -363,7 +363,7 @@ class AvroSimpleFeatureUtilsTest extends Specification {
           .addInt("age")
           .build("toavro")
 
-        val expectedSchema = new Schema.Parser().parse("""{"type":"record","name":"toavro","namespace":"test.avro","fields":[{"name":"__version__","type":"int"},{"name":"__fid__","type":"string"},{"name":"geom","type":["bytes","null"]},{"name":"age","type":["int","null"]},{"name":"__userdata__","type":{"type":"array","items":{"type":"record","name":"userDataItem","fields":[{"name":"keyClass","type":["null","string"]},{"name":"key","type":["null","string"]},{"name":"valueClass","type":["null","string"]},{"name":"value","type":["null","string"]}]}}}]}""")
+        val expectedSchema = new Schema.Parser().parse("""{"type":"record","name":"toavro","namespace":"test.avro","fields":[{"name":"__version__","type":"int"},{"name":"__fid__","type":"string"},{"name":"geom","type":["bytes","null"]},{"name":"age","type":["int","null"]},{"name":"__userdata__","type":{"type":"array","items":{"type":"record","name":"userDataItem","fields":[{"name":"key","type":["null","string","int","long","float","double","boolean","bytes",{"type":"enum","name":"hints","namespace":"key","symbols":["PROVIDED_FID","USE_PROVIDED_FID"]}]},{"name":"value","type":["null","string","int","long","float","double","boolean","bytes",{"type":"enum","name":"hints","namespace":"value","symbols":["PROVIDED_FID","USE_PROVIDED_FID"]}]}]}}}]}""")
         val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true, withFeatureId = true, "test.avro")
         expectedSchema must be equalTo schema
       }
