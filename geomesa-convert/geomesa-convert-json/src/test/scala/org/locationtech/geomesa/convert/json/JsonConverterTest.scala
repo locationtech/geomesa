@@ -1336,6 +1336,38 @@ class JsonConverterTest extends Specification {
       }
     }
 
+    "infer schemas with all empty attributes" in {
+      val json = Seq(
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[164.2,-48.6732]},"properties":{"A":""}}]}""",
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[154.3,-38.6832]},"properties":{"A":""}}]}""",
+        """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[152.3,-38.7832]},"properties":{"A":""}}]}"""
+      ).mkString("\n")
+
+      def bytes = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))
+
+      val inferred = new JsonConverterFactory().infer(bytes)
+
+      inferred must beSome
+
+      val sft = inferred.get._1
+      sft.getAttributeDescriptors.asScala.map(d => (d.getLocalName, d.getType.getBinding)) mustEqual
+          Seq(("A", classOf[String]), ("geom", classOf[Point]))
+
+      WithClose(SimpleFeatureConverter(sft, inferred.get._2)) { converter =>
+        converter must not(beNull)
+
+        val features = WithClose(converter.process(bytes))(_.toList)
+        features must haveLength(3)
+
+        val expected = Seq(
+          Seq("", WKTUtils.read("POINT (164.2 -48.6732)")),
+          Seq("",    WKTUtils.read("POINT (154.3 -38.6832)")),
+          Seq("", WKTUtils.read("POINT (152.3 -38.7832)"))
+        )
+        features.map(_.getAttributes.asScala) must containTheSameElementsAs(expected)
+      }
+    }
+
     "infer schemas with three dimensional points" in {
       val json = Seq(
         """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[164.2,-48.6732]},"properties":{"A":"foo"}}]}""",
