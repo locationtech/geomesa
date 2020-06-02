@@ -54,6 +54,8 @@ class KafkaDataStore(
     serialization: GeoMessageSerializerFactory
   ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
 
+  import scala.collection.JavaConverters._
+
   import KafkaDataStore.TopicKey
 
   override val stats: GeoMesaStats = new RunnableStats(this)
@@ -215,11 +217,10 @@ class KafkaDataStore(
   }
 
   override def dispose(): Unit = {
-    import scala.collection.JavaConversions._
     if (producerInitialized) {
       CloseWithLogging(producer)
     }
-    caches.asMap.valuesIterator.foreach(CloseWithLogging.apply)
+    CloseWithLogging(caches.asMap.asScala.values)
     caches.invalidateAll()
     super.dispose()
   }

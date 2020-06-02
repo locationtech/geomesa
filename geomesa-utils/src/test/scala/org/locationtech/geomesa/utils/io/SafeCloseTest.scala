@@ -37,14 +37,11 @@ class SafeCloseTest extends Specification with LazyLogging {
     "close if there is an exception in block" in {
       val a = new TestCloseable
       val b = new TestCloseable
-      val c = new TestCloseable
 
-      WithClose[TestCloseable, TestCloseable, TestCloseable, Unit](a, b, c) {
-        case (_, _, _) => throw new RuntimeException } must throwA[RuntimeException]
+      WithClose[TestCloseable, TestCloseable, Unit](a, b) { case (_, _) => throw new RuntimeException } must throwA[RuntimeException]
 
       a.closed must beTrue
       b.closed must beTrue
-      c.closed must beTrue
     }
 
     "close if there is an exception initializing second instance" in {
@@ -52,21 +49,31 @@ class SafeCloseTest extends Specification with LazyLogging {
       WithClose(a, new RuntimeCloseable) { case (_, _) => } must throwA[RuntimeException]
       a.closed must beTrue
     }
+  }
 
-    "close if there is an exception initializing second and third instance" in {
-      val a = new TestCloseable
-      WithClose(a, new RuntimeCloseable, new IOCloseable) { case (_, _, _) => } must throwA[RuntimeException]
-      a.closed must beTrue
+  "CloseQuietly" should {
+    "close simple objects" in {
+      val c = new TestCloseable
+      CloseQuietly(c)
+      c.closed must beTrue
     }
 
-    "close if there is an exception initializing third instance" in {
-      val a = new TestCloseable
-      val b = new TestCloseable
+    "close seqs" in {
+      val c = new TestCloseable
+      CloseQuietly(Seq(c))
+      c.closed must beTrue
+    }
 
-      WithClose(a, b, new RuntimeCloseable) { case (_, _, _) => } must throwA[RuntimeException]
+    "close arrays" in {
+      val c = new TestCloseable
+      CloseQuietly(Array(c))
+      c.closed must beTrue
+    }
 
-      a.closed must beTrue
-      b.closed must beTrue
+    "close options" in {
+      val c = new TestCloseable
+      CloseQuietly(Option(c))
+      c.closed must beTrue
     }
   }
 }

@@ -73,7 +73,7 @@ abstract class AbstractCompositeConverter[T](
     new ErrorHandlingIterator(parse(is, ec), errorMode, ec.failure, hist).flatMap(eval)
   }
 
-  override def close(): Unit = converters.foreach(CloseWithLogging.apply)
+  override def close(): Unit = CloseWithLogging(converters)
 }
 
 object AbstractCompositeConverter {

@@ -66,7 +66,7 @@ class ArrowExporter(
   override def export(features: Iterator[SimpleFeature]): Option[Long] = delegate.export(features)
 
   override def close(): Unit = {
-    Option(delegate).foreach(CloseWithLogging.apply)
+    CloseWithLogging(Option(delegate))
     os.close()
   }
 }

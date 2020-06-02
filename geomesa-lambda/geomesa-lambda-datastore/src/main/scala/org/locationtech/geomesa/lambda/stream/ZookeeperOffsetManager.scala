@@ -68,7 +68,7 @@ class ZookeeperOffsetManager(zookeepers: String, namespace: String = "geomesa") 
   }
 
   override def close(): Unit = synchronized {
-    listeners.values.foreach(CloseWithLogging.apply)
+    CloseWithLogging(listeners.values)
     listeners.clear()
     CloseWithLogging(client)
   }

@@ -24,6 +24,9 @@ import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
+import org.locationtech.geomesa.utils.io.IsFlushableImplicits
+
+import scala.util.Try
 // noinspection ScalaDeprecation
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, CoprocessorUrl, TableAvailabilityTimeout}
 import org.locationtech.geomesa.hbase.aggregators.HBaseArrowAggregator.HBaseArrowResultsToFeatures
@@ -647,22 +650,12 @@ object HBaseIndexAdapter extends LazyLogging {
       }
     }
 
-    override def flush(): Unit = {
-      val exceptions = mutators.flatMap(FlushWithLogging.apply)
-      if (exceptions.nonEmpty) {
-        val head = exceptions.head
-        exceptions.tail.foreach(head.addSuppressed)
-        throw head
-      }
-    }
+    override def flush(): Unit = FlushWithLogging.raise(mutators)(BufferedMutatorIsFlushable.arrayIsFlushable)
 
-    override def close(): Unit = {
-      val exceptions = mutators.flatMap(CloseWithLogging.apply)
-      if (exceptions.nonEmpty) {
-        val head = exceptions.head
-        exceptions.tail.foreach(head.addSuppressed)
-        throw head
-      }
-    }
+    override def close(): Unit = CloseWithLogging.raise(mutators)
+  }
+
+  object BufferedMutatorIsFlushable extends IsFlushableImplicits[BufferedMutator] {
+    override protected def flush(f: BufferedMutator): Try[Unit] = Try(f.flush())
   }
 }
