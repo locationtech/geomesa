@@ -35,7 +35,7 @@ class AvroExporter(os: OutputStream, counter: ByteCounter, compression: Option[I
   }
 
   override def close(): Unit = {
-    Option(writer).foreach(CloseWithLogging.apply)
+    CloseWithLogging(Option(writer))
     os.close()
   }
 }

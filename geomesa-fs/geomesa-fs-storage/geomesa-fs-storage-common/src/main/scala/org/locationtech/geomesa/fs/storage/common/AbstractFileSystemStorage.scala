@@ -259,10 +259,9 @@ abstract class AbstractFileSystemStorage(
       feature
     }
 
-    override def flush(): Unit = FlushQuietly(modifiers.values.toSeq ++ deleters.values).foreach(e => throw e)
+    override def flush(): Unit = FlushQuietly.raise(modifiers.values.toSeq ++ deleters.values)
 
-    override def close(): Unit =
-      CloseQuietly(Seq(reader) ++ modifiers.values ++ deleters.values ++ observers).foreach(e => throw e)
+    override def close(): Unit = CloseQuietly.raise(Seq(reader) ++ modifiers.values ++ deleters.values ++ observers)
   }
 
   /**

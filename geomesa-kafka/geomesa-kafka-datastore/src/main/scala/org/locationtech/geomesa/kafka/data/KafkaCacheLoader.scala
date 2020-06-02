@@ -129,7 +129,7 @@ object KafkaCacheLoader {
       try {
         super.close()
       } finally {
-        initialLoader.foreach(CloseWithLogging.apply)
+        CloseWithLogging(initialLoader)
         cache.close()
       }
     }

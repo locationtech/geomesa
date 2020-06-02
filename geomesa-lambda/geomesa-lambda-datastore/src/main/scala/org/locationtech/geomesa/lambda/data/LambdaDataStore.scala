@@ -44,6 +44,8 @@ class LambdaDataStore(val persistence: DataStore,
                      (implicit clock: Clock = Clock.systemUTC())
     extends DataStore with HasGeoMesaStats with LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   private val authProvider: Option[AuthorizationsProvider] = persistence match {
     case ds: AccumuloDataStore => Some(ds.config.authProvider)
     case _ => None
@@ -152,8 +154,7 @@ class LambdaDataStore(val persistence: DataStore,
   }
 
   override def dispose(): Unit = {
-    import scala.collection.JavaConversions._
-    transients.asMap().values().foreach(CloseWithLogging.apply)
+    CloseWithLogging(transients.asMap.asScala.values)
     transients.invalidateAll()
     CloseWithLogging(offsetManager)
     CloseWithLogging(producer)

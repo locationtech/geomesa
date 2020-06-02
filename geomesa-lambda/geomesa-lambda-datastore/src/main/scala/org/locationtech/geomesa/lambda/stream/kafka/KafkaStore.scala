@@ -149,7 +149,7 @@ class KafkaStore(ds: DataStore,
   override def close(): Unit = {
     CloseWithLogging(loader)
     CloseWithLogging(interceptors)
-    persistence.foreach(CloseWithLogging.apply)
+    CloseWithLogging(persistence)
     offsetManager.removeOffsetListener(topic, cache)
   }
 }

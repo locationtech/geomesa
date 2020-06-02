@@ -80,7 +80,7 @@ object QueryInterceptor extends LazyLogging {
           Option(ds.getSchema(key)).flatMap(s => Option(s.getUserData.get(Configs.QueryInterceptors))) match {
             case None if oldValue.isEmpty => oldValue
             case Some(classes) if classes == oldValue.map(_.getClass.getName).mkString(",") => oldValue
-            case _ => oldValue.foreach(CloseWithLogging.apply); QueryInterceptorFactoryImpl.this.load(key)
+            case _ => CloseWithLogging(oldValue); QueryInterceptorFactoryImpl.this.load(key)
           }
         }
       }
@@ -90,7 +90,7 @@ object QueryInterceptor extends LazyLogging {
       override def apply(sft: SimpleFeatureType): Seq[QueryInterceptor] = cache.get(sft.getTypeName)
 
       override def close(): Unit = {
-        cache.asMap.asScala.foreach { case (_, interceptors) => interceptors.foreach(CloseWithLogging.apply) }
+        cache.asMap.asScala.foreach { case (_, interceptors) => CloseWithLogging(interceptors) }
         cache.invalidateAll()
       }
 

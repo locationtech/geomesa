@@ -40,5 +40,5 @@ class SortedMergeIterator[T](streams: Seq[CloseableIterator[T]])(implicit orderi
     n
   }
 
-  override def close(): Unit = streams.foreach(CloseWithLogging.apply)
+  override def close(): Unit = CloseWithLogging(streams)
 }

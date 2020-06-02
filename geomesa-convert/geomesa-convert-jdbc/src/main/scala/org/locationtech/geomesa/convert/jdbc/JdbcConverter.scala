@@ -13,17 +13,18 @@ import java.nio.charset.Charset
 import java.sql.{Connection, DriverManager, PreparedStatement, ResultSet}
 
 import com.typesafe.config.Config
-import org.apache.commons.io.IOUtils
+import org.apache.commons.io.{IOUtils, LineIterator}
 import org.locationtech.geomesa.convert._
 import org.locationtech.geomesa.convert.jdbc.JdbcConverter.{JdbcConfig, ResultSetIterator, StatementIterator}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverter, ConverterConfig}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, IsCloseable}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.annotation.tailrec
+import scala.util.Try
 
 class JdbcConverter(sft: SimpleFeatureType, config: JdbcConfig, fields: Seq[BasicField], options: BasicOptions)
     extends AbstractConverter[ResultSet, JdbcConfig, BasicField, BasicOptions](sft, config, fields, options) {
@@ -54,6 +55,10 @@ object JdbcConverter {
       userData: Map[String, Expression]
     ) extends ConverterConfig
 
+  implicit object LineIteratorIsCloseable extends IsCloseable[LineIterator] {
+    override def close(obj: LineIterator): Try[Unit] = Try(obj.close())
+  }
+
   /**
     * Converts the input to statements and executes them.
     *
@@ -72,7 +77,7 @@ object JdbcConverter {
     private var results: ResultSet = _
 
     override final def hasNext: Boolean = results != null || {
-      Option(statement).foreach(CloseWithLogging.apply)
+      CloseWithLogging(Option(statement))
       if (!statements.hasNext) {
         statement = null
         results = null
@@ -93,10 +98,7 @@ object JdbcConverter {
       }
     }
 
-    override def close(): Unit = {
-      Option(statement).foreach(CloseWithLogging.apply)
-      CloseWithLogging(statements)
-    }
+    override def close(): Unit = CloseWithLogging(Option(statement), statements)
   }
 
   /**
@@ -114,7 +116,7 @@ object JdbcConverter {
 
     @tailrec
     override final def hasNext: Boolean = hasNextResult || {
-      Option(results).foreach(CloseWithLogging.apply)
+      CloseWithLogging(Option(results))
       if (!iter.hasNext) {
         results = null
         false
@@ -143,9 +145,6 @@ object JdbcConverter {
       }
     }
 
-    override def close(): Unit = {
-      Option(results).foreach(CloseWithLogging.apply)
-      CloseWithLogging(iter)
-    }
+    override def close(): Unit = CloseWithLogging(Option(results), iter)
   }
 }
