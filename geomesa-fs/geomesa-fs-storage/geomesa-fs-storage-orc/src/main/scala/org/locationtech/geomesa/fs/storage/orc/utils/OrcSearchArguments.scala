@@ -10,15 +10,17 @@ package org.locationtech.geomesa.fs.storage.orc.utils
 
 import java.sql.Timestamp
 
-import org.locationtech.jts.geom.{Geometry, Point}
-import org.apache.orc.storage.ql.io.sarg.{PredicateLeaf, SearchArgument, SearchArgumentFactory}
 import org.apache.orc.TypeDescription
+import org.apache.orc.storage.ql.io.sarg.{PredicateLeaf, SearchArgument, SearchArgumentFactory}
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
 object OrcSearchArguments {
+
+  import scala.collection.JavaConverters._
 
   /**
     * Creates a push-down predicate for Orc files based on a CQL filter
@@ -43,22 +45,12 @@ object OrcSearchArguments {
           Seq.empty
         }
       } else {
-        val index = sft.indexOf(prop)
-
-        // count any geom fields before the property, they take up two columns
-        val offset = {
-          var i = 0
-          var geoms = 0
-          while (i < index) {
-            if (classOf[Geometry].isAssignableFrom(sft.getDescriptor(i).getType.getBinding)) {
-              geoms += 1
-            }
-            i += 1
-          }
-          geoms
+        // count the columns before the property
+        val offset = sft.getAttributeDescriptors.asScala.take(sft.indexOf(prop)).foldLeft(0) { (sum, d) =>
+          sum + OrcFileSystemStorage.fieldCount(d)
         }
 
-        val category = description.getChildren.get(index + offset).getCategory
+        val category = description.getChildren.get(offset).getCategory
         val typeAndConversion = category match {
           case BOOLEAN   => Some(PredicateLeaf.Type.BOOLEAN, (v: Any) => v)
           case INT       => Some(PredicateLeaf.Type.LONG, (v: Any) => v.asInstanceOf[java.lang.Integer].longValue)
@@ -105,40 +97,41 @@ object OrcSearchArguments {
     }
   }
 
-  private def add(prop: String,
-                  bounds: Bounds[_],
-                  typ: PredicateLeaf.Type,
-                  convert: (Any) => Any): Option[(SearchArgument.Builder) => Unit] = {
+  private def add(
+      prop: String,
+      bounds: Bounds[_],
+      typ: PredicateLeaf.Type,
+      convert: Any => Any): Option[SearchArgument.Builder => Unit] = {
     if (bounds.isRange) {
       if (bounds.isBoundedBothSides) {
         // between seems to be endpoint inclusive, so should not have any false negatives regardless of bounds inclusiveness
-        Some((arg) => arg.between(prop, typ, convert(bounds.lower.value.get), convert(bounds.upper.value.get)))
+        Some(arg => arg.between(prop, typ, convert(bounds.lower.value.get), convert(bounds.upper.value.get)))
       } else if (bounds.isBounded) {
         if (bounds.upper.value.isDefined) {
           if (bounds.upper.inclusive) {
-            Some((arg) => arg.lessThanEquals(prop, typ, convert(bounds.upper.value.get)))
+            Some(arg => arg.lessThanEquals(prop, typ, convert(bounds.upper.value.get)))
           } else {
-            Some((arg) => arg.lessThan(prop, typ, convert(bounds.upper.value.get)))
+            Some(arg => arg.lessThan(prop, typ, convert(bounds.upper.value.get)))
           }
         } else if (bounds.lower.inclusive) {
-          Some((arg) => arg.startNot().lessThan(prop, typ, convert(bounds.lower.value.get)).end())
+          Some(arg => arg.startNot().lessThan(prop, typ, convert(bounds.lower.value.get)).end())
         } else {
-          Some((arg) => arg.startNot().lessThanEquals(prop, typ, convert(bounds.lower.value.get)).end())
+          Some(arg => arg.startNot().lessThanEquals(prop, typ, convert(bounds.lower.value.get)).end())
         }
       } else {
         None
       }
     } else {
-      Some((arg) => arg.equals(prop, typ, convert(bounds.lower.value.get)))
+      Some(arg => arg.equals(prop, typ, convert(bounds.lower.value.get)))
     }
   }
 
-  private def addPoint(prop: String, bounds: Geometry): (SearchArgument.Builder) => Unit = {
+  private def addPoint(prop: String, bounds: Geometry): SearchArgument.Builder => Unit = {
     val x = OrcFileSystemStorage.geometryXField(prop)
     val y = OrcFileSystemStorage.geometryYField(prop)
     val envelope = bounds.getEnvelopeInternal
 
-    (arg) => {
+    arg => {
       arg.startAnd()
       if (envelope.getMinX == envelope.getMaxX) {
         arg.equals(x, PredicateLeaf.Type.FLOAT, envelope.getMinX)
