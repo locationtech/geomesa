@@ -8,7 +8,10 @@ Kerberos functionality should be configured by appending the following propertie
  * ``hbase.geomesa.keytab``
  * ``hbase.geomesa.principal``
 
-All applications will require access to ``hbase-site.xml`` on their classpath in order to obtain the correct configuration.
+.. note::
+
+    All applications will require access to ``hbase-site.xml`` and ``core-site.xml`` on their classpath in order
+    to obtain the correct configuration.
 
 Development & Testing
 ---------------------
@@ -45,10 +48,10 @@ Here is an example command to help do this:
 You can verify that the GeoMesa HBase command line tools are working by ingest a small sample file.
 
 For GeoServer, similarly, the above configuration files will need to copied or symlinked to ``geoserver/WEB-INF/classes/``.
-
     
 Enabling Kerberos on HDP
 ------------------------
+
 To enable kerberos on a HDP cluster you can either
  * do it all manually (not recommended)
  * use ambari as outlined in https://docs.hortonworks.com/HDPDocuments/Ambari-2.2.0.0/bk_Ambari_Security_Guide/content/ch_configuring_amb_hdp_for_kerberos.html

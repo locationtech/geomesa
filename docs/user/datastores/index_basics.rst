@@ -27,7 +27,7 @@ set explicitly. See :ref:`set_date_attribute` for details on setting the indexed
 ID Index
 --------
 
-GeoMesa will always create an ID index on ``SimpleFeature.getID()``.
+GeoMesa will always create an ID index on ``SimpleFeature.getID()``, unless explicitly disabled.
 
 .. _attribute_indices:
 
@@ -63,6 +63,38 @@ To index an attribute, add an ``index`` key to the attribute descriptor user dat
             .build("mySft")
 
 Setting the user data can be done in multiple ways. See :ref:`set_sft_options` for more details.
+
+Attribute indices also support a secondary, tiered index structure. This can improve attribute queries
+that also contain a spatial and/or temporal predicate. Unless configured differently, the default geometry
+and date attributes will be used to create a secondary Z3 of XZ3 index.
+
+.. note::
+
+  Secondary indices can only be leveraged for equality queries against the primary attribute, e.g.
+  ``name = 'bob'`` can take advantage of a secondary index, but ``name ilike 'bo%'`` and ``name > 'bo'``
+  cannot.
+
+Instead of using the default, different secondary index structures can be configured by specifying the attributes
+to use. To customize the secondary index, the indices must be configured through :ref:`customizing_index_creation`.
+If a geometry and date attribute are specified, the secondary index will be Z3 of XZ3, as appropriate.
+If just a geometry is specified, the secondary index will be Z2 of XZ2, as appropriate. If just a date
+is specified, the secondary index will be an ordered temporal index.
+
+For example, all of the following are valid ways to configure an index on a 'name' attribute, assuming
+a geometry attribute named 'geom' and a date attribute named 'dtg':
+
+.. code-block:: java
+
+    import org.locationtech.geomesa.utils.interop.SimpleFeatureTypes;
+
+    String spec = "name:String,dtg:Date,*geom:Point:srid=4326";
+    SimpleFeatureType sft = SimpleFeatureTypes.createType("mySft", spec);
+    // enable a default z3 and a default attribute index
+    sft.getUserData().put("geomesa.indices.enabled", "z3,attr:name");
+    // or, enable a default z3 and an attribute index with a Z2 secondary index
+    sft.getUserData().put("geomesa.indices.enabled", "z3,attr:name:geom");
+    // or, enable a default z3 and an attribute index with a temporal secondary index
+    sft.getUserData().put("geomesa.indices.enabled", "z3,attr:name:dtg");
 
 To prioritize certain attributes over others, see :ref:`attribute_cardinality`.
 

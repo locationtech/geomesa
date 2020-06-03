@@ -122,6 +122,8 @@ rst_epilog = """
 
 .. |cassandra_version| replace:: 3.x
 
+.. |redis_version| replace:: 5.0.x
+
 .. |kudu_version| replace:: 1.7.x
 
 .. |spark_required_version| replace:: 2.2.x, 2.3.x or 2.4.x
