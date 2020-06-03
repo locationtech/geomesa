@@ -150,32 +150,31 @@
                             <relocations>
                                 <relocation>
                                     <pattern>com.google.common</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.accumulo.shaded.com.google.common</shadedPattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.google.common</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.apache.commons.codec</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.accumulo.shaded.org.apache.commons.codec</shadedPattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.org.apache.commons.codec</shadedPattern>
                                 </relocation>
                                 <!-- relocate thrift because spark depends on 0.9.2 and accumulo 1.8 depends on 0.9.3 -->
                                 <relocation>
                                     <pattern>org.apache.thrift</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.accumulo.shaded.org.apache.thrift</shadedPattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.org.apache.thrift</shadedPattern>
                                 </relocation>
                                 <!-- spark also includes shapeless, relocate to avoid version conflicts -->
                                 <relocation>
                                     <pattern>shapeless</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.accumulo.shaded.shapeless</shadedPattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.shapeless</shadedPattern>
                                 </relocation>
                                 <!-- Databricks uses an old version of scalalogging, include it to allow us to run on databricks clusters -->
                                 <relocation>
                                     <pattern>com.typesafe.scalalogging</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.accumulo.shaded.com.typesafe.scalalogging
-                                    </shadedPattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.com.typesafe.scalalogging</shadedPattern>
                                 </relocation>
                                 <!-- spark needs json4s to use the jsonpath function -->
                                 <relocation>
                                     <pattern>org.json4s</pattern>
-                                    <shadedPattern>org.locationtech.geomesa.accumulo.shaded.org.json4s</shadedPattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.org.json4s</shadedPattern>
                                 </relocation>
                             </relocations>
                             <transformers>
