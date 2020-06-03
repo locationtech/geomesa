@@ -27,6 +27,15 @@ class AbstractBatchScanTest extends Specification {
       new TestBatchScan(ranges, threads, buffer).start().asInstanceOf[TestBatchScan]
   }
 
+  class ErrorScan(ranges: Seq[String], err: String) extends TestBatchScan(ranges, 2, 100) {
+    override protected def scan(range: String): CloseableIterator[String] =
+      if (range == err) { throw new RuntimeException(err) } else { super.scan(range) }
+  }
+
+  object ErrorScan {
+    def apply(ranges: Seq[String], err: String): CloseableIterator[String] = new ErrorScan(ranges, err).start()
+  }
+
   "AbstractBatchScan" should {
     "scan with multiple threads" in {
       val iter = TestBatchScan(Seq("foo", "bar"), 2, 100)
@@ -52,6 +61,17 @@ class AbstractBatchScanTest extends Specification {
       iter.waitForDone(1000) must beTrue
       // verify that the terminator dropped a result to set the terminal value
       iter.toList must haveLength(1)
+    }
+    "re-throw exceptions from scanning" in {
+      val ranges = Seq("foo", "bar", "baz")
+      foreach(ranges) { r =>
+        val iter = ErrorScan(ranges, r)
+        try {
+          iter.toList must throwA[RuntimeException](r)
+        } finally {
+          iter.close()
+        }
+      }
     }
   }
 }
