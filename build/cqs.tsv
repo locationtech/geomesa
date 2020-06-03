@@ -11,7 +11,7 @@ com.esotericsoftware:kryo-shaded	3.0.3	compile
 com.esotericsoftware:minlog	1.3.0	compile
 com.fasterxml.jackson.core:jackson-annotations	2.9.10	compile
 com.fasterxml.jackson.core:jackson-core	2.9.10	compile
-com.fasterxml.jackson.core:jackson-databind	2.9.10.3	compile
+com.fasterxml.jackson.core:jackson-databind	2.9.10.4	compile
 com.fasterxml.jackson.dataformat:jackson-dataformat-cbor	2.9.10	compile
 com.github.ben-manes.caffeine:caffeine	2.5.6	compile
 com.github.pureconfig:pureconfig_2.11	0.11.1	compile
@@ -34,7 +34,9 @@ com.h2database:h2	1.4.192	compile
 com.jayway.jsonpath:json-path	2.2.0	compile
 commons-codec:commons-codec	1.9	compile
 commons-collections:commons-collections	3.2.2	compile
+commons-configuration:commons-configuration	1.6	compile
 commons-dbcp:commons-dbcp	1.4	compile
+commons-digester:commons-digester	1.8	compile
 commons-io:commons-io	2.5	compile
 commons-jxpath:commons-jxpath	1.3	compile
 commons-lang:commons-lang	2.6	compile
@@ -118,7 +120,9 @@ net.sf.geographiclib:GeographicLib-Java	1.49	compile
 net.sf.saxon:Saxon-HE	9.7.0-20	compile
 net.sf.trove4j:trove4j	3.0.3	compile
 org.antlr:antlr4-runtime	4.7.1	compile
+org.apache.accumulo:accumulo-core	1.9.3	compile
 org.apache.accumulo:accumulo-core	2.0.0	compile
+org.apache.accumulo:accumulo-fate	1.9.3	compile
 org.apache.arrow:arrow-format	0.16.0	compile
 org.apache.arrow:arrow-memory	0.16.0	compile
 org.apache.arrow:arrow-vector	0.16.0	compile
@@ -134,6 +138,7 @@ org.apache.commons:commons-dbcp2	2.6.0	compile
 org.apache.commons:commons-lang3	3.7	compile
 org.apache.commons:commons-pool2	2.6.1	compile
 org.apache.commons:commons-text	1.6	compile
+org.apache.commons:commons-vfs2	2.2	compile
 org.apache.curator:curator-client	4.3.0	compile
 org.apache.curator:curator-framework	4.3.0	compile
 org.apache.curator:curator-recipes	4.3.0	compile

@@ -17,15 +17,20 @@ Configuring Zeppelin with GeoMesa
 ---------------------------------
 
 The GeoMesa Accumulo Spark runtime JAR may be found either in the ``dist/spark`` directory of the GeoMesa Accumulo
-binary distribution, or (after building) in the ``geomesa-accumulo/geomesa-accumulo-spark-runtime/target`` directory
-of the GeoMesa source distribution.
+binary distribution, or (after building) in the ``geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo2/target``
+directory of the GeoMesa source distribution.
+
+.. note::
+
+  See :ref:`spatial_rdd_providers` for details on choosing the correct GeoMesa Spark runtime JAR.
+
 
 #. In the Zeppelin web UI, click on the downward-pointing triangle next to the username in the upper-right hand corner and select "Interpreter".
 #. Scroll to the bottom where the "Spark" interpreter configuration appears.
 #. Click on the "edit" button next to the interpreter name (on the right-hand side of the UI).
 #. In the "Dependencies" section, add the GeoMesa JAR, either as
-     a. the full local path to the ``geomesa-accumulo-spark-runtime_2.11-$VERSION.jar`` described above, or
-     b. the Maven groupId:artifactId:version coordinates (``org.locationtech.geomesa:geomesa-accumulo-spark-runtime_2.11:$VERSION``)
+     a. the full local path to the ``geomesa-accumulo-spark-runtime-accumulo2_2.11-$VERSION.jar`` described above, or
+     b. the Maven groupId:artifactId:version coordinates (``org.locationtech.geomesa:geomesa-accumulo-spark-runtime-accumulo2_2.11:$VERSION``)
 #. Click "Save". When prompted by the pop-up, click to restart the Spark interpreter.
 
 It is not necessary to restart Zeppelin.
