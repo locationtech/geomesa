@@ -257,6 +257,8 @@ object ArrowAttributeWriter {
       case (ObjectType.MULTIPOINT, Encoding.Min, FromAllocator(c))      => new MultiPointFloatVector(name, c, m)
       case (ObjectType.MULTIPOINT, Encoding.Max, FromStruct(c))         => new MultiPointVector(name, c, m)
       case (ObjectType.MULTIPOINT, Encoding.Max, FromAllocator(c))      => new MultiPointVector(name, c, m)
+      case (ObjectType.GEOMETRY, _, FromStruct(c))                      => new WKBGeometryVector(name, c, m)
+      case (ObjectType.GEOMETRY, _, FromAllocator(c))                   => new WKBGeometryVector(name, c, m)
       case (ObjectType.GEOMETRY_COLLECTION, _, _) => throw new NotImplementedError(s"Geometry type $binding is not supported")
       case (_, _, FromList(_)) => throw new NotImplementedError("Geometry lists are not supported")
       case _ => throw new IllegalArgumentException(s"Unexpected geometry type $binding")
