@@ -66,7 +66,7 @@ Setting the user data can be done in multiple ways. See :ref:`set_sft_options` f
 
 Attribute indices also support a secondary, tiered index structure. This can improve attribute queries
 that also contain a spatial and/or temporal predicate. Unless configured differently, the default geometry
-and date attributes will be used to create a secondary Z3 of XZ3 index.
+and date attributes will be used to create a secondary Z3 or XZ3 index.
 
 .. note::
 
