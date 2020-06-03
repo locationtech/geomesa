@@ -102,7 +102,7 @@ Z2 Scheme
 
 **Configuration:**
 
-* ``z2-resolution`` - The number of bits of precision to use for z indexing. Must be a power of 2.
+* ``z2-resolution`` - The number of bits of precision to use for z indexing. Must be a multiple of 2.
 
 The Z2 scheme uses a Z2 space-filling curve, and can only be used with Point-type geometries. Instead of specifying
 the resolution as a configuration option, it may be specified in the name, as ``z2-<n>bits``, where ``<n>`` is
@@ -115,7 +115,7 @@ XZ2 Scheme
 
 **Configuration:**
 
-* ``xz2-resolution`` - The number of bits of precision to use for z indexing. Must be a power of 2.
+* ``xz2-resolution`` - The number of bits of precision to use for z indexing. Must be a multiple of 2.
 
 The XZ2 scheme uses an XZ2 space-filling curve, and can be used with any geometry type. Instead of specifying
 the resolution as a configuration option, it may be specified in the name, as ``xz2-<n>bits``, where ``<n>`` is
