@@ -19,7 +19,9 @@ import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
+import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}
+import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.CacheConnectionsParam
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo}
 import org.locationtech.geomesa.security
@@ -45,7 +47,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
       Some(AuditLogger, Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider), "hbase")
     }
     val auths = if (!EnableSecurityParam.lookup(params)) { None } else {
-      Some(HBaseDataStoreFactory.buildAuthsProvider(connection, params))
+      Some(HBaseDataStoreFactory.buildAuthsProvider(connection.connection, params))
     }
     val queries = HBaseQueryConfig(
       threads = QueryThreadsParam.lookup(params),
@@ -96,7 +98,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
   protected def getCatalog(params: java.util.Map[String, Serializable]): String = HBaseCatalogParam.lookup(params)
 
   // overridden by BigtableFactory
-  protected def buildDataStore(connection: Connection, config: HBaseDataStoreConfig): HBaseDataStore =
+  protected def buildDataStore(connection: ConnectionWrapper, config: HBaseDataStoreConfig): HBaseDataStore =
     new HBaseDataStore(connection, config)
 
   // overridden by BigtableFactory
@@ -148,6 +150,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       QueryTimeoutParam,
       MaxRangesPerExtendedScanParam,
       MaxRangesPerCoprocessorScanParam,
+      CacheConnectionsParam,
       RemoteFilteringParam,
       ArrowCoprocessorParam,
       BinCoprocessorParam,

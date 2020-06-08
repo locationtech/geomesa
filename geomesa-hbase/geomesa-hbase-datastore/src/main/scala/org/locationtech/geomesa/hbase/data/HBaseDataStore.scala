@@ -17,6 +17,7 @@ import org.apache.hadoop.hbase.security.visibility.Authorizations
 import org.apache.hadoop.hbase.zookeeper.ZKConfig
 import org.geotools.data.Query
 import org.locationtech.geomesa.hbase.aggregators.HBaseVersionAggregator
+import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.rpc.coprocessor.GeoMesaCoprocessor
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -37,12 +38,14 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.control.NonFatal
 
-class HBaseDataStore(val connection: Connection, override val config: HBaseDataStoreConfig)
+class HBaseDataStore(con: ConnectionWrapper, override val config: HBaseDataStoreConfig)
     extends GeoMesaDataStore[HBaseDataStore](config) with ZookeeperLocking {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
+
+  val connection: Connection = con.connection
 
   override val metadata: GeoMesaMetadata[String] =
     new HBaseBackedMetadata(connection, TableName.valueOf(config.catalog), MetadataStringSerializer)
@@ -62,6 +65,8 @@ class HBaseDataStore(val connection: Connection, override val config: HBaseDataS
 
   def applySecurity(queries: Iterable[org.apache.hadoop.hbase.client.Query]): Unit =
     authOpt.foreach(a => queries.foreach(_.setAuthorizations(a)))
+
+  override def dispose(): Unit = try { super.dispose() } finally { con.close() }
 
   override protected def loadIteratorVersions: Set[String] = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
