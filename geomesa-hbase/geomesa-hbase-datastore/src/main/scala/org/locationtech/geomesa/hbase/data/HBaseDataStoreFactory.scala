@@ -19,6 +19,7 @@ import org.apache.hadoop.hbase.security.User
 import org.apache.hadoop.hbase.security.visibility.VisibilityClient
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
+import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreConfig, GeoMesaDataStoreInfo, GeoMesaDataStoreParams}
@@ -58,7 +59,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
     val looseBBox = LooseBBoxParam.lookup(params)
     val caching = CachingParam.lookup(params)
     val authsProvider = if (!EnableSecurityParam.lookup(params)) { None } else {
-      Some(HBaseDataStoreFactory.buildAuthsProvider(connection, params))
+      Some(HBaseDataStoreFactory.buildAuthsProvider(connection.connection, params))
     }
     val coprocessorUrl = CoprocessorUrlParam.lookupOpt(params)
 
@@ -76,7 +77,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
   protected def getCatalog(params: java.util.Map[String, Serializable]): String = HBaseCatalogParam.lookup(params)
 
   // overridden by BigtableFactory
-  protected def buildDataStore(connection: Connection, config: HBaseDataStoreConfig): HBaseDataStore =
+  protected def buildDataStore(connection: ConnectionWrapper, config: HBaseDataStoreConfig): HBaseDataStore =
     new HBaseDataStore(connection, config)
 
   // overridden by BigtableFactory
@@ -121,6 +122,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       CoprocessorUrlParam,
       QueryThreadsParam,
       QueryTimeoutParam,
+      CacheConnectionsParam,
       RemoteFilteringParam,
       EnableSecurityParam,
       GenerateStatsParam,
@@ -226,6 +228,12 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       "Remote filtering",
       default = true,
       deprecatedKeys = Seq("remote.filtering"))
+
+  val CacheConnectionsParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "hbase.connections.reuse",
+      "Use a shared HBase connection, or create a new connection",
+      default = java.lang.Boolean.TRUE)
 
   val MaxRangesPerExtendedScanParam =
     new GeoMesaParam[java.lang.Integer](

@@ -13,6 +13,7 @@ import java.io.Serializable
 import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.client.Connection
 import org.geotools.data.DataAccessFactory.Param
+import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.HBaseDataStoreConfig
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams._
@@ -29,7 +30,7 @@ class BigtableDataStoreFactory extends HBaseDataStoreFactory {
   override protected def getCatalog(params: java.util.Map[String, Serializable]): String =
     BigtableCatalogParam.lookup(params)
 
-  override protected def buildDataStore(connection: Connection, config: HBaseDataStoreConfig): BigtableDataStore = {
+  override protected def buildDataStore(connection: ConnectionWrapper, config: HBaseDataStoreConfig): BigtableDataStore = {
     // note: bigtable never has push-down predicates
     new BigtableDataStore(connection, config.copy(remoteFilter = false))
   }
