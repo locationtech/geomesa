@@ -99,7 +99,6 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
 
         // verify we can load an existing storage
         val loaded = new FileBasedMetadataFactory().load(context)
-        loaded.foreach(_.reload()) // ensure state is loaded
         loaded must beSome
         testQuery(new OrcFileSystemStorageFactory().apply(context, loaded.get), sft)("INCLUDE", null, features)
       }
@@ -321,7 +320,6 @@ class OrcFileSystemStorageTest extends Specification with LazyLogging {
         PathCache.invalidate(context.fc, meta)
 
         val metadata = new FileBasedMetadataFactory().load(context)
-        metadata.foreach(_.reload()) // ensure state is loaded
         metadata must beSome
         val storage = new OrcFileSystemStorageFactory().apply(context, metadata.get)
 

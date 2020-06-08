@@ -16,6 +16,7 @@ import org.geotools.data.{DataStore, DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.fs.data.FileSystemFeatureStore
+import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadata
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -121,8 +122,11 @@ class CompactCommandTest extends Specification with BeforeAfterAll {
     "After compacting should be fewer files" in {
       val ds = getDataStore
       val fs = ds.getFeatureSource(typeName)
-      val metadata = fs.asInstanceOf[FileSystemFeatureStore].storage.metadata
-      metadata.reload() // invalidate the cached values, which aren't updated by the compaction job
+      val metadata = {
+        // create a new metadata, as the cached values aren't updated by the compaction job
+        val storage = fs.asInstanceOf[FileSystemFeatureStore].storage
+        FileBasedMetadata.copy(storage.metadata.asInstanceOf[FileBasedMetadata])
+      }
 
       val iter = fs.getFeatures.features
       while (iter.hasNext) {

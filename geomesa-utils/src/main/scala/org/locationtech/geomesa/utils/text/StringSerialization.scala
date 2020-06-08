@@ -163,7 +163,7 @@ object StringSerialization extends LazyLogging {
         val c = input.charAt(i)
         if (c != '_') { sb.append(c) } else {
           i += 2
-          sb.append(Hex.decodeHex(Array(input.charAt(i - 1), input.charAt(i))))
+          sb.append(new String(Hex.decodeHex(Array(input.charAt(i - 1), input.charAt(i))), StandardCharsets.UTF_8))
         }
         i += 1
       }

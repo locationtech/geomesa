@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs.storage.converter
 
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.{Executors, TimeUnit}
 
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
@@ -25,6 +26,13 @@ class ConverterMetadata(
   ) extends StorageMetadata {
 
   private val dirty = new AtomicBoolean(false)
+
+  private val marker = new Runnable() { override def run(): Unit = dirty.set(true) }
+  private val expiry = PathCache.CacheDurationProperty.toDuration.get.toMillis
+
+  private val es = Executors.newSingleThreadScheduledExecutor()
+
+  es.scheduleAtFixedRate(marker, expiry, expiry, TimeUnit.MILLISECONDS)
 
   override def encoding: String = Encoding
 
@@ -47,8 +55,6 @@ class ConverterMetadata(
     }
   }
 
-  override def reload(): Unit = dirty.set(true)
-
   override def addPartition(partition: PartitionMetadata): Unit =
     throw new UnsupportedOperationException("Converter storage does not support updating metadata")
 
@@ -58,7 +64,7 @@ class ConverterMetadata(
   override def compact(partition: Option[String], threads: Int): Unit =
     throw new UnsupportedOperationException("Converter storage does not support updating metadata")
 
-  override def close(): Unit = {}
+  override def close(): Unit = es.shutdown()
 
   private def buildPartitionList(prefix: Option[String], invalidate: Boolean): List[String] = {
     if (invalidate) {
