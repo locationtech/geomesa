@@ -166,7 +166,7 @@
         <profile>
             <id>central</id>
             <properties>
-                <attach.installers>false</attach.installers>
+                <attach.installers>true</attach.installers>
             </properties>
             <build>
                 <plugins>
