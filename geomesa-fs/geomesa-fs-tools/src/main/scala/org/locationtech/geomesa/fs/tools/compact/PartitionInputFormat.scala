@@ -40,7 +40,6 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
       throw new IllegalArgumentException(s"No storage defined under path '$root'")
     }
     WithClose(metadata) { meta =>
-      meta.reload() // load existing partition data
       WithClose(FileSystemStorageFactory(fsc, metadata)) { storage =>
         val splits = StorageConfiguration.getPartitions(conf).map { partition =>
           val files = storage.metadata.getPartition(partition).map(_.files).getOrElse(Seq.empty)
@@ -164,7 +163,6 @@ object PartitionInputFormat {
     override def addPartition(partition: PartitionMetadata): Unit = throw new NotImplementedError()
     override def removePartition(partition: PartitionMetadata): Unit = throw new NotImplementedError()
     override def compact(partition: Option[String], threads: Int): Unit = throw new NotImplementedError()
-    override def reload(): Unit = {}
     override def close(): Unit = {}
   }
 }

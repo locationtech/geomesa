@@ -20,7 +20,7 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
   */
 object PathCache {
 
-  val CacheDurationProperty = SystemProperty("geomesa.fs.file.cache.duration", "10 minutes")
+  val CacheDurationProperty: SystemProperty = SystemProperty("geomesa.fs.file.cache.duration", "15 minutes")
 
   private val duration = CacheDurationProperty.toDuration.get.toMillis
 

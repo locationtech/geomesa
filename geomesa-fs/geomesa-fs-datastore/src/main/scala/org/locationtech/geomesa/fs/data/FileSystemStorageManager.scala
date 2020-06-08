@@ -104,7 +104,6 @@ class FileSystemStorageManager private (fc: FileContext, conf: Configuration, ro
       StorageMetadataFactory.load(context).map { meta =>
         try {
           val storage = FileSystemStorageFactory(context, meta)
-          meta.reload() // ensure metadata is loaded
           register(path, storage)
           storage
         } catch {

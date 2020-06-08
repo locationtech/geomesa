@@ -108,8 +108,6 @@ class JdbcMetadata(
     }
   }
 
-  override def reload(): Unit = {}
-
   override def close(): Unit = pool.close()
 }
 

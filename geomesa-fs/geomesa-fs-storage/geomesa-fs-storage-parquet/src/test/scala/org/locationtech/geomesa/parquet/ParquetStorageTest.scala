@@ -101,7 +101,6 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
 
         // verify we can load an existing storage
         val loaded = new FileBasedMetadataFactory().load(context)
-        loaded.foreach(_.reload()) // ensure state is loaded
         loaded must beSome
         testQuery(new ParquetFileSystemStorageFactory().apply(context, loaded.get), sft)("INCLUDE", null, features)
       }
@@ -320,7 +319,6 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
       val context = FileSystemContext(FileContext.getFileContext(url.toURI), config, path)
       val metadata = StorageMetadataFactory.load(context).orNull
       metadata must not(beNull)
-      metadata.reload() // ensure metadata is loaded
       val storage = FileSystemStorageFactory(context, metadata)
 
       val features = SelfClosingIterator(storage.getReader(new Query("example-csv"))).toList.sortBy(_.getID)
