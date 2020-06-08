@@ -42,6 +42,7 @@ Parameter                              Type    Description
 ``hbase.remote.filtering``             Boolean Can be used to disable remote filtering and coprocessors, for environments
                                                where custom code can't be installed
 ``hbase.security.enabled``             Boolean Enable HBase security (visibilities)
+``hbase.connections.reuse``            Boolean Re-use and share HBase connections, or create a new one for this data store
 ``geomesa.security.auths``             String  Comma-delimited superset of authorizations that will be used for queries
 ``geomesa.security.force-empty-auths`` Boolean Forces authorizations to be empty
 ``geomesa.query.audit``                Boolean Audit queries being run. Queries will be written to a log file
