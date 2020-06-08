@@ -12,6 +12,13 @@ All applications will require access to ``hbase-site.xml`` on their classpath in
 
 Note that Kerberos support is only available in HBase 1.1.2 or newer.
 
+Long-held Connections
+---------------------
+
+Occasionally Kerberos authentication can get out of sync, which can cause the HBase connection to stop working.
+Since HBase connections are cached, this can prevent new data store instances from being created. To prevent this,
+HBase connection caching can be disabled by setting the data store parameter ``hbase.connections.reuse`` to ``false``.
+
 Development & Testing
 ---------------------
 
