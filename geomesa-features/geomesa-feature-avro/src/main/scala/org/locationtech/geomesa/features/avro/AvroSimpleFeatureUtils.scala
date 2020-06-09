@@ -41,9 +41,9 @@ object AvroSimpleFeatureUtils extends LazyLogging {
 
   implicit class RichBuilder(val builder: FieldTypeBuilder[ArrayDefault[Schema]]) extends AnyVal {
     def simpleTypeUnion(hints: String): NullDefault[ArrayDefault[Schema]] = {
-      builder.unionOf.nullType.and.stringType.and.intType.and.longType
+      builder.unionOf
+          .nullType.and.stringType.and.intType.and.longType
           .and.floatType.and.doubleType.and.booleanType.and.bytesType
-          .and.enumeration("hints").namespace(hints).symbols(HintKeySerialization.keyToId.values.toSeq: _*)
           .endUnion()
     }
   }

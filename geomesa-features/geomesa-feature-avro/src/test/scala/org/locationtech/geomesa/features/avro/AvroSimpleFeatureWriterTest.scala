@@ -89,7 +89,6 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       sf.visibility = vis
 
       val userData = sf.getUserData
-      userData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       userData.put(java.lang.Integer.valueOf(55), null)
       userData.put(null, "null key")
 
@@ -100,8 +99,8 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
 
       there was one(encoder).writeArrayStart()
 
-      there was one(encoder).setItemCount(4)
-      there was 4.times(encoder).startItem()
+      there was one(encoder).setItemCount(3)
+      there was 3.times(encoder).startItem()
 
       // 1 key and 1 value are null
       there was 2.times(encoder).writeNull()
@@ -109,10 +108,6 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       // visibility data
       there was one(encoder).writeString(SecurityUtils.FEATURE_VISIBILITY)
       there was one(encoder).writeString(vis)
-
-      // hint data
-      there was one(encoder).writeEnum(HintKeySerialization.keyToEnum(Hints.USE_PROVIDED_FID))
-      there was one(encoder).writeBoolean(true)
 
       // key = 55, value = null
       there was one(encoder).writeInt(55)
@@ -131,7 +126,6 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       sf.visibility = vis
 
       val userData = sf.getUserData
-      userData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       userData.put(java.lang.Integer.valueOf(5), null)
       userData.put(null, "null key")
 

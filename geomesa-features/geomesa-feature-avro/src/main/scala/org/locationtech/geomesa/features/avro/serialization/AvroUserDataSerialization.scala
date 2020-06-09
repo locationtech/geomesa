@@ -10,40 +10,38 @@ package org.locationtech.geomesa.features.avro.serialization
 
 import java.nio.ByteBuffer
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.avro.io.{Decoder, Encoder}
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.serialization.HintKeySerialization
 
-object AvroUserDataSerialization {
+object AvroUserDataSerialization extends LazyLogging {
 
   import scala.collection.JavaConverters._
 
   def serialize(out: Encoder, map: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
-    out.writeArrayStart()
-    out.setItemCount(map.size)
-
-    def write(value: Any): Unit = {
+    def write(value: Any): Option[() => Unit] = {
       value match {
-        case null                 => out.writeIndex(0); out.writeNull()
-        case v: String            => out.writeIndex(1); out.writeString(v)
-        case v: java.lang.Integer => out.writeIndex(2); out.writeInt(v)
-        case v: java.lang.Long    => out.writeIndex(3); out.writeLong(v)
-        case v: java.lang.Float   => out.writeIndex(4); out.writeFloat(v)
-        case v: java.lang.Double  => out.writeIndex(5); out.writeDouble(v)
-        case v: java.lang.Boolean => out.writeIndex(6); out.writeBoolean(v)
-        case v: Array[Byte]       => out.writeIndex(7); out.writeBytes(v)
-        case v: Hints.Key if HintKeySerialization.canSerialize(v) => out.writeIndex(8); out.writeEnum(HintKeySerialization.keyToEnum(v))
+        case null                 => Some(() => { out.writeIndex(0); out.writeNull() })
+        case v: String            => Some(() => { out.writeIndex(1); out.writeString(v) })
+        case v: java.lang.Integer => Some(() => { out.writeIndex(2); out.writeInt(v) })
+        case v: java.lang.Long    => Some(() => { out.writeIndex(3); out.writeLong(v) })
+        case v: java.lang.Float   => Some(() => { out.writeIndex(4); out.writeFloat(v) })
+        case v: java.lang.Double  => Some(() => { out.writeIndex(5); out.writeDouble(v) })
+        case v: java.lang.Boolean => Some(() => { out.writeIndex(6); out.writeBoolean(v) })
+        case v: Array[Byte]       => Some(() => { out.writeIndex(7); out.writeBytes(v) })
+        case v: Hints.Key if v == Hints.USE_PROVIDED_FID => logger.warn("Dropping USE_PROVIDED_FID hint"); None
         case _ =>
           throw new IllegalArgumentException(s"Serialization not implemented for '$value' of type ${value.getClass}")
       }
     }
 
-    map.asScala.foreach { case (key, value) =>
-      out.startItem()
-      write(key)
-      write(value)
+    val writes = map.asScala.flatMap { case (key, value) =>
+      for (k <- write(key); v <- write(value)) yield { () => { out.startItem(); k(); v() }}
     }
 
+    out.writeArrayStart()
+    out.setItemCount(writes.size)
+    writes.foreach(_.apply())
     out.writeArrayEnd()
   }
 
@@ -70,7 +68,6 @@ object AvroUserDataSerialization {
         case 5 => Double.box(in.readDouble())
         case 6 => Boolean.box(in.readBoolean())
         case 7 => bb = in.readBytes(bb); val array = Array.ofDim[Byte](bb.remaining()); bb.get(array); array
-        case 8 => HintKeySerialization.enumToKey(in.readEnum())
         case i => throw new IllegalArgumentException(s"Unexpected union type: $i")
       }
     }

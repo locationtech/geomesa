@@ -307,7 +307,6 @@ class FeatureSpecificReaderTest extends LazyLogging {
 
     val userData = sf.getUserData
 
-    userData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
     userData.put(SecurityUtils.FEATURE_VISIBILITY, "USER|ADMIN")
     userData.put(null, java.lang.Integer.valueOf(5))
     userData.put(java.lang.Long.valueOf(10), "10")
