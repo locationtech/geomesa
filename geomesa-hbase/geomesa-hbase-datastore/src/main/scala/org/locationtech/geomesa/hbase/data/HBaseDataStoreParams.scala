@@ -52,6 +52,12 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
       default = Int.box(16),
       supportsNiFiExpressions = true)
 
+  val CacheConnectionsParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "hbase.connections.reuse",
+      "Use a shared HBase connection, or create a new connection",
+      default = java.lang.Boolean.TRUE)
+
   val RemoteFilteringParam =
     new GeoMesaParam[java.lang.Boolean](
       "hbase.remote.filtering",

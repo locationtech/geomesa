@@ -13,6 +13,8 @@ import java.util.concurrent._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
+import scala.util.control.NonFatal
+
 /**
   * Provides parallelism for scanning multiple ranges at a given time, for systems that don't
   * natively support that.
@@ -37,11 +39,12 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
   private val inQueue = new ConcurrentLinkedQueue(ranges.asJava)
   private val outQueue = new LinkedBlockingQueue[R](buffer)
 
+  private val pool = new CachedThreadPool(threads)
   private val latch = new CountDownLatch(threads)
   private val terminator = new Terminator()
-  private val pool = new CachedThreadPool(threads)
 
   private var retrieved: R = _
+  private var error: Throwable = _
 
   @volatile
   protected var closed: Boolean = false
@@ -77,6 +80,11 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
       } else {
         outQueue.put(sentinel) // re-queue in case hasNext is called again
         retrieved = null.asInstanceOf[R]
+        this.synchronized {
+          if (error != null) {
+            throw error
+          }
+        }
         false
       }
     }
@@ -157,6 +165,12 @@ abstract class AbstractBatchScan[T, R <: AnyRef](ranges: Seq[T], threads: Int, b
           }
           range = inQueue.poll()
         }
+      } catch {
+        case NonFatal(e) =>
+          AbstractBatchScan.this.synchronized {
+            if (error == null) { error = e } else { error.addSuppressed(e) }
+          }
+          close()
       } finally {
         latch.countDown()
       }

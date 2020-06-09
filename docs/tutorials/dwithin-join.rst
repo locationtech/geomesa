@@ -49,7 +49,11 @@ interactive Spark REPL with all dependencies needed for running Spark with GeoMe
 
 .. code-block:: bash
 
-    $ bin/spark-shell --jars geomesa-accumulo-spark-runtime_2.11-2.0.0.jar
+    $ bin/spark-shell --jars geomesa-accumulo-spark-runtime-accumulo2_2.11-2.0.0.jar
+
+.. note::
+
+  See :ref:`spatial_rdd_providers` for details on choosing the correct GeoMesa Spark runtime JAR.
 
 To configure the Spark Session such that we can serialize Simple Features and work with geometric UDTs and UDFs, we must
 alter the Spark Session as follows.

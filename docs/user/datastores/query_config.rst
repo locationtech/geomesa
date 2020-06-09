@@ -119,24 +119,26 @@ however, the index can be overridden if desired.
 ====================== ======================= ===========================
 Key                    Type                    GeoServer Conversion
 ====================== ======================= ===========================
-QueryHints.QUERY_INDEX ``GeoMesaFeatureIndex`` index name, or name:version
+QueryHints.QUERY_INDEX String                  index name or identifier
 ====================== ======================= ===========================
 
 .. tabs::
 
     .. code-tab:: java
 
-        import org.locationtech.geomesa.accumulo.index.z2.Z2Index$;
         import org.locationtech.geomesa.index.conf.QueryHints;
 
-        query.getHints().put(QueryHints.QUERY_INDEX(), Z2Index$.MODULE$);
+        query.getHints().put(QueryHints.QUERY_INDEX(), "z2");
+        // or:
+        query.getHints().put(QueryHints.QUERY_INDEX(), "z2:5:geom");
 
     .. code-tab:: scala
 
-        import org.locationtech.geomesa.accumulo.index.z2.Z2Index
         import org.locationtech.geomesa.index.conf.QueryHints
 
-        query.getHints.put(QueryHints.QUERY_INDEX, Z2Index)
+        query.getHints.put(QueryHints.QUERY_INDEX, "z2")
+        // or:
+        query.getHints.put(QueryHints.QUERY_INDEX, "z2:5:geom")
 
     .. code-tab:: none GeoServer
 
