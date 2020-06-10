@@ -238,8 +238,8 @@ org.locationtech.sfcurve:sfcurve-zorder_2.11	0.2.2	compile
 org.locationtech.spatial4j:spatial4j	0.7	compile
 org.mortbay.jetty:jetty-util	6.1.26	compile
 org.objenesis:objenesis	1.0	compile
-org.parboiled:parboiled-core	1.1.7	compile
-org.parboiled:parboiled-scala_2.11	1.1.7	compile
+org.parboiled:parboiled-core	1.2.0	compile
+org.parboiled:parboiled-scala_2.11	1.2.0	compile
 org.postgresql:postgresql	42.2.12	compile
 org.scala-lang.modules:scala-parser-combinators_2.11	1.0.6	compile
 org.scala-lang.modules:scala-xml_2.11	1.0.6	compile
