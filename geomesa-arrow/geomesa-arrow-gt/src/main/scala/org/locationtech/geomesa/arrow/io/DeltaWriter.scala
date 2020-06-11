@@ -19,6 +19,7 @@ import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.StructVector
 import org.apache.arrow.vector.dictionary.DictionaryProvider.MapDictionaryProvider
 import org.apache.arrow.vector.ipc.ArrowStreamWriter
+import org.apache.arrow.vector.ipc.message.IpcOption
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
 import org.apache.arrow.vector.util.TransferPair
 import org.apache.arrow.vector.{FieldVector, IntVector}
@@ -935,7 +936,7 @@ object DeltaWriter extends StrictLogging {
 
     private val root = createRoot(vector)
     private val os = new ByteArrayOutputStream()
-    private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os))
+    private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os), org.locationtech.geomesa.arrow.legacyOption)
     writer.start() // start the writer - we'll discard the metadata later, as we only care about the record batches
 
     logger.trace(s"write schema: ${vector.getField}")

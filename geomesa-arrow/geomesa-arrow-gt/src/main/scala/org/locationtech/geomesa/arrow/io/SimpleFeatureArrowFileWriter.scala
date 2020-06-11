@@ -37,7 +37,7 @@ class SimpleFeatureArrowFileWriter private (
 
   private val metadata = sort.map { case (field, reverse) => getSortAsMetadata(field, reverse) }.orNull
   private val root = createRoot(vector.underlying, metadata)
-  private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os))
+  private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os), org.locationtech.geomesa.arrow.legacyOption)
 
   private var index = 0
 

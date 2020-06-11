@@ -114,7 +114,7 @@ package object io {
     root.setRowCount(count)
     val os = new ByteArrayOutputStream()
     WithClose(SimpleFeatureArrowFileWriter.provider(dictionaries, result.encoding)) { provider =>
-      WithClose(new ArrowStreamWriter(root, provider, Channels.newChannel(os))) { writer =>
+      WithClose(new ArrowStreamWriter(root, provider, Channels.newChannel(os), org.locationtech.geomesa.arrow.legacyOption)) { writer =>
         writer.writeBatch()
         os.toByteArray
       }

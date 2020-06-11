@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.arrow.io
 
 import java.io.{Closeable, OutputStream}
+import java.nio.channels.Channels
 import java.util.Collections
 
 import org.apache.arrow.vector._
@@ -116,7 +117,10 @@ class DictionaryBuildingWriter(
       new Dictionary(writer.vector, w.dictionary.encoding)
     }
 
-    WithClose(new ArrowStreamWriter(root, new MapDictionaryProvider(dictionaries: _*), os)) { writer =>
+    WithClose(new ArrowStreamWriter(root,
+      new MapDictionaryProvider(dictionaries: _*),
+      Channels.newChannel(os),
+      org.locationtech.geomesa.arrow.legacyOption)) { writer =>
       writer.start()
       writer.writeBatch()
     }
