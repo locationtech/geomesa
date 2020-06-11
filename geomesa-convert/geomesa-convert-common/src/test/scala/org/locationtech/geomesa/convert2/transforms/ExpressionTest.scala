@@ -231,17 +231,17 @@ class ExpressionTest extends Specification {
         exp.eval(Array("", "2015-01-01T00:00:00.000Z")).asInstanceOf[Date] must be equalTo testDate
       }
     }
-    "parse isodate" >> {
-      val exp = Expression("isodate($1)")
-      exp.eval(Array("", "20150101")).asInstanceOf[Date] must be equalTo testDate
+    "parse isoDate" >> {
+      val exp = Expression("isoDate($1)")
+      exp.eval(Array("", "2015-01-01")).asInstanceOf[Date] must be equalTo testDate
     }
     "parse basicDate" >> {
       val exp = Expression("basicDate($1)")
       exp.eval(Array("", "20150101")).asInstanceOf[Date] must be equalTo testDate
     }
-    "parse isodatetime" >> {
-      val exp = Expression("isodatetime($1)")
-      exp.eval(Array("", "20150101T000000.000Z")).asInstanceOf[Date] must be equalTo testDate
+    "parse isoDateTime" >> {
+      val exp = Expression("isoDateTime($1)")
+      exp.eval(Array("", "2015-01-01T00:00:00")).asInstanceOf[Date] must be equalTo testDate
     }
     "parse basicDateTime" >> {
       val exp = Expression("basicDateTime($1)")
@@ -269,9 +269,9 @@ class ExpressionTest extends Specification {
       val input = Array[Any]("", null)
       val expressions = Seq(
         "date('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)",
-        "isodate($1)",
+        "isoDate($1)",
         "basicDate($1)",
-        "isodatetime($1)",
+        "isoDateTime($1)",
         "basicDateTime($1)",
         "dateTime($1)",
         "basicDateTimeNoMillis($1)",

@@ -214,13 +214,15 @@ for parsing intervals since the Java epoch. See below for full descriptions of e
 Function                   Format                          Example
 ========================== =============================== ========================
 basicIsoDate               ``yyyyMMdd``                    20150101
-basicDateTime              ``yyyyMMdd'T'HHmmss.SSSZ``      20150101T000000.000Z
-basicDateTimeNoMillis      ``yyyyMMdd'T'HHmmssZ``          20150101T000000Z
-dateTime                   ``yyyy-MM-dd'T'HH:mm:ss.SSSZZ`` 2015-01-01T00:00:00.000Z
-dateHourMinuteSecondMillis ``yyyy-MM-dd'T'HH:mm:ss.SSS``   2015-01-01T00:00:00.000
+isoDate                    ``yyyy-MM-dd``                  2015-01-01
 isoLocalDate               ``yyyy-MM-dd``                  2015-01-01
-isoLocalDateTime           ``yyyy-MM-dd'T'HH:mm:ss``       2015-01-01
+basicDateTimeNoMillis      ``yyyyMMdd'T'HHmmssZ``          20150101T000000Z
+basicDateTime              ``yyyyMMdd'T'HHmmss.SSSZ``      20150101T000000.000Z
+isoDateTime                ``yyyy-MM-dd'T'HH:mm:ss``       2015-01-01T00:00:00
+isoLocalDateTime           ``yyyy-MM-dd'T'HH:mm:ss``       2015-01-01T00:00:00
 isoOffsetDateTime          ``yyyy-MM-dd'T'HH:mm:ssZ``      2015-01-01T00:00:00Z
+dateHourMinuteSecondMillis ``yyyy-MM-dd'T'HH:mm:ss.SSS``   2015-01-01T00:00:00.000
+dateTime                   ``yyyy-MM-dd'T'HH:mm:ss.SSSZ``  2015-01-01T00:00:00.000Z
 ========================== =============================== ========================
 
 now
@@ -250,6 +252,15 @@ Description: A date format for ``yyyyMMdd``, equivalent to java.time.format.Date
 Usage: ``basicIsoDate($1)``
 
 Example: ``basicIsoDate('20150101')``
+
+isoDate
+^^^^^^^
+
+Description: A date format for ``yyyy-MM-dd``, equivalent to java.time.format.DateTimeFormatter.ISO_DATE.
+
+Usage: ``isoDate($1)``
+
+Example: ``isoDate('2015-01-01')``
 
 basicDateTime
 ^^^^^^^^^^^^^
@@ -289,6 +300,16 @@ fractional seconds for format ``yyyy-MM-dd'T'HH:mm:ss.SSS``.
 Usage: ``dateHourMinuteSecondMillis($1)``
 
 Example: ``dateHourMinuteSecondMillis('2015-01-01T00:00:00.000')``
+
+isoDateTime
+^^^^^^^^^^^
+
+Description: A date format for ``yyyy-MM-dd'T'HH:mm:ss``, equivalent to
+java.time.format.DateTimeFormatter.ISO_DATE_TIME.
+
+Usage: ``isoDateTime($1)``
+
+Example: ``isoDateTime('2015-01-01T00:00:00')``
 
 isoLocalDate
 ^^^^^^^^^^^^
