@@ -473,6 +473,13 @@ class ExpressionTest extends Specification {
       val exp = Expression("capitalize($foo)")
       exp.eval(Array(null))(ctx) must be equalTo "Bar"
     }
+    "handle named values with spaces and dots" >> {
+      val ctx = EvaluationContext(Seq(null, "foo.bar", "foo bar"))
+      ctx.set(1, "baz")
+      ctx.set(2, "blu")
+      Expression("${foo.bar}").eval(Array(null))(ctx) must be equalTo "baz"
+      Expression("${foo bar}").eval(Array(null))(ctx) must be equalTo "blu"
+    }
     "handle exceptions to casting" >> {
       val exp = Expression("try($1::int, 0)")
       exp.eval(Array("", "1")).asInstanceOf[Int] mustEqual 1
