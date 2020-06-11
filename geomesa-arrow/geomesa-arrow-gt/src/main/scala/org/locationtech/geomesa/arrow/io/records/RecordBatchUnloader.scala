@@ -29,7 +29,7 @@ class RecordBatchUnloader(vector: SimpleFeatureVector) {
     vector.writer.setValueCount(count)
     root.setRowCount(count)
     WithClose(unloader.getRecordBatch) { batch =>
-      MessageSerializer.serialize(new WriteChannel(Channels.newChannel(os)), batch)
+      MessageSerializer.serialize(new WriteChannel(Channels.newChannel(os)), batch, org.locationtech.geomesa.arrow.legacyOption)
     }
     os.toByteArray
   }
