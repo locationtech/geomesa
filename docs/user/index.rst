@@ -29,7 +29,6 @@ User Manual
    lambda/index
    ds_views
    geojson
-   blobstore
    stream
    upgrade
 

@@ -39,8 +39,6 @@ Data In/Out
     geomesa-examples-gdelt
     geomesa-examples-transformations
     geomesa-examples-avro
-    geomesa-blobstore
-    geomesa-blobstore-exif
     geomesa-quickstart-storm
 
 .. _tutorials_analytics:

@@ -90,7 +90,6 @@ GeoMesa Project Structure
 * **geomesa-archetypes**: Template modules for Maven builds
 * **geomesa-arrow**: Apache Arrow integration and ``DataStore`` implementation
 * **geomesa-bigtable**: ``DataStore`` implementation for Google Bigtable
-* **geomesa-blobstore**: Accumulo-backed store designed for large files which have associated spatio-temporal data
 * **geomesa-cassandra**: ``DataStore`` implementation for Apache Cassandra
 * **geomesa-convert**: Configurable and extensible library for converting arbitrary data into ``SimpleFeature``\ s
 * **geomesa-features**: Custom implementations and serialization of ``SimpleFeature``\ s
