@@ -9,20 +9,18 @@
 package org.locationtech.geomesa.arrow.vector;
 
 import org.apache.arrow.memory.BufferAllocator;
-import org.apache.arrow.vector.Float8Vector;
 import org.apache.arrow.vector.VarBinaryVector;
 import org.apache.arrow.vector.complex.AbstractContainerVector;
-import org.apache.arrow.vector.complex.FixedSizeListVector;
 import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.apache.arrow.vector.types.pojo.Field;
 import org.apache.arrow.vector.types.pojo.FieldType;
-import org.locationtech.geomesa.arrow.vector.impl.AbstractPointVector;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
 import org.locationtech.jts.io.WKBWriter;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +31,8 @@ public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVect
   private VarBinaryVector vector;
   private WKBWriter writer = new WKBWriter();
   private WKBReader reader = new WKBReader();
+
+  public static final Field field = Field.nullablePrimitive("wkb", ArrowType.Binary.INSTANCE);
 
   public static FieldType createFieldType(Map<String, String> metadata) {
     return new FieldType(true, ArrowType.Binary.INSTANCE, null, metadata);
@@ -69,7 +69,7 @@ public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVect
       try {
          geometry = reader.read(vector.get(i));
       } catch (ParseException exception) {
-        // JNH: Swallow exception?!
+        throw new RuntimeException(exception);
       }
       return geometry;
     }

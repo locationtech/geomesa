@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.arrow.vector;
 
+import org.apache.arrow.vector.types.pojo.ArrowType;
 import org.locationtech.jts.geom.*;
 import org.locationtech.jts.io.WKTReader;
 import org.locationtech.jts.io.WKTWriter;
@@ -567,7 +568,7 @@ public class GeometryVectorTest {
       Assert.assertEquals(doubleField, doubles.getVector().getField());
 
       // JNH:  I don't think there are fields?
-      //Assert.assertEquals(doubleField.getChildren(), PointVector.fields);  // FIX
+      Assert.assertEquals(doubleField.getFieldType().getType(), ArrowType.Binary.INSTANCE);  // FIX
 
       // overwriting
 
@@ -584,22 +585,22 @@ public class GeometryVectorTest {
     }
   }
 
-  //@Test
+  @Test
   public void testWKBGeometryTransfer() throws Exception {
     WKTReader wktReader = new WKTReader();
     WKTWriter wktWriter = new WKTWriter();
 
-    String point1 = "POINT (0 20)";
-    String point2 = "POINT (10 20)";
-    String point3 = "POINT (30 20)";
+    String geom1 = "POINT (0 20)";
+    String geom2 = "LINESTRING (30 10, 10 30, 40 45, 55 60, 56 60)";
+    String geom3 = "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30))";
 
     try (RootAllocator allocator = new RootAllocator(Long.MAX_VALUE);
-         PointFloatVector from = new PointFloatVector("points", allocator, null);
-         PointFloatVector to = new PointFloatVector("points", allocator, null)) {
+         WKBGeometryVector from = new WKBGeometryVector("geometries", allocator, null);
+         WKBGeometryVector to = new WKBGeometryVector("geometries", allocator, null)) {
 
-      from.set(0, (Point) wktReader.read(point1));
-      from.set(1, (Point) wktReader.read(point2));
-      from.set(3, (Point) wktReader.read(point3));
+      from.set(0, (Point) wktReader.read(geom1));
+      from.set(1, (LineString) wktReader.read(geom2));
+      from.set(3, (Polygon) wktReader.read(geom3));
       from.setValueCount(4);
 
       for (int i = 0; i < 4; i++) {
@@ -607,19 +608,19 @@ public class GeometryVectorTest {
       }
       to.setValueCount(4);
 
-      for (PointFloatVector vector: Arrays.asList(from, to)) {
+      for (WKBGeometryVector vector: Arrays.asList(from, to)) {
         Assert.assertEquals(4, vector.getValueCount());
         Assert.assertEquals(1, vector.getNullCount());
-        Assert.assertEquals(point1, wktWriter.write(vector.get(0)));
-        Assert.assertEquals(point2, wktWriter.write(vector.get(1)));
-        Assert.assertEquals(point3, wktWriter.write(vector.get(3)));
+        Assert.assertEquals(geom1, wktWriter.write(vector.get(0)));
+        Assert.assertEquals(geom2, wktWriter.write(vector.get(1)));
+        Assert.assertEquals(geom3, wktWriter.write(vector.get(3)));
         Assert.assertNull(vector.get(2));
       }
 
       from.getVector().clear();
-      from.set(1, (Point) wktReader.read(point1));
-      from.set(2, (Point) wktReader.read(point2));
-      from.set(3, (Point) wktReader.read(point3));
+      from.set(1, (Point) wktReader.read(geom1));
+      from.set(2, (LineString) wktReader.read(geom2));
+      from.set(3, (Polygon) wktReader.read(geom3));
       from.setValueCount(4);
 
       for (int i = 0; i < 4; i++) {
@@ -627,12 +628,12 @@ public class GeometryVectorTest {
       }
       to.setValueCount(4);
 
-      for (PointFloatVector vector: Arrays.asList(from, to)) {
+      for (WKBGeometryVector vector: Arrays.asList(from, to)) {
         Assert.assertEquals(4, vector.getValueCount());
         Assert.assertEquals(1, vector.getNullCount());
-        Assert.assertEquals(point1, wktWriter.write(vector.get(1)));
-        Assert.assertEquals(point2, wktWriter.write(vector.get(2)));
-        Assert.assertEquals(point3, wktWriter.write(vector.get(3)));
+        Assert.assertEquals(geom1, wktWriter.write(vector.get(1)));
+        Assert.assertEquals(geom2, wktWriter.write(vector.get(2)));
+        Assert.assertEquals(geom3, wktWriter.write(vector.get(3)));
         Assert.assertNull(vector.get(0));
       }
     }
