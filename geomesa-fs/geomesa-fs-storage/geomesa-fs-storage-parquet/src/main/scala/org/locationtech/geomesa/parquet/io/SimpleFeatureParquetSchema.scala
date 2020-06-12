@@ -175,7 +175,7 @@ object SimpleFeatureParquetSchema {
     * @return
     */
   private def geometry(binding: ObjectType): Types.Builder[_, _ <: Type] = {
-    val group = Types.buildGroup(Repetition.OPTIONAL)
+    def group: Types.GroupBuilder[GroupType] = Types.buildGroup(Repetition.OPTIONAL)
     binding match {
       case ObjectType.POINT =>
         group.id(GeometryBytes.TwkbPoint)
@@ -207,8 +207,8 @@ object SimpleFeatureParquetSchema {
             .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
             .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
 
-      case ObjectType.GEOMETRY_COLLECTION =>
-        throw new NotImplementedError("Geometry collections are not supported")
+      case ObjectType.GEOMETRY =>
+        Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL)
 
       case _ => throw new NotImplementedError(s"No mapping defined for geometry type $binding")
     }
