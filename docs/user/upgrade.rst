@@ -152,6 +152,14 @@ As part of the upgrade to Apache Arrow 0.16, the geomesa-arrow modules have been
 management and allocation. Some classes have been removed, and some interfaces have changed. This may impact
 anyone using the geomesa-arrow modules directly.
 
+Converter Date Functions
+------------------------
+
+The converter functions ``isoDate`` and ``isoDateTime`` have been updated to match the equivalent Java
+``DateTimeFormatter`` pattern. ``isoDate`` has changed from ``yyyyMMdd`` to ``yyyy-MM-dd``, while ``isoDateTime``
+has changed from ``yyyyMMdd'T'HHmmss.SSSZ`` to ``yyyy-MM-dd'T'HH:mm:ss``. The old patterns can still be
+referenced through ``basicDate`` and ``basicDateTime``.
+
 AuthorizationsProvider and AuditProvider API Change
 ---------------------------------------------------
 
