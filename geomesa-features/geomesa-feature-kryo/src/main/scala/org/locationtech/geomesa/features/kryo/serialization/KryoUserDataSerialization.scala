@@ -8,17 +8,17 @@
 
 package org.locationtech.geomesa.features.kryo.serialization
 
-import java.util.UUID
+import java.util.{Date, UUID}
 
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.features.serialization.GenericMapSerialization
+import org.locationtech.geomesa.features.serialization.HintKeySerialization
 import org.locationtech.jts.geom.{Geometry, LineString, Point, Polygon}
 
 import scala.util.control.NonFatal
 
-object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] with LazyLogging {
+object KryoUserDataSerialization extends LazyLogging {
 
   private val nullMapping = "$_"
 
@@ -47,14 +47,14 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
 
   private implicit val ordering: Ordering[(AnyRef, AnyRef)] = Ordering.by(_._1.toString)
 
-  override def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
+  def serialize(out: Output, javaMap: java.util.Map[_ <: AnyRef, _ <: AnyRef]): Unit = {
     import scala.collection.JavaConverters._
 
     // write in sorted order to keep consistent output
     val toWrite = scala.collection.mutable.SortedSet.empty[(AnyRef, AnyRef)]
 
     javaMap.asScala.foreach { case (k, v) =>
-      if (k != null && canSerialize(k)) { toWrite += k -> v } else {
+      if (k != null && !k.isInstanceOf[Hints.Key]) { toWrite += k -> v } else {
         logger.warn(s"Skipping serialization of entry: $k -> $v")
       }
     }
@@ -73,7 +73,7 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
     }
   }
 
-  override def deserialize(in: Input): java.util.Map[AnyRef, AnyRef] = {
+  def deserialize(in: Input): java.util.Map[AnyRef, AnyRef] = {
     try {
       val size = in.readInt()
       val map = new java.util.HashMap[AnyRef, AnyRef](size)
@@ -86,7 +86,7 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
     }
   }
 
-  override def deserialize(in: Input, map: java.util.Map[AnyRef, AnyRef]): Unit = {
+  def deserialize(in: Input, map: java.util.Map[AnyRef, AnyRef]): Unit = {
     try {
       deserializeWithSize(in, map, in.readInt())
     } catch {
@@ -110,24 +110,57 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
     }
   }
 
-  override protected def writeGeometry(out: Output, geom: Geometry): Unit =
-    KryoGeometrySerialization.serializeWkb(out, geom)
+  private def write(out: Output, value: AnyRef): Unit = value match {
+    case v: String                 => out.writeString(v)
+    case v: java.lang.Integer      => out.writeInt(v)
+    case v: java.lang.Long         => out.writeLong(v)
+    case v: java.lang.Float        => out.writeFloat(v)
+    case v: java.lang.Double       => out.writeDouble(v)
+    case v: java.lang.Boolean      => out.writeBoolean(v)
+    case v: Date                   => out.writeLong(v.getTime)
+    case v: Array[Byte]            => writeBytes(out, v)
+    case v: Geometry               => KryoGeometrySerialization.serializeWkb(out, v)
+    case v: UUID                   => out.writeLong(v.getMostSignificantBits); out.writeLong(v.getLeastSignificantBits)
+    case v: java.util.List[AnyRef] => writeList(out, v)
+    case _ => throw new IllegalArgumentException(s"Unsupported value: $value (${value.getClass})")
+  }
 
-  override protected def readGeometry(in: Input): Geometry =
-    KryoGeometrySerialization.deserializeWkb(in, checkNull = true)
+  /**
+   * Read a key or value. Strings will be interned, as we expect a lot of duplication in user data,
+   * i.e keys but also visibilities, which is the only user data we generally store
+   *
+   * @param in input
+   * @param clas class of the item to read
+   * @return
+   */
+  private def read(in: Input, clas: Class[_]): AnyRef = clas match {
+    case c if classOf[java.lang.String].isAssignableFrom(c)  => in.readString().intern()
+    case c if classOf[java.lang.Integer].isAssignableFrom(c) => Int.box(in.readInt())
+    case c if classOf[java.lang.Long].isAssignableFrom(c)    => Long.box(in.readLong())
+    case c if classOf[java.lang.Float].isAssignableFrom(c)   => Float.box(in.readFloat())
+    case c if classOf[java.lang.Double].isAssignableFrom(c)  => Double.box(in.readDouble())
+    case c if classOf[java.lang.Boolean].isAssignableFrom(c) => Boolean.box(in.readBoolean())
+    case c if classOf[java.util.Date].isAssignableFrom(c)    => new java.util.Date(in.readLong())
+    case c if classOf[Array[Byte]] == c                      => readBytes(in)
+    case c if classOf[Geometry].isAssignableFrom(c)          => KryoGeometrySerialization.deserializeWkb(in, checkNull = true)
+    case c if classOf[UUID].isAssignableFrom(c)              => new UUID(in.readLong(), in.readLong())
+    case c if classOf[java.util.List[_]].isAssignableFrom(c) => readList(in)
+    case c if classOf[Hints.Key].isAssignableFrom(c)         => HintKeySerialization.idToKey(in.readString())
+    case _ => throw new IllegalArgumentException(s"Unsupported value class: $clas")
+  }
 
-  override protected def writeBytes(out: Output, bytes: Array[Byte]): Unit = {
+  private def writeBytes(out: Output, bytes: Array[Byte]): Unit = {
     out.writeInt(bytes.length)
     out.writeBytes(bytes)
   }
 
-  override protected def readBytes(in: Input): Array[Byte] = {
+  private def readBytes(in: Input): Array[Byte] = {
     val bytes = Array.ofDim[Byte](in.readInt)
     in.readBytes(bytes)
     bytes
   }
 
-  override protected def writeList(out: Output, list: java.util.List[AnyRef]): Unit = {
+  private def writeList(out: Output, list: java.util.List[AnyRef]): Unit = {
     out.writeInt(list.size)
     val iterator = list.iterator()
     while (iterator.hasNext) {
@@ -141,7 +174,7 @@ object KryoUserDataSerialization extends GenericMapSerialization[Output, Input] 
     }
   }
 
-  override protected def readList(in: Input): java.util.List[AnyRef] = {
+  private def readList(in: Input): java.util.List[AnyRef] = {
     val size = in.readInt()
     val list = new java.util.ArrayList[AnyRef](size)
     var i = 0

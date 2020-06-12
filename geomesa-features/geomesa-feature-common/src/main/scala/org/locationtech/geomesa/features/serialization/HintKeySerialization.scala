@@ -13,13 +13,19 @@ import org.geotools.util.factory.Hints
 /** Maintains Key -> String and String -> Key mappings */
 object HintKeySerialization {
 
-  // Add more keys as needed.
-  val keyToId: Map[Hints.Key, String] = Map(
-    Hints.PROVIDED_FID -> "PROVIDED_FID",
-    Hints.USE_PROVIDED_FID -> "USE_PROVIDED_FID"
+  private val MasterHints = Map(
+    Hints.PROVIDED_FID     -> ("PROVIDED_FID", 0),
+    Hints.USE_PROVIDED_FID -> ("USE_PROVIDED_FID", 1)
   )
+
+  // Add more keys as needed.
+  val keyToId: Map[Hints.Key, String] = MasterHints.map { case (k, (v, _)) => (k, v) }
 
   val idToKey: Map[String, Hints.Key] = keyToId.map(_.swap)
 
-  def canSerialize(key: Hints.Key): Boolean = keyToId.contains(key)
+  val keyToEnum: Map[Hints.Key, Int] = MasterHints.map { case (k, (_, v)) => (k, v) }
+
+  val enumToKey: Map[Int, Hints.Key] = keyToEnum.map(_.swap)
+
+  def canSerialize(key: Hints.Key): Boolean = MasterHints.contains(key)
 }

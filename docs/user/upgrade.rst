@@ -156,6 +156,14 @@ The Arrow IPC format changed in Arrow 0.15. Older clients may not be able to rea
 default. To enabled the 'legacy' Arrow IPC format, set the system property ``geomesa.arrow.format.version``
 to ``0.10``, or use the query hint ``ARROW_FORMAT_VERSION``. See :ref:`arrow_encoding` for details.
 
+Converter Date Functions
+------------------------
+
+The converter functions ``isoDate`` and ``isoDateTime`` have been updated to match the equivalent Java
+``DateTimeFormatter`` pattern. ``isoDate`` has changed from ``yyyyMMdd`` to ``yyyy-MM-dd``, while ``isoDateTime``
+has changed from ``yyyyMMdd'T'HHmmss.SSSZ`` to ``yyyy-MM-dd'T'HH:mm:ss``. The old patterns can still be
+referenced through ``basicDate`` and ``basicDateTime``.
+
 AuthorizationsProvider and AuditProvider API Change
 ---------------------------------------------------
 

@@ -22,6 +22,7 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
@@ -36,17 +37,26 @@ class FileSystemDataStoreTest extends Specification {
 
   sequential
 
-  def createFormat(format: String): (String, SimpleFeatureType, Seq[SimpleFeature]) = {
-    val sft = SimpleFeatureTypes.createType(format, "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
+  def createFormat(
+      format: String,
+      geom: String = "Point",
+      createGeom: Int => String = createPoint): (String, SimpleFeatureType, Seq[SimpleFeature]) = {
+    val sft = SimpleFeatureTypes.createType(format, s"name:String,age:Int,dtg:Date,*geom:$geom:srid=4326")
     sft.setScheme("daily")
     sft.setLeafStorage(false)
     val features = Seq.tabulate(10) { i =>
-      ScalaSimpleFeature.create(sft, s"$i", s"test$i", 100 + i, s"2017-06-0${5 + (i % 3)}T04:03:02.0001Z", s"POINT(10 10.$i)")
+      ScalaSimpleFeature.create(sft, s"$i", s"test$i", 100 + i, s"2017-06-0${5 + (i % 3)}T04:03:02.0001Z", createGeom(i))
     }
     (format, sft, features)
   }
 
-  val formats = Seq("orc", "parquet").map(createFormat)
+  private def createPoint(i: Int): String = s"POINT(10 10.$i)"
+  private def createLine(i: Int): String = s"LINESTRING(10 10, 11 12.$i)"
+  private def createPolygon(i: Int): String = s"POLYGON((3$i 28, 41 28, 41 29, 3$i 29, 3$i 28))"
+
+  val encodings = Seq("orc", "parquet")
+
+  val formats = encodings.map(createFormat(_))
 
   val dirs = scala.collection.mutable.Map.empty[String, File]
 
@@ -232,6 +242,60 @@ class FileSystemDataStoreTest extends Specification {
           val query = new Query(format, filter)
           val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
           results must containTheSameElementsAs(expected)
+        }
+      }
+    }
+
+    "support different geometry types" in {
+      val types = Seq(
+        ("LineString", createLine _),
+        ("Polygon",    createPolygon _),
+        ("Geometry",   (i: Int) => if (i % 2 == 0) { createLine(i) } else { createPoint(i) })
+      )
+
+      val all = types.flatMap { case (geom, createGeom) => encodings.map(createFormat(_, geom, createGeom)) }
+
+      foreach(all) { case (format, sft, features) =>
+        val dir = Files.createTempDirectory(s"fsds-test-$format").toFile
+        try {
+          val dsParams = Map(
+            "fs.path" -> dir.getPath,
+            "fs.encoding" -> format,
+            "fs.config.xml" -> gzip)
+
+          val ds = DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
+          ds must not(beNull)
+          try {
+            sft.getUserData.put("geomesa.mixed.geometries", "true")
+            ds.createSchema(sft)
+            WithClose(ds.getFeatureWriterAppend(format, Transaction.AUTO_COMMIT)) { writer =>
+              features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+            }
+
+            ds.getTypeNames must have size 1
+            val fs = ds.getFeatureSource(format)
+            fs must not(beNull)
+
+            // verify metadata - count and bounds
+            fs.getCount(Query.ALL) must beEqualTo(10)
+            val env = new ReferencedEnvelope(CRS_EPSG_4326)
+            features.foreach(f => env.expandToInclude(f.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal))
+            fs.getBounds mustEqual env
+
+            foreach(Seq("INCLUDE", s"bbox(geom,${env.getMinX},${env.getMinY},${env.getMaxX},${env.getMaxY})")) { filter =>
+              val query = new Query(format, ECQL.toFilter(filter))
+              SelfClosingIterator(fs.getFeatures(query).features()).toList must containTheSameElementsAs(features)
+              val transform = new Query(format, ECQL.toFilter(filter), Array("dtg", "geom"))
+              val transformSft = SimpleFeatureTypes.createType(format,
+                s"dtg:Date,*geom:${sft.getGeometryDescriptor.getType.getBinding.getSimpleName}")
+              SelfClosingIterator(fs.getFeatures(transform).features()).toList must
+                  containTheSameElementsAs(features.map(ScalaSimpleFeature.retype(transformSft, _)))
+            }
+          } finally {
+            ds.dispose()
+          }
+        } finally {
+          FileUtils.deleteDirectory(dir)
         }
       }
     }

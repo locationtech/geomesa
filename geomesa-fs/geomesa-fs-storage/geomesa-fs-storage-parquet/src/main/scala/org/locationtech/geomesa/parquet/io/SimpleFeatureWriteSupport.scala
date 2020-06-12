@@ -17,6 +17,7 @@ import org.apache.parquet.hadoop.api.WriteSupport.WriteContext
 import org.apache.parquet.io.api.{Binary, RecordConsumer}
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -102,6 +103,7 @@ object SimpleFeatureWriteSupport {
       case ObjectType.MULTIPOINT      => new MultiPointAttributeWriter(name, index)
       case ObjectType.MULTILINESTRING => new MultiLineStringAttributeWriter(name, index)
       case ObjectType.MULTIPOLYGON    => new MultiPolygonAttributeWriter(name, index)
+      case ObjectType.GEOMETRY        => new GeometryWkbAttributeWriter(name, index)
       case _ => throw new IllegalArgumentException(s"Can't serialize field '$name' of type $binding")
     }
   }
@@ -414,5 +416,10 @@ object SimpleFeatureWriteSupport {
       i += 1
     }
     consumer.endField("element", 0)
+  }
+
+  class GeometryWkbAttributeWriter(name: String, index: Int) extends AttributeWriter[Geometry](name, index) {
+    override protected def write(consumer: RecordConsumer, value: Geometry): Unit =
+      consumer.addBinary(Binary.fromConstantByteArray(WKBUtils.write(value)))
   }
 }

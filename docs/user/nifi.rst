@@ -131,6 +131,8 @@ following sections.
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``FeatureWriterCacheTimeout`` | How often feature writers will be flushed to the data store, if caching is enabled      |
 +-------------------------------+-----------------------------------------------------------------------------------------+
+| ``ConvertFlowFileAttributes`` | Expose flow file attributes to the converter framework, referenced by name              |
++-------------------------------+-----------------------------------------------------------------------------------------+
 
 Defining SimpleFeatureTypes and Converters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -172,10 +174,10 @@ Defining SimpleFeatureTypes and Converters via the UI
 You may also provide SimpleFeatureTypes and Converters directly in the Processor configuration via the NiFi UI.
 Simply paste your TypeSafe configuration into the ``SftSpec`` and ``ConverterSpec`` property fields.
 
-Defining SimpleFeatureTypes and Converters via Flowfile Attributes
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Defining SimpleFeatureTypes and Converters via Flow File Attributes
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-You may also override the Processor configuration fields with flowfile attributes. The following attributes
+You may also override the Processor configuration fields with flow file attributes. The following attributes
 are available:
 
 * ``geomesa.sft.name`` corresponds to the Processor configuration ``FeatureNameOverride``
@@ -184,9 +186,9 @@ are available:
 
 .. warning::
 
-    Configuration via flowfile attributes should be used with care, as any misconfigurations may multiply.
+    Configuration via flow file attributes should be used with care, as any misconfigurations may multiply.
     For example, setting ``geomesa.sft.name`` to a non-recurring value could end up creating a new schema for each
-    flowfile, potentially crashing your database by creating too many tables.
+    flow file, potentially crashing your database by creating too many tables.
 
 Feature Writer Caching
 ^^^^^^^^^^^^^^^^^^^^^^

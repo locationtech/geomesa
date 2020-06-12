@@ -22,6 +22,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport.SimpleFeatureRecordMaterializer
+import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Coordinate
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -174,6 +175,7 @@ object SimpleFeatureReadSupport {
       case ObjectType.MULTIPOINT      => new MultiPointConverter(i, callback)
       case ObjectType.MULTILINESTRING => new MultiLineStringConverter(i, callback)
       case ObjectType.MULTIPOLYGON    => new MultiPolygonConverter(i, callback)
+      case ObjectType.GEOMETRY        => new GeometryWkbConverter(i, callback)
       case _ => throw new IllegalArgumentException(s"Can't deserialize field of type $binding")
     }
   }
@@ -387,6 +389,10 @@ object SimpleFeatureReadSupport {
       }
       callback.set(index, gf.createMultiPolygon(polys))
     }
+  }
+
+  class GeometryWkbConverter(index: Int, callback: Settable) extends PrimitiveConverter {
+    override def addBinary(value: Binary): Unit = callback.set(index, WKBUtils.read(value.getBytes))
   }
 
   /**
