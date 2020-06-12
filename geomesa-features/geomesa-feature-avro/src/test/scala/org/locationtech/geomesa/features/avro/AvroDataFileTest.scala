@@ -14,7 +14,6 @@ import java.util
 import java.util.zip.Deflater
 
 import org.apache.avro.file.DataFileStream
-import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
@@ -85,7 +84,6 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
 
     "preserve lots of user data" >> {
       val features = createComplicatedFeatures(50)
-      features.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
       val tmpFile = getTmpFile
       val dfw = new AvroDataFileWriter(new FileOutputStream(tmpFile), complexSft)
       try {
@@ -97,9 +95,6 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       val readFeatures = getFeatures(tmpFile)
       readFeatures.size mustEqual 50
       readFeatures.map(_.getID) must containTheSameElementsAs(features.map(_.getID))
-      readFeatures.forall { sf =>
-        sf.getUserData.get(Hints.USE_PROVIDED_FID) mustEqual java.lang.Boolean.TRUE
-      }
     }
 
     "write metadata" >> {
@@ -179,8 +174,6 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       builder.set("dtg", "2012-01-02T05:06:07.000Z")
 
       val sf = builder.buildFeature("fid")
-      sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      sf
       val tmpFile = getTmpFile
       val dfw = new AvroDataFileWriter(new FileOutputStream(tmpFile), sft)
       try {

@@ -77,9 +77,7 @@ trait AbstractAvroSimpleFeatureTest {
     builder.set("geom", WKTUtils.read("POINT(-110 30)"))
     builder.set("dtg", "2012-01-02T05:06:07.000Z")
 
-    val sf = builder.buildFeature("fid")
-    sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-    sf
+    builder.buildFeature("fid")
   }
 
   def getFeatures(f: File): List[SimpleFeature] = {
