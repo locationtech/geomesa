@@ -39,11 +39,12 @@ package object io {
 
     val ArrowFormatVersion: SystemProperty = SystemProperty("geomesa.arrow.format.version", LatestVersion)
 
-    def options(version: String): IpcOption = options(SemanticVersion(version, lenient = true))
-
-    def options(version: SemanticVersion): IpcOption = {
+    def options(version: String): IpcOption = {
       val opt = new IpcOption()
-      opt.write_legacy_ipc_format = version.major == 0 && version.minor < 15
+      if (version != LatestVersion) {
+        lazy val semver = SemanticVersion(version, lenient = true) // avoid parsing if it's a known version (0.10)
+        opt.write_legacy_ipc_format = version == "0.10" || (semver.major == 0 && semver.minor < 15)
+      }
       opt
     }
 

@@ -268,6 +268,8 @@ following query hints:
 | QueryHints.ARROW_DOUBLE_PASS        | Boolean (optional) |                      |
 +-------------------------------------+--------------------+                      +
 | QueryHints.ARROW_BATCH_SIZE         | Integer (optional) |                      |
++-------------------------------------+--------------------+                      +
+| QueryHints.ARROW_FORMAT_VERSION     | String (optional)  |                      |
 +-------------------------------------+--------------------+----------------------+
 
 .. warning::
@@ -369,6 +371,12 @@ ARROW_BATCH_SIZE
 This hint will restrict the number of features included in each Arrow record batch. An Arrow file contains
 a series of record batches -limiting the max size of each batch can allow memory-constrained systems to
 operate more easily.
+
+ARROW_FORMAT_VERSION
+^^^^^^^^^^^^^^^^^^^^
+
+This hint controls the IPC format version for Arrow binary encoding. It should be a valid Arrow format version,
+i.e. ``0.16`` or ``0.10``. The Arrow IPC format changed slightly starting with version ``0.15``.
 
 Example Query
 +++++++++++++

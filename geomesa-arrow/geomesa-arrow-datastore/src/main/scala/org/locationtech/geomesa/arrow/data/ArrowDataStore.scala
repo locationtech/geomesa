@@ -51,7 +51,6 @@ class ArrowDataStore(val url: URL, caching: Boolean) extends ContentDataStore wi
 
   lazy val dictionaries: Map[String, ArrowDictionary] = reader.dictionaries
 
-
   override val metadata: GeoMesaMetadata[String] = GeoMesaMetadata.empty
   override val stats: GeoMesaStats = new UnoptimizedRunnableStats(this)
 
