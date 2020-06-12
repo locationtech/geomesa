@@ -152,6 +152,10 @@ As part of the upgrade to Apache Arrow 0.16, the geomesa-arrow modules have been
 management and allocation. Some classes have been removed, and some interfaces have changed. This may impact
 anyone using the geomesa-arrow modules directly.
 
+The Arrow IPC format changed in Arrow 0.15. Older clients may not be able to read Arrow-encoded results by
+default. To enabled the 'legacy' Arrow IPC format, set the system property ``geomesa.arrow.format.version``
+to ``0.10``, or use the query hint ``ARROW_FORMAT_VERSION``. See :ref:`arrow_encoding` for details.
+
 AuthorizationsProvider and AuditProvider API Change
 ---------------------------------------------------
 
