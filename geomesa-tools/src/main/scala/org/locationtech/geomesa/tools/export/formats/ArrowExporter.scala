@@ -10,10 +10,11 @@ package org.locationtech.geomesa.tools.export.formats
 
 import java.io._
 
+import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.data.{DataStore, Query, Transaction}
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.ArrowProperties
-import org.locationtech.geomesa.arrow.io.{DictionaryBuildingWriter, SimpleFeatureArrowFileWriter}
+import org.locationtech.geomesa.arrow.io.{DictionaryBuildingWriter, FormatVersion, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.tools.export.formats.ArrowExporter.{BatchDelegate, DictionaryDelegate, EncodedDelegate}
@@ -35,6 +36,7 @@ class ArrowExporter(
 
   private lazy val sort = hints.getArrowSort
   private lazy val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid)
+  private lazy val ipc = hints.getArrowFormatVersion.getOrElse(FormatVersion.ArrowFormatVersion.get)
   private lazy val batchSize = hints.getArrowBatchSize.getOrElse(ArrowProperties.BatchSize.get.toInt)
   private lazy val dictionaryFields = hints.getArrowDictionaryFields
 
@@ -52,12 +54,12 @@ class ArrowExporter(
           k -> ArrowDictionary.create(id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
         }
         // note: features should be sorted already, even if arrow encoding wasn't performed
-        new BatchDelegate(os, encoding, sort, batchSize, dictionaries)
+        new BatchDelegate(os, encoding, FormatVersion.options(ipc), sort, batchSize, dictionaries)
       } else {
         if (sort.isDefined) {
           throw new NotImplementedError("Sorting and calculating dictionaries at the same time is not supported")
         }
-        new DictionaryDelegate(os, dictionaryFields, encoding, batchSize)
+        new DictionaryDelegate(os, dictionaryFields, encoding, FormatVersion.options(ipc), batchSize)
       }
     }
     delegate.start(sft)
@@ -111,6 +113,7 @@ object ArrowExporter {
       os: OutputStream,
       dictionaryFields: Seq[String],
       encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
       batchSize: Int
     ) extends FeatureExporter {
 
@@ -118,7 +121,7 @@ object ArrowExporter {
     private var count = 0L
 
     override def start(sft: SimpleFeatureType): Unit = {
-      writer = new DictionaryBuildingWriter(sft, dictionaryFields, encoding)
+      writer = new DictionaryBuildingWriter(sft, dictionaryFields, encoding, ipcOpts)
     }
 
     override def export(features: Iterator[SimpleFeature]): Option[Long] = {
@@ -150,6 +153,7 @@ object ArrowExporter {
   private class BatchDelegate(
       os: OutputStream,
       encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
       sort: Option[(String, Boolean)],
       batchSize: Int,
       dictionaries: Map[String, ArrowDictionary]
@@ -159,7 +163,7 @@ object ArrowExporter {
     private var count = 0L
 
     override def start(sft: SimpleFeatureType): Unit = {
-      writer = SimpleFeatureArrowFileWriter(os, sft, dictionaries, encoding, sort)
+      writer = SimpleFeatureArrowFileWriter(os, sft, dictionaries, encoding, ipcOpts, sort)
     }
 
     override def export(features: Iterator[SimpleFeature]): Option[Long] = {

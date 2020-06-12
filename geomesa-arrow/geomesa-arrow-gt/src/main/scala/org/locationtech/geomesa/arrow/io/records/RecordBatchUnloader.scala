@@ -10,17 +10,20 @@ package org.locationtech.geomesa.arrow.io.records
 
 import java.io.ByteArrayOutputStream
 import java.nio.channels.Channels
+import java.util.Collections
 
 import org.apache.arrow.vector.ipc.WriteChannel
-import org.apache.arrow.vector.ipc.message.MessageSerializer
-import org.apache.arrow.vector.{VectorSchemaRoot, VectorUnloader}
+import org.apache.arrow.vector.ipc.message.{IpcOption, MessageSerializer}
+import org.apache.arrow.vector.{FieldVector, VectorSchemaRoot, VectorUnloader}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector
 import org.locationtech.geomesa.utils.io.WithClose
 
-class RecordBatchUnloader(vector: SimpleFeatureVector) {
-  import scala.collection.JavaConversions._
+class RecordBatchUnloader(vector: SimpleFeatureVector, ipcOpts: IpcOption) {
 
-  private val root = new VectorSchemaRoot(Seq(vector.underlying.getField), Seq(vector.underlying), 0)
+  private val root = {
+    val fields = Collections.singletonList(vector.underlying.getField)
+    new VectorSchemaRoot(fields, Collections.singletonList[FieldVector](vector.underlying), 0)
+  }
   private val unloader = new VectorUnloader(root)
   private val os = new ByteArrayOutputStream()
 
@@ -29,7 +32,7 @@ class RecordBatchUnloader(vector: SimpleFeatureVector) {
     vector.writer.setValueCount(count)
     root.setRowCount(count)
     WithClose(unloader.getRecordBatch) { batch =>
-      MessageSerializer.serialize(new WriteChannel(Channels.newChannel(os)), batch, org.locationtech.geomesa.arrow.legacyOption)
+      MessageSerializer.serialize(new WriteChannel(Channels.newChannel(os)), batch, ipcOpts)
     }
     os.toByteArray
   }

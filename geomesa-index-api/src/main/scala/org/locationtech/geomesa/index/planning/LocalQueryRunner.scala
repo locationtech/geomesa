@@ -16,7 +16,7 @@ import org.geotools.data.Query
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
-import org.locationtech.geomesa.arrow.io.{DeltaWriter, DictionaryBuildingWriter}
+import org.locationtech.geomesa.arrow.io.{DeltaWriter, DictionaryBuildingWriter, FormatVersion}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, TransformSimpleFeature}
@@ -283,6 +283,7 @@ object LocalQueryRunner {
     val sort = hints.getArrowSort.map(Seq.fill(1)(_))
     val batchSize = ArrowScan.getBatchSize(hints)
     val encoding = SimpleFeatureEncoding.min(hints.isArrowIncludeFid, hints.isArrowProxyFid)
+    val ipcOpts = FormatVersion.options(hints.getArrowFormatVersion.getOrElse(FormatVersion.ArrowFormatVersion.get))
 
     val (features, arrowSft) = transform match {
       case None => (noTransform(original, sort), sft)
@@ -310,7 +311,7 @@ object LocalQueryRunner {
         }
 
       val vector = SimpleFeatureVector.create(arrowSft, dictionaries, encoding)
-      val batchWriter = new RecordBatchUnloader(vector)
+      val batchWriter = new RecordBatchUnloader(vector, ipcOpts)
 
       val sf = ArrowScan.resultFeature()
 
@@ -330,10 +331,10 @@ object LocalQueryRunner {
       }
 
       if (hints.isSkipReduce) { arrows } else {
-        new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, batchSize, sort.map(_.head), sorted = true)(arrows)
+        new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, ipcOpts, batchSize, sort.map(_.head), sorted = true)(arrows)
       }
     } else if (hints.isArrowMultiFile) {
-      val writer = new DictionaryBuildingWriter(arrowSft, dictionaryFields, encoding)
+      val writer = new DictionaryBuildingWriter(arrowSft, dictionaryFields, encoding, ipcOpts)
       val os = new ByteArrayOutputStream()
 
       val sf = ArrowScan.resultFeature()
@@ -355,10 +356,10 @@ object LocalQueryRunner {
         override def close(): Unit = CloseWithLogging(Seq(features, writer))
       }
       if (hints.isSkipReduce) { arrows } else {
-        new ArrowScan.FileReducer(arrowSft, dictionaryFields, encoding, sort.map(_.head))(arrows)
+        new ArrowScan.FileReducer(arrowSft, dictionaryFields, encoding, ipcOpts, sort.map(_.head))(arrows)
       }
     } else {
-      val writer = new DeltaWriter(arrowSft, dictionaryFields, encoding, None, batchSize)
+      val writer = new DeltaWriter(arrowSft, dictionaryFields, encoding, ipcOpts, None, batchSize)
       val array = Array.ofDim[SimpleFeature](batchSize)
 
       val sf = ArrowScan.resultFeature()
@@ -377,7 +378,7 @@ object LocalQueryRunner {
         override def close(): Unit = CloseWithLogging(Seq(features, writer))
       }
       if (hints.isSkipReduce) { arrows } else {
-        new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, batchSize, sort.map(_.head), sorted = true)(arrows)
+        new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort.map(_.head), sorted = true)(arrows)
       }
     }
   }

@@ -14,7 +14,7 @@ import org.geotools.data.store.{ContentEntry, ContentFeatureSource, ContentFeatu
 import org.geotools.data.{FeatureReader, FeatureWriter, Query}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.ArrowProperties
-import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
+import org.locationtech.geomesa.arrow.io.{FormatVersion, SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -63,7 +63,8 @@ class ArrowFeatureStore(entry: ContentEntry, reader: SimpleFeatureArrowFileReade
     val sft = delegate.getSchema
     val os = entry.getDataStore.asInstanceOf[ArrowDataStore].createOutputStream() // append = true
 
-    val writer = SimpleFeatureArrowFileWriter(os, sft, encoding = SimpleFeatureEncoding.Max)
+    val ipcOpts = FormatVersion.options(FormatVersion.ArrowFormatVersion.get)
+    val writer = SimpleFeatureArrowFileWriter(os, sft, Map.empty, SimpleFeatureEncoding.Max, ipcOpts, None)
     val flushCount = ArrowProperties.BatchSize.get.toLong
 
     new FeatureWriter[SimpleFeatureType, SimpleFeature] {

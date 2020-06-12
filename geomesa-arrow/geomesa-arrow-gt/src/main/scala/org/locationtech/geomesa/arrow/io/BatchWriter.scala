@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.arrow.io
 
+import org.apache.arrow.vector.ipc.message.IpcOption
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector._
@@ -41,15 +42,16 @@ object BatchWriter {
       sft: SimpleFeatureType,
       dictionaries: Map[String, ArrowDictionary],
       encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
       sort: Option[(String, Boolean)],
       sorted: Boolean,
       batchSize: Int,
       batches: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
     val (iter, firstBatchHasHeader) = if (sorted || sort.isEmpty) { (batches, false) } else {
       val Some((f, r)) = sort
-      (new BatchSortingIterator(sft, dictionaries, encoding, f, r, batchSize, batches), true)
+      (new BatchSortingIterator(sft, dictionaries, encoding, ipcOpts, f, r, batchSize, batches), true)
     }
-    createFileFromBatches(sft, dictionaries, encoding, sort, iter, firstBatchHasHeader)
+    createFileFromBatches(sft, dictionaries, encoding, ipcOpts, sort, iter, firstBatchHasHeader)
   }
 
   /**
@@ -70,6 +72,7 @@ object BatchWriter {
       sft: SimpleFeatureType,
       dictionaries: Map[String, ArrowDictionary],
       encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
       sortBy: String,
       reverse: Boolean,
       batchSize: Int,
@@ -78,7 +81,7 @@ object BatchWriter {
     ) extends CloseableIterator[Array[Byte]] {
 
     private val result = SimpleFeatureVector.create(sft, dictionaries, encoding)
-    private val unloader = new RecordBatchUnloader(result)
+    private val unloader = new RecordBatchUnloader(result, ipcOpts)
 
     private var batch: Array[Byte] = _
 
@@ -160,7 +163,7 @@ object BatchWriter {
         }
         if (writeHeader) {
           writeHeader = false
-          writeHeaderAndFirstBatch(result, dictionaries, Some(sortBy -> reverse), resultIndex)
+          writeHeaderAndFirstBatch(result, dictionaries, ipcOpts, Some(sortBy -> reverse), resultIndex)
         } else {
           unloader.unload(resultIndex)
         }

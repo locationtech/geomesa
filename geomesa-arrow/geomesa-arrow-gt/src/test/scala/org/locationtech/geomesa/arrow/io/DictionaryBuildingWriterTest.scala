@@ -10,6 +10,7 @@ package org.locationtech.geomesa.arrow.io
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
+import org.apache.arrow.vector.ipc.message.IpcOption
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -26,10 +27,12 @@ class DictionaryBuildingWriterTest extends Specification {
     ScalaSimpleFeature.create(sft, s"0$i", s"name0${i % 2}", s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
   }
 
+  val ipcOpts = new IpcOption() // TODO test legacy opts
+
   "SimpleFeatureVector" should {
     "dynamically encode dictionary values" >> {
       val out = new ByteArrayOutputStream()
-      WithClose(new DictionaryBuildingWriter(sft, Seq("name"), SimpleFeatureEncoding.Max)) { writer =>
+      WithClose(new DictionaryBuildingWriter(sft, Seq("name"), SimpleFeatureEncoding.Max, ipcOpts)) { writer =>
         features.foreach(writer.add)
         writer.encode(out)
       }

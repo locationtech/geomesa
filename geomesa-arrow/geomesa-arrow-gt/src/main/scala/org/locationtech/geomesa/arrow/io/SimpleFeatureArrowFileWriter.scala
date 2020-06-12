@@ -14,6 +14,7 @@ import java.nio.channels.Channels
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.vector.dictionary.{Dictionary, DictionaryProvider}
 import org.apache.arrow.vector.ipc.ArrowStreamWriter
+import org.apache.arrow.vector.ipc.message.IpcOption
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -32,12 +33,13 @@ class SimpleFeatureArrowFileWriter private (
     vector: SimpleFeatureVector,
     provider: DictionaryProvider with Closeable,
     os: OutputStream,
+    ipcOpts: IpcOption,
     sort: Option[(String, Boolean)]
   ) extends Closeable with Flushable with LazyLogging {
 
   private val metadata = sort.map { case (field, reverse) => getSortAsMetadata(field, reverse) }.orNull
   private val root = createRoot(vector.underlying, metadata)
-  private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os), org.locationtech.geomesa.arrow.legacyOption)
+  private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os), ipcOpts)
 
   private var index = 0
 
@@ -98,9 +100,10 @@ object SimpleFeatureArrowFileWriter {
   def apply(
       os: OutputStream,
       sft: SimpleFeatureType,
-      dictionaries: Map[String, ArrowDictionary] = Map.empty,
-      encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min,
-      sort: Option[(String, Boolean)] = None): SimpleFeatureArrowFileWriter = {
+      dictionaries: Map[String, ArrowDictionary],
+      encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
+      sort: Option[(String, Boolean)]): SimpleFeatureArrowFileWriter = {
     val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
     // convert the dictionary values into arrow vectors
     // make sure we load dictionaries before instantiating the stream writer
@@ -109,7 +112,7 @@ object SimpleFeatureArrowFileWriter {
       override def lookup(id: Long): Dictionary = dictionaries(id)
       override def close(): Unit = CloseWithLogging(dictionaries.values)
     }
-    new SimpleFeatureArrowFileWriter(vector, provider, os, sort)
+    new SimpleFeatureArrowFileWriter(vector, provider, os, ipcOpts, sort)
   }
 
   // convert the dictionary values into arrow vectors
