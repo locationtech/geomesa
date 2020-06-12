@@ -163,9 +163,12 @@ package object io {
       batches: CloseableIterator[Array[Byte]],
       firstBatchHasHeader: Boolean): CloseableIterator[Array[Byte]] = {
     val body = new ArrowFileIterator(sft, dictionaries, encoding, sort, ipcOpts, batches, firstBatchHasHeader)
-    // per arrow streaming format footer is the encoded int '0'
-    body ++ CloseableIterator.single(Array[Byte](0, 0, 0, 0)) // TODO write out 8 bytes?
+    body ++ CloseableIterator.single(if (ipcOpts.write_legacy_ipc_format) { legacyFooter } else { footer })
   }
+
+  // per arrow streaming format footer is the encoded int -1, 0
+  private def footer: Array[Byte] = Array[Byte](-1, -1, -1, -1, 0, 0, 0, 0)
+  private def legacyFooter: Array[Byte] = Array[Byte](0, 0, 0, 0)
 
   private class ArrowFileIterator(
       sft: SimpleFeatureType,
