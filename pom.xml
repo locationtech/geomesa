@@ -2842,13 +2842,20 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <!-- geotools -->
         <repository>
-            <id>eclipse-releases</id>
-            <url>https://repo.eclipse.org/content/groups/releases</url>
+            <id>osgeo</id>
+            <url>https://repo.osgeo.org/repository/release</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <!-- confluent -->
+        <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
+        <!-- nightly geomesa snapshots -->
         <repository>
             <id>locationtech-snapshots</id>
             <url>https://repo.eclipse.org/content/groups/snapshots</url>
@@ -2859,14 +2866,7 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
-        <!-- geotools -->
-        <repository>
-            <id>osgeo</id>
-            <url>https://repo.osgeo.org/repository/release</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
+        <!-- nightly geotools snapshots -->
         <repository>
             <id>osgeo-snapshots</id>
             <url>https://repo.osgeo.org/repository/snapshot</url>
@@ -2876,10 +2876,6 @@
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-        </repository>
-        <repository>
-            <id>confluent</id>
-            <url>https://packages.confluent.io/maven/</url>
         </repository>
     </repositories>
 
