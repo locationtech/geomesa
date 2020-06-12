@@ -85,8 +85,9 @@ complex attributes, and can be referenced by name in other fields.
 
 The ``transform`` of a field can be used to reference other fields or modify the raw value extracted from the
 source data. Other fields can be referenced by name using ``$`` notation; for example, ``$age`` references the
-field named 'age'. Transforms can also include function calls. GeoMesa includes a variety of useful transform
-functions, and supports loading custom functions from the classpath. See :ref:`converter_functions` for details.
+field named 'age'. Field names with periods or spaces can be referenced with brackets, for example ``${my.age}``.
+Transforms can also include function calls. GeoMesa includes a variety of useful transform functions, and supports
+loading custom functions from the classpath. See :ref:`converter_functions` for details.
 
 The ``id-field`` element will set the feature ID for the SimpleFeature. It accepts any values that would normally
 be in a field ``transform``, so it can reference other fields and call transform functions. A common pattern
