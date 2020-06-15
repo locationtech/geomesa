@@ -126,7 +126,7 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
 
     "st_geomFromWKT With Z Value" >> {
 
-      val point = "POINT(0 0 0)"
+      val point = "POINT(1 1 1)"
       val r = sc.sql(
         s"""
            |select st_geomFromWKT('$point')
@@ -135,9 +135,10 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
 
       val expected = WKTUtils.read(point)
 
-      r.collect().head.getAs[Geometry](0).getDimension mustEqual expected.getDimension
-
-      dfBlank.select(st_geomFromWKT(point)).first.getDimension mustEqual expected.getDimension
+      foreach(Seq(r.collect().head.getAs[Geometry](0), dfBlank.select(st_geomFromWKT(point)).first)) { actual =>
+        actual must beAnInstanceOf[Point]
+        actual.asInstanceOf[Point].getCoordinate.getZ mustEqual 1
+      }
     }
 
     "st_geometryFromText" >> {

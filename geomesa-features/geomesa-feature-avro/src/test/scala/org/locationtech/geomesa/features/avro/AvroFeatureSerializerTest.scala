@@ -160,7 +160,7 @@ class AvroFeatureSerializerTest extends Specification with LazyLogging {
           }
         }
       }
-    }.pendingUntilFixed()
+    }
 
     "correctly serialize and deserialize collection types" in {
       val spec = "a:Integer,m:Map[String,Double],l:List[Date],dtg:Date,*geom:Point:srid=4326"
