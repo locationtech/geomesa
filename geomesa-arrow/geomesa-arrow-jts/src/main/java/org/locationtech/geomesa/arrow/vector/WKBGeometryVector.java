@@ -29,8 +29,8 @@ import java.util.Map;
  */
 public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVector> {
   private VarBinaryVector vector;
-  private WKBWriter writer = new WKBWriter();
-  private WKBReader reader = new WKBReader();
+  private WKBWriter writer = null;
+  private WKBReader reader = null;
 
   public static final Field field = Field.nullablePrimitive("wkb", ArrowType.Binary.INSTANCE);
 
@@ -55,7 +55,9 @@ public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVect
     if (geom == null) {
       vector.setNull(i);
     } else {
-
+      if (writer == null) {
+        writer = new WKBWriter();
+      }
       vector.setSafe(i, writer.write(geom));
     }
   }
@@ -67,7 +69,10 @@ public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVect
     } else {
       Geometry geometry = null;
       try {
-         geometry = reader.read(vector.get(i));
+        if (reader == null) {
+          reader = new WKBReader();
+        }
+        geometry = reader.read(vector.get(i));
       } catch (ParseException exception) {
         throw new RuntimeException(exception);
       }

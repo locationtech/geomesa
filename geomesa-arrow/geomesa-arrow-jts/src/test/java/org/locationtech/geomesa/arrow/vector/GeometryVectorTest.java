@@ -566,9 +566,7 @@ public class GeometryVectorTest {
 
       // ensure field was created correctly up front
       Assert.assertEquals(doubleField, doubles.getVector().getField());
-
-      // JNH:  I don't think there are fields?
-      Assert.assertEquals(doubleField.getFieldType().getType(), ArrowType.Binary.INSTANCE);  // FIX
+      Assert.assertEquals(doubleField.getFieldType().getType(), ArrowType.Binary.INSTANCE);
 
       // overwriting
 
