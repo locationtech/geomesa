@@ -28,7 +28,7 @@ trait WKBUtils {
     override def initialValue = new WKBReader
   }
   private[this] val writerPool = new ThreadLocal[WKBWriter]{
-    override def initialValue = new WKBWriter
+    override def initialValue = new WKBWriter(3)
   }
 
   def read(s: String): Geometry = read(s.getBytes)
