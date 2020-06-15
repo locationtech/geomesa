@@ -14,6 +14,7 @@ import com.esotericsoftware.kryo.io.{Input, Output}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerialization
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.{Geometry, Point}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -36,12 +37,20 @@ class KryoGeometrySerializerTest extends Specification {
       ).map(WKTUtils.read)
 
       "using byte arrays" >> {
+        val out = new Output(512)
+        val serializers = Seq(
+          KryoGeometrySerialization.serialize(out, _: Geometry),
+          KryoGeometrySerialization.serializeWkb(out, _: Geometry)
+        )
         foreach(geoms) { geom =>
-          val out = new Output(512)
-          KryoGeometrySerialization.serialize(out, geom)
-          val in = new Input(out.toBytes)
-          val deserialized = KryoGeometrySerialization.deserialize(in)
-          deserialized mustEqual geom
+          foreach(serializers) { serializer =>
+            out.clear()
+            serializer(geom)
+            val bytes = out.toBytes
+            // ensure we didn't write 3 dimensions
+            bytes.length must beLessThan(geom.getCoordinates.length * 24)
+            KryoGeometrySerialization.deserialize(new Input(bytes)) mustEqual geom
+          }
         }
       }
       "using streams" >> {
