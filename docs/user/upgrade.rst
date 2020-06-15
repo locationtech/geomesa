@@ -96,15 +96,14 @@ Version 3.0.0 Upgrade Guide
 Removal of Deprecated Modules and Classes
 -----------------------------------------
 
-GeoMesa 3.0.0 removes several less used and supported modules, as well as various classes and methods that were
-no longer used.
+GeoMesa 3.0.0 removes several lesser-used modules, as well as various obsolete classes and methods.
 
 The modules removed are: ``geomesa-accumulo/geomesa-accumulo-compute``,
 ``geomesa-accumulo/geomesa-accumulo-native-api``, ``geomesa-accumulo/geomesa-accumulo-raster-distributed-runtime``,
 ``geomesa-accumulo/geomesa-accumulo-raster``, ``geomesa-accumulo/geomesa-accumulo-security``,
 ``geomesa-accumulo/geomesa-accumulo-stats-gs-plugin``, ``geomesa-convert/geomesa-convert-scripting``,
 ``geomesa-convert/geomesa-convert-simplefeature``, ``geomesa-hbase/geomesa-hbase-native-api``,
-``geomesa-metrics``, ``geomesa-native-api``, ``geomesa-spark/geomesa-spark-geotools``, and
+``geomesa-metrics``, ``geomesa-native-api``, ``geomesa-spark/geomesa-spark-geotools``, ``geomesa-blobstore/*``, and
 ``geomesa-web/geomesa-web-data``.
 
 The classes and methods removed are detailed in `GEOMESA-2284 <https://geomesa.atlassian.net/browse/GEOMESA-2284>`_.

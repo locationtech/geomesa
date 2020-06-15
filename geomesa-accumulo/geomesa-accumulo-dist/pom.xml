@@ -59,13 +59,6 @@
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-blobstore-gs-plugin_${scala.binary.version}</artifactId>
-            <classifier>install</classifier>
-            <version>${project.version}</version>
-            <type>tar.gz</type>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-stream-gs-plugin_${scala.binary.version}</artifactId>
             <classifier>install</classifier>
             <version>${project.version}</version>
