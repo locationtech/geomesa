@@ -235,8 +235,9 @@ class SimpleFeatureArrowFileTest extends Specification {
     "write and read geometries" >> {
       withTestFile("geometries") { file =>
         val encoding = SimpleFeatureEncoding.min(includeFids = true)
-        WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file), geomSft, Map.empty, encoding)) { writer =>
-          geomFeatures.foreach(writer.add)
+        WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file), geomSft, Map.empty, encoding, ipcOpts, None)) {
+          writer =>
+            geomFeatures.foreach(writer.add)
         }
         def testReader(reader: SimpleFeatureArrowFileReader): MatchResult[Any] = {
           val read = WithClose(reader.features())(f => f.map(ScalaSimpleFeature.copy).toList)
