@@ -268,7 +268,6 @@ class SimpleFeatureArrowFileTest extends Specification {
       // note: uncomment to re-create test data for arrow datastore
       // val copy = new File(s"geomesa-arrow/geomesa-arrow-datastore/src/test/resources/data/$name.arrow")
       // org.apache.commons.io.FileUtils.copyFile(file, copy)
-
       if (!file.delete()) {
         file.deleteOnExit()
       }
