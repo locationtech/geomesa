@@ -56,7 +56,7 @@ class SimpleFeatureArrowFileTest extends Specification {
     val team = s"team$i"
     val age = i % 5
     val weight = Option(i % 3).filter(_ != 0).map(Int.box).orNull
-    ScalaSimpleFeature.create(lineSft, s"$i", name, team, age, weight, s"2017-02-03T00:0$i:01.000Z", geoms(i))
+    ScalaSimpleFeature.create(geomSft, s"$i", name, team, age, weight, s"2017-02-03T00:0$i:01.000Z", geoms(i))
   }
 
   // note: we clone the features before comparing them as they aren't valid once 'next' is called again,

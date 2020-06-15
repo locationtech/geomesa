@@ -39,7 +39,6 @@ public class WKBGeometryVector implements GeometryVector<Geometry, VarBinaryVect
   }
 
   public WKBGeometryVector(String name, BufferAllocator allocator, @Nullable Map<String, String> metadata) {
-    // JNH: How do I use the metadata?
     this.vector = new VarBinaryVector(name, createFieldType(metadata), allocator);
   }
 
