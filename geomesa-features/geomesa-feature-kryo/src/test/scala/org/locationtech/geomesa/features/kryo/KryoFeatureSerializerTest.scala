@@ -378,7 +378,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       foreach(options) { opts =>
         val serialized = KryoFeatureSerializer(sft, opts).serialize(sf)
         // mess up the bytes for 'geom' - this change was picked semi-randomly but works to fail the deserializer
-        serialized(32) = Byte.MaxValue
+        serialized(31) = Byte.MaxValue
 
         val deserialized = KryoFeatureSerializer(sft, opts).deserialize(serialized)
 
