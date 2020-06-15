@@ -25,7 +25,6 @@
         <module>geomesa-archetypes</module>
         <module>geomesa-arrow</module>
         <module>geomesa-bigtable</module>
-        <module>geomesa-blobstore</module>
         <module>geomesa-cassandra</module>
         <module>geomesa-convert</module>
         <module>geomesa-features</module>
@@ -74,7 +73,6 @@
         <fasterxml.jackson.version>2.9.10</fasterxml.jackson.version> <!-- used by geoserver (2.9.7), spark (2.6.7) and arrow (2.7.1) -->
         <fasterxml.jackson.databind.version>2.9.10.4</fasterxml.jackson.databind.version> <!-- used by spark (2.6.7.1) and arrow (2.7.1) -->
         <codehaus.jackson.version>1.9.3</codehaus.jackson.version>
-        <gdal.version>2.0.0</gdal.version>
         <json4s.version>3.5.4</json4s.version>
         <scalatra.version>2.6.3</scalatra.version>
         <kryo.version>3.0.3</kryo.version>
@@ -89,6 +87,7 @@
         <!-- *** provided artifacts, not bundled to support multiple environments *** -->
 
         <accumulo.version>2.0.0</accumulo.version>
+        <accumulo-1.version>1.9.3</accumulo-1.version>
         <zookeeper.version>3.4.14</zookeeper.version>
         <thrift.version>0.12.0</thrift.version>
         <hadoop.version>2.8.5</hadoop.version>
@@ -386,16 +385,6 @@
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-bigtable-tools_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-blobstore-api_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-blobstore-web_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -1625,12 +1614,12 @@
             <dependency>
                 <groupId>org.parboiled</groupId>
                 <artifactId>parboiled-scala_${scala.binary.version}</artifactId>
-                <version>1.1.7</version>
+                <version>1.2.0</version>
             </dependency>
             <dependency>
                 <groupId>org.parboiled</groupId>
                 <artifactId>parboiled-core</artifactId>
-                <version>1.1.7</version>
+                <version>1.2.0</version>
             </dependency>
             <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
@@ -2841,13 +2830,20 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <!-- geotools -->
         <repository>
-            <id>eclipse-releases</id>
-            <url>https://repo.eclipse.org/content/groups/releases</url>
+            <id>osgeo</id>
+            <url>https://repo.osgeo.org/repository/release</url>
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <!-- confluent -->
+        <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </repository>
+        <!-- nightly geomesa snapshots -->
         <repository>
             <id>locationtech-snapshots</id>
             <url>https://repo.eclipse.org/content/groups/snapshots</url>
@@ -2858,14 +2854,7 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
-        <!-- geotools -->
-        <repository>
-            <id>osgeo</id>
-            <url>https://repo.osgeo.org/repository/release</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
+        <!-- nightly geotools snapshots -->
         <repository>
             <id>osgeo-snapshots</id>
             <url>https://repo.osgeo.org/repository/snapshot</url>
@@ -2875,10 +2864,6 @@
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-        </repository>
-        <repository>
-            <id>confluent</id>
-            <url>https://packages.confluent.io/maven/</url>
         </repository>
     </repositories>
 

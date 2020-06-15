@@ -67,7 +67,7 @@ private [transforms] class ExpressionParser extends BasicParser {
   }
 
   private def field: Rule1[Expression] = rule("$field") {
-    "$" ~ unquotedString ~~> { i => FieldLookup(i) }
+    "$" ~ (unquotedString | "{" ~ oneOrMore(char | "." | " ") ~> { c => c } ~ "}") ~~> { name => FieldLookup(name) }
   }
 
   private def tryFunction: Rule1[Expression] = rule("try") {

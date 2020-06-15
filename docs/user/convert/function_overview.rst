@@ -46,8 +46,10 @@ Date Functions
 -  ``date``
 -  ``dateTime``
 -  ``basicIsoDate``
+-  ``isoDate``
 -  ``isoLocalDate``
 -  ``basicDateTime``
+-  ``isoDateTime``
 -  ``isoLocalDateTime``
 -  ``isoOffsetDateTime``
 -  ``basicDateTimeNoMillis``

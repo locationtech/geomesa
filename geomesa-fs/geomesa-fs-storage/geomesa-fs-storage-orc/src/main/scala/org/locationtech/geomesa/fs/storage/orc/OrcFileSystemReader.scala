@@ -151,6 +151,7 @@ object OrcFileSystemReader {
             case ObjectType.LINESTRING | ObjectType.MULTIPOINT => 4 // list of x, list of y
             case ObjectType.POLYGON | ObjectType.MULTILINESTRING => 6 // list of list of x, list of list of y
             case ObjectType.MULTIPOLYGON => 8 // list of list of list of x, list of list of list of y
+            case ObjectType.GEOMETRY => 1 // wkb
           }
         case ObjectType.LIST => 2
         case ObjectType.MAP => 3

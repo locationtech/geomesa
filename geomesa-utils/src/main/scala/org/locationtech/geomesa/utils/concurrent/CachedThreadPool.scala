@@ -75,7 +75,7 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService with Laz
 
   override def execute(command: Runnable): Unit = {
     if (stopped.get) {
-      throw new IllegalStateException("Trying to execute a task but executor service is shut down")
+      throw new RejectedExecutionException("Trying to execute a task but executor service is shut down")
     }
     val task = command match {
       case t: TrackableFutureTask[_] => t

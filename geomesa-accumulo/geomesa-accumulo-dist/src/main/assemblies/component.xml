@@ -18,7 +18,6 @@
                 <exclude>org.locationtech.geomesa:geomesa-spark*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-stream*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-geojson*</exclude>
-                <exclude>org.locationtech.geomesa:geomesa-blobstore*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-accumulo-compute*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-accumulo-spark-runtime*</exclude>
                 <exclude>com.google.guava:guava</exclude> <!-- Guava conflicts with Hadoop 2.x which provides guava 11.0.2-->
@@ -43,7 +42,6 @@
             <includes>
                 <include>org.locationtech.geomesa:geomesa-accumulo-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-process-wps*</include>
-                <include>org.locationtech.geomesa:geomesa-blobstore-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-stream-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-geojson-gs-plugin*</include>
             </includes>

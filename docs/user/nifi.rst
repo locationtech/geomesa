@@ -1,3 +1,5 @@
+.. _nifi_bundle:
+
 GeoMesa NiFi Bundle
 ===================
 
@@ -34,47 +36,69 @@ Install the Processors
 ~~~~~~~~~~~~~~~~~~~~~~
 
 To install the GeoMesa processors you will need to copy the nar files into the ``lib`` directory of your
-NiFi installation. There are currently three nar files:
+NiFi installation. There currently two common nar files, and seven datastore-specific nar files.
 
-* ``geomesa-nifi-controllers-api-nar-$VERSION.nar``
-* ``geomesa-nifi-controllers-nar-$VERSION.nar``
-* ``geomesa-nifi-processors-nar-$VERSION.nar``
+Common nar files:
+
+* ``geomesa-datastore-services-api-nar-$VERSION.nar``
+* ``geomesa-datastore-services-nar-$VERSION.nar``
+
+Datastore nar files:
+
+* ``geomesa-kafka-nar-$VERSION.nar``
+* ``geomesa-hbase1-nar-$VERSION.nar``
+* ``geomesa-hbase2-nar-$VERSION.nar``
+* ``geomesa-redis-nar-$VERSION.nar``
+* ``geomesa-accumulo1-nar-$VERSION.nar``
+* ``geomesa-accumulo2-nar-$VERSION.nar``
+* ``geomesa-fs-nar-$VERSION.nar``
+
+The common nar files are required for all datastores. The datastore-specific nars can be installed as needed.
+
+.. note::
+
+  There are two HBase and Accumulo nars that correspond to HBase/Accumulo 1.x and HBase/Accumulo 2.x, respectively.
+  Be sure to choose the appropriate nar for your database version.
 
 If you downloaded the nars from GitHub:
 
 .. code-block:: bash
 
-    $ wget "https://github.com/geomesa/geomesa-nifi/releases/download/geomesa-nifi-$VERSION/geomesa-nifi-$VERSION-dist.tar.gz"
-    $ tar -xf geomesa-nifi-$VERSION-dist.tar.gz --directory $NIFI_HOME/lib/
+    $ export NARS="geomesa-hbase2-nar geomesa-datastore-services-api-nar geomesa-datastore-services-nar"
+    $ for nar in $NARS; do wget "https://github.com/geomesa/geomesa-nifi/releases/download/geomesa-nifi-$VERSION/$nar-$VERSION.nar"; done
+    $ mv *.nar $NIFI_HOME/lib/
 
 Or, to install the nars after building from source:
 
 .. code-block:: bash
 
-    $ tar -xf geomesa-nifi-dist/target/geomesa-nifi-$VERSION-dist.tar.gz --directory $NIFI_HOME/lib/
+    $ export NARS="geomesa-hbase2-nar geomesa-datastore-services-api-nar geomesa-datastore-services-nar"
+    $ for nar in $NARS; do find . -name $nar-$VERSION.nar -exec cp {} $NIFI_HOME/lib/ \;; done
 
 Processors
 ----------
 
 GeoMesa NiFi contains several processors:
 
-+--------------------------+-------------------------------------------------------------------------------------------+
-| Processor                | Description                                                                               |
-+==========================+===========================================================================================+
-| ``PutGeoMesaAccumulo``   | Ingest data into a GeoMesa Accumulo datastore with a GeoMesa converter or from GeoAvro    |
-+--------------------------+-------------------------------------------------------------------------------------------+
-| ``PutGeoMesaHBase``      | Ingest data into a GeoMesa HBase datastore with a GeoMesa converter or from GeoAvro       |
-+--------------------------+-------------------------------------------------------------------------------------------+
-| ``PutGeoMesaFileSystem`` | Ingest data into a GeoMesa File System datastore with a GeoMesa converter or from GeoAvro |
-+--------------------------+-------------------------------------------------------------------------------------------+
-| ``PutGeoMesaKafka``      | Ingest data into a GeoMesa Kafka datastore with a GeoMesa converter or from GeoAvro       |
-+--------------------------+-------------------------------------------------------------------------------------------+
-| ``PutGeoMesaRedis``      | Ingest data into a GeoMesa Redis datastore with a GeoMesa converter or from GeoAvro       |
-+--------------------------+-------------------------------------------------------------------------------------------+
-| ``PutGeoTools``          | Ingest data into an arbitrary GeoTools datastore using a GeoMesa converter or GeoAvro     |
-+--------------------------+-------------------------------------------------------------------------------------------+
-| ``ConvertToGeoAvro``     | Use a GeoMesa converter to create GeoAvro                                                 |
-+--------------------------+-------------------------------------------------------------------------------------------+
++--------------------------+----------------------------------------------------------------------------+
+| Processor                | Description                                                                |
++==========================+============================================================================+
+| ``PutGeoMesaAccumulo``   | Ingest data into a GeoMesa Accumulo datastore with a GeoMesa converter     |
++--------------------------+----------------------------------------------------------------------------+
+| ``PutGeoMesaHBase``      | Ingest data into a GeoMesa HBase datastore with a GeoMesa converter        |
++--------------------------+----------------------------------------------------------------------------+
+| ``PutGeoMesaFileSystem`` | Ingest data into a GeoMesa File System datastore with a GeoMesa converter  |
++--------------------------+----------------------------------------------------------------------------+
+| ``PutGeoMesaKafka``      | Ingest data into a GeoMesa Kafka datastore with a GeoMesa converter        |
++--------------------------+----------------------------------------------------------------------------+
+| ``PutGeoMesaRedis``      | Ingest data into a GeoMesa Redis datastore with a GeoMesa converter        |
++--------------------------+----------------------------------------------------------------------------+
+| ``PutGeoTools``          | Ingest data into an arbitrary GeoTools datastore using a GeoMesa converter |
++--------------------------+----------------------------------------------------------------------------+
+| ``AvroToPut*``           | Ingest self-defining GeoAvro instead of configuring a converter            |
++--------------------------+----------------------------------------------------------------------------+
+| ``ConvertToGeoAvro``     | Use a GeoMesa converter to create GeoAvro                                  |
++--------------------------+----------------------------------------------------------------------------+
 
 Input Configuration
 ~~~~~~~~~~~~~~~~~~~
@@ -86,8 +110,6 @@ following sections.
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | Property                      | Description                                                                             |
 +===============================+=========================================================================================+
-| Mode                          | Converter or Avro file ingest mode switch.                                              |
-+-------------------------------+-----------------------------------------------------------------------------------------+
 | ``SftName``                   | Name of the SFT on the classpath to use. This property overrides SftSpec.               |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConverterName``             | Name of converter on the classpath to use. This property overrides ConverterSpec.       |
@@ -100,7 +122,7 @@ following sections.
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConverterErrorMode``        | Override the converter error mode (``skip-bad-records`` or ``raise-errors``)            |
 +-------------------------------+-----------------------------------------------------------------------------------------+
-| ``ConverterClasspath``        | Additional resources to add to the classpath.                                           |
+| ``ExtraClasspaths``           | Additional resources to add to the classpath, usually converter definitions.            |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``BatchSize``                 | The number of flow files that will be processed in a single batch                       |
 +-------------------------------+-----------------------------------------------------------------------------------------+
@@ -108,6 +130,8 @@ following sections.
 |                               | small number of records (see below)                                                     |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``FeatureWriterCacheTimeout`` | How often feature writers will be flushed to the data store, if caching is enabled      |
++-------------------------------+-----------------------------------------------------------------------------------------+
+| ``ConvertFlowFileAttributes`` | Expose flow file attributes to the converter framework, referenced by name              |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 
 Defining SimpleFeatureTypes and Converters
@@ -139,7 +163,7 @@ You can verify your JAR was built properly:
         69 Mon Mar 20 18:18:36 EDT 2017 META-INF/MANIFEST.MF
      28473 Mon Mar 20 14:49:54 EDT 2017 reference.conf
 
-Use the ``ConverterClasspath`` property to point your processor to the JAR file. The property takes a list of
+Use the ``ExtraClasspaths`` property to point your processor to the JAR file. The property takes a list of
 comma-delimited resources. Once set, the ``SftName`` and/or ``ConverterName`` properties will update with the
 name of your converters. You will need to close the configuration panel and re-open it in order for the
 properties to update.
@@ -149,6 +173,22 @@ Defining SimpleFeatureTypes and Converters via the UI
 
 You may also provide SimpleFeatureTypes and Converters directly in the Processor configuration via the NiFi UI.
 Simply paste your TypeSafe configuration into the ``SftSpec`` and ``ConverterSpec`` property fields.
+
+Defining SimpleFeatureTypes and Converters via Flow File Attributes
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+You may also override the Processor configuration fields with flow file attributes. The following attributes
+are available:
+
+* ``geomesa.sft.name`` corresponds to the Processor configuration ``FeatureNameOverride``
+* ``geomesa.sft.spec`` corresponds to the Processor configuration ``SftSpec``
+* ``geomesa.converter`` corresponds to the Processor configuration ``ConverterSpec``
+
+.. warning::
+
+    Configuration via flow file attributes should be used with care, as any misconfigurations may multiply.
+    For example, setting ``geomesa.sft.name`` to a non-recurring value could end up creating a new schema for each
+    flow file, potentially crashing your database by creating too many tables.
 
 Feature Writer Caching
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -232,6 +272,14 @@ workspace and open the properties tab of its configuration.
 
 This processor also accepts dynamic parameters that may be needed for
 the specific datastore that you're trying to access.
+
+AvroToPut*
+~~~~~~~~~~
+
+Each of the Put processors provided by GeoMesa has a corresponding AvroToPut processor. The Avro processors
+do not require a GeoMesa converter or SimpleFeatureType, as they only accept self-describing GeoAvro.
+GeoAvro can be generated through the GeoMesa command-line tools ``export`` functionality, the ConvertToGeoAvro
+processor, or directly through an instance of ``org.locationtech.geomesa.features.avro.AvroDataFileWriter``.
 
 ConvertToGeoAvro
 ~~~~~~~~~~~~~~~~

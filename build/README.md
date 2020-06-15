@@ -94,14 +94,12 @@ in other repositories. To include GeoMesa in your project, add the following rep
 
 ```xml
 <repositories>
-  <repository>
-    <id>boundlessgeo</id>
-    <url>https://repo.boundlessgeo.com/main</url>
-  </repository>
+  <!-- geotools -->
   <repository>
     <id>osgeo</id>
-    <url>https:///repo.osgeo.org/repository/release</url>
+    <url>https://repo.osgeo.org/repository/release</url>
   </repository>
+  <!-- confluent -->
   <repository>
     <id>confluent</id>
     <url>https://packages.confluent.io/maven/</url>
@@ -109,7 +107,7 @@ in other repositories. To include GeoMesa in your project, add the following rep
 </repositories>
 ```
 
-and then include the desired `geomesa-*` dependencies:
+You may then include the desired `geomesa-*` dependencies, for example:
 
 ```xml
 <dependency>
@@ -117,7 +115,6 @@ and then include the desired `geomesa-*` dependencies:
   <artifactId>geomesa-utils_2.11</artifactId>
   <version>${geomesa.release.version}</version>
 </dependency>
-  ...
 ```
 
 To download from the LocationTech Maven repository (required for older versions), add:
@@ -132,7 +129,7 @@ To download from the LocationTech Maven repository (required for older versions)
 </repository>
 ```
 
-For snapshot integration, add:
+For nightly snapshot integration, add:
 
 ```xml
 <repository>
@@ -154,16 +151,13 @@ Similarly, integration with `sbt` is straightforward:
 ```scala
 // Add necessary resolvers
 resolvers ++= Seq(
-  "eclipse-releases" at "https://repo.eclipse.org/content/groups/releases",
-  "boundlessgeo" at "https://repo.boundlessgeo.com/main",
-  "osgeo" at "https:///repo.osgeo.org/repository/release",
+  "osgeo" at "https://repo.osgeo.org/repository/release",
   "confluent" at "https://packages.confluent.io/maven"
 )
 
 // Select desired modules
 libraryDependencies ++= Seq(
-  "org.locationtech.geomesa" %% "geomesa-utils" % "${geomesa.release.version}",
-  ...
+  "org.locationtech.geomesa" %% "geomesa-utils" % "${geomesa.release.version}"
 )
 ```
 
@@ -173,7 +167,7 @@ Requirements:
 
 * [Git](http://git-scm.com/)
 * [Java JDK 8](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
-* [Apache Maven](http://maven.apache.org/) 3.3.9 or later
+* [Apache Maven](http://maven.apache.org/) 3.6.3 or later
 
 Use Git to download the source code. Navigate to the destination directory, then run:
 

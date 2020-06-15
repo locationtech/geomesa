@@ -41,9 +41,7 @@ class SimpleFeatureSerializersTest extends Specification {
     builder.set("geom", WKTUtils.read("POINT(-110 30)"))
     builder.set("dtg", "2012-01-02T05:06:07.000Z")
     builder.set("name",i.toString)
-    val sf = builder.buildFeature(i.toString)
-    sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-    sf
+    builder.buildFeature(i.toString)
   }
 
   def getFeaturesWithVisibility: Seq[SimpleFeature] = {

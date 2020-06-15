@@ -45,6 +45,8 @@ class OrcFileSystemStorage(context: FileSystemContext, metadata: StorageMetadata
 
 object OrcFileSystemStorage {
 
+  import scala.collection.JavaConverters._
+
   val Encoding      = "orc"
   val FileExtension = "orc"
 
@@ -81,11 +83,23 @@ object OrcFileSystemStorage {
     * @return
     */
   def fieldCount(sft: SimpleFeatureType, fid: Boolean = true): Int = {
-    import scala.collection.JavaConversions._
-    sft.getAttributeDescriptors.count(d => classOf[Geometry].isAssignableFrom(d.getType.getBinding)) +
-        sft.getAttributeCount + (if (fid) { 1 } else { 0 })
+    val attributes = sft.getAttributeDescriptors.asScala.foldLeft(0) { case (sum, d) => sum + fieldCount(d) }
+    if (fid) { attributes + 1 } else { attributes }
   }
 
+  /**
+   * Gets a count of the Orc fields created for a given attribute
+   *
+   * @param descriptor descriptor
+   * @return
+   */
+  def fieldCount(descriptor: AttributeDescriptor): Int = {
+    descriptor.getType.getBinding match {
+      // plain Geometry bindings are encoded in a single WKB column, others as x + y
+      case b if classOf[Geometry].isAssignableFrom(b) && b != classOf[Geometry] => 2
+      case _ => 1
+    }
+  }
   /**
     * Add a type description for an attribute
     *
@@ -111,8 +125,8 @@ object OrcFileSystemStorage {
   private def addGeometryDescription(container: TypeDescription, name: String, binding: ObjectType): Unit = {
     import TypeDescription.{createDouble, createList}
 
-    val x = geometryXField(name)
-    val y = geometryYField(name)
+    def x: String = geometryXField(name)
+    def y: String = geometryYField(name)
 
     binding match {
       case ObjectType.POINT =>
@@ -144,6 +158,10 @@ object OrcFileSystemStorage {
         // list of polygons
         container.addField(x, createList(createList(createList(createDouble()))))
         container.addField(y, createList(createList(createList(createDouble()))))
+
+      case ObjectType.GEOMETRY =>
+        // WKB
+        container.addField(name, TypeDescription.createBinary())
 
       case _ => throw new IllegalArgumentException(s"Unexpected geometry type $binding")
     }

@@ -15,6 +15,7 @@ Argument                 Description
 ``-c, --catalog *``      The catalog table containing schema metadata
 ``-f, --feature-name *`` The name of the schema
 ``-q, --cql``            CQL filter to select features to delete
+``--force``              Suppress confirmation prompt
 ======================== =========================================================
 
 .. _cli_ingest:

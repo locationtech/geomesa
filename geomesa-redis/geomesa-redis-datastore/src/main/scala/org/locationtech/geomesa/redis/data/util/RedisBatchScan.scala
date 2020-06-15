@@ -8,8 +8,6 @@
 
 package org.locationtech.geomesa.redis.data.util
 
-import java.util.concurrent.BlockingQueue
-
 import org.locationtech.geomesa.index.api.BoundedByteRange
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -24,11 +22,9 @@ private class RedisBatchScan(
     buffer: Int
   ) extends AbstractBatchScan[BoundedByteRange, Array[Byte]](ranges, threads, buffer, RedisBatchScan.Sentinel) {
 
-  override protected def scan(range: BoundedByteRange, out: BlockingQueue[Array[Byte]]): Unit = {
-    val iter = WithClose(connection.getResource)(_.zrangeByLex(table, range.lower, range.upper)).iterator()
-    while (iter.hasNext) {
-      out.put(iter.next())
-    }
+  override protected def scan(range: BoundedByteRange): CloseableIterator[Array[Byte]] = {
+    val results = WithClose(connection.getResource)(_.zrangeByLex(table, range.lower, range.upper))
+    CloseableIterator(results.iterator())
   }
 }
 

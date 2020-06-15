@@ -15,9 +15,9 @@ Extract it somewhere convenient:
 .. code-block:: bash
 
     # download and unpackage the most recent distribution:
-    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-lambda-dist_2.11-$VERSION-bin.tar.gz"
-    $ tar xvf geomesa-lambda-dist_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-lambda-dist_2.11-$VERSION
+    $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-lambda_2.11-$VERSION-bin.tar.gz"
+    $ tar xvf geomesa-lambda_2.11-$VERSION-bin.tar.gz
+    $ cd geomesa-lambda_2.11-$VERSION
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
@@ -30,7 +30,7 @@ GeoMesa Lambda may also be built from source. For more information refer to :ref
 in the developer manual, or to the ``README.md`` file in the the source distribution.
 The remainder of the instructions in this chapter assume the use of the binary GeoMesa Lambda
 distribution. If you have built from source, the distribution is created in the ``target`` directory of
-``geomesa-lambda/geomesa-lambda-dist``.
+``geomesa-lambda/geomesa-lambda``.
 
 More information about developing with GeoMesa may be found in the :doc:`/developer/index`.
 

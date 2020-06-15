@@ -96,15 +96,14 @@ Version 3.0.0 Upgrade Guide
 Removal of Deprecated Modules and Classes
 -----------------------------------------
 
-GeoMesa 3.0.0 removes several less used and supported modules, as well as various classes and methods that were
-no longer used.
+GeoMesa 3.0.0 removes several lesser-used modules, as well as various obsolete classes and methods.
 
 The modules removed are: ``geomesa-accumulo/geomesa-accumulo-compute``,
 ``geomesa-accumulo/geomesa-accumulo-native-api``, ``geomesa-accumulo/geomesa-accumulo-raster-distributed-runtime``,
 ``geomesa-accumulo/geomesa-accumulo-raster``, ``geomesa-accumulo/geomesa-accumulo-security``,
 ``geomesa-accumulo/geomesa-accumulo-stats-gs-plugin``, ``geomesa-convert/geomesa-convert-scripting``,
 ``geomesa-convert/geomesa-convert-simplefeature``, ``geomesa-hbase/geomesa-hbase-native-api``,
-``geomesa-metrics``, ``geomesa-native-api``, ``geomesa-spark/geomesa-spark-geotools``, and
+``geomesa-metrics``, ``geomesa-native-api``, ``geomesa-spark/geomesa-spark-geotools``, ``geomesa-blobstore/*``, and
 ``geomesa-web/geomesa-web-data``.
 
 The classes and methods removed are detailed in `GEOMESA-2284 <https://geomesa.atlassian.net/browse/GEOMESA-2284>`_.
@@ -115,9 +114,30 @@ HBase 2 Support
 GeoMesa 3.0.0 supports both HBase 1.4 and HBase 2.2. HBase 1.3 is no longer supported. HBase 2.0 and 2.1 are
 not officially supported, but may work in some cases.
 
-There are now two separate modules for HBase filters and coprocessor - ``hbase-distributed-runtime-hbase1``
-and ``hbase-distributed-runtime-hbase2``. The previous ``hbase-distributed-runtime`` module has been removed.
-Users should install the distributed runtime corresponding to their HBase installation.
+There are now two separate modules for HBase filters and coprocessors - ``geomesa-hbase-distributed-runtime-hbase1``
+and ``geomesa-hbase-distributed-runtime-hbase2``. The previous ``geomesa-hbase-distributed-runtime`` module has
+been removed. Users should install the distributed runtime corresponding to their HBase installation.
+
+Similarly, there are now two separate modules for HBase Spark support - ``geomesa-hbase-spark-runtime-hbase1`` and
+``geomesa-hbase-spark-runtime-hbase2``. The previous ``geomesa-hbase-spark-runtime`` module has been removed.
+Users should use the Spark runtime corresponding to their HBase installation.
+
+Accumulo 2 Support
+------------------
+
+GeoMesa 3.0.0 supports both Accumulo 1.9 with Hadoop 2.8 and Accumulo 2.0 with Hadoop 3.
+Earlier versions of Accumulo are no longer supported, but may work in some cases.
+
+There are now two separate modules for Accumulo Spark support - ``geomesa-accumulo-spark-runtime-accumulo1`` and
+``geomesa-accumulo-spark-runtime-accumulo2``. The previous ``geomesa-accumulo-spark-runtime`` module has been removed.
+Users should use the Spark runtime corresponding to their Accumulo installation.
+
+NiFi Processors
+---------------
+
+The GeoMesa NiFi processors have been split out into separate nar files for each supported back-end database.
+Additionally, there are separate nar files for HBase 1.4/2.2 and Accumulo 1.9/2.0, respectively. The processor
+classes and configurations have also changed. See :ref:`nifi_bundle` for details.
 
 Dependency Updates
 ------------------
@@ -130,6 +150,14 @@ Apache Arrow Updates
 As part of the upgrade to Apache Arrow 0.16, the geomesa-arrow modules have been refactored to simplify memory
 management and allocation. Some classes have been removed, and some interfaces have changed. This may impact
 anyone using the geomesa-arrow modules directly.
+
+Converter Date Functions
+------------------------
+
+The converter functions ``isoDate`` and ``isoDateTime`` have been updated to match the equivalent Java
+``DateTimeFormatter`` pattern. ``isoDate`` has changed from ``yyyyMMdd`` to ``yyyy-MM-dd``, while ``isoDateTime``
+has changed from ``yyyyMMdd'T'HHmmss.SSSZ`` to ``yyyy-MM-dd'T'HH:mm:ss``. The old patterns can still be
+referenced through ``basicDate`` and ``basicDateTime``.
 
 AuthorizationsProvider and AuditProvider API Change
 ---------------------------------------------------

@@ -22,7 +22,7 @@ the providers outlined in :ref:`spatial_rdd_providers`.
 
     mvn clean install -Ppython
     pip3 install geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-$VERSION.tar.gz
-    cp  geomesa-accumulo/geomesa-accumulo-spark-runtime/target/geomesa-accumulo-spark-runtime_2.11-$VERSION.jar /path/to/
+    cp  geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo2/target/geomesa-accumulo-spark-runtime-accumulo2_2.11-$VERSION.jar /path/to/
 
 Using GeoMesa PySpark
 ^^^^^^^^^^^^^^^^^^^^^
@@ -35,7 +35,7 @@ the ``pyspark`` library.
 
     import geomesa_pyspark
     conf = geomesa_pyspark.configure(
-        jars=['/path/to/geomesa-accumulo-spark-runtime_2.11-$VERSION.jar'],
+        jars=['/path/to/geomesa-accumulo-spark-runtime-accumulo2_2.11-$VERSION.jar'],
         packages=['geomesa_pyspark','pytz'],
         spark_home='/path/to/spark/').\
         setAppName('MyTestApp')
