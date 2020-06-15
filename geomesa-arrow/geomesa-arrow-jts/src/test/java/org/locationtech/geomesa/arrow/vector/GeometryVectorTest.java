@@ -8,12 +8,8 @@
 
 package org.locationtech.geomesa.arrow.vector;
 
-import org.locationtech.jts.geom.LineString;
-import org.locationtech.jts.geom.MultiLineString;
-import org.locationtech.jts.geom.MultiPoint;
-import org.locationtech.jts.geom.MultiPolygon;
-import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.geom.Polygon;
+import org.apache.arrow.vector.types.pojo.ArrowType;
+import org.locationtech.jts.geom.*;
 import org.locationtech.jts.io.WKTReader;
 import org.locationtech.jts.io.WKTWriter;
 import org.apache.arrow.memory.BufferAllocator;
@@ -539,6 +535,105 @@ public class GeometryVectorTest {
       Assert.assertEquals(p1, wktWriter.write(floats.get(1)));
       Assert.assertEquals(p0, wktWriter.write(floats.get(2)));
       Assert.assertNull(floats.get(3));
+    }
+  }
+
+  @Test
+  public void testWKBGeometry() throws Exception {
+    WKTReader wktReader = new WKTReader();
+    WKTWriter wktWriter = new WKTWriter();
+
+    String geom1 = "POINT (0 20)";
+    String geom2 = "LINESTRING (30 10, 10 30, 40 45, 55 60, 56 60)";
+    String geom3 = "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30))";
+
+    try (RootAllocator allocator = new RootAllocator(Long.MAX_VALUE);
+         WKBGeometryVector doubles = new WKBGeometryVector("geoms", allocator, null)) {
+
+      Field doubleField = doubles.getVector().getField();
+
+      doubles.set(0, wktReader.read(geom1));
+      doubles.set(1, wktReader.read(geom2));
+      doubles.set(3, wktReader.read(geom3));
+      doubles.setValueCount(4);
+
+      Assert.assertEquals(4, doubles.getValueCount());
+      Assert.assertEquals(1, doubles.getNullCount());
+      Assert.assertEquals(geom1, wktWriter.write(doubles.get(0)));
+      Assert.assertEquals(geom2, wktWriter.write(doubles.get(1)));
+      Assert.assertEquals(geom3, wktWriter.write(doubles.get(3)));
+      Assert.assertNull(doubles.get(2));
+
+      // ensure field was created correctly up front
+      Assert.assertEquals(doubleField, doubles.getVector().getField());
+      Assert.assertEquals(doubleField.getFieldType().getType(), ArrowType.Binary.INSTANCE);
+
+      // overwriting
+
+      doubles.set(0, wktReader.read(geom3));
+      doubles.set(1, wktReader.read(geom2));
+      doubles.set(2, wktReader.read(geom1));
+      doubles.setValueCount(3);
+
+      Assert.assertEquals(3, doubles.getValueCount());
+      Assert.assertEquals(0, doubles.getNullCount());
+      Assert.assertEquals(geom3, wktWriter.write(doubles.get(0)));
+      Assert.assertEquals(geom2, wktWriter.write(doubles.get(1)));
+      Assert.assertEquals(geom1, wktWriter.write(doubles.get(2)));
+    }
+  }
+
+  @Test
+  public void testWKBGeometryTransfer() throws Exception {
+    WKTReader wktReader = new WKTReader();
+    WKTWriter wktWriter = new WKTWriter();
+
+    String geom1 = "POINT (0 20)";
+    String geom2 = "LINESTRING (30 10, 10 30, 40 45, 55 60, 56 60)";
+    String geom3 = "POLYGON ((35 10, 45 45, 15 40, 10 20, 35 10), (20 30, 35 35, 30 20, 20 30))";
+
+    try (RootAllocator allocator = new RootAllocator(Long.MAX_VALUE);
+         WKBGeometryVector from = new WKBGeometryVector("geometries", allocator, null);
+         WKBGeometryVector to = new WKBGeometryVector("geometries", allocator, null)) {
+
+      from.set(0, (Point) wktReader.read(geom1));
+      from.set(1, (LineString) wktReader.read(geom2));
+      from.set(3, (Polygon) wktReader.read(geom3));
+      from.setValueCount(4);
+
+      for (int i = 0; i < 4; i++) {
+        from.transfer(i, i, to);
+      }
+      to.setValueCount(4);
+
+      for (WKBGeometryVector vector: Arrays.asList(from, to)) {
+        Assert.assertEquals(4, vector.getValueCount());
+        Assert.assertEquals(1, vector.getNullCount());
+        Assert.assertEquals(geom1, wktWriter.write(vector.get(0)));
+        Assert.assertEquals(geom2, wktWriter.write(vector.get(1)));
+        Assert.assertEquals(geom3, wktWriter.write(vector.get(3)));
+        Assert.assertNull(vector.get(2));
+      }
+
+      from.getVector().clear();
+      from.set(1, (Point) wktReader.read(geom1));
+      from.set(2, (LineString) wktReader.read(geom2));
+      from.set(3, (Polygon) wktReader.read(geom3));
+      from.setValueCount(4);
+
+      for (int i = 0; i < 4; i++) {
+        from.transfer(i, i, to);
+      }
+      to.setValueCount(4);
+
+      for (WKBGeometryVector vector: Arrays.asList(from, to)) {
+        Assert.assertEquals(4, vector.getValueCount());
+        Assert.assertEquals(1, vector.getNullCount());
+        Assert.assertEquals(geom1, wktWriter.write(vector.get(1)));
+        Assert.assertEquals(geom2, wktWriter.write(vector.get(2)));
+        Assert.assertEquals(geom3, wktWriter.write(vector.get(3)));
+        Assert.assertNull(vector.get(0));
+      }
     }
   }
 

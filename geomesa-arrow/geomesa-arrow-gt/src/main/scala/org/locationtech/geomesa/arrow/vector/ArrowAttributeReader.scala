@@ -260,6 +260,8 @@ object ArrowAttributeReader {
             case Encoding.Min => new MultiPointFloatVector(vector.asInstanceOf[ListVector])
             case Encoding.Max => new MultiPointVector(vector.asInstanceOf[ListVector])
           }
+        } else if (binding == ObjectType.GEOMETRY) {
+          new WKBGeometryVector(vector.asInstanceOf[VarBinaryVector])
         } else if (binding == ObjectType.GEOMETRY_COLLECTION) {
           throw new NotImplementedError(s"Geometry type $binding is not supported")
         } else {
