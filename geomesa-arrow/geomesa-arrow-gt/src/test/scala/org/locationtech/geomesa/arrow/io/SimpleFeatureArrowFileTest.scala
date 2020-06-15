@@ -252,8 +252,8 @@ class SimpleFeatureArrowFileTest extends Specification {
                 r.getExteriorRing.getCoordinateN(n).x must beCloseTo(r.getExteriorRing.getCoordinateN(n).x, delta=0.001)
                 r.getExteriorRing.getCoordinateN(n).y must beCloseTo(r.getExteriorRing.getCoordinateN(n).y, delta=0.001)
               }
-            case (a, b) => println(s"a: $a b: $b")
-              ok
+            case (a, b) => 
+              ko
           }
         }
         WithClose(SimpleFeatureArrowFileReader.streaming(() => new FileInputStream(file)))(testReader)
