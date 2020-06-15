@@ -19,6 +19,7 @@ import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.StructVector
 import org.apache.arrow.vector.dictionary.DictionaryProvider.MapDictionaryProvider
 import org.apache.arrow.vector.ipc.ArrowStreamWriter
+import org.apache.arrow.vector.ipc.message.IpcOption
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
 import org.apache.arrow.vector.util.TransferPair
 import org.apache.arrow.vector.{FieldVector, IntVector}
@@ -54,6 +55,7 @@ class DeltaWriter(
     val sft: SimpleFeatureType,
     dictionaryFields: Seq[String],
     encoding: SimpleFeatureEncoding,
+    ipcOpts: IpcOption,
     sort: Option[(String, Boolean)],
     initialCapacity: Int
   ) extends Closeable with StrictLogging {
@@ -89,7 +91,7 @@ class DeltaWriter(
       val attribute = ArrowAttributeWriter(name, Seq(ObjectType.INT), None, dictMetadata, encoding, VectorFactory(vector))
       val dictionary = {
         val attribute = ArrowAttributeWriter(name, bindings, None, metadata, encoding, VectorFactory(allocator))
-        val writer = new BatchWriter(attribute.vector)
+        val writer = new BatchWriter(attribute.vector, ipcOpts)
         attribute.vector.setInitialCapacity(initialCapacity)
         attribute.vector.allocateNew()
         Some(DictionaryWriter(sft.indexOf(name), attribute, writer, scala.collection.mutable.Map.empty))
@@ -105,7 +107,7 @@ class DeltaWriter(
   private val dictionaryWriters = dictionaryFields.map(f => writers.find(_.name == f).get.dictionary.get)
 
   // single writer to write out all vectors at once (not including dictionaries)
-  private val writer = new BatchWriter(vector)
+  private val writer = new BatchWriter(vector, ipcOpts)
 
   // set capacity after all child vectors have been created by the writers, then allocate
   vector.setInitialCapacity(initialCapacity)
@@ -244,11 +246,12 @@ object DeltaWriter extends StrictLogging {
       sft: SimpleFeatureType,
       dictionaryFields: Seq[String],
       encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
       sort: Option[(String, Boolean)],
       sorted: Boolean,
       batchSize: Int,
       deltas: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
-    new ReducingIterator(sft, dictionaryFields, encoding, sort, sorted, batchSize, deltas)
+    new ReducingIterator(sft, dictionaryFields, encoding, ipcOpts, sort, sorted, batchSize, deltas)
   }
 
   /**
@@ -267,6 +270,7 @@ object DeltaWriter extends StrictLogging {
       sft: SimpleFeatureType,
       dictionaryFields: Seq[String],
       encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
       mergedDictionaries: MergedDictionaries,
       sort: Option[(String, Boolean)],
       batchSize: Int,
@@ -278,7 +282,7 @@ object DeltaWriter extends StrictLogging {
       private val result = SimpleFeatureVector.create(sft, mergedDictionaries.dictionaries, encoding, batchSize)
       logger.trace(s"merge unsorted deltas - read schema ${result.underlying.getField}")
       private val loader = new RecordBatchLoader(toLoad.underlying)
-      private val unloader = new RecordBatchUnloader(result)
+      private val unloader = new RecordBatchUnloader(result, ipcOpts)
 
       private val transfers: Seq[(String, (Int, Int, java.util.Map[Integer, Integer]) => Unit)] = {
         toLoad.underlying.getChildrenFromFields.asScala.map { fromVector =>
@@ -343,7 +347,7 @@ object DeltaWriter extends StrictLogging {
         if (writeHeader) {
           // write the header in the first result, which includes the metadata and dictionaries
           writeHeader = false
-          writeHeaderAndFirstBatch(result, mergedDictionaries.dictionaries, sort, total)
+          writeHeaderAndFirstBatch(result, mergedDictionaries.dictionaries, ipcOpts, sort, total)
         } else {
           unloader.unload(total)
         }
@@ -387,7 +391,7 @@ object DeltaWriter extends StrictLogging {
       }
     }
 
-    createFileFromBatches(sft, mergedDictionaries.dictionaries, encoding, None, iter, firstBatchHasHeader = true)
+    createFileFromBatches(sft, mergedDictionaries.dictionaries, encoding, ipcOpts, None, iter, firstBatchHasHeader = true)
   }
 
   /**
@@ -407,6 +411,7 @@ object DeltaWriter extends StrictLogging {
       sft: SimpleFeatureType,
       dictionaryFields: Seq[String],
       encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
       mergedDictionaries: MergedDictionaries,
       sortBy: String,
       reverse: Boolean,
@@ -418,7 +423,7 @@ object DeltaWriter extends StrictLogging {
     val dictionaries = mergedDictionaries.dictionaries
 
     val result = SimpleFeatureVector.create(sft, dictionaries, encoding)
-    val unloader = new RecordBatchUnloader(result)
+    val unloader = new RecordBatchUnloader(result, ipcOpts)
 
     logger.trace(s"merging sorted deltas - read schema: ${result.underlying.getField}")
 
@@ -511,7 +516,7 @@ object DeltaWriter extends StrictLogging {
         } else {
           // write the header in the first result, which includes the metadata and dictionaries
           writtenHeader = true
-          writeHeaderAndFirstBatch(result, dictionaries, Some(sortBy -> reverse), resultIndex)
+          writeHeaderAndFirstBatch(result, dictionaries, ipcOpts, Some(sortBy -> reverse), resultIndex)
         }
       }
     }
@@ -540,7 +545,7 @@ object DeltaWriter extends StrictLogging {
       }
     }
 
-    createFileFromBatches(sft, dictionaries, encoding, Some(sortBy -> reverse), merged, firstBatchHasHeader = true)
+    createFileFromBatches(sft, dictionaries, encoding, ipcOpts, Some(sortBy -> reverse), merged, firstBatchHasHeader = true)
   }
 
   /**
@@ -931,11 +936,11 @@ object DeltaWriter extends StrictLogging {
     *
     * @param vector vector
     */
-  private class BatchWriter(vector: FieldVector) extends Closeable {
+  private class BatchWriter(vector: FieldVector, ipcOpts: IpcOption) extends Closeable {
 
     private val root = createRoot(vector)
     private val os = new ByteArrayOutputStream()
-    private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os))
+    private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os), ipcOpts)
     writer.start() // start the writer - we'll discard the metadata later, as we only care about the record batches
 
     logger.trace(s"write schema: ${vector.getField}")
@@ -965,6 +970,7 @@ object DeltaWriter extends StrictLogging {
       sft: SimpleFeatureType,
       dictionaryFields: Seq[String],
       encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
       sort: Option[(String, Boolean)],
       sorted: Boolean,
       batchSize: Int,
@@ -984,10 +990,10 @@ object DeltaWriter extends StrictLogging {
         logger.trace(s"merging delta batches from ${threaded.length} thread(s)")
         val dictionaries = mergeDictionaries(sft, dictionaryFields, threaded, encoding)
         if (sorted || sort.isEmpty) {
-          reduceNoSort(sft, dictionaryFields, encoding, dictionaries, sort, batchSize, threaded)
+          reduceNoSort(sft, dictionaryFields, encoding, ipcOpts, dictionaries, sort, batchSize, threaded)
         } else {
           val Some((s, r)) = sort
-          reduceWithSort(sft, dictionaryFields, encoding, dictionaries, s, r, batchSize, threaded)
+          reduceWithSort(sft, dictionaryFields, encoding, ipcOpts, dictionaries, s, r, batchSize, threaded)
         }
       } catch {
         case NonFatal(e) =>

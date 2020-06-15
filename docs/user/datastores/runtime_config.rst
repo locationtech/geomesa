@@ -28,6 +28,12 @@ Common Properties
 These properties apply to all GeoMesa implementations. Additional properties for different back-end
 databases can be found in the chapters for each one.
 
+geomesa.arrow.format.version
+++++++++++++++++++++++++++++
+
+Sets the IPC format version for Arrow-encoded responses. This is expected to be a valid Arrow version,
+i.e. ``0.16`` or ``0.10``. The Arrow IPC format changed slightly starting with version ``0.15``.
+
 geomesa.audit.provider.impl
 +++++++++++++++++++++++++++
 

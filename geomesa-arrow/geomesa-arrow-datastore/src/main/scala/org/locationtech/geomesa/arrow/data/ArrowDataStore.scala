@@ -16,8 +16,9 @@ import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.store.{ContentDataStore, ContentEntry, ContentFeatureSource}
 import org.geotools.feature.NameImpl
 import org.geotools.util.URLs
-import org.locationtech.geomesa.arrow.io.{SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
+import org.locationtech.geomesa.arrow.io.{FormatVersion, SimpleFeatureArrowFileReader, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
+import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata}
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats}
@@ -36,6 +37,8 @@ class ArrowDataStore(val url: URL, caching: Boolean) extends ContentDataStore wi
 
   // note: to avoid cache issues, don't allow writing if caching is enabled
   private lazy val writable = !caching && Try(createOutputStream()).map(_.close()).isSuccess
+
+  private lazy val ipcOpts = FormatVersion.options(FormatVersion.ArrowFormatVersion.get)
 
   private lazy val reader: SimpleFeatureArrowFileReader = {
     initialized = true
@@ -69,7 +72,7 @@ class ArrowDataStore(val url: URL, caching: Boolean) extends ContentDataStore wi
       throw new IllegalArgumentException("Can't write to the provided URL, or caching is enabled")
     }
     WithClose(createOutputStream(false)) { os =>
-      WithClose(SimpleFeatureArrowFileWriter(os, sft)) { writer =>
+      WithClose(SimpleFeatureArrowFileWriter(os, sft, Map.empty, SimpleFeatureEncoding.Max, ipcOpts, None)) { writer =>
         // write an empty batch to write out the schema/metadata
         writer.flush()
       }

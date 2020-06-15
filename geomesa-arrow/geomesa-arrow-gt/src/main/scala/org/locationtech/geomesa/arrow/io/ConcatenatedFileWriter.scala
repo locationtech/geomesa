@@ -10,6 +10,7 @@ package org.locationtech.geomesa.arrow.io
 
 import java.io.ByteArrayOutputStream
 
+import org.apache.arrow.vector.ipc.message.IpcOption
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -34,6 +35,7 @@ object ConcatenatedFileWriter {
       sft: SimpleFeatureType,
       dictionaryFields: Seq[String],
       encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
       sort: Option[(String, Boolean)],
       files: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
     // ensure we return something
@@ -42,7 +44,7 @@ object ConcatenatedFileWriter {
         name -> ArrowDictionary.create(i, Array.empty[AnyRef])
       }
       val os = new ByteArrayOutputStream()
-      WithClose(SimpleFeatureArrowFileWriter(os, sft, dictionaries.toMap, encoding, sort)) { writer =>
+      WithClose(SimpleFeatureArrowFileWriter(os, sft, dictionaries.toMap, encoding, ipcOpts, sort)) { writer =>
         writer.flush() // ensure header and dictionaries are written, and write an empty batch
       }
       // files is empty but this will pass it through to be closed

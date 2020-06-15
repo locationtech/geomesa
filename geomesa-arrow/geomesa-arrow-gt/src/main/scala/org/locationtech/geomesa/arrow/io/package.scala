@@ -13,12 +13,15 @@ import java.nio.channels.Channels
 import java.util.Collections
 
 import org.apache.arrow.vector.ipc.ArrowStreamWriter
+import org.apache.arrow.vector.ipc.message.IpcOption
 import org.apache.arrow.vector.types.pojo.Schema
 import org.apache.arrow.vector.{FieldVector, VectorSchemaRoot}
 import org.locationtech.geomesa.arrow.io.records.RecordBatchLoader
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, GeometryFields, GeometryVector, SimpleFeatureVector}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.conf.SemanticVersion
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeatureType
@@ -28,6 +31,24 @@ package object io {
   object Metadata {
     val SortField = "sort-field"
     val SortOrder = "sort-order"
+  }
+
+  object FormatVersion {
+
+    val LatestVersion = "0.16"
+
+    val ArrowFormatVersion: SystemProperty = SystemProperty("geomesa.arrow.format.version", LatestVersion)
+
+    def options(version: String): IpcOption = {
+      val opt = new IpcOption()
+      if (version != LatestVersion) {
+        lazy val semver = SemanticVersion(version, lenient = true) // avoid parsing if it's a known version (0.10)
+        opt.write_legacy_ipc_format = version == "0.10" || (semver.major == 0 && semver.minor < 15)
+      }
+      opt
+    }
+
+    def version(opt: IpcOption): String = if (opt.write_legacy_ipc_format) { "0.10" } else { LatestVersion }
   }
 
   /**
@@ -103,6 +124,7 @@ package object io {
   def writeHeaderAndFirstBatch(
       result: SimpleFeatureVector,
       dictionaries: Map[String, ArrowDictionary],
+      ipcOpts: IpcOption,
       sort: Option[(String, Boolean)],
       count: Int): Array[Byte] = {
     val metadata = sort match {
@@ -114,7 +136,7 @@ package object io {
     root.setRowCount(count)
     val os = new ByteArrayOutputStream()
     WithClose(SimpleFeatureArrowFileWriter.provider(dictionaries, result.encoding)) { provider =>
-      WithClose(new ArrowStreamWriter(root, provider, Channels.newChannel(os))) { writer =>
+      WithClose(new ArrowStreamWriter(root, provider, Channels.newChannel(os), ipcOpts)) { writer =>
         writer.writeBatch()
         os.toByteArray
       }
@@ -136,19 +158,24 @@ package object io {
       sft: SimpleFeatureType,
       dictionaries: Map[String, ArrowDictionary],
       encoding: SimpleFeatureEncoding,
+      ipcOpts: IpcOption,
       sort: Option[(String, Boolean)],
       batches: CloseableIterator[Array[Byte]],
       firstBatchHasHeader: Boolean): CloseableIterator[Array[Byte]] = {
-    val body = new ArrowFileIterator(sft, dictionaries, encoding, sort, batches, firstBatchHasHeader)
-    // per arrow streaming format footer is the encoded int '0'
-    body ++ CloseableIterator.single(Array[Byte](0, 0, 0, 0))
+    val body = new ArrowFileIterator(sft, dictionaries, encoding, sort, ipcOpts, batches, firstBatchHasHeader)
+    body ++ CloseableIterator.single(if (ipcOpts.write_legacy_ipc_format) { legacyFooter } else { footer })
   }
+
+  // per arrow streaming format footer is the encoded int -1, 0
+  private def footer: Array[Byte] = Array[Byte](-1, -1, -1, -1, 0, 0, 0, 0)
+  private def legacyFooter: Array[Byte] = Array[Byte](0, 0, 0, 0)
 
   private class ArrowFileIterator(
       sft: SimpleFeatureType,
       dictionaries: Map[String, ArrowDictionary],
       encoding: SimpleFeatureEncoding,
       sort: Option[(String, Boolean)],
+      ipcOpts: IpcOption,
       batches: CloseableIterator[Array[Byte]],
       firstBatchHasHeader: Boolean
     ) extends CloseableIterator[Array[Byte]] {
@@ -167,13 +194,13 @@ package object io {
             // add the file header and dictionaries
             WithClose(SimpleFeatureVector.create(sft, dictionaries, encoding)) { vector =>
               new RecordBatchLoader(vector.underlying).load(batches.next)
-              writeHeaderAndFirstBatch(vector, dictionaries, sort, vector.reader.getValueCount)
+              writeHeaderAndFirstBatch(vector, dictionaries, ipcOpts, sort, vector.reader.getValueCount)
             }
           }
         } else {
           // write out an empty batch so that we get the header and dictionaries
           WithClose(SimpleFeatureVector.create(sft, dictionaries, encoding, 0)) { vector =>
-            writeHeaderAndFirstBatch(vector, dictionaries, sort, 0)
+            writeHeaderAndFirstBatch(vector, dictionaries, ipcOpts, sort, 0)
           }
         }
       }

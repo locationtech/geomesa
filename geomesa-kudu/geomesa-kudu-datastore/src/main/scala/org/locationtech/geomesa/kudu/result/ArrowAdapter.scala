@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets
 
 import org.apache.kudu.client.RowResult
 import org.geotools.filter.text.ecql.ECQL
+import org.locationtech.geomesa.arrow.io.FormatVersion
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.TransformSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
@@ -86,27 +87,28 @@ case class ArrowAdapter(sft: SimpleFeatureType,
 
   override def adapt(results: CloseableIterator[RowResult]): CloseableIterator[SimpleFeature] = {
     val dictionaries = config.dictionaryFields
+    val ipcOpts = FormatVersion.options(FormatVersion.LatestVersion)
 
     val (aggregator, reduce) = if (dictionaries.forall(f => config.providedDictionaries.contains(f))) {
       // we have all the dictionary values
       val dicts = ArrowScan.createDictionaries(null, sft, ecql, config.dictionaryFields,
         config.providedDictionaries, Map.empty)
       val aggregate = config.sort match {
-        case None => new BatchAggregate(arrowSft, dicts, encoding)
-        case Some((sort, reverse)) => new SortingBatchAggregate(arrowSft, dicts, encoding, sort, reverse, config.batchSize)
+        case None => new BatchAggregate(arrowSft, dicts, encoding, ipcOpts)
+        case Some((sort, reverse)) => new SortingBatchAggregate(arrowSft, dicts, encoding, ipcOpts, sort, reverse, config.batchSize)
       }
-      val reduce = new ArrowScan.BatchReducer(arrowSft, dicts, encoding, config.batchSize, config.sort, sorted = false)
+      val reduce = new ArrowScan.BatchReducer(arrowSft, dicts, encoding, ipcOpts, config.batchSize, config.sort, sorted = false)
       (aggregate, reduce)
     } else if (config.multiFile) {
       val aggregate = config.sort match {
-        case None => new MultiFileAggregate(arrowSft, dictionaries, encoding)
-        case Some((sort, reverse)) => new MultiFileSortingAggregate(arrowSft, dictionaries, encoding, sort, reverse, config.batchSize)
+        case None => new MultiFileAggregate(arrowSft, dictionaries, encoding, ipcOpts)
+        case Some((sort, reverse)) => new MultiFileSortingAggregate(arrowSft, dictionaries, encoding, ipcOpts, sort, reverse, config.batchSize)
       }
-      val reduce = new ArrowScan.FileReducer(arrowSft, dictionaries, encoding, config.sort)
+      val reduce = new ArrowScan.FileReducer(arrowSft, dictionaries, encoding, ipcOpts, config.sort)
       (aggregate, reduce)
     } else {
-      val aggregate = new DeltaAggregate(arrowSft, dictionaries, encoding, config.sort, config.batchSize)
-      val reduce = new ArrowScan.DeltaReducer(arrowSft, dictionaries, encoding, config.batchSize, config.sort, sorted = false)
+      val aggregate = new DeltaAggregate(arrowSft, dictionaries, encoding, ipcOpts, config.sort, config.batchSize)
+      val reduce = new ArrowScan.DeltaReducer(arrowSft, dictionaries, encoding, ipcOpts, config.batchSize, config.sort, sorted = false)
       (aggregate, reduce)
     }
 

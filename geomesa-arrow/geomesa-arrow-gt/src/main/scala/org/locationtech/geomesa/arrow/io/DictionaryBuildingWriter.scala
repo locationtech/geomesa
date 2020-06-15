@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.arrow.io
 
 import java.io.{Closeable, OutputStream}
+import java.nio.channels.Channels
 import java.util.Collections
 
 import org.apache.arrow.vector._
@@ -16,6 +17,7 @@ import org.apache.arrow.vector.complex.StructVector
 import org.apache.arrow.vector.dictionary.Dictionary
 import org.apache.arrow.vector.dictionary.DictionaryProvider.MapDictionaryProvider
 import org.apache.arrow.vector.ipc.ArrowStreamWriter
+import org.apache.arrow.vector.ipc.message.IpcOption
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding, Field}
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.vector.ArrowAttributeWriter
@@ -39,7 +41,8 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 class DictionaryBuildingWriter(
     sft: SimpleFeatureType,
     dictionaries: Seq[String],
-    encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min,
+    encoding: SimpleFeatureEncoding,
+    ipcOpts: IpcOption,
     maxSize: Int = Short.MaxValue
   ) extends Closeable {
 
@@ -116,7 +119,8 @@ class DictionaryBuildingWriter(
       new Dictionary(writer.vector, w.dictionary.encoding)
     }
 
-    WithClose(new ArrowStreamWriter(root, new MapDictionaryProvider(dictionaries: _*), os)) { writer =>
+    val provider = new MapDictionaryProvider(dictionaries: _*)
+    WithClose(new ArrowStreamWriter(root, provider, Channels.newChannel(os), ipcOpts)) { writer =>
       writer.start()
       writer.writeBatch()
     }

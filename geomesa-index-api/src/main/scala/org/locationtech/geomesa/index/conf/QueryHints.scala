@@ -54,6 +54,7 @@ object QueryHints {
   val ARROW_BATCH_SIZE         = new ClassKey(classOf[java.lang.Integer])
   val ARROW_SORT_FIELD         = new ClassKey(classOf[java.lang.String])
   val ARROW_SORT_REVERSE       = new ClassKey(classOf[java.lang.Boolean])
+  val ARROW_FORMAT_VERSION     = new ClassKey(classOf[String])
 
   val ARROW_DICTIONARY_FIELDS  = new ClassKey(classOf[java.lang.String])
   val ARROW_DICTIONARY_VALUES  = new ClassKey(classOf[java.lang.String])
@@ -145,6 +146,7 @@ object QueryHints {
       Option(hints.get(ARROW_SORT_FIELD).asInstanceOf[String]).map { field =>
         (field, Option(hints.get(ARROW_SORT_REVERSE)).exists(_.asInstanceOf[Boolean]))
       }
+    def getArrowFormatVersion: Option[String] = Option(hints.get(ARROW_FORMAT_VERSION).asInstanceOf[String])
 
     def isStatsQuery: Boolean = hints.containsKey(STATS_STRING)
     def getStatsQuery: String = hints.get(STATS_STRING).asInstanceOf[String]

@@ -11,6 +11,7 @@ package org.locationtech.geomesa.index.iterators
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
@@ -53,7 +54,7 @@ class ArrowScanTest extends Specification with LazyLogging {
   "ArrowScan's MultiFileAggregate" should {
     "be able to be reused" in {
 
-      val mfa = new MultiFileAggregate(sft, Nil, SimpleFeatureEncoding.min(true, false))
+      val mfa = new MultiFileAggregate(sft, Nil, SimpleFeatureEncoding.min(includeFids = true), new IpcOption())
 
       mfa.init()
       mfa.aggregate(features(0))

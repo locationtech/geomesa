@@ -11,6 +11,7 @@ package org.locationtech.geomesa.arrow.io
 import java.io.ByteArrayInputStream
 import java.util.Date
 
+import org.apache.arrow.vector.ipc.message.IpcOption
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -41,7 +42,7 @@ class BatchWriterTest extends Specification {
       val encoding = SimpleFeatureEncoding.min(includeFids = true)
       val dictionaries = Map.empty[String, ArrowDictionary]
       val batches = WithClose(SimpleFeatureVector.create(sft, dictionaries, encoding)) { vector =>
-        val unloader = new RecordBatchUnloader(vector)
+        val unloader = new RecordBatchUnloader(vector, new IpcOption())
         Seq(features0, features1, features2).map { features =>
           var i = 0
           while (i < features.length) {
@@ -52,7 +53,7 @@ class BatchWriterTest extends Specification {
         }
       }
 
-      val bytes = WithClose(BatchWriter.reduce(sft, dictionaries, encoding, Some("dtg" -> false), sorted = false, 10, batches.iterator))(_.reduceLeft(_ ++ _))
+      val bytes = WithClose(BatchWriter.reduce(sft, dictionaries, encoding, new IpcOption(), Some("dtg" -> false), sorted = false, 10, batches.iterator))(_.reduceLeft(_ ++ _))
 
       val features = WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         WithClose(reader.features())(_.map(ScalaSimpleFeature.copy).toList)
