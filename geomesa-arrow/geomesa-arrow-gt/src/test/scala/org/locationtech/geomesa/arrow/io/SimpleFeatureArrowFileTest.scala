@@ -20,7 +20,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.{WKBUtils, WKTUtils}
-import org.locationtech.jts.geom.{Geometry, LineString}
+import org.locationtech.jts.geom.{Geometry, LineString, Point, Polygon}
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -242,13 +242,16 @@ class SimpleFeatureArrowFileTest extends Specification {
             read.map(_.getAttribute(i)) mustEqual geomFeatures.map(_.getAttribute(i))
           }
           forall(read.map(_.getDefaultGeometry()).zip(geomFeatures.map(_.getDefaultGeometry))) {
-            case (r: Geometry, f: Geometry) =>
+            case (r: Point, f: Point) =>
+              r.getX must beCloseTo(f.getX, delta=0.001)
+              r.getY must beCloseTo(f.getY, delta=0.001)
+            case (r: Polygon, f: Polygon) =>
               // because of our limited precision in arrow queries, points don't exactly match up
               r.getNumPoints mustEqual f.getNumPoints
-//              foreach(0 until r.getNumPoints) { n =>
-//                r.getCoordinateN(n).x must beCloseTo(f.getCoordinateN(n).x, 0.001)
-//                r.getCoordinateN(n).y must beCloseTo(f.getCoordinateN(n).y, 0.001)
-//              }
+              foreach(0 until r.getNumPoints) { n =>
+                r.getExteriorRing.getCoordinateN(n).x must beCloseTo(r.getExteriorRing.getCoordinateN(n).x, delta=0.001)
+                r.getExteriorRing.getCoordinateN(n).y must beCloseTo(r.getExteriorRing.getCoordinateN(n).y, delta=0.001)
+              }
             case (a, b) => println(s"a: $a b: $b")
               ok
           }
@@ -262,9 +265,9 @@ class SimpleFeatureArrowFileTest extends Specification {
   def withTestFile[T](name: String)(fn: (File) => T): T = {
     val file = Files.createTempFile(s"gm-arrow-file-test-${fileCount.getAndIncrement()}-", "arrow").toFile
     try { fn(file) } finally {
-       //note: uncomment to re-create test data for arrow datastore
-       val copy = new File(s"geomesa-arrow/geomesa-arrow-datastore/src/test/resources/data/$name.arrow")
-       org.apache.commons.io.FileUtils.copyFile(file, copy)
+       // note: uncomment to re-create test data for arrow datastore
+       // val copy = new File(s"geomesa-arrow/geomesa-arrow-datastore/src/test/resources/data/$name.arrow")
+       // org.apache.commons.io.FileUtils.copyFile(file, copy)
 
       if (!file.delete()) {
         file.deleteOnExit()
