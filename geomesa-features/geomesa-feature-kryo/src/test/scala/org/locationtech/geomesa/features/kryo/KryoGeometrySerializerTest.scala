@@ -14,7 +14,7 @@ import com.esotericsoftware.kryo.io.{Input, Output}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerialization
 import org.locationtech.geomesa.utils.text.WKTUtils
-import org.locationtech.jts.geom.{Geometry, Point}
+import com.vividsolutions.jts.geom.{Geometry, Point}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

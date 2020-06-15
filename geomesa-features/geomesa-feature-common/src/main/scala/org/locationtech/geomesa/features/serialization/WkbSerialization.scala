@@ -203,6 +203,6 @@ object WkbSerialization {
     val coord = geometry.getCoordinate
     // check for dimensions - use NaN != NaN to verify z coordinate
     // TODO check for M coordinate when added to JTS
-    coord == null || java.lang.Double.isNaN(coord.getZ)
+    coord == null || java.lang.Double.isNaN(coord.z)
   }
 }
