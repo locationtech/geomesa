@@ -265,9 +265,9 @@ class SimpleFeatureArrowFileTest extends Specification {
   def withTestFile[T](name: String)(fn: (File) => T): T = {
     val file = Files.createTempFile(s"gm-arrow-file-test-${fileCount.getAndIncrement()}-", "arrow").toFile
     try { fn(file) } finally {
-       // note: uncomment to re-create test data for arrow datastore
-       // val copy = new File(s"geomesa-arrow/geomesa-arrow-datastore/src/test/resources/data/$name.arrow")
-       // org.apache.commons.io.FileUtils.copyFile(file, copy)
+      // note: uncomment to re-create test data for arrow datastore
+      // val copy = new File(s"geomesa-arrow/geomesa-arrow-datastore/src/test/resources/data/$name.arrow")
+      // org.apache.commons.io.FileUtils.copyFile(file, copy)
 
       if (!file.delete()) {
         file.deleteOnExit()
