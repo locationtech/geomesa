@@ -241,36 +241,38 @@ The result of an Arrow query will be an iterator of SimpleFeatures, where the fi
 byte array. Concatenated together, the byte arrays will form an Arrow file, in the Arrow streaming format
 (i.e. no footer).
 
-In GeoServer you can use the ``ArrowConversionProcess``. Otherwise, the encoding is controlled through the
+In GeoServer you can use the ``ArrowConversionProcess``, or through WFS by setting
+``outputFormat=application/vnd.arrow`` and controlling the configuration through the ``format_options`` parameter,
+e.g. ``format_options=includeFids:true;batchSize:1000``. Otherwise, the encoding is controlled through the
 following query hints:
 
-+-------------------------------------+--------------------+----------------------+
-| Key                                 | Type               | GeoServer Conversion |
-+=====================================+====================+======================+
-| QueryHints.ARROW_ENCODE             | Boolean            | Use WPS              |
-+-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_INCLUDE_FID        | Boolean (optional) |                      |
-+-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_PROXY_FID          | Boolean (optional) |                      |
-+-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_SORT_FIELD         | String (optional)  |                      |
-+-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_SORT_REVERSE       | Boolean (optional) |                      |
-+-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_DICTIONARY_FIELDS  | String (optional)  |                      |
-+-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_DICTIONARY_VALUES  | String (optional)  |                      |
-+-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_DICTIONARY_CACHED  | Boolean (optional) |                      |
-+-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_MULTI_FILE         | Boolean (optional) |                      |
-+-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_DOUBLE_PASS        | Boolean (optional) |                      |
-+-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_BATCH_SIZE         | Integer (optional) |                      |
-+-------------------------------------+--------------------+                      +
-| QueryHints.ARROW_FORMAT_VERSION     | String (optional)  |                      |
-+-------------------------------------+--------------------+----------------------+
++-------------------------------------+--------------------+------------------------------------+
+| Key                                 | Type               | GeoServer Format Option            |
++=====================================+====================+====================================+
+| QueryHints.ARROW_ENCODE             | Boolean            | outputFormat=application/vnd.arrow |
++-------------------------------------+--------------------+------------------------------------+
+| QueryHints.ARROW_INCLUDE_FID        | Boolean (optional) | includeFids                        |
++-------------------------------------+--------------------+------------------------------------+
+| QueryHints.ARROW_PROXY_FID          | Boolean (optional) | proxyFids                          |
++-------------------------------------+--------------------+------------------------------------+
+| QueryHints.ARROW_SORT_FIELD         | String (optional)  | sortField                          |
++-------------------------------------+--------------------+------------------------------------+
+| QueryHints.ARROW_SORT_REVERSE       | Boolean (optional) | sortReverse                        |
++-------------------------------------+--------------------+------------------------------------+
+| QueryHints.ARROW_DICTIONARY_FIELDS  | String (optional)  | dictionaryFields                   |
++-------------------------------------+--------------------+------------------------------------+
+| QueryHints.ARROW_DICTIONARY_VALUES  | String (optional)  | N/A                                |
++-------------------------------------+--------------------+------------------------------------+
+| QueryHints.ARROW_DICTIONARY_CACHED  | Boolean (optional) | useCachedDictionaries              |
++-------------------------------------+--------------------+------------------------------------+
+| QueryHints.ARROW_MULTI_FILE         | Boolean (optional) | N/A                                |
++-------------------------------------+--------------------+------------------------------------+
+| QueryHints.ARROW_DOUBLE_PASS        | Boolean (optional) | doublePass                         |
++-------------------------------------+--------------------+------------------------------------+
+| QueryHints.ARROW_BATCH_SIZE         | Integer (optional) | batchSize                          |
++-------------------------------------+--------------------+------------------------------------+
+| QueryHints.ARROW_FORMAT_VERSION     | String (optional)  | formatVersion                      |
++-------------------------------------+--------------------+------------------------------------+
 
 .. warning::
 
