@@ -64,36 +64,37 @@ trait WkbSerialization[T <: NumericWriter, V <: NumericReader] {
   }
 
   private def writePoint(out: T, g: Point): Unit = {
+    val twoD = WkbSerialization.is2d(g)
     val coords = g.getCoordinateSequence
-    val (flag, writeDims) = if (coords.getDimension == 2) { (Point2d, false) } else { (Point, true) }
+    val (flag, writeDims) = if (twoD) { (Point2d, false) } else { (Point, true) }
     out.writeInt(flag, optimizePositive = true)
-    writeCoordinateSequence(out, coords, writeLength = false, writeDims)
+    writeCoordinateSequence(out, coords, twoD, writeLength = false, writeDims)
   }
 
   private def readPoint(in: V, dims: Option[Int]): Point =
     factory.createPoint(readCoordinateSequence(in, Some(1), dims))
 
   private def writeLineString(out: T, g: LineString): Unit = {
+    val twoD = WkbSerialization.is2d(g)
     val coords = g.getCoordinateSequence
-    val (flag, writeDims) = if (coords.getDimension == 2) { (LineString2d, false) } else { (LineString, true) }
+    val (flag, writeDims) = if (twoD) { (LineString2d, false) } else { (LineString, true) }
     out.writeInt(flag, optimizePositive = true)
-    writeCoordinateSequence(out, coords, writeLength = true, writeDims)
+    writeCoordinateSequence(out, coords, twoD, writeLength = true, writeDims)
   }
 
   private def readLineString(in: V, dims: Option[Int]): LineString =
     factory.createLineString(readCoordinateSequence(in, None, dims))
 
   private def writePolygon(out: T, g: Polygon): Unit = {
+    val twoD = WkbSerialization.is2d(g)
     val exterior = g.getExteriorRing.getCoordinateSequence
-    val twoD = exterior.getDimension == 2 &&
-        (0 until g.getNumInteriorRing).forall(i => g.getInteriorRingN(i).getCoordinateSequence.getDimension == 2)
     val (flag, writeDims) = if (twoD) { (Polygon2d, false) } else { (Polygon, true) }
     out.writeInt(flag, optimizePositive = true)
-    writeCoordinateSequence(out, exterior, writeLength = true, writeDims)
+    writeCoordinateSequence(out, exterior, twoD, writeLength = true, writeDims)
     out.writeInt(g.getNumInteriorRing, optimizePositive = true)
     var i = 0
     while (i < g.getNumInteriorRing) {
-      writeCoordinateSequence(out, g.getInteriorRingN(i).getCoordinateSequence, writeLength = true, writeDims)
+      writeCoordinateSequence(out, g.getInteriorRingN(i).getCoordinateSequence, twoD, writeLength = true, writeDims)
       i += 1
     }
   }
@@ -135,10 +136,12 @@ trait WkbSerialization[T <: NumericWriter, V <: NumericReader] {
     geoms
   }
 
-  private def writeCoordinateSequence(out: T,
-                                      coords: CoordinateSequence,
-                                      writeLength: Boolean,
-                                      writeDimensions: Boolean): Unit = {
+  private def writeCoordinateSequence(
+      out: T,
+      coords: CoordinateSequence,
+      twoD: Boolean,
+      writeLength: Boolean,
+      writeDimensions: Boolean): Unit = {
     val dims = coords.getDimension
     if (writeLength) {
       out.writeInt(coords.size(), optimizePositive = true)
@@ -149,10 +152,10 @@ trait WkbSerialization[T <: NumericWriter, V <: NumericReader] {
     var i = 0
     while (i < coords.size()) {
       val coord = coords.getCoordinate(i)
-      var j = 0
-      while (j < dims) {
-        out.writeDouble(coord.getOrdinate(j))
-        j += 1
+      out.writeDouble(coord.getOrdinate(0))
+      out.writeDouble(coord.getOrdinate(1))
+      if (!twoD) {
+        out.writeDouble(coord.getOrdinate(2))
       }
       i += 1
     }
@@ -191,4 +194,15 @@ object WkbSerialization {
   val Point: Int              = 8
   val LineString: Int         = 9
   val Polygon: Int            = 10
+
+  private def is2d(geometry: Geometry): Boolean = {
+    // don't trust coord.getDimensions - it always returns 3 in jts
+    // instead, check for NaN for the z dimension
+    // note that we only check the first coordinate - if a geometry is written with different
+    // dimensions in each coordinate, some information may be lost
+    val coord = geometry.getCoordinate
+    // check for dimensions - use NaN != NaN to verify z coordinate
+    // TODO check for M coordinate when added to JTS
+    coord == null || java.lang.Double.isNaN(coord.getZ)
+  }
 }
