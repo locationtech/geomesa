@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.features.serialization
 
+import org.locationtech.geomesa.features.serialization.DimensionalBounds.{CoordAccessor, MAccessor, ZAccessor}
 import org.locationtech.jts.geom._
 
 /**
@@ -42,7 +43,7 @@ trait DimensionalBounds[T <: Geometry] {
     * @param geometry geometry, not null and not empty
     * @return (min, max)
     */
-  def z(geometry: T): (Double, Double)
+  def z(geometry: T): (Double, Double) = bounds(geometry, ZAccessor)
 
   /**
     * Get bounds for the m dimension
@@ -50,24 +51,26 @@ trait DimensionalBounds[T <: Geometry] {
     * @param geometry geometry, not null and not empty
     * @return (min, max)
     */
-  def m(geometry: T): (Double, Double) =
-    // TODO implement once JTS supports M
-    throw new NotImplementedError("JTS doesn't support M dimension")
+  def m(geometry: T): (Double, Double) = bounds(geometry, MAccessor)
+
+  private [serialization] def bounds(geometry: T, accessor: CoordAccessor): (Double, Double)
 }
 
 object DimensionalBounds {
 
   implicit object LineStringBounds extends DimensionalBounds[LineString] {
-    override def z(geometry: LineString): (Double, Double) = {
-      var min = geometry.getCoordinateN(0).z
+    override private [serialization] def bounds(
+        geometry: LineString,
+        accessor: CoordAccessor): (Double, Double) = {
+      var min = accessor(geometry.getCoordinateN(0))
       var max = min
       var i = 1
       while (i < geometry.getNumPoints) {
-        val z = geometry.getCoordinateN(i).z
-        if (z < min) {
-          min = z
-        } else if (z > max) {
-          max = z
+        val next = accessor(geometry.getCoordinateN(i))
+        if (next < min) {
+          min = next
+        } else if (next > max) {
+          max = next
         }
         i += 1
       }
@@ -76,17 +79,19 @@ object DimensionalBounds {
   }
 
   implicit object PolygonBounds extends DimensionalBounds[Polygon] {
-    override def z(geometry: Polygon): (Double, Double) = {
+    override private [serialization] def bounds(
+        geometry: Polygon,
+        accessor: CoordAccessor): (Double, Double) = {
       var ring = geometry.getExteriorRing
-      var min = ring.getCoordinateN(0).z
+      var min = accessor(ring.getCoordinateN(0))
       var max = min
       var i = 1
       while (i < ring.getNumPoints) {
-        val z = ring.getCoordinateN(i).z
-        if (z < min) {
-          min = z
-        } else if (z > max) {
-          max = z
+        val next = accessor(ring.getCoordinateN(i))
+        if (next < min) {
+          min = next
+        } else if (next > max) {
+          max = next
         }
         i += 1
       }
@@ -96,11 +101,11 @@ object DimensionalBounds {
         ring = geometry.getInteriorRingN(j)
         i = 0
         while (i < ring.getNumPoints) {
-          val z = ring.getCoordinateN(i).z
-          if (z < min) {
-            min = z
-          } else if (z > max) {
-            max = z
+          val next = accessor(ring.getCoordinateN(i))
+          if (next < min) {
+            min = next
+          } else if (next > max) {
+            max = next
           }
           i += 1
         }
@@ -111,16 +116,18 @@ object DimensionalBounds {
   }
 
   implicit object MultiPointBounds extends DimensionalBounds[MultiPoint] {
-    override def z(geometry: MultiPoint): (Double, Double) = {
-      var min = geometry.getGeometryN(0).asInstanceOf[Point].getCoordinate.z
+    override private [serialization] def bounds(
+        geometry: MultiPoint,
+        accessor: CoordAccessor): (Double, Double) = {
+      var min = accessor(geometry.getGeometryN(0).asInstanceOf[Point].getCoordinate)
       var max = min
       var i = 1
       while (i < geometry.getNumGeometries) {
-        val z = geometry.getGeometryN(i).asInstanceOf[Point].getCoordinate.z
-        if (z < min) {
-          min = z
-        } else if (z > max) {
-          max = z
+        val next = accessor(geometry.getGeometryN(i).asInstanceOf[Point].getCoordinate)
+        if (next < min) {
+          min = next
+        } else if (next > max) {
+          max = next
         }
         i += 1
       }
@@ -129,11 +136,13 @@ object DimensionalBounds {
   }
 
   implicit object MultiLineStringBounds extends DimensionalBounds[MultiLineString] {
-    override def z(geometry: MultiLineString): (Double, Double) = {
-      var (min, max) = LineStringBounds.z(geometry.getGeometryN(0).asInstanceOf[LineString])
+    override private [serialization] def bounds(
+        geometry: MultiLineString,
+        accessor: CoordAccessor): (Double, Double) = {
+      var (min, max) = LineStringBounds.bounds(geometry.getGeometryN(0).asInstanceOf[LineString], accessor)
       var i = 1
       while (i < geometry.getNumGeometries) {
-        val (mini, maxi) = LineStringBounds.z(geometry.getGeometryN(i).asInstanceOf[LineString])
+        val (mini, maxi) = LineStringBounds.bounds(geometry.getGeometryN(i).asInstanceOf[LineString], accessor)
         if (mini < min) {
           min = min
         }
@@ -147,11 +156,13 @@ object DimensionalBounds {
   }
 
   implicit object MultiPolygonBounds extends DimensionalBounds[MultiPolygon] {
-    override def z(geometry: MultiPolygon): (Double, Double) = {
-      var (min, max) = PolygonBounds.z(geometry.getGeometryN(0).asInstanceOf[Polygon])
+    override private [serialization] def bounds(
+        geometry: MultiPolygon,
+        accessor: CoordAccessor): (Double, Double) = {
+      var (min, max) = PolygonBounds.bounds(geometry.getGeometryN(0).asInstanceOf[Polygon], accessor)
       var i = 1
       while (i < geometry.getNumGeometries) {
-        val (mini, maxi) = PolygonBounds.z(geometry.getGeometryN(i).asInstanceOf[Polygon])
+        val (mini, maxi) = PolygonBounds.bounds(geometry.getGeometryN(i).asInstanceOf[Polygon], accessor)
         if (mini < min) {
           min = min
         }
@@ -165,26 +176,28 @@ object DimensionalBounds {
   }
 
   implicit object GeometryCollectionBounds extends DimensionalBounds[GeometryCollection] {
-    override def z(geometry: GeometryCollection): (Double, Double) = {
+    override private [serialization] def bounds(
+        geometry: GeometryCollection,
+        accessor: CoordAccessor): (Double, Double) = {
       var (min, max) = geometry.getGeometryN(0) match {
-        case g: Point              => (g.getCoordinate.z, g.getCoordinate.z)
-        case g: LineString         => LineStringBounds.z(g)
-        case g: Polygon            => PolygonBounds.z(g)
-        case g: MultiPoint         => MultiPointBounds.z(g)
-        case g: MultiLineString    => MultiLineStringBounds.z(g)
-        case g: MultiPolygon       => MultiPolygonBounds.z(g)
-        case g: GeometryCollection => GeometryCollectionBounds.z(g)
+        case g: Point              => (accessor(g.getCoordinate), accessor(g.getCoordinate))
+        case g: LineString         => LineStringBounds.bounds(g, accessor)
+        case g: Polygon            => PolygonBounds.bounds(g, accessor)
+        case g: MultiPoint         => MultiPointBounds.bounds(g, accessor)
+        case g: MultiLineString    => MultiLineStringBounds.bounds(g, accessor)
+        case g: MultiPolygon       => MultiPolygonBounds.bounds(g, accessor)
+        case g: GeometryCollection => GeometryCollectionBounds.bounds(g, accessor)
       }
       var i = 1
       while (i < geometry.getNumGeometries) {
         val (mini, maxi) = geometry.getGeometryN(i) match {
-          case g: Point              => (g.getCoordinate.z, g.getCoordinate.z)
-          case g: LineString         => LineStringBounds.z(g)
-          case g: Polygon            => PolygonBounds.z(g)
-          case g: MultiPoint         => MultiPointBounds.z(g)
-          case g: MultiLineString    => MultiLineStringBounds.z(g)
-          case g: MultiPolygon       => MultiPolygonBounds.z(g)
-          case g: GeometryCollection => GeometryCollectionBounds.z(g)
+          case g: Point              => (accessor(g.getCoordinate), accessor(g.getCoordinate))
+          case g: LineString         => LineStringBounds.bounds(g, accessor)
+          case g: Polygon            => PolygonBounds.bounds(g, accessor)
+          case g: MultiPoint         => MultiPointBounds.bounds(g, accessor)
+          case g: MultiLineString    => MultiLineStringBounds.bounds(g, accessor)
+          case g: MultiPolygon       => MultiPolygonBounds.bounds(g, accessor)
+          case g: GeometryCollection => GeometryCollectionBounds.bounds(g, accessor)
         }
         if (mini < min) {
           min = min
@@ -196,5 +209,17 @@ object DimensionalBounds {
       }
       (min, max)
     }
+  }
+
+  private trait CoordAccessor {
+    def apply(c: Coordinate): Double
+  }
+
+  private object ZAccessor extends CoordAccessor {
+    override def apply(c: Coordinate): Double = c.getZ
+  }
+
+  private object MAccessor extends CoordAccessor {
+    override def apply(c: Coordinate): Double = c.getM
   }
 }
