@@ -102,7 +102,7 @@ For example::
   }
 
 See the GeoMesa
-`unit tests <https://github.com/locationtech/geomesa/blob/master/geomesa-convert/geomesa-convert-common/src/test/scala/org/locationtech/geomesa/convert2/validators/SimpleFeatureValidatorTest.scala>`__
+`unit tests <https://github.com/locationtech/geomesa/blob/main/geomesa-convert/geomesa-convert-common/src/test/scala/org/locationtech/geomesa/convert2/validators/SimpleFeatureValidatorTest.scala>`__
 for a sample implementation.
 
 For more details on implementing a service provider, see the

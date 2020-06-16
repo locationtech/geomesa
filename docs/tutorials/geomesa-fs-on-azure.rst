@@ -25,7 +25,7 @@ Follow the `AZTK instructions <https://github.com/Azure/aztk>`__ to install AZTK
 
 .. warning::
 
-  Make sure you pick the correct branch of the documentation to match the latest release (not ``master``).
+  Make sure you pick the correct branch of the documentation to match the latest release (not ``main``).
 
 .. note::
 

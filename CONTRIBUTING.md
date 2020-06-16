@@ -59,7 +59,7 @@ GeoMesa uses git pull requests for contributions. To create a pull request, foll
 Coding Standards
 ----------------
 
-* An initial pull request should consist of a single commit, rebased on top of the current master branch.
+* An initial pull request should consist of a single commit, rebased on top of the current main branch.
   * Additional commits can be added in response to code review comments.
 * The commit message must consist of a JIRA ticket number followed by a short description, with additional
   information in bullets below as required.

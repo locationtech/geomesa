@@ -80,7 +80,7 @@ To build and install the source distribution requires:
 
 Source can be cloned using `Git <http://git-scm.com/>`__ or downloaded from `GitHub`__.
 
-__ https://github.com/locationtech/geomesa/archive/master.tar.gz
+__ https://github.com/locationtech/geomesa/archive/main.tar.gz
 
 To build, change to the source directory and use Maven:
 

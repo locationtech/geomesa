@@ -53,7 +53,7 @@ geospatial analytics.
 **Development version: ${geomesa.devel.version}**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
-  [![Build Status](https://github.com/locationtech/geomesa/workflows/CI/badge.svg?branch=master)](https://github.com/locationtech/geomesa/actions?query=branch%3Amaster+workflow%3ACI)
+  [![Build Status](https://github.com/locationtech/geomesa/workflows/CI/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions?query=branch%3Amain+workflow%3ACI)
 
 ### Verifying Downloads
 
