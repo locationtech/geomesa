@@ -13,6 +13,7 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, ToggleRemoteFilterParam}
 import org.locationtech.geomesa.hbase.tools.stats.HBaseStatsHistogramCommand.HBaseStatsHistogramParams
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsHistogramCommand
 import org.locationtech.geomesa.tools.stats.StatsHistogramCommand.StatsHistogramParams
 
@@ -22,5 +23,5 @@ class HBaseStatsHistogramCommand extends StatsHistogramCommand[HBaseDataStore] w
 
 object HBaseStatsHistogramCommand {
   @Parameters(commandDescription = "View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
-  class HBaseStatsHistogramParams extends StatsHistogramParams with HBaseParams with ToggleRemoteFilterParam
+  class HBaseStatsHistogramParams extends StatsHistogramParams with HBaseParams with RequiredTypeNameParam with ToggleRemoteFilterParam
 }

@@ -13,7 +13,7 @@ import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
 import org.locationtech.geomesa.arrow.tools.stats.ArrowStatsBoundsCommand.ArrowStatsBoundsParams
-import org.locationtech.geomesa.tools.RequiredTypeNameParam
+import org.locationtech.geomesa.tools.ProvidedTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsBoundsCommand
 import org.locationtech.geomesa.tools.stats.StatsBoundsCommand.StatsBoundsParams
 
@@ -29,5 +29,5 @@ class ArrowStatsBoundsCommand extends StatsBoundsCommand[ArrowDataStore] with Ar
 
 object ArrowStatsBoundsCommand {
   @Parameters(commandDescription = "Calculate bounds on attributes in a GeoMesa feature type")
-  class ArrowStatsBoundsParams extends StatsBoundsParams with UrlParam with RequiredTypeNameParam
+  class ArrowStatsBoundsParams extends StatsBoundsParams with UrlParam with ProvidedTypeNameParam
 }

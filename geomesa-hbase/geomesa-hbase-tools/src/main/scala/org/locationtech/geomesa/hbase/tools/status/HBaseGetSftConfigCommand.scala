@@ -13,6 +13,7 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, ToggleRemoteFilterParam}
 import org.locationtech.geomesa.hbase.tools.status.HBaseGetSftConfigCommand.HBaseGetSftConfigParameters
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.status.{GetSftConfigCommand, GetSftConfigParams}
 
 class HBaseGetSftConfigCommand extends GetSftConfigCommand[HBaseDataStore] with HBaseDataStoreCommand {
@@ -21,5 +22,5 @@ class HBaseGetSftConfigCommand extends GetSftConfigCommand[HBaseDataStore] with 
 
 object HBaseGetSftConfigCommand {
   @Parameters(commandDescription = "Get the SimpleFeatureType definition of a schema")
-  class HBaseGetSftConfigParameters extends GetSftConfigParams with HBaseParams with ToggleRemoteFilterParam
+  class HBaseGetSftConfigParameters extends GetSftConfigParams with HBaseParams with RequiredTypeNameParam with ToggleRemoteFilterParam
 }

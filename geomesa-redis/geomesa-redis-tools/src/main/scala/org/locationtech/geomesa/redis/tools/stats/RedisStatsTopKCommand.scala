@@ -13,6 +13,7 @@ import org.locationtech.geomesa.redis.data.RedisDataStore
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand.RedisDataStoreParams
 import org.locationtech.geomesa.redis.tools.stats.RedisStatsTopKCommand.RedisStatsTopKParams
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand.StatsTopKParams
 
@@ -22,5 +23,5 @@ class RedisStatsTopKCommand extends StatsTopKCommand[RedisDataStore] with RedisD
 
 object RedisStatsTopKCommand {
   @Parameters(commandDescription = "Enumerate the most frequent values in a GeoMesa feature type")
-  class RedisStatsTopKParams extends StatsTopKParams with RedisDataStoreParams
+  class RedisStatsTopKParams extends StatsTopKParams with RedisDataStoreParams with RequiredTypeNameParam
 }

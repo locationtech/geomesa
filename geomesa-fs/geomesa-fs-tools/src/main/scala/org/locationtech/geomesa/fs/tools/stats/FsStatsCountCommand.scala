@@ -13,6 +13,7 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.stats.FsStatsCountCommand.FsStatsCountParams
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsCountCommand
 import org.locationtech.geomesa.tools.stats.StatsCountCommand.StatsCountParams
 
@@ -22,5 +23,5 @@ class FsStatsCountCommand extends StatsCountCommand[FileSystemDataStore] with Fs
 
 object FsStatsCountCommand {
   @Parameters(commandDescription = "Estimate or calculate feature counts in a GeoMesa feature type")
-  class FsStatsCountParams extends StatsCountParams with FsParams
+  class FsStatsCountParams extends StatsCountParams with FsParams with RequiredTypeNameParam
 }

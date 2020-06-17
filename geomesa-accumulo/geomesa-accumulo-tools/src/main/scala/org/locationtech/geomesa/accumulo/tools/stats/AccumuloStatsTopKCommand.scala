@@ -12,6 +12,7 @@ import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.tools.stats.AccumuloStatsTopKCommand.AccumuloStatsTopKParams
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand.StatsTopKParams
 
@@ -21,5 +22,5 @@ class AccumuloStatsTopKCommand extends StatsTopKCommand[AccumuloDataStore] with 
 
 object AccumuloStatsTopKCommand {
   @Parameters(commandDescription = "Enumerate the most frequent values in a GeoMesa feature type")
-  class AccumuloStatsTopKParams extends StatsTopKParams with AccumuloDataStoreParams
+  class AccumuloStatsTopKParams extends StatsTopKParams with AccumuloDataStoreParams with RequiredTypeNameParam
 }

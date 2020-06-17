@@ -12,6 +12,7 @@ import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.lambda.tools.stats.LambdaStatsTopKCommand.LambdaStatsTopKParams
 import org.locationtech.geomesa.lambda.tools.{LambdaDataStoreCommand, LambdaDataStoreParams}
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand.StatsTopKParams
 
@@ -21,5 +22,5 @@ class LambdaStatsTopKCommand extends StatsTopKCommand[LambdaDataStore] with Lamb
 
 object LambdaStatsTopKCommand {
   @Parameters(commandDescription = "Enumerate the most frequent values in a GeoMesa feature type")
-  class LambdaStatsTopKParams extends StatsTopKParams with LambdaDataStoreParams
+  class LambdaStatsTopKParams extends StatsTopKParams with LambdaDataStoreParams with RequiredTypeNameParam
 }

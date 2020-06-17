@@ -14,7 +14,7 @@ import java.util.Collections
 import com.beust.jcommander._
 import org.geotools.data.DataStore
 import org.locationtech.geomesa.tools.status.GetSftConfigCommand.{Spec, TypeSafe}
-import org.locationtech.geomesa.tools.{Command, DataStoreCommand, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand, TypeNameParam}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -51,7 +51,7 @@ object GetSftConfigCommand {
 }
 
 // @Parameters(commandDescription = "Get the SimpleFeatureType of a feature")
-trait GetSftConfigParams extends RequiredTypeNameParam {
+trait GetSftConfigParams extends TypeNameParam {
   @Parameter(names = Array("--concise"), description = "Render in concise format", required = false)
   var concise: Boolean = false
 

@@ -13,6 +13,7 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, ToggleRemoteFilterParam}
 import org.locationtech.geomesa.hbase.tools.stats.HBaseStatsCountCommand.HBaseStatsCountParams
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsCountCommand
 import org.locationtech.geomesa.tools.stats.StatsCountCommand.StatsCountParams
 
@@ -22,5 +23,5 @@ class HBaseStatsCountCommand extends StatsCountCommand[HBaseDataStore] with HBas
 
 object HBaseStatsCountCommand {
   @Parameters(commandDescription = "Estimate or calculate feature counts in a GeoMesa feature type")
-  class HBaseStatsCountParams extends StatsCountParams with HBaseParams with ToggleRemoteFilterParam
+  class HBaseStatsCountParams extends StatsCountParams with HBaseParams with RequiredTypeNameParam with ToggleRemoteFilterParam
 }

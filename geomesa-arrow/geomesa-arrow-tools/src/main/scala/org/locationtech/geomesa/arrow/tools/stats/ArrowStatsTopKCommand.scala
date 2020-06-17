@@ -13,6 +13,7 @@ import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
 import org.locationtech.geomesa.arrow.tools.stats.ArrowStatsTopKCommand.ArrowStatsTopKParams
+import org.locationtech.geomesa.tools.ProvidedTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand.StatsTopKParams
 
@@ -28,5 +29,5 @@ class ArrowStatsTopKCommand extends StatsTopKCommand[ArrowDataStore] with ArrowD
 
 object ArrowStatsTopKCommand {
   @Parameters(commandDescription = "Enumerate the most frequent values in a GeoMesa feature type")
-  class ArrowStatsTopKParams extends StatsTopKParams with UrlParam
+  class ArrowStatsTopKParams extends StatsTopKParams with ProvidedTypeNameParam with UrlParam
 }

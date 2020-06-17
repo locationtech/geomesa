@@ -13,6 +13,7 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.status.FsGetSftConfigCommand.FsGetSftConfigParameters
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.status.{GetSftConfigCommand, GetSftConfigParams}
 
 class FsGetSftConfigCommand extends GetSftConfigCommand[FileSystemDataStore] with FsDataStoreCommand {
@@ -21,5 +22,5 @@ class FsGetSftConfigCommand extends GetSftConfigCommand[FileSystemDataStore] wit
 
 object FsGetSftConfigCommand {
   @Parameters(commandDescription = "Get the SimpleFeatureType definition of a schema")
-  class FsGetSftConfigParameters extends FsParams with GetSftConfigParams
+  class FsGetSftConfigParameters extends FsParams with GetSftConfigParams with RequiredTypeNameParam
 }
