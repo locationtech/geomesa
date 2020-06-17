@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.arrow.vector;
 
 import org.apache.arrow.vector.FieldVector;
+import org.apache.arrow.vector.NullableVarBinaryVector;
 import org.apache.arrow.vector.complex.BaseRepeatedValueVector;
 import org.apache.arrow.vector.complex.FixedSizeListVector;
 import org.apache.arrow.vector.complex.ListVector;
@@ -53,6 +54,8 @@ public class GeometryFields {
       return new MultiLineStringVector((ListVector) vector);
     } else if (fields.equals(MultiPointVector.fields)) {
       return new MultiPointVector((ListVector) vector);
+    } else if (fields.isEmpty()) {
+      return new WKBGeometryVector((NullableVarBinaryVector) vector);
     } else {
       throw new IllegalArgumentException("Vector " + vector + " does not match any geometry type");
     }

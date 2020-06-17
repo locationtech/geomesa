@@ -338,8 +338,10 @@ object ArrowAttributeWriter {
           case Encoding.Max => new MultiPointVector(vector).getWriter
         }
         (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
-      } else if (binding == ObjectType.GEOMETRY_COLLECTION) {
-        throw new NotImplementedError(s"Geometry type $binding is not supported")
+      } else if (binding == ObjectType.GEOMETRY_COLLECTION || binding == ObjectType.GEOMETRY) {
+        val vector = toVector.apply[NullableVarBinaryVector](WKBGeometryVector.createFieldType(metadata))
+        val delegate = new WKBGeometryVector(vector).getWriter
+        (vector, delegate.asInstanceOf[GeometryWriter[Geometry]])
       } else {
         throw new IllegalArgumentException(s"Expected geometry type, got $binding")
       }

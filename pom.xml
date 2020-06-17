@@ -3000,12 +3000,18 @@
             </snapshots>
         </repository>
         <repository>
-            <id>boundlessgeo</id>
-            <url>http://repo.boundlessgeo.com/main</url>
+            <id>osgeo</id>
+            <name>OSGeo Release Repository</name>
+            <url>https://repo.osgeo.org/repository/release/</url>
+            <snapshots><enabled>false</enabled></snapshots>
+            <releases><enabled>true</enabled></releases>
         </repository>
         <repository>
-            <id>osgeo</id>
-            <url>http://download.osgeo.org/webdav/geotools</url>
+            <id>osgeo-snapshot</id>
+            <name>OSGeo Snapshot Repository</name>
+            <url>https://repo.osgeo.org/repository/snapshot/</url>
+            <snapshots><enabled>true</enabled></snapshots>
+            <releases><enabled>false</enabled></releases>
         </repository>
         <repository>
             <id>conjars.org</id>
