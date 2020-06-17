@@ -12,9 +12,9 @@ import java.util
 import java.util.Collections
 
 import com.beust.jcommander._
-import org.geotools.data.DataStore
+import org.geotools.data.{DataStore, FileDataStore}
 import org.locationtech.geomesa.tools.status.GetSftConfigCommand.{Spec, TypeSafe}
-import org.locationtech.geomesa.tools.{Command, DataStoreCommand, TypeNameParam}
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand, ProvidedTypeNameParam, TypeNameParam}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -24,8 +24,14 @@ trait GetSftConfigCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override def params: GetSftConfigParams
 
-  override def execute(): Unit = {
+  override def execute(): Unit = withDataStore(getSftConfig)
+
+  protected def getSftConfig(ds: DS): Unit = {
     import scala.collection.JavaConversions._
+    for {
+      p <- Option(params).collect { case p: ProvidedTypeNameParam => p }
+      f <- Option(ds).collect { case f: FileDataStore => f }
+    } { p.featureName = f.getSchema.getTypeName }
 
     Command.user.info(s"Retrieving SFT for type name '${params.featureName}'")
 
