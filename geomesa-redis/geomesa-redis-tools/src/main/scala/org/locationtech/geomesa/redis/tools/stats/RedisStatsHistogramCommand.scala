@@ -13,6 +13,7 @@ import org.locationtech.geomesa.redis.data.RedisDataStore
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand.RedisDataStoreParams
 import org.locationtech.geomesa.redis.tools.stats.RedisStatsHistogramCommand.RedisStatsHistogramParams
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsHistogramCommand
 import org.locationtech.geomesa.tools.stats.StatsHistogramCommand.StatsHistogramParams
 
@@ -22,5 +23,5 @@ class RedisStatsHistogramCommand extends StatsHistogramCommand[RedisDataStore] w
 
 object RedisStatsHistogramCommand {
   @Parameters(commandDescription = "View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
-  class RedisStatsHistogramParams extends StatsHistogramParams with RedisDataStoreParams
+  class RedisStatsHistogramParams extends StatsHistogramParams with RedisDataStoreParams with RequiredTypeNameParam
 }

@@ -13,6 +13,7 @@ import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
 import org.locationtech.geomesa.arrow.tools.stats.ArrowStatsCountCommand.ArrowStatsCountParams
+import org.locationtech.geomesa.tools.ProvidedTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsCountCommand
 import org.locationtech.geomesa.tools.stats.StatsCountCommand.StatsCountParams
 
@@ -28,5 +29,5 @@ class ArrowStatsCountCommand extends StatsCountCommand[ArrowDataStore] with Arro
 
 object ArrowStatsCountCommand {
   @Parameters(commandDescription = "Calculate feature counts in a GeoMesa feature type")
-  class ArrowStatsCountParams extends StatsCountParams with UrlParam
+  class ArrowStatsCountParams extends StatsCountParams with UrlParam with ProvidedTypeNameParam
 }

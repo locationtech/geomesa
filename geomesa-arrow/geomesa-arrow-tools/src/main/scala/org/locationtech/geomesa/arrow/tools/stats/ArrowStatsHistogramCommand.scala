@@ -13,6 +13,7 @@ import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
 import org.locationtech.geomesa.arrow.tools.stats.ArrowStatsHistogramCommand.ArrowStatsHistogramParams
+import org.locationtech.geomesa.tools.ProvidedTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsHistogramCommand
 import org.locationtech.geomesa.tools.stats.StatsHistogramCommand.StatsHistogramParams
 
@@ -28,5 +29,5 @@ class ArrowStatsHistogramCommand extends StatsHistogramCommand[ArrowDataStore] w
 
 object ArrowStatsHistogramCommand {
   @Parameters(commandDescription = "Calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
-  class ArrowStatsHistogramParams extends StatsHistogramParams with UrlParam
+  class ArrowStatsHistogramParams extends StatsHistogramParams with ProvidedTypeNameParam with UrlParam
 }

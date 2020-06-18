@@ -13,6 +13,7 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.stats.FsStatsHistogramCommand.FsStatsHistogramParams
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsHistogramCommand
 import org.locationtech.geomesa.tools.stats.StatsHistogramCommand.StatsHistogramParams
 
@@ -22,5 +23,5 @@ class FsStatsHistogramCommand extends StatsHistogramCommand[FileSystemDataStore]
 
 object FsStatsHistogramCommand {
   @Parameters(commandDescription = "View or calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
-  class FsStatsHistogramParams extends StatsHistogramParams with FsParams
+  class FsStatsHistogramParams extends StatsHistogramParams with FsParams with RequiredTypeNameParam
 }

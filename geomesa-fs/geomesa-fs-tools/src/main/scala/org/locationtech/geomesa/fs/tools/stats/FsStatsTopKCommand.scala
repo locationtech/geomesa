@@ -13,6 +13,7 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.stats.FsStatsTopKCommand.FsStatsTopKParams
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand.StatsTopKParams
 
@@ -22,5 +23,5 @@ class FsStatsTopKCommand extends StatsTopKCommand[FileSystemDataStore] with FsDa
 
 object FsStatsTopKCommand {
   @Parameters(commandDescription = "Enumerate the most frequent values in a GeoMesa feature type")
-  class FsStatsTopKParams extends StatsTopKParams with FsParams
+  class FsStatsTopKParams extends StatsTopKParams with FsParams with RequiredTypeNameParam
 }
