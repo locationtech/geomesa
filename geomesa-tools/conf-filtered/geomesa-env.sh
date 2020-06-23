@@ -163,8 +163,11 @@ function check_classpath() {
     fi
     error=$?
     if [[ $error -eq 0 ]]; then
+      # successfully downloaded the jars, disable checks going forward
+      disable_classpath_checks
       return 1
     elif [[ $error -eq 1 ]]; then
+      # user cancelled download
       read -r -p "Would you like to suppress future classpath checks (y/n)? " confirm
       confirm=${confirm,,} # lower-casing
       if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
@@ -181,9 +184,9 @@ function disable_classpath_checks() {
   if [[ -n "$(grep '^export GEOMESA_CHECK_DEPENDENCIES' "${GEOMESA_CONF_DIR}/geomesa-env.sh")" ]]; then
     sed 's/^export GEOMESA_CHECK_DEPENDENCIES.*/export GEOMESA_CHECK_DEPENDENCIES="false"/' \
       "${GEOMESA_CONF_DIR}/geomesa-env.sh" > tmp && mv tmp "${GEOMESA_CONF_DIR}/geomesa-env.sh" \
-      && echo >&2 "You may re-enable classpath checks by setting GEOMESA_CHECK_DEPENDENCIES=true in ${GEOMESA_CONF_DIR}/geomesa-env.sh"
+      && echo >&2 "You may re-enable classpath checks by setting GEOMESA_CHECK_DEPENDENCIES=true in ${GEOMESA_CONF_DIR}/geomesa-env.sh$newline"
   else
-    echo >&2 "You may disable classpath checks by setting GEOMESA_CHECK_DEPENDENCIES=false in ${GEOMESA_CONF_DIR}/geomesa-env.sh"
+    echo >&2 "You may disable classpath checks by setting GEOMESA_CHECK_DEPENDENCIES=false in ${GEOMESA_CONF_DIR}/geomesa-env.sh$newline"
   fi
 }
 
