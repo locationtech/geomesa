@@ -41,10 +41,10 @@ CLASSPATH="$(get_classpath)"
 
 # set java process options - do this after set classpath b/c that can modify JAVA_LIBRARY_PATH
 if [[ $1 = debug ]]; then
-  GEOMESA_OPTs="$(get_options "debug")"
+  GEOMESA_OPTS="$(get_options "debug")"
   shift 1
 else
-  GEOMESA_OPTs="$(get_options)"
+  GEOMESA_OPTS="$(get_options)"
 fi
 
 if [[ $1 = classpath ]]; then
