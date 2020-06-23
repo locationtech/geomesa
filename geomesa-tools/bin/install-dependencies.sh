@@ -36,33 +36,48 @@ if [[ -n "$1" && "$1" != "--no-prompt" ]]; then
   shift
 fi
 
-includes="$(dependencies)"
-gavs=()
-for gav in $includes; do
-  gavs+=($gav)
-done
-download_maven "$install_dir" gavs[@] "Preparing to install the following artifacts into $install_dir:${newline}" $1
-
-error=$?
-if [[ $error -ne 0 ]]; then
-  exit $error
-fi
-
-excludes="$(exclude_dependencies)"
-if [[ -n "$excludes" ]]; then
-  jars=()
-  for jar in $excludes; do
-    if [[ -f "$install_dir/$jar" ]]; then
-      jars+=("$jar")
-    fi
-  done
-  if [[ ${#jars[@]} -gt 0 ]]; then
-    read -r -p "Found conflicting JAR(s):$newline  $(echo "${jars[@]}" | sed 's/ /\n  /g')${newline}Remove them? (y/n) " confirm
-    confirm=${confirm,,} # lower-casing
-    if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
-      for jar in "${jars[@]}"; do
-        rm -f "$install_dir/$jar"
-      done
+function download_dependencies() {
+  local excludes="$(exclude_dependencies)"
+  if [[ -n "$excludes" ]]; then
+    local jars=()
+    for jar in $excludes; do
+      if [[ -f "$install_dir/$jar" ]]; then
+        jars+=("$jar")
+      fi
+    done
+    if [[ ${#jars[@]} -gt 0 ]]; then
+      echo >&2 "Found conflicting JAR(s):$newline  $(echo "${jars[@]}" | sed 's/ /\n  /g')${newline}"
+      read -r -p "Remove them? (y/n) " confirm
+      confirm=${confirm,,} # lower-casing
+      if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
+        for jar in "${jars[@]}"; do
+          rm -f "$install_dir/$jar"
+        done
+      fi
     fi
   fi
-fi
+
+  local includes="$(dependencies)"
+  local classpath=""
+  if [[ -d "$install_dir" ]]; then
+    classpath="$(ls $install_dir)"
+  fi
+  local gavs=()
+  for gav in $includes; do
+    group="${gav%%:*}"
+    artifact="${gav#$group:}"
+    artifact="${artifact%%:*}"
+    if [[ $classpath != *"$artifact"* ]]; then
+      gavs+=("$gav")
+    fi
+  done
+
+  if [[ ${#jars[@]} -gt 0 ]]; then
+    download_maven "$install_dir" gavs[@] "Preparing to install the following artifacts into $install_dir:${newline}" $1
+    exit $?
+  else
+    echo >&2 "All required dependencies already exist in $install_dir"
+  fi
+}
+
+download_dependencies
