@@ -9,19 +9,21 @@
 
 jline_version="2.12.1"
 
-# Load common functions and setup
-if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
-  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+# configure HOME and CONF_DIR, then load geomesa-env.sh
+export %%gmtools.dist.name%%_HOME="${%%gmtools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
+export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%gmtools.dist.name%%_HOME/conf}"
+
+if [[ -f "${GEOMESA_CONF_DIR}/geomesa-env.sh" ]]; then
+  . "${GEOMESA_CONF_DIR}/geomesa-env.sh"
+else
+  echo >&2 "ERROR: could not read '${GEOMESA_CONF_DIR}/geomesa-env.sh', aborting script"
+  exit 1
 fi
-. $%%gmtools.dist.name%%_HOME/bin/common-functions.sh
 
 install_dir="${1:-${%%gmtools.dist.name%%_HOME}/lib}"
 
-# Resource download location
-base_url="${GEOMESA_MAVEN_URL:-https://search.maven.org/remotecontent?filepath=}"
-
 declare -a urls=(
-  "${base_url}jline/jline/${jline_version}/jline-${jline_version}.jar"
+  "${GEOMESA_MAVEN_URL}jline/jline/${jline_version}/jline-${jline_version}.jar"
 )
 
 echo "Warning: JLine is BSD licensed and free to use and distribute, however, the provenance of the code could not be established by the Eclipse Foundation, and thus it is not distributed with GeoMesa. However, you may download it yourself."

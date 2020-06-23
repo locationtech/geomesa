@@ -159,7 +159,7 @@
                         <argument>org.locationtech.geomesa.accumulo.tools.AccumuloRunner</argument>
                         <argument>help</argument>
                         <argument>--autocomplete-function</argument>
-                        <argument>${project.build.directory}/autocomplete.sh,geomesa</argument>
+                        <argument>${project.build.directory}/autocomplete.sh,geomesa-accumulo</argument>
                     </arguments>
                 </configuration>
             </plugin>

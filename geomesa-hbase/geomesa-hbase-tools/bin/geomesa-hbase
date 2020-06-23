@@ -7,93 +7,80 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
-# Set environment variables in conf/geomesa-env.sh
+# set environment variables in conf/geomesa-env.sh, dependencies in .dependencies
 
-if [[ -z "${%%gmtools.dist.name%%_HOME}" ]]; then
-  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+# configure HOME and CONF_DIR, then load geomesa-env.sh
+export %%gmtools.dist.name%%_HOME="${%%gmtools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
+export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%gmtools.dist.name%%_HOME/conf}"
+
+if [[ -f "${GEOMESA_CONF_DIR}/geomesa-env.sh" ]]; then
+  . "${GEOMESA_CONF_DIR}/geomesa-env.sh"
+else
+  echo >&2 "ERROR: could not read '${GEOMESA_CONF_DIR}/geomesa-env.sh', aborting script"
+  exit 1
 fi
-
-# Load common functions and setup
-. "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
-
-# Start constructing GEOMESA_CP (classpath)
-# Note that we always include all of the lib and conf directories
-# include geomesa first so that the correct log4j.properties is picked up
-GEOMESA_CP=$(combineClasspaths ${GEOMESA_CONF_DIR} "${GEOMESA_LIB}/*")
-
-# Prepend user defined directories to the classpath using java classpath syntax
-# We preprend so that they take precedence when explicitly defined by the user
-if [[ -n "${GEOMESA_EXTRA_CLASSPATHS}" ]]; then
-  GEOMESA_CP="$(combineClasspaths ${GEOMESA_EXTRA_CLASSPATHS} ${GEOMESA_CP})"
-fi
-
-setHadoopClasspath
-
-# Set the HBase classpaths for geomesa tools
-# first check to see if it is defined already from the geomesa-env script
-if [[ -z "${GEOMESA_HBASE_CLASSPATH}" ]]; then
-  # HBase paths, user can hard set these in geomesa-env, or rely on this script to find set them via HBASE_HOME
-  if [[ -n "${HBASE_HOME}" ]]; then
-    if [[ -z "${HBASE_LIB}" && -d "${HBASE_HOME}/lib" ]]; then
-      HBASE_LIB=${HBASE_HOME}/lib
-    fi
-    if [[ -z "${HBASE_CONF_DIR}" && -d "${HBASE_HOME}/conf" ]]; then
-      HBASE_CONF_DIR="${HBASE_HOME}/conf"
-    fi
-  fi
-
-  HBASE_CP=""
-  if [[ -n "${HBASE_CONF_DIR}" ]]; then
-    HBASE_CP="$(combineClasspaths ${HBASE_CP} ${HBASE_CONF_DIR})"
-  fi
-
-  if [[ -n "${HBASE_LIB}" ]]; then
-    HBASE_CP="$(combineClasspaths ${HBASE_CP} $(findJars $HBASE_LIB true true))"
-  fi
-
-  # If the no hbase classpath is set from env vars perhaps try the path (works on AWS EMR)
-  if [[ -z "${HBASE_CP}" && -n "$(command -v hbase)" ]]; then
-    HBASE_CP=$(hbase classpath)
-  fi
-
-  # if there's a geomesa runtime jar in hbase, exclude it from the classpath
-  HBASE_CP="$(echo "$HBASE_CP" | sed 's/[^:]*geomesa-hbase-distributed-runtime[^:]*jar//')"
-
-  GEOMESA_HBASE_CLASSPATH="${HBASE_CP}"
-fi
-
-FILTERED_CLASSPATHS=$(combineClasspaths $(excludeLogJarsFromClasspath ${GEOMESA_HBASE_CLASSPATH}) $(excludeLogJarsFromClasspath ${GEOMESA_HADOOP_CLASSPATH}))
-CLASSPATH="${GEOMESA_CP}"
-if [[ -n "${FILTERED_CLASSPATHS}" ]]; then
-  CLASSPATH="${CLASSPATH}:${FILTERED_CLASSPATHS}"
-fi
-
-# Geomesa tools setup completed, below we parse user arguments
-#
-# configure - runs the geomesa configuration, sets both the ${geomesa.dist.foobar} and PATH vars
-# classpath - prints the Java classpath
-# else is running actual commands in the tools
 
 if  [[ $1 = configure ]]; then
-  geomesaConfigure
-else
-  if [[ $1 = debug ]]; then
-    GEOMESA_OPTS="$GEOMESA_OPTS $GEOMESA_DEBUG_OPTS"
-    shift 1
-  fi
-  if [[ $1 = classpath ]]; then
-    for element in ${CLASSPATH//:/ }; do
-      echo ${element}
-    done
-  elif [[ $1 = scala-console ]]; then
-    # scala console requires options to be passed in through java_opts
-    export JAVA_OPTS="${GEOMESA_OPTS} ${CUSTOM_JAVA_OPTS} ${JAVA_OPTS}"
-    geomesaScalaConsole ${CLASSPATH}
+  geomesa_configure
+  exit
+fi
+
+# setup the classpath
+function get_classpath() {
+  if [[ -n "$GEOMESA_CLASSPATH" ]]; then
+    echo "$GEOMESA_CLASSPATH"
   else
-    if [[ -z "$CUSTOM_JAVA_OPTS" ]]; then
-      # if custom opts are not set, use global default
-      export CUSTOM_JAVA_OPTS="${JAVA_OPTS}"
+    local classpath="$(get_base_classpath)"
+    if [[ -f "${GEOMESA_CONF_DIR}/hbase-env.sh" ]]; then
+      . "${GEOMESA_CONF_DIR}/hbase-env.sh"
+      local hbase_cp_with_logging="$(get_hbase_classpath)"
+      classpath="$classpath:$(remove_slf4j_from_classpath $hbase_cp_with_logging)"
     fi
-    java ${GEOMESA_OPTS} ${CUSTOM_JAVA_OPTS} -cp ${CLASSPATH} org.locationtech.geomesa.hbase.tools.HBaseRunner "$@"
+    if [[ -f "${GEOMESA_CONF_DIR}/hadoop-env.sh" ]]; then
+      . "${GEOMESA_CONF_DIR}/hadoop-env.sh"
+      local hadoop_cp_with_logging="$(get_hadoop_classpath)"
+      classpath="$classpath:$(remove_slf4j_from_classpath $hadoop_cp_with_logging)"
+    fi
+    classpath="$(fix_classpath_format $classpath)"
+    echo "$classpath"
   fi
+}
+
+RUNNER="org.locationtech.geomesa.hbase.tools.HBaseRunner"
+CLASSPATH="$(get_classpath)"
+
+# set java process options - do this after set classpath b/c that can modify JAVA_LIBRARY_PATH
+if [[ $1 = debug ]]; then
+  GEOMESA_OPTs="$(get_options "debug")"
+  shift 1
+else
+  GEOMESA_OPTs="$(get_options)"
+fi
+
+if [[ $1 = classpath ]]; then
+  echo $CLASSPATH | tr ':' '\n' | sort
+elif [[ $1 = scala-console ]]; then
+  shift 1
+  # scala console requires options to be passed in through java_opts
+  export JAVA_OPTS="${GEOMESA_OPTS}"
+  geomesa_scala_console ${CLASSPATH} "$@"
+else
+  # load and check required dependencies - skip if classpath is explicitly set
+  if [[ -z "$GEOMESA_CLASSPATH" && "$GEOMESA_CHECK_DEPENDENCIES" = "true" && -f "${GEOMESA_CONF_DIR}/dependencies.sh" ]]; then
+    . "${GEOMESA_CONF_DIR}/dependencies.sh"
+    includes="$(dependencies $CLASSPATH)"
+    # TODO check for --no-prompt in args and pass along
+    check_classpath "$GEOMESA_LIB" "$CLASSPATH" "$includes"
+    RET=$?
+    if [[ $RET -eq 1 ]]; then
+      # downloaded new jars - re-load the classpath to pick them up
+      CLASSPATH="$(get_classpath)"
+    elif [[ $RET -ne 0 ]]; then
+       # error or cancelled
+      exit $RET
+    fi
+  fi
+
+  # invoke the main java process
+  java ${GEOMESA_OPTS} -cp ${CLASSPATH} $RUNNER "$@"
 fi
