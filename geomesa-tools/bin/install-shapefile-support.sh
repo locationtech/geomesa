@@ -10,6 +10,7 @@
 jai_version="1.1.3"
 jt_version="1.3.1"
 imageio_version="1.1"
+jline_version="2.12.1"
 
 # configure HOME and CONF_DIR, then load geomesa-env.sh
 export %%gmtools.dist.name%%_HOME="${%%gmtools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
@@ -22,7 +23,12 @@ else
   exit 1
 fi
 
-install_dir="${1:-${%%gmtools.dist.name%%_HOME}/lib}"
+install_dir="${%%gmtools.dist.name%%_HOME}/lib"
+
+if [[ -n "$1" && "$1" != "--no-prompt" ]]; then
+  install_dir="$1"
+  shift
+fi
 
 osgeo_url="https://repo.osgeo.org/repository/release/"
 if [[ "$GEOMESA_MAVEN_URL" != "https://search.maven.org/remotecontent?filepath=" ]]; then
@@ -34,8 +40,19 @@ declare -a urls=(
   "${osgeo_url}/javax/media/jai_codec/${jai_version}/jai_codec-${jai_version}.jar"
   "${osgeo_url}/javax/media/jai_core/${jai_version}/jai_core-${jai_version}.jar"
   "${osgeo_url}/javax/media/jai_imageio/${imageio_version}/jai_imageio-${imageio_version}.jar"
+  "${GEOMESA_MAVEN_URL}jline/jline/${jline_version}/jline-${jline_version}.jar"
 )
 
-echo "Warning: Java Advanced Imaging (JAI) is LGPL licensed, and thus not distributed with GeoMesa. However, you may download it yourself."
+echo >&2 "Installing shapefile support to $install_dir"
+echo >&2 "Note: Java Advanced Imaging (JAI) is LGPL licensed."
+echo >&2 "Note: JLine is BSD licensed and free to use and distribute, however, the provenance of the code could not be established by the Eclipse Foundation."
 
-downloadUrls "$install_dir" urls[@]
+confirm="yes"
+if [[ "$1" != "--no-prompt" ]]; then
+  read -r -p "Would you like to download them (y/n)? " confirm
+  confirm=${confirm,,} # lower-casing
+fi
+
+if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
+  download_urls "$install_dir" urls[@]
+fi

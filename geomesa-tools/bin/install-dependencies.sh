@@ -47,8 +47,11 @@ function download_dependencies() {
     done
     if [[ ${#jars[@]} -gt 0 ]]; then
       echo >&2 "Found conflicting JAR(s):$newline  $(echo "${jars[@]}" | sed 's/ /\n  /g')${newline}"
-      read -r -p "Remove them? (y/n) " confirm
-      confirm=${confirm,,} # lower-casing
+      confirm="yes"
+      if [[ "$1" != "--no-prompt" ]]; then
+        read -r -p "Remove them? (y/n) " confirm
+        confirm=${confirm,,} # lower-casing
+      fi
       if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
         for jar in "${jars[@]}"; do
           rm -f "$install_dir/$jar"

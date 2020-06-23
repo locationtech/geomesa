@@ -81,29 +81,28 @@ GeoMesa Cassandra comes with a set of command line tools for managing Cassandra 
 
 .. note::
 
-    You can configure environment variables and classpath settings in ``geomesa-cassandra_2.11-$VERSION/conf/geomesa-env.sh``.
+    You can configure environment variables and classpath settings in ``geomesa-cassandra_2.11-$VERSION/conf/*-env.sh``.
 
 .. note::
 
     ``geomesa-cassandra`` will read the ``$CASSANDRA_HOME`` and ``$HADOOP_HOME`` environment variables to load the
     appropriate JAR files for Cassandra and Hadoop. In addition, ``geomesa-cassandra`` will pull any
-    additional jars from the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable into the class path.
-    Use the ``geomesa classpath`` command in order to see what JARs are being used.
+    additional JARs from the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable into the class path.
+    Use the ``geomesa-cassandra classpath`` command in order to see what JARs are being used.
 
-If you do not have a local Cassandra installation you will need to manually install the Cassandra JARs into the
-tools ``lib`` folder. To do this, use the scripts provided with the distribution:
+If you do not have a local Cassandra installation, the first time you run the tools it will prompt you to download
+the necessary JARs. You may also do this manually using the scripts provided with the distribution:
 
 .. code-block:: bash
 
-    $ bin/install-cassandra-jars.sh lib
+    $ ./bin/install-dependencies.sh
 
 Due to licensing restrictions, dependencies for shape file support must be separately installed.
-Do this with the following commands:
+Do this with the following command:
 
 .. code-block:: bash
 
-    $ bin/install-jai.sh
-    $ bin/install-jline.sh
+    $ ./bin/install-shapefile-support.sh
 
 Run ``geomesa-cassandra`` without arguments to confirm that the tools work.
 
@@ -131,7 +130,7 @@ GeoMesa Cassandra distribution directory.
 To install the plugins, extract the archive and copy the contents to the ``WEB-INF/lib``
 directory of your GeoServer installation. You will also need to install the Cassandra JARs; these
 are not bundled to allow for different versions. The distribution includes a script to download
-the JARs: ``bin/install-cassandra-jars.sh``. Call it with the path to the GeoServer ``WEB-INF/lib`` directory.
+the JARs: ``bin/install-dependencies.sh``. Call it with the path to the GeoServer ``WEB-INF/lib`` directory.
 By default, it will install the following JARs:
 
  * cassandra-all-3.11.4.jar
