@@ -94,7 +94,7 @@ function get_base_classpath() {
 # extract the version of a jar from a classpath string
 # args: jar base name, classpath, default version if not found
 function get_classpath_version() {
-  local version="$(expr match "$2" ".*$1-\([^:][^:]*\)\.jar.*")"
+  local version="$(expr match "$2" ".*$1-\([^:/][^:/]*\)\.jar.*")"
   if [[ -z "$version" ]]; then
     version="$3"
   fi

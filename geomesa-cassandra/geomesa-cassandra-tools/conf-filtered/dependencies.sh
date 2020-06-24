@@ -24,20 +24,25 @@ function dependencies() {
   local driver_version="$driver_install_version"
 
   if [[ -n "$classpath" ]]; then
+    # check for both cassandra-all and apache-cassandra
     cassandra_version="$(get_classpath_version cassandra-all $classpath $cassandra_version)"
+    cassandra_version="$(get_classpath_version apache-cassandra $classpath $cassandra_version)"
     driver_version="$(get_classpath_version cassandra-driver-core $classpath $driver_version)"
   fi
 
   declare -a gavs=(
-    "org.apache.cassandra:cassandra-all:${cassandra_version}:jar"
     "com.datastax.cassandra:cassandra-driver-core:${driver_version}:jar"
-    "com.datastax.cassandra:cassandra-driver-mapping:${driver_version}:jar"
     "io.netty:netty-all:${netty_install_version}:jar"
     "io.dropwizard.metrics:metrics-core:${metrics_install_version}:jar"
     "ch.qos.logback:logback-core:1.1.3:jar"
     "ch.qos.logback:logback-classic:1.1.3:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
   )
+
+  # the cassandra install bundles the cassandra-all.jar as apache-cassandra.jar
+  if [[ -z "$(expr match "$classpath" ".*apache-cassandra-\([^:/][^:/]*\)\.jar.*")" ]]; then
+    gavs+=("org.apache.cassandra:cassandra-all:${cassandra_version}:jar")
+  fi
 
   echo "${gavs[@]}" | tr ' ' '\n' | sort | tr '\n' ' '
 }

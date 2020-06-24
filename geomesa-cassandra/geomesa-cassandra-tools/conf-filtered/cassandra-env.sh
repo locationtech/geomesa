@@ -25,11 +25,11 @@ function get_cassandra_classpath() {
   if [[ -n "$GEOMESA_CASSANDRA_CLASSPATH" ]]; then
     echo "$GEOMESA_CASSANDRA_CLASSPATH"
   else
-    local CAS_CP=""
+    local classpath=""
     if [[ -d "$CASSANDRA_HOME/lib" ]]; then
-      CAS_CP="$(find_jars $CASSANDRA_HOME/lib true)"
-      CAS_CP="$(remove_slf4j_from_classpath $CAS_CP)"
+      classpath="$(find_jars $CASSANDRA_HOME/lib true)"
+      classpath="$(remove_slf4j_from_classpath $classpath)"
     fi
-    echo "$CAS_CP"
+    echo "$classpath"
   fi
 }
