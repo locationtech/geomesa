@@ -76,7 +76,6 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     Array(
       InstanceIdParam,
       ZookeepersParam,
-      ZookeeperTimeoutParam,
       CatalogParam,
       UserParam,
       PasswordParam,
@@ -85,6 +84,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       RecordThreadsParam,
       WriteThreadsParam,
       QueryTimeoutParam,
+      ZookeeperTimeoutParam,
       RemoteArrowParam,
       RemoteBinParam,
       RemoteDensityParam,
