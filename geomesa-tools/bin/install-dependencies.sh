@@ -75,7 +75,7 @@ function download_dependencies() {
     fi
   done
 
-  if [[ ${#jars[@]} -gt 0 ]]; then
+  if [[ ${#gavs[@]} -gt 0 ]]; then
     download_maven "$install_dir" gavs[@] "Preparing to install the following artifacts into $install_dir:${newline}" $1
     exit $?
   else
