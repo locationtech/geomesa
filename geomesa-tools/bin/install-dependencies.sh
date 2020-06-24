@@ -23,6 +23,7 @@ else
 fi
 
 if [[ -f "${GEOMESA_CONF_DIR}/dependencies.sh" ]]; then
+  ehco >&2 "Reading dependencies from ${GEOMESA_CONF_DIR}/dependencies.sh"
   . "${GEOMESA_CONF_DIR}/dependencies.sh"
 else
   echo >&2 "ERROR: could not read '${GEOMESA_CONF_DIR}/dependencies.sh', aborting script"
