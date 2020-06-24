@@ -33,11 +33,13 @@ function get_classpath() {
     local classpath="$(get_base_classpath)"
     if [[ -f "${GEOMESA_CONF_DIR}/accumulo-env.sh" ]]; then
       . "${GEOMESA_CONF_DIR}/accumulo-env.sh"
-      classpath="$classpath:$(get_accumulo_classpath)"
+      local accumulo_cp_with_logging="$(get_accumulo_classpath)"
+      classpath="$classpath:$(remove_slf4j_from_classpath $accumulo_cp_with_logging)"
     fi
     if [[ -f "${GEOMESA_CONF_DIR}/hadoop-env.sh" ]]; then
       . "${GEOMESA_CONF_DIR}/hadoop-env.sh"
-      classpath="$classpath:$(get_hadoop_classpath)"
+      local hadoop_cp_with_logging="$(get_hadoop_classpath)"
+      classpath="$classpath:$(remove_slf4j_from_classpath $hadoop_cp_with_logging)"
     fi
     classpath="$(fix_classpath_format $classpath)"
     echo "$classpath"

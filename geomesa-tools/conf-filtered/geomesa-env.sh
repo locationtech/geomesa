@@ -156,10 +156,10 @@ function check_classpath() {
   else
     echo >&2 "" # get the newline
     if [[ "${noprompt}" = "--no-prompt" ]]; then
-      echo >&2 "Warning: detected missing classpath entries:"
+      echo >&2 "Detected missing classpath entries:"
       download_maven $dest missing[@] "--no-prompt"
     else
-      download_maven $dest missing[@] "Warning: detected missing classpath entries:"
+      download_maven $dest missing[@] "Detected missing classpath entries:"
     fi
     error=$?
     if [[ $error -eq 0 ]]; then

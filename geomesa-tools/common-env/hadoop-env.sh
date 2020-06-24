@@ -43,7 +43,6 @@ function get_hadoop_classpath() {
   if [[ -n "$GEOMESA_HADOOP_CLASSPATH" ]]; then
     echo "$GEOMESA_HADOOP_CLASSPATH"
   else
-    # Get the hadoop jars, ignoring jars with names containing slf4j and test
     # Copied from accumulo classpath
     if [[ "$hadoopCDH" == "1" ]]; then
       # Hadoop CDH configuration
@@ -59,11 +58,14 @@ function get_hadoop_classpath() {
     else
       hadoopDirs=(
         # Hadoop 2 requirements
-        $HADOOP_HOME/share/hadoop/common
+        $HADOOP_HOME/share/hadoop/common/
         $HADOOP_HOME/share/hadoop/hdfs/
         $HADOOP_HOME/share/hadoop/mapreduce/
-        $HADOOP_HOME/share/hadoop/tools/lib
+        $HADOOP_HOME/share/hadoop/tools/lib/
         $HADOOP_HOME/share/hadoop/yarn/
+        # Hadoop 3 requirements
+        $HADOOP_HOME/share/hadoop/client/
+        $HADOOP_HOME/share/hadoop/common/lib/
         # HDP 2.0 requirements
         /usr/lib/hadoop/
         /usr/lib/hadoop-hdfs/
