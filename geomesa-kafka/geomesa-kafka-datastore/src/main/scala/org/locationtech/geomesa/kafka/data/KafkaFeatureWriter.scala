@@ -34,6 +34,7 @@ trait KafkaFeatureWriter extends SimpleFeatureWriter with Flushable {
 object KafkaFeatureWriter {
 
   private val featureIds = new AtomicLong(0)
+  private val FeatureIdHints = Seq(Hints.USE_PROVIDED_FID, Hints.PROVIDED_FID)
 
   class AppendKafkaFeatureWriter(sft: SimpleFeatureType,
                                  producer: Producer[Array[Byte], Array[Byte]],
@@ -41,7 +42,7 @@ object KafkaFeatureWriter {
 
     protected val topic: String = KafkaDataStore.topic(sft)
 
-    protected val serializer = GeoMessageSerializer(sft, serialization)
+    protected val serializer: GeoMessageSerializer = GeoMessageSerializer(sft, serialization)
 
     protected val feature = new ScalaSimpleFeature(sft, "-1")
 
@@ -56,6 +57,8 @@ object KafkaFeatureWriter {
 
     override def write(): Unit = {
       val sf = GeoMesaFeatureWriter.featureWithFid(sft, feature)
+      // we've handled the fid hints, remove them so that we don't serialize them
+      FeatureIdHints.foreach(sf.getUserData.remove)
       logger.debug(s"Writing update to $topic: $sf")
       val (key, value, headers) = serializer.serialize(GeoMessage.change(sf))
       val record = new ProducerRecord(topic, key, value)
@@ -85,7 +88,6 @@ object KafkaFeatureWriter {
         i += 1
       }
       feature.getUserData.clear()
-      feature
     }
   }
 
