@@ -126,9 +126,10 @@ Configuring the Classpath
 GeoMesa needs HBase and Hadoop JARs on the classpath. These are not bundled by default, as they should match
 the versions installed on the target system.
 
-If the environment variables ``$HBASE_HOME`` and ``$HADOOP_HOME`` are set, then GeoMesa will load the appropriate
-JARs and configuration files from those locations and no further configuration is required. For simplicity,
-environment variables can be specified in ``geomesa-hbase_2.11-$VERSION/conf/geomesa-env.sh``.
+If the environment variables ``HBASE_HOME`` and ``HADOOP_HOME`` are set, then GeoMesa will load the appropriate
+JARs and configuration files from those locations and no further configuration is required. Otherwise, you will
+be prompted to download the appropriate JARs the first time you invoke the tools. Environment variables can be
+specified in ``conf/*-env.sh`` and dependency versions can be specified in ``conf/dependencies.sh``.
 
 For advanced scenarios, the environmental variables ``GEOMESA_HADOOP_CLASSPATH`` and ``GEOMESA_HBASE_CLASSPATH``
 can be set to override all other logic.
@@ -182,14 +183,13 @@ commands. Note that this can be slow, so it is usually better to use ``GEOMESA_H
     .. group-tab:: Standalone
 
         If there is no local HBase instance, the necessary JARs can be installed by downloading them. Modify the
-        version numbers in ``geomesa-hbase_2.11-$VERSION/bin/install-hadoop.sh`` and
-        ``geomesa-hbase_2.11-$VERSION/bin/install-hbase.sh`` to match the target system, then run them:
+        version numbers in ``geomesa-hbase_2.11-$VERSION/conf/dependencies.sh`` to match the target system and use
+        ``geomesa-hbase_2.11-$VERSION/bin/install-dependencies.sh`` to install them:
 
         .. code-block:: bash
 
             $ cd geomesa-hbase_2.11-$VERSION/bin
-            $ ./install-hadoop.sh
-            $ ./install-hbase.sh
+            $ ./install-dependencies.sh
 
         In order to connect to a cluster, an appropriate ``hbase-site.xml`` is required. Copy it from your cluster
         into ``geomesa-hbase_2.11-$VERSION/conf/``.
@@ -213,13 +213,12 @@ GeoMesa also provides the ability to add additional JARs to the classpath using 
 classpath, giving it highest precedence in the classpath. Users can provide directories of jar files or individual
 files using a colon (``:``) as a delimiter. These entries will also be added the the map-reduce libjars variable.
 
-Due to licensing restrictions, dependencies for shape file support must be separately installed. Do this with
-the following commands:
+Due to licensing restrictions, dependencies for shape file support must be separately installed.
+Do this with the following command:
 
 .. code-block:: bash
 
-    $ bin/install-jai.sh
-    $ bin/install-jline.sh
+    $ ./bin/install-shapefile-support.sh
 
 For logging, see :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
 
@@ -268,8 +267,8 @@ The HBase GeoServer plugin is bundled by default in a GeoMesa binary distributio
 ``WEB-INF/lib`` directory.
 
 This distribution does not include the HBase client, Hadoop or Zookeeper JARs. These JARs can be installed
-using the ``install-hbase.sh`` and ``install-hadoop.sh`` scripts included in the binary distribution. Before
-running them, set the version numbers at the top of the script to match your target installation as needed.
+using the ``bin/install-dependencies.sh`` script included in the binary distribution. Before
+running, set the version numbers in ``conf/dependencies.sh`` to match your target installation as needed.
 
 The HBase data store requires the configuration file ``hbase-site.xml`` to be on the classpath. This can
 be accomplished by placing the file in ``geoserver/WEB-INF/classes`` (you should make the directory if it

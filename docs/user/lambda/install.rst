@@ -49,45 +49,35 @@ Setting up the Lambda Command Line Tools
 
 GeoMesa comes with a set of command line tools located in ``geomesa-lambda_2.11-$VERSION/bin/`` of the binary distribution.
 
-.. note::
+Configuring the Classpath
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-    You can configure environment variables and classpath settings in geomesa-lambda_2.11-$VERSION/conf/geomesa-env.sh.
+GeoMesa needs Accumulo, Hadoop and Kafka JARs on the classpath. These are not bundled by default, as they should match
+the versions installed on the target system.
 
-In the ``geomesa-lambda_2.11-$VERSION`` directory, run ``bin/geomesa-lambda configure`` to set up the tools.
+If the environment variables ``ACCUMULO_HOME``, ``HADOOP_HOME`` and ``KAFKA_HOME`` are set, then GeoMesa will load
+the appropriate JARs and configuration files from those locations and no further configuration is required. Otherwise,
+you will be prompted to download the appropriate JARs the first time you invoke the tools. Environment variables can be
+specified in ``conf/*-env.sh`` and dependency versions can be specified in ``conf/dependencies.sh``.
 
-.. warning::
+In order to run map/reduce jobs, the Hadoop ``*-site.xml`` configuration files from your Hadoop installation
+must be on the classpath. If ``HADOOP_HOME`` is not set, then copy them into ``geomesa-lamdba_2.11-$VERSION/conf``.
 
-    Please note that the ``$GEOMESA_LAMBDA_HOME`` variable points to the location of the ``geomesa-lambda_2.11-$VERSION``
-    directory, not the main geomesa binary distribution directory.
-
-.. note::
-
-    ``geomesa-lambda`` will read the ``$ACCUMULO_HOME``, ``$HADOOP_HOME`` and ``$KAFKA_HOME`` environment variables
-    to load the runtime dependencies. If possible, we recommend installing the tools on the Accumulo master server,
-    as you may also need various configuration files from Hadoop/Accumulo in order to run certain commands.
-
-    GeoMesa provides the ability to provide additional jars on the classpath using the environmental variable
-    ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
-    classpath giving it highest precedence in the classpath. Users can provide directories of jar files or individual
-    files using a colon (``:``) as a delimiter. These entries will also be added the the mapreduce libjars variable.
-    Use the ``geomesa classpath`` command to print the final classpath that will be used when executing geomesa
-    commands.
-
-    If you are running the tools on a system without Accumulo, Hadoop, or Kafka, the ``install-hadoop-accumulo.sh``
-    and ``install-kafka.sh`` scripts in the ``bin`` directory may be used to download the required JARs into
-    the ``lib`` directory. You should edit this script to match the versions used by your installation.
+GeoMesa also provides the ability to add additional JARs to the classpath using the environmental variable
+``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
+classpath, giving it highest precedence in the classpath. Users can provide directories of jar files or individual
+files using a colon (``:``) as a delimiter. These entries will also be added the the map-reduce libjars variable.
 
 .. note::
 
     See :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
 
-Due to licensing restrictions, dependencies for shape file support must be separately installed. Do this with
-the following commands:
+Due to licensing restrictions, dependencies for shape file support must be separately installed.
+Do this with the following command:
 
 .. code-block:: bash
 
-    $ bin/install-jai.sh
-    $ bin/install-jline.sh
+    $ ./bin/install-shapefile-support.sh
 
 Test the command that invokes the GeoMesa Tools:
 
@@ -111,6 +101,9 @@ Installing GeoMesa Lambda in GeoServer
 .. warning::
 
     See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
+
+Installing GeoServer
+^^^^^^^^^^^^^^^^^^^^
 
 As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a `GeoTools`_-compatible data store.
 This makes it possible to use GeoMesa as a data store in `GeoServer`_. GeoServer's web site includes
@@ -136,31 +129,30 @@ downloading and installing `the WPS plugin`_.
     Tomcat for changes to take place.
 
 
-To install the GeoMesa Lambda data store as a GeoServer plugin, unpack the contents of the
+Installing the GeoMesa Lambda Data Store
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To install the GeoMesa data store, extract the contents of the
 ``geomesa-lambda-gs-plugin_2.11-$VERSION-install.tar.gz`` file in ``geomesa-lambda_2.11-$VERSION/dist/geoserver/``
-in the binary distribution or ``geomesa-$VERSION/geomesa-lambda/geomesa-lambda-gs-plugin/target/`` in the source
-distribution into your GeoServer's ``lib`` directory (``$VERSION`` = |release|):
-
-If you are using Tomcat:
+in the binary distribution or ``geomesa-lambda/geomesa-lambda-gs-plugin/target/`` in the source
+distribution into your GeoServer's ``lib`` directory:
 
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-lambda_2.11-$VERSION/dist/geoserver/geomesa-lambda-gs-plugin_2.11-$VERSION-install.tar.gz \
-      -C /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
+      geomesa-lambda_2.11-$VERSION/dist/gs-plugins/geomesa-lambda-gs-plugin_2.11-$VERSION-install.tar.gz \
+      -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
-If you are using GeoServer's built in Jetty web server:
+Next, install the JARs for Accumulo, Hadoop and Kafka. By default, JARs will be downloaded from Maven central. You may
+override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do no have an internet connection
+you can download the JARs manually via http://search.maven.org/.
+
+Edit the file ``geomesa-lambda_2.11-$VERSION/conf/dependencies.sh`` to set the versions of Accumulo, Hadoop and Kafka
+to match the target environment, and then run the script:
 
 .. code-block:: bash
 
-    $ tar -xzvf \
-      geomesa-lambda_2.11-$VERSION/dist/geoserver/geomesa-lambda-gs-plugin_2.11-$VERSION-install.tar.gz \
-      -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
-
-There are additional JARs for Accumulo, Zookeeper, Hadoop, Thrift and Kafka that you will need to copy to GeoServer's
-``WEB-INF/lib`` directory. The versions required will be specific to your installation. For example, GeoMesa only
-requires Hadoop |hadoop_version|, but if you are using Hadoop 2.5.0 you should use the JARs
-that match the version of Hadoop you are running.
+    $ ./bin/install-dependencies.sh /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
 .. warning::
 
@@ -168,30 +160,14 @@ that match the version of Hadoop you are running.
    Note that newer Accumulo clients can talk to older Accumulo instances, so it is only necessary to upgrade the
    client JARs in GeoServer, but not the entire Accumulo cluster.
 
-There are scripts in the ``geomesa-lambda_2.11-$VERSION/bin`` directory
-(``install-hadoop-accumulo.sh``, ``install-kafka.sh``) which will install these dependencies to a target directory
-using ``curl`` (requires an internet connection).
+.. warning::
 
-.. note::
+    GeoServer ships with an older version of commons-text, 1.4. The ``install-dependencies.sh`` script will
+    remove it, but if you don't use the script you will need to delete it manually.
 
-    You may have to edit ``install-hadoop-accumulo.sh`` and/or ``install-kafka.sh`` to set the
-    versions of Accumulo, Zookeeper, Hadoop, Thrift and Kafka that you are running.
+The specific JARs needed for some common configurations are listed below:
 
-If you do no have an internet connection you can download the JARs manually via http://search.maven.org/.
-These may include the JARs below; the specific JARs needed for some common configurations are listed below:
-
-Accumulo 1.6
-
-* accumulo-core-1.6.5.jar
-* accumulo-fate-1.6.5.jar
-* accumulo-server-base-1.6.5.jar
-* accumulo-trace-1.6.5.jar
-* accumulo-start-1.6.5.jar
-* libthrift-0.9.1.jar
-* zookeeper-3.4.6.jar
-* commons-vfs2-2.0.jar
-
-Accumulo 1.7+ (note the addition of htrace)
+Accumulo 1.7+
 
 * accumulo-core-1.7.1.jar
 * accumulo-fate-1.7.1.jar
@@ -229,17 +205,6 @@ Kafka 0.9.0.1
 
 Restart GeoServer after the JARs are installed.
 
-Accumulo Versions
-^^^^^^^^^^^^^^^^^
-
-.. note::
-
-    GeoMesa targets Accumulo 1.8 as a runtime dependency. Most artifacts will work with older versions
-    of Accumulo without changes, however some artifacts which bundle Accumulo will need to be built manually.
-    Accumulo 1.8 introduced a dependency on libthrift version 0.9.3 which is not compatible with Accumulo
-    1.7/libthrift 0.9.1. To target an earlier Accumulo version, modify ``<accumulo.version>`` and
-    ``<thrift.version>`` in the main pom.xml and re-build.
-
 .. _install_geomesa_process_lambda:
 
 GeoMesa Process
@@ -261,13 +226,4 @@ To upgrade between minor releases of GeoMesa, the versions of all GeoMesa compon
 JAR installed on Accumulo tablet servers **must** match the version of the
 ``geomesa-plugin`` JARs installed in the ``WEB-INF/lib`` directory of GeoServer.
 
-We strive to maintain backwards compatibility for data ingested with older
-releases of GeoMesa, and in general data ingested with older releases
-may be read with newer ones (note that the reverse does not apply). For example,
-data ingested with GeoMesa 1.2.2 may be read with 1.2.3.
-
-It should be noted, however, that data ingested with older GeoMesa versions may
-not take full advantage of indexing improvements in newer releases. If
-it is not feasible to reingest old data, see :ref:`update_index_format_job`
-for more information on updating its index format.
-
+See :ref:`upgrade_guide` for more details on upgrading between versions.
