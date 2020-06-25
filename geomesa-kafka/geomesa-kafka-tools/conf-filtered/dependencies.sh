@@ -21,19 +21,19 @@ function dependencies() {
   local classpath="$1"
 
   local kafka_version="$kafka_install_version"
-  local zk_client_version="$zkclient_install_version"
+  local zkclient_version="$zkclient_install_version"
   local zk_version="$zookeeper_install_version"
 
   if [[ -n "$classpath" ]]; then
     kafka_version="$(get_classpath_version kafka-clients $classpath $kafka_version)"
-    zk_client_version="$(get_classpath_version zkclient $classpath $zk_client_version)"
+    zkclient_version="$(get_classpath_version zkclient $classpath $zkclient_version)"
     zk_version="$(get_classpath_version zookeeper $classpath $zk_version)"
   fi
 
   declare -a gavs=(
     "org.apache.kafka:kafka_2.11:${kafka_version}:jar"
     "org.apache.kafka:kafka-clients:${kafka_version}:jar"
-    "org.apache.zookeeper:zookeeper:${zookeeper_version}:jar"
+    "org.apache.zookeeper:zookeeper:${zk_version}:jar"
     "com.101tec:zkclient:${zkclient_version}:jar"
     "net.sf.jopt-simple:jopt-simple:${jopt_install_version}:jar"
     "com.yammer.metrics:metrics-core:2.2.0:jar"
