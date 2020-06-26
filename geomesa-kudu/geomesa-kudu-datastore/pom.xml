@@ -27,6 +27,11 @@
             <groupId>org.apache.kudu</groupId>
             <artifactId>kudu-client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>compile</scope>
+        </dependency>
 
         <!-- test dependencies -->
         <dependency>

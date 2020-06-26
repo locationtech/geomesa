@@ -42,21 +42,20 @@ you will need to copy the appropriate JARs into the tools ``lib`` folder.
 
 .. note::
 
-    You can configure environment variables and classpath settings in ``geomesa-gt_2.11-$VERSION/conf/geomesa-env.sh``.
+    Environment variables can be specified in ``conf/*-env.sh`` and dependency versions can be
+    specified in ``conf/dependencies.sh``.
 
 .. note::
 
     ``geomesa-gt`` will load JARs from the ``$GEOMESA_EXTRA_CLASSPATHS`` environment variable
     into the class path. Use the ``geomesa-gt classpath`` command in order to see what JARs are being used.
 
-
-Due to licensing restrictions, dependencies for shapefile support must be separately installed. Do this with the
-following commands:
+Due to licensing restrictions, dependencies for shape file support must be separately installed.
+Do this with the following command:
 
 .. code-block:: bash
 
-    $ bin/install-jai.sh
-    $ bin/install-jline.sh
+    $ ./bin/install-shapefile-support.sh
 
 Run ``geomesa-gt`` without arguments to confirm that the tools work.
 
@@ -79,7 +78,7 @@ folder. To install JARs, use the script provided with the distribution:
 
 .. code-block:: bash
 
-    $ bin/install-hadoop.sh lib
+    $ ./bin/install-dependencies.sh lib
 
 If you installed JARs for any additional data stores, you will need to add them to the Hadoop libjars path
 by modifying the file ``org/locationtech/geomesa/geotools/tools/gt-libjars.list`` inside the JAR

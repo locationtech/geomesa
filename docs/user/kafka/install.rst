@@ -48,48 +48,22 @@ Setting up the Kafka Command Line Tools
 GeoMesa comes with a set of command line tools for managing Kafka features. In the Kafka distribution the
 tools are located in ``geomesa-kafka_2.11-$VERSION/bin/``.
 
-.. note::
+If the environment variables ``KAFKA_HOME`` and ``ZOOKEEPER_HOME`` are set, then GeoMesa will load the appropriate
+JARs and configuration files from those locations and no further configuration is required. Otherwise, you will
+be prompted to download the appropriate JARs the first time you invoke the tools. Environment variables can be
+specified in ``conf/*-env.sh`` and dependency versions can be specified in ``conf/dependencies.sh``.
 
-    You can configure environment variables and classpath settings in
-    ``geomesa-kafka_2.11-$VERSION/bin/geomesa-env.sh``
+GeoMesa also provides the ability to add additional JARs to the classpath using the environmental variable
+``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
+classpath, giving it highest precedence in the classpath. Users can provide directories of jar files or individual
+files using a colon (``:``) as a delimiter. These entries will also be added the the map-reduce libjars variable.
 
-In the ``geomesa-kafka_2.11-$VERSION`` directory, run ``bin/geomesa-kafka configure``
-to set up the tools.
+Due to licensing restrictions, dependencies for shape file support must be separately installed.
+Do this with the following command:
 
 .. code-block:: bash
 
-    ### in geomesa-kafka_2.11-$VERSION:
-    $ bin/geomesa-kafka configure
-    Using GEOMESA_KAFKA_HOME as set: /path/to/geomesa-kafka_2.11-$VERSION
-    Is this intentional? Y\n y
-    Current value is /path/to/geomesa-kafka_2.11-$VERSION/lib.
-
-    Is this intentional? Y\n y
-
-    To persist the configuration please update your bashrc file to include:
-    export GEOMESA_KAFKA_HOME=/path/to/geomesa-kafka_2.11-$VERSION
-    export PATH=${GEOMESA_KAFKA_HOME}/bin:$PATH
-
-Update and re-source your ``~/.bashrc`` file to include the ``$GEOMESA_KAFKA_HOME`` and ``$PATH`` updates.
-
-.. warning::
-
-    Please note that the ``$GEOMESA_KAFKA_HOME`` variable points to the location of the ``geomesa-kafka_2.11-$VERSION``
-    directory, not the main geomesa binary distribution directory.
-
-
-.. note::
-
-    ``geomesa-kafka`` will read the ``$KAKFA_HOME`` and ``$ZOOKEEPER_HOME`` environment variables to load the
-    appropriate Kafka JAR files. Alternatively, the ``install-kafka.sh`` script in the ``bin`` directory
-    may be used to download the required JARs into the ``lib`` directory. You should edit this script to
-    match the versions used by your installation.
-
-    GeoMesa provides the ability to provide additional jars on the classpath using the environmental variable
-    ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
-    classpath giving it highest precedence in the classpath. Users can provide directories of jar files or individual
-    files using a colon (``:``) as a delimiter. Use the ``geomesa-kafka classpath`` command to print the final
-    classpath that will be used when executing geomesa commands.
+    $ ./bin/install-shapefile-support.sh
 
 Test the command that invokes the GeoMesa Tools:
 
@@ -108,6 +82,9 @@ Installing GeoMesa Kafka in GeoServer
 .. warning::
 
     See :ref:`geoserver_versions` to ensure that GeoServer is compatible with your GeoMesa version.
+
+Installing GeoServer
+^^^^^^^^^^^^^^^^^^^^
 
 As described in section :ref:`geomesa_and_geoserver`, GeoMesa implements a
 `GeoTools`_-compatible data store. This makes it possible
@@ -134,49 +111,30 @@ and installing `the WPS plugin`_.
     The value of ``-Xmx`` should be as large as your system will permit; this
     is especially important for the Kafka plugin. Be sure to restart Tomcat for changes to take place.
 
-To install GeoMesa's GeoServer plugin we can use the script ``manage-geoserver-plugins.sh`` in ``bin`` directory
-of the appropriate GeoMesa Kafka binary distribution (see :ref:`versions_and_downloads`).
+Installing the GeoMesa Kafka Data Store
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. note::
-
-    If $GEOSERVER_HOME is set, then the ``--lib-dir`` parameter is not needed.
-
-.. code-block:: bash
-
-    $ bin/manage-geoserver-plugins.sh --lib-dir /path/to/geoserver/WEB-INF/lib/ --install
-    Collecting Installed Jars
-    Collecting geomesa-gs-plugin Jars
-
-    Please choose which modules to install
-    Multiple may be specified, eg: 1 4 10
-    Type 'a' to specify all
-    --------------------------------------
-    0 | geomesa-kafka-gs-plugin_2.11-$VERSION
-
-    Module(s) to install: 0
-    0 | Installing geomesa-kafka-gs-plugin_2.11-$VERSION-install.tar.gz
-    Done
-
-Alternatively, extract the contents of the appropriate plugin archive into the GeoServer
-``WEB-INF/lib`` directory. If you are using Tomcat:
+To install the GeoMesa data store, extract the contents of the
+``geomesa-kafka-gs-plugin_2.11-$VERSION-install.tar.gz`` file in ``geomesa-kafka_2.11-$VERSION/dist/geoserver/``
+in the binary distribution or ``geomesa-kafka/geomesa-kafka-gs-plugin/target/`` in the source
+distribution into your GeoServer's ``lib`` directory:
 
 .. code-block:: bash
 
     $ tar -xzvf \
-      geomesa-kafka-gs-plugin/dist/gs-plugins/geomesa-kafka-gs-plugin_2.11-$VERSION-install.tar.gz \
-      -C /path/to/tomcat/webapps/geoserver/WEB-INF/lib/
+      geomesa-kafka_2.11-$VERSION/dist/gs-plugins/geomesa-kafka-gs-plugin_2.11-$VERSION-install.tar.gz \
+      -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
-If you are using GeoServer's built in Jetty web server:
+Next, install the JARs for Kafka and Zookeeper. By default, JARs will be downloaded from Maven central. You may
+override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do no have an internet connection
+you can download the JARs manually via http://search.maven.org/.
+
+Edit the file ``geomesa-kafka_2.11-$VERSION/conf/dependencies.sh`` to set the versions of Kafka and Zookeeper
+to match the target environment, and then run the script:
 
 .. code-block:: bash
 
-    $ tar -xzvf \
-      geomesa-kafka-gs-plugin/dist/gs-plugins/geomesa-kafka-gs-plugin_2.11-$VERSION-install.tar.gz \
-      -C /path/to/geoserver/webapps/geoserver/WEB-INF/lib/
-
-This will install the JARs for the Kafka GeoServer plugin and most of its dependencies.
-However, you will also need additional JARs for Kafka and Zookeeper that will
-be specific to your installation.
+    $ ./bin/install-dependencies.sh /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
 .. warning::
 
@@ -184,8 +142,7 @@ be specific to your installation.
     Kafka version built with Scala 2.11 as well (``kafka_2.11_*``) to avoid
     compatibility issues.
 
-Copy these additional dependencies (or the equivalents for your Kafka installation) to
-your GeoServer ``WEB-INF/lib`` directory:
+The specific JARs needed for some common configurations are listed below:
 
 .. tabs::
 
@@ -222,11 +179,5 @@ your GeoServer ``WEB-INF/lib`` directory:
         * zkclient-0.7.jar
         * zookeeper-3.4.10.jar
         * metrics-core-2.2.0.jar
-
-There is a script in the ``geomesa-kafka_2.11-$VERSION/bin`` directory
-(``$GEOMESA_KAFKA_HOME/bin/install-kafka.sh``) which will install these
-dependencies to a target directory using ``curl`` (requires an internet
-connection). Edit the script before running to ensure the correct JAR versions
-are specified.
 
 Restart GeoServer after the JARs are installed.
