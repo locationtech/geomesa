@@ -156,7 +156,7 @@ By default, heuristics are used to pick the index. This method is quite fast, bu
 unusual data distributions. If heuristic-based query planning is not working as desired, stat-based query
 planning can be used, based on data statistics gathered during ingestion. ``Stats`` uses cost-based planning;
 ``Index`` uses heuristic-based planning. Note that currently, statistics have only been implemented for the
-Accumulo data store - for other stores, heuristic-based planning will always be used.
+Accumulo and Redis data stores - for other stores, heuristic-based planning will always be used.
 
 Query planning can also be controlled through the system property ``geomesa.query.cost.type``. See
 :ref:`geomesa_site_xml` for details. If both a query hint and a system property are set, the query hint will

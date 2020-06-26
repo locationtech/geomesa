@@ -135,9 +135,9 @@ Users should use the Spark runtime corresponding to their Accumulo installation.
 NiFi Processors
 ---------------
 
-The GeoMesa NiFi processors have been split out into separate nar files for each supported back-end database.
-Additionally, there are separate nar files for HBase 1.4/2.2 and Accumulo 1.9/2.0, respectively. The processor
-classes and configurations have also changed. See :ref:`nifi_bundle` for details.
+The GeoMesa NiFi processors have been updated to NiFi 11 and split out into separate ``nar`` files for each
+supported back-end database. Additionally, there are separate ``nar`` files for HBase 1.4/2.2 and Accumulo 1.9/2.0,
+respectively. The processor classes and configurations have also changed. See :ref:`nifi_bundle` for details.
 
 Dependency Updates
 ------------------

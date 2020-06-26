@@ -415,7 +415,7 @@ Configuring Partitioned Indices
 
 To help with large data sets, GeoMesa can partition each index into separate tables, based on the attributes of
 each feature. Having multiple tables for a single index can make it simpler to manage a cluster, for example by
-making it trivial to delete old data. This functionality is currently supported in HBase, Accumulo and Cassandra.
+making it trivial to delete old data.
 
 Partitioning must be specified through user data when creating a simple feature type, before calling
 ``createSchema``. To indicate a partitioning scheme, use the key ``geomesa.table.partition``. Currently
@@ -490,7 +490,7 @@ The Default Table Splitter
 
 Generally, ``table.splitter.class`` can be omitted. If so, GeoMesa will use a default implementation that allows
 for a flexible configuration using ``table.splitter.options``. If no options are specified, then all tables
-will generally create 4 split (based on the number of shards). The default ID index splits assume
+will generally create 4 splits (based on the number of shards). The default ID index splits assume
 that feature IDs are randomly distributed UUIDs.
 
 For the default splitter, ``table.splitter.options`` should consist of comma-separated entries, in the form
