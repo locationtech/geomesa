@@ -23,7 +23,7 @@ version to install. It is recommended to use the latest GeoServer bug-fix releas
 +-------------------+-------------------+
 | 2.4.x             | 2.15.x            |
 +-------------------+-------------------+
-| 3.0.x             | 2.15.x-2.17.x     |
+| 3.0.x             | 2.17.x            |
 +-------------------+-------------------+
 
 .. warning::
@@ -46,7 +46,7 @@ available by datastore:
 
 Go to your GeoServer installation at ``http://<hostname>:8080/geoserver``.
 For new installations of GeoServer, the default username is ``admin`` and
-password is ``geoserver``, but these may be different at your own installation.
+password is ``geoserver``. These should be changed to prevent unauthorized access.
 
 Creating a Data Store
 ---------------------

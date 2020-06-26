@@ -3,7 +3,7 @@
 Authorizations
 --------------
 
-When performing a query using the Accumulo or HBase datastore, GeoMesa delegates the retrieval of authorizations to
+When performing a query using the Accumulo or HBase data stores, GeoMesa delegates the retrieval of authorizations to
 ``service providers`` that implement the following interface:
 
 .. code-block:: java
@@ -14,20 +14,20 @@ When performing a query using the Accumulo or HBase datastore, GeoMesa delegates
 
         public static final String AUTH_PROVIDER_SYS_PROPERTY = "geomesa.auth.provider.impl";
 
-        /**
-         * Gets the authorizations for the current context. This may change over time
-         * (e.g. in a multi-user environment), so the result should not be cached.
-         *
-         * @return
-         */
-        public List<String> getAuthorizations();
+            /**
+             * Gets the authorizations for the current context. This may change over time
+             * (e.g. in a multi-user environment), so the result should not be cached.
+             *
+             * @return authorizations
+             */
+            List<String> getAuthorizations();
 
-        /**
-         * Configures this instance with parameters passed into the DataStoreFinder
-         *
-         * @param params
-         */
-        public void configure(Map<String, Serializable> params);
+            /**
+             * Configures this instance with parameters passed into the DataStoreFinder
+             *
+             * @param params parameters
+             */
+            void configure(Map<String, ? extends Serializable> params);
     }
 
 When a GeoMesa data store is instantiated, it will scan for available service providers
