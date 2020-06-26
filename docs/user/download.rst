@@ -55,7 +55,7 @@ and then include the desired ``geomesa-*`` dependencies:
       <version>3.0.0</version>
     </dependency>
 
-Snapshot artifacts are available in the LocationTech snapshots repository:
+Nightly snapshots are available from Eclipse:
 
 .. code-block:: xml
 
@@ -100,17 +100,3 @@ Upgrading
 ---------
 
 For details on changes between versions, see :ref:`upgrade_guide`.
-
-Legal Review
-------------
-
-GeoMesa is part of the Locationtech working group at Eclipse. The Eclipse legal team fully reviews
-each major release for IP concerns. The latest release which has been fully reviewed by Eclipse Legal
-is GeoMesa |eclipse_release|.
-
-.. warning::
-
-    Eclipse releases may not contain all the bug fixes and improvements from the latest release.
-
-* Release distribution: |eclipse_release_tarball|
-* Source: |eclipse_release_source_tarball|

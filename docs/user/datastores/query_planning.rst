@@ -22,8 +22,12 @@ any spatial predicates as scan ranges, and any additional filters will be applie
 During step two of query planning, the full filter is decomposed and examined with an eye towards the available
 indices. For each index, a primary and a secondary filter will be determined (if any).
 
-For example, consider the filter
-``BBOX(geom,0,0,10,10) AND dtg DURING 2017-01-01T00:00:00.000Z/2017-01-02T00:00:00.000Z AND name = 'alice'``.
+For example, consider the filter::
+
+  BBOX(geom,0,0,10,10) AND
+    dtg DURING 2017-01-01T00:00:00.000Z/2017-01-02T00:00:00.000Z
+    AND name = 'alice'
+
 This filter can be decomposed several ways - for the Z2 spatial index, the primary filter is the ``BBOX``, for
 the Z3 spatio-temporal index, the primary filter is the ``BBOX`` plus the ``DURING``, and for the attribute index
 (assuming 'name' is indexed) the primary filter is ``name = 'alice'``.
