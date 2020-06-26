@@ -41,10 +41,7 @@ trait UpdateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   protected def update(ds: DS): Unit = {
     // ensure we have an operation
-    if (params.rename == null &&
-        Seq(params.renameAttributes, params.attributes, params.plusKeywords, params.minusKeywords).forall(_.isEmpty)) {
-      throw new ParameterException("Please specify an update operation")
-    }
+    params.validate().foreach(e => throw e)
 
     val sft = try { ds.getSchema(params.featureName) } catch { case _: IOException => null }
     if (sft == null) {
@@ -109,6 +106,18 @@ trait UpdateSchemaCommand[DS <: DataStore] extends DataStoreCommand[DS] {
       updated.removeKeywords(keywords.toSet)
       prompts.append(s"\n  $number: Removing keywords: '${keywords.mkString("', '")}'")
     }
+    if (!params.userData.isEmpty) {
+      params.userData.asScala.foreach { ud =>
+        ud.split(":", 2) match {
+          case Array(k, v) =>
+            updated.getUserData.put(k, v) match {
+              case null => prompts.append(s"\n  $number: Adding user data: '$k=$v'")
+              case old  => prompts.append(s"\n  $number: Updating user data: '$k=$v' (was '$old')")
+            }
+          case _ => throw new ParameterException(s"Invalid user data entry - expected 'key:value': $ud")
+        }
+      }
+    }
 
     Option(params.enableStats).map(_.booleanValue()).foreach { enable =>
       sft.setStatsEnabled(enable)
@@ -165,6 +174,12 @@ object UpdateSchemaCommand {
     var minusKeywords: java.util.List[String] = Collections.emptyList()
 
     @Parameter(
+      names = Array("--add-user-data"),
+      description = "Add a new entry or update an existing entry in the feature type user data, delineated with a colon (:)",
+      splitter = classOf[NoopParameterSplitter])
+    var userData: java.util.List[String] = Collections.emptyList()
+
+    @Parameter(
       names = Array("--enable-stats"),
       description = "Enable or disable stats for the feature type",
       arity = 1)
@@ -179,5 +194,14 @@ object UpdateSchemaCommand {
       names = Array("--no-backup"),
       description = "Don't back up data store metadata before updating the schema")
     var noBackup: Boolean = false
+
+    def validate(): Option[ParameterException] = {
+      if (rename == null &&
+          Seq(renameAttributes, attributes, plusKeywords, minusKeywords, userData).forall(_.isEmpty)) {
+        Some(new ParameterException("Please specify an update operation"))
+      } else {
+        None
+      }
+    }
   }
 }

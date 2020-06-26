@@ -203,6 +203,7 @@ Argument                 Description
 ``--enable-stats``       Enable or disable stats for the feature type
 ``--add-keyword``        Add a new keyword to the feature type user data
 ``--remove-keyword``     Delete an existing keyword from the feature type user data
+``--add-user-data``      Add or update an entry in the feature type user data
 ``--rename-tables``      When renaming the feature type, update index tables to match
 ``--no-backup``          Disable backing up the schema before the update
 ======================== ==============================================================
@@ -226,5 +227,14 @@ The ``--add-keyword`` and ``--remove-keyword`` parameters can be used to add and
 user data of the schema. When adding a layer in GeoServer, the 'Keywords' section of the layer configuration page
 will be automatically populated with the user data keywords.
 
-Note that multiple attributes and/or keywords can be added/removed/renamed at once by specifying the parameters
-multiple times.
+The ``--add-user-data`` parameter can be used to add or update any user data key. See :ref:`index_config` for
+some examples of configurable values.
+
+.. warning::
+
+  Be careful changing user data values. Incorrect values can make a schema unreadable. If this happens,
+  the original configuration can usually be restored from a backup table that is created automatically before
+  the update operation.
+
+Note that multiple attributes, user data, and/or keywords can be added/removed/renamed at once by specifying the
+parameters multiple times.
