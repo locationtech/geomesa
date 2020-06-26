@@ -228,7 +228,7 @@ user data of the schema. When adding a layer in GeoServer, the 'Keywords' sectio
 will be automatically populated with the user data keywords.
 
 The ``--add-user-data`` parameter can be used to add or update any user data key. See :ref:`index_config` for
-some examples of configurable values.
+some examples of configurable values. Entries can be specified as ``<key>:<value>``.
 
 .. warning::
 
@@ -238,3 +238,4 @@ some examples of configurable values.
 
 Note that multiple attributes, user data, and/or keywords can be added/removed/renamed at once by specifying the
 parameters multiple times.
+
