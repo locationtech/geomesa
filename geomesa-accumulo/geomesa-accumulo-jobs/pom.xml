@@ -3,12 +3,12 @@
 
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-accumulo_2.11</artifactId>
+        <artifactId>geomesa-accumulo_2.12</artifactId>
         <version>3.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-accumulo-jobs_2.11</artifactId>
+    <artifactId>geomesa-accumulo-jobs_2.12</artifactId>
     <name>GeoMesa Accumulo Jobs</name>
 
     <properties>

@@ -59,8 +59,11 @@ object GeohashUtils
    */
   case class ResolutionRange(minBitsResolution:Int=5,
                              maxBitsResolution:Int=63,
-                             numBitsIncrement:Int=2)
-    extends Inclusive(minBitsResolution, maxBitsResolution, numBitsIncrement) {
+                             numBitsIncrement:Int=2) {
+    //extends Inclusive(minBitsResolution, maxBitsResolution, numBitsIncrement) {
+
+    val internalRange = new Range.Inclusive(minBitsResolution, maxBitsResolution, numBitsIncrement)
+
     // validate resolution arguments
     if (minBitsResolution >= maxBitsResolution)
       throw new IllegalArgumentException("Minimum resolution must be strictly greater than maximum resolution.")
@@ -219,7 +222,7 @@ object GeohashUtils
     val env = defaultGeometryFactory.toGeometry(geom.getEnvelopeInternal)
 
     // conduct the search through the various candidate resolutions
-    val (_, ghOpt) = resolutions.foldRight((resolutions.minBitsResolution, Option.empty[GeoHash])){
+    val (_, ghOpt) = resolutions.internalRange.foldRight((resolutions.minBitsResolution, Option.empty[GeoHash])){
       case (bits, orig@(res, _)) =>
         val gh = GeoHash(centroid.getX, centroid.getY, bits)
         if (gh.contains(env) && bits >= res) (bits, Some(gh)) else orig
@@ -507,7 +510,7 @@ object GeohashUtils
       val centroid = getCentroid(geom)
 
       // consider candidate resolutions
-      val (maxBits, numBoxes) = resolutions.foldLeft(resolutions.minBitsResolution, 0L){(res, bits) =>
+      val (maxBits, numBoxes) = resolutions.internalRange.foldLeft(resolutions.minBitsResolution, 0L){(res, bits) =>
         // at this resolution -- odds only -- how many boxes as our original MBR become?
         val newBits = bits - ghMBR.prec
         val numBoxes : Long = 1L << newBits.asInstanceOf[Long]

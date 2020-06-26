@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-lambda_2.11</artifactId>
+        <artifactId>geomesa-lambda_2.12</artifactId>
         <version>3.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>geomesa-lambda-datastore_2.11</artifactId>
+    <artifactId>geomesa-lambda-datastore_2.12</artifactId>
     <name>GeoMesa Lambda DataStore</name>
 
     <properties>
