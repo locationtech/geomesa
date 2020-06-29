@@ -25,6 +25,7 @@ geospatial analytics.
 ## Documentation
 
 * [Main documentation](http://www.geomesa.org/documentation/)
+* [Upgrade Guide](http://www.geomesa.org/documentation/user/upgrade.html)
 * Quick Starts:
   [HBase](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-hbase.html) |
   [Accumulo](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-accumulo.html) |
@@ -32,12 +33,11 @@ geospatial analytics.
   [Kafka](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-kafka.html) |
   [Redis](http://www.geomesa.org/documentation/tutorials/geomesa-quickstart-redis.html) |
   [FileSystem](http://www.geomesa.org/documentation/current/tutorials/geomesa-quickstart-fsds.html)
- 
 * [Tutorials](http://www.geomesa.org/tutorials/)
 
 ## Downloads
 
-**Current release: 3.0.0**
+**Current release: [3.0.0](https://github.com/locationtech/geomesa/releases/tag/geomesa_2.11-3.0.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.0.0/geomesa-hbase_2.11-3.0.0-bin.tar.gz) |
@@ -46,14 +46,7 @@ geospatial analytics.
   [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.0.0/geomesa-kafka_2.11-3.0.0-bin.tar.gz) |
   [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.0.0/geomesa-redis_2.11-3.0.0-bin.tar.gz) |
   [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.0.0/geomesa-fs_2.11-3.0.0-bin.tar.gz) |
-  [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.0.0/geomesa-bigtable_2.11-3.0.0-bin.tar.gz) |
-  [**Source**](https://github.com/locationtech/geomesa/archive/geomesa_2.11-3.0.0.tar.gz) |
-  [**CheckSums**](https://github.com/locationtech/geomesa/releases/geomesa_2.11-3.0.0)
-
-**Development version: 3.1.0-SNAPSHOT**
-
-  &nbsp;&nbsp;&nbsp;&nbsp;
-  [![Build Status](https://github.com/locationtech/geomesa/workflows/CI/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions?query=branch%3Amain+workflow%3ACI)
+  [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.0.0/geomesa-bigtable_2.11-3.0.0-bin.tar.gz)
 
 ### Verifying Downloads
 
@@ -77,19 +70,11 @@ The keys currently used for signing are:
 | `CD24F317` | Emilio Lahr-Vivaz &lt;elahrvivaz(-at-)ccri.com&gt; |
 | `1E679A56` | James Hughes &lt;jnh5y(-at-)ccri.com&gt; |
 
-### Upgrading
-
-To upgrade between minor releases of GeoMesa, the versions of all GeoMesa components **must** match. 
-
-This means that the version of the `geomesa-accumulo-distributed-runtime` JAR installed on Accumulo
-tablet servers **must** match the version of the `geomesa-accumulo-gs-plugin` JAR installed in the `WEB-INF/lib`
-directory of GeoServer.
-
-See the [Upgrade Guide](http://www.geomesa.org/documentation/user/upgrade.html) for information on specific version updates.
-
 ## Maven Integration
 
-GeoMesa is now hosted on Maven Central. However, it still depends on several third-party libraries only available
+[![Maven](.github/maven-badge.svg)](https://search.maven.org/search?q=g:org.locationtech.geomesa)
+
+GeoMesa is hosted on Maven Central. However, it still depends on several third-party libraries only available
 in other repositories. To include GeoMesa in your project, add the following repositories to your pom:
 
 ```xml
@@ -163,6 +148,11 @@ libraryDependencies ++= Seq(
 
 ## Building from Source
 
+**Development version: 3.1.0-SNAPSHOT**
+
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  [![Build Status](https://github.com/locationtech/geomesa/workflows/CI/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions?query=branch%3Amain+workflow%3ACI)
+
 Requirements:
 
 * [Git](http://git-scm.com/)
@@ -174,7 +164,7 @@ Use Git to download the source code. Navigate to the destination directory, then
     git clone git@github.com:locationtech/geomesa.git
     cd geomesa
 
-The project is managed by Maven. To build, run:
+The project is built using Maven. To build, run:
 
     mvn clean install
 
