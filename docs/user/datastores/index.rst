@@ -1,3 +1,5 @@
+.. _geomesa_data_stores:
+
 GeoMesa Data Stores
 ===================
 

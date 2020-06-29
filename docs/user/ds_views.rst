@@ -11,10 +11,6 @@ In order to use a layer through the a data store view, the SimpleFeatureType mus
 the underlying stores. If a schema exists in some stores but not all of them, it will not show up in the
 combined view.
 
-.. warning::
-
-    Data store views are an alpha-level feature, and may change without notice
-
 Installation
 ------------
 
