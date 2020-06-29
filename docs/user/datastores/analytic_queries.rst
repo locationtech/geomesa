@@ -471,7 +471,7 @@ BIN_LABEL
 ^^^^^^^^^
 
 This hint will trigger the creation of 24-byte records, instead of the standard 16. It should be the
-name of an attribute that will be used to general the label for each record.
+name of an attribute that will be used to generate the label for each record.
 
 BIN_SORT
 ^^^^^^^^
