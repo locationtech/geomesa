@@ -70,8 +70,8 @@
         <avro.version>1.7.5</avro.version> <!-- see also confluent.avro.version -->
         <parquet.version>1.9.0</parquet.version>
         <orc.version>1.5.4</orc.version>
-        <fasterxml.jackson.version>2.9.10</fasterxml.jackson.version> <!-- used by geoserver (2.9.7), spark (2.6.7) and arrow (2.7.1) -->
-        <fasterxml.jackson.databind.version>2.9.10.4</fasterxml.jackson.databind.version> <!-- used by spark (2.6.7.1) and arrow (2.7.1) -->
+        <fasterxml.jackson.version>2.10.0</fasterxml.jackson.version> <!-- used by geoserver (2.9.7), spark (2.6.7) and arrow (2.7.1) -->
+        <fasterxml.jackson.databind.version>2.10.0</fasterxml.jackson.databind.version> <!-- used by spark (2.6.7.1) and arrow (2.7.1) -->
         <codehaus.jackson.version>1.9.3</codehaus.jackson.version>
         <json4s.version>3.5.4</json4s.version>
         <scalatra.version>2.6.3</scalatra.version>
@@ -1691,7 +1691,7 @@
             <dependency>
                 <groupId>com.thoughtworks.paranamer</groupId>
                 <artifactId>paranamer</artifactId>
-                <version>2.6</version>
+                <version>2.8</version>
             </dependency>
             <dependency>
                 <groupId>com.twitter</groupId>
