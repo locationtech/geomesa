@@ -354,6 +354,9 @@ object DataFrameFunctions extends SpatialEncoders {
 
     def st_difference(geom1:Column, geom2:Column): TypedColumn[Any, Geometry] =
       udfToColumn(ST_Difference, relationNames, geom1, geom2)
+
+    def st_transform(geom: Column, fromCRS: Column, toCRS: Column): TypedColumn[Any, Geometry] =
+      udfToColumn(ST_Transform, relationNames, geom, fromCRS, toCRS)
   }
 
   /** Stack of all DataFrame DSL functions. */

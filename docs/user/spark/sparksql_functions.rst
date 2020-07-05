@@ -845,6 +845,18 @@ st_touches
 
 Returns true if the geometries have at least one point in common, but their interiors do not intersect.
 
+.. _st_transform:
+
+st_transform
+^^^^^^^^^^
+
+::
+
+    Geometry st_transform(Geometry a, String fromCRS, String toCRS)
+
+Returns a new geometry with its coordinates transformed to a different coordinate reference system (for example from
+EPSG:4326 to EPSG:27700).
+
 .. _st_within:
 
 st_within

@@ -502,6 +502,14 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       dfBlank.select(st_lengthSphere(st_castToLineString(st_geomFromWKT(line)))).first must not(throwAn[Exception])
     }
 
+    "st_transform" >> {
+      val pointWGS84 = "POINT(-0.871722 52.023636)"
+      val expectedOSGB36 = WKTUtils.read("POINT(477514.0081191745 236736.03179982008)")
+      val transf = dfBlank.select(st_transform(st_geomFromWKT(pointWGS84), lit("EPSG:4326"), lit("EPSG:27700"))).first
+      transf must not(throwAn[Exception])
+      transf mustEqual expectedOSGB36
+    }
+
     // after
     step {
       spark.stop()
