@@ -848,7 +848,7 @@ Returns true if the geometries have at least one point in common, but their inte
 .. _st_transform:
 
 st_transform
-^^^^^^^^^^
+^^^^^^^^^^^^
 
 ::
 
