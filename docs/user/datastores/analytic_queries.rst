@@ -38,7 +38,7 @@ Sampling can also be combined with the other analytic queries mentioned below.
 
         import org.locationtech.geomesa.index.conf.QueryHints;
 
-         // returns 10% of features, threaded by 'track' attribute
+        // returns 10% of features, threaded by 'track' attribute
         query.getHints().put(QueryHints.SAMPLING(), new Float(0.1));
         query.getHints().put(QueryHints.SAMPLE_BY(), "track");
 
