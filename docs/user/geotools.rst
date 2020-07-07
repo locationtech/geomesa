@@ -9,7 +9,8 @@ but this section gives a concise overview of the main ways to interact with a da
 
     This section is focused on users who want to integrate with GeoMesa through code. Many use cases do not
     require this; data can be ingested using the GeoMesa command-line tools or Apache NiFi processors, and
-    accessed through GeoServer OGC requests or Spark.
+    accessed through GeoServer OGC requests or Spark. Even so, this page can provide useful background
+    on the concepts behind those operations.
 
 A data store provides read and write access to spatial data. The API itself does not distinguish between different
 storage formats. Thus, the API for accessing data stored in a local shape file will be the same as for accessing
