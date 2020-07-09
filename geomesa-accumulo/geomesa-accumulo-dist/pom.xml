@@ -167,7 +167,7 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-deploy-plugin</artifactId>
                     <configuration>
-                        <skip>${skip.installers.deploy}</skip>
+                        <skip>true</skip>
                     </configuration>
                 </plugin>
             </plugins>
