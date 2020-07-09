@@ -17,7 +17,7 @@ Extract it somewhere convenient:
     # download and unpackage the most recent distribution:
     $ wget "https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-$VERSION/geomesa-fs-dist_2.11-$VERSION-bin.tar.gz"
     $ tar xvf geomesa-fs-dist_2.11-$VERSION-bin.tar.gz
-    $ cd geomesa-fs-dist_2.11-$VERSION
+    $ cd geomesa-fs_2.11-$VERSION
     $ ls
     bin/  conf/  dist/  docs/  examples/  lib/  LICENSE.txt  logs/
 
