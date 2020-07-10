@@ -247,17 +247,6 @@
             <!-- geomesa modules -->
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-accumulo-compute_${scala.binary.version}</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-accumulo-compute_${scala.binary.version}</artifactId>
-                <classifier>shaded</classifier>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-accumulo-datastore_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -268,12 +257,13 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-accumulo-jobs_${scala.binary.version}</artifactId>
+                <artifactId>geomesa-accumulo-gs-plugin_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
-                <artifactId>geomesa-accumulo-security_${scala.binary.version}</artifactId>
+                <artifactId>geomesa-accumulo-jobs_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -290,6 +280,7 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-archetypes-gs-plugin_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -308,6 +299,12 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-arrow-gs-plugin_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-arrow-tools_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -318,6 +315,12 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-bigtable-gs-plugin_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-bigtable-tools_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -325,6 +328,12 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-cassandra-datastore_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-cassandra-gs-plugin_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -435,6 +444,7 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-fs-gs-plugin_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -480,6 +490,12 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-geojson-api_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-geojson-gs-plugin_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -540,6 +556,7 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-hbase-gs-plugin_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -573,6 +590,12 @@
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-kafka-gs-plugin_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-kafka-tools_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -595,6 +618,7 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-kudu-gs-plugin_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -610,6 +634,12 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-lambda-datastore_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-lambda-gs-plugin_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -640,6 +670,7 @@
                 <groupId>org.locationtech.geomesa</groupId>
                 <artifactId>geomesa-redis-gs-plugin_${scala.binary.version}</artifactId>
                 <version>${project.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -681,6 +712,12 @@
                 <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
                 <classifier>data</classifier>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.locationtech.geomesa</groupId>
+                <artifactId>geomesa-stream-gs-plugin_${scala.binary.version}</artifactId>
+                <version>${project.version}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>org.locationtech.geomesa</groupId>
@@ -2329,8 +2366,8 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <!-- 3.1.0 was released 2017-08-13. -->
-                    <version>3.1.0</version>
+                    <!-- 3.3.0 was released 2020-04-27. -->
+                    <version>3.3.0</version>
                     <configuration>
                       <tarLongFileMode>posix</tarLongFileMode>
                     </configuration>

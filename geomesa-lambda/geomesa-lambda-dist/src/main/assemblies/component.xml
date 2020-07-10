@@ -25,7 +25,6 @@
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <useStrictFiltering>true</useStrictFiltering>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-lambda-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-process-wps*</include>
             </includes>
         </dependencySet>
@@ -61,6 +60,17 @@
             <includes>
                 <include>LICENSE.txt</include>
                 <include>README.md</include>
+            </includes>
+        </fileSet>
+
+        <!-- gs-plugin - have to specify as a file since it's not attached -->
+        <fileSet>
+            <directory>../geomesa-lambda-gs-plugin/target</directory>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>*-install.tar.gz</include>
             </includes>
         </fileSet>
 

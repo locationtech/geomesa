@@ -28,9 +28,7 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-bigtable-gs-plugin_${scala.binary.version}</artifactId>
-            <classifier>install</classifier>
-            <version>${project.version}</version>
-            <type>tar.gz</type>
+            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
@@ -103,17 +101,6 @@
     </dependencies>
 
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-deploy-plugin</artifactId>
-                    <configuration>
-                        <skip>true</skip>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -134,6 +121,7 @@
                             <delimiters>
                                 <delimiter>%%</delimiter>
                             </delimiters>
+                            <attach>false</attach>
                         </configuration>
                     </execution>
                 </executions>
