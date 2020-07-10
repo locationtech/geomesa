@@ -90,6 +90,15 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 3.1.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Maven Type of GeoServer Plugin Modules
+--------------------------------------
+
+All of the ``geomesa-*-gs-plugin`` artifacts have been changed to ``<type>pom</type>``, since they did not
+contain any code. Any ``pom.xml`` references to them should be updated to use the correct type.
+
 Version 3.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
