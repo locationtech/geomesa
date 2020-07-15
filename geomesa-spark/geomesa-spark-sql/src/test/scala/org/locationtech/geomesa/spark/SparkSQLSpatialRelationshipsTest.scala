@@ -416,17 +416,6 @@ class SparkSQLSpatialRelationshipsTest extends Specification with LazyLogging {
       sc.sql("select st_length(null)").collect.head(0) must beNull
     }
 
-    "st_transform" >> {
-      val pointWGS84 = "POINT(-0.871722 52.023636)"
-      val expectedOSGB36 = "POINT(477514.0081191745 236736.03179982008)"
-      val r = sc.sql(
-        s"select st_transform(st_geomFromWKT('$pointWGS84'), 'EPSG:4326', 'EPSG:27700')"
-      ).collect()
-      r.head.getAs[Point](0) mustEqual WKTUtils.read(expectedOSGB36)
-
-      sc.sql("select st_transform(null, null, null)").collect.head(0) must beNull
-    }
-
     // after
     step {
       ds.dispose()

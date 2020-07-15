@@ -16,9 +16,6 @@ import org.locationtech.spatial4j.distance.{DistanceCalculator, DistanceUtils}
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext
 import org.locationtech.geomesa.spark.jts.udaf.ConvexHull
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
-import org.geotools.geometry.jts.JTS
-import org.geotools.referencing.CRS
-import org.opengis.referencing.operation.MathTransform
 
 object SpatialRelationFunctions {
   import java.{lang => jl}
@@ -61,14 +58,6 @@ object SpatialRelationFunctions {
 
   val ST_Difference: (Geometry, Geometry) => Geometry = nullableUDF((geom1, geom2) => geom1.difference(geom2))
 
-  val ST_Transform: (Geometry, String, String) => Geometry = nullableUDF { (geometry, sourceCRScode, targetCRScode) =>
-    System.setProperty("org.geotools.referencing.forceXY", "true")
-    val fromCRS = CRS.decode(sourceCRScode)
-    val toCRS = CRS.decode(targetCRScode)
-    val transformCRS: MathTransform = CRS.findMathTransform(fromCRS, toCRS, false)
-    JTS.transform(geometry, transformCRS)
-  }
-
   private[geomesa] val relationNames = Map(
     ST_Translate -> "st_translate" ,
     ST_Contains -> "st_contains",
@@ -91,8 +80,7 @@ object SpatialRelationFunctions {
     ST_AggregateDistanceSphere -> "st_aggregateDistanceSphere",
     ST_LengthSphere -> "st_lengthSphere",
     ST_Intersection -> "st_intersection",
-    ST_Difference -> "st_difference",
-    ST_Transform -> "st_transform"
+    ST_Difference -> "st_difference"
   )
 
   // Geometry Processing
@@ -126,7 +114,6 @@ object SpatialRelationFunctions {
     sqlContext.udf.register(relationNames(ST_DistanceSphere), ST_DistanceSphere)
     sqlContext.udf.register(relationNames(ST_AggregateDistanceSphere), ST_AggregateDistanceSphere)
     sqlContext.udf.register(relationNames(ST_LengthSphere), ST_LengthSphere)
-    sqlContext.udf.register(relationNames(ST_Transform), ST_Transform)
 
     // Register geometry Processing
     sqlContext.udf.register("st_convexhull", ch)

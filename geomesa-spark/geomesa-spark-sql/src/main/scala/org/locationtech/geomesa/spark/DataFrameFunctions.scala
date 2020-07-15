@@ -17,6 +17,7 @@ import org.apache.spark.sql.{Column, Encoder, Encoders, TypedColumn}
 import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.jts.geom.Geometry
+import org.locationtech.geomesa.spark.GeometricDistanceFunctions.{ST_Transform, distanceNames}
 
 
 /**
@@ -43,11 +44,9 @@ object DataFrameFunctions extends SpatialEncoders {
       udfToColumn(ST_LengthSphere, relationNames, line)
 
     def st_transform(geom: Column, fromCRS: Column, toCRS: Column): TypedColumn[Any, Geometry] =
-      udfToColumn(ST_Transform, relationNames, geom, fromCRS, toCRS)
+      udfToColumn(ST_Transform, distanceNames, geom, fromCRS, toCRS)
   }
 
   /** Stack of all DataFrame DSL functions. */
   trait Library extends SpatialRelations
-
-
 }
