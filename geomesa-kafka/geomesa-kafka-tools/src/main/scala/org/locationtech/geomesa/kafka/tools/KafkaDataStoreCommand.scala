@@ -34,7 +34,8 @@ trait KafkaDataStoreCommand extends DataStoreCommand[KafkaDataStore] {
       KafkaDataStoreFactoryParams.ConsumerCount.getName    -> params.numConsumers.toString,
       KafkaDataStoreFactoryParams.TopicPartitions.getName  -> params.partitions.toString,
       KafkaDataStoreFactoryParams.TopicReplication.getName -> params.replication.toString,
-      KafkaDataStoreFactoryParams.ConsumerReadBack.getName -> readBack
+      KafkaDataStoreFactoryParams.ConsumerReadBack.getName -> readBack,
+      KafkaDataStoreFactoryParams.CacheExpiry.getName      -> "0s"
     ).filter(_._2 != null)
   }
 }
