@@ -8,7 +8,10 @@
 
 package org.locationtech.geomesa
 
-import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
+import java.util.concurrent.atomic.AtomicInteger
+
+import com.typesafe.scalalogging.{LazyLogging, Logger}
+import org.apache.arrow.memory.{AllocationListener, AllocationOutcome, BufferAllocator, RootAllocator}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -18,13 +21,43 @@ import org.opengis.feature.simple.SimpleFeatureType
 
 package object arrow {
 
+  val id = new AtomicInteger(0)
   // need to be lazy to avoid class loading issues before init is called
   lazy val ArrowEncodedSft: SimpleFeatureType =
     SimpleFeatureTypes.createType("arrow", "batch:Bytes,*geom:Point:srid=4326")
 
   object ArrowAllocator {
 
-    private val root = new RootAllocator(Long.MaxValue)
+    val listener: AllocationListener = new AllocationListener with LazyLogging {
+
+      import com.typesafe.scalalogging.Logger
+      import org.slf4j.LoggerFactory
+      val internalLogger: Logger = Logger(LoggerFactory.getLogger("arrow"))
+//      override def onPreAllocation(size: Long): Unit = {
+//        println(s"Root is being called with onPreAllocation with argument $size")
+//      }
+//
+//      override def onAllocation(size: Long): Unit = {
+//        println(s"Root is being called with onAllocation with argument $size")
+//      }
+//      override def onRelease(size: Long): Unit = {
+//        println(s"Root is being called with onRelease with argument $size")
+//      }
+//      override def onFailedAllocation(size: Long, outcome: AllocationOutcome): Boolean = {
+//        println(s"onFailedAllocation has been called")
+//        super.onFailedAllocation(size, outcome)
+//      }
+
+      override def onChildAdded(parentAllocator: BufferAllocator, childAllocator: BufferAllocator): Unit = {
+        logger.info(s"child allocator ${childAllocator.getName} has been added to ${parentAllocator.getName}")
+      }
+
+      override def onChildRemoved(parentAllocator: BufferAllocator, childAllocator: BufferAllocator): Unit = {
+        logger.info(s"child allocator ${childAllocator.getName} has been removed from ${parentAllocator.getName}")
+      }
+    }
+
+    private val root = new RootAllocator(listener, Long.MaxValue)
 
     sys.addShutdownHook(CloseWithLogging(root))
 
@@ -37,7 +70,10 @@ package object arrow {
      * @param name name of the allocator, for bookkeeping
      * @return
      */
-    def apply(name: String): BufferAllocator = root.newChildAllocator(name, 0L, Long.MaxValue)
+    def apply(name: String): BufferAllocator = {
+      root.newChildAllocator(s"$name-${id.getAndIncrement()}", 0L, Long.MaxValue)
+    }
+
   }
 
   object ArrowProperties {
