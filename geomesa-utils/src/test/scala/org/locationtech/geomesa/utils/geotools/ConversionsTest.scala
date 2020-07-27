@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.utils.geotools
 
+import org.geotools.feature.simple.SimpleFeatureImpl
+import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.simple.SimpleFeature
@@ -20,56 +22,46 @@ import scala.collection.JavaConverters._
 @RunWith(classOf[JUnitRunner])
 class ConversionsTest extends Specification with Mockito {
 
-  sequential
+  def newSft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
 
   "RichSimpleFeature" should {
 
     import Conversions.RichSimpleFeature
 
-    val sf = mock[SimpleFeature]
-
     "support implicit conversion" >> {
+      val sf = mock[SimpleFeature]
       val rsf: RichSimpleFeature = sf
       success
     }
 
 
     "be able to access default geometry" >> {
+      val sf = mock[SimpleFeature]
       val geo = mock[Geometry]
       sf.getDefaultGeometry returns geo
-
       sf.geometry mustEqual geo
     }
 
     "throw exception if defaultgeometry is not a Geometry" >> {
+      val sf = mock[SimpleFeature]
       sf.getDefaultGeometry returns "not a Geometry!"
-
       sf.geometry must throwA[ClassCastException]
     }
 
     "provide type safe access to user data" >> {
-
-      val expected: Integer = 5
-
-      val userData = Map[AnyRef, AnyRef]("key" -> expected).asJava
-      sf.getUserData returns userData
+      val sf = new SimpleFeatureImpl(List[AnyRef](null, null, null).asJava, newSft, new FeatureIdImpl(""))
+      sf.getUserData.put("key", Int.box(5))
 
       "when type is correct" >> {
-
-        val result = sf.userData[Integer]("key")
-        result must beSome(expected)
+        sf.userData[Integer]("key") must beSome(Int.box(5))
       }
 
       "or none when type is not correct" >> {
-
-        val result = sf.userData[String]("key")
-        result must beNone
+        sf.userData[String]("key") must beNone
       }
 
       "or none when value does not exist" >> {
-
-        val result: Option[String] = sf.userData[String]("foo")
-        result must beNone
+        sf.userData[String]("foo") must beNone
       }
     }
   }
@@ -78,7 +70,6 @@ class ConversionsTest extends Specification with Mockito {
 
     import RichSimpleFeatureType.RichSimpleFeatureType
 
-    def newSft = SimpleFeatureTypes.createType("test", "dtg:Date,*geom:Point:srid=4326")
     "support implicit conversion" >> {
       val sft = newSft
       val rsft: RichSimpleFeatureType = sft
@@ -93,21 +84,29 @@ class ConversionsTest extends Specification with Mockito {
 
     "provide type safe access to user data" >> {
 
-      val expected: Integer = 5
-
       val sft = newSft
-      sft.getUserData.put("key", expected)
+      sft.getUserData.put("key", Int.box(5))
 
       "when type is correct" >> {
-        val result = sft.userData[Integer]("key")
-        result must beSome(expected)
+        sft.userData[Integer]("key") must beSome(Int.box(5))
       }
 
       "or none when value does not exist" >> {
-        val result: Option[String] = sft.userData[String]("foo")
-        result must beNone
+        sft.userData[String]("foo") must beNone
       }
     }
+  }
 
+  "RichAttributeDescriptor" should {
+
+    import RichAttributeDescriptors.RichAttributeDescriptor
+
+    "provide case-insensitive boolean matches" >> {
+      foreach(Seq("TRUE", "true", "True")) { b =>
+        val sft = newSft
+        sft.getDescriptor("name").getUserData.put("json", b)
+        sft.getDescriptor("name").isJson must beTrue
+      }
+    }
   }
 }
