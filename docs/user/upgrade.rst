@@ -186,7 +186,7 @@ Accumulo Default Visibilities Removed
 -------------------------------------
 
 The Accumulo data store parameter ``geomesa.security.visibilities`` have been removed. Visibilities should be set
-per-feature, as per :ref:`accumulo_visibilities`.
+per-feature, as described in :ref:`data_security`.
 
 Version 2.4.0 Upgrade Guide
 +++++++++++++++++++++++++++
