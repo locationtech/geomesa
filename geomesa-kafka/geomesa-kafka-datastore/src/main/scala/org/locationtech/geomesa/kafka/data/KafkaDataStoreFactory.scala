@@ -27,7 +27,7 @@ import org.locationtech.geomesa.security
 import org.locationtech.geomesa.security.AuthorizationsProvider
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam}
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, DeprecatedParam, ReadWriteFlag}
 import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.zk.ZookeeperMetadata
 
@@ -267,7 +267,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         "Kafka brokers",
         optional = false,
         deprecatedKeys = Seq("brokers"),
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true
+      )
 
     val Zookeepers =
       new GeoMesaParam[String](
@@ -275,7 +276,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         "Kafka zookeepers",
         optional = false,
         deprecatedKeys = Seq("zookeepers"),
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true
+      )
 
     val ZkPath =
       new GeoMesaParam[String](
@@ -283,7 +285,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         "Zookeeper discoverable path (namespace)",
         default = DefaultZkPath,
         deprecatedKeys = Seq("zkPath"),
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true
+      )
 
     val ProducerConfig =
       new GeoMesaParam[Properties](
@@ -291,7 +294,9 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         "Configuration options for kafka producer, in Java properties format. " +
             "See http://kafka.apache.org/documentation.html#producerconfigs",
         largeText = true,
-        deprecatedKeys = Seq("producerConfig"))
+        deprecatedKeys = Seq("producerConfig"),
+        readWrite = ReadWriteFlag.WriteOnly
+      )
 
     val ConsumerConfig =
       new GeoMesaParam[Properties](
@@ -299,21 +304,27 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         "Configuration options for kafka consumer, in Java properties format. " +
             "See http://kafka.apache.org/documentation.html#newconsumerconfigs",
         largeText = true,
-        deprecatedKeys = Seq("consumerConfig"))
+        deprecatedKeys = Seq("consumerConfig"),
+        readWrite = ReadWriteFlag.ReadOnly
+      )
 
     val ClearOnStart =
       new GeoMesaParam[java.lang.Boolean](
         "kafka.producer.clear",
         "Send a 'clear' message on startup. " +
             "This will cause clients to ignore any data that was in the topic prior to startup",
-        default = Boolean.box(false))
+        default = Boolean.box(false),
+        readWrite = ReadWriteFlag.WriteOnly
+      )
 
     val ConsumerReadBack =
       new GeoMesaParam[Duration](
         "kafka.consumer.read-back",
         "On start up, read messages that were written within this time frame (vs ignore old messages), " +
             "e.g. '1 hour'. Use 'Inf' to read all messages",
-        deprecatedParams = Seq(DeprecatedOffset, DeprecatedEarliest))
+        deprecatedParams = Seq(DeprecatedOffset, DeprecatedEarliest),
+        readWrite = ReadWriteFlag.ReadOnly
+      )
 
     val TopicPartitions =
       new GeoMesaParam[Integer](
@@ -321,14 +332,18 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         "Number of partitions to use in new kafka topics",
         default = 1,
         deprecatedKeys = Seq("partitions"),
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true,
+        readWrite = ReadWriteFlag.WriteOnly
+      )
 
     val TopicReplication =
       new GeoMesaParam[Integer](
         "kafka.topic.replication",
         "Replication factor to use in new kafka topics",
         default = 1,
-        deprecatedKeys = Seq("replication"))
+        deprecatedKeys = Seq("replication"),
+        readWrite = ReadWriteFlag.WriteOnly
+      )
 
     val ConsumerCount =
       new GeoMesaParam[Integer](
@@ -336,7 +351,9 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         "Number of kafka consumers used per feature type. Set to 0 to disable consuming (i.e. producer only)",
         default = 1,
         deprecatedParams = Seq(DeprecatedProducer),
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true,
+        readWrite = ReadWriteFlag.ReadOnly
+      )
 
     val SerializationType =
       new GeoMesaParam[String](
@@ -344,7 +361,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         "Type of serialization to use. Must be one of 'kryo' or 'avro'",
         default = "kryo",
         enumerations = Seq("kryo", "avro"),
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true
+      )
 
     // TODO these should really be per-feature, not per datastore...
 
@@ -353,35 +371,45 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         "kafka.cache.expiry",
         "Features will be expired after this delay",
         deprecatedParams = Seq(DeprecatedExpiry),
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true,
+        readWrite = ReadWriteFlag.ReadOnly
+      )
 
     val EventTime =
       new GeoMesaParam[String](
         "kafka.cache.event-time",
         "Instead of message time, determine expiry based on feature data. " +
             "This can be an attribute name or a CQL expression, but it must evaluate to a date",
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true,
+        readWrite = ReadWriteFlag.ReadOnly
+      )
 
     val IndexResolutionX =
       new GeoMesaParam[Integer](
         "kafka.index.resolution.x",
         "Number of bins in the x-dimension of the spatial index",
         default = Int.box(360),
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true,
+        readWrite = ReadWriteFlag.ReadOnly
+      )
 
     val IndexResolutionY =
       new GeoMesaParam[Integer](
         "kafka.index.resolution.y",
         "Number of bins in the y-dimension of the spatial index",
         default = Int.box(180),
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true,
+        readWrite = ReadWriteFlag.ReadOnly
+      )
 
     val IndexTiers =
       new GeoMesaParam[String](
         "kafka.index.tiers",
         "Number and size (in degrees) and of tiers to use when indexing geometries with extents",
         default = SizeSeparatedBucketIndex.DefaultTiers.map { case (x, y) => s"$x:$y"}.mkString(","),
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true,
+        readWrite = ReadWriteFlag.ReadOnly
+      )
 
     val CqEngineIndices =
       new GeoMesaParam[String](
@@ -389,27 +417,35 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         "Use CQEngine for indexing individual attributes. Specify as `name:type`, delimited by commas, where name " +
             "is an attribute and type is one of `default`, `navigable`, `radix`, `unique`, `hash` or `geometry`",
         deprecatedKeys = Seq("kafka.cache.cqengine.indices"),
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true,
+        readWrite = ReadWriteFlag.ReadOnly
+      )
 
     val EventTimeOrdering =
       new GeoMesaParam[java.lang.Boolean](
         "kafka.cache.event-time.ordering",
         "Instead of message time, determine feature ordering based on event time data",
-        default = Boolean.box(false))
+        default = Boolean.box(false),
+        readWrite = ReadWriteFlag.ReadOnly
+      )
 
     val LazyLoad =
       new GeoMesaParam[java.lang.Boolean](
         "kafka.consumer.start-on-demand",
         "Start consuming a topic only when that feature type is first requested. " +
             "This can reduce load if some layers are never queried",
-        default = Boolean.box(true))
+        default = Boolean.box(true),
+        readWrite = ReadWriteFlag.ReadOnly
+      )
 
     val LazyFeatures =
       new GeoMesaParam[java.lang.Boolean](
         "kafka.serialization.lazy",
         "Use lazy deserialization of features. " +
             "This may improve processing load at the expense of slightly slower query times",
-        default = Boolean.box(true))
+        default = Boolean.box(true),
+        readWrite = ReadWriteFlag.ReadOnly
+      )
 
     val LooseBBox      = GeoMesaDataStoreFactory.LooseBBoxParam
     val AuditQueries   = GeoMesaDataStoreFactory.AuditQueriesParam
@@ -418,7 +454,9 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val ExecutorTicker =
       new GeoMesaParam[(ScheduledExecutorService, Ticker)](
         "kafka.cache.executor",
-        "Executor service and ticker to use for expiring features")
+        "Executor service and ticker to use for expiring features",
+        readWrite = ReadWriteFlag.ReadOnly
+      )
 
     @deprecated val CqEngineCache    = new GeoMesaParam[java.lang.Boolean]("kafka.cache.cqengine", "Use CQEngine-based implementation of live feature cache", default = Boolean.box(false), deprecatedKeys = Seq("useCQCache"))
     @deprecated val CacheCleanup     = new GeoMesaParam[Duration]("kafka.cache.cleanup", "Run a thread to clean expired features from the cache (vs cleanup during reads and writes)", default = Duration("30s"), deprecatedParams = Seq(DeprecatedCleanup))

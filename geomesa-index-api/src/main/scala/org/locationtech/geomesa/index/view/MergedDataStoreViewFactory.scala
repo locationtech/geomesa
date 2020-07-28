@@ -17,6 +17,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 import org.opengis.filter.Filter
 
 import scala.util.control.NonFatal
@@ -99,16 +100,29 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
   override val DisplayName: String = "Merged DataStore View (GeoMesa)"
   override val Description: String = "A merged, read-only view of multiple data stores"
 
-  val StoreFilterParam = new GeoMesaParam[String]("geomesa.merged.store.filter")
+  val StoreFilterParam = new GeoMesaParam[String]("geomesa.merged.store.filter", readWrite = ReadWriteFlag.ReadOnly)
 
   val ConfigLoaderParam: Option[GeoMesaParam[String]] = {
     val loaders = ServiceLoader.load[MergedViewConfigLoader]().map(_.getClass.getName)
     if (loaders.isEmpty) { None } else {
-      val param = new GeoMesaParam[String]("geomesa.merged.loader", "Loader used to configure the underlying data stores to query", enumerations = loaders)
+      val param =
+        new GeoMesaParam[String](
+          "geomesa.merged.loader",
+          "Loader used to configure the underlying data stores to query",
+          enumerations = loaders,
+          readWrite = ReadWriteFlag.ReadOnly
+        )
       Some(param)
     }
   }
-  val ConfigParam = new GeoMesaParam[String]("geomesa.merged.stores", "Typesafe configuration defining the underlying data stores to query", optional = ConfigLoaderParam.isDefined, largeText = true)
+  val ConfigParam =
+    new GeoMesaParam[String](
+      "geomesa.merged.stores",
+      "Typesafe configuration defining the underlying data stores to query",
+      optional = ConfigLoaderParam.isDefined,
+      largeText = true,
+      readWrite = ReadWriteFlag.ReadOnly
+    )
 
   override val ParameterInfo: Array[GeoMesaParam[_]] = ConfigLoaderParam.toArray :+ ConfigParam
 

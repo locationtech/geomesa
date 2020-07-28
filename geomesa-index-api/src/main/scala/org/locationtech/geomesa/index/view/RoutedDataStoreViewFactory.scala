@@ -16,6 +16,7 @@ import org.geotools.data.{DataStore, DataStoreFactorySpi, DataStoreFinder}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{GeoMesaDataStoreInfo, NamespaceParams}
 import org.locationtech.geomesa.utils.classpath.ServiceLoader
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -99,17 +100,23 @@ object RoutedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
   override val DisplayName: String = "Routed DataStore View (GeoMesa)"
   override val Description: String = "A routable, read-only view of multiple data stores"
 
-  val ConfigParam = new GeoMesaParam[String](
-    "geomesa.routed.stores",
-    "Typesafe configuration defining the underlying data stores to query",
-    optional = false,
-    largeText = true)
+  val ConfigParam =
+    new GeoMesaParam[String](
+      "geomesa.routed.stores",
+      "Typesafe configuration defining the underlying data stores to query",
+      optional = false,
+      largeText = true,
+      readWrite = ReadWriteFlag.ReadOnly
+    )
 
-  val RouterParam = new GeoMesaParam[String](
-    "geomesa.route.selector",
-    "Class name for a custom org.locationtech.geomesa.index.view.RouteSelector implementation",
-    default = classOf[RouteSelectorByAttribute].getName,
-    enumerations = ServiceLoader.load[RouteSelector]().map(_.getClass.getName))
+  val RouterParam =
+    new GeoMesaParam[String](
+      "geomesa.route.selector",
+      "Class name for a custom org.locationtech.geomesa.index.view.RouteSelector implementation",
+      default = classOf[RouteSelectorByAttribute].getName,
+      enumerations = ServiceLoader.load[RouteSelector]().map(_.getClass.getName),
+      readWrite = ReadWriteFlag.ReadOnly
+    )
 
   override val ParameterInfo: Array[GeoMesaParam[_]] = Array(ConfigParam, RouterParam)
 
