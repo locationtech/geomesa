@@ -96,7 +96,7 @@ same data is ingested multiple times. If the ``id-field`` is omitted, GeoMesa wi
 each feature.
 
 The ``user-data`` element supports arbitrary key-value pairs that will be set in the user data for each SimpleFeature.
-For example, it could be used to specify feature-level :ref:`accumulo_visibilities`.
+For example, it could be used for :ref:`data_security`.
 
 The ``options`` element supports parsing and validation behavior. See :ref:`converter_validation` for details.
 
