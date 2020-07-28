@@ -77,7 +77,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   override val Description = "Apache Kafka\u2122 distributed log"
 
   // note: these are consumer-oriented and don't include producer configs
-  override val ParameterInfo: Array[GeoMesaParam[_]] =
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
       KafkaDataStoreFactoryParams.Brokers,
       KafkaDataStoreFactoryParams.Zookeepers,

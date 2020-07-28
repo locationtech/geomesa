@@ -124,7 +124,7 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
       readWrite = ReadWriteFlag.ReadOnly
     )
 
-  override val ParameterInfo: Array[GeoMesaParam[_]] = ConfigLoaderParam.toArray :+ ConfigParam
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] = ConfigLoaderParam.toArray :+ ConfigParam
 
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     params.containsKey(ConfigParam.key) || ConfigLoaderParam.exists(p => params.containsKey(p.key))

@@ -118,7 +118,7 @@ object RoutedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
       readWrite = ReadWriteFlag.ReadOnly
     )
 
-  override val ParameterInfo: Array[GeoMesaParam[_]] = Array(ConfigParam, RouterParam)
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] = Array(ConfigParam, RouterParam)
 
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
     params.containsKey(ConfigParam.key)

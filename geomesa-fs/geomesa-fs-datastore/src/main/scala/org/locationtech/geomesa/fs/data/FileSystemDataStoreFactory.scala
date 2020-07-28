@@ -91,7 +91,7 @@ object FileSystemDataStoreFactory extends GeoMesaDataStoreInfo {
   override val DisplayName: String = "File System (GeoMesa)"
   override val Description: String = "File System Data Store"
 
-  override val ParameterInfo: Array[GeoMesaParam[_]] =
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
       FileSystemDataStoreParams.PathParam,
       FileSystemDataStoreParams.EncodingParam,

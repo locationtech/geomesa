@@ -56,7 +56,8 @@ object ConfluentKafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogg
 
   val SchemaRegistryUrl = new GeoMesaParam[URL]("kafka.schema.registry.url", "URL to a confluent schema registry server, used to read Confluent schemas (experimental)")
 
-  override val ParameterInfo: Array[GeoMesaParam[_]] = KafkaDataStoreFactory.ParameterInfo.+:(SchemaRegistryUrl)
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
+    KafkaDataStoreFactory.ParameterInfo.+:(SchemaRegistryUrl)
 
   override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean = {
     KafkaDataStoreFactoryParams.Brokers.exists(params) &&

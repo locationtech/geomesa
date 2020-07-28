@@ -57,7 +57,7 @@ object BigtableDataStoreFactory extends GeoMesaDataStoreInfo with NamespaceParam
   override val DisplayName = "Google Bigtable (GeoMesa)"
   override val Description = "Google Bigtable\u2122 distributed key/value store"
 
-  override val ParameterInfo: Array[GeoMesaParam[_]] =
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
       BigtableCatalogParam,
       QueryThreadsParam,

@@ -80,7 +80,7 @@ object KuduDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   override val DisplayName = "Kudu (GeoMesa)"
   override val Description = "Apache Kudu\u2122 columnar store"
 
-  override val ParameterInfo: Array[GeoMesaParam[_]] =
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
       Params.KuduMasterParam,
       Params.CatalogParam,

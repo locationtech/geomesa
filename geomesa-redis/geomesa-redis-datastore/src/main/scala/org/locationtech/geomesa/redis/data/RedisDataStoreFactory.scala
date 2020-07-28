@@ -64,7 +64,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   override val DisplayName = "Redis (GeoMesa)"
   override val Description = "Redis\u2122 distributed memory store"
 
-  override val ParameterInfo: Array[GeoMesaParam[_]] =
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
       RedisUrlParam,
       RedisCatalogParam,

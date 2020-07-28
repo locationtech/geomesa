@@ -137,7 +137,7 @@ object GeoMesaDataStoreFactory {
   trait GeoMesaDataStoreInfo {
     def DisplayName: String
     def Description: String
-    def ParameterInfo: Array[GeoMesaParam[_]]
+    def ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]]
     def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean
   }
 }
