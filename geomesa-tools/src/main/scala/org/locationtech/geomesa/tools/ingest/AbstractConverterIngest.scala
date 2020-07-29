@@ -13,6 +13,7 @@ import org.geotools.data.{DataStore, DataStoreFinder, DataUtilities}
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.utils.StatusCallback
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.util.Try
@@ -39,7 +40,7 @@ abstract class AbstractConverterIngest(dsParams: Map[String, String], sft: Simpl
       }
       runIngest(ds, sft, createCallback())
     } finally {
-      ds.dispose()
+      CloseWithLogging(ds)
     }
   }
 

@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.utils.io
 
-import org.locationtech.geomesa.utils.io.IsCloseableImplicits.{ArrayIsCloseable, IterableIsCloseable, OptionIsCloseable}
+import org.geotools.data.DataStore
+import org.locationtech.geomesa.utils.io.IsCloseableImplicits.{ArrayIsCloseable, DataStoreIsCloseable, IterableIsCloseable, OptionIsCloseable}
 
 import scala.util.{Failure, Success, Try}
 
@@ -50,6 +51,8 @@ trait IsCloseableImplicits[C] {
   implicit val iterableIsCloseable: IterableIsCloseable[C] = new IterableIsCloseable()
   implicit val optionIsCloseable: OptionIsCloseable[C] = new OptionIsCloseable()
   implicit val arrayIsCloseable: ArrayIsCloseable[C] = new ArrayIsCloseable()
+
+  implicit val dataStoreIsCloseable: DataStoreIsCloseable = new DataStoreIsCloseable()
 }
 
 object IsCloseableImplicits {
@@ -92,5 +95,9 @@ object IsCloseableImplicits {
       }
       if (error == null) { Success() } else { Failure(error) }
     }
+  }
+
+  class DataStoreIsCloseable extends IsCloseable[DataStore] {
+    override def close(obj: DataStore): Try[Unit] = Try(obj.dispose())
   }
 }
