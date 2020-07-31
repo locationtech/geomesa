@@ -80,25 +80,27 @@ Processors
 
 GeoMesa NiFi contains several processors:
 
-+--------------------------+----------------------------------------------------------------------------+
-| Processor                | Description                                                                |
-+==========================+============================================================================+
-| ``PutGeoMesaAccumulo``   | Ingest data into a GeoMesa Accumulo datastore with a GeoMesa converter     |
-+--------------------------+----------------------------------------------------------------------------+
-| ``PutGeoMesaHBase``      | Ingest data into a GeoMesa HBase datastore with a GeoMesa converter        |
-+--------------------------+----------------------------------------------------------------------------+
-| ``PutGeoMesaFileSystem`` | Ingest data into a GeoMesa File System datastore with a GeoMesa converter  |
-+--------------------------+----------------------------------------------------------------------------+
-| ``PutGeoMesaKafka``      | Ingest data into a GeoMesa Kafka datastore with a GeoMesa converter        |
-+--------------------------+----------------------------------------------------------------------------+
-| ``PutGeoMesaRedis``      | Ingest data into a GeoMesa Redis datastore with a GeoMesa converter        |
-+--------------------------+----------------------------------------------------------------------------+
-| ``PutGeoTools``          | Ingest data into an arbitrary GeoTools datastore using a GeoMesa converter |
-+--------------------------+----------------------------------------------------------------------------+
-| ``AvroToPut*``           | Ingest self-defining GeoAvro instead of configuring a converter            |
-+--------------------------+----------------------------------------------------------------------------+
-| ``ConvertToGeoAvro``     | Use a GeoMesa converter to create GeoAvro                                  |
-+--------------------------+----------------------------------------------------------------------------+
++---------------------------+----------------------------------------------------------------------------+
+| Processor                 | Description                                                                |
++===========================+============================================================================+
+| ``PutGeoMesaAccumulo``    | Ingest data into a GeoMesa Accumulo datastore with a GeoMesa converter     |
++---------------------------+----------------------------------------------------------------------------+
+| ``PutGeoMesaHBase``       | Ingest data into a GeoMesa HBase datastore with a GeoMesa converter        |
++---------------------------+----------------------------------------------------------------------------+
+| ``PutGeoMesaFileSystem``  | Ingest data into a GeoMesa File System datastore with a GeoMesa converter  |
++---------------------------+----------------------------------------------------------------------------+
+| ``PutGeoMesaKafka``       | Ingest data into a GeoMesa Kafka datastore with a GeoMesa converter        |
++---------------------------+----------------------------------------------------------------------------+
+| ``PutGeoMesaRedis``       | Ingest data into a GeoMesa Redis datastore with a GeoMesa converter        |
++---------------------------+----------------------------------------------------------------------------+
+| ``PutGeoTools``           | Ingest data into an arbitrary GeoTools datastore using a GeoMesa converter |
++---------------------------+----------------------------------------------------------------------------+
+| ``AvroToPut*``            | Ingest self-defining GeoAvro instead of configuring a converter            |
++---------------------------+----------------------------------------------------------------------------+
+| ``GetGeoMesaKafkaRecord`` | Read GeoMesa Kafka messages and output them as NiFi records                |
++---------------------------+----------------------------------------------------------------------------+
+| ``ConvertToGeoAvro``      | Use a GeoMesa converter to create GeoAvro                                  |
++---------------------------+----------------------------------------------------------------------------+
 
 Input Configuration
 ~~~~~~~~~~~~~~~~~~~
@@ -280,6 +282,47 @@ Each of the Put processors provided by GeoMesa has a corresponding AvroToPut pro
 do not require a GeoMesa converter or SimpleFeatureType, as they only accept self-describing GeoAvro.
 GeoAvro can be generated through the GeoMesa command-line tools ``export`` functionality, the ConvertToGeoAvro
 processor, or directly through an instance of ``org.locationtech.geomesa.features.avro.AvroDataFileWriter``.
+
+GetGeoMesaKafkaRecord
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``GetGeoMesaKafkaRecord`` processor provides the ability to read messages written by the GeoMesa Kafka data store
+and output them as NiFi records for further processing.
+
++-------------------------------+---------------------------------------------------------------------------------------+
+| Property                      | Description                                                                           |
++===============================+=======================================================================================+
+| kafka.brokers                 | The Kafka brokers, in the form of ``host1:port1,host2:port2``                         |
++-------------------------------+---------------------------------------------------------------------------------------+
+| kafka.zookeepers              | The Kafka zookeepers, in the form of ``host1:port1,host2:port2``                      |
++-------------------------------+---------------------------------------------------------------------------------------+
+| kafka.zk.path                 | The zookeeper discoverable path, used to namespace schemas                            |
++-------------------------------+---------------------------------------------------------------------------------------+
+| Type Name                     | The simple feature type name to read                                                  |
++-------------------------------+---------------------------------------------------------------------------------------+
+| Kafka Group ID                | The Kafka consumer group ID, used to track messages read                              |
++-------------------------------+---------------------------------------------------------------------------------------+
+| Record Writer                 | The NiFi record writer service used to serialize records                              |
++-------------------------------+---------------------------------------------------------------------------------------+
+| Geometry Serialization Format | The format to use for serializing geometries, either text or binary                   |
++-------------------------------+---------------------------------------------------------------------------------------+
+| Record Maximum Batch Size     | The maximum number of records to output in a single flow file                         |
++-------------------------------+---------------------------------------------------------------------------------------+
+| Record Minimum Batch Size     | The minimum number of records to output in a single flow file                         |
++-------------------------------+---------------------------------------------------------------------------------------+
+| Record Max Latency            | The maximum delay between receiving a message and writing it out as a flow file.      |
+|                               | Takes precedence over minimum batch size if both are set                              |
++-------------------------------+---------------------------------------------------------------------------------------+
+| Consumer Poll Timeout         | The amount of time to wait for new records before writing out a flow file,            |
+|                               | subject to batch size restrictions                                                    |
++-------------------------------+---------------------------------------------------------------------------------------+
+| Kafka Initial Offset          | The initial offset to use when reading messages from a new topic                      |
++-------------------------------+---------------------------------------------------------------------------------------+
+| kafka.consumer.count          | The number of consumers (threads) to use for reading messages                         |
++-------------------------------+---------------------------------------------------------------------------------------+
+| kafka.consumer.config         | `Configuration options <http://kafka.apache.org/documentation.html#consumerconfigs>`_ |
+|                               | for the kafka consumer, in Java properties format                                     |
++-------------------------------+---------------------------------------------------------------------------------------+
 
 ConvertToGeoAvro
 ~~~~~~~~~~~~~~~~

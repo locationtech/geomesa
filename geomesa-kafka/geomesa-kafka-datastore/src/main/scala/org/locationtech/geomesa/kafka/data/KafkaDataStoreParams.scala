@@ -82,7 +82,7 @@ trait KafkaDataStoreParams extends NamespaceParams {
     new GeoMesaParam[Properties](
       "kafka.consumer.config",
       "Configuration options for kafka consumer, in Java properties format. " +
-          "See http://kafka.apache.org/documentation.html#newconsumerconfigs",
+          "See http://kafka.apache.org/documentation.html#consumerconfigs",
       largeText = true,
       deprecatedKeys = Seq("consumerConfig"),
       readWrite = ReadWriteFlag.ReadOnly
