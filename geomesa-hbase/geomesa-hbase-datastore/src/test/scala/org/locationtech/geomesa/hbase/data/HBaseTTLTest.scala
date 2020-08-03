@@ -45,8 +45,8 @@ class HBaseTTLTest extends Specification with LazyLogging {
   val params = Map(
     ConnectionParam.getName -> MiniCluster.connection,
     HBaseCatalogParam.getName -> getClass.getSimpleName)
-  val ttl = HBaseSystemProperties.WriteTTL.toLong.getOrElse(0L)
-  val sft = SimpleFeatureTypes.createType(typeName, "name:String:index=true,dtg:Date")//;geomesa.feature.expiry=10000")
+  val ttl = 10000
+  val sft = SimpleFeatureTypes.createType(typeName, f"name:String:index=true,dtg:Date;geomesa.feature.ttl=${ttl}")
 
 
   "HBase TTL" should {

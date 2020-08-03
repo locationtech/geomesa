@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 import java.util.{Collections, Date, Locale, UUID}
 
+import java.lang.Long
+
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.TableName
@@ -604,9 +606,14 @@ object HBaseIndexAdapter extends LazyLogging {
       ds.connection.getBufferedMutator(params)
     }
 
-    private val writeTTL: Long = HBaseSystemProperties.WriteTTL.toLong.getOrElse(0L)
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-    val dtgIndex: Int = sft.flatMap(_.getDtgIndex).getOrElse(-1)
+
+    private val writeTTL = {
+      val ttl_option = Option(sft.get.getUserData.get("geomesa.feature.ttl"))
+      if (ttl_option != None) Long.parseLong(ttl_option.get.toString) else 0L
+    }
+    private val dtgIndex: Int = sft.flatMap(_.getDtgIndex).getOrElse(-1)
+
     private var i = 0
 
     override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
