@@ -607,11 +607,6 @@ object HBaseIndexAdapter extends LazyLogging {
     }
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-
-    private val writeTTL = {
-      val ttl_option = Option(sft.get.getUserData.get("geomesa.feature.ttl"))
-      if (ttl_option != None) Long.parseLong(ttl_option.get.toString) else 0L
-    }
     private val dtgIndex: Int = sft.flatMap(_.getDtgIndex).getOrElse(-1)
 
     private var i = 0
@@ -623,10 +618,20 @@ object HBaseIndexAdapter extends LazyLogging {
         Thread.sleep(1)
       }
 
-      val ttl = if (writeTTL > 0 && dtgIndex != -1) {
-        val ts = feature.getAttribute(dtgIndex).asInstanceOf[Date].toInstant.toEpochMilli
+      val timeOfDeletion = {
+        val userData = sft.get.getUserData
+        if (userData.containsKey("geomesa.feature.expiry")) {
+          import org.locationtech.geomesa.utils.conf.FeatureExpiration
+          val expiration = FeatureExpiration.apply(sft.get, userData.get("geomesa.feature.expiry").toString)
+          expiration.expires(feature.feature)
+        }
+        else 0L
+      }
+
+      val ttl = if (timeOfDeletion > 0 && dtgIndex != -1) {
         val now = System.currentTimeMillis()
-        val t = writeTTL - (now - ts)
+        val featureTime = feature.getAttribute(dtgIndex).asInstanceOf[Date].getTime
+        val t = timeOfDeletion - (now - featureTime) - now // need to adjust based on feature dtg
         if (t > 0) {
           t
         } else {
