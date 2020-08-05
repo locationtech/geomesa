@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa
 
+import java.util.concurrent.{Executors, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.typesafe.scalalogging.{LazyLogging, Logger}
@@ -64,10 +65,19 @@ package object arrow {
     private val root = new RootAllocator(Long.MaxValue)
 
     sys.addShutdownHook({
-      logger.error(s"Root arrow status: ${root.toVerboseString}")
+      logger.error(s"At shutdown root arrow status: ${root.toVerboseString}")
       //println(s"Root arrow status: ${root.toVerboseString}")
       CloseWithLogging(root)
     })
+
+    private val es = Executors.newSingleThreadScheduledExecutor()
+    es.scheduleAtFixedRate(new Runnable {
+      override def run(): Unit = {
+        logger.error(s"Root arrow status: ${root.toVerboseString}")
+
+      }
+    }, 0, 1, TimeUnit.MINUTES)
+
 
     /**
      * Gets a new allocator from the root allocator. Allocator should be `close`d after use.
