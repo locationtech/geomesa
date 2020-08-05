@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.arrow.io
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
@@ -17,6 +18,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.collection.mutable
 import scala.math.Ordering
 
 object BatchWriter {
@@ -78,7 +80,7 @@ object BatchWriter {
       batchSize: Int,
       batches: CloseableIterator[Array[Byte]],
       private var writeHeader: Boolean = true
-    ) extends CloseableIterator[Array[Byte]] {
+    ) extends CloseableIterator[Array[Byte]] with LazyLogging {
 
     private val result = SimpleFeatureVector.create(sft, dictionaries, encoding)
     private val unloader = new RecordBatchUnloader(result, ipcOpts)
@@ -96,41 +98,69 @@ object BatchWriter {
       }
     }
 
+    var count = 0L
+    var totalBatchSize: Long = 0L
+
     // this is lazy to allow the query plan to be instantiated without pulling back all the batches first
     private lazy val inputs: Array[(SimpleFeatureVector, (Int, Int) => Unit)] = {
       val builder = Array.newBuilder[(SimpleFeatureVector, (Int, Int) => Unit)]
-      while (batches.hasNext) {
-        val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
-        RecordBatchLoader.load(vector.underlying, batches.next)
+      var vector: SimpleFeatureVector = null
+      try {
 
-        val transfers: Seq[(Int, Int) => Unit] = {
-          val fromVectors = vector.underlying.getChildrenFromFields
-          val toVectors = result.underlying.getChildrenFromFields
-          val builder = Seq.newBuilder[(Int, Int) => Unit]
-          builder.sizeHint(fromVectors.size())
-          var i = 0
-          while (i < fromVectors.size()) {
-            builder += createTransferPair(fromVectors.get(i), toVectors.get(i))
-            i += 1
+        while (batches.hasNext) {
+          vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
+          val batch = batches.next
+          count += 1
+          totalBatchSize += batch.length
+          RecordBatchLoader.load(vector.underlying, batch)
+
+          val transfers: Seq[(Int, Int) => Unit] = {
+            val fromVectors = vector.underlying.getChildrenFromFields
+            val toVectors = result.underlying.getChildrenFromFields
+            val builder = Seq.newBuilder[(Int, Int) => Unit]
+            builder.sizeHint(fromVectors.size())
+            var i = 0
+            while (i < fromVectors.size()) {
+              builder += createTransferPair(fromVectors.get(i), toVectors.get(i))
+              i += 1
+            }
+            builder.result()
           }
-          builder.result()
+          val transfer: (Int, Int) => Unit = (from, to) => transfers.foreach(_.apply(from, to))
+          builder += vector -> transfer
         }
-        val transfer: (Int, Int) => Unit = (from, to) => transfers.foreach(_.apply(from, to))
-        builder += vector -> transfer
+        builder.result
+      } catch {
+        case e: Exception =>
+          logger.error(s"Caught exception while build 'inputs'.  Opened $count vectors of total size: $totalBatchSize")
+          logger.error("Closing 'result' and 'batches' first")
+          CloseWithLogging(result, batches)
+
+          // Trying to clean up
+          logger.error("Closed the intermediate things.  Trying to close 'result' and 'batches'")
+          val cleanup = builder.result()
+          cleanup.foreach(_._1.close())
+          logger.error("Closing the var 'vector'")
+          if (vector != null) {
+            vector.close()
+          }
+
+          logger.error("Ideally done cleaning up.")
+
+          throw e
       }
-      builder.result
     }
 
     // we do a merge sort of each batch
     // sorted queue of [(current batch value, current index in that batch, number of the batch)]
-    private lazy val queue = {
+    private lazy val queue: mutable.PriorityQueue[(AnyRef, Int, Int)] = {
       // populate with the first element from each batch
       // note: need to flip ordering here as highest sorted values come off the queue first
       val order = if (reverse) { ordering } else { ordering.reverse }
       val heads = scala.collection.mutable.PriorityQueue.empty[(AnyRef, Int, Int)](order)
       var i = 0
       while (i < inputs.length) {
-        val vector = inputs(i)._1
+        val vector: SimpleFeatureVector = inputs(i)._1
         if (vector.reader.getValueCount > 0) {
           heads.+=((getSortAttribute(vector, 0), 0, i))
         } else {
@@ -143,36 +173,44 @@ object BatchWriter {
 
     // gets the next record batch to write - returns null if no further records
     private def nextBatch(): Array[Byte] = {
-      if (queue.isEmpty) { null } else {
-        result.clear()
-        var resultIndex = 0
-        // copy the next sorted value and then queue and sort the next element out of the batch we copied from
-        while (queue.nonEmpty && resultIndex < batchSize) {
-          val (_, i, batch) = queue.dequeue()
-          val (vector, transfer) = inputs(batch)
-          transfer.apply(i, resultIndex)
-          result.underlying.setIndexDefined(resultIndex)
-          resultIndex += 1
-          val nextBatchIndex = i + 1
-          if (vector.reader.getValueCount > nextBatchIndex) {
-            val value = getSortAttribute(vector, nextBatchIndex)
-            queue.+=((value, nextBatchIndex, batch))
+      try {
+        if (queue.isEmpty) { null } else {
+          result.clear()
+          var resultIndex = 0
+
+          // copy the next sorted value and then queue and sort the next element out of the batch we copied from
+          while (queue.nonEmpty && resultIndex < batchSize) {
+            val (_, i, batch) = queue.dequeue()
+            val (vector: SimpleFeatureVector, transfer) = inputs(batch)
+            transfer.apply(i, resultIndex)
+            result.underlying.setIndexDefined(resultIndex)
+            resultIndex += 1
+            val nextBatchIndex = i + 1
+            if (vector.reader.getValueCount > nextBatchIndex) {
+              val value = getSortAttribute(vector, nextBatchIndex)
+              queue.+=((value, nextBatchIndex, batch))
+            } else {
+              CloseWithLogging(vector)
+            }
+          }
+
+          if (writeHeader) {
+            writeHeader = false
+            writeHeaderAndFirstBatch(result, dictionaries, ipcOpts, Some(sortBy -> reverse), resultIndex)
           } else {
-            CloseWithLogging(vector)
+            unloader.unload(resultIndex)
           }
         }
-        if (writeHeader) {
-          writeHeader = false
-          writeHeaderAndFirstBatch(result, dictionaries, ipcOpts, Some(sortBy -> reverse), resultIndex)
-        } else {
-          unloader.unload(resultIndex)
-        }
+      } catch {
+        case e: Exception =>
+          logger.error(s"Caught exception in the BatchWriter", e)
+          throw e
       }
     }
 
     override def hasNext: Boolean = {
       if (batch == null) {
-        batch = nextBatch()
+          batch = nextBatch()
       }
       batch != null
     }
