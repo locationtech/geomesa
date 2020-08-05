@@ -60,10 +60,12 @@ package object arrow {
       }
     }
 
-    private val root = new RootAllocator(listener, Long.MaxValue)
+//    private val root = new RootAllocator(listener, Long.MaxValue)  // JNH: With lots of logging.
+    private val root = new RootAllocator(Long.MaxValue)
 
-    sys.addShutdownHook( {
-      logger.debug(s"Root arrow status: ${root.toVerboseString}")
+    sys.addShutdownHook({
+      logger.error(s"Root arrow status: ${root.toVerboseString}")
+      //println(s"Root arrow status: ${root.toVerboseString}")
       CloseWithLogging(root)
     })
 

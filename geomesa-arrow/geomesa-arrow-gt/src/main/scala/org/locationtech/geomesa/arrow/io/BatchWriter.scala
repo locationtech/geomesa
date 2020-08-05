@@ -132,20 +132,20 @@ object BatchWriter {
         builder.result
       } catch {
         case e: Exception =>
-          logger.error(s"Caught exception while build 'inputs'.  Opened $count vectors of total size: $totalBatchSize")
-          logger.error("Closing 'result' and 'batches' first")
+//          logger.error(s"Caught exception while build 'inputs'.  Opened $count vectors of total size: $totalBatchSize")
+//          logger.error("Closing 'result' and 'batches' first")
           CloseWithLogging(result, batches)
 
           // Trying to clean up
-          logger.error("Closed the intermediate things.  Trying to close 'result' and 'batches'")
+//          logger.error("Closed the intermediate things.  Trying to close 'result' and 'batches'")
           val cleanup = builder.result()
           cleanup.foreach(_._1.close())
-          logger.error("Closing the var 'vector'")
+//          logger.error("Closing the var 'vector'")
           if (vector != null) {
             vector.close()
           }
 
-          logger.error("Ideally done cleaning up.")
+//          logger.error("Ideally done cleaning up.")
 
           throw e
       }
@@ -203,7 +203,7 @@ object BatchWriter {
         }
       } catch {
         case e: Exception =>
-          logger.error(s"Caught exception in the BatchWriter", e)
+//          logger.error(s"Caught exception in the BatchWriter", e)
           throw e
       }
     }
