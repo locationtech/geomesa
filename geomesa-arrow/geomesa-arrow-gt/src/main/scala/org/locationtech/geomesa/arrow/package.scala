@@ -26,13 +26,9 @@ package object arrow {
   lazy val ArrowEncodedSft: SimpleFeatureType =
     SimpleFeatureTypes.createType("arrow", "batch:Bytes,*geom:Point:srid=4326")
 
-  object ArrowAllocator {
+  object ArrowAllocator extends LazyLogging {
 
     val listener: AllocationListener = new AllocationListener with LazyLogging {
-
-      import com.typesafe.scalalogging.Logger
-      import org.slf4j.LoggerFactory
-      val internalLogger: Logger = Logger(LoggerFactory.getLogger("arrow"))
 //      override def onPreAllocation(size: Long): Unit = {
 //        println(s"Root is being called with onPreAllocation with argument $size")
 //      }
@@ -66,7 +62,10 @@ package object arrow {
 
     private val root = new RootAllocator(listener, Long.MaxValue)
 
-    sys.addShutdownHook(CloseWithLogging(root))
+    sys.addShutdownHook( {
+      logger.debug(s"Root arrow status: ${root.toVerboseString}")
+      CloseWithLogging(root)
+    })
 
     /**
      * Gets a new allocator from the root allocator. Allocator should be `close`d after use.
