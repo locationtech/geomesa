@@ -132,7 +132,7 @@ object BatchWriter {
         builder.result
       } catch {
         case e: Exception =>
-//          logger.error(s"Caught exception while build 'inputs'.  Opened $count vectors of total size: $totalBatchSize")
+          logger.error(s"Caught exception ${e.getClass} while build 'inputs'.  Opened $count vectors of total size: $totalBatchSize")
 //          logger.error("Closing 'result' and 'batches' first")
           CloseWithLogging(result, batches)
 
@@ -148,6 +148,9 @@ object BatchWriter {
 //          logger.error("Ideally done cleaning up.")
 
           throw e
+        case t: Throwable =>
+          logger.error(s"Caught a throwable $t")
+          throw t
       }
     }
 

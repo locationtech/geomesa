@@ -19,6 +19,7 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
+import io.netty.util.internal.PlatformDependent
 
 package object arrow {
 
@@ -70,14 +71,35 @@ package object arrow {
       CloseWithLogging(root)
     })
 
+
     private val es = Executors.newSingleThreadScheduledExecutor()
     es.scheduleAtFixedRate(new Runnable {
       override def run(): Unit = {
+        logger.error(s"Direct Memory status: MAX_DIRECT_MEMORY: ${PlatformDependent.maxDirectMemory()} DIRECT_MEMORY_COUNTER: ${getNettyMemoryCounter()}")
+
         logger.error(s"Root arrow status: ${root.toVerboseString}")
 
       }
     }, 0, 1, TimeUnit.MINUTES)
 
+
+    def getNettyMemoryCounter(): Long = {
+      try {
+        val clazz = try {
+          Class.forName("io.netty.util.internal.PlatformDependent")
+        } catch {
+          case _: Throwable =>
+            Class.forName("org.locationtech.geomesa.accumulo.shade.io.netty.util.internal.PlatformDependent")
+        }
+        val field = clazz.getDeclaredField("DIRECT_MEMORY_COUNTER")
+        field.setAccessible(true)
+        field.get(clazz).asInstanceOf[java.util.concurrent.atomic.AtomicLong].get()
+      } catch {
+        case t: Throwable =>
+          logger.error("failed to get DIRECT_MEMORY_COUNTER", t)
+          -1
+      }
+    }
 
     /**
      * Gets a new allocator from the root allocator. Allocator should be `close`d after use.
