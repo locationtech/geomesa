@@ -617,7 +617,10 @@ object HBaseIndexAdapter extends LazyLogging {
       } else null
     }.getOrElse(null)
 
-    private val expiration = FeatureTimeExpiration("", dtgIndex, duration)
+    private val expiration = if (duration != null && dtgIndex != -1) {
+      FeatureTimeExpiration("", dtgIndex, duration)
+    } else null
+
     // the string is supposed to be attribute name but it's never used and there's only one constructor
 
     private var i = 0
