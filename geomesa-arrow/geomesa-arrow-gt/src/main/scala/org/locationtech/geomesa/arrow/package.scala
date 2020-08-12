@@ -48,22 +48,22 @@ package object arrow {
 
       override def onChildAdded(parentAllocator: BufferAllocator, childAllocator: BufferAllocator): Unit = {
         logger.info(s"child allocator ${childAllocator.getName} has been added to ${parentAllocator.getName} in thread ${Thread.currentThread.getName}")
-        val e = new Exception("Get Allocation Stack")
-        logger.info(s"Creating allocator ${childAllocator.getName} in thread ${Thread.currentThread.getName} with stack ${e.getStackTrace.take(50).mkString("\n\t")}")
+//        val e = new Exception("Get Allocation Stack")
+//        logger.info(s"Creating allocator ${childAllocator.getName} in thread ${Thread.currentThread.getName} with stack ${e.getStackTrace.take(50).mkString("\n\t")}")
 
       }
 
       override def onChildRemoved(parentAllocator: BufferAllocator, childAllocator: BufferAllocator): Unit = {
         logger.info(s"child allocator ${childAllocator.getName} has been removed from ${parentAllocator.getName} in thread ${Thread.currentThread.getName} ")
-        if (childAllocator.getName.startsWith("simple-feature-vector")) {
-          val e = new Exception("Get Removal Stack")
-          logger.info(s"Removing allocator ${childAllocator.getName} in thread ${Thread.currentThread.getName} with stack ${e.getStackTrace.take(50).mkString("\n\t")}")
-        }
+//        if (childAllocator.getName.startsWith("simple-feature-vector")) {
+//          val e = new Exception("Get Removal Stack")
+//          logger.info(s"Removing allocator ${childAllocator.getName} in thread ${Thread.currentThread.getName} with stack ${e.getStackTrace.take(50).mkString("\n\t")}")
+//        }
       }
     }
 
-//    private val root = new RootAllocator(listener, Long.MaxValue)  // JNH: With lots of logging.
-    private val root = new RootAllocator(Long.MaxValue)
+    private val root = new RootAllocator(listener, Long.MaxValue)  // JNH: With lots of logging.
+    //private val root = new RootAllocator(Long.MaxValue)
 
     sys.addShutdownHook({
       logger.error(s"At shutdown root arrow status: ${root.toVerboseString}")

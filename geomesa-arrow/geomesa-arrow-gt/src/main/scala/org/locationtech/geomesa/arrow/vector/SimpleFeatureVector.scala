@@ -71,6 +71,8 @@ class SimpleFeatureVector private [arrow] (
   override def finalize(): Unit = {
     if (!closed.get()) {
       println(s"GOT AN UNCLOSED SimpleFeatureVector in a finalize. Underlying allocator's name: ${underlying.getAllocator.getName} Allocator:? ${allocator.map(_.getName)}")
+    } else {
+      println(s"Finalizing a closed SimpleFeatureVector. Underlying allocator's name: ${underlying.getAllocator.getName} Allocator:? ${allocator.map(_.getName)}")
     }
     super.finalize()
   }
