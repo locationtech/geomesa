@@ -265,23 +265,22 @@ object ArrowConversionProcess {
       val out = new ByteArrayOutputStream()
       val writer = SimpleFeatureArrowFileWriter(out, sft, dictionaries, encoding, ipcOpts, sort)
 
-      new Iterator[Array[Byte]] {
-        override def hasNext: Boolean = sorted.hasNext
-        override def next(): Array[Byte] = {
-          out.reset()
-          var i = 0
-          while (i < batchSize && sorted.hasNext) {
-            writer.add(sorted.next)
-            i += 1
-          }
-          if (sorted.hasNext) {
-            writer.flush()
-          } else {
-            CloseWithLogging(writer)
-          }
-          out.toByteArray
+      val bytes = ListBuffer.empty[Array[Byte]]
+
+
+      while (sorted.hasNext) { // send batches
+        var i = 0
+        while (i < batchSize && sorted.hasNext) {
+          writer.add(sorted.next)
+          i += 1
         }
+        writer.flush()
+        bytes.append(out.toByteArray)
+        out.reset()
       }
+      CloseWithLogging(writer)
+      bytes.append(out.toByteArray)
+      bytes.iterator
     }
   }
 
