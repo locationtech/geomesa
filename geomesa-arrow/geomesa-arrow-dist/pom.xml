@@ -33,9 +33,7 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-arrow-gs-plugin_${scala.binary.version}</artifactId>
-            <classifier>install</classifier>
-            <version>${project.version}</version>
-            <type>tar.gz</type>
+            <type>pom</type>
             <!-- Don't bring any any transitives of dist tar.gz files -->
             <exclusions>
                 <exclusion>
@@ -95,17 +93,6 @@
     </dependencies>
 
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-deploy-plugin</artifactId>
-                    <configuration>
-                        <skip>${skip.installers.deploy}</skip>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -126,6 +113,7 @@
                             <delimiters>
                                 <delimiter>%%</delimiter>
                             </delimiters>
+                            <attach>false</attach>
                         </configuration>
                     </execution>
                 </executions>
