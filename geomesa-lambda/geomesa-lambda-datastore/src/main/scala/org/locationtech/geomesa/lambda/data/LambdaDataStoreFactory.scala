@@ -83,7 +83,7 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
 
   override val Description = "Hybrid store using Kafka for recent events and Accumulo for long-term storage"
 
-  override val ParameterInfo: Array[GeoMesaParam[_]] =
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
       Params.Accumulo.InstanceParam,
       Params.Accumulo.ZookeepersParam,

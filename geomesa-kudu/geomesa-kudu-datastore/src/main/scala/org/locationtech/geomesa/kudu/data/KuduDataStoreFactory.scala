@@ -80,7 +80,7 @@ object KuduDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   override val DisplayName = "Kudu (GeoMesa)"
   override val Description = "Apache Kudu\u2122 columnar store"
 
-  override val ParameterInfo: Array[GeoMesaParam[_]] =
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
       Params.KuduMasterParam,
       Params.CatalogParam,
@@ -110,37 +110,43 @@ object KuduDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
         "kudu.master",
         "Kudu master host[:port][,host2[:port2]...]",
         optional = false,
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true
+      )
 
     val CatalogParam =
       new GeoMesaParam[String](
         "kudu.catalog",
         "Name of GeoMesa catalog table",
         optional = false,
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true
+      )
 
     val CredentialsParam =
       new GeoMesaParam[String](
         "kudu.credentials",
         "Kudu client authentication credentials",
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true
+      )
 
     val WorkerThreadsParam =
       new GeoMesaParam[Integer](
         "kudu.worker.threads",
         "Number of worker threads",
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true
+      )
 
     val BossThreadsParam =
       new GeoMesaParam[Integer](
         "kudu.boss.threads",
         "Number of boss threads",
-        supportsNiFiExpressions = true)
+        supportsNiFiExpressions = true
+      )
 
     val StatisticsParam =
       new GeoMesaParam[java.lang.Boolean](
         "kudu.client.stats.disable",
-        "Disable Kudu client statistics")
+        "Disable Kudu client statistics"
+      )
 
     val AuthsParam = org.locationtech.geomesa.security.AuthsParam
   }

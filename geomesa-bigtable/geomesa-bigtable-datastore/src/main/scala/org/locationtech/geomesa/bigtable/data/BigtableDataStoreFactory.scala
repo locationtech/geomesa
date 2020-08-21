@@ -46,12 +46,18 @@ class BigtableDataStoreFactory extends HBaseDataStoreFactory {
 
 object BigtableDataStoreFactory extends GeoMesaDataStoreInfo with NamespaceParams {
 
-  val BigtableCatalogParam = new GeoMesaParam[String]("bigtable.catalog", "Catalog table name", optional = false, deprecatedKeys = Seq("bigtable.table.name"))
+  val BigtableCatalogParam =
+    new GeoMesaParam[String](
+      "bigtable.catalog",
+      "Catalog table name",
+      optional = false,
+      deprecatedKeys = Seq("bigtable.table.name")
+    )
 
   override val DisplayName = "Google Bigtable (GeoMesa)"
   override val Description = "Google Bigtable\u2122 distributed key/value store"
 
-  override val ParameterInfo: Array[GeoMesaParam[_]] =
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
       BigtableCatalogParam,
       QueryThreadsParam,

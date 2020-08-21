@@ -16,6 +16,7 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, FileDataStore, FileDataStoreFactorySpi}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.NamespaceParams
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.ReadWriteFlag
 
 import scala.util.Try
 
@@ -65,8 +66,23 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
 
 object ArrowDataStoreFactory extends NamespaceParams {
 
-  val UrlParam     = new GeoMesaParam[URL]("arrow.url", "URL to an arrow file", optional = false, extension = "arrow", deprecatedKeys = Seq("url"))
-  val CachingParam = new GeoMesaParam[java.lang.Boolean]("arrow.caching", "Enable caching of the arrow file. This will improve query speeds, but may require substantial memory. Note: for performance reasons, writing is disabled if caching is on", default = false, deprecatedKeys = Seq("caching"))
+  val UrlParam =
+    new GeoMesaParam[URL](
+      "arrow.url",
+      "URL to an arrow file",
+      optional = false,
+      extension = "arrow",
+      deprecatedKeys = Seq("url")
+    )
+
+  val CachingParam =
+    new GeoMesaParam[java.lang.Boolean](
+      "arrow.caching",
+      "Enable caching of the arrow file. This will improve query speeds, but may require substantial memory. Note: for performance reasons, writing is disabled if caching is on",
+      default = false,
+      deprecatedKeys = Seq("caching"),
+      readWrite = ReadWriteFlag.ReadOnly
+    )
 
   private val DisplayName = "Apache Arrow (GeoMesa)"
 

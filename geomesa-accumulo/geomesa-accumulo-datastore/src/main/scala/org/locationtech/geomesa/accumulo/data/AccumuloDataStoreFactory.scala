@@ -72,7 +72,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
   override val DisplayName = "Accumulo (GeoMesa)"
   override val Description = "Apache Accumulo\u2122 distributed key/value store"
 
-  override val ParameterInfo: Array[GeoMesaParam[_]] =
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
       InstanceIdParam,
       ZookeepersParam,

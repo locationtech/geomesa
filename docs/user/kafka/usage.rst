@@ -46,7 +46,7 @@ Parameter                            Type    Description
 ``kafka.producer.clear``             Boolean Send a 'clear' message on startup. This will cause clients to ignore any data that was in the
                                              topic prior to startup
 ``kafka.consumer.config``            String  Configuration options for kafka consumer, in Java properties
-                                             format. See `New Consumer Configs <http://kafka.apache.org/documentation.html#newconsumerconfigs>`_
+                                             format. See `Consumer Configs <http://kafka.apache.org/documentation.html#consumerconfigs>`_
 ``kafka.consumer.read-back``         String  On start up, read messages that were written within this time frame (vs ignore old messages), e.g.
                                              '1 hour'. Use 'Inf' to read all messages. If enabled, features will not be available for query until
                                              all existing messages are processed. However, feature listeners will still be invoked as normal.
