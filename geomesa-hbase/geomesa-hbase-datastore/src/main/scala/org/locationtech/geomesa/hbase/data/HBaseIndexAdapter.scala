@@ -10,8 +10,7 @@ package org.locationtech.geomesa.hbase.data
 
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
-import java.util.{Collections, Date, Locale, UUID}
-import java.lang.Long
+import java.util.{Collections, Locale, UUID}
 
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
 import org.apache.hadoop.fs.Path
@@ -25,10 +24,8 @@ import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
-import org.locationtech.geomesa.utils.conf.FeatureExpiration.FeatureTimeExpiration
 import org.locationtech.geomesa.utils.io.IsFlushableImplicits
 
-import scala.concurrent.duration.Duration
 import scala.util.Try
 // noinspection ScalaDeprecation
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, CoprocessorUrl, TableAvailabilityTimeout}
