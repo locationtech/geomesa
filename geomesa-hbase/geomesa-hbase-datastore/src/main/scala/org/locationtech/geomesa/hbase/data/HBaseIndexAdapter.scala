@@ -70,9 +70,9 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
   import scala.collection.JavaConverters._
 
   override def createTable(
-                            index: GeoMesaFeatureIndex[_, _],
-                            partition: Option[String],
-                            splits: => Seq[Array[Byte]]): Unit = {
+      index: GeoMesaFeatureIndex[_, _],
+      partition: Option[String],
+      splits: => Seq[Array[Byte]]): Unit = {
     // write table name to metadata
     val name = TableName.valueOf(index.configureTableName(partition, tableNameLimit))
 
@@ -380,12 +380,12 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
    * @return
    */
   protected def configureScans(
-                                tables: Seq[TableName],
-                                ranges: Seq[RowRange],
-                                small: Boolean,
-                                colFamily: Array[Byte],
-                                filters: Seq[HFilter],
-                                coprocessor: Boolean): Seq[TableScan] = {
+      tables: Seq[TableName],
+      ranges: Seq[RowRange],
+      small: Boolean,
+      colFamily: Array[Byte],
+      filters: Seq[HFilter],
+      coprocessor: Boolean): Seq[TableScan] = {
     val cacheBlocks = HBaseSystemProperties.ScannerBlockCaching.toBoolean.get // has a default value so .get is safe
     val cacheSize = HBaseSystemProperties.ScannerCaching.toInt
 
@@ -481,8 +481,8 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
    * @return
    */
   private def groupRangesByRegion(
-                                   table: TableName,
-                                   ranges: Seq[RowRange]): scala.collection.Map[String, java.util.List[RowRange]] = {
+     table: TableName,
+     ranges: Seq[RowRange]): scala.collection.Map[String, java.util.List[RowRange]] = {
     val rangesPerRegion = scala.collection.mutable.Map.empty[String, java.util.List[RowRange]]
     WithClose(ds.connection.getRegionLocator(table)) { locator =>
       ranges.foreach(groupRange(locator, _, rangesPerRegion))
@@ -588,12 +588,12 @@ object HBaseIndexAdapter extends LazyLogging {
    * @param partition partition to write to
    */
   class HBaseIndexWriter(
-                          ds: HBaseDataStore,
-                          indices: Seq[GeoMesaFeatureIndex[_, _]],
-                          wrapper: FeatureWrapper[WritableFeature],
-                          partition: Option[String],
-                          sft: Some[SimpleFeatureType]
-                        ) extends BaseIndexWriter(indices, wrapper) {
+      ds: HBaseDataStore,
+      indices: Seq[GeoMesaFeatureIndex[_, _]],
+      wrapper: FeatureWrapper[WritableFeature],
+      partition: Option[String],
+      sft: Some[SimpleFeatureType]
+    ) extends BaseIndexWriter(indices, wrapper) {
 
     private val batchSize = HBaseSystemProperties.WriteBatchSize.toLong
 
