@@ -41,10 +41,11 @@ class HBaseTTLTest extends Specification with LazyLogging {
     ConnectionParam.getName -> MiniCluster.connection,
     HBaseCatalogParam.getName -> getClass.getSimpleName)
 
-  val expiration = "4 seconds"
+  val durationStr = "4 seconds"
+  val expiration = f"dtg($durationStr)"
   val sft: SimpleFeatureType = SimpleFeatureTypes.createType(typeName, f"name:String:index=true,dtg:Date;geomesa.feature.expiry=$expiration")
   // NOTE: expiration date is set simply by adding expiration time to when the feature is created
-  val ttl = Duration(expiration).toMillis
+  val ttl = Duration(durationStr).toMillis
 
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
   "HBase TTL" should {
