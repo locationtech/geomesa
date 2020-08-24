@@ -1,3 +1,4 @@
+.semanticgraphs
 build/zinc*
 build/scala*
 build/*.jar

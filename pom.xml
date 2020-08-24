@@ -59,7 +59,7 @@
         <!-- *** main dependency versions *** -->
 
         <scala.binary.version>2.11</scala.binary.version> <!-- must remain outside of version specific scala profiles for sbt/ivy -->
-        <scala.version>2.11.7</scala.version>
+        <scala.version>2.11.12</scala.version>
 
         <scala.xml.version>1.0.6</scala.xml.version>
         <scala.parsers.version>1.0.6</scala.parsers.version>
@@ -2390,6 +2390,13 @@
                     <!-- 3.4.4 was released 2018-11-01.  It requires Maven version >= 3.3.9. -->
                     <version>3.4.4</version>
                     <configuration>
+                        <compilerPlugins>
+                            <compilerPlugin>
+                                <groupId>com.virtuslab.semanticgraphs</groupId>
+                                <artifactId>scalac-plugin</artifactId>
+                                <version>0.2.8</version>
+                            </compilerPlugin>
+                        </compilerPlugins>
                         <dependencies>
                             <dependency>
                                 <groupId>org.scala-lang</groupId>
@@ -2407,6 +2414,7 @@
                             <arg>-nowarn</arg>
                             <arg>-unchecked</arg>
                             <arg>-deprecation</arg>
+                            <arg>-Yrangepos</arg>
                         </args>
                         <source>1.8</source>
                         <target>1.8</target>
@@ -2797,6 +2805,10 @@
     </developers>
 
     <repositories>
+<!--        <repository>-->
+<!--            <id>bintray-virtuslab</id>-->
+<!--            <url>https://dl.bintray.com/virtuslab/graphbuddy</url>-->
+<!--        </repository>-->
         <!-- include central so that it is searched before our alternate repos -->
         <repository>
             <id>central</id>
