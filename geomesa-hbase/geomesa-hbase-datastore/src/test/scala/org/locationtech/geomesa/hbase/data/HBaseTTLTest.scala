@@ -61,6 +61,7 @@ class HBaseTTLTest extends Specification with LazyLogging {
 
         val toAdd = (0 until numFeatures).map { i =>
           val sf = new ScalaSimpleFeature(sft, i.toString)
+          // don't know what this line does but it's needed
           sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
           sf.setAttribute(0, s"name$i")
 
