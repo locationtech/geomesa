@@ -366,7 +366,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
   override def createWriter(sft: SimpleFeatureType,
                             indices: Seq[GeoMesaFeatureIndex[_, _]],
                             partition: Option[String]): HBaseIndexWriter =
-    new HBaseIndexWriter(ds, indices, WritableFeature.wrapper(sft, groups), partition)
+    new HBaseIndexWriter(ds, indices, WritableFeature.wrapper(sft, groups), partition, Some(sft))
 
   /**
    * Configure the hbase scan
@@ -591,7 +591,8 @@ object HBaseIndexAdapter extends LazyLogging {
       ds: HBaseDataStore,
       indices: Seq[GeoMesaFeatureIndex[_, _]],
       wrapper: FeatureWrapper[WritableFeature],
-      partition: Option[String]
+      partition: Option[String],
+      sft: Some[SimpleFeatureType]
     ) extends BaseIndexWriter(indices, wrapper) {
 
     private val batchSize = HBaseSystemProperties.WriteBatchSize.toLong
@@ -606,8 +607,21 @@ object HBaseIndexAdapter extends LazyLogging {
       ds.connection.getBufferedMutator(params)
     }
 
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
-    val expiration = indices.headOption.flatMap(_.sft.getFeatureExpiration).orNull
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+    private val dtgIndex: Int = sft.flatMap(_.getDtgIndex).getOrElse(-1)
+
+    private val duration : Duration = sft.map{ sft =>
+      val userData = sft.getUserData
+      if (userData.containsKey("geomesa.feature.expiry")) {
+        Duration(userData.get("geomesa.feature.expiry").toString)
+      } else null
+    }.getOrElse(null)
+
+    private val expiration = if (duration != null && dtgIndex != -1) {
+      FeatureTimeExpiration("", dtgIndex, duration)
+    } else null
+
+    // the string is supposed to be attribute name but it's never used and there's only one constructor
 
     private var i = 0
 
