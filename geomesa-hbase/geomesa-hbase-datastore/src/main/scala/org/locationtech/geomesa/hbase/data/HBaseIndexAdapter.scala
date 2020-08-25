@@ -4,13 +4,14 @@
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
  * http://www.opensource.org/licenses/apache2.0.php.
- ***********************************************************************/
+ * ********************************************************************* */
 
 package org.locationtech.geomesa.hbase.data
 
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 import java.util.{Collections, Date, Locale, UUID}
+
 import java.lang.Long
 
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
@@ -25,10 +26,8 @@ import org.apache.hadoop.hbase.io.encoding.DataBlockEncoding
 import org.apache.hadoop.hbase.regionserver.BloomType
 import org.apache.hadoop.hbase.security.visibility.CellVisibility
 import org.locationtech.geomesa.hbase.HBaseSystemProperties
-import org.locationtech.geomesa.utils.conf.FeatureExpiration.FeatureTimeExpiration
 import org.locationtech.geomesa.utils.io.IsFlushableImplicits
 
-import scala.concurrent.duration.Duration
 import scala.util.Try
 // noinspection ScalaDeprecation
 import org.locationtech.geomesa.hbase.HBaseSystemProperties.{CoprocessorPath, CoprocessorUrl, TableAvailabilityTimeout}
@@ -610,16 +609,6 @@ object HBaseIndexAdapter extends LazyLogging {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
     private val dtgIndex: Int = sft.flatMap(_.getDtgIndex).getOrElse(-1)
 
-    private val duration : Duration = sft.map{ sft =>
-      val userData = sft.getUserData
-      if (userData.containsKey("geomesa.feature.expiry")) {
-        Duration(userData.get("geomesa.feature.expiry").toString)
-      } else null
-    }.getOrElse(null)
-
-    private val expiration = FeatureTimeExpiration("", dtgIndex, duration)
-    // the string is supposed to be attribute name but it's never used and there's only one constructor
-
     private var i = 0
 
     override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
@@ -629,17 +618,28 @@ object HBaseIndexAdapter extends LazyLogging {
         Thread.sleep(1)
       }
 
-      val ttl = if (expiration != null) {
-        val t = expiration.expires(feature.feature) - System.currentTimeMillis
+      val timeOfDeletion = {
+        val userData = sft.get.getUserData
+        if (userData.containsKey("geomesa.feature.expiry")) {
+          import org.locationtech.geomesa.utils.conf.FeatureExpiration
+          val expiration = FeatureExpiration.apply(sft.get, userData.get("geomesa.feature.expiry").toString)
+          expiration.expires(feature.feature)
+        }
+        else 0L
+      }
+
+      val ttl = if (timeOfDeletion > 0 && dtgIndex != -1) {
+        val now = System.currentTimeMillis()
+        val featureTime = feature.getAttribute(dtgIndex).asInstanceOf[Date].getTime
+        val t = timeOfDeletion - (now - featureTime) - now // need to adjust based on feature dtg
         if (t > 0) {
           t
-        }
-        else {
+        } else {
           logger.warn("Feature is already past its TTL; not added to database")
           return
         }
       } else {
-        0L
+        0
       }
 
       i = 0

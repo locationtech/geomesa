@@ -29,7 +29,6 @@ import org.specs2.runner.JUnitRunner
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
-import scala.concurrent.duration.Duration
 
 @RunWith(classOf[JUnitRunner])
 class HBaseTTLTest extends Specification with LazyLogging {
@@ -44,7 +43,7 @@ class HBaseTTLTest extends Specification with LazyLogging {
   val expiration = "4 seconds"
   val sft: SimpleFeatureType = SimpleFeatureTypes.createType(typeName, f"name:String:index=true,dtg:Date;geomesa.feature.expiry=$expiration")
   // NOTE: expiration date is set simply by adding expiration time to when the feature is created
-  val ttl = Duration(expiration).toMillis
+  val ttl: Long = FeatureExpiration.apply(sft, expiration).expires(new ScalaSimpleFeature(sft, "blank")) - System.currentTimeMillis()
 
   val dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
   "HBase TTL" should {
