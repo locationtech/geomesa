@@ -30,4 +30,9 @@ using the key ``geomesa.feature.expiry``. See :ref:`set_sft_options` for details
 Expiration can be set before calling ``createSchema``, or can be added to an existing schema by calling
 ``updateSchema``. However, note that if added through ``updateSchema``, any existing features will not be expired.
 
+Expiration can be based on either ingest time or a feature attribute. To set expiration based on ingest time,
+specify a time-to-live as a duration string, e.g. ``24 hours`` or ``180 days``. To set expiration based on
+a feature attribute, specify the attribute along with a time-to-live in parentheses, e.g. ``dtg(24 hours)`` or
+``event-time(30 days)`` (where ``dtg`` and ``event-time`` are ``Date``-type attributes in the schema).
+
 Feature expiration is based on HBase's time-to-live functionality. See https://hbase.apache.org/book.html#ttl for details.
