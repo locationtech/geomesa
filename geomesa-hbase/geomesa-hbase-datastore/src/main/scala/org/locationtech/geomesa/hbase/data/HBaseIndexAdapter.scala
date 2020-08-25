@@ -363,7 +363,7 @@ class HBaseIndexAdapter(ds: HBaseDataStore) extends IndexAdapter[HBaseDataStore]
   override def createWriter(sft: SimpleFeatureType,
                             indices: Seq[GeoMesaFeatureIndex[_, _]],
                             partition: Option[String]): HBaseIndexWriter =
-    new HBaseIndexWriter(ds, indices, WritableFeature.wrapper(sft, groups), partition, Some(sft))
+    new HBaseIndexWriter(ds, indices, WritableFeature.wrapper(sft, groups), partition)
 
   /**
    * Configure the hbase scan
@@ -588,8 +588,7 @@ object HBaseIndexAdapter extends LazyLogging {
                           ds: HBaseDataStore,
                           indices: Seq[GeoMesaFeatureIndex[_, _]],
                           wrapper: FeatureWrapper[WritableFeature],
-                          partition: Option[String],
-                          sft: Some[SimpleFeatureType]
+                          partition: Option[String]
                         ) extends BaseIndexWriter(indices, wrapper) {
 
     private val batchSize = HBaseSystemProperties.WriteBatchSize.toLong
@@ -605,8 +604,10 @@ object HBaseIndexAdapter extends LazyLogging {
     }
 
     private val writeTTL: Long = HBaseSystemProperties.WriteTTL.toLong.getOrElse(0L)
-    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
-    val dtgIndex: Int = sft.flatMap(_.getDtgIndex).getOrElse(-1)
+    val dtgIndex = 1;
+    // TODO: figure out a way to get dtgIndex automatically (old way was passing sft as param)
+    //    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType._
+
     private var i = 0
 
     override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
@@ -623,7 +624,7 @@ object HBaseIndexAdapter extends LazyLogging {
         if (t > 0) {
           t
         } else {
-          logger.warn("Feature is already past its TTL; not added to database")
+          logger.info("Feature is already past its TTL; not added to database")
           return
         }
       } else {
