@@ -10,7 +10,7 @@ package org.locationtech.geomesa.kudu.utils
 
 import org.apache.kudu.ColumnSchema.{CompressionAlgorithm, Encoding}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.kudu.KuduSystemProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mock.Mockito

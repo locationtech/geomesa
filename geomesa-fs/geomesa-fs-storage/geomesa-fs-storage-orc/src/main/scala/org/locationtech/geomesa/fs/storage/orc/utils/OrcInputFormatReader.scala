@@ -10,15 +10,15 @@ package org.locationtech.geomesa.fs.storage.orc.utils
 
 import java.util.UUID
 
-import org.locationtech.jts.geom.{Coordinate, LineString, LinearRing, Polygon}
 import org.apache.hadoop.io._
 import org.apache.orc.mapred.{OrcList, OrcMap, OrcStruct, OrcTimestamp}
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.geometry.jts.JTSFactoryFinder
-import org.locationtech.geomesa.features.serialization.ObjectType
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.fs.storage.orc.OrcFileSystemStorage
+import org.locationtech.geomesa.utils.geotools.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
+import org.locationtech.jts.geom.{Coordinate, LineString, LinearRing, Polygon}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 trait OrcInputFormatReader {

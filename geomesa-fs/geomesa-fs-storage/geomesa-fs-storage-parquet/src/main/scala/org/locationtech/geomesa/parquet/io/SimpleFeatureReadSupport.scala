@@ -19,9 +19,9 @@ import org.apache.parquet.io.api._
 import org.apache.parquet.schema.MessageType
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.features.serialization.ObjectType
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport.SimpleFeatureRecordMaterializer
+import org.locationtech.geomesa.utils.geotools.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Coordinate
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}

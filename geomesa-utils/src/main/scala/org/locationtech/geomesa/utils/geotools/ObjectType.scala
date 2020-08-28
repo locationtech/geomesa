@@ -6,16 +6,15 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.features.serialization
+package org.locationtech.geomesa.utils.geotools
 
 import java.util.{UUID, Collections => jCollections, List => jList, Map => jMap}
 
-import org.locationtech.jts.geom._
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs.{UserDataListType, UserDataMapKeyType, UserDataMapValueType}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
+import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
 
-@deprecated("Replaced with org.locationtech.geomesa.utils.geotools.ObjectType")
 object ObjectType extends Enumeration {
 
   type ObjectType = Value
@@ -29,30 +28,30 @@ object ObjectType extends Enumeration {
   val JSON = Value
 
   /**
-    * @see selectType(clazz: Class[_], metadata: java.util.Map[_, _])
-    *
-    * @param descriptor attribute descriptor
-    * @return
-    */
+   * @see selectType(clazz: Class[_], metadata: java.util.Map[_, _])
+   *
+   * @param descriptor attribute descriptor
+   * @return
+   */
   def selectType(descriptor: AttributeDescriptor): Seq[ObjectType] =
     selectType(descriptor.getType.getBinding, descriptor.getUserData)
 
   /**
-    * Turns a SimpleFeatureType attribute class binding into an enumeration.
-    *
-    * The first element in the result will be the primary binding. For geometries, lists and maps,
-    * the result will also contain secondary types.
-    *
-    * Lists will contain the type of the list elements.
-    * Maps will contain the type of the map keys, then the type of the map values.
-    * Geometries will contain the specific geometry type.
-    *
-    * Note: geometries will always return GEOMETRY as the primary type to allow for generic matching.
-    *
-    * @param clazz class, must be valid for a SimpleFeatureType attribute
-    * @param metadata attribute metadata (user data)
-    * @return binding
-    */
+   * Turns a SimpleFeatureType attribute class binding into an enumeration.
+   *
+   * The first element in the result will be the primary binding. For geometries, lists and maps,
+   * the result will also contain secondary types.
+   *
+   * Lists will contain the type of the list elements.
+   * Maps will contain the type of the map keys, then the type of the map values.
+   * Geometries will contain the specific geometry type.
+   *
+   * Note: geometries will always return GEOMETRY as the primary type to allow for generic matching.
+   *
+   * @param clazz class, must be valid for a SimpleFeatureType attribute
+   * @param metadata attribute metadata (user data)
+   * @return binding
+   */
   def selectType(clazz: Class[_], metadata: jMap[_, _] = jCollections.emptyMap()): Seq[ObjectType] = {
     clazz match {
       case c if classOf[java.lang.String].isAssignableFrom(c) =>

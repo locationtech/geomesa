@@ -12,7 +12,7 @@ import java.sql.Timestamp
 
 import org.calrissian.mango.types.encoders.lexi.LongEncoder
 import org.calrissian.mango.types.{LexiTypeEncoders, TypeEncoder, TypeRegistry}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
+import org.locationtech.geomesa.utils.geotools.AttributeOrdering
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -24,7 +24,7 @@ case class AttributeIndexKey(i: Short, value: String, inclusive: Boolean = true)
     val indexOrder = Ordering.Short.compare(i, that.i)
     if (indexOrder != 0) { indexOrder } else {
       // if i is the same, then value must be of the same type
-      val valueOrder = SimpleFeatureOrdering.nullCompare(value.asInstanceOf[Comparable[Any]], that.value)
+      val valueOrder = AttributeOrdering.StringOrdering.compare(value, that.value)
       if (valueOrder != 0) { valueOrder } else {
         Ordering.Boolean.compare(inclusive, that.inclusive)
       }

@@ -17,9 +17,9 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer.NullByte
 import org.locationtech.geomesa.features.kryo.json.KryoJsonSerialization
 import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerialization
-import org.locationtech.geomesa.features.serialization.ObjectType
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.cache.ThreadLocalCache
+import org.locationtech.geomesa.utils.geotools.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 

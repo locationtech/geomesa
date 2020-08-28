@@ -20,7 +20,7 @@ import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVect
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -63,6 +63,10 @@ trait SimpleFeatureArrowFileReader extends Closeable {
 
 object SimpleFeatureArrowFileReader {
 
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+  import scala.collection.JavaConverters._
+
   type VectorToIterator = SimpleFeatureVector => Iterator[ArrowSimpleFeature]
 
   /**
@@ -89,14 +93,21 @@ object SimpleFeatureArrowFileReader {
     * @param provider dictionary provider
     * @return
     */
-  private [io] def loadDictionaries(fields: Seq[Field],
-                                    provider: DictionaryProvider,
-                                    precision: SimpleFeatureEncoding): Map[String, ArrowDictionary] = {
+  private [io] def loadDictionaries(
+      fields: Seq[Field],
+      provider: DictionaryProvider,
+      precision: SimpleFeatureEncoding): Map[String, ArrowDictionary] = {
     fields.flatMap { field =>
-      Option(field.getDictionary).toSeq.map { encoding =>
+      // check top-level dictionaries plus nested (i.e. for list-type attributes)
+      val encodings = Seq(field.getDictionary) ++ field.getChildren.asScala.map(_.getDictionary)
+      encodings.collect { case encoding if encoding != null =>
         val descriptor = SimpleFeatureTypes.createDescriptor(field.getMetadata.get(DescriptorKey))
+        val bindings = {
+          val main = ObjectType.selectType(descriptor)
+          if (descriptor.isList) { main.tail } else { main }
+        }
         val vector = provider.lookup(encoding.getId).getVector
-        field.getName -> ArrowDictionary.create(encoding, vector, descriptor, precision)
+        field.getName -> ArrowDictionary.create(encoding, vector, bindings, precision)
       }
     }.toMap
   }
