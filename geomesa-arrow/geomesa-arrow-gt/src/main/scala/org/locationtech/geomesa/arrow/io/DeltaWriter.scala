@@ -977,7 +977,7 @@ object DeltaWriter extends StrictLogging {
       deltas: CloseableIterator[Array[Byte]]
     ) extends CloseableIterator[Array[Byte]] {
 
-    private lazy val reduced = {
+    private lazy val reduced: CloseableIterator[Array[Byte]] = {
       try {
         val grouped = scala.collection.mutable.Map.empty[Long, scala.collection.mutable.ArrayBuilder[Array[Byte]]]
         while (deltas.hasNext) {
