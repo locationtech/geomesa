@@ -215,7 +215,7 @@ Installing the GeoMesa Accumulo Data Store
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To install the GeoMesa data store, extract the contents of the
-``geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz`` file in ``geomesa-accumulo_2.11-$VERSION/dist/geoserver/``
+``geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz`` file in ``geomesa-accumulo_2.11-$VERSION/dist/gs-plugins/``
 in the binary distribution or ``geomesa-accumulo/geomesa-accumulo-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
