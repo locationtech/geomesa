@@ -13,6 +13,7 @@ import java.io.ByteArrayInputStream
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -25,6 +26,7 @@ import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class ArrowConversionProcessTest extends Specification {
+  sequential
 
   import scala.collection.JavaConversions._
 
@@ -42,20 +44,30 @@ class ArrowConversionProcessTest extends Specification {
 
   "ArrowConversionProcess" should {
     "encode an empty feature collection" in {
+      ArrowAllocator.getAllocatedMemory mustEqual 0
       val bytes = process.execute(new ListFeatureCollection(sft), null, null, null, null, null, null, null, null, null).reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()) must beEmpty
       }
+      ArrowAllocator.getAllocatedMemory mustEqual 0
     }
 
     "encode a generic feature collection" in {
+      ArrowAllocator.getAllocatedMemory mustEqual 0
       val bytes = process.execute(collection, null, null, null, null, null, null, null, null, null).reduce(_ ++ _)
       WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
             containTheSameElementsAs(features)
       }
+      ArrowAllocator.getAllocatedMemory mustEqual 0
+    }
+
+    "encode a generic empty feature collection with dictionary values without leaking memory" in {
+      // This returns an empty iterator.
+      process.execute(new ListFeatureCollection(sft), null, null, null, Seq("name"), null, null, null, null, null)
+      ArrowAllocator.getAllocatedMemory mustEqual 0
     }
 
     "encode a generic feature collection with dictionary values" in {
@@ -66,6 +78,7 @@ class ArrowConversionProcessTest extends Specification {
             containTheSameElementsAs(features)
         reader.dictionaries.get("name") must beSome
       }
+      ArrowAllocator.getAllocatedMemory mustEqual 0
     }
 
     "encode a generic feature collection with sorting" in {
@@ -79,6 +92,7 @@ class ArrowConversionProcessTest extends Specification {
         reader.sft mustEqual sft
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual features.reverse
       }
+      ArrowAllocator.getAllocatedMemory mustEqual 0
     }
 
     "encode a generic feature collection with sorting and dictionary values" in {
@@ -94,6 +108,7 @@ class ArrowConversionProcessTest extends Specification {
         SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual features.reverse
         reader.dictionaries.get("name") must beSome
       }
+      ArrowAllocator.getAllocatedMemory mustEqual 0
     }
   }
 
