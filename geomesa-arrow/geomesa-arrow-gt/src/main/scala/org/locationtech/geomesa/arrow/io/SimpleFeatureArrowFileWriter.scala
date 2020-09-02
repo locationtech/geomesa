@@ -12,6 +12,7 @@ import java.io.{Closeable, Flushable, OutputStream}
 import java.nio.channels.Channels
 
 import com.typesafe.scalalogging.LazyLogging
+import org.apache.arrow.vector.VectorSchemaRoot
 import org.apache.arrow.vector.dictionary.{Dictionary, DictionaryProvider}
 import org.apache.arrow.vector.ipc.ArrowStreamWriter
 import org.apache.arrow.vector.ipc.message.IpcOption
@@ -39,7 +40,7 @@ class SimpleFeatureArrowFileWriter private (
   ) extends Closeable with Flushable with LazyLogging {
 
   private val metadata = sort.map { case (field, reverse) => getSortAsMetadata(field, reverse) }.orNull
-  private val root = createRoot(vector.underlying, metadata)
+  private val root: VectorSchemaRoot = createRoot(vector.underlying, metadata)
   private val writer = new ArrowStreamWriter(root, provider, Channels.newChannel(os), ipcOpts)
 
   private var index = 0

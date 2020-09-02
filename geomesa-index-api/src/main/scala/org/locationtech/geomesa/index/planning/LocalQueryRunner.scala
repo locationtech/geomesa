@@ -310,6 +310,7 @@ object LocalQueryRunner {
           ArrowScan.createDictionaries(stats, sft, filter, dictionaryFields, providedDictionaries, cachedDictionaries)
         }
 
+      // JNH: Wrap in WithClose approach?
       val vector = SimpleFeatureVector.create(arrowSft, dictionaries, encoding)
       val batchWriter = new RecordBatchUnloader(vector, ipcOpts)
 

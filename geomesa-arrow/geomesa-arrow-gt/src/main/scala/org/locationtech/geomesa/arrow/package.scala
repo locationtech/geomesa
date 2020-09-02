@@ -10,6 +10,10 @@ package org.locationtech.geomesa
 
 import java.util.concurrent.atomic.AtomicInteger
 
+import java.util.concurrent.{Executors, TimeUnit}
+
+import com.typesafe.scalalogging.LazyLogging
+import io.netty.util.internal.PlatformDependent
 import org.apache.arrow.memory.{AllocationListener, BufferAllocator, RootAllocator}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
@@ -54,12 +58,80 @@ package object arrow {
     }
   }
 
-  object ArrowAllocator {
+
+  object ArrowAllocator extends LazyLogging {
+
+    val listener: AllocationListener = new AllocationListener with LazyLogging {
+//      override def onPreAllocation(size: Long): Unit = {
+//        println(s"Root is being called with onPreAllocation with argument $size")
+//      }
+//
+//      override def onAllocation(size: Long): Unit = {
+//        println(s"Root is being called with onAllocation with argument $size")
+//      }
+//      override def onRelease(size: Long): Unit = {
+//        println(s"Root is being called with onRelease with argument $size")
+//      }
+//      override def onFailedAllocation(size: Long, outcome: AllocationOutcome): Boolean = {
+//        println(s"onFailedAllocation has been called")
+//        super.onFailedAllocation(size, outcome)
+//      }
+
+      override def onChildAdded(parentAllocator: BufferAllocator, childAllocator: BufferAllocator): Unit = {
+        logger.info(s"child allocator ${childAllocator.getName} has been added to ${parentAllocator.getName} in thread ${Thread.currentThread.getName}")
+//        val e = new Exception("Get Allocation Stack")
+//        logger.info(s"Creating allocator ${childAllocator.getName} in thread ${Thread.currentThread.getName} with stack ${e.getStackTrace.take(50).mkString("\n\t")}")
+
+      }
+
+      override def onChildRemoved(parentAllocator: BufferAllocator, childAllocator: BufferAllocator): Unit = {
+        logger.info(s"child allocator ${childAllocator.getName} has been removed from ${parentAllocator.getName} in thread ${Thread.currentThread.getName} ")
+//        if (childAllocator.getName.startsWith("simple-feature-vector")) {
+//          val e = new Exception("Get Removal Stack")
+//          logger.info(s"Removing allocator ${childAllocator.getName} in thread ${Thread.currentThread.getName} with stack ${e.getStackTrace.take(50).mkString("\n\t")}")
+//        }
+      }
+    }
+
+    private val root = new RootAllocator(DelegatingAllocationListener, Long.MaxValue)  // JNH: With lots of logging.
+    //private val root = new RootAllocator(Long.MaxValue)
+
+    sys.addShutdownHook({
+      logger.error(s"At shutdown root arrow status: ${root.toVerboseString}")
+      //println(s"Root arrow status: ${root.toVerboseString}")
+      CloseWithLogging(root)
+    })
 
 
-    private val root = new RootAllocator(DelegatingAllocationListener, Long.MaxValue)
+    private val es = Executors.newSingleThreadScheduledExecutor()
+    es.scheduleAtFixedRate(new Runnable {
+      override def run(): Unit = {
+        logger.error(s"Direct Memory status: MAX_DIRECT_MEMORY: ${PlatformDependent.maxDirectMemory()} DIRECT_MEMORY_COUNTER: ${getNettyMemoryCounter}")
 
-    sys.addShutdownHook(CloseWithLogging(root))
+        logger.error(s"Root arrow status: ${root.toVerboseString}")
+
+      }
+    }, 0, 1, TimeUnit.MINUTES)
+
+//>>>>>>> e4049c4204... Previous fixes for Arrow memory leaks.  Still need to review.
+
+    def getNettyMemoryCounter: Long = {
+      try {
+        val clazz = try {
+          Class.forName("io.netty.util.internal.PlatformDependent")
+        } catch {
+          case _: Throwable =>
+            Class.forName("org.locationtech.geomesa.accumulo.shade.io.netty.util.internal.PlatformDependent")
+        }
+        val field = clazz.getDeclaredField("DIRECT_MEMORY_COUNTER")
+        field.setAccessible(true)
+        field.get(clazz).asInstanceOf[java.util.concurrent.atomic.AtomicLong].get()
+      } catch {
+        case t: Throwable =>
+          logger.error("failed to get DIRECT_MEMORY_COUNTER", t)
+          -1
+      }
+    }
 
     /**
      * Gets a new allocator from the root allocator. Allocator should be `close`d after use.
@@ -70,8 +142,6 @@ package object arrow {
      * @param name name of the allocator, for bookkeeping
      * @return
      */
-    //def apply(name: String): BufferAllocator = root.newChildAllocator(name, 0L, Long.MaxValue)
-
     def apply(name: String): BufferAllocator = {
       root.newChildAllocator(s"$name-${id.getAndIncrement()}", 0L, Long.MaxValue)
     }

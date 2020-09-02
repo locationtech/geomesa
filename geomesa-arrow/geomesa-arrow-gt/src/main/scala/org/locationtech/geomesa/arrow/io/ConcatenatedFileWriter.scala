@@ -42,17 +42,17 @@ object ConcatenatedFileWriter {
     // NB: This is not a WithClose situation.
     //  If there is an empty/non-exceptional iterator, we wish to use it.
     //  If there are any issues, we wish to close the iterator to free memory.
-    try {
+//    try {
       if (files.hasNext) {
         files
       } else {
         generateEmptyResponse(sft, dictionaryFields, encoding, ipcOpts, sort)
       }
-    } catch {
-      case t: Throwable =>
-        files.close()
-        throw t
-    }
+//    } catch {
+//      case t: Throwable =>
+//        files.close()
+//        throw t
+//    }
   }
 
   private def generateEmptyResponse(sft: SimpleFeatureType, dictionaryFields: Seq[String], encoding: SimpleFeatureEncoding, ipcOpts: IpcOption, sort: Option[(String, Boolean)]) = {

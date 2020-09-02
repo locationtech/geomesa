@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.arrow.vector
 
 import java.io.Closeable
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.{Collections, Date}
 
 import org.apache.arrow.memory.BufferAllocator
@@ -46,6 +47,7 @@ class SimpleFeatureVector private [arrow] (
     val encoding: SimpleFeatureEncoding,
     allocator: Option[BufferAllocator]
   ) extends Closeable {
+  private val closed: AtomicBoolean = new AtomicBoolean(false)
 
   // note: writer creates the map child vectors based on the sft, and should be instantiated before the reader
   val writer = new Writer()
@@ -56,7 +58,24 @@ class SimpleFeatureVector private [arrow] (
     */
   def clear(): Unit = underlying.setValueCount(0)
 
-  override def close(): Unit = CloseWithLogging.raise(Seq(underlying) ++ allocator)
+  override def close(): Unit = {
+    if(!closed.get()) {
+      closed.set(true)
+      CloseWithLogging.raise(Seq(underlying) ++ allocator)
+    } else {
+      println("Closed has been called twice!")
+    }
+  }
+
+
+  override def finalize(): Unit = {
+    if (!closed.get()) {
+      println(s"GOT AN UNCLOSED SimpleFeatureVector in a finalize. Underlying allocator's name: ${underlying.getAllocator.getName} Allocator:? ${allocator.map(_.getName)}")
+    } else {
+      println(s"Finalizing a closed SimpleFeatureVector. Underlying allocator's name: ${underlying.getAllocator.getName} Allocator:? ${allocator.map(_.getName)}")
+    }
+    super.finalize()
+  }
 
   class Writer {
 
