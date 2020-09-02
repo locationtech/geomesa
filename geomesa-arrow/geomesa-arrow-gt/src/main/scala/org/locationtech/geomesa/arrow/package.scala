@@ -110,10 +110,17 @@ package object arrow {
      * @param name name of the allocator, for bookkeeping
      * @return
      */
+//<<<<<<< HEAD
     def apply(name: String): BufferAllocator = {
       root.newChildAllocator(s"$name-${id.getAndIncrement()}", 0L, Long.MaxValue)
     }
 
+//=======
+//    def apply(name: String): BufferAllocator = root.newChildAllocator(name, 0L, Long.MaxValue)
+
+    def getAllocatedMemory: Long = root.getAllocatedMemory
+    def getPeakMemoryAllocation: Long = root.getPeakMemoryAllocation
+//>>>>>>> ca3226ff2a... Added unit test.
   }
 
   object ArrowProperties {
