@@ -38,6 +38,18 @@ package object arrow {
      * @return
      */
     def apply(name: String): BufferAllocator = root.newChildAllocator(name, 0L, Long.MaxValue)
+
+    /**
+     * Forwards the getAllocatedMemory from the root Arrow Allocator
+     * @return the number of bytes allocated off-heap by Arrow
+     */
+    def getAllocatedMemory: Long = root.getAllocatedMemory
+
+    /**
+     * Forwards the getPeakMemoryAllocation from the root Arrow Allocator
+     * @return the peak number of bytes allocated off-heap by Arrow
+     */
+    def getPeakMemoryAllocation: Long = root.getPeakMemoryAllocation
   }
 
   object ArrowProperties {

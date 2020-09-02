@@ -24,6 +24,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   * For writing simple features to an arrow file.
   *
   * Uses arrow streaming format (no footer).
+  * Closing the SimpleFeatureArrowFileWriter closes the given os.
   *
   * @param vector simple feature vector
   * @param provider dictionary provider
