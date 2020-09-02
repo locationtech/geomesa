@@ -26,6 +26,7 @@ import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class ArrowConversionProcessTest extends Specification {
+  sequential
 
   import scala.collection.JavaConversions._
 
