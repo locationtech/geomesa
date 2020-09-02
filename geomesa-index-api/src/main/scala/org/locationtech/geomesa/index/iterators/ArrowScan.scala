@@ -222,7 +222,7 @@ object ArrowScan {
           (descriptor.getType.getBinding, AttributeOrdering(bindings))
         }
         java.util.Arrays.sort(v, order)
-        k -> ArrowDictionary.create(id, v)(ClassTag[AnyRef](binding))
+        k -> ArrowDictionary.create(sft.getTypeName, id, v)(ClassTag[AnyRef](binding))
       }
       val toLookup = attributes.filterNot(provided.contains)
       if (toLookup.isEmpty) { providedDictionaries } else {
@@ -241,7 +241,7 @@ object ArrowScan {
               (values, descriptor.getType.getBinding, AttributeOrdering(bindings))
             }
             java.util.Arrays.sort(values, order)
-            name -> ArrowDictionary.create(id, values)(ClassTag[AnyRef](binding))
+            name -> ArrowDictionary.create(sft.getTypeName, id, values)(ClassTag[AnyRef](binding))
           }
         } else {
           // if we have to run a query, might as well generate all values
@@ -265,7 +265,7 @@ object ArrowScan {
               (values, descriptor.getType.getBinding, AttributeOrdering(bindings))
             }
             java.util.Arrays.sort(values, order)
-            name -> ArrowDictionary.create(id, values)(ClassTag[AnyRef](binding))
+            name -> ArrowDictionary.create(sft.getTypeName, id, values)(ClassTag[AnyRef](binding))
           }.toMap
         }
         queried ++ providedDictionaries
@@ -300,7 +300,7 @@ object ArrowScan {
     var id = -1L
     StringSerialization.decodeSeqMap(sft, encoded).map { case (k, v) =>
       id += 1
-      k -> ArrowDictionary.create(id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
+      k -> ArrowDictionary.create(sft.getTypeName, id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
     }
   }
 

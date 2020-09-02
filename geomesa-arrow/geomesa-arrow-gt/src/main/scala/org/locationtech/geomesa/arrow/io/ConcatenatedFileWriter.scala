@@ -41,7 +41,7 @@ object ConcatenatedFileWriter {
     // ensure we return something
     if (files.hasNext) { files } else {
       val dictionaries = dictionaryFields.mapWithIndex { case (name, i) =>
-        name -> ArrowDictionary.create(i, Array.empty[AnyRef])
+        name -> ArrowDictionary.create(sft.getTypeName, i, Array.empty[AnyRef])
       }
       val os = new ByteArrayOutputStream()
       WithClose(SimpleFeatureArrowFileWriter(os, sft, dictionaries.toMap, encoding, ipcOpts, sort)) { writer =>
