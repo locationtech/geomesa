@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa
 
-import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
+import org.apache.arrow.memory.{AllocationListener, BufferAllocator, RootAllocator}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -16,15 +16,41 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.collection.mutable
+
 package object arrow {
 
   // need to be lazy to avoid class loading issues before init is called
   lazy val ArrowEncodedSft: SimpleFeatureType =
     SimpleFeatureTypes.createType("arrow", "batch:Bytes,*geom:Point:srid=4326")
 
+  object DelegatingAllocationListener extends AllocationListener {
+    val listeners: mutable.Set[AllocationListener] = mutable.Set[AllocationListener]()
+
+    def addListener(listener: AllocationListener): Boolean = listeners.add(listener)
+
+    def removeListener(listener: AllocationListener): Boolean = listeners.remove(listener)
+
+    override def onChildAdded(parentAllocator: BufferAllocator, childAllocator: BufferAllocator): Unit =
+      listeners.foreach { _.onChildAdded(parentAllocator, childAllocator) }
+
+    override def onChildRemoved(parentAllocator: BufferAllocator, childAllocator: BufferAllocator): Unit =
+      listeners.foreach { _.onChildRemoved(parentAllocator, childAllocator) }
+  }
+
+  class MatchingAllocationListener extends AllocationListener {
+    val unmatchedAllocation: mutable.Set[String] = mutable.Set[String]()
+    override def onChildAdded(parentAllocator: BufferAllocator, childAllocator: BufferAllocator): Unit = {
+      unmatchedAllocation.add(childAllocator.getName)
+    }
+
+    override def onChildRemoved(parentAllocator: BufferAllocator, childAllocator: BufferAllocator): Unit =
+      unmatchedAllocation.remove(childAllocator.getName)
+  }
+
   object ArrowAllocator {
 
-    private val root = new RootAllocator(Long.MaxValue)
+    private val root = new RootAllocator(DelegatingAllocationListener, Long.MaxValue)
 
     sys.addShutdownHook(CloseWithLogging(root))
 

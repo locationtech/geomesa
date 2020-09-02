@@ -13,7 +13,7 @@ import java.io.ByteArrayInputStream
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
 import org.geotools.data.collection.ListFeatureCollection
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.arrow.ArrowAllocator
+import org.locationtech.geomesa.arrow.{ArrowAllocator, DelegatingAllocationListener, MatchingAllocationListener}
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -41,6 +41,8 @@ class ArrowConversionProcessTest extends Specification {
   }
 
   val collection = new ListFeatureCollection(sft, new Random(-1L).shuffle(features))
+  val listener = new MatchingAllocationListener
+  DelegatingAllocationListener.addListener(listener)
 
   "ArrowConversionProcess" should {
     "encode an empty feature collection" in {
@@ -67,6 +69,7 @@ class ArrowConversionProcessTest extends Specification {
     "encode a generic empty feature collection with dictionary values without leaking memory" in {
       // This returns an empty iterator.
       process.execute(new ListFeatureCollection(sft), null, null, null, Seq("name"), null, null, null, null, null)
+      listener.unmatchedAllocation.size mustEqual 0
       ArrowAllocator.getAllocatedMemory mustEqual 0
     }
 
@@ -114,5 +117,6 @@ class ArrowConversionProcessTest extends Specification {
 
   step {
     allocator.close()
+    DelegatingAllocationListener.removeListener(listener)
   }
 }
