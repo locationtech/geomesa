@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa
 
+import java.util.concurrent.atomic.AtomicInteger
+
 import org.apache.arrow.memory.{AllocationListener, BufferAllocator, RootAllocator}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
@@ -19,6 +21,7 @@ import org.opengis.feature.simple.SimpleFeatureType
 import scala.collection.mutable
 
 package object arrow {
+  val id = new AtomicInteger(0)
 
   // need to be lazy to avoid class loading issues before init is called
   lazy val ArrowEncodedSft: SimpleFeatureType =
@@ -41,14 +44,18 @@ package object arrow {
   class MatchingAllocationListener extends AllocationListener {
     val unmatchedAllocation: mutable.Set[String] = mutable.Set[String]()
     override def onChildAdded(parentAllocator: BufferAllocator, childAllocator: BufferAllocator): Unit = {
+      println(s"child allocator ${childAllocator.getName} added In Thread: ${Thread.currentThread().getName}")
       unmatchedAllocation.add(childAllocator.getName)
     }
 
-    override def onChildRemoved(parentAllocator: BufferAllocator, childAllocator: BufferAllocator): Unit =
+    override def onChildRemoved(parentAllocator: BufferAllocator, childAllocator: BufferAllocator): Unit = {
+      println(s"child allocator ${childAllocator.getName} removed In Thread: ${Thread.currentThread().getName}")
       unmatchedAllocation.remove(childAllocator.getName)
+    }
   }
 
   object ArrowAllocator {
+
 
     private val root = new RootAllocator(DelegatingAllocationListener, Long.MaxValue)
 
@@ -63,7 +70,11 @@ package object arrow {
      * @param name name of the allocator, for bookkeeping
      * @return
      */
-    def apply(name: String): BufferAllocator = root.newChildAllocator(name, 0L, Long.MaxValue)
+    //def apply(name: String): BufferAllocator = root.newChildAllocator(name, 0L, Long.MaxValue)
+
+    def apply(name: String): BufferAllocator = {
+      root.newChildAllocator(s"$name-${id.getAndIncrement()}", 0L, Long.MaxValue)
+    }
 
     /**
      * Forwards the getAllocatedMemory from the root Arrow Allocator
