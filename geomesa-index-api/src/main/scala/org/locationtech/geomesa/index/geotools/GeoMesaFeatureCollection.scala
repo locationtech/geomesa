@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.geotools
 
+import java.util.Collections
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 
 import com.typesafe.scalalogging.LazyLogging
@@ -17,7 +18,8 @@ import org.geotools.data.util.NullProgressListener
 import org.geotools.data.{FeatureReader, Query, Transaction}
 import org.geotools.feature.FeatureCollection
 import org.geotools.feature.collection.{DecoratingFeatureCollection, DecoratingSimpleFeatureCollection}
-import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
+import org.geotools.feature.visitor.GroupByVisitor.GroupByRawResult
+import org.geotools.feature.visitor._
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.filter.FilterHelper
@@ -26,10 +28,11 @@ import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.stats._
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-import org.opengis.filter.expression.PropertyName
+import org.opengis.filter.expression.{Expression, PropertyName}
 import org.opengis.filter.sort.SortBy
 import org.opengis.util.ProgressListener
 
@@ -138,6 +141,8 @@ class GeoMesaFeatureCollection(source: GeoMesaFeatureSource, original: Query)
 
 object GeoMesaFeatureCollection extends LazyLogging {
 
+  import scala.collection.JavaConverters._
+
   private val oneUp = new AtomicLong(0)
 
   def nextId: String = s"GeoMesaFeatureCollection-${oneUp.getAndIncrement()}"
@@ -226,33 +231,111 @@ object GeoMesaFeatureCollection extends LazyLogging {
   abstract class GeoMesaFeatureVisitingCollection(source: SimpleFeatureSource, stats: GeoMesaStats, query: Query)
       extends DataFeatureCollection(nextId) with LazyLogging {
 
+    private def unoptimized(visitor: FeatureVisitor, progress: ProgressListener): Unit = {
+      lazy val warning = s"Using unoptimized method for visiting '${visitor.getClass.getName}'"
+      logger.warn(warning)
+      if (progress != null) {
+        progress.warningOccurred(getClass.getName, "accepts()", warning)
+      }
+      super.accepts(visitor, progress)
+    }
+
     override def accepts(visitor: FeatureVisitor, progress: ProgressListener): Unit = {
       visitor match {
-        case v: BoundsVisitor => v.reset(stats.getBounds(source.getSchema, query.getFilter))
+        case v: GeoMesaProcessVisitor =>
+          v.execute(source, query)
 
-        case v: MinVisitor if v.getExpression.isInstanceOf[PropertyName] =>
+        case v: AverageVisitor if v.getExpression.isInstanceOf[PropertyName] =>
           val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName
-          minMax(attribute, exact = false).orElse(minMax(attribute, exact = true)) match {
-            case Some((min, _)) => v.setValue(min)
-            case None           => super.accepts(visitor, progress)
+          val stat = Stat.DescriptiveStats(Seq(attribute))
+          stats.getStat[DescriptiveStats](source.getSchema, stat, query.getFilter, exact = true) match {
+            case Some(s) if s.count <= Int.MaxValue.toLong => v.setValue(s.count.toInt, s.sum(0))
+            case Some(s) => v.setValue(s.mean(0))
+            case None    => unoptimized(visitor, progress)
           }
+
+        case v: BoundsVisitor =>
+          v.getBounds.expandToInclude(stats.getBounds(source.getSchema, query.getFilter))
+
+        case v: CountVisitor =>
+          v.setValue(source.getCount(query))
 
         case v: MaxVisitor if v.getExpression.isInstanceOf[PropertyName] =>
           val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName
           minMax(attribute, exact = false).orElse(minMax(attribute, exact = true)) match {
             case Some((_, max)) => v.setValue(max)
-            case None           => super.accepts(visitor, progress)
+            case None           => unoptimized(visitor, progress)
           }
 
-        case v: GeoMesaProcessVisitor => v.execute(source, query)
+        case v: GroupByVisitor if v.getExpression.isInstanceOf[PropertyName] =>
+          val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName
+          groupBy(attribute, v.getGroupByAttributes.asScala, v.getAggregateVisitor) match {
+            case Some(result) => v.setValue(result)
+            case None         => unoptimized(visitor, progress)
+          }
 
-        case v =>
-          logger.warn(s"Using unoptimized method for visiting '${v.getClass.getName}'")
-          super.accepts(visitor, progress)
+        case v: MinVisitor if v.getExpression.isInstanceOf[PropertyName] =>
+          val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName
+          minMax(attribute, exact = false).orElse(minMax(attribute, exact = true)) match {
+            case Some((min, _)) => v.setValue(min)
+            case None           => unoptimized(visitor, progress)
+          }
+
+        case v: SumVisitor if v.getExpression.isInstanceOf[PropertyName] =>
+          val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName
+          val stat = Stat.DescriptiveStats(Seq(attribute))
+          stats.getStat[DescriptiveStats](source.getSchema, stat, query.getFilter, exact = true) match {
+            case Some(s) => v.setValue(s.sum(0))
+            case None    => unoptimized(visitor, progress)
+          }
+
+        case v: UniqueVisitor if v.getExpression.isInstanceOf[PropertyName] =>
+          val attribute = v.getExpression.asInstanceOf[PropertyName].getPropertyName
+          val stat = Stat.Enumeration(attribute)
+          stats.getStat[EnumerationStat[Any]](source.getSchema, stat, query.getFilter, exact = true) match {
+            case Some(s) => v.setValue(s.values.toList.asJava)
+            case None    => unoptimized(visitor, progress)
+          }
+
+        case _ =>
+          unoptimized(visitor, progress)
       }
     }
 
     private def minMax(attribute: String, exact: Boolean): Option[(Any, Any)] =
       stats.getMinMax[Any](source.getSchema, attribute, query.getFilter, exact).map(_.bounds)
+
+    private def groupBy(
+        attribute: String,
+        groupByExpression: Seq[Expression],
+        aggregate: FeatureVisitor): Option[java.util.List[GroupByRawResult]] = {
+      if (groupByExpression.lengthCompare(1) != 0
+          || groupByExpression.exists(e => !e.isInstanceOf[PropertyName])) { None } else {
+        val groupBy = groupByExpression.map(_.asInstanceOf[PropertyName].getPropertyName).head
+        val op: Option[(String, Stat => Any)] = aggregate match {
+          case _: CountVisitor =>
+            Some(Stat.Count() -> { (s: Stat) => math.min( s.asInstanceOf[CountStat].count, Int.MaxValue.toLong).toInt })
+
+          case _: MaxVisitor =>
+            Some(Stat.MinMax(attribute) -> { (s: Stat) => s.asInstanceOf[MinMax[Any]].max })
+
+          case _: MinVisitor =>
+            Some(Stat.MinMax(attribute) -> { (s: Stat) => s.asInstanceOf[MinMax[Any]].min })
+
+          case _ =>
+            None
+        }
+        op.flatMap { case (nested, unwrap) =>
+          val stat = Stat.GroupBy(groupBy, nested)
+          stats.getStat[GroupBy[AnyRef]](source.getSchema, stat, query.getFilter, exact = true).map { grouped =>
+            val result = new java.util.ArrayList[GroupByRawResult]
+            grouped.iterator.foreach { case (group, stat) =>
+              result.add(new GroupByRawResult(Collections.singletonList(group), unwrap(stat)))
+            }
+            result
+          }
+        }
+      }
+    }
   }
 }

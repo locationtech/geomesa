@@ -23,6 +23,7 @@ class GroupBy[T](val sft: SimpleFeatureType, val property: String, val stat: Str
   def size: Int = groups.size
   def get(key: T): Option[Stat] = groups.get(key)
   def getOrElse[U >: Stat](key: T, default: => U): U = groups.getOrElse(key, default)
+  def iterator: Iterator[(T, Stat)] = groups.iterator
 
   private def buildNewStat: Stat = StatParser.parse(sft, stat)
 

@@ -8,13 +8,17 @@
 
 package org.locationtech.geomesa.index.geotools
 
+import java.util.Collections
+
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.{ReTypingFeatureCollection, ReprojectingFeatureCollection}
+import org.geotools.data.util.NullProgressListener
 import org.geotools.data.{DataStore, Query, Transaction}
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.collection.{DecoratingFeatureCollection, DecoratingSimpleFeatureCollection}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.feature.visitor.CalcResult
+import org.geotools.feature.visitor._
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.CRS
@@ -22,7 +26,7 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreTest.{TestFeatureCollection, TestQueryInterceptor, TestSimpleFeatureCollection, TestVisitor}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreTest._
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
@@ -33,7 +37,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.jts.geom.{Geometry, Point}
+import org.locationtech.jts.geom.{Envelope, Geometry, Point}
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -44,6 +48,8 @@ import org.specs2.runner.JUnitRunner
 class GeoMesaDataStoreTest extends Specification {
 
   import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
+
+  import scala.collection.JavaConverters._
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
 
@@ -257,6 +263,96 @@ class GeoMesaDataStoreTest extends Specification {
         ds.getQueryPlan(new Query("temporal", ECQL.toFilter(f))).map(_.filter.index.name) mustEqual Seq(temporal.name)
       }
     }
+    "optimize average visitors" in {
+      val visitor = new AverageVisitor("age", sft)
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      visitor.getResult.getValue mustEqual
+          (features.map(_.getAttribute("age").asInstanceOf[Int]).sum.toDouble / features.length)
+      listener.warning must beNone
+    }
+    "optimize bounds visitors" in {
+      val visitor = new BoundsVisitor()
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      val expected = new Envelope()
+      features.foreach(f => expected.expandToInclude(f.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal))
+      visitor.getResult.getValue mustEqual expected
+      listener.warning must beNone
+    }
+    "optimize count visitors" in {
+      val visitor = new CountVisitor()
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      visitor.getCount mustEqual features.size
+      listener.warning must beNone
+    }
+    "optimize max visitors" in {
+      val visitor = new MaxVisitor("age", sft)
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      visitor.getResult.getValue mustEqual 9
+      listener.warning must beNone
+    }
+    "optimize groupBy count visitors" in {
+      val prop = CommonFactoryFinder.getFilterFactory2.property("age")
+      val listener = new TestProgressListener()
+      val visitor = new GroupByVisitor(Aggregate.COUNT, prop, Collections.singletonList(prop), listener)
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      val result = visitor.getResult.getValue
+      result must beAnInstanceOf[Array[Array[_]]]
+      result.asInstanceOf[Array[Array[_]]] must haveLength(features.size)
+      result.asInstanceOf[Array[Array[_]]].toSeq.map(_.toSeq) must
+          containTheSameElementsAs(features.map(f => Seq(f.getAttribute("age"), 1)))
+      listener.warning must beNone
+    }
+    "optimize groupBy max visitors" in {
+      val prop = CommonFactoryFinder.getFilterFactory2.property("age")
+      val listener = new TestProgressListener()
+      val visitor = new GroupByVisitor(Aggregate.MAX, prop, Collections.singletonList(prop), listener)
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      val result = visitor.getResult.getValue
+      result must beAnInstanceOf[Array[Array[_]]]
+      result.asInstanceOf[Array[Array[_]]] must haveLength(features.size)
+      result.asInstanceOf[Array[Array[_]]].toSeq.map(_.toSeq) must
+          containTheSameElementsAs(features.map(f => Seq(f.getAttribute("age"), f.getAttribute("age"))))
+      listener.warning must beNone
+    }
+    "optimize groupBy min visitors" in {
+      val prop = CommonFactoryFinder.getFilterFactory2.property("age")
+      val listener = new TestProgressListener()
+      val visitor = new GroupByVisitor(Aggregate.MIN, prop, Collections.singletonList(prop), listener)
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      val result = visitor.getResult.getValue
+      result must beAnInstanceOf[Array[Array[_]]]
+      result.asInstanceOf[Array[Array[_]]] must haveLength(features.size)
+      result.asInstanceOf[Array[Array[_]]].toSeq.map(_.toSeq) must
+          containTheSameElementsAs(features.map(f => Seq(f.getAttribute("age"), f.getAttribute("age"))))
+      listener.warning must beNone
+    }
+    "optimize min visitors" in {
+      val visitor = new MinVisitor("age", sft)
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      visitor.getResult.getValue mustEqual 0
+      listener.warning must beNone
+    }
+    "optimize sum visitors" in {
+      val visitor = new SumVisitor("age", sft)
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      visitor.getResult.getValue mustEqual features.map(_.getAttribute("age").asInstanceOf[Int]).sum
+      listener.warning must beNone
+    }
+    "optimize unique visitors" in {
+      val visitor = new UniqueVisitor("name", sft)
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      val result = visitor.getResult.getValue
+      result must beAnInstanceOf[java.util.Set[AnyRef]]
+      result.asInstanceOf[java.util.Set[AnyRef]].asScala mustEqual features.map(_.getAttribute("name")).toSet
+      listener.warning must beNone
+    }
   }
 }
 
@@ -275,6 +371,13 @@ object GeoMesaDataStoreTest {
     override def execute(source: SimpleFeatureSource, query: Query): Unit = executed = true
     override def visit(feature: Feature): Unit = visited = true
     override def getResult: CalcResult = null
+  }
+
+  class TestProgressListener extends NullProgressListener {
+    var warning: Option[(String, String, String)] = None
+    override def warningOccurred(source: String, location: String, warning: String): Unit = {
+      this.warning = Some((source, location, warning))
+    }
   }
 
   // example class extending DecoratingFeatureCollection
