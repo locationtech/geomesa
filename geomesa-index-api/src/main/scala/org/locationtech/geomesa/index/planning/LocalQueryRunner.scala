@@ -334,6 +334,7 @@ object LocalQueryRunner {
         new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, ipcOpts, batchSize, sort.map(_.head), sorted = true)(arrows)
       }
     } else if (hints.isArrowMultiFile) {
+      // TODO check on "dictionary-builder"
       val writer = new DictionaryBuildingWriter(arrowSft, dictionaryFields, encoding, ipcOpts)
       val os = new ByteArrayOutputStream()
 

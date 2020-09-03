@@ -72,6 +72,7 @@ object SimpleFeatureArrowFileReader {
     * @param is input stream
     * @return
     */
+  // TODO: check on "caching-file-reader")
   def caching(is: InputStream): SimpleFeatureArrowFileReader = new CachingSimpleFeatureArrowFileReader(is)
 
   /**

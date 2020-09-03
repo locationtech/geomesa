@@ -726,6 +726,7 @@ object ArrowScan {
 
     override def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = {
       val files = features.map(_.getAttribute(0).asInstanceOf[Array[Byte]])
+      // TODO: One of the spot to check on the "merge-dictionaries"
       val result = DeltaWriter.reduce(sft, dictionaryFields, encoding, ipcOpts, sort, sorted, batchSize, files)
       val sf = resultFeature()
       result.map { bytes => sf.setAttribute(0, bytes); sf }

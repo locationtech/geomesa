@@ -14,6 +14,7 @@ import java.util.Date
 import org.geotools.data.Query
 import org.geotools.filter.SortByImpl
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.arrow.{DelegatingAllocationListener, MatchingAllocationListener}
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -30,8 +31,12 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class LocalQueryRunnerTest extends Specification {
+  sequential
 
   import org.locationtech.geomesa.filter.ff
+
+  val listener = new MatchingAllocationListener
+  DelegatingAllocationListener.addListener(listener)
 
   val typeName = "memory"
   val spec = "name:String,age:Int,dtg:Date,*geom:Point:srid=4326"
@@ -54,6 +59,31 @@ class LocalQueryRunnerTest extends Specification {
       filter match {
         case None    => CloseableIterator(LocalQueryRunnerTest.this.features.iterator)
         case Some(f) => CloseableIterator(LocalQueryRunnerTest.this.features.iterator.filter(f.evaluate))
+      }
+    }
+  }
+
+  val failingRunner: LocalQueryRunner = new LocalQueryRunner(NoopStats, None) {
+    override protected val name: String = "test-runner"
+    override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
+    override protected def features(sft: SimpleFeatureType, filter: Option[Filter]): CloseableIterator[SimpleFeature] = {
+      val iter = filter match {
+        case None    => CloseableIterator(LocalQueryRunnerTest.this.features.iterator)
+        case Some(f) => CloseableIterator(LocalQueryRunnerTest.this.features.iterator.filter(f.evaluate))
+      }
+      new Iterator[SimpleFeature] {
+        private val internal = iter
+        override def hasNext: Boolean = {
+          if (internal.hasNext) {
+            true
+          } else {
+            throw new NoSuchElementException("No more elements!")
+          }
+        }
+
+        override def next(): SimpleFeature = {
+          internal.next()
+        }
       }
     }
   }
@@ -84,19 +114,95 @@ class LocalQueryRunnerTest extends Specification {
       runner.runQuery(sft, q).map(ScalaSimpleFeature.copy).map(_.getID).toSeq mustEqual features.reverse.map(_.getID)
     }
 
-    "query for arrow" in {
+//    "query for arrow" in {
+//      val q = new Query("memory", Filter.INCLUDE, Array("name", "dtg", "geom"))
+//      val expected = runner.runQuery(sft, q).map(ScalaSimpleFeature.copy).toSeq.sortBy(_.getAttribute("dtg").asInstanceOf[Date])
+//      q.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+//      q.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+//      q.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+//      // note: need to copy the features as the same object is re-used in the iterator
+//      val bytes = WithClose(runner.runQuery(sft, q)) { iter =>
+//        iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
+//      }
+//      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
+//        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual expected
+//      }
+//    }
+
+    //   hints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
+    //
+
+//    "query for arrow and not leak memory" in {
+//      val q = new Query("memory", Filter.INCLUDE, Array("name", "dtg", "geom"))
+//      //val expected = failingRunner.runQuery(sft, q).map(ScalaSimpleFeature.copy).toSeq.sortBy(_.getAttribute("dtg").asInstanceOf[Date])
+//      q.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+//      q.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+//      q.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+//      // note: need to copy the features as the same object is re-used in the iterator
+//      val bytes = WithClose(runner.runQuery(sft, q)) { iter =>
+//        iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
+//      }
+//      listener.unmatchedAllocation.size mustEqual 0
+//    }
+
+//    "query for arrow and not leak memory with skip reduce" in {
+//      val q = new Query("memory", Filter.INCLUDE, Array("name", "dtg", "geom"))
+//      //val expected = failingRunner.runQuery(sft, q).map(ScalaSimpleFeature.copy).toSeq.sortBy(_.getAttribute("dtg").asInstanceOf[Date])
+//      q.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+//      q.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+//      q.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+//      q.getHints.put(QueryHints.Internal.SKIP_REDUCE, java.lang.Boolean.TRUE)
+//      // note: need to copy the features as the same object is re-used in the iterator
+//      val bytes = WithClose(runner.runQuery(sft, q)) { iter =>
+//        iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
+//      }
+//      listener.unmatchedAllocation.size mustEqual 0
+//    }
+
+    "Work in lots of configurations" in {
       val q = new Query("memory", Filter.INCLUDE, Array("name", "dtg", "geom"))
-      val expected = runner.runQuery(sft, q).map(ScalaSimpleFeature.copy).toSeq.sortBy(_.getAttribute("dtg").asInstanceOf[Date])
       q.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
       q.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
       q.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
-      // note: need to copy the features as the same object is re-used in the iterator
-      val bytes = WithClose(runner.runQuery(sft, q)) { iter =>
-        iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
-      }
-      WithClose(SimpleFeatureArrowFileReader.streaming(() => new ByteArrayInputStream(bytes))) { reader =>
-        SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq mustEqual expected
+
+      forall(Seq(java.lang.Boolean.TRUE, java.lang.Boolean.FALSE)) { skipReduce =>
+        forall(Seq(java.lang.Boolean.TRUE, java.lang.Boolean.FALSE)) { doublePass =>
+          forall(Seq(java.lang.Boolean.TRUE, java.lang.Boolean.FALSE)) { multiFile =>
+            q.getHints.put(QueryHints.Internal.SKIP_REDUCE, skipReduce)
+            q.getHints.put(QueryHints.ARROW_DOUBLE_PASS, doublePass)
+            q.getHints.put(QueryHints.ARROW_MULTI_FILE, multiFile)
+
+            // note: need to copy the features as the same object is re-used in the iterator
+            try {
+              val bytes = WithClose(failingRunner.runQuery(sft, q)) { iter =>
+                iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
+              }
+            } catch {
+              case exception: Exception => // Swallowing exception from intentially failing iterator.
+            }
+            println(s"Unmatched: ${listener.unmatchedAllocation.size} SkipReduce $skipReduce doublePass $doublePass MultiFile $multiFile.")
+            listener.unmatchedAllocation.size mustEqual 0
+          }
+        }
       }
     }
+
+    "query for arrow and not leak memory with skip reduce" in {
+      val q = new Query("memory", Filter.INCLUDE, Array("name", "dtg", "geom"))
+      q.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+      q.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+      q.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+      q.getHints.put(QueryHints.ARROW_MULTI_FILE, java.lang.Boolean.TRUE)
+      // note: need to copy the features as the same object is re-used in the iterator
+      try {
+      val bytes = WithClose(failingRunner.runQuery(sft, q)) { iter =>
+        iter.map(_.getAttribute(0).asInstanceOf[Array[Byte]]).reduceLeftOption(_ ++ _).getOrElse(Array.empty[Byte])
+      }
+      } catch {
+        case exception: Exception => // Swallowing exception from intentially failing iterator.
+      }
+      listener.unmatchedAllocation.size mustEqual 0
+    }
   }
+
 }

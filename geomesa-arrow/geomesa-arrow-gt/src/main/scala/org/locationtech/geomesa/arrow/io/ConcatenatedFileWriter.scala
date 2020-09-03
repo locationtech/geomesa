@@ -39,16 +39,30 @@ object ConcatenatedFileWriter {
       sort: Option[(String, Boolean)],
       files: CloseableIterator[Array[Byte]]): CloseableIterator[Array[Byte]] = {
     // ensure we return something
-    if (files.hasNext) { files } else {
-      val dictionaries = dictionaryFields.mapWithIndex { case (name, i) =>
-        name -> ArrowDictionary.create(i, Array.empty[AnyRef])
+    // NB: This is not a WithClose situation.
+    //  If there is an empty/non-exceptional iterator, we wish to use it.
+    //  If there are any issues, we wish to close the iterator to free memory.
+    try {
+      if (files.hasNext) {
+        files
+      } else {
+        generateEmptyResponse(sft, dictionaryFields, encoding, ipcOpts, sort)
       }
-      val os = new ByteArrayOutputStream()
-      WithClose(SimpleFeatureArrowFileWriter(os, sft, dictionaries.toMap, encoding, ipcOpts, sort)) { writer =>
-        writer.flush() // ensure header and dictionaries are written, and write an empty batch
-      }
-      // files is empty but this will pass it through to be closed
-      files ++ CloseableIterator.single(os.toByteArray)
+    } catch {
+      case t: Throwable =>
+        files.close()
+        throw t
     }
+  }
+
+  private def generateEmptyResponse(sft: SimpleFeatureType, dictionaryFields: Seq[String], encoding: SimpleFeatureEncoding, ipcOpts: IpcOption, sort: Option[(String, Boolean)]) = {
+    val dictionaries = dictionaryFields.mapWithIndex { case (name, i) =>
+      name -> ArrowDictionary.create(i, Array.empty[AnyRef])
+    }
+    val os = new ByteArrayOutputStream()
+    WithClose(SimpleFeatureArrowFileWriter(os, sft, dictionaries.toMap, encoding, ipcOpts, sort)) { writer =>
+      writer.flush() // ensure header and dictionaries are written, and write an empty batch
+    }
+    CloseableIterator.single(os.toByteArray)
   }
 }
