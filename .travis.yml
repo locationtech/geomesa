@@ -1,6 +1,6 @@
 # See http://about.travis-ci.org/docs/user/build-configuration/
 sudo: required
-dist: trusty
+dist: bionic
 
 before_install:
   - unset _JAVA_OPTIONS
@@ -16,7 +16,7 @@ cache:
   - $HOME/.m2
 
 jdk:
-  - oraclejdk8
+  - openjdk11
 
 script:
   - export MAVEN_OPTS="-Xmx1g -Djava.net.preferIPv4Stack=true"
