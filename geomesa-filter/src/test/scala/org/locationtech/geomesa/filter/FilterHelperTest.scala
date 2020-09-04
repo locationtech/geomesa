@@ -272,5 +272,17 @@ class FilterHelperTest extends Specification {
       updateFilter(filter)
       ok
     }
+
+    "evaluate functions with large number of ANDs" >> {
+      val count = 4000
+      val a = ff.property("a")
+      var filter: Filter = ff.equal(a, ff.literal(0))
+      (1 until count).foreach { i =>
+        filter = ff.and(filter, ff.equal(a, ff.literal(i)))
+      }
+      val updated = updateFilter(filter)
+      println(s"Updated filter $updated")
+      ok
+    }
   }
 }
