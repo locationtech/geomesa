@@ -55,7 +55,8 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
     val children = new java.util.ArrayList[Filter](f.getChildren.size)
     var i = 0
     while (i < f.getChildren.size) {
-      val child = f.getChildren.get(i).accept(this, data).asInstanceOf[Filter]
+      // Simplify the children first to avoid leaning trees patterns causing StackOverflows
+      val child = FilterHelper.simplify(f.getChildren.get(i)).accept(this, data).asInstanceOf[Filter]
       if (child == Filter.INCLUDE) {
         // INCLUDE OR foo == INCLUDE
         return Filter.INCLUDE
@@ -77,7 +78,8 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
     val children = new java.util.ArrayList[Filter](f.getChildren.size)
     var i = 0
     while (i < f.getChildren.size) {
-      val child = f.getChildren.get(i).accept(this, data).asInstanceOf[Filter]
+      // Simplify the children first to avoid leaning trees patterns causing StackOverflows
+      val child = FilterHelper.simplify(f.getChildren.get(i)).accept(this, data).asInstanceOf[Filter]
       if (child == Filter.EXCLUDE) {
         // EXCLUDE AND foo == EXCLUDE
         return Filter.EXCLUDE
