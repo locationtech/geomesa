@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
 import com.google.common.primitives.Shorts
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
-import org.locationtech.geomesa.index.index.attribute.AttributeIndex
+import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, AttributeIndexKey}
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -126,6 +126,33 @@ class DefaultSplitterTest extends Specification {
       // note: lexicoded values in hex
       splits.map(new String(_, StandardCharsets.UTF_8)).toSeq mustEqual
           (0 until 10).map(i => s"8000000$i") ++ (0 to 9).map(i => s"8000005$i")
+    }
+
+    "produce correct negative int splits" in {
+      val opts = "attr.myInt.pattern:[-][0-9]"
+      val splits = splitter.getSplits(sft, attrInt, opts)
+      splits must haveLength(10)
+      // note: lexicoded values in hex
+      splits.map(new String(_, StandardCharsets.UTF_8)).toSeq mustEqual
+          (-9 to 0).map(AttributeIndexKey.encodeForQuery(_, classOf[Integer]))
+    }
+
+    "produce correct union negative int splits" in {
+      val opts = "attr.myInt.pattern:[-][8-95-6]"
+      val splits = splitter.getSplits(sft, attrInt, opts)
+      splits must haveLength(4)
+      // note: lexicoded values in hex
+      splits.map(new String(_, StandardCharsets.UTF_8)).toSeq mustEqual
+          Seq("7ffffff7", "7ffffff8", "7ffffffa", "7ffffffb")
+    }
+
+    "produce correct tiered negative int splits" in {
+      val opts = "attr.myInt.pattern:[-][0-1][2-3]"
+      val splits = splitter.getSplits(sft, attrInt, opts)
+      splits must haveLength(4)
+      // note: lexicoded values in hex
+      splits.map(new String(_, StandardCharsets.UTF_8)).toSeq mustEqual
+          Seq("7ffffff3", "7ffffff4", "7ffffffd", "7ffffffe")
     }
 
     "reject invalid int splits" in {
