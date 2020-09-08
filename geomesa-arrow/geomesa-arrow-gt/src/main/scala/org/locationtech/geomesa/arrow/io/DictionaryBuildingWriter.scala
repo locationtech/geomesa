@@ -46,6 +46,8 @@ class DictionaryBuildingWriter(
     maxSize: Int = Short.MaxValue
   ) extends Closeable {
 
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
   private val allocator = ArrowAllocator("dictionary-builder")
 
   private val underlying = {
@@ -106,7 +108,12 @@ class DictionaryBuildingWriter(
 
     val dictionaries = attributeWriters.collect { case w: ArrowDictionaryWriter =>
       val name = s"dict-${w.dictionary.encoding.getId}"
-      val descriptor = SimpleFeatureTypes.renameDescriptor(sft.getDescriptor(w.vector.getField.getName), name)
+      val original = sft.getDescriptor(w.vector.getField.getName)
+      val descriptor = if (original.isList) {
+        SimpleFeatureTypes.createDescriptor(s"$name:${original.getListType().getSimpleName}")
+      } else {
+        SimpleFeatureTypes.renameDescriptor(original, name)
+      }
       val writer = ArrowAttributeWriter(sft, descriptor, None, encoding, allocator)
 
       var i = 0

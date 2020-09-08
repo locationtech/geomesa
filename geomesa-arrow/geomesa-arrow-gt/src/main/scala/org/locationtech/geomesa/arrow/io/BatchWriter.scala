@@ -10,10 +10,11 @@ package org.locationtech.geomesa.arrow.io
 
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.locationtech.geomesa.arrow.io.records.{RecordBatchLoader, RecordBatchUnloader}
+import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader.{ArrowDictionaryReader, ArrowListDictionaryReader}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
+import org.locationtech.geomesa.utils.geotools.{AttributeOrdering, ObjectType}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -21,10 +22,7 @@ import scala.math.Ordering
 
 object BatchWriter {
 
-  private val ordering = new Ordering[(AnyRef, Int, Int)] {
-    override def compare(x: (AnyRef, Int, Int), y: (AnyRef, Int, Int)): Int =
-      SimpleFeatureOrdering.nullCompare(x._1.asInstanceOf[Comparable[Any]], y._1)
-  }
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
   /**
    * Reduce function for batches with a common dictionary
@@ -90,7 +88,11 @@ object BatchWriter {
       val sortByIndex = sft.indexOf(sortBy)
       if (dictionaries.contains(sortBy)) {
         // since we've sorted the dictionaries, we can just compare the encoded index values
-        (vector, i) => vector.reader.feature.getReader(sortByIndex).asInstanceOf[ArrowDictionaryReader].getEncoded(i)
+        if (sft.getDescriptor(sortBy).isList) {
+          (vector, i) => vector.reader.feature.getReader(sortByIndex).asInstanceOf[ArrowListDictionaryReader].getEncoded(i)
+        } else {
+          (vector, i) => vector.reader.feature.getReader(sortByIndex).asInstanceOf[ArrowDictionaryReader].getEncoded(i)
+        }
       } else {
         (vector, i) => vector.reader.feature.getReader(sortByIndex).apply(i)
       }
@@ -126,7 +128,16 @@ object BatchWriter {
     private lazy val queue = {
       // populate with the first element from each batch
       // note: need to flip ordering here as highest sorted values come off the queue first
-      val order = if (reverse) { ordering } else { ordering.reverse }
+      val order = {
+        val descriptor = sft.getDescriptor(sortBy)
+        val bindings = if (dictionaries.contains(sortBy)) {
+          if (descriptor.isList) { Seq(ObjectType.LIST, ObjectType.INT) } else { Seq(ObjectType.INT) }
+        } else {
+          ObjectType.selectType(descriptor)
+        }
+        val base = AttributeOrdering(bindings)
+        Ordering.by[(AnyRef, Int, Int), AnyRef](_._1)(if (reverse) { base } else { base.reverse })
+      }
       val heads = scala.collection.mutable.PriorityQueue.empty[(AnyRef, Int, Int)](order)
       var i = 0
       while (i < inputs.length) {

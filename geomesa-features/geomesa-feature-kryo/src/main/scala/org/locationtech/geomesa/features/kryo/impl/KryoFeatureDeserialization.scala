@@ -18,9 +18,9 @@ import org.locationtech.geomesa.features.SimpleFeatureSerializer
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization.KryoAttributeReader
 import org.locationtech.geomesa.features.kryo.json.KryoJsonSerialization
 import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerialization
-import org.locationtech.geomesa.features.serialization.ObjectType
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.cache.{CacheKeyGenerator, SoftThreadLocal, ThreadLocalCache}
+import org.locationtech.geomesa.utils.geotools.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.kryo.NonMutatingInput
 import org.locationtech.jts.geom.Geometry
 import org.opengis.feature.`type`.AttributeDescriptor

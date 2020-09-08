@@ -10,9 +10,9 @@ package org.locationtech.geomesa.kudu.utils
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.kudu.ColumnSchema.{ColumnSchemaBuilder, CompressionAlgorithm, Encoding}
-import org.locationtech.geomesa.features.serialization.ObjectType
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.kudu.KuduSystemProperties
+import org.locationtech.geomesa.utils.geotools.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 
 /**
   * Configures a column before building. Currently supports encoding and compression

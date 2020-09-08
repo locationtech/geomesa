@@ -16,8 +16,8 @@ import org.apache.arrow.vector.dictionary.Dictionary
 import org.apache.arrow.vector.types.pojo.{ArrowType, DictionaryEncoding}
 import org.locationtech.geomesa.arrow.ArrowAllocator
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.features.serialization.ObjectType
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.`type`.AttributeDescriptor
 
@@ -161,7 +161,7 @@ object ArrowDictionary {
 
     override def toDictionary(precision: SimpleFeatureEncoding): Dictionary with Closeable = {
       val allocator = ArrowAllocator("dictionary-array")
-      val name = s"dictionary-${id}"
+      val name = s"dictionary-$id"
       val bindings = ObjectType.selectType(binding)
       val writer = ArrowAttributeWriter(name, bindings, None, Map.empty, precision, VectorFactory(allocator))
       var i = 0

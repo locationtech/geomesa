@@ -168,11 +168,8 @@ object RichAttributeDescriptors extends Conversions {
 
     private def tryClass(value: AnyRef): Class[_] = Try(Class.forName(value.asInstanceOf[String])).getOrElse(null)
 
-    def isList: Boolean = ad.getUserData.containsKey(UserDataListType)
-
-    def isMap: Boolean =
-      ad.getUserData.containsKey(UserDataMapKeyType) && ad.getUserData.containsKey(UserDataMapValueType)
-
+    def isList: Boolean = classOf[java.util.List[_]].isAssignableFrom(ad.getType.getBinding)
+    def isMap: Boolean = classOf[java.util.Map[_, _]].isAssignableFrom(ad.getType.getBinding)
     def isMultiValued: Boolean = isList || isMap
 
     def getPrecision: GeometryPrecision = {
@@ -271,6 +268,8 @@ object RichSimpleFeatureType extends Conversions {
     @deprecated("table sharing no longer supported")
     def getTableSharingPrefix: String = userData[String](TableSharingPrefix).getOrElse("")
 
+    // noinspection ScalaDeprecation
+    @deprecated("table sharing no longer supported")
     def getTableSharingBytes: Array[Byte] = if (sft.isTableSharing) {
       sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
     } else {

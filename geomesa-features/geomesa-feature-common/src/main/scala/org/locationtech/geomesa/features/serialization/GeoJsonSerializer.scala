@@ -13,7 +13,6 @@ import java.util.{Base64, Date, UUID}
 
 import com.google.gson.stream.JsonWriter
 import com.typesafe.scalalogging.LazyLogging
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.DateParsing
 import org.locationtech.jts.geom.Geometry
@@ -87,6 +86,9 @@ class GeoJsonSerializer(sft: SimpleFeatureType) extends LazyLogging {
 }
 
 object GeoJsonSerializer extends LazyLogging {
+
+  import org.locationtech.geomesa.utils.geotools.ObjectType
+  import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 
   private val geometryWriter = {
     val writer = new org.locationtech.jts.io.geojson.GeoJsonWriter()
