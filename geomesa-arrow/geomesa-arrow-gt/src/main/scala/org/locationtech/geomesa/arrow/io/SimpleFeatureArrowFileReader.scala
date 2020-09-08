@@ -104,6 +104,7 @@ object SimpleFeatureArrowFileReader {
         val descriptor = SimpleFeatureTypes.createDescriptor(field.getMetadata.get(DescriptorKey))
         val bindings = {
           val main = ObjectType.selectType(descriptor)
+          // for list types, get the list item binding (which is the tail of the bindings)
           if (descriptor.isList) { main.tail } else { main }
         }
         val vector = provider.lookup(encoding.getId).getVector
