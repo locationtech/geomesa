@@ -284,7 +284,7 @@ GeoAvro can be generated through the GeoMesa command-line tools ``export`` funct
 processor, or directly through an instance of ``org.locationtech.geomesa.features.avro.AvroDataFileWriter``.
 
 The SimpleFeatureTypes in GeoAvro may or may not match the SimpleFeatureType in the target datastore.
-To address, the AvroToPut processors have a property to seet the SFT match mode.  It can either be set to
+To address this, the AvroToPut processors have a property to set the SFT match mode.  It can either be set to
 an exact match ("by attribute number and order") or a more lenient one ("by attribute name").  The latter setting
 will not write fields which are not in the target SFT.
 
