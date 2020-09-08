@@ -91,6 +91,7 @@ class DeltaWriter(
         val encodedBindings = if (isList) { Seq(ObjectType.LIST, ObjectType.INT) } else { Seq(ObjectType.INT) }
         ArrowAttributeWriter(name, encodedBindings, None, encodedMetadata, encoding, VectorFactory(vector))
       }
+      // for list types, get the list item binding (which is the tail of the bindings)
       val dictBindings = if (isList) { bindings.tail } else { bindings }
       val ordering = AttributeOrdering(dictBindings)
       val dict = ArrowAttributeWriter(name, dictBindings, None, metadata, encoding, VectorFactory(allocator))
@@ -601,6 +602,7 @@ object DeltaWriter extends StrictLogging {
       val descriptor = sft.getDescriptor(name)
       val bindings = {
         val base = ObjectType.selectType(descriptor)
+        // for list types, get the list item binding (which is the tail of the bindings)
         if (descriptor.isList) { base.tail } else { base }
       }
       val ordering = AttributeOrdering(bindings)
