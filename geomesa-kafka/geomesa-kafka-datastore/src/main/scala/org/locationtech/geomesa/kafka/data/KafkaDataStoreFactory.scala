@@ -251,12 +251,12 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
             case NonFatal(e) => throw new IOException(s"$key, expected a CQL filter but got: $filter", e)
           }
           val duration = try { Duration(exp) } catch {
-            case NonFatal(e) => throw new IOException(s"$key, expected a duration key $filter but got: $exp", e)
+            case NonFatal(e) => throw new IOException(s"$key, expected a duration for key '$filter' but got: $exp", e)
           }
           filter -> duration
 
         case (filter, exp) =>
-          throw new IOException(s"$key, expected a JSON string for key $filter but got: $exp")
+          throw new IOException(s"$key, expected a JSON string for key '$filter' but got: $exp")
       }
     }
   }
