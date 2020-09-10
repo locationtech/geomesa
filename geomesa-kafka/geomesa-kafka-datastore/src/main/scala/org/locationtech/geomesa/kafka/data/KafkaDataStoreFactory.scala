@@ -167,7 +167,8 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
             case Some(e) => eventTime.map(EventTimeConfig(e, _, ordered)).getOrElse(IngestTimeConfig(e))
           }
         } else {
-          val withDefault = if (advanced.exists(_._1.equalsIgnoreCase("INCLUDE"))) { advanced } else {
+          // INCLUDE has already been validated to be the last element (if present) in parseDynamicExpiry
+          val withDefault = if (advanced.last._1.equalsIgnoreCase("INCLUDE")) { advanced } else {
             advanced :+ ("INCLUDE" -> simple.getOrElse(Duration.Inf)) // add at the end
           }
           val configs = eventTime match {
@@ -243,7 +244,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
    */
   private [data] def parseDynamicExpiry(params: java.util.Map[String, Serializable]): Seq[(String, Duration)] = {
     lazy val key = s"Invalid property for parameter '${KafkaDataStoreParams.DynamicCacheExpiry.key}'"
-    KafkaDataStoreParams.DynamicCacheExpiry.lookupOpt(params).toSeq.flatMap { value =>
+    val expiry = KafkaDataStoreParams.DynamicCacheExpiry.lookupOpt(params).toSeq.flatMap { value =>
       ConfigFactory.parseString(value).resolve().root().unwrapped().asScala.toSeq.map {
         case (filter, exp: String) =>
           // validate the filter, but leave it as a string so we can optimize it based on the sft later
@@ -259,6 +260,10 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
           throw new IOException(s"$key, expected a JSON string for key '$filter' but got: $exp")
       }
     }
+    if (expiry.dropRight(1).exists(_._1.equalsIgnoreCase("INCLUDE"))) {
+      throw new IOException(s"$key, defined a filter after Filter.INCLUDE (which would never be invoked)")
+    }
+    expiry
   }
 
   /**

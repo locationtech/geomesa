@@ -40,8 +40,9 @@ longer be returned when querying.
 
 For advanced use cases, the ``kafka.cache.expiry.dynamic`` data store parameter can be used to expire features
 based on matching filter predicates. The value should be a TypeSafe config document where the keys are CQL filter
-strings and the values are expiration duration strings (for example, ``{ "type = 'boat'": "100ms" }``). Any
-features which do not match one of the filters will use the default ``kafka.cache.expiry`` value, if provided.
+strings and the values are expiration duration strings (for example, ``{ "type = 'boat'": "100ms" }``). The filters
+will be evaluated in the order they are declared. Any features which do not match one of the filters will use
+the default ``kafka.cache.expiry`` value, if provided.
 
 If the expiry is set to zero, features will not be indexed or searchable. However, they will still be passed
 to any :ref:`feature listeners <kafka_feature_events>` that are configured.
