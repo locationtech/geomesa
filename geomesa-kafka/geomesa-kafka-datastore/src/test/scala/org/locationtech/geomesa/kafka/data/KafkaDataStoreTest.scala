@@ -366,10 +366,13 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
           val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
           val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
+          val f2 = ScalaSimpleFeature.create(sft, "wi", "wilson", 10, "2017-01-03T00:00:00.000Z", "POINT (10 10)")
 
           val bbox = ECQL.toFilter("bbox(geom,-10,-10,10,10)")
 
           val expirations = Collections.synchronizedList(new java.util.ArrayList[WrappedRunnable](2))
+
+          // test the first filter expiry
           executor.schedule(ArgumentMatchers.any[Runnable](), ArgumentMatchers.eq(100L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS)) responds { args =>
             val expire = new WrappedRunnable(0L)
             expire.runnable = args.asInstanceOf[Array[AnyRef]](0).asInstanceOf[Runnable]
@@ -390,6 +393,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
           there was one(executor).schedule(ArgumentMatchers.eq(expirations.get(0).runnable), ArgumentMatchers.eq(100L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
 
+          // test the second filter expiry
           executor.schedule(ArgumentMatchers.any[Runnable](), ArgumentMatchers.eq(200L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS)) responds { args =>
             val expire = new WrappedRunnable(0L)
             expire.runnable = args.asInstanceOf[Array[AnyRef]](0).asInstanceOf[Runnable]
@@ -409,6 +413,27 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
               containTheSameElementsAs(Seq(f0, f1)))
 
           there was one(executor).schedule(ArgumentMatchers.eq(expirations.get(1).runnable), ArgumentMatchers.eq(200L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
+
+          // test the fallback expiry
+          executor.schedule(ArgumentMatchers.any[Runnable](), ArgumentMatchers.eq(300L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS)) responds { args =>
+            val expire = new WrappedRunnable(0L)
+            expire.runnable = args.asInstanceOf[Array[AnyRef]](0).asInstanceOf[Runnable]
+            expirations.add(expire)
+            new ScheduledExpiry(expire)
+          }
+
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            Seq(f2).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+
+          // check the cache directly
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+              containTheSameElementsAs(Seq(f0, f1, f2)))
+          // check the spatial index
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
+              containTheSameElementsAs(Seq(f0, f1, f2)))
+
+          there was one(executor).schedule(ArgumentMatchers.eq(expirations.get(2).runnable), ArgumentMatchers.eq(300L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
 
           // expire the cache
           expirations.foreach(_.runnable.run())
