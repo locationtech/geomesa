@@ -27,7 +27,7 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.kafka.EmbeddedKafka
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
-import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
+import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureChanged
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
@@ -86,7 +86,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
   "KafkaDataStore" should {
 
     "return correctly from canProcess" >> {
-      import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams._
+      import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams._
       val factory = new KafkaDataStoreFactory
       factory.canProcess(Map.empty[String, Serializable]) must beFalse
       factory.canProcess(Map(Brokers.key -> "test", Zookeepers.key -> "test")) must beTrue
@@ -100,7 +100,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         "kafka.consumer.from-beginning" -> "false"
       )
       foreach(deprecated) { case (k, v) =>
-        KafkaDataStoreFactoryParams.ConsumerReadBack.lookupOpt(Collections.singletonMap(k, v)) must not(throwAn[Exception])
+        KafkaDataStoreParams.ConsumerReadBack.lookupOpt(Collections.singletonMap(k, v)) must not(throwAn[Exception])
       }
     }
 
@@ -116,7 +116,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
     }
 
     "use namespaces" >> {
-      import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams._
+      import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams._
       val path = s"geomesa/namespace/test/${paths.getAndIncrement()}"
       val ds = getStore(path, 0, Map(NamespaceParam.key -> "ns0"))
       try {
@@ -342,6 +342,88 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       }
     }
 
+    "expire entries based on cql filters" >> {
+      foreach(Seq(true, false)) { cqEngine =>
+        val executor = mock[ScheduledExecutorService]
+        val ticker = new MockTicker()
+        val params = {
+          val expiry =
+            """{
+               |"name = 'smith'": "100ms",
+               |"name = 'jones'": "200ms"
+               |}""".stripMargin
+          val base = Map(
+            "kafka.cache.expiry.dynamic" -> expiry,
+            "kafka.cache.expiry"         -> "300ms",
+            "kafka.cache.executor"       -> (executor, ticker)
+          )
+          if (cqEngine) { base + ("kafka.index.cqengine" -> "geom:default,name:unique") } else { base }
+        }
+        val (producer, consumer, sft) = createStorePair("dynamic-expire", params)
+        try {
+          producer.createSchema(sft)
+          val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
+
+          val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
+          val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
+
+          val bbox = ECQL.toFilter("bbox(geom,-10,-10,10,10)")
+
+          val expirations = Collections.synchronizedList(new java.util.ArrayList[WrappedRunnable](2))
+          executor.schedule(ArgumentMatchers.any[Runnable](), ArgumentMatchers.eq(100L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS)) responds { args =>
+            val expire = new WrappedRunnable(0L)
+            expire.runnable = args.asInstanceOf[Array[AnyRef]](0).asInstanceOf[Runnable]
+            expirations.add(expire)
+            new ScheduledExpiry(expire)
+          }
+
+          // initial write
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            Seq(f0).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+          // check the cache directly
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+              containTheSameElementsAs(Seq(f0)))
+          // check the spatial index
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
+              containTheSameElementsAs(Seq(f0)))
+
+          there was one(executor).schedule(ArgumentMatchers.eq(expirations.get(0).runnable), ArgumentMatchers.eq(100L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
+
+          executor.schedule(ArgumentMatchers.any[Runnable](), ArgumentMatchers.eq(200L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS)) responds { args =>
+            val expire = new WrappedRunnable(0L)
+            expire.runnable = args.asInstanceOf[Array[AnyRef]](0).asInstanceOf[Runnable]
+            expirations.add(expire)
+            new ScheduledExpiry(expire)
+          }
+
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            Seq(f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+
+          // check the cache directly
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+              containTheSameElementsAs(Seq(f0, f1)))
+          // check the spatial index
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
+              containTheSameElementsAs(Seq(f0, f1)))
+
+          there was one(executor).schedule(ArgumentMatchers.eq(expirations.get(1).runnable), ArgumentMatchers.eq(200L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
+
+          // expire the cache
+          expirations.foreach(_.runnable.run())
+
+          // verify feature has expired - hit the cache directly
+          SelfClosingIterator(store.getFeatures.features) must beEmpty
+          // verify feature has expired - hit the spatial index
+          SelfClosingIterator(store.getFeatures(bbox).features) must beEmpty
+        } finally {
+          consumer.dispose()
+          producer.dispose()
+        }
+      }
+    }
+
     "clear on startup" >> {
       val params = Map("kafka.producer.clear" -> "true")
       val (producer, consumer, sft) = createStorePair("clear-on-startup", params)
@@ -454,7 +536,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
   "KafkaDataStoreFactory" should {
     "clean zkPath" >> {
       def getNamespace(path: String): String =
-        KafkaDataStoreFactory.createZkNamespace(Map(KafkaDataStoreFactoryParams.ZkPath.getName -> path))
+        KafkaDataStoreFactory.createZkNamespace(Map(KafkaDataStoreParams.ZkPath.getName -> path))
 
       // a well formed path starts does not start or end with a /
       getNamespace("foo/bar/baz") mustEqual "foo/bar/baz"
@@ -464,7 +546,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       forall(Seq("/", "//", "", null))(n => getNamespace(n) mustEqual KafkaDataStoreFactory.DefaultZkPath) // empty
     }
     "Parse SSI tiers" >> {
-      val key = KafkaDataStoreFactoryParams.IndexTiers.getName
+      val key = KafkaDataStoreParams.IndexTiers.getName
       KafkaDataStoreFactory.parseSsiTiers(Collections.emptyMap()) mustEqual SizeSeparatedBucketIndex.DefaultTiers
       KafkaDataStoreFactory.parseSsiTiers(Collections.singletonMap(key, "foo")) mustEqual SizeSeparatedBucketIndex.DefaultTiers
       KafkaDataStoreFactory.parseSsiTiers(Collections.singletonMap(key, "1:2")) mustEqual Seq((1d, 2d))

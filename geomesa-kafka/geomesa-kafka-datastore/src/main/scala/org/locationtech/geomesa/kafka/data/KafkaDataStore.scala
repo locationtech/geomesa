@@ -54,9 +54,9 @@ class KafkaDataStore(
     serialization: GeoMessageSerializerFactory
   ) extends MetadataBackedDataStore(config) with HasGeoMesaStats with ZookeeperLocking {
 
-  import scala.collection.JavaConverters._
-
   import KafkaDataStore.TopicKey
+
+  import scala.collection.JavaConverters._
 
   override val stats: GeoMesaStats = new RunnableStats(this)
 
@@ -87,8 +87,8 @@ class KafkaDataStore(
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
         val serializer = serialization.apply(sft, config.serialization, config.indices.lazyDeserialization)
         val initialLoad = config.consumers.readBack.isDefined
-        val eventTime = config.indices.eventTime
-        new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, serializer, initialLoad, eventTime)
+        val expiry = config.indices.expiry
+        new KafkaCacheLoaderImpl(sft, cache, consumers, topic, frequency, serializer, initialLoad, expiry)
       }
     }
   })
@@ -235,7 +235,7 @@ object KafkaDataStore extends LazyLogging {
 
   val MetadataPath = "metadata"
 
-  val LoadIntervalProperty = SystemProperty("geomesa.kafka.load.interval", "100ms")
+  val LoadIntervalProperty: SystemProperty = SystemProperty("geomesa.kafka.load.interval", "100ms")
 
   // marker to trigger the cq engine index when using the deprecated enable flag
   private [kafka] val CqIndexFlag: (String, CQIndexType) = null
@@ -373,14 +373,21 @@ object KafkaDataStore extends LazyLogging {
 
   case class TopicConfig(partitions: Int, replication: Int)
 
-  case class IndexConfig(expiry: Duration,
-                         eventTime: Option[EventTimeConfig],
-                         resolutionX: Int,
-                         resolutionY: Int,
-                         ssiTiers: Seq[(Double, Double)],
-                         cqAttributes: Seq[(String, CQIndexType)],
-                         lazyDeserialization: Boolean,
-                         executor: Option[(ScheduledExecutorService, Ticker)])
+  case class IndexConfig(
+      expiry: ExpiryTimeConfig,
+      resolution: IndexResolution,
+      ssiTiers: Seq[(Double, Double)],
+      cqAttributes: Seq[(String, CQIndexType)],
+      lazyDeserialization: Boolean,
+      executor: Option[(ScheduledExecutorService, Ticker)]
+    )
 
-  case class EventTimeConfig(expression: String, ordering: Boolean)
+  case class IndexResolution(x: Int, y: Int)
+
+  sealed trait ExpiryTimeConfig
+  case object NeverExpireConfig extends ExpiryTimeConfig
+  case object ImmediatelyExpireConfig extends ExpiryTimeConfig
+  case class IngestTimeConfig(expiry: Duration) extends ExpiryTimeConfig
+  case class EventTimeConfig(expiry: Duration, expression: String, ordered: Boolean) extends ExpiryTimeConfig
+  case class FilteredExpiryConfig(expiry: Seq[(String, ExpiryTimeConfig)]) extends ExpiryTimeConfig
 }
