@@ -364,9 +364,8 @@ protected class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends Duplicati
 }
 
 object QueryPlanFilterVisitor {
-  def apply(filter: Filter): Filter = apply(null, filter)
-  def apply(sft: SimpleFeatureType, filter: Filter): Filter = {
+  def apply(sft: SimpleFeatureType, filter: Filter, filterFactory: FilterFactory2 = null): Filter = {
     // Simplify the filter first to avoid leaning trees patterns causing StackOverflows
-    FilterHelper.simplify(filter).accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter]
+    FilterHelper.simplify(filter).accept(new QueryPlanFilterVisitor(sft), filterFactory).asInstanceOf[Filter]
   }
 }
