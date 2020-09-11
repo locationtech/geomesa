@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index
 import org.geotools.data.Query
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer, TransformSimpleFeature}
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.TestGeoMesaDataStore._
 import org.locationtech.geomesa.index.api.IndexAdapter.{BaseIndexWriter, IndexWriter}
@@ -21,13 +21,13 @@ import org.locationtech.geomesa.index.api.{WritableFeature, _}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
+import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
 import org.locationtech.geomesa.index.stats.MetadataBackedStats.WritableStat
 import org.locationtech.geomesa.index.stats._
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.index.utils.{Explainer, LocalLocking}
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -40,7 +40,7 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
 
   override val metadata: GeoMesaMetadata[String] = new InMemoryMetadata[String]
 
-  override val adapter: TestIndexAdapter = new TestIndexAdapter
+  override val adapter: TestIndexAdapter = new TestIndexAdapter(this)
 
   override val stats: GeoMesaStats = new TestStats(this, new InMemoryMetadata[Stat]())
 
@@ -50,7 +50,7 @@ class TestGeoMesaDataStore(looseBBox: Boolean)
 
 object TestGeoMesaDataStore {
 
-  class TestIndexAdapter extends IndexAdapter[TestGeoMesaDataStore] {
+  class TestIndexAdapter(ds: TestGeoMesaDataStore) extends IndexAdapter[TestGeoMesaDataStore] {
 
     import ByteArrays.ByteOrdering
 
@@ -96,11 +96,15 @@ object TestGeoMesaDataStore {
       val serializer = KryoFeatureSerializer(strategy.index.sft, opts)
       val ecql = strategy.ecql.map(FastFilterFactory.optimize(strategy.index.sft, _))
       val transform = strategy.hints.getTransform
+      val reducer = {
+        val arrowHook = Some(ArrowDictionaryHook(ds.stats, strategy.filter.filter))
+        Some(new LocalTransformReducer(strategy.index.sft, ecql, None, transform, strategy.hints, arrowHook))
+      }
       val maxFeatures = strategy.hints.getMaxFeatures
       val sort = strategy.hints.getSortFields
       val project = strategy.hints.getProjection
 
-      TestQueryPlan(strategy.filter, tables, strategy.index.sft, serializer, ranges, ecql, transform, sort, maxFeatures, project)
+      TestQueryPlan(strategy.filter, tables, strategy.index.sft, serializer, ranges, reducer, ecql, sort, maxFeatures, project)
     }
 
     override def createWriter(sft: SimpleFeatureType,
@@ -119,8 +123,8 @@ object TestGeoMesaDataStore {
       sft: SimpleFeatureType,
       serializer: SimpleFeatureSerializer,
       ranges: Seq[TestRange],
+      reducer: Option[FeatureReducer],
       ecql: Option[Filter],
-      transform: Option[(String, SimpleFeatureType)],
       sort: Option[Seq[(String, Boolean)]],
       maxFeatures: Option[Int],
       projection: Option[QueryReferenceSystems]
@@ -128,11 +132,7 @@ object TestGeoMesaDataStore {
 
     override type Results = SimpleFeature
 
-    private val attributes = transform.map { case (tdefs, tsft) => (tsft, Transforms(sft, tdefs).toArray) }
-
-    override val resultsToFeatures: ResultsToFeatures[SimpleFeature] =
-      ResultsToFeatures.identity(transform.map(_._2).getOrElse(sft))
-    override val reducer: Option[FeatureReducer] = None
+    override val resultsToFeatures: ResultsToFeatures[SimpleFeature] = ResultsToFeatures.identity(sft)
 
     override def scan(ds: TestGeoMesaDataStore): CloseableIterator[SimpleFeature] = {
       def contained(range: TestRange, row: Array[Byte]): Boolean =
@@ -145,21 +145,10 @@ object TestGeoMesaDataStore {
         if (!ranges.exists(contained(_, kv.row))) {
           Iterator.empty
         } else {
-          kv.values.iterator.flatMap { value =>
-            val feature = {
-              val sf = serializer.deserialize(value.value).asInstanceOf[ScalaSimpleFeature]
-              sf.setId(filter.index.getIdFromRow(kv.row, 0, kv.row.length, sf))
-              sf
-            }
-            if (ecql.forall(_.evaluate(feature))) {
-              val result = attributes match {
-                case None => feature
-                case Some((tsft, a)) => new TransformSimpleFeature(tsft, a, feature)
-              }
-              Iterator.single(result)
-            } else {
-              Iterator.empty
-            }
+          kv.values.iterator.map { value =>
+            val sf = serializer.deserialize(value.value).asInstanceOf[ScalaSimpleFeature]
+            sf.setId(filter.index.getIdFromRow(kv.row, 0, kv.row.length, sf))
+            sf
           }
         }
       }
