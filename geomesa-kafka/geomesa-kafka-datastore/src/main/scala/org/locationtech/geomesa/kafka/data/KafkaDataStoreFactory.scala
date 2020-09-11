@@ -9,11 +9,13 @@
 package org.locationtech.geomesa.kafka.data
 
 import java.awt.RenderingHints
-import java.io.Serializable
+import java.io.{IOException, Serializable}
 
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.DataStoreFactorySpi
+import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreInfo
 import org.locationtech.geomesa.index.metadata.MetadataStringSerializer
 import org.locationtech.geomesa.kafka.data.KafkaDataStore._
@@ -82,6 +84,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreParams.ConsumerConfig,
       KafkaDataStoreParams.ConsumerReadBack,
       KafkaDataStoreParams.CacheExpiry,
+      KafkaDataStoreParams.DynamicCacheExpiry,
       KafkaDataStoreParams.EventTime,
       KafkaDataStoreParams.SerializationType,
       KafkaDataStoreParams.CqEngineIndices,
@@ -127,7 +130,6 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val serialization = org.locationtech.geomesa.features.SerializationType.withName(SerializationType.lookup(params))
 
     val indices = {
-      val cacheExpiry = CacheExpiry.lookupOpt(params).getOrElse(Duration.Inf)
       val cqEngine = {
         CqEngineIndices.lookupOpt(params) match {
           case Some(attributes) =>
@@ -149,18 +151,37 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
         }
       }
-      val xBuckets = IndexResolutionX.lookup(params).intValue()
-      val yBuckets = IndexResolutionY.lookup(params).intValue()
+      val buckets = IndexResolution(IndexResolutionX.lookup(params), IndexResolutionY.lookup(params))
       val ssiTiers = parseSsiTiers(params)
       val lazyDeserialization = LazyFeatures.lookup(params).booleanValue()
 
-      val eventTime = EventTime.lookupOpt(params).map { e =>
-        EventTimeConfig(e, EventTimeOrdering.lookup(params).booleanValue())
+      val expiry = {
+        val simple = CacheExpiry.lookupOpt(params)
+        val advanced = parseDynamicExpiry(params)
+        val eventTime = EventTime.lookupOpt(params)
+        val ordered = eventTime.isDefined && EventTimeOrdering.lookup(params).booleanValue()
+        if (advanced.isEmpty) {
+          simple.filter(_.isFinite()) match {
+            case None => NeverExpireConfig
+            case Some(e) if e.length == 0 => ImmediatelyExpireConfig
+            case Some(e) => eventTime.map(EventTimeConfig(e, _, ordered)).getOrElse(IngestTimeConfig(e))
+          }
+        } else {
+          // INCLUDE has already been validated to be the last element (if present) in parseDynamicExpiry
+          val withDefault = if (advanced.last._1.equalsIgnoreCase("INCLUDE")) { advanced } else {
+            advanced :+ ("INCLUDE" -> simple.getOrElse(Duration.Inf)) // add at the end
+          }
+          val configs = eventTime match {
+            case None => withDefault.map { case (f, e) => f -> IngestTimeConfig(e) }
+            case Some(ev) => withDefault.map { case (f, e) => f -> EventTimeConfig(e, ev, ordered) }
+          }
+          FilteredExpiryConfig(configs)
+        }
       }
 
       val executor = ExecutorTicker.lookupOpt(params)
 
-      IndexConfig(cacheExpiry, eventTime, xBuckets, yBuckets, ssiTiers, cqEngine, lazyDeserialization, executor)
+      IndexConfig(expiry, buckets, ssiTiers, cqEngine, lazyDeserialization, executor)
     }
 
     val looseBBox = LooseBBox.lookup(params).booleanValue()
@@ -213,6 +234,36 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     }
 
     KafkaDataStoreParams.IndexTiers.lookupOpt(params).flatMap(parse).getOrElse(SizeSeparatedBucketIndex.DefaultTiers)
+  }
+
+  /**
+   * Parse the dynamic expiry param value into a seq of pairs
+   *
+   * @param params data store params
+   * @return
+   */
+  private [data] def parseDynamicExpiry(params: java.util.Map[String, Serializable]): Seq[(String, Duration)] = {
+    lazy val key = s"Invalid property for parameter '${KafkaDataStoreParams.DynamicCacheExpiry.key}'"
+    val expiry = KafkaDataStoreParams.DynamicCacheExpiry.lookupOpt(params).toSeq.flatMap { value =>
+      ConfigFactory.parseString(value).resolve().root().unwrapped().asScala.toSeq.map {
+        case (filter, exp: String) =>
+          // validate the filter, but leave it as a string so we can optimize it based on the sft later
+          try { ECQL.toFilter(filter) } catch {
+            case NonFatal(e) => throw new IOException(s"$key, expected a CQL filter but got: $filter", e)
+          }
+          val duration = try { Duration(exp) } catch {
+            case NonFatal(e) => throw new IOException(s"$key, expected a duration for key '$filter' but got: $exp", e)
+          }
+          filter -> duration
+
+        case (filter, exp) =>
+          throw new IOException(s"$key, expected a JSON string for key '$filter' but got: $exp")
+      }
+    }
+    if (expiry.dropRight(1).exists(_._1.equalsIgnoreCase("INCLUDE"))) {
+      throw new IOException(s"$key, defined a filter after Filter.INCLUDE (which would never be invoked)")
+    }
+    expiry
   }
 
   /**

@@ -155,6 +155,16 @@ trait KafkaDataStoreParams extends NamespaceParams {
       readWrite = ReadWriteFlag.ReadOnly
     )
 
+  val DynamicCacheExpiry =
+    new GeoMesaParam[String](
+      "kafka.cache.expiry.dynamic",
+      "Specify feature expiry dynamically based on CQL predicates. " +
+          "Should be a TypeSafe configuration string with CQL predicates as keys and expiry durations as values. " +
+          "Features that do not match any predicate will fall back to 'kafka.cache.expiry', if defined",
+      largeText = true,
+      readWrite = ReadWriteFlag.ReadOnly
+    )
+
   val EventTime =
     new GeoMesaParam[String](
       "kafka.cache.event-time",

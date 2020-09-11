@@ -19,7 +19,7 @@ import org.apache.kafka.clients.consumer.{Consumer, ConsumerRecord}
 import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.{FeatureEvent, FeatureListener}
 import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer
-import org.locationtech.geomesa.kafka.data.KafkaDataStore.EventTimeConfig
+import org.locationtech.geomesa.kafka.data.KafkaDataStore.ExpiryTimeConfig
 import org.locationtech.geomesa.kafka.index.KafkaFeatureCache
 import org.locationtech.geomesa.kafka.utils.GeoMessage.{Change, Clear, Delete}
 import org.locationtech.geomesa.kafka.utils.{GeoMessageSerializer, KafkaFeatureEvent}
@@ -106,7 +106,7 @@ object KafkaCacheLoader {
       frequency: Long,
       serializer: GeoMessageSerializer,
       doInitialLoad: Boolean,
-      initialLoadConfig: Option[EventTimeConfig]
+      initialLoadConfig: ExpiryTimeConfig
     ) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency)) with KafkaCacheLoader {
 
     try { classOf[ConsumerRecord[Any, Any]].getMethod("timestamp") } catch {
@@ -164,11 +164,11 @@ object KafkaCacheLoader {
       topic: String,
       frequency: Long,
       serializer: GeoMessageSerializer,
-      eventTime: Option[EventTimeConfig],
+      ordering: ExpiryTimeConfig,
       toLoad: KafkaCacheLoaderImpl
   ) extends ThreadedConsumer(consumers, Duration.ofMillis(frequency), false) with Runnable {
 
-    private val cache = KafkaFeatureCache.nonIndexing(sft, eventTime)
+    private val cache = KafkaFeatureCache.nonIndexing(sft, ordering)
 
     // track the offsets that we want to read to
     private val offsets = new ConcurrentHashMap[Int, Long]()

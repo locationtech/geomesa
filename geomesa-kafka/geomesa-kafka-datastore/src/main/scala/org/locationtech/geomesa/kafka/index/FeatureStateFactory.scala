@@ -10,15 +10,19 @@ package org.locationtech.geomesa.kafka.index
 
 import java.io.Closeable
 import java.util.Date
-import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, TimeUnit}
+import java.util.concurrent.{ScheduledExecutorService, ScheduledFuture, ScheduledThreadPoolExecutor, TimeUnit}
 
 import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.LazyLogging
+import org.locationtech.geomesa.filter.factory.FastFilterFactory
+import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.FeatureState
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.SpatialIndex
+import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.jts.geom.Geometry
-import org.opengis.feature.simple.SimpleFeature
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.opengis.filter.Filter
 import org.opengis.filter.expression.Expression
 
 import scala.util.control.NonFatal
@@ -32,16 +36,52 @@ trait FeatureStateFactory extends Closeable {
 
 object FeatureStateFactory extends LazyLogging {
 
-  def apply(index: SpatialIndex[SimpleFeature],
-            expiry: Option[(FeatureExpiration, ScheduledExecutorService, Ticker, Long)],
-            eventTime: Option[(Expression, Boolean)],
-            geom: Int): FeatureStateFactory = {
-    (expiry, eventTime) match {
-      case (None, None) => new BasicFactory(index, geom)
-      case (Some((ex, es, _, e)), None) => new ExpiryFactory(index, geom, ex, es, e)
-      case (None, Some((ev, _))) => new EventTimeFactory(index, geom, ev)
-      case (Some((ex, es, t, e)), Some((ev, false))) => new EventTimeExpiryFactory(index, geom, ev, ex, es, t, e)
-      case (Some((ex, es, t, e)), Some((ev, true))) => new EventTimeOrderedExpiryFactory(index, geom, ev, ex, es, t, e)
+  import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+  def apply(
+      sft: SimpleFeatureType,
+      index: SpatialIndex[SimpleFeature],
+      expiry: ExpiryTimeConfig,
+      expiration: FeatureExpiration,
+      executor: Option[(ScheduledExecutorService, Ticker)]): FeatureStateFactory = {
+
+    val geom = sft.getGeomIndex
+
+    lazy val (es, ticker) = executor.getOrElse {
+      val es = new ScheduledThreadPoolExecutor(2)
+      // don't keep running scheduled tasks after shutdown
+      es.setExecuteExistingDelayedTasksAfterShutdownPolicy(false)
+      // remove tasks when canceled, otherwise they will only be removed from the task queue
+      // when they would be executed. we expect frequent cancellations due to feature updates
+      es.setRemoveOnCancelPolicy(true)
+      (es, Ticker.systemTicker())
+    }
+
+    expiry match {
+      case NeverExpireConfig =>
+        new BasicFactory(index, geom)
+
+      case IngestTimeConfig(ex) =>
+        new ExpiryFactory(index, geom, expiration, es, ex.toMillis)
+
+      case EventTimeConfig(ex, time, ordering) =>
+        val expression = FastFilterFactory.toExpression(sft, time)
+        if (!ex.isFinite() && ordering) {
+          new EventTimeFactory(index, geom, expression)
+        } else if (ordering) {
+          new EventTimeOrderedExpiryFactory(index, geom, expression, expiration, es, ticker, ex.toMillis)
+        } else {
+          new EventTimeExpiryFactory(index, geom, expression, expiration, es, ticker, ex.toMillis)
+        }
+
+      case FilteredExpiryConfig(ex) =>
+        val delegates = ex.map { case (ecql, e) =>
+          FastFilterFactory.toFilter(sft, ecql) -> apply(sft, index, e, expiration, Some(es -> ticker))
+        }
+        new FilteredExpiryFactory(delegates)
+
+      case ImmediatelyExpireConfig =>
+        throw new IllegalStateException("Can't use feature state with immediate expiration")
     }
   }
 
@@ -259,5 +299,20 @@ object FeatureStateFactory extends LazyLogging {
     }
 
     override def close(): Unit = executor.shutdownNow()
+  }
+
+  class FilteredExpiryFactory(delegates: Seq[(Filter, FeatureStateFactory)]) extends FeatureStateFactory {
+
+    require(delegates.last._1 == Filter.INCLUDE,
+      "Filter feature state factory requires a fall back Filter.INCLUDE entry")
+
+    override def createState(feature: SimpleFeature): FeatureState = {
+      val opt = delegates.collectFirst {
+        case (f, factory) if f.evaluate(feature) => factory.createState(feature)
+      }
+      opt.get // should always get a result due to the Filter.INCLUDE
+    }
+
+    override def close(): Unit = CloseWithLogging(delegates.map(_._2))
   }
 }
