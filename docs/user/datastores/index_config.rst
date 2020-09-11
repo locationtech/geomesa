@@ -539,9 +539,11 @@ as part of the option. For example, given the schema ``name:String:index=true,*g
 Patterns consist of one or more single characters or ranges enclosed in square brackets. Valid characters
 can be any of the numbers 0 to 9, or any letter a to z, in upper or lower case. Ranges are two characters
 separated by a dash. Each set of brackets corresponds to a single character, allowing for nested splits.
+For numeric types, negatives may be specified with a leading negative sign.
 
 For example, the pattern ``[0-9]`` would create 10 splits, based on the numbers 0 through 9. The
-pattern ``[0-9][0-9]`` would create 100 splits. The pattern ``[0-9a-f]`` would create 16 splits based on lower-case
+pattern ``[0-9][0-9]`` would create 100 splits. The pattern ``[-][0-9]`` would create 10 splits based on
+the numbers -9 through 0. The pattern ``[0-9a-f]`` would create 16 splits based on lower-case
 hex characters. The pattern ``[0-9A-F]`` would do the same with upper-case characters.
 
 For data hot-spots, multiple patterns can be specified by adding additional options with a 2, 3, etc appended to
