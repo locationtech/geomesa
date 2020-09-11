@@ -12,16 +12,16 @@ import java.lang.reflect.InvocationTargetException
 import java.nio.charset.Charset
 import java.util.Collections
 
-import com.typesafe.config.{Config, ConfigFactory, ConfigObject, ConfigUtil, ConfigValueFactory}
+import com.typesafe.config._
 import com.typesafe.scalalogging.{LazyLogging, Logger}
 import org.locationtech.geomesa.convert.Modes.{ErrorMode, ParseMode}
 import org.locationtech.geomesa.convert2.AbstractConverter.{BasicConfig, BasicField, BasicOptions}
 import org.locationtech.geomesa.convert2.AbstractConverterFactory.{ConverterConfigConvert, ConverterOptionsConvert, FieldConvert}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.validators.{HasDtgValidatorFactory, HasGeoValidatorFactory}
-import org.locationtech.geomesa.features.serialization.ObjectType
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
+import org.locationtech.geomesa.utils.geotools.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig._
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}

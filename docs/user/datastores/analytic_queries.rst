@@ -38,7 +38,7 @@ Sampling can also be combined with the other analytic queries mentioned below.
 
         import org.locationtech.geomesa.index.conf.QueryHints;
 
-         // returns 10% of features, threaded by 'track' attribute
+        // returns 10% of features, threaded by 'track' attribute
         query.getHints().put(QueryHints.SAMPLING(), new Float(0.1));
         query.getHints().put(QueryHints.SAMPLE_BY(), "track");
 
@@ -471,7 +471,7 @@ BIN_LABEL
 ^^^^^^^^^
 
 This hint will trigger the creation of 24-byte records, instead of the standard 16. It should be the
-name of an attribute that will be used to general the label for each record.
+name of an attribute that will be used to generate the label for each record.
 
 BIN_SORT
 ^^^^^^^^

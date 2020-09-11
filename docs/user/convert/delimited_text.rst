@@ -80,4 +80,4 @@ entire record (``$0`` is the original data). The simple feature attributes
 are created from the ``fields`` list with appropriate transforms (note the
 use of intermediate fields 'lat' and 'lon'). If desired, user data for the
 feature can be set by referencing fields. This can be used for setting
-Accumulo visibility constraints, among other things (see :ref:`accumulo_visibilities`).
+data visibility constraints, among other things (see :ref:`data_security`).

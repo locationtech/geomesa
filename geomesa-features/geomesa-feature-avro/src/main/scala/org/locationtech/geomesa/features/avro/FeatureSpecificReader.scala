@@ -18,7 +18,7 @@ import org.locationtech.geomesa.features.avro.FeatureSpecificReader.AttributeRea
 import org.locationtech.geomesa.features.avro.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
 // noinspection ScalaDeprecation
 import org.locationtech.geomesa.features.avro.serialization.{AvroUserDataSerialization, AvroUserDataSerializationV4}
-import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**

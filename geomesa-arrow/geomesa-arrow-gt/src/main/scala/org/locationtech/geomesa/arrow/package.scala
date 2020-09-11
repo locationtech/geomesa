@@ -9,8 +9,6 @@
 package org.locationtech.geomesa
 
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -43,6 +41,4 @@ package object arrow {
   object ArrowProperties {
     val BatchSize: SystemProperty = SystemProperty("geomesa.arrow.batch.size", "10000")
   }
-
-  case class TypeBindings(bindings: Seq[ObjectType], encoding: SimpleFeatureEncoding)
 }

@@ -36,7 +36,7 @@ for information on the necessary configuration keys. Any explicit command-line a
 the configuration file.
 
 The ``--auths`` argument corresponds to the ``AccumuloDataStore`` parameter ``geomesa.security.auths``. See
-:ref:`authorizations` and :ref:`accumulo_visibilities` for more information.
+:ref:`data_security` for more information.
 
 Commands
 --------

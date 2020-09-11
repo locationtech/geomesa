@@ -20,7 +20,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class TypeInferenceTest extends Specification with LazyLogging {
 
-  import org.locationtech.geomesa.features.serialization.ObjectType._
+  import org.locationtech.geomesa.utils.geotools.ObjectType._
 
   val uuidString = "28a12c18-e5ae-4c04-ae7b-bf7cdbfaf234"
   val uuid = java.util.UUID.fromString(uuidString)
