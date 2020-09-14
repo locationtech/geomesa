@@ -18,7 +18,6 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.geohash.GeoHash
 import org.locationtech.geomesa.utils.geotools.{SimpleFeatureTypes, WholeWorldPolygon}
-import org.opengis.filter.Filter
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -99,7 +98,7 @@ class GenerateKNNQueryTest extends Specification {
 
       // rewrite the geometry filter
       val tweakedGeomFilters = geomFilters.map { filter =>
-        filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter]
+        QueryPlanFilterVisitor.apply(sft, filter)
       }
 
       val geomsToCover = {
