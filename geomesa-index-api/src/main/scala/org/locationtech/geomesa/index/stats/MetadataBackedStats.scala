@@ -47,7 +47,7 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
     if (exact) {
       runStats[CountStat](sft, Stat.Count(), filter).headOption.map(_.count)
     } else {
-      estimateCount(sft, filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
+      estimateCount(sft, QueryPlanFilterVisitor(sft, filter))
     }
   }
 
