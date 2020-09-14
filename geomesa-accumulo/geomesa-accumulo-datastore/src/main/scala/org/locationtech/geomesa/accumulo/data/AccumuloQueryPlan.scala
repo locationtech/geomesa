@@ -15,6 +15,7 @@ import org.apache.accumulo.core.client.{Connector, IteratorSetting, ScannerBase}
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.hadoop.io.Text
+import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{IteratorSettingMessage, IteratorSettingMessageKey}
 import org.locationtech.geomesa.accumulo.util.BatchMultiScanner
 import org.locationtech.geomesa.index.PartitionParallelScan
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
@@ -43,13 +44,19 @@ sealed trait AccumuloQueryPlan extends QueryPlan[AccumuloDataStore] {
   override def explain(explainer: Explainer, prefix: String = ""): Unit =
     AccumuloQueryPlan.explain(this, explainer, prefix)
 
-  protected def configure(scanner: ScannerBase): Unit = {
+  protected[data] def configure(scanner: ScannerBase): Unit = {
+    Option(IteratorSettingMessage.get).foreach { msg =>
+      iterators.headOption.map{ is =>
+        is.addOption(IteratorSettingMessageKey, msg)}
+    }
     iterators.foreach(scanner.addScanIterator)
     columnFamily.foreach(scanner.fetchColumnFamily)
   }
 }
 
 object AccumuloQueryPlan extends LazyLogging {
+  val IteratorSettingMessageKey = "message"
+  val IteratorSettingMessage = new ThreadLocal[String]
 
   import scala.collection.JavaConverters._
 
