@@ -30,7 +30,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreTest._
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
-import org.locationtech.geomesa.index.planning.QueryInterceptor
+import org.locationtech.geomesa.index.planning.{DateRangerQueryInterceptor, QueryInterceptor}
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
@@ -46,6 +46,7 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class GeoMesaDataStoreTest extends Specification {
+  sequential
 
   import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
 
@@ -120,6 +121,41 @@ class GeoMesaDataStoreTest extends Specification {
       results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, ECQL.toFilter("bbox(geom,39,54,51,56)")), Transaction.AUTO_COMMIT)).toSeq
       results must haveLength(10)
     }
+
+    "intercept and stop queries" in {
+      val sft = SimpleFeatureTypes.createType("rewrite", "name:String:index=true,age:Int,dtg:Date,*geom:Point:srid=4326")
+      sft.getUserData.put(SimpleFeatureTypes.Configs.QueryInterceptors, classOf[DateRangerQueryInterceptor].getName)
+
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      ds.getFeatureSource(sft.getTypeName).addFeatures(new ListFeatureCollection(sft, features.toArray[SimpleFeature]))
+
+      // Normal queries should work
+      var filter = ECQL.toFilter("bbox(geom,39,54,51,56)")
+      var results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toSeq
+      results must haveLength(10)
+
+      // Long time ranges should fail.
+      filter = ECQL.toFilter("dtg > '2018-01-01T00:00:00.000Z' and dtg < '2019-01-01T00:00:00.000Z'")
+      ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT) must throwAn[IllegalArgumentException]
+
+      filter = ECQL.toFilter("bbox(geom,38,53,42,57) AND dtg > '2018-01-01T00:00:00.000Z' and dtg < '2018-01-12T00:00:00.000Z'")
+      ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT) must throwAn[IllegalArgumentException]
+
+      filter = ECQL.toFilter("name = 'name1' AND dtg > '2018-01-01T00:00:00.000Z' and dtg < '2018-01-12T00:00:00.000Z'")
+      results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toSeq
+      results must haveLength(1)
+
+      filter = ECQL.toFilter("dtg > '2018-01-01T00:00:00.000Z' and dtg < '2018-01-02T00:00:00.000Z'")
+      results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toSeq
+      results must haveLength(10)
+      
+      filter = ECQL.toFilter("bbox(geom,38,53,42,57) AND dtg during 2018-01-01T00:00:00.000Z/2018-01-01T12:00:00.000Z")
+      results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toSeq
+      results must haveLength(3)
+    }
+
     "update schemas" in {
       foreach(Seq(true, false)) { partitioning =>
         val ds = new TestGeoMesaDataStore(true)

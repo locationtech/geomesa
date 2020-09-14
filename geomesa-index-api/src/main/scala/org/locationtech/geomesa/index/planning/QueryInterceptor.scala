@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index.planning
 
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
@@ -43,6 +44,7 @@ trait QueryInterceptor extends Closeable {
 }
 
 object QueryInterceptor extends LazyLogging {
+  protected [planning] val skipExecution = new AtomicBoolean(false)
 
   /**
     * Manages query interceptors

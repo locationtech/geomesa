@@ -17,7 +17,7 @@ import org.locationtech.geomesa.filter.{FilterHelper, andFilters, ff, orFilters}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.{DensityScan, StatsScan}
-import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
+import org.locationtech.geomesa.index.planning.QueryInterceptor.{QueryInterceptorFactory, skipExecution}
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.bin.BinaryOutputEncoder
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -61,8 +61,10 @@ trait QueryRunner {
 
     // query rewriting
     interceptors(sft).foreach { interceptor =>
-      interceptor.rewrite(query)
-      QueryRunner.logger.trace(s"Query rewritten by $interceptor to: $query")
+      if (!skipExecution.get) {
+        interceptor.rewrite(query)
+        QueryRunner.logger.trace(s"Query rewritten by $interceptor to: $query")
+      }
     }
 
     // set query hints - we need this in certain situations where we don't have access to the query directly
