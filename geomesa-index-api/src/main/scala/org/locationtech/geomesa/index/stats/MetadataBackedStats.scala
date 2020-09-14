@@ -50,7 +50,7 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
         case NonFatal(e) => logger.error("Error reading existing stats:", e); None
       }
     } else {
-      estimateCount(sft, filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
+      estimateCount(sft, QueryPlanFilterVisitor(sft, filter))
     }
   }
 

@@ -30,7 +30,7 @@ import scala.util.{Success, Try}
   * Updates filters to handle namespaces, default property names, IDL, dwithin units,
   * type binding, and to remove filters that aren't meaningful
   */
-class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVisitor {
+protected class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVisitor {
 
   import FilterHelper.isFilterWholeWorld
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -364,7 +364,8 @@ class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends DuplicatingFilterVi
 }
 
 object QueryPlanFilterVisitor {
-  def apply(filter: Filter): Filter = filter.accept(new QueryPlanFilterVisitor(null), null).asInstanceOf[Filter]
-  def apply(sft: SimpleFeatureType, filter: Filter): Filter =
-    filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter]
+  def apply(sft: SimpleFeatureType, filter: Filter, filterFactory: FilterFactory2 = null): Filter = {
+    // Simplify the filter first to avoid leaning trees patterns causing StackOverflows
+    FilterHelper.simplify(filter).accept(new QueryPlanFilterVisitor(sft), filterFactory).asInstanceOf[Filter]
+  }
 }
