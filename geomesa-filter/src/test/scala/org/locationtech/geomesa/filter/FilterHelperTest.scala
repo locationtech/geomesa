@@ -254,5 +254,35 @@ class FilterHelperTest extends Specification {
       flattened.asInstanceOf[Or].getChildren.map(_.toString) must
           containTheSameElementsAs((0 until count).map(i => s"[ a equals $i ]"))
     }
+
+    "evaluate functions with large IN predicate" >> {
+      val string = (0 to 4000).mkString("IN(", ",", ")")
+      val filter = ECQL.toFilter(string)
+      updateFilter(filter)
+      ok
+    }
+
+    "evaluate functions with large number of ORs" >> {
+      val count = 4000
+      val a = ff.property("a")
+      var filter: Filter = ff.equal(a, ff.literal(0))
+      (1 until count).foreach { i =>
+        filter = ff.or(filter, ff.equal(a, ff.literal(i)))
+      }
+      updateFilter(filter)
+      ok
+    }
+
+    "evaluate functions with large number of ANDs" >> {
+      val count = 4000
+      val a = ff.property("a")
+      var filter: Filter = ff.equal(a, ff.literal(0))
+      (1 until count).foreach { i =>
+        filter = ff.and(filter, ff.equal(a, ff.literal(i)))
+      }
+      val updated = updateFilter(filter)
+      println(s"Updated filter $updated")
+      ok
+    }
   }
 }
