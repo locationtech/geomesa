@@ -39,6 +39,7 @@ object SimpleFeatureTypes {
     val FeatureExpiration     = "geomesa.feature.expiry"
     val FidsAreUuids          = "geomesa.fid.uuid"
     val FidsAreUuidEncoded    = "geomesa.fid.uuid-encoded"
+    val FilterDuration        = "geomesa.filter.max.duration"
     val IndexAttributeShards  = "geomesa.attr.splits"
     val IndexIdShards         = "geomesa.id.splits"
     val IndexIgnoreDtg        = "geomesa.ignore.dtg"

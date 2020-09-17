@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index.api
 
 import java.nio.charset.StandardCharsets
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
@@ -20,7 +21,7 @@ import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.conf.splitter.TableSplitter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.index.NamedIndex
+import org.locationtech.geomesa.index.index.{NamedIndex, TemporalIndexValues}
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z2.{XZ2Index, Z2Index}
@@ -28,11 +29,14 @@ import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.conf.IndexId
+import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
+
+import scala.concurrent.duration.Duration
 
 /**
   * Represents a particular indexing strategy
@@ -252,6 +256,19 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
 
     val sharing = keySpace.sharing
     val indexValues = filter.primary.map(keySpace.getIndexValues(_, explain))
+
+    // query guard for max allowed duration
+    for {
+      max <- sft.getFilterMaxDuration
+      intervals <- indexValues.collect { case v: TemporalIndexValues => v.intervals } } {
+      def duration = intervals.values.foldLeft(Duration.Zero) { (sum, bounds) =>
+        sum + Duration(bounds.upper.value.get.toEpochSecond - bounds.lower.value.get.toEpochSecond, TimeUnit.SECONDS)
+      }
+      if (intervals.isEmpty || !intervals.forall(_.isBoundedBothSides) || duration > max) {
+        throw new IllegalArgumentException(
+          s"Query exceeds maximum allowed filter duration of $max: ${filterToString(filter.filter)}")
+      }
+    }
 
     val useFullFilter = keySpace.useFullFilter(indexValues, Some(ds.config), hints)
     val ecql = if (useFullFilter) { filter.filter } else { filter.secondary }

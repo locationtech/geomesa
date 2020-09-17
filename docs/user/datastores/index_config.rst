@@ -617,6 +617,24 @@ Interceptors will be invoked in the order they are declared in the user data. In
 on the results of query interceptors, you can enable ``TRACE``-level logging on the class
 ``org.locationtech.geomesa.index.planning.QueryRunner$``.
 
+Configuring Temporal Query Guards
+---------------------------------
+
+GeoMesa provides a basic mechanism for blocking overly broad queries (which can overwhelm the system). A
+maximum temporal duration can be specified, and any query which attempts to return a larger time period will be
+stopped. This will not affect queries against indices that do not have a temporal component (for example,
+feature ID queries).
+
+The temporal duration must be specified through user data in the simple feature type, and may be set before
+calling ``createSchema``, or updated by calling ``updateSchema``, using the key ``geomesa.filter.max.duration``:
+
+.. code-block:: java
+
+    sft.getUserData().put("geomesa.filter.max.duration", "1 month");
+
+For additional controls, see ``geomesa.query.timeout`` and ``geomesa.scan.block-full-table`` in
+:ref:`geomesa_site_xml`.
+
 .. _stat_config:
 
 Configuring Cached Statistics
