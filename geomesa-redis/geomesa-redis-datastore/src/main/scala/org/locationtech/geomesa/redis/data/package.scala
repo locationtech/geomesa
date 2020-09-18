@@ -13,7 +13,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDa
 import org.locationtech.geomesa.security.SecurityParams
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.JedisPoolAbstract
 
 import scala.util.control.NonFatal
 
@@ -66,7 +66,7 @@ package object data extends LazyLogging {
             "but restricts queries to a single execution thread",
         default = Boolean.box(false))
 
-    val ConnectionPoolParam = new GeoMesaParam[JedisPool]("redis.connection", "Connection pool") // generally used for testing
+    val ConnectionPoolParam = new GeoMesaParam[JedisPoolAbstract]("redis.connection", "Connection pool") // generally used for testing
   }
 
   object RedisSystemProperties {

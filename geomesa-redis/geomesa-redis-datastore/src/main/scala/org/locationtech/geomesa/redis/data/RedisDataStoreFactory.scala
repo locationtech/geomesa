@@ -23,7 +23,7 @@ import org.locationtech.geomesa.redis.data.index.RedisAgeOff
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.utils.audit.{AuditLogger, AuditProvider, NoOpAuditProvider}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.{JedisPool, JedisPoolAbstract}
 import redis.clients.jedis.util.JedisURIHelper
 
 import scala.util.Try
@@ -90,7 +90,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     * @param params params
     * @return
     */
-  def buildConnection(params: java.util.Map[String, Serializable]): JedisPool = {
+  def buildConnection(params: java.util.Map[String, Serializable]): JedisPoolAbstract = {
     ConnectionPoolParam.lookupOpt(params).getOrElse {
       val url = RedisUrlParam.lookup(params)
       val config = new GenericObjectPoolConfig()

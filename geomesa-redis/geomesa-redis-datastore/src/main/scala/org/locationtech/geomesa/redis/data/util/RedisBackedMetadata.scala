@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
 import org.locationtech.geomesa.index.metadata.{KeyValueStoreMetadata, MetadataSerializer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.JedisPoolAbstract
 
 /**
   * Redis-backed metadata implementation. Metadata is stored as a redis hashset
@@ -23,7 +23,7 @@ import redis.clients.jedis.JedisPool
   * @param serializer serializer
   * @tparam T type param
   */
-class RedisBackedMetadata[T](connection: JedisPool, table: String, val serializer: MetadataSerializer[T])
+class RedisBackedMetadata[T](connection: JedisPoolAbstract, table: String, val serializer: MetadataSerializer[T])
     extends KeyValueStoreMetadata[T] {
 
   import scala.collection.JavaConverters._

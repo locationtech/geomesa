@@ -22,7 +22,7 @@ import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.JedisPoolAbstract
 
 /**
   * Data store backed by Redis. Uses Redis SortedSets for range scanning
@@ -30,7 +30,7 @@ import redis.clients.jedis.JedisPool
   * @param connection connection pool
   * @param config datastore configuration
   */
-class RedisDataStore(val connection: JedisPool, override val config: RedisDataStoreConfig)
+class RedisDataStore(val connection: JedisPoolAbstract, override val config: RedisDataStoreConfig)
     extends GeoMesaDataStore[RedisDataStore](config) with RedisLocking {
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor

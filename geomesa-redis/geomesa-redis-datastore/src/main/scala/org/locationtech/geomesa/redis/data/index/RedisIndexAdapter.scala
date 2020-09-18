@@ -26,7 +26,7 @@ import org.locationtech.geomesa.redis.data.index.RedisQueryPlan.{EmptyPlan, ZLex
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.JedisPoolAbstract
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
@@ -206,7 +206,7 @@ object RedisIndexAdapter extends LazyLogging {
     * @param wrapper feature wrapper
     */
   class RedisIndexWriter(
-      jedis: JedisPool,
+      jedis: JedisPoolAbstract,
       indices: Seq[GeoMesaFeatureIndex[_, _]],
       partition: Option[String],
       aging: Option[AgeOffWriter],

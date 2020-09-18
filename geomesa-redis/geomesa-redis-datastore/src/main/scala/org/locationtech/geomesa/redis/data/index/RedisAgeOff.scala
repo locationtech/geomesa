@@ -22,7 +22,7 @@ import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemPropert
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.identity.Identifier
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.JedisPoolAbstract
 import redis.clients.jedis.params.ZAddParams
 
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
@@ -139,7 +139,7 @@ object RedisAgeOff extends StrictLogging {
     * @param connection jedis connection
     * @param table ttl table for the feature type
     */
-  class AgeOffWriter(connection: JedisPool, table: Array[Byte]) extends Closeable with Flushable {
+  class AgeOffWriter(connection: JedisPoolAbstract, table: Array[Byte]) extends Closeable with Flushable {
 
     private val writes = new java.util.HashMap[Array[Byte], java.lang.Double]
     private val deletes = ArrayBuffer.empty[Array[Byte]]
@@ -229,7 +229,7 @@ object RedisAgeOff extends StrictLogging {
       throw new IllegalStateException("Invalid age-off lock timeout")
     }
 
-    override def connection: JedisPool = ds.connection
+    override def connection: JedisPoolAbstract = ds.connection
 
     override def run(): Unit = {
       val timestamp = System.currentTimeMillis()

@@ -14,10 +14,10 @@ import org.locationtech.geomesa.index.api.BoundedByteRange
 import org.locationtech.geomesa.index.utils.AbstractBatchScan
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.WithClose
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.JedisPoolAbstract
 
 private class RedisBatchScan(
-    connection: JedisPool,
+    connection: JedisPoolAbstract,
     table: Array[Byte],
     ranges: Seq[BoundedByteRange],
     threads: Int,
@@ -37,7 +37,7 @@ object RedisBatchScan {
   private val Sentinel = new Array[Byte](0)
 
   def apply(
-      connection: JedisPool,
+      connection: JedisPoolAbstract,
       table: Array[Byte],
       ranges: Seq[BoundedByteRange],
       threads: Int): CloseableIterator[Array[Byte]] =

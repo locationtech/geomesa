@@ -13,7 +13,7 @@ import java.util.UUID
 import org.locationtech.geomesa.index.DistributedLockTimeout
 import org.locationtech.geomesa.index.utils.{DistributedLocking, Releasable}
 import org.locationtech.geomesa.utils.io.WithClose
-import redis.clients.jedis.JedisPool
+import redis.clients.jedis.JedisPoolAbstract
 import redis.clients.jedis.params.SetParams
 
 /**
@@ -35,7 +35,7 @@ trait RedisLocking extends DistributedLocking {
     new SetParams().nx().px(timeout.toMillis)
   }
 
-  def connection: JedisPool
+  def connection: JedisPoolAbstract
 
   override protected def acquireDistributedLock(key: String): Releasable =
     acquireDistributedLock(key, Long.MaxValue).orNull
