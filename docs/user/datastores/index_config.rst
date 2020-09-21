@@ -623,7 +623,7 @@ Configuring Temporal Query Guards
 GeoMesa provides a basic mechanism for blocking overly broad queries (which can overwhelm the system). A
 maximum temporal duration can be specified, and any query which attempts to return a larger time period will be
 stopped. This will not affect queries against indices that do not have a temporal component (for example,
-feature ID queries).
+feature ID and attribute queries).
 
 The temporal duration must be specified through user data in the simple feature type, and may be set before
 calling ``createSchema``, or updated by calling ``updateSchema``, using the key ``geomesa.filter.max.duration``:
