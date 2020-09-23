@@ -354,13 +354,23 @@ object SimpleFeatureTypes {
     */
   def mutable(sft: SimpleFeatureType): SimpleFeatureType = {
     if (sft.isInstanceOf[ImmutableSimpleFeatureType] || sft.getAttributeDescriptors.asScala.exists(isImmutable)) {
-      // note: SimpleFeatureTypeBuilder copies attribute user data but not feature user data
-      val copy = SimpleFeatureTypeBuilder.copy(sft)
-      copy.getUserData.putAll(sft.getUserData)
-      copy
+      copy(sft)
     } else {
       sft
     }
+  }
+
+  /**
+   * Copy a simple feature type, returning a mutable implementation
+   *
+   * @param sft simple feature type
+   * @return
+   */
+  def copy(sft: SimpleFeatureType): SimpleFeatureType = {
+    // note: SimpleFeatureTypeBuilder copies attribute user data but not feature user data
+    val copy = SimpleFeatureTypeBuilder.copy(sft)
+    copy.getUserData.putAll(sft.getUserData)
+    copy
   }
 
   private def isImmutable(d: AttributeDescriptor): Boolean =
