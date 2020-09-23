@@ -168,7 +168,7 @@ object SimpleFeatureSpec {
     */
   case class GeomAttributeSpec(name: String, clazz: Class[_], options: Map[String, String]) extends AttributeSpec {
 
-    private val default = options.get(OptDefault).exists(_.toBoolean)
+    val default: Boolean = options.get(OptDefault).exists(_.toBoolean)
 
     override def toSpec: String = if (default) { s"*${super.toSpec}" } else { super.toSpec }
 
