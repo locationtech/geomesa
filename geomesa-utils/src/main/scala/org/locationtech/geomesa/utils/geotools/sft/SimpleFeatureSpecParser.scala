@@ -11,6 +11,7 @@ package org.locationtech.geomesa.utils.geotools.sft
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec._
 import org.locationtech.geomesa.utils.text.BasicParser
+import org.locationtech.jts.geom.Geometry
 import org.parboiled.errors.{ErrorUtils, InvalidInputError, ParsingException}
 import org.parboiled.scala.parserunners.{BasicParseRunner, ReportingParseRunner}
 import org.parboiled.scala.{EOI, ParsingResult, Rule1}
@@ -151,7 +152,7 @@ private class SimpleFeatureSpecParser extends BasicParser {
   }
 
   // matches any of the geometry types defined in geometryTypeMap
-  private def geometryType: Rule1[Class[_]] = rule("GeometryTypeBinding") {
+  private def geometryType: Rule1[Class[_ <: Geometry]] = rule("GeometryTypeBinding") {
     ":" ~ geometryTypeMap.keys.toList.sorted.reverse.map(str).reduce(_ | _) ~> geometryTypeMap.apply
   }
 

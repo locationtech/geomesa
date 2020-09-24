@@ -144,7 +144,7 @@ object SimpleFeatureSpec {
       SimpleAttributeSpec(name, binding, options)
     } else if (geometryTypeMap.contains(binding.getSimpleName)) {
       val opts = if (sft != null && sft.getGeometryDescriptor == descriptor) { options + (OptDefault -> "true") } else { options }
-      GeomAttributeSpec(name, binding, opts)
+      GeomAttributeSpec(name, binding.asInstanceOf[Class[_ <: Geometry]], opts)
     } else if (classOf[java.util.List[_]].isAssignableFrom(binding)) {
       val itemClass = Option(descriptor.getListType()).getOrElse(classOf[String])
       ListAttributeSpec(name, itemClass, options)
@@ -166,7 +166,8 @@ object SimpleFeatureSpec {
   /**
     * Geometry attribute
     */
-  case class GeomAttributeSpec(name: String, clazz: Class[_], options: Map[String, String]) extends AttributeSpec {
+  case class GeomAttributeSpec(name: String, clazz: Class[_ <: Geometry], options: Map[String, String])
+      extends AttributeSpec {
 
     val default: Boolean = options.get(OptDefault).exists(_.toBoolean)
 
