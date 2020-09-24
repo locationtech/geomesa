@@ -9,7 +9,8 @@
 package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.{JCommander, Parameter, Parameters}
-import org.locationtech.geomesa.tools.{AutocompleteInfo, Command, Runner}
+import org.locationtech.geomesa.tools.Runner.AutocompleteInfo
+import org.locationtech.geomesa.tools.{Command, Runner}
 
 class HelpCommand(runner: Runner, jc: JCommander) extends Command {
 
