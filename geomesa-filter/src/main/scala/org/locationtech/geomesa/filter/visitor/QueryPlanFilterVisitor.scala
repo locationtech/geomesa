@@ -364,6 +364,10 @@ protected class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends Duplicati
 }
 
 object QueryPlanFilterVisitor {
+
+  // force evaluation of accessor cache while setting the context classloader to pick up our custm accessors
+  org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor.initialize()
+
   def apply(sft: SimpleFeatureType, filter: Filter, filterFactory: FilterFactory2 = null): Filter = {
     // Simplify the filter first to avoid leaning trees patterns causing StackOverflows
     FilterHelper.simplify(filter).accept(new QueryPlanFilterVisitor(sft), filterFactory).asInstanceOf[Filter]
