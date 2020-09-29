@@ -130,7 +130,7 @@ org.apache.accumulo:accumulo-fate	1.9.3	compile
 org.apache.arrow:arrow-format	0.16.0	compile
 org.apache.arrow:arrow-memory	0.16.0	compile
 org.apache.arrow:arrow-vector	0.16.0	compile
-org.apache.avro:avro	1.7.5	compile
+org.apache.avro:avro	1.8.2	compile
 org.apache.camel:camel-core	2.24.1	compile
 org.apache.camel:camel-scala	2.24.1	compile
 org.apache.commons:commons-collections4	4.4	compile
@@ -260,6 +260,7 @@ org.scalatra:scalatra-json_2.11	2.6.3	compile
 org.scalatra:scalatra-swagger_2.11	2.6.3	compile
 org.slf4j:slf4j-api	1.7.25	compile
 org.slf4j:slf4j-log4j12	1.7.25	compile
+org.tukaani:xz	1.5	compile
 picocontainer:picocontainer	1.2	compile
 redis.clients:jedis	3.0.1	compile
 si.uom:si-quantity	0.7.1	compile
@@ -277,7 +278,6 @@ io.confluent:kafka-avro-serializer	5.1.0	provided
 io.confluent:kafka-schema-registry-client	5.1.0	provided
 javax.media:jai_core	1.1.3	provided
 org.apache.accumulo:accumulo-start	2.0.0	provided
-org.apache.avro:avro	1.8.2	provided
 org.apache.hadoop:hadoop-annotations	2.8.5	provided
 org.apache.hadoop:hadoop-client	2.8.5	provided
 org.apache.hadoop:hadoop-common	2.8.5	provided
