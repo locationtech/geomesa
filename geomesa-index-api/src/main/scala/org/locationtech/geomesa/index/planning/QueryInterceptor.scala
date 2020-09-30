@@ -16,12 +16,12 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query}
 import org.locationtech.geomesa.filter.Bounds
+import org.locationtech.geomesa.index.api.QueryStrategy
 import org.locationtech.geomesa.index.index.TemporalIndexValues
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
-import org.opengis.filter.Filter
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.Try
@@ -50,13 +50,10 @@ trait QueryInterceptor extends Closeable {
   /**
    * Hook to allow interception of a query after extracting the query values
    *
-   * @param filter full query filter
-   * @param values index values extracted from the query, will vary by index. E.g. for the
-   *               Z3 index will contain extracted time intervals and bounding boxes.
-   *               See `org.locationtech.geomesa.index.api.IndexKeySpace#getIndexValues()`
-   * @return
+   * @param strategy query strategy
+   * @return an exception if the query should be stopped
    */
-  def guard(filter: Filter, values: Option[_]): Option[IllegalArgumentException] = None
+  def guard(strategy: QueryStrategy): Option[IllegalArgumentException] = None
 }
 
 object QueryInterceptor extends LazyLogging {
@@ -153,11 +150,11 @@ object QueryInterceptor extends LazyLogging {
 
     override def rewrite(query: Query): Unit = {}
 
-    override def guard(filter: Filter, values: Option[_]): Option[IllegalArgumentException] = {
-      val intervals = values.collect { case v: TemporalIndexValues => v.intervals }
+    override def guard(strategy: QueryStrategy): Option[IllegalArgumentException] = {
+      val intervals = strategy.values.collect { case v: TemporalIndexValues => v.intervals }
       intervals.collect { case i if i.isEmpty || !i.forall(_.isBoundedBothSides) || duration(i.values) > max =>
           new IllegalArgumentException(
-            s"Query exceeds maximum allowed filter duration of $max: ${filterToString(filter)}")
+            s"Query exceeds maximum allowed filter duration of $max: ${filterToString(strategy.filter.filter)}")
       }
     }
 

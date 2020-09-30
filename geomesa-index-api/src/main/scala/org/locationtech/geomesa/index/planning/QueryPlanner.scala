@@ -26,7 +26,6 @@ import org.locationtech.geomesa.utils.geotools.Transform.Transforms
 import org.locationtech.geomesa.utils.iterators.ExceptionalIterator
 import org.locationtech.geomesa.utils.stats.{MethodProfiling, StatParser}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
-import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
 
 import scala.collection.JavaConverters._
@@ -145,9 +144,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
         profile(complete _) {
           val qs = strategy.getQueryStrategy(hints, output)
           // query guard hook
-          interceptors(sft).foreach { interceptor =>
-            interceptor.guard(qs.filter.filter.getOrElse(Filter.INCLUDE), qs.values).foreach(e => throw e)
-          }
+          interceptors(sft).foreach(_.guard(qs).foreach(e => throw e))
           ds.adapter.createQueryPlan(qs)
         }
       }

@@ -608,13 +608,10 @@ the trait ``org.locationtech.geomesa.index.planning.QueryInterceptor``:
       /**
        * Hook to allow interception of a query after extracting the query values
        *
-       * @param filter full query filter
-       * @param values index values extracted from the query, will vary by index. E.g. for the
-       *               Z3 index will contain extracted time intervals and bounding boxes.
-       *               See `org.locationtech.geomesa.index.api.IndexKeySpace#getIndexValues()`
-       * @return
+       * @param strategy query strategy
+       * @return an exception if the query should be stopped
        */
-      def guard(filter: Filter, values: Option[_]): Option[IllegalArgumentException] = None
+      def guard(strategy: QueryStrategy): Option[IllegalArgumentException] = None
     }
 
 Interceptors must have a default, no-arg constructor. The interceptor lifecycle consists of:
