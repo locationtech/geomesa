@@ -25,17 +25,21 @@ package object z3 {
     }
   }
 
-  case class Z3IndexValues(sfc: Z3SFC,
-                           geometries: FilterValues[Geometry],
-                           spatialBounds: Seq[(Double, Double, Double, Double)],
-                           intervals: FilterValues[Bounds[ZonedDateTime]],
-                           temporalBounds: Map[Short, Seq[(Long, Long)]],
-                           temporalUnbounded: Seq[(Short, Short)])
+  case class Z3IndexValues(
+      sfc: Z3SFC,
+      geometries: FilterValues[Geometry],
+      spatialBounds: Seq[(Double, Double, Double, Double)],
+      intervals: FilterValues[Bounds[ZonedDateTime]],
+      temporalBounds: Map[Short, Seq[(Long, Long)]],
+      temporalUnbounded: Seq[(Short, Short)]
+    ) extends TemporalIndexValues
 
-  case class XZ3IndexValues(sfc: XZ3SFC,
-                            geometries: FilterValues[Geometry],
-                            spatialBounds: Seq[(Double, Double, Double, Double)],
-                            intervals: FilterValues[Bounds[ZonedDateTime]],
-                            temporalBounds: Map[Short, (Double, Double)],
-                            temporalUnbounded: Seq[(Short, Short)])
+  case class XZ3IndexValues(
+      sfc: XZ3SFC,
+      geometries: FilterValues[Geometry],
+      spatialBounds: Seq[(Double, Double, Double, Double)],
+      intervals: FilterValues[Bounds[ZonedDateTime]],
+      temporalBounds: Map[Short, (Double, Double)],
+      temporalUnbounded: Seq[(Short, Short)]
+    ) extends TemporalIndexValues
 }

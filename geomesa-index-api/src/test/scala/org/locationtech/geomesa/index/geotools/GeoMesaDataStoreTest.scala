@@ -120,6 +120,38 @@ class GeoMesaDataStoreTest extends Specification {
       results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, ECQL.toFilter("bbox(geom,39,54,51,56)")), Transaction.AUTO_COMMIT)).toSeq
       results must haveLength(10)
     }
+    "block queries with an excessive duration" in {
+      val sft = SimpleFeatureTypes.createType("test",
+        "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
+      sft.getUserData.put("geomesa.query.interceptors",
+        "org.locationtech.geomesa.index.planning.QueryInterceptor$TemporalQueryGuard");
+      sft.getUserData.put("geomesa.filter.max.duration", "1 day");
+
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      val valid = Seq(
+        "name = 'bob'",
+        "IN('123')",
+        "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-01T23:59:59.000Z",
+        "bbox(geom,-10,-10,10,10) AND (dtg during 2020-01-01T00:00:00.000Z/2020-01-01T00:59:59.000Z OR dtg during 2020-01-01T12:00:00.000Z/2020-01-01T12:59:59.000Z)"
+      )
+
+      val invalid = Seq(
+        "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-03T23:59:59.000Z",
+        "bbox(geom,-10,-10,10,10) AND dtg after 2020-01-01T00:00:00.000Z"
+      )
+
+      foreach(valid.map(ECQL.toFilter)) { filter =>
+        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+            beEmpty
+      }
+
+      foreach(invalid.map(ECQL.toFilter)) { filter =>
+        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+            throwAn[IllegalArgumentException]
+      }
+    }
     "update schemas" in {
       foreach(Seq(true, false)) { partitioning =>
         val ds = new TestGeoMesaDataStore(true)

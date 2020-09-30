@@ -604,18 +604,50 @@ the trait ``org.locationtech.geomesa.index.planning.QueryInterceptor``:
         * @param query query
         */
       def rewrite(query: Query): Unit
+
+      /**
+       * Hook to allow interception of a query after extracting the query values
+       *
+       * @param filter full query filter
+       * @param values index values extracted from the query, will vary by index. E.g. for the
+       *               Z3 index will contain extracted time intervals and bounding boxes.
+       *               See `org.locationtech.geomesa.index.api.IndexKeySpace#getIndexValues()`
+       * @return
+       */
+      def guard(filter: Filter, values: Option[_]): Option[IllegalArgumentException] = None
     }
 
 Interceptors must have a default, no-arg constructor. The interceptor lifecycle consists of:
 
 1. The instance is instantiated via reflection, using its default constructor
 #. The instance is initialized via the ``init`` method, passing in the data store containing the simple feature type
-#. ``rewrite`` is called repeatedly
+#. ``rewrite`` and ``guard`` are called repeatedly, once for each query
 #. The instance is cleaned up via the ``close`` method
 
 Interceptors will be invoked in the order they are declared in the user data. In order to see detailed information
 on the results of query interceptors, you can enable ``TRACE``-level logging on the class
 ``org.locationtech.geomesa.index.planning.QueryRunner$``.
+
+Temporal Query Guard
+++++++++++++++++++++
+
+GeoMesa provides a basic implementation of a query interceptor that will block overly broad queries
+(which can overwhelm the system). A maximum temporal duration must be specified, and any query which attempts
+to return a larger time period will be stopped. This will not affect queries against indices that do not have
+a temporal component (for example, feature ID and attribute queries).
+
+To enable the guard, set ``geomesa.query.interceptors`` to
+``org.locationtech.geomesa.index.planning.QueryInterceptor$TemporalQueryGuard`` and set the duration using
+``geomesa.filter.max.duration``:
+
+.. code-block:: java
+
+    sft.getUserData().put("geomesa.query.interceptors",
+      "org.locationtech.geomesa.index.planning.QueryInterceptor$TemporalQueryGuard");
+    sft.getUserData().put("geomesa.filter.max.duration", "1 month");
+
+For additional controls, see ``geomesa.query.timeout`` and ``geomesa.scan.block-full-table`` in
+:ref:`geomesa_site_xml`.
 
 .. _stat_config:
 

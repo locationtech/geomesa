@@ -9,16 +9,22 @@
 package org.locationtech.geomesa.index.planning
 
 import java.io.Closeable
+import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query}
+import org.locationtech.geomesa.filter.Bounds
+import org.locationtech.geomesa.index.index.TemporalIndexValues
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.filter.Filter
 
+import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -40,6 +46,17 @@ trait QueryInterceptor extends Closeable {
     * @param query query
     */
   def rewrite(query: Query): Unit
+
+  /**
+   * Hook to allow interception of a query after extracting the query values
+   *
+   * @param filter full query filter
+   * @param values index values extracted from the query, will vary by index. E.g. for the
+   *               Z3 index will contain extracted time intervals and bounding boxes.
+   *               See `org.locationtech.geomesa.index.api.IndexKeySpace#getIndexValues()`
+   * @return
+   */
+  def guard(filter: Filter, values: Option[_]): Option[IllegalArgumentException] = None
 }
 
 object QueryInterceptor extends LazyLogging {
@@ -118,5 +135,42 @@ object QueryInterceptor extends LazyLogging {
         }
       }
     }
+  }
+
+  class TemporalQueryGuard extends QueryInterceptor {
+
+    import TemporalQueryGuard.Config
+    import org.locationtech.geomesa.filter.filterToString
+
+    private var max: Duration = _
+
+    override def init(ds: DataStore, sft: SimpleFeatureType): Unit = {
+      max = Try(Duration(sft.getUserData.get(Config).asInstanceOf[String])).getOrElse {
+        throw new IllegalArgumentException(
+          s"Temporal query guard expects valid duration under user data key '$Config'")
+      }
+    }
+
+    override def rewrite(query: Query): Unit = {}
+
+    override def guard(filter: Filter, values: Option[_]): Option[IllegalArgumentException] = {
+      val intervals = values.collect { case v: TemporalIndexValues => v.intervals }
+      intervals.collect { case i if i.isEmpty || !i.forall(_.isBoundedBothSides) || duration(i.values) > max =>
+          new IllegalArgumentException(
+            s"Query exceeds maximum allowed filter duration of $max: ${filterToString(filter)}")
+      }
+    }
+
+    override def close(): Unit = {}
+
+    private def duration(values: Seq[Bounds[ZonedDateTime]]): FiniteDuration = {
+      values.foldLeft(Duration.Zero) { (sum, bounds) =>
+        sum + Duration(bounds.upper.value.get.toEpochSecond - bounds.lower.value.get.toEpochSecond, TimeUnit.SECONDS)
+      }
+    }
+  }
+
+  object TemporalQueryGuard {
+    val Config = "geomesa.filter.max.duration"
   }
 }
