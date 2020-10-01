@@ -12,7 +12,6 @@ import java.util.regex.Pattern
 import java.util.{Collections, Date}
 
 import org.geotools.filter.LikeToRegexConverter
-import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.{DuplicatingFilterVisitor, ExpressionTypeVisitor, IsStaticExpressionVisitor}
 import org.locationtech.geomesa.filter.{FilterHelper, GeometryProcessing}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
@@ -364,10 +363,6 @@ protected class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends Duplicati
 }
 
 object QueryPlanFilterVisitor {
-
-  // force evaluation of accessor cache while setting the context classloader to pick up our custm accessors
-  org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor.initialize()
-
   def apply(sft: SimpleFeatureType, filter: Filter, filterFactory: FilterFactory2 = null): Filter = {
     // Simplify the filter first to avoid leaning trees patterns causing StackOverflows
     FilterHelper.simplify(filter).accept(new QueryPlanFilterVisitor(sft), filterFactory).asInstanceOf[Filter]
