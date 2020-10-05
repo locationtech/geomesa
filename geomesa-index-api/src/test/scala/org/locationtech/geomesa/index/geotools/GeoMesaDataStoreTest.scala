@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index.geotools
 
 import java.util.Collections
 
+import com.typesafe.config.ConfigFactory
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.{ReTypingFeatureCollection, ReprojectingFeatureCollection}
@@ -26,6 +27,7 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.SchemaCompatibility
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreTest._
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
@@ -248,6 +250,57 @@ class GeoMesaDataStoreTest extends Specification {
         ds.stats.getCount(sft) must beSome(1L)
         ds.stats.getMinMax[String](sft, "n", exact = false).map(_.max) must beSome("name0")
       }
+    }
+    "update compatible schemas from typesafe config changes" in {
+      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+      def toSft(config: String): SimpleFeatureType = SimpleFeatureTypes.createType(ConfigFactory.parseString(config))
+
+      val ds = new TestGeoMesaDataStore(true)
+      val missingConfig =
+        """{
+          |  type-name = "test"
+          |  attributes = [
+          |    { name = "type", type = "String"                             }
+          |    { name = "dtg",  type = "Date",  default = true              }
+          |    { name = "geom", type = "Point", default = true, srid = 4326 }
+          |  ]
+          |  user-data = {
+          |    "geomesa.indices.enabled" = "z3:geom:dtg,attr:type:dtg"
+          |  }
+          |}""".stripMargin
+
+      val missing = ds.checkSchemaCompatibility("test", toSft(missingConfig))
+      missing must beAnInstanceOf[SchemaCompatibility.DoesNotExist]
+      missing.apply()
+
+      val original = ds.getSchema("test")
+      original must not(beNull)
+
+      ds.checkSchemaCompatibility("test", toSft(missingConfig)) mustEqual SchemaCompatibility.Unchanged
+
+      val addIndexConfig = missingConfig.replace("z3", "id,z3")
+
+      val addIndex = ds.checkSchemaCompatibility("test", toSft(addIndexConfig))
+      addIndex must beAnInstanceOf[SchemaCompatibility.Compatible]
+      addIndex.apply()
+
+      val updateAddIndex = ds.getSchema("test")
+      updateAddIndex.getIndices.map(_.name).toSet mustEqual Set("id", "z3", "attr")
+
+      ds.checkSchemaCompatibility("test", toSft(addIndexConfig)) mustEqual SchemaCompatibility.Unchanged
+
+      val addAttributeConfig = addIndexConfig.replace("]", s"""    { name = "name", type = "String" }${"\n"}]""")
+
+      val addAttribute = ds.checkSchemaCompatibility("test", toSft(addAttributeConfig))
+      addAttribute must beAnInstanceOf[SchemaCompatibility.Compatible]
+      addAttribute.apply()
+
+      val updateAddAttribute = ds.getSchema("test")
+      updateAddAttribute.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual
+          Seq("type", "dtg", "geom", "name")
+
+      ds.checkSchemaCompatibility("test", toSft(addAttributeConfig)) mustEqual SchemaCompatibility.Unchanged
     }
     "unwrap decorating feature collections" in {
       val fc = ds.getFeatureSource(sft.getTypeName).getFeatures()
