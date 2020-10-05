@@ -13,7 +13,28 @@ import org.geotools.filter.expression.{PropertyAccessor, PropertyAccessors}
 import org.opengis.feature.simple.SimpleFeature
 
 object SimpleFeaturePropertyAccessor extends LazyLogging {
-  def getAccessor(sf: SimpleFeature, name: String): Option[PropertyAccessor] ={
+
+  import scala.collection.JavaConverters._
+
+  /**
+   * Initialize the static property accessors cache with the context classloader to ensure
+   * our accessors are picked up
+   */
+  def initialize(): Unit = invoke(null, "")
+
+  /**
+   * Get a property accessor, using the context classloader to ensure out accessors are picked up
+   *
+   * @param sf feature
+   * @param name property name
+   * @return
+   */
+  def getAccessor(sf: SimpleFeature, name: String): Option[PropertyAccessor] = {
+    val list = invoke(sf, name)
+    if (list == null) { None } else { list.asScala.headOption }
+  }
+
+  private def invoke(sf: SimpleFeature, name: String): java.util.List[PropertyAccessor] = {
     // some mojo to ensure our property accessor is picked up -
     // our accumulo iterators are not generally available in the system classloader
     // instead, we can set the context classloader (as that will be checked if set)
@@ -23,8 +44,7 @@ object SimpleFeaturePropertyAccessor extends LazyLogging {
     }
     Thread.currentThread.setContextClassLoader(getClass.getClassLoader)
     try {
-      import scala.collection.JavaConversions._
-      PropertyAccessors.findPropertyAccessors(sf, name, null, null).headOption
+      PropertyAccessors.findPropertyAccessors(sf, name, null, null)
     } finally {
       // reset the classloader after loading the accessors
       Thread.currentThread.setContextClassLoader(contextClassLoader)

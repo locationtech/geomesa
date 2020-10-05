@@ -12,7 +12,6 @@ import java.util.regex.Pattern
 import java.util.{Collections, Date}
 
 import org.geotools.filter.LikeToRegexConverter
-import org.geotools.filter.text.ecql.ECQL
 import org.geotools.filter.visitor.{DuplicatingFilterVisitor, ExpressionTypeVisitor, IsStaticExpressionVisitor}
 import org.locationtech.geomesa.filter.{FilterHelper, GeometryProcessing}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
