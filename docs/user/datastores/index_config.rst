@@ -631,7 +631,8 @@ Temporal Query Guard
 GeoMesa provides a basic implementation of a query interceptor that will block overly broad queries
 (which can overwhelm the system). A maximum temporal duration must be specified, and any query which attempts
 to return a larger time period will be stopped. This will not affect queries against indices that do not have
-a temporal component (for example, feature ID and attribute queries).
+a temporal component (for example, feature ID and attribute queries), nor queries that do not have any temporal
+component at all (which can usually be blocked by ``geomesa.scan.block-full-table``).
 
 To enable the guard, add ``org.locationtech.geomesa.index.planning.QueryInterceptor$TemporalQueryGuard``
 to ``geomesa.query.interceptors`` as indicated above, and set the duration using ``geomesa.filter.max.duration``:
