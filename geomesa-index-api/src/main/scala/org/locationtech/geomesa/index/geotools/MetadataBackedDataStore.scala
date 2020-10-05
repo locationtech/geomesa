@@ -438,6 +438,7 @@ object MetadataBackedDataStore {
       TableSharingPrefix,
       IndexVisibilityLevel,
       IndexZ3Interval,
+      S3_INTERVAL_KEY,
       IndexXzPrecision,
       IndexZShards,
       IndexIdShards,
