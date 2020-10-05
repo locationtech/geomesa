@@ -33,7 +33,6 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOpti
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.CloseWithLogging
-import org.locationtech.geomesa.utils.stats.IndexCoverage
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
@@ -506,7 +505,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
   def checkSchemaCompatibility(typeName: String, sft: SimpleFeatureType): SchemaCompatibility = {
     val previous = getSchema(typeName)
     if (previous == null) {
-      new SchemaCompatibility.Missing(this, sft)
+      new SchemaCompatibility.DoesNotExist(this, sft)
     } else {
       Try(validateSchemaUpdate(previous, sft)).failed.map(SchemaCompatibility.Incompatible).getOrElse {
         val copy = SimpleFeatureTypes.copy(sft)
@@ -679,12 +678,12 @@ object GeoMesaDataStore extends LazyLogging {
      * @param ds data store
      * @param sft schema
      */
-    class Missing(ds: GeoMesaDataStore[_], val sft: SimpleFeatureType) extends SchemaCompatibility {
+    class DoesNotExist(ds: GeoMesaDataStore[_], val sft: SimpleFeatureType) extends SchemaCompatibility {
       override def apply(): Unit = ds.createSchema(sft)
     }
 
-    object Missing {
-      def unapply(arg: Missing): Option[SimpleFeatureType] = Some(arg.sft)
+    object DoesNotExist {
+      def unapply(arg: DoesNotExist): Option[SimpleFeatureType] = Some(arg.sft)
     }
 
     /**

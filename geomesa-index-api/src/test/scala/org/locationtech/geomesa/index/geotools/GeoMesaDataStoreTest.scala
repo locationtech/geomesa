@@ -28,7 +28,6 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.SchemaCompatibility
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.SchemaCompatibility.Unchanged
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreTest._
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
@@ -240,7 +239,7 @@ class GeoMesaDataStoreTest extends Specification {
           |}""".stripMargin
 
       val missing = ds.checkSchemaCompatibility("test", toSft(missingConfig))
-      missing must beAnInstanceOf[SchemaCompatibility.Missing]
+      missing must beAnInstanceOf[SchemaCompatibility.DoesNotExist]
       missing.apply()
 
       val original = ds.getSchema("test")
