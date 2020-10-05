@@ -618,8 +618,8 @@ Interceptors must have a default, no-arg constructor. The interceptor lifecycle 
 
 1. The instance is instantiated via reflection, using its default constructor
 #. The instance is initialized via the ``init`` method, passing in the data store containing the simple feature type
-#. ``rewrite`` and ``guard`` are called repeatedly, once for each query
-#. The instance is cleaned up via the ``close`` method
+#. ``rewrite`` and ``guard`` are called once for each query
+#. When the data store is disposed, the instance is cleaned up via the ``close`` method
 
 Interceptors will be invoked in the order they are declared in the user data. In order to see detailed information
 on the results of query interceptors, you can enable ``TRACE``-level logging on the class
