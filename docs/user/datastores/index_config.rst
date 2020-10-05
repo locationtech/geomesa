@@ -633,9 +633,8 @@ GeoMesa provides a basic implementation of a query interceptor that will block o
 to return a larger time period will be stopped. This will not affect queries against indices that do not have
 a temporal component (for example, feature ID and attribute queries).
 
-To enable the guard, set ``geomesa.query.interceptors`` to
-``org.locationtech.geomesa.index.planning.QueryInterceptor$TemporalQueryGuard`` and set the duration using
-``geomesa.filter.max.duration``:
+To enable the guard, add ``org.locationtech.geomesa.index.planning.QueryInterceptor$TemporalQueryGuard``
+to ``geomesa.query.interceptors`` as indicated above, and set the duration using ``geomesa.filter.max.duration``:
 
 .. code-block:: java
 
