@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.geotools
 
 import java.time.{Instant, ZoneOffset}
-import java.util.{List => jList}
+import java.util.{Locale, List => jList}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
@@ -25,8 +25,8 @@ import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleF
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.TableSharingPrefix
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
-import org.locationtech.geomesa.utils.geotools.{GeoToolsDateFormat, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.index.GeoMesaSchemaValidator
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, GeoToolsDateFormat, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.index.{GeoMesaSchemaValidator, ReservedWordCheck}
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.`type`.Name
 import org.opengis.feature.simple.SimpleFeatureType
@@ -240,26 +240,7 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
         throw new IllegalArgumentException(s"Schema '$typeName' does not exist")
       }
 
-      // validate that default geometry and date have not changed (rename is ok)
-      if (schema.getGeomIndex != previousSft.getGeomIndex) {
-        throw new UnsupportedOperationException("Changing the default geometry attribute is not supported")
-      } else if (schema.getDtgIndex != previousSft.getDtgIndex) {
-        throw new UnsupportedOperationException("Changing the default date attribute is not supported")
-      }
-
-      // check that unmodifiable user data has not changed
-      MetadataBackedDataStore.UnmodifiableUserDataKeys.foreach { key =>
-        if (schema.userData[Any](key) != previousSft.userData[Any](key)) {
-          throw new UnsupportedOperationException(s"Updating '$key' is not supported")
-        }
-      }
-
-      // check for column type changes
-      previousSft.getAttributeDescriptors.asScala.zipWithIndex.foreach { case (prev, i) =>
-        if (prev.getType.getBinding != schema.getDescriptor(i).getType.getBinding) {
-          throw new UnsupportedOperationException("Updating schema column types is not allowed")
-        }
-      }
+      validateSchemaUpdate(previousSft, schema)
 
       val sft = SimpleFeatureTypes.mutable(schema)
 
@@ -385,6 +366,51 @@ abstract class MetadataBackedDataStore(config: NamespaceConfig) extends DataStor
   // end methods from org.geotools.data.DataStore
 
   /**
+   * Validate a call to updateSchema, throwing errors on failed validation
+   *
+   * @param existing existing schema
+   * @param schema updated sft
+   */
+  protected def validateSchemaUpdate(existing: SimpleFeatureType, schema: SimpleFeatureType): Unit = {
+    // validate that default geometry and date have not changed (rename is ok)
+    if (schema.getGeomIndex != existing.getGeomIndex) {
+      throw new UnsupportedOperationException("Changing the default geometry attribute is not supported")
+    } else if (schema.getDtgIndex != existing.getDtgIndex) {
+      throw new UnsupportedOperationException("Changing the default date attribute is not supported")
+    }
+
+    // check that unmodifiable user data has not changed
+    MetadataBackedDataStore.UnmodifiableUserDataKeys.foreach { key =>
+      if (schema.userData[Any](key) != existing.userData[Any](key)) {
+        throw new UnsupportedOperationException(s"Updating '$key' is not supported")
+      }
+    }
+
+    // validate that attributes weren't removed
+    if (existing.getAttributeCount > schema.getAttributeCount) {
+      throw new UnsupportedOperationException("Removing attributes from the schema is not supported")
+    }
+
+    // check for column type changes
+    existing.getAttributeDescriptors.asScala.zipWithIndex.foreach { case (prev, i) =>
+      val binding = schema.getDescriptor(i).getType.getBinding
+      if (!binding.isAssignableFrom(prev.getType.getBinding)) {
+        throw new UnsupportedOperationException(
+          s"Incompatible schema column type change: ${schema.getDescriptor(i).getLocalName} " +
+              s"from ${prev.getType.getBinding.getName} to ${binding.getName}")
+      }
+    }
+
+    // check for reserved words - only check for new/renamed attributes
+    val reserved = schema.getAttributeDescriptors.asScala.map(_.getLocalName).exists { name =>
+      existing.getDescriptor(name) == null && FeatureUtils.ReservedWords.contains(name.toUpperCase(Locale.US))
+    }
+    if (reserved) {
+      ReservedWordCheck.validateAttributeNames(schema)
+    }
+  }
+
+  /**
     * Acquires a distributed lock for all data stores sharing this catalog table.
     * Make sure that you 'release' the lock in a finally block.
     */
@@ -407,5 +433,15 @@ object MetadataBackedDataStore {
   import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs._
 
   private val UnmodifiableUserDataKeys =
-    Set(TableSharing, TableSharingPrefix, IndexVisibilityLevel, IndexZ3Interval, IndexXzPrecision)
+    Set(
+      TableSharing,
+      TableSharingPrefix,
+      IndexVisibilityLevel,
+      IndexZ3Interval,
+      S3_INTERVAL_KEY,
+      IndexXzPrecision,
+      IndexZShards,
+      IndexIdShards,
+      IndexAttributeShards
+    )
 }

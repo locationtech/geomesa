@@ -258,8 +258,7 @@ class FilterHelperTest extends Specification {
     "evaluate functions with large IN predicate" >> {
       val string = (0 to 4000).mkString("IN(", ",", ")")
       val filter = ECQL.toFilter(string)
-      updateFilter(filter)
-      ok
+      updateFilter(filter) must not(throwAn[Exception])
     }
 
     "evaluate functions with large number of ORs" >> {
@@ -269,8 +268,7 @@ class FilterHelperTest extends Specification {
       (1 until count).foreach { i =>
         filter = ff.or(filter, ff.equal(a, ff.literal(i)))
       }
-      updateFilter(filter)
-      ok
+      updateFilter(filter) must not(throwAn[Exception])
     }
 
     "evaluate functions with large number of ANDs" >> {
@@ -280,9 +278,7 @@ class FilterHelperTest extends Specification {
       (1 until count).foreach { i =>
         filter = ff.and(filter, ff.equal(a, ff.literal(i)))
       }
-      val updated = updateFilter(filter)
-      println(s"Updated filter $updated")
-      ok
+      updateFilter(filter) must not(throwAn[Exception])
     }
   }
 }
