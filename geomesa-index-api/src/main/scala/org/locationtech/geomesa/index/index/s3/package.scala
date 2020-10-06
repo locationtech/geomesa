@@ -32,5 +32,6 @@ package object s3 {
       spatialBounds: Seq[(Double, Double, Double, Double)],
       intervals: FilterValues[Bounds[ZonedDateTime]],
       temporalBounds: Map[Short, Seq[(Int, Int)]],
-      temporalUnbounded: Seq[(Short, Short)])
+      temporalUnbounded: Seq[(Short, Short)]
+    ) extends TemporalIndexValues
 }

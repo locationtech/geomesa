@@ -8,6 +8,9 @@
 
 package org.locationtech.geomesa.index
 
+import java.time.ZonedDateTime
+
+import org.locationtech.geomesa.filter.{Bounds, FilterValues}
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -49,6 +52,13 @@ package object index {
       * @return groups of attributes that could be used with this index
       */
     def defaults(sft: SimpleFeatureType): Seq[Seq[String]]
+  }
+
+  /**
+   * Index values with a temporal component
+   */
+  trait TemporalIndexValues {
+    def intervals: FilterValues[Bounds[ZonedDateTime]]
   }
 
   trait LegacyTableNaming[T, U] extends GeoMesaFeatureIndex[T, U] {
