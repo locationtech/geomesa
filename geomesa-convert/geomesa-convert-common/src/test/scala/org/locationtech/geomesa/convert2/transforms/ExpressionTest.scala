@@ -290,6 +290,11 @@ class ExpressionTest extends Specification {
       val exp = Expression("dateToString('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', $1)")
       exp.eval(Array("", Date.from(d.toInstant(ZoneOffset.UTC)))).asInstanceOf[String] must be equalTo fmt.format(d)
     }
+    "transform a date to milliseconds" >> {
+      val d = new Date(9999000)
+      val exp = Expression("dateToMillis($1)")
+      exp.eval(Array("", d)) mustEqual d.getTime
+    }
     "parse date strings from printf" >> {
       val exp = Expression("datetime(printf('%s-%s-%sT00:00:00.000Z', $1, $2, $3))")
       exp.eval(Array("", "2015", "01", "01")) must be equalTo testDate

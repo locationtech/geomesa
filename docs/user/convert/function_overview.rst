@@ -57,6 +57,7 @@ Date Functions
 -  ``millisToDate``
 -  ``secsToDate``
 -  ``dateToString``
+-  ``dateToMillis``
 
 Geometry Functions
 ~~~~~~~~~~~~~~~~~~
