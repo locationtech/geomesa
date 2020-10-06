@@ -16,9 +16,9 @@ package object z2 {
 
   case class Z2IndexValues(sfc: Z2SFC,
                            geometries: FilterValues[Geometry],
-                           bounds: Seq[(Double, Double, Double, Double)])
+                           spatialBounds: Seq[(Double, Double, Double, Double)]) extends SpatialIndexValues
 
   case class XZ2IndexValues(sfc: XZ2SFC,
                             geometries: FilterValues[Geometry],
-                            bounds: Seq[(Double, Double, Double, Double)])
+                            spatialBounds: Seq[(Double, Double, Double, Double)]) extends SpatialIndexValues
 }
