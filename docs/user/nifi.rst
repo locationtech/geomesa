@@ -390,6 +390,10 @@ and output them as NiFi records for further processing.
 +-------------------------------+---------------------------------------------------------------------------------------+
 | Geometry Serialization Format | The format to use for serializing geometries, either text or binary                   |
 +-------------------------------+---------------------------------------------------------------------------------------+
+| Include Visibilities          | Include a column with visibility expressions for each row                             |
++-------------------------------+---------------------------------------------------------------------------------------+
+| Include User Data             | Include a column with user data from the SimpleFeature, serialized as JSON            |
++-------------------------------+---------------------------------------------------------------------------------------+
 | Record Maximum Batch Size     | The maximum number of records to output in a single flow file                         |
 +-------------------------------+---------------------------------------------------------------------------------------+
 | Record Minimum Batch Size     | The minimum number of records to output in a single flow file                         |
