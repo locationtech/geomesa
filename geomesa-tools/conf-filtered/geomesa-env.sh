@@ -335,7 +335,7 @@ function geomesa_configure() {
   read -r -p "Is this correct (y/n)? " confirm
   local confirm=${confirm,,} # lower-casing
   if [[ $confirm =~ ^(yes|y) || $confirm == "" ]]; then
-    ""
+    :
   else
     read -r -p "Enter new value for %%gmtools.dist.name%%_HOME: " newHome
     read -r -p "Enter new value for GEOMESA_LIB (default $newHome/lib): " newLib
@@ -387,6 +387,7 @@ function geomesa_configure() {
       fi
     fi
     if [[ "$confirm" = "yes" ]]; then
+      [[ -f ${comp} ]] || touch ${comp}
       cat ${GEOMESA_CONF_DIR}/autocomplete.sh >> ${comp}
       echo >&2 "Auto-complete installed, to use now run:"
       echo >&2 ". ${comp}"
