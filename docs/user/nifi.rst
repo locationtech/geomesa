@@ -263,8 +263,8 @@ following sections.
 | ``Feature ID column``             | Column that will be used as the feature ID. If not specified, a random ID will be used              |
 +-----------------------------------+-----------------------------------------------------------------------------------------------------+
 | ``Geometry columns``              | Column(s) that will be deserialized as geometries, and their type, as a                             |
-|                                   | SimpleFeatureType specification string (e.g. ``the_geom:Point``). A '*' can be used to                   |
-|                                   | indicate the default geometry column                                                                |
+|                                   | SimpleFeatureType specification string (e.g. ``the_geom:Point``). A '*' can be used to              |
+|                                   | indicate the default geometry column, otherwise it will be the first geometry in the schema         |
 +-----------------------------------+-----------------------------------------------------------------------------------------------------+
 | ``Geometry Serialization Format`` | The format to use for serializing/deserializing geometries, either                                  |
 |                                   | `WKT <https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry>`_ or                |
