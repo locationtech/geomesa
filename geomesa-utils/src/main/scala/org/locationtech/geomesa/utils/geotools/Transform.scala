@@ -125,7 +125,7 @@ object Transform {
         val name = transform.trim()
         val i = sft.indexOf(name)
         if (i == -1) {
-          attributeExpression(sft, name)
+          attributeExpression(sft, name, name)
         } else {
           PropertyTransform(name, sft.getDescriptor(i).getType.getBinding, i)
         }
@@ -146,7 +146,7 @@ object Transform {
             val orig = p.getPropertyName
             val i = sft.indexOf(orig)
             if (i == -1) {
-              attributeExpression(sft, orig).copy(name = name)
+              attributeExpression(sft, name, p)
             } else if (name == orig) {
               PropertyTransform(name, sft.getDescriptor(i).getType.getBinding, i)
             } else {
@@ -165,18 +165,33 @@ object Transform {
      * to any attribute (e.g. in AttributeKeyPlusValueIterator)
      *
      * @param sft simple feature type
+     * @param name transform name
      * @param e expression
      * @return
      */
-    private def attributeExpression(sft: SimpleFeatureType, e: String): ExpressionTransform = {
-      try {
-        val expression = ECQL.toExpression(e)
-        val descriptor = expression.evaluate(sft).asInstanceOf[AttributeDescriptor]
-        val binding = if (descriptor == null) { classOf[String] } else { descriptor.getType.getBinding }
-        ExpressionTransform(e, binding, expression)
-      } catch {
+    private def attributeExpression(sft: SimpleFeatureType, name: String, e: String): ExpressionTransform = {
+      val expression = try { ECQL.toExpression(e) } catch {
         case NonFatal(e) => throw new IllegalArgumentException(s"Unable to parse expression '$e':", e)
       }
+      attributeExpression(sft, name, expression)
+    }
+
+    /**
+     * This handles custom attribute accessors (e.g. json-path) and transforms that don't correspond
+     * to any attribute (e.g. in AttributeKeyPlusValueIterator)
+     *
+     * @param sft simple feature type
+     * @param name transform name
+     * @param expression expression
+     * @return
+     */
+    private def attributeExpression(
+        sft: SimpleFeatureType,
+        name: String,
+        expression: Expression): ExpressionTransform = {
+      val descriptor = expression.evaluate(sft).asInstanceOf[AttributeDescriptor]
+      val binding = if (descriptor == null) { classOf[String] } else { descriptor.getType.getBinding }
+      ExpressionTransform(name, binding, expression)
     }
 
     /**
