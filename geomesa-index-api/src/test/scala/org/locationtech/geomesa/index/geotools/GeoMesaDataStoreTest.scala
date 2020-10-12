@@ -86,12 +86,22 @@ class GeoMesaDataStoreTest extends Specification {
         "name = 'bob'",
         "IN('123')",
         "bbox(geom,0,0,.2,.4) AND dtg during 2020-01-01T00:00:00.000Z/2020-02-01T00:00:00.000Z",
+        // Three Corner cases.
+        // Note that these periods are technically under the limit by two seconds.
+        "bbox(geom,0,0,1,1) AND dtg during 2020-01-01T00:00:00.000Z/P60D",
+        "bbox(geom,0,0,2,5) AND dtg during 2020-01-01T00:00:00.000Z/P3D",
+        "bbox(geom,-180,-90,180,90) AND dtg during 2020-01-01T00:00:00.000Z/P1D",
         "bbox(geom,0,0,2,4) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-02T00:00:00.000Z",
         "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-01T23:00:00.000Z",
         "bbox(geom,-10,-10,10,10) AND (dtg during 2020-01-01T00:00:00.000Z/2020-01-01T00:59:59.000Z OR dtg during 2020-01-01T12:00:00.000Z/2020-01-01T12:59:59.000Z)"
       )
 
       val invalid = Seq(
+        // Corner cases.  During seems to exclude the start and end.
+        // To get a period of a given length one needs to add 2 seconds.
+        "bbox(geom,0,0,1,1) AND dtg during 2020-01-01T00:00:00.000Z/P60DT3S",
+        "bbox(geom,0,0,2,5) AND dtg during 2020-01-01T00:00:00.000Z/P3DT3S",
+        "bbox(geom,-180,-90,180,90) AND dtg during 2020-01-01T00:00:00.000Z/P1DT3S",
         "bbox(geom,0,0,.2,.4) AND dtg during 2020-01-01T00:00:00.000Z/2020-04-02T00:00:00.000Z",
         "bbox(geom,0,0,2,4) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-05T00:00:00.000Z",
         "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-03T00:00:00.000Z",

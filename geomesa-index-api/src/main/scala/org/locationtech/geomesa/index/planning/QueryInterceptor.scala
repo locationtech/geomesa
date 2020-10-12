@@ -200,17 +200,17 @@ object QueryInterceptor extends LazyLogging {
      * @param limits Sequence of limits
      * @return Sorted list of limits or throws an IllegalArgumentException
      */
-    def evaluateLimits(limits: Seq[SizeAndDuration]): Seq[SizeAndDuration] = {
-      val candidate: Seq[SizeAndDuration] = limits.sortBy(_.sizeLimit)
-      candidate.sliding(2).foreach { seq =>
-        val first = seq.head
-        val second = seq.tail.head
-        if (first.sizeLimit == second.sizeLimit) {
-          throw new IllegalArgumentException(s"Graduated query guard configuration " +
-            s"has repeated size: ${first.sizeLimit}")
-        } else if (first.durationLimit.compareTo(second.durationLimit) <= 0) {
-          throw new IllegalArgumentException(s"Graduated query guard configuration " +
-            s"has durations out of order: ${first.durationLimit} is less than ${second.durationLimit}")
+    private def evaluateLimits(limits: Seq[SizeAndDuration]): Seq[SizeAndDuration] = {
+      val candidate = limits.sortBy(_.sizeLimit)
+      if (candidate.size > 1) {
+        candidate.sliding(2).foreach { case Seq(first, second) =>
+          if (first.sizeLimit == second.sizeLimit) {
+            throw new IllegalArgumentException(s"Graduated query guard configuration " +
+              s"has repeated size: ${first.sizeLimit}")
+          } else if (first.durationLimit.compareTo(second.durationLimit) <= 0) {
+            throw new IllegalArgumentException(s"Graduated query guard configuration " +
+              s"has durations out of order: ${first.durationLimit} is less than ${second.durationLimit}")
+          }
         }
       }
       candidate
@@ -268,14 +268,16 @@ object QueryInterceptor extends LazyLogging {
       }
 
       intervalsOption match {
-        case None => // Q: What does None here mean again?!
-          None       // Returning None means that the query continues.  Is this correct?
+        // The None case reflects a query without a temporal extent or a full-table scan on a table with a temporal extent
+        // The full-table scan block should be used to avoid the later case.
+        // Here a none is returned indicating that this guard does not stop the query
+        case None => None
         case Some(intervals) =>
           if (!intervals.forall(_.isBoundedBothSides) || intervals.isEmpty) {
             Some(new IllegalArgumentException("At least one part of the query is temporally unbounded.  Add bounded temporal constraints."))
           } else {
             val queryDuration = duration(intervals.values)
-            guardLimits.find( _.sizeLimit > spatialExtent).flatMap {
+            guardLimits.find( _.sizeLimit >= spatialExtent).flatMap {
               limit =>
                 if (queryDuration > limit.durationLimit) {
                   Some(new IllegalArgumentException(s"Query of spatial size: $spatialExtent and duration: $queryDuration failed with constraint: $limit"))
