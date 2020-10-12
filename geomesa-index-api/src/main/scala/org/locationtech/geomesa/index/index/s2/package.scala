@@ -17,5 +17,8 @@ package object s2 {
   case class S2IndexValues(
                             sfc: S2SFC,
                             geometries: FilterValues[Geometry],
-                            spatialBounds: Seq[(Double, Double, Double, Double)]) extends SpatialIndexValues
+                            @deprecated("Use spatialBounds instead.")
+                            bounds: Seq[(Double, Double, Double, Double)]) extends SpatialIndexValues {
+    override def spatialBounds: Seq[(Double, Double, Double, Double)] = bounds
+  }
 }

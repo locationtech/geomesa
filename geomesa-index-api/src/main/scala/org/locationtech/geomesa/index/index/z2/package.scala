@@ -16,9 +16,15 @@ package object z2 {
 
   case class Z2IndexValues(sfc: Z2SFC,
                            geometries: FilterValues[Geometry],
-                           spatialBounds: Seq[(Double, Double, Double, Double)]) extends SpatialIndexValues
+                           @deprecated("Use spatialBounds instead.")
+                           bounds: Seq[(Double, Double, Double, Double)]) extends SpatialIndexValues {
+    override def spatialBounds: Seq[(Double, Double, Double, Double)] = bounds
+  }
 
   case class XZ2IndexValues(sfc: XZ2SFC,
                             geometries: FilterValues[Geometry],
-                            spatialBounds: Seq[(Double, Double, Double, Double)]) extends SpatialIndexValues
+                            @deprecated("Use spatialBounds instead.")
+                            bounds: Seq[(Double, Double, Double, Double)]) extends SpatialIndexValues {
+    override def spatialBounds: Seq[(Double, Double, Double, Double)] = bounds
+  }
 }
