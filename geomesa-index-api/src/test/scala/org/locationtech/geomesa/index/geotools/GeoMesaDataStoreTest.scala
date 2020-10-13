@@ -131,9 +131,13 @@ class GeoMesaDataStoreTest extends Specification {
           |   { size = 1, duration = "60 days" }
           |   { duration = "1 day" }
           | ]
+          |   "no-upper-bound" = [
+          |   { size = 1,  duration = "3 days"  }
+          |   { size = 1, duration = "60 days" }
+          | ]
           |""".stripMargin
 
-      forall(Seq("out-of-order", "repeated-size")) {
+      forall(Seq("out-of-order", "repeated-size", "no-upper-bound")) {
         path =>
           val configList = ConfigFactory.parseReader(new StringReader(configString)).getConfigList(path)
           GraduatedQueryGuard.buildLimits(configList) must throwAn[IllegalArgumentException]
@@ -196,7 +200,7 @@ class GeoMesaDataStoreTest extends Specification {
         "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
       sft.getUserData.put("geomesa.query.interceptors",
         "org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard");
-      sft.getUserData.put("geomesa.filter.max.duration", "1 day")
+      sft.getUserData.put("geomesa.guard.temporal.max.duration", "1 day")
 
       val ds = new TestGeoMesaDataStore(true)
       ds.createSchema(sft)

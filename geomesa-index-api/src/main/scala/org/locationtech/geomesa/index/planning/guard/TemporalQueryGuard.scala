@@ -42,9 +42,8 @@ class TemporalQueryGuard extends QueryInterceptor {
   }
 
   override def close(): Unit = {}
-
 }
 
 object TemporalQueryGuard {
-  val Config = "geomesa.filter.max.duration"
+  val Config = "geomesa.guard.temporal.max.duration"
 }

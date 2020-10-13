@@ -14,7 +14,7 @@ import java.util
 import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query}
-import org.locationtech.geomesa.filter.{Bounds, FilterValues}
+import org.locationtech.geomesa.filter.{Bounds, FilterValues, filterToString}
 import org.locationtech.geomesa.index.api
 import org.locationtech.geomesa.index.index.{SpatialIndexValues, TemporalIndexValues}
 import org.locationtech.geomesa.index.planning.QueryInterceptor
@@ -26,29 +26,12 @@ import scala.concurrent.duration.Duration
 class GraduatedQueryGuard extends QueryInterceptor {
   var guardLimits: Seq[SizeAndDuration] = Seq()
 
-  /**
-   * Called exactly once after the interceptor is instantiated
-   *
-   * @param ds  data store
-   * @param sft simple feature type
-   */
   override def init(ds: DataStore, sft: SimpleFeatureType): Unit = {
     guardLimits = loadConfiguration(sft)
   }
 
-  /**
-   * Modifies the query in place
-   *
-   * @param query query
-   */
   override def rewrite(query: Query): Unit = { }
 
-  /**
-   * Hook to allow interception of a query after extracting the query values
-   *
-   * @param strategy query strategy
-   * @return an exception if the query should be stopped
-   */
   override def guard(strategy: api.QueryStrategy): Option[IllegalArgumentException] = {
     val intervalsOption: Option[FilterValues[Bounds[ZonedDateTime]]] = strategy.values.collect { case v: TemporalIndexValues => v.intervals }
     val spatialBoundsOption: Option[Seq[(Double, Double, Double, Double)]] = strategy.values.collect { case v: SpatialIndexValues => v.spatialBounds }
@@ -73,7 +56,10 @@ class GraduatedQueryGuard extends QueryInterceptor {
           guardLimits.find( _.sizeLimit >= spatialExtent).flatMap {
             limit =>
               if (queryDuration > limit.durationLimit) {
-                Some(new IllegalArgumentException(s"Query of spatial size: $spatialExtent and duration: $queryDuration failed with constraint: $limit"))
+                Some(new IllegalArgumentException(
+                  s"Query of this size exceeds maximum allowed filter duration of ${limit.durationLimit}: " +
+                    s"${filterToString(strategy.filter.filter)}. " +
+                    s"Try a small spatial extent or a shorter time range."))
               } else {
                 None
               }
@@ -85,7 +71,7 @@ class GraduatedQueryGuard extends QueryInterceptor {
   override def close(): Unit = { }
 }
 object GraduatedQueryGuard extends LazyLogging {
-  val ConfigPath = "geomesa.guards.graduated-guard"
+  val ConfigPath = "geomesa.guard.graduated"
 
   /**
    *
@@ -126,6 +112,10 @@ object GraduatedQueryGuard extends LazyLogging {
             s"has durations out of order: ${first.durationLimit} is less than ${second.durationLimit}")
         }
       }
+    }
+    if (candidate.last.sizeLimit != Int.MaxValue) {
+      throw new IllegalArgumentException(s"Graduated query guard configuration must include " +
+        "unbounded restriction.")
     }
     candidate
   }
