@@ -21,6 +21,7 @@ class ConfigLoaderTest extends Specification {
       config.get("geomesa.config.test1") must beSome(("1", false))
       config.get("geomesa.config.test2") must beSome(("2", true)) // Final
       config.get("geomesa.config.test3") must beNone
+      config.get("geomesa.config.test4.no.final") must beSome(("4", false)) // Final
     }
   }
 }

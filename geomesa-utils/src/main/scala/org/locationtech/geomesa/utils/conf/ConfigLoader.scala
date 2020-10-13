@@ -56,7 +56,7 @@ object ConfigLoader extends LazyLogging {
         val key = (prop \ "name").text
         val value = (prop \ "value").text
         // don't overwrite properties, this gives commandline params preference
-        val isFinal: Boolean = (prop \ "final").text.toString.toBoolean
+        val isFinal: Boolean = java.lang.Boolean.parseBoolean((prop \ "final").text)
         key -> (value, isFinal)
       }
       pair match {
