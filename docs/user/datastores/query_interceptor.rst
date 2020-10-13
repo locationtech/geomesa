@@ -81,12 +81,11 @@ to ``geomesa.query.interceptors`` as indicated above, and set the duration using
     sft.getUserData().put("geomesa.guard.temporal.max.duration", "28 days");
 
 Graduated Query Guard
-++++++++++++++++++++
++++++++++++++++++++++
 
 The graduated query guard applies different duration limits based on the spatial extent of the query.
 As a query becomes larger in space, it can be limited to shorter and shorter time ranges.
-The spatial extent of a query is measured in square degrees.  A series of rules limit the duration for queries
-which are at most a given size in square degrees.
+A series of rules limit the duration for queries which are at most a given size in square degrees.
 
 To enable the guard, add ``org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard``
 to ``geomesa.query.interceptors`` as indicated above.  Configuration is managed via TypeSafe config.
