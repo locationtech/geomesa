@@ -641,7 +641,7 @@ to ``geomesa.query.interceptors`` as indicated above, and set the duration using
 
     sft.getUserData().put("geomesa.query.interceptors",
       "org.locationtech.geomesa.index.planning.QueryInterceptor$TemporalQueryGuard");
-    sft.getUserData().put("geomesa.filter.max.duration", "1 month");
+    sft.getUserData().put("geomesa.filter.max.duration", "28 days");
 
 For additional controls, see ``geomesa.query.timeout`` and ``geomesa.scan.block-full-table`` in
 :ref:`geomesa_site_xml`.
