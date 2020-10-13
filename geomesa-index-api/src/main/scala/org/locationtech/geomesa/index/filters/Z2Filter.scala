@@ -43,7 +43,7 @@ object Z2Filter extends RowFilterFactory[Z2Filter] {
 
   def apply(values: Z2IndexValues): Z2Filter = {
     val sfc = values.sfc
-    val xy: Array[Array[Int]] = values.bounds.map { case (xmin, ymin, xmax, ymax) =>
+    val xy: Array[Array[Int]] = values.spatialBounds.map { case (xmin, ymin, xmax, ymax) =>
       Array(sfc.lon.normalize(xmin), sfc.lat.normalize(ymin), sfc.lon.normalize(xmax), sfc.lat.normalize(ymax))
     }.toArray
 

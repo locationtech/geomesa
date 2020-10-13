@@ -55,6 +55,13 @@ package object index {
   }
 
   /**
+   * Index values with a spatial component
+   */
+  trait SpatialIndexValues {
+    def spatialBounds: Seq[(Double, Double, Double, Double)]
+  }
+
+  /**
    * Index values with a temporal component
    */
   trait TemporalIndexValues {
