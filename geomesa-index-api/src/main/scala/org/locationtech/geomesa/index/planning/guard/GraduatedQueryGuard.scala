@@ -112,6 +112,8 @@ object GraduatedQueryGuard extends LazyLogging {
             s"has durations out of order: ${first.durationLimit} is less than ${second.durationLimit}")
         }
       }
+    } else if (candidate.isEmpty) {
+      throw new IllegalArgumentException(s"Graduated query guard configuration is empty.")
     }
     if (candidate.last.sizeLimit != Int.MaxValue) {
       throw new IllegalArgumentException(s"Graduated query guard configuration must include " +

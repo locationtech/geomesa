@@ -88,7 +88,12 @@ As a query becomes larger in space, it can be limited to shorter and shorter tim
 A series of rules limit the duration for queries which are at most a given size in square degrees.
 
 To enable the guard, add ``org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard``
-to ``geomesa.query.interceptors`` as indicated above.  Configuration is managed via TypeSafe config.
+to ``geomesa.query.interceptors`` as indicated above.  Configuration is managed via
+`TypeSafe Config <https://github.com/lightbend/config>`_ which will look for files named
+``reference.conf`` and/or ``application.conf`` on the classpath.
+For use in GeoServer, a file name ``reference.conf`` can be added to ``WEB-INF/classes``.
+The configuration is under the key ``geomesa.guard.graduated``.
+
 The configuration must satisfy a few conditions:
 
 * there must be a limit on unbounded queries,
@@ -110,5 +115,3 @@ An example is given here.  Durations can be given in a number of days, hours, or
         }
       }
     }
-
-For use in GeoServer, a file name ``reference.conf`` can be added to ``WEB-INF/classes``.
