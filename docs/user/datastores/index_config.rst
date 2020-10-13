@@ -634,13 +634,13 @@ to return a larger time period will be stopped. This will not affect queries aga
 a temporal component (for example, feature ID and attribute queries), nor queries that do not have any temporal
 component at all (which can usually be blocked by ``geomesa.scan.block-full-table``).
 
-To enable the guard, add ``org.locationtech.geomesa.index.planning.QueryInterceptor$TemporalQueryGuard``
+To enable the guard, add ``org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard``
 to ``geomesa.query.interceptors`` as indicated above, and set the duration using ``geomesa.filter.max.duration``:
 
 .. code-block:: java
 
     sft.getUserData().put("geomesa.query.interceptors",
-      "org.locationtech.geomesa.index.planning.QueryInterceptor$TemporalQueryGuard");
+      "org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard");
     sft.getUserData().put("geomesa.filter.max.duration", "28 days");
 
 For additional controls, see ``geomesa.query.timeout`` and ``geomesa.scan.block-full-table`` in

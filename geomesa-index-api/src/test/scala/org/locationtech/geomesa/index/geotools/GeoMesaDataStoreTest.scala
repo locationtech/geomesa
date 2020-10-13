@@ -34,7 +34,7 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.planning.QueryInterceptor
-import org.locationtech.geomesa.index.planning.QueryInterceptor.GraduatedQueryGuard
+import org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
@@ -77,7 +77,7 @@ class GeoMesaDataStoreTest extends Specification {
         "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
       // NB: Uses configuration in the test reference.conf
       sft.getUserData.put("geomesa.query.interceptors",
-        "org.locationtech.geomesa.index.planning.QueryInterceptor$GraduatedQueryGuard")
+        "org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard")
 
       val ds = new TestGeoMesaDataStore(true)
       ds.createSchema(sft)
@@ -195,7 +195,7 @@ class GeoMesaDataStoreTest extends Specification {
       val sft = SimpleFeatureTypes.createType("test",
         "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
       sft.getUserData.put("geomesa.query.interceptors",
-        "org.locationtech.geomesa.index.planning.QueryInterceptor$TemporalQueryGuard");
+        "org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard");
       sft.getUserData.put("geomesa.filter.max.duration", "1 day")
 
       val ds = new TestGeoMesaDataStore(true)
