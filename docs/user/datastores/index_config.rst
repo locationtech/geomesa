@@ -626,7 +626,7 @@ on the results of query interceptors, you can enable ``TRACE``-level logging on 
 ``org.locationtech.geomesa.index.planning.QueryRunner$``.
 
 Temporal Query Guard
-++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^
 
 GeoMesa provides a basic implementation of a query interceptor that will block overly broad queries
 (which can overwhelm the system). A maximum temporal duration must be specified, and any query which attempts
