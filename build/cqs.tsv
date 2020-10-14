@@ -300,7 +300,7 @@ org.springframework:spring-web	4.3.18.RELEASE	provided
 
 io.confluent:kafka-schema-registry	5.1.0	test
 io.confluent:kafka-schema-registry	tests:5.1.0	test
-junit:junit	4.12	test
+junit:junit	4.13.1	test
 org.apache.accumulo:accumulo-minicluster	2.0.0	test
 org.apache.accumulo:accumulo-test	2.0.0	test
 org.apache.arrow:arrow-vector	tests:0.16.0	test

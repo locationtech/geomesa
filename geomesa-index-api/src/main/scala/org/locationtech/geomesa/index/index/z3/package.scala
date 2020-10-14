@@ -51,7 +51,7 @@ package object z3 {
       intervals: FilterValues[Bounds[ZonedDateTime]],
       temporalBounds: Map[Short, Seq[(Long, Long)]],
       temporalUnbounded: Seq[(Short, Short)]
-    ) extends TemporalIndexValues
+    ) extends TemporalIndexValues with SpatialIndexValues
 
   /**
    * Index values extracted from a filter for xz3 queries
@@ -73,5 +73,5 @@ package object z3 {
       intervals: FilterValues[Bounds[ZonedDateTime]],
       temporalBounds: Map[Short, (Double, Double)],
       temporalUnbounded: Seq[(Short, Short)]
-    ) extends TemporalIndexValues
+    ) extends TemporalIndexValues with SpatialIndexValues
 }

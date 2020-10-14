@@ -22,7 +22,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ant.version>1.9.4</ant.version>
+        <ant.version>1.9.15</ant.version>
         <target>html</target>
     </properties>
 

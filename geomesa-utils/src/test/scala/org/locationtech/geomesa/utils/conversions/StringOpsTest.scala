@@ -6,22 +6,26 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.utils.conf
+package org.locationtech.geomesa.utils.conversions
 
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ConfigLoaderTest extends Specification {
+class StringOpsTest extends Specification {
 
-  "ConfigLoader" should {
-    "load config files" in {
-      val config = ConfigLoader.loadConfig("geomesa-fake.xml")
-      config.get("geomesa.config.test1") must beSome(("1", false))
-      config.get("geomesa.config.test2") must beSome(("2", true)) // Final
-      config.get("geomesa.config.test3") must beNone
-      config.get("geomesa.config.test4.no.final") must beSome(("4", false)) // Final
+  import StringOps.RichString
+
+  "RichString" should {
+    "strip margin and whitespace" in {
+      "blobMap:Map[String, Bytes]".stripMarginAndWhitespace() mustEqual "blobMap:Map[String, Bytes]"
+      """foo
+        |  bar baz
+        |    blue""".stripMarginAndWhitespace() mustEqual
+          """foo
+            |bar baz
+            |blue""".stripMargin
     }
   }
 }
