@@ -262,12 +262,12 @@ object ArrowConversionProcess {
       buildResult(dictionaries, sorted)
     }
 
-    private def buildResult(dictionaries: Map[String, ArrowDictionary], sorted: Iterator[SimpleFeature]) = {
+    private def buildResult(dictionaries: Map[String, ArrowDictionary],
+                            sorted: Iterator[SimpleFeature]): Iterator[Array[Byte]] = {
       val out = new ByteArrayOutputStream()
-      // Closing the SimpleFeatureArrowFileWriter should close the ByteArrayOutputStream
-      WithClose(SimpleFeatureArrowFileWriter(out, sft, dictionaries, encoding, ipcOpts, sort)) { writer =>
-        val bytes = ListBuffer.empty[Array[Byte]]
+      val bytes = ListBuffer.empty[Array[Byte]]
 
+      WithClose(SimpleFeatureArrowFileWriter(out, sft, dictionaries, encoding, ipcOpts, sort)) { writer =>
         while (sorted.hasNext) { // send batches
           var i = 0
           while (i < batchSize && sorted.hasNext) {
@@ -278,10 +278,9 @@ object ArrowConversionProcess {
           bytes.append(out.toByteArray)
           out.reset()
         }
-
-        bytes.append(out.toByteArray)
-        bytes.iterator
       }
+      bytes.append(out.toByteArray)
+      bytes.iterator
     }
   }
 
