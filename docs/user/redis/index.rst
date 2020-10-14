@@ -29,4 +29,3 @@ To get started with the Redis Data Store, try the :doc:`/tutorials/geomesa-quick
     commandline
     configuration
     index_config
-    visibilities

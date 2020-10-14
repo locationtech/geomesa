@@ -40,7 +40,7 @@ object S2Filter extends RowFilterFactory[S2Filter] {
   val XYKey = "sxy"
 
   def apply(values: S2IndexValues): S2Filter = {
-    val xy = values.bounds.map { case (xmin, ymin, xmax, ymax) => Array(xmin, ymin, xmax, ymax) }
+    val xy = values.spatialBounds.map { case (xmin, ymin, xmax, ymax) => Array(xmin, ymin, xmax, ymax) }
     new S2Filter(xy.toArray)
   }
 

@@ -252,10 +252,7 @@ object ArrowConversionProcess {
       }
 
       val ordering = if (preSorted) { None } else {
-        sort.map { case (field, reverse) =>
-          val o = SimpleFeatureOrdering(sft.indexOf(field))
-          if (reverse) { o.reverse } else { o }
-        }
+        sort.map { case (field, reverse) => SimpleFeatureOrdering(sft, field, reverse) }
       }
       val sorted = ordering match {
         case None    => features.iterator

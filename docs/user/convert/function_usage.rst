@@ -369,6 +369,15 @@ Usage: ``dateToString($pattern, $date)``
 
 Example: ``dateToString('yyyy-MM-dd\\'T\\'HH:mm:ss.SSSSSS', now())``
 
+dateToMillis
+^^^^^^^^^^^^
+
+Description: Converts a date to milliseconds since the Java epoch (January 1, 1970).
+
+Usage: ``dateToMillis($date)``
+
+Example: ``dateToMillis(now())``
+
 Geometry Functions
 ~~~~~~~~~~~~~~~~~~
 

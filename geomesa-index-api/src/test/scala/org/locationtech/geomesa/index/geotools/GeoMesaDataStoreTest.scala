@@ -8,13 +8,19 @@
 
 package org.locationtech.geomesa.index.geotools
 
+import java.io.StringReader
+import java.util.Collections
+
+import com.typesafe.config.ConfigFactory
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureSource}
 import org.geotools.data.store.{ReTypingFeatureCollection, ReprojectingFeatureCollection}
+import org.geotools.data.util.NullProgressListener
 import org.geotools.data.{DataStore, Query, Transaction}
+import org.geotools.factory.CommonFactoryFinder
 import org.geotools.feature.collection.{DecoratingFeatureCollection, DecoratingSimpleFeatureCollection}
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder
-import org.geotools.feature.visitor.CalcResult
+import org.geotools.feature.visitor._
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.{JTS, ReferencedEnvelope}
 import org.geotools.referencing.CRS
@@ -22,18 +28,20 @@ import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreTest.{TestFeatureCollection, TestQueryInterceptor, TestSimpleFeatureCollection, TestVisitor}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.SchemaCompatibility
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreTest._
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.planning.QueryInterceptor
+import org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard
 import org.locationtech.geomesa.index.process.GeoMesaProcessVisitor
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpecParser
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
-import org.locationtech.jts.geom.{Geometry, Point}
+import org.locationtech.jts.geom.{Envelope, Geometry, Point}
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -44,6 +52,8 @@ import org.specs2.runner.JUnitRunner
 class GeoMesaDataStoreTest extends Specification {
 
   import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
+
+  import scala.collection.JavaConverters._
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
 
@@ -62,6 +72,77 @@ class GeoMesaDataStoreTest extends Specification {
   }
 
   "GeoMesaDataStore" should {
+    "block queries with an excessive duration using custom query guard" in {
+      val sft = SimpleFeatureTypes.createType("test",
+        "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
+      // NB: Uses configuration in the test reference.conf
+      sft.getUserData.put("geomesa.query.interceptors",
+        "org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard")
+
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      val valid = Seq(
+        "name = 'bob'",
+        "IN('123')",
+        "bbox(geom,0,0,.2,.4) AND dtg during 2020-01-01T00:00:00.000Z/2020-02-01T00:00:00.000Z",
+        // Three Corner cases.
+        // Note that these periods are technically under the limit by two seconds.
+        "bbox(geom,0,0,1,1) AND dtg during 2020-01-01T00:00:00.000Z/P60D",
+        "bbox(geom,0,0,2,5) AND dtg during 2020-01-01T00:00:00.000Z/P3D",
+        "bbox(geom,-180,-90,180,90) AND dtg during 2020-01-01T00:00:00.000Z/P1D",
+        "bbox(geom,0,0,2,4) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-02T00:00:00.000Z",
+        "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-01T23:00:00.000Z",
+        "bbox(geom,-10,-10,10,10) AND (dtg during 2020-01-01T00:00:00.000Z/2020-01-01T00:59:59.000Z OR dtg during 2020-01-01T12:00:00.000Z/2020-01-01T12:59:59.000Z)"
+      )
+
+      val invalid = Seq(
+        // Corner cases.  During seems to exclude the start and end.
+        // To get a period of a given length one needs to add 2 seconds.
+        "bbox(geom,0,0,1,1) AND dtg during 2020-01-01T00:00:00.000Z/P60DT3S",
+        "bbox(geom,0,0,2,5) AND dtg during 2020-01-01T00:00:00.000Z/P3DT3S",
+        "bbox(geom,-180,-90,180,90) AND dtg during 2020-01-01T00:00:00.000Z/P1DT3S",
+        "bbox(geom,0,0,.2,.4) AND dtg during 2020-01-01T00:00:00.000Z/2020-04-02T00:00:00.000Z",
+        "bbox(geom,0,0,2,4) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-05T00:00:00.000Z",
+        "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-03T00:00:00.000Z",
+        "bbox(geom,-10,-10,10,10) AND dtg after 2020-01-01T00:00:00.000Z"
+      )
+
+      foreach(valid.map(ECQL.toFilter)) { filter =>
+        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+          beEmpty
+      }
+
+      foreach(invalid.map(ECQL.toFilter)) { filter =>
+        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+          throwAn[IllegalArgumentException]
+      }
+    }
+    "graduated guard needs to be valid" in {
+      val configString =
+        """
+          | "out-of-order" = [
+          |   { size = 1,  duration = "3 days"  }
+          |   { size = 10, duration = "60 days" }
+          |   { duration = "1 day" }
+          | ]
+          |  "repeated-size" = [
+          |   { size = 1,  duration = "3 days"  }
+          |   { size = 1, duration = "60 days" }
+          |   { duration = "1 day" }
+          | ]
+          |   "no-upper-bound" = [
+          |   { size = 1,  duration = "3 days"  }
+          |   { size = 1, duration = "60 days" }
+          | ]
+          |""".stripMargin
+
+      forall(Seq("out-of-order", "repeated-size", "no-upper-bound")) {
+        path =>
+          val configList = ConfigFactory.parseReader(new StringReader(configString)).getConfigList(path)
+          GraduatedQueryGuard.buildLimits(configList) must throwAn[IllegalArgumentException]
+      }
+    }
     "reproject geometries" in {
       val query = new Query("test")
       query.setCoordinateSystemReproject(epsg3857)
@@ -113,6 +194,38 @@ class GeoMesaDataStoreTest extends Specification {
       // other queries should go through as normal
       results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, ECQL.toFilter("bbox(geom,39,54,51,56)")), Transaction.AUTO_COMMIT)).toSeq
       results must haveLength(10)
+    }
+    "block queries with an excessive duration" in {
+      val sft = SimpleFeatureTypes.createType("test",
+        "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
+      sft.getUserData.put("geomesa.query.interceptors",
+        "org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard");
+      sft.getUserData.put("geomesa.guard.temporal.max.duration", "1 day")
+
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      val valid = Seq(
+        "name = 'bob'",
+        "IN('123')",
+        "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-01T23:59:59.000Z",
+        "bbox(geom,-10,-10,10,10) AND (dtg during 2020-01-01T00:00:00.000Z/2020-01-01T00:59:59.000Z OR dtg during 2020-01-01T12:00:00.000Z/2020-01-01T12:59:59.000Z)"
+      )
+
+      val invalid = Seq(
+        "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-03T23:59:59.000Z",
+        "bbox(geom,-10,-10,10,10) AND dtg after 2020-01-01T00:00:00.000Z"
+      )
+
+      foreach(valid.map(ECQL.toFilter)) { filter =>
+        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+            beEmpty
+      }
+
+      foreach(invalid.map(ECQL.toFilter)) { filter =>
+        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+            throwAn[IllegalArgumentException]
+      }
     }
     "update schemas" in {
       foreach(Seq(true, false)) { partitioning =>
@@ -211,6 +324,57 @@ class GeoMesaDataStoreTest extends Specification {
         ds.stats.getMinMax[String](sft, "n", exact = false).map(_.max) must beSome("name0")
       }
     }
+    "update compatible schemas from typesafe config changes" in {
+      import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+
+      def toSft(config: String): SimpleFeatureType = SimpleFeatureTypes.createType(ConfigFactory.parseString(config))
+
+      val ds = new TestGeoMesaDataStore(true)
+      val missingConfig =
+        """{
+          |  type-name = "test"
+          |  attributes = [
+          |    { name = "type", type = "String"                             }
+          |    { name = "dtg",  type = "Date",  default = true              }
+          |    { name = "geom", type = "Point", default = true, srid = 4326 }
+          |  ]
+          |  user-data = {
+          |    "geomesa.indices.enabled" = "z3:geom:dtg,attr:type:dtg"
+          |  }
+          |}""".stripMargin
+
+      val missing = ds.checkSchemaCompatibility("test", toSft(missingConfig))
+      missing must beAnInstanceOf[SchemaCompatibility.DoesNotExist]
+      missing.apply()
+
+      val original = ds.getSchema("test")
+      original must not(beNull)
+
+      ds.checkSchemaCompatibility("test", toSft(missingConfig)) mustEqual SchemaCompatibility.Unchanged
+
+      val addIndexConfig = missingConfig.replace("z3", "id,z3")
+
+      val addIndex = ds.checkSchemaCompatibility("test", toSft(addIndexConfig))
+      addIndex must beAnInstanceOf[SchemaCompatibility.Compatible]
+      addIndex.apply()
+
+      val updateAddIndex = ds.getSchema("test")
+      updateAddIndex.getIndices.map(_.name).toSet mustEqual Set("id", "z3", "attr")
+
+      ds.checkSchemaCompatibility("test", toSft(addIndexConfig)) mustEqual SchemaCompatibility.Unchanged
+
+      val addAttributeConfig = addIndexConfig.replace("]", s"""    { name = "name", type = "String" }${"\n"}]""")
+
+      val addAttribute = ds.checkSchemaCompatibility("test", toSft(addAttributeConfig))
+      addAttribute must beAnInstanceOf[SchemaCompatibility.Compatible]
+      addAttribute.apply()
+
+      val updateAddAttribute = ds.getSchema("test")
+      updateAddAttribute.getAttributeDescriptors.asScala.map(_.getLocalName) mustEqual
+          Seq("type", "dtg", "geom", "name")
+
+      ds.checkSchemaCompatibility("test", toSft(addAttributeConfig)) mustEqual SchemaCompatibility.Unchanged
+    }
     "unwrap decorating feature collections" in {
       val fc = ds.getFeatureSource(sft.getTypeName).getFeatures()
       val collections = Seq(
@@ -257,6 +421,96 @@ class GeoMesaDataStoreTest extends Specification {
         ds.getQueryPlan(new Query("temporal", ECQL.toFilter(f))).map(_.filter.index.name) mustEqual Seq(temporal.name)
       }
     }
+    "optimize average visitors" in {
+      val visitor = new AverageVisitor("age", sft)
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      visitor.getResult.getValue mustEqual
+          (features.map(_.getAttribute("age").asInstanceOf[Int]).sum.toDouble / features.length)
+      listener.warning must beNone
+    }
+    "optimize bounds visitors" in {
+      val visitor = new BoundsVisitor()
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      val expected = new Envelope()
+      features.foreach(f => expected.expandToInclude(f.getDefaultGeometry.asInstanceOf[Geometry].getEnvelopeInternal))
+      visitor.getResult.getValue mustEqual expected
+      listener.warning must beNone
+    }
+    "optimize count visitors" in {
+      val visitor = new CountVisitor()
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      visitor.getCount mustEqual features.size
+      listener.warning must beNone
+    }
+    "optimize max visitors" in {
+      val visitor = new MaxVisitor("age", sft)
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      visitor.getResult.getValue mustEqual 9
+      listener.warning must beNone
+    }
+    "optimize groupBy count visitors" in {
+      val prop = CommonFactoryFinder.getFilterFactory2.property("age")
+      val listener = new TestProgressListener()
+      val visitor = new GroupByVisitor(Aggregate.COUNT, prop, Collections.singletonList(prop), listener)
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      val result = visitor.getResult.getValue
+      result must beAnInstanceOf[Array[Array[_]]]
+      result.asInstanceOf[Array[Array[_]]] must haveLength(features.size)
+      result.asInstanceOf[Array[Array[_]]].toSeq.map(_.toSeq) must
+          containTheSameElementsAs(features.map(f => Seq(f.getAttribute("age"), 1)))
+      listener.warning must beNone
+    }
+    "optimize groupBy max visitors" in {
+      val prop = CommonFactoryFinder.getFilterFactory2.property("age")
+      val listener = new TestProgressListener()
+      val visitor = new GroupByVisitor(Aggregate.MAX, prop, Collections.singletonList(prop), listener)
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      val result = visitor.getResult.getValue
+      result must beAnInstanceOf[Array[Array[_]]]
+      result.asInstanceOf[Array[Array[_]]] must haveLength(features.size)
+      result.asInstanceOf[Array[Array[_]]].toSeq.map(_.toSeq) must
+          containTheSameElementsAs(features.map(f => Seq(f.getAttribute("age"), f.getAttribute("age"))))
+      listener.warning must beNone
+    }
+    "optimize groupBy min visitors" in {
+      val prop = CommonFactoryFinder.getFilterFactory2.property("age")
+      val listener = new TestProgressListener()
+      val visitor = new GroupByVisitor(Aggregate.MIN, prop, Collections.singletonList(prop), listener)
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      val result = visitor.getResult.getValue
+      result must beAnInstanceOf[Array[Array[_]]]
+      result.asInstanceOf[Array[Array[_]]] must haveLength(features.size)
+      result.asInstanceOf[Array[Array[_]]].toSeq.map(_.toSeq) must
+          containTheSameElementsAs(features.map(f => Seq(f.getAttribute("age"), f.getAttribute("age"))))
+      listener.warning must beNone
+    }
+    "optimize min visitors" in {
+      val visitor = new MinVisitor("age", sft)
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      visitor.getResult.getValue mustEqual 0
+      listener.warning must beNone
+    }
+    "optimize sum visitors" in {
+      val visitor = new SumVisitor("age", sft)
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      visitor.getResult.getValue mustEqual features.map(_.getAttribute("age").asInstanceOf[Int]).sum
+      listener.warning must beNone
+    }
+    "optimize unique visitors" in {
+      val visitor = new UniqueVisitor("name", sft)
+      val listener = new TestProgressListener()
+      ds.getFeatureSource(sft.getTypeName).getFeatures().accepts(visitor, listener)
+      val result = visitor.getResult.getValue
+      result must beAnInstanceOf[java.util.Set[AnyRef]]
+      result.asInstanceOf[java.util.Set[AnyRef]].asScala mustEqual features.map(_.getAttribute("name")).toSet
+      listener.warning must beNone
+    }
   }
 }
 
@@ -275,6 +529,13 @@ object GeoMesaDataStoreTest {
     override def execute(source: SimpleFeatureSource, query: Query): Unit = executed = true
     override def visit(feature: Feature): Unit = visited = true
     override def getResult: CalcResult = null
+  }
+
+  class TestProgressListener extends NullProgressListener {
+    var warning: Option[(String, String, String)] = None
+    override def warningOccurred(source: String, location: String, warning: String): Unit = {
+      this.warning = Some((source, location, warning))
+    }
   }
 
   // example class extending DecoratingFeatureCollection

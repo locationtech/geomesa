@@ -47,7 +47,7 @@ function dependencies() {
     "org.apache.hadoop:hadoop-hdfs-client:${hadoop_version}:jar"
     "org.apache.hadoop:hadoop-mapreduce-client-core:${hadoop_version}:jar"
     "commons-configuration:commons-configuration:1.6:jar"
-    "commons-logging:commons-logging:1.1.3:.jar"
+    "commons-logging:commons-logging:1.1.3:jar"
     "commons-cli:commons-cli:1.2:jar"
     "commons-io:commons-io:2.5:jar"
     "javax.servlet:servlet-api:2.4:jar"

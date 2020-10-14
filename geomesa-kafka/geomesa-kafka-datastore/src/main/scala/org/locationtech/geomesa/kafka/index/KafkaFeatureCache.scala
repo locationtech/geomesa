@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.index.SpatialIndexSupport
 import org.locationtech.geomesa.kafka.data.KafkaDataStore
-import org.locationtech.geomesa.kafka.data.KafkaDataStore.{EventTimeConfig, IndexConfig}
+import org.locationtech.geomesa.kafka.data.KafkaDataStore._
 import org.locationtech.geomesa.memory.cqengine.GeoCQIndexSupport
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -43,12 +43,11 @@ object KafkaFeatureCache extends LazyLogging {
     * @param config cache config
     * @return
     */
-  def apply(sft: SimpleFeatureType, config: IndexConfig): KafkaFeatureCache =
-    if (config.expiry.isFinite() && config.expiry.length == 0) {
-      NoOpFeatureCache
-    } else {
+  def apply(sft: SimpleFeatureType, config: IndexConfig): KafkaFeatureCache = {
+    if (config.expiry == ImmediatelyExpireConfig) { NoOpFeatureCache } else {
       new KafkaFeatureCacheImpl(sft, config)
     }
+  }
 
   /**
     * No-op cache
@@ -61,11 +60,22 @@ object KafkaFeatureCache extends LazyLogging {
     * Cache that won't spatially index the features
     *
     * @param sft simple feature type
-    * @param eventTime event time config
+    * @param ordering feature ordering
     * @return
     */
-  def nonIndexing(sft: SimpleFeatureType, eventTime: Option[EventTimeConfig] = None): KafkaFeatureCache = {
-    eventTime.collect { case e if e.ordering => FastFilterFactory.toExpression(sft, e.expression) } match {
+  def nonIndexing(sft: SimpleFeatureType, ordering: ExpiryTimeConfig = NeverExpireConfig): KafkaFeatureCache = {
+    val event: PartialFunction[ExpiryTimeConfig, String] = {
+      case EventTimeConfig(_, exp, true) => exp
+    }
+
+    val ord = ordering match {
+      case o if event.isDefinedAt(o) => Some(event.apply(o))
+      // all filters use the same event time ordering
+      case FilteredExpiryConfig(filters) if event.isDefinedAt(filters.head._2) => Some(event.apply(filters.head._2))
+      case _ => None
+    }
+
+    ord.map(FastFilterFactory.toExpression(sft, _)) match {
       case None => new NonIndexingFeatureCache()
       case Some(exp) => new NonIndexingEventTimeFeatureCache(exp)
     }
@@ -85,7 +95,7 @@ object KafkaFeatureCache extends LazyLogging {
     } else {
       config.cqAttributes
     }
-    GeoCQIndexSupport(sft, attributes, config.resolutionX, config.resolutionY)
+    GeoCQIndexSupport(sft, attributes, config.resolution.x, config.resolution.y)
   }
 
   /**

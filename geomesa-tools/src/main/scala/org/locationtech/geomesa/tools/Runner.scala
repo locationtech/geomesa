@@ -9,10 +9,12 @@
 package org.locationtech.geomesa.tools
 
 import java.io.File
+import java.nio.charset.StandardCharsets
 
 import com.beust.jcommander.{JCommander, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
+import org.locationtech.geomesa.tools.Runner.AutocompleteInfo
 import org.locationtech.geomesa.tools.utils.GeoMesaIStringConverterFactory
 
 import scala.collection.JavaConversions._
@@ -42,7 +44,8 @@ trait Runner extends LazyLogging {
   def parseCommand(args: Array[String]): Command = {
     val jc = new JCommander()
     jc.setProgramName(name)
-    jc.addConverterFactory(new GeoMesaIStringConverterFactory)
+
+    Runner.addConverterFactories(jc)
 
     val commands = createCommands(jc)
     commands.foreach {
@@ -140,7 +143,7 @@ trait Runner extends LazyLogging {
          |
          |
        """.stripMargin)
-    FileUtils.writeStringToFile(file, out.toString())
+    FileUtils.writeStringToFile(file, out.toString(), StandardCharsets.UTF_8)
   }
 
   protected def createCommands(jc: JCommander): Seq[Command]
@@ -153,4 +156,22 @@ trait Runner extends LazyLogging {
   }
 }
 
-case class AutocompleteInfo(path: String, commandName: String)
+object Runner {
+
+  private var added = false
+
+  /**
+   * Add jcommander converter factories. Note that the implementation is a static,
+   * shared, non-thread-safe list, so we have to synchronize ourselves.
+   *
+   * TODO revisit this if we upgrade jcommander versions
+   */
+  def addConverterFactories(jc: JCommander): Unit = synchronized {
+    if (!added) {
+      jc.addConverterFactory(new GeoMesaIStringConverterFactory)
+      added = true
+    }
+  }
+
+  case class AutocompleteInfo(path: String, commandName: String)
+}

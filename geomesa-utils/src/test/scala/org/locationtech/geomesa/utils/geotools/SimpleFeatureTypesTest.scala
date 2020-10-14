@@ -355,8 +355,8 @@ class SimpleFeatureTypesTest extends Specification {
       val failures = Seq(
         ("foo:Strong", "7. Expected attribute type binding"),
         ("foo:String,*bar:String", "16. Expected geometry type binding"),
-        ("foo:String,bar:String;;", "22. Expected one of: feature type option, end of spec"),
-        ("foo:String,bar,baz:String", "14. Expected one of: attribute name, attribute type binding, geometry type binding"),
+        ("foo:String,bar:String;;", "22. Expected one of: specification, feature type option, end of spec"),
+        ("foo:String,bar,baz:String", "14. Expected one of: attribute name, attribute, attribute type binding, geometry type binding"),
         ("foo:String:bar,baz:String", "14. Expected attribute option")
       )
       forall(failures) { case (spec, message) =>
@@ -652,6 +652,13 @@ class SimpleFeatureTypesTest extends Specification {
         "geomesa.table.sharing" -> "true",
         "geomesa.table.sharing.prefix" -> "\u0001"
       )
+    }
+
+    "preserve spaces in user data" >> {
+      val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326;geomesa.foo='1 day'")
+      sft.getUserData.get("geomesa.foo") mustEqual "1 day"
+      val encoded = SimpleFeatureTypes.encodeType(sft, includeUserData = true)
+      SimpleFeatureTypes.createType("test", encoded).getUserData.get("geomesa.foo") mustEqual "1 day"
     }
   }
 

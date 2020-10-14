@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.features.kryo.json
 
+import org.geotools.filter.FilterAttributeExtractor
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
@@ -17,6 +18,8 @@ import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
 class JsonPathFilterFunctionTest extends Specification {
+
+  import scala.collection.JavaConverters._
 
   val json =
     """
@@ -61,7 +64,7 @@ class JsonPathFilterFunctionTest extends Specification {
   val sf = new ScalaSimpleFeature(sft, "")
   sf.setAttribute(0, json)
 
-  "Json Attr Function" should {
+  "JsonPathFilterFunction" should {
     "not parse invalid paths" in {
 		  ECQL.toFilter("jsonPath('$.json.foo.foo') = 'bar'").evaluate(sf) must beFalse
 		  ECQL.toFilter("jsonPath('$.json.foo foo') = 'bar'").evaluate(sf) must throwA[RuntimeException]
@@ -218,6 +221,20 @@ class JsonPathFilterFunctionTest extends Specification {
       ECQL.toFilter("jsonPath('$.json.[''bar(bar)''][''boo(boo)'']') = 'hiss'").evaluate(sf) must beTrue
       ECQL.toFilter("jsonPath('$.json[''bar(bar)''].[''boo(boo)'']') = 'hiss'").evaluate(sf) must beTrue
       ECQL.toFilter("jsonPath('$.json[''bar(bar)''][''boo(boo)'']') = 'hiss'").evaluate(sf) must beTrue
+    }
+
+    "work with 2 parameters" in {
+      ECQL.toFilter("""jsonPath("json", 'foo') = 'bar'""").evaluate(sf) must beTrue
+      ECQL.toFilter("""jsonPath("json", 'bar.boo') = 'hiss'""").evaluate(sf) must beTrue
+    }
+
+    "extract property descriptors with 2 parameters" in {
+      val extractor = new FilterAttributeExtractor()
+      ECQL.toFilter("""jsonPath("json", 'foo') = 'bar'""").accept(extractor, null)
+      extractor.getPropertyNameSet.asScala.map(_.getPropertyName) mustEqual Set("json")
+      extractor.clear()
+      ECQL.toFilter("""jsonPath("json", 'bar.boo') = 'hiss'""").accept(extractor, null)
+      extractor.getPropertyNameSet.asScala.map(_.getPropertyName) mustEqual Set("json")
     }
   }
 }

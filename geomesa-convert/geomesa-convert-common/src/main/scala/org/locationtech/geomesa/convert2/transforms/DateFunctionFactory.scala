@@ -27,7 +27,7 @@ class DateFunctionFactory extends TransformerFunctionFactory {
   override def functions: Seq[TransformerFunction] =
     Seq(now, customFormatDateParser, datetime, basicDateTimeNoMillis, basicIsoDate, basicDateTime, isoDate,
       isoLocalDate, isoLocalDateTime, isoOffsetDateTime, isoDateTime, dateHourMinuteSecondMillis,
-      millisToDate, secsToDate, dateToString)
+      millisToDate, secsToDate, dateToString, dateToMillis)
 
   private val now = TransformerFunction("now") { _ =>
     Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant)
@@ -160,6 +160,10 @@ class DateFunctionFactory extends TransformerFunctionFactory {
   private val customFormatDateParser = new CustomFormatDateParser(null)
 
   private val dateToString = new DateToString(null)
+
+  private val dateToMillis = TransformerFunction.pure("dateToMillis") { args =>
+    if (args(0) == null) { null } else { args(0).asInstanceOf[Date].getTime }
+  }
 }
 
 object DateFunctionFactory {

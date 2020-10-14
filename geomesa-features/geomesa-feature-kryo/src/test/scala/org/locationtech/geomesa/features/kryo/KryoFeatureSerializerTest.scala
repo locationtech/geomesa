@@ -14,6 +14,7 @@ import java.util.{Collections, Date, UUID}
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.codec.binary.Base64
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.AbstractSimpleFeature.AbstractImmutableSimpleFeature
 import org.locationtech.geomesa.features.{ScalaSimpleFeature, SerializationOption}
@@ -420,17 +421,19 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
       sf.setAttribute("dtg", "2013-01-02T00:00:00.000Z")
       sf.setAttribute("geom", "POINT(45.0 49.0)")
 
-      val serializer = KryoFeatureSerializer(sft)
-      // base64 encoded bytes from version 1 of the kryo feature serializer
-      val version0SerializedBase64 = "AWZha2Vp5AEAAAE7+I60AAEBQEaAAAAAAABASIAAAAAAAA=="
-      val version1Bytes = Base64.decodeBase64(version0SerializedBase64)
+      val serializer = KryoFeatureSerializer(sft, Set(SerializationOption.WithUserData))
+      // base64 encoded bytes from version 2 of the kryo feature serializer
+      val version2SerializedBase64 = "AgAAAC9mYWtlaeQBAAABO/iOtAABCANARoAAAAAAAEBIgAAAAAAAf/gAAAAAAAALFAAAAAFvcmcuZ2V" +
+        "vdG9vbHMuZmFjdG9yeS5IaW50cyRLZflVU0VfUFJPVklERURfRknEamF2YS5sYW5nLkJvb2xlYe4B"
+      val version2Bytes = Base64.decodeBase64(version2SerializedBase64)
 
-      val deserialized = serializer.deserialize(version1Bytes)
+      val deserialized = serializer.deserialize(version2Bytes)
 
       deserialized must not(beNull)
       deserialized.getType mustEqual sf.getType
       deserialized.getAttributes mustEqual sf.getAttributes
-    }.pendingUntilFixed("dropping back compatibility")
+      deserialized.getUserData.get(Hints.USE_PROVIDED_FID) mustEqual true
+    }
 
     "be faster than full deserialization" in {
       skipped("integration")

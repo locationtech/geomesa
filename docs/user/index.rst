@@ -10,6 +10,7 @@ User Manual
    download
    install
    getting_started
+   geotools
    architecture
    datastores/index
    cli/index
