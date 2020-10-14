@@ -247,7 +247,7 @@ object ArrowConversionProcess {
           indicesAndValues.foreach { case (_, i, v) => v.add(f.getAttribute(i)) }
         }
         indicesAndValues.map { case (n, i, v) =>
-          n -> ArrowDictionary.create(i, v.toArray)(ClassTag[AnyRef](sft.getDescriptor(i).getType.getBinding))
+          n -> ArrowDictionary.create(sft.getTypeName, i, v.toArray)(ClassTag[AnyRef](sft.getDescriptor(i).getType.getBinding))
         }.toMap
       }
 

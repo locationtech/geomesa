@@ -14,6 +14,8 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.collection.JavaConverters._
+
 package object arrow {
 
   // need to be lazy to avoid class loading issues before init is called
@@ -36,6 +38,12 @@ package object arrow {
      * @return
      */
     def apply(name: String): BufferAllocator = root.newChildAllocator(name, 0L, Long.MaxValue)
+
+    def getAllocatedMemory(typeName: String): Long =
+      root.getChildAllocators.asScala
+        .filter( a => a.getName.endsWith(s":$typeName"))
+        .map(_.getAllocatedMemory)
+        .sum
 
     /**
      * Forwards the getAllocatedMemory from the root Arrow Allocator

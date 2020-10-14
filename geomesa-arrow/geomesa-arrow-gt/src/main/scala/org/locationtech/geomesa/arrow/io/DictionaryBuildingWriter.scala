@@ -48,7 +48,7 @@ class DictionaryBuildingWriter(
 
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
-  private val allocator = ArrowAllocator("dictionary-builder")
+  private val allocator = ArrowAllocator(s"dictionary-builder:${sft.getTypeName}")
 
   private val underlying = {
     val struct = StructVector.empty(sft.getTypeName, allocator)

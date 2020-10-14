@@ -159,7 +159,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get dictionary encoded values" >> {
-      val dictionary = Map("name" -> ArrowDictionary.create(0, Array("name00", "name01")))
+      val dictionary = Map("name" -> ArrowDictionary.create(sft.getTypeName, 0, Array("name00", "name01")))
       WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.Max)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
@@ -173,7 +173,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get null dictionary values" >> {
-      val dictionary = Map("name" -> ArrowDictionary.create(0, Array("name00", "name01", null)))
+      val dictionary = Map("name" -> ArrowDictionary.create(sft.getTypeName, 0, Array("name00", "name01", null)))
       WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.min(includeFids = true))) { vector =>
         val nulls = features.map(ScalaSimpleFeature.copy)
         (0 until sft.getAttributeCount).foreach(i => nulls.foreach(_.setAttribute(i, null)))
@@ -189,7 +189,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get dictionary encoded ints" >> {
-      val dictionary = Map("age" -> ArrowDictionary.create(0, Array(0, 1, 2, 3, 4, 5).map(Int.box)))
+      val dictionary = Map("age" -> ArrowDictionary.create(sft.getTypeName, 0, Array(0, 1, 2, 3, 4, 5).map(Int.box)))
       WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.Max)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
@@ -231,7 +231,7 @@ class SimpleFeatureVectorTest extends Specification {
         val names = Seq.tabulate(i)(j => s"name0${j % 5}").asJava
         ScalaSimpleFeature.create(sft, s"0$i", names, s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
       }
-      val dictionary = Map("names" -> ArrowDictionary.create(0, Array("name00", "name01", "name02", "name03", "name04")))
+      val dictionary = Map("names" -> ArrowDictionary.create(sft.getTypeName, 0, Array("name00", "name01", "name02", "name03", "name04")))
       WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.min(includeFids = true))) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)

@@ -165,7 +165,7 @@ object SimpleFeatureVector {
       dictionaries: Map[String, ArrowDictionary],
       encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min,
       capacity: Int = DefaultCapacity): SimpleFeatureVector = {
-    val allocator = ArrowAllocator("simple-feature-vector")
+    val allocator = ArrowAllocator(s"simple-feature-vector:${sft.getTypeName}")
     try {
       val metadata = Collections.singletonMap(OptionsKey, SimpleFeatureTypes.encodeUserData(sft))
       val fieldType = new FieldType(true, ArrowType.Struct.INSTANCE, null, metadata)

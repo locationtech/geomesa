@@ -63,7 +63,7 @@ class ArrowConversionProcessTest extends Specification {
     "encode a generic empty feature collection with dictionary values without leaking memory" in {
       // This returns an empty iterator.
       process.execute(new ListFeatureCollection(sft), null, null, null, Seq("name"), null, null, null, null, null)
-      ok
+      ArrowAllocator.getAllocatedMemory(sft.getTypeName) must equalTo(0)
     }
 
     "encode a generic feature collection with dictionary values" in {

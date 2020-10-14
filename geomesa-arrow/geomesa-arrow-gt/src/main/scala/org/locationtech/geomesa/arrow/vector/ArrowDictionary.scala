@@ -96,8 +96,8 @@ object ArrowDictionary {
     * @param values dictionary values
     * @return dictionary
     */
-  def create[T <: AnyRef](id: Long, values: Array[T])(implicit ct: ClassTag[T]): ArrowDictionary =
-    create(id, values, values.length)
+  def create[T <: AnyRef](typename: String, id: Long, values: Array[T])(implicit ct: ClassTag[T]): ArrowDictionary =
+    create(typename, id, values, values.length)
 
   /**
     * Create a dictionary based on a subset of a value array
@@ -107,8 +107,8 @@ object ArrowDictionary {
     * @param length number of valid entries in the values array, starting at position 0
     * @return
     */
-  def create[T <: AnyRef](id: Long, values: Array[T], length: Int)(implicit ct: ClassTag[T]): ArrowDictionary =
-    new ArrowDictionaryArray[T](createEncoding(id, length), values, length, ct.runtimeClass.asInstanceOf[Class[T]])
+  def create[T <: AnyRef](typename: String, id: Long, values: Array[T], length: Int)(implicit ct: ClassTag[T]): ArrowDictionary =
+    new ArrowDictionaryArray[T](typename, createEncoding(id, length), values, length, ct.runtimeClass.asInstanceOf[Class[T]])
 
   /**
     * Create a dictionary based on wrapping an arrow vector
@@ -151,6 +151,7 @@ object ArrowDictionary {
     * @param encoding dictionary id and int width, id must be unique per arrow file
     */
   class ArrowDictionaryArray[T <: AnyRef](
+      typename: String,
       val encoding: DictionaryEncoding,
       values: Array[T],
       val length: Int,
@@ -160,7 +161,7 @@ object ArrowDictionary {
     override def lookup(i: Int): AnyRef = if (i < length) { values(i) } else { "[other]" }
 
     override def toDictionary(precision: SimpleFeatureEncoding): Dictionary with Closeable = {
-      val allocator = ArrowAllocator("dictionary-array")
+      val allocator = ArrowAllocator(s"dictionary-array:$typename")
       val name = s"dictionary-$id"
       val bindings = ObjectType.selectType(binding)
       val writer = ArrowAttributeWriter(name, bindings, None, Map.empty, precision, VectorFactory(allocator))
