@@ -32,7 +32,7 @@ class ArrowConversionProcessTest extends Specification {
 
   implicit val allocator: BufferAllocator = new RootAllocator(Long.MaxValue)
 
-  val sft = SimpleFeatureTypes.createImmutableType("arrow", "name:String,dtg:Date,*geom:Point:srid=4326")
+  val sft = SimpleFeatureTypes.createImmutableType("ArrowConversionProcessTest", "name:String,dtg:Date,*geom:Point:srid=4326")
 
   val process = new ArrowConversionProcess
 
