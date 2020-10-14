@@ -64,7 +64,7 @@ class DeltaWriter(
 
   import scala.collection.JavaConverters._
 
-  private val allocator = ArrowAllocator("delta-writer")
+  private val allocator = ArrowAllocator(s"delta-writer:${sft.getTypeName}")
 
   // threading key that we use to group results in the reduce phase
   private var threadingKey: Long = math.abs(ThreadLocalRandom.current().nextLong)
@@ -591,7 +591,7 @@ object DeltaWriter extends StrictLogging {
       encoding: SimpleFeatureEncoding): MergedDictionaries = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichArray
 
-    val allocator = ArrowAllocator("merge-dictionaries")
+    val allocator = ArrowAllocator(s"merge-dictionaries:${sft.getTypeName}")
 
     if (dictionaryFields.isEmpty) {
       return MergedDictionaries(Map.empty, Map.empty, allocator)

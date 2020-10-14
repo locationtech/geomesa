@@ -29,7 +29,7 @@ import org.locationtech.geomesa.process.GeoMesaProcess
 import org.locationtech.geomesa.process.transform.ArrowConversionProcess.ArrowVisitor
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
-import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, WithClose}
 import org.opengis.feature.Feature
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -247,7 +247,7 @@ object ArrowConversionProcess {
           indicesAndValues.foreach { case (_, i, v) => v.add(f.getAttribute(i)) }
         }
         indicesAndValues.map { case (n, i, v) =>
-          n -> ArrowDictionary.create(i, v.toArray)(ClassTag[AnyRef](sft.getDescriptor(i).getType.getBinding))
+          n -> ArrowDictionary.create(sft.getTypeName, i, v.toArray)(ClassTag[AnyRef](sft.getDescriptor(i).getType.getBinding))
         }.toMap
       }
 
@@ -259,26 +259,28 @@ object ArrowConversionProcess {
         case Some(o) => features.sorted(o).iterator
       }
 
-      val out = new ByteArrayOutputStream()
-      val writer = SimpleFeatureArrowFileWriter(out, sft, dictionaries, encoding, ipcOpts, sort)
+      buildResult(dictionaries, sorted)
+    }
 
-      new Iterator[Array[Byte]] {
-        override def hasNext: Boolean = sorted.hasNext
-        override def next(): Array[Byte] = {
-          out.reset()
+    private def buildResult(dictionaries: Map[String, ArrowDictionary],
+                            sorted: Iterator[SimpleFeature]): Iterator[Array[Byte]] = {
+      val out = new ByteArrayOutputStream()
+      val bytes = ListBuffer.empty[Array[Byte]]
+
+      WithClose(SimpleFeatureArrowFileWriter(out, sft, dictionaries, encoding, ipcOpts, sort)) { writer =>
+        while (sorted.hasNext) { // send batches
           var i = 0
           while (i < batchSize && sorted.hasNext) {
             writer.add(sorted.next)
             i += 1
           }
-          if (sorted.hasNext) {
-            writer.flush()
-          } else {
-            CloseWithLogging(writer)
-          }
-          out.toByteArray
+          writer.flush()
+          bytes.append(out.toByteArray)
+          out.reset()
         }
       }
+      bytes.append(out.toByteArray)
+      bytes.iterator
     }
   }
 
