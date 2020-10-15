@@ -264,7 +264,9 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
           QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
         }
         filter.secondary.foreach { f =>
-          logger.warn(s"Running full table scan on $name index for schema ${sft.getTypeName} with filter ${filterToString(f)}")
+          // If one uses the full table scan query guard instead of the system property,
+          // then they will see this message even though the full table scan is prevented.
+          logger.warn(s"Planned full table scan on $name index for schema ${sft.getTypeName} with filter ${filterToString(f)}")
         }
         val keyRanges = Seq(UnboundedRange(null))
         val byteRanges = Seq(BoundedByteRange(sharing, ByteArrays.rowFollowingPrefix(sharing)))
