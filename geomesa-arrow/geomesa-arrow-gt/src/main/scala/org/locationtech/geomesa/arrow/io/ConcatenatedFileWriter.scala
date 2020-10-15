@@ -45,6 +45,7 @@ object ConcatenatedFileWriter {
       if (files.hasNext) {
         files
       } else {
+        files.close() // Closing the input just to be sure.
         generateEmptyResponse(sft, dictionaryFields, encoding, ipcOpts, sort)
       }
     } catch {
