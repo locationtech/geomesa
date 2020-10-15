@@ -101,26 +101,38 @@ object BatchWriter {
     // this is lazy to allow the query plan to be instantiated without pulling back all the batches first
     private lazy val inputs: Array[(SimpleFeatureVector, (Int, Int) => Unit)] = {
       val builder = Array.newBuilder[(SimpleFeatureVector, (Int, Int) => Unit)]
-      while (batches.hasNext) {
-        val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
-        RecordBatchLoader.load(vector.underlying, batches.next)
+      var vector: SimpleFeatureVector = null
+      try {
+        while (batches.hasNext) {
+          vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
+          val batch = batches.next
+          RecordBatchLoader.load(vector.underlying, batch)
 
-        val transfers: Seq[(Int, Int) => Unit] = {
-          val fromVectors = vector.underlying.getChildrenFromFields
-          val toVectors = result.underlying.getChildrenFromFields
-          val builder = Seq.newBuilder[(Int, Int) => Unit]
-          builder.sizeHint(fromVectors.size())
-          var i = 0
-          while (i < fromVectors.size()) {
-            builder += createTransferPair(fromVectors.get(i), toVectors.get(i))
-            i += 1
+          val transfers: Seq[(Int, Int) => Unit] = {
+            val fromVectors = vector.underlying.getChildrenFromFields
+            val toVectors = result.underlying.getChildrenFromFields
+            val builder = Seq.newBuilder[(Int, Int) => Unit]
+            builder.sizeHint(fromVectors.size())
+            var i = 0
+            while (i < fromVectors.size()) {
+              builder += createTransferPair(fromVectors.get(i), toVectors.get(i))
+              i += 1
+            }
+            builder.result()
           }
-          builder.result()
+          val transfer: (Int, Int) => Unit = (from, to) => transfers.foreach(_.apply(from, to))
+          builder += vector -> transfer
         }
-        val transfer: (Int, Int) => Unit = (from, to) => transfers.foreach(_.apply(from, to))
-        builder += vector -> transfer
+        builder.result
+      } catch {
+        case t: Throwable =>
+          CloseWithLogging(result, batches)
+          builder.result().foreach(_._1.close())
+          if (vector != null) {
+            vector.close()
+          }
+          throw t
       }
-      builder.result
     }
 
     // we do a merge sort of each batch
