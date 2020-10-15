@@ -67,8 +67,8 @@ Full Table Scan Query Guard
 +++++++++++++++++++++++++++
 
 The full table scan query guard will block queries which would cause a full table scan to be performed.
-This query guard is provided so that per feature type configuration can be managed easily.  Alternatively, one can use the
-``geomesa.scan.block-full-table`` system property to disable full table scans across all feature types.
+The query guard will be loaded in all environments. Alternatively, one can use the ``geomesa.scan.block-full-table``
+system property to disable full table scans per environment (see :ref:`geomesa_site_xml`).
 
 Just like the ``geomesa.scan.block-full-table`` property, this guard respects the ``geomesa.scan.block-full-table.threshold``
 system property.  This allows for preview queries which can be helpful to show a system is working.
@@ -87,8 +87,7 @@ Temporal Query Guard
 
 The temporal query guard will block queries which exceed a maximum temporal duration.
 Any query which attempts to return a larger time period will be stopped.
-This guard also applies the full table scan guard.
-The temporal query guard will not affect queries which do not execute a full table scan against indices that do not have
+The temporal query guard will not affect queries against indices that do not have
 a temporal component (for example, feature ID and attribute queries).
 
 To enable the guard, add ``org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard``
@@ -121,7 +120,8 @@ The configuration must satisfy a few conditions:
 * as the size increases, the duration must decrease,
 * and a given size limit may not be repeated.
 
-An example is given here.  Durations can be given in a number of days, hours, or minutes.
+If no size is provided, it is equivalent to an unbounded size. Durations can be given in a number of days,
+hours, or minutes. For example:
 
 .. code-block:: none
 

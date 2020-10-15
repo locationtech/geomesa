@@ -73,8 +73,9 @@ class GeoMesaDataStoreTest extends Specification {
 
   "GeoMesaDataStore" should {
     "block queries with an excessive duration and spatial extent using graduated query guard" in {
+      // note: z3 needs to be declared first so it's picked for full table scans
       val sft = SimpleFeatureTypes.createType("test",
-        "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
+        "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='z3,id,attr:name'")
       // NB: Uses configuration in the test reference.conf
       sft.getUserData.put("geomesa.query.interceptors",
         "org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard")
@@ -238,8 +239,9 @@ class GeoMesaDataStoreTest extends Specification {
         beEmpty
     }
     "block queries with an excessive duration" in {
+      // note: z3 needs to be declared first so it's picked for full table scans
       val sft = SimpleFeatureTypes.createType("test",
-      "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
+      "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='z3,id,attr:name'")
       sft.getUserData.put("geomesa.query.interceptors",
         "org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard");
       sft.getUserData.put("geomesa.guard.temporal.max.duration", "1 day")

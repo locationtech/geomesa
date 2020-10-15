@@ -30,8 +30,8 @@ class FullTableScanQueryGuard extends QueryInterceptor {
 object FullTableScanQueryGuard {
   def guard(strategy: QueryStrategy): Option[IllegalArgumentException] = {
     if (strategy.values.isEmpty && strategy.hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
-      Some(new IllegalArgumentException(s"The query ${filterToString(strategy.filter.filter)} " +
-        s"would lead to a full-table scan and has been stopped."))
+      Some(new IllegalArgumentException(s"The query ${filterString(strategy)} " +
+        "would lead to a full-table scan and has been stopped."))
     } else {
       None
     }
