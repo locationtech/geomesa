@@ -9,19 +9,17 @@
 package org.locationtech.geomesa.index.planning.guard
 
 import org.geotools.data.{DataStore, Query}
+import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.api.QueryStrategy
 import org.locationtech.geomesa.index.index.TemporalIndexValues
 import org.locationtech.geomesa.index.planning.QueryInterceptor
+import org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard.Config
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.concurrent.duration.Duration
 import scala.util.Try
 
 class TemporalQueryGuard extends QueryInterceptor {
-
-  import TemporalQueryGuard.Config
-  import org.locationtech.geomesa.filter.filterToString
-
   private var max: Duration = _
 
   override def init(ds: DataStore, sft: SimpleFeatureType): Unit = {
@@ -34,6 +32,13 @@ class TemporalQueryGuard extends QueryInterceptor {
   override def rewrite(query: Query): Unit = {}
 
   override def guard(strategy: QueryStrategy): Option[IllegalArgumentException] = {
+    FullTableScanQueryGuard.guard(strategy) match {
+      case Some(illegalArgumentException) => Some(illegalArgumentException)
+      case None => guardInner(strategy)
+    }
+  }
+
+  private def guardInner(strategy: QueryStrategy): Option[IllegalArgumentException] = {
     val intervals = strategy.values.collect { case v: TemporalIndexValues => v.intervals }
     intervals.collect { case i if i.isEmpty || !i.forall(_.isBoundedBothSides) || duration(i.values) > max =>
       new IllegalArgumentException(

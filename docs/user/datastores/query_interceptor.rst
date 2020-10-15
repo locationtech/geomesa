@@ -86,9 +86,10 @@ Temporal Query Guard
 ++++++++++++++++++++
 
 The temporal query guard will block queries which exceed a maximum temporal duration.
-Any query which attempts to return a larger time period will be stopped. This will not affect queries against indices that do not have
-a temporal component (for example, feature ID and attribute queries), nor queries that do not have any temporal
-component at all (which can usually be blocked by ``geomesa.scan.block-full-table``).
+Any query which attempts to return a larger time period will be stopped.
+This guard also applies the full table scan guard.
+The temporal query guard will not affect queries which do not execute a full table scan against indices that do not have
+a temporal component (for example, feature ID and attribute queries).
 
 To enable the guard, add ``org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard``
 to ``geomesa.query.interceptors`` as indicated above, and set the duration using ``geomesa.guard.temporal.max.duration``:
@@ -105,6 +106,7 @@ Graduated Query Guard
 The graduated query guard applies different duration limits based on the spatial extent of the query.
 As a query becomes larger in space, it can be limited to shorter and shorter time ranges.
 A series of rules limit the duration for queries which are at most a given size in square degrees.
+This guard also applies the full table scan guard.  
 
 To enable the guard, add ``org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard``
 to ``geomesa.query.interceptors`` as indicated above.  Configuration is managed via

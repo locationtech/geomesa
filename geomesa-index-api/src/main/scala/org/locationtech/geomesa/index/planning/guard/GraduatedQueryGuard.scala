@@ -15,7 +15,7 @@ import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query}
 import org.locationtech.geomesa.filter.{Bounds, FilterValues, filterToString}
-import org.locationtech.geomesa.index.api
+import org.locationtech.geomesa.index.api.QueryStrategy
 import org.locationtech.geomesa.index.index.{SpatialIndexValues, TemporalIndexValues}
 import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard.{SizeAndDuration, loadConfiguration}
@@ -32,7 +32,14 @@ class GraduatedQueryGuard extends QueryInterceptor {
 
   override def rewrite(query: Query): Unit = { }
 
-  override def guard(strategy: api.QueryStrategy): Option[IllegalArgumentException] = {
+  override def guard(strategy: QueryStrategy): Option[IllegalArgumentException] = {
+    FullTableScanQueryGuard.guard(strategy) match {
+      case Some(illegalArgumentException) => Some(illegalArgumentException)
+      case None => guardInner(strategy)
+    }
+  }
+
+  private def guardInner(strategy: QueryStrategy): Option[IllegalArgumentException] = {
     val intervalsOption: Option[FilterValues[Bounds[ZonedDateTime]]] = strategy.values.collect { case v: TemporalIndexValues => v.intervals }
     val spatialBoundsOption: Option[Seq[(Double, Double, Double, Double)]] = strategy.values.collect { case v: SpatialIndexValues => v.spatialBounds }
 

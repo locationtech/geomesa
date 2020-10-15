@@ -17,7 +17,18 @@ import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.opengis.feature.simple.SimpleFeatureType
 
 class FullTableScanQueryGuard extends QueryInterceptor {
-  override def guard(strategy: QueryStrategy): Option[IllegalArgumentException] = {
+  override def guard(strategy: QueryStrategy): Option[IllegalArgumentException] =
+    FullTableScanQueryGuard.guard(strategy)
+
+  override def init(ds: DataStore, sft: SimpleFeatureType): Unit = { }
+
+  override def rewrite(query: Query): Unit = { }
+
+  override def close(): Unit = { }
+}
+
+object FullTableScanQueryGuard {
+  def guard(strategy: QueryStrategy): Option[IllegalArgumentException] = {
     if (strategy.values.isEmpty && strategy.hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
       Some(new IllegalArgumentException(s"The query ${filterToString(strategy.filter.filter)} " +
         s"would lead to a full-table scan and has been stopped."))
@@ -25,10 +36,4 @@ class FullTableScanQueryGuard extends QueryInterceptor {
       None
     }
   }
-
-  override def init(ds: DataStore, sft: SimpleFeatureType): Unit = { }
-
-  override def rewrite(query: Query): Unit = { }
-
-  override def close(): Unit = { }
 }
