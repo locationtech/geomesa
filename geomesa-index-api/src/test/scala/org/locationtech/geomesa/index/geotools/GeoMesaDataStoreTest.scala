@@ -72,7 +72,7 @@ class GeoMesaDataStoreTest extends Specification {
   }
 
   "GeoMesaDataStore" should {
-    "block queries with an excessive duration using custom query guard" in {
+    "block queries with an excessive duration and spatial extent using graduated query guard" in {
       val sft = SimpleFeatureTypes.createType("test",
         "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
       // NB: Uses configuration in the test reference.conf
@@ -87,7 +87,7 @@ class GeoMesaDataStoreTest extends Specification {
         "IN('123')",
         "bbox(geom,0,0,.2,.4) AND dtg during 2020-01-01T00:00:00.000Z/2020-02-01T00:00:00.000Z",
         // Three Corner cases.
-        // Note that these periods are technically under the limit by two seconds.
+        // Note that these periods are under the limit by two seconds.
         "bbox(geom,0,0,1,1) AND dtg during 2020-01-01T00:00:00.000Z/P60D",
         "bbox(geom,0,0,2,5) AND dtg during 2020-01-01T00:00:00.000Z/P3D",
         "bbox(geom,-180,-90,180,90) AND dtg during 2020-01-01T00:00:00.000Z/P1D",
@@ -97,6 +97,9 @@ class GeoMesaDataStoreTest extends Specification {
       )
 
       val invalid = Seq(
+        "INCLUDE",
+        "bbox(geom,-10,-10,10,10)",
+        "bbox(geom,-180,-90,180,90)",
         // Corner cases.  During seems to exclude the start and end.
         // To get a period of a given length one needs to add 2 seconds.
         "bbox(geom,0,0,1,1) AND dtg during 2020-01-01T00:00:00.000Z/P60DT3S",
@@ -195,9 +198,48 @@ class GeoMesaDataStoreTest extends Specification {
       results = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, ECQL.toFilter("bbox(geom,39,54,51,56)")), Transaction.AUTO_COMMIT)).toSeq
       results must haveLength(10)
     }
-    "block queries with an excessive duration" in {
+    "block queries which would cause a full table scan" in {
       val sft = SimpleFeatureTypes.createType("test",
         "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
+      sft.getUserData.put("geomesa.query.interceptors",
+        "org.locationtech.geomesa.index.planning.guard.FullTableScanQueryGuard");
+
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+
+      val valid = Seq(
+        "name = 'bob'",
+        "IN('123')",
+        "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-01T23:59:59.000Z",
+        "bbox(geom,-10,-10,10,10) AND (dtg during 2020-01-01T00:00:00.000Z/2020-01-01T00:59:59.000Z OR dtg during 2020-01-01T12:00:00.000Z/2020-01-01T12:59:59.000Z)"
+      )
+
+      val invalid = Seq(
+        "INCLUDE",
+        "bbox(geom,-180,-90,180,90)",
+        "name ilike '%b'",
+        "not IN('1')"
+      )
+
+      foreach(valid.map(ECQL.toFilter)) { filter =>
+        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+          beEmpty
+      }
+
+      foreach(invalid.map(ECQL.toFilter)) { filter =>
+        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+          throwAn[IllegalArgumentException]
+      }
+
+      // One ought to be able to set max features and use a full-table scan
+      val q = new Query(sft.getTypeName)
+      q.setMaxFeatures(50)
+      SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList must
+        beEmpty
+    }
+    "block queries with an excessive duration" in {
+      val sft = SimpleFeatureTypes.createType("test",
+      "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
       sft.getUserData.put("geomesa.query.interceptors",
         "org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard");
       sft.getUserData.put("geomesa.guard.temporal.max.duration", "1 day")
@@ -213,6 +255,9 @@ class GeoMesaDataStoreTest extends Specification {
       )
 
       val invalid = Seq(
+        "INCLUDE",
+        "bbox(geom,-10,-10,10,10)",
+        "bbox(geom,-180,-90,180,90)",
         "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-03T23:59:59.000Z",
         "bbox(geom,-10,-10,10,10) AND dtg after 2020-01-01T00:00:00.000Z"
       )
