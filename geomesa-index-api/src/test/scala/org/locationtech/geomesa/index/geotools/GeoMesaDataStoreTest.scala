@@ -74,7 +74,7 @@ class GeoMesaDataStoreTest extends Specification {
   "GeoMesaDataStore" should {
     "block queries with an excessive duration and spatial extent using graduated query guard" in {
       // note: z3 needs to be declared first so it's picked for full table scans
-      val sft = SimpleFeatureTypes.createType("test",
+      val sft = SimpleFeatureTypes.createType("cea650aea6284b5281ee84c784cb56a7",
         "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='z3,id,attr:name'")
       // NB: Uses configuration in the test reference.conf
       sft.getUserData.put("geomesa.query.interceptors",
@@ -120,6 +120,20 @@ class GeoMesaDataStoreTest extends Specification {
       foreach(invalid.map(ECQL.toFilter)) { filter =>
         SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
           throwAn[IllegalArgumentException]
+      }
+
+      // create a new store so the sys prop gets evaluated when the query guards are loaded
+      val ds2 = new TestGeoMesaDataStore(true)
+      System.setProperty(s"geomesa.guard.graduated.${sft.getTypeName}.disable", "true")
+      try {
+        ds2.createSchema(sft)
+        foreach(invalid.map(ECQL.toFilter)) { filter =>
+          SelfClosingIterator(ds2.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+              beEmpty
+        }
+      } finally {
+        System.clearProperty(s"geomesa.guard.graduated.${sft.getTypeName}.disable")
+        ds2.dispose()
       }
     }
     "graduated guard needs to be valid" in {
@@ -200,7 +214,7 @@ class GeoMesaDataStoreTest extends Specification {
       results must haveLength(10)
     }
     "block queries which would cause a full table scan" in {
-      val sft = SimpleFeatureTypes.createType("test",
+      val sft = SimpleFeatureTypes.createType("61b44359ddb84822983587389d6a28a4",
         "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='id,z3,attr:name'")
       sft.getUserData.put("geomesa.query.interceptors",
         "org.locationtech.geomesa.index.planning.guard.FullTableScanQueryGuard");
@@ -228,20 +242,33 @@ class GeoMesaDataStoreTest extends Specification {
       }
 
       foreach(invalid.map(ECQL.toFilter)) { filter =>
-        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
-          throwAn[IllegalArgumentException]
+        val query = new Query(sft.getTypeName, filter)
+        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must
+            throwAn[IllegalArgumentException]
+        // you can set max features and use a full-table scan
+        query.setMaxFeatures(50)
+        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList must beEmpty
       }
+      ds.dispose()
 
-      // One ought to be able to set max features and use a full-table scan
-      val q = new Query(sft.getTypeName)
-      q.setMaxFeatures(50)
-      SelfClosingIterator(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)).toList must
-        beEmpty
+      // create a new store so the sys prop gets evaluated when the query guards are loaded
+      val ds2 = new TestGeoMesaDataStore(true)
+      System.setProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table", "false")
+      try {
+        ds2.createSchema(sft)
+        foreach(invalid.map(ECQL.toFilter)) { filter =>
+          SelfClosingIterator(ds2.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+              beEmpty
+        }
+      } finally {
+        System.clearProperty(s"geomesa.scan.${sft.getTypeName}.block-full-table")
+        ds2.dispose()
+      }
     }
     "block queries with an excessive duration" in {
       // note: z3 needs to be declared first so it's picked for full table scans
-      val sft = SimpleFeatureTypes.createType("test",
-      "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='z3,id,attr:name'")
+      val sft = SimpleFeatureTypes.createType("c4f4ef29-6e41-4113-9b74-adf35711aa7a",
+        "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='z3,id,attr:name'")
       sft.getUserData.put("geomesa.query.interceptors",
         "org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard");
       sft.getUserData.put("geomesa.guard.temporal.max.duration", "1 day")
@@ -272,6 +299,21 @@ class GeoMesaDataStoreTest extends Specification {
       foreach(invalid.map(ECQL.toFilter)) { filter =>
         SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
             throwAn[IllegalArgumentException]
+      }
+      ds.dispose()
+
+      // create a new store so the sys prop gets evaluated when the query guards are loaded
+      val ds2 = new TestGeoMesaDataStore(true)
+      System.setProperty(s"geomesa.guard.temporal.${sft.getTypeName}.disable", "true")
+      try {
+        ds2.createSchema(sft)
+        foreach(invalid.map(ECQL.toFilter)) { filter =>
+          SelfClosingIterator(ds2.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).toList must
+              beEmpty
+        }
+      } finally {
+        System.clearProperty(s"geomesa.guard.temporal.${sft.getTypeName}.disable")
+        ds2.dispose()
       }
     }
     "update schemas" in {

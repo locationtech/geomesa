@@ -29,7 +29,7 @@ class GraduatedQueryGuard extends QueryInterceptor with LazyLogging {
   override def init(ds: DataStore, sft: SimpleFeatureType): Unit = {
     disabled = GraduatedQueryGuard.disabled(sft.getTypeName)
     if (disabled) {
-      logger.info(s"This guard is disabled for schema ${sft.getTypeName} via system property")
+      logger.info(s"This guard is disabled for schema '${sft.getTypeName}' via system property")
     }
     // let any errors bubble up and disable this guard
     guardLimits = buildLimits(ConfigFactory.load().getConfigList(s"$ConfigPath.${sft.getTypeName}"))

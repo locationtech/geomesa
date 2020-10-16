@@ -29,7 +29,7 @@ class TemporalQueryGuard extends QueryInterceptor with LazyLogging {
   override def init(ds: DataStore, sft: SimpleFeatureType): Unit = {
     disabled = TemporalQueryGuard.disabled(sft.getTypeName)
     if (disabled) {
-      logger.info(s"This guard is disabled for schema ${sft.getTypeName} via system property")
+      logger.info(s"This guard is disabled for schema '${sft.getTypeName}' via system property")
     }
     max = Try(Duration(sft.getUserData.get(Config).asInstanceOf[String])).getOrElse {
       throw new IllegalArgumentException(

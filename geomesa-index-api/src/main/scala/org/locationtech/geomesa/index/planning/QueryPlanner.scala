@@ -149,7 +149,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
             qs.filter.secondary.foreach { f =>
               logger.warn(
                 s"Running full table scan on ${qs.index.name} index for schema " +
-                  s"${sft.getTypeName} with filter ${filterToString(f)}")
+                  s"'${sft.getTypeName}' with filter: ${filterToString(f)}")
             }
           }
           ds.adapter.createQueryPlan(qs)

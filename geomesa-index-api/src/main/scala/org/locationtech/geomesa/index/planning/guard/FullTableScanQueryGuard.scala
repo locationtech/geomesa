@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.planning.guard
 
+import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
@@ -15,20 +16,24 @@ import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.opengis.feature.simple.SimpleFeatureType
 
-class FullTableScanQueryGuard extends QueryInterceptor {
-  override def guard(strategy: QueryStrategy): Option[IllegalArgumentException] = {
+class FullTableScanQueryGuard extends QueryInterceptor with LazyLogging {
+
+  private var disabled = false
+
+  override def init(ds: DataStore, sft: SimpleFeatureType): Unit = {
     // allow for explicit disabling of this guard
-    QueryProperties.blockFullTableScansForFeatureType(strategy.index.sft.getTypeName) match {
-      case Some(false) => None
-      case _ => FullTableScanQueryGuard.guard(strategy)
+    disabled = QueryProperties.blockFullTableScansForFeatureType(sft.getTypeName).contains(false)
+    if (disabled) {
+      logger.info(s"This guard is disabled for schema '${sft.getTypeName}' via system property")
     }
   }
 
-  override def init(ds: DataStore, sft: SimpleFeatureType): Unit = { }
+  override def guard(strategy: QueryStrategy): Option[IllegalArgumentException] =
+    if (disabled) { None } else { FullTableScanQueryGuard.guard(strategy) }
 
-  override def rewrite(query: Query): Unit = { }
+  override def rewrite(query: Query): Unit = {}
 
-  override def close(): Unit = { }
+  override def close(): Unit = {}
 }
 
 object FullTableScanQueryGuard {
