@@ -14,17 +14,23 @@ import org.geotools.data.{DataStore, Query}
 import org.locationtech.geomesa.index.api.QueryStrategy
 import org.locationtech.geomesa.index.index.{SpatialIndexValues, SpatioTemporalIndex, TemporalIndexValues}
 import org.locationtech.geomesa.index.planning.QueryInterceptor
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.concurrent.duration.Duration
 
 class GraduatedQueryGuard extends QueryInterceptor with LazyLogging {
 
-  import org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard.{ConfigPath, SizeAndDuration, buildLimits}
+  import org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard._
 
   private var guardLimits: Seq[SizeAndDuration] = _
+  private var disabled: Boolean = false
 
   override def init(ds: DataStore, sft: SimpleFeatureType): Unit = {
+    disabled = GraduatedQueryGuard.disabled(sft.getTypeName)
+    if (disabled) {
+      logger.info(s"This guard is disabled for schema ${sft.getTypeName} via system property")
+    }
     // let any errors bubble up and disable this guard
     guardLimits = buildLimits(ConfigFactory.load().getConfigList(s"$ConfigPath.${sft.getTypeName}"))
   }
@@ -32,7 +38,7 @@ class GraduatedQueryGuard extends QueryInterceptor with LazyLogging {
   override def rewrite(query: Query): Unit = {}
 
   override def guard(strategy: QueryStrategy): Option[IllegalArgumentException] = {
-    val msg = if (!strategy.index.isInstanceOf[SpatioTemporalIndex[_, _]]) { None } else {
+    val msg = if (disabled || !strategy.index.isInstanceOf[SpatioTemporalIndex[_, _]]) { None } else {
       val values = strategy.values.collect {
         case v: SpatialIndexValues with TemporalIndexValues => (v.spatialBounds, v.intervals)
       }
@@ -65,6 +71,9 @@ object GraduatedQueryGuard extends LazyLogging {
    * @param durationLimit Maximum duration for a query at or below the spatial size
    */
   case class SizeAndDuration(sizeLimit: Int, durationLimit: Duration)
+
+  def disabled(typeName: String): Boolean =
+    SystemProperty(s"geomesa.guard.graduated.$typeName.disable").toBoolean.contains(true)
 
   /**
    * This function checks conditions on the limits.

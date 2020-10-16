@@ -49,7 +49,7 @@ Interceptors must have a default, no-arg constructor. The interceptor lifecycle 
 
 1. The instance is instantiated via reflection, using its default constructor
 #. The instance is initialized via the ``init`` method, passing in the data store containing the simple feature type
-#. ``rewrite`` and ``guard`` are called once for each query
+#. ``rewrite`` and ``guard`` are called once for each query (these two methods must be thread-safe)
 #. When the data store is disposed, the instance is cleaned up via the ``close`` method
 
 Interceptors will be invoked in the order they are declared in the user data. In order to see detailed information
@@ -81,6 +81,8 @@ to ``geomesa.query.interceptors`` as indicated above.
     sft.getUserData().put("geomesa.query.interceptors",
       "org.locationtech.geomesa.index.planning.guard.FullTableScanQueryGuard");
 
+To disable the guard on a per-environment basis, set the system property ``geomesa.scan.<typeName>.block-full-table``
+to ``false``, where ``<typeName>`is the name of your feature type.
 
 Temporal Query Guard
 ++++++++++++++++++++
@@ -98,6 +100,9 @@ to ``geomesa.query.interceptors`` as indicated above, and set the duration using
     sft.getUserData().put("geomesa.query.interceptors",
       "org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard");
     sft.getUserData().put("geomesa.guard.temporal.max.duration", "28 days");
+
+To disable the guard on a per-environment basis, set the system property ``geomesa.guard.temporal.<typeName>.disable``
+to ``true``, where ``<typeName>`is the name of your feature type.
 
 Graduated Query Guard
 +++++++++++++++++++++
@@ -136,3 +141,6 @@ hours, or minutes. For example:
         }
       }
     }
+
+To disable the guard on a per-environment basis, set the system property ``geomesa.guard.graduated.<typeName>.disable``
+to ``true``, where ``<typeName>`is the name of your feature type.
