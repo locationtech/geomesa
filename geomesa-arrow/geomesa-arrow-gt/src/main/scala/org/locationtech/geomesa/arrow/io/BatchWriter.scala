@@ -15,7 +15,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.arrow.vector._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{AttributeOrdering, ObjectType}
-import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.math.Ordering
@@ -101,26 +101,38 @@ object BatchWriter {
     // this is lazy to allow the query plan to be instantiated without pulling back all the batches first
     private lazy val inputs: Array[(SimpleFeatureVector, (Int, Int) => Unit)] = {
       val builder = Array.newBuilder[(SimpleFeatureVector, (Int, Int) => Unit)]
-      while (batches.hasNext) {
-        val vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
-        RecordBatchLoader.load(vector.underlying, batches.next)
+      var vector: SimpleFeatureVector = null
+      try {
+        while (batches.hasNext) {
+          vector = SimpleFeatureVector.create(sft, dictionaries, encoding)
+          val batch = batches.next
+          RecordBatchLoader.load(vector.underlying, batch)
 
-        val transfers: Seq[(Int, Int) => Unit] = {
-          val fromVectors = vector.underlying.getChildrenFromFields
-          val toVectors = result.underlying.getChildrenFromFields
-          val builder = Seq.newBuilder[(Int, Int) => Unit]
-          builder.sizeHint(fromVectors.size())
-          var i = 0
-          while (i < fromVectors.size()) {
-            builder += createTransferPair(fromVectors.get(i), toVectors.get(i))
-            i += 1
+          val transfers: Seq[(Int, Int) => Unit] = {
+            val fromVectors = vector.underlying.getChildrenFromFields
+            val toVectors = result.underlying.getChildrenFromFields
+            val builder = Seq.newBuilder[(Int, Int) => Unit]
+            builder.sizeHint(fromVectors.size())
+            var i = 0
+            while (i < fromVectors.size()) {
+              builder += createTransferPair(fromVectors.get(i), toVectors.get(i))
+              i += 1
+            }
+            builder.result()
           }
-          builder.result()
+          val transfer: (Int, Int) => Unit = (from, to) => transfers.foreach(_.apply(from, to))
+          builder += vector -> transfer
         }
-        val transfer: (Int, Int) => Unit = (from, to) => transfers.foreach(_.apply(from, to))
-        builder += vector -> transfer
+        builder.result
+      } catch {
+        case t: Throwable =>
+          CloseWithLogging(result, batches)
+          CloseWithLogging(builder.result().map(_._1))
+          if (vector != null) {
+            CloseQuietly(vector).foreach(t.addSuppressed)
+          }
+          throw t
       }
-      builder.result
     }
 
     // we do a merge sort of each batch
