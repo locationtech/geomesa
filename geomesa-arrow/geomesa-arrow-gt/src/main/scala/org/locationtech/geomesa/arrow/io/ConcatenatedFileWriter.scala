@@ -14,7 +14,7 @@ import org.apache.arrow.vector.ipc.message.IpcOption
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.io.{CloseQuietly, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
 
 object ConcatenatedFileWriter {
@@ -50,7 +50,7 @@ object ConcatenatedFileWriter {
       }
     } catch {
       case t: Throwable =>
-        files.close()
+        CloseQuietly(files).foreach(t.addSuppressed)
         throw t
     }
   }
@@ -63,6 +63,7 @@ object ConcatenatedFileWriter {
     WithClose(SimpleFeatureArrowFileWriter(os, sft, dictionaries.toMap, encoding, ipcOpts, sort)) { writer =>
       writer.flush() // ensure header and dictionaries are written, and write an empty batch
     }
+    dictionaries.foreach { case (_, dictionary) => dictionary.close() }
     CloseableIterator.single(os.toByteArray)
   }
 }

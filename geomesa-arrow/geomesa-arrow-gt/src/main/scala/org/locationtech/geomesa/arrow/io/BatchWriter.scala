@@ -15,7 +15,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.arrow.vector._
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.{AttributeOrdering, ObjectType}
-import org.locationtech.geomesa.utils.io.CloseWithLogging
+import org.locationtech.geomesa.utils.io.{CloseQuietly, CloseWithLogging}
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.math.Ordering
@@ -127,9 +127,9 @@ object BatchWriter {
       } catch {
         case t: Throwable =>
           CloseWithLogging(result, batches)
-          builder.result().foreach(_._1.close())
+          CloseWithLogging(builder.result().map(_._1))
           if (vector != null) {
-            vector.close()
+            CloseQuietly(vector).foreach(t.addSuppressed)
           }
           throw t
       }
