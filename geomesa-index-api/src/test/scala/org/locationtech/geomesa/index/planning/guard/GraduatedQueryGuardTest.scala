@@ -58,10 +58,12 @@ class GraduatedQueryGuardTest extends Specification {
         "bbox(geom,0,0,1,1) AND dtg during 2020-01-01T00:00:00.000Z/P60DT3S",
         "bbox(geom,0,0,2,5) AND dtg during 2020-01-01T00:00:00.000Z/P3DT3S",
         "bbox(geom,-180,-90,180,90) AND dtg during 2020-01-01T00:00:00.000Z/P1DT3S",
+        "dtg during 2020-01-01T00:00:00.000Z/P1DT3S",
         "bbox(geom,0,0,.2,.4) AND dtg during 2020-01-01T00:00:00.000Z/2020-04-02T00:00:00.000Z",
         "bbox(geom,0,0,2,4) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-05T00:00:00.000Z",
         "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-03T00:00:00.000Z",
-        "bbox(geom,-10,-10,10,10) AND dtg after 2020-01-01T00:00:00.000Z"
+        "bbox(geom,-10,-10,10,10) AND dtg after 2020-01-01T00:00:00.000Z",
+        "dtg after 2020-01-01T00:00:00.000Z"
       )
 
       foreach(valid.map(ECQL.toFilter)) { filter =>
