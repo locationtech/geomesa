@@ -55,6 +55,11 @@ package object index {
   }
 
   /**
+   * Marker trait for spatial indices
+   */
+  trait SpatialIndex[T <: SpatialIndexValues, U] extends GeoMesaFeatureIndex[T, U]
+
+  /**
    * Index values with a spatial component
    */
   trait SpatialIndexValues {
@@ -62,11 +67,22 @@ package object index {
   }
 
   /**
+   * Marker trait for temporal indices
+   */
+  trait TemporalIndex[T <: TemporalIndexValues, U] extends GeoMesaFeatureIndex[T, U]
+
+  /**
    * Index values with a temporal component
    */
   trait TemporalIndexValues {
     def intervals: FilterValues[Bounds[ZonedDateTime]]
   }
+
+  /**
+   * Marker trait for spatio-temporal indices
+   */
+  trait SpatioTemporalIndex[T <: SpatialIndexValues with TemporalIndexValues, U]
+      extends SpatialIndex[T, U] with TemporalIndex[T, U]
 
   trait LegacyTableNaming[T, U] extends GeoMesaFeatureIndex[T, U] {
 

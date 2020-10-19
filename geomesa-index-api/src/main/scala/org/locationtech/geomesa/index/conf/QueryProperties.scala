@@ -39,11 +39,7 @@ object QueryProperties {
   // allow for full table scans or preempt them due to size of data set
   val BlockFullTableScans = new SystemProperty("geomesa.scan.block-full-table", "false") {
     def onFullTableScan(typeName: String, filter: Filter): Unit = {
-      val block =
-        Option(GeoMesaSystemProperties.getProperty(s"geomesa.scan.$typeName.block-full-table"))
-          .map(java.lang.Boolean.parseBoolean)
-          .orElse(toBoolean)
-          .getOrElse(false)
+      val block = blockFullTableScansForFeatureType(typeName).orElse(toBoolean).getOrElse(false)
       if (block) {
         throw new RuntimeException(s"Full-table scans are disabled. Query being stopped for $typeName: " +
             org.locationtech.geomesa.filter.filterToString(filter))
@@ -52,4 +48,15 @@ object QueryProperties {
   }
 
   val BlockMaxThreshold: SystemProperty = SystemProperty("geomesa.scan.block-full-table.threshold", "1000")
+
+  /**
+   * Is the system property for a specific feature type set
+   *
+   * @param typeName type name
+   * @return
+   */
+  def blockFullTableScansForFeatureType(typeName: String): Option[Boolean] = {
+    Option(GeoMesaSystemProperties.getProperty(s"geomesa.scan.$typeName.block-full-table"))
+        .map(java.lang.Boolean.parseBoolean)
+  }
 }
