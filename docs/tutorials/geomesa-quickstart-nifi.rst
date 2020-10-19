@@ -10,17 +10,14 @@ Prerequisites
 
 Before you begin, you must have the following:
 
--  an instance of Accumulo 1.7 or 1.8 running on Hadoop 2.2 or better
+-  an instance of Accumulo 1.9 or 2.0 running on Hadoop 2.8 or later
 -  an Accumulo user that has both create-table and write permissions
--  the GeoMesa Accumulo distributed runtime `installed for your Accumulo
-   instance <http://www.geomesa.org/documentation/user/installation_and_configuration.html#installing-the-accumulo-distributed-runtime-library>`__
+-  the GeoMesa Accumulo distributed runtime :ref:`installed for your Accumulo instance <install_accumulo_runtime>`
 -  a local copy of the `Java <http://java.oracle.com/>`__ JDK 8
 -  Apache `Maven <http://maven.apache.org/>`__ installed
--  an instance of Apache `NiFi <http://nifi.apache.org/>`__ 0.4.1 or
-   better
+-  an instance of Apache `NiFi <http://nifi.apache.org/>`__ 1.11.4 or later
 -  (Optional) an installation of `GeoServer <http://geoserver.org/>`__
-   with the `GeoMesa Accumulo GeoServer
-   plugin <http://www.geomesa.org/documentation/user/accumulo/install.html#install-accumulo-geoserver>`__
+   with the :ref:`GeoMesa Accumulo GeoServer plugin <install_accumulo_geoserver>`
    to visualize the ingested data.
 -  a GitHub client installed
 
@@ -48,55 +45,12 @@ see :ref:`gdelt_converter`.
     GDELT is available in two different formats, the original and version 2. GeoMesa provides converters
     for both formats, but take note which format you download, as the converter name will differ.
 
-Download and Build the GeoMesa NiFi project
--------------------------------------------
+Download and Install the GeoMesa NiFi project
+---------------------------------------------
 
-Pick a reasonable directory on your machine, and run:
-
-.. code-block:: bash
-
-    $ git clone https://github.com/geomesa/geomesa-nifi.git
-    $ cd geomesa-nifi
-
-To build, run
-
-.. code-block:: bash
-
-    $ mvn clean install
-
-This will build several processors:
-
-- ``PutGeoMesaAccumulo`` Ingest data into a GeoMesa Accumulo store
-- ``PutGeoMesaHBase`` Ingest data into a GeoMesa HBase store
-- ``PutGeoMesaKafka`` Ingest data into a GeoMesa Kafka store
-- ``PutGeoMesaRedis`` Ingest data into a GeoMesa Redis store
-- ``PutGeoMesaFileSystem`` Ingest data into a GeoMesa FileSystem store
-- ``PutGeoTools`` Ingest data into an arbitrary GeoTools store
-- ``ConvertToGeoAvro`` Convert data into Avro data files
+Follow the instructions at :ref:`nifi_bundle` to download and install the appropriate NARs in your NiFi instance.
 
 This tutorial will use Accumulo, but any processor can be used with slight differences in the configuration.
-
-Install the GeoMesa Processor
------------------------------
-
-Install the GeoMesa NiFi Processor
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In order to use NiFi with GeoMesa we need to first install the GeoMesa
-processor. To do this simply copy the ``geomesa-nifi-nar-$VERSION.nar``
-that you just built from ``geomesa-nifi/geomesa-nifi-nar/target`` to the
-``lib/`` directory of you NiFi installation.
-
-Install the SFTs and Converters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Additionally we need to copy the ``geomesa-tools_2.11-$VERSION-data.jar``
-from the geomesa binary distribution to the ``lib/`` of the NiFi installation.
-The ``geomesa-tools_2.11-$VERSION-data.jar`` is located in the
-``dist/converters`` directory of the geomesa Accumulo binary distribution. This
-jar contains the SimpleFeatureType and converter definitions needed for GeoMesa to ingest the
-GDELT data. You can obtain the binary distribution from `GitHub <https://github.com/locationtech/geomesa/releases>`__,
-or you may build it locally from source.
 
 Create a NiFi Flow
 ------------------
@@ -108,10 +62,9 @@ Create the GeoMesa processor by dragging a new processor to your flow, and selec
 Select the processor and click the 'configure' button to configure it. On the properties page, fill out the following
 values:
 
-* **Mode**: ``Converter``
 * **SftName**: ``gdelt`` or ``gdelt2`` (depending on what version of data you downloaded)
-* **ConverterName**: ``gdelt`` or ``gdelt2`` (depending on what version of data you downloaded)
 * **FeatureNameOverride**: ``gdelt``
+* **ConverterName**: ``gdelt`` or ``gdelt2`` (depending on what version of data you downloaded)
 * **accumulo.instance.id**: the ID of your Accumulo instance
 * **accumulo.zookeepers**: the zookeeper hosts of your Accumulo instance
 * **accumulo.user**: an Accumulo user with create and write permissions
