@@ -2429,6 +2429,7 @@
                         <forkCount>${test.fork.count}</forkCount>
                         <reuseForks>${test.fork.reuse}</reuseForks>
                         <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
+                        <rerunFailingTestsCount>1</rerunFailingTestsCount> <!-- re-try intermittent failures -->
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <includes>
                             <include>**/*Test.java</include>

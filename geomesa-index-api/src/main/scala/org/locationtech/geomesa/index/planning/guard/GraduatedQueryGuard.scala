@@ -8,76 +8,67 @@
 
 package org.locationtech.geomesa.index.planning.guard
 
-import java.time.ZonedDateTime
-import java.util
-
-import com.typesafe.config.{Config, ConfigException, ConfigFactory}
+import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query}
-import org.locationtech.geomesa.filter.{Bounds, FilterValues, filterToString}
 import org.locationtech.geomesa.index.api.QueryStrategy
-import org.locationtech.geomesa.index.index.{SpatialIndexValues, TemporalIndexValues}
+import org.locationtech.geomesa.index.index.{SpatialIndexValues, SpatioTemporalIndex, TemporalIndexValues}
 import org.locationtech.geomesa.index.planning.QueryInterceptor
-import org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard.{SizeAndDuration, loadConfiguration}
+import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.concurrent.duration.Duration
 
-class GraduatedQueryGuard extends QueryInterceptor {
-  var guardLimits: Seq[SizeAndDuration] = Seq()
+class GraduatedQueryGuard extends QueryInterceptor with LazyLogging {
+
+  import org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard._
+
+  private var guardLimits: Seq[SizeAndDuration] = _
+  private var disabled: Boolean = false
 
   override def init(ds: DataStore, sft: SimpleFeatureType): Unit = {
-    guardLimits = loadConfiguration(sft)
+    disabled = GraduatedQueryGuard.disabled(sft.getTypeName)
+    if (disabled) {
+      logger.info(s"This guard is disabled for schema '${sft.getTypeName}' via system property")
+    }
+    // let any errors bubble up and disable this guard
+    guardLimits = buildLimits(ConfigFactory.load().getConfigList(s"$ConfigPath.${sft.getTypeName}"))
+    // this should be ensured during the loading of limits, but just double check so we can use `.last` safely below
+    require(guardLimits.nonEmpty)
   }
 
-  override def rewrite(query: Query): Unit = { }
+  override def rewrite(query: Query): Unit = {}
 
   override def guard(strategy: QueryStrategy): Option[IllegalArgumentException] = {
-    FullTableScanQueryGuard.guard(strategy) match {
-      case Some(illegalArgumentException) => Some(illegalArgumentException)
-      case None => guardInner(strategy)
-    }
-  }
+    val msg = if (disabled || !strategy.index.isInstanceOf[SpatioTemporalIndex[_, _]]) { None } else {
+      val values = strategy.values.collect {
+        case v: SpatialIndexValues with TemporalIndexValues => (v.spatialBounds, v.intervals)
+      }
+      values match {
+        case None =>
+          Some(s"Query does not have a temporal filter. Maximum allowed filter duration for " +
+              s"whole world queries is ${guardLimits.last.durationLimit}")
 
-  private def guardInner(strategy: QueryStrategy): Option[IllegalArgumentException] = {
-    val intervalsOption: Option[FilterValues[Bounds[ZonedDateTime]]] = strategy.values.collect { case v: TemporalIndexValues => v.intervals }
-    val spatialBoundsOption: Option[Seq[(Double, Double, Double, Double)]] = strategy.values.collect { case v: SpatialIndexValues => v.spatialBounds }
-
-    val spatialExtent = spatialBoundsOption match {
-      case None => 360.0 * 180.0  // Whole world
-      case Some(seq) => seq.map { case  (lx: Double, ly: Double, ux: Double, uy: Double) =>
-        (ux-lx) * (uy-ly)
-      }.sum
-    }
-
-    intervalsOption match {
-      // The None case reflects a query without a temporal extent or a full-table scan on a table with a temporal extent
-      // The full-table scan block should be used to avoid the later case.
-      // Here a none is returned indicating that this guard does not stop the query
-      case None => None
-      case Some(intervals) =>
-        if (!intervals.forall(_.isBoundedBothSides) || intervals.isEmpty) {
-          Some(new IllegalArgumentException("At least one part of the query is temporally unbounded.  Add bounded temporal constraints."))
-        } else {
-          val queryDuration = duration(intervals.values)
-          guardLimits.find( _.sizeLimit >= spatialExtent).flatMap {
-            limit =>
-              if (queryDuration > limit.durationLimit) {
-                Some(new IllegalArgumentException(
-                  s"Query of this size exceeds maximum allowed filter duration of ${limit.durationLimit}: " +
-                    s"${filterToString(strategy.filter.filter)}. " +
-                    s"Try a small spatial extent or a shorter time range."))
-              } else {
-                None
-              }
+        case Some((s, i)) =>
+          val spatialExtent = s.map { case (lx, ly, ux, uy) => (ux - lx) * (uy - ly) }.sum
+          val limit = guardLimits.find(_.sizeLimit >= spatialExtent).getOrElse {
+            // should always be a valid limit due to our checks building the limit...
+            logger.warn(s"Invalid extents/limits: ${s.mkString(", ")} / ${guardLimits.mkString(", ")}")
+            guardLimits.last
           }
-        }
+          if (validate(i, limit.durationLimit)) { None } else {
+            Some(s"Query exceeds maximum allowed filter duration of ${limit.durationLimit} at ${limit.sizeLimit} degrees")
+          }
+      }
     }
+    msg.map(m => new IllegalArgumentException(s"$m: ${filterString(strategy)}"))
   }
 
-  override def close(): Unit = { }
+  override def close(): Unit = {}
 }
+
 object GraduatedQueryGuard extends LazyLogging {
+
   val ConfigPath = "geomesa.guard.graduated"
 
   /**
@@ -87,18 +78,8 @@ object GraduatedQueryGuard extends LazyLogging {
    */
   case class SizeAndDuration(sizeLimit: Int, durationLimit: Duration)
 
-  def loadConfiguration(sft: SimpleFeatureType): Seq[SizeAndDuration]  = {
-    val conf = ConfigFactory.load()
-    try {
-      val guardConfig = conf.getConfigList(s"${ConfigPath}.${sft.getTypeName}")
-      buildLimits(guardConfig)
-    } catch {
-      case e: ConfigException =>
-        logger.error(s"Configuration for GraduatedQueryGuard not available or correct for type ${sft.getTypeName}.  " +
-          s"This query guard is disabled.")
-        Seq()
-    }
-  }
+  def disabled(typeName: String): Boolean =
+    SystemProperty(s"geomesa.guard.graduated.$typeName.disable").toBoolean.contains(true)
 
   /**
    * This function checks conditions on the limits.
@@ -129,12 +110,13 @@ object GraduatedQueryGuard extends LazyLogging {
     candidate
   }
 
-  def buildLimits(guardConfig: util.List[_ <: Config]): Seq[SizeAndDuration] = {
+  def buildLimits(guardConfig: java.util.List[_ <: Config]): Seq[SizeAndDuration] = {
     import scala.collection.JavaConverters._
     val confs = guardConfig.asScala.map { durationConfig =>
-      val size: Int = durationConfig.hasPath("size") match {
-        case true => durationConfig.getInt("size")
-        case false => Int.MaxValue
+      val size: Int = if (durationConfig.hasPath("size")) {
+        durationConfig.getInt("size")
+      } else {
+        Int.MaxValue
       }
       val duration = Duration(durationConfig.getString("duration"))
       SizeAndDuration(size, duration)
