@@ -17,6 +17,8 @@ import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.{CloseQuietly, WithClose}
 import org.opengis.feature.simple.SimpleFeatureType
 
+import scala.util.control.NonFatal
+
 object ConcatenatedFileWriter {
 
   import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableLike
@@ -49,9 +51,9 @@ object ConcatenatedFileWriter {
         generateEmptyResponse(sft, dictionaryFields, encoding, ipcOpts, sort)
       }
     } catch {
-      case t: Throwable =>
-        CloseQuietly(files).foreach(t.addSuppressed)
-        throw t
+      case NonFatal(e) =>
+        CloseQuietly(files).foreach(e.addSuppressed)
+        throw e
     }
   }
 
