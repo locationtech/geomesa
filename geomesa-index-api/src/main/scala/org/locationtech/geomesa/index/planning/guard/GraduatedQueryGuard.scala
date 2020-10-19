@@ -33,6 +33,8 @@ class GraduatedQueryGuard extends QueryInterceptor with LazyLogging {
     }
     // let any errors bubble up and disable this guard
     guardLimits = buildLimits(ConfigFactory.load().getConfigList(s"$ConfigPath.${sft.getTypeName}"))
+    // this should be ensured during the loading of limits, but just double check so we can use `.last` safely below
+    require(guardLimits.nonEmpty)
   }
 
   override def rewrite(query: Query): Unit = {}
@@ -43,12 +45,16 @@ class GraduatedQueryGuard extends QueryInterceptor with LazyLogging {
         case v: SpatialIndexValues with TemporalIndexValues => (v.spatialBounds, v.intervals)
       }
       values match {
-        case None => Some("Query does not have a temporal filter")
+        case None =>
+          Some(s"Query does not have a temporal filter. Maximum allowed filter duration for " +
+              s"whole world queries is ${guardLimits.last.durationLimit}")
+
         case Some((s, i)) =>
           val spatialExtent = s.map { case (lx, ly, ux, uy) => (ux - lx) * (uy - ly) }.sum
           val limit = guardLimits.find(_.sizeLimit >= spatialExtent).getOrElse {
-            throw new IllegalStateException(
-              s"Invalid extents/limits: ${s.mkString(", ")} / ${guardLimits.mkString(", ")}")
+            // should always be a valid limit due to our checks building the limit...
+            logger.warn(s"Invalid extents/limits: ${s.mkString(", ")} / ${guardLimits.mkString(", ")}")
+            guardLimits.last
           }
           if (validate(i, limit.durationLimit)) { None } else {
             Some(s"Query exceeds maximum allowed filter duration of ${limit.durationLimit} at ${limit.sizeLimit} degrees")
