@@ -86,7 +86,8 @@ trait KryoFeatureSerialization extends SimpleFeatureSerializer {
         output.setBuffer(expanded)
       } else {
         val buffer = output.getBuffer
-        var i = end
+        // end is the position of the next byte to write, so we want to copy from the previous byte
+        var i = end - 1
         while (i > offset) {
           buffer(i + shift) = buffer(i)
           i -= 1
