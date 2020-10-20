@@ -33,7 +33,7 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
 
   sequential
 
-  val options = Seq(
+  val options: Seq[Set[SerializationOption]] = Seq(
       Set.empty[SerializationOption],
       Set(Immutable),
       Set(WithUserData),
@@ -410,6 +410,20 @@ class KryoFeatureSerializerTest extends Specification with LazyLogging {
           deserialized.getUserData.asScala must beEmpty
         }
       }
+    }
+
+    "correctly expand the buffer for large serialized objects" in {
+      val spec = "age:Int,name:String,dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("test", spec)
+      val sf = ScalaSimpleFeature.create(sft, "fid-0", "10", null, "2013-01-02T00:00:00.000Z", "POINT(45.0 49.0)")
+      val name = new String(Array.fill(131011)('a'.toByte), StandardCharsets.UTF_8)
+      sf.setAttribute("name", name)
+      val serializer = KryoFeatureSerializer(sft, SerializationOptions.withoutId)
+      val serialized = serializer.serialize(sf)
+      val deserialized = serializer.deserialize(serialized)
+      deserialized.getAttribute("name") mustEqual name
+      deserialized.getAttributes mustEqual sf.getAttributes
+      deserialized.getUserData.asScala must beEmpty
     }
 
     "be backwards compatible" in {
