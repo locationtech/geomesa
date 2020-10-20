@@ -165,9 +165,10 @@ protected class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends Duplicati
     if (inArrayFunction != null && hasTrue) {
       val attribute = inArrayFunction.getParameters.get(0)
       val array = inArrayFunction.getParameters.get(1)
-      val filters = array.evaluate(null).asInstanceOf[util.List[_]].asScala.toSet[Any].map {
+      import scala.collection.JavaConversions._
+      val filters = array.evaluate(null).asInstanceOf[util.List[_]].toSet[Any].map {
         o => ff.equals(attribute, ff.literal(o))
-      }.toSeq
+      }.toList
       val newFilter = ff.or(filters)
       Some(newFilter)
     } else {
