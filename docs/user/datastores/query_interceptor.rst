@@ -49,7 +49,7 @@ Interceptors must have a default, no-arg constructor. The interceptor lifecycle 
 
 1. The instance is instantiated via reflection, using its default constructor
 #. The instance is initialized via the ``init`` method, passing in the data store containing the simple feature type
-#. ``rewrite`` and ``guard`` are called once for each query
+#. ``rewrite`` and ``guard`` are called once for each query (these two methods must be thread-safe)
 #. When the data store is disposed, the instance is cleaned up via the ``close`` method
 
 Interceptors will be invoked in the order they are declared in the user data. In order to see detailed information
@@ -67,8 +67,8 @@ Full Table Scan Query Guard
 +++++++++++++++++++++++++++
 
 The full table scan query guard will block queries which would cause a full table scan to be performed.
-This query guard is provided so that per feature type configuration can be managed easily.  Alternatively, one can use the
-``geomesa.scan.block-full-table`` system property to disable full table scans across all feature types.
+The query guard will be loaded in all environments. Alternatively, one can use the ``geomesa.scan.block-full-table``
+system property to disable full table scans per environment (see :ref:`geomesa_site_xml`).
 
 Just like the ``geomesa.scan.block-full-table`` property, this guard respects the ``geomesa.scan.block-full-table.threshold``
 system property.  This allows for preview queries which can be helpful to show a system is working.
@@ -81,14 +81,15 @@ to ``geomesa.query.interceptors`` as indicated above.
     sft.getUserData().put("geomesa.query.interceptors",
       "org.locationtech.geomesa.index.planning.guard.FullTableScanQueryGuard");
 
+To disable the guard on a per-environment basis, set the system property ``geomesa.scan.<typeName>.block-full-table``
+to ``false``, where ``<typeName>`is the name of your feature type.
 
 Temporal Query Guard
 ++++++++++++++++++++
 
 The temporal query guard will block queries which exceed a maximum temporal duration.
 Any query which attempts to return a larger time period will be stopped.
-This guard also applies the full table scan guard.
-The temporal query guard will not affect queries which do not execute a full table scan against indices that do not have
+The temporal query guard will not affect queries against indices that do not have
 a temporal component (for example, feature ID and attribute queries).
 
 To enable the guard, add ``org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard``
@@ -99,6 +100,9 @@ to ``geomesa.query.interceptors`` as indicated above, and set the duration using
     sft.getUserData().put("geomesa.query.interceptors",
       "org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard");
     sft.getUserData().put("geomesa.guard.temporal.max.duration", "28 days");
+
+To disable the guard on a per-environment basis, set the system property ``geomesa.guard.temporal.<typeName>.disable``
+to ``true``, where ``<typeName>`is the name of your feature type.
 
 Graduated Query Guard
 +++++++++++++++++++++
@@ -121,7 +125,8 @@ The configuration must satisfy a few conditions:
 * as the size increases, the duration must decrease,
 * and a given size limit may not be repeated.
 
-An example is given here.  Durations can be given in a number of days, hours, or minutes.
+If no size is provided, it is equivalent to an unbounded size. Durations can be given in a number of days,
+hours, or minutes. For example:
 
 .. code-block:: none
 
@@ -136,3 +141,6 @@ An example is given here.  Durations can be given in a number of days, hours, or
         }
       }
     }
+
+To disable the guard on a per-environment basis, set the system property ``geomesa.guard.graduated.<typeName>.disable``
+to ``true``, where ``<typeName>`is the name of your feature type.

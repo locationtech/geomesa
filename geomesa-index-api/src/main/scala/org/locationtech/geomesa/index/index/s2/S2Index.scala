@@ -6,7 +6,8 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.index.index.s2
+package org.locationtech.geomesa.index.index
+package s2
 
 import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
@@ -25,7 +26,8 @@ import org.opengis.feature.simple.SimpleFeatureType
   */
 class S2Index protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, version: Int, geom: String, mode: IndexMode)
     extends GeoMesaFeatureIndex[S2IndexValues, Long](ds, sft, S2Index.name, version, Seq(geom), mode)
-        with SpatialFilterStrategy[S2IndexValues, Long] {
+        with SpatialFilterStrategy[S2IndexValues, Long]
+        with SpatialIndex[S2IndexValues, Long] {
 
   def this(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geom: String, mode: IndexMode) =
     this(ds, sft, S2Index.version, geom, mode)
