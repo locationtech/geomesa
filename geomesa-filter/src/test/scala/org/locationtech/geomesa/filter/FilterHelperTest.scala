@@ -10,16 +10,19 @@ package org.locationtech.geomesa.filter
 
 import java.time.temporal.ChronoUnit
 import java.time.{ZoneOffset, ZonedDateTime}
+import java.util
 import java.util.Date
 
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl, LiteralExpressionImpl}
+import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl, LiteralExpressionImpl, OrImpl}
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter._
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
@@ -29,7 +32,7 @@ import org.specs2.runner.JUnitRunner
 class FilterHelperTest extends Specification {
 
   val sft = SimpleFeatureTypes.createType("FilterHelperTest",
-    "dtg:Date,number:Int,a:Int,b:Int,c:Int,*geom:Point:srid=4326")
+    "dtg:Date,number:Int,a:Int,b:Int,c:Int,*geom:Point:srid=4326,name:String")
 
   def updateFilter(filter: Filter): Filter = QueryPlanFilterVisitor.apply(sft, filter)
 
@@ -40,6 +43,31 @@ class FilterHelperTest extends Specification {
   }
 
   "FilterHelper" should {
+
+    "optimize the inArray function" >> {
+      val filter = ff.function("inArray", ff.literal("foo"), ff.literal(Array("foo", "bar")))
+      val filter2 = ff.equals(
+        ff.function("inArray", ff.property("name"), ff.literal(new util.ArrayList(util.Arrays.asList("foo", "bar")))),
+        ff.literal(java.lang.Boolean.TRUE)
+      )
+
+      val sf = new ScalaSimpleFeature(sft, "1",
+        Array(new Date(), new Integer(1), new Integer(2), new Integer(3), new Integer(4), WKTUtils.read("POINT(1 5)"), "foo"))
+      val filter3 = updateFilter(filter2)
+
+      filter3.isInstanceOf[OrImpl] mustEqual(true)
+
+      val filter4 = ff.equals(
+        ff.literal(java.lang.Boolean.TRUE),
+        ff.function("inArray",
+          ff.property("name"),
+          ff.literal(new util.ArrayList(util.Arrays.asList("foo", "bar"))))
+      )
+      val filter5 = updateFilter(filter4)
+
+      filter5.isInstanceOf[OrImpl] mustEqual(true)
+      ok
+    }
 
     "evaluate functions with 0 arguments" >> {
       val filter = ECQL.toFilter("dtg < currentDate()")

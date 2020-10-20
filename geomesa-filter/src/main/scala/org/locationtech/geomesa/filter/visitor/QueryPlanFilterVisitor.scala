@@ -8,10 +8,12 @@
 
 package org.locationtech.geomesa.filter.visitor
 
+import java.util
 import java.util.regex.Pattern
 import java.util.{Collections, Date}
 
 import org.geotools.filter.LikeToRegexConverter
+import org.geotools.filter.function.InArrayFunction
 import org.geotools.filter.visitor.{DuplicatingFilterVisitor, ExpressionTypeVisitor, IsStaticExpressionVisitor}
 import org.locationtech.geomesa.filter.{FilterHelper, GeometryProcessing}
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
@@ -143,12 +145,49 @@ protected class QueryPlanFilterVisitor(sft: SimpleFeatureType) extends Duplicati
     }
   }
 
+  private def handleInArrayEquals(filter: PropertyIsEqualTo, extraData: AnyRef): Option[Filter] = {
+    var inArrayFunction: InArrayFunction = null
+    var hasTrue: Boolean = false
+
+    def inspectExpression(expression: Expression) = {
+      expression match {
+        case function: InArrayFunction =>
+          inArrayFunction = function
+        case literal: Literal if literal.getValue.equals(java.lang.Boolean.TRUE) =>
+          hasTrue = true
+        case _ =>
+      }
+    }
+
+    inspectExpression(filter.getExpression1)
+    inspectExpression(filter.getExpression2)
+
+    if (inArrayFunction != null && hasTrue) {
+      val attribute = inArrayFunction.getParameters.get(0)
+      val array = inArrayFunction.getParameters.get(1)
+      val filters = array.evaluate(null).asInstanceOf[util.List[_]].asScala.toSet[Any].map {
+        o => ff.equals(attribute, ff.literal(o))
+      }.toSeq
+      val newFilter = ff.or(filters)
+      Some(newFilter)
+    } else {
+      None
+    }
+  }
+
   override def visit(filter: PropertyIsEqualTo, extraData: AnyRef): AnyRef = {
-    val target = binding(Seq(filter.getExpression1, filter.getExpression2))
-    if (target == null) { super.visit(filter, extraData) } else {
-      val e1 = bind(filter.getExpression1, extraData, target)
-      val e2 = bind(filter.getExpression2, extraData, target)
-      getFactory(extraData).equal(e1, e2, filter.isMatchingCase, filter.getMatchAction)
+    handleInArrayEquals(filter, extraData) match {
+      case Some(newFilter) =>
+        newFilter
+      case _ =>
+        val target = binding(Seq(filter.getExpression1, filter.getExpression2))
+        if (target == null) {
+          super.visit(filter, extraData)
+        } else {
+          val e1 = bind(filter.getExpression1, extraData, target)
+          val e2 = bind(filter.getExpression2, extraData, target)
+          getFactory(extraData).equal(e1, e2, filter.isMatchingCase, filter.getMatchAction)
+        }
     }
   }
 
