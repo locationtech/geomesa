@@ -245,7 +245,7 @@ are available:
     For example, setting ``geomesa.sft.name`` to a non-recurring value could end up creating a new schema for each
     flow file, potentially crashing your database by creating too many tables.
 
-.. _nifi_record_input_configurion:
+.. _nifi_record_input_configuration:
 
 Record Input Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -435,7 +435,7 @@ Record Writer
 In addition to the NiFi processors described above, GeoMesa-NiFi provides a Record Writer which will write out data in
 the GeoAvro format.
 This component is configured as a service and then configured on a Processor which requires a record writer.
-The configuration mirrors that for the Record processors: :ref:`nifi_record_input_configurion`.
+The configuration mirrors that for the Record processors: :ref:`nifi_record_input_configuration`.
 
 NiFi User Notes
 ---------------
