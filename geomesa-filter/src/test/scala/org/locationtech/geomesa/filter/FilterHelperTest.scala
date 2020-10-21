@@ -45,28 +45,30 @@ class FilterHelperTest extends Specification {
   "FilterHelper" should {
 
     "optimize the inArray function" >> {
-      val filter = ff.function("inArray", ff.literal("foo"), ff.literal(Array("foo", "bar")))
-      val filter2 = ff.equals(
+      val sf = new ScalaSimpleFeature(sft, "1",
+        Array(new Date(), new Integer(1), new Integer(2), new Integer(3), new Integer(4), WKTUtils.read("POINT(1 5)"), "foo"))
+
+      val originalFilter = ff.equals(
         ff.function("inArray", ff.property("name"), ff.literal(new util.ArrayList(util.Arrays.asList("foo", "bar")))),
         ff.literal(java.lang.Boolean.TRUE)
       )
+      val optimizedFilter = updateFilter(originalFilter)
 
-      val sf = new ScalaSimpleFeature(sft, "1",
-        Array(new Date(), new Integer(1), new Integer(2), new Integer(3), new Integer(4), WKTUtils.read("POINT(1 5)"), "foo"))
-      val filter3 = updateFilter(filter2)
+      optimizedFilter.isInstanceOf[OrImpl] mustEqual(true)
+      originalFilter.evaluate(sf) mustEqual(true)
+      optimizedFilter.evaluate(sf) mustEqual(true)
 
-      filter3.isInstanceOf[OrImpl] mustEqual(true)
-
-      val filter4 = ff.equals(
+      // Show that either order works.
+      val reverseOrder = ff.equals(
         ff.literal(java.lang.Boolean.TRUE),
         ff.function("inArray",
           ff.property("name"),
           ff.literal(new util.ArrayList(util.Arrays.asList("foo", "bar"))))
       )
-      val filter5 = updateFilter(filter4)
-
-      filter5.isInstanceOf[OrImpl] mustEqual(true)
-      ok
+      val optimizedReverseOrder = updateFilter(reverseOrder)
+      optimizedReverseOrder.isInstanceOf[OrImpl] mustEqual(true)
+      reverseOrder.evaluate(sf) mustEqual(true)
+      optimizedReverseOrder.evaluate(sf) mustEqual(true)
     }
 
     "evaluate functions with 0 arguments" >> {
