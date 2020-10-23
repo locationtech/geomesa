@@ -106,6 +106,12 @@ The version of Avro used by GeoMesa has been updated from 1.7.5 to 1.8.2. Avro s
 be compatible between versions, but compile and runtime dependencies may need to be updated if a project
 uses Avro and references GeoMesa.
 
+Query Interceptors API Change
+-----------------------------
+
+The query interceptors API has been expanded to support query guards. Any existing query interceptor
+implementations will continue to work, but may need to be re-compiled against the GeoMesa 3.1.0.
+
 Dependency Updates
 ------------------
 
