@@ -68,5 +68,7 @@ class GeoMesaDataStoreTest extends Specification {
       val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toSeq
       results must beEmpty
     }
+
+
   }
 }
