@@ -44,7 +44,6 @@ function get_accumulo_classpath() {
     fi
     if [[ -d "$ACCUMULO_LIB" ]]; then
       accumulo_cp="$accumulo_cp:$(find_jars $ACCUMULO_LIB true)"
-
     fi
     # for zookeeper only include the single root jar
     if [[ -d "${ZOOKEEPER_HOME}" ]]; then
