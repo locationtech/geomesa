@@ -11,7 +11,8 @@ package org.locationtech.geomesa.index.planning.guard
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query}
-import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
+import org.locationtech.geomesa.index.api.FilterStrategy
+import org.locationtech.geomesa.index.index.{SpatialIndexValues, SpatioTemporalIndex, TemporalIndexValues}
 import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
@@ -39,28 +40,30 @@ class GraduatedQueryGuard extends QueryInterceptor with LazyLogging {
   override def rewrite(query: Query): Unit = {}
 
   override def guard(filter: FilterStrategy[_, _, _], values: Option[Any]): Option[IllegalArgumentException] = {
-    val msg = None
-//      if (disabled || !strategy.index.isInstanceOf[SpatioTemporalIndex[_, _]]) { None } else {
-//      val values = strategy.values.collect {
-//        case v: SpatialIndexValues with TemporalIndexValues => (v.spatialBounds, v.intervals)
-//      }
-//      values match {
-//        case None =>
-//          Some(s"Query does not have a temporal filter. Maximum allowed filter duration for " +
-//              s"whole world queries is ${guardLimits.last.durationLimit}")
-//
-//        case Some((s, i)) =>
-//          val spatialExtent = s.map { case (lx, ly, ux, uy) => (ux - lx) * (uy - ly) }.sum
-//          val limit = guardLimits.find(_.sizeLimit >= spatialExtent).getOrElse {
-//            // should always be a valid limit due to our checks building the limit...
-//            logger.warn(s"Invalid extents/limits: ${s.mkString(", ")} / ${guardLimits.mkString(", ")}")
-//            guardLimits.last
-//          }
-//          if (validate(i, limit.durationLimit)) { None } else {
-//            Some(s"Query exceeds maximum allowed filter duration of ${limit.durationLimit} at ${limit.sizeLimit} degrees")
-//          }
-//      }
-//    }
+    val msg = if (disabled || !filter.index.isInstanceOf[SpatioTemporalIndex]) {
+      println(s"Not an st index: $filter $values")
+      None
+    } else {
+      println(s"Got an st index: $filter $values")
+      val stValues = values.collect {
+        case v: SpatialIndexValues with TemporalIndexValues => (v.spatialBounds, v.intervals)
+      }
+      stValues match {
+        case None =>
+          Some(s"Query does not have a temporal filter. Maximum allowed filter duration for " +
+              s"whole world queries is ${guardLimits.last.durationLimit}")
+        case Some((s, i)) =>
+          val spatialExtent = s.map { case (lx, ly, ux, uy) => (ux - lx) * (uy - ly) }.sum
+          val limit = guardLimits.find(_.sizeLimit >= spatialExtent).getOrElse {
+            // should always be a valid limit due to our checks building the limit...
+            logger.warn(s"Invalid extents/limits: ${s.mkString(", ")} / ${guardLimits.mkString(", ")}")
+            guardLimits.last
+          }
+          if (validate(i, limit.durationLimit)) { None } else {
+            Some(s"Query exceeds maximum allowed filter duration of ${limit.durationLimit} at ${limit.sizeLimit} degrees")
+          }
+      }
+    }
     msg.map(m => new IllegalArgumentException(s"$m: ${filterString(filter)}"))
   }
 
