@@ -2829,6 +2829,7 @@
                     <configuration>
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
+                            <validHeader>build/copyright/ccri-2020.txt</validHeader>
                             <validHeader>build/copyright/ccri-dstl-copyright.txt</validHeader>
                             <validHeader>build/copyright/ccri-dstl-copyright-2016.txt</validHeader>
                             <validHeader>build/copyright/dstl-copyright-2016.txt</validHeader>
