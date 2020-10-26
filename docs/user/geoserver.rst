@@ -14,6 +14,11 @@ GeoServer Versions
 Not all versions of GeoServer are compatible with all versions of GeoMesa. Refer to the chart below for which
 version to install. It is recommended to use the latest GeoServer bug-fix release for the compatible minor version.
 
+.. note::
+
+    New versions of GeoServer are released regularly. GeoMesa 3+ may work with newer versions of GeoServer, but
+    only the versions listed below have been verified.
+
 +-------------------+-------------------+
 | GeoMesa Version   | GeoServer Version |
 +===================+===================+
@@ -23,7 +28,7 @@ version to install. It is recommended to use the latest GeoServer bug-fix releas
 +-------------------+-------------------+
 | 2.4.x             | 2.15.x            |
 +-------------------+-------------------+
-| 3.0.x             | 2.17.x            |
+| 3.0.x and 3.1.x   | 2.17.x            |
 +-------------------+-------------------+
 
 .. warning::
