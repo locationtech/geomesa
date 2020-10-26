@@ -148,7 +148,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
         strategyCount += 1
         output(s"Strategy filter: $strategy")
         profile(complete _) {
-          val qp = strategy.index.getQueryPlan(sft, ds, strategy, hints, output)
+          val qp = strategy.index.getQueryPlan(sft, ds, strategy, hints, output, interceptors(sft))
 
           // TODO: We'd like to do this.
           // Query Plans do not have the values we need.

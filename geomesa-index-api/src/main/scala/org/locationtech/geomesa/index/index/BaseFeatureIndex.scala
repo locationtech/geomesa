@@ -16,6 +16,7 @@ import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.conf.splitter.TableSplitter
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.IndexKeySpace._
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -105,12 +106,14 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
                             ds: DS,
                             filter: FilterStrategy[DS, F, W],
                             hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W] = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor]): QueryPlan[DS, F, W] = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val sharing = sft.getTableSharingBytes
 
-    val indexValues = filter.primary.map(keySpace.getIndexValues(sft, _, explain))
+    val indexValues: Option[V] = filter.primary.map(keySpace.getIndexValues(sft, _, explain))
+    interceptors.foreach { _.guard(filter, indexValues)}
 
     val ranges = indexValues match {
       case None =>

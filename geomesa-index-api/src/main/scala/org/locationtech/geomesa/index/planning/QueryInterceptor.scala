@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query}
-import org.locationtech.geomesa.index.api.QueryPlan
+import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
 import org.locationtech.geomesa.utils.io.CloseWithLogging
@@ -48,7 +48,7 @@ trait QueryInterceptor extends Closeable {
    * @param strategy query strategy
    * @return an exception if the query should be stopped
    */
-  def guard(strategy: QueryPlan[_, _, _]): Option[IllegalArgumentException] = None
+  def guard(strategy: FilterStrategy[_, _, _], values: Option[Any]): Option[IllegalArgumentException] = None
 }
 
 object QueryInterceptor extends LazyLogging {

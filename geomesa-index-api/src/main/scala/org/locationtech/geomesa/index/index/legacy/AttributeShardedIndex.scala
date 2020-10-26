@@ -27,6 +27,7 @@ import org.locationtech.geomesa.index.index.attribute.AttributeIndex.AttributeRo
 import org.locationtech.geomesa.index.index.z2.{XZ2IndexKeySpace, Z2IndexKeySpace}
 import org.locationtech.geomesa.index.index.z3.{XZ3IndexKeySpace, Z3IndexKeySpace}
 import org.locationtech.geomesa.index.index.{IndexAdapter, IndexKeySpace}
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.strategies.AttributeFilterStrategy
 import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -142,7 +143,8 @@ trait AttributeShardedIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeatur
                             ds: DS,
                             filter: FilterStrategy[DS, F, W],
                             hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W] = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor]): QueryPlan[DS, F, W] = {
 
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 

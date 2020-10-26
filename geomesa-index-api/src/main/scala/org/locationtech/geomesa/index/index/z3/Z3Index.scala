@@ -11,12 +11,14 @@ package org.locationtech.geomesa.index.index.z3
 import org.locationtech.geomesa.index.api.WrappedFeature
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.ShardStrategy.ZShardStrategy
-import org.locationtech.geomesa.index.index.{BaseFeatureIndex, ShardStrategy}
+import org.locationtech.geomesa.index.index.{BaseFeatureIndex, ShardStrategy, SpatioTemporalIndex}
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
 import org.opengis.feature.simple.SimpleFeatureType
 
 trait Z3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R, C]
-    extends BaseFeatureIndex[DS, F, W, R, C, Z3IndexValues, Z3IndexKey] with SpatioTemporalFilterStrategy[DS, F, W] {
+    extends BaseFeatureIndex[DS, F, W, R, C, Z3IndexValues, Z3IndexKey]
+      with SpatioTemporalFilterStrategy[DS, F, W]
+      with SpatioTemporalIndex /** [Z3IndexValues, Z3IndexKey] **/ {
 
   override val name: String = Z3Index.Name
 

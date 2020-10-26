@@ -12,6 +12,7 @@ import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.IndexKeySpace._
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -66,7 +67,8 @@ trait BaseTieredFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeatu
                             ds: DS,
                             filter: FilterStrategy[DS, F, W],
                             hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W] = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor]): QueryPlan[DS, F, W] = {
 
     val tier = tieredKeySpace(sft).orNull.asInstanceOf[IndexKeySpace[Any, Any]]
     val primary = filter.primary.orNull

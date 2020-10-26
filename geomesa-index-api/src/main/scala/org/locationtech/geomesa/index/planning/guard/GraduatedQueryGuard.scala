@@ -11,7 +11,7 @@ package org.locationtech.geomesa.index.planning.guard
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query}
-import org.locationtech.geomesa.index.api.QueryPlan
+import org.locationtech.geomesa.index.api.{FilterStrategy, QueryPlan}
 import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
@@ -38,7 +38,7 @@ class GraduatedQueryGuard extends QueryInterceptor with LazyLogging {
 
   override def rewrite(query: Query): Unit = {}
 
-  override def guard(strategy: QueryPlan[_, _, _]): Option[IllegalArgumentException] = {
+  override def guard(filter: FilterStrategy[_, _, _], values: Option[Any]): Option[IllegalArgumentException] = {
     val msg = None
     // TODO: Re-enable
 //      if (disabled || !strategy.index.isInstanceOf[SpatioTemporalIndex[_, _]]) { None } else {
@@ -62,7 +62,7 @@ class GraduatedQueryGuard extends QueryInterceptor with LazyLogging {
 //          }
 //      }
 //    }
-    msg.map(m => new IllegalArgumentException(s"$m: ${filterString(strategy)}"))
+    msg.map(m => new IllegalArgumentException(s"$m: ${filterString(filter)}"))
   }
 
   override def close(): Unit = {}

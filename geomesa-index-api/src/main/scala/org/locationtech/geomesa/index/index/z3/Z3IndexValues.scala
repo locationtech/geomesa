@@ -13,10 +13,11 @@ import java.time.ZonedDateTime
 import com.vividsolutions.jts.geom.Geometry
 import org.locationtech.geomesa.curve.Z3SFC
 import org.locationtech.geomesa.filter.{Bounds, FilterValues}
+import org.locationtech.geomesa.index.index.{SpatialIndexValues, TemporalIndexValues}
 
 case class Z3IndexValues(sfc: Z3SFC,
                          geometries: FilterValues[Geometry],
                          spatialBounds: Seq[(Double, Double, Double, Double)],
                          intervals: FilterValues[Bounds[ZonedDateTime]],
                          temporalBounds: Map[Short, Seq[(Long, Long)]],
-                         temporalUnbounded: Seq[(Short, Short)])
+                         temporalUnbounded: Seq[(Short, Short)]) extends TemporalIndexValues with SpatialIndexValues

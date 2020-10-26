@@ -29,8 +29,8 @@ class FullTableScanQueryGuard extends QueryInterceptor with LazyLogging {
 //    }
   }
 
-  override def guard(strategy: QueryPlan[_, _, _]): Option[IllegalArgumentException] =
-    if (disabled) { None } else { FullTableScanQueryGuard.guard(strategy) }
+  override def guard(filter: FilterStrategy[_, _, _], values: Option[Any]): Option[IllegalArgumentException] =
+    if (disabled) { None } else { FullTableScanQueryGuard.guard(filter, values) }
 
   override def rewrite(query: Query): Unit = {}
 
@@ -38,7 +38,7 @@ class FullTableScanQueryGuard extends QueryInterceptor with LazyLogging {
 }
 
 object FullTableScanQueryGuard {
-  def guard(strategy: QueryPlan[_, _, _]): Option[IllegalArgumentException] = {
+  def guard(filter: FilterStrategy[_, _, _], values: Option[Any]): Option[IllegalArgumentException] = {
     // TODO: Re-enable
     None
 //    if (strategy.values.isEmpty && strategy.hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
