@@ -8,7 +8,6 @@
 
 package org.locationtech.geomesa.index.geotools
 
-
 import java.util.Collections
 
 import org.geotools.data.{DataStore, Query}
