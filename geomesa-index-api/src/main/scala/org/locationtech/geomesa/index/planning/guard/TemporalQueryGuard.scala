@@ -35,6 +35,7 @@ class TemporalQueryGuard extends QueryInterceptor with LazyLogging {
       throw new IllegalArgumentException(
         s"Temporal query guard expects valid duration under user data key '$Config'")
     }
+    println(s"Max is set to $max")
   }
 
   override def rewrite(query: Query): Unit = {}

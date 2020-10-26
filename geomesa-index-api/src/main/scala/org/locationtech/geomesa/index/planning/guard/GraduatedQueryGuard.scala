@@ -40,7 +40,6 @@ class GraduatedQueryGuard extends QueryInterceptor with LazyLogging {
 
   override def guard(filter: FilterStrategy[_, _, _], values: Option[Any]): Option[IllegalArgumentException] = {
     val msg = None
-    // TODO: Re-enable
 //      if (disabled || !strategy.index.isInstanceOf[SpatioTemporalIndex[_, _]]) { None } else {
 //      val values = strategy.values.collect {
 //        case v: SpatialIndexValues with TemporalIndexValues => (v.spatialBounds, v.intervals)

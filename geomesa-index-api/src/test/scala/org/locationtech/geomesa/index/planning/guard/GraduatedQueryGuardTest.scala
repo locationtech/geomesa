@@ -27,7 +27,7 @@ class GraduatedQueryGuardTest extends Specification {
     "block queries with an excessive duration and spatial extent using graduated query guard" in {
       // note: z3 needs to be declared first so it's picked for full table scans
       val sft = SimpleFeatureTypes.createType("cea650aea6284b5281ee84c784cb56a7",
-        "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='z3,id,attr:name'")
+        "name:String:index=true,age:Int,dtg:Date,*geom:Point:srid=4326")
       // NB: Uses configuration in the test reference.conf
       sft.getUserData.put("geomesa.query.interceptors",
         "org.locationtech.geomesa.index.planning.guard.GraduatedQueryGuard")

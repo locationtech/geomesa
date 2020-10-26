@@ -113,7 +113,7 @@ trait BaseFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W,
     val sharing = sft.getTableSharingBytes
 
     val indexValues: Option[V] = filter.primary.map(keySpace.getIndexValues(sft, _, explain))
-    interceptors.foreach { _.guard(filter, indexValues)}
+    interceptors.foreach { _.guard(filter, indexValues).foreach(e => throw e) }
 
     val ranges = indexValues match {
       case None =>

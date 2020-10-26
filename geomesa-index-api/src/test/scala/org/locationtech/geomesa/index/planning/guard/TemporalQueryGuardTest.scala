@@ -41,11 +41,12 @@ class TemporalQueryGuardTest extends Specification {
       )
 
       val invalid = Seq(
+        // NB: In 2.1, these two filters hit a default z2 index and therefore do not fail.
+//        "bbox(geom,-10,-10,10,10)",
+//        "bbox(geom,-10,-10,10,10) AND dtg after 2020-01-01T00:00:00.000Z",
         "INCLUDE",
-        "bbox(geom,-10,-10,10,10)",
         "bbox(geom,-180,-90,180,90)",
-        "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-03T23:59:59.000Z",
-        "bbox(geom,-10,-10,10,10) AND dtg after 2020-01-01T00:00:00.000Z"
+        "bbox(geom,-10,-10,10,10) AND dtg during 2020-01-01T00:00:00.000Z/2020-01-03T23:59:59.000Z"
       )
 
       foreach(valid.map(ECQL.toFilter)) { filter =>
