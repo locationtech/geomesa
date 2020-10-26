@@ -547,9 +547,12 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     }
     sft.getAttributeDescriptors.asScala.foreach { d =>
       if (indexed(d)) {
-        val fields = Seq(d.getLocalName) ++ Option(sft.getGeomField) ++ sft.getDtgField
-        val existing = sft.getIndices
-        if (!existing.exists(e => e.name == AttributeIndex.name && e.attributes.map(remapCol) == fields)) {
+        val existing = {
+          val explicit = sft.getIndices
+          if (explicit.nonEmpty) { explicit } else { previous.getIndices }
+        }
+        if (!existing.exists(e => e.name == AttributeIndex.name && remapCol(e.attributes.head) == d.getLocalName)) {
+          val fields = Seq(d.getLocalName) ++ Option(sft.getGeomField) ++ sft.getDtgField
           val id = IndexId(AttributeIndex.name, AttributeIndex.version, fields, IndexMode.ReadWrite)
           sft.setIndices(existing :+ id)
         }
