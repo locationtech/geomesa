@@ -22,13 +22,14 @@ class FullTableScanQueryGuard extends QueryInterceptor with LazyLogging {
 
   override def init(ds: DataStore, sft: SimpleFeatureType): Unit = {
     // allow for explicit disabling of this guard
-    disabled = QueryProperties.blockFullTableScansForFeatureType(sft.getTypeName).contains(false)
-    if (disabled) {
-      logger.info(s"This guard is disabled for schema '${sft.getTypeName}' via system property")
-    }
+    // TODO: Re-enable this override
+//    disabled = QueryProperties.blockFullTableScansForFeatureType(sft.getTypeName).contains(false)
+//    if (disabled) {
+//      logger.info(s"This guard is disabled for schema '${sft.getTypeName}' via system property")
+//    }
   }
 
-  override def guard(strategy: QueryStrategy): Option[IllegalArgumentException] =
+  override def guard(strategy: QueryPlan[_, _, _]): Option[IllegalArgumentException] =
     if (disabled) { None } else { FullTableScanQueryGuard.guard(strategy) }
 
   override def rewrite(query: Query): Unit = {}
@@ -37,12 +38,14 @@ class FullTableScanQueryGuard extends QueryInterceptor with LazyLogging {
 }
 
 object FullTableScanQueryGuard {
-  def guard(strategy: QueryStrategy): Option[IllegalArgumentException] = {
-    if (strategy.values.isEmpty && strategy.hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
-      Some(new IllegalArgumentException(s"The query ${filterString(strategy)} " +
-        "would lead to a full-table scan and has been stopped."))
-    } else {
-      None
-    }
+  def guard(strategy: QueryPlan[_, _, _]): Option[IllegalArgumentException] = {
+    // TODO: Re-enable
+    None
+//    if (strategy.values.isEmpty && strategy.hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
+//      Some(new IllegalArgumentException(s"The query ${filterString(strategy)} " +
+//        "would lead to a full-table scan and has been stopped."))
+//    } else {
+//      None
+//    }
   }
 }

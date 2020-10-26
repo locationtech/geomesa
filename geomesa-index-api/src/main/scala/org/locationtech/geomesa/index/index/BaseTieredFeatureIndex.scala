@@ -75,7 +75,7 @@ trait BaseTieredFeatureIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeatu
       // primary == null handles Filter.INCLUDE
       super.getQueryPlan(sft, ds, filter, hints, explain)
     } else {
-      val values = keySpace.getIndexValues(sft, primary, explain)
+      val values: V = keySpace.getIndexValues(sft, primary, explain)
       val prefixes = (shardStrategy(sft).shards, sft.getTableSharingBytes) match {
         case (shards, Array()) => shards
         case (Seq(), share)    => Seq(share)

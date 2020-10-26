@@ -10,8 +10,7 @@ package org.locationtech.geomesa.index.planning.guard
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query}
-import org.locationtech.geomesa.index.api.QueryStrategy
-import org.locationtech.geomesa.index.index.{TemporalIndex, TemporalIndexValues}
+import org.locationtech.geomesa.index.api.QueryPlan
 import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.opengis.feature.simple.SimpleFeatureType
@@ -39,14 +38,16 @@ class TemporalQueryGuard extends QueryInterceptor with LazyLogging {
 
   override def rewrite(query: Query): Unit = {}
 
-  override def guard(strategy: QueryStrategy): Option[IllegalArgumentException] = {
-    val msg = if (disabled || !strategy.index.isInstanceOf[TemporalIndex[_, _]]) { None } else {
-      strategy.values.collect { case v: TemporalIndexValues => v.intervals } match {
-        case None => Some("Query does not have a temporal filter")
-        case Some(i) if !validate(i, max) => Some(s"Query exceeds maximum allowed filter duration of $max")
-        case _ => None
-      }
-    }
+  override def guard(strategy: QueryPlan[_, _, _]): Option[IllegalArgumentException] = {
+    val msg = None
+    // TODO Re-enable
+//    if (disabled || !strategy.index.isInstanceOf[TemporalIndex[_, _]]) { None } else {
+//      strategy.values.collect { case v: TemporalIndexValues => v.intervals } match {
+//        case None => Some("Query does not have a temporal filter")
+//        case Some(i) if !validate(i, max) => Some(s"Query exceeds maximum allowed filter duration of $max")
+//        case _ => None
+//      }
+//    }
     msg.map(m => new IllegalArgumentException(s"$m: ${filterString(strategy)}"))
   }
 

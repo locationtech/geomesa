@@ -25,7 +25,7 @@ class TemporalQueryGuardTest extends Specification {
     "block queries with an excessive duration" in {
       // note: z3 needs to be declared first so it's picked for full table scans
       val sft = SimpleFeatureTypes.createType("c4f4ef29-6e41-4113-9b74-adf35711aa7a",
-        "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled='z3,id,attr:name'")
+        "name:String:index=true,age:Int,dtg:Date,*geom:Point:srid=4326")
       sft.getUserData.put("geomesa.query.interceptors",
         "org.locationtech.geomesa.index.planning.guard.TemporalQueryGuard");
       sft.getUserData.put("geomesa.guard.temporal.max.duration", "1 day")

@@ -22,6 +22,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.iterators.{BinAggregatingScan, DensityScan}
+import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer, Reprojection}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
@@ -39,6 +40,8 @@ import scala.collection.JavaConverters._
  */
 class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds: DS)
     extends QueryRunner with MethodProfiling with LazyLogging {
+
+  override protected val interceptors: QueryInterceptorFactory = ds.interceptors
 
   /**
     * Plan the query, but don't execute it - used for m/r jobs and explain query
@@ -144,7 +147,14 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
         output.pushLevel(s"Strategy $strategyCount of ${strategies.length}: ${strategy.index}")
         strategyCount += 1
         output(s"Strategy filter: $strategy")
-        profile(complete _)(strategy.index.getQueryPlan(sft, ds, strategy, hints, output))
+        profile(complete _) {
+          val qp = strategy.index.getQueryPlan(sft, ds, strategy, hints, output)
+
+          // TODO: We'd like to do this.
+          // Query Plans do not have the values we need.
+          //interceptors(sft).foreach(_.guard(qp).foreach(e => throw e))
+          qp
+        }
       }
     }
   }

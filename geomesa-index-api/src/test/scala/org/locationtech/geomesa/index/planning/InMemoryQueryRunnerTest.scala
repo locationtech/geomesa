@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.arrow.io.SimpleFeatureArrowFileReader
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.conf.QueryHints
+import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.stats.NoopStats
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -47,6 +48,7 @@ class InMemoryQueryRunnerTest extends Specification {
   }
 
   val runner = new InMemoryQueryRunner(NoopStats, None) {
+    override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
     override protected val name: String = "test-runner"
     override protected def features(sft: SimpleFeatureType, filter: Option[Filter]): CloseableIterator[SimpleFeature] = {
       filter match {

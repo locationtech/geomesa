@@ -12,13 +12,13 @@ import java.time.ZonedDateTime
 import java.util.concurrent.TimeUnit
 
 import org.locationtech.geomesa.filter.{Bounds, FilterValues, filterToString}
-import org.locationtech.geomesa.index.api.QueryStrategy
+import org.locationtech.geomesa.index.api.QueryPlan
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
 package object guard {
 
-  def filterString(strategy: QueryStrategy): String = strategy.filter.filter.map(filterToString).getOrElse("INCLUDE")
+  def filterString(strategy: QueryPlan[_, _, _]): String = strategy.filter.filter.map(filterToString).getOrElse("INCLUDE")
 
   def validate(intervals: FilterValues[Bounds[ZonedDateTime]], max: Duration): Boolean =
     intervals.nonEmpty && intervals.forall(_.isBoundedBothSides) && duration(intervals.values) <= max
