@@ -38,8 +38,8 @@ Setting up HBase in standalone mode (optional)
 
 (Skip this section if you have an existing HBase |hbase_required_version| installation.)
 
-Download the HBase 1.3.1 binary distribution from
-http://www.apache.org/dyn/closer.cgi/hbase/
+Download the HBase 1.4.13 binary distribution from
+https://hbase.apache.org/downloads.html
 
 Follow the chapter in the HBase Manual for running a standalone instance
 of HBase (https://hbase.apache.org/book.html#quickstart). Note that this
