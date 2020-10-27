@@ -121,16 +121,16 @@
         <!-- *** documentation *** -->
 
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>3.0.0</geomesa.release.version>
-        <geomesa.devel.version>3.1.0-SNAPSHOT</geomesa.devel.version>
+        <geomesa.release.version>3.1.0</geomesa.release.version>
+        <geomesa.devel.version>3.2.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2020</copyright.year>
 
         <!-- recommended installation versions -->
         <accumulo.version.recommended>2.0.0</accumulo.version.recommended>
-        <hbase.version.recommended>2.2.3</hbase.version.recommended>
+        <hbase.version.recommended>2.2.6</hbase.version.recommended>
         <hbase.thirdparty.version.recommended>2.2.1</hbase.thirdparty.version.recommended>
-        <cassandra.server.version.recommended>3.11.4</cassandra.server.version.recommended>
-        <cassandra.driver.version.recommended>3.7.2</cassandra.driver.version.recommended>
+        <cassandra.server.version.recommended>3.11.8</cassandra.server.version.recommended>
+        <cassandra.driver.version.recommended>3.10.2</cassandra.driver.version.recommended>
         <hadoop.version.recommended>2.8.5</hadoop.version.recommended>
         <zookeeper.version.recommended>3.4.14</zookeeper.version.recommended>
     </properties>
