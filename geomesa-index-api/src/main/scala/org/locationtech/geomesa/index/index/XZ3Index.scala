@@ -21,6 +21,7 @@ import org.locationtech.geomesa.filter.{filterToString, _}
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
 import org.locationtech.geomesa.index.utils.{ByteArrays, Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, _}
@@ -31,7 +32,10 @@ import org.opengis.filter.Filter
 import scala.util.control.NonFatal
 
 trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] extends GeoMesaFeatureIndex[DS, F, W]
-    with IndexAdapter[DS, F, W, R, XZ3IndexValues] with SpatioTemporalFilterStrategy[DS, F, W] with LazyLogging {
+  with IndexAdapter[DS, F, W, R, XZ3IndexValues]
+  with SpatioTemporalFilterStrategy[DS, F, W]
+  with SpatioTemporalIndex
+  with LazyLogging {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
@@ -82,7 +86,8 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
                             ds: DS,
                             filter: FilterStrategy[DS, F, W],
                             hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W] = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): QueryPlan[DS, F, W] = {
     val sharing = sft.getTableSharingBytes
 
     val (ranges, indexValues) = filter.primary match {
@@ -101,6 +106,8 @@ trait XZ3Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
         }.toSeq
         (ranges, Some(indexValues))
     }
+
+    interceptors.foreach { _.guard(filter, indexValues).foreach{ throw _ } }
 
     scanPlan(sft, ds, filter, indexValues, ranges, filter.filter, hints)
   }
@@ -231,4 +238,4 @@ case class XZ3IndexValues(sfc: XZ3SFC,
                           spatialBounds: Seq[ (Double, Double, Double, Double)],
                           intervals: FilterValues[Bounds[DateTime]],
                           temporalBounds: Map[Short, (Double, Double)],
-                          wholePeriod: (Double, Double))
+                          wholePeriod: (Double, Double)) extends TemporalIndexValues with SpatialIndexValues

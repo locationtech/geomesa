@@ -14,6 +14,7 @@ import java.util.Locale
 import org.apache.commons.codec.binary.Hex
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.opengis.feature.simple.SimpleFeatureType
@@ -149,7 +150,8 @@ trait GeoMesaFeatureIndex[DS <: GeoMesaDataStore[DS, F, WriteResult], F <: Wrapp
                    ds: DS,
                    filter: TypedFilterStrategy,
                    hints: Hints,
-                   explain: Explainer = ExplainNull): QueryPlan[DS, F, WriteResult]
+                   explain: Explainer = ExplainNull,
+                   interceptors: Seq[QueryInterceptor] = Seq()): QueryPlan[DS, F, WriteResult]
 
   /**
     * Gets the table name for this index

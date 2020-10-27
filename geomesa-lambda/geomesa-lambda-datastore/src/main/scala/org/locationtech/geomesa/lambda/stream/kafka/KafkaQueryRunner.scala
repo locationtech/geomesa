@@ -22,6 +22,7 @@ import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEn
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan}
+import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
@@ -40,6 +41,9 @@ class KafkaQueryRunner(features: ReadableFeatureCache, stats: GeoMesaStats, auth
 
   import KafkaQueryRunner.{authVisibilityCheck, noAuthVisibilityCheck}
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
+  // query interceptors are handled by the individual data stores
+  override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
 
   private val isVisible: (SimpleFeature, Seq[Array[Byte]]) => Boolean =
     if (authProvider.isDefined) { authVisibilityCheck } else { noAuthVisibilityCheck }

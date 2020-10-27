@@ -21,6 +21,7 @@ import org.joda.time.{DateTime, DateTimeZone}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.strategies.AttributeFilterStrategy
 import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -111,7 +112,8 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
                             ds: DS,
                             filter: FilterStrategy[DS, F, W],
                             hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W] = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): QueryPlan[DS, F, W] = {
 
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichTraversableOnce
 
@@ -186,6 +188,9 @@ trait AttributeIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R
             }
         }
       }
+
+      // TODO: Enable query guards for Attribute Indexes
+      //interceptors.foreach { _.guard(filter, indexValues).foreach{ throw _ } }
 
       scanPlan(sft, ds, filter, None, ranges, if (fb.precise) { filter.secondary } else { filter.filter }, hints)
     }

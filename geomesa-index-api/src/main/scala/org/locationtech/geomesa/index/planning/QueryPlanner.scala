@@ -24,6 +24,7 @@ import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, QueryPlan, Wrapp
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.locationtech.geomesa.utils.collection.{CloseableIterator, SelfClosingIterator}
@@ -42,6 +43,8 @@ import scala.collection.JavaConverters._
  */
 class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds: DS)
     extends QueryRunner with MethodProfiling with LazyLogging {
+
+  override protected val interceptors: QueryInterceptorFactory = ds.interceptors
 
   /**
     * Plan the query, but don't execute it - used for m/r jobs and explain query
@@ -141,7 +144,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W](ds:
         output.pushLevel(s"Strategy $strategyCount of ${strategies.length}: ${strategy.index}")
         strategyCount += 1
         output(s"Strategy filter: $strategy")
-        val plan = profile(s"s$strategyCount")(strategy.index.getQueryPlan(sft, ds, strategy, hints, output))
+        val plan = profile(s"s$strategyCount")(strategy.index.getQueryPlan(sft, ds, strategy, hints, output, interceptors(sft)))
         plan.explain(output)
         output(s"Plan creation took ${timings.time(s"s$strategyCount")}ms").popLevel()
         plan

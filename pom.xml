@@ -2777,6 +2777,7 @@
                     <configuration>
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
+                            <validHeader>build/copyright/ccri-2020.txt</validHeader>
                             <validHeader>build/copyright/ccri-2018.txt</validHeader>
                             <validHeader>build/copyright/ccri-2017.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>

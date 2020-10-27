@@ -21,6 +21,7 @@ import org.geotools.feature.{FeatureTypes, NameImpl}
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.metadata.HasGeoMesaMetadata
+import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.utils.{DistributedLocking, ExplainLogging, Releasable}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.InternalConfigs.SHARING_PREFIX_KEY
@@ -54,6 +55,8 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFe
     extends DataStore with HasGeoMesaMetadata[String] with HasGeoMesaStats with DistributedLocking with LazyLogging {
 
   this: DS =>
+
+  protected [geomesa] val interceptors: QueryInterceptorFactory = QueryInterceptorFactory(this)
 
   Hints.putSystemDefault(Hints.FORCE_LONGITUDE_FIRST_AXIS_ORDER, true)
 

@@ -16,6 +16,7 @@ import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.filter.{FilterHelper, andFilters, ff, orFilters}
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
+import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
@@ -27,6 +28,13 @@ trait QueryRunner {
   def runQuery(sft: SimpleFeatureType,
                query: Query,
                explain: Explainer = new ExplainLogging): CloseableIterator[SimpleFeature]
+
+  /**
+   * Hook for query interceptors
+   *
+   * @return
+   */
+  protected def interceptors: QueryInterceptorFactory
 
   /**
     * Configure the query - set hints, transforms, etc.

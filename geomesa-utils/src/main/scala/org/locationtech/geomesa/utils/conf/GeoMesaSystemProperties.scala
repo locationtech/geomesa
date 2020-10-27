@@ -35,6 +35,15 @@ object GeoMesaSystemProperties extends LazyLogging {
         case Failure(e) => logger.warn(s"Invalid duration for property $property: $value"); None
       }
     }
+
+    def toBoolean: Option[Boolean] = option.flatMap { value =>
+      Try(value.toBoolean) match {
+        case Success(v) => Some(v)
+        case Failure(_) =>
+          logger.warn(s"Invalid Boolean for property $property: $value")
+          Option(default).map(java.lang.Boolean.parseBoolean)
+      }
+    }
   }
 
   // For dynamic properties that are not in geomesa-site.xml.template, this is intended

@@ -17,6 +17,7 @@ import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloFeatur
 import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -35,7 +36,8 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
                             ds: AccumuloDataStore,
                             filter: AccumuloFilterStrategyType,
                             hints: Hints,
-                            explain: Explainer): AccumuloQueryPlan = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): AccumuloQueryPlan = {
     val prefix = sft.getTableSharingPrefix
 
     val ranges = filter.primary match {

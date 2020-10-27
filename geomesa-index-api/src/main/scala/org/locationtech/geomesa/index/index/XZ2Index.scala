@@ -19,6 +19,7 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.index.utils.{ByteArrays, Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, _}
@@ -79,7 +80,8 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
                             ds: DS,
                             filter: FilterStrategy[DS, F, W],
                             hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W] = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): QueryPlan[DS, F, W] = {
     val sharing = sft.getTableSharingBytes
 
     val (ranges, indexValues) = filter.primary match {
@@ -98,6 +100,8 @@ trait XZ2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exte
         }.toSeq
         (ranges, Some(indexValues))
     }
+
+    interceptors.foreach { _.guard(filter, indexValues).foreach{ throw _ } }
 
     scanPlan(sft, ds, filter, indexValues, ranges, filter.filter, hints)
   }
@@ -158,4 +162,7 @@ object XZ2Index extends IndexKeySpace[XZ2IndexValues] {
   }
 }
 
-case class XZ2IndexValues(sfc: XZ2SFC, geometries: FilterValues[Geometry], bounds: Seq[(Double, Double, Double, Double)])
+case class XZ2IndexValues(sfc: XZ2SFC, geometries: FilterValues[Geometry], bounds: Seq[(Double, Double, Double, Double)]) extends SpatialIndexValues {
+  override def spatialBounds: Seq[(Double, Double, Double, Double)] = bounds
+}
+

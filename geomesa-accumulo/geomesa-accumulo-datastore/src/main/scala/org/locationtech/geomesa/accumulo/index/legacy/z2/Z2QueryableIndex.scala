@@ -21,6 +21,7 @@ import org.locationtech.geomesa.accumulo.index._
 import org.locationtech.geomesa.accumulo.iterators.{Z2DensityIterator, _}
 import org.locationtech.geomesa.curve.LegacyZ2SFC
 import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils, SplitArrays}
 import org.locationtech.geomesa.utils.geotools._
@@ -37,7 +38,8 @@ trait Z2QueryableIndex extends AccumuloFeatureIndex
                             ds: AccumuloDataStore,
                             filter: AccumuloFilterStrategyType,
                             hints: Hints,
-                            explain: Explainer): AccumuloQueryPlan = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): AccumuloQueryPlan = {
 
     import AccumuloFeatureIndex.{BinColumnFamily, FullColumnFamily}
     import org.locationtech.geomesa.filter.FilterHelper._

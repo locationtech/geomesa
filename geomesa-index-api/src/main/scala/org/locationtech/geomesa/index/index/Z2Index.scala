@@ -20,6 +20,7 @@ import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, 
 import org.locationtech.geomesa.index.conf.QueryHints._
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.index.utils.{ByteArrays, Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, _}
@@ -81,7 +82,8 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
                             ds: DS,
                             filter: FilterStrategy[DS, F, W],
                             hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W] = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): QueryPlan[DS, F, W] = {
 
     val sharing = sft.getTableSharingBytes
 
@@ -113,6 +115,8 @@ trait Z2Index[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
     lazy val simpleGeoms = indexValues.toSeq.flatMap(_.geometries.values).forall(GeometryUtils.isRectangular)
 
     val ecql = if (looseBBox && simpleGeoms) { filter.secondary } else { filter.filter }
+
+    interceptors.foreach { _.guard(filter, indexValues).foreach{ throw _ } }
 
     scanPlan(sft, ds, filter, indexValues, ranges, ecql, hints)
   }
@@ -174,4 +178,6 @@ object Z2Index extends IndexKeySpace[Z2IndexValues] {
   }
 }
 
-case class Z2IndexValues(geometries: FilterValues[Geometry], bounds: Seq[(Double, Double, Double, Double)])
+case class Z2IndexValues(geometries: FilterValues[Geometry], bounds: Seq[(Double, Double, Double, Double)]) extends SpatialIndexValues {
+  override def spatialBounds: Seq[(Double, Double, Double, Double)] = bounds
+}

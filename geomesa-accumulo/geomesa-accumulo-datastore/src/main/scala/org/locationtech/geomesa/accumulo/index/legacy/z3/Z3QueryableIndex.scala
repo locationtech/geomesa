@@ -20,6 +20,7 @@ import org.locationtech.geomesa.accumulo.{AccumuloFeatureIndexType, AccumuloFilt
 import org.locationtech.geomesa.curve.{BinnedTime, LegacyZ3SFC}
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryProperties
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
 import org.locationtech.geomesa.index.utils.{Explainer, KryoLazyStatsUtils, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -39,7 +40,8 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
                             ds: AccumuloDataStore,
                             filter: AccumuloFilterStrategyType,
                             hints: Hints,
-                            explain: Explainer): AccumuloQueryPlan = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): AccumuloQueryPlan = {
 
     import AccumuloFeatureIndex.{BinColumnFamily, FullColumnFamily}
     import Z3IndexV2.GEOM_Z_NUM_BYTES

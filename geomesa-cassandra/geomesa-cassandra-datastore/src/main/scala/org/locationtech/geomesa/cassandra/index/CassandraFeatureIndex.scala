@@ -16,6 +16,7 @@ import org.locationtech.geomesa.cassandra._
 import org.locationtech.geomesa.cassandra.data._
 import org.locationtech.geomesa.index.index.ClientSideFiltering
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -73,7 +74,8 @@ trait CassandraFeatureIndex extends CassandraFeatureIndexType with ClientSideFil
                                      ds: CassandraDataStore,
                                      filter: CassandraFilterStrategyType,
                                      hints: Hints,
-                                     explain: Explainer): CassandraQueryPlanType = {
+                                     explain: Explainer,
+                                     interceptors: Seq[QueryInterceptor] = Seq()): CassandraQueryPlanType = {
     sfts.set(sft)
     try {
       super.getQueryPlan(sft, ds, filter, hints, explain)

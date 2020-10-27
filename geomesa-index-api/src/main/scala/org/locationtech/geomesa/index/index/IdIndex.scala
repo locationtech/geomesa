@@ -17,6 +17,7 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex, QueryPlan, WrappedFeature}
 import org.locationtech.geomesa.index.conf.{HexSplitter, TableSplitter}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.opengis.feature.simple.SimpleFeatureType
@@ -70,7 +71,8 @@ trait IdIndex[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedFeature, W, R] exten
                             ds: DS,
                             filter: FilterStrategy[DS, F, W],
                             hints: Hints,
-                            explain: Explainer): QueryPlan[DS, F, W] = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): QueryPlan[DS, F, W] = {
 
     if (filter.primary.isEmpty) {
       filter.secondary.foreach { f =>
