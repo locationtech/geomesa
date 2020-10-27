@@ -82,7 +82,7 @@ to ``geomesa.query.interceptors`` as indicated above.
       "org.locationtech.geomesa.index.planning.guard.FullTableScanQueryGuard");
 
 To disable the guard on a per-environment basis, set the system property ``geomesa.scan.<typeName>.block-full-table``
-to ``false``, where ``<typeName>`is the name of your feature type.
+to ``false``, where ``<typeName>`` is the name of your feature type.
 
 Temporal Query Guard
 ++++++++++++++++++++
@@ -102,7 +102,7 @@ to ``geomesa.query.interceptors`` as indicated above, and set the duration using
     sft.getUserData().put("geomesa.guard.temporal.max.duration", "28 days");
 
 To disable the guard on a per-environment basis, set the system property ``geomesa.guard.temporal.<typeName>.disable``
-to ``true``, where ``<typeName>`is the name of your feature type.
+to ``true``, where ``<typeName>`` is the name of your feature type.
 
 Graduated Query Guard
 +++++++++++++++++++++
@@ -143,4 +143,4 @@ hours, or minutes. For example:
     }
 
 To disable the guard on a per-environment basis, set the system property ``geomesa.guard.graduated.<typeName>.disable``
-to ``true``, where ``<typeName>`is the name of your feature type.
+to ``true``, where ``<typeName>`` is the name of your feature type.
