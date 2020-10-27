@@ -104,6 +104,10 @@
             <directoryMode>755</directoryMode>
             <fileMode>0755</fileMode>
             <filtered>true</filtered>
+            <excludes>
+                <!-- kudu has no external dependencies -->
+                <exclude>install-dependencies.sh</exclude>
+            </excludes>
         </fileSet>
         <fileSet>
             <directory>../../geomesa-tools/conf</directory>
