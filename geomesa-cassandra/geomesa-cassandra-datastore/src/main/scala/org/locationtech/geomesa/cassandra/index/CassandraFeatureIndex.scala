@@ -26,6 +26,7 @@ import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.index.index.ClientSideFiltering.RowAndValue
 import org.locationtech.geomesa.index.index.IndexKeySpace._
 import org.locationtech.geomesa.index.index.{ClientSideFiltering, IndexKeySpace, ShardStrategy}
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -195,7 +196,8 @@ trait CassandraFeatureIndex[T, U] extends CassandraFeatureIndexType with ClientS
                             ds: CassandraDataStore,
                             filter: CassandraFilterStrategyType,
                             hints: Hints,
-                            explain: Explainer): CassandraQueryPlanType = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): CassandraQueryPlanType = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val indexValues = filter.primary.map(keySpace.getIndexValues(sft, _, explain))

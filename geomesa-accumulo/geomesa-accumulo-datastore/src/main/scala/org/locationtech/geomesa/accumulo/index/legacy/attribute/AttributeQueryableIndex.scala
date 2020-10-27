@@ -25,6 +25,7 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.FilterStrategy
 import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -49,7 +50,8 @@ trait AttributeQueryableIndex extends AccumuloFeatureIndex with LazyLogging {
                             ds: AccumuloDataStore,
                             filter: AccumuloFilterStrategyType,
                             hints: Hints,
-                            explain: Explainer): AccumuloQueryPlan = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): AccumuloQueryPlan = {
 
     val primary = filter.primary.getOrElse {
       throw new IllegalStateException("Attribute index does not support Filter.INCLUDE")

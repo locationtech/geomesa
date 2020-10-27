@@ -10,6 +10,7 @@ package org.locationtech.geomesa.kafka.index
 
 import com.github.benmanes.caffeine.cache.LoadingCache
 import org.locationtech.geomesa.index.planning.InMemoryQueryRunner
+import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader
 import org.locationtech.geomesa.security.AuthorizationsProvider
@@ -22,6 +23,8 @@ class KafkaQueryRunner(caches: LoadingCache[String, KafkaCacheLoader],
                        authProvider: Option[AuthorizationsProvider])
     extends InMemoryQueryRunner(stats, authProvider) {
 
+  override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
+  
   override protected def name: String = "Kafka"
 
   override protected def features(sft: SimpleFeatureType, filter: Option[Filter]): CloseableIterator[SimpleFeature] =

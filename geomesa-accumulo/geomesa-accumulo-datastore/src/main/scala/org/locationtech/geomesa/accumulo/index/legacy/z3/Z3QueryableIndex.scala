@@ -22,6 +22,7 @@ import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.index.z3.Z3IndexValues
 import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
 import org.locationtech.geomesa.index.utils.{Explainer, SplitArrays}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -42,7 +43,8 @@ trait Z3QueryableIndex extends AccumuloFeatureIndexType
                             ds: AccumuloDataStore,
                             filter: AccumuloFilterStrategyType,
                             hints: Hints,
-                            explain: Explainer): AccumuloQueryPlan = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): AccumuloQueryPlan = {
 
     import AccumuloColumnGroups.BinColumnFamily
     import Z3IndexV2.GEOM_Z_NUM_BYTES

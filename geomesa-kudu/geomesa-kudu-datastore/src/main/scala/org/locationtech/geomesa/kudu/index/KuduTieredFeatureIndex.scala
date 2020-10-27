@@ -15,6 +15,7 @@ import org.apache.kudu.client.{KuduTable, PartialRow}
 import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.index.IndexKeySpace
 import org.locationtech.geomesa.index.index.IndexKeySpace._
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.kudu.data.KuduQueryPlan.{EmptyPlan, ScanPlan}
 import org.locationtech.geomesa.kudu.data.{KuduDataStore, KuduFeature}
@@ -71,7 +72,8 @@ trait KuduTieredFeatureIndex[T, U] extends KuduFeatureIndex[T, U] {
                             ds: KuduDataStore,
                             filter: KuduFilterStrategyType,
                             hints: Hints,
-                            explain: Explainer): KuduQueryPlanType = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): KuduQueryPlanType = {
 
     val tier = tieredKeySpace(sft).orNull.asInstanceOf[IndexKeySpace[Any, Any]]
     val primary = filter.primary.orNull

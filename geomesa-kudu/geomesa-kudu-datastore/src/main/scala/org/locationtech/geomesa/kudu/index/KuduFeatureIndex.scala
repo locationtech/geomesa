@@ -20,6 +20,7 @@ import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.index.IndexKeySpace
 import org.locationtech.geomesa.index.index.IndexKeySpace.ScanRange
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.kudu._
 import org.locationtech.geomesa.kudu.data.KuduQueryPlan.{EmptyPlan, ScanPlan}
@@ -208,7 +209,8 @@ trait KuduFeatureIndex[T, U] extends KuduFeatureIndexType with LazyLogging {
                             ds: KuduDataStore,
                             filter: KuduFilterStrategyType,
                             hints: Hints,
-                            explain: Explainer): KuduQueryPlanType = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): KuduQueryPlanType = {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     val indexValues = filter.primary.map(keySpace.getIndexValues(sft, _, explain))

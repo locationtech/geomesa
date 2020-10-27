@@ -19,6 +19,7 @@ import org.locationtech.geomesa.accumulo.iterators._
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.conf.QueryProperties
 import org.locationtech.geomesa.index.iterators.StatsScan
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.strategies.IdFilterStrategy
 import org.locationtech.geomesa.index.utils.Explainer
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -36,7 +37,8 @@ trait RecordQueryableIndex extends AccumuloFeatureIndex
                             ds: AccumuloDataStore,
                             filter: AccumuloFilterStrategyType,
                             hints: Hints,
-                            explain: Explainer): AccumuloQueryPlan = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): AccumuloQueryPlan = {
 
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 

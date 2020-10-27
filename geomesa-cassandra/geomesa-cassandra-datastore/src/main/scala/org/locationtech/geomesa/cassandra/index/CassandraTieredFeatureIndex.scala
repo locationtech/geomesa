@@ -13,6 +13,7 @@ import org.locationtech.geomesa.cassandra.data.{CassandraDataStore, CassandraFea
 import org.locationtech.geomesa.cassandra.{CassandraFilterStrategyType, CassandraQueryPlanType, RowRange, RowValue}
 import org.locationtech.geomesa.index.index.IndexKeySpace.{BoundedByteRange, SingleRowByteRange, ToIndexKeyBytes}
 import org.locationtech.geomesa.index.index.{IndexKeySpace, ShardStrategy}
+import org.locationtech.geomesa.index.planning.QueryInterceptor
 import org.locationtech.geomesa.index.utils.Explainer
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
@@ -77,7 +78,8 @@ trait CassandraTieredFeatureIndex[T, U] extends CassandraFeatureIndex[T, U] {
                             ds: CassandraDataStore,
                             filter: CassandraFilterStrategyType,
                             hints: Hints,
-                            explain: Explainer): CassandraQueryPlanType = {
+                            explain: Explainer,
+                            interceptors: Seq[QueryInterceptor] = Seq()): CassandraQueryPlanType = {
     val tier = tieredKeySpace(sft).orNull.asInstanceOf[IndexKeySpace[Any, Any]]
     val primary = filter.primary.orNull
     val secondary = filter.secondary.orNull

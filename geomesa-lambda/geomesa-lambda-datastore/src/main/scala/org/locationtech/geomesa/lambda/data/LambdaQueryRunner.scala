@@ -19,6 +19,7 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
+import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.Explainer
@@ -36,6 +37,9 @@ class LambdaQueryRunner(persistence: DataStore, transients: LoadingCache[String,
     extends QueryRunner {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+
+  // query interceptors are handled by the individual data stores
+  override protected val interceptors: QueryInterceptorFactory = QueryInterceptorFactory.empty()
 
   // TODO pass explain through?
 
