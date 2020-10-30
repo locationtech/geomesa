@@ -8,17 +8,19 @@
 
 package org.locationtech.geomesa.features
 
+import java.util.UUID
+
 import com.vividsolutions.jts.geom.Point
 import org.geotools.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
-import org.locationtech.geomesa.features.avro.{AvroFeatureDeserializer, AvroFeatureSerializer, AvroSimpleFeatureFactory, ProjectingAvroFeatureDeserializer}
+import org.locationtech.geomesa.features.avro.{AvroFeatureSerializer, AvroSimpleFeatureFactory, ProjectingAvroFeatureDeserializer}
 import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, ProjectingKryoFeatureDeserializer}
 import org.locationtech.geomesa.security
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
-import org.specs2.matcher.Matcher
+import org.specs2.matcher.{MatchResult, Matcher}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -39,9 +41,7 @@ class SimpleFeatureSerializersTest extends Specification {
     builder.set("geom", WKTUtils.read("POINT(-110 30)"))
     builder.set("dtg", "2012-01-02T05:06:07.000Z")
     builder.set("name",i.toString)
-    val sf = builder.buildFeature(i.toString)
-    sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
-    sf
+    builder.buildFeature(i.toString)
   }
 
   def getFeaturesWithVisibility = {
@@ -93,12 +93,12 @@ class SimpleFeatureSerializersTest extends Specification {
 
       // AVRO without options
       val avro1 = SimpleFeatureDeserializers(sft, SerializationType.AVRO)
-      avro1 must beAnInstanceOf[AvroFeatureDeserializer]
+      avro1 must beAnInstanceOf[AvroFeatureSerializer]
       avro1.options mustEqual SerializationOptions.none
 
       // AVRO with options
       val avro2 = SimpleFeatureDeserializers(sft, SerializationType.AVRO, opts)
-      avro2 must beAnInstanceOf[AvroFeatureDeserializer]
+      avro2 must beAnInstanceOf[AvroFeatureSerializer]
       avro2.options mustEqual opts
 
       // KRYO without options
@@ -188,23 +188,21 @@ class SimpleFeatureSerializersTest extends Specification {
 
     "be able to decode points" >> {
       val encoder = new AvroFeatureSerializer(sft)
-      val decoder = new AvroFeatureDeserializer(sft)
 
       val features = getFeatures
       val encoded = features.map(encoder.serialize)
 
-      val decoded = encoded.map(decoder.deserialize)
+      val decoded = encoded.map(encoder.deserialize)
       decoded must equalFeatures(features, withoutUserData)
     }
 
     "be able to decode points with user data" >> {
       val encoder = new AvroFeatureSerializer(sft, SerializationOptions.withUserData)
-      val decoder = new AvroFeatureDeserializer(sft, SerializationOptions.withUserData)
 
       val features = getFeaturesWithVisibility
       val encoded = features.map(encoder.serialize)
 
-      val decoded = encoded.map(decoder.deserialize)
+      val decoded = encoded.map(encoder.deserialize)
 
       decoded must equalFeatures(features)
     }
@@ -215,7 +213,7 @@ class SimpleFeatureSerializersTest extends Specification {
       val encoder = new AvroFeatureSerializer(sft, SerializationOptions.withUserData)
       val encoded = encoder.serialize(sf)
 
-      val decoder = new AvroFeatureDeserializer(sft, SerializationOptions.none)
+      val decoder = new AvroFeatureSerializer(sft, SerializationOptions.none)
 
       decoder.deserialize(encoded) must equalSF(sf, withoutUserData)
     }
@@ -224,7 +222,7 @@ class SimpleFeatureSerializersTest extends Specification {
       val encoder = new AvroFeatureSerializer(sft, SerializationOptions.none)
       val encoded = encoder.serialize(getFeaturesWithVisibility.head)
 
-      val decoder = new AvroFeatureDeserializer(sft, SerializationOptions.withUserData)
+      val decoder = new AvroFeatureSerializer(sft, SerializationOptions.withUserData)
 
       decoder.deserialize(encoded) must throwA[Exception]
     }

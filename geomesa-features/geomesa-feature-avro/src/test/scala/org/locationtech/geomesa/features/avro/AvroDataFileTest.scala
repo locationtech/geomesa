@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,12 +14,12 @@ import java.util
 import java.util.zip.Deflater
 
 import org.apache.avro.file.DataFileStream
-import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.opengis.feature.simple.SimpleFeature
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -84,7 +84,6 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
 
     "preserve lots of user data" >> {
       val features = createComplicatedFeatures(50)
-      features.foreach(_.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE))
       val tmpFile = getTmpFile
       val dfw = new AvroDataFileWriter(new FileOutputStream(tmpFile), complexSft)
       try {
@@ -96,9 +95,6 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       val readFeatures = getFeatures(tmpFile)
       readFeatures.size mustEqual 50
       readFeatures.map(_.getID) must containTheSameElementsAs(features.map(_.getID))
-      readFeatures.forall { sf =>
-        sf.getUserData.get(Hints.USE_PROVIDED_FID) mustEqual java.lang.Boolean.TRUE
-      }
     }
 
     "write metadata" >> {
@@ -115,8 +111,8 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
         dfw.close()
       }
 
-      val datumReader = new FeatureSpecificReader(null, null, SerializationOptions.withUserData)
-      val dfs = new DataFileStream[AvroSimpleFeature](new FileInputStream(tmpFile), datumReader)
+      val datumReader = new FeatureSpecificReader(SerializationOptions.withUserData)
+      val dfs = new DataFileStream[SimpleFeature](new FileInputStream(tmpFile), datumReader)
       dfs.getMetaString(AvroDataFile.SftNameKey) mustEqual simpleSft.getTypeName
       dfs.getMetaString(AvroDataFile.SftSpecKey) mustEqual SimpleFeatureTypes.encodeType(simpleSft)
       dfs.getMetaLong(AvroDataFile.VersionKey) mustEqual 3L
@@ -178,8 +174,6 @@ class AvroDataFileTest extends Specification with AbstractAvroSimpleFeatureTest 
       builder.set("dtg", "2012-01-02T05:06:07.000Z")
 
       val sf = builder.buildFeature("fid")
-      sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      sf
       val tmpFile = getTmpFile
       val dfw = new AvroDataFileWriter(new FileOutputStream(tmpFile), sft)
       try {

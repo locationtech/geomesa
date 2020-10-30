@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -29,7 +29,7 @@ class AvroDataFileWriter(os: OutputStream,
                          sft: SimpleFeatureType,
                          compression: Int = Deflater.DEFAULT_COMPRESSION) extends Closeable with Flushable {
 
-  private val schema = AvroSimpleFeatureUtils.generateSchema(sft, namespace = sft.getName.getNamespaceURI, withUserData = true)
+  private val schema = AvroSimpleFeatureUtils.generateSchema(sft, withUserData = true, withFeatureId = true, namespace = sft.getName.getNamespaceURI)
   private val writer = new AvroSimpleFeatureWriter(sft, SerializationOptions.withUserData)
   private val dfw    = new DataFileWriter[SimpleFeature](writer)
 
