@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -119,7 +119,6 @@ class AvroSimpleFeatureTest extends Specification {
         ",h:LineString,i:Polygon,j:MultiPoint,k:MultiLineString"+
         ",l:MultiPolygon,m:GeometryCollection"
       )
-
 
       val f = new AvroSimpleFeature(new FeatureIdImpl("fakeid"), sft)
       f.setAttribute("a","")

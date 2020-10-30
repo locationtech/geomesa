@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,15 +12,18 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.{Date, Locale, UUID}
 
-import com.vividsolutions.jts.geom.Geometry
-import com.vividsolutions.jts.io.WKBWriter
+import com.typesafe.scalalogging.LazyLogging
+import org.apache.avro.SchemaBuilder.{ArrayDefault, FieldTypeBuilder, NullDefault}
 import org.apache.avro.{Schema, SchemaBuilder}
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder
+import org.locationtech.geomesa.utils.text.WKBUtils
+import com.vividsolutions.jts.geom.Geometry
 import org.geotools.util.Converters
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.JavaConversions._
 
-object AvroSimpleFeatureUtils {
+object AvroSimpleFeatureUtils extends LazyLogging {
 
   val FEATURE_ID_AVRO_FIELD_NAME: String = "__fid__"
   val AVRO_SIMPLE_FEATURE_VERSION: String = "__version__"
@@ -31,11 +34,22 @@ object AvroSimpleFeatureUtils {
   // Version 3 adds byte array types to the schema...and is backwards compatible with V2
   // Version 4 adds a custom name encoder function for the avro schema
   //           v4 can read version 2 and 3 files but version 3 cannot read version 4
-  val VERSION: Int = 4
+  // Version 5 changes user data to be a union type and fixes the coding to match the declared avro schema
+  val VERSION: Int = 5
   val AVRO_NAMESPACE: String = "org.geomesa"
+
+  implicit class RichBuilder(val builder: FieldTypeBuilder[ArrayDefault[Schema]]) extends AnyVal {
+    def simpleTypeUnion(hints: String): NullDefault[ArrayDefault[Schema]] = {
+      builder.unionOf
+          .nullType.and.stringType.and.intType.and.longType
+          .and.floatType.and.doubleType.and.booleanType.and.bytesType
+          .endUnion()
+    }
+  }
 
   def generateSchema(sft: SimpleFeatureType,
                      withUserData: Boolean,
+                     withFeatureId: Boolean,
                      namespace: String = AVRO_NAMESPACE): Schema = {
     val nameEncoder = new FieldNameEncoder(VERSION)
     val initialAssembler: SchemaBuilder.FieldAssembler[Schema] =
@@ -43,18 +57,24 @@ object AvroSimpleFeatureUtils {
         .namespace(namespace)
         .fields
         .name(AVRO_SIMPLE_FEATURE_VERSION).`type`.intType.noDefault
-        .name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
+
+    val withFid = if (withFeatureId) {
+      initialAssembler.name(FEATURE_ID_AVRO_FIELD_NAME).`type`.stringType.noDefault
+    } else {
+      initialAssembler
+    }
 
     val withFields =
-      sft.getAttributeDescriptors.foldLeft(initialAssembler) { case (assembler, ad) =>
+      sft.getAttributeDescriptors.foldLeft(withFid) { case (assembler, ad) =>
         addField(assembler, nameEncoder.encode(ad.getLocalName), ad.getType.getBinding, ad.isNillable)
       }
 
     val fullSchema = if (withUserData) {
-      withFields.name(AVRO_SIMPLE_FEATURE_USERDATA).`type`.array().items().record("userDataItem").fields()
-        .name("class").`type`.stringType().noDefault()
-        .name("key").`type`.stringType().noDefault()
-        .name("value").`type`.stringType().noDefault().endRecord().noDefault()
+      withFields.name(AVRO_SIMPLE_FEATURE_USERDATA).`type`.array().items()
+          .record("userDataItem").fields()
+          .name("key").`type`.simpleTypeUnion("key").noDefault()
+          .name("value").`type`.simpleTypeUnion("value").noDefault()
+          .endRecord().noDefault()
     } else {
       withFields
     }
@@ -102,7 +122,7 @@ object AvroSimpleFeatureUtils {
 
   // Resulting functions in map are not thread-safe...use only as
   // member variable, not in a static context
-  def createTypeMap(sft: SimpleFeatureType, wkbWriter: WKBWriter, nameEncoder: FieldNameEncoder): Map[String, Binding] = {
+  def createTypeMap(sft: SimpleFeatureType, nameEncoder: FieldNameEncoder): Map[String, Binding] = {
     import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
 
     sft.getAttributeDescriptors.map { ad =>
@@ -114,7 +134,7 @@ object AvroSimpleFeatureUtils {
       } else if (classOf[Date].isAssignableFrom(binding)) {
         (value: AnyRef) => value.asInstanceOf[Date].getTime
       } else if (classOf[Geometry].isAssignableFrom(binding) ) {
-        (value: AnyRef) => ByteBuffer.wrap(wkbWriter.write(value.asInstanceOf[Geometry]))
+        (value: AnyRef) => ByteBuffer.wrap(WKBUtils.write(value.asInstanceOf[Geometry]))
       } else if (ad.isList) {
         (value: AnyRef) => encodeList(value.asInstanceOf[java.util.List[_]], ad.getListType())
       } else if (ad.isMap) {
@@ -217,6 +237,44 @@ object AvroSimpleFeatureUtils {
         map.put(key, value)
       }
       map
+    }
+  }
+
+  def schemaToSft(schema: Schema,
+                  sftName: String,
+                  geomAttr: Option[String],
+                  dateAttr: Option[String]): SimpleFeatureType = {
+    val builder = new SimpleFeatureTypeBuilder
+    builder.setName(sftName)
+    geomAttr.foreach { ga =>
+      builder.setDefaultGeometry(ga)
+      builder.add(ga, classOf[Geometry])
+    }
+    dateAttr.foreach(builder.add(_, classOf[Date]))
+    schema.getFields.foreach(addSchemaToBuilder(builder, _))
+    builder.buildFeatureType()
+  }
+
+  def addSchemaToBuilder(builder: SimpleFeatureTypeBuilder,
+                         field: Schema.Field,
+                         typeOverride: Option[Schema.Type] = None): Unit = {
+    typeOverride.getOrElse(field.schema().getType) match {
+      case Schema.Type.STRING  => builder.add(field.name(), classOf[java.lang.String])
+      case Schema.Type.BOOLEAN => builder.add(field.name(), classOf[java.lang.Boolean])
+      case Schema.Type.INT     => builder.add(field.name(), classOf[java.lang.Integer])
+      case Schema.Type.DOUBLE  => builder.add(field.name(), classOf[java.lang.Double])
+      case Schema.Type.LONG    => builder.add(field.name(), classOf[java.lang.Long])
+      case Schema.Type.FLOAT   => builder.add(field.name(), classOf[java.lang.Float])
+      case Schema.Type.BYTES   => logger.error("Avro schema requested BYTES, which is not yet supported") // TODO support
+      case Schema.Type.UNION   => field.schema().getTypes.map(_.getType).find(_ != Schema.Type.NULL)
+                                       .foreach(t => addSchemaToBuilder(builder, field, Option(t))) // TODO support more union types and log any errors better
+      case Schema.Type.MAP     => logger.error("Avro schema requested MAP, which is not yet supported") // TODO support
+      case Schema.Type.RECORD  => logger.error("Avro schema requested RECORD, which is not yet supported") // TODO support
+      case Schema.Type.ENUM    => builder.add(field.name(), classOf[java.lang.String])
+      case Schema.Type.ARRAY   => logger.error("Avro schema requested ARRAY, which is not yet supported") // TODO support
+      case Schema.Type.FIXED   => logger.error("Avro schema requested FIXED, which is not yet supported") // TODO support
+      case Schema.Type.NULL    => logger.error("Avro schema requested NULL, which is not yet supported") // TODO support
+      case _                   => logger.error(s"Avro schema requested unknown type ${field.schema().getType}")
     }
   }
 

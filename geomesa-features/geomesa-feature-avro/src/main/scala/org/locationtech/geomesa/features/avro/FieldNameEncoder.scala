@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,9 +8,11 @@
 
 package org.locationtech.geomesa.features.avro
 
-import com.google.common.collect.Maps
+import java.util.concurrent.ConcurrentHashMap
+
 import org.apache.commons.codec.binary.Hex
 import org.locationtech.geomesa.features.avro.FieldNameEncoder._
+
 import scala.collection.JavaConversions._
 
 class FieldNameEncoder(serializationVersion: Int, forceFullEncoding: Boolean = false) {
@@ -25,8 +27,8 @@ class FieldNameEncoder(serializationVersion: Int, forceFullEncoding: Boolean = f
 
 object FieldNameEncoder {
   // Need a separate cache for reading old data files generated before v4
-  val cacheV4    = Maps.newConcurrentMap[String, String]()
-  val cachePreV4 = Maps.newConcurrentMap[String, String]()
+  val cacheV4    = new ConcurrentHashMap[String, String]()
+  val cachePreV4 = new ConcurrentHashMap[String, String]()
 
   def encodePreV4(s: String): String = "_" + Hex.encodeHexString(s.getBytes("UTF8"))
 

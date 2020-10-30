@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,7 +10,8 @@ package org.locationtech.geomesa.features.avro
 
 
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
-import org.geotools.factory.{CommonFactoryFinder, Hints}
+import org.geotools.factory.CommonFactoryFinder
+import org.geotools.factory.Hints
 import org.geotools.feature.AbstractFeatureFactoryImpl
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.identity.FeatureIdImpl

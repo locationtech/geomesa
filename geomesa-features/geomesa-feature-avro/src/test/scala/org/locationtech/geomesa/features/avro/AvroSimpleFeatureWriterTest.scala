@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -51,7 +51,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       }
 
       var decoder: BinaryDecoder = null
-      val fsr = new FeatureSpecificReader(features(0).getFeatureType)
+      val fsr = FeatureSpecificReader(features(0).getFeatureType)
       def convert(bytes: Array[Byte]) = {
         val bais = new ByteArrayInputStream(bytes)
         decoder = DecoderFactory.get().directBinaryDecoder(bais, decoder)
@@ -89,8 +89,7 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       sf.visibility = vis
 
       val userData = sf.getUserData
-      userData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-      userData.put(java.lang.Integer.valueOf(5), null)
+      userData.put(java.lang.Integer.valueOf(55), null)
       userData.put(null, "null key")
 
       val afw = new AvroSimpleFeatureWriter(sf.getType, SerializationOptions.withUserData)
@@ -100,34 +99,18 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
 
       there was one(encoder).writeArrayStart()
 
-      there was one(encoder).setItemCount(4)
-      there was 4.times(encoder).startItem()
+      there was one(encoder).setItemCount(3)
+      there was 3.times(encoder).startItem()
 
-      // 1 key  and 2 values have type String
-      there was three(encoder).writeString("java.lang.String")
-
-      // 1 key  and 0 values have type Hints.Key
-      there was one(encoder).writeString(classOf[Hints.Key].getName)
-
-      // 0 keys and 1 value  have type Boolean
-      there was one(encoder).writeString("java.lang.Boolean")
-
-      // 1 key  and 0 values have type Integer
-      there was one(encoder).writeString("java.lang.Boolean")
-
-      // 1 key  and 1 value  are null
-      there was two(encoder).writeString(AvroUserDataSerialization.NullMarkerString)
+      // 1 key and 1 value are null
+      there was 2.times(encoder).writeNull()
 
       // visibility data
       there was one(encoder).writeString(SecurityUtils.FEATURE_VISIBILITY)
       there was one(encoder).writeString(vis)
 
-      // hint data
-      there was one(encoder).writeString(HintKeySerialization.keyToId(Hints.USE_PROVIDED_FID))
-      there was one(encoder).writeBoolean(true)
-
-      // key = 5, value = null
-      there was one(encoder).writeInt(5)
+      // key = 55, value = null
+      there was one(encoder).writeInt(55)
 
       // key = null, value = "null key"
       there was one(encoder).writeString("null key")
@@ -143,7 +126,6 @@ class AvroSimpleFeatureWriterTest extends Specification with Mockito with Abstra
       sf.visibility = vis
 
       val userData = sf.getUserData
-      userData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
       userData.put(java.lang.Integer.valueOf(5), null)
       userData.put(null, "null key")
 

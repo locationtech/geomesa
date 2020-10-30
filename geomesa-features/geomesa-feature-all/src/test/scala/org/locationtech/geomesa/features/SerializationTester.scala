@@ -81,7 +81,7 @@ object SerializationTester {
 
     def two() = {
       val writer = new AvroSimpleFeatureWriter(features(0).getType)
-      val reader = new FeatureSpecificReader(features(0).getType)
+      val reader = FeatureSpecificReader(features(0).getType)
       val baos = new ByteArrayOutputStream()
       var reusableEncoder: BinaryEncoder = null
       var reusableDecoder: BinaryDecoder = null

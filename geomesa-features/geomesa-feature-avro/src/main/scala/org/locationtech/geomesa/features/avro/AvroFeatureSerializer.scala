@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,13 +8,44 @@
 
 package org.locationtech.geomesa.features.avro
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
 
-import org.apache.avro.io.{BinaryDecoder, DecoderFactory, DirectBinaryEncoder, EncoderFactory}
+import org.apache.avro.io._
 import org.locationtech.geomesa.features.SerializationOption.SerializationOption
-import org.locationtech.geomesa.features.SimpleFeatureSerializer
+import org.locationtech.geomesa.features.{ScalaSimpleFeature, SimpleFeatureSerializer}
+import org.locationtech.geomesa.utils.cache.SoftThreadLocal
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
+object AvroFeatureSerializer {
+
+  private val encoderFactory = EncoderFactory.get()
+  private val decoderFactory = DecoderFactory.get()
+
+  private val outputs = new SoftThreadLocal[ByteArrayOutputStream]()
+
+  private val encoders = new SoftThreadLocal[BinaryEncoder]()
+  private val decoders = new SoftThreadLocal[BinaryDecoder]()
+
+  // Encode using a direct binary encoder that is reused. No need to buffer small simple features
+  private def encoder(out: OutputStream): BinaryEncoder = {
+    val result = encoderFactory.directBinaryEncoder(out, encoders.get.orNull)
+    encoders.put(result)
+    result
+  }
+
+  private def decoder(in: InputStream): BinaryDecoder = {
+    val result = decoderFactory.directBinaryDecoder(in, decoders.get.orNull)
+    decoders.put(result)
+    result
+  }
+
+  private def decoder(in: Array[Byte], offset: Int, length: Int): BinaryDecoder = {
+    val result = decoderFactory.binaryDecoder(in, offset, length, decoders.get.orNull)
+    decoders.put(result)
+    result
+  }
+
+}
 
 /**
  * @param sft the simple feature type to encode
@@ -24,22 +55,28 @@ class AvroFeatureSerializer(sft: SimpleFeatureType, val options: Set[Serializati
     extends SimpleFeatureSerializer {
 
   private val writer = new AvroSimpleFeatureWriter(sft, options)
-
-  // Encode using a direct binary encoder that is reused. No need to buffer
-  // small simple features. Reuse a common BAOS as well.
-  private val baos = new ByteArrayOutputStream()
-  private var reuse: DirectBinaryEncoder = null
+  private val reader = FeatureSpecificReader(sft, options)
 
   override def serialize(feature: SimpleFeature): Array[Byte] = {
-    baos.reset()
-    reuse = EncoderFactory.get().directBinaryEncoder(baos, reuse).asInstanceOf[DirectBinaryEncoder]
-    writer.write(feature, reuse)
-    reuse.flush()
-    baos.toByteArray
+    val out = AvroFeatureSerializer.outputs.getOrElseUpdate(new ByteArrayOutputStream())
+    out.reset()
+    serialize(feature, out)
+    out.toByteArray
   }
 
-  override def deserialize(bytes: Array[Byte]): SimpleFeature =
-    throw new NotImplementedError("This instance only handles serialization")
+  override def serialize(feature: SimpleFeature, out: OutputStream): Unit = {
+    val encoder = AvroFeatureSerializer.encoder(out)
+    writer.write(feature, encoder)
+    encoder.flush()
+  }
+
+  override def deserialize(in: InputStream): SimpleFeature = reader.read(null, AvroFeatureSerializer.decoder(in))
+
+  override def deserialize(bytes: Array[Byte]): SimpleFeature = deserialize(bytes, 0, bytes.length)
+
+  override def deserialize(bytes: Array[Byte], offset: Int, length: Int): SimpleFeature =
+    reader.read(null, AvroFeatureSerializer.decoder(bytes, offset, length))
+
 }
 
 /**
@@ -51,24 +88,17 @@ class ProjectingAvroFeatureDeserializer(original: SimpleFeatureType, projected: 
                                         val options: Set[SerializationOption] = Set.empty)
     extends SimpleFeatureSerializer {
 
-  private val reader = new FeatureSpecificReader(original, projected, options)
+  private val reader = FeatureSpecificReader(original, projected, options)
 
   override def serialize(feature: SimpleFeature): Array[Byte] =
     throw new NotImplementedError("This instance only handles deserialization")
+
   override def deserialize(bytes: Array[Byte]): SimpleFeature = decode(new ByteArrayInputStream(bytes))
 
-  private var reuse: BinaryDecoder = null
+  private var reuse: BinaryDecoder = _
 
-  def decode(is: InputStream) = {
+  def decode(is: InputStream): SimpleFeature = {
     reuse = DecoderFactory.get().directBinaryDecoder(is, reuse)
     reader.read(null, reuse)
   }
 }
-
-/**
- * @param sft the simple feature type to decode
- * @param options the options what were applied when encoding
- */
-class AvroFeatureDeserializer(sft: SimpleFeatureType, options: Set[SerializationOption] = Set.empty)
-    extends ProjectingAvroFeatureDeserializer(sft, sft, options)
-

@@ -53,13 +53,35 @@ trait WKBUtils {
   private[this] val readerPool = new ThreadLocal[WKBReader]{
     override def initialValue = new WKBReader
   }
-  private[this] val writerPool = new ThreadLocal[WKBWriter]{
-    override def initialValue = new WKBWriter
+
+  private[this] val writer2dPool = new ThreadLocal[WKBWriter]{
+    override def initialValue = new WKBWriter(2)
+  }
+
+  private[this] val writer3dPool = new ThreadLocal[WKBWriter]{
+    override def initialValue = new WKBWriter(3)
   }
 
   def read(s: String): Geometry = read(s.getBytes)
   def read(b: Array[Byte]): Geometry = readerPool.get.read(b)
-  def write(g: Geometry): Array[Byte] = writerPool.get.write(g)
+
+  def write(g: Geometry): Array[Byte] = {
+    val writer = if (is2d(g)) { writer2dPool } else { writer3dPool }
+    writer.get.write(g)
+  }
+
+  private def is2d(geometry: Geometry): Boolean = {
+    // don't trust coord.getDimensions - it always returns 3 in jts
+    // instead, check for NaN for the z dimension
+    // note that we only check the first coordinate - if a geometry is written with different
+    // dimensions in each coordinate, some information may be lost
+    if (geometry == null) { true } else {
+      val coord = geometry.getCoordinate
+      // check for dimensions - use NaN != NaN to verify z coordinate
+      // TODO check for M coordinate when added to JTS
+      coord == null || java.lang.Double.isNaN(coord.z)
+    }
+  }
 }
 
 object WKTUtils extends WKTUtils

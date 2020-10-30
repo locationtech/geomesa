@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2017 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,12 +13,15 @@ import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.UUID
 
+import org.apache.avro.file.DataFileStream
+import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import com.vividsolutions.jts.geom.{Point, Polygon}
 import org.geotools.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
 import org.locationtech.geomesa.features.avro.serde.Version2ASF
 import org.locationtech.geomesa.utils.geohash.GeohashUtils
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.SimpleFeature
 
@@ -74,12 +77,16 @@ trait AbstractAvroSimpleFeatureTest {
     builder.set("geom", WKTUtils.read("POINT(-110 30)"))
     builder.set("dtg", "2012-01-02T05:06:07.000Z")
 
-    val sf = builder.buildFeature("fid")
-    sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
-    sf
+    builder.buildFeature("fid")
   }
 
-  def getFeatures(f: File) = {
+  def getFeatures(f: File): List[SimpleFeature] = {
+    // verify file can be read as generic records
+    WithClose(new DataFileStream[GenericRecord](new FileInputStream(f), new GenericDatumReader[GenericRecord]())) { dfs =>
+      import scala.collection.JavaConverters._
+      dfs.iterator().asScala.toList
+    }
+
     val dfr = new AvroDataFileReader(new FileInputStream(f))
     try {
       dfr.toList
