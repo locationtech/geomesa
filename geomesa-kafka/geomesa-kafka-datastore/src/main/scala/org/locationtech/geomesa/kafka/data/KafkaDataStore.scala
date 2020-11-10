@@ -8,7 +8,7 @@
 
 package org.locationtech.geomesa.kafka.data
 
-import java.io.IOException
+import java.io.{Closeable, IOException}
 import java.util.concurrent.{ConcurrentHashMap, ScheduledExecutorService}
 import java.util.{Collections, Properties, UUID}
 
@@ -16,6 +16,7 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, Ticker}
 import com.typesafe.scalalogging.LazyLogging
 import kafka.admin.AdminUtils
 import kafka.utils.ZkUtils
+import org.apache.kafka.clients.consumer.ConsumerConfig.GROUP_ID_CONFIG
 import org.apache.kafka.clients.consumer.internals.NoOpConsumerRebalanceListener
 import org.apache.kafka.clients.consumer.{Consumer, ConsumerRebalanceListener, KafkaConsumer}
 import org.apache.kafka.clients.producer.{KafkaProducer, Producer}
@@ -28,10 +29,13 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.Namespace
 import org.locationtech.geomesa.index.geotools.{GeoMesaFeatureReader, MetadataBackedDataStore}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, HasGeoMesaStats, RunnableStats}
+import org.locationtech.geomesa.kafka.consumer.ThreadedConsumer.ConsumerErrorHandler
 import org.locationtech.geomesa.kafka.data.KafkaCacheLoader.KafkaCacheLoaderImpl
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.KafkaDataStoreConfig
 import org.locationtech.geomesa.kafka.data.KafkaFeatureWriter.{AppendKafkaFeatureWriter, ModifyKafkaFeatureWriter}
 import org.locationtech.geomesa.kafka.index._
+import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor
+import org.locationtech.geomesa.kafka.utils.GeoMessageProcessor.GeoMessageConsumer
 import org.locationtech.geomesa.kafka.utils.GeoMessageSerializer.{GeoMessagePartitioner, GeoMessageSerializerFactory}
 import org.locationtech.geomesa.kafka.{AdminUtilsVersions, KafkaConsumerVersions}
 import org.locationtech.geomesa.memory.cqengine.utils.CQIndexType.CQIndexType
@@ -83,7 +87,7 @@ class KafkaDataStore(
         // if the expiry is zero, this will return a NoOpFeatureCache
         val cache = KafkaFeatureCache(sft, config.indices)
         val topic = KafkaDataStore.topic(sft)
-        val consumers = KafkaDataStore.consumers(config, topic)
+        val consumers = KafkaDataStore.consumers(config.brokers, topic, config.consumers)
         val frequency = KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis
         val serializer = serialization.apply(sft, config.serialization, config.indices.lazyDeserialization)
         val initialLoad = config.consumers.readBack.isDefined
@@ -106,6 +110,39 @@ class KafkaDataStore(
     * when it is first queried - this will start them immediately.
     */
   def startAllConsumers(): Unit = getTypeNames.foreach(caches.get)
+
+  /**
+   * Create a message consumer for the given feature type. This can be used for guaranteed at-least-once
+   * message processing
+   *
+   * @param typeName type name
+   * @param groupId consumer group id
+   * @param processor message processor
+   * @return
+   */
+  def createConsumer(
+      typeName: String,
+      groupId: String,
+      processor: GeoMessageProcessor,
+      errorHandler: Option[ConsumerErrorHandler] = None): Closeable = {
+    val sft = getSchema(typeName)
+    if (sft == null) {
+      throw new IllegalArgumentException(s"Schema '$typeName' does not exist; call `createSchema` first")
+    }
+    val topic = KafkaDataStore.topic(sft)
+    val consumers = {
+      // add group id and
+      // disable read-back so we don't trigger a re-balance listener that messes with group offset tracking
+      val props = config.consumers.properties + (GROUP_ID_CONFIG -> groupId)
+      val conf = config.consumers.copy(properties = props, readBack = None)
+      KafkaDataStore.consumers(config.brokers, topic, conf)
+    }
+    val frequency = java.time.Duration.ofMillis(KafkaDataStore.LoadIntervalProperty.toDuration.get.toMillis)
+    val serializer = serialization.apply(sft, config.serialization, config.indices.lazyDeserialization)
+    val consumer = new GeoMessageConsumer(consumers, frequency, serializer, processor)
+    consumer.startConsumers(errorHandler)
+    consumer
+  }
 
   @throws(classOf[IllegalArgumentException])
   override protected def preSchemaCreate(sft: SimpleFeatureType): Unit = {
@@ -235,7 +272,7 @@ object KafkaDataStore extends LazyLogging {
 
   val MetadataPath = "metadata"
 
-  val LoadIntervalProperty: SystemProperty = SystemProperty("geomesa.kafka.load.interval", "100ms")
+  val LoadIntervalProperty: SystemProperty = SystemProperty("geomesa.kafka.load.interval", "1s")
 
   // marker to trigger the cq engine index when using the deprecated enable flag
   private [kafka] val CqIndexFlag: (String, CQIndexType) = null
@@ -260,31 +297,37 @@ object KafkaDataStore extends LazyLogging {
     new KafkaProducer[Array[Byte], Array[Byte]](props)
   }
 
-  def consumer(config: KafkaDataStoreConfig, group: String): Consumer[Array[Byte], Array[Byte]] = {
+  def consumer(config: KafkaDataStoreConfig, group: String): Consumer[Array[Byte], Array[Byte]] =
+    consumer(config.brokers, Map(GROUP_ID_CONFIG -> group) ++ config.consumers.properties)
+
+  def consumer(brokers: String, properties: Map[String, String]): Consumer[Array[Byte], Array[Byte]] = {
     import org.apache.kafka.clients.consumer.ConsumerConfig._
 
     val props = new Properties()
-    props.put(GROUP_ID_CONFIG, group)
+    props.put(BOOTSTRAP_SERVERS_CONFIG, brokers)
     props.put(ENABLE_AUTO_COMMIT_CONFIG, "false")
     props.put(KEY_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
     props.put(VALUE_DESERIALIZER_CLASS_CONFIG, classOf[ByteArrayDeserializer].getName)
-    props.put(BOOTSTRAP_SERVERS_CONFIG, config.brokers)
-    config.consumers.properties.foreach { case (k, v) => props.put(k, v) }
+    properties.foreach { case (k, v) => props.put(k, v) }
+
     new KafkaConsumer[Array[Byte], Array[Byte]](props)
   }
 
   // creates a consumer and sets to the latest offsets
-  private [kafka] def consumers(config: KafkaDataStoreConfig, topic: String): Seq[Consumer[Array[Byte], Array[Byte]]] = {
-    require(config.consumers.count > 0, "Number of consumers must be greater than 0")
+  private [kafka] def consumers(
+      brokers: String,
+      topic: String,
+      config: ConsumerConfig): Seq[Consumer[Array[Byte], Array[Byte]]] = {
+    require(config.count > 0, "Number of consumers must be greater than 0")
 
-    val group = UUID.randomUUID().toString
-    val partitions = Collections.newSetFromMap(new ConcurrentHashMap[Int, java.lang.Boolean])
+    val props = Map(GROUP_ID_CONFIG -> UUID.randomUUID().toString) ++ config.properties
+    lazy val partitions = Collections.newSetFromMap(new ConcurrentHashMap[Int, java.lang.Boolean])
 
-    logger.debug(s"Creating ${config.consumers.count} consumers for topic [$topic] with group-id [$group]")
+    logger.debug(s"Creating ${config.count} consumers for topic [$topic] with group-id [${props(GROUP_ID_CONFIG)}]")
 
-    Seq.fill(config.consumers.count) {
-      val consumer = KafkaDataStore.consumer(config, group)
-      val listener = config.consumers.readBack match {
+    Seq.fill(config.count) {
+      val consumer = KafkaDataStore.consumer(brokers, props)
+      val listener = config.readBack match {
         case None    => new NoOpConsumerRebalanceListener()
         case Some(d) => new ReadBackRebalanceListener(consumer, partitions, d)
       }

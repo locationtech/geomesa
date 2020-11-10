@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.kafka.data
 
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, TimeUnit}
 import java.util.{Collections, Date}
 
 import com.typesafe.scalalogging.LazyLogging
@@ -27,8 +27,8 @@ import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.kafka.EmbeddedKafka
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
-import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureChanged
+import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -36,7 +36,7 @@ import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Point
 import org.mockito.ArgumentMatchers
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -46,6 +46,7 @@ import org.specs2.runner.JUnitRunner
 class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
   import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
   import scala.concurrent.duration._
 
   sequential // this doesn't really need to be sequential, but we're trying to reduce zk load
@@ -519,6 +520,66 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
         eventually(40, 100.millis)(count must beEqualTo(numUpdates))
         latestLon must be equalTo 0.0
+      } finally {
+        consumer.dispose()
+        producer.dispose()
+      }
+    }
+
+    "support at-least-once consumers" >> {
+      val params = Map(
+        KafkaDataStoreParams.ConsumerConfig.key -> "auto.offset.reset=earliest",
+        KafkaDataStoreParams.ConsumerCount.key -> "2",
+        KafkaDataStoreParams.TopicPartitions.key -> "2"
+      )
+      val (producer, consumer, sft) = createStorePair("batch-consumers", params)
+      try {
+        val id = "fid-0"
+        val numUpdates = 3
+        val maxLon = 80.0
+
+        val seen = new AtomicBoolean(false)
+        var results = new CopyOnWriteArrayList[SimpleFeature]().asScala
+
+        val processor = new GeoMessageProcessor() {
+          override def consume(records: Seq[GeoMessage]): Boolean = {
+            val features = records.collect { case GeoMessage.Change(f) => f }
+            if (!seen.get) {
+              seen.set(true)
+              false // this should cause the messages to be replayed
+            } else {
+              results ++= features
+              true
+            }
+          }
+        }
+
+        producer.createSchema(sft)
+
+        def writeUpdates(): Unit = {
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            (numUpdates to 1 by -1).foreach { i =>
+              val ll = maxLon - maxLon / i
+              val sf = writer.next()
+              sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
+              sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(s"$id-$ll")
+              sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+              writer.write()
+            }
+          }
+        }
+
+        WithClose(consumer.createConsumer(sft.getTypeName, "mygroup", processor)) { _ =>
+          writeUpdates()
+          eventually(seen.get must beTrue)
+          eventually(results must haveLength(numUpdates))
+        }
+
+        // verify that we can read a second batch
+        writeUpdates()
+        WithClose(consumer.createConsumer(sft.getTypeName, "mygroup", processor)) { _ =>
+          eventually(results must haveLength(numUpdates * 2))
+        }
       } finally {
         consumer.dispose()
         producer.dispose()
