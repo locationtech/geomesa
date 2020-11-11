@@ -146,6 +146,9 @@ All types of input processors have some common configuration parameters for cont
 | ``Write Mode``                | Use an appending writer (for new features) or a modifying writer (to update existing    |
 |                               | features)                                                                               |
 +-------------------------------+-----------------------------------------------------------------------------------------+
+| ``Identifying Attribute``     | When using a modifying writer, the attribute used to uniquely identify the feature.     |
+|                               | If not specified, will use the feature ID                                               |
++-------------------------------+-----------------------------------------------------------------------------------------+
 | ``BatchSize``                 | The number of flow files that will be processed in a single batch                       |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``FeatureWriterCaching``      | Enable caching of feature writers between flow files, useful if flow files have a       |
