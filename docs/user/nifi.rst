@@ -143,6 +143,9 @@ All types of input processors have some common configuration parameters for cont
 +===============================+=========================================================================================+
 | ``ExtraClasspaths``           | Additional resources to add to the classpath, e.g. converter definitions                |
 +-------------------------------+-----------------------------------------------------------------------------------------+
+| ``Write Mode``                | Use an appending writer (for new features) or a modifying writer (to update existing    |
+|                               | features)                                                                               |
++-------------------------------+-----------------------------------------------------------------------------------------+
 | ``BatchSize``                 | The number of flow files that will be processed in a single batch                       |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``FeatureWriterCaching``      | Enable caching of feature writers between flow files, useful if flow files have a       |
