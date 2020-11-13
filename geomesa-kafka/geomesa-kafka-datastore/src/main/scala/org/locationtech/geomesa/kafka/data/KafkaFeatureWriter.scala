@@ -56,7 +56,7 @@ object KafkaFeatureWriter {
     }
 
     override def write(): Unit = {
-      val sf = GeoMesaFeatureWriter.featureWithFid(sft, feature)
+      val sf = GeoMesaFeatureWriter.featureWithFid(feature)
       // we've handled the fid hints, remove them so that we don't serialize them
       FeatureIdHints.foreach(sf.getUserData.remove)
       logger.debug(s"Writing update to $topic: $sf")
@@ -114,7 +114,7 @@ object KafkaFeatureWriter {
     }
 
     override def remove(): Unit = {
-      val id = GeoMesaFeatureWriter.featureWithFid(sft, feature).getID
+      val id = GeoMesaFeatureWriter.featureWithFid(feature).getID
       logger.debug(s"Writing delete to $topic: $id")
       val (key, value, headers) = serializer.serialize(GeoMessage.delete(id))
       val record = new ProducerRecord(topic, key, value)
