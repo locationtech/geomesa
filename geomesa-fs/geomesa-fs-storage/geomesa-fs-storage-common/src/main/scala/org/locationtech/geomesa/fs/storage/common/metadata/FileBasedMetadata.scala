@@ -143,8 +143,12 @@ class FileBasedMetadata(
 
     readPartitionFiles(threads).asScala.foreach { case (name, f) =>
       val config = readPartition(f, threads).filter(_.files.nonEmpty)
-      metadata.put(name, config.map(_.toMetadata).orNull)
-      config.foreach(c => configs += c)
+      config match {
+        case None => metadata.invalidate(name)
+        case Some(c) =>
+          metadata.put(name, c.toMetadata)
+          configs += c
+      }
       paths ++= f.unparsed
       paths ++= f.parsed
     }
