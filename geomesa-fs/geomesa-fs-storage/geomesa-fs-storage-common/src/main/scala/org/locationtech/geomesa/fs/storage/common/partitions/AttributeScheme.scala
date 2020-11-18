@@ -25,7 +25,13 @@ import org.opengis.filter.{And, Filter, Or, PropertyIsEqualTo}
   */
 case class AttributeScheme(attribute: String, index: Int, binding: Class[_]) extends PartitionScheme {
 
+  import FilterHelper.ff
+
+  private val alias = AttributeIndexKey.alias(binding)
+
   override val depth: Int = 1
+
+  override def pattern: String = s"<$attribute>"
 
   override def getPartitionName(feature: SimpleFeature): String = {
     val value = feature.getAttribute(index)
@@ -33,6 +39,20 @@ case class AttributeScheme(attribute: String, index: Int, binding: Class[_]) ext
   }
 
   override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
+    getIntersectingPartitions(filter).map { covered =>
+      // remove the attribute filter that we've already accounted for in our covered partitions
+      val coveredFilter = FilterExtractingVisitor(filter, attribute, AttributeScheme.propertyIsEquals _)._2
+      val simplified = SimplifiedFilter(coveredFilter.getOrElse(Filter.INCLUDE), covered, partial = false)
+
+      partition match {
+        case None => Seq(simplified)
+        case Some(p) if simplified.partitions.contains(p) => Seq(simplified.copy(partitions = Seq(p)))
+        case _ => Seq.empty
+      }
+    }
+  }
+
+  override def getIntersectingPartitions(filter: Filter): Option[Seq[String]] = {
     val bounds = FilterHelper.extractAttributeBounds(filter, attribute, binding)
     if (bounds.disjoint) {
       Some(Seq.empty)
@@ -40,19 +60,13 @@ case class AttributeScheme(attribute: String, index: Int, binding: Class[_]) ext
       None
     } else {
       // note: we verified they are all single values above
-      val covered = bounds.values.map(bound => AttributeIndexKey.encodeForQuery(bound.lower.value.get, binding))
-
-      // remove the attribute filter that we've already accounted for in our covered partitions
-      val coveredFilter = FilterExtractingVisitor(filter, attribute, AttributeScheme.propertyIsEquals _)._2
-      val simplified = SimplifiedFilter(coveredFilter.getOrElse(Filter.INCLUDE), covered, partial = false)
-
-      partition match {
-        case None => Some(Seq(simplified))
-        case Some(p) if simplified.partitions.contains(p) => Some(Seq(simplified.copy(partitions = Seq(p))))
-        case _ => Some(Seq.empty)
-      }
+      Some(bounds.values.map(bound => AttributeIndexKey.encodeForQuery(bound.lower.value.get, binding)))
     }
   }
+
+  override def getCoveringFilter(partition: String): Filter =
+    ff.equals(ff.property(attribute), ff.literal(AttributeIndexKey.decode(alias, partition)))
+
 }
 
 object AttributeScheme {

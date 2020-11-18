@@ -26,6 +26,6 @@ class FsGetPartitionsCommand extends FsDataStoreCommand {
 }
 
 object FsGetPartitionsCommand {
-  @Parameters(commandDescription = "List GeoMesa feature type for a given Fs resource")
+  @Parameters(commandDescription = "List partitions for a given feature type")
   class FsGetPartitionsParams extends FsParams with RequiredTypeNameParam
 }

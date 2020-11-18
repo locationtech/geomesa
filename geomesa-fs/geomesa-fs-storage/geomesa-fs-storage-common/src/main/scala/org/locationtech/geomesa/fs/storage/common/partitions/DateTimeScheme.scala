@@ -17,6 +17,7 @@ import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
+import org.locationtech.geomesa.utils.text.DateParsing
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 
@@ -27,6 +28,9 @@ case class DateTimeScheme(format: String, stepUnit: ChronoUnit, step: Int, dtg: 
     extends PartitionScheme {
 
   import ChronoUnit._
+
+  import FilterHelper.ff
+  import org.locationtech.geomesa.filter.{andOption, isTemporalFilter, partitionSubFilters}
 
   private val fmt = DateTimeFormatter.ofPattern(format)
 
@@ -44,20 +48,54 @@ case class DateTimeScheme(format: String, stepUnit: ChronoUnit, step: Int, dtg: 
       dt => dt.`with`(adjuster).truncatedTo(DAYS)
 
     case _ =>
-      dt => ZonedDateTime.parse(fmt.format(dt), fmt) // fall back to format and re-parse
+      dt => DateParsing.parse(fmt.format(dt), fmt) // fall back to format and re-parse
   }
 
   // TODO This may not be the best way to calculate max depth...
   // especially if we are going to use other separators
-  override val depth: Int = format.count(_ == '/')
+  override val depth: Int = format.count(_ == '/') + 1
+
+  override def pattern: String = format
 
   override def getPartitionName(feature: SimpleFeature): String =
     fmt.format(toInstant(feature.getAttribute(dtgIndex).asInstanceOf[Date]).atZone(ZoneOffset.UTC))
 
   override def getSimplifiedFilters(filter: Filter, partition: Option[String]): Option[Seq[SimplifiedFilter]] = {
+    getCoveringPartitions(filter).map { case (covered, intersecting) =>
+      val result = Seq.newBuilder[SimplifiedFilter]
+
+      if (covered.nonEmpty) {
+        // remove the temporal filter that we've already accounted for in our covered partitions
+        val coveredFilter = andOption(partitionSubFilters(filter, isTemporalFilter(_, dtg))._2)
+        result += SimplifiedFilter(coveredFilter.getOrElse(Filter.INCLUDE), covered, partial = false)
+      }
+      if (intersecting.nonEmpty) {
+        result += SimplifiedFilter(filter, intersecting.distinct, partial = false)
+      }
+
+      partition match {
+        case None => result.result
+        case Some(p) =>
+          val matched = result.result.find(_.partitions.contains(p))
+          matched.map(_.copy(partitions = Seq(p))).toSeq
+      }
+    }
+  }
+
+  override def getIntersectingPartitions(filter: Filter): Option[Seq[String]] =
+    getCoveringPartitions(filter).map { case (covered, intersecting) => covered ++ intersecting }
+
+  override def getCoveringFilter(partition: String): Filter = {
+    val zdt = DateParsing.parse(partition, fmt)
+    val start = DateParsing.format(zdt)
+    val end = DateParsing.format(zdt.plus(1, stepUnit))
+    ff.and(ff.greaterOrEqual(ff.property(dtg), ff.literal(start)), ff.less(ff.property(dtg), ff.literal(end)))
+  }
+
+  private def getCoveringPartitions(filter: Filter): Option[(Seq[String], Seq[String])] = {
     val bounds = FilterHelper.extractIntervals(filter, dtg, handleExclusiveBounds = false)
     if (bounds.disjoint) {
-      Some(Seq.empty)
+      Some((Seq.empty, Seq.empty))
     } else if (bounds.isEmpty || !bounds.forall(_.isBoundedBothSides)) {
       None
     } else {
@@ -81,7 +119,7 @@ case class DateTimeScheme(format: String, stepUnit: ChronoUnit, step: Int, dtg: 
         val coveringFirst = bound.lower.inclusive && lower == start
         val coveringLast =
           (bound.upper.exclusive && upper == end.plus(1, stepUnit)) ||
-            (bound.upper.inclusive && !upper.isBefore(end.plus(1, stepUnit).minus(1, MILLIS)))
+              (bound.upper.inclusive && !upper.isBefore(end.plus(1, stepUnit).minus(1, MILLIS)))
 
         if (steps == 0) {
           if (coveringFirst && coveringLast) {
@@ -116,25 +154,7 @@ case class DateTimeScheme(format: String, stepUnit: ChronoUnit, step: Int, dtg: 
         }
       }
 
-      val result = Seq.newBuilder[SimplifiedFilter]
-
-      if (covered.nonEmpty) {
-        import org.locationtech.geomesa.filter.{andOption, isTemporalFilter, partitionSubFilters}
-
-        // remove the temporal filter that we've already accounted for in our covered partitions
-        val coveredFilter = andOption(partitionSubFilters(filter, isTemporalFilter(_, dtg))._2)
-        result += SimplifiedFilter(coveredFilter.getOrElse(Filter.INCLUDE), covered.result, partial = false)
-      }
-      if (intersecting.nonEmpty) {
-        result += SimplifiedFilter(filter, intersecting.distinct.result, partial = false)
-      }
-
-      partition match {
-        case None => Some(result.result)
-        case Some(p) =>
-          val matched = result.result.find(_.partitions.contains(p))
-          Some(matched.map(_.copy(partitions = Seq(p))).toSeq)
-      }
+      Some((covered, intersecting))
     }
   }
 }
