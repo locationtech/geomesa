@@ -146,15 +146,19 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS]
         val file = options.file.getOrElse(throw new IllegalStateException("file should be Some"))
         val output = new Path(PathUtils.getUrl(file).toURI).getParent
 
-        // delete the output dir before configuring the job, as it may write the partition file there
+        // file output format doesn't generally let you write to an existing directory
         val context = FileContext.getFileContext(output.toUri, job.getConfiguration)
         if (context.util.exists(output)) {
+          val warning = s"Output directory '$output' exists - files may be overwritten"
           if (params.force) {
-            Command.user.warn(s"Output directory '$output' exists - deleting it")
-          } else if (!Prompt.confirm(s"WARNING Output directory '$output' exists, delete it and continue (y/n)? ")) {
-            throw new ParameterException(s"Output directory '$output' exists")
+            Command.user.warn(warning)
+          } else if (!Prompt.confirm(s"WARNING $warning. Continue anyway (y/n)? ")) {
+            if (Prompt.confirm("WARNING DATA MAY BE LOST - delete directory and proceed with export (y/n)? ")) {
+              context.delete(output, true)
+            } else {
+              throw new ParameterException(s"Output directory '$output' exists")
+            }
           }
-          context.delete(output, true)
         }
 
         val filename = FilenameUtils.getName(file)
