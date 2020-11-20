@@ -14,8 +14,8 @@ import java.util.concurrent.atomic.AtomicLong
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.geotools.data.{Query, Transaction}
-import org.geotools.util.factory.Hints
 import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
@@ -47,7 +47,7 @@ trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWrit
 
   protected def writeFeature(feature: SimpleFeature, update: Boolean = false): Unit = {
     // see if there's a suggested ID to use for this feature, else create one based on the feature
-    val writable = GeoMesaFeatureWriter.featureWithFid(sft, feature)
+    val writable = GeoMesaFeatureWriter.featureWithFid(feature)
     // `write` will calculate all mutations up front in case the feature is not valid, so we don't write partial entries
     try { getWriter(writable).write(writable, update) } catch {
       case NonFatal(e) =>
@@ -111,28 +111,39 @@ object GeoMesaFeatureWriter extends LazyLogging {
     }
   }
 
+  @deprecated
+  // noinspection ScalaUnusedSymbol
+  def featureWithFid(sft: SimpleFeatureType, feature: SimpleFeature): SimpleFeature = featureWithFid(feature)
+
   /**
    * Sets the feature ID on the feature. If the user has requested a specific ID, that will be used,
    * otherwise one will be generated. If possible, the original feature will be modified and returned.
    */
-  def featureWithFid(sft: SimpleFeatureType, feature: SimpleFeature): SimpleFeature = {
+  def featureWithFid(feature: SimpleFeature): SimpleFeature = {
     if (feature.getUserData.containsKey(Hints.PROVIDED_FID)) {
-      withFid(sft, feature, feature.getUserData.get(Hints.PROVIDED_FID).toString)
+      withFid(feature, feature.getUserData.get(Hints.PROVIDED_FID).toString)
     } else if (feature.getUserData.containsKey(Hints.USE_PROVIDED_FID) &&
         feature.getUserData.get(Hints.USE_PROVIDED_FID).asInstanceOf[Boolean]) {
       feature
     } else {
-      withFid(sft, feature, idGenerator.createId(sft, feature))
+      withFid(feature, idGenerator.createId(feature.getFeatureType, feature))
     }
   }
 
-  private def withFid(sft: SimpleFeatureType, feature: SimpleFeature, fid: String): SimpleFeature = {
-    feature.getIdentifier match {
-      case f: FeatureIdImpl => f.setID(fid); feature
-      case f =>
-        logger.warn(s"Unknown FeatureID implementation found, rebuilding feature: $f '${f.getClass.getName}'")
-        ScalaSimpleFeature.copy(sft, feature)
+  private def withFid(feature: SimpleFeature, fid: String): SimpleFeature = {
+    feature match {
+      case f: ScalaSimpleFeature => f.setId(fid); f
+      case _ =>
+        feature.getIdentifier match {
+          case f: FeatureIdImpl => f.setID(fid); feature
+          case f =>
+            logger.warn(s"Unknown FeatureID implementation found, rebuilding feature: $f '${f.getClass.getName}'")
+            val copy = ScalaSimpleFeature.copy(feature)
+            copy.setId(fid)
+            copy
+        }
     }
+
   }
 
   /**
@@ -262,6 +273,8 @@ object GeoMesaFeatureWriter extends LazyLogging {
       if (original == null) {
         throw new IllegalStateException("next() must be called before write()")
       }
+      // update the feature id based on hints before we compare for changes
+      live = GeoMesaFeatureWriter.featureWithFid(live)
       // only write if feature has actually changed...
       // comparison of feature ID and attributes - doesn't consider concrete class used
       if (!ScalaSimpleFeature.equalIdAndAttributes(live, original)) {

@@ -188,6 +188,27 @@ class GeoMesaDataStoreTest extends Specification {
         ds.getQueryPlan(new Query("temporal", ECQL.toFilter(f))).map(_.filter.index.name) mustEqual Seq(temporal.name)
       }
     }
+    "check provided fid hints during modifying writes" in {
+      val spec = "name:String:index=true,age:Int,dtg:Date,*geom:Point:srid=4326"
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(SimpleFeatureTypes.createType("test", spec))
+      val feature = ScalaSimpleFeature.create(sft, "0", "name", "20", "2020-01-20T00:00:00.000Z", "POINT (45 55)")
+      WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+        FeatureUtils.write(writer, feature, useProvidedFid = true)
+      }
+      SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
+          Seq(feature)
+      WithClose(ds.getFeatureWriter(sft.getTypeName, ECQL.toFilter("IN ('0')"), Transaction.AUTO_COMMIT)) { writer =>
+        writer.hasNext must beTrue
+        val update = writer.next
+        update.getUserData.put(Hints.PROVIDED_FID, "1")
+        writer.write()
+      }
+      val newId = ScalaSimpleFeature.copy(feature)
+      newId.setId("1")
+      SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
+          Seq(newId)
+    }
   }
 }
 
