@@ -33,7 +33,7 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService with Laz
   @volatile
   private var available = maxThreads
   private val queue = new java.util.LinkedList[TrackableFutureTask[_]]()
-  private val tasks = new java.util.HashSet[Future[_]]()
+  private val tasks = new java.util.HashSet[TrackableFutureTask[_]]()
   private val stopped = new AtomicBoolean(false)
   private val lock = new ReentrantLock()
   private val done = lock.newCondition()
@@ -117,6 +117,7 @@ class CachedThreadPool(maxThreads: Int) extends AbstractExecutorService with Laz
       lock.lock()
       try {
         available += 1
+        tasks.remove(this)
         val next = queue.poll()
         if (next != null) {
           runOrQueueTask(next) // note: this may briefly use more than maxThreads as this thread finishes up
