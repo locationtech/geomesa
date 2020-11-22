@@ -10,7 +10,7 @@
     <groupId>org.locationtech.geomesa</groupId>
     <artifactId>geomesa_2.11</artifactId>
     <packaging>pom</packaging>
-    <version>3.1.0-SNAPSHOT</version>
+    <version>3.2.0-SNAPSHOT</version>
 
     <licenses>
         <license>
@@ -64,10 +64,10 @@
         <scala.xml.version>1.0.6</scala.xml.version>
         <scala.parsers.version>1.0.6</scala.parsers.version>
 
-        <gt.version>23.0</gt.version>
+        <gt.version>23.3</gt.version>
         <geoserver.version>2.17.0</geoserver.version>
         <jts.version>1.16.0</jts.version>
-        <avro.version>1.7.5</avro.version> <!-- see also confluent.avro.version -->
+        <avro.version>1.8.2</avro.version> <!-- see also confluent.avro.version -->
         <parquet.version>1.9.0</parquet.version>
         <orc.version>1.5.4</orc.version>
         <fasterxml.jackson.version>2.9.10</fasterxml.jackson.version> <!-- used by geoserver (2.9.7), spark (2.6.7) and arrow (2.7.1) -->
@@ -82,7 +82,7 @@
         <aws.sdk.version>1.11.421</aws.sdk.version>
 
         <specs2.version>4.9.2</specs2.version>
-        <junit.version>4.13</junit.version>
+        <junit.version>4.13.1</junit.version>
 
         <!-- *** provided artifacts, not bundled to support multiple environments *** -->
 
@@ -121,16 +121,16 @@
         <!-- *** documentation *** -->
 
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>3.0.0</geomesa.release.version>
-        <geomesa.devel.version>3.1.0-SNAPSHOT</geomesa.devel.version>
+        <geomesa.release.version>3.1.0</geomesa.release.version>
+        <geomesa.devel.version>3.2.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2020</copyright.year>
 
         <!-- recommended installation versions -->
         <accumulo.version.recommended>2.0.0</accumulo.version.recommended>
-        <hbase.version.recommended>2.2.3</hbase.version.recommended>
+        <hbase.version.recommended>2.2.6</hbase.version.recommended>
         <hbase.thirdparty.version.recommended>2.2.1</hbase.thirdparty.version.recommended>
-        <cassandra.server.version.recommended>3.11.4</cassandra.server.version.recommended>
-        <cassandra.driver.version.recommended>3.7.2</cassandra.driver.version.recommended>
+        <cassandra.server.version.recommended>3.11.8</cassandra.server.version.recommended>
+        <cassandra.driver.version.recommended>3.10.2</cassandra.driver.version.recommended>
         <hadoop.version.recommended>2.8.5</hadoop.version.recommended>
         <zookeeper.version.recommended>3.4.14</zookeeper.version.recommended>
     </properties>
@@ -2429,6 +2429,7 @@
                         <forkCount>${test.fork.count}</forkCount>
                         <reuseForks>${test.fork.reuse}</reuseForks>
                         <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
+                        <rerunFailingTestsCount>1</rerunFailingTestsCount> <!-- re-try intermittent failures -->
                         <enableAssertions>${test.enable.assertions}</enableAssertions>
                         <includes>
                             <include>**/*Test.java</include>
@@ -2542,6 +2543,7 @@
                         <validHeaders>
                             <validHeader>build/copyright/ccri-dstl.txt</validHeader>
                             <validHeader>build/copyright/ccri-dstl-2016.txt</validHeader>
+                            <validHeader>build/copyright/ccri-dstl-2020.txt</validHeader>
                             <validHeader>build/copyright/dstl.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
@@ -2662,7 +2664,7 @@
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>copy-resources</id>
+                        <id>copy-readme</id>
                         <phase>validate</phase>
                         <goals>
                             <goal>copy-resources</goal>
@@ -2675,6 +2677,26 @@
                                     <directory>build</directory>
                                     <includes>
                                         <include>README.md</include>
+                                    </includes>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-images</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/.github</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <directory>build</directory>
+                                    <includes>
+                                        <include>*.svg</include>
                                     </includes>
                                     <filtering>true</filtering>
                                 </resource>

@@ -9,7 +9,7 @@
             <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>true</useTransitiveDependencies>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
+            <useTransitiveFiltering>false</useTransitiveFiltering> <!-- transitive filtering applies to excludes too so disable it -->
             <excludes>
                 <exclude>org.locationtech.geomesa:geomesa-hbase-gs-plugin*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-hbase-spark*</exclude>

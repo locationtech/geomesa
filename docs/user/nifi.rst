@@ -80,32 +80,94 @@ Processors
 
 GeoMesa NiFi contains several processors:
 
-+---------------------------+----------------------------------------------------------------------------+
-| Processor                 | Description                                                                |
-+===========================+============================================================================+
-| ``PutGeoMesaAccumulo``    | Ingest data into a GeoMesa Accumulo datastore with a GeoMesa converter     |
-+---------------------------+----------------------------------------------------------------------------+
-| ``PutGeoMesaHBase``       | Ingest data into a GeoMesa HBase datastore with a GeoMesa converter        |
-+---------------------------+----------------------------------------------------------------------------+
-| ``PutGeoMesaFileSystem``  | Ingest data into a GeoMesa File System datastore with a GeoMesa converter  |
-+---------------------------+----------------------------------------------------------------------------+
-| ``PutGeoMesaKafka``       | Ingest data into a GeoMesa Kafka datastore with a GeoMesa converter        |
-+---------------------------+----------------------------------------------------------------------------+
-| ``PutGeoMesaRedis``       | Ingest data into a GeoMesa Redis datastore with a GeoMesa converter        |
-+---------------------------+----------------------------------------------------------------------------+
-| ``PutGeoTools``           | Ingest data into an arbitrary GeoTools datastore using a GeoMesa converter |
-+---------------------------+----------------------------------------------------------------------------+
-| ``AvroToPut*``            | Ingest self-defining GeoAvro instead of configuring a converter            |
-+---------------------------+----------------------------------------------------------------------------+
-| ``GetGeoMesaKafkaRecord`` | Read GeoMesa Kafka messages and output them as NiFi records                |
-+---------------------------+----------------------------------------------------------------------------+
-| ``ConvertToGeoAvro``      | Use a GeoMesa converter to create GeoAvro                                  |
-+---------------------------+----------------------------------------------------------------------------+
++----------------------------------+----------------------------------------------------------------------------+
+| Processor                        | Description                                                                |
++==================================+============================================================================+
+| ``PutGeoMesaAccumulo`` /         | Ingest data into a GeoMesa Accumulo datastore                              |
+| ``PutGeoMesaAccumuloRecord`` /   |                                                                            |
+| ``AvroToPutGeoMesaAccumulo`` /   |                                                                            |
++----------------------------------+----------------------------------------------------------------------------+
+| ``PutGeoMesaHBase`` /            | Ingest data into a GeoMesa HBase datastore                                 |
+| ``PutGeoMesaHBaseRecord`` /      |                                                                            |
+| ``AvroToPutGeoMesaHBase``        |                                                                            |
++----------------------------------+----------------------------------------------------------------------------+
+| ``PutGeoMesaFileSystem`` /       | Ingest data into a GeoMesa File System datastore                           |
+| ``PutGeoMesaFileSystemRecord`` / |                                                                            |
+| ``AvroToPutGeoMesaFileSystem``   |                                                                            |
++----------------------------------+----------------------------------------------------------------------------+
+| ``PutGeoMesaKafka`` /            | Ingest data into a GeoMesa Kafka datastore                                 |
+| ``PutGeoMesaKafkaRecord`` /      |                                                                            |
+| ``AvroToPutGeoMesaKafka``        |                                                                            |
++----------------------------------+----------------------------------------------------------------------------+
+| ``PutGeoMesaRedis`` /            | Ingest data into a GeoMesa Redis datastore                                 |
+| ``PutGeoMesaRedisRecord`` /      |                                                                            |
+| ``AvroToPutGeoMesaRedis``        |                                                                            |
++----------------------------------+----------------------------------------------------------------------------+
+| ``PutGeoTools`` /                | Ingest data into an arbitrary GeoTools datastore                           |
+| ``PutGeoToolsRecord`` /          |                                                                            |
+| ``AvroToPutGeoTools``            |                                                                            |
++----------------------------------+----------------------------------------------------------------------------+
+| ``GetGeoMesaKafkaRecord``        | Read GeoMesa Kafka messages and output them as NiFi records                |
++----------------------------------+----------------------------------------------------------------------------+
+| ``ConvertToGeoAvro``             | Use a GeoMesa converter to create GeoAvro                                  |
++----------------------------------+----------------------------------------------------------------------------+
 
-Input Configuration
-~~~~~~~~~~~~~~~~~~~
+Records, Converters, and Avro
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Most of the processors accept similar configuration parameters for specifying the input source. Each
+The GeoMesa ``Put`` NiFi processors come in three different flavors. They all write to the same data stores, but
+they vary in how the input data is converted into GeoTools ``SimpleFeatures`` (which are necessary for ingest).
+
+The standard processors use the :ref:`converters` framework to define ``SimpleFeatureTypes`` and the mapping from
+input files to ``SimpleFeatures``. Converters can be re-used in the GeoMesa command-line tools and other non-NiFi
+projects.
+
+The record-based processors use the NiFi records API to define the input schema using a NiFi ``RecordReader``.
+Through ``RecordReaders``, ``SimpleFeatureTypes`` can be managed in a centralized schema registry. Similarly, records
+can be manipulated using standard NiFi processors before being passed to the GeoMesa processor. The use of standard
+NiFi APIs greatly reduces the amount of GeoMesa-specific configuration required.
+
+Finally, the ``AvroToPut`` processors will ingest GeoMesa-specific GeoAvro files without any configuration. GeoAvro
+is a special Avro file that has ``SimpleFeatureType`` metadata included. It can be produced using the GeoMesa
+command-line tools export in ``Avro`` format, the ``ConvertToGeoAvro`` processor, or directly through an instance of
+``org.locationtech.geomesa.features.avro.AvroDataFileWriter``. GeoAvro is particularly useful because it is
+self-describing.
+
+Common Configuration
+~~~~~~~~~~~~~~~~~~~~
+
+All types of input processors have some common configuration parameters for controlling data store writes:
+
++-------------------------------+-----------------------------------------------------------------------------------------+
+| Property                      | Description                                                                             |
++===============================+=========================================================================================+
+| ``ExtraClasspaths``           | Additional resources to add to the classpath, e.g. converter definitions                |
++-------------------------------+-----------------------------------------------------------------------------------------+
+| ``BatchSize``                 | The number of flow files that will be processed in a single batch                       |
++-------------------------------+-----------------------------------------------------------------------------------------+
+| ``FeatureWriterCaching``      | Enable caching of feature writers between flow files, useful if flow files have a       |
+|                               | small number of records (see below)                                                     |
++-------------------------------+-----------------------------------------------------------------------------------------+
+| ``FeatureWriterCacheTimeout`` | How often feature writers will be flushed to the data store, if caching is enabled      |
++-------------------------------+-----------------------------------------------------------------------------------------+
+
+Feature Writer Caching
+^^^^^^^^^^^^^^^^^^^^^^
+
+Feature writer caching can be used to improve the throughput of processing many small flow files. Instead of a new
+feature writer being created for each flow file, writers are cached and re-used between operations. If a writer is
+idle for the configured timeout, then it will be flushed to the data store and closed.
+
+Note that if feature writer caching is enabled, features that are processed may not show up in the data store
+immediately. In addition, any features that have been processed but not flushed may be lost if NiFi shuts down
+unexpectedly. To ensure data is properly flushed, stop the processor before shutting down NiFi.
+
+Alternatively, NiFi's built-in ``MergeContent`` processor can be used to batch up small files.
+
+Converter Input Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Converter processors accept the following configuration parameters for specifying the input source. Each
 datastore-specific processor also has additional parameters for connecting to the datastore, detailed in the
 following sections.
 
@@ -123,15 +185,6 @@ following sections.
 | ``ConverterSpec``             | Converter specification string. Overwritten by ConverterName if ConverterName is valid. |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConverterErrorMode``        | Override the converter error mode (``skip-bad-records`` or ``raise-errors``)            |
-+-------------------------------+-----------------------------------------------------------------------------------------+
-| ``ExtraClasspaths``           | Additional resources to add to the classpath, usually converter definitions.            |
-+-------------------------------+-----------------------------------------------------------------------------------------+
-| ``BatchSize``                 | The number of flow files that will be processed in a single batch                       |
-+-------------------------------+-----------------------------------------------------------------------------------------+
-| ``FeatureWriterCaching``      | Enable caching of feature writers between flow files, useful if flow files have a       |
-|                               | small number of records (see below)                                                     |
-+-------------------------------+-----------------------------------------------------------------------------------------+
-| ``FeatureWriterCacheTimeout`` | How often feature writers will be flushed to the data store, if caching is enabled      |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConvertFlowFileAttributes`` | Expose flow file attributes to the converter framework, referenced by name              |
 +-------------------------------+-----------------------------------------------------------------------------------------+
@@ -192,21 +245,62 @@ are available:
     For example, setting ``geomesa.sft.name`` to a non-recurring value could end up creating a new schema for each
     flow file, potentially crashing your database by creating too many tables.
 
-Feature Writer Caching
-^^^^^^^^^^^^^^^^^^^^^^
+.. _nifi_record_input_configuration:
 
-Feature writer caching can be used to improve the throughput of processing many small flow files. Instead of a new
-feature writer being created for each flow file, writers are cached and re-used between operations. If a writer is
-idle for the configured timeout, then it will be flushed to the data store and closed.
+Record Input Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Note that if feature writer caching is enabled, features that are processed may not show up in the data store
-immediately. In addition, any features that have been processed but not flushed may be lost if NiFi shuts down
-unexpectedly. To ensure data is properly flushed, stop the processor before shutting down NiFi.
+Record-based processors accept the following configuration parameters for specifying the input source. Each
+datastore-specific processor also has additional parameters for connecting to the datastore, detailed in the
+following sections.
 
-Alternatively, NiFi's built-in ``MergeContent`` processor can be used to batch up small files.
++-----------------------------------+-----------------------------------------------------------------------------------------------------+
+| Property                          | Description                                                                                         |
++===================================+=====================================================================================================+
+| ``Record reader``                 | The Record Reader to use for deserializing the incoming data                                        |
++-----------------------------------+-----------------------------------------------------------------------------------------------------+
+| ``Feature type name``             | Name to use for the simple feature type schema. If not specified, will use the name                 |
+|                                   | from the record schema                                                                              |
++-----------------------------------+-----------------------------------------------------------------------------------------------------+
+| ``Feature ID column``             | Column that will be used as the feature ID. If not specified, a random ID will be used              |
++-----------------------------------+-----------------------------------------------------------------------------------------------------+
+| ``Geometry columns``              | Column(s) that will be deserialized as geometries, and their type, as a                             |
+|                                   | SimpleFeatureType specification string (e.g. ``the_geom:Point``). A '*' can be used to              |
+|                                   | indicate the default geometry column, otherwise it will be the first geometry in the schema         |
++-----------------------------------+-----------------------------------------------------------------------------------------------------+
+| ``Geometry Serialization Format`` | The format to use for serializing/deserializing geometries, either                                  |
+|                                   | `WKT <https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry>`_ or                |
+|                                   | `WKB <https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry#Well-known_binary>`_ |
++-----------------------------------+-----------------------------------------------------------------------------------------------------+
+| ``JSON columns``                  | Column(s) that contain valid JSON documents, comma-separated (must be STRING type columns)          |
++-----------------------------------+-----------------------------------------------------------------------------------------------------+
+| ``Default date column``           | Column to use as the default date attribute (must be a DATE or TIMESTAMP type column)               |
++-----------------------------------+-----------------------------------------------------------------------------------------------------+
+| ``Visibilities column``           | Column to use for feature visibilities (see :ref:`data_security`)                                   |
++-----------------------------------+-----------------------------------------------------------------------------------------------------+
+| ``Schema user data``              | User data used to configure the GeoMesa SimpleFeatureType, in the form 'key1=value1,key2=value2'    |
++-----------------------------------+-----------------------------------------------------------------------------------------------------+
 
-PutGeoMesaAccumulo
-~~~~~~~~~~~~~~~~~~
+Avro Input Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+GeoAvro processors accept the following configuration parameters for specifying the input source. Each
+datastore-specific processor also has additional parameters for connecting to the datastore, detailed in the
+following sections.
+
++-------------------------+-------------------------------------------------------------------------------------------+
+| Property                | Description                                                                               |
++=========================+===========================================================================================+
+| ``Avro SFT match mode`` | Determines how Avro SimpleFeatureType mismatches are handled.                             |
++-------------------------+-------------------------------------------------------------------------------------------+
+
+The SimpleFeatureTypes in GeoAvro may or may not match the SimpleFeatureType in the target datastore.
+To address this, the AvroToPut processors have a property to set the SFT match mode. It can either be set to
+an exact match ("by attribute number and order") or a more lenient one ("by attribute name"). The latter setting
+will not write fields which are not in the target SFT.
+
+PutGeoMesaAccumulo / PutGeoMesaAccumuloRecord / AvroToPutGeoMesaAccumulo
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``PutGeoMesaAccumulo`` processor is used for ingesting data into an Accumulo-backed GeoMesa datastore. To use
 this processor, first add it to the workspace and open the properties tab of its configuration. For a description
@@ -229,22 +323,22 @@ After configuring the service, select the appropriate service in the ``GeoMesa C
 of your processor. When a controller service is selected the ``accumulo.zookeepers``, ``accumulo.instance.id``,
 ``accumulo.user``, ``accumulo.password`` and ``accumulo.catalog`` parameters are not required or used.
 
-PutGeoMesaHBase
-~~~~~~~~~~~~~~~
+PutGeoMesaHBase / PutGeoMesaHBaseRecord / AvroToPutGeoMesaHBase
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``PutGeoMesaHBase`` processor is used for ingesting data into an HBase-backed GeoMesa datastore. To use
 this processor, first add it to the workspace and open the properties tab of its configuration. For a description
 of the connection properties, see :ref:`hbase_parameters`.
 
-PutGeoMesaFileSystem
-~~~~~~~~~~~~~~~~~~~~
+PutGeoMesaFileSystem / PutGeoMesaFileSystemRecord / AvroToPutGeoMesaFileSystem
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``PutGeoMesaFileSystem`` processor is used for ingesting data into a file system-backed GeoMesa datastore. To use
 this processor, first add it to the workspace and open the properties tab of its configuration. For a description
 of the connection properties, see :ref:`fsds_parameters`.
 
-PutGeoMesaKafka
-~~~~~~~~~~~~~~~
+PutGeoMesaKafka / PutGeoMesaKafkaRecord / AvroToPutGeoMesaKafka
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``PutGeoMesaKafka`` processor is used for ingesting data into a
 Kafka-backed GeoMesa datastore. This processor supports Kafka 0.9
@@ -252,15 +346,15 @@ and newer. To use this processor first add it to the workspace and open
 the properties tab of its configuration. For a description
 of the connection properties, see :ref:`kafka_parameters`.
 
-PutGeoMesaRedis
-~~~~~~~~~~~~~~~
+PutGeoMesaRedis / PutGeoMesaRedisRecord / AvroToPutGeoMesaRedis
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``PutGeoMesaRedis`` processor is used for ingesting data into a Redis-backed GeoMesa datastore. To use this
 processor first add it to the workspace and open the properties tab of its configuration. For a description
 of the connection properties, see :ref:`redis_parameters`.
 
-PutGeoTools
-~~~~~~~~~~~
+PutGeoTools / PutGeoToolsRecord / AvroToPutGeoTools
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``PutGeoTools`` processor is used for ingesting data into any GeoTools
 compatible datastore. To use this processor first add it to the
@@ -274,14 +368,6 @@ workspace and open the properties tab of its configuration.
 
 This processor also accepts dynamic parameters that may be needed for
 the specific datastore that you're trying to access.
-
-AvroToPut*
-~~~~~~~~~~
-
-Each of the Put processors provided by GeoMesa has a corresponding AvroToPut processor. The Avro processors
-do not require a GeoMesa converter or SimpleFeatureType, as they only accept self-describing GeoAvro.
-GeoAvro can be generated through the GeoMesa command-line tools ``export`` functionality, the ConvertToGeoAvro
-processor, or directly through an instance of ``org.locationtech.geomesa.features.avro.AvroDataFileWriter``.
 
 GetGeoMesaKafkaRecord
 ~~~~~~~~~~~~~~~~~~~~~
@@ -305,6 +391,10 @@ and output them as NiFi records for further processing.
 | Record Writer                 | The NiFi record writer service used to serialize records                              |
 +-------------------------------+---------------------------------------------------------------------------------------+
 | Geometry Serialization Format | The format to use for serializing geometries, either text or binary                   |
++-------------------------------+---------------------------------------------------------------------------------------+
+| Include Visibilities          | Include a column with visibility expressions for each row                             |
++-------------------------------+---------------------------------------------------------------------------------------+
+| Include User Data             | Include a column with user data from the SimpleFeature, serialized as JSON            |
 +-------------------------------+---------------------------------------------------------------------------------------+
 | Record Maximum Batch Size     | The maximum number of records to output in a single flow file                         |
 +-------------------------------+---------------------------------------------------------------------------------------+
@@ -338,6 +428,14 @@ configuration.
 +=======================+===========================================================================================+
 | OutputFormat          | Only Avro is supported at this time.                                                      |
 +-----------------------+-------------------------------------------------------------------------------------------+
+
+Record Writer
+-------------
+
+In addition to the NiFi processors described above, GeoMesa-NiFi provides a Record Writer which will write out data in
+the GeoAvro format.
+This component is configured as a service and then configured on a Processor which requires a record writer.
+The configuration mirrors that for the Record processors: :ref:`nifi_record_input_configuration`.
 
 NiFi User Notes
 ---------------

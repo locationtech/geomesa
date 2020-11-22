@@ -14,6 +14,11 @@ GeoServer Versions
 Not all versions of GeoServer are compatible with all versions of GeoMesa. Refer to the chart below for which
 version to install. It is recommended to use the latest GeoServer bug-fix release for the compatible minor version.
 
+.. note::
+
+    New versions of GeoServer are released regularly. GeoMesa 3+ may work with newer versions of GeoServer, but
+    only the versions listed below have been verified.
+
 +-------------------+-------------------+
 | GeoMesa Version   | GeoServer Version |
 +===================+===================+
@@ -23,7 +28,7 @@ version to install. It is recommended to use the latest GeoServer bug-fix releas
 +-------------------+-------------------+
 | 2.4.x             | 2.15.x            |
 +-------------------+-------------------+
-| 3.0.x             | 2.17.x            |
+| 3.0.x and 3.1.x   | 2.17.x            |
 +-------------------+-------------------+
 
 .. warning::
@@ -56,12 +61,16 @@ Creating a Data Store
 
 Specific instructions by data store:
 
+
  * :doc:`/user/accumulo/geoserver`
  * :doc:`/user/hbase/geoserver`
  * :doc:`/user/bigtable/geoserver`
  * :doc:`/user/cassandra/geoserver`
  * :doc:`/user/kafka/geoserver`
+ * :doc:`/user/filesystem/geoserver`
+ * :doc:`/user/redis/geoserver`
  * :doc:`/user/lambda/geoserver`
+ * :doc:`/user/kudu/geoserver`
 
 Publish a GeoMesa Layer
 -----------------------
@@ -192,8 +201,7 @@ Auditing GeoMesa DataStores
 GeoMesa data stores can audit query metrics. To enabled auditing, check the box for ``geomesa.query.audit``
 when registering the data store in GeoServer.
 
-The Accumulo data store will write audited queries to the ``<catalog>_queries`` table. Other data stores
-will generally write audited queries to logs. To configure an audit log, set the level for
+GeoMesa data stores will generally write audited queries to log files. To configure an audit log, set the level for
 ``org.locationtech.geomesa.utils.audit`` to ``DEBUG``. This can be accomplished by editing the GeoServer logging
 configuration (e.g. ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties``)::
 
@@ -203,6 +211,8 @@ configuration (e.g. ``$GEOSERVER_DATA_DIR/logs/DEFAULT_LOGGING.properties``)::
    log4j.appender.metrics.layout.ConversionPattern=%m%n
 
    log4j.logger.org.locationtech.geomesa.utils.audit=DEBUG, metrics
+
+The Accumulo data store will also write audited queries to the ``<catalog>_queries`` table.
 
 See :ref:`audit_provider` for details on query attribution.
 

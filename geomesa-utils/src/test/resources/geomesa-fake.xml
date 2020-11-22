@@ -15,4 +15,10 @@
         </description>
         <final>true</final>
     </property>
+    <property>
+        <name>geomesa.config.test4.no.final</name>
+        <value>4</value>
+        <description>
+        </description>
+    </property>
 </configuration>

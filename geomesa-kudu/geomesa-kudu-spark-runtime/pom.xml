@@ -3,7 +3,7 @@
     <parent>
         <artifactId>geomesa-kudu_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>3.1.0-SNAPSHOT</version>
+        <version>3.2.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -19,6 +19,12 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-kudu-spark_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <!-- include guava so we can relocate it -->
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>compile</scope>
         </dependency>
 
         <!-- explicitly mark provided so its not in the shaded jar -->

@@ -133,10 +133,9 @@ object RichAttributeDescriptors extends Conversions {
   // noinspection AccessorLikeMethodIsEmptyParen
   implicit class RichAttributeDescriptor(val ad: AttributeDescriptor) extends AnyVal {
 
-    def setKeepStats(enabled: Boolean): Unit = if (enabled) {
-      ad.getUserData.put(OptStats, "true")
-    } else {
-      ad.getUserData.remove(OptStats)
+    def setKeepStats(enabled: Boolean): AttributeDescriptor = {
+      if (enabled) { ad.getUserData.put(OptStats, "true") } else { ad.getUserData.remove(OptStats) }
+      ad
     }
     def isKeepStats(): Boolean = boolean(ad.getUserData.get(OptStats))
 
@@ -145,8 +144,10 @@ object RichAttributeDescriptors extends Conversions {
     def getColumnGroups(): Set[String] =
       Option(ad.getUserData.get(OptColumnGroups).asInstanceOf[String]).map(_.split(",").toSet).getOrElse(Set.empty)
 
-    def setCardinality(cardinality: Cardinality): Unit =
+    def setCardinality(cardinality: Cardinality): AttributeDescriptor = {
       ad.getUserData.put(OptCardinality, cardinality.toString)
+      ad
+    }
 
     def getCardinality(): Cardinality =
       Option(ad.getUserData.get(OptCardinality).asInstanceOf[String])
@@ -154,13 +155,17 @@ object RichAttributeDescriptors extends Conversions {
 
     def isJson(): Boolean = boolean(ad.getUserData.get(OptJson))
 
-    def setListType(typ: Class[_]): Unit = ad.getUserData.put(UserDataListType, typ.getName)
+    def setListType(typ: Class[_]): AttributeDescriptor = {
+      ad.getUserData.put(UserDataListType, typ.getName)
+      ad
+    }
 
     def getListType(): Class[_] = tryClass(ad.getUserData.get(UserDataListType).asInstanceOf[String])
 
-    def setMapTypes(keyType: Class[_], valueType: Class[_]): Unit = {
+    def setMapTypes(keyType: Class[_], valueType: Class[_]): AttributeDescriptor = {
       ad.getUserData.put(UserDataMapKeyType, keyType.getName)
       ad.getUserData.put(UserDataMapValueType, valueType.getName)
+      ad
     }
 
     def getMapTypes(): (Class[_], Class[_]) =
@@ -168,11 +173,8 @@ object RichAttributeDescriptors extends Conversions {
 
     private def tryClass(value: AnyRef): Class[_] = Try(Class.forName(value.asInstanceOf[String])).getOrElse(null)
 
-    def isList: Boolean = ad.getUserData.containsKey(UserDataListType)
-
-    def isMap: Boolean =
-      ad.getUserData.containsKey(UserDataMapKeyType) && ad.getUserData.containsKey(UserDataMapValueType)
-
+    def isList: Boolean = classOf[java.util.List[_]].isAssignableFrom(ad.getType.getBinding)
+    def isMap: Boolean = classOf[java.util.Map[_, _]].isAssignableFrom(ad.getType.getBinding)
     def isMultiValued: Boolean = isList || isMap
 
     def getPrecision: GeometryPrecision = {
@@ -271,6 +273,8 @@ object RichSimpleFeatureType extends Conversions {
     @deprecated("table sharing no longer supported")
     def getTableSharingPrefix: String = userData[String](TableSharingPrefix).getOrElse("")
 
+    // noinspection ScalaDeprecation
+    @deprecated("table sharing no longer supported")
     def getTableSharingBytes: Array[Byte] = if (sft.isTableSharing) {
       sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
     } else {

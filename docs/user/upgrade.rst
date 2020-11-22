@@ -99,6 +99,25 @@ Maven Type of GeoServer Plugin Modules
 All of the ``geomesa-*-gs-plugin`` artifacts have been changed to ``<type>pom</type>``, since they did not
 contain any code. Any ``pom.xml`` references to them should be updated to use the correct type.
 
+Avro Version Update
+-------------------
+
+The version of Avro used by GeoMesa has been updated from 1.7.5 to 1.8.2. Avro serialized files should
+be compatible between versions, but compile and runtime dependencies may need to be updated if a project
+uses Avro and references GeoMesa.
+
+Query Interceptors API Change
+-----------------------------
+
+The query interceptors API has been expanded to support query guards. Any existing query interceptor
+implementations will continue to work, but may need to be re-compiled against the GeoMesa 3.1.0.
+
+Dependency Updates
+------------------
+
+* GeoTools: 23.0 -> 23.3
+* Avro: 1.7.5 -> 1.8.2
+
 Version 3.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -186,7 +205,7 @@ Accumulo Default Visibilities Removed
 -------------------------------------
 
 The Accumulo data store parameter ``geomesa.security.visibilities`` have been removed. Visibilities should be set
-per-feature, as per :ref:`accumulo_visibilities`.
+per-feature, as described in :ref:`data_security`.
 
 Version 2.4.0 Upgrade Guide
 +++++++++++++++++++++++++++

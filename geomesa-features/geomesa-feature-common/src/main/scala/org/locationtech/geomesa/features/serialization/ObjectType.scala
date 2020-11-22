@@ -15,6 +15,7 @@ import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfi
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
 import org.opengis.feature.`type`.AttributeDescriptor
 
+@deprecated("Replaced with org.locationtech.geomesa.utils.geotools.ObjectType")
 object ObjectType extends Enumeration {
 
   type ObjectType = Value

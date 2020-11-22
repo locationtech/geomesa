@@ -539,9 +539,11 @@ as part of the option. For example, given the schema ``name:String:index=true,*g
 Patterns consist of one or more single characters or ranges enclosed in square brackets. Valid characters
 can be any of the numbers 0 to 9, or any letter a to z, in upper or lower case. Ranges are two characters
 separated by a dash. Each set of brackets corresponds to a single character, allowing for nested splits.
+For numeric types, negatives may be specified with a leading negative sign.
 
 For example, the pattern ``[0-9]`` would create 10 splits, based on the numbers 0 through 9. The
-pattern ``[0-9][0-9]`` would create 100 splits. The pattern ``[0-9a-f]`` would create 16 splits based on lower-case
+pattern ``[0-9][0-9]`` would create 100 splits. The pattern ``[-][0-9]`` would create 10 splits based on
+the numbers -9 through 0. The pattern ``[0-9a-f]`` would create 16 splits based on lower-case
 hex characters. The pattern ``[0-9A-F]`` would do the same with upper-case characters.
 
 For data hot-spots, multiple patterns can be specified by adding additional options with a 2, 3, etc appended to
@@ -565,55 +567,10 @@ Full Example
     sft.getUserData().put("table.splitter.options",
         "id.pattern:[0-9a-f],attr.name.pattern:[a-z],z3.min:2018-01-01,z3.max:2018-01-31,z3.bits:2,z2.bits:4");
 
-.. _query_interceptors:
-
 Configuring Query Interceptors
 ------------------------------
-
-GeoMesa provides a chance for custom logic to be applied to a query before executing it. Query interceptors must
-be specified through user data in the simple feature type, and may be set before calling ``createSchema``, or
-updated by calling ``updateSchema``. To indicate query interceptors, use the key ``geomesa.query.interceptors``:
-
-.. code-block:: java
-
-    sft.getUserData().put("geomesa.query.interceptors", "com.example.MyQueryInterceptor");
-
-The value must be a comma-separated string consisting of the names of one or more classes implementing
-the trait ``org.locationtech.geomesa.index.planning.QueryInterceptor``:
-
-.. code-block:: scala
-
-    /**
-      * Provides a hook to modify a query before executing it
-      */
-    trait QueryInterceptor extends Closeable {
-
-      /**
-        * Called exactly once after the interceptor is instantiated
-        *
-        * @param ds data store
-        * @param sft simple feature type
-        */
-      def init(ds: DataStore, sft: SimpleFeatureType): Unit
-
-      /**
-        * Modifies the query in place
-        *
-        * @param query query
-        */
-      def rewrite(query: Query): Unit
-    }
-
-Interceptors must have a default, no-arg constructor. The interceptor lifecycle consists of:
-
-1. The instance is instantiated via reflection, using its default constructor
-#. The instance is initialized via the ``init`` method, passing in the data store containing the simple feature type
-#. ``rewrite`` is called repeatedly
-#. The instance is cleaned up via the ``close`` method
-
-Interceptors will be invoked in the order they are declared in the user data. In order to see detailed information
-on the results of query interceptors, you can enable ``TRACE``-level logging on the class
-``org.locationtech.geomesa.index.planning.QueryRunner$``.
+GeoMesa provides a chance for custom logic to be applied to a query before executing it via
+query interceptors and guards.  A full discussion of their use and configuration is at :ref:`query_interceptors`.
 
 .. _stat_config:
 

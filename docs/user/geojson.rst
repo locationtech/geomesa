@@ -714,3 +714,21 @@ Similarly for spaces:
     SimpleFeature sf = ...
     sf.setAttribute("json", "{ \"foo bar\" : \"bar\" }");
     filter.evaluate(sf); // returns true
+
+JSONPath With GeoServer Styles
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When using JSON path in GeoServer styles (SLD or CSS), the attribute and path must be separated out in order for
+the GeoTools renderer to work correctly. In this case, pass in two arguments, the first being a property expression
+in double quotes of the JSON-type attribute name, and the second being the path:
+
+.. code-block:: none
+
+    * {
+      mark: symbol(arrow);
+      mark-size: 12px;
+      mark-rotation: [ jsonPath("json", 'foo') ];
+      :mark {
+        fill: #009900;
+      }
+    }

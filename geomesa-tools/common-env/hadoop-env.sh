@@ -21,7 +21,7 @@
 # export HADOOP_HOME="${HADOOP_HOME:-/path/to/hadoop}"
 
 # Hadoop conf directory
-export HADOOP_CONF_DIR="${HADOOP_CONF_DIR:-$HADOOP_HOME/etc/hadoop }"
+export HADOOP_CONF_DIR="${HADOOP_CONF_DIR:-$HADOOP_HOME/etc/hadoop}"
 
 # Hadoop CDH configuration
 # Setting this variable to "1" will configure classpath settings for Hadoop

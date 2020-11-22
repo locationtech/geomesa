@@ -13,12 +13,11 @@ import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.iterators.user.RowEncodingIterator
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, Metadata}
 import org.locationtech.geomesa.features.kryo.impl.KryoFeatureDeserialization
-import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.features.kryo.{KryoFeatureSerializer, Metadata}
 import org.locationtech.geomesa.index.iterators.IteratorCache
 import org.locationtech.geomesa.utils.collection.IntBitSet
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**

@@ -13,8 +13,8 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.arrow.features.ArrowSimpleFeature
-import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader.{ArrowDateReader, ArrowLineStringReader, ArrowPointReader}
-import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, ArrowDictionaryReader, GeometryVector}
+import org.locationtech.geomesa.arrow.vector.ArrowAttributeReader._
+import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, GeometryVector}
 import org.locationtech.geomesa.filter.checkOrderUnsafe
 import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
@@ -34,6 +34,7 @@ import scala.util.control.NonFatal
   */
 object ArrowFilterOptimizer extends LazyLogging {
 
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConversions._
@@ -110,7 +111,11 @@ object ArrowFilterOptimizer extends LazyLogging {
       case Some(dictionary) =>
         val attrIndex = sft.indexOf(props.name)
         val numericValue = dictionary.index(props.literal.evaluate(null))
-        ArrowDictionaryEquals(attrIndex, numericValue)
+        if (sft.getDescriptor(attrIndex).isList) {
+          ArrowListDictionaryEquals(attrIndex, numericValue)
+        } else {
+          ArrowDictionaryEquals(attrIndex, numericValue)
+        }
     }
   }
 
@@ -189,6 +194,14 @@ object ArrowFilterOptimizer extends LazyLogging {
     override def evaluate(o: AnyRef): Boolean = {
       val arrow = o.asInstanceOf[ArrowSimpleFeature]
       arrow.getReader(i).asInstanceOf[ArrowDictionaryReader].getEncoded(arrow.getIndex) == value
+    }
+  }
+
+  case class ArrowListDictionaryEquals(i: Int, value: Int) extends Filter {
+    override def accept(visitor: FilterVisitor, extraData: AnyRef): AnyRef = extraData
+    override def evaluate(o: AnyRef): Boolean = {
+      val arrow = o.asInstanceOf[ArrowSimpleFeature]
+      arrow.getReader(i).asInstanceOf[ArrowListDictionaryReader].getEncoded(arrow.getIndex).contains(value)
     }
   }
 }

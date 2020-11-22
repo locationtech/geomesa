@@ -29,6 +29,9 @@ import org.opengis.filter.Filter
   */
 object IteratorCache extends StrictLogging {
 
+  // force evaluation of accessor cache while setting the context classloader to pick up our custm accessors
+  org.locationtech.geomesa.utils.geotools.SimpleFeaturePropertyAccessor.initialize()
+
   private val expiry = SystemProperty("geomesa.filter.remote.cache.expiry", "10 minutes").toDuration.get
 
   // thread safe object caches

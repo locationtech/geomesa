@@ -15,7 +15,10 @@ import org.locationtech.jts.geom.Geometry
 package object s2 {
 
   case class S2IndexValues(
-      sfc: S2SFC,
-      geometries: FilterValues[Geometry],
-      bounds: Seq[(Double, Double, Double, Double)])
+                            sfc: S2SFC,
+                            geometries: FilterValues[Geometry],
+                            @deprecated("Use spatialBounds instead.")
+                            bounds: Seq[(Double, Double, Double, Double)]) extends SpatialIndexValues {
+    override def spatialBounds: Seq[(Double, Double, Double, Double)] = bounds
+  }
 }

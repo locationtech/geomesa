@@ -159,7 +159,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get dictionary encoded values" >> {
-      val dictionary = Map("name" -> ArrowDictionary.create(0, Array("name00", "name01")))
+      val dictionary = Map("name" -> ArrowDictionary.create(sft.getTypeName, 0, Array("name00", "name01")))
       WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.Max)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
@@ -173,7 +173,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get null dictionary values" >> {
-      val dictionary = Map("name" -> ArrowDictionary.create(0, Array("name00", "name01", null)))
+      val dictionary = Map("name" -> ArrowDictionary.create(sft.getTypeName, 0, Array("name00", "name01", null)))
       WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.min(includeFids = true))) { vector =>
         val nulls = features.map(ScalaSimpleFeature.copy)
         (0 until sft.getAttributeCount).foreach(i => nulls.foreach(_.setAttribute(i, null)))
@@ -189,7 +189,7 @@ class SimpleFeatureVectorTest extends Specification {
       }
     }
     "set and get dictionary encoded ints" >> {
-      val dictionary = Map("age" -> ArrowDictionary.create(0, Array(0, 1, 2, 3, 4, 5).map(Int.box)))
+      val dictionary = Map("age" -> ArrowDictionary.create(sft.getTypeName, 0, Array(0, 1, 2, 3, 4, 5).map(Int.box)))
       WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.Max)) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
@@ -224,6 +224,26 @@ class SimpleFeatureVectorTest extends Specification {
         }
       }
     }
+    "set and get dictionary encoded lists" >> {
+      import scala.collection.JavaConverters._
+      val sft = SimpleFeatureTypes.createType("test", "names:List[String],dtg:Date,*geom:Point:srid=4326")
+      val features = (0 until 10).map { i =>
+        val names = Seq.tabulate(i)(j => s"name0${j % 5}").asJava
+        ScalaSimpleFeature.create(sft, s"0$i", names, s"2017-03-15T00:0$i:00.000Z", s"POINT (4$i 5$i)")
+      }
+      val dictionary = Map("names" -> ArrowDictionary.create(sft.getTypeName, 0, Array("name00", "name01", "name02", "name03", "name04")))
+      WithClose(SimpleFeatureVector.create(sft, dictionary, SimpleFeatureEncoding.min(includeFids = true))) { vector =>
+        features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
+        vector.writer.setValueCount(features.length)
+        vector.reader.getValueCount mustEqual features.length
+        forall(0 until 10)(i => vector.reader.get(i) mustEqual features(i))
+        // check wrapping
+        WithClose(SimpleFeatureVector.wrap(vector.underlying, dictionary)) { wrapped =>
+          wrapped.reader.getValueCount mustEqual features.length
+          forall(0 until 10)(i => wrapped.reader.get(i) mustEqual features(i))
+        }
+      }
+    }
     "set null geometries" >> {
       val sft = SimpleFeatureTypes.createType("test",
         "line:LineString:srid=4326,poly:Polygon:srid=4326,*geom:Point:srid=4326")
@@ -252,7 +272,7 @@ class SimpleFeatureVectorTest extends Specification {
       val features = (0 until 10).map { i =>
         ScalaSimpleFeature.create(sft, s"0$i", s"name0${i % 2}", s"LINESTRING (30 10, 1$i 30, 40 40)")
       }
-      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(true))) { vector =>
+      WithClose(SimpleFeatureVector.create(sft, Map.empty, SimpleFeatureEncoding.min(includeFids = true))) { vector =>
         features.zipWithIndex.foreach { case (f, i) => vector.writer.set(i, f) }
         vector.writer.setValueCount(features.length)
         vector.reader.getValueCount mustEqual features.length

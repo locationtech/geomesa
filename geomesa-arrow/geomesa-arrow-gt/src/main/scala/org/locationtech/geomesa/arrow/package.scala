@@ -9,12 +9,12 @@
 package org.locationtech.geomesa
 
 import org.apache.arrow.memory.{BufferAllocator, RootAllocator}
-import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.SimpleFeatureType
+
+import scala.collection.JavaConverters._
 
 package object arrow {
 
@@ -38,11 +38,27 @@ package object arrow {
      * @return
      */
     def apply(name: String): BufferAllocator = root.newChildAllocator(name, 0L, Long.MaxValue)
+
+    def getAllocatedMemory(typeName: String): Long =
+      root.getChildAllocators.asScala
+        .filter( a => a.getName.endsWith(s":$typeName"))
+        .map(_.getAllocatedMemory)
+        .sum
+
+    /**
+     * Forwards the getAllocatedMemory from the root Arrow Allocator
+     * @return the number of bytes allocated off-heap by Arrow
+     */
+    def getAllocatedMemory: Long = root.getAllocatedMemory
+
+    /**
+     * Forwards the getPeakMemoryAllocation from the root Arrow Allocator
+     * @return the peak number of bytes allocated off-heap by Arrow
+     */
+    def getPeakMemoryAllocation: Long = root.getPeakMemoryAllocation
   }
 
   object ArrowProperties {
     val BatchSize: SystemProperty = SystemProperty("geomesa.arrow.batch.size", "10000")
   }
-
-  case class TypeBindings(bindings: Seq[ObjectType], encoding: SimpleFeatureEncoding)
 }

@@ -141,7 +141,19 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
         output.pushLevel(s"Strategy $strategyCount of ${strategies.length}: ${strategy.index}")
         strategyCount += 1
         output(s"Strategy filter: $strategy")
-        profile(complete _)(ds.adapter.createQueryPlan(strategy.getQueryStrategy(hints, output)))
+        profile(complete _) {
+          val qs = strategy.getQueryStrategy(hints, output)
+          // query guard hook
+          interceptors(sft).foreach(_.guard(qs).foreach(e => throw e))
+          if (qs.values.isEmpty) {
+            qs.filter.secondary.foreach { f =>
+              logger.warn(
+                s"Running full table scan on ${qs.index.name} index for schema " +
+                  s"'${sft.getTypeName}' with filter: ${filterToString(f)}")
+            }
+          }
+          ds.adapter.createQueryPlan(qs)
+        }
       }
     }
   }
