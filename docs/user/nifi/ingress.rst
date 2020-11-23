@@ -7,6 +7,11 @@ GetGeoMesaKafkaRecord
 The ``GetGeoMesaKafkaRecord`` processor provides the ability to read messages written by the GeoMesa Kafka data store
 and output them as NiFi records for further processing.
 
+.. warning::
+
+  The ``GetGeoMesaKafkaRecord`` has not been tested with multiple processor threads, and may not work as expected.
+  ``kafka.consumer.count`` can be used to configure the number of consumer threads in a given processor.
+
 +-------------------------------+---------------------------------------------------------------------------------------+
 | Property                      | Description                                                                           |
 +===============================+=======================================================================================+
@@ -45,3 +50,7 @@ and output them as NiFi records for further processing.
 | kafka.consumer.config         | `Configuration options <http://kafka.apache.org/documentation.html#consumerconfigs>`_ |
 |                               | for the kafka consumer, in Java properties format                                     |
 +-------------------------------+---------------------------------------------------------------------------------------+
+
+Note that any processors with the same Kafka Group ID will split messages between the processors, as per standard
+Kafka consumer group behavior. Generally this is not desirable, and a unique group ID should be used for each
+processor.
