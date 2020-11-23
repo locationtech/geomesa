@@ -117,7 +117,7 @@ class KafkaStore(ds: DataStore,
   }
 
   override def write(original: SimpleFeature): Unit = {
-    val feature = GeoMesaFeatureWriter.featureWithFid(sft, original)
+    val feature = GeoMesaFeatureWriter.featureWithFid(original)
     val key = KafkaStore.serializeKey(clock.millis(), MessageTypes.Write)
     producer.send(new ProducerRecord(topic, key, serializer.serialize(feature)))
     logger.trace(s"Wrote feature to [$topic]: $feature")
@@ -126,7 +126,7 @@ class KafkaStore(ds: DataStore,
   override def delete(original: SimpleFeature): Unit = {
     import org.locationtech.geomesa.filter.ff
     // send a message to delete from all transient stores
-    val feature = GeoMesaFeatureWriter.featureWithFid(sft, original)
+    val feature = GeoMesaFeatureWriter.featureWithFid(original)
     val key = KafkaStore.serializeKey(clock.millis(), MessageTypes.Delete)
     producer.send(new ProducerRecord(topic, key, serializer.serialize(feature)))
     // also delete from persistent store

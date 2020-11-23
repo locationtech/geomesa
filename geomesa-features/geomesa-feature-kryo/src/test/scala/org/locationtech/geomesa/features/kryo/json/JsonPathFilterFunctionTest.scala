@@ -1,5 +1,6 @@
 /***********************************************************************
  * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2020 Dstl
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -237,4 +238,29 @@ class JsonPathFilterFunctionTest extends Specification {
       extractor.getPropertyNameSet.asScala.map(_.getPropertyName) mustEqual Set("json")
     }
   }
+
+  val jsonArray =
+    """
+      | [
+      |   {
+      |     "name": "g",
+      |     "value": 9.8
+      |   },
+      |   {
+      |     "name": "pi",
+      |     "value": 3.141
+      |   }
+      | ]
+    """.stripMargin
+  val sfArray = new ScalaSimpleFeature(sft, "")
+  sfArray.setAttribute(0, jsonArray)
+
+  "JsonPathFilterFunction" should {
+    "extract attributes from an array (vs object)" in {
+      ECQL.toFilter("jsonPath('$.json[0].value') = 9.8").evaluate(sfArray) must beTrue
+      ECQL.toFilter("jsonPath('$.json[1].name') = 'pi'").evaluate(sfArray) must beTrue
+    }
+  }
+
+
 }

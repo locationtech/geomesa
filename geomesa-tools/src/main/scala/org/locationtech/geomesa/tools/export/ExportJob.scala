@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.tools.export
 
 import java.io.File
+import java.text.NumberFormat
 import java.util.UUID
 
 import com.typesafe.scalalogging.{LazyLogging, StrictLogging}
@@ -17,7 +18,7 @@ import org.apache.hadoop.fs.Path
 import org.apache.hadoop.io.{Text, WritableComparable}
 import org.apache.hadoop.mapred.InvalidJobConfException
 import org.apache.hadoop.mapreduce._
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
+import org.apache.hadoop.mapreduce.lib.output.{FileOutputCommitter, FileOutputFormat}
 import org.apache.hadoop.mapreduce.lib.partition.InputSampler.{RandomSampler, Sampler, SplitSampler}
 import org.apache.hadoop.mapreduce.lib.partition.{InputSampler, TotalOrderPartitioner}
 import org.apache.hadoop.mapreduce.security.TokenCache
@@ -39,6 +40,10 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
  * Class that handles configuration and tracking of the remote job
  */
 object ExportJob extends JobWithLibJars {
+
+  // mimic id formatting in job
+  private val jobIdFormat = createFormat(4)
+  private val taskIdFormat = createFormat(5)
 
   def configure(
       job: Job,
@@ -121,6 +126,13 @@ object ExportJob extends JobWithLibJars {
     conf.set("mapreduce.job.reduce.slowstart.completedmaps", ".90")
 
     job
+  }
+
+  private def createFormat(digits: Int): NumberFormat = {
+    val nf = NumberFormat.getInstance()
+    nf.setMinimumIntegerDigits(digits)
+    nf.setGroupingUsed(false)
+    nf
   }
 
   object Counters {
@@ -259,8 +271,13 @@ object ExportJob extends JobWithLibJars {
       val conf = job.getConfiguration
       val file = {
         val (base, extension) = PathUtils.getBaseNameAndExtension(Config.getOutputFile(conf))
-        conf.set(FileOutputFormat.BASE_OUTPUT_NAME, base) // controls result from getDefaultWorkFile
-        getDefaultWorkFile(job, extension).toString
+        val workPath = getOutputCommitter(job).asInstanceOf[FileOutputCommitter].getWorkPath
+        val jobId = job.getJobID
+        val jobIdentifier = s"${jobId.getJtIdentifier}_${jobIdFormat.format(jobId.getId)}"
+        val taskId = job.getTaskAttemptID.getTaskID
+        val taskType = TaskID.getRepresentingCharacter(taskId.getTaskType)
+        val name = s"$base-$taskType-${jobIdentifier}_${taskIdFormat.format(taskId.getId)}$extension"
+        new Path(workPath, name).toString
       }
       val opts = ExportOptions(Config.getFormat(conf), Some(file), Config.getGzip(conf), Config.getHeaders(conf))
       val hints = Config.getQueryHints(conf)
