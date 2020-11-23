@@ -284,7 +284,7 @@ object CqlTransformFilter extends StrictLogging with SamplingIterator {
       val cqlLength = ByteArrays.readInt(bytes, offset)
       offset += 4
       val cql = if (cqlLength == 0) { null } else {
-        IteratorCache.filter(sft, spec, new String(bytes, offset, cqlLength))
+        IteratorCache.filter(sft, spec, new String(bytes, offset, cqlLength,StandardCharsets.UTF_8))
       }
       offset += cqlLength
 
