@@ -40,6 +40,8 @@ object IteratorCache extends StrictLogging {
   private val indexCache: Cache[(String, String), GeoMesaFeatureIndex[_, _]] =
     Caffeine.newBuilder().expireAfterAccess(expiry.toMillis, TimeUnit.MILLISECONDS).build()
 
+  // non-thread safe object caches
+  private val filterCache = new ThreadLocalCache[(String, String), Filter](expiry)
 
   /**
     * Returns a cached simple feature type, creating one if necessary. Note: do not modify returned value.
@@ -66,6 +68,22 @@ object IteratorCache extends StrictLogging {
     }
   }
 
+  /**
+    * Returns a cached filter, creating one if necessary.
+    *
+    * Note: need to include simple feature type in cache key,
+    * as attribute name -> attribute index gets cached in the filter
+    *
+    * @param sft simple feature type being filtered
+    * @param spec spec string for the simple feature type
+    * @param ecql ecql
+    * @return
+    */
+  def filter(sft: SimpleFeatureType, spec: String, ecql: String): Filter = {
+    logger.debug(s"Filter cache estimated size: ${filterCache.estimatedGlobalSize}")
+    logger.trace(s"Filter cache entries: ${filterCache.globalIterator.map { case (t, (k, v), _) => s"thread $t $k=>$v" }.mkString(", ")}")
+    filterCache.getOrElseUpdate((spec, ecql), FastFilterFactory.toFilter(sft, ecql))
+  }
 
   /**
     * Gets a cached feature index instance. Note that the index is not backed by a data store as
