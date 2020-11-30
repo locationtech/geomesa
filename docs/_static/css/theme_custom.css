@@ -285,6 +285,10 @@ div.admonition.warning, div.admonition.note {
   margin-bottom: 12px;
 }
 
+.rst-content .section .wy-table-responsive table td ul.last {
+  margin-bottom: 0 !important;
+}
+
 .rst-content .toc-backref {
   color: #565656;
 }
