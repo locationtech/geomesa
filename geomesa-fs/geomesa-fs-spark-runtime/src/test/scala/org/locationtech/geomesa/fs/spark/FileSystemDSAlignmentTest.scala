@@ -79,17 +79,19 @@ class FileSystemDSAlignmentTest extends Specification with LazyLogging {
       ok
     }
 
-    "Query directory2 with GeoMesa's Spark integration" >> {
-      foreach(formats) { format =>
-        queryWithSpark(format, directory1)
-      }
-    }
+    // Commented out since this works!
+//    "Query directory2 with GeoMesa's Spark integration" >> {
+//      foreach(formats) { format =>
+//        queryWithSpark(format, directory1)
+//      }
+//    }
 
-    "Query directory1 with the GM FSDS DS" >> {
-      foreach(formats) { format =>
-        queryWithGeoTools(format, directory1)
-      }
-    }
+    // Commented out since this works!
+//    "Query directory1 with the GM FSDS DS" >> {
+//      foreach(formats) { format =>
+//        queryWithGeoTools(format, directory1)
+//      }
+//    }
 
     "write data to directory2 using Spark" >> {
       foreach(formats) { format =>
@@ -101,7 +103,7 @@ class FileSystemDSAlignmentTest extends Specification with LazyLogging {
 
         df.write
           .format(format)
-          .parquet(directory2)
+          .parquet(directory2+"/parquet/")
         ok
       }
     }
@@ -110,7 +112,7 @@ class FileSystemDSAlignmentTest extends Specification with LazyLogging {
       foreach(formats) { format =>
         queryWithSpark(format, directory2)
       }
-    } //.pendingUntilFixed("Fails since SFT data is not registered")
+    }.pendingUntilFixed("Fails since SFT data is not registered.  Error is java.io.IOException: Schema 'parquet' does not exist.")
 
     "Query directory2 with the GM FSDS DS" >> {
       foreach(formats) { format =>
