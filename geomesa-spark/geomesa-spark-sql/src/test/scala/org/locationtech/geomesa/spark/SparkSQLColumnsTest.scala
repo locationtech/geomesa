@@ -119,7 +119,6 @@ class SparkSQLColumnsTest extends Specification with LazyLogging {
       val df = sc.sql(s"select * from ${sft.getTypeName}")
 
       val expected = Seq(
-        "__fid__" -> DataTypes.StringType,
         "int"     -> DataTypes.IntegerType,
         "long"    -> DataTypes.LongType,
         "float"   -> DataTypes.FloatType,
@@ -134,7 +133,8 @@ class SparkSQLColumnsTest extends Specification with LazyLogging {
         "lines"   -> JTSTypes.MultiLineStringTypeInstance,
         "polys"   -> JTSTypes.MultipolygonTypeInstance,
         "geoms"   -> JTSTypes.GeometryTypeInstance,
-        "point"   -> JTSTypes.PointTypeInstance
+        "point"   -> JTSTypes.PointTypeInstance,
+        "__fid__" -> DataTypes.StringType
       )
 
       val schema = df.schema
@@ -148,7 +148,7 @@ class SparkSQLColumnsTest extends Specification with LazyLogging {
       val row = result.head
 
       // note: have to compare backwards so that java.util.Date == java.sql.Timestamp
-      Seq(sf.getID) ++ expected.drop(1).map { case (n, _) => sf.getAttribute(n) } mustEqual
+      expected.take(15).map { case (n, _) => sf.getAttribute(n) } ++ Seq(sf.getID) mustEqual
           Seq.tabulate(16)(i => row.get(i))
     }
   }

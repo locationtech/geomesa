@@ -199,6 +199,13 @@ object SimpleFeatureReadSupport {
       // TODO this can be optimized to set a long and not materialize date objects
       callback.set(index, new Date(value))
     }
+
+    // This will be called if the Date column is an int96
+    override def addBinary(value: Binary): Unit = {
+      println(s"Got int96 binary: $value")
+      // TODO: Fix;)
+      callback.set(index, new Date())
+    }
   }
 
   class StringConverter(index: Int, callback: Settable) extends PrimitiveConverter {

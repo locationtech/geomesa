@@ -109,8 +109,9 @@ object SparkUtils extends LazyLogging {
   }
 
   def createStructType(sft: SimpleFeatureType): StructType = {
-    val fields = sft.getAttributeDescriptors.asScala.flatMap(createStructField).toList
-    StructType(StructField("__fid__", DataTypes.StringType, nullable = false) :: fields)
+    val fields = sft.getAttributeDescriptors.asScala.flatMap(createStructField)
+    fields.append(StructField("__fid__", DataTypes.StringType, nullable = false))
+    StructType(fields.toList)
   }
 
   private def createStructField(ad: AttributeDescriptor): Option[StructField] = {
