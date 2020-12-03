@@ -134,8 +134,11 @@ class FileSystemDSAlignmentTest extends Specification with LazyLogging {
 
 
       // TODO:  This is failing since the DTG columns are mis-aligned: int64 vs int96
-      CloseableIterator(fs.getFeatures(new Query(format, ECQL.toFilter("bbox(geom,-80,35,-75,45) " +
-        "AND dtg > '2016-01-01T12:00:00Z' AND dtg < '2016-01-03T12:00:00Z'"))).features()).size mustEqual(2)
+      val matches = CloseableIterator(fs.getFeatures(new Query(format, ECQL.toFilter("bbox(geom,-80,35,-75,45) " +
+        "AND dtg > '2016-01-01T12:00:00Z' AND dtg < '2016-01-03T12:00:00Z'"))).features()).toList
+
+      matches.foreach{println}
+      matches.size mustEqual(2)
 
       ok
 //      foreach(formats) { format =>

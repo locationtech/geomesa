@@ -70,6 +70,7 @@ class RawDirectoryMetadata(
   val sft = SimpleFeatureTypes.createType("parquet",
     "arrest:String,case_number:Int:index=full:cardinality=high,dtg:Date,*geom:Point:srid=4326")
 //  def sft: org.opengis.feature.simple.SimpleFeatureType = ???
+  sft.getUserData.put("jnh", "raw")
 
   val fc = fsc.fc
   val directory = fsc.root

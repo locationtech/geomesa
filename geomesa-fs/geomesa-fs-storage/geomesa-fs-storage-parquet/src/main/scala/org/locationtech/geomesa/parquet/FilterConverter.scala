@@ -88,6 +88,13 @@ object FilterConverter {
       name: String,
       filter: Filter,
       col: LongColumn): (Option[FilterPredicate], Option[Filter]) = {
+    if (sft.getUserData.containsKey("jnh")) {
+      // From: https://github.com/apache/spark/blob/v3.0.0/sql/core/src/test/scala/org/apache/spark/sql/execution/datasources/parquet/ParquetFilterSuite.scala#L629
+      // "spark.sql.parquet.outputTimestampType = INT96 doesn't support pushdown"
+      println(s"Got SFT from ${sft.getUserData.get("jnh")}")
+      return (None, Some(filter))
+    }
+
     val (temporal, nonTemporal) = FilterExtractingVisitor(filter, name, sft)
     val predicate = temporal.map(FilterHelper.extractIntervals(_, name)).flatMap { extracted =>
       Some(extracted).filter(e => e.nonEmpty && !e.disjoint && e.forall(_.isBounded)).map { e =>

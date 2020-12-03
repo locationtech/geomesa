@@ -9,7 +9,7 @@
 
 package org.locationtech.geomesa.parquet.io
 
-import java.nio.ByteBuffer
+import java.nio.{ByteBuffer, ByteOrder}
 import java.util.{Date, UUID}
 
 import org.apache.hadoop.conf.Configuration
@@ -43,6 +43,7 @@ class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {
       // TODO: Need the SFT here
       val sft = SimpleFeatureTypes.createType("parquet",
         "arrest:String,case_number:Int:index=full:cardinality=high,dtg:Date,*geom:Point:srid=4326")
+      sft.getUserData.put("jnh", "sfreadsupport")
       schema = SimpleFeatureParquetSchema(sft, context.getFileSchema)
       new ReadContext(context.getFileSchema, map.asJava)
     } else {
@@ -200,11 +201,25 @@ object SimpleFeatureReadSupport {
       callback.set(index, new Date(value))
     }
 
+    final val JULIAN_DAY_OF_EPOCH = 2440588
+    final val SECONDS_PER_DAY = 60 * 60 * 24L
+
     // This will be called if the Date column is an int96
     override def addBinary(value: Binary): Unit = {
-      println(s"Got int96 binary: $value")
-      // TODO: Fix;)
-      callback.set(index, new Date())
+      // From https://github.com/apache/spark/blob/v3.0.0/sql/core/src/main/scala/org/apache/spark/sql/execution/datasources/parquet/ParquetRowConverter.scala#L303-L317
+      // Converts nanosecond timestamps stored as INT96
+      assert(
+        value.length() == 12,
+        "Timestamps (with nanoseconds) are expected to be stored in 12-byte long binaries, " +
+          s"but got a ${value.length()}-byte binary.")
+
+      val buf = value.toByteBuffer.order(ByteOrder.LITTLE_ENDIAN)
+      val timeOfDayNanos = buf.getLong
+      val julianDay = buf.getInt
+      val seconds = (julianDay - JULIAN_DAY_OF_EPOCH).toLong * SECONDS_PER_DAY
+      val microSeconds = seconds * 1000 * 1000 + timeOfDayNanos / 1000L
+      
+      callback.set(index, new Date(microSeconds / 1000))
     }
   }
 
