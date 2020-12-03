@@ -144,9 +144,9 @@ object SQLRules extends LazyLogging {
   object SpatialOptimizationsRule extends Rule[LogicalPlan] with PredicateHelper {
 
     def extractGeometry(e: org.apache.spark.sql.catalyst.expressions.Expression): Option[Geometry] = e match {
-      case GeometryLiteral(_, geom) => Some(geom)
+      case g: GeometryLiteral => Some(g.geom)
       case And(l, r) => extractGeometry(l).orElse(extractGeometry(r))
-      case u: ScalaUDF => u.children.collectFirst { case GeometryLiteral(_, geom) => geom }
+      case u: ScalaUDF => u.children.collectFirst { case g: GeometryLiteral => g.geom }
       case _ => None
     }
 
