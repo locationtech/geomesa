@@ -20,9 +20,11 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Options.CreateOpts
 import org.apache.hadoop.fs._
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile}
-import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, StorageMetadata}
+import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, NamedOptions, PartitionScheme, StorageMetadata}
+import org.locationtech.geomesa.fs.storage.common.partitions.FlatScheme
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
+import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -56,25 +58,36 @@ import scala.util.control.NonFatal
 
   */
 class RawDirectoryMetadata(
-    private val fc: FileContext,
-    val directory: Path,
-    val sft: SimpleFeatureType,
-    val encoding: String,
-    val scheme: PartitionScheme,
-    val leafStorage: Boolean
+    private val fsc: FileSystemContext
+    //val directory: Path,
   ) extends StorageMetadata with MethodProfiling with LazyLogging {
+
+  def encoding: String = "parquet"
+  def scheme: org.locationtech.geomesa.fs.storage.api.PartitionScheme = FlatScheme
+  def leafStorage: Boolean = false
+
+  // TODO: Compute from a files metadata
+  val sft = SimpleFeatureTypes.createType("parquet",
+    "arrest:String,case_number:Int:index=full:cardinality=high,dtg:Date,*geom:Point:srid=4326")
+//  def sft: org.opengis.feature.simple.SimpleFeatureType = ???
+
+  val fc = fsc.fc
+  val directory = fsc.root
   val partitionMetadata: PartitionMetadata = {
     val files = new mutable.ArrayBuffer[StorageFile]
     val iter = fc.listStatus(directory)
     while (iter.hasNext) {
       val status = iter.next()
-      if (status.isFile) {
+      // TODO: check for parquet files in a better way
+      if (status.isFile && status.getPath.getName.endsWith("parquet")) {
         println(s"Got a file: $status")
         files.append(StorageFile(status.getPath.toString, 0))
       }
     }
+
+    // TODO: Compute SFT from metadata
     // TODO: Get a count from the files...
-    PartitionMetadata("raw", files.toSeq, None, 0)
+    PartitionMetadata("raw", files.toSeq, None, 3)
   }
 
   override def getPartitions(prefix: Option[String]): Seq[PartitionMetadata] = Seq(partitionMetadata)

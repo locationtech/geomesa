@@ -26,8 +26,8 @@ class RawDirectoryMetadataFactory extends StorageMetadataFactory {
     * @param context file context
     * @return
     **/
-  override def load(context: FileSystemContext): Option[FileBasedMetadata] = {
-    None //new RawDirectoryMetadata(context)
+  override def load(context: FileSystemContext): Option[RawDirectoryMetadata] = {
+    Some(new RawDirectoryMetadata(context))
   }
 
   override def create(context: FileSystemContext, config: Map[String, String], meta: Metadata): RawDirectoryMetadata = {
@@ -41,7 +41,7 @@ class RawDirectoryMetadataFactory extends StorageMetadataFactory {
 //    val metadata = new FileBasedMetadata(context.fc, directory, sft, encoding, scheme, leaf)
 //    FileBasedMetadataFactory.cache.put(FileBasedMetadataFactory.key(context), metadata)
 //    metadata
-    new RawDirectoryMetadata(context.fc, null, null, null, null, false)
+    new RawDirectoryMetadata(context)
   }
 }
 

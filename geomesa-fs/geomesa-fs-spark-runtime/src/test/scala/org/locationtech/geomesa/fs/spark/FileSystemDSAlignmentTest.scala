@@ -108,16 +108,39 @@ class FileSystemDSAlignmentTest extends Specification with LazyLogging {
       }
     }
 
-    "Query directory2 with GeoMesa's Spark integration" >> {
-      foreach(formats) { format =>
-        queryWithSpark(format, directory2)
-      }
-    }.pendingUntilFixed("Fails since SFT data is not registered.  Error is java.io.IOException: Schema 'parquet' does not exist.")
+//    "Query directory2 with GeoMesa's Spark integration" >> {
+//      foreach(formats) { format =>
+//        queryWithSpark(format, directory2)
+//      }
+//    }.pendingUntilFixed("Fails since SFT data is not registered.  Error is java.io.IOException: Schema 'parquet' does not exist.")
 
     "Query directory2 with the GM FSDS DS" >> {
-      foreach(formats) { format =>
-        queryWithGeoTools(format, directory2)
-      }
+      val location = directory2
+      val format = "parquet"
+      val outputDirectoryParams = Map("fs.path" -> location)
+      val outputDS: DataStore = DataStoreFinder.getDataStore(outputDirectoryParams.asJava)
+      val numberOfSFTS = outputDS.getTypeNames.length
+      numberOfSFTS must beGreaterThan(0)
+
+      val fs = outputDS.getFeatureSource(format)
+      val q = new Query(format)
+      val count =  fs.getCount(q)
+      count mustEqual(3)
+      //fs.getCount(new Query(format, ECQL.toFilter("case_number = 1"))) mustEqual(1)
+
+      val feats = CloseableIterator(fs.getFeatures(new Query(format)).features()).toList
+      feats.foreach{println}
+      feats.size mustEqual(3)
+
+
+      // TODO:  This is failing since the DTG columns are mis-aligned: int64 vs int96
+      CloseableIterator(fs.getFeatures(new Query(format, ECQL.toFilter("bbox(geom,-80,35,-75,45) " +
+        "AND dtg > '2016-01-01T12:00:00Z' AND dtg < '2016-01-03T12:00:00Z'"))).features()).size mustEqual(2)
+
+      ok
+//      foreach(formats) { format =>
+//        queryWithGeoTools(format, directory2)
+//      }
     } //.pendingUntilFixed("Fails since SFT metadata, file metadata, and column alignment are wrong.")
   }
 

@@ -129,6 +129,8 @@ object SimpleFeatureParquetSchema {
     } yield {
       val sft = SimpleFeatureTypes.createType(name, spec)
       Option(metadata.get(SchemaVersionKey)).map(_.toInt).getOrElse(0) match {
+        case -1 =>
+          throw new Exception("Whee!")
         case 1 => new SimpleFeatureParquetSchema(sft, schema(sft))
         case 0 => new SimpleFeatureParquetSchema(sft, SimpleFeatureParquetSchemaV0(sft))
         case v => throw new IllegalArgumentException(s"Unknown SimpleFeatureParquetSchema version: $v")
@@ -162,6 +164,9 @@ object SimpleFeatureParquetSchema {
       case ObjectType.GEOMETRY => geometry(bindings(1))
       case ObjectType.LIST     => Binding(bindings(1)).list()
       case ObjectType.MAP      => Binding(bindings(1)).key(bindings(2))
+      case ObjectType.DATE     => {
+        Binding(bindings.head).primitive()
+      }
       case p                   => Binding(p).primitive()
     }
     builder.named(StringSerialization.alphaNumericSafeString(descriptor.getLocalName))
