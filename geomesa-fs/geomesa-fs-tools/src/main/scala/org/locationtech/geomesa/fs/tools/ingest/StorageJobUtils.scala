@@ -8,44 +8,32 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
-import java.util.Collections
-
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
-import org.apache.hadoop.mapreduce.JobStatus
 import org.apache.hadoop.tools.{DistCp, DistCpOptions}
+import org.locationtech.geomesa.jobs.JobResult.JobSuccess
+import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.utils.StatusCallback
+import org.locationtech.geomesa.tools.utils.JobRunner
+
+import java.util.Collections
 
 object StorageJobUtils extends LazyLogging {
 
-  def distCopy(srcRoot: Path, destRoot: Path, statusCallback: StatusCallback): Boolean = {
+  def distCopy(srcRoot: Path, destRoot: Path, statusCallback: StatusCallback): JobResult = {
     statusCallback.reset()
 
-    Command.user.info("Submitting DistCp job - please wait...")
+    Command.user.info("Submitting job 'DistCp' - please wait...")
 
     val opts = distCpOptions(srcRoot, destRoot)
     val job = new DistCp(new Configuration, opts).execute()
 
     Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
 
-    // distCp has no reduce phase
-    while (!job.isComplete) {
-      if (job.getStatus.getState != JobStatus.State.PREP) {
-        statusCallback(s"DistCp: ", job.mapProgress(), Seq.empty, done = false)
-      }
-      Thread.sleep(1000)
+    JobRunner.monitor(job, statusCallback, Seq.empty, Seq.empty).merge {
+      Some(JobSuccess(s"Successfully copied data to $destRoot", Map.empty))
     }
-    statusCallback(s"DistCp: ", job.mapProgress(), Seq.empty, done = true)
-
-    val success = job.isSuccessful
-    if (success) {
-      Command.user.info(s"Successfully copied data to $destRoot")
-    } else {
-      Command.user.error(s"Failed to copy data to $destRoot")
-    }
-    success
   }
 
   private def distCpOptions(src: Path, dest: Path): DistCpOptions =

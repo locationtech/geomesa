@@ -8,10 +8,6 @@
 
 package org.locationtech.geomesa.tools.export
 
-import java.io._
-import java.util.Collections
-import java.util.zip.GZIPOutputStream
-
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
@@ -26,7 +22,9 @@ import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.iterators.BinAggregatingScan
 import org.locationtech.geomesa.index.planning.QueryRunner
-import org.locationtech.geomesa.jobs.GeoMesaConfigurator
+import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
+import org.locationtech.geomesa.jobs.{GeoMesaConfigurator, JobResult}
+import org.locationtech.geomesa.tools.Command.CommandException
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.export.ExportCommand.{ChunkedExporter, ExportOptions, ExportParams, Exporter}
@@ -34,7 +32,7 @@ import org.locationtech.geomesa.tools.export.formats.FeatureExporter.OutputStrea
 import org.locationtech.geomesa.tools.export.formats.FileSystemExporter.{OrcFileSystemExporter, ParquetFileSystemExporter}
 import org.locationtech.geomesa.tools.export.formats._
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesConverter, ExportFormatConverter}
-import org.locationtech.geomesa.tools.utils.{JobRunner, NoopParameterSplitter, Prompt, StatusCallback}
+import org.locationtech.geomesa.tools.utils.{JobRunner, NoopParameterSplitter, Prompt, TerminalCallback}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.CreateMode
 import org.locationtech.geomesa.utils.io.{IncrementingFileName, PathUtils, WithClose}
@@ -43,11 +41,16 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
 
+import java.io._
+import java.util.Collections
+import java.util.zip.GZIPOutputStream
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 
 trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS]
     with DistributedCommand with InteractiveCommand with MethodProfiling {
+
+  import ExportCommand.CountKey
 
   override val name = "export"
   override def params: ExportParams
@@ -55,16 +58,22 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS]
   override def libjarsFiles: Seq[String] = Seq("org/locationtech/geomesa/tools/export-libjars.list")
 
   override def execute(): Unit = {
-    def complete(fileAndCount: (String, Option[Long]), time: Long): Unit = {
-      val (file, countOption) = fileAndCount
-      val count = countOption.map(c => s" for $c features").getOrElse("")
-      Command.user.info(s"Feature export complete to $file in ${time}ms$count")
+    def complete(result: JobResult, time: Long): Unit = {
+      result match {
+        case JobSuccess(message, counts) =>
+          val count = counts.get(CountKey).map(c => s" for $c features").getOrElse("")
+          Command.user.info(s"$message$count in ${time}ms")
+
+        case JobFailure(message) =>
+          Command.user.info(s"Feature export failed in ${time}ms: $message")
+          throw new CommandException(message) // propagate out and return an exit code error
+      }
     }
 
     profile(complete _)(withDataStore(export))
   }
 
-  private def export(ds: DS): (String, Option[Long]) = {
+  private def export(ds: DS): JobResult = {
     // for file data stores, handle setting the default type name so the user doesn't have to
     for {
       p <- Option(params).collect { case p: ProvidedTypeNameParam => p }
@@ -118,7 +127,8 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS]
           case Some(f) if chunks.isDefined => PathUtils.getBaseNameAndExtension(f).productIterator.mkString("_*")
           case Some(f) => f
         }
-        (outFile, count)
+
+        JobSuccess(s"Feature export complete to $outFile", count.map(CountKey -> _).toMap)
 
       case RunModes.Distributed =>
         val job = Job.getInstance(new Configuration, "GeoMesa Tools Export")
@@ -167,9 +177,10 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS]
         ExportJob.configure(job, connection, sft, hints, filename, output, options.format, options.headers,
           chunks, options.gzip, reducers, libjars(options.format), libjarsPaths)
 
-        JobRunner.run(job, StatusCallback(), ExportJob.Counters.mapping(job), ExportJob.Counters.reducing(job))
-
-        (output.toString, Some(ExportJob.Counters.count(job)))
+        val reporter = TerminalCallback()
+        JobRunner.run(job, reporter, ExportJob.Counters.mapping(job), ExportJob.Counters.reducing(job)).merge {
+          Some(JobSuccess(s"Feature export complete to $output", Map(CountKey -> ExportJob.Counters.count(job))))
+        }
 
       case _ => throw new NotImplementedError() // someone added a run mode and didn't implement it here...
     }
@@ -215,6 +226,8 @@ object ExportCommand extends LazyLogging {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
+
+  private val CountKey = "count"
 
   /**
     * Create the query to execute

@@ -9,6 +9,8 @@
 package org.locationtech.geomesa.tools.utils
 
 import org.apache.hadoop.mapreduce.{Job, JobStatus}
+import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
+import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.Command
 
 /**
@@ -17,22 +19,48 @@ import org.locationtech.geomesa.tools.Command
 object JobRunner {
 
   /**
-    * Run a job
-    *
-    * @param job job
-    * @param reporter status callback
-    * @param mapCounters map status counters
-    * @param reduceCounters reduce status counters (will be added to map phase if no reduce phase)
-    * @return true if job completes successfully
-    */
+   * Submit and monitor a job
+   *
+   * @param job job
+   * @param reporter status callback
+   * @param mapCounters map status counters
+   * @param reduceCounters reduce status counters (will be added to map phase if no reduce phase)
+   * @return result
+   */
   def run(
       job: Job,
       reporter: StatusCallback,
       mapCounters: => Seq[(String, Long)],
-      reduceCounters: => Seq[(String, Long)]): Boolean = {
-    Command.user.info("Submitting job - please wait...")
+      reduceCounters: => Seq[(String, Long)]): JobResult = {
+    submit(job)
+    monitor(job, reporter, mapCounters, reduceCounters)
+  }
+
+  /**
+   * Run a job asynchronously
+   *
+   * @param job job
+   */
+  def submit(job: Job): Unit = {
+    Command.user.info(s"Submitting job '${job.getJobName}' - please wait...")
     job.submit()
     Command.user.info(s"Tracking available at ${job.getStatus.getTrackingUrl}")
+  }
+
+  /**
+   * Monitor a job that has already been submitted
+   *
+   * @param job job
+   * @param reporter status callback
+   * @param mapCounters map status counters
+   * @param reduceCounters reduce status counters (will be added to map phase if no reduce phase)
+   * @return result
+   */
+  def monitor(
+      job: Job,
+      reporter: StatusCallback,
+      mapCounters: => Seq[(String, Long)],
+      reduceCounters: => Seq[(String, Long)]): JobResult = {
 
     val status: Boolean => Unit = if (job.getNumReduceTasks != 0) {
       var mapping = true
@@ -63,9 +91,10 @@ object JobRunner {
     }
     status(true)
 
-    if (job.isSuccessful) { true } else {
-      Command.user.error(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
-      false
+    if (job.isSuccessful) {
+      JobSuccess("", (mapCounters ++ reduceCounters).toMap)
+    } else {
+      JobFailure(s"Job failed with state ${job.getStatus.getState} due to: ${job.getStatus.getFailureInfo}")
     }
   }
 }
