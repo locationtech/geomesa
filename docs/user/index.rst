@@ -17,7 +17,7 @@ User Manual
    convert/index
    geoserver
    spark/index
-   nifi
+   nifi/index
    process
    hbase/index
    accumulo/index
