@@ -30,10 +30,10 @@ import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.JobWithLibJars
-import org.locationtech.geomesa.tools.export.ExportCommand.{ExportOptions, Exporter, FileSizeEstimator}
+import org.locationtech.geomesa.tools.export.ExportCommand.{ExportOptions, Exporter}
 import org.locationtech.geomesa.tools.export.formats.{ExportFormat, FeatureExporter}
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.geomesa.utils.io.{IncrementingFileName, PathUtils}
+import org.locationtech.geomesa.utils.io.{FileSizeEstimator, IncrementingFileName, PathUtils}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**

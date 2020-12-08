@@ -44,8 +44,7 @@ class JdbcMetadataFactory extends StorageMetadataFactory {
             throw new IllegalArgumentException(s"Could not load metadata at root '$root'")
           }
           val sft = namespaced(metadata.sft, context.namespace)
-          val scheme = PartitionSchemeFactory.load(sft, metadata.scheme)
-          new JdbcMetadata(source, root, sft, metadata.encoding, scheme, metadata.leafStorage)
+          new JdbcMetadata(source, root, sft, metadata)
         } catch {
           case NonFatal(e) => CloseQuietly(source).foreach(e.addSuppressed); throw e
         }
@@ -61,7 +60,7 @@ class JdbcMetadataFactory extends StorageMetadataFactory {
     val source = JdbcMetadataFactory.createDataSource(config)
     try {
       JdbcMetadata.create(source, root, meta)
-      new JdbcMetadata(source, root, sft, meta.encoding, scheme, meta.leafStorage)
+      new JdbcMetadata(source, root, sft, meta)
     } catch {
       case NonFatal(e) => CloseQuietly(source).foreach(e.addSuppressed); throw e
     }

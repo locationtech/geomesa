@@ -11,11 +11,13 @@ package org.locationtech.geomesa.fs.storage.common.metadata
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.nio.charset.StandardCharsets
 import java.sql.{Connection, ResultSet, SQLException}
+import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.dbcp2.{PoolableConnection, PoolingDataSource}
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, StorageMetadata}
+import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, PartitionSchemeFactory, StorageMetadata}
+import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata.MetadataTable
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -65,20 +67,33 @@ import org.opengis.feature.simple.SimpleFeatureType
   * @param pool connection pool
   * @param root storage root path
   * @param sft simple feature type
-  * @param encoding encoding
-  * @param scheme partition scheme
-  * @param leafStorage leaf storage
+  * @param meta basic metadata config
   **/
 class JdbcMetadata(
     pool: PoolingDataSource[PoolableConnection],
     root: String,
     val sft: SimpleFeatureType,
-    val encoding: String,
-    val scheme: PartitionScheme,
-    val leafStorage: Boolean
+    meta: Metadata
   ) extends StorageMetadata {
 
   import JdbcMetadata.PartitionsTable
+
+  import scala.collection.JavaConverters._
+
+  override val scheme: PartitionScheme = PartitionSchemeFactory.load(sft, meta.scheme)
+  override val encoding: String = meta.config(Metadata.Encoding)
+  override val leafStorage: Boolean = meta.config(Metadata.LeafStorage).toBoolean
+
+  private val kvs = new ConcurrentHashMap[String, String](meta.config.asJava)
+
+  override def get(key: String): Option[String] = Option(kvs.get(key))
+
+  override def set(key: String, value: String): Unit = {
+    kvs.put(key, value)
+    WithClose(pool.getConnection()) { connection =>
+      MetadataTable.insert(connection, root, meta.copy(config = kvs.asScala.toMap))
+    }
+  }
 
   override def getPartition(name: String): Option[PartitionMetadata] =
     WithClose(pool.getConnection())(connection => PartitionsTable.select(connection, root, name))
@@ -92,7 +107,10 @@ class JdbcMetadata(
   override def removePartition(partition: PartitionMetadata): Unit =
     WithClose(pool.getConnection())(connection => PartitionsTable.delete(connection, root, partition))
 
-  override def compact(partition: Option[String], threads: Int): Unit = {
+  // noinspection ScalaDeprecation
+  override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
+
+  override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit = {
     WithClose(pool.getConnection()) { connection =>
       partition match {
         case None =>

@@ -42,7 +42,8 @@ abstract class FileSystemConverterJob(
     libjarsPaths: Iterator[() => Seq[File]],
     reducers: Int,
     root: Path,
-    tmpPath: Option[Path]
+    tmpPath: Option[Path],
+    targetFileSize: Option[Long]
   ) extends ConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths)
     with StorageConfiguration with LazyLogging {
 
@@ -65,6 +66,7 @@ abstract class FileSystemConverterJob(
 
     StorageConfiguration.setRootPath(job.getConfiguration, root)
     StorageConfiguration.setFileType(job.getConfiguration, FileType.Written)
+    targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 
     FileOutputFormat.setOutputPath(job, tmpPath.getOrElse(root))
 
@@ -98,8 +100,10 @@ object FileSystemConverterJob {
       libjarsPaths: Iterator[() => Seq[File]],
       reducers: Int,
       root: Path,
-      tmpPath: Option[Path]
-    ) extends FileSystemConverterJob(dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, root, tmpPath)
+      tmpPath: Option[Path],
+      targetFileSize: Option[Long]
+    ) extends FileSystemConverterJob(
+        dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, root, tmpPath, targetFileSize)
           with ParquetStorageConfiguration
 
   class OrcConverterJob(
@@ -111,8 +115,10 @@ object FileSystemConverterJob {
       libjarsPaths: Iterator[() => Seq[File]],
       reducers: Int,
       root: Path,
-      tmpPath: Option[Path]
-    ) extends FileSystemConverterJob(dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, root, tmpPath)
+      tmpPath: Option[Path],
+      targetFileSize: Option[Long]
+    ) extends FileSystemConverterJob(
+        dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, root, tmpPath, targetFileSize)
           with OrcStorageConfiguration
 
   class FsIngestMapper extends Mapper[LongWritable, SimpleFeature, Text, BytesWritable] with LazyLogging {

@@ -12,7 +12,6 @@ import java.io.Closeable
 
 import org.apache.hadoop.fs.Path
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
-import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction.StorageFileAction
 import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -53,6 +52,22 @@ trait StorageMetadata extends Compactable with Closeable {
     * @return leaf
     */
   def leafStorage: Boolean
+
+  /**
+   * Get a previously set key-value pair
+   *
+   * @param key key
+   * @return
+   */
+  def get(key: String): Option[String] = None
+
+  /**
+   * Set a key-value pair
+   *
+   * @param key key
+   * @param value value
+   */
+  def set(key: String, value: String): Unit = throw new NotImplementedError()
 
   /**
     * Get a partition by name. Ensure that `reload` has been invoked at least once before calling this method
@@ -136,7 +151,11 @@ object StorageMetadata {
     * @param timestamp timestamp for the file
     * @param action type of file (append, modify, delete)
     */
-  case class StorageFile(name: String, timestamp: Long, action: StorageFileAction = StorageFileAction.Append)
+  case class StorageFile(
+      name: String,
+      timestamp: Long,
+      action: StorageFileAction.StorageFileAction = StorageFileAction.Append
+    )
 
   /**
     * Holds a storage file path
@@ -160,11 +179,11 @@ object StorageMetadata {
     * Note that conversions to/from 'null' envelopes should be handled carefully, as envelopes are considered
     * null if xmin > xmax, however, when instantiating an envelope it will re-order the coordinates:
     *
-    * ```
+    * {{{
     *   val env = new Envelope()
     *   val copy = new Envelope(env.getMinX, env.getMinY, env.getMaxX, env.getMaxY)
     *   copy == env // false
-    * ```
+    * }}}
     *
     * Thus, ensure that 'null' envelopes are converted to `None` and not directly to a bounds object. See
     * `PartitionBounds.apply`

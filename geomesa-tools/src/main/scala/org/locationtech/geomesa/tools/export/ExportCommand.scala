@@ -8,6 +8,10 @@
 
 package org.locationtech.geomesa.tools.export
 
+import java.io._
+import java.util.Collections
+import java.util.zip.GZIPOutputStream
+
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
@@ -35,15 +39,12 @@ import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesConverter,
 import org.locationtech.geomesa.tools.utils.{JobRunner, NoopParameterSplitter, Prompt, TerminalCallback}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.CreateMode
-import org.locationtech.geomesa.utils.io.{IncrementingFileName, PathUtils, WithClose}
+import org.locationtech.geomesa.utils.io.{FileSizeEstimator, IncrementingFileName, PathUtils, WithClose}
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.opengis.filter.sort.SortOrder
 
-import java.io._
-import java.util.Collections
-import java.util.zip.GZIPOutputStream
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 
@@ -495,56 +496,6 @@ object ExportCommand extends LazyLogging {
         export(features, exported)
       }
     }
-  }
-
-  /**
-    * Estimates how many features to write to create a file of a target size
-    *
-    * @param target target file size, in bytes
-    * @param error acceptable percent error for file size, in bytes
-    * @param estimatedBytesPerFeature initial estimate for bytes per feature
-    */
-  class FileSizeEstimator(target: Long, error: Float, estimatedBytesPerFeature: Float) extends LazyLogging {
-
-    require(error >= 0 && error < 1f, "Error must be a percentage between [0,1)")
-
-    private val threshold = math.round(target * error.toDouble)
-    private var estimate = estimatedBytesPerFeature.toDouble
-
-    /**
-      * Estimate how many features to write to hit our target size
-      *
-      * @param written number of bytes written so far
-      * @return
-      */
-    def estimate(written: Long): Int = {
-      val e = math.round((target - written) / estimate)
-      if (e < 1) { 1 } else if (e.isValidInt) { e.intValue() } else { Int.MaxValue}
-    }
-
-    /**
-      * Re-evaluate the bytes per feature, based on having written out a certain number of features
-      *
-      * @param size size of the file created
-      * @param count number of features written to the file
-      */
-    def update(size: Long, count: Long): Unit = {
-      if (size > 0 && count > 0 && math.abs(size - target) > threshold) {
-        val update = size.toDouble / count
-        logger.debug(s"Updating bytesPerFeature from $estimate to $update based on writing $count features in $size bytes")
-        estimate = update
-      } else {
-        logger.debug(s"Not updating bytesPerFeature from $estimate based on writing $count features in $size bytes")
-      }
-    }
-
-    /**
-      * Checks if the bytes written is (at least) within the error threshold of the desired size
-      *
-      * @param size size of the file created
-      * @return
-      */
-    def done(size: Long): Boolean = size > target || math.abs(size - target) < threshold
   }
 
   /**

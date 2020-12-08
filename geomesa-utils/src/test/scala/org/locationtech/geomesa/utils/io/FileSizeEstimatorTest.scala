@@ -6,10 +6,9 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export
+package org.locationtech.geomesa.utils.io
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.tools.export.ExportCommand.FileSizeEstimator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
