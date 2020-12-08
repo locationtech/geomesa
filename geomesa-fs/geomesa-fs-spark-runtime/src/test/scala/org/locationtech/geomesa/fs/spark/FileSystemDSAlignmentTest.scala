@@ -14,6 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
 import org.apache.spark.sql.{SQLContext, SQLTypes, SparkSession}
+import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.data.{DataStore, DataStoreFinder, Query, Transaction}
 import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
@@ -59,6 +60,7 @@ class FileSystemDSAlignmentTest extends Specification with LazyLogging {
     "Write data to directory1 using the GT FSDS" >> {
       println(s" ***: Temporary directory is ${tempDir}.  Directory is $directory1.")
 
+      // TODO: This writing approach writes out the column data as "case_5fnumber"
       formats.foreach { format =>
         val sft = SimpleFeatureTypes.createType(format,
           "arrest:String,case_number:Int:index=full:cardinality=high,dtg:Date,*geom:Point:srid=4326")
@@ -87,11 +89,11 @@ class FileSystemDSAlignmentTest extends Specification with LazyLogging {
 //    }
 
     // Commented out since this works!
-//    "Query directory1 with the GM FSDS DS" >> {
-//      foreach(formats) { format =>
-//        queryWithGeoTools(format, directory1)
-//      }
-//    }
+    "Query directory1 with the GM FSDS DS" >> {
+      foreach(formats) { format =>
+        queryWithGeoTools(format, directory1)
+      }
+    }
 
     "write data to directory2 using Spark" >> {
       foreach(formats) { format =>
@@ -117,12 +119,7 @@ class FileSystemDSAlignmentTest extends Specification with LazyLogging {
     "Query directory2 with the GM FSDS DS" >> {
       val location = directory2
       val format = "parquet"
-      val outputDirectoryParams = Map("fs.path" -> location)
-      val outputDS: DataStore = DataStoreFinder.getDataStore(outputDirectoryParams.asJava)
-      val numberOfSFTS = outputDS.getTypeNames.length
-      numberOfSFTS must beGreaterThan(0)
-
-      val fs = outputDS.getFeatureSource(format)
+      val fs: SimpleFeatureSource = getFeatureSource(format, location)
       val q = new Query(format)
       val count =  fs.getCount(q)
       count mustEqual(3)
@@ -141,29 +138,71 @@ class FileSystemDSAlignmentTest extends Specification with LazyLogging {
       matches.size mustEqual(2)
 
       ok
-//      foreach(formats) { format =>
-//        queryWithGeoTools(format, directory2)
-//      }
-    } //.pendingUntilFixed("Fails since SFT metadata, file metadata, and column alignment are wrong.")
+      foreach(formats) { format =>
+        queryWithGeoTools(format, directory2)
+      }
+    }
+
+    "GeoTools reads ought to work with Spark output" >> {
+      foreach(formats) { format =>
+        testGeoToolsFilters(format, directory2)
+      }
+    }
+    "Functions which are failing for Spark output being re-read" >> {
+      println(s"Trying Count with Dates for $directory2")
+      getCountDateFilterGeoTools("parquet", directory2)
+    }
+    "Functions which are failing for Spark output being re-read 2" >> {
+      println(s"Trying case_number filter with $directory2")
+      case_numberFilterWithGeoTools("parquet", directory2)
+    }
+  }
+
+  private def testGeoToolsFilters(format: String, location: String) = {
+    println(s"Trying count with FILTER.INCLUDE for $location")
+    getCountIncludeGeoTools(format, location)
+    println(s"Trying case_number filter with $location")
+    case_numberFilterWithGeoTools(format, location)
+    println(s"Trying spatial temporal filter with $location")
+    queryWithGeoTools(format, location)
+    println(s"Trying Count with Dates for $location")
+    getCountDateFilterGeoTools(format, location)
+  }
+
+  private def getCountIncludeGeoTools(format: String, location: String) = {
+    val fs: SimpleFeatureSource = getFeatureSource(format, location)
+    fs.getCount(new Query(format)) mustEqual (3)
+  }
+
+  private def getCountDateFilterGeoTools(format: String, location: String) = {
+    val fs: SimpleFeatureSource = getFeatureSource(format, location)
+    fs.getCount(new Query(format, ECQL.toFilter("bbox(geom,-80,35,-75,45) " +
+      "AND dtg > '2016-01-01T12:00:00Z' AND dtg < '2016-01-02T12:00:00Z'"))) mustEqual(2)
+  }
+
+  private def case_numberFilterWithGeoTools(format: String, location: String) = {
+    val fs: SimpleFeatureSource = getFeatureSource(format, location)
+    val feats = CloseableIterator(fs.getFeatures(new Query(format, ECQL.toFilter("case_number = 1"))).features()).toList
+    println(s"feat.size : ${feats.size}")
+    feats.size mustEqual 1
+    fs.getCount(new Query(format, ECQL.toFilter("case_number = 1"))) mustEqual(1)
   }
 
   private def queryWithGeoTools(format: String, location: String) = {
+    val fs: SimpleFeatureSource = getFeatureSource(format, location)
+
+    CloseableIterator(fs.getFeatures(new Query(format, ECQL.toFilter("bbox(geom,-80,35,-75,45) " +
+      "AND dtg > '2016-01-01T12:00:00Z' AND dtg < '2016-01-03T12:00:00Z'"))).features()).size mustEqual (2)
+  }
+
+  private def getFeatureSource(format: String, location: String) = {
     val outputDirectoryParams = Map("fs.path" -> location)
     val outputDS: DataStore = DataStoreFinder.getDataStore(outputDirectoryParams.asJava)
     val numberOfSFTS = outputDS.getTypeNames.length
     numberOfSFTS must beGreaterThan(0)
 
     val fs = outputDS.getFeatureSource(format)
-    val q = new Query(format)
-    fs.getCount(new Query(format)) mustEqual(3)
-    //fs.getCount(new Query(format, ECQL.toFilter("case_number = 1"))) mustEqual(1)
-
-    CloseableIterator(fs.getFeatures(new Query(format, ECQL.toFilter("bbox(geom,-80,35,-75,45) " +
-      "AND dtg > '2016-01-01T12:00:00Z' AND dtg < '2016-01-03T12:00:00Z'"))).features()).size mustEqual(2)
-//    fs.getCount(new Query(format, ECQL.toFilter("bbox(geom,-80,35,-75,45) " +
-//      "AND dtg > '2016-01-01T12:00:00Z' AND dtg < '2016-01-02T12:00:00Z'"))) mustEqual(2)
-
-
+    fs
   }
 
   private def queryWithSpark(format: String, directory: String) = {

@@ -218,7 +218,7 @@ object SimpleFeatureReadSupport {
       val julianDay = buf.getInt
       val seconds = (julianDay - JULIAN_DAY_OF_EPOCH).toLong * SECONDS_PER_DAY
       val microSeconds = seconds * 1000 * 1000 + timeOfDayNanos / 1000L
-      
+
       callback.set(index, new Date(microSeconds / 1000))
     }
   }

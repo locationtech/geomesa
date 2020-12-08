@@ -40,6 +40,8 @@ object FilterConverter {
     }
 
     val bindings = ObjectType.selectType(sft.getDescriptor(name))
+    // TODO: This is being applied to the Parquet read pathway and screwing things up for
+    // case_number = 1 (which is getting mapped to case_5fnumber = 1.
     val col = StringSerialization.alphaNumericSafeString(name)
 
     val (predicate, remaining): (Option[FilterPredicate], Option[Filter]) = bindings.head match {

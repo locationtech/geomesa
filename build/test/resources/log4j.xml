@@ -123,6 +123,9 @@
     <category name="org.locationtech.geomesa.fs.data">
         <priority value="debug"/>
     </category>
+    <category name="org.locationtech.geomesa.parquet">
+        <priority value="debug"/>
+    </category>
     <!-- uncomment the following line to enable verbose log messages from the index query-planner -->
 
     <!--
