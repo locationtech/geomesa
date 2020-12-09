@@ -14,6 +14,7 @@ import org.apache.parquet.io.api.Binary
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
+import org.locationtech.geomesa.parquet.io.SimpleFeatureParquetSchema
 import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
@@ -40,9 +41,8 @@ object FilterConverter {
     }
 
     val bindings = ObjectType.selectType(sft.getDescriptor(name))
-    // TODO: This is being applied to the Parquet read pathway and screwing things up for
-    // case_number = 1 (which is getting mapped to case_5fnumber = 1.
-    val col = StringSerialization.alphaNumericSafeString(name)
+    val encoded = Option(sft.getUserData.get(SimpleFeatureParquetSchema.EncodeFieldNames)).forall(_.toString.toBoolean)
+    val col = if (encoded) { StringSerialization.alphaNumericSafeString(name) } else { name }
 
     val (predicate, remaining): (Option[FilterPredicate], Option[Filter]) = bindings.head match {
       // note: non-points use repeated values, which aren't supported in parquet predicates

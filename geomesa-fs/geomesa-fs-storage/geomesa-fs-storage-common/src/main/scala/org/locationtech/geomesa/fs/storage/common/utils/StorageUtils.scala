@@ -23,8 +23,10 @@ object StorageUtils {
     * @param leaf leaf storage
     * @return
     */
-  def baseDirectory(root: Path, partition: String, leaf: Boolean): Path =
-    if (leaf) { new Path(root, partition).getParent } else { new Path(root, partition) }
+  def baseDirectory(root: Path, partition: String, leaf: Boolean): Path = {
+    val dir = if (partition.isEmpty) { root } else { new Path(root, partition) }
+    if (leaf) { dir.getParent } else { dir }
+  }
 
   /**
     * Get the path for a new data file

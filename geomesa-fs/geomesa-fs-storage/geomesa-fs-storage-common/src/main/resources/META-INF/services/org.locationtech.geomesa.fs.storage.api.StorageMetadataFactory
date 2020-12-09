@@ -1,3 +1,2 @@
 org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadataFactory
 org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadataFactory
-org.locationtech.geomesa.fs.storage.common.metadata.RawDirectoryMetadataFactory

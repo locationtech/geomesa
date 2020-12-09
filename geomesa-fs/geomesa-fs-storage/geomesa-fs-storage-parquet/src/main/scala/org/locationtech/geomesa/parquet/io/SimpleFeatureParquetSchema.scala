@@ -67,6 +67,8 @@ object SimpleFeatureParquetSchema {
   val GeometryColumnX = "x"
   val GeometryColumnY = "y"
 
+  val EncodeFieldNames = "geomesa.fs.names.encoded"
+
   /**
     * Extract the simple feature type from a parquet read context. The read context
     * contains both file metadata and the provided read conf
@@ -146,30 +148,31 @@ object SimpleFeatureParquetSchema {
     */
   private def schema(sft: SimpleFeatureType): MessageType = {
     val id = Types.required(PrimitiveTypeName.BINARY).as(OriginalType.UTF8).named(FeatureIdField)
+    val encoded = Option(sft.getUserData.get(EncodeFieldNames)).forall(_.toString.toBoolean)
     // note: id field goes at the end of the record
-    val fields = sft.getAttributeDescriptors.asScala.map(schema) :+ id
+    val fields = sft.getAttributeDescriptors.asScala.map(schema(_, encoded)) :+ id
     // ensure that we use a valid name - for avro conversion, especially, names are very limited
     new MessageType(StringSerialization.alphaNumericSafeString(sft.getTypeName), fields.asJava)
   }
 
   /**
-    * Create a parquet field type from an attribute descriptor
-    *
-    * @param descriptor descriptor
-    * @return
-    */
-  private def schema(descriptor: AttributeDescriptor): Type = {
+   * Create a parquet field type from an attribute descriptor
+   *
+   * @param descriptor descriptor
+   * @param encoded encode the field name or not
+   * @return
+   */
+  private def schema(descriptor: AttributeDescriptor, encoded: Boolean): Type = {
     val bindings = ObjectType.selectType(descriptor)
     val builder = bindings.head match {
       case ObjectType.GEOMETRY => geometry(bindings(1))
       case ObjectType.LIST     => Binding(bindings(1)).list()
       case ObjectType.MAP      => Binding(bindings(1)).key(bindings(2))
-      case ObjectType.DATE     => {
-        Binding(bindings.head).primitive()
-      }
       case p                   => Binding(p).primitive()
     }
-    builder.named(StringSerialization.alphaNumericSafeString(descriptor.getLocalName))
+    val localName = descriptor.getLocalName
+    val name = if (encoded) { StringSerialization.alphaNumericSafeString(localName) } else { localName }
+    builder.named(name)
   }
 
   /**
