@@ -8,13 +8,11 @@
 
 package org.apache.spark.sql.jts
 
-import org.locationtech.jts.geom._
-import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.GenericInternalRow
 import org.apache.spark.sql.jts.PointUDT.gf
 import org.apache.spark.sql.types._
-import org.locationtech.geomesa.spark.jts.util.WKBUtils
+import org.locationtech.jts.geom._
 
 object JTSTypes {
   val GeometryTypeInstance           = new GeometryUDT
@@ -54,8 +52,8 @@ private [spark] class PointUDT extends AbstractGeometryUDT[Point]("point"){
   }
 
   override def sqlType: DataType = StructType(Seq(
-    StructField("x", DataTypes.DoubleType),
-    StructField("y", DataTypes.DoubleType)
+    StructField("x", DataTypes.DoubleType, nullable = false),
+    StructField("y", DataTypes.DoubleType, nullable = false)
   ))
 
   override def deserialize(datum: Any): Point = {

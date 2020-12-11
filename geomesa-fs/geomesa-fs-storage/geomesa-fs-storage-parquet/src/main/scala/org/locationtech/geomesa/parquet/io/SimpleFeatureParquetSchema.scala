@@ -18,6 +18,7 @@ import org.apache.parquet.schema.Types.BasePrimitiveBuilder
 import org.apache.parquet.schema._
 import org.locationtech.geomesa.features.serialization.TwkbSerialization.GeometryBytes
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
+import org.locationtech.geomesa.parquet.SparkMetadataKey
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -68,6 +69,7 @@ object SimpleFeatureParquetSchema {
   val GeometryColumnY = "y"
 
   val EncodeFieldNames = "geomesa.fs.names.encoded"
+  val DateEncoding     = "geomesa.fs.date.encoding"
 
   /**
     * Extract the simple feature type from a parquet read context. The read context
@@ -130,9 +132,9 @@ object SimpleFeatureParquetSchema {
       spec <- Option(metadata.get(StorageConfiguration.SftSpecKey))
     } yield {
       val sft = SimpleFeatureTypes.createType(name, spec)
-      Option(metadata.get(SchemaVersionKey)).map(_.toInt).getOrElse(0) match {
-        case -1 =>
-          throw new Exception("Whee!")
+      // spark generated files match version 1 of our schema, but don't include a version key
+      def defaultVersion: Int = if (metadata.containsKey(SparkMetadataKey)) { 1 } else { 0 }
+      Option(metadata.get(SchemaVersionKey)).map(_.toInt).getOrElse(defaultVersion) match {
         case 1 => new SimpleFeatureParquetSchema(sft, schema(sft))
         case 0 => new SimpleFeatureParquetSchema(sft, SimpleFeatureParquetSchemaV0(sft))
         case v => throw new IllegalArgumentException(s"Unknown SimpleFeatureParquetSchema version: $v")
@@ -148,9 +150,14 @@ object SimpleFeatureParquetSchema {
     */
   private def schema(sft: SimpleFeatureType): MessageType = {
     val id = Types.required(PrimitiveTypeName.BINARY).as(OriginalType.UTF8).named(FeatureIdField)
+    val dateType = sft.getUserData.get(DateEncoding) match {
+      case null => PrimitiveTypeName.INT64
+      case t: String => PrimitiveTypeName.valueOf(t)
+      case t => throw new IllegalArgumentException(s"Unexpected value for $DateEncoding: $t")
+    }
     val encoded = Option(sft.getUserData.get(EncodeFieldNames)).forall(_.toString.toBoolean)
     // note: id field goes at the end of the record
-    val fields = sft.getAttributeDescriptors.asScala.map(schema(_, encoded)) :+ id
+    val fields = sft.getAttributeDescriptors.asScala.map(schema(_, dateType, encoded)) :+ id
     // ensure that we use a valid name - for avro conversion, especially, names are very limited
     new MessageType(StringSerialization.alphaNumericSafeString(sft.getTypeName), fields.asJava)
   }
@@ -159,15 +166,17 @@ object SimpleFeatureParquetSchema {
    * Create a parquet field type from an attribute descriptor
    *
    * @param descriptor descriptor
+   * @param dateType date field encoding
    * @param encoded encode the field name or not
    * @return
    */
-  private def schema(descriptor: AttributeDescriptor, encoded: Boolean): Type = {
+  private def schema(descriptor: AttributeDescriptor, dateType: PrimitiveTypeName, encoded: Boolean): Type = {
     val bindings = ObjectType.selectType(descriptor)
     val builder = bindings.head match {
       case ObjectType.GEOMETRY => geometry(bindings(1))
       case ObjectType.LIST     => Binding(bindings(1)).list()
       case ObjectType.MAP      => Binding(bindings(1)).key(bindings(2))
+      case ObjectType.DATE     => Binding.date(dateType).primitive()
       case p                   => Binding(p).primitive()
     }
     val localName = descriptor.getLocalName
@@ -249,8 +258,11 @@ object SimpleFeatureParquetSchema {
 
   object Binding {
 
+    private val int64Date = new Binding(PrimitiveTypeName.INT64,  Some(OriginalType.TIMESTAMP_MILLIS))
+    private val int96Date = new Binding(PrimitiveTypeName.INT96) // used by spark
+
     private val bindings = Map(
-      ObjectType.DATE    -> new Binding(PrimitiveTypeName.INT64,  Some(OriginalType.TIMESTAMP_MILLIS)),
+      ObjectType.DATE    -> int64Date,
       ObjectType.STRING  -> new Binding(PrimitiveTypeName.BINARY, Some(OriginalType.UTF8)),
       ObjectType.INT     -> new Binding(PrimitiveTypeName.INT32),
       ObjectType.DOUBLE  -> new Binding(PrimitiveTypeName.DOUBLE),
@@ -263,5 +275,13 @@ object SimpleFeatureParquetSchema {
 
     def apply(binding: ObjectType): Binding =
       bindings.getOrElse(binding, throw new NotImplementedError(s"No mapping defined for type $binding"))
+
+    def date(primitive: PrimitiveTypeName): Binding = {
+      primitive match {
+        case PrimitiveTypeName.INT64 => int64Date
+        case PrimitiveTypeName.INT96 => int96Date
+        case _ => throw new NotImplementedError(s"No mapping defined for date type $primitive")
+      }
+    }
   }
 }

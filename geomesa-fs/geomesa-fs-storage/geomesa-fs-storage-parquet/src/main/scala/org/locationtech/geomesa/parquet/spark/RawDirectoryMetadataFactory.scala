@@ -6,7 +6,8 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.parquet.spark
+package org.locationtech.geomesa.parquet
+package spark
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FilenameUtils
@@ -76,9 +77,9 @@ object RawDirectoryMetadataFactory extends LazyLogging {
   import scala.collection.JavaConverters._
 
   def getFeatureType(name: String, metadata: FileMetaData): SimpleFeatureType = {
-    // org.apache.spark.sql.parquet.row.metadata
+    // example spark metadata:
     // {"type":"struct","fields":[{"name":"arrest","type":"string","nullable":true,"metadata":{}},{"name":"case_number","type":"integer","nullable":true,"metadata":{}},{"name":"dtg","type":"timestamp","nullable":true,"metadata":{}},{"name":"geom","type":{"type":"udt","class":"org.apache.spark.sql.jts.PointUDT","pyClass":"geomesa_pyspark.types.PointUDT","sqlType":{"type":"struct","fields":[{"name":"x","type":"double","nullable":true,"metadata":{}},{"name":"y","type":"double","nullable":true,"metadata":{}}]}},"nullable":true,"metadata":{}},{"name":"__fid__","type":"string","nullable":false,"metadata":{}}]}
-    val spark = metadata.getKeyValueMetaData.get("org.apache.spark.sql.parquet.row.metadata") match {
+    val spark = metadata.getKeyValueMetaData.get(SparkMetadataKey) match {
       case null => Map.empty[String, String]
       case json =>
         val meta = parse(json).toOption.collect { case j: JObject => j.obj.collectFirst { case ("fields", a: JArray) => a } }.flatten.getOrElse(JArray(Nil))
@@ -116,6 +117,9 @@ object RawDirectoryMetadataFactory extends LazyLogging {
       }
     }
 
-    builder.userData(SimpleFeatureParquetSchema.EncodeFieldNames, "false").build(name)
+    builder.userData(SimpleFeatureParquetSchema.EncodeFieldNames, "false")
+    builder.userData(SimpleFeatureParquetSchema.DateEncoding, PrimitiveTypeName.INT96.name)
+
+    builder.build(name)
   }
 }

@@ -17,6 +17,9 @@ import org.opengis.filter.Filter
 
 package object parquet {
 
+  // from spark-sql: https://github.com/apache/spark/blob/v2.4.7/sql/core/src/main/scala/org/apache/spark/sql/execution/datasources/parquet/ParquetReadSupport.scala#L117
+  val SparkMetadataKey = "org.apache.spark.sql.parquet.row.metadata"
+
   /**
     * Schema to read and schema to return.
     *

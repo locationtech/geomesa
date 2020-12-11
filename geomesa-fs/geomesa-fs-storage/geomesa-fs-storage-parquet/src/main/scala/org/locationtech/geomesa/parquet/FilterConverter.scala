@@ -11,6 +11,7 @@ package org.locationtech.geomesa.parquet
 import org.apache.parquet.filter2.predicate.Operators._
 import org.apache.parquet.filter2.predicate.{FilterApi, FilterPredicate}
 import org.apache.parquet.io.api.Binary
+import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
@@ -90,10 +91,9 @@ object FilterConverter {
       name: String,
       filter: Filter,
       col: LongColumn): (Option[FilterPredicate], Option[Filter]) = {
-    if (sft.getUserData.containsKey("jnh")) {
+    if (sft.getUserData.get(SimpleFeatureParquetSchema.DateEncoding) == PrimitiveTypeName.INT96.name) {
       // From: https://github.com/apache/spark/blob/v3.0.0/sql/core/src/test/scala/org/apache/spark/sql/execution/datasources/parquet/ParquetFilterSuite.scala#L629
       // "spark.sql.parquet.outputTimestampType = INT96 doesn't support pushdown"
-      println(s"Got SFT from ${sft.getUserData.get("jnh")}")
       return (None, Some(filter))
     }
 

@@ -19,15 +19,13 @@ import org.apache.parquet.io.api._
 import org.apache.parquet.schema.MessageType
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.parquet.io.SimpleFeatureParquetSchema.SchemaVersionKey
 import org.locationtech.geomesa.parquet.io.SimpleFeatureReadSupport.SimpleFeatureRecordMaterializer
-import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.geomesa.utils.text.WKBUtils
 import org.locationtech.jts.geom.Coordinate
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.JavaConverters.mapAsJavaMapConverter
 import scala.collection.mutable.ArrayBuffer
 
 class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {
@@ -35,24 +33,11 @@ class SimpleFeatureReadSupport extends ReadSupport[SimpleFeature] {
   private var schema: SimpleFeatureParquetSchema = _
 
   override def init(context: InitContext): ReadContext = {
-    if (context.getKeyValueMetadata.containsKey("org.apache.spark.sql.parquet.row.metadata")) {
-      // TODO: Add special Spark handling
-      val map: Map[String, String] = Map(SchemaVersionKey -> "-1")
-      println("Processing a Spark file!")
-
-      // TODO: Need the SFT here
-      val sft = SimpleFeatureTypes.createType("parquet",
-        "arrest:String,case_number:Int:index=full:cardinality=high,dtg:Date,*geom:Point:srid=4326")
-      sft.getUserData.put("jnh", "sfreadsupport")
-      schema = SimpleFeatureParquetSchema(sft, context.getFileSchema)
-      new ReadContext(context.getFileSchema, map.asJava)
-    } else {
-      schema = SimpleFeatureParquetSchema.read(context).getOrElse {
-        throw new IllegalArgumentException("Could not extract SimpleFeatureType from read context")
-      }
-      // ensure that our read schema matches the geomesa parquet version
-      new ReadContext(schema.schema, schema.metadata)
+    schema = SimpleFeatureParquetSchema.read(context).getOrElse {
+      throw new IllegalArgumentException("Could not extract SimpleFeatureType from read context")
     }
+    // ensure that our read schema matches the geomesa parquet version
+    new ReadContext(schema.schema, schema.metadata)
   }
 
   override def prepareForRead(
