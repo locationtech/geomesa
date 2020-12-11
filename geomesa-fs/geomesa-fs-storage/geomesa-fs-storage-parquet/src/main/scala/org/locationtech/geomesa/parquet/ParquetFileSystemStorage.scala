@@ -48,7 +48,7 @@ class ParquetFileSystemStorage(context: FileSystemContext, metadata: StorageMeta
     val parquetFilter = fc.map(FilterCompat.get).getOrElse(FilterCompat.NOOP)
     val gtFilter = residualFilter.map(FastFilterFactory.optimize(readSft, _))
 
-    logger.debug(s"Parquet filter: $parquetFilter and modified gt filter: ${gtFilter.getOrElse(Filter.INCLUDE)}")
+    logger.debug(s"Parquet filter: ${fc.getOrElse("none")} and modified gt filter: ${gtFilter.getOrElse(Filter.INCLUDE)}")
 
     // WARNING it is important to create a new conf per query
     // because we communicate the transform SFT set here
