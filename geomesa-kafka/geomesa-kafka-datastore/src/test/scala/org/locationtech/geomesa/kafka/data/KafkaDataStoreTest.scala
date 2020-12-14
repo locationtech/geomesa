@@ -529,7 +529,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
     }
 
     "support at-least-once consumers" >> {
-      skipped("inconsistent in CI builds")
+      skipped("inconsistent")
       val params = Map(
         KafkaDataStoreParams.ConsumerConfig.key -> "auto.offset.reset=earliest",
         KafkaDataStoreParams.ConsumerCount.key -> "2",
@@ -589,6 +589,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
     }
 
     "support pausing at-least-once consumers" >> {
+      skipped("inconsistent")
       val params = Map(
         KafkaDataStoreParams.ConsumerConfig.key -> "auto.offset.reset=earliest",
         KafkaDataStoreParams.ConsumerCount.key -> "2",

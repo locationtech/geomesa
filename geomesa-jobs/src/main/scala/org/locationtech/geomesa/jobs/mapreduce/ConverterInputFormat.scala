@@ -30,7 +30,7 @@ import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert.EvaluationContext.DelegatingEvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
-import org.locationtech.geomesa.jobs.mapreduce.ConverterInputFormat.{ConverterKey, Counters, RetypeKey}
+import org.locationtech.geomesa.jobs.mapreduce.ConverterInputFormat.{ConverterKey, ConverterCounters, RetypeKey}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.fs.{ArchiveFileIterator, ZipFileIterator}
@@ -50,7 +50,7 @@ object ConverterInputFormat {
   // note: we can get away with a single instance b/c m/r doesn't end up sharing it
   lazy private [mapreduce] val instance = new ConverterInputFormat
 
-  object Counters {
+  object ConverterCounters {
     val Group     = "org.locationtech.geomesa.jobs.convert"
     val Converted = "converted"
     val Failed    = "failed"
@@ -103,8 +103,8 @@ class ConverterRecordReader extends FileStreamRecordReader with LazyLogging {
 
     val ec = {
       // global success/failure counters for the entire job
-      val success = new MapReduceCounter(context.getCounter(Counters.Group, Counters.Converted))
-      val failure = new MapReduceCounter(context.getCounter(Counters.Group, Counters.Failed))
+      val success = new MapReduceCounter(context.getCounter(ConverterCounters.Group, ConverterCounters.Converted))
+      val failure = new MapReduceCounter(context.getCounter(ConverterCounters.Group, ConverterCounters.Failed))
       val delegate = converter.createEvaluationContext(EvaluationContext.inputFileParam(filePath.toString))
       new DelegatingEvaluationContext(delegate)(success, failure)
     }

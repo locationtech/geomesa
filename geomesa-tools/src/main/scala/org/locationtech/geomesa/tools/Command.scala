@@ -32,6 +32,13 @@ object Command {
   val user: Logger = LoggerFactory.getLogger("org.locationtech.geomesa.tools.user")
   // send output from a command
   val output: Logger = LoggerFactory.getLogger("org.locationtech.geomesa.tools.output")
+
+  /**
+   * Exception used to indicate a failure in the command run, without printing a stack trace
+   *
+   * @param message error message
+   */
+  class CommandException(message: String) extends RuntimeException(message)
 }
 
 trait CommandWithSubCommands extends Command {
