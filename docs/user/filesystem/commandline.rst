@@ -55,7 +55,7 @@ Argument                 Description
 ``-q, --cql``            CQL predicate to determine the partitions to operate on
 ``--partitions``         Partitions to operate on, subject to the CQL filter
 ``--no-header``          Suppress the column headers in the output
-``--config``             Hadoop configuration properties, in the form k=v
+``--config``             Hadoop configuration properties, in the form key=value
 ======================== =========================================================
 
 At least one of ``--cql`` or ``--partitions`` must be specified, to select the partitions being operated on.
