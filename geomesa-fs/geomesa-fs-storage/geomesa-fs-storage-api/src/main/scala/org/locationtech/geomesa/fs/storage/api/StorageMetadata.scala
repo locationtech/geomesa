@@ -136,6 +136,7 @@ object StorageMetadata {
     * @param timestamp timestamp for the file
     * @param action type of file (append, modify, delete)
     */
+  // TODO:  Add optional metadata bounds/info.
   case class StorageFile(name: String, timestamp: Long, action: StorageFileAction = StorageFileAction.Append)
 
   /**

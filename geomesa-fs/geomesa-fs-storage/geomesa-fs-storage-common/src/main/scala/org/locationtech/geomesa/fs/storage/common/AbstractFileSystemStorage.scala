@@ -125,8 +125,16 @@ abstract class AbstractFileSystemStorage(
       }
       // each partition must be read separately, to ensure modifications are handled correctly
       fp.partitions.iterator.flatMap { p =>
-        val files = getFilePaths(p)
-        if (files.isEmpty) { Iterator.empty } else { Iterator.single(reader -> files) }
+        val files: Seq[StorageFilePath] = getFilePaths(p)
+        if (files.isEmpty) { Iterator.empty } else {
+          // if there's file-based metadata available
+          // filter files by metadata
+          // log changes.
+          val partition: Option[PartitionMetadata] = metadata.getPartition(p)
+          val bounds: PartitionBounds = partition.get.bounds.get
+
+          Iterator.single(reader -> files)
+        }
       }
     }
 

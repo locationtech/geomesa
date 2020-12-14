@@ -109,7 +109,8 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
     "read and write complex features" in {
       val sft = SimpleFeatureTypes.createType("parquet-test-complex",
         "name:String,age:Int,time:Long,height:Float,weight:Double,bool:Boolean," +
-            "uuid:UUID,bytes:Bytes,list:List[Int],map:Map[String,Long]," +
+           // "uuid:UUID," +
+          "bytes:Bytes,list:List[Int],map:Map[String,Long]," +
             "line:LineString,mpt:MultiPoint,poly:Polygon,mline:MultiLineString,mpoly:MultiPolygon,g:Geometry," +
             "dtg:Date,*geom:Point:srid=4326")
 
@@ -122,7 +123,7 @@ class ParquetStorageTest extends Specification with AllExpectations with LazyLog
         sf.setAttribute("height", s"$i")
         sf.setAttribute("weight", s"$i")
         sf.setAttribute("bool", Boolean.box(i < 5))
-        sf.setAttribute("uuid", UUID.fromString(s"00000000-0000-0000-0000-00000000000$i"))
+       // sf.setAttribute("uuid", UUID.fromString(s"00000000-0000-0000-0000-00000000000$i"))
         sf.setAttribute("bytes", Array.tabulate[Byte](i)(i => i.toByte))
         sf.setAttribute("list", Seq.tabulate[Integer](i)(i => Int.box(i)))
         sf.setAttribute("map", (0 until i).map(i => i.toString -> Long.box(i)).toMap)

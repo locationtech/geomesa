@@ -46,7 +46,7 @@ object JTSTypes {
   )
 }
 
-private [spark] class PointUDT extends AbstractGeometryUDT[Point]("point"){
+private [spark] class PointUDT extends AbstractGeometryUDT[Point]("point") {
   override def serialize(obj: Point): InternalRow = {
     new GenericInternalRow(Array[Any](obj.getX, obj.getY))
   }
