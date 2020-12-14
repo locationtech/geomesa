@@ -28,7 +28,8 @@ case class XZ2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialSch
   }
 
   // TODO https://geomesa.atlassian.net/browse/GEOMESA-2967
-  override def getCoveringFilter(partition: String): Filter = throw new NotImplementedError()
+  override def getCoveringFilter(partition: String): Filter =
+    throw new NotImplementedError("https://geomesa.atlassian.net/browse/GEOMESA-2967")
 
   // the max XZ2 value is (4^((bits / 2) + 1) - 1) / 3
   // this calculates the number of digits in that value
