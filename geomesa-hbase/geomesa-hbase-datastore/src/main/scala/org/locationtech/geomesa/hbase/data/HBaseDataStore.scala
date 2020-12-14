@@ -68,6 +68,10 @@ class HBaseDataStore(con: ConnectionWrapper, override val config: HBaseDataStore
 
   override def dispose(): Unit = try { super.dispose() } finally { con.close() }
 
+  override def delete():Unit={
+    super.delete()
+    metadata.asInstanceOf[HBaseBackedMetadata[String]].resetCache()
+  }
   override protected def loadIteratorVersions: Set[String] = {
     import org.locationtech.geomesa.utils.conversions.ScalaImplicits.RichIterator
 

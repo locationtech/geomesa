@@ -85,7 +85,11 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     * (index tables and catalog table)
     * NB: We are *not* currently deleting the query table and/or query information.
     */
-  def delete(): Unit = adapter.deleteTables(getTypeNames.flatMap(getAllTableNames).distinct)
+  def delete(): Unit = {
+    val types = getTypeNames
+    val tables = if (types.length == 0) Array(config.catalog) else types
+    adapter.deleteTables(types.flatMap(getAllTableNames).distinct)
+  }
 
   // hooks to allow extended functionality
 
