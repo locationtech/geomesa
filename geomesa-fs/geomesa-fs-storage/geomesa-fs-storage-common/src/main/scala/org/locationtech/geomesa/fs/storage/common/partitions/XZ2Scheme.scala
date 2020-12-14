@@ -26,7 +26,7 @@ case class XZ2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialSch
     val envelope = geometry.getEnvelopeInternal
     xz2.index(envelope.getMinX, envelope.getMinY, envelope.getMaxX, envelope.getMaxY).formatted(format)
   }
-
+// TODO https://geomesa.atlassian.net/browse/GEOMESA-2967
   override def getCoveringFilter(partition: String): Filter = throw new NotImplementedError()
 
   // the max XZ2 value is (4^((bits / 2) + 1) - 1) / 3
