@@ -275,7 +275,7 @@ object CqlTransformFilter extends StrictLogging with SamplingIterator {
       var offset = 0
       val sftLength = ByteArrays.readInt(bytes, offset)
       offset += 4
-      val spec = new String(bytes, offset, sftLength)
+      val spec = new String(bytes, offset, sftLength,StandardCharsets.UTF_8)
       offset += sftLength
 
       val sft = IteratorCache.sft(spec)
@@ -305,12 +305,12 @@ object CqlTransformFilter extends StrictLogging with SamplingIterator {
         }
       } else {
         offset += 4
-        val tdefs = new String(bytes, offset, tdefsLength)
+        val tdefs = new String(bytes, offset, tdefsLength,StandardCharsets.UTF_8)
         offset += tdefsLength
 
         val tsftLength = ByteArrays.readInt(bytes, offset)
         offset += 4
-        val tsft = IteratorCache.sft(new String(bytes, offset, tsftLength))
+        val tsft = IteratorCache.sft(new String(bytes, offset, tsftLength,StandardCharsets.UTF_8))
 
         feature.setTransforms(tdefs, tsft)
 
