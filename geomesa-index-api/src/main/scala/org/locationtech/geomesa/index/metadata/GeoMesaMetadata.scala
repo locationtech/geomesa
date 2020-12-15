@@ -109,6 +109,11 @@ trait GeoMesaMetadata[T] extends Closeable {
     * @param typeName simple feature type name
     */
   def backup(typeName: String): Unit
+
+  /**
+   * table cache should be cleared up when catalog is deleted in database
+   */
+  def resetCache(): Unit
 }
 
 object GeoMesaMetadata {

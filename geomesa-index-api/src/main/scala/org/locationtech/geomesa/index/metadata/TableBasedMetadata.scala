@@ -99,7 +99,7 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   protected def scanKeys(): CloseableIterator[(String, String)]
 
   // only synchronize if table doesn't exist - otherwise it's ready only and we can avoid synchronization
-  private val tableExists: MaybeSynchronized[Boolean] =
+  private var tableExists: MaybeSynchronized[Boolean] =
     if (checkIfTableExists) { new NotSynchronized(true) } else { new IsSynchronized(false) }
 
   private val expiry = TableBasedMetadata.Expiry.toDuration.get.toMillis
@@ -230,6 +230,11 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
 
   // checks that the table is already created, and creates it if not
   def ensureTableExists(): Unit = tableExists.set(true, false, createTable())
+
+  override def resetCache():Unit={
+    tableExists = if (checkIfTableExists) { new NotSynchronized[Boolean](true)} else {new IsSynchronized[Boolean](false)}
+    metaDataCache.invalidateAll()
+  }
 
   /**
     * Invalidate all keys for the given feature type
