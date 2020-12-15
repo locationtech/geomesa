@@ -16,6 +16,8 @@ object TextTools {
 
   def getPlural(i: Long, base: String, pluralBase: String): String = if (i == 1) s"$i $base" else s"$i $pluralBase"
 
+  def prefixSpace(base: String): String = if (base.isEmpty) { base } else { s" $base" }
+
   /**
    * Gets elapsed time as a string
    */

@@ -10,16 +10,12 @@ package org.locationtech.geomesa.tools.utils
 
 import java.io.PrintStream
 
+import org.locationtech.geomesa.jobs.StatusCallback
 import org.locationtech.geomesa.utils.text.TextTools
 
 import scala.util.Try
 
-sealed trait StatusCallback {
-  def reset(): Unit
-  def apply(prefix: String, progress: Float, counters: Seq[(String, Long)], done: Boolean): Unit
-}
-
-object StatusCallback {
+object TerminalCallback {
 
   lazy private val terminalWidth: () => Float = {
     val jline = for {

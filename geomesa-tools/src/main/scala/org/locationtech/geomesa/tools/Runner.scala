@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets
 import com.beust.jcommander.{JCommander, ParameterException}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
+import org.locationtech.geomesa.tools.Command.CommandException
 import org.locationtech.geomesa.tools.Runner.AutocompleteInfo
 import org.locationtech.geomesa.tools.utils.GeoMesaIStringConverterFactory
 
@@ -34,9 +35,10 @@ trait Runner extends LazyLogging {
         logger.error(msg, e)
         Command.user.error(msg)
         environmentErrorInfo().foreach(Command.user.error)
-        sys.exit(-1)
-      case e: ParameterException => Command.user.error(e.getMessage); sys.exit(-1)
-      case NonFatal(e) => Command.user.error(e.getMessage, e); sys.exit(-1)
+        sys.exit(1)
+      case e: ParameterException => Command.user.error(e.getMessage); sys.exit(1)
+      case e: CommandException => Command.user.error(e.getMessage); sys.exit(1)
+      case NonFatal(e) => Command.user.error(e.getMessage, e); sys.exit(1)
     }
     sys.exit(0)
   }

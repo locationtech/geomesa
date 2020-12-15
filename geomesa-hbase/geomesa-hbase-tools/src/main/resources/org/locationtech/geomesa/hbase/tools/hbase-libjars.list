@@ -1,5 +1,8 @@
 hbase-client
 hbase-common
+hbase-hadoop-compat
+hbase-hadoop2-compat
+hbase-metrics
 hbase-protocol
 hbase-server
 hbase-shaded-miscellaneous
