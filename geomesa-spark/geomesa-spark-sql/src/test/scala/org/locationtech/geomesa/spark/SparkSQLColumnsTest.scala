@@ -33,27 +33,28 @@ class SparkSQLColumnsTest extends Specification with LazyLogging {
   var spark: SparkSession = _
   var sc: SQLContext = _
 
-  val spec =
-    """int:Integer,
-      |long:Long,
-      |float:Float,
-      |double:Double,
-      |uuid:UUID,
-      |string:String,
-      |boolean:Boolean,
-      |dtg:Date,
-      |time:Timestamp,
-      |bytes:Bytes,
-      |list:List[String],
-      |map:Map[String,Integer],
-      |line:LineString:srid=4326,
-      |poly:Polygon:srid=4326,
-      |points:MultiPoint:srid=4326,
-      |lines:MultiLineString:srid=4326,
-      |polys:MultiPolygon:srid=4326,
-      |geoms:GeometryCollection:srid=4326,
-      |*point:Point:srid=4326
-    """.stripMargin
+  val spec = Seq(
+    "int:Integer",
+    "long:Long",
+    "float:Float",
+    "double:Double",
+    "uuid:UUID",
+    "string:String",
+    "boolean:Boolean",
+    "dtg:Date",
+    "time:Timestamp",
+    "bytes:Bytes",
+    "list:List[String]",
+    "map:Map[String,Integer]",
+    "line:LineString:srid=4326",
+    "poly:Polygon:srid=4326",
+    "points:MultiPoint:srid=4326",
+    "lines:MultiLineString:srid=4326",
+    "polys:MultiPolygon:srid=4326",
+    "geoms:GeometryCollection:srid=4326",
+    "*point:Point:srid=4326"
+  ).mkString(",")
+
 
   lazy val sft = SimpleFeatureTypes.createType("complex", spec)
   lazy val sf = {
@@ -118,6 +119,7 @@ class SparkSQLColumnsTest extends Specification with LazyLogging {
     "map appropriate column types" in {
       val df = sc.sql(s"select * from ${sft.getTypeName}")
 
+      // note: bytes, list, map not supported
       val expected = Seq(
         "int"     -> DataTypes.IntegerType,
         "long"    -> DataTypes.LongType,
@@ -132,13 +134,12 @@ class SparkSQLColumnsTest extends Specification with LazyLogging {
         "points"  -> JTSTypes.MultiPointTypeInstance,
         "lines"   -> JTSTypes.MultiLineStringTypeInstance,
         "polys"   -> JTSTypes.MultipolygonTypeInstance,
-        "geoms"   -> JTSTypes.GeometryTypeInstance,
+        "geoms"   -> JTSTypes.GeometryCollectionTypeInstance,
         "point"   -> JTSTypes.PointTypeInstance,
         "__fid__" -> DataTypes.StringType
       )
 
       val schema = df.schema
-      schema must haveLength(16) // note: bytes, list, map not supported
       schema.map(_.name) mustEqual expected.map(_._1)
       schema.map(_.dataType) mustEqual expected.map(_._2)
 
@@ -148,8 +149,8 @@ class SparkSQLColumnsTest extends Specification with LazyLogging {
       val row = result.head
 
       // note: have to compare backwards so that java.util.Date == java.sql.Timestamp
-      expected.take(15).map { case (n, _) => sf.getAttribute(n) } ++ Seq(sf.getID) mustEqual
-          Seq.tabulate(16)(i => row.get(i))
+      expected.dropRight(1).map { case (n, _) => sf.getAttribute(n) } ++ Seq(sf.getID) mustEqual
+          Seq.tabulate(row.length)(i => row.get(i))
     }
   }
 

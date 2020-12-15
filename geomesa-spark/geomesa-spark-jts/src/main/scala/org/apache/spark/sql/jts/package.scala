@@ -8,7 +8,10 @@
 
 package org.apache.spark.sql
 
-import org.apache.spark.sql.types.UDTRegistration
+import java.io.IOException
+
+import org.apache.spark.sql.catalyst.InternalRow
+import org.apache.spark.sql.types.{ArrayType, DataType, UDTRegistration}
 
 package object jts {
   /**
@@ -21,5 +24,14 @@ package object jts {
    */
   private[jts] lazy val registration: Unit = JTSTypes.typeMap.foreach {
     case (l, r) => UDTRegistration.register(l.getCanonicalName, r.getCanonicalName)
+  }
+
+  private [spark] def CoordArray(t: DataType): DataType = ArrayType(t, containsNull = false)
+
+  private [spark] def ir(datum: Any): InternalRow = {
+    datum match {
+      case ir: InternalRow => ir
+      case _ => throw new IOException(s"Invalid serialized geometry: $datum")
+    }
   }
 }

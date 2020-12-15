@@ -9,11 +9,13 @@
 package org.locationtech.geomesa.spark.jts.rules
 
 import org.apache.spark.sql.SQLContext
-import org.apache.spark.sql.catalyst.expressions.{GenericInternalRow, Literal, ScalaUDF}
+import org.apache.spark.sql.catalyst.expressions.{Expression, Literal, ScalaUDF, Unevaluable}
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
-import org.apache.spark.sql.jts.GeometryUDT
+import org.apache.spark.sql.jts._
+import org.locationtech.geomesa.spark.jts.rules.GeometryLiteral._
 
+import scala.reflect.ClassTag
 import scala.util.Try
 
 object GeometryLiteralRules {
@@ -22,18 +24,28 @@ object GeometryLiteralRules {
     override def apply(plan: LogicalPlan): LogicalPlan = {
       plan.transform {
         case q: LogicalPlan => q.transformExpressionsDown {
-          case s: ScalaUDF =>
-            // TODO: Break down by GeometryType
-            Try {
-                s.eval(null) match {
-                  case row: GenericInternalRow =>
-                    val ret = GeometryUDT.deserialize(row)
-                    GeometryLiteral(row, ret)
-                  case other: Any =>
-                    Literal(other)
-                }
-            }.getOrElse(s)
+          case s: ScalaUDF if s.dataType.isInstanceOf[PointUDT] => eval(s, PointLiteral.apply)
+          case s: ScalaUDF if s.dataType.isInstanceOf[LineStringUDT] => eval(s, LineStringLiteral.apply)
+          case s: ScalaUDF if s.dataType.isInstanceOf[PolygonUDT] => eval(s, PolygonLiteral.apply)
+          case s: ScalaUDF if s.dataType.isInstanceOf[GeometryUDT] => eval(s, GenericGeometryLiteral.apply)
+          case s: ScalaUDF if s.dataType.isInstanceOf[MultiPointUDT] => eval(s, MultiPointLiteral.apply)
+          case s: ScalaUDF if s.dataType.isInstanceOf[MultiLineStringUDT] => eval(s, MultiLineStringLiteral.apply)
+          case s: ScalaUDF if s.dataType.isInstanceOf[MultiPolygonUDT] => eval(s, MultiPolygonLiteral.apply)
+          case s: ScalaUDF if s.dataType.isInstanceOf[GeometryCollectionUDT] => eval(s, GeometryCollectionLiteral.apply)
         }
+      }
+    }
+
+    private def eval[T: ClassTag](s: ScalaUDF, lit: T => Expression): Expression = {
+      if (s.isInstanceOf[Unevaluable]) { s } else {
+        val t = Try {
+          s.eval(null) match {
+            case null => Literal(null)
+            case t: T => lit(t)
+            case a => Literal(a)
+          }
+        }
+        t.getOrElse(s)
       }
     }
   }
