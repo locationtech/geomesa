@@ -14,10 +14,9 @@ package org.locationtech.geomesa.spark
 import java.lang
 
 import org.apache.spark.sql.{Column, Encoder, Encoders, TypedColumn}
+import org.locationtech.geomesa.spark.GeometricDistanceFunctions.ST_Transform
 import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.jts.geom.Geometry
-import org.locationtech.geomesa.spark.GeometricDistanceFunctions.{ST_Transform, distanceNames}
 
 
 /**
@@ -38,13 +37,13 @@ object DataFrameFunctions extends SpatialEncoders {
     import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions._
 
     def st_distanceSpheroid(left: Column, right: Column): TypedColumn[Any, lang.Double] =
-      udfToColumn(ST_DistanceSphere, relationNames, left, right)
+      ST_DistanceSphere.toColumn(left, right)
 
     def st_lengthSphere(line: Column): TypedColumn[Any, lang.Double] =
-      udfToColumn(ST_LengthSphere, relationNames, line)
+      ST_LengthSphere.toColumn(line)
 
     def st_transform(geom: Column, fromCRS: Column, toCRS: Column): TypedColumn[Any, Geometry] =
-      udfToColumn(ST_Transform, distanceNames, geom, fromCRS, toCRS)
+      ST_Transform.toColumn(geom, fromCRS, toCRS)
   }
 
   /** Stack of all DataFrame DSL functions. */

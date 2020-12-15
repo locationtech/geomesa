@@ -8,8 +8,11 @@
 
 package org.locationtech.geomesa.spark.jts.util
 
+import java.util.Locale
+
 import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions.{Alias, AttributeReference}
+import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.{Column, Encoder, TypedColumn}
 
@@ -19,70 +22,83 @@ import scala.reflect.runtime.universe._
 // from org.apache.spark.sql.SQLGeometricConstructorFunctions, which could/should be moved
 // into a org.locationtech.geomesa package eventually, and this access restriction reenabled
 /*private[geomesa]*/ object SQLFunctionHelper {
-  def nullableUDF[A1, RT](f: A1 => RT): A1 => RT = {
-    case null => null.asInstanceOf[RT]
-    case out1 => f(out1)
+
+  abstract class NullableUDF[RT: TypeTag: Encoder] extends Serializable {
+    val name: String = stName(this)
+    protected def function: UserDefinedFunction
+    def toColumn(cols: Column*): TypedColumn[Any, RT] =
+      function.apply(cols: _*).as(s"$name(${cols.map(columnName).mkString(",")})").as[RT]
   }
 
-  def nullableUDF[A1, A2, RT](f: (A1, A2) => RT): (A1, A2) => RT = {
-    (in1, in2) => (in1, in2) match {
-      case (null, _) => null.asInstanceOf[RT]
-      case (_, null) => null.asInstanceOf[RT]
-      case (out1, out2) => f(out1, out2)
+  class NullableUDF1[A1: TypeTag, RT: TypeTag: Encoder](f: A1 => RT)
+      extends NullableUDF[RT] with (A1 => RT) {
+    override protected def function: UserDefinedFunction = udf(apply _)
+    override def apply(v1: A1): RT = if (v1 == null) { null.asInstanceOf[RT] } else { f(v1) }
+  }
+
+  class NullableUDF2[A1: TypeTag, A2: TypeTag, RT: TypeTag: Encoder](f: (A1, A2) => RT)
+      extends NullableUDF[RT] with ((A1, A2) => RT) {
+    override protected def function: UserDefinedFunction = udf(apply _)
+    override def apply(v1: A1, v2: A2): RT =
+      if (v1 == null || v2 == null) { null.asInstanceOf[RT] } else { f(v1, v2) }
+  }
+
+  class NullableUDF3[A1: TypeTag, A2: TypeTag, A3: TypeTag, RT: TypeTag: Encoder](f: (A1, A2, A3) => RT)
+      extends NullableUDF[RT] with ((A1, A2, A3) => RT) {
+    override protected def function: UserDefinedFunction = udf(apply _)
+    override def apply(v1: A1, v2: A2, v3: A3): RT =
+      if (v1 == null || v2 == null || v3 == null) { null.asInstanceOf[RT] } else { f(v1, v2, v3) }
+  }
+
+  class NullableUDF4[A1: TypeTag, A2: TypeTag, A3: TypeTag, A4: TypeTag, RT: TypeTag: Encoder](f: (A1, A2, A3, A4) => RT)
+      extends NullableUDF[RT] with ((A1, A2, A3, A4) => RT) {
+    override protected def function: UserDefinedFunction = udf(apply _)
+    override def apply(v1: A1, v2: A2, v3: A3, v4: A4): RT =
+      if (v1 == null || v2 == null || v3 == null || v4 == null) { null.asInstanceOf[RT] } else { f(v1, v2, v3, v4) }
+  }
+
+  def nullableUDF[A1: TypeTag, RT: TypeTag: Encoder](f: A1 => RT, name: String): NullableUDF1[A1, RT] = {
+    val n = name
+    new NullableUDF1(f) {
+      override val name: String = n
     }
   }
 
-  def nullableUDF[A1, A2, A3, RT](f: (A1, A2, A3) => RT): (A1, A2, A3) => RT = {
-    (in1, in2, in3) => (in1, in2, in3) match {
-      case (null, _, _) => null.asInstanceOf[RT]
-      case (_, null, _) => null.asInstanceOf[RT]
-      case (_, _, null) => null.asInstanceOf[RT]
-      case (out1, out2, out3) => f(out1, out2, out3)
+  def nullableUDF[A1: TypeTag, A2: TypeTag, RT: TypeTag: Encoder](f: (A1, A2) => RT, name: String): NullableUDF2[A1, A2, RT] = {
+    val n = name
+    new NullableUDF2(f) {
+      override val name: String = n
     }
   }
 
-  def nullableUDF[A1, A2, A3, A4, RT](f: (A1, A2, A3, A4) => RT): (A1, A2, A3, A4) => RT = {
-    (in1, in2, in3, in4) => (in1, in2, in3, in4) match {
-      case (null, _, _, _) => null.asInstanceOf[RT]
-      case (_, null, _, _) => null.asInstanceOf[RT]
-      case (_, _, null, _) => null.asInstanceOf[RT]
-      case (_, _, _, null) => null.asInstanceOf[RT]
-      case (out1, out2, out3, out4) => f(out1, out2, out3, out4)
+  def nullableUDF[A1: TypeTag, A2: TypeTag, A3: TypeTag, RT: TypeTag: Encoder](f: (A1, A2, A3) => RT, name: String): NullableUDF3[A1, A2, A3, RT] = {
+    val n = name
+    new NullableUDF3(f) {
+      override val name: String = n
     }
   }
 
-  def udfToColumn[A1: TypeTag, RT: TypeTag: Encoder, N >: (A1 => RT)](
-    f: A1 => RT, namer: N => String, col: Column): TypedColumn[Any, RT] = {
-    withAlias(namer(f), col)(udf(f).apply(col)).as[RT]
+  def nullableUDF[A1: TypeTag, A2: TypeTag, A3: TypeTag, A4: TypeTag, RT: TypeTag: Encoder](f: (A1, A2, A3, A4) => RT, name: String): NullableUDF4[A1, A2, A3, A4, RT] = {
+    val n = name
+    new NullableUDF4(f) {
+      override val name: String = n
+    }
   }
 
-  def udfToColumn[A1: TypeTag, A2: TypeTag, RT: TypeTag: Encoder, N >: (A1, A2) => RT](
-    f: (A1, A2) => RT, namer: N => String, colA: Column, colB: Column): TypedColumn[Any, RT] = {
-    withAlias(namer(f), colA, colB)(udf(f).apply(colA, colB)).as[RT]
+  // st_camelCase
+  private def stName(clas: Any): String = {
+    val name = clas.getClass.getSimpleName
+    if (name.length < 4) { name } else {
+      name.substring(0, 4).toLowerCase(Locale.US) + name.substring(4)
+    }
   }
 
-  def udfToColumn[A1: TypeTag, A2: TypeTag, A3: TypeTag, RT: TypeTag: Encoder, N >: (A1, A2, A3) => RT](
-    f: (A1, A2, A3) => RT, namer: N => String, colA: Column, colB: Column, colC: Column): TypedColumn[Any, RT] = {
-    withAlias(namer(f), colA, colB, colC)(udf(f).apply(colA, colB, colC)).as[RT]
-  }
-
-  def udfToColumn[A1: TypeTag, A2: TypeTag, A3: TypeTag, A4: TypeTag, RT: TypeTag: Encoder, N >: (A1, A2, A3, A4) => RT](
-    f: (A1, A2, A3, A4) => RT, namer: N => String,
-    colA: Column, colB: Column, colC: Column, colD: Column): TypedColumn[Any, RT] = {
-    withAlias(namer(f), colA, colB, colC)(udf(f).apply(colA, colB, colC, colD)).as[RT]
-  }
-
-  def columnName(column: Column): String = {
+  private def columnName(column: Column): String = {
     column.expr match {
       case ua: UnresolvedAttribute ⇒ ua.name
       case ar: AttributeReference ⇒ ar.name
       case as: Alias ⇒ as.name
       case o ⇒ o.prettyName
     }
-  }
-
-  def withAlias(name: String, inputs: Column*)(output: Column): Column = {
-    val paramNames = inputs.map(columnName).mkString(",")
-    output.as(s"$name($paramNames)")
   }
 }

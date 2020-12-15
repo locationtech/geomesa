@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
+import java.nio.charset.StandardCharsets
+
 import org.locationtech.jts.geom._
 import org.apache.spark.sql.AnalysisException
 import org.apache.spark.sql.functions._

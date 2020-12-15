@@ -15,6 +15,8 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, TypedColumn, _}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.jts._
+import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions.{ST_Contains, ST_Covers, ST_Crosses, ST_Disjoint, ST_Equals, ST_Intersects, ST_Overlaps, ST_Touches, ST_Within}
+import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper.NullableUDF
 import org.locationtech.geomesa.spark.jts.util.{SQLFunctionHelper, WKTUtils}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -73,12 +75,10 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
       column must containTheSameElementsAs(expectedNames)
     }
 
-    def testDirect(relation: DFRelation, name: String, g1: String, g2: String, expected: Boolean) = {
+    def testDirect(relation: NullableUDF[_], name: String, g1: String, g2: String, expected: Boolean) = {
       import spark.implicits._
-      dfBlank.select(relation(st_geomFromWKT(g1), st_geomFromWKT(g2)).as[Boolean]).first mustEqual expected
-      // NB: Hack to pull SQL-land name from columnar function expression.
-      val relationName = SQLFunctionHelper.columnName(relation(lit(null), lit(null))).split('(').head
-      val sql = s"select $relationName(st_geomFromWKT('$g1'), st_geomFromWKT('$g2'))"
+      dfBlank.select(relation.toColumn(st_geomFromWKT(g1), st_geomFromWKT(g2)).as[Boolean]).first mustEqual expected
+      val sql = s"select ${relation.name}(st_geomFromWKT('$g1'), st_geomFromWKT('$g2'))"
       sc.sql(sql).as[Boolean].first mustEqual expected
     }
 
@@ -100,16 +100,16 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         Seq("int", "intEdge")
       )
 
-      testDirect(st_contains, "pt1", boxRef, points("int"),    true)
-      testDirect(st_contains, "pt2", boxRef, points("edge"),   false)
-      testDirect(st_contains, "pt3", boxRef, points("corner"), false)
-      testDirect(st_contains, "pt4", boxRef, points("ext"),    false)
-      testDirect(st_contains, "poly1", boxRef, boxes("int"),     true)
-      testDirect(st_contains, "poly2", boxRef, boxes("intEdge"), true)
-      testDirect(st_contains, "poly3", boxRef, boxes("overlap"), false)
-      testDirect(st_contains, "poly4", boxRef, boxes("extEdge"), false)
-      testDirect(st_contains, "poly5", boxRef, boxes("ext"),     false)
-      testDirect(st_contains, "poly6", boxRef, boxes("corner"),  false)
+      testDirect(ST_Contains, "pt1", boxRef, points("int"),    true)
+      testDirect(ST_Contains, "pt2", boxRef, points("edge"),   false)
+      testDirect(ST_Contains, "pt3", boxRef, points("corner"), false)
+      testDirect(ST_Contains, "pt4", boxRef, points("ext"),    false)
+      testDirect(ST_Contains, "poly1", boxRef, boxes("int"),     true)
+      testDirect(ST_Contains, "poly2", boxRef, boxes("intEdge"), true)
+      testDirect(ST_Contains, "poly3", boxRef, boxes("overlap"), false)
+      testDirect(ST_Contains, "poly4", boxRef, boxes("extEdge"), false)
+      testDirect(ST_Contains, "poly5", boxRef, boxes("ext"),     false)
+      testDirect(ST_Contains, "poly6", boxRef, boxes("corner"),  false)
 
       sc.sql("select st_contains(null, null)").collect.head(0) must beNull
       dfBlank.select(st_contains(lit(null), lit(null))).first must beNull
@@ -133,17 +133,17 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         Seq("int", "intEdge")
       )
 
-      testDirect(st_covers, "pt1", boxRef, points("int"),    true)
-      testDirect(st_covers, "pt2", boxRef, points("edge"),   true)
-      testDirect(st_covers, "pt3", boxRef, points("corner"), true)
-      testDirect(st_covers, "pt4", boxRef, points("ext"),    false)
+      testDirect(ST_Covers, "pt1", boxRef, points("int"),    true)
+      testDirect(ST_Covers, "pt2", boxRef, points("edge"),   true)
+      testDirect(ST_Covers, "pt3", boxRef, points("corner"), true)
+      testDirect(ST_Covers, "pt4", boxRef, points("ext"),    false)
 
-      testDirect(st_covers, "poly1", boxRef, boxes("int"),     true)
-      testDirect(st_covers, "poly2", boxRef, boxes("intEdge"), true)
-      testDirect(st_covers, "poly3", boxRef, boxes("overlap"), false)
-      testDirect(st_covers, "poly4", boxRef, boxes("extEdge"), false)
-      testDirect(st_covers, "poly5", boxRef, boxes("ext"),     false)
-      testDirect(st_covers, "poly6", boxRef, boxes("corner"),  false)
+      testDirect(ST_Covers, "poly1", boxRef, boxes("int"),     true)
+      testDirect(ST_Covers, "poly2", boxRef, boxes("intEdge"), true)
+      testDirect(ST_Covers, "poly3", boxRef, boxes("overlap"), false)
+      testDirect(ST_Covers, "poly4", boxRef, boxes("extEdge"), false)
+      testDirect(ST_Covers, "poly5", boxRef, boxes("ext"),     false)
+      testDirect(ST_Covers, "poly6", boxRef, boxes("corner"),  false)
 
       sc.sql("select st_covers(null, null)").collect.head(0) must beNull
       dfBlank.select(st_covers(lit(null), lit(null))).first must beNull
@@ -158,9 +158,9 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         dfLines.where(st_crosses(st_geomFromWKT(lineRef), col("geom"))),
         Seq("crosses")
       )
-      testDirect(st_crosses, "touches",  lineRef, lines("touches"),  false)
-      testDirect(st_crosses, "crosses",  lineRef, lines("crosses"),  true)
-      testDirect(st_crosses, "disjoint", lineRef, lines("disjoint"), false)
+      testDirect(ST_Crosses, "touches",  lineRef, lines("touches"),  false)
+      testDirect(ST_Crosses, "crosses",  lineRef, lines("crosses"),  true)
+      testDirect(ST_Crosses, "disjoint", lineRef, lines("disjoint"), false)
 
       sc.sql("select st_crosses(null, null)").collect.head(0) must beNull
       dfBlank.select(st_crosses(lit(null), lit(null))).first must beNull
@@ -184,17 +184,17 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         Seq("ext")
       )
 
-      testDirect(st_disjoint, "pt1", boxRef, points("int"),    false)
-      testDirect(st_disjoint, "pt2", boxRef, points("edge"),   false)
-      testDirect(st_disjoint, "pt3", boxRef, points("corner"), false)
-      testDirect(st_disjoint, "pt4", boxRef, points("ext"),    true)
+      testDirect(ST_Disjoint, "pt1", boxRef, points("int"),    false)
+      testDirect(ST_Disjoint, "pt2", boxRef, points("edge"),   false)
+      testDirect(ST_Disjoint, "pt3", boxRef, points("corner"), false)
+      testDirect(ST_Disjoint, "pt4", boxRef, points("ext"),    true)
 
-      testDirect(st_disjoint, "poly1", boxRef, boxes("int"),     false)
-      testDirect(st_disjoint, "poly2", boxRef, boxes("intEdge"), false)
-      testDirect(st_disjoint, "poly3", boxRef, boxes("overlap"), false)
-      testDirect(st_disjoint, "poly4", boxRef, boxes("extEdge"), false)
-      testDirect(st_disjoint, "poly5", boxRef, boxes("ext"),     true)
-      testDirect(st_disjoint, "poly6", boxRef, boxes("corner"),  false)
+      testDirect(ST_Disjoint, "poly1", boxRef, boxes("int"),     false)
+      testDirect(ST_Disjoint, "poly2", boxRef, boxes("intEdge"), false)
+      testDirect(ST_Disjoint, "poly3", boxRef, boxes("overlap"), false)
+      testDirect(ST_Disjoint, "poly4", boxRef, boxes("extEdge"), false)
+      testDirect(ST_Disjoint, "poly5", boxRef, boxes("ext"),     true)
+      testDirect(ST_Disjoint, "poly6", boxRef, boxes("corner"),  false)
 
       sc.sql("select st_disjoint(null, null)").collect.head(0) must beNull
       dfBlank.select(st_disjoint(lit(null), lit(null))).first must beNull
@@ -209,8 +209,8 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         dfPoints.where(st_equals(st_geomFromWKT("POINT(0 0)"), col("geom"))),
         Seq("corner")
       )
-      testDirect(st_equals, "pt1", "POINT(0 0)", points("corner"), true)
-      testDirect(st_equals, "pt2", "POINT(0 0)", points("edge"), false)
+      testDirect(ST_Equals, "pt1", "POINT(0 0)", points("corner"), true)
+      testDirect(ST_Equals, "pt2", "POINT(0 0)", points("edge"), false)
 
       testData(
         sc.sql(s"select * from lines where st_equals(st_geomFromWKT('${lines("crosses")}'), geom)"),
@@ -220,7 +220,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         dfLines.where(st_equals(st_geomFromWKT(lines("crosses")), col("geom"))),
         Seq("crosses")
       )
-      testDirect(st_equals, "line", "LINESTRING(0 0, 1 1)", "LINESTRING(1 1, 0 0)", true)
+      testDirect(ST_Equals, "line", "LINESTRING(0 0, 1 1)", "LINESTRING(1 1, 0 0)", true)
 
       testData(
         sc.sql(s"select * from boxes where st_equals(st_geomFromWKT('${boxes("int")}'), geom)"),
@@ -230,7 +230,7 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         dfBoxes.where(st_equals(st_geomFromWKT(boxes("int")), col("geom"))),
         Seq("int")
       )
-      testDirect(st_equals, "polygon", boxRef, "POLYGON((10 0, 10 10, 0 10, 0 0, 10 0))", true)
+      testDirect(ST_Equals, "polygon", boxRef, "POLYGON((10 0, 10 10, 0 10, 0 0, 10 0))", true)
 
       sc.sql("select st_equals(null, null)").collect.head(0) must beNull
       dfBlank.select(st_equals(lit(null), lit(null))).first must beNull
@@ -254,17 +254,17 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         Seq("int", "intEdge", "overlap", "extEdge", "corner")
       )
 
-      testDirect(st_intersects, "pt1", boxRef, points("int"),    true)
-      testDirect(st_intersects, "pt2", boxRef, points("edge"),   true)
-      testDirect(st_intersects, "pt3", boxRef, points("corner"), true)
-      testDirect(st_intersects, "pt4", boxRef, points("ext"),    false)
+      testDirect(ST_Intersects, "pt1", boxRef, points("int"),    true)
+      testDirect(ST_Intersects, "pt2", boxRef, points("edge"),   true)
+      testDirect(ST_Intersects, "pt3", boxRef, points("corner"), true)
+      testDirect(ST_Intersects, "pt4", boxRef, points("ext"),    false)
 
-      testDirect(st_intersects, "poly1", boxRef, boxes("int"),     true)
-      testDirect(st_intersects, "poly2", boxRef, boxes("intEdge"), true)
-      testDirect(st_intersects, "poly3", boxRef, boxes("overlap"), true)
-      testDirect(st_intersects, "poly4", boxRef, boxes("extEdge"), true)
-      testDirect(st_intersects, "poly5", boxRef, boxes("ext"),     false)
-      testDirect(st_intersects, "poly6", boxRef, boxes("corner"),  true)
+      testDirect(ST_Intersects, "poly1", boxRef, boxes("int"),     true)
+      testDirect(ST_Intersects, "poly2", boxRef, boxes("intEdge"), true)
+      testDirect(ST_Intersects, "poly3", boxRef, boxes("overlap"), true)
+      testDirect(ST_Intersects, "poly4", boxRef, boxes("extEdge"), true)
+      testDirect(ST_Intersects, "poly5", boxRef, boxes("ext"),     false)
+      testDirect(ST_Intersects, "poly6", boxRef, boxes("corner"),  true)
 
       sc.sql("select st_intersects(null, null)").collect.head(0) must beNull
       dfBlank.select(st_intersects(lit(null), lit(null))).first must beNull
@@ -287,17 +287,17 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         dfBoxes.where(st_overlaps(st_geomFromWKT(boxRef), col("geom"))),
         Seq("overlap")
       )
-      testDirect(st_overlaps, "pt1", boxRef, points("int"),    false)
-      testDirect(st_overlaps, "pt2", boxRef, points("edge"),   false)
-      testDirect(st_overlaps, "pt3", boxRef, points("corner"), false)
-      testDirect(st_overlaps, "pt4", boxRef, points("ext"),    false)
+      testDirect(ST_Overlaps, "pt1", boxRef, points("int"),    false)
+      testDirect(ST_Overlaps, "pt2", boxRef, points("edge"),   false)
+      testDirect(ST_Overlaps, "pt3", boxRef, points("corner"), false)
+      testDirect(ST_Overlaps, "pt4", boxRef, points("ext"),    false)
 
-      testDirect(st_overlaps, "poly1", boxRef, boxes("int"),     false)
-      testDirect(st_overlaps, "poly2", boxRef, boxes("intEdge"), false)
-      testDirect(st_overlaps, "poly3", boxRef, boxes("overlap"), true)
-      testDirect(st_overlaps, "poly4", boxRef, boxes("extEdge"), false)
-      testDirect(st_overlaps, "poly5", boxRef, boxes("ext"),     false)
-      testDirect(st_overlaps, "poly6", boxRef, boxes("corner"),  false)
+      testDirect(ST_Overlaps, "poly1", boxRef, boxes("int"),     false)
+      testDirect(ST_Overlaps, "poly2", boxRef, boxes("intEdge"), false)
+      testDirect(ST_Overlaps, "poly3", boxRef, boxes("overlap"), true)
+      testDirect(ST_Overlaps, "poly4", boxRef, boxes("extEdge"), false)
+      testDirect(ST_Overlaps, "poly5", boxRef, boxes("ext"),     false)
+      testDirect(ST_Overlaps, "poly6", boxRef, boxes("corner"),  false)
 
       sc.sql("select st_overlaps(null, null)").collect.head(0) must beNull
       dfBlank.select(st_overlaps(lit(null), lit(null))).first must beNull
@@ -321,17 +321,17 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         Seq("extEdge", "corner")
       )
 
-      testDirect(st_touches, "pt1", boxRef, points("int"),    false)
-      testDirect(st_touches, "pt2", boxRef, points("edge"),   true)
-      testDirect(st_touches, "pt3", boxRef, points("corner"), true)
-      testDirect(st_touches, "pt4", boxRef, points("ext"),    false)
+      testDirect(ST_Touches, "pt1", boxRef, points("int"),    false)
+      testDirect(ST_Touches, "pt2", boxRef, points("edge"),   true)
+      testDirect(ST_Touches, "pt3", boxRef, points("corner"), true)
+      testDirect(ST_Touches, "pt4", boxRef, points("ext"),    false)
 
-      testDirect(st_touches, "poly1", boxRef, boxes("int"),     false)
-      testDirect(st_touches, "poly2", boxRef, boxes("intEdge"), false)
-      testDirect(st_touches, "poly3", boxRef, boxes("overlap"), false)
-      testDirect(st_touches, "poly4", boxRef, boxes("extEdge"), true)
-      testDirect(st_touches, "poly5", boxRef, boxes("ext"),     false)
-      testDirect(st_touches, "poly6", boxRef, boxes("corner"),  true)
+      testDirect(ST_Touches, "poly1", boxRef, boxes("int"),     false)
+      testDirect(ST_Touches, "poly2", boxRef, boxes("intEdge"), false)
+      testDirect(ST_Touches, "poly3", boxRef, boxes("overlap"), false)
+      testDirect(ST_Touches, "poly4", boxRef, boxes("extEdge"), true)
+      testDirect(ST_Touches, "poly5", boxRef, boxes("ext"),     false)
+      testDirect(ST_Touches, "poly6", boxRef, boxes("corner"),  true)
 
       sc.sql("select st_touches(null, null)").collect.head(0) must beNull
       dfBlank.select(st_touches(lit(null), lit(null))).first must beNull
@@ -356,17 +356,17 @@ class SpatialRelationFunctionsTest extends Specification with TestEnvironment {
         Seq("int", "intEdge")
       )
 
-      testDirect(st_within, "pt1", points("int"),    boxRef, true)
-      testDirect(st_within, "pt2", points("edge"),   boxRef, false)
-      testDirect(st_within, "pt3", points("corner"), boxRef, false)
-      testDirect(st_within, "pt4", points("ext"),    boxRef, false)
+      testDirect(ST_Within, "pt1", points("int"),    boxRef, true)
+      testDirect(ST_Within, "pt2", points("edge"),   boxRef, false)
+      testDirect(ST_Within, "pt3", points("corner"), boxRef, false)
+      testDirect(ST_Within, "pt4", points("ext"),    boxRef, false)
 
-      testDirect(st_within, "poly1", boxes("int"),     boxRef, true)
-      testDirect(st_within, "poly2", boxes("intEdge"), boxRef, true)
-      testDirect(st_within, "poly3", boxes("overlap"), boxRef, false)
-      testDirect(st_within, "poly4", boxes("extEdge"), boxRef, false)
-      testDirect(st_within, "poly5", boxes("ext"),     boxRef, false)
-      testDirect(st_within, "poly6", boxes("corner"),  boxRef, false)
+      testDirect(ST_Within, "poly1", boxes("int"),     boxRef, true)
+      testDirect(ST_Within, "poly2", boxes("intEdge"), boxRef, true)
+      testDirect(ST_Within, "poly3", boxes("overlap"), boxRef, false)
+      testDirect(ST_Within, "poly4", boxes("extEdge"), boxRef, false)
+      testDirect(ST_Within, "poly5", boxes("ext"),     boxRef, false)
+      testDirect(ST_Within, "poly6", boxes("corner"),  boxRef, false)
 
       sc.sql("select st_within(null, null)").collect.head(0) must beNull
       dfBlank.select(st_within(lit(null), lit(null))).first must beNull

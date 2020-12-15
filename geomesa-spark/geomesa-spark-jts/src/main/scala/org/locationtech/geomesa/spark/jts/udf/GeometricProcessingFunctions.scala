@@ -9,16 +9,19 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
+import org.apache.spark.sql.{Encoder, Encoders, SQLContext}
+import org.locationtech.geomesa.spark.jts.encoders.{SparkDefaultEncoders, SpatialEncoders}
+import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.jts.geom._
 import org.locationtech.jts.util.GeometricShapeFactory
-import org.apache.spark.sql.SQLContext
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext
 import org.locationtech.spatial4j.distance.DistanceUtils
 import org.locationtech.spatial4j.shape.Circle
 import org.locationtech.spatial4j.shape.jts.JtsPoint
 
-object GeometricProcessingFunctions {
+object GeometricProcessingFunctions extends SparkDefaultEncoders with SpatialEncoders {
+
+  implicit def integerEncoder: Encoder[Integer] = Encoders.INT
 
   @transient private lazy val spatialContext = JtsSpatialContext.GEO
   @transient private lazy val shapeFactory   = spatialContext.getShapeFactory
@@ -38,7 +41,7 @@ object GeometricProcessingFunctions {
     ST_antimeridianSafeGeom(gsf.createCircle())
   }
 
-  val ST_antimeridianSafeGeom: Geometry => Geometry = nullableUDF(geom => {
+  class ST_antimeridianSafeGeom extends NullableUDF1[Geometry, Geometry](geom => {
     def degreesToTranslate(x: Double): Double = (((x + 180) / 360.0).floor * -360).toInt
 
     val geomCopy = geometryFactory.createGeometry(geom)
@@ -56,21 +59,18 @@ object GeometricProcessingFunctions {
     shapeFactory.getGeometryFrom(datelineSafeShape)
   })
 
-  val ST_BufferPoint: (Point, Double) => Geometry = (p, d) => {
+  class ST_BufferPoint extends NullableUDF2[Point, Double, Geometry]((p, d) => {
     val degrees = DistanceUtils.dist2Degrees(d/1000.0, DistanceUtils.EARTH_MEAN_RADIUS_KM)
     fastCircleToGeom(new JtsPoint(p, spatialContext).getBuffered(degrees, spatialContext))
-  }
+  })
 
-  private[geomesa] val processingNames = Map(
-    ST_antimeridianSafeGeom -> "st_antimeridianSafeGeom",
-    ST_BufferPoint -> "st_bufferPoint"
-  )
-
+  val ST_antimeridianSafeGeom = new ST_antimeridianSafeGeom()
+  val ST_BufferPoint = new ST_BufferPoint()
 
   private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
-    sqlContext.udf.register(processingNames(ST_antimeridianSafeGeom), ST_antimeridianSafeGeom)
+    sqlContext.udf.register(ST_antimeridianSafeGeom.name, ST_antimeridianSafeGeom)
     sqlContext.udf.register("st_idlSafeGeom", ST_antimeridianSafeGeom)
-    sqlContext.udf.register(processingNames(ST_BufferPoint), ST_BufferPoint)
+    sqlContext.udf.register(ST_BufferPoint.name, ST_BufferPoint)
   }
 
 }

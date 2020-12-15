@@ -8,117 +8,120 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
+import org.apache.spark.sql.{Encoder, Encoders, SQLContext}
+import org.locationtech.geomesa.spark.jts.encoders.{SparkDefaultEncoders, SpatialEncoders}
+import org.locationtech.geomesa.spark.jts.udaf.ConvexHull
+import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.jts.geom._
 import org.locationtech.jts.geom.util.AffineTransformation
 import org.locationtech.jts.operation.distance.DistanceOp
-import org.apache.spark.sql.SQLContext
-import org.locationtech.spatial4j.distance.{DistanceCalculator, DistanceUtils}
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext
-import org.locationtech.geomesa.spark.jts.udaf.ConvexHull
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
+import org.locationtech.spatial4j.distance.{DistanceCalculator, DistanceUtils}
 
-object SpatialRelationFunctions {
-  import java.{lang => jl}
+object SpatialRelationFunctions extends SparkDefaultEncoders with SpatialEncoders {
+
+  implicit def integerEncoder: Encoder[Integer] = Encoders.INT
 
   // Geometry editors
-  val ST_Translate: (Geometry, Double, Double) => Geometry =
-    (g, deltaX, deltaY) => translate(g, deltaX, deltaY)
+  class ST_Translate extends NullableUDF3[Geometry, Double, Double, Geometry](translate)
+  val ST_Translate = new ST_Translate()
 
   // Spatial relationships
   // DE-9IM relations
-  val ST_Contains:   (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.contains(geom2))
-  val ST_Covers:     (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.covers(geom2))
-  val ST_Crosses:    (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.crosses(geom2))
-  val ST_Disjoint:   (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.disjoint(geom2))
-  val ST_Equals:     (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.equals(geom2))
-  val ST_Intersects: (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.intersects(geom2))
-  val ST_Overlaps:   (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.overlaps(geom2))
-  val ST_Touches:    (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.touches(geom2))
-  val ST_Within:     (Geometry, Geometry) => jl.Boolean = nullableUDF((geom1, geom2) => geom1.within(geom2))
-  val ST_Relate:     (Geometry, Geometry) => String = nullableUDF((geom1, geom2) => geom1.relate(geom2).toString)
-  val ST_RelateBool: (Geometry, Geometry, String) => jl.Boolean = nullableUDF((geom1, geom2, pattern) => geom1.relate(geom2, pattern))
+  class ST_Contains   extends NullableUDF2[Geometry, Geometry, java.lang.Boolean](_ contains _)
+  class ST_Covers     extends NullableUDF2[Geometry, Geometry, java.lang.Boolean](_ covers _)
+  class ST_Crosses    extends NullableUDF2[Geometry, Geometry, java.lang.Boolean](_ crosses _)
+  class ST_Disjoint   extends NullableUDF2[Geometry, Geometry, java.lang.Boolean](_ disjoint _)
+  class ST_Equals     extends NullableUDF2[Geometry, Geometry, java.lang.Boolean](_ equals _)
+  class ST_Intersects extends NullableUDF2[Geometry, Geometry, java.lang.Boolean](_ intersects _)
+  class ST_Overlaps   extends NullableUDF2[Geometry, Geometry, java.lang.Boolean](_ overlaps _)
+  class ST_Touches    extends NullableUDF2[Geometry, Geometry, java.lang.Boolean](_ touches _)
+  class ST_Within     extends NullableUDF2[Geometry, Geometry, java.lang.Boolean](_ within _)
+  class ST_Relate     extends NullableUDF2[Geometry, Geometry, String]((g1, g2) => g1.relate(g2).toString)
+  class ST_RelateBool extends NullableUDF3[Geometry, Geometry, String, java.lang.Boolean]((g1, g2, pattern) =>
+    g1.relate(g2, pattern)
+  )
 
-  val ST_Area: Geometry => jl.Double = nullableUDF(g => g.getArea)
-  val ST_Centroid: Geometry => Point = nullableUDF(g => g.getCentroid)
-  val ST_ClosestPoint: (Geometry, Geometry) => Point =
-    nullableUDF((g1, g2) => closestPoint(g1, g2))
-  val ST_Distance: (Geometry, Geometry) => jl.Double =
-    nullableUDF((g1, g2) => g1.distance(g2))
-  val ST_DistanceSphere: (Geometry, Geometry) => jl.Double =
-    nullableUDF((s, e) => fastDistance(s.getCoordinate, e.getCoordinate))
-  val ST_Length: Geometry => jl.Double = nullableUDF(g => g.getLength)
+  class ST_Area extends NullableUDF1[Geometry, java.lang.Double](_.getArea)
+  class ST_Centroid extends NullableUDF1[Geometry, Point](_.getCentroid)
+  class ST_ClosestPoint extends NullableUDF2[Geometry, Geometry, Point](closestPoint)
+  class ST_Distance extends NullableUDF2[Geometry, Geometry, java.lang.Double](_ distance _)
+  class ST_DistanceSphere extends NullableUDF2[Geometry, Geometry, java.lang.Double]((s, e) =>
+    fastDistance(s.getCoordinate, e.getCoordinate)
+  )
+  class ST_Length extends NullableUDF1[Geometry, java.lang.Double](_.getLength)
 
   // Assumes input is two points, for use with collect_list and window functions
-  val ST_AggregateDistanceSphere: Seq[Geometry] => jl.Double = a => ST_DistanceSphere(a(0), a(1))
-
-  val ST_LengthSphere: LineString => jl.Double =
-    nullableUDF(line => line.getCoordinates.sliding(2).map { case Array(l, r) => fastDistance(l, r) }.sum)
-
-  val ST_Intersection: (Geometry, Geometry) => Geometry = nullableUDF((geom1, geom2) => geom1.intersection(geom2))
-
-  val ST_Difference: (Geometry, Geometry) => Geometry = nullableUDF((geom1, geom2) => geom1.difference(geom2))
-
-  private[geomesa] val relationNames = Map(
-    ST_Translate -> "st_translate" ,
-    ST_Contains -> "st_contains",
-    ST_Covers -> "st_covers",
-    ST_Crosses -> "st_crosses",
-    ST_Disjoint -> "st_disjoint",
-    ST_Equals -> "st_equals",
-    ST_Intersects -> "st_intersects",
-    ST_Overlaps -> "st_overlaps",
-    ST_Touches -> "st_touches",
-    ST_Within -> "st_within",
-    ST_Relate -> "st_relate",
-    ST_RelateBool -> "st_relateBool",
-    ST_Area -> "st_area",
-    ST_Centroid -> "st_centroid",
-    ST_ClosestPoint -> "st_closestPoint",
-    ST_Distance -> "st_distance",
-    ST_DistanceSphere -> "st_distanceSphere",
-    ST_Length -> "st_length",
-    ST_AggregateDistanceSphere -> "st_aggregateDistanceSphere",
-    ST_LengthSphere -> "st_lengthSphere",
-    ST_Intersection -> "st_intersection",
-    ST_Difference -> "st_difference"
+  class ST_AggregateDistanceSphere extends NullableUDF1[Seq[Geometry], java.lang.Double](a =>
+    fastDistance(a.head.getCoordinate, a(1).getCoordinate)
   )
+
+  class ST_LengthSphere extends NullableUDF1[LineString, java.lang.Double](line =>
+    line.getCoordinates.sliding(2).map { case Array(l, r) => fastDistance(l, r) }.sum
+  )
+
+  class ST_Intersection extends NullableUDF2[Geometry, Geometry, Geometry](_ intersection _)
+  class ST_Difference extends NullableUDF2[Geometry, Geometry, Geometry](_ difference _)
+
+  val ST_Contains   = new ST_Contains()
+  val ST_Covers     = new ST_Covers()
+  val ST_Crosses    = new ST_Crosses()
+  val ST_Disjoint   = new ST_Disjoint()
+  val ST_Equals     = new ST_Equals()
+  val ST_Intersects = new ST_Intersects()
+  val ST_Overlaps   = new ST_Overlaps()
+  val ST_Touches    = new ST_Touches()
+  val ST_Within     = new ST_Within()
+  val ST_Relate     = new ST_Relate()
+  val ST_RelateBool = new ST_RelateBool()
+
+  val ST_Area = new ST_Area()
+  val ST_Centroid = new ST_Centroid()
+  val ST_ClosestPoint = new ST_ClosestPoint()
+  val ST_Distance = new ST_Distance()
+  val ST_DistanceSphere = new ST_DistanceSphere()
+  val ST_Length = new ST_Length()
+  val ST_AggregateDistanceSphere = new ST_AggregateDistanceSphere()
+  val ST_LengthSphere = new ST_LengthSphere()
+  val ST_Intersection = new ST_Intersection()
+  val ST_Difference = new ST_Difference()
 
   // Geometry Processing
   private[geomesa] val ch = new ConvexHull
 
   private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
     // Register geometry editors
-    sqlContext.udf.register(relationNames(ST_Translate), ST_Translate)
+    sqlContext.udf.register(ST_Translate.name, ST_Translate)
 
     // Register spatial relationships
-    sqlContext.udf.register(relationNames(ST_Contains), ST_Contains)
-    sqlContext.udf.register(relationNames(ST_Covers), ST_Covers)
-    sqlContext.udf.register(relationNames(ST_Crosses), ST_Crosses)
-    sqlContext.udf.register(relationNames(ST_Disjoint), ST_Disjoint)
-    sqlContext.udf.register(relationNames(ST_Equals), ST_Equals)
-    sqlContext.udf.register(relationNames(ST_Intersects), ST_Intersects)
-    sqlContext.udf.register(relationNames(ST_Overlaps), ST_Overlaps)
-    sqlContext.udf.register(relationNames(ST_Touches), ST_Touches)
-    sqlContext.udf.register(relationNames(ST_Within), ST_Within)
+    sqlContext.udf.register(ST_Contains.name, ST_Contains)
+    sqlContext.udf.register(ST_Covers.name, ST_Covers)
+    sqlContext.udf.register(ST_Crosses.name, ST_Crosses)
+    sqlContext.udf.register(ST_Disjoint.name, ST_Disjoint)
+    sqlContext.udf.register(ST_Equals.name, ST_Equals)
+    sqlContext.udf.register(ST_Intersects.name, ST_Intersects)
+    sqlContext.udf.register(ST_Overlaps.name, ST_Overlaps)
+    sqlContext.udf.register(ST_Touches.name, ST_Touches)
+    sqlContext.udf.register(ST_Within.name, ST_Within)
     // renamed st_relate variant that returns a boolean since
     // Spark SQL doesn't seem to support polymorphic UDFs
-    sqlContext.udf.register(relationNames(ST_Relate), ST_Relate)
-    sqlContext.udf.register(relationNames(ST_RelateBool), ST_RelateBool)
+    sqlContext.udf.register(ST_Relate.name, ST_Relate)
+    sqlContext.udf.register(ST_RelateBool.name, ST_RelateBool)
 
-    sqlContext.udf.register(relationNames(ST_Area), ST_Area)
-    sqlContext.udf.register(relationNames(ST_ClosestPoint), ST_ClosestPoint)
-    sqlContext.udf.register(relationNames(ST_Centroid), ST_Centroid)
-    sqlContext.udf.register(relationNames(ST_Distance), ST_Distance)
-    sqlContext.udf.register(relationNames(ST_Length), ST_Length)
+    sqlContext.udf.register(ST_Area.name, ST_Area)
+    sqlContext.udf.register(ST_ClosestPoint.name, ST_ClosestPoint)
+    sqlContext.udf.register(ST_Centroid.name, ST_Centroid)
+    sqlContext.udf.register(ST_Distance.name, ST_Distance)
+    sqlContext.udf.register(ST_Length.name, ST_Length)
 
-    sqlContext.udf.register(relationNames(ST_DistanceSphere), ST_DistanceSphere)
-    sqlContext.udf.register(relationNames(ST_AggregateDistanceSphere), ST_AggregateDistanceSphere)
-    sqlContext.udf.register(relationNames(ST_LengthSphere), ST_LengthSphere)
+    sqlContext.udf.register(ST_DistanceSphere.name, ST_DistanceSphere)
+    sqlContext.udf.register(ST_AggregateDistanceSphere.name, ST_AggregateDistanceSphere)
+    sqlContext.udf.register(ST_LengthSphere.name, ST_LengthSphere)
 
     // Register geometry Processing
     sqlContext.udf.register("st_convexhull", ch)
-    sqlContext.udf.register(relationNames(ST_Intersection),ST_Intersection)
-    sqlContext.udf.register(relationNames(ST_Difference),ST_Difference)
+    sqlContext.udf.register(ST_Intersection.name,ST_Intersection)
+    sqlContext.udf.register(ST_Difference.name,ST_Difference)
   }
 
   @transient private lazy val spatialContext = JtsSpatialContext.GEO
