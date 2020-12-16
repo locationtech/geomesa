@@ -8,18 +8,16 @@
 
 package org.locationtech.geomesa.spark
 
-import org.apache.spark.sql.{Encoder, Encoders, SQLContext}
+import org.apache.spark.sql.SQLContext
 import org.geotools.geometry.jts.GeometryCoordinateSequenceTransformer
 import org.geotools.referencing.crs.DefaultGeographicCRS
 import org.geotools.referencing.{CRS, GeodeticCalculator}
-import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper.{NullableUDF1, NullableUDF2, NullableUDF3}
+import org.locationtech.geomesa.spark.jts.udf.NullableUDF._
+import org.locationtech.geomesa.spark.jts.udf.UDFFactory
+import org.locationtech.geomesa.spark.jts.udf.UDFFactory.Registerable
 import org.locationtech.jts.geom.{Coordinate, Geometry, LineString}
 
-object GeometricDistanceFunctions extends SpatialEncoders {
-
-  implicit def stringEncoder: Encoder[String] = Encoders.STRING
-  implicit def jDoubleEncoder: Encoder[java.lang.Double] = Encoders.DOUBLE
+object GeometricDistanceFunctions extends UDFFactory {
 
   class ST_DistanceSpheroid extends NullableUDF2[Geometry, Geometry, java.lang.Double]((s, e) =>
     fastDistance(s.getCoordinate, e.getCoordinate))
@@ -51,10 +49,7 @@ object GeometricDistanceFunctions extends SpatialEncoders {
   val ST_Transform = new ST_Transform()
 
   def registerFunctions(sqlContext: SQLContext): Unit = {
-    sqlContext.udf.register(ST_DistanceSpheroid.name, ST_DistanceSpheroid)
-    sqlContext.udf.register(ST_AggregateDistanceSpheroid.name, ST_AggregateDistanceSpheroid)
-    sqlContext.udf.register(ST_LengthSpheroid.name, ST_LengthSpheroid)
-    sqlContext.udf.register(ST_Transform.name, ST_Transform)
+
   }
 
   @transient private val geoCalcs = new ThreadLocal[GeodeticCalculator] {
@@ -68,5 +63,11 @@ object GeometricDistanceFunctions extends SpatialEncoders {
     calc.getOrthodromicDistance
   }
 
-
+  override def udfs: Seq[Registerable] =
+    Seq(
+      ST_DistanceSpheroid,
+      ST_AggregateDistanceSpheroid,
+      ST_LengthSpheroid,
+      ST_Transform
+    )
 }

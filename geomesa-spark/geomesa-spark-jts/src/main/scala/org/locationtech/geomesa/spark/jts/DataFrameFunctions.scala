@@ -270,7 +270,7 @@ object DataFrameFunctions extends SpatialEncoders {
     import org.locationtech.geomesa.spark.jts.udf.GeometricProcessingFunctions._
 
     def st_antimeridianSafeGeom(geom: Column): TypedColumn[Any, Geometry] =
-      ST_antimeridianSafeGeom.toColumn(geom)
+      ST_AntimeridianSafeGeom.toColumn(geom)
 
     def st_bufferPoint(geom: Column, buffer: Column): TypedColumn[Any, Geometry] =
       ST_BufferPoint.toColumn(geom, buffer)

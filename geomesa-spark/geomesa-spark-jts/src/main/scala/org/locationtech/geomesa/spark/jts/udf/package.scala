@@ -14,11 +14,14 @@ package object udf {
   /** Registration delegation function, called by `initJTS`.
    * New UDF sets should be added here. */
   private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
-    GeometricAccessorFunctions.registerFunctions(sqlContext)
-    GeometricCastFunctions.registerFunctions(sqlContext)
-    GeometricConstructorFunctions.registerFunctions(sqlContext)
-    GeometricOutputFunctions.registerFunctions(sqlContext)
-    GeometricProcessingFunctions.registerFunctions(sqlContext)
-    SpatialRelationFunctions.registerFunctions(sqlContext)
+    val factories = Seq(
+      GeometricAccessorFunctions,
+      GeometricCastFunctions,
+      GeometricConstructorFunctions,
+      GeometricOutputFunctions,
+      GeometricProcessingFunctions,
+      SpatialRelationFunctions
+    )
+    factories.foreach(_.udfs.foreach(_.register(sqlContext)))
   }
 }

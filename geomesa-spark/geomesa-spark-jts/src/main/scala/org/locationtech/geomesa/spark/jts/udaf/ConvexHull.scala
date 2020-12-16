@@ -8,12 +8,13 @@
 
 package org.locationtech.geomesa.spark.jts.udaf
 
-import org.locationtech.jts.geom.Geometry
 import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
-import org.apache.spark.sql.Row
 import org.apache.spark.sql.jts.JTSTypes
+import org.apache.spark.sql.{Row, SQLContext}
+import org.locationtech.geomesa.spark.jts.udf.UDFFactory.Registerable
+import org.locationtech.jts.geom.Geometry
 
-class ConvexHull extends UserDefinedAggregateFunction {
+class ConvexHull extends UserDefinedAggregateFunction with Registerable {
   import org.apache.spark.sql.types.{DataTypes => DT}
 
   override val inputSchema = DT.createStructType(Array(DT.createStructField("inputGeom", JTSTypes.GeometryTypeInstance, true)))
@@ -48,5 +49,7 @@ class ConvexHull extends UserDefinedAggregateFunction {
   }
 
   override def evaluate(buffer: Row): Any = buffer
+
+  override def register(sqlContext: SQLContext): Unit = sqlContext.udf.register("st_convexhull", this)
 }
 

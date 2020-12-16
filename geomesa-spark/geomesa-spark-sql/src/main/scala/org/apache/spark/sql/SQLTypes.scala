@@ -16,6 +16,6 @@ object SQLTypes {
   def init(sqlContext: SQLContext): Unit = {
     initJTS(sqlContext)
     SQLRules.registerOptimizations(sqlContext)
-    GeometricDistanceFunctions.registerFunctions(sqlContext)
+    GeometricDistanceFunctions.udfs.foreach(_.register(sqlContext))
   }
 }

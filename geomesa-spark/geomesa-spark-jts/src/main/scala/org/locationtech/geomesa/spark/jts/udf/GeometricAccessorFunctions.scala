@@ -8,14 +8,12 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import org.apache.spark.sql.{Encoder, Encoders, SQLContext}
-import org.locationtech.geomesa.spark.jts.encoders.{SparkDefaultEncoders, SpatialEncoders}
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
+import org.apache.spark.sql.SQLContext
+import org.locationtech.geomesa.spark.jts.udf.NullableUDF._
+import org.locationtech.geomesa.spark.jts.udf.UDFFactory.Registerable
 import org.locationtech.jts.geom._
 
-object GeometricAccessorFunctions extends SparkDefaultEncoders with SpatialEncoders {
-
-  implicit def integerEncoder: Encoder[Integer] = Encoders.INT
+object GeometricAccessorFunctions extends UDFFactory {
 
   class ST_Boundary extends NullableUDF1[Geometry, Geometry](_.getBoundary)
   class ST_CoordDim extends NullableUDF1[Geometry, Integer](geom =>
@@ -89,25 +87,26 @@ object GeometricAccessorFunctions extends SparkDefaultEncoders with SpatialEncod
   val ST_X = new ST_X()
   val ST_Y = new ST_Y()
 
-  private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
-    sqlContext.udf.register(ST_Boundary.name, ST_Boundary)
-    sqlContext.udf.register(ST_CoordDim.name, ST_CoordDim)
-    sqlContext.udf.register(ST_Dimension.name, ST_Dimension)
-    sqlContext.udf.register(ST_Envelope.name, ST_Envelope)
-    sqlContext.udf.register(ST_ExteriorRing.name, ST_ExteriorRing)
-    sqlContext.udf.register(ST_GeometryN.name, ST_GeometryN)
-    sqlContext.udf.register(ST_GeometryType.name, ST_GeometryType)
-    sqlContext.udf.register(ST_InteriorRingN.name, ST_InteriorRingN)
-    sqlContext.udf.register(ST_IsClosed.name, ST_IsClosed)
-    sqlContext.udf.register(ST_IsCollection.name, ST_IsCollection)
-    sqlContext.udf.register(ST_IsEmpty.name, ST_IsEmpty)
-    sqlContext.udf.register(ST_IsRing.name, ST_IsRing)
-    sqlContext.udf.register(ST_IsSimple.name, ST_IsSimple)
-    sqlContext.udf.register(ST_IsValid.name, ST_IsValid)
-    sqlContext.udf.register(ST_NumGeometries.name, ST_NumGeometries)
-    sqlContext.udf.register(ST_NumPoints.name, ST_NumPoints)
-    sqlContext.udf.register(ST_PointN.name, ST_PointN)
-    sqlContext.udf.register(ST_X.name, ST_X)
-    sqlContext.udf.register(ST_Y.name, ST_Y)
-  }
+  override def udfs: Seq[Registerable] =
+    Seq(
+      ST_Boundary,
+      ST_CoordDim,
+      ST_Dimension,
+      ST_Envelope,
+      ST_ExteriorRing,
+      ST_GeometryN,
+      ST_GeometryType,
+      ST_InteriorRingN,
+      ST_IsClosed,
+      ST_IsCollection,
+      ST_IsEmpty,
+      ST_IsRing,
+      ST_IsSimple,
+      ST_IsValid,
+      ST_NumGeometries,
+      ST_NumPoints,
+      ST_PointN,
+      ST_X,
+      ST_Y
+    )
 }

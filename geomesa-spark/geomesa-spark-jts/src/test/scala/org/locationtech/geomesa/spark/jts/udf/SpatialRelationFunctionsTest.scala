@@ -10,14 +10,13 @@ package org.locationtech.geomesa.spark.jts.udf
 
 import java.{lang => jl}
 
-import org.locationtech.jts.geom.Point
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{Column, TypedColumn, _}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.spark.jts._
 import org.locationtech.geomesa.spark.jts.udf.SpatialRelationFunctions.{ST_Contains, ST_Covers, ST_Crosses, ST_Disjoint, ST_Equals, ST_Intersects, ST_Overlaps, ST_Touches, ST_Within}
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper.NullableUDF
-import org.locationtech.geomesa.spark.jts.util.{SQLFunctionHelper, WKTUtils}
+import org.locationtech.geomesa.spark.jts.util.WKTUtils
+import org.locationtech.jts.geom.Point
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 

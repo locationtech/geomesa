@@ -9,17 +9,14 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
+import org.apache.spark.sql.SQLContext
+import org.locationtech.geomesa.spark.jts.udf.NullableUDF._
+import org.locationtech.geomesa.spark.jts.udf.UDFFactory.Registerable
+import org.locationtech.geomesa.spark.jts.util.{GeoHashUtils, WKBUtils}
 import org.locationtech.jts.geom.{Geometry, Point}
 import org.locationtech.jts.io.geojson.GeoJsonWriter
-import org.apache.spark.sql.{Encoder, Encoders, SQLContext}
-import org.locationtech.geomesa.spark.jts.encoders.{SparkDefaultEncoders, SpatialEncoders}
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
-import org.locationtech.geomesa.spark.jts.util.WKBUtils
-import org.locationtech.geomesa.spark.jts.util.GeoHashUtils
 
-object GeometricOutputFunctions extends SparkDefaultEncoders with SpatialEncoders {
-
-  implicit def integerEncoder: Encoder[Integer] = Encoders.INT
+object GeometricOutputFunctions extends UDFFactory {
 
   // use ThreadLocal to ensure thread safety
   private val geomJSON = new ThreadLocal[GeoJsonWriter]() {
@@ -42,13 +39,14 @@ object GeometricOutputFunctions extends SparkDefaultEncoders with SpatialEncoder
   val ST_AsText = new ST_AsText()
   val ST_GeoHash = new ST_GeoHash()
 
-  private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
-    sqlContext.udf.register(ST_AsBinary.name, ST_AsBinary)
-    sqlContext.udf.register(ST_AsGeoJSON.name, ST_AsGeoJSON)
-    sqlContext.udf.register(ST_AsLatLonText.name, ST_AsLatLonText)
-    sqlContext.udf.register(ST_AsText.name, ST_AsText)
-    sqlContext.udf.register(ST_GeoHash.name, ST_GeoHash)
-  }
+  override def udfs: Seq[Registerable] =
+    Seq(
+      ST_AsBinary,
+      ST_AsGeoJSON,
+      ST_AsLatLonText,
+      ST_AsText,
+      ST_GeoHash
+    )
 
   private def toGeoJson(g: Geometry): String = geomJSON.get().write(g)
 

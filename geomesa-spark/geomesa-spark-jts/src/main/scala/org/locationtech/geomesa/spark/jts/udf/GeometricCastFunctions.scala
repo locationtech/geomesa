@@ -11,11 +11,11 @@ package org.locationtech.geomesa.spark.jts.udf
 import java.nio.charset.StandardCharsets
 
 import org.apache.spark.sql.SQLContext
-import org.locationtech.geomesa.spark.jts.encoders.{SparkDefaultEncoders, SpatialEncoders}
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
+import org.locationtech.geomesa.spark.jts.udf.NullableUDF._
+import org.locationtech.geomesa.spark.jts.udf.UDFFactory.Registerable
 import org.locationtech.jts.geom._
 
-object GeometricCastFunctions extends SparkDefaultEncoders with SpatialEncoders {
+object GeometricCastFunctions extends UDFFactory {
 
   class ST_CastToPoint extends NullableUDF1[Geometry, Point](_.asInstanceOf[Point])
   class ST_CastToPolygon extends NullableUDF1[Geometry, Polygon](_.asInstanceOf[Polygon])
@@ -29,12 +29,12 @@ object GeometricCastFunctions extends SparkDefaultEncoders with SpatialEncoders 
   val ST_CastToGeometry = new ST_CastToGeometry()
   val ST_ByteArray = new ST_ByteArray()
 
-  private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
-    // Register type casting functions
-    sqlContext.udf.register(ST_CastToPoint.name, ST_CastToPoint)
-    sqlContext.udf.register(ST_CastToPolygon.name, ST_CastToPolygon)
-    sqlContext.udf.register(ST_CastToLineString.name, ST_CastToLineString)
-    sqlContext.udf.register(ST_CastToGeometry.name, ST_CastToGeometry)
-    sqlContext.udf.register(ST_ByteArray.name, ST_ByteArray)
-  }
+  override def udfs: Seq[Registerable] =
+    Seq(
+      ST_CastToPoint,
+      ST_CastToPolygon,
+      ST_CastToLineString,
+      ST_CastToGeometry,
+      ST_ByteArray
+    )
 }

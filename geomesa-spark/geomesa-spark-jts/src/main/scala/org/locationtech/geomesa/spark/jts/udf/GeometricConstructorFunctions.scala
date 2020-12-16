@@ -8,21 +8,22 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import org.apache.spark.sql.{Encoder, Encoders, SQLContext}
-import org.locationtech.geomesa.spark.jts.encoders.{SparkDefaultEncoders, SpatialEncoders}
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
+import org.apache.spark.sql.SQLContext
+import org.locationtech.geomesa.spark.jts.udf.NullableUDF._
+import org.locationtech.geomesa.spark.jts.udf.UDFFactory.Registerable
 import org.locationtech.geomesa.spark.jts.util.{GeoHashUtils, GeometryUtils, WKBUtils, WKTUtils}
 import org.locationtech.jts.geom._
 
-object GeometricConstructorFunctions extends SparkDefaultEncoders with SpatialEncoders {
-
-  implicit def integerEncoder: Encoder[Integer] = Encoders.INT
+object GeometricConstructorFunctions extends UDFFactory {
 
   @transient
   private val geomFactory: GeometryFactory = new GeometryFactory()
 
   class ST_GeomFromGeoHash extends NullableUDF2[String, Int, Geometry](GeoHashUtils.decode)
+  class ST_Box2DFromGeoHash extends ST_GeomFromGeoHash
   class ST_GeomFromWKT extends NullableUDF1[String, Geometry](WKTUtils.read)
+  class ST_GeomFromText extends ST_GeomFromWKT
+  class ST_GeometryFromText extends ST_GeomFromWKT
   class ST_GeomFromWKB extends NullableUDF1[Array[Byte], Geometry](WKBUtils.read)
   class ST_LineFromText extends NullableUDF1[String, LineString](text => WKTUtils.read(text).asInstanceOf[LineString])
   class ST_MakeBox2D extends NullableUDF2[Point, Point, Geometry]((lowerLeft, upperRight) =>
@@ -62,7 +63,10 @@ object GeometricConstructorFunctions extends SparkDefaultEncoders with SpatialEn
   class ST_PolygonFromText extends NullableUDF1[String, Polygon](text => WKTUtils.read(text).asInstanceOf[Polygon])
 
   val ST_GeomFromGeoHash  = new ST_GeomFromGeoHash()
+  val ST_Box2DFromGeoHash = new ST_Box2DFromGeoHash()
   val ST_GeomFromWKT      = new ST_GeomFromWKT()
+  val ST_GeomFromText     = new ST_GeomFromText()
+  val ST_GeometryFromText = new ST_GeometryFromText()
   val ST_GeomFromWKB      = new ST_GeomFromWKB()
   val ST_LineFromText     = new ST_LineFromText()
   val ST_MakeBox2D        = new ST_MakeBox2D()
@@ -81,29 +85,29 @@ object GeometricConstructorFunctions extends SparkDefaultEncoders with SpatialEn
   val ST_PointFromWKB     = new ST_PointFromWKB()
   val ST_PolygonFromText  = new ST_PolygonFromText()
 
-  private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
-    sqlContext.udf.register(ST_GeomFromGeoHash.name, ST_GeomFromGeoHash)
-    sqlContext.udf.register(ST_GeomFromWKT.name, ST_GeomFromWKT)
-    sqlContext.udf.register(ST_GeomFromWKB.name, ST_GeomFromWKB)
-    sqlContext.udf.register(ST_LineFromText.name, ST_LineFromText)
-    sqlContext.udf.register(ST_MLineFromText.name, ST_MLineFromText)
-    sqlContext.udf.register(ST_MPointFromText.name, ST_MPointFromText)
-    sqlContext.udf.register(ST_MPolyFromText.name, ST_MPolyFromText)
-    sqlContext.udf.register(ST_MakeBBOX.name, ST_MakeBBOX)
-    sqlContext.udf.register(ST_MakeBox2D.name, ST_MakeBox2D)
-    sqlContext.udf.register(ST_MakeLine.name, ST_MakeLine)
-    sqlContext.udf.register(ST_MakePoint.name, ST_MakePoint)
-    sqlContext.udf.register(ST_MakePointM.name, ST_MakePointM)
-    sqlContext.udf.register(ST_MakePolygon.name, ST_MakePolygon)
-    sqlContext.udf.register(ST_PointFromGeoHash.name, ST_PointFromGeoHash)
-    sqlContext.udf.register(ST_PointFromText.name, ST_PointFromText)
-    sqlContext.udf.register(ST_PointFromWKB.name, ST_PointFromWKB)
-    sqlContext.udf.register(ST_PolygonFromText.name, ST_PolygonFromText)
-    sqlContext.udf.register(ST_Point.name, ST_Point)
-    sqlContext.udf.register(ST_Polygon.name, ST_Polygon)
-
-    sqlContext.udf.register("st_box2DFromGeoHash", ST_GeomFromGeoHash)
-    sqlContext.udf.register("st_geomFromText", ST_GeomFromWKT)
-    sqlContext.udf.register("st_geometryFromText", ST_GeomFromWKT)
-  }
+  override def udfs: Seq[Registerable] =
+    Seq(
+      ST_GeomFromGeoHash,
+      ST_Box2DFromGeoHash,
+      ST_GeomFromWKT,
+      ST_GeomFromText,
+      ST_GeometryFromText,
+      ST_GeomFromWKB,
+      ST_LineFromText,
+      ST_MLineFromText,
+      ST_MPointFromText,
+      ST_MPolyFromText,
+      ST_MakeBBOX,
+      ST_MakeBox2D,
+      ST_MakeLine,
+      ST_MakePoint,
+      ST_MakePointM,
+      ST_MakePolygon,
+      ST_PointFromGeoHash,
+      ST_PointFromText,
+      ST_PointFromWKB,
+      ST_PolygonFromText,
+      ST_Point,
+      ST_Polygon
+    )
 }

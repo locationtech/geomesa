@@ -8,19 +8,17 @@
 
 package org.locationtech.geomesa.spark.jts.udf
 
-import org.apache.spark.sql.{Encoder, Encoders, SQLContext}
-import org.locationtech.geomesa.spark.jts.encoders.{SparkDefaultEncoders, SpatialEncoders}
+import org.apache.spark.sql.SQLContext
 import org.locationtech.geomesa.spark.jts.udaf.ConvexHull
-import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
+import org.locationtech.geomesa.spark.jts.udf.NullableUDF._
+import org.locationtech.geomesa.spark.jts.udf.UDFFactory.Registerable
 import org.locationtech.jts.geom._
 import org.locationtech.jts.geom.util.AffineTransformation
 import org.locationtech.jts.operation.distance.DistanceOp
 import org.locationtech.spatial4j.context.jts.JtsSpatialContext
 import org.locationtech.spatial4j.distance.{DistanceCalculator, DistanceUtils}
 
-object SpatialRelationFunctions extends SparkDefaultEncoders with SpatialEncoders {
-
-  implicit def integerEncoder: Encoder[Integer] = Encoders.INT
+object SpatialRelationFunctions extends UDFFactory {
 
   // Geometry editors
   class ST_Translate extends NullableUDF3[Geometry, Double, Double, Geometry](translate)
@@ -89,40 +87,32 @@ object SpatialRelationFunctions extends SparkDefaultEncoders with SpatialEncoder
   // Geometry Processing
   private[geomesa] val ch = new ConvexHull
 
-  private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
-    // Register geometry editors
-    sqlContext.udf.register(ST_Translate.name, ST_Translate)
-
-    // Register spatial relationships
-    sqlContext.udf.register(ST_Contains.name, ST_Contains)
-    sqlContext.udf.register(ST_Covers.name, ST_Covers)
-    sqlContext.udf.register(ST_Crosses.name, ST_Crosses)
-    sqlContext.udf.register(ST_Disjoint.name, ST_Disjoint)
-    sqlContext.udf.register(ST_Equals.name, ST_Equals)
-    sqlContext.udf.register(ST_Intersects.name, ST_Intersects)
-    sqlContext.udf.register(ST_Overlaps.name, ST_Overlaps)
-    sqlContext.udf.register(ST_Touches.name, ST_Touches)
-    sqlContext.udf.register(ST_Within.name, ST_Within)
-    // renamed st_relate variant that returns a boolean since
-    // Spark SQL doesn't seem to support polymorphic UDFs
-    sqlContext.udf.register(ST_Relate.name, ST_Relate)
-    sqlContext.udf.register(ST_RelateBool.name, ST_RelateBool)
-
-    sqlContext.udf.register(ST_Area.name, ST_Area)
-    sqlContext.udf.register(ST_ClosestPoint.name, ST_ClosestPoint)
-    sqlContext.udf.register(ST_Centroid.name, ST_Centroid)
-    sqlContext.udf.register(ST_Distance.name, ST_Distance)
-    sqlContext.udf.register(ST_Length.name, ST_Length)
-
-    sqlContext.udf.register(ST_DistanceSphere.name, ST_DistanceSphere)
-    sqlContext.udf.register(ST_AggregateDistanceSphere.name, ST_AggregateDistanceSphere)
-    sqlContext.udf.register(ST_LengthSphere.name, ST_LengthSphere)
-
-    // Register geometry Processing
-    sqlContext.udf.register("st_convexhull", ch)
-    sqlContext.udf.register(ST_Intersection.name,ST_Intersection)
-    sqlContext.udf.register(ST_Difference.name,ST_Difference)
-  }
+  override def udfs: Seq[Registerable] =
+    Seq(
+      ST_Translate,
+      ST_Contains,
+      ST_Covers,
+      ST_Crosses,
+      ST_Disjoint,
+      ST_Equals,
+      ST_Intersects,
+      ST_Overlaps,
+      ST_Touches,
+      ST_Within,
+      ST_Relate,
+      ST_RelateBool,
+      ST_Area,
+      ST_ClosestPoint,
+      ST_Centroid,
+      ST_Distance,
+      ST_Length,
+      ST_DistanceSphere,
+      ST_AggregateDistanceSphere,
+      ST_LengthSphere,
+      ch,
+      ST_Intersection,
+      ST_Difference
+    )
 
   @transient private lazy val spatialContext = JtsSpatialContext.GEO
 

@@ -6,7 +6,7 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.spark.jts.util
+package org.locationtech.geomesa.spark.jts.udf
 
 import java.util.Locale
 
@@ -14,31 +14,46 @@ import org.apache.spark.sql.catalyst.analysis.UnresolvedAttribute
 import org.apache.spark.sql.catalyst.expressions.{Alias, AttributeReference}
 import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.functions.udf
-import org.apache.spark.sql.{Column, Encoder, TypedColumn}
+import org.apache.spark.sql.{Column, Encoder, SQLContext, TypedColumn}
+import org.locationtech.geomesa.spark.jts.udf.UDFFactory.Registerable
 
 import scala.reflect.runtime.universe._
+
+abstract class NullableUDF[RT: TypeTag: Encoder] extends Registerable with Serializable {
+
+  // st_camelCase
+  val name: String = {
+    val simple = getClass.getSimpleName
+    if (simple.length < 4) { simple } else {
+      simple.substring(0, 4).toLowerCase(Locale.US) + simple.substring(4)
+    }
+  }
+
+  protected def function: UserDefinedFunction
+
+  def toColumn(cols: Column*): TypedColumn[Any, RT] =
+    function.apply(cols: _*).as(s"$name(${cols.map(NullableUDF.columnName).mkString(",")})").as[RT]
+}
+
 
 // This should be some level of package private, but there's a dependency on it
 // from org.apache.spark.sql.SQLGeometricConstructorFunctions, which could/should be moved
 // into a org.locationtech.geomesa package eventually, and this access restriction reenabled
-/*private[geomesa]*/ object SQLFunctionHelper {
+/*private[geomesa]*/
 
-  abstract class NullableUDF[RT: TypeTag: Encoder] extends Serializable {
-    val name: String = stName(this)
-    protected def function: UserDefinedFunction
-    def toColumn(cols: Column*): TypedColumn[Any, RT] =
-      function.apply(cols: _*).as(s"$name(${cols.map(columnName).mkString(",")})").as[RT]
-  }
+object NullableUDF {
 
   class NullableUDF1[A1: TypeTag, RT: TypeTag: Encoder](f: A1 => RT)
       extends NullableUDF[RT] with (A1 => RT) {
     override protected def function: UserDefinedFunction = udf(apply _)
+    override def register(sqlContext: SQLContext): Unit = sqlContext.udf.register(name, this)
     override def apply(v1: A1): RT = if (v1 == null) { null.asInstanceOf[RT] } else { f(v1) }
   }
 
   class NullableUDF2[A1: TypeTag, A2: TypeTag, RT: TypeTag: Encoder](f: (A1, A2) => RT)
       extends NullableUDF[RT] with ((A1, A2) => RT) {
     override protected def function: UserDefinedFunction = udf(apply _)
+    override def register(sqlContext: SQLContext): Unit = sqlContext.udf.register(name, this)
     override def apply(v1: A1, v2: A2): RT =
       if (v1 == null || v2 == null) { null.asInstanceOf[RT] } else { f(v1, v2) }
   }
@@ -46,6 +61,7 @@ import scala.reflect.runtime.universe._
   class NullableUDF3[A1: TypeTag, A2: TypeTag, A3: TypeTag, RT: TypeTag: Encoder](f: (A1, A2, A3) => RT)
       extends NullableUDF[RT] with ((A1, A2, A3) => RT) {
     override protected def function: UserDefinedFunction = udf(apply _)
+    override def register(sqlContext: SQLContext): Unit = sqlContext.udf.register(name, this)
     override def apply(v1: A1, v2: A2, v3: A3): RT =
       if (v1 == null || v2 == null || v3 == null) { null.asInstanceOf[RT] } else { f(v1, v2, v3) }
   }
@@ -53,6 +69,7 @@ import scala.reflect.runtime.universe._
   class NullableUDF4[A1: TypeTag, A2: TypeTag, A3: TypeTag, A4: TypeTag, RT: TypeTag: Encoder](f: (A1, A2, A3, A4) => RT)
       extends NullableUDF[RT] with ((A1, A2, A3, A4) => RT) {
     override protected def function: UserDefinedFunction = udf(apply _)
+    override def register(sqlContext: SQLContext): Unit = sqlContext.udf.register(name, this)
     override def apply(v1: A1, v2: A2, v3: A3, v4: A4): RT =
       if (v1 == null || v2 == null || v3 == null || v4 == null) { null.asInstanceOf[RT] } else { f(v1, v2, v3, v4) }
   }
@@ -82,14 +99,6 @@ import scala.reflect.runtime.universe._
     val n = name
     new NullableUDF4(f) {
       override val name: String = n
-    }
-  }
-
-  // st_camelCase
-  private def stName(clas: Any): String = {
-    val name = clas.getClass.getSimpleName
-    if (name.length < 4) { name } else {
-      name.substring(0, 4).toLowerCase(Locale.US) + name.substring(4)
     }
   }
 
