@@ -41,6 +41,39 @@ Argument                 Description
 
 The ``--temp-path`` argument may be useful when working with ``s3`` data, as ``s3`` is slow for incremental writes.
 
+``generate-partition-filters``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Calculate filters that exactly match partitions. This can be used to facilitate exports from another system
+directly into the appropriate partition directory.
+
+======================== =========================================================
+Argument                 Description
+======================== =========================================================
+``-p, --path *``         The filesystem root path used to store data
+``-f, --feature-name *`` The name of the schema
+``-q, --cql``            CQL predicate to determine the partitions to operate on
+``--partitions``         Partitions to operate on, subject to the CQL filter
+``--no-header``          Suppress the column headers in the output
+``--config``             Hadoop configuration properties, in the form key=value
+======================== =========================================================
+
+At least one of ``--cql`` or ``--partitions`` must be specified, to select the partitions being operated on.
+If both are specified, any explicit partitions that don't match the CQL predicate will be ignored.
+
+The results will be output in tab-delimited text. The following example uses the GDELT :ref:`fsds_quickstart`:
+
+.. code-block:: bash
+
+    $ ./geomesa-fs generate-partition-filters \
+        -p hdfs://localhost:9000/fs           \
+        -f gdelt-quickstart                   \
+        -q "bbox(geom,0,0,180,90) and dtg during 2020-01-01T00:00:00.000Z/2020-01-03T00:00:00.000Z"
+    INFO  Generating filters for 2 partitions
+    Partition Path	Filter
+    2020/01/01/3	hdfs://localhost:9000/fs/gdelt-quickstart/2020/01/01/3_I	BBOX(geom, 0.0,0.0,180.0,90.0) AND dtg >= '2020-01-01T00:00:00.000Z' AND dtg < '2020-01-02T00:00:00.000Z'
+    2020/01/02/3	hdfs://localhost:9000/fs/gdelt-quickstart/2020/01/02/3_I	BBOX(geom, 0.0,0.0,180.0,90.0) AND dtg >= '2020-01-02T00:00:00.000Z' AND dtg < '2020-01-03T00:00:00.000Z'
+
 ``get-files``
 ^^^^^^^^^^^^^
 
