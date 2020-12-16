@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.index.attribute
 
 import java.sql.Timestamp
+import java.util.Locale
 
 import org.calrissian.mango.types.encoders.lexi.LongEncoder
 import org.calrissian.mango.types.{LexiTypeEncoders, TypeEncoder, TypeRegistry}
@@ -65,6 +66,14 @@ object AttributeIndexKey {
     * @return
     */
   def typeEncode(value: Any): String = TypeRegistry.encode(value)
+
+  /**
+   * Gets the type alias used for decoding a value
+   *
+   * @param binding type binding
+   * @return
+   */
+  def alias(binding: Class[_]): String = binding.getSimpleName.toLowerCase(Locale.US)
 
   /**
     * Decode a lexicoded value

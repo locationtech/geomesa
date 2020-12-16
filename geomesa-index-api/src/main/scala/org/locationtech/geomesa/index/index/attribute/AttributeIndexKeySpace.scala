@@ -45,7 +45,7 @@ class AttributeIndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStra
   private val binding = if (isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
 
   protected val decodeValue: String => AnyRef = {
-    val alias = binding.getSimpleName.toLowerCase(Locale.US)
+    val alias = AttributeIndexKey.alias(binding)
     if (isList) {
       // Note that for collection types, only a single entry of the collection will be decoded - this is
       // because the collection entries have been broken up into multiple rows

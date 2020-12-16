@@ -11,7 +11,6 @@ package org.locationtech.geomesa.fs.storage.common.utils
 import java.util.UUID
 
 import org.apache.hadoop.fs.Path
-import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.FileType
 
 object StorageUtils {
 
@@ -41,10 +40,11 @@ object StorageUtils {
       partition: String,
       leaf: Boolean,
       extension: String,
-      fileType: FileType): Path = {
-    val file = s"$fileType${UUID.randomUUID().toString.replaceAllLiterally("-", "")}.$extension"
-    val name = if (leaf) { s"${partition.split('/').last}_$file" } else { file }
-    new Path(baseDirectory(root, partition, leaf), name)
+      fileType: FileType.FileType,
+      name: String = UUID.randomUUID().toString.replaceAllLiterally("-", "")): Path = {
+    val filename = s"$fileType$name.$extension"
+    val filenameWithLeaf = if (leaf) { s"${partition.split('/').last}_$filename" } else { filename }
+    new Path(baseDirectory(root, partition, leaf), filenameWithLeaf)
   }
 
   /**
@@ -55,7 +55,7 @@ object StorageUtils {
     * @param path file path
     * @return
     */
-  def fileType(partition: String, leaf: Boolean, path: Path): Option[FileType] = {
+  def fileType(partition: String, leaf: Boolean, path: Path): Option[FileType.FileType] = {
     val pos = if (leaf) { partition.split('/').last.length + 1 } else { 0 }
     path.getName.charAt(pos) match {
       case 'W' => Some(FileType.Written)

@@ -8,19 +8,44 @@
 
 package org.locationtech.geomesa.fs.storage.common.partitions
 
+import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.curve.Z2SFC
 import org.locationtech.geomesa.fs.storage.common.partitions.SpatialScheme.SpatialPartitionSchemeFactory
 import org.locationtech.jts.geom.Point
 import org.locationtech.sfcurve.IndexRange
 import org.opengis.feature.simple.SimpleFeature
+import org.opengis.filter.Filter
 
 case class Z2Scheme(bits: Int, geom: String, geomIndex: Int) extends SpatialScheme(bits, geom) {
 
-  private val z2 = new Z2SFC(bits / 2)
+  import org.locationtech.geomesa.filter.{andFilters, ff}
+  import org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326
+
+  private val xyBits = bits / 2
+  private val z2 = new Z2SFC(xyBits)
+  private val xRadius = (360d / math.pow(2, xyBits)) / 2
+  private val yRadius = (180d / math.pow(2, xyBits)) / 2
+
+  override def pattern: String = s"$bits-bit-z2"
 
   override def getPartitionName(feature: SimpleFeature): String = {
     val pt = feature.getAttribute(geomIndex).asInstanceOf[Point]
     z2.index(pt.getX, pt.getY).formatted(format)
+  }
+
+  override def getCoveringFilter(partition: String): Filter = {
+    val (x, y) = z2.invert(partition.toLong)
+    val (xmin, xmax) = (x - xRadius, x + xRadius)
+    val (ymin, ymax) = (y - yRadius, y + yRadius)
+    val bbox = ff.bbox(ff.property(geom), new ReferencedEnvelope(xmin, xmax, ymin, ymax, CRS_EPSG_4326))
+    // account for borders between z-cells (make upper bounds exclusive except on the upper-right edge)
+    val xExclusive = if (xmax == z2.lon.max) { None } else {
+      Some(ff.less(ff.function("getX", ff.property(geom)), ff.literal(xmax)))
+    }
+    val yExclusive = if (ymax == z2.lat.max) { None } else {
+      Some(ff.less(ff.function("getY", ff.property(geom)), ff.literal(ymax)))
+    }
+    andFilters(Seq(bbox) ++ xExclusive ++ yExclusive)
   }
 
   override protected def digits(bits: Int): Int = math.ceil(bits * math.log10(2)).toInt
