@@ -22,7 +22,6 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.{SchemaCompatibi
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
-import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
@@ -88,9 +87,11 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     */
   def delete(): Unit = {
     val types = getTypeNames
-    val tables = if (types.length == 0) Array(config.catalog) else types
-    adapter.deleteTables(tables.flatMap(getAllTableNames).distinct)
-    metadata.asInstanceOf[TableBasedMetadata[String]].resetCache()
+    val tables = if (types.length == 0) Array(config.catalog) else {
+      types.flatMap(getAllTableNames).distinct
+    }
+    adapter.deleteTables(tables)
+    metadata.resetCache()
   }
 
   // hooks to allow extended functionality
