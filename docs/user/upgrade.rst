@@ -97,7 +97,7 @@ Order of Columns in GeoMesa Spark
 ---------------------------------
 
 When loading data from a ``SpatialRDDProvider`` in Spark, the ``__fid__`` column has been moved from the first
-element to the last element of the row, in order to better align with other GeoMesa formats.
+element to the last element of the row, in order to align better with other GeoMesa formats.
 
 Version 3.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
