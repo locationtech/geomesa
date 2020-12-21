@@ -17,7 +17,6 @@ import org.apache.spark.sql.{Column, Encoder, Encoders, TypedColumn}
 import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders
 import org.locationtech.jts.geom._
 
-
 /**
  * DataFrame DSL functions for working with JTS types
  */
@@ -37,21 +36,21 @@ object DataFrameFunctions extends SpatialEncoders {
       new Column(Literal.create(u.serialize(t), u)).as[T]
 
     /** Create a generic geometry literal, encoded as a GeometryUDT. */
-    def geomLit(g: Geometry): TypedColumn[Any, Geometry] = udtlit(g, GeometryUDT)
+    def geomLit(g: Geometry): TypedColumn[Any, Geometry] = udtlit(g, JTSTypes.GeometryUDT)
     /** Create a point literal, encoded as a PointUDT. */
-    def pointLit(g: Point): TypedColumn[Any, Point] = udtlit(g, PointUDT)
+    def pointLit(g: Point): TypedColumn[Any, Point] = udtlit(g, JTSTypes.PointUDT)
     /** Create a line literal, encoded as a LineUDT. */
-    def lineLit(g: LineString): TypedColumn[Any, LineString] = udtlit(g, LineStringUDT)
+    def lineLit(g: LineString): TypedColumn[Any, LineString] = udtlit(g, JTSTypes.LineStringUDT)
     /** Create a polygon literal, encoded as a PolygonUDT. */
-    def polygonLit(g: Polygon): TypedColumn[Any, Polygon] = udtlit(g, PolygonUDT)
+    def polygonLit(g: Polygon): TypedColumn[Any, Polygon] = udtlit(g, JTSTypes.PolygonUDT)
     /** Create a multi-point literal, encoded as a MultiPointUDT. */
-    def mPointLit(g: MultiPoint): TypedColumn[Any, MultiPoint] = udtlit(g, MultiPointUDT)
+    def mPointLit(g: MultiPoint): TypedColumn[Any, MultiPoint] = udtlit(g, JTSTypes.MultiPointUDT)
     /** Create a multi-line literal, encoded as a MultiPointUDT. */
-    def mLineLit(g: MultiLineString): TypedColumn[Any, MultiLineString] = udtlit(g, MultiLineStringUDT)
+    def mLineLit(g: MultiLineString): TypedColumn[Any, MultiLineString] = udtlit(g, JTSTypes.MultiLineStringUDT)
     /** Create a multi-polygon literal, encoded as a MultiPolygonUDT. */
-    def mPolygonLit(g: MultiPolygon): TypedColumn[Any, MultiPolygon] = udtlit(g, MultiPolygonUDT)
+    def mPolygonLit(g: MultiPolygon): TypedColumn[Any, MultiPolygon] = udtlit(g, JTSTypes.MultiPolygonUDT)
     /** create a geometry collection literal, encoded as a GeometryCollectionUDT. */
-    def geomCollLit(g: GeometryCollection): TypedColumn[Any, GeometryCollection] = udtlit(g, GeometryCollectionUDT)
+    def geomCollLit(g: GeometryCollection): TypedColumn[Any, GeometryCollection] = udtlit(g, JTSTypes.GeometryCollectionUDT)
 
     def st_geomFromGeoHash(geohash: Column, precision: Column): TypedColumn[Any, Geometry] =
       ST_GeomFromGeoHash.toColumn(geohash, precision)

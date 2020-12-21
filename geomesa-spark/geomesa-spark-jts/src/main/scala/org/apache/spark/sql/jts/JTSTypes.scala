@@ -19,25 +19,50 @@ import org.locationtech.jts.geom._
 
 object JTSTypes {
 
-  val GeometryTypeInstance          : GeometryUDT = GeometryUDT
-  val PointTypeInstance             : PointUDT = PointUDT
-  val LineStringTypeInstance        : LineStringUDT = LineStringUDT
-  val PolygonTypeInstance           : PolygonUDT = PolygonUDT
-  val MultiPointTypeInstance        : MultiPointUDT = MultiPointUDT
-  val MultiLineStringTypeInstance   : MultiLineStringUDT = MultiLineStringUDT
-  @deprecated("replaced with MultiPolygonTypeInstance")
-  val MultipolygonTypeInstance      : MultiPolygonUDT = MultiPolygonUDT
-  val MultiPolygonTypeInstance      : MultiPolygonUDT = MultiPolygonUDT
+  val GeometryUDT          : GeometryUDT = new GeometryUDT()
+  val PointUDT             : PointUDT = new PointUDT()
+  val LineStringUDT        : LineStringUDT = new LineStringUDT()
+  val PolygonUDT           : PolygonUDT = new PolygonUDT()
+  val MultiPointUDT        : MultiPointUDT = new MultiPointUDT()
+  val MultiLineStringUDT   : MultiLineStringUDT = new MultiLineStringUDT()
+  val MultiPolygonUDT      : MultiPolygonUDT = new MultiPolygonUDT()
+  val GeometryCollectionUDT: GeometryCollectionUDT = new GeometryCollectionUDT()
+
+  @deprecated("replaced with MultiPolygonUDT")
+  val MultipolygonTypeInstance: MultiPolygonUDT = new MultiPolygonUDT()
+  @deprecated("replaced with GeometryUDT")
+  val GeometryTypeInstance: GeometryUDT = GeometryUDT
+  @deprecated("replaced with GeometryUDT")
+  val PointTypeInstance: PointUDT = PointUDT
+  @deprecated("replaced with GeometryUDT")
+  val LineStringTypeInstance: LineStringUDT = LineStringUDT
+  @deprecated("replaced with GeometryUDT")
+  val PolygonTypeInstance: PolygonUDT = PolygonUDT
+  @deprecated("replaced with GeometryUDT")
+  val MultiPointTypeInstance: MultiPointUDT = MultiPointUDT
+  @deprecated("replaced with GeometryUDT")
+  val MultiLineStringTypeInstance: MultiLineStringUDT = MultiLineStringUDT
+  @deprecated("replaced with GeometryUDT")
+  val MultiPolygonTypeInstance: MultiPolygonUDT = MultiPolygonUDT
+  @deprecated("replaced with GeometryUDT")
   val GeometryCollectionTypeInstance: GeometryCollectionUDT = GeometryCollectionUDT
 
   // these constant values conform to WKB values
-  val GeometryType           = 0
-  val PointType              = 1
-  val LineStringType         = 2
-  val PolygonType            = 3
-  val MultiPointType         = 4
-  val MultiLineStringType    = 5
-  val MultiPolygonType       = 6
+  @deprecated("unused")
+  val GeometryType = 0
+  @deprecated("unused")
+  val PointType = 1
+  @deprecated("unused")
+  val LineStringType = 2
+  @deprecated("unused")
+  val PolygonType = 3
+  @deprecated("unused")
+  val MultiPointType = 4
+  @deprecated("unused")
+  val MultiLineStringType = 5
+  @deprecated("unused")
+  val MultiPolygonType = 6
+  @deprecated("unused")
   val GeometryCollectionType = 7
 
   val typeMap: Map[Class[_], Class[_ <: UserDefinedType[_]]] = Map(
@@ -77,8 +102,6 @@ class PointUDT extends AbstractGeometryUDT[Point]("point"){
     }
   }
 }
-
-case object PointUDT extends PointUDT
 
 class MultiPointUDT extends AbstractGeometryUDT[MultiPoint]("multipoint") {
 
@@ -135,8 +158,6 @@ class MultiPointUDT extends AbstractGeometryUDT[MultiPoint]("multipoint") {
   }
 }
 
-case object MultiPointUDT extends MultiPointUDT
-
 class LineStringUDT extends AbstractGeometryUDT[LineString]("linestring") {
 
   // parquet definition:
@@ -189,8 +210,6 @@ class LineStringUDT extends AbstractGeometryUDT[LineString]("linestring") {
     }
   }
 }
-
-case object LineStringUDT extends LineStringUDT
 
 class MultiLineStringUDT extends AbstractGeometryUDT[MultiLineString]("multilinestring") {
 
@@ -261,8 +280,6 @@ class MultiLineStringUDT extends AbstractGeometryUDT[MultiLineString]("multiline
     }
   }
 }
-
-case object MultiLineStringUDT extends MultiLineStringUDT
 
 class PolygonUDT extends AbstractGeometryUDT[Polygon]("polygon") {
 
@@ -339,8 +356,6 @@ class PolygonUDT extends AbstractGeometryUDT[Polygon]("polygon") {
     }
   }
 }
-
-case object PolygonUDT extends PolygonUDT
 
 class MultiPolygonUDT extends AbstractGeometryUDT[MultiPolygon]("multipolygon") {
 
@@ -439,8 +454,6 @@ class MultiPolygonUDT extends AbstractGeometryUDT[MultiPolygon]("multipolygon") 
   }
 }
 
-case object MultiPolygonUDT extends MultiPolygonUDT
-
 class GeometryUDT extends AbstractGeometryUDT[Geometry]("geometry") {
 
   // parquet file metadata:
@@ -448,14 +461,14 @@ class GeometryUDT extends AbstractGeometryUDT[Geometry]("geometry") {
 
   private [sql] override def acceptsType(dataType: DataType): Boolean = {
     super.acceptsType(dataType) ||
-      dataType.getClass == JTSTypes.GeometryTypeInstance.getClass ||
-      dataType.getClass == JTSTypes.PointTypeInstance.getClass ||
-      dataType.getClass == JTSTypes.LineStringTypeInstance.getClass ||
-      dataType.getClass == JTSTypes.PolygonTypeInstance.getClass ||
-      dataType.getClass == JTSTypes.MultiLineStringTypeInstance.getClass ||
-      dataType.getClass == JTSTypes.MultiPointTypeInstance.getClass ||
-      dataType.getClass == JTSTypes.MultipolygonTypeInstance.getClass ||
-      dataType.getClass == JTSTypes.GeometryCollectionTypeInstance.getClass
+      dataType.getClass == classOf[GeometryUDT] ||
+      dataType.getClass == classOf[PointUDT] ||
+      dataType.getClass == classOf[LineStringUDT] ||
+      dataType.getClass == classOf[PolygonUDT] ||
+      dataType.getClass == classOf[MultiLineStringUDT] ||
+      dataType.getClass == classOf[MultiPointUDT] ||
+      dataType.getClass == classOf[MultiPolygonUDT] ||
+      dataType.getClass == classOf[GeometryCollectionUDT]
   }
 
   // Types.primitive(PrimitiveTypeName.BINARY, Repetition.OPTIONAL)
@@ -480,9 +493,9 @@ class GeometryCollectionUDT
 
   private [sql] override def acceptsType(dataType: DataType): Boolean = {
     super.acceptsType(dataType) ||
-        dataType.getClass == JTSTypes.MultiLineStringTypeInstance.getClass ||
-        dataType.getClass == JTSTypes.MultiPointTypeInstance.getClass ||
-        dataType.getClass == JTSTypes.MultipolygonTypeInstance.getClass
+        dataType.getClass == classOf[MultiLineStringUDT] ||
+        dataType.getClass == classOf[MultiPointUDT] ||
+        dataType.getClass == classOf[MultiPolygonUDT]
   }
 
   override def sqlType: DataType = DataTypes.BinaryType
@@ -498,5 +511,3 @@ class GeometryCollectionUDT
     }
   }
 }
-
-case object GeometryCollectionUDT extends GeometryCollectionUDT

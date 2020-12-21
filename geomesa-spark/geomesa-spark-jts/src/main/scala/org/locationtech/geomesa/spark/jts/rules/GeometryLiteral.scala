@@ -32,74 +32,74 @@ object GeometryLiteral {
   def unapply(g: GeometryLiteral): Option[(Any, Geometry)] = Some(g.repr, g.geom)
 
   case class PointLiteral(geom: Point, repr: InternalRow) extends GeometryLiteral {
-    override def dataType: DataType = PointTypeInstance
+    override def dataType: DataType = PointUDT
   }
 
   object PointLiteral {
-    def apply(repr: InternalRow): PointLiteral = PointLiteral(PointTypeInstance.deserialize(repr), repr)
+    def apply(repr: InternalRow): PointLiteral = PointLiteral(PointUDT.deserialize(repr), repr)
   }
 
   case class LineStringLiteral(geom: LineString, repr: InternalRow) extends GeometryLiteral {
-    override def dataType: DataType = LineStringTypeInstance
+    override def dataType: DataType = LineStringUDT
   }
 
   object LineStringLiteral {
     def apply(repr: InternalRow): LineStringLiteral =
-      LineStringLiteral(LineStringTypeInstance.deserialize(repr), repr)
+      LineStringLiteral(LineStringUDT.deserialize(repr), repr)
   }
 
   case class PolygonLiteral(geom: Polygon, repr: InternalRow) extends GeometryLiteral {
-    override def dataType: DataType = PolygonTypeInstance
+    override def dataType: DataType = PolygonUDT
   }
 
   object PolygonLiteral {
     def apply(repr: InternalRow): PolygonLiteral =
-      PolygonLiteral(PolygonTypeInstance.deserialize(repr), repr)
+      PolygonLiteral(PolygonUDT.deserialize(repr), repr)
   }
 
   case class GenericGeometryLiteral(geom: Geometry, repr: Array[Byte]) extends GeometryLiteral {
-    override def dataType: DataType = GeometryTypeInstance
+    override def dataType: DataType = GeometryUDT
   }
 
   object GenericGeometryLiteral {
     def apply(repr: Array[Byte]): GenericGeometryLiteral =
-      GenericGeometryLiteral(GeometryTypeInstance.deserialize(repr), repr)
+      GenericGeometryLiteral(GeometryUDT.deserialize(repr), repr)
   }
 
   case class MultiPointLiteral(geom: MultiPoint, repr: InternalRow) extends GeometryLiteral {
-    override def dataType: DataType = MultiPointTypeInstance
+    override def dataType: DataType = MultiPointUDT
   }
 
   object MultiPointLiteral {
     def apply(repr: InternalRow): MultiPointLiteral =
-      MultiPointLiteral(MultiPointTypeInstance.deserialize(repr), repr)
+      MultiPointLiteral(MultiPointUDT.deserialize(repr), repr)
   }
 
   case class MultiLineStringLiteral(geom: MultiLineString, repr: InternalRow) extends GeometryLiteral {
-    override def dataType: DataType = MultiLineStringTypeInstance
+    override def dataType: DataType = MultiLineStringUDT
   }
 
   object MultiLineStringLiteral {
     def apply(repr: InternalRow): MultiLineStringLiteral =
-      MultiLineStringLiteral(MultiLineStringTypeInstance.deserialize(repr), repr)
+      MultiLineStringLiteral(MultiLineStringUDT.deserialize(repr), repr)
   }
 
   case class MultiPolygonLiteral(geom: MultiPolygon, repr: InternalRow) extends GeometryLiteral {
-    override def dataType: DataType = MultiPolygonTypeInstance
+    override def dataType: DataType = MultiPolygonUDT
   }
 
   object MultiPolygonLiteral {
     def apply(repr: InternalRow): MultiPolygonLiteral =
-      MultiPolygonLiteral(MultiPolygonTypeInstance.deserialize(repr), repr)
+      MultiPolygonLiteral(MultiPolygonUDT.deserialize(repr), repr)
   }
 
   case class GeometryCollectionLiteral(geom: GeometryCollection, repr: InternalRow) extends GeometryLiteral {
-    override def dataType: DataType = GeometryCollectionTypeInstance
+    override def dataType: DataType = GeometryCollectionUDT
   }
 
   object GeometryCollectionLiteral {
     def apply(repr: InternalRow): GeometryCollectionLiteral =
-      GeometryCollectionLiteral(GeometryCollectionTypeInstance.deserialize(repr), repr)
+      GeometryCollectionLiteral(GeometryCollectionUDT.deserialize(repr), repr)
   }
 }
 
