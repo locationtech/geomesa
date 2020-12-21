@@ -106,7 +106,7 @@ class FileSystemRDDProviderTest extends Specification with LazyLogging {
             "dtg > '2016-01-01T12:00:00Z' AND dtg < '2016-01-02T12:00:00Z'"
         val rows = sc.sql(select).collect()
         rows must haveLength(1)
-        rows.head.get(0) mustEqual "2"
+        rows.head.get(rows.head.fieldIndex("__fid__")) mustEqual "2"
       }
     }
 
@@ -207,8 +207,8 @@ class FileSystemRDDProviderTest extends Specification with LazyLogging {
         }
         val res = sc.sql(s"select * from $format").collect()
         res must haveLength(2)
-        res.map(_.get(0)).toSeq must containTheSameElementsAs(Seq("1", "3"))
-        res.collectFirst { case r if r.get(0) == "1" => r.get(4) } must beSome[Any](WKTUtils.read("POINT (76.5 38.5)"))
+        res.map(r => r.get(r.fieldIndex("__fid__"))).toSeq must containTheSameElementsAs(Seq("1", "3"))
+        res.collectFirst { case r if r.get(r.fieldIndex("__fid__")) == "1" => r.get(r.fieldIndex("geom")) } must beSome[Any](WKTUtils.read("POINT (76.5 38.5)"))
       }
     }
   }

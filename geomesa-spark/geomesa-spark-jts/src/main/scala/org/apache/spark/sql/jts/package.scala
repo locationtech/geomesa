@@ -26,9 +26,9 @@ package object jts {
     case (l, r) => UDTRegistration.register(l.getCanonicalName, r.getCanonicalName)
   }
 
-  private [spark] def CoordArray(t: DataType): DataType = ArrayType(t, containsNull = false)
+  private[spark] def CoordArray(t: DataType): DataType = ArrayType(t, containsNull = false)
 
-  private [spark] def ir(datum: Any): InternalRow = {
+  private[spark] def ir(datum: Any): InternalRow = {
     datum match {
       case ir: InternalRow => ir
       case _ => throw new IOException(s"Invalid serialized geometry: $datum")

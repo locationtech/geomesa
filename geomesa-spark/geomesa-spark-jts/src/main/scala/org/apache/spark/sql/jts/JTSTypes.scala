@@ -82,6 +82,21 @@ case object PointUDT extends PointUDT
 
 class MultiPointUDT extends AbstractGeometryUDT[MultiPoint]("multipoint") {
 
+  // parquet definition:
+  // case ObjectType.MULTIPOINT =>
+  //   group.id(GeometryBytes.TwkbMultiPoint)
+  //     .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
+  //     .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
+
+  // parquet file metadata:
+  //  mpt:          OPTIONAL F:2
+  //  .x:           OPTIONAL F:1
+  //  ..list:       REPEATED F:1
+  //  ...element:   OPTIONAL DOUBLE R:1 D:4
+  //  .y:           OPTIONAL F:1
+  //  ..list:       REPEATED F:1
+  //  ...element:   OPTIONAL DOUBLE R:1 D:4
+
   override def sqlType: DataType = StructType(Seq(
     StructField("x", CoordArray(DataTypes.DoubleType), nullable = false),
     StructField("y", CoordArray(DataTypes.DoubleType), nullable = false)
@@ -118,24 +133,26 @@ class MultiPointUDT extends AbstractGeometryUDT[MultiPoint]("multipoint") {
       gf.createMultiPointFromCoords(c)
     }
   }
+}
 
-  // case ObjectType.MULTIPOINT =>
-  //   group.id(GeometryBytes.TwkbMultiPoint)
+case object MultiPointUDT extends MultiPointUDT
+
+class LineStringUDT extends AbstractGeometryUDT[LineString]("linestring") {
+
+  // parquet definition:
+  // case ObjectType.LINESTRING =>
+  //   group.id(GeometryBytes.TwkbLineString)
   //     .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
   //     .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
 
-  //  mpt:          OPTIONAL F:2
+  // parquet file metadata:
+  //  line:         OPTIONAL F:2
   //  .x:           OPTIONAL F:1
   //  ..list:       REPEATED F:1
   //  ...element:   OPTIONAL DOUBLE R:1 D:4
   //  .y:           OPTIONAL F:1
   //  ..list:       REPEATED F:1
   //  ...element:   OPTIONAL DOUBLE R:1 D:4
-}
-
-case object MultiPointUDT extends MultiPointUDT
-
-class LineStringUDT extends AbstractGeometryUDT[LineString]("linestring") {
 
   override def sqlType: DataType = StructType(Seq(
     StructField("x", CoordArray(DataTypes.DoubleType), nullable = false),
@@ -171,24 +188,26 @@ class LineStringUDT extends AbstractGeometryUDT[LineString]("linestring") {
       gf.createLineString(c)
     }
   }
+}
 
-  // case ObjectType.LINESTRING =>
-  //   group.id(GeometryBytes.TwkbLineString)
-  //     .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnX)
-  //     .repeated(PrimitiveTypeName.DOUBLE).named(GeometryColumnY)
+case object LineStringUDT extends LineStringUDT
 
-  //  line:         OPTIONAL F:2
+class MultiLineStringUDT extends AbstractGeometryUDT[MultiLineString]("multilinestring") {
+
+  // parquet definition:
+  // case ObjectType.MULTILINESTRING =>
+  //   group.id(GeometryBytes.TwkbMultiLineString)
+  //     .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
+  //     .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
+
+  // parquet file metadata:
+  //  mline:        OPTIONAL F:2
   //  .x:           OPTIONAL F:1
   //  ..list:       REPEATED F:1
   //  ...element:   OPTIONAL DOUBLE R:1 D:4
   //  .y:           OPTIONAL F:1
   //  ..list:       REPEATED F:1
   //  ...element:   OPTIONAL DOUBLE R:1 D:4
-}
-
-case object LineStringUDT extends LineStringUDT
-
-class MultiLineStringUDT extends AbstractGeometryUDT[MultiLineString]("multilinestring") {
 
   override def sqlType: DataType = StructType(Seq(
     StructField("x", CoordArray(CoordArray(DataTypes.DoubleType)), nullable = false),
@@ -241,25 +260,26 @@ class MultiLineStringUDT extends AbstractGeometryUDT[MultiLineString]("multiline
       gf.createMultiLineString(lines)
     }
   }
+}
 
-  // case ObjectType.MULTILINESTRING =>
-  //   group.id(GeometryBytes.TwkbMultiLineString)
+case object MultiLineStringUDT extends MultiLineStringUDT
+
+class PolygonUDT extends AbstractGeometryUDT[Polygon]("polygon") {
+
+  // parquet definition:
+  // case ObjectType.POLYGON =>
+  //   group.id(GeometryBytes.TwkbPolygon)
   //     .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
   //     .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
 
-
-  //  mline:        OPTIONAL F:2
+  // parquet file metadata:
+  //  poly:         OPTIONAL F:2
   //  .x:           OPTIONAL F:1
   //  ..list:       REPEATED F:1
   //  ...element:   OPTIONAL DOUBLE R:1 D:4
   //  .y:           OPTIONAL F:1
   //  ..list:       REPEATED F:1
   //  ...element:   OPTIONAL DOUBLE R:1 D:4
-}
-
-case object MultiLineStringUDT extends MultiLineStringUDT
-
-class PolygonUDT extends AbstractGeometryUDT[Polygon]("polygon") {
 
   override def sqlType: DataType = StructType(Seq(
     StructField("x", CoordArray(CoordArray(DataTypes.DoubleType)), nullable = false),
@@ -318,24 +338,30 @@ class PolygonUDT extends AbstractGeometryUDT[Polygon]("polygon") {
       gf.createPolygon(shell, holes)
     }
   }
-
-  // case ObjectType.POLYGON =>
-  //   group.id(GeometryBytes.TwkbPolygon)
-  //     .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
-  //     .requiredList().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
-
-  //  poly:         OPTIONAL F:2
-  //      .x:           OPTIONAL F:1
-  //  ..list:       REPEATED F:1
-  //  ...element:   OPTIONAL DOUBLE R:1 D:4
-  //  .y:           OPTIONAL F:1
-  //  ..list:       REPEATED F:1
-  //  ...element:   OPTIONAL DOUBLE R:1 D:4
 }
 
 case object PolygonUDT extends PolygonUDT
 
 class MultiPolygonUDT extends AbstractGeometryUDT[MultiPolygon]("multipolygon") {
+
+  // parquet definition:
+  // case ObjectType.MULTIPOLYGON =>
+  //   group.id(GeometryBytes.TwkbMultiPolygon)
+  //     .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
+  //     .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
+
+  // parquet file metadata:
+  //  mpoly:        OPTIONAL F:2
+  //  .x:           OPTIONAL F:1
+  //  ..list:       REPEATED F:1
+  //  ...element:   OPTIONAL F:1
+  //  ....list:     REPEATED F:1
+  //  .....element: OPTIONAL DOUBLE R:2 D:6
+  //  .y:           OPTIONAL F:1
+  //  ..list:       REPEATED F:1
+  //  ...element:   OPTIONAL F:1
+  //  ....list:     REPEATED F:1
+  //  .....element: OPTIONAL DOUBLE R:2 D:6
 
   override def sqlType: DataType = StructType(Seq(
     StructField("x", CoordArray(CoordArray(CoordArray(DataTypes.DoubleType))), nullable = false),
@@ -411,28 +437,14 @@ class MultiPolygonUDT extends AbstractGeometryUDT[MultiPolygon]("multipolygon") 
       gf.createMultiPolygon(polys)
     }
   }
-
-  // case ObjectType.MULTIPOLYGON =>
-  //   group.id(GeometryBytes.TwkbMultiPolygon)
-  //     .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnX)
-  //     .requiredList().requiredListElement().element(PrimitiveTypeName.DOUBLE, Repetition.REPEATED).named(GeometryColumnY)
-
-  //  mpoly:        OPTIONAL F:2
-  //  .x:           OPTIONAL F:1
-  //  ..list:       REPEATED F:1
-  //  ...element:   OPTIONAL F:1
-  //  ....list:     REPEATED F:1
-  //  .....element: OPTIONAL DOUBLE R:2 D:6
-  //  .y:           OPTIONAL F:1
-  //  ..list:       REPEATED F:1
-  //  ...element:   OPTIONAL F:1
-  //  ....list:     REPEATED F:1
-  //  .....element: OPTIONAL DOUBLE R:2 D:6
 }
 
 case object MultiPolygonUDT extends MultiPolygonUDT
 
 class GeometryUDT extends AbstractGeometryUDT[Geometry]("geometry") {
+
+  // parquet file metadata:
+  //  g:    OPTIONAL BINARY R:0 D:1
 
   private [sql] override def acceptsType(dataType: DataType): Boolean = {
     super.acceptsType(dataType) ||
@@ -459,8 +471,6 @@ class GeometryUDT extends AbstractGeometryUDT[Geometry]("geometry") {
       case _ => throw new IOException(s"Invalid serialized geometry: $datum")
     }
   }
-
-  //  g:            OPTIONAL BINARY R:0 D:1
 }
 
 case object GeometryUDT extends GeometryUDT
@@ -490,5 +500,3 @@ class GeometryCollectionUDT
 }
 
 case object GeometryCollectionUDT extends GeometryCollectionUDT
-
-//def group: Types.GroupBuilder[GroupType] = Types.buildGroup(Repetition.OPTIONAL)

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.spark.jts.rules
 
 import org.apache.spark.sql.SQLContext
-import org.apache.spark.sql.catalyst.expressions.{Expression, Literal, ScalaUDF, Unevaluable}
+import org.apache.spark.sql.catalyst.expressions.{Expression, Literal, ScalaUDF}
 import org.apache.spark.sql.catalyst.plans.logical._
 import org.apache.spark.sql.catalyst.rules.Rule
 import org.apache.spark.sql.jts._
@@ -37,16 +37,14 @@ object GeometryLiteralRules {
     }
 
     private def eval[T: ClassTag](s: ScalaUDF, lit: T => Expression): Expression = {
-      if (s.isInstanceOf[Unevaluable]) { s } else {
-        val t = Try {
-          s.eval(null) match {
-            case null => Literal(null)
-            case t: T => lit(t)
-            case a => Literal(a)
-          }
+      val t = Try {
+        s.eval(null) match {
+          case null => Literal(null)
+          case t: T => lit(t)
+          case a => Literal(a)
         }
-        t.getOrElse(s)
       }
+      t.getOrElse(s)
     }
   }
 
