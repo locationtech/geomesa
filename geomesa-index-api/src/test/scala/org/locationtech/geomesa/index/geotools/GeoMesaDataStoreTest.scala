@@ -209,6 +209,12 @@ class GeoMesaDataStoreTest extends Specification {
       SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
           Seq(newId)
     }
+    "checkout duplicate attribute names" in{
+      val spec = "foo:String,bar:Int,foo:Double,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("test",spec)
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft) must throwAn[IllegalArgumentException]
+    }
   }
 }
 
