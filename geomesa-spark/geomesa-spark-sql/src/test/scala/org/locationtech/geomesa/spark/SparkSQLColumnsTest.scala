@@ -129,13 +129,13 @@ class SparkSQLColumnsTest extends Specification with LazyLogging {
         "boolean" -> DataTypes.BooleanType,
         "dtg"     -> DataTypes.TimestampType,
         "time"    -> DataTypes.TimestampType,
-        "line"    -> JTSTypes.LineStringTypeInstance,
-        "poly"    -> JTSTypes.PolygonTypeInstance,
-        "points"  -> JTSTypes.MultiPointTypeInstance,
-        "lines"   -> JTSTypes.MultiLineStringTypeInstance,
+        "line"    -> JTSTypes.LineStringUDT,
+        "poly"    -> JTSTypes.PolygonUDT,
+        "points"  -> JTSTypes.MultiPointUDT,
+        "lines"   -> JTSTypes.MultiLineStringUDT,
         "polys"   -> JTSTypes.MultipolygonTypeInstance,
-        "geoms"   -> JTSTypes.GeometryCollectionTypeInstance,
-        "point"   -> JTSTypes.PointTypeInstance,
+        "geoms"   -> JTSTypes.GeometryCollectionUDT,
+        "point"   -> JTSTypes.PointUDT,
         "__fid__" -> DataTypes.StringType
       )
 
