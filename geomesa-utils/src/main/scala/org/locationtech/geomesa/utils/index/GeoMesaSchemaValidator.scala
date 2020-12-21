@@ -127,7 +127,7 @@ object PropertyCheck {
     val names = sft.getAttributeDescriptors.asScala.map(descriptor => descriptor.getLocalName)
     val duplicateProperties = names.diff(names.distinct)
     if ( duplicateProperties.nonEmpty ){
-      throw new IllegalArgumentException(s"duplicate attr: '${duplicateProperties.mkString(",")}' ")
+      throw new IllegalArgumentException(s"Schema contains duplicate attribute names: '${duplicateProperties.mkString(", ")}' ")
     }
   }
 }
