@@ -33,7 +33,7 @@ class FileSizeEstimator(target: Long, error: Float, estimatedBytesPerFeature: Fl
    */
   def estimate(written: Long): Int = {
     val e = math.round((target - written) / estimate)
-    if (e < 1) { 1 } else if (e.isValidInt) { e.intValue() } else { Int.MaxValue}
+    if (e < 1) { 1 } else if (e.isValidInt) { e.intValue() } else { Int.MaxValue }
   }
 
   /**
