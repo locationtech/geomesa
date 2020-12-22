@@ -385,7 +385,7 @@ object ExportJob extends JobWithLibJars {
     private var exporter: FeatureExporter = _
     private var estimator: FileSizeEstimator = _
     private var estimate = 0L // estimated number of features to write to hit our chunk size
-    private var count = 0 // current number of features written since the last estimate
+    private var count = 0L // current number of features written since the last estimate
 
     override def write(key: Text, value: SimpleFeature): Unit = {
       if (exporter == null) {

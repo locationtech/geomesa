@@ -31,10 +31,7 @@ class FileSizeEstimator(target: Long, error: Float, estimatedBytesPerFeature: Fl
    * @param written number of bytes written so far
    * @return
    */
-  def estimate(written: Long): Int = {
-    val e = math.round((target - written) / estimate)
-    if (e < 1) { 1 } else if (e.isValidInt) { e.intValue() } else { Int.MaxValue }
-  }
+  def estimate(written: Long): Long = math.max(1L, math.round((target - written) / estimate))
 
   /**
    * Re-evaluate the bytes per feature, based on having written out a certain number of features

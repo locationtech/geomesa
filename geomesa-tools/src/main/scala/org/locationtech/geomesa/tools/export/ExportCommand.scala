@@ -467,12 +467,13 @@ object ExportCommand extends LazyLogging {
       }
       exporter = new Exporter(options.copy(file = names.next), hints, queriedDictionaries)
       exporter.start(sft)
-      count = 0
+      count = 0L
     }
 
     @tailrec
     private def export(features: Iterator[SimpleFeature], result: Option[Long]): Option[Long] = {
-      val counter = features.take(estimator.estimate(exporter.bytes)).map { f => count += 1; f }
+      var estimate = estimator.estimate(exporter.bytes)
+      val counter = features.takeWhile { _ => count += 1; estimate -= 1; estimate >= 0 }
       val exported = exporter.export(counter) match {
         case None    => result
         case Some(c) => result.map(_ + c).orElse(Some(c))

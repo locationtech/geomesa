@@ -42,7 +42,7 @@ class FileSizeEstimatorTest extends Specification {
     }
     "always estimate at least 1" in {
       val estimator = new FileSizeEstimator(1000, 0.1f, 100)
-      forall(Range(0, 2000, 100))(i => estimator.estimate(i) must beGreaterThanOrEqualTo(1))
+      forall(Range(0, 2000, 100))(i => estimator.estimate(i) must beGreaterThanOrEqualTo(1L))
     }
   }
 }
