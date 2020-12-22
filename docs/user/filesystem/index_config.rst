@@ -137,6 +137,8 @@ the user data key ``geomesa.fs.file-size``:
         // or set directly in the user data as a string
         sft.getUserData.put("geomesa.fs.file-size", "1GB")
 
+Note that target file size can also be specified in some operations, which will override any default configured
+in the feature type. See :ref:`fsds_compact_command` and :ref:`fsds_ingest_command` for details.
 .. _fsds_metadata_config:
 
 Configuring Metadata Persistence
@@ -239,4 +241,3 @@ Observers can be specified through the user data key ``geomesa.fs.observers``:
         sft.setObservers(factories)
         // or set directly in the user data as a comma-delimited string
         sft.getUserData.put("geomesa.fs.observers", factories.mkString(","))
-
