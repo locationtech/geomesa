@@ -238,7 +238,7 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   }
 
   override def resetCache():Unit={
-    tableExists.set(if (checkIfTableExists) { true} else {false})
+    tableExists.set(checkIfTableExists)
     metaDataCache.invalidateAll()
   }
 
