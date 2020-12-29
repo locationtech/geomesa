@@ -13,6 +13,7 @@ import java.time.temporal.ChronoField
 import java.time.{Instant, ZoneOffset}
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 
 import com.github.benmanes.caffeine.cache.{Cache, CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
@@ -99,8 +100,7 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   protected def scanKeys(): CloseableIterator[(String, String)]
 
   // only synchronize if table doesn't exist - otherwise it's ready only and we can avoid synchronization
-  private var tableExists: MaybeSynchronized[Boolean] =
-    if (checkIfTableExists) { new NotSynchronized(true) } else { new IsSynchronized(false) }
+  private val tableExists: AtomicBoolean = new AtomicBoolean(checkIfTableExists)
 
   private val expiry = TableBasedMetadata.Expiry.toDuration.get.toMillis
 
@@ -229,10 +229,16 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
   }
 
   // checks that the table is already created, and creates it if not
-  def ensureTableExists(): Unit = tableExists.set(true, false, createTable())
+  def ensureTableExists(): Unit = {
+//    do not use compareAndSet because unsafe.compareAndSwapInt is called in compareAndSet，may make problem for jdk11
+    if (!tableExists.get()){
+      createTable()
+      tableExists.set(true)
+    }
+  }
 
   override def resetCache():Unit={
-    tableExists = if (checkIfTableExists) { new NotSynchronized[Boolean](true)} else {new IsSynchronized[Boolean](false)}
+    tableExists.set(if (checkIfTableExists) { true} else {false})
     metaDataCache.invalidateAll()
   }
 
