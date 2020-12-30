@@ -29,15 +29,22 @@ import org.opengis.filter.Filter
 object StorageConfiguration {
 
   object Counters {
+
     val Group    = "org.locationtech.geomesa.jobs.fs"
+
     val Features = "features"
     val Written  = "written"
     val Failed   = "failed"
+
+    val PartitionPrefix = "p-"
+
+    def partition(name: String): String = PartitionPrefix + name
   }
 
   val PathKey                = "geomesa.fs.path"
   val PartitionsKey          = "geomesa.fs.partitions"
   val FileTypeKey            = "geomesa.fs.output.file-type"
+  val FileSizeKey            = "geomesa.fs.output.file-size"
   val SftNameKey             = "geomesa.fs.sft.name"
   val SftSpecKey             = "geomesa.fs.sft.spec"
   val FilterKey              = "geomesa.fs.filter"
@@ -65,6 +72,9 @@ object StorageConfiguration {
 
   def setFileType(conf: Configuration, fileType: FileType): Unit = conf.set(FileTypeKey, fileType.toString)
   def getFileType(conf: Configuration): FileType = FileType.withName(conf.get(FileTypeKey))
+
+  def setTargetFileSize(conf: Configuration, fileSize: Long): Unit = conf.set(FileSizeKey, fileSize.toString)
+  def getTargetFileSize(conf: Configuration): Option[Long] = Option(conf.get(FileSizeKey)).map(_.toLong)
 
   def setFilter(conf: Configuration, filter: Filter): Unit = conf.set(FilterKey, ECQL.toCQL(filter))
   def getFilter(conf: Configuration, sft: SimpleFeatureType): Option[Filter] =

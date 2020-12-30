@@ -8,6 +8,9 @@
 
 package org.locationtech.geomesa.fs.tools.compact
 
+import java.util.Locale
+import java.util.concurrent.{CountDownLatch, Executors}
+
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
@@ -23,13 +26,12 @@ import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.tools.Command.CommandException
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.ingest.IngestCommand
+import org.locationtech.geomesa.tools.utils.ParameterConverters.BytesConverter
 import org.locationtech.geomesa.tools.utils.TerminalCallback.PrintProgress
 import org.locationtech.geomesa.tools.{Command, DistributedCommand, DistributedRunParam, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.io.PathUtils
 import org.locationtech.geomesa.utils.text.TextTools
 
-import java.util.Locale
-import java.util.concurrent.{CountDownLatch, Executors}
 import scala.util.control.NonFatal
 
 // need to mixin FsDistributedCommand to pick up base libjars file
@@ -65,6 +67,7 @@ object FsCompactCommand {
       val mode = params.mode.getOrElse {
         if (PathUtils.isRemote(storage.context.root.toString)) { RunModes.Distributed } else { RunModes.Local }
       }
+      val fileSize = Option(params.targetFileSize).map(_.longValue)
 
       Command.user.info(s"Compacting ${toCompact.size} partitions in ${mode.toString.toLowerCase(Locale.US)} mode")
 
@@ -84,7 +87,7 @@ object FsCompactCommand {
                   override def run(): Unit = {
                     try {
                       logger.info(s"Compacting ${p.name}")
-                      storage.compact(Some(p.name))
+                      storage.compact(Some(p.name), fileSize)
                     } catch {
                       case NonFatal(e) => logger.error(s"Error processing partition '${p.name}':", e)
                     } finally {
@@ -104,7 +107,7 @@ object FsCompactCommand {
           }
           status("", 1f, Seq.empty, done = true)
           Command.user.info("Compacting metadata")
-          storage.metadata.compact(None, math.max(1, params.threads))
+          storage.metadata.compact(None, None, math.max(1, params.threads))
           Command.user.info(s"Local compaction complete in ${TextTools.getTime(start)}")
 
         case RunModes.Distributed =>
@@ -117,7 +120,7 @@ object FsCompactCommand {
             throw new ParameterException(s"Compaction is not supported for encoding '$encoding'")
           }
           val tempDir = Option(params.tempDir).map(t => new Path(t))
-          job.run(storage, toCompact, tempDir, libjarsFiles, libjarsPaths, status) match {
+          job.run(storage, toCompact, fileSize, tempDir, libjarsFiles, libjarsPaths, status) match {
             case JobSuccess(message, counts) =>
               Command.user.info(s"Distributed compaction complete in ${TextTools.getTime(start)}")
               val success = counts(FileSystemCompactionJob.MappedCounter)
@@ -135,7 +138,14 @@ object FsCompactCommand {
   @Parameters(commandDescription = "Compact partitions")
   class CompactParams extends FsParams
       with RequiredTypeNameParam with TempDirParam with PartitionParam with DistributedRunParam {
+
     @Parameter(names = Array("-t", "--threads"), description = "Number of threads if using local mode")
     var threads: Integer = 4
+
+    @Parameter(
+      names = Array("--target-file-size"),
+      description = "Target size for data files",
+      converter = classOf[BytesConverter])
+    var targetFileSize: java.lang.Long = _
   }
 }

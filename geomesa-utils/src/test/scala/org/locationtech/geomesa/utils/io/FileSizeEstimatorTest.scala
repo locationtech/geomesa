@@ -6,10 +6,9 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.tools.export
+package org.locationtech.geomesa.utils.io
 
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.tools.export.ExportCommand.FileSizeEstimator
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -43,7 +42,7 @@ class FileSizeEstimatorTest extends Specification {
     }
     "always estimate at least 1" in {
       val estimator = new FileSizeEstimator(1000, 0.1f, 100)
-      forall(Range(0, 2000, 100))(i => estimator.estimate(i) must beGreaterThanOrEqualTo(1))
+      forall(Range(0, 2000, 100))(i => estimator.estimate(i) must beGreaterThanOrEqualTo(1L))
     }
   }
 }

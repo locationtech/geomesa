@@ -108,6 +108,41 @@ Leaf storage can be specified through the user data key ``geomesa.fs.leaf-storag
         // or set directly in the user data as a string
         sft.getUserData.put("geomesa.fs.leaf-storage", "false")
 
+.. _fsds_file_size_config:
+
+Configuring Target File Size
+----------------------------
+
+By default data files can grow to unlimited size as more data is written and files are compacted. This may lead
+to poor performance, if a file becomes too large. To manage this, a target file size can be configured through
+the user data key ``geomesa.fs.file-size``:
+
+.. tabs::
+
+    .. code-tab:: java
+
+        import org.locationtech.geomesa.fs.storage.common.interop.ConfigurationUtils;
+
+        SimpleFeatureType sft = ...
+        // use the utility method
+        ConfigurationUtils.setTargetFileSize(sft, false);
+        // or set directly in the user data as a string
+        sft.getUserData().put("geomesa.fs.file-size", "1GB");
+
+    .. code-tab:: scala
+
+        import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
+
+        val sft: SimpleFeatureType = ???
+        // use the implicit method from RichSimpleFeatureType
+        sft.setTargetFileSize("1GB")
+        // or set directly in the user data as a string
+        sft.getUserData.put("geomesa.fs.file-size", "1GB")
+
+Note that target file size can also be specified in some operations, which will override any default configured
+in the feature type. See :ref:`fsds_compact_command` and :ref:`fsds_ingest_command` for details. See
+:ref:`fsds_size_threshold_prop` for controlling the file size error margin.
+
 .. _fsds_metadata_config:
 
 Configuring Metadata Persistence
@@ -210,4 +245,3 @@ Observers can be specified through the user data key ``geomesa.fs.observers``:
         sft.setObservers(factories)
         // or set directly in the user data as a comma-delimited string
         sft.getUserData.put("geomesa.fs.observers", factories.mkString(","))
-

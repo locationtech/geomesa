@@ -10,8 +10,8 @@ package org.locationtech.geomesa.tools.utils
 
 import java.util.Date
 
-import com.beust.jcommander.ParameterException
 import com.beust.jcommander.converters.BaseConverter
+import com.beust.jcommander.{IValueValidator, ParameterException}
 import org.geotools.filter.text.ecql.ECQL
 import org.locationtech.geomesa.convert.Modes.ErrorMode
 import org.locationtech.geomesa.tools.export.formats.ExportFormat
@@ -121,5 +121,10 @@ object ParameterConverters {
         case Failure(e) => throw new ParameterException(s"Invalid byte string '$value'", e)
       }
     }
+  }
+
+  class BytesValidator extends IValueValidator[String] {
+    override def validate(name: String, value: String): Unit =
+      Memory.bytes(value).failed.foreach(e => throw new ParameterException(s"Invalid byte string '$value'", e))
   }
 }

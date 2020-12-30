@@ -13,7 +13,7 @@ import java.nio.charset.StandardCharsets
 
 import com.typesafe.config.{Config, ConfigFactory}
 import org.locationtech.geomesa.fs.storage.api.{Metadata, NamedOptions}
-import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.{PartitionSchemeConfig, StoragePersistence, StoragePersistenceV1}
+import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.{PartitionSchemeConfig, StoragePersistence, StoragePersistenceV1, StoragePersistenceV2}
 import org.locationtech.geomesa.fs.storage.common.{ParseOptions, RenderOptions}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.stats.MethodProfiling
@@ -36,7 +36,7 @@ object MetadataSerialization extends MethodProfiling {
   def serialize(out: OutputStream, metadata: Metadata): Unit = {
     val sftConfig = SimpleFeatureTypes.toConfig(metadata.sft, includePrefix = false, includeUserData = true)
     val schemeConfig = PartitionSchemeConfig(metadata.scheme.name, metadata.scheme.options)
-    val persistence = StoragePersistence(sftConfig, schemeConfig, metadata.encoding, metadata.leafStorage)
+    val persistence = StoragePersistence(sftConfig, schemeConfig, metadata.config)
 
     val data = profile("Serialized storage configuration") {
       ConfigWriter[StoragePersistence].to(persistence).render(RenderOptions)
@@ -57,16 +57,26 @@ object MetadataSerialization extends MethodProfiling {
       val config = ConfigFactory.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8), ParseOptions)
       try { pureconfig.loadConfigOrThrow[StoragePersistence](config) } catch {
         case NonFatal(e) =>
-          val v1 = Try(pureconfig.loadConfigOrThrow[StoragePersistenceV1](config)).getOrElse(throw e)
-          val leaf = v1.partitionScheme.options.get("leaf-storage").forall(_.equalsIgnoreCase("true"))
-          StoragePersistence(v1.featureType, v1.partitionScheme, v1.encoding, leaf)
+          def v1: Try[StoragePersistence] =
+            Try(pureconfig.loadConfigOrThrow[StoragePersistenceV1](config)).map { p =>
+              val leaf = p.partitionScheme.options.get("leaf-storage").forall(_.equalsIgnoreCase("true"))
+              val config = Map(Metadata.Encoding -> p.encoding, Metadata.LeafStorage -> s"$leaf")
+              StoragePersistence(p.featureType, p.partitionScheme, config)
+            }
+          def v2: Try[StoragePersistence] =
+            Try(pureconfig.loadConfigOrThrow[StoragePersistenceV2](config)).map { p =>
+              val leaf = java.lang.Boolean.toString(p.leafStorage)
+              val config = Map(Metadata.Encoding -> p.encoding, Metadata.LeafStorage -> leaf)
+              StoragePersistence(p.featureType, p.partitionScheme, config)
+            }
+          v2.orElse(v1).getOrElse(throw e)
       }
     }
     val sft = profile("Parsed simple feature type") {
       SimpleFeatureTypes.createType(persistence.featureType, path = None)
     }
     val scheme = NamedOptions(persistence.partitionScheme.scheme, persistence.partitionScheme.options)
-    Metadata(sft, persistence.encoding, scheme, persistence.leafStorage)
+    Metadata(sft, scheme, persistence.config)
   }
 
   // case classes used for serialization to/from typesafe config
@@ -77,9 +87,10 @@ object MetadataSerialization extends MethodProfiling {
     case class StoragePersistence(
         featureType: Config,
         partitionScheme: PartitionSchemeConfig,
-        encoding: String,
-        leafStorage: Boolean
+        config: Map[String, String]
       )
+    case class StoragePersistenceV2(
+        featureType: Config, partitionScheme: PartitionSchemeConfig, encoding: String, leafStorage: Boolean)
     case class StoragePersistenceV1(featureType: Config, partitionScheme: PartitionSchemeConfig, encoding: String)
     case class PartitionSchemeConfig(scheme: String, options: Map[String, String])
 
@@ -87,6 +98,8 @@ object MetadataSerialization extends MethodProfiling {
       deriveConvert[PartitionSchemeConfig]
     implicit val StoragePersistenceV1Convert: ConfigConvert[StoragePersistenceV1] =
       deriveConvert[StoragePersistenceV1]
+    implicit val StoragePersistenceV2Convert: ConfigConvert[StoragePersistenceV2] =
+      deriveConvert[StoragePersistenceV2]
     implicit val StoragePersistenceConvert: ConfigConvert[StoragePersistence] = deriveConvert[StoragePersistence]
   }
 }

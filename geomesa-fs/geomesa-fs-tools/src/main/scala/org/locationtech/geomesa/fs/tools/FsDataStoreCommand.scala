@@ -17,7 +17,7 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
-import org.locationtech.geomesa.tools.utils.ParameterConverters.KeyValueConverter
+import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesConverter, BytesValidator, KeyValueConverter}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.io.PathUtils
@@ -85,6 +85,12 @@ object FsDataStoreCommand {
 
     @Parameter(names = Array("--storage-opt"), variableArity = true, description = "Additional storage opts (k=v)", converter = classOf[KeyValueConverter])
     var storageOpts: java.util.List[(String, String)] = new java.util.ArrayList[(String, String)]()
+
+    @Parameter(
+      names = Array("--target-file-size"),
+      description = "Target size for data files",
+      validateValueWith = classOf[BytesValidator])
+    var targetFileSize: String = _
   }
 
   class EncodingValidator extends IValueValidator[String] {

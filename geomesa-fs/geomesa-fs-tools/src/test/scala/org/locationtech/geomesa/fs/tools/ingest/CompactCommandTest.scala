@@ -12,11 +12,10 @@ import java.nio.file.{Files, Path}
 
 import org.apache.commons.io.FileUtils
 import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
-import org.geotools.data.{DataStore, DataStoreFinder, Query, Transaction}
+import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
-import org.locationtech.geomesa.fs.data.FileSystemFeatureStore
-import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadata
+import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -24,131 +23,171 @@ import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.locationtech.jts.geom._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-import org.specs2.specification.BeforeAfterAll
 
 import scala.collection.JavaConversions._
 
 @RunWith(classOf[JUnitRunner])
-class CompactCommandTest extends Specification with BeforeAfterAll {
+class CompactCommandTest extends Specification {
 
   import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
 
   sequential
 
-  var cluster: MiniDFSCluster = _
-  var directory: String = _
-  val typeName = "orc"
-
   val tempDir: Path = Files.createTempDirectory("compactCommand")
 
-  val pt: Point              = WKTUtils.read("POINT(0 0)").asInstanceOf[Point]
-  val line: LineString       = WKTUtils.read("LINESTRING(0 0, 1 1, 4 4)").asInstanceOf[LineString]
-  val polygon: Polygon       = WKTUtils.read("POLYGON((10 10, 10 20, 20 20, 20 10, 10 10), (11 11, 19 11, 19 19, 11 19, 11 11))").asInstanceOf[Polygon]
-  val mpt: MultiPoint        = WKTUtils.read("MULTIPOINT((0 0), (1 1))").asInstanceOf[MultiPoint]
-  val mline: MultiLineString = WKTUtils.read("MULTILINESTRING ((0 0, 1 1), \n  (2 2, 3 3))").asInstanceOf[MultiLineString]
-  val mpolygon: MultiPolygon = WKTUtils.read("MULTIPOLYGON(((0 0, 1 0, 1 1, 0 0)), ((10 10, 10 20, 20 20, 20 10, 10 10), (11 11, 19 11, 19 19, 11 19, 11 11)))").asInstanceOf[MultiPolygon]
+  val encodings = Seq("parquet", "orc")
 
-  val sft: SimpleFeatureType = SimpleFeatureTypes.createType(typeName, "name:String,age:Int,dtg:Date," +
-    "*geom:MultiLineString:srid=4326,pt:Point,line:LineString,poly:Polygon,mpt:MultiPoint,mline:MultiLineString,mpoly:MultiPolygon")
-  sft.setScheme("daily")
+  var cluster: MiniDFSCluster = _
+  var directory: String = _
 
-  val features: Seq[ScalaSimpleFeature] = Seq.tabulate(10) { i =>
-    ScalaSimpleFeature.create(sft, s"$i", s"test$i", 100 + i, s"2017-06-0${5 + (i % 3)}T04:03:02.0001Z", s"MULTILINESTRING((0 0, 10 10.$i))",
-      pt, line, polygon, mpt, mline, mpolygon)
+  val pt       = WKTUtils.read("POINT(0 0)")
+  val line     = WKTUtils.read("LINESTRING(0 0, 1 1, 4 4)")
+  val polygon  = WKTUtils.read("POLYGON((10 10, 10 20, 20 20, 20 10, 10 10), (11 11, 19 11, 19 19, 11 19, 11 11))")
+  val mpt      = WKTUtils.read("MULTIPOINT((0 0), (1 1))")
+  val mline    = WKTUtils.read("MULTILINESTRING ((0 0, 1 1), (2 2, 3 3))")
+  val mpolygon = WKTUtils.read("MULTIPOLYGON(((0 0, 1 0, 1 1, 0 0)), ((10 10, 10 20, 20 20, 20 10, 10 10), (11 11, 19 11, 19 19, 11 19, 11 11)))")
+
+  val sfts = encodings.map { name =>
+    val sft = SimpleFeatureTypes.createType(name,
+      "name:String,age:Int,dtg:Date," +
+        "*geom:MultiLineString:srid=4326,pt:Point,line:LineString," +
+          "poly:Polygon,mpt:MultiPoint,mline:MultiLineString,mpoly:MultiPolygon")
+    sft.setEncoding(name)
+    sft.setScheme("daily")
+    sft
   }
 
-  val features2: Seq[ScalaSimpleFeature] = Seq.tabulate(10) { j =>
-    val i = j+10
-    ScalaSimpleFeature.create(sft, s"$i", s"test$i", 100 + i, s"2017-06-0${5 + (j % 3)}T04:03:02.0001Z", s"MULTILINESTRING((0 0, 10 10.$j))",
-      pt, line, polygon, mpt, mline, mpolygon)
-  }
+  val numFeatures = 10000
+  val targetFileSize = 12000L // kind of a magic number, in that it divides up the features into files fairly evenly with no remainder
 
-  def getDataStore: DataStore = {
+  lazy val ds = {
     val dsParams = Map(
       "fs.path" -> directory,
-      "fs.encoding" -> typeName,
-      "fs.config.xml" -> "<configuration><property><name>parquet.compression</name><value>gzip</value></property></configuration>")
-    DataStoreFinder.getDataStore(dsParams)
+      "fs.config.xml" -> "<configuration><property><name>parquet.compression</name><value>GZIP</value></property></configuration>")
+    DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]
   }
 
-  override def beforeAll(): Unit = {
+  def features(sft: SimpleFeatureType): Seq[ScalaSimpleFeature] = {
+    Seq.tabulate(numFeatures) { i =>
+      ScalaSimpleFeature.create(sft,
+        s"$i", s"test$i", 100 + i, s"2017-06-0${5 + (i % 3)}T04:03:02.0001Z", s"MULTILINESTRING((0 0, 10 10.${i % 10}))",
+        pt, line, polygon, mpt, mline, mpolygon)
+    }
+  }
+
+  step {
     // Start MiniCluster
     val conf = new HdfsConfiguration()
     conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, tempDir.toFile.getAbsolutePath)
     cluster = new MiniDFSCluster.Builder(conf).build()
-    directory = cluster.getDataDirectory + s"_$typeName"
-    val ds = getDataStore
-
-    ds.createSchema(sft)
-
-    writeFeature(ds, features)
-    writeFeature(ds, features2)
-  }
-
-  def writeFeature(ds: DataStore, feats: Seq[ScalaSimpleFeature]): Unit = {
-    WithClose(ds.getFeatureWriterAppend(typeName, Transaction.AUTO_COMMIT)) { writer =>
-      feats.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+    directory = cluster.getDataDirectory + "_fs"
+    sfts.foreach { sft =>
+      ds.createSchema(sft)
+      // create 2 files per partition
+      features(sft).grouped(numFeatures / 2).foreach { feats =>
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          feats.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+      }
     }
   }
 
   "Compaction command" >> {
-    "Before compacting should be multiple files" in {
-      val ds = getDataStore
+    "Before compacting should be multiple files per partition" in {
+      foreach(sfts) { sft =>
+        val fs = ds.getFeatureSource(sft.getTypeName)
 
-      val fs = ds.getFeatureSource(typeName)
+        WithClose(fs.getFeatures.features) { iter =>
+          while (iter.hasNext) {
+            val feat = iter.next
+            feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
+            featureMustHaveProperGeometries(feat)
+          }
+        }
 
-      val iter = fs.getFeatures.features
-      while (iter.hasNext) {
-        val feat = iter.next
-        feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
-        featureHasProperGeometries(feat) mustEqual true
+        fs.getCount(Query.ALL) mustEqual numFeatures
+        ds.storage(sft.getTypeName).metadata.getPartitions().map(_.files.size) mustEqual Seq.fill(3)(2)
       }
-
-      fs.getCount(Query.ALL) mustEqual 20
-      fs.asInstanceOf[FileSystemFeatureStore].storage.metadata.getPartitions().map(_.files.size).sum mustEqual 6
     }
 
     "Compaction command should run successfully" in {
-      val command = new FsCompactCommand()
-      command.params.featureName = typeName
-      command.params.path = directory
-      command.params.runMode = RunModes.Distributed.toString
-      command.execute()
-      success
+      foreach(sfts) { sft =>
+        val command = new FsCompactCommand()
+        command.params.featureName = sft.getTypeName
+        command.params.path = directory
+        command.params.runMode = RunModes.Distributed.toString
+        // invoke on our existing store so the cached metadata gets updated
+        command.compact(ds) must not(throwAn[Exception])
+      }
     }
 
-    "After compacting should be fewer files" in {
-      val ds = getDataStore
-      val fs = ds.getFeatureSource(typeName)
-      val metadata = {
-        // create a new metadata, as the cached values aren't updated by the compaction job
-        val storage = fs.asInstanceOf[FileSystemFeatureStore].storage
-        FileBasedMetadata.copy(storage.metadata.asInstanceOf[FileBasedMetadata])
-      }
+    "After compacting should be one file per partition" in {
+      foreach(sfts) { sft =>
+        val fs = ds.getFeatureSource(sft.getTypeName)
 
-      val iter = fs.getFeatures.features
-      while (iter.hasNext) {
-        val feat = iter.next
-        feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
-        featureHasProperGeometries(feat) mustEqual true
+        WithClose(fs.getFeatures.features) { iter =>
+          while (iter.hasNext) {
+            val feat = iter.next
+            feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
+            featureMustHaveProperGeometries(feat)
+          }
+        }
+
+        fs.getCount(Query.ALL) mustEqual numFeatures
+        ds.storage(sft.getTypeName).metadata.getPartitions().map(_.files.size) mustEqual Seq.fill(3)(1)
       }
-      fs.getCount(Query.ALL) mustEqual 20
-      metadata.getPartitions().map(_.files.size).sum mustEqual 3
+    }
+
+    "Compaction command should run successfully with target file size" in {
+      foreach(sfts) { sft =>
+        val command = new FsCompactCommand()
+        command.params.featureName = sft.getTypeName
+        command.params.path = directory
+        command.params.runMode = RunModes.Distributed.toString
+        command.params.targetFileSize = targetFileSize
+        // invoke on our existing store so the cached metadata gets updated
+        command.compact(ds) must not(throwAn[Exception])
+      }
+    }
+
+    "After compacting with target file size should be multiple files per partition" in {
+      foreach(sfts) { sft =>
+        val fs = ds.getFeatureSource(sft.getTypeName)
+
+        WithClose(fs.getFeatures.features) { iter =>
+          while (iter.hasNext) {
+            val feat = iter.next
+            feat.getDefaultGeometry.asInstanceOf[MultiLineString].isEmpty mustEqual false
+            featureMustHaveProperGeometries(feat)
+          }
+        }
+
+        fs.getCount(Query.ALL) mustEqual numFeatures
+        val storage = ds.storage(sft.getTypeName)
+        foreach(storage.metadata.getPartitions()) { partition =>
+          partition.files.size must beGreaterThan(1)
+          val sizes = storage.getFilePaths(partition.name).map(p => storage.context.fc.getFileStatus(p.path).getLen)
+          // hard to get very close with 2 different formats and small files...
+          foreach(sizes)(_ must beCloseTo(targetFileSize, 4000))
+        }
+      }
     }
   }
 
-  def featureHasProperGeometries(sf: SimpleFeature): Boolean = {
-    sf.getAttribute("pt").equals(pt) &&
-    sf.getAttribute("line").equals(line) &&
-    sf.getAttribute("poly").equals(polygon) &&
-    sf.getAttribute("mpt").equals(mpt) &&
-    sf.getAttribute("mline").equals(mline) &&
-    sf.getAttribute("mpoly").equals(mpolygon)
+  def featureMustHaveProperGeometries(sf: SimpleFeature): MatchResult[Any] = {
+    sf.getAttribute("pt") mustEqual pt
+    sf.getAttribute("line") mustEqual line
+    sf.getAttribute("poly") mustEqual polygon
+    sf.getAttribute("mpt") mustEqual mpt
+    sf.getAttribute("mline") mustEqual mline
+    sf.getAttribute("mpoly") mustEqual mpolygon
   }
 
-  override def afterAll(): Unit = {
+  step {
+    ds.dispose()
     // Stop MiniCluster
     cluster.shutdown()
     FileUtils.deleteDirectory(tempDir.toFile)
