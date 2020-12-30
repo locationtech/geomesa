@@ -116,7 +116,8 @@ class PartitionOutputFormat(delegate: SingleFileOutputFormat) extends OutputForm
       }
 
       def meta: PartitionMetadata = {
-        val f = files.map(StorageFile(_, System.currentTimeMillis()))
+        val millis = System.currentTimeMillis()
+        val f = files.map(StorageFile(_, millis))
         PartitionMetadata(partition, f, PartitionBounds(bounds), count)
       }
 
