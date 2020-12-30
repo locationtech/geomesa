@@ -74,6 +74,10 @@ object FsCreateSchemaCommand {
       throw new ParameterException(s"The following options are required: ${errors.mkString(" ")}")
     }
 
+    if (params.targetFileSize != null) {
+      sft.setTargetFileSize(params.targetFileSize)
+    }
+
     // Can use this to set things like compression and summary levels for parquet in the sft user data
     // to be picked up by the ingest job
     params.storageOpts.asScala.foreach { case (k, v) => sft.getUserData.put(k,v) }

@@ -26,7 +26,7 @@ Commands
 ``compact``
 ^^^^^^^^^^^
 
-Compact one or more filesystem partitions. This will merge multiple files into a single file, which may
+Compact one or more filesystem partitions. This will merge multiple files into fewer, larger files, which may
 provide better query performance.
 
 ======================== =========================================================
@@ -35,6 +35,7 @@ Argument                 Description
 ``-p, --path *``         The filesystem root path used to store data
 ``-f, --feature-name *`` The name of the schema
 ``--partitions``         Partitions to compact (omit to compact all partitions)
+``--target-file-size``   Target size for data files (e.g. 500MB or 1GB)
 ``--mode``               One of ``local`` or ``distributed`` (to use map/reduce)
 ``--temp-path``          Path to a temp directory used for working files
 ======================== =========================================================
@@ -117,6 +118,7 @@ Argument                 Description
 ``--partition-scheme``   Common partition scheme name (e.g. daily, z2) or path to a file containing a scheme config
 ``--num-reducers``       Number of reducers to use (required for distributed ingest)
 ``--leaf-storage``       Use leaf storage
+``--target-file-size``   Target size for data files (e.g. 500MB or 1GB)
 ``--temp-path``          Path to a temp directory used for working files
 ``--storage-opt``        Additional storage options, as ``key=value``
 ======================== =============================================================

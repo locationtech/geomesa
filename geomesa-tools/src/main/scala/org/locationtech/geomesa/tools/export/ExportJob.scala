@@ -30,10 +30,10 @@ import org.locationtech.geomesa.index.geoserver.ViewParams
 import org.locationtech.geomesa.index.index.attribute.AttributeIndexKey
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
 import org.locationtech.geomesa.jobs.mapreduce.JobWithLibJars
-import org.locationtech.geomesa.tools.export.ExportCommand.{ExportOptions, Exporter, FileSizeEstimator}
+import org.locationtech.geomesa.tools.export.ExportCommand.{ExportOptions, Exporter}
 import org.locationtech.geomesa.tools.export.formats.{ExportFormat, FeatureExporter}
 import org.locationtech.geomesa.utils.index.ByteArrays
-import org.locationtech.geomesa.utils.io.{IncrementingFileName, PathUtils}
+import org.locationtech.geomesa.utils.io.{FileSizeEstimator, IncrementingFileName, PathUtils}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -385,7 +385,7 @@ object ExportJob extends JobWithLibJars {
     private var exporter: FeatureExporter = _
     private var estimator: FileSizeEstimator = _
     private var estimate = 0L // estimated number of features to write to hit our chunk size
-    private var count = 0 // current number of features written since the last estimate
+    private var count = 0L // current number of features written since the last estimate
 
     override def write(key: Text, value: SimpleFeature): Unit = {
       if (exporter == null) {

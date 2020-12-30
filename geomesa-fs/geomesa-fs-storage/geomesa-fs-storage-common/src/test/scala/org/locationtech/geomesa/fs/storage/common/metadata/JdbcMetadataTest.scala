@@ -163,6 +163,29 @@ class JdbcMetadataTest extends Specification with AllExpectations {
         }
       }
     }
+    "set and get key-value pairs" in {
+      withPath { context =>
+        val config = getConfig(context.root)
+        WithClose(factory.create(context, config, meta)) { created =>
+          created.set("foo", "bar")
+          created.set("bar", "baz")
+          val loaded = factory.load(context)
+          loaded must beSome
+          try {
+            foreach(Seq(created, loaded.get)) { metadata =>
+              metadata.encoding mustEqual encoding
+              metadata.sft mustEqual sft
+              metadata.sft.getUserData.asScala.toSeq must containAllOf(sft.getUserData.asScala.toSeq)
+              metadata.scheme mustEqual scheme
+              metadata.get("foo") must beSome("bar")
+              metadata.get("bar") must beSome("baz")
+            }
+          } finally {
+            loaded.get.close()
+          }
+        }
+      }
+    }
     "read old tables" in {
       WithClose(getClass.getClassLoader.getResourceAsStream("jdbc/metadata.h2")) { db =>
         db must not(beNull)

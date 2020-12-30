@@ -11,11 +11,13 @@ package org.locationtech.geomesa.fs.storage.common.metadata
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.nio.charset.StandardCharsets
 import java.sql.{Connection, ResultSet, SQLException}
+import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.dbcp2.{PoolableConnection, PoolingDataSource}
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, StorageMetadata}
+import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, PartitionSchemeFactory, StorageMetadata}
+import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata.MetadataTable
 import org.locationtech.geomesa.utils.io.WithClose
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -65,20 +67,33 @@ import org.opengis.feature.simple.SimpleFeatureType
   * @param pool connection pool
   * @param root storage root path
   * @param sft simple feature type
-  * @param encoding encoding
-  * @param scheme partition scheme
-  * @param leafStorage leaf storage
+  * @param meta basic metadata config
   **/
 class JdbcMetadata(
     pool: PoolingDataSource[PoolableConnection],
     root: String,
     val sft: SimpleFeatureType,
-    val encoding: String,
-    val scheme: PartitionScheme,
-    val leafStorage: Boolean
+    meta: Metadata
   ) extends StorageMetadata {
 
   import JdbcMetadata.PartitionsTable
+
+  import scala.collection.JavaConverters._
+
+  override val scheme: PartitionScheme = PartitionSchemeFactory.load(sft, meta.scheme)
+  override val encoding: String = meta.config(Metadata.Encoding)
+  override val leafStorage: Boolean = meta.config(Metadata.LeafStorage).toBoolean
+
+  private val kvs = new ConcurrentHashMap[String, String](meta.config.asJava)
+
+  override def get(key: String): Option[String] = Option(kvs.get(key))
+
+  override def set(key: String, value: String): Unit = {
+    kvs.put(key, value)
+    WithClose(pool.getConnection()) { connection =>
+      MetadataTable.update(connection, root, meta.copy(config = kvs.asScala.toMap))
+    }
+  }
 
   override def getPartition(name: String): Option[PartitionMetadata] =
     WithClose(pool.getConnection())(connection => PartitionsTable.select(connection, root, name))
@@ -92,7 +107,10 @@ class JdbcMetadata(
   override def removePartition(partition: PartitionMetadata): Unit =
     WithClose(pool.getConnection())(connection => PartitionsTable.delete(connection, root, partition))
 
-  override def compact(partition: Option[String], threads: Int): Unit = {
+  // noinspection ScalaDeprecation
+  override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
+
+  override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit = {
     WithClose(pool.getConnection()) { connection =>
       partition match {
         case None =>
@@ -148,6 +166,8 @@ object JdbcMetadata extends LazyLogging {
 
     private val InsertStatement: String = s"insert into $TableName ($RootCol, $ValueCol) values (?, ?)"
 
+    private val UpdateStatement: String = s"update $TableName set $ValueCol = ? where $RootCol = ?"
+
     private val SelectStatement: String = s"select $ValueCol from $TableName where $RootCol = ?"
 
     def create(connection: Connection): Unit =
@@ -159,6 +179,16 @@ object JdbcMetadata extends LazyLogging {
       WithClose(connection.prepareStatement(InsertStatement)) { statement =>
         statement.setString(1, root)
         statement.setString(2, new String(serialized.toByteArray, StandardCharsets.UTF_8))
+        statement.executeUpdate()
+      }
+    }
+
+    def update(connection: Connection, root: String, metadata: Metadata): Unit = {
+      val serialized = new ByteArrayOutputStream()
+      MetadataSerialization.serialize(serialized, metadata)
+      WithClose(connection.prepareStatement(UpdateStatement)) { statement =>
+        statement.setString(1, new String(serialized.toByteArray, StandardCharsets.UTF_8))
+        statement.setString(2, root)
         statement.executeUpdate()
       }
     }

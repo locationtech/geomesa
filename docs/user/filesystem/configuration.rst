@@ -11,6 +11,20 @@ File Writers
 
 The following properties control the writing of data files.
 
+.. _fsds_size_threshold_prop:
+
+geomesa.fs.size.threshold
++++++++++++++++++++++++++
+
+When specifying a target size for data files, this property controls the error margin that is considered acceptable.
+Files which are outside of the margin may be merged or split during compactions. See :ref:`fsds_file_size_config`
+for more information.
+
+The threshold is specified as a float greater than ``0`` and less than ``1``, with a default value of ``0.05``.
+For example, if the target file size is 100 bytes, then an error threshold of ``0.05`` means that files will not
+be compacted if they are between 95 and 105 bytes.
+
+
 geomesa.fs.writer.partition.timeout
 +++++++++++++++++++++++++++++++++++
 
