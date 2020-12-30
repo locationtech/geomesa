@@ -90,6 +90,15 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 3.2.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+FileSystem Data Store Metadata Format Change
+--------------------------------------------
+
+The metadata format for the FileSystem data store has been changed to support storing arbitrary key-value pairs.
+Any data written with version 3.2.0 or later will not be readable by earlier GeoMesa versions.
+
 Version 3.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
