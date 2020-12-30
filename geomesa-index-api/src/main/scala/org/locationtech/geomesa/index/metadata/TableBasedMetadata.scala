@@ -230,10 +230,8 @@ trait TableBasedMetadata[T] extends GeoMesaMetadata[T] with LazyLogging {
 
   // checks that the table is already created, and creates it if not
   def ensureTableExists(): Unit = {
-//    do not use compareAndSet because unsafe.compareAndSwapInt is called in compareAndSet，may make problem for jdk11
-    if (!tableExists.get()){
+    if(tableExists.compareAndSet(false,true)) {
       createTable()
-      tableExists.set(true)
     }
   }
 
