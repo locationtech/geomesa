@@ -15,7 +15,7 @@ import java.time.temporal.ChronoUnit
  * index keys and query ranges are consistent. Any dates that exceed the original max time will be dropped into
  * the last time bin, potentially degrading results for the last day or two of the year.
  *
- * @param g resolution level of the curve - i.e. how many times the space will be recursively quartered
+ * @param g resolution level of the curve - i.e. how many times the space will be recursively split into eighths
  */
 @deprecated("XZ3SFC", "3.2.0")
 class LegacyYearXZ3SFC(g: Short)
