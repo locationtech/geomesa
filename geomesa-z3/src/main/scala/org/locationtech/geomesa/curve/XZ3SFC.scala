@@ -335,13 +335,14 @@ class XZ3SFC(val g: Short, val xBounds: (Double, Double), val yBounds: (Double, 
     * @param lenient standardize boundaries to valid values, or raise an exception
     * @return
     */
-  private def normalize(xmin: Double,
-                        ymin: Double,
-                        zmin: Double,
-                        xmax: Double,
-                        ymax: Double,
-                        zmax: Double,
-                        lenient: Boolean): (Double, Double, Double, Double, Double, Double) = {
+  protected def normalize(
+      xmin: Double,
+      ymin: Double,
+      zmin: Double,
+      xmax: Double,
+      ymax: Double,
+      zmax: Double,
+      lenient: Boolean): (Double, Double, Double, Double, Double, Double) = {
     require(xmin <= xmax && ymin <= ymax && zmin <= zmax,
       s"Bounds must be ordered: [$xmin $xmax] [$ymin $ymax] [$zmin $zmax]")
 
