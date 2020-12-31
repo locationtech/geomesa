@@ -45,7 +45,7 @@ class XZ3IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, 
   protected val geomIndex: Int = sft.indexOf(geomField)
   protected val dtgIndex: Int = sft.indexOf(dtgField)
 
-  protected val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
+  protected val sfc: XZ3SFC = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
   protected val timeToIndex: TimeToBinnedTime = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
 
   private val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)

@@ -16,7 +16,8 @@ import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.LegacyTableNaming
 import org.locationtech.geomesa.index.index.z3.legacy.XZ3IndexV1.XZ3IndexKeySpaceV1
-import org.locationtech.geomesa.index.index.z3.{XZ3Index, XZ3IndexKeySpace, XZ3IndexValues, Z3IndexKey}
+import org.locationtech.geomesa.index.index.z3.legacy.XZ3IndexV2.XZ3IndexKeySpaceV2
+import org.locationtech.geomesa.index.index.z3.{XZ3IndexKeySpace, XZ3IndexValues, Z3IndexKey}
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.locationtech.jts.geom.Geometry
@@ -26,12 +27,13 @@ import scala.util.control.NonFatal
 
 // supports table sharing
 class XZ3IndexV1(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geom: String, dtg: String, mode: IndexMode)
-    extends XZ3Index(ds, sft, 1, geom, dtg, mode) with LegacyTableNaming[XZ3IndexValues, Z3IndexKey] {
+    extends XZ3IndexV2(ds, sft, 1, geom, dtg, mode) with LegacyTableNaming[XZ3IndexValues, Z3IndexKey] {
 
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override protected val tableNameKey: String = "table.xz3.v1"
 
+  // noinspection ScalaDeprecation
   override val keySpace: XZ3IndexKeySpace =
     new XZ3IndexKeySpaceV1(sft, sft.getTableSharingBytes, ZShardStrategy(sft), geom, dtg)
 }
@@ -43,7 +45,7 @@ object XZ3IndexV1 {
                            sharding: ShardStrategy,
                            geomField: String,
                            dtgField: String)
-      extends XZ3IndexKeySpace(sft, sharding, geomField, dtgField) {
+      extends XZ3IndexKeySpaceV2(sft, sharding, geomField, dtgField) {
 
     private val rangePrefixes = {
       if (sharing.isEmpty && sharding.length == 0) {

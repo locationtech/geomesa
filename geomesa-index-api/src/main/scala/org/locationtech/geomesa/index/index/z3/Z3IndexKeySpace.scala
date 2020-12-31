@@ -45,7 +45,7 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
     s"Expected field $dtgField to have a date binding, but instead it has: " +
         sft.getDescriptor(dtgField).getType.getBinding.getSimpleName)
 
-  protected val sfc = Z3SFC(sft.getZ3Interval)
+  protected val sfc: Z3SFC = Z3SFC(sft.getZ3Interval)
 
   protected val geomIndex: Int = sft.indexOf(geomField)
   protected val dtgIndex: Int = sft.indexOf(dtgField)
