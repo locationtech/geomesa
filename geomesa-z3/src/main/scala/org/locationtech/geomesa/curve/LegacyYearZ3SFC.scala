@@ -10,6 +10,7 @@ package org.locationtech.geomesa.curve
 
 import java.time.temporal.ChronoUnit
 
+import com.typesafe.scalalogging.StrictLogging
 import org.locationtech.geomesa.curve.NormalizedDimension.NormalizedTime
 
 /**
@@ -25,10 +26,14 @@ class LegacyYearZ3SFC(precision: Int = 21) extends {
   // legacy incorrect time max duration
   override val time: NormalizedDimension =
     NormalizedTime(precision, ChronoUnit.WEEKS.getDuration.toMinutes * 52d)
-  } with Z3SFC(TimePeriod.Year, precision) {
+  } with Z3SFC(TimePeriod.Year, precision) with StrictLogging {
 
   // the correct max time duration
   private val maxTime = BinnedTime.maxOffset(TimePeriod.Year)
+
+  logger.warn(
+    "Yearly Z3 interval is broken in this index version. See " +
+        "https://geomesa.atlassian.net/browse/GEOMESA-2973 for details")
 
   override def index(x: Double, y: Double, t: Long, lenient: Boolean = false): Long = {
     if (t > time.max && t <= maxTime) {

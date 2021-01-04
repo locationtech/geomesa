@@ -10,6 +10,8 @@ package org.locationtech.geomesa.curve
 
 import java.time.temporal.ChronoUnit
 
+import com.typesafe.scalalogging.StrictLogging
+
 /**
  * XZ3SFC with a legacy, incorrect max time value of 52 weeks. The max value is kept the same to ensure that
  * index keys and query ranges are consistent. Any dates that exceed the original max time will be dropped into
@@ -19,12 +21,17 @@ import java.time.temporal.ChronoUnit
  */
 @deprecated("XZ3SFC", "3.2.0")
 class LegacyYearXZ3SFC(g: Short)
-    extends XZ3SFC(g, (-180.0, 180.0), (-90.0, 90.0), (0.0, ChronoUnit.WEEKS.getDuration.toMinutes * 52d)) {
+    extends XZ3SFC(g, (-180.0, 180.0), (-90.0, 90.0), (0.0, ChronoUnit.WEEKS.getDuration.toMinutes * 52d))
+        with StrictLogging {
 
   // the correct max time duration
   private val maxTime = BinnedTime.maxOffset(TimePeriod.Year).toDouble
   // the incorrect max time duration
   private val zHi = zBounds._2
+
+  logger.warn(
+    "Yearly Z3 interval is broken in this index version. See " +
+        "https://geomesa.atlassian.net/browse/GEOMESA-2973 for details")
 
   override protected def normalize(
       xmin: Double,
