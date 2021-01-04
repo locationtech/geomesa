@@ -19,13 +19,12 @@ import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.api.{IndexManager, _}
 import org.locationtech.geomesa.index.conf.partition.TablePartition
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.VersionKey
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.{AllowYearEpoch, SchemaCompatibility, VersionKey}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.{AllowYearEpoch, VersionKey}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
-import org.locationtech.geomesa.index.metadata.GeoMesaMetadata.AttributesKey
 import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
+import org.locationtech.geomesa.index.metadata.GeoMesaMetadata.AttributesKey
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
