@@ -15,21 +15,19 @@ import java.util.concurrent.TimeUnit
 import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
-import org.locationtech.geomesa.curve.TimePeriod
 import org.locationtech.geomesa.index.FlushableFeatureWriter
 import org.locationtech.geomesa.index.api.{IndexManager, _}
 import org.locationtech.geomesa.index.conf.partition.TablePartition
-import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.{AllowYearEpoch, VersionKey}
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore.VersionKey
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.index.id.IdIndex
-import org.locationtech.geomesa.index.index.z3.{XZ3Index, Z3Index}
 import org.locationtech.geomesa.index.metadata.GeoMesaMetadata.AttributesKey
 import org.locationtech.geomesa.index.planning.QueryPlanner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainLogging, Explainer}
 import org.locationtech.geomesa.utils.conf.SemanticVersion.MinorOrdering
-import org.locationtech.geomesa.utils.conf.{GeoMesaProperties, IndexId, SemanticVersion}
+import org.locationtech.geomesa.utils.conf.{FeatureExpiration, GeoMesaProperties, IndexId, SemanticVersion}
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.{AttributeOptions, Configs, InternalConfigs}
@@ -143,16 +141,7 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     }
 
     // try to create the indices up front to ensure they are valid for the sft
-    val indices = GeoMesaFeatureIndexFactory.create(this, sft, sft.getIndices)
-
-    // check for bugged z3 interval
-    if (sft.getZ3Interval == TimePeriod.Year &&
-        indices.exists(i => i.isInstanceOf[Z3Index] || i.isInstanceOf[XZ3Index]) &&
-        !AllowYearEpoch.get) {
-      throw new IllegalArgumentException(
-        "Yearly Z3 interval is broken in this version. Please use a different interval, or upgrade to " +
-            "GeoMesa 3.2+. See https://geomesa.atlassian.net/browse/GEOMESA-2973 for details")
-    }
+    GeoMesaFeatureIndexFactory.create(this, sft, sft.getIndices)
 
     // remove the enabled indices after configuration so we don't persist them
     sft.getUserData.remove(SimpleFeatureTypes.Configs.EnabledIndices)
@@ -370,12 +359,6 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
             val userData = Collections.singletonMap[AnyRef, AnyRef](InternalConfigs.RemoteVersion, v.toString)
             sft = SimpleFeatureTypes.immutable(sft, userData)
           }
-      }
-
-      if (sft.getZ3Interval == TimePeriod.Year) {
-        logger.warn(
-          "Yearly Z3 interval is broken in this version. See " +
-              "https://geomesa.atlassian.net/browse/GEOMESA-2973 for details")
       }
     }
     sft
@@ -603,11 +586,6 @@ object GeoMesaDataStore extends LazyLogging {
 
   private val versions = Caffeine.newBuilder().refreshAfterWrite(1, TimeUnit.DAYS)
       .buildAsync[VersionKey, Either[Exception, Option[SemanticVersion]]](loader)
-
-  // exposed for testing
-  private [geomesa] val AllowYearEpoch = new ThreadLocal[Boolean]() {
-    override def initialValue(): Boolean = false
-  }
 
   /**
     * Kick off an asynchronous call to load remote iterator versions
