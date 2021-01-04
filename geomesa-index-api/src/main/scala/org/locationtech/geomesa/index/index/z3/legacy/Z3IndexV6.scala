@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.index.index.z3.legacy
 
+import java.time.ZonedDateTime
+
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
 import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
@@ -59,11 +61,11 @@ object Z3IndexV6 {
       super.useFullFilter(values, config, hints) || values.exists { v =>
         // fix to handle incorrect yearly z values - use full filter if querying the collapsed days
         sft.getZ3Interval == TimePeriod.Year && v.intervals.exists { bounds =>
-          (bounds.lower.value.toSeq ++ bounds.upper.value).exists { date =>
-            dateToIndex(date).offset.toDouble >= sfc.time.max
-          }
+          bounds.lower.value.exists(collapsed) || bounds.upper.value.exists(collapsed)
         }
       }
     }
+
+    private def collapsed(d: ZonedDateTime): Boolean = dateToIndex(d).offset.toDouble >= sfc.time.max
   }
 }
