@@ -8,12 +8,14 @@
 
 package org.locationtech.geomesa.index.index.z3.legacy
 
-import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
+import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod, Z3SFC}
 import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.GeoMesaDataStoreConfig
 import org.locationtech.geomesa.index.index.z3.legacy.Z3IndexV6.Z3IndexKeySpaceV6
-import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexKeySpace}
+import org.locationtech.geomesa.index.index.z3.{Z3Index, Z3IndexKeySpace, Z3IndexValues}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -44,10 +46,26 @@ object Z3IndexV6 {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
+    private lazy val dateToTime = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
+
     // noinspection ScalaDeprecation
     override protected val sfc: Z3SFC = sft.getZ3Interval match {
       case TimePeriod.Year => new org.locationtech.geomesa.curve.LegacyYearZ3SFC()
       case p => Z3SFC(p)
+    }
+
+    override def useFullFilter(
+        values: Option[Z3IndexValues],
+        config: Option[GeoMesaDataStoreConfig],
+        hints: Hints): Boolean = {
+      super.useFullFilter(values, config, hints) || values.exists { v =>
+        // fix to handle incorrect yearly z values - use full filter if querying the collapsed days
+        sft.getZ3Interval == TimePeriod.Year && v.intervals.exists { bounds =>
+          (bounds.lower.value.toSeq ++ bounds.upper.value).exists { date =>
+            dateToTime(date).offset.toDouble >= sfc.time.max
+          }
+        }
+      }
     }
   }
 }
