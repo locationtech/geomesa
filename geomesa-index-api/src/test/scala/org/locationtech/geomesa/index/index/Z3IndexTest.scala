@@ -14,6 +14,7 @@ import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.TestGeoMesaDataStore
+import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
 import org.locationtech.geomesa.utils.io.WithClose
@@ -45,7 +46,13 @@ class Z3IndexTest extends Specification with LazyLogging {
           ScalaSimpleFeature.create(sft, s"$i", s"name$i", "track4", s"2020-12-${i}T${i-10}:00:00.000Z", s"POINT(${i - 20} 60)")
         }
 
-      ds.createSchema(sft)
+      try {
+        GeoMesaDataStore.AllowYearEpoch.set(true)
+        ds.createSchema(sft)
+      } finally {
+        GeoMesaDataStore.AllowYearEpoch.remove()
+      }
+
       WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
         features.foreach { f =>
           FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
@@ -57,6 +64,15 @@ class Z3IndexTest extends Specification with LazyLogging {
 
       SelfClosingIterator(ds.getFeatureReader(new Query("test", filter), Transaction.AUTO_COMMIT)).toList must
           containTheSameElementsAs(features)
+    }
+
+    "block broken yearly epochs from being created" in {
+      val spec =
+        "name:String,track:String,dtg:Date,*geom:Point:srid=4326;" +
+            "geomesa.z3.interval=year,geomesa.indices.enabled=z3:geom:dtg"
+      val sft = SimpleFeatureTypes.createType("test", spec)
+      val ds = new TestGeoMesaDataStore(false)
+      ds.createSchema(sft) must throwAn[IllegalArgumentException]
     }
   }
 }
