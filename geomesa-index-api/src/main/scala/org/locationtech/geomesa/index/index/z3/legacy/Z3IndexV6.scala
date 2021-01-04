@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.index.index.z3.legacy
 
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod, Z3SFC}
+import org.locationtech.geomesa.curve.{TimePeriod, Z3SFC}
 import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
 import org.locationtech.geomesa.index.api._
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -46,8 +46,6 @@ object Z3IndexV6 {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    private lazy val dateToTime = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
-
     // noinspection ScalaDeprecation
     override protected val sfc: Z3SFC = sft.getZ3Interval match {
       case TimePeriod.Year => new org.locationtech.geomesa.curve.LegacyYearZ3SFC()
@@ -62,7 +60,7 @@ object Z3IndexV6 {
         // fix to handle incorrect yearly z values - use full filter if querying the collapsed days
         sft.getZ3Interval == TimePeriod.Year && v.intervals.exists { bounds =>
           (bounds.lower.value.toSeq ++ bounds.upper.value).exists { date =>
-            dateToTime(date).offset.toDouble >= sfc.time.max
+            dateToIndex(date).offset.toDouble >= sfc.time.max
           }
         }
       }

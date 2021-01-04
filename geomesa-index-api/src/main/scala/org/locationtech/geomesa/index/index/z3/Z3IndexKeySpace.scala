@@ -12,7 +12,7 @@ import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
+import org.locationtech.geomesa.curve.BinnedTime.{DateToBinnedTime, TimeToBinnedTime}
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.filter.FilterValues
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
@@ -51,8 +51,8 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
   protected val dtgIndex: Int = sft.indexOf(dtgField)
 
   protected val timeToIndex: TimeToBinnedTime = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
+  protected val dateToIndex: DateToBinnedTime = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
 
-  private val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
   private val boundsToDates = BinnedTime.boundsToIndexableDates(sft.getZ3Interval)
 
   override val attributes: Seq[String] = Seq(geomField, dtgField)
