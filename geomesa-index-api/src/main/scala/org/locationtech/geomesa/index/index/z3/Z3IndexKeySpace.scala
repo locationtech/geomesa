@@ -255,7 +255,7 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
       // fix to handle incorrect yearly z values - use full filter if querying the collapsed days
       sft.getZ3Interval == TimePeriod.Year && v.intervals.exists { bounds =>
         (bounds.lower.value.toSeq ++ bounds.upper.value).exists { date =>
-          sfc.time.max >= java.time.temporal.ChronoUnit.WEEKS.getDuration.toMinutes * 52d
+          dateToIndex(date).offset.toDouble >= sfc.time.max
         }
       }
     }
