@@ -79,6 +79,6 @@ class ZIntervalTest extends Specification with TestWithMultipleSfts {
         val features = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList
         features.map(_.getID) must containTheSameElementsAs(results)
       }
-    }.pendingUntilFixed("GEOMESA-2973")
+    }
   }
 }
