@@ -61,12 +61,7 @@ class Z3IndexTest extends Specification with LazyLogging {
         val lastDayResults =
           SelfClosingIterator(ds.getFeatureReader(new Query("test", lastDayFilter), Transaction.AUTO_COMMIT)).toList
 
-        if (indices.indexOf("6") == -1) {
-          lastDayResults mustEqual Seq(features.last)
-        } else {
-          (lastDayResults mustEqual Seq(features.last)).pendingUntilFixed("requires strict bbox")
-        }
-        ok
+        lastDayResults mustEqual Seq(features.last)
       }
     }
   }
