@@ -37,16 +37,16 @@ geospatial analytics.
 
 ## Downloads
 
-**Current release: [3.1.0](https://github.com/locationtech/geomesa/releases/tag/geomesa_2.11-3.1.0)**
+**Current release: [3.1.0](https://github.com/locationtech/geomesa/releases/tag/geomesa_2.12-3.1.0)**
 
   &nbsp;&nbsp;&nbsp;&nbsp;
-  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.1.0/geomesa-hbase_2.11-3.1.0-bin.tar.gz) |
-  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.1.0/geomesa-accumulo_2.11-3.1.0-bin.tar.gz) |
-  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.1.0/geomesa-cassandra_2.11-3.1.0-bin.tar.gz) |
-  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.1.0/geomesa-kafka_2.11-3.1.0-bin.tar.gz) |
-  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.1.0/geomesa-redis_2.11-3.1.0-bin.tar.gz) |
-  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.1.0/geomesa-fs_2.11-3.1.0-bin.tar.gz) |
-  [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.11-3.1.0/geomesa-bigtable_2.11-3.1.0-bin.tar.gz)
+  [**HBase**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.12-3.1.0/geomesa-hbase_2.12-3.1.0-bin.tar.gz) |
+  [**Accumulo**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.12-3.1.0/geomesa-accumulo_2.12-3.1.0-bin.tar.gz) |
+  [**Cassandra**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.12-3.1.0/geomesa-cassandra_2.12-3.1.0-bin.tar.gz) |
+  [**Kafka**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.12-3.1.0/geomesa-kafka_2.12-3.1.0-bin.tar.gz) |
+  [**Redis**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.12-3.1.0/geomesa-redis_2.12-3.1.0-bin.tar.gz) |
+  [**FileSystem**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.12-3.1.0/geomesa-fs_2.12-3.1.0-bin.tar.gz) |
+  [**Bigtable**](https://github.com/locationtech/geomesa/releases/download/geomesa_2.12-3.1.0/geomesa-bigtable_2.12-3.1.0-bin.tar.gz)
 
 ### Verifying Downloads
 
@@ -60,7 +60,7 @@ $ gpg2 --keyserver hkp://pool.sks-keyservers.net --recv-keys CD24F317
 Then verify the file:
 
 ```bash
-$ gpg2 --verify geomesa-accumulo_2.11-3.1.0-bin.tar.gz.asc geomesa-accumulo_2.11-3.1.0-bin.tar.gz
+$ gpg2 --verify geomesa-accumulo_2.12-3.1.0-bin.tar.gz.asc geomesa-accumulo_2.12-3.1.0-bin.tar.gz
 ```
 
 The keys currently used for signing are:
@@ -97,7 +97,7 @@ You may then include the desired `geomesa-*` dependencies, for example:
 ```xml
 <dependency>
   <groupId>org.locationtech.geomesa</groupId>
-  <artifactId>geomesa-utils_2.11</artifactId>
+  <artifactId>geomesa-utils_2.12</artifactId>
   <version>3.1.0</version>
 </dependency>
 ```

@@ -2782,7 +2782,7 @@
         <connection>scm:git:git@github.com:locationtech/geomesa.git</connection>
         <developerConnection>scm:git:git@github.com:locationtech/geomesa.git</developerConnection>
         <url>https://github.com/locationtech/geomesa</url>
-        <tag>geomesa_2.11-3.0.0-m0</tag>
+        <tag>geomesa_2.12-3.0.0-m0</tag>
     </scm>
 
     <developers>
