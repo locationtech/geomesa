@@ -7,7 +7,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-hbase-jobs_2.11</artifactId>
+    <artifactId>geomesa-hbase-jobs_2.12</artifactId>
     <name>GeoMesa HBase Jobs</name>
 
     <properties>

@@ -8,7 +8,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-jobs_2.11</artifactId>
+    <artifactId>geomesa-jobs_2.12</artifactId>
     <name>GeoMesa Jobs</name>
 
     <properties>
@@ -18,15 +18,15 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-index-api_2.11</artifactId>
+            <artifactId>geomesa-index-api_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-feature-all_2.11</artifactId>
+            <artifactId>geomesa-feature-all_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-convert-all_2.11</artifactId>
+            <artifactId>geomesa-convert-all_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>

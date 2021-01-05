@@ -8,7 +8,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-geojson-gs-plugin_2.11</artifactId>
+    <artifactId>geomesa-geojson-gs-plugin_2.12</artifactId>
     <name>GeoMesa GeoJSON GeoServer Plugin</name>
 
     <dependencies>

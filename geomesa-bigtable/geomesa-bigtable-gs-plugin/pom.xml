@@ -9,7 +9,7 @@
         <relativePath>../../geomesa-archetypes/geomesa-archetypes-gs-plugin/pom.xml</relativePath>
     </parent>
 
-    <artifactId>geomesa-bigtable-gs-plugin_2.11</artifactId>
+    <artifactId>geomesa-bigtable-gs-plugin_2.12</artifactId>
     <name>GeoMesa Bigtable GeoServer Plugin</name>
     <packaging>pom</packaging>
 

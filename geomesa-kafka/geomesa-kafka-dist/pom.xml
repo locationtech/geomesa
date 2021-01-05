@@ -9,7 +9,7 @@
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
 
-    <artifactId>geomesa-kafka-dist_2.11</artifactId>
+    <artifactId>geomesa-kafka-dist_2.12</artifactId>
     <name>GeoMesa Kafka Distribution</name>
 
     <properties>

@@ -8,7 +8,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-kudu-tools_2.11</artifactId>
+    <artifactId>geomesa-kudu-tools_2.12</artifactId>
     <name>GeoMesa Kudu Tools</name>
 
     <properties>
@@ -18,15 +18,15 @@
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kudu-datastore_2.11</artifactId>
+            <artifactId>geomesa-kudu-datastore_2.12</artifactId>
         </dependency>
         <!--<dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-kudu-jobs_2.11</artifactId>
+            <artifactId>geomesa-kudu-jobs_2.12</artifactId>
         </dependency>-->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-tools_2.11</artifactId>
+            <artifactId>geomesa-tools_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>com.beust</groupId>

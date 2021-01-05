@@ -8,7 +8,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-accumulo-jobs_2.11</artifactId>
+    <artifactId>geomesa-accumulo-jobs_2.12</artifactId>
     <name>GeoMesa Accumulo Jobs</name>
 
     <properties>

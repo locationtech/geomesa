@@ -8,7 +8,7 @@
         <version>3.2.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>geomesa-hbase-distributed-runtime-hbase1_2.11</artifactId>
+    <artifactId>geomesa-hbase-distributed-runtime-hbase1_2.12</artifactId>
     <name>GeoMesa HBase Distributed Runtime, HBase 1.x</name>
     <description>GeoMesa coprocessors and filters, for installation into an HBase cluster</description>
 

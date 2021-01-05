@@ -7,17 +7,17 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-bigtable-spark_2.11</artifactId>
+    <artifactId>geomesa-bigtable-spark_2.12</artifactId>
     <name>GeoMesa Bigtable Spark</name>
 
     <dependencies>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-bigtable-datastore_2.11</artifactId>
+            <artifactId>geomesa-bigtable-datastore_2.12</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-hbase-spark_2.11</artifactId>
+            <artifactId>geomesa-hbase-spark_2.12</artifactId>
             <version>${project.version}</version>
         </dependency>
 

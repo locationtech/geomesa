@@ -64,5 +64,5 @@ class BoundingBoxGeoHashIterator(twoGh: TwoGeoHashBoundingBox) extends Iterator[
     else throw new NoSuchElementException("No more geohashes available in iterator")
   }
 
-  def remove = throw new UnsupportedOperationException("Remove operation not supported")
+  override def remove = throw new UnsupportedOperationException("Remove operation not supported")
 }

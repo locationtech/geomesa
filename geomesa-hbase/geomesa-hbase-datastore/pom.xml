@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>geomesa-hbase_2.11</artifactId>
+        <artifactId>geomesa-hbase_2.12</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
         <version>3.2.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-hbase-datastore_2.11</artifactId>
+    <artifactId>geomesa-hbase-datastore_2.12</artifactId>
     <name>GeoMesa HBase DataStore</name>
 
     <dependencies>
@@ -114,7 +114,7 @@
             <dependencies>
                 <dependency>
                     <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>geomesa-hbase-server-hbase2_2.11</artifactId>
+                    <artifactId>geomesa-hbase-server-hbase2_2.12</artifactId>
                     <scope>test</scope>
                 </dependency>
             </dependencies>
@@ -127,7 +127,7 @@
             <dependencies>
                 <dependency>
                     <groupId>org.locationtech.geomesa</groupId>
-                    <artifactId>geomesa-hbase-server-hbase1_2.11</artifactId>
+                    <artifactId>geomesa-hbase-server-hbase1_2.12</artifactId>
                     <scope>test</scope>
                 </dependency>
             </dependencies>

@@ -113,6 +113,7 @@ class SparkSQLDataTest extends Specification with LazyLogging {
     }
 
     "basic sql indexed" >> {
+      val f = sc.sql("explain select * from chicagoIndexed where st_equals(geom, st_geomFromWKT('POINT(-76.5 38.5)'))")
       val r = sc.sql("select * from chicagoIndexed where st_equals(geom, st_geomFromWKT('POINT(-76.5 38.5)'))")
       val d = r.collect
 

@@ -7,7 +7,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>geomesa-kafka-utils_2.11</artifactId>
+    <artifactId>geomesa-kafka-utils_2.12</artifactId>
     <name>GeoMesa Kafka Utils</name>
 
     <properties>

@@ -59,24 +59,25 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
         // From sc.newAPIHadoopRDD
         // Add necessary security credentials to the JobConf. Required to access secure HDFS.
+        // JNH: Upgrading to Spark 3.0.0 may be removing access to secure HDFS:(
         val jconf = job.getConfiguration.asInstanceOf[JobConf]
-        SparkHadoopUtil.get.addCredentials(jconf)
+//        SparkHadoopUtil.get.addCredentials(jconf)
 
         // Iterate over tokens in credentials and add the Accumulo one to the configuration directly
         // This is because the credentials seem to disappear between here and the YARN executor
         // See https://stackoverflow.com/questions/44525351/delegation-tokens-with-accumulo-spark
-        val tokens = jconf.getCredentials.getAllTokens.iterator()
-        var hasNext = tokens.hasNext
-        while (hasNext) {
-          val token = tokens.next()
-          if (token.getKind.toString == "ACCUMULO_AUTH_TOKEN") {
-            logger.info("Adding ACCUMULO_AUTH_TOKEN to configuration")
-            jconf.set("org.locationtech.geomesa.token", token.encodeToUrlString())
-            hasNext = false
-          } else {
-            hasNext = tokens.hasNext
-          }
-        }
+//        val tokens = jconf.getCredentials.getAllTokens.iterator()
+//        var hasNext = tokens.hasNext
+//        while (hasNext) {
+//          val token = tokens.next()
+//          if (token.getKind.toString == "ACCUMULO_AUTH_TOKEN") {
+//            logger.info("Adding ACCUMULO_AUTH_TOKEN to configuration")
+//            jconf.set("org.locationtech.geomesa.token", token.encodeToUrlString())
+//            hasNext = false
+//          } else {
+//            hasNext = tokens.hasNext
+//          }
+//        }
 
         // From sc.newAPIHadoopRDD
         new NewHadoopRDD(sc, classOf[GeoMesaAccumuloInputFormat], classOf[Text], classOf[SimpleFeature], jconf).map(_._2)
