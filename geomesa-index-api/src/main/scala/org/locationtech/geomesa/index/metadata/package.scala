@@ -44,5 +44,6 @@ package object metadata {
     override def delete(typeName: String): Unit = {}
     override def backup(typeName: String): Unit = {}
     override def close(): Unit = {}
+    override def resetCache(): Unit = {}
   }
 }

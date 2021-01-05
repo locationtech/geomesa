@@ -53,4 +53,9 @@ class InMemoryMetadata[T] extends GeoMesaMetadata[T] {
   override def backup(typeName: String): Unit = {}
 
   override def close(): Unit = {}
+
+  /**
+   * table cache should be cleared up when catalog is deleted in database
+   */
+  override def resetCache(): Unit = {}
 }
