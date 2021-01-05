@@ -84,6 +84,7 @@ class ConfluentMetadata(val schemaRegistry: SchemaRegistryClient) extends GeoMes
   override def remove(typeName: String, keys: Seq[String]): Unit = {}
   override def delete(typeName: String): Unit = {}
   override def backup(typeName: String): Unit = {}
+  override def resetCache(): Unit = { }
 }
 
 object ConfluentMetadata extends LazyLogging {
