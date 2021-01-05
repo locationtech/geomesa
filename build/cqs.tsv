@@ -239,11 +239,11 @@ org.json4s:json4s-core_2.11	3.5.4	compile
 org.json4s:json4s-ext_2.11	3.5.4	compile
 org.json4s:json4s-native_2.11	3.5.4	compile
 org.json4s:json4s-scalap_2.11	3.5.4	compile
-org.locationtech.jts.io:jts-io-common	1.16.0	compile
-org.locationtech.jts:jts-core	1.16.0	compile
+org.locationtech.jts.io:jts-io-common	1.17.0	compile
+org.locationtech.jts:jts-core	1.17.0	compile
 org.locationtech.sfcurve:sfcurve-api_2.11	0.2.2	compile
 org.locationtech.sfcurve:sfcurve-zorder_2.11	0.2.2	compile
-org.locationtech.spatial4j:spatial4j	0.7	compile
+org.locationtech.spatial4j:spatial4j	0.8	compile
 org.mortbay.jetty:jetty-util	6.1.26	compile
 org.objenesis:objenesis	1.0	compile
 org.parboiled:parboiled-core	1.2.0	compile
