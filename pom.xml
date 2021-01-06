@@ -124,7 +124,7 @@
         <!-- bump version right before performing releases for the README and the documentation -->
         <geomesa.release.version>3.1.0</geomesa.release.version>
         <geomesa.devel.version>3.2.0-SNAPSHOT</geomesa.devel.version>
-        <copyright.year>2020</copyright.year>
+        <copyright.year>2021</copyright.year>
 
         <!-- recommended installation versions -->
         <accumulo.version.recommended>2.0.0</accumulo.version.recommended>
@@ -2543,8 +2543,6 @@
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
                             <validHeader>build/copyright/ccri-dstl.txt</validHeader>
-                            <validHeader>build/copyright/ccri-dstl-2016.txt</validHeader>
-                            <validHeader>build/copyright/ccri-dstl-2020.txt</validHeader>
                             <validHeader>build/copyright/dstl.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
