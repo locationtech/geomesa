@@ -228,7 +228,8 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
           // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
           val indexIter = if (index.name == Z3Index.name) {
             strategy.values.toSeq.map { case v: Z3IndexValues =>
-              Z3Iterator.configure(v, index.keySpace.sharding.length + index.keySpace.sharing.length, ZIterPriority)
+              val offset = index.keySpace.sharding.length + index.keySpace.sharing.length
+              Z3Iterator.configure(v, offset, hints.getFilterCompatibility, ZIterPriority)
             }
           } else if (index.name == Z2Index.name) {
             strategy.values.toSeq.map { case v: Z2IndexValues =>
