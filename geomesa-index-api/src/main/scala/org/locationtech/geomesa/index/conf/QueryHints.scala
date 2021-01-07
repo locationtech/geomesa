@@ -13,12 +13,15 @@ import org.geotools.util.factory.Hints
 import org.geotools.util.factory.Hints.{ClassKey, IntegerKey}
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.geotools.referencing.CRS
+import org.locationtech.geomesa.index.conf.FilterCompatibility.FilterCompatibility
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
 import org.locationtech.geomesa.index.utils.Reprojection.QueryReferenceSystems
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.sort.{SortBy, SortOrder}
+
+import scala.util.Try
 
 object QueryHints {
 
@@ -65,6 +68,8 @@ object QueryHints {
 
   val LAMBDA_QUERY_PERSISTENT  = new ClassKey(classOf[java.lang.Boolean])
   val LAMBDA_QUERY_TRANSIENT   = new ClassKey(classOf[java.lang.Boolean])
+
+  val FILTER_COMPAT            = new ClassKey(classOf[java.lang.String])
 
   def sortReadableString(sort: Seq[(String, Boolean)]): String =
     sort.map { case (f, r) => s"$f ${if (r) "DESC" else "ASC" }"}.mkString(", ")
@@ -173,5 +178,14 @@ object QueryHints {
       Option(hints.get(LAMBDA_QUERY_PERSISTENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
     def isLambdaQueryTransient: Boolean =
       Option(hints.get(LAMBDA_QUERY_TRANSIENT).asInstanceOf[java.lang.Boolean]).forall(_.booleanValue)
+
+    def getFilterCompatibility: Option[FilterCompatibility] = {
+      Option(hints.get(FILTER_COMPAT).asInstanceOf[String]).map { c =>
+        Try(FilterCompatibility.withName(c)).getOrElse {
+          val valid = FilterCompatibility.values.map(_.toString).mkString("'", "', '", "'")
+          throw new IllegalArgumentException(s"Invalid hint for filter compatibility: '$c'. Valid values are: $valid'")
+        }
+      }
+    }
   }
 }
