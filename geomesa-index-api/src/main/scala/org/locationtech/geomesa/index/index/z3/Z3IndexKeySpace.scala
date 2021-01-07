@@ -13,7 +13,7 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
-import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
+import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod, Z3SFC}
 import org.locationtech.geomesa.filter.FilterValues
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
 import org.locationtech.geomesa.index.api.ShardStrategy.{NoShardStrategy, ZShardStrategy}
@@ -45,7 +45,11 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
     s"Expected field $dtgField to have a date binding, but instead it has: " +
         sft.getDescriptor(dtgField).getType.getBinding.getSimpleName)
 
-  protected val sfc = Z3SFC(sft.getZ3Interval)
+  // noinspection ScalaDeprecation
+  protected val sfc: Z3SFC = sft.getZ3Interval match {
+    case TimePeriod.Year => new org.locationtech.geomesa.curve.LegacyYearZ3SFC()
+    case p => Z3SFC(p)
+  }
 
   protected val geomIndex: Int = sft.indexOf(geomField)
   protected val dtgIndex: Int = sft.indexOf(dtgField)
@@ -245,7 +249,16 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
     val looseBBox = Option(hints.get(LOOSE_BBOX)).map(Boolean.unbox).getOrElse(config.forall(_.looseBBox))
     def unboundedDates: Boolean = values.exists(_.temporalUnbounded.nonEmpty)
     def complexGeoms: Boolean = values.exists(_.geometries.values.exists(g => !GeometryUtils.isRectangular(g)))
-    !looseBBox || unboundedDates || complexGeoms
+    val base = !looseBBox || unboundedDates || complexGeoms
+
+    base || values.exists { v =>
+      // fix to handle incorrect yearly z values - use full filter if querying the collapsed days
+      sft.getZ3Interval == TimePeriod.Year && v.intervals.exists { bounds =>
+        (bounds.lower.value.toSeq ++ bounds.upper.value).exists { date =>
+          dateToIndex(date).offset.toDouble >= sfc.time.max
+        }
+      }
+    }
   }
 }
 
