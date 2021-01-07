@@ -122,6 +122,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
           s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
       output(s"Sort: ${query.getHints.getSortFields.map(QueryHints.sortReadableString).getOrElse("none")}")
       output(s"Transforms: ${query.getHints.getTransformDefinition.map(t => if (t.isEmpty) { "empty" } else { t }).getOrElse("none")}")
+      hints.getFilterCompatibility.foreach(c => output(s"Filter compatibility: $c"))
 
       output.pushLevel("Strategy selection:")
       val requestedIndex = requested.orElse(hints.getRequestedIndex)
