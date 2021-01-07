@@ -12,7 +12,7 @@ import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
+import org.locationtech.geomesa.curve.BinnedTime.{DateToBinnedTime, TimeToBinnedTime}
 import org.locationtech.geomesa.curve.{BinnedTime, Z3SFC}
 import org.locationtech.geomesa.filter.FilterValues
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
@@ -45,14 +45,14 @@ class Z3IndexKeySpace(val sft: SimpleFeatureType,
     s"Expected field $dtgField to have a date binding, but instead it has: " +
         sft.getDescriptor(dtgField).getType.getBinding.getSimpleName)
 
-  protected val sfc = Z3SFC(sft.getZ3Interval)
+  protected val sfc: Z3SFC = Z3SFC(sft.getZ3Interval)
 
   protected val geomIndex: Int = sft.indexOf(geomField)
   protected val dtgIndex: Int = sft.indexOf(dtgField)
 
   protected val timeToIndex: TimeToBinnedTime = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
+  protected val dateToIndex: DateToBinnedTime = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
 
-  private val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
   private val boundsToDates = BinnedTime.boundsToIndexableDates(sft.getZ3Interval)
 
   override val attributes: Seq[String] = Seq(geomField, dtgField)

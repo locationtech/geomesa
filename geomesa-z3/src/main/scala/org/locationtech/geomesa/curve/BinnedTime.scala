@@ -150,7 +150,8 @@ object BinnedTime {
       case TimePeriod.Day   => ChronoUnit.DAYS.getDuration.toMillis
       case TimePeriod.Week  => ChronoUnit.WEEKS.getDuration.toMillis / 1000L
       case TimePeriod.Month => (ChronoUnit.DAYS.getDuration.toMillis / 1000L) * 31L
-      case TimePeriod.Year  => ChronoUnit.WEEKS.getDuration.toMinutes * 52L
+      // based on 365 days + 1 leap day, with a fudge factor of 10 minutes to account for leap seconds added each year
+      case TimePeriod.Year  => (ChronoUnit.DAYS.getDuration.toMinutes * 366L) + 10L
     }
   }
 
