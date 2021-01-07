@@ -40,7 +40,7 @@ object Z3Index extends ConfiguredIndex {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val name = "z3"
-  override val version = 6
+  override val version = 7
 
   override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
     Z3IndexKeySpace.supports(sft, attributes)
