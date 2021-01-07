@@ -13,7 +13,7 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime.TimeToBinnedTime
-import org.locationtech.geomesa.curve.{BinnedTime, XZ3SFC}
+import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod, XZ3SFC}
 import org.locationtech.geomesa.filter.FilterValues
 import org.locationtech.geomesa.index.api.IndexKeySpace.IndexKeySpaceFactory
 import org.locationtech.geomesa.index.api.ShardStrategy.{NoShardStrategy, ZShardStrategy}
@@ -45,7 +45,11 @@ class XZ3IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, 
   protected val geomIndex: Int = sft.indexOf(geomField)
   protected val dtgIndex: Int = sft.indexOf(dtgField)
 
-  protected val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
+  // noinspection ScalaDeprecation
+  protected val sfc: XZ3SFC = sft.getZ3Interval match {
+    case TimePeriod.Year => new org.locationtech.geomesa.curve.LegacyYearXZ3SFC(sft.getXZPrecision)
+    case p => XZ3SFC(sft.getXZPrecision, p)
+  }
   protected val timeToIndex: TimeToBinnedTime = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
 
   private val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)
