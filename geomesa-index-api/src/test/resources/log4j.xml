@@ -23,15 +23,14 @@
     <!-- un-comment the following line to enable verbose log messages
          from the index query-planner; this can be helpful in debugging
          query plans -->
-    <!-- -->
+    <!-- 
     <category name="org.locationtech.geomesa.index.utils.Explainer">
         <priority value="trace"/>
     </category>
-    <!-- -->
+    -->
 
     <root>
         <priority value="info"/>
         <appender-ref ref="CONSOLE" />
     </root>
 </log4j:configuration>
-
