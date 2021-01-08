@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index
 
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
 import org.locationtech.geomesa.utils.stats._
@@ -30,7 +31,7 @@ package object stats {
 
     override val writer: GeoMesaStatWriter = NoopStatWriter
 
-    override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = None
+    override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = None
 
     override def getMinMax[T](
         sft: SimpleFeatureType,

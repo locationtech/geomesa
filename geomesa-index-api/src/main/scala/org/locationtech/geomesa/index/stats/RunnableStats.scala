@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index.stats
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, Query, Transaction}
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.conf.QueryHints
@@ -37,8 +38,9 @@ class RunnableStats(ds: DataStore) extends GeoMesaStats with LazyLogging {
   override def getCount(
       sft: SimpleFeatureType,
       filter: Filter,
-      exact: Boolean): Option[Long] = {
-    if (exact) { query[CountStat](sft, filter, Stat.Count()).map(_.count) } else { None }
+      exact: Boolean,
+      queryHints: Hints): Option[Long] = {
+    if (exact) { query[CountStat](sft, filter, Stat.Count(), queryHints).map(_.count) } else { None }
   }
 
   override def getMinMax[T](
@@ -119,8 +121,9 @@ class RunnableStats(ds: DataStore) extends GeoMesaStats with LazyLogging {
     * @tparam T stat type
     * @return
     */
-  protected def query[T <: Stat](sft: SimpleFeatureType, filter: Filter, query: String): Option[T] = {
+  protected def query[T <: Stat](sft: SimpleFeatureType, filter: Filter, query: String, queryHints: Hints = new Hints()): Option[T] = {
     val q = new Query(sft.getTypeName, filter)
+    q.setHints(queryHints)
     q.getHints.put(QueryHints.STATS_STRING, query)
     q.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
 
@@ -148,9 +151,10 @@ object RunnableStats {
     * @param ds datastore
     */
   class UnoptimizedRunnableStats(ds: DataStore) extends RunnableStats(ds) {
-    override protected def query[T <: Stat](sft: SimpleFeatureType, filter: Filter, query: String): Option[T] = {
+    override protected def query[T <: Stat](sft: SimpleFeatureType, filter: Filter, query: String, queryHints: Hints): Option[T] = {
       try {
         val q = new Query(sft.getTypeName, filter, StatParser.propertyNames(sft, query).toArray)
+        q.setHints(queryHints)
         WithClose(ds.getFeatureReader(q, Transaction.AUTO_COMMIT)) { reader =>
           val stat = Stat(reader.getFeatureType, query).asInstanceOf[T]
           CloseableIterator(reader).foreach(stat.observe)

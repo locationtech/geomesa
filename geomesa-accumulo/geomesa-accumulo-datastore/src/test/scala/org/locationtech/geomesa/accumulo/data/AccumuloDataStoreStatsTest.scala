@@ -16,9 +16,12 @@ import org.geotools.data.simple.SimpleFeatureReader
 import org.geotools.feature.DefaultFeatureCollection
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.TestWithMultipleSfts
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryHints.{EXACT_COUNT, QUERY_INDEX}
+import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{CRS_EPSG_4326, wholeWorldEnvelope}
 import org.locationtech.geomesa.utils.text.WKTUtils
@@ -388,6 +391,37 @@ class AccumuloDataStoreStatsTest extends Specification with TestWithMultipleSfts
         ds.stats.getMinMax[String](sft, "name").map(_.tuple) must beSome(("0", "9", 10L))
         ds.stats.getMinMax[Int](sft, "age").map(_.tuple) must beSome((1, 2, 2L))
         ds.stats.getMinMax[Int](sft, "height") must beNone
+      }
+
+      "calculate exact counts with index query hints" >> {
+        // mock accumulo seems to really struggle with setting up the stat iterator
+        // the call to batchScanner.iterator can take several seconds
+        // this doesn't seem to happen with regular accumulo
+        // so only test one of each query type here
+
+        // deleting the gm.AccumuloDataStoreStatsTest_AccumuloDataStoreStatsTest0_join_name_geom_dtg_v8 table
+        // to show that the QUERY_INDEX hint is being passed through
+        ds.connector.tableOperations().delete("gm.AccumuloDataStoreStatsTest_AccumuloDataStoreStatsTest0_join_name_geom_dtg_v8")
+
+        val filters = Seq("bbox(geom,0,0,10,5)", "name < '7'")
+        forall(filters.map(ECQL.toFilter)) { filter =>
+          val query = new Query(sft.getTypeName, filter)
+          val hints = new Hints()
+          hints.put(QUERY_INDEX, Z2Index.name)
+          hints.put(EXACT_COUNT, java.lang.Boolean.TRUE)
+          query.setHints(hints)
+
+          val fs = ds.getFeatureSource(sftName)
+          val count = fs.getCount(query)
+
+          val reader = ds.getFeatureReader(query, Transaction.AUTO_COMMIT)
+          val exact = SelfClosingIterator(reader).length.toLong
+          exact must beGreaterThan(0L)
+          val calculated = ds.stats.getCount(sft, filter, exact = true, hints)
+          calculated must beSome(exact)
+          println(s"FS Count: $count reader count: $exact stats count: $calculated")
+          count mustEqual exact
+        }
       }
     }
   }
