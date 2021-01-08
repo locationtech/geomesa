@@ -62,8 +62,8 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
 
     val useExactCount = query.getHints.isExactCount.getOrElse(QueryExactCount.get.toBoolean)
     val hints = new Hints()
-    query.getHints.getRequestedIndex.foreach { index => hints.put(QUERY_INDEX, index) }
-    hints.put(COST_EVALUATION, query.getHints.getCostEvaluation)
+    val CountHints = Seq(QUERY_INDEX, COST_EVALUATION)
+    CountHints.foreach(key => if (query.getHints.contains(key)) { hints.put(key, query.getHints.get(key)) })
 
     val count = ds.stats.getCount(getSchema, query.getFilter, useExactCount, hints).getOrElse(-1L)
 
