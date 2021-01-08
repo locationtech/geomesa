@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.lambda.stream.stats
 
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, NoopStatUpdater, StatUpdater}
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.utils.stats.{MinMax, SeqStat, Stat}
@@ -18,7 +19,7 @@ import scala.reflect.ClassTag
 
 class TransientStats(store: TransientStore) extends GeoMesaStats {
 
-  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] =
+  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] =
     Some(store.read(Option(filter)).length)
 
   override def getAttributeBounds[T](sft: SimpleFeatureType,
@@ -35,7 +36,7 @@ class TransientStats(store: TransientStore) extends GeoMesaStats {
                                    options: Seq[Any] = Seq.empty)
                                   (implicit ct: ClassTag[T]): Seq[T] = Seq.empty
 
-  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
+  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter, queryHints: Hints): Seq[T] = {
     val stat = Stat(store.sft, stats)
     store.read(Option(filter)).foreach(stat.observe)
     stat match {

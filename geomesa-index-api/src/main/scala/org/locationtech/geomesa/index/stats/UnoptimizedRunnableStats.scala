@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.stats
 
 import org.geotools.data.{DataStore, Query, Transaction}
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, NoOpMetadata}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -32,9 +33,10 @@ class UnoptimizedRunnableStats(store: DataStore) extends MetadataBackedStats {
 
   override private [geomesa] val metadata: GeoMesaMetadata[Stat] = new NoOpMetadata[Stat]
 
-  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
+  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter, queryHints: Hints): Seq[T] = {
     val stat = Stat(sft, stats)
     val query = new Query(sft.getTypeName, filter)
+    query.setHints(queryHints)
     try {
       WithClose(CloseableIterator(store.getFeatureReader(query, Transaction.AUTO_COMMIT))) { reader =>
         reader.foreach(stat.observe)

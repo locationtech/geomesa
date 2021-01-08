@@ -204,9 +204,11 @@ object TestGeoMesaDataStore {
 
     override protected val generateStats = true
 
-    override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
+    override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter, queryHints: Hints): Seq[T] = {
       val stat = Stat(sft, stats)
-      SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)).foreach(stat.observe)
+      val query = new Query(sft.getTypeName, filter)
+      query.setHints(queryHints)
+      SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).foreach(stat.observe)
       stat match {
         case s: SeqStat => s.stats.asInstanceOf[Seq[T]]
         case s: T => Seq(s)

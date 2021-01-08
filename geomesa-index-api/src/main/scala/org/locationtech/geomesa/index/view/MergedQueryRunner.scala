@@ -268,8 +268,8 @@ object MergedQueryRunner {
       case s => new UnoptimizedRunnableStats(s)
     }
 
-    override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] =
-      stats.flatMap(_.getCount(sft, filter, exact)).reduceLeftOption(_ + _)
+    override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] =
+      stats.flatMap(_.getCount(sft, filter, exact, queryHints)).reduceLeftOption(_ + _)
 
     override def getAttributeBounds[T](sft: SimpleFeatureType,
                                        attribute: String,
@@ -285,8 +285,8 @@ object MergedQueryRunner {
         left.zip(right).map { case (l, r) => l + r }.asInstanceOf[Seq[T]]
       }
 
-    override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] =
-      this.stats.map(_.runStats[T](sft, stats, filter)).reduceLeft[Seq[T]] { case (left, right) =>
+    override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter, queryHints: Hints): Seq[T] =
+      this.stats.map(_.runStats[T](sft, stats, filter, queryHints)).reduceLeft[Seq[T]] { case (left, right) =>
         left.zip(right).map { case (l, r) => l + r }.asInstanceOf[Seq[T]]
       }
 

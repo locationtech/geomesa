@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.lambda.data
 
 import com.github.benmanes.caffeine.cache.LoadingCache
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.index.stats.{GeoMesaStats, StatUpdater}
 import org.locationtech.geomesa.lambda.stream.TransientStore
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
@@ -21,10 +22,10 @@ class LambdaStats(persistent: GeoMesaStats, transients: LoadingCache[String, Tra
 
   // note: transient stat methods always return Some
 
-  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
-    lazy val t = transient(sft).getCount(sft, filter, exact)
+  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = {
+    lazy val t = transient(sft).getCount(sft, filter, exact, queryHints)
         .getOrElse(throw new IllegalStateException("Transient stats returned None"))
-    persistent.getCount(sft, filter, exact) match {
+    persistent.getCount(sft, filter, exact, queryHints) match {
       case None => None
       case Some(p) if p == -1 => Some(-1)
       case Some(p) => Some(p + t)
@@ -46,9 +47,9 @@ class LambdaStats(persistent: GeoMesaStats, transients: LoadingCache[String, Tra
                                   (implicit ct: ClassTag[T]): Seq[T] =
     persistent.getStats[T](sft, attributes, options)
 
-  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
-    val p = persistent.runStats[T](sft, stats, filter)
-    val t = transient(sft).runStats[T](sft, stats, filter)
+  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter, queryHints: Hints): Seq[T] = {
+    val p = persistent.runStats[T](sft, stats, filter, queryHints)
+    val t = transient(sft).runStats[T](sft, stats, filter, queryHints)
     p.zip(t).map(pt => pt._1 + pt._2).asInstanceOf[Seq[T]]
   }
 

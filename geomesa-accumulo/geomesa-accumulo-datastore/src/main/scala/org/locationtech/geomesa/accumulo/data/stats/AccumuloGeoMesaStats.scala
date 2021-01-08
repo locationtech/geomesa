@@ -17,6 +17,7 @@ import org.apache.accumulo.core.client.{Connector, IteratorSetting}
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope
 import org.apache.hadoop.io.Text
 import org.geotools.data.{Query, Transaction}
+import org.geotools.factory.Hints
 import org.joda.time._
 import org.locationtech.geomesa.accumulo.AccumuloVersion
 import org.locationtech.geomesa.accumulo.data.{AccumuloBackedMetadata, _}
@@ -67,12 +68,13 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
 
   compactor.run() // schedule initial compaction
 
-  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
+  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = {
     lazy val query = {
       // restrict fields coming back so that we push as little data as possible
       val props = Array(Option(sft.getGeomField).getOrElse(sft.getDescriptor(0).getLocalName))
       new Query(sft.getTypeName, filter, props)
     }
+    query.setHints(queryHints)
     lazy val hasDupes = ds.getQueryPlan(query).exists(_.hasDuplicates)
 
     if (exact && hasDupes) {
@@ -84,12 +86,13 @@ class AccumuloGeoMesaStats(val ds: AccumuloDataStore, statsTable: String, val ge
       SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).foreach(_ => count += 1)
       Some(count)
     } else {
-      super.getCount(sft, filter, exact)
+      super.getCount(sft, filter, exact, queryHints)
     }
   }
 
-  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
+  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter, queryHints: Hints): Seq[T] = {
     val query = new Query(sft.getTypeName, filter)
+    query.setHints(queryHints)
     query.getHints.put(QueryHints.STATS_STRING, stats)
     query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
 

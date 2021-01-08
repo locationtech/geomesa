@@ -19,9 +19,11 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator, SimpleFeatureSource}
 import org.geotools.data.store.DataFeatureCollection
+import org.geotools.factory.Hints
 import org.geotools.feature.collection.SortedSimpleFeatureCollection
 import org.geotools.feature.visitor.{BoundsVisitor, MaxVisitor, MinVisitor}
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.locationtech.geomesa.index.conf.QueryHints.{COST_EVALUATION, QUERY_INDEX}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -63,10 +65,14 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
     import org.locationtech.geomesa.index.conf.QueryProperties.QUERY_EXACT_COUNT
 
     val useExactCount = query.getHints.isExactCount.getOrElse(QUERY_EXACT_COUNT.get.toBoolean)
-    lazy val exactCount = ds.stats.getCount(getSchema, query.getFilter, exact = true).getOrElse(-1L)
+    val hints = new Hints()
+    query.getHints.getRequestedIndex.foreach { index => hints.put(QUERY_INDEX, index) }
+    hints.put(COST_EVALUATION, query.getHints.getCostEvaluation)
+
+    lazy val exactCount = ds.stats.getCount(getSchema, query.getFilter, exact = true, hints).getOrElse(-1L)
 
     val count = if (useExactCount) { exactCount } else {
-      ds.stats.getCount(getSchema, query.getFilter, exact = false).getOrElse(exactCount)
+      ds.stats.getCount(getSchema, query.getFilter, exact = false, hints).getOrElse(exactCount)
     }
     if (count > Int.MaxValue) {
       logger.warn(s"Truncating count $count to Int.MaxValue (${Int.MaxValue})")

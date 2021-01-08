@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index.stats
 
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.utils.stats.{MinMax, Stat}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
@@ -16,7 +17,7 @@ import scala.reflect.ClassTag
 
 object NoopStats extends GeoMesaStats {
 
-  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = None
+  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHint: Hints): Option[Long] = None
 
   override def getAttributeBounds[T](sft: SimpleFeatureType,
                                      attribute: String,
@@ -27,7 +28,7 @@ object NoopStats extends GeoMesaStats {
                                    attributes: Seq[String],
                                    options: Seq[Any])(implicit ct: ClassTag[T]): Seq[T] = Seq.empty
 
-  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = Seq.empty
+  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter, queryHints: Hints): Seq[T] = Seq.empty
 
   override def generateStats(sft: SimpleFeatureType): Seq[Stat] = Seq.empty
 
