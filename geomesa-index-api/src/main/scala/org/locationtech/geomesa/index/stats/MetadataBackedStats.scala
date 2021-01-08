@@ -40,7 +40,6 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
 
   override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = {
     if (exact) {
-      // TODO: runStats needs to be updated!
       runStats[CountStat](sft, Stat.Count(), filter, queryHints).headOption.map(_.count)
     } else {
       estimateCount(sft, filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
