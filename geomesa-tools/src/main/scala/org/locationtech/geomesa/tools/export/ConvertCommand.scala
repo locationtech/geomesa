@@ -11,6 +11,7 @@ package org.locationtech.geomesa.tools.export
 import com.beust.jcommander.{ParameterException, Parameters}
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.Query
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.convert.EvaluationContext
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.index.planning.LocalQueryRunner
@@ -123,7 +124,7 @@ object ConvertCommand extends LazyLogging {
       import org.locationtech.geomesa.filter.filterToString
 
       val stats = new RunnableStats(null) {
-        override protected def query[T <: Stat](sft: SimpleFeatureType, ignored: Filter, stats: String) : Option[T] = {
+        override protected def query[T <: Stat](sft: SimpleFeatureType, ignored: Filter, stats: String, queryHints: Hints) : Option[T] = {
           val stat = Stat(sft, stats).asInstanceOf[T]
           try {
             WithClose(limit(filter(convert())))(_.foreach(stat.observe))

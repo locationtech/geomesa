@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataStore
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
@@ -41,9 +42,9 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
 
   override val writer: GeoMesaStatWriter = new MetadataStatWriter()
 
-  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
+  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = {
     if (exact) {
-      query[CountStat](sft, filter, Stat.Count()).map(_.count)
+      query[CountStat](sft, filter, Stat.Count(), queryHints).map(_.count)
     } else if (filter == Filter.INCLUDE) {
       // note: compared to the 'read' method, we want to return empty counts (indicating no features)
       try { metadata.read(sft.getTypeName, countKey()).collect { case s: CountStat => s.count } } catch {
