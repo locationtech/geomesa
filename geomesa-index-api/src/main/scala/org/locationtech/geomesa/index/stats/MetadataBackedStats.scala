@@ -12,6 +12,7 @@ import java.time.{Instant, ZoneOffset}
 import java.util.Date
 
 import com.typesafe.scalalogging.LazyLogging
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -37,9 +38,9 @@ trait MetadataBackedStats extends GeoMesaStats with StatsBasedEstimator with Laz
   protected def ds: HasGeoMesaMetadata[String]
   protected def generateStats: Boolean
 
-  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
+  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = {
     if (exact) {
-      runStats[CountStat](sft, Stat.Count(), filter).headOption.map(_.count)
+      runStats[CountStat](sft, Stat.Count(), filter, queryHints).headOption.map(_.count)
     } else {
       estimateCount(sft, filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
     }

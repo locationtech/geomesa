@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.stats
 
 import org.geotools.data.{DataStore, Query, Transaction}
+import org.geotools.factory.Hints
 import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.metadata.{GeoMesaMetadata, HasGeoMesaMetadata, NoOpMetadata}
@@ -23,8 +24,9 @@ class DistributedRunnableStats(val ds: DataStore with HasGeoMesaMetadata[String]
 
   override private [geomesa] val metadata: GeoMesaMetadata[Stat] = new NoOpMetadata[Stat]
 
-  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter): Seq[T] = {
+  override def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter, queryHints: Hints): Seq[T] = {
     val query = new Query(sft.getTypeName, filter)
+    query.setHints(queryHints)
     query.getHints.put(QueryHints.STATS_STRING, stats)
     query.getHints.put(QueryHints.ENCODE_STATS, java.lang.Boolean.TRUE)
 

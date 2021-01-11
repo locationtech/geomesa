@@ -12,6 +12,7 @@ import java.io.{Closeable, Flushable}
 import java.util.Date
 
 import com.vividsolutions.jts.geom.Geometry
+import org.geotools.factory.Hints
 import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
 import org.locationtech.geomesa.utils.geotools._
@@ -35,9 +36,10 @@ trait GeoMesaStats extends Closeable {
     * @param sft simple feature type
     * @param filter cql filter
     * @param exact rough estimate, or precise count. note: precise count will likely be expensive.
+   *  @param queryHints query hints that should be used for query execution
     * @return count of features, if available - will always be Some if exact == true
     */
-  def getCount(sft: SimpleFeatureType, filter: Filter = Filter.INCLUDE, exact: Boolean = false): Option[Long]
+  def getCount(sft: SimpleFeatureType, filter: Filter = Filter.INCLUDE, exact: Boolean = false, queryHints: Hints = new Hints()): Option[Long]
 
   /**
     * Gets the bounds for data that will be returned for a query
@@ -93,7 +95,7 @@ trait GeoMesaStats extends Closeable {
     * @tparam T stat type - must correspond to stat string
     * @return stat
     */
-  def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter = Filter.INCLUDE): Seq[T]
+  def runStats[T <: Stat](sft: SimpleFeatureType, stats: String, filter: Filter = Filter.INCLUDE, queryHints: Hints = new Hints()): Seq[T]
 
   /**
     * Updates the cached stats for the given schema
