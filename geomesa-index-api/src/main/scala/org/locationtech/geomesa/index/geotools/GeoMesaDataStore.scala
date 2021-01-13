@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -85,7 +85,14 @@ abstract class GeoMesaDataStore[DS <: GeoMesaDataStore[DS]](val config: GeoMesaD
     * (index tables and catalog table)
     * NB: We are *not* currently deleting the query table and/or query information.
     */
-  def delete(): Unit = adapter.deleteTables(getTypeNames.flatMap(getAllTableNames).distinct)
+  def delete(): Unit = {
+    val types = getTypeNames
+    val tables = if (types.length == 0) Array(config.catalog) else {
+      types.flatMap(getAllTableNames).distinct
+    }
+    adapter.deleteTables(tables)
+    metadata.resetCache()
+  }
 
   // hooks to allow extended functionality
 

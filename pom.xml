@@ -64,9 +64,10 @@
         <scala.xml.version>1.0.6</scala.xml.version>
         <scala.parsers.version>1.0.6</scala.parsers.version>
 
-        <gt.version>23.3</gt.version>
-        <geoserver.version>2.17.0</geoserver.version>
-        <jts.version>1.16.0</jts.version>
+        <gt.version>23.3</gt.version> <!-- make sure this tracks with gs, jts, and spatial4j -->
+        <geoserver.version>2.17.3</geoserver.version>
+        <jts.version>1.17.0</jts.version> <!-- needs to track with gt/gs version -->
+        <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
         <avro.version>1.8.2</avro.version> <!-- see also confluent.avro.version -->
         <parquet.version>1.9.0</parquet.version>
         <orc.version>1.5.4</orc.version>
@@ -123,7 +124,7 @@
         <!-- bump version right before performing releases for the README and the documentation -->
         <geomesa.release.version>3.1.0</geomesa.release.version>
         <geomesa.devel.version>3.2.0-SNAPSHOT</geomesa.devel.version>
-        <copyright.year>2020</copyright.year>
+        <copyright.year>2021</copyright.year>
 
         <!-- recommended installation versions -->
         <accumulo.version.recommended>2.0.0</accumulo.version.recommended>
@@ -832,7 +833,7 @@
             <dependency>
                 <groupId>org.locationtech.spatial4j</groupId>
                 <artifactId>spatial4j</artifactId>
-                <version>0.7</version>
+                <version>${spatial4j.version}</version>
             </dependency>
             <dependency>
                 <!-- 'works with' due to license issues -->
@@ -2541,8 +2542,6 @@
                         <header>build/copyright/ccri.txt</header>
                         <validHeaders>
                             <validHeader>build/copyright/ccri-dstl.txt</validHeader>
-                            <validHeader>build/copyright/ccri-dstl-2016.txt</validHeader>
-                            <validHeader>build/copyright/ccri-dstl-2020.txt</validHeader>
                             <validHeader>build/copyright/dstl.txt</validHeader>
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>

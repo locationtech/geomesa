@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -109,6 +109,11 @@ trait GeoMesaMetadata[T] extends Closeable {
     * @param typeName simple feature type name
     */
   def backup(typeName: String): Unit
+
+  /**
+   * table cache should be cleared up when catalog is deleted in database
+   */
+  def resetCache(): Unit
 }
 
 object GeoMesaMetadata {

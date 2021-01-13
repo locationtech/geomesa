@@ -52,7 +52,7 @@ master_doc = 'index'
 # General information about the project.
 project = u'GeoMesa'
 # note: shown in our custom footer
-copyright = u'2013-2020'
+copyright = u'2013-2021'
 author = u''
 
 # The version info for the project you're documenting, acts as replacement for

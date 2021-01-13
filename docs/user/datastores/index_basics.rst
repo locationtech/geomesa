@@ -136,6 +136,7 @@ The following versions are available:
         4             1.3.1           Support for table sharing
         5             2.0.0           Uses fixed Z-curve implementation
         6             2.3.0           Configurable attributes
+        7             3.2.0           Fixes yearly epoch indexing
         ============= =============== =================================================================
 
     .. tab:: Z2
@@ -161,6 +162,7 @@ The following versions are available:
         ============= =============== =================================================================
         1             1.2.5           Initial implementation
         2             2.3.0           Configurable attributes
+        3             3.2.0           Fixes yearly epoch indexing
         ============= =============== =================================================================
 
     .. tab:: XZ2

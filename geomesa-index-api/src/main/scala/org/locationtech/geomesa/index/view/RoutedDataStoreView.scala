@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,6 +10,7 @@ package org.locationtech.geomesa.index.view
 
 import org.geotools.data._
 import org.geotools.data.simple.{EmptySimpleFeatureReader, SimpleFeatureSource}
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
 import org.locationtech.geomesa.index.stats.RunnableStats.UnoptimizedRunnableStats
@@ -65,7 +66,8 @@ object RoutedDataStoreView {
     override def getCount(
         sft: SimpleFeatureType,
         filter: Filter,
-        exact: Boolean): Option[Long] = route(sft, filter, _.getCount(sft, filter, exact))
+        exact: Boolean,
+        queryHints: Hints): Option[Long] = route(sft, filter, _.getCount(sft, filter, exact, queryHints))
 
     override def getMinMax[T](
         sft: SimpleFeatureType,

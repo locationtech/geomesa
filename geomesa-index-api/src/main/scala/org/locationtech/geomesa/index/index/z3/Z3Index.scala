@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -40,7 +40,7 @@ object Z3Index extends ConfiguredIndex {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val name = "z3"
-  override val version = 6
+  override val version = 7
 
   override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
     Z3IndexKeySpace.supports(sft, attributes)

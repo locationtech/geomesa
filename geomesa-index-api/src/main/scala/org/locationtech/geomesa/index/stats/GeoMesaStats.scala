@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,6 +12,7 @@ import java.io.{Closeable, Flushable}
 import java.util.Date
 
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
 import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
@@ -44,9 +45,10 @@ trait GeoMesaStats extends Closeable {
     * @param sft simple feature type
     * @param filter cql filter
     * @param exact rough estimate, or precise count. note: precise count will likely be expensive.
+   *  @param queryHints query hints that should be used for query execution
     * @return count of features, if available - will always be Some if exact == true
     */
-  def getCount(sft: SimpleFeatureType, filter: Filter = Filter.INCLUDE, exact: Boolean = false): Option[Long]
+  def getCount(sft: SimpleFeatureType, filter: Filter = Filter.INCLUDE, exact: Boolean = false, queryHints: Hints = new Hints()): Option[Long]
 
   /**
     * Get the bounds for data that will be returned for a query

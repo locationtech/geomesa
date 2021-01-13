@@ -106,6 +106,38 @@ QueryHints.EXACT_COUNT ``Boolean`` ``true`` or ``false``
 
         ...&viewparams=EXACT_COUNT:true
 
+Filter Compatibility
+--------------------
+
+GeoMesa provides a limited compatibility mode, which allows for using a newer client version with
+an older distributed-runtime version, for back-ends that have a distributed installation. Currently
+only GeoMesa 1.3.7 on Accumulo is supported, with the compatibility flag ``1.3``. Only basic
+spatio-temporal queries are supported, without transforms or advanced options.
+
+======================== ======================= ===========================
+Key                      Type                    GeoServer Conversion
+======================== ======================= ===========================
+QueryHints.FILTER_COMPAT String                  distributed install version
+======================== ======================= ===========================
+
+.. tabs::
+
+    .. code-tab:: java
+
+        import org.locationtech.geomesa.index.conf.QueryHints;
+
+        query.getHints().put(QueryHints.FILTER_COMPAT(), "1.3");
+
+    .. code-tab:: scala
+
+        import org.locationtech.geomesa.index.conf.QueryHints
+
+        query.getHints.put(QueryHints.FILTER_COMPAT, "1.3")
+
+    .. code-tab:: none GeoServer
+
+        ...&viewparams=FILTER_COMPAT:1.3
+
 .. _query_index_hint:
 
 Query Index
