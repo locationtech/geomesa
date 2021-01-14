@@ -123,7 +123,7 @@ object Z3UuidGenerator extends RandomLsbUuidGenerator with LazyLogging {
     }
 
     // shard is first 4 bits of our uuid (e.g. 1 hex char) - this allows nice pre-splitting
-    val shard = math.abs(MurmurHash3.bytesHash(z3) % 16).toByte
+    val shard = math.abs(MurmurHash3.bytesHash(z3, MurmurHash3.arraySeed) % 16).toByte
 
     val msb = getTempByteArray
     // set the shard bits, then the z3 bits
