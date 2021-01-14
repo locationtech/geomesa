@@ -43,6 +43,7 @@ class MetadataMigration(ds: KafkaDataStore, zkPath: String, zookeepers: String) 
               val schema = new String(client.getData.forPath(s"/$name"), StandardCharsets.UTF_8)
               val sft = SimpleFeatureTypes.createType(name, schema)
               KafkaDataStore.setTopic(sft, new String(client.getData.forPath(s"/$name/Topic"), StandardCharsets.UTF_8))
+              sft.getUserData.put(SimpleFeatureTypes.Configs.OverrideReservedWords, "true")
               ds.createSchema(sft)
             }
             client.delete().deletingChildrenIfNeeded().forPath(s"/$name")

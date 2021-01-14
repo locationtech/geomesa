@@ -656,7 +656,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
     }
 
     "migrate old kafka data store schemas" >> {
-      val spec = "test:String,dtg:Date,*geom:Point:srid=4326"
+      val spec = "test:String,dtg:Date,*location:Point:srid=4326"
 
       val path = s"geomesa/migrate/test/${paths.getAndIncrement()}"
       val client = CuratorFrameworkFactory.builder()
