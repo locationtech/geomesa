@@ -22,6 +22,7 @@ import org.geotools.geometry.jts.ReferencedEnvelope
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.{DelegatingResourceInfo, GeoMesaQueryCapabilities}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
@@ -59,7 +60,12 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
     import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCount
 
     val useExactCount = query.getHints.isExactCount.getOrElse(QueryExactCount.get.toBoolean)
-    val count = ds.stats.getCount(getSchema, query.getFilter, useExactCount).getOrElse(-1L)
+
+    val count = if (query.getMaxFeatures < 1000) {
+      SelfClosingIterator(getFeatures(query)).size
+    } else {
+      ds.stats.getCount(getSchema, query.getFilter, useExactCount).getOrElse(-1L)
+    }
 
     if (count > Int.MaxValue) {
       logger.warn(s"Truncating count $count to Int.MaxValue (${Int.MaxValue})")

@@ -45,8 +45,10 @@ class MergedFeatureSourceView(
 
   override def getSchema: SimpleFeatureType = sft
 
-  override def getCount(query: Query): Int =
-    sources.map { case (source, filter) => source.getCount(mergeFilter(query, filter)) }.sum
+  override def getCount(query: Query): Int = {
+    val total = sources.map { case (source, filter) => source.getCount(mergeFilter(query, filter)) }.sum
+    math.min(total, query.getMaxFeatures)
+  }
 
   override def getBounds: ReferencedEnvelope = {
     val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)
