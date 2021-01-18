@@ -13,10 +13,12 @@ import java.util.Date
 import com.typesafe.scalalogging.LazyLogging
 import org.locationtech.jts.geom.{Coordinate, Geometry}
 import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.utils.stats.BinnedArray.Binning
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
+import scala.util.Try
 
 /**
   * The histogram's state is stored in an indexed array, where the index is the bin number
@@ -187,7 +189,7 @@ object Histogram {
     * @return valid bounds for a histogram
     */
   def buffer[T](value: T): (T, T) = {
-    import BinnedStringArray.{Base36Lowest, Base36Highest}
+    import org.locationtech.geomesa.utils.stats.BinnedArray.StringBinning.{Base36Lowest, Base36Highest}
     val buf = value match {
       case v: Int    => (v - 100, v + 100)
       case v: Long   => (v - 100, v + 100)
@@ -204,6 +206,17 @@ object Histogram {
     }
     buf.asInstanceOf[(T, T)]
   }
+
+  /**
+   * Checks if 2 values map to the same bin
+   *
+   * @param o1 object 1
+   * @param o2 object 2
+   * @param bins number of binds
+   * @tparam T type binding
+   * @return
+   */
+  def equivalent[T: ClassTag](o1: T, o2: T, bins: Int): Boolean = Try(Binning(bins, (o1, o2))).isFailure
 
   /**
     * Creates a new binned array that encompasses the new value.
