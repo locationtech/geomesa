@@ -61,9 +61,10 @@ object RedisQueryPlan {
   def explain(plan: RedisQueryPlan, explainer: Explainer, prefix: String): Unit = {
     explainer.pushLevel(s"${prefix}Plan: ${plan.getClass.getSimpleName}")
     explainer(s"Tables: ${plan.tables.mkString(", ")}")
-    explainer(s"ECQL: ${plan.ecql.map(filterToString).getOrElse("None")}")
+    explainer(s"ECQL: ${plan.ecql.map(filterToString).getOrElse("none")}")
     explainer(s"Ranges (${plan.ranges.size}): ${plan.ranges.take(5).map(rangeToString).mkString(", ")}")
     plan.explain(explainer)
+    explainer(s"Reduce: ${plan.reducer.getOrElse("none")}")
     explainer.popLevel()
   }
 
