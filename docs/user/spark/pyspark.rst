@@ -9,6 +9,7 @@ Prerequisites
 * `Spark`_ |spark_required_version| should be installed.
 * `Python`_ 2.7 or 3.x should be installed.
 * `pip`_ or ``pip3`` should be installed.
+* `conda-pack`_ is optional.
 
 Installation
 ^^^^^^^^^^^^
@@ -23,6 +24,27 @@ the providers outlined in :ref:`spatial_rdd_providers`.
     mvn clean install -Ppython
     pip3 install geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-$VERSION.tar.gz
     cp  geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo2/target/geomesa-accumulo-spark-runtime-accumulo2_2.11-$VERSION.jar /path/to/
+
+Alternatively, you can use ``conda-pack`` to bundle the dependencies for your project. This may be more appropriate if
+you have additional dependencies.
+
+.. code-block:: bash
+
+    export ENV_NAME=geomesa-pyspark
+
+    conda create --name $ENV_NAME -y python=3.7
+    conda activate $ENV_NAME
+
+    pip install geomesa-spark/geomesa_pyspark/target/geomesa_pyspark-$VERSION.tar.gz
+    # Install additional dependencies using conda or pip here
+
+    conda pack -o environment.tar.gz
+    cp geomesa-accumulo/geomesa-accumulo-spark-runtime-accumulo2/target/geomesa-accumulo-spark-runtime-accumulo2_2.11-$VERSION.jar /path/to/
+
+.. warning::
+    ``conda-pack`` currently has issues with Python 3.8, and ``pyspark`` has issues with Python 3.9, hence the explicit
+    use of Python 3.7
+
 
 Using GeoMesa PySpark
 ^^^^^^^^^^^^^^^^^^^^^
@@ -51,6 +73,16 @@ the ``pyspark`` library.
         .enableHiveSupport()
         .getOrCreate()
     )
+
+Alternatively, if you used ``conda-pack`` then you do not need to set up the GeoMesa configuration as above, but you
+must start ``pyspark`` or your application as follows, updating paths as required:
+
+.. code-block:: bash
+
+    PYSPARK_DRIVER_PYTHON=/opt/anaconda3/envs/$ENV_NAME/bin/python PYSPARK_PYTHON=./environment/bin/python pyspark \
+    --jars /path/to/geomesa-accumulo-spark-runtime_2.11-$VERSION.jar \
+    --conf spark.yarn.appMasterEnv.PYSPARK_PYTHON=./environment/bin/python \
+    --master yarn --deploy-mode client --archives environment.tar.gz#environment
 
 At this point you are ready to create a dict of connection parameters to your Accumulo data store and get a spatial
 data frame.
@@ -103,3 +135,4 @@ the GeoMesa Accumulo client and server side versions match, as described in :doc
 .. _pip: https://packaging.python.org/tutorials/installing-packages/
 .. _Python: https://www.python.org/
 .. _Spark: http://spark.apache.org/
+.. _conda-pack: https://conda.github.io/conda-pack/
