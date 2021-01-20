@@ -80,7 +80,7 @@ must start ``pyspark`` or your application as follows, updating paths as require
 .. code-block:: bash
 
     PYSPARK_DRIVER_PYTHON=/opt/anaconda3/envs/$ENV_NAME/bin/python PYSPARK_PYTHON=./environment/bin/python pyspark \
-    --jars /path/to/geomesa-accumulo-spark-runtime_2.11-2.4.0.jar \
+    --jars /path/to/geomesa-accumulo-spark-runtime_2.11-$VERSION.jar \
     --conf spark.yarn.appMasterEnv.PYSPARK_PYTHON=./environment/bin/python \
     --master yarn --deploy-mode client --archives environment.tar.gz#environment
 
