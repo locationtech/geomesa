@@ -47,7 +47,11 @@ class MergedFeatureSourceView(
 
   override def getCount(query: Query): Int = {
     val total = sources.map { case (source, filter) => source.getCount(mergeFilter(query, filter)) }.sum
-    math.min(total, query.getMaxFeatures)
+    if (query.isMaxFeaturesUnlimited) {
+      total
+    } else {
+      math.min(total, query.getMaxFeatures)
+    }
   }
 
   override def getBounds: ReferencedEnvelope = {

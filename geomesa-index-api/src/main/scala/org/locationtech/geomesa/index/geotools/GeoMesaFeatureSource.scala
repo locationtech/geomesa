@@ -62,10 +62,17 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
 
     val useExactCount = query.getHints.isExactCount.getOrElse(QueryExactCount.get.toBoolean)
 
-    val count = if (useExactCount && query.getMaxFeatures < QueryExactCountMaxFeatures.get.toInt) {
+    val count = if (useExactCount &&
+      !query.isMaxFeaturesUnlimited &&
+      query.getMaxFeatures < QueryExactCountMaxFeatures.get.toInt) {
       SelfClosingIterator(getFeatures(query)).size
     } else {
-      math.min(ds.stats.getCount(getSchema, query.getFilter, useExactCount).getOrElse(-1L), query.getMaxFeatures)
+      val statsCount = ds.stats.getCount(getSchema, query.getFilter, useExactCount).getOrElse(-1L)
+      if (query.isMaxFeaturesUnlimited) {
+        statsCount
+      } else {
+        math.min(statsCount, query.getMaxFeatures)
+      }
     }
 
     if (count > Int.MaxValue) {
