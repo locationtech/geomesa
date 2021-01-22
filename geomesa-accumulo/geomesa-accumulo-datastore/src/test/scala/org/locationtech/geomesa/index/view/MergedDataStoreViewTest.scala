@@ -99,6 +99,13 @@ class MergedDataStoreViewTest extends TestWithFeatureType {
   }
 
   "MergedDataStoreView" should {
+    "respect max features" in {
+      val query = new Query(sftName)
+      query.setMaxFeatures(1)
+      query.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
+      ds.getFeatureSource(sft.getTypeName).getCount(query) mustEqual 1
+    }
+
     "load multiple datastores" in {
       mergedDs.getTypeNames mustEqual Array(sftName)
       mergedDs.getNames.asScala mustEqual Seq(new NameImpl(sftName))
