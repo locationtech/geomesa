@@ -14,9 +14,10 @@ import org.opengis.filter.Filter
 
 object QueryProperties {
 
-  val QueryExactCount: SystemProperty = SystemProperty("geomesa.force.count", "false")
-  val QueryCostType  : SystemProperty = SystemProperty("geomesa.query.cost.type")
-  val QueryTimeout   : SystemProperty = SystemProperty("geomesa.query.timeout") // default is no timeout
+  val QueryExactCount           : SystemProperty = SystemProperty("geomesa.force.count", "false")
+  val QueryExactCountMaxFeatures: SystemProperty = SystemProperty("geomesa.exact.count.max.features", "1000")
+  val QueryCostType             : SystemProperty = SystemProperty("geomesa.query.cost.type")
+  val QueryTimeout              : SystemProperty = SystemProperty("geomesa.query.timeout") // default is no timeout
 
   // rough upper limit on the number of ranges we will generate per query
   val ScanRangesTarget: SystemProperty = SystemProperty("geomesa.scan.ranges.target", "2000")
