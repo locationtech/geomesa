@@ -53,6 +53,13 @@ class GeoMesaDataStoreTest extends Specification {
   }
 
   "GeoMesaDataStore" should {
+    "respect max features" in {
+      val query = new Query("test")
+      query.setMaxFeatures(1)
+      ds.getFeatureSource(sft.getTypeName).getCount(query) mustEqual 1
+      ok
+    }
+
     "reproject geometries" in {
       val query = new Query("test")
       query.setCoordinateSystemReproject(epsg3857)

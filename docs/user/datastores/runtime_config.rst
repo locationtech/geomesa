@@ -120,6 +120,14 @@ front, so estimates will cause problems. To force GeoMesa to calculate the exact
 set, you may set this property to ``true``. You may also override this behavior on a per-query basis
 by using the query hint ``org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT``.
 
+geomesa.exact.count.max.features
+++++++++++++++++++++++++++++++++
+
+The GeoTools API around ``getCount`` indicates that a ``maxFeatures`` setting should be respected.
+When the ``geomesa.force.count`` or ``QueryHints.EXACT_COUNT`` is true  and maxFeatures is lower than this setting,
+GeoMesa will run the query to determine how many records are in the result set.
+Otherwise, GeoMesa will use the Stats API and respect the counting setting.  The default for this setting is 1000.
+
 geomesa.geometry.processing
 +++++++++++++++++++++++++++
 
