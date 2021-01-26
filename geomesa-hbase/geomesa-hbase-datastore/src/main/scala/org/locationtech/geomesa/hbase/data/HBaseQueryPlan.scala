@@ -105,21 +105,21 @@ object HBaseQueryPlan {
       val iter = tables.iterator
       val scans = iter.map(singleTableScan(ds, _, copyScans = iter.hasNext))
 
-      if (PartitionParallelScan.toBoolean.contains(true)) {
+      val results = if (PartitionParallelScan.toBoolean.contains(true)) {
         // kick off all the scans at once
-        scans.foldLeft(CloseableIterator.empty[SimpleFeature])(_ ++ _)
+        scans.foldLeft(CloseableIterator.empty[Result])(_ ++ _)
       } else {
         // kick off the scans sequentially as they finish
         SelfClosingIterator(scans).flatMap(s => s)
       }
+      SelfClosingIterator(resultsToFeatures(results), results.close())
     }
 
     private def singleTableScan(ds: HBaseDataStore,
                                 table: TableName,
-                                copyScans: Boolean): CloseableIterator[SimpleFeature] = {
+                                copyScans: Boolean): CloseableIterator[Result] = {
       val s = if (copyScans) { scans.map(new Scan(_)) } else { scans }
-      val results = HBaseBatchScan(ds.connection, table, s, ds.config.queryThreads)
-      SelfClosingIterator(resultsToFeatures(results), results.close())
+      HBaseBatchScan(ds.connection, table, s, ds.config.queryThreads)
     }
   }
 
