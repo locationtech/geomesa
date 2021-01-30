@@ -111,8 +111,8 @@ Filter Compatibility
 
 GeoMesa provides a limited compatibility mode, which allows for using a newer client version with
 an older distributed-runtime version, for back-ends that have a distributed installation. Currently
-only GeoMesa 1.3.7 on Accumulo is supported, with the compatibility flag ``1.3``. Only basic
-spatio-temporal queries are supported, without transforms or advanced options.
+this is limited to GeoMesa 1.3.7 and 2.3.x, with the flags ``1.3`` and ``2.3``, respectively. Only certain
+basic queries are supported, without advanced options.
 
 ======================== ======================= ===========================
 Key                      Type                    GeoServer Conversion

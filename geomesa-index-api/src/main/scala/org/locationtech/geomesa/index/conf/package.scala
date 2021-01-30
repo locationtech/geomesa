@@ -13,5 +13,6 @@ package object conf {
   object FilterCompatibility extends Enumeration {
     type FilterCompatibility = Value
     val `1.3`: Value = Value("1.3")
+    val `2.3`: Value = Value("2.3")
   }
 }
