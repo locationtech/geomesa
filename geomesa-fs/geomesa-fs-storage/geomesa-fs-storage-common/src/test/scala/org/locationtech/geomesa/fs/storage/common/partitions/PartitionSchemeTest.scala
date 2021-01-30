@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.fs.storage.common.partitions
 
 import java.time.Instant
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Date
 
@@ -20,6 +21,7 @@ import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.DateParsing
 import org.opengis.filter.{Filter, PropertyIsLessThan}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -243,6 +245,18 @@ class PartitionSchemeTest extends Specification with AllExpectations {
       // compare toString to get around crs comparison failures in bbox
       decomposeAnd(ps.getCoveringFilter("2018/01/01/3")).map(_.toString) must
           containTheSameElementsAs(decomposeAnd(expected).map(_.toString))
+    }
+
+    "calculate covering filters for monthly datetime" >> {
+      import DateTimeScheme.Formats.{Daily, Hourly, JulianDaily, JulianHourly, JulianMinute, Minute, Monthly, Weekly}
+      forall(Seq(Minute, Hourly, Daily, Weekly, Monthly, JulianMinute, JulianHourly, JulianDaily)) { format =>
+        val ps = DateTimeScheme(format.format, format.unit, 1, "dtg", 2)
+        val partition = ps.getPartitionName(sf)
+        val start = DateParsing.parse(partition, DateTimeFormatter.ofPattern(format.format))
+        val end = start.plus(1, format.unit)
+        val expected = ECQL.toFilter(s"dtg >= '${DateParsing.format(start)}' AND dtg < '${DateParsing.format(end)}'")
+        decomposeAnd(ps.getCoveringFilter(partition)) must containTheSameElementsAs(decomposeAnd(expected))
+      }
     }
 
     "4 bit with filter" >> {

@@ -49,7 +49,7 @@ class FsGeneratePartitionFiltersCommand extends FsDataStoreCommand {
       val path = StorageUtils.nextFile(root, partition, metadata.leafStorage, "", FileType.Imported, "")
       val prefix = path.toString.dropRight(1) // drop '.'
       val filter = ECQL.toCQL(metadata.scheme.getCoveringFilter(partition))
-      Command.output.info(Seq(partition, prefix, filter).mkString("\t"))
+      Command.output.info(s"$partition\t$prefix\t$filter")
     }
   }
 }
