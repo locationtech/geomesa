@@ -17,7 +17,7 @@ import scala.util.Try
 
 object TerminalCallback {
 
-  lazy private val terminalWidth: () => Float = {
+  lazy val terminalWidth: () => Float = {
     val jline = for {
       terminalClass <- Try(Class.forName("jline.Terminal"))
       terminal      <- Try(terminalClass.getMethod("getTerminal").invoke(null))

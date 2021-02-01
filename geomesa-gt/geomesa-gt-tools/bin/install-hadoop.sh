@@ -27,12 +27,12 @@ guava_version="%%guava.version%%"
 com_log_version="1.1.3"
 
 # Load common functions and setup
-if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
-  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+if [ -z "${%%tools.dist.name%%_HOME}" ]; then
+  export %%tools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
 fi
-. $%%gmtools.dist.name%%_HOME/bin/common-functions.sh
+. $%%tools.dist.name%%_HOME/bin/common-functions.sh
 
-install_dir="${1:-${%%gmtools.dist.name%%_HOME}/lib}"
+install_dir="${1:-${%%tools.dist.name%%_HOME}/lib}"
 
 # Resource download location
 base_url="${GEOMESA_MAVEN_URL:-https://search.maven.org/remotecontent?filepath=}"

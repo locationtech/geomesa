@@ -8,38 +8,32 @@
 
 package org.locationtech.geomesa.cassandra.tools
 
-import com.beust.jcommander.JCommander
 import org.locationtech.geomesa.cassandra.tools.commands._
 import org.locationtech.geomesa.cassandra.tools.export.{CassandraExportCommand, CassandraPlaybackCommand}
-import org.locationtech.geomesa.tools.status._
 import org.locationtech.geomesa.tools.{Command, Runner}
 
 object CassandraRunner extends Runner {
 
   override val name: String = "geomesa-cassandra"
 
-  override def createCommands(jc: JCommander): Seq[Command] = Seq(
-    new CassandraGetTypeNamesCommand,
-    new CassandraDescribeSchemaCommand,
-    new HelpCommand(this, jc),
-    new EnvironmentCommand,
-    new VersionCommand,
-    new CassandraGetSftConfigCommand,
-    new CassandraCreateSchemaCommand,
-    new CassandraRemoveSchemaCommand,
-    new CassandraDeleteFeaturesCommand,
-    new CassandraIngestCommand,
-    new CassandraExportCommand,
-    new CassandraPlaybackCommand,
-    new CassandraExplainCommand,
-    new CassandraUpdateSchemaCommand,
-    new ConfigureCommand,
-    new ClasspathCommand,
-    new ScalaConsoleCommand
-  )
+  override protected def commands: Seq[Command] = {
+    super.commands ++ Seq(
+      new CassandraGetTypeNamesCommand,
+      new CassandraDescribeSchemaCommand,
+      new CassandraGetSftConfigCommand,
+      new CassandraCreateSchemaCommand,
+      new CassandraRemoveSchemaCommand,
+      new CassandraDeleteFeaturesCommand,
+      new CassandraIngestCommand,
+      new CassandraExportCommand,
+      new CassandraPlaybackCommand,
+      new CassandraExplainCommand,
+      new CassandraUpdateSchemaCommand
+    )
+  }
 
   override def environmentErrorInfo(): Option[String] = {
-    if (sys.env.get("CASSANDRA_HOME").isEmpty) {
+    if (!sys.env.contains("CASSANDRA_HOME")) {
       Option("Warning: you have not set the CASSANDRA_HOME environment variable." +
         "\nGeoMesa tools will not run without the appropriate Cassandra jars on the classpath.")
     } else { None }

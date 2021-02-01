@@ -8,17 +8,15 @@
 
 package org.locationtech.geomesa.accumulo.tools.data
 
-import com.beust.jcommander.{JCommander, Parameters}
+import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStore
 import org.locationtech.geomesa.accumulo.tools.data.AccumuloManagePartitionsCommand._
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloDataStoreParams}
 import org.locationtech.geomesa.tools.data.ManagePartitionsCommand
 import org.locationtech.geomesa.tools.data.ManagePartitionsCommand._
-import org.locationtech.geomesa.tools.{OptionalForceParam, RequiredTypeNameParam, Runner}
+import org.locationtech.geomesa.tools.{OptionalForceParam, RequiredTypeNameParam}
 
-class AccumuloManagePartitionsCommand(runner: Runner, jc: JCommander)
-    extends ManagePartitionsCommand(runner, jc) {
-
+class AccumuloManagePartitionsCommand extends ManagePartitionsCommand {
   override protected def list: AccumuloListPartitionsCommand = new AccumuloListPartitionsCommand
   override protected def add: AccumuloAddPartitionsCommand = new AccumuloAddPartitionsCommand
   override protected def adopt: AccumuloAdoptPartitionCommand = new AccumuloAdoptPartitionCommand

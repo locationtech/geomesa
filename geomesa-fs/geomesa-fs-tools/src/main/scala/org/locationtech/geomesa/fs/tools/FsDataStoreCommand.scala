@@ -17,7 +17,7 @@ import org.locationtech.geomesa.fs.data.FileSystemDataStore
 import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams
 import org.locationtech.geomesa.fs.storage.api.FileSystemStorageFactory
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
-import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesConverter, BytesValidator, KeyValueConverter}
+import org.locationtech.geomesa.tools.utils.ParameterConverters.{BytesValidator, KeyValueConverter}
 import org.locationtech.geomesa.tools.{DataStoreCommand, DistributedCommand}
 import org.locationtech.geomesa.utils.classpath.ClassPathUtils
 import org.locationtech.geomesa.utils.io.PathUtils
@@ -72,7 +72,10 @@ object FsDataStoreCommand {
   }
 
   trait OptionalEncodingParam {
-    @Parameter(names = Array("--encoding", "-e"), description = "Encoding (parquet, orc, converter, etc)", validateValueWith = classOf[EncodingValidator])
+    @Parameter(
+      names = Array("--encoding", "-e"),
+      description = "Encoding (parquet, orc, converter, etc)",
+      validateValueWith = Array(classOf[EncodingValidator]))
     var encoding: String = _
   }
 
@@ -89,7 +92,7 @@ object FsDataStoreCommand {
     @Parameter(
       names = Array("--target-file-size"),
       description = "Target size for data files",
-      validateValueWith = classOf[BytesValidator])
+      validateValueWith = Array(classOf[BytesValidator]))
     var targetFileSize: String = _
   }
 

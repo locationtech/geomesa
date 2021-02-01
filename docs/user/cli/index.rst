@@ -20,6 +20,7 @@ overview of the commands available for most back-ends.
     logging
     filesystems
     console
+    nailgun
     geotools
 
 Specific back-end implementations are described in the following chapters:

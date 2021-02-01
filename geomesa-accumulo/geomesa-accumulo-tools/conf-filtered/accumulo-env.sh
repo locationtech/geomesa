@@ -54,3 +54,5 @@ function get_accumulo_classpath() {
     echo "$accumulo_cp" | sed 's/[^:]*geomesa-accumulo-distributed-runtime[^:]*jar//'
   fi
 }
+
+get_accumulo_classpath

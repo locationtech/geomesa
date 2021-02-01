@@ -1,9 +1,12 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-redis_2.11</artifactId>
+        <artifactId>geomesa-archetypes-binary-dist_2.11</artifactId>
+        <relativePath>../../geomesa-archetypes/geomesa-archetypes-binary-dist/pom.xml</relativePath>
         <version>3.2.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -13,8 +16,10 @@
     <name>GeoMesa Redis Distribution</name>
 
     <properties>
+        <tools.module>redis</tools.module>
+        <tools.dist.name>GEOMESA_REDIS</tools.dist.name>
+        <tools.runner>org.locationtech.geomesa.redis.tools.RedisRunner</tools.runner>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <gmtools.dist.name>GEOMESA_REDIS</gmtools.dist.name> <!-- used in tools filtering -->
     </properties>
 
     <dependencies>
@@ -24,15 +29,6 @@
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-redis-tools_${scala.binary.version}</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
-            <classifier>data</classifier>
-        </dependency>
 
         <!-- Redis Datastore -->
         <dependency>
@@ -40,33 +36,24 @@
             <artifactId>geomesa-redis-datastore_${scala.binary.version}</artifactId>
         </dependency>
 
-        <!-- GeoServer Plugins -->
+        <!-- geoserver plugin - needed as a dependency for reactor ordering, but don't bring in transitive deps -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-redis-gs-plugin_${scala.binary.version}</artifactId>
             <type>pom</type>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-process-wps_${scala.binary.version}</artifactId>
+            <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- guava -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-        <!-- logging -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
             <scope>compile</scope>
         </dependency>
 
@@ -77,26 +64,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>binary-assembly</id>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <finalName>geomesa-redis_${scala.binary.version}-${project.version}</finalName>
-                            <tarLongFileMode>posix</tarLongFileMode>
-                            <descriptors>
-                                <descriptor>src/main/assemblies/binary-release.xml</descriptor>
-                            </descriptors>
-                            <delimiters>
-                                <delimiter>%%</delimiter>
-                            </delimiters>
-                            <attach>false</attach>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

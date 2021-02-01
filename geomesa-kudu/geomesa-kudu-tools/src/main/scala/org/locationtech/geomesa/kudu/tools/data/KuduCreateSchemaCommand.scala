@@ -32,8 +32,11 @@ object KuduCreateSchemaCommand {
 
   @Parameters(commandDescription = "Create a GeoMesa feature type")
   class KuduCreateSchemaParams extends CreateSchemaParams with KuduParams {
-    @Parameter(names = Array("--compression"),
-      description = "Default compression for data files. One of 'lz4', 'snappy', 'zlib' or 'no_compression'", required = false, validateValueWith = classOf[CompressionTypeValidator])
+    @Parameter(
+      names = Array("--compression"),
+      description = "Default compression for data files. One of 'lz4', 'snappy', 'zlib' or 'no_compression'",
+      required = false,
+      validateValueWith = Array(classOf[CompressionTypeValidator]))
     var compression: String = KuduSystemProperties.Compression.default
   }
 

@@ -543,7 +543,7 @@ object ExportCommand extends LazyLogging {
     @Parameter(
       names = Array("--num-reducers"),
       description = "Number of reducers to use when sorting or merging (for distributed export)",
-      validateWith = classOf[PositiveInteger])
+      validateWith = Array(classOf[PositiveInteger]))
     var reducers: java.lang.Integer = _
 
     @Parameter(

@@ -8,8 +8,8 @@
 #
 
 # configure HOME and CONF_DIR, then load geomesa-env.sh
-export %%gmtools.dist.name%%_HOME="${%%gmtools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
-export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%gmtools.dist.name%%_HOME/conf}"
+export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
+export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%tools.dist.name%%_HOME/conf}"
 
 if [[ -f "${GEOMESA_CONF_DIR}/geomesa-env.sh" ]]; then
   . "${GEOMESA_CONF_DIR}/geomesa-env.sh"
@@ -27,7 +27,7 @@ if [[ "$1" == "--help" || "$1" == "-h" || $# -eq 0 ]]; then
   echo "This script allows you to easily manage GeoMesa's Geoserver plugins."
   echo ""
   echo "${usage}"
-  echo "The \$%%gmtools.dist.name%%_HOME and \$GEOSERVER_HOME variables will be used if they are set and no path"
+  echo "The \$%%tools.dist.name%%_HOME and \$GEOSERVER_HOME variables will be used if they are set and no path"
   echo "arguments are provided."
   echo ""
   echo "Required:"
@@ -95,8 +95,8 @@ else
     shift
   done
   # Resolve Env vars if not path arguments provided
-  if [[ -d "${%%gmtools.dist.name%%_HOME}" && -z "${gs_plugin_dir}" ]]; then
-    gs_plugin_dir="${%%gmtools.dist.name%%_HOME}/dist/gs-plugins"
+  if [[ -d "${%%tools.dist.name%%_HOME}" && -z "${gs_plugin_dir}" ]]; then
+    gs_plugin_dir="${%%tools.dist.name%%_HOME}/dist/gs-plugins"
   fi
   if [[ -d "${GEOSERVER_HOME}" && -z "${install_dir}" ]]; then
     install_dir="${GEOSERVER_HOME}/webapps/geoserver/WEB-INF/lib"

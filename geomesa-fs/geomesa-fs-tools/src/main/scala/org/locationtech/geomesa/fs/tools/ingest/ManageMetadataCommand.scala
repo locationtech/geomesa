@@ -11,21 +11,19 @@ package org.locationtech.geomesa.fs.tools.ingest
 import java.util
 
 import com.beust.jcommander.converters.BaseConverter
-import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
+import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
 import org.locationtech.geomesa.fs.tools.ingest.ManageMetadataCommand.{CompactCommand, ManageMetadataParams, RegisterCommand, UnregisterCommand}
-import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam, Runner}
+import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam}
 import org.locationtech.jts.geom.Envelope
 
 import scala.util.control.NonFatal
 
-class ManageMetadataCommand(val runner: Runner, val jc: JCommander) extends CommandWithSubCommands {
-
+class ManageMetadataCommand extends CommandWithSubCommands {
   override val name: String = "manage-metadata"
   override val params = new ManageMetadataParams
-
   override val subCommands: Seq[Command] = Seq(new CompactCommand, new RegisterCommand, new UnregisterCommand)
 }
 

@@ -10,25 +10,32 @@ package org.locationtech.geomesa.tools
 
 import java.io.File
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
 
 import com.beust.jcommander.{JCommander, ParameterException}
+import com.codahale.metrics.{MetricRegistry, Timer}
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.locationtech.geomesa.tools.Command.CommandException
 import org.locationtech.geomesa.tools.Runner.AutocompleteInfo
-import org.locationtech.geomesa.tools.utils.GeoMesaIStringConverterFactory
+import org.locationtech.geomesa.tools.`export`.{ConvertCommand, GenerateAvroSchemaCommand}
+import org.locationtech.geomesa.tools.help.{ClasspathCommand, HelpCommand, NailgunCommand, ScalaConsoleCommand}
+import org.locationtech.geomesa.tools.status.{ConfigureCommand, EnvironmentCommand, VersionCommand}
+import org.locationtech.geomesa.tools.utils.{GeoMesaIStringConverterFactory, TerminalCallback}
+import org.locationtech.geomesa.utils.stats.MethodProfiling
 
 import scala.collection.JavaConversions._
 import scala.util.control.NonFatal
 
-trait Runner extends LazyLogging {
+trait Runner extends MethodProfiling with LazyLogging {
 
   def name: String
   def environmentErrorInfo(): Option[String] = None
 
   def main(args: Array[String]): Unit = {
     try {
-      parseCommand(args).execute()
+      Runner.execute(parseCommand(args))
     } catch {
       case e @ (_: ClassNotFoundException | _: NoClassDefFoundError) =>
         val msg = s"Warning: Missing dependency for command execution: ${e.getMessage}"
@@ -44,19 +51,17 @@ trait Runner extends LazyLogging {
   }
 
   def parseCommand(args: Array[String]): Command = {
-    val jc = new JCommander()
-    jc.setProgramName(name)
+    val jc =
+      JCommander.newBuilder()
+          .programName(name)
+          .addConverterFactory(new GeoMesaIStringConverterFactory)
+          .columnSize(math.max(79, TerminalCallback.terminalWidth().toInt))
+          .build()
 
-    Runner.addConverterFactories(jc)
-
-    val commands = createCommands(jc)
-    commands.foreach {
-      case command: CommandWithSubCommands =>
-        jc.addCommand(command.name, command.params)
-        val registered = jc.getCommands.get(command.name)
-        command.subCommands.foreach(sub => registered.addCommand(sub.name, sub.params))
-
-      case command => jc.addCommand(command.name, command.params)
+    val commands = this.commands :+ new HelpCommand(this, jc)
+    commands.foreach { command =>
+      jc.addCommand(command.name, command.params)
+      command.subCommands.foreach(sub => jc.getCommands.get(command.name).addCommand(sub.name, sub.params))
     }
     try {
       jc.parse(args: _*)
@@ -68,18 +73,28 @@ trait Runner extends LazyLogging {
     }
     val parsed = commands.find(_.name == jc.getParsedCommand).getOrElse(new DefaultCommand(jc))
     resolveEnvironment(parsed)
-    parsed
+    if (parsed.subCommands.isEmpty) { parsed } else {
+      lazy val available =
+        s"Use '${parsed.name} <sub-command>', where sub-command is one of: " +
+            parsed.subCommands.map(_.name).mkString(", ")
+      val sub = Option(jc.getCommands.get(parsed.name).getParsedCommand).getOrElse {
+        throw new ParameterException(s"No sub-command specified. $available")
+      }
+      parsed.subCommands.find(_.name == sub).getOrElse {
+        throw new ParameterException(s"Sub-command '$sub' not found. $available")
+      }
+    }
   }
 
   def usage(jc: JCommander): String = {
     val out = new StringBuilder()
     out.append(s"Usage: $name [command] [command options]\n")
-    val commands = jc.getCommands.map(_._1).toSeq
+    val commands = jc.getCommands.map(_._1).toSeq.sorted
     out.append("  Commands:\n")
     val maxLen = commands.map(_.length).max + 4
-    commands.sorted.foreach { command =>
-      val spaces = " " * (maxLen - command.length)
-      out.append(s"    $command$spaces${jc.getCommandDescription(command)}\n")
+    commands.foreach { name =>
+      val spaces = " " * (maxLen - name.length)
+      out.append(s"    $name$spaces${jc.getUsageFormatter.getCommandDescription(name)}\n")
     }
     out.toString()
   }
@@ -89,7 +104,7 @@ trait Runner extends LazyLogging {
       case None => usage(jc)
       case Some(command) =>
         val out = new java.lang.StringBuilder()
-        command.usage(out)
+        command.getUsageFormatter.usage(out)
         out.toString
     }
   }
@@ -148,7 +163,25 @@ trait Runner extends LazyLogging {
     FileUtils.writeStringToFile(file, out.toString(), StandardCharsets.UTF_8)
   }
 
-  protected def createCommands(jc: JCommander): Seq[Command]
+  /**
+   * Commands available to this runner. The default impl handles common commands
+   * and placeholders for script functions
+   *
+   * @return
+   */
+  protected def commands: Seq[Command] = {
+    Seq(
+      new ConvertCommand,
+      new ConfigureCommand,
+      new ClasspathCommand,
+      new EnvironmentCommand,
+      new GenerateAvroSchemaCommand,
+      new NailgunCommand,
+      new ScalaConsoleCommand,
+      new VersionCommand
+    )
+  }
+
   protected def resolveEnvironment(command: Command): Unit = {}
 
   class DefaultCommand(jc: JCommander) extends Command {
@@ -160,18 +193,23 @@ trait Runner extends LazyLogging {
 
 object Runner {
 
-  private var added = false
+  private val registry = new MetricRegistry()
 
-  /**
-   * Add jcommander converter factories. Note that the implementation is a static,
-   * shared, non-thread-safe list, so we have to synchronize ourselves.
-   *
-   * TODO revisit this if we upgrade jcommander versions
-   */
-  def addConverterFactories(jc: JCommander): Unit = synchronized {
-    if (!added) {
-      jc.addConverterFactory(new GeoMesaIStringConverterFactory)
-      added = true
+  val FirstRequest: Long = System.currentTimeMillis()
+  val LastRequest = new AtomicLong(System.currentTimeMillis())
+
+  val Timers: LoadingCache[String, (AtomicInteger, Timer)] = Caffeine.newBuilder().build(
+    new CacheLoader[String, (AtomicInteger, Timer)]() {
+      override def load(k: String): (AtomicInteger, Timer) = (new AtomicInteger(0), registry.timer(k))
+    }
+  )
+
+  def execute(command: Command): Unit = {
+    LastRequest.set(System.currentTimeMillis())
+    val (active, timer) = Timers.get(command.name)
+    active.incrementAndGet()
+    try { timer.time(command) } finally {
+      active.decrementAndGet()
     }
   }
 

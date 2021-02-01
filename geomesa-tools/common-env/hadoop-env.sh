@@ -105,3 +105,5 @@ function get_hadoop_classpath() {
     echo "$HADOOP_CP"
   fi
 }
+
+get_hadoop_classpath

@@ -29,8 +29,11 @@ class HBaseCreateSchemaCommand extends CreateSchemaCommand[HBaseDataStore] with 
 object HBaseCreateSchemaCommand {
   @Parameters(commandDescription = "Create a GeoMesa feature type")
   class HBaseCreateSchemaParams extends CreateSchemaParams with HBaseParams with ToggleRemoteFilterParam {
-    @Parameter(names = Array("--compression"),
-      description = "Enable compression for a feature.  One of \"snappy\", \"lzo\", \"gz\", \"bzip2\", \"lz4\", \"zstd\"", required = false, validateValueWith = classOf[CompressionTypeValidator])
+    @Parameter(
+      names = Array("--compression"),
+      description = "Enable compression for a feature.  One of \"snappy\", \"lzo\", \"gz\", \"bzip2\", \"lz4\", \"zstd\"",
+      required = false,
+      validateValueWith = Array(classOf[CompressionTypeValidator]))
     var compression: String = _
   }
 
