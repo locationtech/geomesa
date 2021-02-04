@@ -37,6 +37,19 @@ export GEOMESA_LOG_DIR="${GEOMESA_LOG_DIR:-$%%tools.dist.name%%_HOME/logs}"
 export GEOMESA_DEBUG_OPTS="-Xmx8192m -XX:-UseGCOverheadLimit -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=9898"
 
 # ==================================================================
+# Java Environment Variables
+# ==================================================================
+
+# add additional resources to the classpath, including the distributed classpath for m/r jobs
+# export GEOMESA_EXTRA_CLASSPATHS="${GEOMESA_EXTRA_CLASSPATHS:-/some/dir/:/another/dir/}"
+
+# additional java process options, includes JAVA_OPTS by default
+export CUSTOM_JAVA_OPTS="${CUSTOM_JAVA_OPTS} $JAVA_OPTS"
+
+# add additional native libraries to the java classpath (LD_LIBRARY_PATH)
+# export JAVA_LIBRARY_PATH="${JAVA_LIBRARY_PATH:-/path/to/java/native/library}"
+
+# ==================================================================
 # GeoMesa Nailgun Server Variables
 # ==================================================================
 
@@ -52,6 +65,11 @@ export GEOMESA_NG_IDLE="${GEOMESA_NG_IDLE:-30 minutes}"
 # size of the thread pool used for handling requests
 export GEOMESA_NG_POOL_SIZE="${GEOMESA_NG_POOL_SIZE:-}"
 
+# ==================================================================
+# Export the variables configured above as needed
+# This section shouldn't need to be modified
+# ==================================================================
+
 # export the above nailgun options for use by the ng client
 if [[ -n "${GEOMESA_NG_SERVER}" ]]; then
   export NAILGUN_SERVER="${GEOMESA_NG_SERVER}"
@@ -60,20 +78,7 @@ if [[ -n "${GEOMESA_NG_PORT}" ]]; then
   export NAILGUN_PORT="${GEOMESA_NG_PORT}"
 fi
 
-# ==================================================================
-# Java Environment Variables
-# ==================================================================
-
-# add additional resources to the classpath, including the distributed classpath for m/r jobs
-# export GEOMESA_EXTRA_CLASSPATHS="${GEOMESA_EXTRA_CLASSPATHS:-/some/dir/:/another/dir/}"
-
-# additional java process options, includes JAVA_OPTS by default
-export CUSTOM_JAVA_OPTS="${CUSTOM_JAVA_OPTS} $JAVA_OPTS"
-
-# add additional native libraries to the java classpath (LD_LIBRARY_PATH)
-# export JAVA_LIBRARY_PATH="${JAVA_LIBRARY_PATH:-/path/to/java/native/library}"
-
-# configure java library path
+# export java library path
 if [[ -n "$JAVA_LIBRARY_PATH" ]]; then
   export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_LIBRARY_PATH"
 fi
