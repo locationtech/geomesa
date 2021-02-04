@@ -52,6 +52,14 @@ export GEOMESA_NG_IDLE="${GEOMESA_NG_IDLE:-30 minutes}"
 # size of the thread pool used for handling requests
 export GEOMESA_NG_POOL_SIZE="${GEOMESA_NG_POOL_SIZE:-}"
 
+# export the above nailgun options for use by the ng client
+if [[ -n "${GEOMESA_NG_SERVER}" ]]; then
+  export NAILGUN_SERVER="${GEOMESA_NG_SERVER}"
+fi
+if [[ -n "${GEOMESA_NG_PORT}" ]]; then
+  export NAILGUN_PORT="${GEOMESA_NG_PORT}"
+fi
+
 # ==================================================================
 # Java Environment Variables
 # ==================================================================
@@ -59,11 +67,16 @@ export GEOMESA_NG_POOL_SIZE="${GEOMESA_NG_POOL_SIZE:-}"
 # add additional resources to the classpath, including the distributed classpath for m/r jobs
 # export GEOMESA_EXTRA_CLASSPATHS="${GEOMESA_EXTRA_CLASSPATHS:-/some/dir/:/another/dir/}"
 
+# additional java process options, includes JAVA_OPTS by default
+export CUSTOM_JAVA_OPTS="${CUSTOM_JAVA_OPTS} $JAVA_OPTS"
+
 # add additional native libraries to the java classpath (LD_LIBRARY_PATH)
 # export JAVA_LIBRARY_PATH="${JAVA_LIBRARY_PATH:-/path/to/java/native/library}"
 
-# additional java process options, includes JAVA_OPTS by default
-export CUSTOM_JAVA_OPTS="${CUSTOM_JAVA_OPTS} $JAVA_OPTS"
+# configure java library path
+if [[ -n "$JAVA_LIBRARY_PATH" ]]; then
+  export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_LIBRARY_PATH"
+fi
 
 newline=$'\n'
 
@@ -89,19 +102,10 @@ function get_options() {
   # configure java library path
   if [[ -n "$JAVA_LIBRARY_PATH" ]]; then
     GEOMESA_OPTS="${GEOMESA_OPTS} -Djava.library.path=${JAVA_LIBRARY_PATH}"
-    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$JAVA_LIBRARY_PATH"
   fi
 
   if [[ $1 = debug ]]; then
     GEOMESA_OPTS="${GEOMESA_OPTS} ${GEOMESA_DEBUG_OPTS}"
-  fi
-
-  # used by ng client
-  if [[ -n "${GEOMESA_NG_SERVER}" ]]; then
-    export NAILGUN_SERVER="${GEOMESA_NG_SERVER}"
-  fi
-  if [[ -n "${GEOMESA_NG_PORT}" ]]; then
-    export NAILGUN_PORT="${GEOMESA_NG_PORT}"
   fi
 
   echo "$CUSTOM_JAVA_OPTS $GEOMESA_OPTS"
@@ -165,6 +169,7 @@ function find_jars() {
       fi
     done
     if [[ -d "${home}/native" ]]; then
+      # TODO this doesn't export back to the parent shell... fix it
       if [[ -z "${JAVA_LIBRARY_PATH}" ]]; then
         JAVA_LIBRARY_PATH="${home}/native"
       else
