@@ -32,7 +32,8 @@ The data store takes several parameters (required parameters are marked with ``*
 ===========================================  ======= ========================================================================================
 Parameter                                    Type    Description
 ===========================================  ======= ========================================================================================
-``hbase.catalog *``                          String  The name of the GeoMesa catalog table (previously ``bigtable.table.name``)
+``hbase.catalog *``                          String  The name of the GeoMesa catalog table, including the HBase namespace (if any) separated
+                                                     by a ``:``. For example, ``myCatalog`` or ``myNamespace:myCatalog``
 ``hbase.zookeepers``                         String  A comma-separated list of servers in the HBase zookeeper ensemble. This is optional,
                                                      the preferred method for defining the HBase connection is with ``hbase-site.xml``
 ``hbase.coprocessor.url``                    String  Path to the GeoMesa jar containing coprocessors, for auto registration
