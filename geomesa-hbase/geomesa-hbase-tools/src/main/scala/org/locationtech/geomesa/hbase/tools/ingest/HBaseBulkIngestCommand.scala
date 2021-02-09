@@ -8,6 +8,8 @@
 
 package org.locationtech.geomesa.hbase.tools.ingest
 
+import java.io.File
+
 import com.beust.jcommander.Parameters
 import com.typesafe.config.Config
 import org.apache.hadoop.fs.Path
@@ -23,12 +25,11 @@ import org.locationtech.geomesa.jobs.mapreduce.ConverterCombineInputFormat
 import org.locationtech.geomesa.jobs.{Awaitable, JobResult, StatusCallback}
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
+import org.locationtech.geomesa.tools.ingest.IngestCommand.Inputs
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.{Command, OutputPathParam, RequiredIndexParam}
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
-
-import java.io.File
 
 class HBaseBulkIngestCommand extends HBaseIngestCommand with HBaseDistributedCommand {
 
@@ -40,7 +41,7 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand with HBaseDistributedCom
       ds: HBaseDataStore,
       sft: SimpleFeatureType,
       converter: Config,
-      inputs: Seq[String]): Awaitable = {
+      inputs: Inputs): Awaitable = {
 
     mode match {
       case RunModes.Local =>
@@ -50,7 +51,7 @@ class HBaseBulkIngestCommand extends HBaseIngestCommand with HBaseDistributedCom
         // validate index param now that we have a datastore and the sft has been created
         val index = params.loadIndex(ds, sft.getTypeName, IndexMode.Write).identifier
         Command.user.info(s"Running bulk ingestion in distributed ${if (params.combineInputs) "combine " else "" }mode")
-        new BulkConverterIngest(connection, sft, converter, inputs, libjarsFiles, libjarsPaths, index) {
+        new BulkConverterIngest(connection, sft, converter, inputs.paths, libjarsFiles, libjarsPaths, index) {
           override def configureJob(job: Job): Unit = {
             super.configureJob(job)
             if (params.combineInputs) {

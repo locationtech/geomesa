@@ -18,7 +18,7 @@ import org.locationtech.geomesa.kafka.tools.ingest.KafkaIngestCommand.KafkaInges
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
-import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
+import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
 import org.locationtech.geomesa.tools.ingest._
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
 import org.locationtech.geomesa.utils.collection.CloseableIterator
@@ -36,7 +36,7 @@ class KafkaIngestCommand extends IngestCommand[KafkaDataStore] with KafkaDistrib
       ds: KafkaDataStore,
       sft: SimpleFeatureType,
       converter: Config,
-      inputs: Seq[String]): Awaitable = {
+      inputs: Inputs): Awaitable = {
     val delay = params.delay.toMillis
     if (delay <= 0) { super.startIngest(mode, ds, sft, converter, inputs) } else {
       if (mode != RunModes.Local) {
