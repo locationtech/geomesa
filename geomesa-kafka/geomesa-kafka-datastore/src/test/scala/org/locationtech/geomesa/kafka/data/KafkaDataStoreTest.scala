@@ -18,12 +18,14 @@ import kafka.admin.AdminUtils
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.geotools.data._
+import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.kafka.EmbeddedKafka
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
@@ -273,13 +275,18 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
             Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
 
+          val q = new Query(sft.getTypeName)
+          q.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
+
           // admin user
           auths = Set("USER", "ADMIN")
           eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
+          store.getCount(q) mustEqual 2
 
           // regular user
           auths = Set("USER")
           SelfClosingIterator(store.getFeatures.features).toSeq mustEqual Seq(f0)
+          store.getCount(q) mustEqual 1
 
           // unauthorized
           auths = Set.empty
