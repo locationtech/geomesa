@@ -24,6 +24,7 @@ import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.kafka._
 import org.locationtech.geomesa.kafka21.KafkaConsumerFeatureSource.FeatureSourceConsumer
 import org.locationtech.geomesa.security.ContentFeatureSourceSecuritySupport
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools._
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
@@ -83,12 +84,7 @@ class KafkaConsumerFeatureSource(
     builder.buildFeatureType()
   }
 
-  override protected def getCountInternal(query: Query): Int = {
-    Option(query.getFilter).filter(_ != Filter.INCLUDE) match {
-      case None => featureCache.size()
-      case Some(f) => featureCache.size(f)
-    }
-  }
+  override protected def getCountInternal(query: Query): Int = SelfClosingIterator(getReaderInternal(query)).length
 
   override protected def getReaderInternal(query: Query): FR = {
     val filter = Option(query).map(_.getFilter).getOrElse(Filter.INCLUDE)
