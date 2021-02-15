@@ -36,7 +36,11 @@ class KafkaExportCommand extends ExportCommand[KafkaDataStore] with KafkaDistrib
 
   private val queue: BlockingQueue[SimpleFeature] = new LinkedBlockingQueue[SimpleFeature]
 
-  override protected def export(ds: KafkaDataStore, query: Query, exporter: FeatureExporter): Option[Long] = {
+  override protected def export(
+      ds: KafkaDataStore,
+      query: Query,
+      exporter: FeatureExporter,
+      empty: Boolean): Option[Long] = {
     val sft = ds.getSchema(params.featureName)
     if (sft == null) {
       throw new ParameterException(s"Type ${params.featureName} does not exist at path ${params.zkPath}")
@@ -72,10 +76,9 @@ class KafkaExportCommand extends ExportCommand[KafkaDataStore] with KafkaDistrib
     fs.addFeatureListener(listener)
 
     try {
-      exporter.start(query.getHints.getReturnSft)
       query.getHints.getMaxFeatures match {
-        case None    => exportContinuously(exporter, features)
-        case Some(m) => exportWithMax(exporter, features, m)
+        case None    => exportContinuously(query.getHints.getReturnSft, exporter, features, empty)
+        case Some(m) => exportWithMax(query.getHints.getReturnSft, exporter, features, empty, m)
       }
     } catch {
       case NonFatal(e) =>
@@ -85,13 +88,22 @@ class KafkaExportCommand extends ExportCommand[KafkaDataStore] with KafkaDistrib
     }
   }
 
-  private def exportContinuously(exporter: FeatureExporter, features: Iterator[SimpleFeature]): Option[Long] = {
+  private def exportContinuously(
+      sft: SimpleFeatureType,
+      exporter: FeatureExporter,
+      features: Iterator[SimpleFeature],
+      empty: Boolean): Option[Long] = {
     // try to close the exporter when user cancels to finish off whatever the export was
     sys.addShutdownHook(exporter.close())
     var count = 0L
+    var started = if (empty) { exporter.start(sft); true } else { false }
     while (true) {
       // hasNext may return false one time, and then true the next if more data is read from kafka
       if (features.hasNext) {
+        if (!started) {
+          exporter.start(sft)
+          started = true
+        }
         exporter.export(features).foreach(count += _)
       } else {
         Thread.sleep(1000)
@@ -100,12 +112,21 @@ class KafkaExportCommand extends ExportCommand[KafkaDataStore] with KafkaDistrib
     Some(count)
   }
 
-  private def exportWithMax(exporter: FeatureExporter, features: Iterator[SimpleFeature], max: Int): Option[Long] = {
-    // noinspection LoopVariableNotUpdated
+  private def exportWithMax(
+      sft: SimpleFeatureType,
+      exporter: FeatureExporter,
+      features: Iterator[SimpleFeature],
+      empty: Boolean,
+      max: Int): Option[Long] = {
     var count = 0L
+    var started = if (empty) { exporter.start(sft); true } else { false }
     while (count < max) {
       // hasNext may return false one time, and then true the next if more data is read from kafka
       if (features.hasNext) {
+        if (!started) {
+          exporter.start(sft)
+          started = true
+        }
         // note: side effect in map - do count here in case exporter doesn't report counts
         val batch = features.take(max - count.toInt).map { f => count += 1; f }
         exporter.export(batch)
