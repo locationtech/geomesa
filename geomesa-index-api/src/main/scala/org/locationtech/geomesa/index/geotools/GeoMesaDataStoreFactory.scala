@@ -10,17 +10,17 @@ package org.locationtech.geomesa.index.geotools
 
 import java.io.Serializable
 import java.util.concurrent.TimeUnit
-
 import org.locationtech.geomesa.index.conf.{QueryProperties, StatsProperties}
 import org.locationtech.geomesa.utils.audit.{AuditProvider, AuditWriter}
 import org.locationtech.geomesa.utils.geotools.GeoMesaParam
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, SystemPropertyBooleanParam, SystemPropertyDurationParam}
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{ConvertedParam, SystemPropertyBooleanParam, SystemPropertyDurationParam, SystemPropertyIntegerParam}
 
 import scala.concurrent.duration.Duration
 
 object GeoMesaDataStoreFactory {
 
   private val GenerateStatsSysParam = SystemPropertyBooleanParam(StatsProperties.GenerateStats)
+  private val QueryThreadsSysParam = SystemPropertyIntegerParam(QueryProperties.QueryThreads)
   private val TimeoutSysParam = SystemPropertyDurationParam(QueryProperties.QueryTimeout)
 
   private val DeprecatedTimeout =
@@ -34,6 +34,7 @@ object GeoMesaDataStoreFactory {
       "The number of threads to use per query",
       default = Int.box(8),
       deprecatedKeys = Seq("queryThreads", "accumulo.queryThreads"),
+      systemProperty = Some(QueryThreadsSysParam),
       supportsNiFiExpressions = true)
 
   val QueryTimeoutParam =
