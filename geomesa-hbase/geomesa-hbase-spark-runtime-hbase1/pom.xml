@@ -197,6 +197,11 @@
                                     <pattern>shapeless</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.shapeless</shadedPattern>
                                 </relocation>
+                                <!-- avoid conflicts with zeppelin -->
+                                <relocation>
+                                    <pattern>pureconfig</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.pureconfig</shadedPattern>
+                                </relocation>
                                 <!-- Databricks uses an old version of scalalogging, include it to allow us to run on databricks clusters -->
                                 <relocation>
                                     <pattern>com.typesafe.scalalogging</pattern>
