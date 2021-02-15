@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -228,7 +228,8 @@ class AccumuloIndexAdapter(ds: AccumuloDataStore) extends IndexAdapter[AccumuloD
           // TODO pull this out to be SPI loaded so that new indices can be added seamlessly
           val indexIter = if (index.name == Z3Index.name) {
             strategy.values.toSeq.map { case v: Z3IndexValues =>
-              Z3Iterator.configure(v, index.keySpace.sharding.length + index.keySpace.sharing.length, ZIterPriority)
+              val offset = index.keySpace.sharding.length + index.keySpace.sharing.length
+              Z3Iterator.configure(v, offset, hints.getFilterCompatibility, ZIterPriority)
             }
           } else if (index.name == Z2Index.name) {
             strategy.values.toSeq.map { case v: Z2IndexValues =>

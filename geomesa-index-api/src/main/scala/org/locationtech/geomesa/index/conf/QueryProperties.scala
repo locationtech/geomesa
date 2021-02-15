@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15,6 +15,7 @@ import org.opengis.filter.Filter
 object QueryProperties {
 
   val QueryExactCount: SystemProperty = SystemProperty("geomesa.force.count", "false")
+  val QueryExactCountMaxFeatures: SystemProperty = SystemProperty("geomesa.exact.count.max.features", "1000")
   val QueryCostType  : SystemProperty = SystemProperty("geomesa.query.cost.type")
   val QueryTimeout   : SystemProperty = SystemProperty("geomesa.query.timeout") // default is no timeout
   val QueryThreads   : SystemProperty = SystemProperty("geomesa.query.threads")
@@ -40,11 +41,7 @@ object QueryProperties {
   // allow for full table scans or preempt them due to size of data set
   val BlockFullTableScans = new SystemProperty("geomesa.scan.block-full-table", "false") {
     def onFullTableScan(typeName: String, filter: Filter): Unit = {
-      val block =
-        Option(GeoMesaSystemProperties.getProperty(s"geomesa.scan.$typeName.block-full-table"))
-          .map(java.lang.Boolean.parseBoolean)
-          .orElse(toBoolean)
-          .getOrElse(false)
+      val block = blockFullTableScansForFeatureType(typeName).orElse(toBoolean).getOrElse(false)
       if (block) {
         throw new RuntimeException(s"Full-table scans are disabled. Query being stopped for $typeName: " +
             org.locationtech.geomesa.filter.filterToString(filter))
@@ -53,4 +50,15 @@ object QueryProperties {
   }
 
   val BlockMaxThreshold: SystemProperty = SystemProperty("geomesa.scan.block-full-table.threshold", "1000")
+
+  /**
+   * Is the system property for a specific feature type set
+   *
+   * @param typeName type name
+   * @return
+   */
+  def blockFullTableScansForFeatureType(typeName: String): Option[Boolean] = {
+    Option(GeoMesaSystemProperties.getProperty(s"geomesa.scan.$typeName.block-full-table"))
+        .map(java.lang.Boolean.parseBoolean)
+  }
 }

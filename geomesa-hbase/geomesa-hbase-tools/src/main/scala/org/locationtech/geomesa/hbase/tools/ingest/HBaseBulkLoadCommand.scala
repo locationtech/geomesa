@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,6 +12,7 @@ import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hbase.TableName
+import org.apache.hadoop.hbase.client.{Admin, RegionLocator, Table}
 import org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
@@ -49,7 +50,11 @@ class HBaseBulkLoadCommand extends HBaseDataStoreCommand {
     val locator = ds.connection.getRegionLocator(tableName)
     val config = new Configuration
     config.set("hbase.loadincremental.validate.hfile", params.validate.toString)
-    new LoadIncrementalHFiles(config).doBulkLoad(input, ds.connection.getAdmin, table, locator)
+    // use reflection to get around 1.4 vs 2.2 API differences (method return type void vs Map)
+    val load = new LoadIncrementalHFiles(config)
+    val method =
+      load.getClass.getMethod("doBulkLoad", classOf[Path], classOf[Admin], classOf[Table], classOf[RegionLocator])
+    method.invoke(load, input, ds.connection.getAdmin, table, locator)
     Command.user.info(s"HBase incremental load complete in ${TextTools.getTime(start)}")
   }
 }

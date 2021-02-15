@@ -1,6 +1,6 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
- * Portions Crown Copyright (c) 2016-2020 Dstl
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * Portions Crown Copyright (c) 2016-2021 Dstl
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -72,11 +72,10 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
   override val DisplayName = "Accumulo (GeoMesa)"
   override val Description = "Apache Accumulo\u2122 distributed key/value store"
 
-  override val ParameterInfo: Array[GeoMesaParam[_]] =
+  override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     Array(
       InstanceIdParam,
       ZookeepersParam,
-      ZookeeperTimeoutParam,
       CatalogParam,
       UserParam,
       PasswordParam,
@@ -85,6 +84,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       RecordThreadsParam,
       WriteThreadsParam,
       QueryTimeoutParam,
+      ZookeeperTimeoutParam,
       RemoteArrowParam,
       RemoteBinParam,
       RemoteDensityParam,

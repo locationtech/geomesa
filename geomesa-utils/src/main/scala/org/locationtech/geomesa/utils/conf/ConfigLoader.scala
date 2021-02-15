@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -56,7 +56,7 @@ object ConfigLoader extends LazyLogging {
         val key = (prop \ "name").text
         val value = (prop \ "value").text
         // don't overwrite properties, this gives commandline params preference
-        val isFinal: Boolean = (prop \ "final").text.toString.toBoolean
+        val isFinal: Boolean = java.lang.Boolean.parseBoolean((prop \ "final").text)
         key -> (value, isFinal)
       }
       pair match {

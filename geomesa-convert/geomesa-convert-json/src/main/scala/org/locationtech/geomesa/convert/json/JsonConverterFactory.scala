@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -23,9 +23,8 @@ import org.locationtech.geomesa.convert2.AbstractConverterFactory.{BasicOptionsC
 import org.locationtech.geomesa.convert2.TypeInference.{IdentityTransform, InferredType}
 import org.locationtech.geomesa.convert2.transforms.Expression
 import org.locationtech.geomesa.convert2.{AbstractConverterFactory, TypeInference}
-import org.locationtech.geomesa.features.serialization.ObjectType
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
-import org.locationtech.geomesa.utils.geotools.FeatureUtils
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, ObjectType}
+import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.ConfigObjectCursor
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}

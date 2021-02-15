@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -32,6 +32,13 @@ object Command {
   val user: Logger = LoggerFactory.getLogger("org.locationtech.geomesa.tools.user")
   // send output from a command
   val output: Logger = LoggerFactory.getLogger("org.locationtech.geomesa.tools.output")
+
+  /**
+   * Exception used to indicate a failure in the command run, without printing a stack trace
+   *
+   * @param message error message
+   */
+  class CommandException(message: String) extends RuntimeException(message)
 }
 
 trait CommandWithSubCommands extends Command {

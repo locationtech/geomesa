@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -122,6 +122,7 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
           s"sampling[${hints.getSampling.map { case (s, f) => s"$s${f.map(":" + _).getOrElse("")}"}.getOrElse("none")}]")
       output(s"Sort: ${query.getHints.getSortFields.map(QueryHints.sortReadableString).getOrElse("none")}")
       output(s"Transforms: ${query.getHints.getTransformDefinition.map(t => if (t.isEmpty) { "empty" } else { t }).getOrElse("none")}")
+      hints.getFilterCompatibility.foreach(c => output(s"Filter compatibility: $c"))
 
       output.pushLevel("Strategy selection:")
       val requestedIndex = requested.orElse(hints.getRequestedIndex)
@@ -141,7 +142,19 @@ class QueryPlanner[DS <: GeoMesaDataStore[DS]](ds: DS) extends QueryRunner with 
         output.pushLevel(s"Strategy $strategyCount of ${strategies.length}: ${strategy.index}")
         strategyCount += 1
         output(s"Strategy filter: $strategy")
-        profile(complete _)(ds.adapter.createQueryPlan(strategy.getQueryStrategy(hints, output)))
+        profile(complete _) {
+          val qs = strategy.getQueryStrategy(hints, output)
+          // query guard hook
+          interceptors(sft).foreach(_.guard(qs).foreach(e => throw e))
+          if (qs.values.isEmpty) {
+            qs.filter.secondary.foreach { f =>
+              logger.warn(
+                s"Running full table scan on ${qs.index.name} index for schema " +
+                  s"'${sft.getTypeName}' with filter: ${filterToString(f)}")
+            }
+          }
+          ds.adapter.createQueryPlan(qs)
+        }
       }
     }
   }

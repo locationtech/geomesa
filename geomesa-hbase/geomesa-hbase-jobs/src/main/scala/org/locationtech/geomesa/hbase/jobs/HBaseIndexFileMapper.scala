@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -26,7 +26,7 @@ import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.api.{MultiRowKeyValue, SingleRowKeyValue, WritableFeature, WriteConverter}
 import org.locationtech.geomesa.index.conf.partition.TablePartition
 import org.locationtech.geomesa.jobs.GeoMesaConfigurator
-import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
+import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounters
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.io.WithStore
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -60,9 +60,9 @@ class HBaseIndexFileMapper extends Mapper[Writable, SimpleFeature, ImmutableByte
       }
     }
 
-    features = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
-    entries = context.getCounter(GeoMesaOutputFormat.Counters.Group, "entries")
-    failed = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
+    features = context.getCounter(OutputCounters.Group, OutputCounters.Written)
+    entries = context.getCounter(OutputCounters.Group, "entries")
+    failed = context.getCounter(OutputCounters.Group, OutputCounters.Failed)
   }
 
   override def cleanup(context: HBaseIndexFileMapper.MapContext): Unit = {}

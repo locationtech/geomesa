@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -20,10 +20,9 @@ import org.apache.arrow.vector.types.pojo.{ArrowType, FieldType}
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding.Encoding
-import org.locationtech.geomesa.features.serialization.ObjectType
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.filter.function.ProxyIdFunction
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.geotools.{ObjectType, SimpleFeatureTypes}
 import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -180,7 +179,7 @@ object ArrowAttributeWriter {
       factory: VectorFactory): ArrowAttributeWriter = {
     dictionary match {
       case Some(dict) =>
-        ArrowAttributeWriter.dictionary(name, dict, metadata, factory)
+        ArrowAttributeWriter.dictionary(name, dict, bindings.head == ObjectType.LIST, metadata, factory)
 
       case None =>
         bindings.head match {
@@ -204,13 +203,17 @@ object ArrowAttributeWriter {
   private def dictionary(
       name: String,
       dictionary: ArrowDictionary,
+      isList: Boolean,
       metadata: Map[String, String],
       factory: VectorFactory): ArrowAttributeWriter = {
-    dictionary.encoding.getIndexType.getBitWidth match {
-      case 8  => new ArrowDictionaryByteWriter(name, dictionary, metadata, factory)
-      case 16 => new ArrowDictionaryShortWriter(name, dictionary, metadata, factory)
-      case 32 => new ArrowDictionaryIntWriter(name, dictionary, metadata, factory)
-      case w  => throw new IllegalArgumentException(s"Unsupported dictionary encoding width: $w")
+    (dictionary.encoding.getIndexType.getBitWidth, isList) match {
+      case (8,  false) => new ArrowDictionaryByteWriter(name, dictionary, metadata, factory)
+      case (16, false) => new ArrowDictionaryShortWriter(name, dictionary, metadata, factory)
+      case (32, false) => new ArrowDictionaryIntWriter(name, dictionary, metadata, factory)
+      case (8,  true)  => new ArrowListDictionaryByteWriter(name, dictionary, metadata, factory)
+      case (16, true)  => new ArrowListDictionaryShortWriter(name, dictionary, metadata, factory)
+      case (32, true)  => new ArrowListDictionaryIntWriter(name, dictionary, metadata, factory)
+      case (w, _)      => throw new IllegalArgumentException(s"Unsupported dictionary encoding width: $w")
     }
   }
 
@@ -271,8 +274,13 @@ object ArrowAttributeWriter {
   }
 
   /**
-    * Converts a value into a dictionary byte and writes it
-    */
+   * Converts a value into a dictionary encoded byte and writes it
+   *
+   * @param name attribute/field name
+   * @param dictionary dictionary values
+   * @param metadata field metadata
+   * @param factory vector factory
+   */
   class ArrowDictionaryByteWriter(
       name: String,
       val dictionary: ArrowDictionary,
@@ -280,16 +288,61 @@ object ArrowAttributeWriter {
       factory: VectorFactory
     ) extends ArrowDictionaryWriter {
 
-    override val vector: TinyIntVector =
-      factory.apply(name, new FieldType(true, MinorType.TINYINT.getType, dictionary.encoding, metadata.asJava))
+    override val vector: TinyIntVector = factory.apply(name, MinorType.TINYINT, dictionary.encoding, metadata)
 
     // note: nulls get encoded in the dictionary
     override def apply(i: Int, value: AnyRef): Unit = vector.setSafe(i, dictionary.index(value).toByte)
   }
 
   /**
-    * Converts a value into a dictionary short and writes it
-    */
+   * Converts a list value into a list of dictionary bytes and writes it
+   *
+   * @param name attribute/field name
+   * @param dictionary dictionary values
+   * @param metadata field metadata
+   * @param factory vector factory
+   */
+  class ArrowListDictionaryByteWriter(
+      name: String,
+      val dictionary: ArrowDictionary,
+      metadata: Map[String, String],
+      factory: VectorFactory
+    ) extends ArrowDictionaryWriter {
+
+    override val vector: ListVector = factory.apply(name, MinorType.LIST, metadata)
+
+    private val inner: TinyIntVector =
+      FromList(vector).apply(null, MinorType.TINYINT, dictionary.encoding, Map.empty)
+
+    override def apply(i: Int, value: AnyRef): Unit = {
+      if (vector.getLastSet >= i) {
+        vector.setLastSet(i - 1)
+      }
+      val start = vector.startNewValue(i)
+      // note: null gets converted to empty list
+      if (value == null) {
+        vector.endValue(i, 0)
+      } else {
+        val list = value.asInstanceOf[java.util.List[AnyRef]]
+        var offset = 0
+        while (offset < list.size()) {
+          // note: nulls get encoded in the dictionary
+          inner.setSafe(start + offset, dictionary.index(list.get(offset)).toByte)
+          offset += 1
+        }
+        vector.endValue(i, offset)
+      }
+    }
+  }
+
+  /**
+   * Converts a value into a dictionary encoded short and writes it
+   *
+   * @param name attribute/field name
+   * @param dictionary dictionary values
+   * @param metadata field metadata
+   * @param factory vector factory
+   */
   class ArrowDictionaryShortWriter(
       name: String,
       val dictionary: ArrowDictionary,
@@ -297,16 +350,61 @@ object ArrowAttributeWriter {
       factory: VectorFactory
     ) extends ArrowDictionaryWriter {
 
-    override val vector: SmallIntVector =
-      factory.apply(name, new FieldType(true, MinorType.SMALLINT.getType, dictionary.encoding, metadata.asJava))
+    override val vector: SmallIntVector = factory.apply(name, MinorType.SMALLINT, dictionary.encoding, metadata)
 
     // note: nulls get encoded in the dictionary
     override def apply(i: Int, value: AnyRef): Unit = vector.setSafe(i, dictionary.index(value).toShort)
   }
 
   /**
-    * Converts a value into a dictionary int and writes it
-    */
+   * Converts a list value into a list of dictionary shorts and writes it
+   *
+   * @param name attribute/field name
+   * @param dictionary dictionary values
+   * @param metadata field metadata
+   * @param factory vector factory
+   */
+  class ArrowListDictionaryShortWriter(
+      name: String,
+      val dictionary: ArrowDictionary,
+      metadata: Map[String, String],
+      factory: VectorFactory
+    ) extends ArrowDictionaryWriter {
+
+    override val vector: ListVector = factory.apply(name, MinorType.LIST, metadata)
+
+    private val inner: SmallIntVector =
+      FromList(vector).apply(null, MinorType.SMALLINT, dictionary.encoding, Map.empty)
+
+    override def apply(i: Int, value: AnyRef): Unit = {
+      if (vector.getLastSet >= i) {
+        vector.setLastSet(i - 1)
+      }
+      val start = vector.startNewValue(i)
+      // note: null gets converted to empty list
+      if (value == null) {
+        vector.endValue(i, 0)
+      } else {
+        val list = value.asInstanceOf[java.util.List[AnyRef]]
+        var offset = 0
+        while (offset < list.size()) {
+          // note: nulls get encoded in the dictionary
+          inner.setSafe(start + offset, dictionary.index(list.get(offset)).toShort)
+          offset += 1
+        }
+        vector.endValue(i, offset)
+      }
+    }
+  }
+
+  /**
+   * Converts a value into a dictionary encoded int and writes it
+   *
+   * @param name attribute/field name
+   * @param dictionary dictionary values
+   * @param metadata field metadata
+   * @param factory vector factory
+   */
   class ArrowDictionaryIntWriter(
       name: String,
       val dictionary: ArrowDictionary,
@@ -314,11 +412,50 @@ object ArrowAttributeWriter {
       factory: VectorFactory
     ) extends ArrowDictionaryWriter {
 
-    override val vector: IntVector =
-      factory.apply(name, new FieldType(true, MinorType.INT.getType, dictionary.encoding, metadata.asJava))
+    override val vector: IntVector = factory.apply(name, MinorType.INT, dictionary.encoding, metadata)
 
     // note: nulls get encoded in the dictionary
     override def apply(i: Int, value: AnyRef): Unit = vector.setSafe(i, dictionary.index(value))
+  }
+
+  /**
+   * Converts a list value into a list of dictionary ints and writes it
+   *
+   * @param name attribute/field name
+   * @param dictionary dictionary values
+   * @param metadata field metadata
+   * @param factory vector factory
+   */
+  class ArrowListDictionaryIntWriter(
+      name: String,
+      val dictionary: ArrowDictionary,
+      metadata: Map[String, String],
+      factory: VectorFactory
+    ) extends ArrowDictionaryWriter {
+
+    override val vector: ListVector = factory.apply(name, MinorType.LIST, metadata)
+
+    private val inner: IntVector = FromList(vector).apply(null, MinorType.INT, dictionary.encoding, Map.empty)
+
+    override def apply(i: Int, value: AnyRef): Unit = {
+      if (vector.getLastSet >= i) {
+        vector.setLastSet(i - 1)
+      }
+      val start = vector.startNewValue(i)
+      // note: null gets converted to empty list
+      if (value == null) {
+        vector.endValue(i, 0)
+      } else {
+        val list = value.asInstanceOf[java.util.List[AnyRef]]
+        var offset = 0
+        while (offset < list.size()) {
+          // note: nulls get encoded in the dictionary
+          inner.setSafe(start + offset, dictionary.index(list.get(offset)))
+          offset += 1
+        }
+        vector.endValue(i, offset)
+      }
+    }
   }
 
   /**
@@ -538,6 +675,9 @@ object ArrowAttributeWriter {
       ArrowAttributeWriter(null, Seq(binding), None, Map.empty[String, String], encoding, FromList(vector))
 
     override def apply(i: Int, value: AnyRef): Unit = {
+      if (vector.getLastSet >= i) {
+        vector.setLastSet(i - 1)
+      }
       val start = vector.startNewValue(i)
       // note: null gets converted to empty list
       if (value == null) {

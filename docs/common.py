@@ -52,7 +52,7 @@ master_doc = 'index'
 # General information about the project.
 project = u'GeoMesa'
 # note: shown in our custom footer
-copyright = u'2013-2020'
+copyright = u'2013-2021'
 author = u''
 
 # The version info for the project you're documenting, acts as replacement for
@@ -64,7 +64,6 @@ author = u''
 from target.versions import release,version,version_devel,release_last
 
 # Other versions and variables unlikely to change on every point release
-release_eclipse = '1.2.0'
 url_github_archive = "https://github.com/locationtech/geomesa/archive"
 
 url_locationtech_release = "https://repo.eclipse.org/content/repositories/geomesa-releases/org/locationtech/geomesa"
@@ -89,12 +88,6 @@ rst_epilog = """
 .. |release_tarball_cassandra| replace:: %(url_locationtech_release)s/geomesa-cassandra-dist_2.11/%(release_last)s/geomesa-cassandra_2.11-%(release_last)s-bin.tar.gz
 
 .. |release_source_tarball| replace:: %(url_github_archive)s/geomesa_2.11-%(release_last)s.tar.gz
-
-.. |eclipse_release| replace:: %(release_eclipse)s
-
-.. |eclipse_release_tarball| replace:: http://download.locationtech.org/geomesa/%(release_eclipse)s/geomesa-dist-%(release_eclipse)s-bin.tar.gz
-
-.. |eclipse_release_source_tarball| replace:: http://download.locationtech.org/geomesa/%(release_eclipse)s/geomesa-source-%(release_eclipse)s.tar.gz
 
 .. |development| replace:: %(version_devel)s
 
@@ -134,7 +127,6 @@ rst_epilog = """
 
 """ % {"release": release,
        "release_last": release_last,
-       "release_eclipse": release_eclipse,
        "version_devel": version_devel,
        "url_locationtech_release": url_locationtech_release,
        "url_github_archive": url_github_archive}

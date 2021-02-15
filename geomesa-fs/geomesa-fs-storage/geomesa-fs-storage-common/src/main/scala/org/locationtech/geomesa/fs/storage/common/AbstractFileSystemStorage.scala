@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -17,14 +17,15 @@ import org.locationtech.geomesa.fs.storage.api.FileSystemStorage.{FileSystemUpda
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.StorageFileAction.StorageFileAction
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata._
 import org.locationtech.geomesa.fs.storage.api._
-import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, MetadataObserver}
+import org.locationtech.geomesa.fs.storage.common.AbstractFileSystemStorage.{FileSystemPathReader, MetadataObserver, WriterConfig}
 import org.locationtech.geomesa.fs.storage.common.observer.FileSystemObserverFactory.CompositeObserver
 import org.locationtech.geomesa.fs.storage.common.observer.{FileSystemObserver, FileSystemObserverFactory}
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
+import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType.FileType
 import org.locationtech.geomesa.fs.storage.common.utils.{PathCache, StorageUtils}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.io.{CloseQuietly, FlushQuietly, WithClose}
+import org.locationtech.geomesa.utils.io.{CloseQuietly, FileSizeEstimator, FlushQuietly, WithClose}
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.locationtech.jts.geom.{Envelope, Geometry}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -44,7 +45,7 @@ abstract class AbstractFileSystemStorage(
     val context: FileSystemContext,
     val metadata: StorageMetadata,
     extension: String
-  ) extends FileSystemStorage with MethodProfiling with LazyLogging {
+  ) extends FileSystemStorage with SizeableFileSystemStorage with MethodProfiling with LazyLogging {
 
   // don't require observers if we never write any data
   lazy private val observers = {
@@ -137,43 +138,66 @@ abstract class AbstractFileSystemStorage(
     }
   }
 
-  override def getWriter(partition: String): FileSystemWriter = createWriter(partition, StorageFileAction.Append)
+  override def getWriter(partition: String): FileSystemWriter =
+    createWriter(partition, StorageFileAction.Append, FileType.Written)
 
   override def getWriter(filter: Filter, partition: Option[String], threads: Int): FileSystemUpdateWriter = {
     val query = new Query(metadata.sft.getTypeName, filter)
     new FileSystemUpdateWriterImpl(getReader(query, partition, threads), partition)
   }
 
-  override def compact(partition: Option[String], threads: Int): Unit = {
+  // noinspection ScalaDeprecation
+  override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
+
+  override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit = {
+    val target = targetSize(fileSize)
     partition.map(Seq(_)).getOrElse(metadata.getPartitions().map(_.name)).foreach { partition =>
-      val toCompact = getFilePaths(partition)
+      val paths = getFilePaths(partition)
+      val toCompact = target match {
+        case None => paths
+        case Some(t) =>
+          paths.filter { p =>
+            if (fileIsSized(p.path, t)) {
+              logger.debug(s"Skipping compaction for file [${p.path}] (already target size)")
+              false
+            } else {
+              true
+            }
+          }
+      }
 
-      if (toCompact.lengthCompare(2) < 0) {
-        logger.debug(s"Skipping compaction for single data file: ${toCompact.mkString(", ")}")
+      if (toCompact.isEmpty) {
+        logger.debug("Skipping compaction - no files to compact")
+      } else if (toCompact.lengthCompare(1) == 0 && target.forall(fileIsSized(toCompact.head.path, _))) {
+        logger.debug(s"Skipping compaction for single data file [${toCompact.mkString}]")
       } else {
-        val path = StorageUtils.nextFile(context.root, partition, metadata.leafStorage, extension, FileType.Compacted)
-
-        logger.debug(s"Compacting data files: [${toCompact.mkString(", ")}] to into file $path")
+        logger.debug(s"Compacting data files: [${toCompact.mkString(", ")}]")
 
         var written = 0L
+        val bounds = new Envelope()
 
         val reader = createReader(None, None)
-        def threaded = FileSystemThreadedReader(Iterator.single(reader -> toCompact), threads)
-        val compactObserver = new CompactObserver(partition, path, toCompact)
-        val observer = if (observers.isEmpty) { compactObserver } else {
-          new CompositeObserver(observers.map(_.apply(path)).+:(compactObserver))
-        }
 
-        WithClose(createWriter(path, observer), threaded) { case (writer, features) =>
+        def writer: FileSystemWriter =
+          createWriter(partition, StorageFileAction.Append, FileType.Compacted, target)
+        def threaded: CloseableIterator[SimpleFeature] =
+          FileSystemThreadedReader(Iterator.single(reader -> toCompact), threads)
+
+        WithClose(writer, threaded) { case (writer, features) =>
           while (features.hasNext) {
-            writer.write(features.next())
+            val feature = features.next()
+            writer.write(feature)
             written += 1
+            val geom = feature.getDefaultGeometry.asInstanceOf[Geometry]
+            if (geom != null) {
+              bounds.expandToInclude(geom.getEnvelopeInternal)
+            }
           }
         }
-        PathCache.register(context.fc, path)
 
-        logger.debug(s"Wrote compacted file $path")
         logger.debug(s"Deleting old files [${toCompact.mkString(", ")}]")
+        metadata.removePartition(
+          PartitionMetadata(partition, toCompact.map(_.file), PartitionBounds(bounds), written))
 
         val failures = ListBuffer.empty[Path]
         toCompact.foreach { file =>
@@ -187,32 +211,87 @@ abstract class AbstractFileSystemStorage(
           logger.error(s"Failed to delete some files: [${failures.mkString(", ")}]")
         }
 
-        logger.debug(s"Compacted $written records into file $path")
+        logger.debug(s"Compacted $written records")
       }
     }
   }
 
   /**
-    * Create a new writer
-    *
-    * @param partition partition being written to
-    * @param action write type
-    * @return
-    */
-  private def createWriter(partition: String, action: StorageFileAction): FileSystemWriter = {
-    val fileType = action match {
-      case StorageFileAction.Append => FileType.Written
-      case StorageFileAction.Modify => FileType.Modified
-      case StorageFileAction.Delete => FileType.Deleted
-      case _ => throw new NotImplementedError(s"Unexpected storage action type: $action")
+   * Create a new writer
+   *
+   * @param partition partition being written to
+   * @param action write type
+   * @param fileType file type
+   * @param targetFileSize target file size
+   * @return
+   */
+  private def createWriter(
+      partition: String,
+      action: StorageFileAction,
+      fileType: FileType,
+      targetFileSize: Option[Long] = None): FileSystemWriter = {
+
+    def pathAndObserver: WriterConfig = {
+      val path = StorageUtils.nextFile(context.root, partition, metadata.leafStorage, extension, fileType)
+      PathCache.register(context.fc, path)
+      val updateObserver = new UpdateObserver(partition, path, action)
+      val observer = if (observers.isEmpty) { updateObserver } else {
+        new CompositeObserver(observers.map(_.apply(path)).+:(updateObserver))
+      }
+      WriterConfig(path, observer)
     }
-    val path = StorageUtils.nextFile(context.root, partition, metadata.leafStorage, extension, fileType)
-    PathCache.register(context.fc, path)
-    val updateObserver = new UpdateObserver(partition, path, action)
-    val observer = if (observers.isEmpty) { updateObserver } else {
-      new CompositeObserver(observers.map(_.apply(path)).+:(updateObserver))
+
+    targetSize(targetFileSize) match {
+      case None => createWriter(pathAndObserver)
+      case Some(s) => new ChunkedFileSystemWriter(Iterator.continually(pathAndObserver), estimator(s))
     }
-    createWriter(path, observer)
+  }
+
+  private def createWriter(config: WriterConfig): FileSystemWriter = createWriter(config.path, config.observer)
+
+  /**
+   * Writes files up to a given size, then starts a new file
+   *
+   * @param paths iterator of files to write
+   * @param estimator target file size estimator
+   */
+  class ChunkedFileSystemWriter(paths: Iterator[WriterConfig], estimator: FileSizeEstimator)
+      extends FileSystemWriter {
+
+    private var count = 0L // number of features written
+    private var total = 0L // sum size of all finished chunks
+    private var remaining = estimator.estimate(0L)
+
+    private var path: Path = _
+    private var writer: FileSystemWriter = _
+
+    override def write(feature: SimpleFeature): Unit = {
+      if (writer == null) {
+        val config = paths.next
+        path = config.path
+        writer = createWriter(config)
+      }
+      writer.write(feature)
+      count += 1
+      remaining -= 1
+      if (remaining == 0) {
+        writer.close()
+        writer = null
+        // adjust our estimate to account for the actual bytes written
+        total += context.fc.getFileStatus(path).getLen
+        estimator.update(total, count)
+        remaining = estimator.estimate(0L)
+      }
+    }
+
+    override def flush(): Unit = if (writer != null) { writer.flush() }
+
+    override def close(): Unit = {
+      if (writer != null) {
+        writer.close()
+      }
+      updateFileSize(estimator)
+    }
   }
 
   /**
@@ -237,9 +316,9 @@ abstract class AbstractFileSystemStorage(
       val update = metadata.scheme.getPartitionName(feature)
       if (update != partition) {
         // add a delete marker in the old partition, since we only track updates per-partition
-        deleters.getOrElseUpdate(partition, createWriter(partition, StorageFileAction.Delete)).write(feature)
+        deleters.getOrElseUpdate(partition, createWriter(partition, StorageFileAction.Delete, FileType.Deleted)).write(feature)
       }
-      modifiers.getOrElseUpdate(update, createWriter(update, StorageFileAction.Modify)).write(feature)
+      modifiers.getOrElseUpdate(update, createWriter(update, StorageFileAction.Modify, FileType.Modified)).write(feature)
       feature = null
     }
 
@@ -247,7 +326,7 @@ abstract class AbstractFileSystemStorage(
       if (feature == null) {
         throw new IllegalArgumentException("Must call 'next' before calling 'remove'")
       }
-      deleters.getOrElseUpdate(partition, createWriter(partition, StorageFileAction.Delete)).write(feature)
+      deleters.getOrElseUpdate(partition, createWriter(partition, StorageFileAction.Delete, FileType.Deleted)).write(feature)
       feature = null
     }
 
@@ -275,22 +354,6 @@ abstract class AbstractFileSystemStorage(
     override protected def onClose(bounds: Envelope, count: Long): Unit = {
       val files = Seq(StorageFile(file.getName, System.currentTimeMillis(), action))
       metadata.addPartition(PartitionMetadata(partition, files, PartitionBounds(bounds), count))
-    }
-  }
-
-  /**
-    * Writes compacted partition data to the metadata
-    *
-    * @param partition partition being compacted
-    * @param file compacted file being written
-    * @param replaced files being replaced
-    */
-  class CompactObserver(partition: String, file: Path, replaced: Seq[StorageFilePath]) extends MetadataObserver {
-    override protected def onClose(bounds: Envelope, count: Long): Unit = {
-      val partitionBounds = PartitionBounds(bounds)
-      metadata.removePartition(PartitionMetadata(partition, replaced.map(_.file), partitionBounds, count))
-      val added = Seq(StorageFile(file.getName, System.currentTimeMillis(), StorageFileAction.Append))
-      metadata.addPartition(PartitionMetadata(partition, added, partitionBounds, count))
     }
   }
 }
@@ -327,4 +390,6 @@ object AbstractFileSystemStorage {
 
     protected def onClose(bounds: Envelope, count: Long): Unit
   }
+
+  private case class WriterConfig(path: Path, observer: FileSystemObserver)
 }

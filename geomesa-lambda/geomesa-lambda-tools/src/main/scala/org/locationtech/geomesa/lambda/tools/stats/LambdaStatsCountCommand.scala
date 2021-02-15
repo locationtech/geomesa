@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,6 +12,7 @@ import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.lambda.data.LambdaDataStore
 import org.locationtech.geomesa.lambda.tools.stats.LambdaStatsCountCommand.LambdaStatsCountParams
 import org.locationtech.geomesa.lambda.tools.{LambdaDataStoreCommand, LambdaDataStoreParams}
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsCountCommand
 import org.locationtech.geomesa.tools.stats.StatsCountCommand.StatsCountParams
 
@@ -21,5 +22,5 @@ class LambdaStatsCountCommand extends StatsCountCommand[LambdaDataStore] with La
 
 object LambdaStatsCountCommand {
   @Parameters(commandDescription = "Estimate or calculate feature counts in a GeoMesa feature type")
-  class LambdaStatsCountParams extends StatsCountParams with LambdaDataStoreParams
+  class LambdaStatsCountParams extends StatsCountParams with LambdaDataStoreParams with RequiredTypeNameParam
 }

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -45,8 +45,18 @@ class MergedFeatureSourceView(
 
   override def getSchema: SimpleFeatureType = sft
 
-  override def getCount(query: Query): Int =
-    sources.map { case (source, filter) => source.getCount(mergeFilter(query, filter)) }.sum
+  override def getCount(query: Query): Int = {
+    // if one of our sources can't get a count (i.e. is negative), give up and return -1
+    val total = sources.foldLeft(0) { case (sum, (source, filter)) =>
+      lazy val count = source.getCount(mergeFilter(query, filter))
+      if (sum < 0 || count < 0) { -1 } else { sum + count }
+    }
+    if (query.isMaxFeaturesUnlimited) {
+      total
+    } else {
+      math.min(total, query.getMaxFeatures)
+    }
+  }
 
   override def getBounds: ReferencedEnvelope = {
     val bounds = new ReferencedEnvelope(org.locationtech.geomesa.utils.geotools.CRS_EPSG_4326)

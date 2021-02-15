@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -302,7 +302,7 @@ object Stat {
     * @param groupedStat stat to apply to grouped attributes
     * @return
     */
-  def GroupBy(attribute: String, groupedStat: Stat): String = s"GroupBy(${safeString(attribute)},$groupedStat)"
+  def GroupBy(attribute: String, groupedStat: String): String = s"GroupBy(${safeString(attribute)},$groupedStat)"
 
   /**
     * String that will be parsed into a multi variate descriptive stat

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.fs.tools.ingest
 
 import java.io.File
-import java.lang.Iterable
 
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
@@ -20,18 +19,18 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat
 import org.geotools.data.DataUtilities
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoFeatureSerializer
-import org.locationtech.geomesa.fs.data.FileSystemDataStoreFactory.FileSystemDataStoreParams
-import org.locationtech.geomesa.fs.data.FileSystemStorageManager
 import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils.FileType
 import org.locationtech.geomesa.fs.storage.orc.jobs.OrcStorageConfiguration
 import org.locationtech.geomesa.fs.tools.ingest.FileSystemConverterJob.{DummyReducer, FsIngestMapper}
-import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat
+import org.locationtech.geomesa.jobs.JobResult.JobSuccess
+import org.locationtech.geomesa.jobs.mapreduce.GeoMesaOutputFormat.OutputCounters
+import org.locationtech.geomesa.jobs.{JobResult, StatusCallback}
 import org.locationtech.geomesa.parquet.jobs.ParquetStorageConfiguration
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.ingest.DistributedConverterIngest.ConverterIngestJob
-import org.locationtech.geomesa.tools.utils.StatusCallback
+import org.locationtech.geomesa.tools.ingest.ConverterIngestJob
+import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestCounters
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 abstract class FileSystemConverterJob(
@@ -42,18 +41,14 @@ abstract class FileSystemConverterJob(
     libjarsFiles: Seq[String],
     libjarsPaths: Iterator[() => Seq[File]],
     reducers: Int,
-    tmpPath: Option[Path]
+    root: Path,
+    tmpPath: Option[Path],
+    targetFileSize: Option[Long]
   ) extends ConverterIngestJob(dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths)
     with StorageConfiguration with LazyLogging {
 
-  import scala.collection.JavaConverters._
-
-  private var job: Job = _
-  private var root: Path = _
-  private var qualifiedTempPath: Option[Path] = None
-
-  override def reduced(job: Job): Long =
-    job.getCounters.findCounter(GeoMesaOutputFormat.Counters.Group, "reduced").getValue
+  override protected def reduceCounters(job: Job): Seq[(String, Long)] =
+    Seq((IngestCounters.Persisted, job.getCounters.findCounter(OutputCounters.Group, "reduced").getValue))
 
   override def configureJob(job: Job): Unit = {
     super.configureJob(job)
@@ -69,40 +64,28 @@ abstract class FileSystemConverterJob(
     // (default is at 0.05 which takes all the map slots and isn't needed)
     job.getConfiguration.set("mapreduce.job.reduce.slowstart.completedmaps", ".90")
 
-    val fc = FileContext.getFileContext(job.getConfiguration)
-    val manager = FileSystemStorageManager(fc, job.getConfiguration,
-      new Path(FileSystemDataStoreParams.PathParam.lookup(dsParams.asJava)), None)
-
-    val storage = manager.storage(sft.getTypeName).getOrElse {
-      throw new IllegalArgumentException(s"Could not load metadata for ${sft.getTypeName} at " +
-          FileSystemDataStoreParams.PathParam.lookup(dsParams.asJava))
-    }
-    root = storage.context.root
-    qualifiedTempPath = tmpPath.map(fc.makeQualified)
-
-    qualifiedTempPath.foreach { tp =>
-      if (fc.util.exists(tp)) {
-        Command.user.info(s"Deleting temp path $tp")
-        fc.delete(tp, true)
-      }
-    }
-
     StorageConfiguration.setRootPath(job.getConfiguration, root)
     StorageConfiguration.setFileType(job.getConfiguration, FileType.Written)
+    targetFileSize.foreach(StorageConfiguration.setTargetFileSize(job.getConfiguration, _))
 
-    FileOutputFormat.setOutputPath(job, qualifiedTempPath.getOrElse(root))
+    FileOutputFormat.setOutputPath(job, tmpPath.getOrElse(root))
 
     configureOutput(sft, job)
-
-    this.job = job
   }
 
-  override def run(statusCallback: StatusCallback, waitForCompletion: Boolean): Option[(Long, Long)] = {
-    val result = super.run(statusCallback, waitForCompletion)
-    if (waitForCompletion && job.isSuccessful) {
-      qualifiedTempPath.foreach(StorageJobUtils.distCopy(_, root, statusCallback))
+  override def await(reporter: StatusCallback): JobResult = {
+    super.await(reporter).merge {
+      tmpPath.map { tp =>
+        reporter.reset()
+        StorageJobUtils.distCopy(tp, root, reporter) match {
+          case JobSuccess(message, counts) =>
+            Command.user.info(message)
+            JobSuccess("", counts)
+
+          case j => j
+        }
+      }
     }
-    result
   }
 }
 
@@ -116,8 +99,11 @@ object FileSystemConverterJob {
       libjarsFiles: Seq[String],
       libjarsPaths: Iterator[() => Seq[File]],
       reducers: Int,
-      tmpPath: Option[Path]
-    ) extends FileSystemConverterJob(dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, tmpPath)
+      root: Path,
+      tmpPath: Option[Path],
+      targetFileSize: Option[Long]
+    ) extends FileSystemConverterJob(
+        dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, root, tmpPath, targetFileSize)
           with ParquetStorageConfiguration
 
   class OrcConverterJob(
@@ -128,8 +114,11 @@ object FileSystemConverterJob {
       libjarsFiles: Seq[String],
       libjarsPaths: Iterator[() => Seq[File]],
       reducers: Int,
-      tmpPath: Option[Path]
-    ) extends FileSystemConverterJob(dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, tmpPath)
+      root: Path,
+      tmpPath: Option[Path],
+      targetFileSize: Option[Long]
+    ) extends FileSystemConverterJob(
+        dsParams, sft, converterConfig, paths, libjarsFiles, libjarsPaths, reducers, root, tmpPath, targetFileSize)
           with OrcStorageConfiguration
 
   class FsIngestMapper extends Mapper[LongWritable, SimpleFeature, Text, BytesWritable] with LazyLogging {
@@ -154,9 +143,9 @@ object FileSystemConverterJob {
       serializer = KryoFeatureSerializer(metadata.sft, SerializationOptions.none)
       scheme = metadata.scheme
 
-      mapped = context.getCounter(GeoMesaOutputFormat.Counters.Group, "mapped")
-      written = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Written)
-      failed = context.getCounter(GeoMesaOutputFormat.Counters.Group, GeoMesaOutputFormat.Counters.Failed)
+      mapped = context.getCounter(OutputCounters.Group, "mapped")
+      written = context.getCounter(OutputCounters.Group, OutputCounters.Written)
+      failed = context.getCounter(OutputCounters.Group, OutputCounters.Failed)
     }
 
     override def map(key: LongWritable, sf: SimpleFeature, context: Context): Unit = {
@@ -193,11 +182,11 @@ object FileSystemConverterJob {
         throw new IllegalArgumentException(s"Could not load storage instance at path $root")
       }
       serializer = KryoFeatureSerializer(metadata.sft, SerializationOptions.none)
-      reduced = context.getCounter(GeoMesaOutputFormat.Counters.Group, "reduced")
+      reduced = context.getCounter(OutputCounters.Group, "reduced")
       metadata.close()
     }
 
-    override def reduce(key: Text, values: Iterable[BytesWritable], context: Context): Unit = {
+    override def reduce(key: Text, values: java.lang.Iterable[BytesWritable], context: Context): Unit = {
       values.asScala.foreach { bw =>
         context.write(null, serializer.deserialize(bw.getBytes))
         reduced.increment(1)

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -165,7 +165,7 @@ object SimpleFeatureVector {
       dictionaries: Map[String, ArrowDictionary],
       encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min,
       capacity: Int = DefaultCapacity): SimpleFeatureVector = {
-    val allocator = ArrowAllocator("simple-feature-vector")
+    val allocator = ArrowAllocator(s"simple-feature-vector:${sft.getTypeName}")
     try {
       val metadata = Collections.singletonMap(OptionsKey, SimpleFeatureTypes.encodeUserData(sft))
       val fieldType = new FieldType(true, ArrowType.Struct.INSTANCE, null, metadata)

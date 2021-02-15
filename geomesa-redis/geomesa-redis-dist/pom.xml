@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
         <artifactId>geomesa-redis_2.11</artifactId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>3.2.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>pom</packaging>
@@ -44,13 +44,18 @@
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-redis-gs-plugin_${scala.binary.version}</artifactId>
-            <classifier>install</classifier>
-            <version>${project.version}</version>
-            <type>tar.gz</type>
+            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-process-wps_${scala.binary.version}</artifactId>
+        </dependency>
+
+        <!-- guava -->
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <scope>compile</scope>
         </dependency>
 
         <!-- logging -->
@@ -68,17 +73,6 @@
     </dependencies>
 
     <build>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-deploy-plugin</artifactId>
-                    <configuration>
-                        <skip>${skip.installers.deploy}</skip>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -99,6 +93,7 @@
                             <delimiters>
                                 <delimiter>%%</delimiter>
                             </delimiters>
+                            <attach>false</attach>
                         </configuration>
                     </execution>
                 </executions>

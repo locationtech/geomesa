@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -354,13 +354,23 @@ object SimpleFeatureTypes {
     */
   def mutable(sft: SimpleFeatureType): SimpleFeatureType = {
     if (sft.isInstanceOf[ImmutableSimpleFeatureType] || sft.getAttributeDescriptors.asScala.exists(isImmutable)) {
-      // note: SimpleFeatureTypeBuilder copies attribute user data but not feature user data
-      val copy = SimpleFeatureTypeBuilder.copy(sft)
-      copy.getUserData.putAll(sft.getUserData)
-      copy
+      copy(sft)
     } else {
       sft
     }
+  }
+
+  /**
+   * Copy a simple feature type, returning a mutable implementation
+   *
+   * @param sft simple feature type
+   * @return
+   */
+  def copy(sft: SimpleFeatureType): SimpleFeatureType = {
+    // note: SimpleFeatureTypeBuilder copies attribute user data but not feature user data
+    val copy = SimpleFeatureTypeBuilder.copy(sft)
+    copy.getUserData.putAll(sft.getUserData)
+    copy
   }
 
   private def isImmutable(d: AttributeDescriptor): Boolean =

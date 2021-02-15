@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -11,11 +11,10 @@ package org.locationtech.geomesa.parquet
 import org.apache.parquet.filter2.predicate.Operators._
 import org.apache.parquet.filter2.predicate.{FilterApi, FilterPredicate}
 import org.apache.parquet.io.api.Binary
-import org.locationtech.geomesa.features.serialization.ObjectType
 import org.locationtech.geomesa.filter.FilterHelper
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
 import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter

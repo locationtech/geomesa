@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -20,7 +20,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Options.CreateOpts
 import org.apache.hadoop.fs._
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.PartitionMetadata
-import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionScheme, StorageMetadata}
+import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.WithClose
@@ -53,17 +53,13 @@ import scala.util.control.NonFatal
   * @param fc file context
   * @param directory metadata root path
   * @param sft simple feature type
-  * @param encoding file encoding
-  * @param scheme partition scheme
-  * @param leafStorage leaf storage
+  * @param meta basic metadata config
   */
 class FileBasedMetadata(
     private val fc: FileContext,
     val directory: Path,
     val sft: SimpleFeatureType,
-    val encoding: String,
-    val scheme: PartitionScheme,
-    val leafStorage: Boolean
+    private val meta: Metadata
   ) extends StorageMetadata with MethodProfiling with LazyLogging {
 
   import FileBasedMetadata._
@@ -89,6 +85,19 @@ class FileBasedMetadata(
           Option(partitions.get(BoxedUnit.UNIT).get(key)).flatMap(readPartition(_, 8)).map(_.toMetadata).orNull
       }
     )
+
+  override val scheme: PartitionScheme = PartitionSchemeFactory.load(sft, meta.scheme)
+  override val encoding: String = meta.config(Metadata.Encoding)
+  override val leafStorage: Boolean = meta.config(Metadata.LeafStorage).toBoolean
+
+  private val kvs = new ConcurrentHashMap[String, String](meta.config.asJava)
+
+  override def get(key: String): Option[String] = Option(kvs.get(key))
+
+  override def set(key: String, value: String): Unit = {
+    kvs.put(key, value)
+    FileBasedMetadataFactory.write(fc, directory.getParent, meta.copy(config = kvs.asScala.toMap))
+  }
 
   override def getPartitions(prefix: Option[String]): Seq[PartitionMetadata] = {
     partitions.get(BoxedUnit.UNIT).asScala.toStream.flatMap { case (p, _) =>
@@ -132,7 +141,10 @@ class FileBasedMetadata(
     }
   }
 
-  override def compact(partition: Option[String], threads: Int): Unit = {
+  // noinspection ScalaDeprecation
+  override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
+
+  override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit = {
     require(threads > 0, "Threads must be a positive number")
 
     // in normal usage, we never pass in a partition to this method
@@ -143,8 +155,12 @@ class FileBasedMetadata(
 
     readPartitionFiles(threads).asScala.foreach { case (name, f) =>
       val config = readPartition(f, threads).filter(_.files.nonEmpty)
-      metadata.put(name, config.map(_.toMetadata).orNull)
-      config.foreach(c => configs += c)
+      config match {
+        case None => metadata.invalidate(name)
+        case Some(c) =>
+          metadata.put(name, c.toMetadata)
+          configs += c
+      }
       paths ++= f.unparsed
       paths ++= f.parsed
     }
@@ -422,8 +438,7 @@ object FileBasedMetadata {
    * @param m metadata
    * @return
    */
-  def copy(m: FileBasedMetadata): FileBasedMetadata =
-    new FileBasedMetadata(m.fc, m.directory, m.sft, m.encoding, m.scheme, m.leafStorage)
+  def copy(m: FileBasedMetadata): FileBasedMetadata = new FileBasedMetadata(m.fc, m.directory, m.sft, m.meta)
 
   /**
    * Holder for metadata files for a partition

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,6 +13,7 @@ import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, ToggleRemoteFilterParam}
 import org.locationtech.geomesa.hbase.tools.stats.HBaseStatsTopKCommand.HBaseStatsTopKParams
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand.StatsTopKParams
 
@@ -22,5 +23,5 @@ class HBaseStatsTopKCommand extends StatsTopKCommand[HBaseDataStore] with HBaseD
 
 object HBaseStatsTopKCommand {
   @Parameters(commandDescription = "Enumerate the most frequent values in a GeoMesa feature type")
-  class HBaseStatsTopKParams extends StatsTopKParams with HBaseParams with ToggleRemoteFilterParam
+  class HBaseStatsTopKParams extends StatsTopKParams with RequiredTypeNameParam with HBaseParams with ToggleRemoteFilterParam
 }

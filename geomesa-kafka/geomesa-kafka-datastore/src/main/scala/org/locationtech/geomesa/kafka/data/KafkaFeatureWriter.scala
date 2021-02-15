@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -34,6 +34,7 @@ trait KafkaFeatureWriter extends SimpleFeatureWriter with Flushable {
 object KafkaFeatureWriter {
 
   private val featureIds = new AtomicLong(0)
+  private val FeatureIdHints = Seq(Hints.USE_PROVIDED_FID, Hints.PROVIDED_FID)
 
   class AppendKafkaFeatureWriter(sft: SimpleFeatureType,
                                  producer: Producer[Array[Byte], Array[Byte]],
@@ -41,7 +42,7 @@ object KafkaFeatureWriter {
 
     protected val topic: String = KafkaDataStore.topic(sft)
 
-    protected val serializer = GeoMessageSerializer(sft, serialization)
+    protected val serializer: GeoMessageSerializer = GeoMessageSerializer(sft, serialization)
 
     protected val feature = new ScalaSimpleFeature(sft, "-1")
 
@@ -55,7 +56,9 @@ object KafkaFeatureWriter {
     }
 
     override def write(): Unit = {
-      val sf = GeoMesaFeatureWriter.featureWithFid(sft, feature)
+      val sf = GeoMesaFeatureWriter.featureWithFid(feature)
+      // we've handled the fid hints, remove them so that we don't serialize them
+      FeatureIdHints.foreach(sf.getUserData.remove)
       logger.debug(s"Writing update to $topic: $sf")
       val (key, value, headers) = serializer.serialize(GeoMessage.change(sf))
       val record = new ProducerRecord(topic, key, value)
@@ -85,7 +88,6 @@ object KafkaFeatureWriter {
         i += 1
       }
       feature.getUserData.clear()
-      feature
     }
   }
 
@@ -112,7 +114,7 @@ object KafkaFeatureWriter {
     }
 
     override def remove(): Unit = {
-      val id = GeoMesaFeatureWriter.featureWithFid(sft, feature).getID
+      val id = GeoMesaFeatureWriter.featureWithFid(feature).getID
       logger.debug(s"Writing delete to $topic: $id")
       val (key, value, headers) = serializer.serialize(GeoMessage.delete(id))
       val record = new ProducerRecord(topic, key, value)

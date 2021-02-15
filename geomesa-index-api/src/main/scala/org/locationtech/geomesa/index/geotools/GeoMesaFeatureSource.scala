@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -19,9 +19,13 @@ import org.geotools.data._
 import org.geotools.data.simple.{SimpleFeatureCollection, SimpleFeatureIterator, SimpleFeatureSource}
 import org.geotools.feature.collection.SortedSimpleFeatureCollection
 import org.geotools.geometry.jts.ReferencedEnvelope
+import org.geotools.util.factory.Hints
+import org.locationtech.geomesa.index.conf.QueryHints.{COST_EVALUATION, QUERY_INDEX}
+import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCountMaxFeatures
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureSource.{DelegatingResourceInfo, GeoMesaQueryCapabilities}
 import org.locationtech.geomesa.index.planning.QueryRunner
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.opengis.feature.FeatureVisitor
 import org.opengis.feature.`type`.Name
@@ -59,7 +63,23 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
     import org.locationtech.geomesa.index.conf.QueryProperties.QueryExactCount
 
     val useExactCount = query.getHints.isExactCount.getOrElse(QueryExactCount.get.toBoolean)
-    val count = ds.stats.getCount(getSchema, query.getFilter, useExactCount).getOrElse(-1L)
+    val hints = new Hints()
+    GeoMesaFeatureSource.CountHints.foreach { key =>
+      if (query.getHints.contains(key)) { hints.put(key, query.getHints.get(key)) }
+    }
+
+    val count = if (useExactCount &&
+      !query.isMaxFeaturesUnlimited &&
+      query.getMaxFeatures < QueryExactCountMaxFeatures.get.toInt) {
+      SelfClosingIterator(getFeatures(query)).size
+    } else {
+      val statsCount = ds.stats.getCount(getSchema, query.getFilter, useExactCount, hints).getOrElse(-1L)
+      if (query.isMaxFeaturesUnlimited) {
+        statsCount
+      } else {
+        math.min(statsCount, query.getMaxFeatures)
+      }
+    }
 
     if (count > Int.MaxValue) {
       logger.warn(s"Truncating count $count to Int.MaxValue (${Int.MaxValue})")
@@ -104,6 +124,8 @@ class GeoMesaFeatureSource(val ds: DataStore with HasGeoMesaStats,
 }
 
 object GeoMesaFeatureSource {
+
+  val CountHints = Seq(QUERY_INDEX, COST_EVALUATION)
 
   object GeoMesaQueryCapabilities extends QueryCapabilities {
     override def isOffsetSupported = false

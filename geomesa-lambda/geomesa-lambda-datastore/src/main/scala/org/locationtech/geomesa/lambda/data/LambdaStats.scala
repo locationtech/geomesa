@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.lambda.data
 
 import com.github.benmanes.caffeine.cache.LoadingCache
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.stats.GeoMesaStats.GeoMesaStatWriter
@@ -24,11 +25,11 @@ class LambdaStats(persistent: GeoMesaStats, transients: LoadingCache[String, Tra
 
   override def writer: GeoMesaStatWriter = persistent.writer
 
-  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
-    persistent.getCount(sft, filter, exact).map {
+  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = {
+    persistent.getCount(sft, filter, exact, queryHints).map {
       case -1L => -1L
       case p =>
-        val t = transient(sft).getCount(sft, filter, exact).getOrElse {
+        val t = transient(sft).getCount(sft, filter, exact, queryHints).getOrElse {
           throw new IllegalStateException("Transient stats returned None")
         }
         p + t

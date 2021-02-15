@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -11,6 +11,7 @@ package org.locationtech.geomesa.fs.storage.common.interop;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValueFactory;
+import org.locationtech.geomesa.utils.text.Suffixes.Memory$;
 import org.opengis.feature.simple.SimpleFeatureType;
 
 import java.util.List;
@@ -33,6 +34,11 @@ public class ConfigurationUtils {
 
     public static void setLeafStorage(SimpleFeatureType sft, boolean leafStorage) {
         sft.getUserData().put("geomesa.fs.leaf-storage", String.valueOf(leafStorage));
+    }
+
+    public static void setTargetFileSize(SimpleFeatureType sft, String size) {
+        Memory$.MODULE$.bytes(size).get(); // validate input
+        sft.getUserData().put("geomesa.fs.file-size", size);
     }
 
     public static void setScheme(SimpleFeatureType sft, String scheme, Map<String, String> options) {

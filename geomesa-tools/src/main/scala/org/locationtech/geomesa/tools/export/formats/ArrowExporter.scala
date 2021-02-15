@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -51,7 +51,7 @@ class ArrowExporter(
         var id = -1
         val dictionaries = (queryDictionaries ++ providedDictionaries).map { case (k, v) =>
           id += 1
-          k -> ArrowDictionary.create(id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
+          k -> ArrowDictionary.create(sft.getTypeName, id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
         }
         // note: features should be sorted already, even if arrow encoding wasn't performed
         new BatchDelegate(os, encoding, FormatVersion.options(ipc), sort, batchSize, dictionaries)

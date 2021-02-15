@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,6 +13,7 @@ import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
 import org.locationtech.geomesa.arrow.tools.status.ArrowGetSftConfigCommand.ArrowGetSftConfigParameters
+import org.locationtech.geomesa.tools.ProvidedTypeNameParam
 import org.locationtech.geomesa.tools.status.{GetSftConfigCommand, GetSftConfigParams}
 
 class ArrowGetSftConfigCommand extends GetSftConfigCommand[ArrowDataStore] with ArrowDataStoreCommand {
@@ -21,5 +22,5 @@ class ArrowGetSftConfigCommand extends GetSftConfigCommand[ArrowDataStore] with 
 
 object ArrowGetSftConfigCommand {
   @Parameters(commandDescription = "Get the SimpleFeatureType definition of a schema")
-  class ArrowGetSftConfigParameters extends UrlParam with GetSftConfigParams
+  class ArrowGetSftConfigParameters extends UrlParam with GetSftConfigParams with ProvidedTypeNameParam
 }

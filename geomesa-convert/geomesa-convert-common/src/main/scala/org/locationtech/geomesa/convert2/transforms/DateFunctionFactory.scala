@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -27,7 +27,7 @@ class DateFunctionFactory extends TransformerFunctionFactory {
   override def functions: Seq[TransformerFunction] =
     Seq(now, customFormatDateParser, datetime, basicDateTimeNoMillis, basicIsoDate, basicDateTime, isoDate,
       isoLocalDate, isoLocalDateTime, isoOffsetDateTime, isoDateTime, dateHourMinuteSecondMillis,
-      millisToDate, secsToDate, dateToString)
+      millisToDate, secsToDate, dateToString, dateToMillis)
 
   private val now = TransformerFunction("now") { _ =>
     Date.from(ZonedDateTime.now(ZoneOffset.UTC).toInstant)
@@ -160,6 +160,10 @@ class DateFunctionFactory extends TransformerFunctionFactory {
   private val customFormatDateParser = new CustomFormatDateParser(null)
 
   private val dateToString = new DateToString(null)
+
+  private val dateToMillis = TransformerFunction.pure("dateToMillis") { args =>
+    if (args(0) == null) { null } else { args(0).asInstanceOf[Date].getTime }
+  }
 }
 
 object DateFunctionFactory {

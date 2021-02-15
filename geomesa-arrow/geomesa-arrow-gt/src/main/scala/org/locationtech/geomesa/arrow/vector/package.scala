@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -11,7 +11,7 @@ package org.locationtech.geomesa.arrow
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.complex.{ListVector, StructVector}
 import org.apache.arrow.vector.types.Types.MinorType
-import org.apache.arrow.vector.types.pojo.FieldType
+import org.apache.arrow.vector.types.pojo.{DictionaryEncoding, FieldType}
 import org.apache.arrow.vector.{FieldVector, ZeroVector}
 
 package object vector {
@@ -33,7 +33,26 @@ package object vector {
      * @return
      */
     def apply[T <: FieldVector](name: String, minorType: MinorType, metadata: Map[String, String]): T =
-      apply(name, new FieldType(true, minorType.getType, null, if (metadata.isEmpty) { null } else { metadata.asJava }))
+      apply(name, minorType, null, metadata)
+
+    /**
+     * Create a vector based on a minor type
+     *
+     * @param name vector name
+     * @param minorType vector type
+     * @param encoding dictionary encoding
+     * @param metadata field metadata
+     * @tparam T vector type
+     * @return
+     */
+    def apply[T <: FieldVector](
+        name: String,
+        minorType: MinorType,
+        encoding: DictionaryEncoding,
+        metadata: Map[String, String]): T = {
+      val m = if (metadata.isEmpty) { null } else { metadata.asJava }
+      apply(name, new FieldType(true, minorType.getType, encoding, m))
+    }
 
     /**
      * Create a vector based on a field

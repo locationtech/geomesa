@@ -22,7 +22,6 @@
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <useStrictFiltering>true</useStrictFiltering>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-arrow-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-process-wps*</include>
             </includes>
         </dependencySet>
@@ -38,6 +37,7 @@
             </includes>
         </dependencySet>
     </dependencySets>
+
     <fileSets>
         <fileSet>
             <directory>../../</directory>
@@ -47,7 +47,18 @@
             </includes>
         </fileSet>
 
-        <!-- Accumulo Tools filesets -->
+        <!-- gs-plugin - have to specify as a file since it's not attached -->
+        <fileSet>
+            <directory>../geomesa-arrow-gs-plugin/target</directory>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>*-install.tar.gz</include>
+            </includes>
+        </fileSet>
+
+        <!-- arrow Tools filesets -->
         <fileSet>
             <directory>../geomesa-arrow-tools/bin</directory>
             <outputDirectory>bin</outputDirectory>
@@ -70,6 +81,10 @@
             <directoryMode>755</directoryMode>
             <fileMode>0755</fileMode>
             <filtered>true</filtered>
+            <excludes>
+                <!-- arrow has no external dependencies -->
+                <exclude>install-dependencies.sh</exclude>
+            </excludes>
         </fileSet>
         <fileSet>
             <directory>../../geomesa-tools/conf</directory>

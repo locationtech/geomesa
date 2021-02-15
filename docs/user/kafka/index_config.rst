@@ -38,6 +38,12 @@ parameter. When a producer writes an update to an existing feature, the consumer
 Once the timeout is hit without any updates, the feature will be removed from the consumer cache and will no
 longer be returned when querying.
 
+For advanced use cases, the ``kafka.cache.expiry.dynamic`` data store parameter can be used to expire features
+based on matching filter predicates. The value should be a TypeSafe config document where the keys are CQL filter
+strings and the values are expiration duration strings (for example, ``{ "type = 'boat'": "100ms" }``). The filters
+will be evaluated in the order they are declared. Any features which do not match one of the filters will use
+the default ``kafka.cache.expiry`` value, if provided.
+
 If the expiry is set to zero, features will not be indexed or searchable. However, they will still be passed
 to any :ref:`feature listeners <kafka_feature_events>` that are configured.
 

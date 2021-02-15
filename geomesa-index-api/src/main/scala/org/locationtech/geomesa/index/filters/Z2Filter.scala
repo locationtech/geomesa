@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -43,7 +43,7 @@ object Z2Filter extends RowFilterFactory[Z2Filter] {
 
   def apply(values: Z2IndexValues): Z2Filter = {
     val sfc = values.sfc
-    val xy: Array[Array[Int]] = values.bounds.map { case (xmin, ymin, xmax, ymax) =>
+    val xy: Array[Array[Int]] = values.spatialBounds.map { case (xmin, ymin, xmax, ymax) =>
       Array(sfc.lon.normalize(xmin), sfc.lat.normalize(ymin), sfc.lon.normalize(xmax), sfc.lat.normalize(ymax))
     }.toArray
 

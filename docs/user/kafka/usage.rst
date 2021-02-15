@@ -46,7 +46,7 @@ Parameter                            Type    Description
 ``kafka.producer.clear``             Boolean Send a 'clear' message on startup. This will cause clients to ignore any data that was in the
                                              topic prior to startup
 ``kafka.consumer.config``            String  Configuration options for kafka consumer, in Java properties
-                                             format. See `New Consumer Configs <http://kafka.apache.org/documentation.html#newconsumerconfigs>`_
+                                             format. See `Consumer Configs <http://kafka.apache.org/documentation.html#consumerconfigs>`_
 ``kafka.consumer.read-back``         String  On start up, read messages that were written within this time frame (vs ignore old messages), e.g.
                                              '1 hour'. Use 'Inf' to read all messages. If enabled, features will not be available for query until
                                              all existing messages are processed. However, feature listeners will still be invoked as normal.
@@ -58,6 +58,7 @@ Parameter                            Type    Description
 ``kafka.topic.replication``          Integer Replication factor to use in new kafka topics
 ``kafka.serialization.type``         String  Internal serialization format to use for kafka messages. Must be one of ``kryo`` or ``avro``
 ``kafka.cache.expiry``               String  Expire features from in-memory cache after this delay, e.g. "10 minutes". See :ref:`kafka_expiry`
+``kafka.cache.expiry.dynamic``       String  Expire features dynamically based on CQL predicates. See :ref:`kafka_expiry`
 ``kafka.cache.event-time``           String  Instead of message time, determine expiry based on feature data. See :ref:`kafka_event_time`
 ``kafka.cache.event-time.ordering``  Boolean Instead of message time, determine feature ordering based on the feature event time.
                                              See :ref:`kafka_event_time`

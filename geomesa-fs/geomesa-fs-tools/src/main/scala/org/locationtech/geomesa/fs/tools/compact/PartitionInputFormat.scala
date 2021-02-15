@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,12 +10,13 @@ package org.locationtech.geomesa.fs.tools.compact
 
 import java.io.{DataInput, DataOutput}
 
-import org.apache.hadoop.fs.FileContext
+import org.apache.hadoop.fs.{FileContext, Path}
 import org.apache.hadoop.io.Writable
 import org.apache.hadoop.mapreduce._
 import org.geotools.data.Query
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadata, StorageFile, StorageFileAction}
 import org.locationtech.geomesa.fs.storage.api._
+import org.locationtech.geomesa.fs.storage.common.SizeableFileSystemStorage
 import org.locationtech.geomesa.fs.storage.common.jobs.StorageConfiguration
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.fs.tools.compact.PartitionInputFormat.{PartitionInputSplit, PartitionRecordReader}
@@ -35,16 +36,24 @@ class PartitionInputFormat extends InputFormat[Void, SimpleFeature] {
 
     val root = StorageConfiguration.getRootPath(conf)
     val fsc = FileSystemContext(FileContext.getFileContext(root.toUri, conf), conf, root)
+    val fileSize = StorageConfiguration.getTargetFileSize(conf)
 
     val metadata = StorageMetadataFactory.load(fsc).getOrElse {
       throw new IllegalArgumentException(s"No storage defined under path '$root'")
     }
     WithClose(metadata) { meta =>
-      WithClose(FileSystemStorageFactory(fsc, metadata)) { storage =>
+      WithClose(FileSystemStorageFactory(fsc, meta)) { storage =>
+        val sizeable = Option(storage).collect { case s: SizeableFileSystemStorage => s }
+        val sizeCheck = sizeable.flatMap(s => s.targetSize(fileSize).map(t => (p: Path) => s.fileIsSized(p, t)))
         val splits = StorageConfiguration.getPartitions(conf).map { partition =>
-          val files = storage.metadata.getPartition(partition).map(_.files).getOrElse(Seq.empty)
-          val size = storage.getFilePaths(partition).map(f => PathCache.status(fsc.fc, f.path).getLen).sum
-          new PartitionInputSplit(partition, files, size)
+          var size = 0L
+          val files = storage.getFilePaths(partition).filter { f =>
+            if (sizeCheck.exists(_.apply(f.path))) { false } else {
+              size += PathCache.status(fsc.fc, f.path).getLen
+              true
+            }
+          }
+          new PartitionInputSplit(partition, files.map(_.file), size)
         }
         java.util.Arrays.asList(splits: _*)
       }
@@ -162,7 +171,10 @@ object PartitionInputFormat {
       if (prefix.forall(partition.name.startsWith)) { Seq(partition) } else { Seq.empty }
     override def addPartition(partition: PartitionMetadata): Unit = throw new NotImplementedError()
     override def removePartition(partition: PartitionMetadata): Unit = throw new NotImplementedError()
+    // noinspection ScalaDeprecation
     override def compact(partition: Option[String], threads: Int): Unit = throw new NotImplementedError()
+    override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit =
+      throw new NotImplementedError()
     override def close(): Unit = {}
   }
 }

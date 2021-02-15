@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -46,6 +46,7 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
 
   lazy val pointSft = createNewSchema("name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:Point:srid=4326")
   lazy val lineSft = createNewSchema("name:String:index=join,team:String:index-value=true,age:Int,weight:Int,dtg:Date,*geom:LineString:srid=4326")
+  lazy val listSft = createNewSchema("names:List[String],team:String,dtg:Date,*geom:Point:srid=4326")
 
   implicit val allocator: BufferAllocator = new DirtyRootAllocator(Long.MaxValue, 6.toByte)
 
@@ -66,15 +67,23 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
     ScalaSimpleFeature.create(lineSft, s"$i", name, team, age, weight, s"2017-02-03T00:0$i:01.000Z", geom)
   }
 
+  val listFeatures = (0 until 10).map { i =>
+    val names = Seq.tabulate(i % 3)(j => s"name0$j").asJava
+    val team = s"team$i"
+    ScalaSimpleFeature.create(listSft, s"$i", names, team, s"2017-02-03T00:0$i:01.000Z", s"POINT(40 6$i)")
+  }
+
   // hit all major indices
   val filters = Seq(
     "bbox(geom, 38, 59, 42, 70)",
     "bbox(geom, 38, 59, 42, 70) and dtg DURING 2017-02-03T00:00:00.000Z/2017-02-03T01:00:00.000Z",
-    "name IN('name0', 'name1')",
-    s"IN(${pointFeatures.map(_.getID).mkString("'", "', '", "'")})").map(ECQL.toFilter)
+    s"IN(${pointFeatures.map(_.getID).mkString("'", "', '", "'")})",
+    "name IN('name0', 'name1')"
+  ).map(ECQL.toFilter)
 
   addFeatures(pointFeatures)
   addFeatures(lineFeatures)
+  addFeatures(listFeatures)
 
   val sfts = Seq((pointSft, pointFeatures), (lineSft, lineFeatures))
 
@@ -392,6 +401,29 @@ class ArrowBatchIteratorTest extends TestWithMultipleSfts with Mockito {
               reader.dictionaries.keySet mustEqual Set("team", "weight")
               reader.dictionaries.apply("weight").iterator.toSeq must contain(null: AnyRef)
             }
+          }
+        }
+      }
+      ok
+    }
+    "return sorted, dictionary encoded projections list type attributes" in {
+      dataStores.foreach { ds =>
+        filters.dropRight(1).foreach { filter =>
+          val transform = Array("names", "dtg", "geom")
+          val query = new Query(listSft.getTypeName, filter, transform)
+          query.getHints.put(QueryHints.ARROW_ENCODE, true)
+          query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "names")
+          query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+          query.getHints.put(QueryHints.ARROW_BATCH_SIZE, 100)
+          val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+          val out = new ByteArrayOutputStream
+          results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+          def in() = new ByteArrayInputStream(out.toByteArray)
+          WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
+            compare(reader.features(), listFeatures, transform.toSeq)
+            reader.dictionaries.keySet mustEqual Set("names")
+            reader.dictionaries.apply("names").iterator.toSeq must
+                containTheSameElementsAs(Seq.tabulate(2)(i => s"name0$i"))
           }
         }
       }

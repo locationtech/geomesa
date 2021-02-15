@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -43,7 +43,12 @@ object KryoUserDataSerialization extends LazyLogging {
     classOf[Hints.Key]         -> "$h"
   )
 
-  private val baseClassLookups: Map[String, Class[_]] = baseClassMappings.filterNot(_._1.isPrimitive).map(_.swap)
+  private val baseClassLookups: Map[String, Class[_]] = {
+    val m1 = baseClassMappings.filterNot(_._1.isPrimitive).map(_.swap)
+    // support hints generated with geotools versions <= 20
+    val m2 = m1 + ("org.geotools.factory.Hints$Key" -> classOf[Hints.Key])
+    m2
+  }
 
   private implicit val ordering: Ordering[(AnyRef, AnyRef)] = Ordering.by(_._1.toString)
 

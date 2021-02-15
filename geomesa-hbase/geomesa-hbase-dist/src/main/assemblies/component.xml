@@ -9,7 +9,7 @@
             <fileMode>0644</fileMode>
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>true</useTransitiveDependencies>
-            <useTransitiveFiltering>true</useTransitiveFiltering>
+            <useTransitiveFiltering>false</useTransitiveFiltering> <!-- transitive filtering applies to excludes too so disable it -->
             <excludes>
                 <exclude>org.locationtech.geomesa:geomesa-hbase-gs-plugin*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-hbase-spark*</exclude>
@@ -27,7 +27,6 @@
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <useStrictFiltering>true</useStrictFiltering>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-hbase-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-process-wps*</include>
             </includes>
         </dependencySet>
@@ -77,6 +76,17 @@
             </includes>
         </fileSet>
 
+        <!-- gs-plugin - have to specify as a file since it's not attached -->
+        <fileSet>
+            <directory>../geomesa-hbase-gs-plugin/target</directory>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>*-install.tar.gz</include>
+            </includes>
+        </fileSet>
+
         <!-- HBase Tools filesets -->
         <fileSet>
             <directory>../geomesa-hbase-tools/bin</directory>
@@ -91,6 +101,13 @@
             <fileMode>0644</fileMode>
             <filtered>false</filtered>
             <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-hbase-tools/conf-filtered</directory>
+            <outputDirectory>conf</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <filtered>true</filtered>
         </fileSet>
         <fileSet>
             <directory>../geomesa-hbase-tools/examples</directory>
@@ -121,6 +138,16 @@
             <fileMode>0644</fileMode>
             <filtered>true</filtered>
             <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-tools/common-env</directory>
+            <outputDirectory>conf</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <filtered>true</filtered>
+            <includes>
+                <include>hadoop-env.sh</include>
+            </includes>
         </fileSet>
         <fileSet>
             <directory>../../geomesa-tools/examples</directory>

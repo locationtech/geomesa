@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,16 +10,12 @@ package org.locationtech.geomesa.kafka.index
 
 import java.util.concurrent._
 
-import com.github.benmanes.caffeine.cache.Ticker
 import com.typesafe.scalalogging.StrictLogging
-import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.filter.index.{BucketIndexSupport, SizeSeparatedBucketIndexSupport}
 import org.locationtech.geomesa.kafka.data.KafkaDataStore.IndexConfig
 import org.locationtech.geomesa.kafka.index.FeatureStateFactory.{FeatureExpiration, FeatureState}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
-
-import scala.concurrent.duration.Duration
 
 /**
   * Feature cache implementation
@@ -40,27 +36,12 @@ class KafkaFeatureCacheImpl(sft: SimpleFeatureType, config: IndexConfig)
   private val support = if (config.cqAttributes.nonEmpty) {
     KafkaFeatureCache.cqIndexSupport(sft, config)
   } else if (sft.isPoints) {
-    BucketIndexSupport(sft, config.resolutionX, config.resolutionY)
+    BucketIndexSupport(sft, config.resolution.x, config.resolution.y)
   } else {
-    SizeSeparatedBucketIndexSupport(sft, config.ssiTiers, config.resolutionX / 360d, config.resolutionY / 180d)
+    SizeSeparatedBucketIndexSupport(sft, config.ssiTiers, config.resolution.x / 360d, config.resolution.y / 180d)
   }
 
-  private val factory = {
-    val expiry = if (config.expiry == Duration.Inf) { None } else {
-      val (executor, ticker) = config.executor.getOrElse {
-        val ex = new ScheduledThreadPoolExecutor(2)
-        // don't keep running scheduled tasks after shutdown
-        ex.setExecuteExistingDelayedTasksAfterShutdownPolicy(false)
-        // remove tasks when canceled, otherwise they will only be removed from the task queue
-        // when they would be executed. we expect frequent cancellations due to feature updates
-        ex.setRemoveOnCancelPolicy(true)
-        (ex, Ticker.systemTicker())
-      }
-      Some((this, executor, ticker, config.expiry.toMillis))
-    }
-    val eventTime = config.eventTime.map(e => (FastFilterFactory.toExpression(sft, e.expression), e.ordering))
-    FeatureStateFactory(support.index, expiry, eventTime, sft.getGeomIndex)
-  }
+  private val factory = FeatureStateFactory(sft, support.index, config.expiry, this, config.executor)
 
   /**
     * Note: this method is not thread-safe. The `state` and `index` can get out of sync if the same feature

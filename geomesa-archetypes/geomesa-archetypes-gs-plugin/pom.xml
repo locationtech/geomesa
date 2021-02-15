@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>geomesa-archetypes_2.11</artifactId>
         <groupId>org.locationtech.geomesa</groupId>
-        <version>3.0.0-SNAPSHOT</version>
+        <version>3.2.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <artifactId>geomesa-archetypes-gs-plugin_2.11</artifactId>
-    <name>GeoMesa Geoserver Plugin Archetype</name>
+    <name>GeoMesa GeoServer Plugin Archetype</name>
     <packaging>pom</packaging>
 
     <dependencyManagement>
@@ -183,6 +184,7 @@
                         <descriptors>
                             <descriptor>${project.basedir}/../../geomesa-archetypes/geomesa-archetypes-gs-plugin/assembly.xml</descriptor>
                         </descriptors>
+                        <attach>false</attach>
                     </configuration>
                     <executions>
                         <execution>
@@ -193,13 +195,6 @@
                             </goals>
                         </execution>
                     </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-deploy-plugin</artifactId>
-                    <configuration>
-                        <skip>${skip.installers.deploy}</skip>
-                    </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>

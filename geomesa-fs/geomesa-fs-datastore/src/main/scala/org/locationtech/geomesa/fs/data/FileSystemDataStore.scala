@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -76,11 +76,13 @@ class FileSystemDataStore(
           }
           deprecated.getOrElse(true)
         }
+        val fileSize = sft.removeTargetFileSize()
 
         val path = manager.defaultPath(sft.getTypeName)
         val context = FileSystemContext(fc, conf, path, namespace)
 
-        val metadata = StorageMetadataFactory.create(context, meta, Metadata(sft, encoding, scheme, leafStorage))
+        val metadata =
+          StorageMetadataFactory.create(context, meta, Metadata(sft, encoding, scheme, leafStorage, fileSize))
         try { manager.register(path, FileSystemStorageFactory(context, metadata)) } catch {
           case NonFatal(e) => CloseQuietly(metadata).foreach(e.addSuppressed); throw e
         }

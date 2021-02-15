@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -45,7 +45,7 @@ class XZ3IndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStrategy, 
   protected val geomIndex: Int = sft.indexOf(geomField)
   protected val dtgIndex: Int = sft.indexOf(dtgField)
 
-  protected val sfc = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
+  protected val sfc: XZ3SFC = XZ3SFC(sft.getXZPrecision, sft.getZ3Interval)
   protected val timeToIndex: TimeToBinnedTime = BinnedTime.timeToBinnedTime(sft.getZ3Interval)
 
   private val dateToIndex = BinnedTime.dateToBinnedTime(sft.getZ3Interval)

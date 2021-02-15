@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.Parameter
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{DeprecatedParam, SystemPropertyParam}
+import org.locationtech.geomesa.utils.geotools.GeoMesaParam.{DeprecatedParam, ReadWriteFlag, SystemPropertyParam}
 import org.locationtech.geomesa.utils.text.DurationParsing
 
 import scala.concurrent.duration.Duration
@@ -49,7 +49,8 @@ class GeoMesaParam[T <: AnyRef](
     val deprecatedParams: Seq[DeprecatedParam[T]] = Seq.empty,
     val systemProperty: Option[SystemPropertyParam[T]] = None,
     val enumerations: Seq[T] = Seq.empty,
-    val supportsNiFiExpressions: Boolean = false
+    val supportsNiFiExpressions: Boolean = false,
+    val readWrite: ReadWriteFlag = ReadWriteFlag.ReadWrite
   )(implicit ct: ClassTag[T]
   ) extends Param(
     _key,
@@ -195,6 +196,57 @@ object GeoMesaParam {
 
   case class SystemPropertyDurationParam(prop: SystemProperty) extends SystemPropertyParam[Duration] {
     override def option: Option[Duration] = prop.toDuration
+  }
+
+  sealed trait ReadWriteFlag {
+
+    /**
+     * Is the parameter used for querying
+     *
+     * @return
+     */
+    def read: Boolean
+
+    /**
+     * Is the parameter used for appending writes
+     *
+     * @return
+     */
+    def append: Boolean
+
+    /**
+     * Is the parameter used for modifying writes
+     *
+     * @return
+     */
+    def update: Boolean
+  }
+
+  object ReadWriteFlag {
+
+    case object ReadOnly extends ReadWriteFlag {
+      override val read = true
+      override val append = false
+      override val update = false
+    }
+
+    case object WriteOnly extends ReadWriteFlag {
+      override val read = false
+      override val append = true
+      override val update = true
+    }
+
+    case object ReadUpdate extends ReadWriteFlag {
+      override val read = true
+      override val append = false
+      override val update = true
+    }
+
+    case object ReadWrite extends ReadWriteFlag {
+      override val read = true
+      override val append = true
+      override val update = true
+    }
   }
 
   def binding[T <: AnyRef](ct: ClassTag[T]): Class[_] = ct.runtimeClass match {

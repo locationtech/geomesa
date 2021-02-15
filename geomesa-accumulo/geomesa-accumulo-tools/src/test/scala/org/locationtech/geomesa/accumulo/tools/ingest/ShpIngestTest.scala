@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -22,6 +22,7 @@ import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.MiniCluster
 import org.locationtech.geomesa.convert.Modes
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.tools.Command.CommandException
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.io.{PathUtils, WithClose, WithStore}
@@ -246,7 +247,9 @@ class ShpIngestTest extends Specification {
       command.params.featureName = "nullDates2"
 
       Modes.ErrorMode.systemProperty.threadLocalValue.set("raise-errors")
-      try { command.execute() } finally {
+      try {
+        command.execute() must throwA[CommandException]
+      } finally {
         Modes.ErrorMode.systemProperty.threadLocalValue.remove()
       }
 
@@ -274,7 +277,9 @@ class ShpIngestTest extends Specification {
 
       Modes.ErrorMode.systemProperty.threadLocalValue.set("raise-errors")
       Modes.ParseMode.systemProperty.threadLocalValue.set("batch")
-      try { command.execute() } finally {
+      try {
+        command.execute() must throwA[CommandException]
+      } finally {
         Modes.ErrorMode.systemProperty.threadLocalValue.remove()
         Modes.ParseMode.systemProperty.threadLocalValue.remove()
       }

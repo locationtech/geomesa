@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,7 +13,6 @@ import java.util.UUID
 
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.filter.filterToString
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex.IdFromRow
 import org.locationtech.geomesa.index.api.WriteConverter.{TieredWriteConverter, WriteConverterImpl}
 import org.locationtech.geomesa.index.conf.QueryProperties
@@ -262,9 +261,6 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
         if (hints.getMaxFeatures.forall(_ > QueryProperties.BlockMaxThreshold.toInt.get)) {
           // check that full table scans are allowed
           QueryProperties.BlockFullTableScans.onFullTableScan(sft.getTypeName, filter.filter.getOrElse(Filter.INCLUDE))
-        }
-        filter.secondary.foreach { f =>
-          logger.warn(s"Running full table scan on $name index for schema ${sft.getTypeName} with filter ${filterToString(f)}")
         }
         val keyRanges = Seq(UnboundedRange(null))
         val byteRanges = Seq(BoundedByteRange(sharing, ByteArrays.rowFollowingPrefix(sharing)))

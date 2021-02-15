@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,8 +13,8 @@ import java.util.Objects
 
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.util.factory.Hints
-import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
 import org.locationtech.geomesa.arrow.io._
+import org.locationtech.geomesa.arrow.io.records.RecordBatchUnloader
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.arrow.vector.{ArrowDictionary, SimpleFeatureVector}
@@ -26,7 +26,7 @@ import org.locationtech.geomesa.index.iterators.ArrowScan._
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
-import org.locationtech.geomesa.utils.geotools.{GeometryUtils, SimpleFeatureOrdering, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.geotools._
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.locationtech.geomesa.utils.stats.{EnumerationStat, Stat, TopK}
 import org.locationtech.geomesa.utils.text.StringSerialization
@@ -81,6 +81,9 @@ trait ArrowScan extends AggregatingScan[ArrowAggregate] {
 object ArrowScan {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
+  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
+
+  import scala.collection.JavaConverters._
 
   object Configuration {
 
@@ -103,11 +106,6 @@ object ArrowScan {
   }
 
   val DictionaryTopK: SystemProperty = SystemProperty("geomesa.arrow.dictionary.top", "1000")
-
-  val DictionaryOrdering: Ordering[AnyRef] = new Ordering[AnyRef] {
-    override def compare(x: AnyRef, y: AnyRef): Int =
-      SimpleFeatureOrdering.nullCompare(x.asInstanceOf[Comparable[Any]], y)
-  }
 
   /**
     * Configure the iterator
@@ -203,21 +201,28 @@ object ArrowScan {
     * @param provided provided dictionary values, if any, keyed by attribute name
     * @return
     */
-  def createDictionaries(stats: GeoMesaStats,
-                         sft: SimpleFeatureType,
-                         filter: Option[Filter],
-                         attributes: Seq[String],
-                         provided: Map[String, Array[AnyRef]],
-                         cached: Map[String, TopK[AnyRef]]): Map[String, ArrowDictionary] = {
-    def sort(values: Array[AnyRef]): Unit = java.util.Arrays.sort(values, DictionaryOrdering)
+  def createDictionaries(
+      stats: GeoMesaStats,
+      sft: SimpleFeatureType,
+      filter: Option[Filter],
+      attributes: Seq[String],
+      provided: Map[String, Array[AnyRef]],
+      cached: Map[String, TopK[AnyRef]]): Map[String, ArrowDictionary] = {
 
     if (attributes.isEmpty) { Map.empty } else {
       var id = -1L
       // note: sort values to return same dictionary cache
       val providedDictionaries = provided.map { case (k, v) =>
         id += 1
-        sort(v)
-        k -> ArrowDictionary.create(id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
+        val descriptor = sft.getDescriptor(k)
+        val bindings = ObjectType.selectType(descriptor)
+        val (binding, order) = if (descriptor.isList) {
+          (descriptor.getListType(), AttributeOrdering(bindings.tail))
+        } else {
+          (descriptor.getType.getBinding, AttributeOrdering(bindings))
+        }
+        java.util.Arrays.sort(v, order)
+        k -> ArrowDictionary.create(sft.getTypeName, id, v)(ClassTag[AnyRef](binding))
       }
       val toLookup = attributes.filterNot(provided.contains)
       if (toLookup.isEmpty) { providedDictionaries } else {
@@ -225,9 +230,18 @@ object ArrowScan {
         val queried = if (toLookup.forall(cached.contains)) {
           cached.map { case (name, k) =>
             id += 1
-            val values = k.topK(DictionaryTopK.get.toInt).map(_._1).toArray
-            sort(values)
-            name -> ArrowDictionary.create(id, values)(ClassTag[AnyRef](sft.getDescriptor(name).getType.getBinding))
+            val descriptor = sft.getDescriptor(name)
+            val bindings = ObjectType.selectType(descriptor)
+            val (values, binding, order) = if (descriptor.isList) {
+              val lists = k.topK(DictionaryTopK.get.toInt).asInstanceOf[Iterator[(java.util.List[AnyRef], Long)]]
+              val values = lists.flatMap(_._1.asScala).toArray
+              (values, descriptor.getListType(), AttributeOrdering(bindings.tail))
+            } else {
+              val values = k.topK(DictionaryTopK.get.toInt).map(_._1).toArray
+              (values, descriptor.getType.getBinding, AttributeOrdering(bindings))
+            }
+            java.util.Arrays.sort(values, order)
+            name -> ArrowDictionary.create(sft.getTypeName, id, values)(ClassTag[AnyRef](binding))
           }
         } else {
           // if we have to run a query, might as well generate all values
@@ -241,9 +255,17 @@ object ArrowScan {
           enumerations.map { e =>
             id += 1
             val name = nameIter.next
-            val values = e.values.toArray[AnyRef]
-            sort(values)
-            name -> ArrowDictionary.create(id, values)(ClassTag[AnyRef](sft.getDescriptor(name).getType.getBinding))
+            val descriptor = sft.getDescriptor(name)
+            val bindings = ObjectType.selectType(descriptor)
+            val (values, binding, order) = if (descriptor.isList) {
+              val values = e.values.flatMap(_.asInstanceOf[java.util.List[AnyRef]].asScala).toArray[AnyRef]
+              (values, descriptor.getListType(), AttributeOrdering(bindings.tail))
+            } else {
+              val values = e.values.toArray[AnyRef]
+              (values, descriptor.getType.getBinding, AttributeOrdering(bindings))
+            }
+            java.util.Arrays.sort(values, order)
+            name -> ArrowDictionary.create(sft.getTypeName, id, values)(ClassTag[AnyRef](binding))
           }.toMap
         }
         queried ++ providedDictionaries
@@ -278,7 +300,7 @@ object ArrowScan {
     var id = -1L
     StringSerialization.decodeSeqMap(sft, encoded).map { case (k, v) =>
       id += 1
-      k -> ArrowDictionary.create(id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
+      k -> ArrowDictionary.create(sft.getTypeName, id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
     }
   }
 
@@ -352,10 +374,7 @@ object ArrowScan {
     private var writer: DictionaryBuildingWriter = _
     private val os = new ByteArrayOutputStream()
 
-    private val ordering = {
-      val o = SimpleFeatureOrdering(sft.indexOf(sortBy))
-      if (reverse) { o.reverse } else { o }
-    }
+    private val ordering = SimpleFeatureOrdering(sft, sortBy, reverse)
 
     override def init(): Unit = {
       writer = new DictionaryBuildingWriter(sft, dictionaryFields, encoding, ipcOpts)
@@ -525,10 +544,7 @@ object ArrowScan {
 
     private var index = 0
 
-    private val ordering = {
-      val o = SimpleFeatureOrdering(sft.indexOf(sortField))
-      if (reverse) { o.reverse } else { o }
-    }
+    private val ordering = SimpleFeatureOrdering(sft, sortField, reverse)
 
     override def init(): Unit = {
       vector = SimpleFeatureVector.create(sft, dictionaries, encoding)

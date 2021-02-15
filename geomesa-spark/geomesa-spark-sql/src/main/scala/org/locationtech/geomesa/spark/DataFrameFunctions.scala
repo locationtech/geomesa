@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2019-2020 The MITRE Corporation
+ * Copyright (c) 2019-2021 The MITRE Corporation
  * This program and the accompanying materials are made available under
  * the Apache License, Version 2.0 which is available at
  * https://www.apache.org/licenses/LICENSE-2.0.
@@ -16,6 +16,8 @@ import java.lang
 import org.apache.spark.sql.{Column, Encoder, Encoders, TypedColumn}
 import org.locationtech.geomesa.spark.jts.encoders.SpatialEncoders
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
+import org.locationtech.jts.geom.Geometry
+import org.locationtech.geomesa.spark.GeometricDistanceFunctions.{ST_Transform, distanceNames}
 
 
 /**
@@ -40,10 +42,11 @@ object DataFrameFunctions extends SpatialEncoders {
 
     def st_lengthSphere(line: Column): TypedColumn[Any, lang.Double] =
       udfToColumn(ST_LengthSphere, relationNames, line)
+
+    def st_transform(geom: Column, fromCRS: Column, toCRS: Column): TypedColumn[Any, Geometry] =
+      udfToColumn(ST_Transform, distanceNames, geom, fromCRS, toCRS)
   }
 
   /** Stack of all DataFrame DSL functions. */
   trait Library extends SpatialRelations
-
-
 }

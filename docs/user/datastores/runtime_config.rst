@@ -56,8 +56,8 @@ geomesa.density.batch.size
 ++++++++++++++++++++++++++
 
 This property controls the batch size used for running distributed density (heatmap) queries. It needs to be set on
-each region or tablet server. If a query is closed or cancelled before completion, the batch size will determine how
-long the distributed scan will keep running before seeing the cancellation.
+the client making the request (e.g. GeoServer). If a query is closed or cancelled before completion, the batch
+size will determine how long the distributed scan will keep running before seeing the cancellation.
 
 geomesa.distributed.lock.timeout
 ++++++++++++++++++++++++++++++++
@@ -120,6 +120,14 @@ front, so estimates will cause problems. To force GeoMesa to calculate the exact
 set, you may set this property to ``true``. You may also override this behavior on a per-query basis
 by using the query hint ``org.locationtech.geomesa.accumulo.index.QueryHints.EXACT_COUNT``.
 
+geomesa.exact.count.max.features
+++++++++++++++++++++++++++++++++
+
+The GeoTools API around ``getCount`` indicates that a ``maxFeatures`` setting should be respected.
+When the ``geomesa.force.count`` or ``QueryHints.EXACT_COUNT`` is true  and maxFeatures is lower than this setting,
+GeoMesa will run the query to determine how many records are in the result set.
+Otherwise, GeoMesa will use the Stats API and respect the counting setting.  The default for this setting is 1000.
+
 geomesa.geometry.processing
 +++++++++++++++++++++++++++
 
@@ -165,7 +173,8 @@ geomesa.metadata.expiry
 
 This property controls how often simple feature type metadata is read from the underlying data store.
 Calls to ``updateSchema`` on a data store will not show up in other instances until the metadata
-cache has expired. The expiry is specified as a duration, e.g. ``10 minutes`` or ``1 hour``.
+cache has expired. The expiry is specified as a duration, e.g. ``10 minutes`` or ``1 hour``. The default
+is ``10 minutes``.
 
 geomesa.partition.scan.parallel
 +++++++++++++++++++++++++++++++
@@ -268,9 +277,9 @@ a comma-separated list of arbitrary URLs. For more information on defining types
 geomesa.stats.batch.size
 ++++++++++++++++++++++++
 
-This property controls the batch size used for running distributed stat queries. It needs to be set on each
-region or tablet server. If a query is closed or cancelled before completion, the batch size will determine how
-long the distributed scan will keep running before seeing the cancellation.
+This property controls the batch size used for running distributed stat queries. It needs to be set on the client
+making the request (e.g. GeoServer). If a query is closed or cancelled before completion, the batch size will
+determine how long the distributed scan will keep running before seeing the cancellation.
 
 .. _stats_generate_config:
 
@@ -280,7 +289,8 @@ geomesa.stats.generate
 This property controls whether GeoMesa will generate statistics for a given feature type during ingestion. It
 is specified as a Boolean, ``true`` or ``false``. This property will be used when a feature type is first created,
 if stats are not explicitly configured in the feature type user data or through the ``geomesa.stats.enable``
-data store parameter. See :ref:`stat_config` for details on configuring the feature type.
+data store parameter. See :ref:`stat_config` for details on configuring the feature type. Note that
+stats are currently only implemented for the Accumulo and Redis data stores.
 
 geomesa.strategy.decider
 ++++++++++++++++++++++++
@@ -289,5 +299,5 @@ This property allows for overriding strategy selection during query planning. It
 full class name for a class implementing ``org.locationtech.geomesa.index.planning.StrategyDecider``.
 The class must have a no-arg constructor.
 
-By default GeoMesa will use cost-based query planning, which should work well for most situations. See
+By default GeoMesa will use heuristic-based query planning, which should work well for most situations. See
 :ref:`query_planning` for more details on query planning strategies.

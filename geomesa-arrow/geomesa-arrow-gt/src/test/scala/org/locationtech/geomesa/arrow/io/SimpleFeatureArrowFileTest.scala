@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -151,7 +151,7 @@ class SimpleFeatureArrowFileTest extends Specification {
       }
     }
     "write and read dictionary encoded values" >> {
-      val dictionaries = Map("foo:String" -> ArrowDictionary.create(0, Array("foo0", "foo1", "foo2")))
+      val dictionaries = Map("foo:String" -> ArrowDictionary.create(sft.getTypeName, 0, Array("foo0", "foo1", "foo2")))
       withTestFile("dictionary") { file =>
         WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file), sft, dictionaries, SimpleFeatureEncoding.Max, ipcOpts, None)) { writer =>
           features0.foreach(writer.add)
@@ -167,7 +167,7 @@ class SimpleFeatureArrowFileTest extends Specification {
       }
     }
     "write and read dictionary encoded ints" >> {
-      val dictionaries = Map("age" -> ArrowDictionary.create(0, Array(0, 1, 2, 3, 4, 5).map(Int.box)))
+      val dictionaries = Map("age" -> ArrowDictionary.create(sft.getTypeName, 0, Array(0, 1, 2, 3, 4, 5).map(Int.box)))
       withTestFile("dictionary-int") { file =>
         WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file), sft, dictionaries, SimpleFeatureEncoding.Max, ipcOpts, None)) { writer =>
           features0.foreach(writer.add)
@@ -183,7 +183,7 @@ class SimpleFeatureArrowFileTest extends Specification {
       }
     }
     "write and read dictionary encoded values with defaults" >> {
-      val dictionaries = Map("foo" -> ArrowDictionary.create(0, Array("foo0", "foo1")))
+      val dictionaries = Map("foo" -> ArrowDictionary.create(sft.getTypeName, 0, Array("foo0", "foo1")))
       withTestFile("dictionary-defaults") { file =>
         WithClose(SimpleFeatureArrowFileWriter(new FileOutputStream(file), sft, dictionaries, SimpleFeatureEncoding.Max, ipcOpts, None)) { writer =>
           features0.foreach(writer.add)

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -20,7 +20,7 @@ import org.specs2.runner.JUnitRunner
 @RunWith(classOf[JUnitRunner])
 class TypeInferenceTest extends Specification with LazyLogging {
 
-  import org.locationtech.geomesa.features.serialization.ObjectType._
+  import org.locationtech.geomesa.utils.geotools.ObjectType._
 
   val uuidString = "28a12c18-e5ae-4c04-ae7b-bf7cdbfaf234"
   val uuid = java.util.UUID.fromString(uuidString)

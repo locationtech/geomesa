@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -18,7 +18,7 @@ import org.locationtech.geomesa.features.avro.FeatureSpecificReader.AttributeRea
 import org.locationtech.geomesa.features.avro.serde.{ASFDeserializer, Version1Deserializer, Version2Deserializer}
 // noinspection ScalaDeprecation
 import org.locationtech.geomesa.features.avro.serialization.{AvroUserDataSerialization, AvroUserDataSerializationV4}
-import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**

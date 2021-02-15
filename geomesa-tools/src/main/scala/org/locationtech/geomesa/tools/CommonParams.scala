@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -17,7 +17,6 @@ import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
-import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools.utils.ParameterConverters.{ErrorModeConverter, FilterConverter, HintConverter}
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.filter.Filter
@@ -228,7 +227,7 @@ trait DistributedRunParam {
   @Parameter(names = Array("--run-mode"), description = "Run locally or on a cluster", required = false)
   var runMode: String = _
 
-  lazy val mode: Option[RunMode] = {
+  lazy val mode: Option[RunModes.RunMode] = {
     Option(runMode).map {
       case m if m.equalsIgnoreCase(RunModes.Local.toString) => RunModes.Local
       case m if m.equalsIgnoreCase(RunModes.Distributed.toString) => RunModes.Distributed

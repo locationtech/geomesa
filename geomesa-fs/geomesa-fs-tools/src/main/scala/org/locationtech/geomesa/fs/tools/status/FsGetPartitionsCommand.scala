@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -26,6 +26,6 @@ class FsGetPartitionsCommand extends FsDataStoreCommand {
 }
 
 object FsGetPartitionsCommand {
-  @Parameters(commandDescription = "List GeoMesa feature type for a given Fs resource")
+  @Parameters(commandDescription = "List partitions for a given feature type")
   class FsGetPartitionsParams extends FsParams with RequiredTypeNameParam
 }

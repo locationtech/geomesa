@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -579,6 +579,9 @@ object HBaseIndexAdapter extends LazyLogging {
       ds.connection.getBufferedMutator(params)
     }
 
+    import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
+    val expiration = indices.headOption.flatMap(_.sft.getFeatureExpiration).orNull
+
     private var i = 0
 
     override protected def write(feature: WritableFeature, values: Array[RowKeyValue[_]], update: Boolean): Unit = {
@@ -587,6 +590,20 @@ object HBaseIndexAdapter extends LazyLogging {
         flush()
         Thread.sleep(1)
       }
+
+      val ttl = if (expiration != null) {
+        val t = expiration.expires(feature.feature) - System.currentTimeMillis
+        if (t > 0) {
+          t
+        }
+        else {
+          logger.warn("Feature is already past its TTL; not added to database")
+          return
+        }
+      } else {
+        0L
+      }
+
       i = 0
       while (i < values.length) {
         val mutator = mutators(i)
@@ -599,6 +616,7 @@ object HBaseIndexAdapter extends LazyLogging {
                 put.setCellVisibility(new CellVisibility(new String(value.vis, StandardCharsets.UTF_8)))
               }
               put.setDurability(durability)
+              if (ttl > 0) put.setTTL(ttl)
               mutator.mutate(put)
             }
 
@@ -611,6 +629,7 @@ object HBaseIndexAdapter extends LazyLogging {
                   put.setCellVisibility(new CellVisibility(new String(value.vis, StandardCharsets.UTF_8)))
                 }
                 put.setDurability(durability)
+                if (ttl > 0) put.setTTL(ttl)
                 mutator.mutate(put)
               }
             }
@@ -658,4 +677,5 @@ object HBaseIndexAdapter extends LazyLogging {
   object BufferedMutatorIsFlushable extends IsFlushableImplicits[BufferedMutator] {
     override protected def flush(f: BufferedMutator): Try[Unit] = Try(f.flush())
   }
+
 }

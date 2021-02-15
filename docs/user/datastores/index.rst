@@ -1,3 +1,5 @@
+.. _geomesa_data_stores:
+
 GeoMesa Data Stores
 ===================
 
@@ -17,10 +19,11 @@ Not sure where to begin? Take a look at :doc:`/user/getting_started`.
     index_config
     runtime_config
     query_planning
+    query_interceptor
     query_config
     filter_functions
     analytic_queries
-    authorizations
+    security
     auditing
     data
     reserved_words

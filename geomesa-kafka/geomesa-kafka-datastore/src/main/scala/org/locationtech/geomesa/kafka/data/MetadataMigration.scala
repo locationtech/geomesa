@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -43,6 +43,7 @@ class MetadataMigration(ds: KafkaDataStore, zkPath: String, zookeepers: String) 
               val schema = new String(client.getData.forPath(s"/$name"), StandardCharsets.UTF_8)
               val sft = SimpleFeatureTypes.createType(name, schema)
               KafkaDataStore.setTopic(sft, new String(client.getData.forPath(s"/$name/Topic"), StandardCharsets.UTF_8))
+              sft.getUserData.put(SimpleFeatureTypes.Configs.OverrideReservedWords, "true")
               ds.createSchema(sft)
             }
             client.delete().deletingChildrenIfNeeded().forPath(s"/$name")

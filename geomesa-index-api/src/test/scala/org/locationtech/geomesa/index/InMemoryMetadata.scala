@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -53,4 +53,9 @@ class InMemoryMetadata[T] extends GeoMesaMetadata[T] {
   override def backup(typeName: String): Unit = {}
 
   override def close(): Unit = {}
+
+  /**
+   * table cache should be cleared up when catalog is deleted in database
+   */
+  override def resetCache(): Unit = {}
 }

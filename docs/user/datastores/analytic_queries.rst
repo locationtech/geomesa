@@ -22,6 +22,8 @@ be returned. Due to distributed processing, the actual count returned is not gua
 percentage - however, there will never be less features than requested. For example, if you sample 5 features
 at 10%, you will get back anywhere from 1 to 5 features, depending on how your data is distributed in the cluster.
 
+Sampling can also be combined with the other analytic queries mentioned below.
+
 +----------------------+------------------------------------+----------------------+
 | Key                  | Type                               | GeoServer Conversion |
 +======================+====================================+======================+
@@ -36,7 +38,7 @@ at 10%, you will get back anywhere from 1 to 5 features, depending on how your d
 
         import org.locationtech.geomesa.index.conf.QueryHints;
 
-         // returns 10% of features, threaded by 'track' attribute
+        // returns 10% of features, threaded by 'track' attribute
         query.getHints().put(QueryHints.SAMPLING(), new Float(0.1));
         query.getHints().put(QueryHints.SAMPLE_BY(), "track");
 
@@ -274,12 +276,6 @@ following query hints:
 | QueryHints.ARROW_FORMAT_VERSION     | String (optional)  | formatVersion                      |
 +-------------------------------------+--------------------+------------------------------------+
 
-.. warning::
-
-    Arrow conversion requires ``jackson-core-2.6.x``. Some versions of GeoServer ship with an older
-    version, ``jackson-core-2.5.0.jar``. After installing the GeoMesa GeoServer plugin, be sure to delete
-    the older JAR from GeoServer's ``WEB-INF/lib`` folder.
-
 Explanation of Hints
 ++++++++++++++++++++
 
@@ -342,7 +338,13 @@ the attribute name, and the subsequent items are dictionary values. Standard CSV
             """.stripMargin.trim
 
         // equivalent to dictionaries1
-        val dictionaries2 = encodSeqMap(Map("name" -> Array("Harry", "Hermione", "Severus"), "age" -> Array(20, 25, 30)))
+        val dictionaries2 = {
+          val map = Map(
+            "name" -> Array("Harry", "Hermione", "Severus"),
+            "age"  -> Array(20, 25, 30)
+          )
+          encodeSeqMap(map)
+        }
 
         query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, dictionaries1)
 
@@ -371,7 +373,7 @@ ARROW_BATCH_SIZE
 ^^^^^^^^^^^^^^^^
 
 This hint will restrict the number of features included in each Arrow record batch. An Arrow file contains
-a series of record batches -limiting the max size of each batch can allow memory-constrained systems to
+a series of record batches - limiting the max size of each batch can allow memory-constrained systems to
 operate more easily.
 
 ARROW_FORMAT_VERSION
@@ -469,7 +471,7 @@ BIN_LABEL
 ^^^^^^^^^
 
 This hint will trigger the creation of 24-byte records, instead of the standard 16. It should be the
-name of an attribute that will be used to general the label for each record.
+name of an attribute that will be used to generate the label for each record.
 
 BIN_SORT
 ^^^^^^^^

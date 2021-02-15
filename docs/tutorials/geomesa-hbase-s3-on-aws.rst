@@ -175,7 +175,7 @@ Local ingest:
 
     mkdir gdelt
     cd gdelt
-    seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d" | xargs -n 1 -I{} aws s3 cp  s3://gdelt-open-data/events/{}.export.csv .
+    for i in `seq 1 7`; do aws s3 cp s3://gdelt-open-data/events/2019080$i.export.csv .; done
     
     # you'll need to ensure the hbase-site.xml is provided on the classpath...by default it is picked up by the tools from standard locations
     geomesa-hbase ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt \*.csv
@@ -190,8 +190,8 @@ Distributed ingest:
     zip /tmp/hbase-site.zip hbase-site.xml
     export GEOMESA_EXTRA_CLASSPATHS=/tmp/hbase-site.zip
 
-    # now lets ingest
-    files=$(for x in `seq 7 -1 1 | xargs -n 1 -I{} sh -c "date -d'{} days ago' +%Y%m%d"`; do echo "s3a://gdelt-open-data/events/$x.export.csv"; done)
+    # now lets ingest 7 days of data from August 2019
+    files=$(for i in `seq 1 7`; do echo s3://gdelt-open-data/events/2019080$i.export.csv; done)
     geomesa-hbase ingest -c geomesa.gdelt -C gdelt -f gdelt -s gdelt $files
 
 You can then query the data using the GeoMesa command line export tool.
@@ -207,7 +207,7 @@ To start executing SQL queries using Spark over your GeoMesa on HBase on S3 clus
 
 .. code-block:: shell
     
-    $ JARS=file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime_2.11-${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
+    $ JARS=file:///opt/geomesa/dist/spark/geomesa-hbase-spark-runtime-hbase1_2.11-${VERSION}.jar,file:///usr/lib/hbase/conf/hbase-site.xml
 
 Then, start up the Spark shell
 
@@ -219,7 +219,7 @@ Within the Spark shell, you can connect to GDELT and issues some queries.
 
 .. code-block:: scala
 
-   scala> val df = spark.read.format("geomesa").option("bigtable.table.name", "geomesa.gdelt").option("geomesa.feature", "gdelt").load()
+   scala> val df = spark.read.format("geomesa").option("hbase.catalog", "geomesa.gdelt").option("geomesa.feature", "gdelt").load()
 
    scala> df.createOrReplaceTempView("gdelt")
 

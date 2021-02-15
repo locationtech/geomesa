@@ -1,24 +1,25 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.index.index.z2
+package org.locationtech.geomesa.index.index
+package z2
 
 import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.index.ConfiguredIndex
 import org.locationtech.geomesa.index.strategies.SpatialFilterStrategy
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
 
 class Z2Index protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, version: Int, geom: String, mode: IndexMode)
     extends GeoMesaFeatureIndex[Z2IndexValues, Long](ds, sft, Z2Index.name, version, Seq(geom), mode)
-        with SpatialFilterStrategy[Z2IndexValues, Long] {
+        with SpatialFilterStrategy[Z2IndexValues, Long]
+        with SpatialIndex[Z2IndexValues, Long] {
 
   def this(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geom: String, mode: IndexMode) =
     this(ds, sft, Z2Index.version, geom, mode)

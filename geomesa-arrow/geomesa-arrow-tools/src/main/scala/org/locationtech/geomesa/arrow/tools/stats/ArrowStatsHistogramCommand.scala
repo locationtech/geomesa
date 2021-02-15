@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,6 +13,7 @@ import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
 import org.locationtech.geomesa.arrow.tools.stats.ArrowStatsHistogramCommand.ArrowStatsHistogramParams
+import org.locationtech.geomesa.tools.ProvidedTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsHistogramCommand
 import org.locationtech.geomesa.tools.stats.StatsHistogramCommand.StatsHistogramParams
 
@@ -28,5 +29,5 @@ class ArrowStatsHistogramCommand extends StatsHistogramCommand[ArrowDataStore] w
 
 object ArrowStatsHistogramCommand {
   @Parameters(commandDescription = "Calculate counts of attribute in a GeoMesa feature type, grouped by sorted values")
-  class ArrowStatsHistogramParams extends StatsHistogramParams with UrlParam
+  class ArrowStatsHistogramParams extends StatsHistogramParams with ProvidedTypeNameParam with UrlParam
 }

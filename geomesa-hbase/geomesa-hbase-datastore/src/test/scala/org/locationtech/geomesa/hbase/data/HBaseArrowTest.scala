@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -242,6 +242,41 @@ class HBaseArrowTest extends Specification with LazyLogging  {
           SelfClosingIterator(reader.features()).map(ScalaSimpleFeature.copy).toSeq must
               containTheSameElementsAs(features.filter(filter.evaluate))
         }
+      }
+    }
+    "work with partitioned tables and arrow coprocessor disabled" in {
+      val sft = SimpleFeatureTypes.createType("arrow-pds",
+        "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;" +
+          "geomesa.table.partition=time,geomesa.z3.interval=day,geomesa.indices.enabled=z3")
+      ds.createSchema(sft)
+      val features = Seq.tabulate(8) { i =>
+        ScalaSimpleFeature.create(sft, s"$i", s"name${i % 2}", s"${i % 5}", s"2017-02-0${i+1}T00:00:01.000Z", s"POINT(40 6$i)")
+      }
+      WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+        features.foreach { f =>
+          FeatureUtils.copyToWriter(writer, f, useProvidedFid = true)
+          writer.write()
+        }
+      }
+      HBaseDataStoreFactory.RemoteArrowProperty.threadLocalValue.set("false")
+      try {
+        val query = new Query(sft.getTypeName, Filter.INCLUDE, Array("name", "dtg", "geom"))
+        query.getHints.put(QueryHints.ARROW_ENCODE, java.lang.Boolean.TRUE)
+        query.getHints.put(QueryHints.ARROW_DICTIONARY_FIELDS, "name")
+        query.getHints.put(QueryHints.ARROW_SORT_FIELD, "dtg")
+        query.getHints.put(QueryHints.ARROW_INCLUDE_FID, java.lang.Boolean.FALSE)
+        val results = SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT))
+        val out = new ByteArrayOutputStream
+        results.foreach(sf => out.write(sf.getAttribute(0).asInstanceOf[Array[Byte]]))
+        def in() = new ByteArrayInputStream(out.toByteArray)
+        WithClose(SimpleFeatureArrowFileReader.caching(in())) { reader =>
+          SelfClosingIterator(reader.features()).map(f => f.getID -> f.getAttributes.asScala).toList mustEqual
+              features.map(f => f.getID -> query.getPropertyNames.map(f.getAttribute).toSeq)
+          // ensure the reduce step worked correctly and there is only 1 logical file
+          reader.vectors must haveLength(1)
+        }
+      } finally {
+        HBaseDataStoreFactory.RemoteArrowProperty.threadLocalValue.remove()
       }
     }
   }

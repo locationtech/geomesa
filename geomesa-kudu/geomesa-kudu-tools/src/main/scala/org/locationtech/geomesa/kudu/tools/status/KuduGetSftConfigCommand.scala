@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,6 +13,7 @@ import org.locationtech.geomesa.kudu.data.KuduDataStore
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand
 import org.locationtech.geomesa.kudu.tools.KuduDataStoreCommand.KuduParams
 import org.locationtech.geomesa.kudu.tools.status.KuduGetSftConfigCommand.KuduGetSftConfigParameters
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.status.{GetSftConfigCommand, GetSftConfigParams}
 
 class KuduGetSftConfigCommand extends GetSftConfigCommand[KuduDataStore] with KuduDataStoreCommand {
@@ -21,5 +22,5 @@ class KuduGetSftConfigCommand extends GetSftConfigCommand[KuduDataStore] with Ku
 
 object KuduGetSftConfigCommand {
   @Parameters(commandDescription = "Get the SimpleFeatureType definition of a schema")
-  class KuduGetSftConfigParameters extends GetSftConfigParams with KuduParams
+  class KuduGetSftConfigParameters extends GetSftConfigParams with KuduParams with RequiredTypeNameParam
 }

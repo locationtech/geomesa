@@ -9,9 +9,8 @@
 
 type=$1
 
-if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
-  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
-fi
+# configure HOME
+export %%gmtools.dist.name%%_HOME="${%%gmtools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
 data_dir="${%%gmtools.dist.name%%_HOME}/data"
 
 NL=$'\n'

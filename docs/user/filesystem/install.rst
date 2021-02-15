@@ -39,9 +39,13 @@ More information about developing with GeoMesa may be found in the :doc:`/develo
 Setting up the FileSystem Command Line Tools
 --------------------------------------------
 
-After untaring the distribution, you'll need to either define the standard Hadoop environment variables or install Hadoop
-using the ``bin/install-hadoop.sh`` script provided in the tarball. If using AWS S3 as the filesystem, run ``bin/install-s3.sh``. Note that you will need the proper Yarn/Hadoop
-environment configured if you would like to run a distributed ingest job to create files.
+The FileSystem command line tools require Hadoop to run. If ``HADOOP_HOME`` is defined, or ``hadoop`` is available
+on the path, the tools will use the local Hadoop installation. Otherwise, when first run they will prompt to download
+the necessary JARs. Environment variables can be specified in ``conf/*-env.sh`` and dependency versions can be
+specified in ``conf/dependencies.sh``.
+
+Note that you will need the proper Yarn/Hadoop environment configured if you would like to run a distributed ingest
+job.
 
 If you are using a service such as Amazon Elastic MapReduce (EMR) or have a distribution of Apache Hadoop, Cloudera, or
 Hortonworks installed you can likely run something like this to configure hadoop for the tools:
@@ -96,14 +100,6 @@ your Hadoop installations into GeoServer's ``WEB-INF/lib`` directory:
   * commons-cli-1.2.jar
   * commons-io-2.5.jar
   * protobuf-java-2.5.0.jar
-
-
-You can use the bundled ``$GEOMESA_FS_HOME/bin/install-hadoop.sh`` script to install these JARs.
-
-For AWS S3 functionality, run the bundled ``$GEOMESA_FS_HOME/bin/install-s3.sh`` script to install the following jars:
-
-(Note the versions may vary depending on your installation.)
-
   * hadoop-aws-2.8.4.jar
   * aws-java-sdk-core-1.10.6.jar
   * aws-java-sdk-s3-1.10.6.jar
@@ -112,8 +108,7 @@ For AWS S3 functionality, run the bundled ``$GEOMESA_FS_HOME/bin/install-s3.sh``
   * httpcore-4.3.3.jar
   * commons-httpclient-3.1.jar
 
-
-These JARs should be copied from ``$GEOMESA_FS_HOME/lib/`` into GeoServer's ``WEB-INF/lib`` directory.
+You can use the bundled ``$GEOMESA_FS_HOME/bin/install-dependencies.sh`` script to install these JARs.
 
 The FileSystem data store requires the configuration file ``core-site.xml`` to be on the classpath. This can
 be accomplished by placing the file in ``geoserver/WEB-INF/classes`` (you should make the directory if it

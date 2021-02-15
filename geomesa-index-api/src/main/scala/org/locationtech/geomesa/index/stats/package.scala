@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -8,6 +8,7 @@
 
 package org.locationtech.geomesa.index
 
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.index.stats.GeoMesaStats.{GeoMesaStatWriter, StatUpdater}
 import org.locationtech.geomesa.utils.stats._
@@ -30,7 +31,7 @@ package object stats {
 
     override val writer: GeoMesaStatWriter = NoopStatWriter
 
-    override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = None
+    override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = None
 
     override def getMinMax[T](
         sft: SimpleFeatureType,

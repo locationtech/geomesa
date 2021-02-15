@@ -7,15 +7,17 @@
 # http://www.opensource.org/licenses/apache2.0.php.
 #
 
-# Load common functions and setup
-if [ -z "${%%gmtools.dist.name%%_HOME}" ]; then
-  export %%gmtools.dist.name%%_HOME="$(cd "`dirname "$0"`"/..; pwd)"
+# configure HOME and CONF_DIR, then load geomesa-env.sh
+export %%gmtools.dist.name%%_HOME="${%%gmtools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
+export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%gmtools.dist.name%%_HOME/conf}"
+
+if [[ -f "${GEOMESA_CONF_DIR}/geomesa-env.sh" ]]; then
+  . "${GEOMESA_CONF_DIR}/geomesa-env.sh"
+else
+  echo >&2 "ERROR: could not read '${GEOMESA_CONF_DIR}/geomesa-env.sh', aborting script"
+  exit 1
 fi
 
-. "${%%gmtools.dist.name%%_HOME}"/bin/common-functions.sh
-HOME="\$%%gmtools.dist.name%%_HOME"
-
-NL=$'\n'
 TAB=$'\t'
 usage="usage: ./manage-geoserver-plugins.sh [[install_dir] [gs_plugin_dir] [<options>]] | [<options>] | [-h|--help]"
 
@@ -25,8 +27,8 @@ if [[ "$1" == "--help" || "$1" == "-h" || $# -eq 0 ]]; then
   echo "This script allows you to easily manage GeoMesa's Geoserver plugins."
   echo ""
   echo "${usage}"
-  echo "The ${HOME} and \$GEOSERVER_HOME variables will be used if they are set and no path arguments"
-  echo "are provided."
+  echo "The \$%%gmtools.dist.name%%_HOME and \$GEOSERVER_HOME variables will be used if they are set and no path"
+  echo "arguments are provided."
   echo ""
   echo "Required:"
   echo "  -l,--lib-dir,\$1      Path to Geoserver WEB-INF/lib directory"

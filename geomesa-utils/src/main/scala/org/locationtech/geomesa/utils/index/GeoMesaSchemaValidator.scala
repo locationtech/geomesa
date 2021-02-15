@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -25,6 +25,7 @@ object GeoMesaSchemaValidator {
     MixedGeometryCheck.validateGeometryType(sft)
     TemporalIndexCheck.validateDtgField(sft)
     ReservedWordCheck.validateAttributeNames(sft)
+    PropertyCheck.validateDuplicateProperty(sft)
     IndexConfigurationCheck.validateIndices(sft)
   }
 
@@ -118,5 +119,15 @@ object IndexConfigurationCheck {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
     require(sft.getZShards > 0 && sft.getZShards < 128, "Z shards must be between 1 and 127")
     require(sft.getAttributeShards > 0 && sft.getAttributeShards < 128, "Attribute shards must be between 1 and 127")
+  }
+}
+
+object PropertyCheck {
+  def validateDuplicateProperty(sft: SimpleFeatureType):Unit = {
+    val names = sft.getAttributeDescriptors.asScala.map(descriptor => descriptor.getLocalName)
+    val duplicateProperties = names.diff(names.distinct)
+    if ( duplicateProperties.nonEmpty ){
+      throw new IllegalArgumentException(s"Schema contains duplicate attribute names: '${duplicateProperties.mkString(", ")}' ")
+    }
   }
 }

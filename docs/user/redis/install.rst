@@ -46,10 +46,6 @@ Setting up the Redis Command Line Tools
 GeoMesa comes with a set of command line tools for managing Redis features located in
 ``geomesa-redis_2.11-$VERSION/bin/`` of the binary distribution.
 
-If desired, you may use the included script ``bin/geomesa-redis configure`` to help set up the environment variables
-used by the tools. Otherwise, you may invoke the ``geomesa-redis`` script using the fully-qualified path, and
-use the default configuration.
-
 .. note::
 
     See :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
@@ -58,7 +54,7 @@ Test the command that invokes the GeoMesa Tools:
 
 .. code::
 
-    $ bin/geomesa-redis
+    $ ./bin/geomesa-redis
     INFO  Usage: geomesa-redis [command] [command options]
       Commands:
       ...
@@ -66,12 +62,11 @@ Test the command that invokes the GeoMesa Tools:
 For more details on the available commands, see :ref:`redis_tools`.
 
 Due to licensing restrictions, dependencies for shape file support must be separately installed.
-Install them with the following scripts:
+Do this with the following command:
 
 .. code-block:: bash
 
-    $ bin/install-jai.sh
-    $ bin/install-jline.sh
+    $ ./bin/install-shapefile-support.sh
 
 Use the ``geomesa-redis classpath`` command in order to see what JARs are being used.
 

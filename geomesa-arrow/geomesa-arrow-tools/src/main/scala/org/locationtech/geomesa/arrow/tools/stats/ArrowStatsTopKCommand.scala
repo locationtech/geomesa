@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,6 +13,7 @@ import org.locationtech.geomesa.arrow.data.ArrowDataStore
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand
 import org.locationtech.geomesa.arrow.tools.ArrowDataStoreCommand.UrlParam
 import org.locationtech.geomesa.arrow.tools.stats.ArrowStatsTopKCommand.ArrowStatsTopKParams
+import org.locationtech.geomesa.tools.ProvidedTypeNameParam
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand
 import org.locationtech.geomesa.tools.stats.StatsTopKCommand.StatsTopKParams
 
@@ -28,5 +29,5 @@ class ArrowStatsTopKCommand extends StatsTopKCommand[ArrowDataStore] with ArrowD
 
 object ArrowStatsTopKCommand {
   @Parameters(commandDescription = "Enumerate the most frequent values in a GeoMesa feature type")
-  class ArrowStatsTopKParams extends StatsTopKParams with UrlParam
+  class ArrowStatsTopKParams extends StatsTopKParams with ProvidedTypeNameParam with UrlParam
 }

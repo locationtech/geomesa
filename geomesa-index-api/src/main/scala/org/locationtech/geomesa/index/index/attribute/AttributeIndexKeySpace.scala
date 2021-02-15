@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -45,7 +45,7 @@ class AttributeIndexKeySpace(val sft: SimpleFeatureType, val sharding: ShardStra
   private val binding = if (isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
 
   protected val decodeValue: String => AnyRef = {
-    val alias = binding.getSimpleName.toLowerCase(Locale.US)
+    val alias = AttributeIndexKey.alias(binding)
     if (isList) {
       // Note that for collection types, only a single entry of the collection will be decoded - this is
       // because the collection entries have been broken up into multiple rows

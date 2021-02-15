@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -25,14 +25,18 @@ trait ParquetStorageConfiguration extends StorageConfiguration with LazyLogging 
     ParquetOutputFormat.setWriteSupportClass(job, classOf[SimpleFeatureWriteSupport])
 
     // Parquet Options
-    val summaryLevel = Option(sft.getUserData.get(ParquetOutputFormat.JOB_SUMMARY_LEVEL).asInstanceOf[String])
-        .getOrElse(ParquetOutputFormat.JobSummaryLevel.NONE.toString)
+    val summaryLevel =
+      Option(job.getConfiguration.get(ParquetOutputFormat.JOB_SUMMARY_LEVEL))
+          .orElse(Option(sft.getUserData.get(ParquetOutputFormat.JOB_SUMMARY_LEVEL).asInstanceOf[String]))
+          .getOrElse(ParquetOutputFormat.JobSummaryLevel.NONE.toString)
     job.getConfiguration.set(ParquetOutputFormat.JOB_SUMMARY_LEVEL, summaryLevel)
     logger.debug(s"Parquet metadata summary level is $summaryLevel")
 
-    val compression = Option(sft.getUserData.get(ParquetOutputFormat.COMPRESSION).asInstanceOf[String])
-        .map(CompressionCodecName.valueOf)
-        .getOrElse(CompressionCodecName.SNAPPY)
+    val compression =
+      Option(job.getConfiguration.get(ParquetOutputFormat.COMPRESSION))
+          .orElse(Option(sft.getUserData.get(ParquetOutputFormat.COMPRESSION).asInstanceOf[String]))
+          .map(CompressionCodecName.valueOf)
+          .getOrElse(CompressionCodecName.SNAPPY)
     ParquetOutputFormat.setCompression(job, compression)
     logger.debug(s"Parquet compression is $compression")
   }

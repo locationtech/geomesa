@@ -137,52 +137,30 @@ Configuring the Classpath
 GeoMesa needs Accumulo and Hadoop JARs on the classpath. These are not bundled by default, as they should match
 the versions installed on the target system.
 
-If the environment variables ``$ACCUMULO_HOME`` and ``$HADOOP_HOME`` are set, then GeoMesa will load the appropriate
-JARs and configuration files from those locations and no further configuration is required. For simplicity,
-environment variables can be specified in ``geomesa-accumulo_2.11-$VERSION/conf/geomesa-env.sh``.
+If the environment variables ``ACCUMULO_HOME`` and ``HADOOP_HOME`` are set, then GeoMesa will load the appropriate
+JARs and configuration files from those locations and no further configuration is required. Otherwise, you will
+be prompted to download the appropriate JARs the first time you invoke the tools. Environment variables can be
+specified in ``conf/*-env.sh`` and dependency versions can be specified in ``conf/dependencies.sh``.
 
-Alternatively, the necessary JARs can be installed by modifying the version numbers in
-``geomesa-accumulo_2.11-$VERSION/bin/install-hadoop-accumulo.sh`` to match the target system, and then running it:
-
-.. code-block:: bash
-
-    $ cd geomesa-accumulo_2.11-$VERSION/bin
-    $ ./install-hadoop-accumulo.sh
-
-In order to run map/reduce jobs, you will also need to copy the Hadoop ``*-site.xml`` configuration files
-from your Hadoop installation into ``geomesa-accumulo_2.11-$VERSION/conf``.
+In order to run map/reduce jobs, the Hadoop ``*-site.xml`` configuration files from your Hadoop installation
+must be on the classpath. If ``HADOOP_HOME`` is not set, then copy them into ``geomesa-accumulo_2.11-$VERSION/conf``.
 
 GeoMesa also provides the ability to add additional JARs to the classpath using the environmental variable
 ``$GEOMESA_EXTRA_CLASSPATHS``. GeoMesa will prepend the contents of this environmental variable  to the computed
 classpath, giving it highest precedence in the classpath. Users can provide directories of jar files or individual
 files using a colon (``:``) as a delimiter. These entries will also be added the the map-reduce libjars variable.
 
-Due to licensing restrictions, dependencies for shape file support must be separately installed. Do this with
-the following commands:
+Due to licensing restrictions, dependencies for shape file support must be separately installed.
+Do this with the following command:
 
 .. code-block:: bash
 
-    $ bin/install-jai.sh
-    $ bin/install-jline.sh
+    $ ./bin/install-shapefile-support.sh
 
 For logging, see :ref:`slf4j_configuration` for information about configuring the SLF4J implementation.
 
 Use the ``geomesa-accumulo classpath`` command to print the final classpath that will be used when executing GeoMesa
 commands.
-
-Configuring the Path
-^^^^^^^^^^^^^^^^^^^^
-
-In order to be able to run the ``geomesa-accumulo`` command from anywhere, you can set the environment
-variable ``GEOMESA_ACCUMULO_HOME`` and add it to your path by modifying your bashrc file:
-
-.. code-block:: bash
-
-    $ echo 'export GEOMESA_ACCUMULO_HOME=/path/to/geomesa-accumulo_2.11-$VERSION' >> ~/.bashrc
-    $ echo 'export PATH=${GEOMESA_ACCUMULO_HOME}/bin:$PATH' >> ~/.bashrc
-    $ source ~/.bashrc
-    $ which geomesa-accumulo
-    /path/to/geomesa-accumulo_2.11-$VERSION/bin/geomesa-accumulo
 
 Running Commands
 ^^^^^^^^^^^^^^^^
@@ -237,7 +215,7 @@ Installing the GeoMesa Accumulo Data Store
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To install the GeoMesa data store, extract the contents of the
-``geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz`` file in ``geomesa-accumulo_2.11-$VERSION/dist/geoserver/``
+``geomesa-accumulo-gs-plugin_2.11-$VERSION-install.tar.gz`` file in ``geomesa-accumulo_2.11-$VERSION/dist/gs-plugins/``
 in the binary distribution or ``geomesa-accumulo/geomesa-accumulo-gs-plugin/target/`` in the source
 distribution into your GeoServer's ``lib`` directory:
 
@@ -251,12 +229,12 @@ Next, install the JARs for Accumulo and Hadoop. By default, JARs will be downloa
 override this by setting the environment variable ``GEOMESA_MAVEN_URL``. If you do no have an internet connection
 you can download the JARs manually via http://search.maven.org/.
 
-Edit the script ``geomesa-accumulo_2.11-$VERSION/bin/install-hadoop-accumulo.sh`` to match the versions of the
-target environment, and then run the script:
+Edit the file ``geomesa-accumulo_2.11-$VERSION/conf/dependencies.sh`` to set the versions of Accumulo and Hadoop
+to match the target environment, and then run the script:
 
 .. code-block:: bash
 
-    $ ./install-hadoop-accumulo.sh /path/to/geoserver/webapps/geoserver/WEB-INF/lib
+    $ ./bin/install-dependencies.sh /path/to/geoserver/webapps/geoserver/WEB-INF/lib
 
 .. warning::
 
@@ -266,7 +244,7 @@ target environment, and then run the script:
 
 .. warning::
 
-    GeoServer ships with an older version of commons-text, 1.4. The ``install-hadoop-accumulo.sh`` script will
+    GeoServer ships with an older version of commons-text, 1.4. The ``install-dependencies.sh`` script will
     remove it, but if you don't use the script you will need to delete it manually.
 
 The specific JARs needed for some common configurations are listed below:
@@ -346,13 +324,4 @@ To upgrade between minor releases of GeoMesa, the versions of all GeoMesa compon
 JAR installed on Accumulo tablet servers **must** match the version of the
 ``geomesa-plugin`` JARs installed in the ``WEB-INF/lib`` directory of GeoServer.
 
-We strive to maintain backwards compatibility for data ingested with older
-releases of GeoMesa, and in general data ingested with older releases
-may be read with newer ones (note that the reverse does not apply). For example,
-data ingested into Accumulo with GeoMesa 1.2.2 may be read with 1.2.3.
-
-It should be noted, however, that data ingested with older GeoMesa versions may
-not take full advantage of indexing improvements in newer releases. If
-it is not feasible to reingest old data, see :ref:`update_index_format_job`
-for more information on updating its index format.
-
+See :ref:`upgrade_guide` for more details on upgrading between versions.

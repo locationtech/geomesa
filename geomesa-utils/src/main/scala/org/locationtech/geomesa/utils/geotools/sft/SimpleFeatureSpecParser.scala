@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -11,6 +11,7 @@ package org.locationtech.geomesa.utils.geotools.sft
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.locationtech.geomesa.utils.geotools.sft.SimpleFeatureSpec._
 import org.locationtech.geomesa.utils.text.BasicParser
+import org.locationtech.jts.geom.Geometry
 import org.parboiled.errors.{ErrorUtils, InvalidInputError, ParsingException}
 import org.parboiled.scala.parserunners.{BasicParseRunner, ReportingParseRunner}
 import org.parboiled.scala.{EOI, ParsingResult, Rule1}
@@ -22,6 +23,8 @@ import scala.annotation.tailrec
   * Parser for simple feature type spec strings
   */
 object SimpleFeatureSpecParser {
+
+  import org.locationtech.geomesa.utils.conversions.StringOps.RichString
 
   private val Parser = new SimpleFeatureSpecParser()
 
@@ -36,7 +39,7 @@ object SimpleFeatureSpecParser {
       throw new IllegalArgumentException("Invalid spec string: null")
     }
     val runner = if (report) { ReportingParseRunner(rule) } else { BasicParseRunner(rule) }
-    val parsing = runner.run(spec.stripMargin('|').replaceAll("\\s*", ""))
+    val parsing = runner.run(spec.stripMarginAndWhitespace())
     parsing.result.getOrElse(throw new ParsingException(constructErrorMessage(parsing, report)))
   }
 
@@ -99,7 +102,7 @@ private class SimpleFeatureSpecParser extends BasicParser {
 
   // full simple feature spec
   def spec: Rule1[SimpleFeatureSpec] = rule("Specification") {
-    (zeroOrMore(attribute, ",") ~ sftOptions) ~ EOI ~~> {
+    (whitespace ~ zeroOrMore(attribute, whitespace ~ "," ~ whitespace) ~ whitespace ~ sftOptions ~ whitespace) ~ EOI ~~> {
       (attributes, sftOpts) => SimpleFeatureSpec(attributes, sftOpts)
     }
   }
@@ -111,12 +114,12 @@ private class SimpleFeatureSpecParser extends BasicParser {
 
   // builds a SimpleAttributeSpec for primitive types
   private def simpleAttribute: Rule1[AttributeSpec] = rule("SimpleAttribute") {
-    (name ~ simpleType ~ attributeOptions) ~~> SimpleAttributeSpec
+    (name ~ whitespace ~ simpleType ~ whitespace ~ attributeOptions) ~~> SimpleAttributeSpec
   }
 
   // builds a GeometrySpec
   private def geometryAttribute: Rule1[AttributeSpec] = rule("GeometryAttribute") {
-    (default ~ name ~ geometryType ~ attributeOptions) ~~> {
+    (default ~ name ~ whitespace ~ geometryType ~ whitespace ~ attributeOptions) ~~> {
       (default, name, geom, opts) => {
         GeomAttributeSpec(name, geom, opts + (OptDefault -> default.getOrElse(false).toString))
       }
@@ -125,12 +128,12 @@ private class SimpleFeatureSpecParser extends BasicParser {
 
   // builds a ListAttributeSpec for complex types
   private def listAttribute: Rule1[AttributeSpec] = rule("ListAttribute") {
-    (name ~ listType ~ attributeOptions) ~~> ListAttributeSpec
+    (name ~ whitespace ~ listType ~ whitespace ~ attributeOptions) ~~> ListAttributeSpec
   }
 
   // builds a MapAttributeSpec for complex types
   private def mapAttribute: Rule1[AttributeSpec] = rule("MapAttribute") {
-    (name ~ mapType ~ attributeOptions) ~~> {
+    (name ~ whitespace ~ mapType ~ whitespace ~ attributeOptions) ~~> {
       (name, types, opts) => {
         MapAttributeSpec(name, types._1, types._2, opts)
       }
@@ -142,7 +145,7 @@ private class SimpleFeatureSpecParser extends BasicParser {
 
   private def default: Rule1[Option[Boolean]] = rule("DefaultAttribute") { optional("*" ~ push(true)) }
 
-  private def simpleType: Rule1[Class[_]] = rule("SimpleTypeBinding") { ":" ~ simpleBinding }
+  private def simpleType: Rule1[Class[_]] = rule("SimpleTypeBinding") { ":" ~ whitespace ~ simpleBinding }
 
   // matches any of the primitive types defined in simpleTypeMap
   // order matters so that Integer is matched before Int
@@ -151,42 +154,44 @@ private class SimpleFeatureSpecParser extends BasicParser {
   }
 
   // matches any of the geometry types defined in geometryTypeMap
-  private def geometryType: Rule1[Class[_]] = rule("GeometryTypeBinding") {
-    ":" ~ geometryTypeMap.keys.toList.sorted.reverse.map(str).reduce(_ | _) ~> geometryTypeMap.apply
+  private def geometryType: Rule1[Class[_ <: Geometry]] = rule("GeometryTypeBinding") {
+    ":" ~ whitespace ~ geometryTypeMap.keys.toList.sorted.reverse.map(str).reduce(_ | _) ~> geometryTypeMap.apply
   }
 
   // matches "List[Foo]" or "List" (which defaults to [String])
   private def listType: Rule1[Class[_]] = rule("ListTypeBinding") {
-    ":" ~ listTypeMap.keys.map(str).reduce(_ | _) ~ optional("[" ~ simpleBinding ~ "]") ~~> {
+    ":" ~ whitespace ~ listTypeMap.keys.map(str).reduce(_ | _) ~ whitespace ~
+        optional("[" ~ whitespace ~ simpleBinding ~ whitespace ~ "]") ~~> {
       inner => inner.getOrElse(classOf[String])
     }
   }
 
   // matches "Map[Foo,Bar]" or Map (which defaults to [String,String])
   private def mapType: Rule1[(Class[_], Class[_])] = rule("MapTypeBinding") {
-    ":" ~ mapTypeMap.keys.map(str).reduce(_ | _) ~ optional("[" ~ simpleBinding ~ "," ~ simpleBinding ~ "]") ~~> {
+    ":" ~ whitespace ~ mapTypeMap.keys.map(str).reduce(_ | _) ~ whitespace ~
+        optional("[" ~ whitespace ~ simpleBinding ~ whitespace ~ "," ~ whitespace ~ simpleBinding ~ whitespace ~ "]") ~~> {
       types => types.getOrElse(classOf[String], classOf[String])
     }
   }
 
   // options appended to a specific attribute
   private def attributeOptions: Rule1[Map[String, String]] = rule("AttributeOptions") {
-    optional(":" ~ oneOrMore(attributeOption, ":") ~~> { _.toMap }) ~~> { _.getOrElse(Map.empty) }
+    optional(":" ~ oneOrMore(attributeOption, whitespace ~ ":" ~ whitespace) ~~> { _.toMap }) ~~> { _.getOrElse(Map.empty) }
   }
 
   // single attribute option
   private def attributeOption: Rule2[String, String] = rule("AttributeOption") {
-    oneOrMore(char | anyOf(".-")) ~> { s => s } ~ "=" ~ (quotedString | singleQuotedString | unquotedString)
+    oneOrMore(char | anyOf(".-")) ~> { s => s } ~ whitespace ~ "=" ~ whitespace ~ (quotedString | singleQuotedString | unquotedString)
   }
 
   // options for the simple feature type
   private def sftOptions: Rule1[Map[String, String]] = rule("FeatureTypeOptions") {
-    optional(";" ~ zeroOrMore(sftOption, ",")) ~~>  { o => o.map(_.toMap).getOrElse(Map.empty) }
+    optional(";" ~ whitespace ~ zeroOrMore(sftOption, whitespace ~ "," ~ whitespace)) ~~>  { o => o.map(_.toMap).getOrElse(Map.empty) }
   }
 
   // single sft option
   private def sftOption: Rule1[(String, String)] = rule("FeatureTypeOption") {
-    (oneOrMore(char | anyOf(".-")) ~> { s => s } ~ "=" ~ sftOptionValue) ~~> { (k, v) => (k, v) }
+    (oneOrMore(char | anyOf(".-")) ~> { s => s } ~ whitespace ~ "=" ~ whitespace ~ sftOptionValue) ~~> { (k, v) => (k, v) }
   }
 
   // value for an sft option

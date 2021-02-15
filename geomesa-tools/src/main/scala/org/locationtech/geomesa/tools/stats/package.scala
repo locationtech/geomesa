@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -52,7 +52,7 @@ package object stats {
     }
   }
 
-  trait StatsParams extends RequiredTypeNameParam with OptionalCqlFilterParam {
+  trait StatsParams extends TypeNameParam with OptionalCqlFilterParam {
     @Parameter(
       names = Array("--no-cache"),
       description = "Calculate against the data set instead of using cached statistics (may be slow)")

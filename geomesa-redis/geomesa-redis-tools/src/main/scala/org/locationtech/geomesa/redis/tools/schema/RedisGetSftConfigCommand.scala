@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -13,6 +13,7 @@ import org.locationtech.geomesa.redis.data.RedisDataStore
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand
 import org.locationtech.geomesa.redis.tools.RedisDataStoreCommand.RedisDataStoreParams
 import org.locationtech.geomesa.redis.tools.schema.RedisGetSftConfigCommand.RedisGetSftConfigParameters
+import org.locationtech.geomesa.tools.RequiredTypeNameParam
 import org.locationtech.geomesa.tools.status.{GetSftConfigCommand, GetSftConfigParams}
 
 class RedisGetSftConfigCommand extends GetSftConfigCommand[RedisDataStore] with RedisDataStoreCommand {
@@ -21,5 +22,5 @@ class RedisGetSftConfigCommand extends GetSftConfigCommand[RedisDataStore] with 
 
 object RedisGetSftConfigCommand {
   @Parameters(commandDescription = "Get the SimpleFeatureType definition of a schema")
-  class RedisGetSftConfigParameters extends RedisDataStoreParams with GetSftConfigParams
+  class RedisGetSftConfigParameters extends RedisDataStoreParams with GetSftConfigParams with RequiredTypeNameParam
 }

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -14,11 +14,13 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.accumulo.core.client.IteratorSetting
 import org.apache.accumulo.core.data.{ByteSequence, Key, Range, Value}
 import org.apache.accumulo.core.iterators.{IteratorEnvironment, SortedKeyValueIterator}
-import org.geotools.util.factory.Hints
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.features.SerializationOption.SerializationOptions
 import org.locationtech.geomesa.features.kryo.KryoBufferSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
+import org.locationtech.geomesa.index.conf.FilterCompatibility
+import org.locationtech.geomesa.index.conf.FilterCompatibility.FilterCompatibility
 import org.locationtech.geomesa.index.iterators.{IteratorCache, SamplingIterator}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -141,22 +143,24 @@ object FilterTransformIterator {
                 index: GeoMesaFeatureIndex[_, _],
                 filter: Option[Filter],
                 hints: Hints): Option[IteratorSetting] =
-    configure(sft, index, filter, hints.getTransform, hints.getSampling)
+    configure(sft, index, filter, hints.getTransform, hints.getSampling, hints.getFilterCompatibility)
 
   def configure(sft: SimpleFeatureType,
                 index: GeoMesaFeatureIndex[_, _],
                 filter: Option[Filter],
                 hints: Hints,
                 priority: Int): Option[IteratorSetting] =
-    configure(sft, index, filter, hints.getTransform, hints.getSampling, priority)
+    configure(sft, index, filter, hints.getTransform, hints.getSampling, hints.getFilterCompatibility, priority)
 
-  def configure(sft: SimpleFeatureType,
-                index: GeoMesaFeatureIndex[_, _],
-                filter: Option[Filter],
-                transform: Option[(String, SimpleFeatureType)],
-                sampling: Option[(Float, Option[String])],
-                priority: Int = DefaultPriority): Option[IteratorSetting] = {
-    if (filter.isDefined || transform.isDefined || sampling.isDefined) {
+  def configure(
+      sft: SimpleFeatureType,
+      index: GeoMesaFeatureIndex[_, _],
+      filter: Option[Filter],
+      transform: Option[(String, SimpleFeatureType)],
+      sampling: Option[(Float, Option[String])],
+      compatibility: Option[FilterCompatibility] = None,
+      priority: Int = DefaultPriority): Option[IteratorSetting] = {
+    if (filter.isEmpty && transform.isEmpty && sampling.isEmpty) { None } else {
       val is = new IteratorSetting(priority, "filter-transform-iter", classOf[FilterTransformIterator])
       is.addOption(SftOpt, SimpleFeatureTypes.encodeType(sft, includeUserData = true))
       if (sft != index.sft) {
@@ -169,9 +173,16 @@ object FilterTransformIterator {
         is.addOption(TransformSchemaOpt, SimpleFeatureTypes.encodeType(tsft))
       }
       sampling.foreach(SamplingIterator.configure(sft, _).foreach { case (k, v) => is.addOption(k, v) })
+
+      compatibility.foreach {
+        case FilterCompatibility.`1.3` =>
+          is.setIteratorClass("org.locationtech.geomesa.accumulo.iterators.KryoLazyFilterTransformIterator")
+          is.addOption(IndexOpt, s"${index.name}:${index.version}")
+
+        case c =>
+          throw new NotImplementedError(s"Unknown compatibility flag: '$c'")
+      }
       Some(is)
-    } else {
-      None
     }
   }
 

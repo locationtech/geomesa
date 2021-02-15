@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -275,7 +275,7 @@ object CqlTransformFilter extends StrictLogging with SamplingIterator {
       var offset = 0
       val sftLength = ByteArrays.readInt(bytes, offset)
       offset += 4
-      val spec = new String(bytes, offset, sftLength)
+      val spec = new String(bytes, offset, sftLength,StandardCharsets.UTF_8)
       offset += sftLength
 
       val sft = IteratorCache.sft(spec)
@@ -284,7 +284,7 @@ object CqlTransformFilter extends StrictLogging with SamplingIterator {
       val cqlLength = ByteArrays.readInt(bytes, offset)
       offset += 4
       val cql = if (cqlLength == 0) { null } else {
-        IteratorCache.filter(sft, spec, new String(bytes, offset, cqlLength))
+        IteratorCache.filter(sft, spec, new String(bytes, offset, cqlLength,StandardCharsets.UTF_8))
       }
       offset += cqlLength
 
@@ -305,12 +305,12 @@ object CqlTransformFilter extends StrictLogging with SamplingIterator {
         }
       } else {
         offset += 4
-        val tdefs = new String(bytes, offset, tdefsLength)
+        val tdefs = new String(bytes, offset, tdefsLength,StandardCharsets.UTF_8)
         offset += tdefsLength
 
         val tsftLength = ByteArrays.readInt(bytes, offset)
         offset += 4
-        val tsft = IteratorCache.sft(new String(bytes, offset, tsftLength))
+        val tsft = IteratorCache.sft(new String(bytes, offset, tsftLength,StandardCharsets.UTF_8))
 
         feature.setTransforms(tdefs, tsft)
 

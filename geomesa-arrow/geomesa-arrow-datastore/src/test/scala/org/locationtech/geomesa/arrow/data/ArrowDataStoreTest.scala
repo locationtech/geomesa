@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -175,8 +175,8 @@ class ArrowDataStoreTest extends Specification {
       "dictionary encoded files" >> {
         val encoding = SimpleFeatureEncoding.min(includeFids = true)
         val dicts = Map(
-          "name" -> ArrowDictionary.create(1L, features.map(_.getAttribute(0).asInstanceOf[String]).toArray),
-          "foo"  -> ArrowDictionary.create(2L, features.map(_.getAttribute(1).asInstanceOf[String]).toArray)
+          "name" -> ArrowDictionary.create(sft.getTypeName, 1L, features.map(_.getAttribute(0).asInstanceOf[String]).toArray),
+          "foo"  -> ArrowDictionary.create(sft.getTypeName, 2L, features.map(_.getAttribute(1).asInstanceOf[String]).toArray)
         )
         withTempFile { url =>
           WithClose(writer(url, encoding = encoding, dictionaries = dicts)) { writer =>
@@ -197,7 +197,7 @@ class ArrowDataStoreTest extends Specification {
 
       "dictionary encoded files with default values" >> {
         val encoding = SimpleFeatureEncoding.min(includeFids = true)
-        val dicts = Map("foo"  -> ArrowDictionary.create(1L, Array("foo0", "foo1")))
+        val dicts = Map("foo"  -> ArrowDictionary.create(sft.getTypeName, 1L, Array("foo0", "foo1")))
         withTempFile { url =>
           WithClose(writer(url, encoding = encoding, dictionaries = dicts)) { writer =>
             features.foreach(writer.add)

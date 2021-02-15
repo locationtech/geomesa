@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -56,11 +56,11 @@ object Suffixes {
       if (m.matches() && m.groupCount() == 2) {
         Try(m.group(1).toLong).flatMap { num =>
           val mult: Long = m.group(2) match {
-            case "k" => 1024l
-            case "m" => 1024l * 1024l
-            case "g" => 1024l * 1024l * 1024l
-            case "t" => 1024l * 1024l * 1024l * 1024l
-            case _   => 1l
+            case "k" => 1024L
+            case "m" => 1024L * 1024L
+            case "g" => 1024L * 1024L * 1024L
+            case "t" => 1024L * 1024L * 1024L * 1024L
+            case _   => 1L
           }
           val res = num * mult
           if (res > 0) {

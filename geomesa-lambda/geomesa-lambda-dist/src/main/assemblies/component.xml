@@ -25,7 +25,6 @@
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <useStrictFiltering>true</useStrictFiltering>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-lambda-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-process-wps*</include>
             </includes>
         </dependencySet>
@@ -64,6 +63,17 @@
             </includes>
         </fileSet>
 
+        <!-- gs-plugin - have to specify as a file since it's not attached -->
+        <fileSet>
+            <directory>../geomesa-lambda-gs-plugin/target</directory>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>*-install.tar.gz</include>
+            </includes>
+        </fileSet>
+
         <!-- Lambda Tools filesets -->
         <fileSet>
             <directory>../geomesa-lambda-tools/bin</directory>
@@ -76,8 +86,15 @@
             <directory>../geomesa-lambda-tools/conf</directory>
             <outputDirectory>conf</outputDirectory>
             <fileMode>0644</fileMode>
-            <filtered>false</filtered>
             <directoryMode>755</directoryMode>
+            <filtered>false</filtered>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-lambda-tools/conf-filtered</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0644</fileMode>
+            <directoryMode>755</directoryMode>
+            <filtered>true</filtered>
         </fileSet>
         <fileSet>
             <directory>../geomesa-lambda-tools/examples</directory>
@@ -95,8 +112,29 @@
             <fileMode>0755</fileMode>
             <filtered>true</filtered>
             <includes>
-                <include>install-hadoop-accumulo.sh</include>
                 <include>setup-namespace.sh</include>
+            </includes>
+        </fileSet>
+
+        <!-- dependency files -->
+        <fileSet>
+            <directory>../../geomesa-accumulo/geomesa-accumulo-tools/conf-filtered</directory>
+            <outputDirectory>conf</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <filtered>true</filtered>
+            <includes>
+                <include>accumulo-env.sh</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-kafka/geomesa-kafka-tools/conf-filtered</directory>
+            <outputDirectory>conf</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <filtered>true</filtered>
+            <includes>
+                <include>kafka-env.sh</include>
             </includes>
         </fileSet>
 
@@ -121,6 +159,16 @@
             <fileMode>0644</fileMode>
             <filtered>true</filtered>
             <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-tools/common-env</directory>
+            <outputDirectory>conf</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <filtered>true</filtered>
+            <includes>
+                <include>hadoop-env.sh</include>
+            </includes>
         </fileSet>
         <fileSet>
             <directory>../../geomesa-tools/examples</directory>

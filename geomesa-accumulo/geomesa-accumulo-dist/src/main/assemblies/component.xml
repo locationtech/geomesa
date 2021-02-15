@@ -12,6 +12,7 @@
             <useTransitiveFiltering>false</useTransitiveFiltering> <!-- transitive filtering applies to excludes too so disable it -->
             <excludes>
                 <exclude>org.locationtech.geomesa:*:tar.gz:*</exclude>
+                <exclude>org.locationtech.geomesa:geomesa-accumulo-gs-plugin*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-web-core*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-process-wps*</exclude>
                 <exclude>org.locationtech.geomesa:geomesa-accumulo-distributed-runtime*</exclude>
@@ -40,10 +41,7 @@
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-accumulo-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-process-wps*</include>
-                <include>org.locationtech.geomesa:geomesa-stream-gs-plugin*</include>
-                <include>org.locationtech.geomesa:geomesa-geojson-gs-plugin*</include>
             </includes>
         </dependencySet>
         <dependencySet>
@@ -90,6 +88,7 @@
             </includes>
         </dependencySet>
     </dependencySets>
+
     <fileSets>
         <fileSet>
             <directory>../../</directory>
@@ -97,6 +96,35 @@
             <includes>
                 <include>LICENSE.txt</include>
                 <include>README.md</include>
+            </includes>
+        </fileSet>
+
+        <!-- gs-plugin - have to specify as a file since it's not attached -->
+        <fileSet>
+            <directory>../geomesa-accumulo-gs-plugin/target</directory>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>*-install.tar.gz</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-stream/geomesa-stream-gs-plugin/target</directory>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>*-install.tar.gz</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-geojson/geomesa-geojson-gs-plugin/target</directory>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>*-install.tar.gz</include>
             </includes>
         </fileSet>
 
@@ -111,16 +139,23 @@
         <fileSet>
             <directory>../geomesa-accumulo-tools/conf</directory>
             <outputDirectory>conf</outputDirectory>
+            <directoryMode>755</directoryMode>
             <fileMode>0644</fileMode>
             <filtered>false</filtered>
+        </fileSet>
+        <fileSet>
+            <directory>../geomesa-accumulo-tools/conf-filtered</directory>
+            <outputDirectory>conf</outputDirectory>
             <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <filtered>true</filtered>
         </fileSet>
         <fileSet>
             <directory>../geomesa-accumulo-tools/examples</directory>
             <outputDirectory>examples</outputDirectory>
+            <directoryMode>755</directoryMode>
             <fileMode>0644</fileMode>
             <filtered>false</filtered>
-            <directoryMode>755</directoryMode>
         </fileSet>
 
         <!-- Common Tools filesets -->
@@ -134,23 +169,33 @@
         <fileSet>
             <directory>../../geomesa-tools/conf</directory>
             <outputDirectory>conf</outputDirectory>
+            <directoryMode>755</directoryMode>
             <fileMode>0644</fileMode>
             <filtered>false</filtered>
-            <directoryMode>755</directoryMode>
         </fileSet>
         <fileSet>
             <directory>../../geomesa-tools/conf-filtered</directory>
             <outputDirectory>conf</outputDirectory>
+            <directoryMode>755</directoryMode>
             <fileMode>0644</fileMode>
             <filtered>true</filtered>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-tools/common-env</directory>
+            <outputDirectory>conf</outputDirectory>
             <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <filtered>true</filtered>
+            <includes>
+                <include>hadoop-env.sh</include>
+            </includes>
         </fileSet>
         <fileSet>
             <directory>../../geomesa-tools/examples</directory>
             <outputDirectory>examples</outputDirectory>
+            <directoryMode>755</directoryMode>
             <fileMode>0644</fileMode>
             <filtered>false</filtered>
-            <directoryMode>755</directoryMode>
         </fileSet>
 
         <fileSet>

@@ -10,13 +10,14 @@ User Manual
    download
    install
    getting_started
+   geotools
    architecture
    datastores/index
    cli/index
    convert/index
    geoserver
    spark/index
-   nifi
+   nifi/index
    process
    hbase/index
    accumulo/index

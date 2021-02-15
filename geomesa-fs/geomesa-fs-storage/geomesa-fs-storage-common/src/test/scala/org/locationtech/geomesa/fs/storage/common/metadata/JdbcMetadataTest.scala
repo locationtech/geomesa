@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -160,6 +160,29 @@ class JdbcMetadataTest extends Specification with AllExpectations {
           created.getPartitions().map(_.name) must containTheSameElementsAs(Seq("1", "2"))
           created.getPartition("1").map(_.files) must beSome(containTheSameElementsAs(Seq(f1, f3)))
           created.getPartition("2").map(_.files) must beSome(containTheSameElementsAs(Seq(f5, f6)))
+        }
+      }
+    }
+    "set and get key-value pairs" in {
+      withPath { context =>
+        val config = getConfig(context.root)
+        WithClose(factory.create(context, config, meta)) { created =>
+          created.set("foo", "bar")
+          created.set("bar", "baz")
+          val loaded = factory.load(context)
+          loaded must beSome
+          try {
+            foreach(Seq(created, loaded.get)) { metadata =>
+              metadata.encoding mustEqual encoding
+              metadata.sft mustEqual sft
+              metadata.sft.getUserData.asScala.toSeq must containAllOf(sft.getUserData.asScala.toSeq)
+              metadata.scheme mustEqual scheme
+              metadata.get("foo") must beSome("bar")
+              metadata.get("bar") must beSome("baz")
+            }
+          } finally {
+            loaded.get.close()
+          }
         }
       }
     }

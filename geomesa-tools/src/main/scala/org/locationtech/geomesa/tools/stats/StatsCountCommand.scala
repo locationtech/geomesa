@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,10 +9,10 @@
 package org.locationtech.geomesa.tools.stats
 
 import com.beust.jcommander.ParameterException
-import org.geotools.data.DataStore
+import org.geotools.data.{DataStore, FileDataStore}
 import org.locationtech.geomesa.index.stats.HasGeoMesaStats
 import org.locationtech.geomesa.tools.stats.StatsCountCommand.StatsCountParams
-import org.locationtech.geomesa.tools.{Command, DataStoreCommand}
+import org.locationtech.geomesa.tools.{Command, DataStoreCommand, ProvidedTypeNameParam}
 import org.opengis.filter.Filter
 
 trait StatsCountCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreCommand[DS] {
@@ -23,6 +23,11 @@ trait StatsCountCommand[DS <: DataStore with HasGeoMesaStats] extends DataStoreC
   override def execute(): Unit = withDataStore(count)
 
   protected def count(ds: DS): Unit = {
+    for {
+      p <- Option(params).collect { case p: ProvidedTypeNameParam => p }
+      f <- Option(ds).collect { case f: FileDataStore => f }
+    } { p.featureName = f.getSchema.getTypeName }
+
     val sft = ds.getSchema(params.featureName)
     if (sft == null) {
       throw new ParameterException(s"Schema '${params.featureName}' does not exist")

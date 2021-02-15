@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -21,6 +21,7 @@ class ConfigLoaderTest extends Specification {
       config.get("geomesa.config.test1") must beSome(("1", false))
       config.get("geomesa.config.test2") must beSome(("2", true)) // Final
       config.get("geomesa.config.test3") must beNone
+      config.get("geomesa.config.test4.no.final") must beSome(("4", false)) // Final
     }
   }
 }

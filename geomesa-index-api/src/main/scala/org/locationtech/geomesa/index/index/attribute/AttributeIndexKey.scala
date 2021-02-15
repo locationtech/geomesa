@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,10 +9,11 @@
 package org.locationtech.geomesa.index.index.attribute
 
 import java.sql.Timestamp
+import java.util.Locale
 
 import org.calrissian.mango.types.encoders.lexi.LongEncoder
 import org.calrissian.mango.types.{LexiTypeEncoders, TypeEncoder, TypeRegistry}
-import org.locationtech.geomesa.utils.geotools.SimpleFeatureOrdering
+import org.locationtech.geomesa.utils.geotools.AttributeOrdering
 import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.ByteArrays
 import org.opengis.feature.`type`.AttributeDescriptor
@@ -24,7 +25,7 @@ case class AttributeIndexKey(i: Short, value: String, inclusive: Boolean = true)
     val indexOrder = Ordering.Short.compare(i, that.i)
     if (indexOrder != 0) { indexOrder } else {
       // if i is the same, then value must be of the same type
-      val valueOrder = SimpleFeatureOrdering.nullCompare(value.asInstanceOf[Comparable[Any]], that.value)
+      val valueOrder = AttributeOrdering.StringOrdering.compare(value, that.value)
       if (valueOrder != 0) { valueOrder } else {
         Ordering.Boolean.compare(inclusive, that.inclusive)
       }
@@ -65,6 +66,14 @@ object AttributeIndexKey {
     * @return
     */
   def typeEncode(value: Any): String = TypeRegistry.encode(value)
+
+  /**
+   * Gets the type alias used for decoding a value
+   *
+   * @param binding type binding
+   * @return
+   */
+  def alias(binding: Class[_]): String = binding.getSimpleName.toLowerCase(Locale.US)
 
   /**
     * Decode a lexicoded value

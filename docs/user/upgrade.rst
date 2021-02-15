@@ -90,6 +90,43 @@ Compatibility Matrix
 | Dependencies | N     | N     | Y     |
 +--------------+-------+-------+-------+
 
+Version 3.2.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+FileSystem Data Store Metadata Format Change
+--------------------------------------------
+
+The metadata format for the FileSystem data store has been changed to support storing arbitrary key-value pairs.
+Any data written with version 3.2.0 or later will not be readable by earlier GeoMesa versions.
+
+Version 3.1.0 Upgrade Guide
++++++++++++++++++++++++++++
+
+Maven Type of GeoServer Plugin Modules
+--------------------------------------
+
+All of the ``geomesa-*-gs-plugin`` artifacts have been changed to ``<type>pom</type>``, since they did not
+contain any code. Any ``pom.xml`` references to them should be updated to use the correct type.
+
+Avro Version Update
+-------------------
+
+The version of Avro used by GeoMesa has been updated from 1.7.5 to 1.8.2. Avro serialized files should
+be compatible between versions, but compile and runtime dependencies may need to be updated if a project
+uses Avro and references GeoMesa.
+
+Query Interceptors API Change
+-----------------------------
+
+The query interceptors API has been expanded to support query guards. Any existing query interceptor
+implementations will continue to work, but may need to be re-compiled against the GeoMesa 3.1.0.
+
+Dependency Updates
+------------------
+
+* GeoTools: 23.0 -> 23.3
+* Avro: 1.7.5 -> 1.8.2
+
 Version 3.0.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
@@ -135,9 +172,9 @@ Users should use the Spark runtime corresponding to their Accumulo installation.
 NiFi Processors
 ---------------
 
-The GeoMesa NiFi processors have been split out into separate nar files for each supported back-end database.
-Additionally, there are separate nar files for HBase 1.4/2.2 and Accumulo 1.9/2.0, respectively. The processor
-classes and configurations have also changed. See :ref:`nifi_bundle` for details.
+The GeoMesa NiFi processors have been updated to NiFi 11 and split out into separate ``nar`` files for each
+supported back-end database. Additionally, there are separate ``nar`` files for HBase 1.4/2.2 and Accumulo 1.9/2.0,
+respectively. The processor classes and configurations have also changed. See :ref:`nifi_bundle` for details.
 
 Dependency Updates
 ------------------
@@ -177,7 +214,7 @@ Accumulo Default Visibilities Removed
 -------------------------------------
 
 The Accumulo data store parameter ``geomesa.security.visibilities`` have been removed. Visibilities should be set
-per-feature, as per :ref:`accumulo_visibilities`.
+per-feature, as described in :ref:`data_security`.
 
 Version 2.4.0 Upgrade Guide
 +++++++++++++++++++++++++++

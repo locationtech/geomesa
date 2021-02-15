@@ -39,7 +39,7 @@ Installing GeoMesa Bigtable in GeoServer
 The HBase GeoServer plugin is bundled by default in a GeoMesa binary distribution. To install, extract
 ``dist/gs-plugins/target/geomesa-bigtable-gs-plugin_2.11-$VERSION-install.tar.gz``
 into GeoServer's ``WEB-INF/lib`` directory. This distribution does not include HBase or Hadoop JARs - the following JARs
-should be copied into GeoServer's ``WEB-INF/lib`` directory. For convenience, the script ``bin/install-hadoop-hbase.sh``
+should be copied into GeoServer's ``WEB-INF/lib`` directory. For convenience, the script ``bin/install-dependencies.sh``
 will download them from Maven Central.
 
  * hbase-annotations-1.3.1.jar

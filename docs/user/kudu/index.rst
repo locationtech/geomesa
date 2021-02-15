@@ -34,4 +34,3 @@ To get started with the Kudu Data Store, try the :doc:`/tutorials/geomesa-quicks
     spark
     configuration
     index_config
-    visibilities

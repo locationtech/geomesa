@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -18,7 +18,6 @@ import org.locationtech.geomesa.curve.{TimePeriod, XZSFC}
 import org.locationtech.geomesa.utils.conf.{FeatureExpiration, IndexId, SemanticVersion}
 import org.locationtech.geomesa.utils.geometry.GeometryPrecision
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.Configs
-import org.locationtech.geomesa.utils.geotools.converters.FastConverter
 import org.locationtech.geomesa.utils.index.VisibilityLevel
 import org.locationtech.geomesa.utils.index.VisibilityLevel.VisibilityLevel
 import org.locationtech.geomesa.utils.stats.Cardinality
@@ -31,7 +30,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import scala.reflect.ClassTag
 import scala.util.Try
 
-object Conversions {
+object Conversions extends Conversions {
 
   implicit class RichCoord(val c: Coordinate) extends AnyVal {
     def toPoint2D = new DirectPosition2D(c.x, c.y)
@@ -62,13 +61,8 @@ object Conversions {
     def get[T](i: Int): T = sf.getAttribute(i).asInstanceOf[T]
     def get[T](name: String): T = sf.getAttribute(name).asInstanceOf[T]
 
-    def getNumericDouble(i: Int): Double = getAsDouble(sf.getAttribute(i))
-    def getNumericDouble(name: String): Double = getAsDouble(sf.getAttribute(name))
-
-    private def getAsDouble(v: AnyRef): Double = v match {
-      case n: Number => n.doubleValue()
-      case _         => throw new Exception(s"Input $v is not a numeric type.")
-    }
+    def getNumericDouble(i: Int): Double = double(sf.getAttribute(i))
+    def getNumericDouble(name: String): Double = double(sf.getAttribute(name))
 
     /**
       * Gets the feature ID as a parsed UUID consisting of (msb, lsb). Caches the bits
@@ -101,10 +95,37 @@ object Conversions {
   }
 }
 
+trait Conversions {
+
+  protected def boolean(value: AnyRef, default: Boolean = false): Boolean = value match {
+    case v: String => v.equalsIgnoreCase("true")
+    case v: java.lang.Boolean => v.booleanValue
+    case _ => default
+  }
+
+  protected def double(value: AnyRef): Double = value match {
+    case v: Number => v.doubleValue()
+    case v: String => v.toDouble
+    case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
+  }
+
+  protected def int(value: AnyRef): Int = value match {
+    case v: String => v.toInt
+    case v: Number => v.intValue()
+    case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
+  }
+
+  protected def short(value: AnyRef): Short = value match {
+    case v: String => v.toShort
+    case v: Number => v.shortValue()
+    case _         => throw new IllegalArgumentException(s"Input $value is not a numeric type")
+  }
+}
+
 /**
  * Contains GeoMesa specific attribute descriptor information
  */
-object RichAttributeDescriptors {
+object RichAttributeDescriptors extends Conversions {
 
   import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeConfigs._
   import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes.AttributeOptions._
@@ -112,34 +133,39 @@ object RichAttributeDescriptors {
   // noinspection AccessorLikeMethodIsEmptyParen
   implicit class RichAttributeDescriptor(val ad: AttributeDescriptor) extends AnyVal {
 
-    def setKeepStats(enabled: Boolean): Unit = if (enabled) {
-      ad.getUserData.put(OptStats, "true")
-    } else {
-      ad.getUserData.remove(OptStats)
+    def setKeepStats(enabled: Boolean): AttributeDescriptor = {
+      if (enabled) { ad.getUserData.put(OptStats, "true") } else { ad.getUserData.remove(OptStats) }
+      ad
     }
-    def isKeepStats(): Boolean = Option(ad.getUserData.get(OptStats)).contains("true")
+    def isKeepStats(): Boolean = boolean(ad.getUserData.get(OptStats))
 
-    def isIndexValue(): Boolean = Option(ad.getUserData.get(OptIndexValue)).contains("true")
+    def isIndexValue(): Boolean = boolean(ad.getUserData.get(OptIndexValue))
 
     def getColumnGroups(): Set[String] =
       Option(ad.getUserData.get(OptColumnGroups).asInstanceOf[String]).map(_.split(",").toSet).getOrElse(Set.empty)
 
-    def setCardinality(cardinality: Cardinality): Unit =
+    def setCardinality(cardinality: Cardinality): AttributeDescriptor = {
       ad.getUserData.put(OptCardinality, cardinality.toString)
+      ad
+    }
 
     def getCardinality(): Cardinality =
       Option(ad.getUserData.get(OptCardinality).asInstanceOf[String])
           .flatMap(c => Try(Cardinality.withName(c)).toOption).getOrElse(Cardinality.UNKNOWN)
 
-    def isJson(): Boolean = Option(ad.getUserData.get(OptJson)).contains("true")
+    def isJson(): Boolean = boolean(ad.getUserData.get(OptJson))
 
-    def setListType(typ: Class[_]): Unit = ad.getUserData.put(UserDataListType, typ.getName)
+    def setListType(typ: Class[_]): AttributeDescriptor = {
+      ad.getUserData.put(UserDataListType, typ.getName)
+      ad
+    }
 
     def getListType(): Class[_] = tryClass(ad.getUserData.get(UserDataListType).asInstanceOf[String])
 
-    def setMapTypes(keyType: Class[_], valueType: Class[_]): Unit = {
+    def setMapTypes(keyType: Class[_], valueType: Class[_]): AttributeDescriptor = {
       ad.getUserData.put(UserDataMapKeyType, keyType.getName)
       ad.getUserData.put(UserDataMapValueType, valueType.getName)
+      ad
     }
 
     def getMapTypes(): (Class[_], Class[_]) =
@@ -147,11 +173,8 @@ object RichAttributeDescriptors {
 
     private def tryClass(value: AnyRef): Class[_] = Try(Class.forName(value.asInstanceOf[String])).getOrElse(null)
 
-    def isList: Boolean = ad.getUserData.containsKey(UserDataListType)
-
-    def isMap: Boolean =
-      ad.getUserData.containsKey(UserDataMapKeyType) && ad.getUserData.containsKey(UserDataMapValueType)
-
+    def isList: Boolean = classOf[java.util.List[_]].isAssignableFrom(ad.getType.getBinding)
+    def isMap: Boolean = classOf[java.util.Map[_, _]].isAssignableFrom(ad.getType.getBinding)
     def isMultiValued: Boolean = isList || isMap
 
     def getPrecision: GeometryPrecision = {
@@ -181,7 +204,7 @@ object RichAttributeDescriptors {
   }
 }
 
-object RichSimpleFeatureType {
+object RichSimpleFeatureType extends Conversions {
 
   // in general we store everything as strings so that it's easy to pass to accumulo iterators
   implicit class RichSimpleFeatureType(val sft: SimpleFeatureType) extends AnyVal {
@@ -205,11 +228,10 @@ object RichSimpleFeatureType {
       sft.getUserData.put(DefaultDtgField, dtg)
     }
 
-    def statsEnabled: Boolean =
-      Option(sft.getUserData.get(StatsEnabled)).forall(FastConverter.convert(_, classOf[java.lang.Boolean]))
+    def statsEnabled: Boolean = boolean(sft.getUserData.get(StatsEnabled), default = true)
     def setStatsEnabled(enabled: Boolean): Unit = sft.getUserData.put(StatsEnabled, enabled.toString)
 
-    def isLogicalTime: Boolean = userData[String](TableLogicalTime).forall(_.toBoolean)
+    def isLogicalTime: Boolean = boolean(sft.getUserData.get(TableLogicalTime), default = true)
 
     def isPoints: Boolean = {
       val gd = sft.getGeometryDescriptor
@@ -242,7 +264,7 @@ object RichSimpleFeatureType {
     }
     def setS3Interval(i: TimePeriod): Unit = sft.getUserData.put(S3_INTERVAL_KEY, i.toString)
 
-    def getXZPrecision: Short = userData[String](IndexXzPrecision).map(_.toShort).getOrElse(XZSFC.DefaultPrecision)
+    def getXZPrecision: Short = userData(IndexXzPrecision).map(short).getOrElse(XZSFC.DefaultPrecision)
     def setXZPrecision(p: Short): Unit = sft.getUserData.put(IndexXzPrecision, p.toString)
 
     // note: defaults to false now
@@ -251,6 +273,8 @@ object RichSimpleFeatureType {
     @deprecated("table sharing no longer supported")
     def getTableSharingPrefix: String = userData[String](TableSharingPrefix).getOrElse("")
 
+    // noinspection ScalaDeprecation
+    @deprecated("table sharing no longer supported")
     def getTableSharingBytes: Array[Byte] = if (sft.isTableSharing) {
       sft.getTableSharingPrefix.getBytes(StandardCharsets.UTF_8)
     } else {
@@ -276,17 +300,17 @@ object RichSimpleFeatureType {
       Seq(GeomesaPrefix) ++ userData[String](UserDataPrefix).map(_.split(",")).getOrElse(Array.empty)
 
     def setZShards(splits: Int): Unit = sft.getUserData.put(IndexZShards, splits.toString)
-    def getZShards: Int = userData[String](IndexZShards).map(_.toInt).getOrElse(4)
+    def getZShards: Int = userData(IndexZShards).map(int).getOrElse(4)
 
     def setAttributeShards(splits: Int): Unit = sft.getUserData.put(IndexAttributeShards, splits.toString)
-    def getAttributeShards: Int = userData[String](IndexAttributeShards).map(_.toInt).getOrElse(4)
+    def getAttributeShards: Int = userData(IndexAttributeShards).map(int).getOrElse(4)
 
     def setIdShards(splits: Int): Unit = sft.getUserData.put(IndexIdShards, splits.toString)
-    def getIdShards: Int = userData[String](IndexIdShards).map(_.toInt).getOrElse(4)
+    def getIdShards: Int = userData(IndexIdShards).map(int).getOrElse(4)
 
     def setUuid(uuid: Boolean): Unit = sft.getUserData.put(FidsAreUuids, String.valueOf(uuid))
-    def isUuid: Boolean = userData[String](FidsAreUuids).exists(java.lang.Boolean.parseBoolean)
-    def isUuidEncoded: Boolean = isUuid && userData[String](FidsAreUuidEncoded).forall(java.lang.Boolean.parseBoolean)
+    def isUuid: Boolean = boolean(sft.getUserData.get(FidsAreUuids))
+    def isUuidEncoded: Boolean = isUuid && boolean(sft.getUserData.get(FidsAreUuidEncoded), default = true)
 
     def setFeatureExpiration(expiration: FeatureExpiration): Unit = {
       val org.locationtech.geomesa.utils.conf.FeatureExpiration(string) = expiration
@@ -296,10 +320,9 @@ object RichSimpleFeatureType {
       userData[String](Configs.FeatureExpiration).map(org.locationtech.geomesa.utils.conf.FeatureExpiration.apply(sft, _))
     def isFeatureExpirationEnabled: Boolean = sft.getUserData.containsKey(Configs.FeatureExpiration)
 
-    def isTemporalPriority: Boolean = userData[String](TemporalPriority).exists(java.lang.Boolean.parseBoolean)
+    def isTemporalPriority: Boolean = boolean(sft.getUserData.get(TemporalPriority))
 
-    def getRemoteVersion: Option[SemanticVersion] =
-      Option(sft.getUserData.get(RemoteVersion).asInstanceOf[String]).map(SemanticVersion.apply)
+    def getRemoteVersion: Option[SemanticVersion] = userData[String](RemoteVersion).map(SemanticVersion.apply)
 
     def getKeywords: Set[String] =
       userData[String](Keywords).map(_.split(KeywordsDelimiter).toSet).getOrElse(Set.empty)

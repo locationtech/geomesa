@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -409,7 +409,7 @@ object FastFilterFactory {
 
   def optimize(sft: SimpleFeatureType, filter: Filter): Filter = {
     sfts.set(sft)
-    try { filter.accept(new QueryPlanFilterVisitor(sft), factory).asInstanceOf[Filter] } finally {
+    try { QueryPlanFilterVisitor(sft, filter, factory) } finally {
       sfts.remove()
     }
   }

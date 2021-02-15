@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -12,17 +12,17 @@ import java.nio.charset.StandardCharsets
 import java.util.concurrent.atomic.AtomicLong
 import java.util.{Date, UUID}
 
-import org.locationtech.jts.geom._
 import org.apache.arrow.vector._
 import org.apache.arrow.vector.complex.{BaseRepeatedValueVector, FixedSizeListVector, ListVector, StructVector}
 import org.apache.arrow.vector.holders._
-import org.locationtech.geomesa.arrow.TypeBindings
+import org.apache.arrow.vector.types.Types.MinorType
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding.Encoding.Encoding
 import org.locationtech.geomesa.arrow.vector.impl.{AbstractLineStringVector, AbstractPointVector}
-import org.locationtech.geomesa.features.serialization.ObjectType
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
+import org.locationtech.jts.geom._
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -53,18 +53,9 @@ trait ArrowAttributeReader {
   def getValueCount: Int = vector.getValueCount
 }
 
-trait ArrowDictionaryReader extends ArrowAttributeReader {
-
-  /**
-    * Gets the raw underlying value without dictionary decoding it
-    *
-    * @param i index of the feature to read
-    * @return
-    */
-  def getEncoded(i: Int): Integer
-}
-
 object ArrowAttributeReader {
+
+  import scala.collection.JavaConverters._
 
   /**
     * Reads an ID
@@ -74,12 +65,13 @@ object ArrowAttributeReader {
     * @param encoding encoding options
     * @return
     */
-  def id(sft: SimpleFeatureType,
-         vector: StructVector,
-         encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min): ArrowAttributeReader = {
+  def id(
+      sft: SimpleFeatureType,
+      vector: StructVector,
+      encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min): ArrowAttributeReader = {
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
-    def child = vector.getChild(SimpleFeatureVector.FeatureIdField)
+    def child: FieldVector = vector.getChild(SimpleFeatureVector.FeatureIdField)
 
     encoding.fids match {
       case None                             => ArrowAttributeReader.ArrowFeatureIdIncrementingReader
@@ -103,8 +95,7 @@ object ArrowAttributeReader {
             vector: StructVector,
             dictionaries: Map[String, ArrowDictionary],
             encoding: SimpleFeatureEncoding = SimpleFeatureEncoding.Min): Seq[ArrowAttributeReader] = {
-    import scala.collection.JavaConversions._
-    sft.getAttributeDescriptors.map { descriptor =>
+    sft.getAttributeDescriptors.asScala.map { descriptor =>
       val name = descriptor.getLocalName
       val dictionary = dictionaries.get(name).orElse(dictionaries.get(descriptor.getLocalName))
       apply(descriptor, vector.getChild(name), dictionary, encoding)
@@ -150,22 +141,65 @@ object ArrowAttributeReader {
         }
 
       case Some(dict) =>
-        val dictionaryType = TypeBindings(bindings, encoding)
         vector match {
-          case v: TinyIntVector  => new ArrowDictionaryByteReader(v, dict, dictionaryType)
-          case v: SmallIntVector => new ArrowDictionaryShortReader(v, dict, dictionaryType)
-          case v: IntVector      => new ArrowDictionaryIntReader(v, dict, dictionaryType)
+          case v: TinyIntVector  => new ArrowDictionaryByteReader(v, dict)
+          case v: SmallIntVector => new ArrowDictionaryShortReader(v, dict)
+          case v: IntVector      => new ArrowDictionaryIntReader(v, dict)
+
+          case v: ListVector =>
+            val nested = v.getField.getChildren.get(0).getType
+            if (nested == MinorType.TINYINT.getType) {
+              new ArrowListDictionaryByteReader(v, dict)
+            } else if (nested == MinorType.SMALLINT.getType) {
+              new ArrowListDictionaryShortReader(v, dict)
+            } else if (nested == MinorType.INT.getType) {
+              new ArrowListDictionaryIntReader(v, dict)
+            } else {
+              throw new IllegalArgumentException(s"Unexpected dictionary vector: $vector")
+            }
+
           case _ => throw new IllegalArgumentException(s"Unexpected dictionary vector: $vector")
         }
     }
   }
 
   /**
-    * Reads dictionary encoded bytes and converts them to the actual values
-    */
-  class ArrowDictionaryByteReader(override val vector: TinyIntVector,
-                                  val dictionary: ArrowDictionary,
-                                  val dictionaryType: TypeBindings) extends ArrowDictionaryReader {
+   * Transparently reads dictionary encoded values
+   */
+  trait ArrowDictionaryReader extends ArrowAttributeReader {
+
+    /**
+     * Gets the raw underlying value without dictionary decoding it
+     *
+     * @param i index of the feature to read
+     * @return
+     */
+    def getEncoded(i: Int): Integer
+  }
+
+  /**
+   * Transparently reads lists of dictionary encoded values
+   */
+  trait ArrowListDictionaryReader extends ArrowAttributeReader {
+
+    /**
+     * Gets the raw underlying value without dictionary decoding it
+     *
+     * @param i index of the feature to read
+     * @return
+     */
+    def getEncoded(i: Int): java.util.List[Integer]
+  }
+
+  /**
+   * Reads dictionary encoded bytes and converts them to the actual values
+   *
+   * @param vector encoded vector to read
+   * @param dictionary dictionary values
+   */
+  class ArrowDictionaryByteReader(override val vector: TinyIntVector, dictionary: ArrowDictionary)
+      extends ArrowDictionaryReader {
+
     private val holder = new NullableTinyIntHolder
 
     override def apply(i: Int): AnyRef = {
@@ -182,12 +216,57 @@ object ArrowAttributeReader {
   }
 
   /**
-    * Reads dictionary encoded shorts and converts them to the actual values
-    *
-    */
-  class ArrowDictionaryShortReader(override val vector: SmallIntVector,
-                                   val dictionary: ArrowDictionary,
-                                   val dictionaryType: TypeBindings) extends ArrowDictionaryReader {
+   * Reads lists of dictionary encoded bytes and converts them to the actual values
+   *
+   * @param vector encoded vector to read
+   * @param dictionary dictionary values
+   */
+  class ArrowListDictionaryByteReader(override val vector: ListVector, dictionary: ArrowDictionary)
+      extends ArrowListDictionaryReader {
+
+    private val inner = vector.getDataVector.asInstanceOf[TinyIntVector]
+    private val holder = new NullableTinyIntHolder
+
+    override def apply(i: Int): AnyRef = {
+      if (vector.isNull(i)) { null } else {
+        // note: the offset buffer can be swapped out, so don't hold on to any references to it
+        var offset = vector.getOffsetBuffer.getInt(i * BaseRepeatedValueVector.OFFSET_WIDTH)
+        val end = vector.getOffsetBuffer.getInt((i + 1) * BaseRepeatedValueVector.OFFSET_WIDTH)
+        val list = new java.util.ArrayList[AnyRef](end - offset)
+        while (offset < end) {
+          inner.get(offset, holder)
+          list.add(dictionary.lookup(holder.value))
+          offset += 1
+        }
+        list
+      }
+    }
+
+    override def getEncoded(i: Int): java.util.List[Integer] = {
+      if (vector.isNull(i)) { null } else {
+        // note: the offset buffer can be swapped out, so don't hold on to any references to it
+        var offset = vector.getOffsetBuffer.getInt(i * BaseRepeatedValueVector.OFFSET_WIDTH)
+        val end = vector.getOffsetBuffer.getInt((i + 1) * BaseRepeatedValueVector.OFFSET_WIDTH)
+        val list = new java.util.ArrayList[Integer](end - offset)
+        while (offset < end) {
+          inner.get(offset, holder)
+          list.add(holder.value)
+          offset += 1
+        }
+        list
+      }
+    }
+  }
+
+  /**
+   * Reads dictionary encoded shorts and converts them to the actual values
+   *
+   * @param vector encoded vector to read
+   * @param dictionary dictionary values
+   */
+  class ArrowDictionaryShortReader(override val vector: SmallIntVector, dictionary: ArrowDictionary)
+      extends ArrowDictionaryReader {
+
     private val holder = new NullableSmallIntHolder
 
     override def apply(i: Int): AnyRef = {
@@ -204,12 +283,57 @@ object ArrowAttributeReader {
   }
 
   /**
-    * Reads dictionary encoded ints and converts them to the actual values
-    *
-    */
-  class ArrowDictionaryIntReader(override val vector: IntVector,
-                                 val dictionary: ArrowDictionary,
-                                 val dictionaryType: TypeBindings) extends ArrowDictionaryReader {
+   * Reads lists of dictionary encoded shorts and converts them to the actual values
+   *
+   * @param vector encoded vector to read
+   * @param dictionary dictionary values
+   */
+  class ArrowListDictionaryShortReader(override val vector: ListVector, dictionary: ArrowDictionary)
+      extends ArrowListDictionaryReader {
+
+    private val inner = vector.getDataVector.asInstanceOf[SmallIntVector]
+    private val holder = new NullableSmallIntHolder
+
+    override def apply(i: Int): AnyRef = {
+      if (vector.isNull(i)) { null } else {
+        // note: the offset buffer can be swapped out, so don't hold on to any references to it
+        var offset = vector.getOffsetBuffer.getInt(i * BaseRepeatedValueVector.OFFSET_WIDTH)
+        val end = vector.getOffsetBuffer.getInt((i + 1) * BaseRepeatedValueVector.OFFSET_WIDTH)
+        val list = new java.util.ArrayList[AnyRef](end - offset)
+        while (offset < end) {
+          inner.get(offset, holder)
+          list.add(dictionary.lookup(holder.value))
+          offset += 1
+        }
+        list
+      }
+    }
+
+    override def getEncoded(i: Int): java.util.List[Integer] = {
+      if (vector.isNull(i)) { null } else {
+        // note: the offset buffer can be swapped out, so don't hold on to any references to it
+        var offset = vector.getOffsetBuffer.getInt(i * BaseRepeatedValueVector.OFFSET_WIDTH)
+        val end = vector.getOffsetBuffer.getInt((i + 1) * BaseRepeatedValueVector.OFFSET_WIDTH)
+        val list = new java.util.ArrayList[Integer](end - offset)
+        while (offset < end) {
+          inner.get(offset, holder)
+          list.add(holder.value)
+          offset += 1
+        }
+        list
+      }
+    }
+  }
+
+  /**
+   * Reads dictionary encoded ints and converts them to the actual values
+   *
+   * @param vector encoded vector to read
+   * @param dictionary dictionary values
+   */
+  class ArrowDictionaryIntReader(override val vector: IntVector, dictionary: ArrowDictionary)
+      extends ArrowDictionaryReader {
+
     private val holder = new NullableIntHolder
 
     override def apply(i: Int): AnyRef = {
@@ -222,6 +346,49 @@ object ArrowAttributeReader {
     override def getEncoded(i: Int): Integer = {
       vector.get(i, holder)
       if (holder.isSet == 0) { null } else { Int.box(holder.value) }
+    }
+  }
+
+  /**
+   * Reads lists of dictionary encoded ints and converts them to the actual values
+   *
+   * @param vector encoded vector to read
+   * @param dictionary dictionary values
+   */
+  class ArrowListDictionaryIntReader(override val vector: ListVector, dictionary: ArrowDictionary)
+      extends ArrowListDictionaryReader {
+
+    private val inner = vector.getDataVector.asInstanceOf[IntVector]
+    private val holder = new NullableIntHolder
+
+    override def apply(i: Int): AnyRef = {
+      if (vector.isNull(i)) { null } else {
+        // note: the offset buffer can be swapped out, so don't hold on to any references to it
+        var offset = vector.getOffsetBuffer.getInt(i * BaseRepeatedValueVector.OFFSET_WIDTH)
+        val end = vector.getOffsetBuffer.getInt((i + 1) * BaseRepeatedValueVector.OFFSET_WIDTH)
+        val list = new java.util.ArrayList[AnyRef](end - offset)
+        while (offset < end) {
+          inner.get(offset, holder)
+          list.add(dictionary.lookup(holder.value))
+          offset += 1
+        }
+        list
+      }
+    }
+
+    override def getEncoded(i: Int): java.util.List[Integer] = {
+      if (vector.isNull(i)) { null } else {
+        // note: the offset buffer can be swapped out, so don't hold on to any references to it
+        var offset = vector.getOffsetBuffer.getInt(i * BaseRepeatedValueVector.OFFSET_WIDTH)
+        val end = vector.getOffsetBuffer.getInt((i + 1) * BaseRepeatedValueVector.OFFSET_WIDTH)
+        val list = new java.util.ArrayList[Integer](end - offset)
+        while (offset < end) {
+          inner.get(offset, holder)
+          list.add(holder.value)
+          offset += 1
+        }
+        list
+      }
     }
   }
 

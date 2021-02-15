@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -11,11 +11,12 @@ package org.locationtech.geomesa.fs.storage
 import com.typesafe.config._
 import org.locationtech.geomesa.fs.storage.api.NamedOptions
 import org.locationtech.geomesa.fs.storage.common.metadata.MetadataSerialization.Persistence.PartitionSchemeConfig
+import org.locationtech.geomesa.utils.text.Suffixes.Memory
 import org.opengis.feature.simple.SimpleFeatureType
 import pureconfig.ConfigConvert
 import pureconfig.generic.semiauto.deriveConvert
 
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 package object common {
@@ -59,6 +60,7 @@ package object common {
     val LeafStorageKey = "geomesa.fs.leaf-storage"
     val MetadataKey    = "geomesa.fs.metadata"
     val SchemeKey      = "geomesa.fs.scheme"
+    val FileSizeKey    = "geomesa.fs.file-size"
     val ObserversKey   = "geomesa.fs.observers"
   }
 
@@ -87,6 +89,20 @@ package object common {
     def setMetadata(name: String, options: Map[String, String] = Map.empty): Unit =
       sft.getUserData.put(MetadataKey, serialize(NamedOptions(name, options)))
     def removeMetadata(): Option[NamedOptions] = remove(MetadataKey).map(deserialize)
+
+    def setTargetFileSize(size: String): Unit = {
+      // validate input
+      Memory.bytes(size).failed.foreach(e => throw new IllegalArgumentException("Invalid file size", e))
+      sft.getUserData.put(FileSizeKey, size)
+    }
+    def removeTargetFileSize(): Option[Long] = {
+      remove(FileSizeKey).map { s =>
+        Memory.bytes(s) match {
+          case Success(b) => b
+          case Failure(e) => throw new IllegalArgumentException("Invalid file size", e)
+        }
+      }
+    }
 
     def setObservers(names: Seq[String]): Unit = sft.getUserData.put(ObserversKey, names.mkString(","))
     def getObservers: Seq[String] = {

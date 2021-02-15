@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,16 +10,19 @@ package org.locationtech.geomesa.filter
 
 import java.time.temporal.ChronoUnit
 import java.time.{ZoneOffset, ZonedDateTime}
+import java.util
 import java.util.Date
 
 import org.geotools.filter.text.ecql.ECQL
-import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl, LiteralExpressionImpl}
+import org.geotools.filter.{IsGreaterThanImpl, IsLessThenImpl, LiteralExpressionImpl, OrImpl}
 import org.geotools.util.Converters
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.filter.Bounds.Bound
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
 import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.filter._
 import org.specs2.matcher.MatchResult
 import org.specs2.mutable.Specification
@@ -29,7 +32,7 @@ import org.specs2.runner.JUnitRunner
 class FilterHelperTest extends Specification {
 
   val sft = SimpleFeatureTypes.createType("FilterHelperTest",
-    "dtg:Date,number:Int,a:Int,b:Int,c:Int,*geom:Point:srid=4326")
+    "dtg:Date,number:Int,a:Int,b:Int,c:Int,*geom:Point:srid=4326,name:String")
 
   def updateFilter(filter: Filter): Filter = QueryPlanFilterVisitor.apply(sft, filter)
 
@@ -40,6 +43,33 @@ class FilterHelperTest extends Specification {
   }
 
   "FilterHelper" should {
+
+    "optimize the inArray function" >> {
+      val sf = new ScalaSimpleFeature(sft, "1",
+        Array(new Date(), new Integer(1), new Integer(2), new Integer(3), new Integer(4), WKTUtils.read("POINT(1 5)"), "foo"))
+
+      val originalFilter = ff.equals(
+        ff.function("inArray", ff.property("name"), ff.literal(new util.ArrayList(util.Arrays.asList("foo", "bar")))),
+        ff.literal(java.lang.Boolean.TRUE)
+      )
+      val optimizedFilter = updateFilter(originalFilter)
+
+      optimizedFilter.isInstanceOf[OrImpl] mustEqual(true)
+      originalFilter.evaluate(sf) mustEqual(true)
+      optimizedFilter.evaluate(sf) mustEqual(true)
+
+      // Show that either order works.
+      val reverseOrder = ff.equals(
+        ff.literal(java.lang.Boolean.TRUE),
+        ff.function("inArray",
+          ff.property("name"),
+          ff.literal(new util.ArrayList(util.Arrays.asList("foo", "bar"))))
+      )
+      val optimizedReverseOrder = updateFilter(reverseOrder)
+      optimizedReverseOrder.isInstanceOf[OrImpl] mustEqual(true)
+      reverseOrder.evaluate(sf) mustEqual(true)
+      optimizedReverseOrder.evaluate(sf) mustEqual(true)
+    }
 
     "evaluate functions with 0 arguments" >> {
       val filter = ECQL.toFilter("dtg < currentDate()")
@@ -253,6 +283,32 @@ class FilterHelperTest extends Specification {
       flattened.asInstanceOf[Or].getChildren must haveLength(count)
       flattened.asInstanceOf[Or].getChildren.map(_.toString) must
           containTheSameElementsAs((0 until count).map(i => s"[ a equals $i ]"))
+    }
+
+    "evaluate functions with large IN predicate" >> {
+      val string = (0 to 4000).mkString("IN(", ",", ")")
+      val filter = ECQL.toFilter(string)
+      updateFilter(filter) must not(throwAn[Exception])
+    }
+
+    "evaluate functions with large number of ORs" >> {
+      val count = 4000
+      val a = ff.property("a")
+      var filter: Filter = ff.equal(a, ff.literal(0))
+      (1 until count).foreach { i =>
+        filter = ff.or(filter, ff.equal(a, ff.literal(i)))
+      }
+      updateFilter(filter) must not(throwAn[Exception])
+    }
+
+    "evaluate functions with large number of ANDs" >> {
+      val count = 4000
+      val a = ff.property("a")
+      var filter: Filter = ff.equal(a, ff.literal(0))
+      (1 until count).foreach { i =>
+        filter = ff.and(filter, ff.equal(a, ff.literal(i)))
+      }
+      updateFilter(filter) must not(throwAn[Exception])
     }
   }
 }

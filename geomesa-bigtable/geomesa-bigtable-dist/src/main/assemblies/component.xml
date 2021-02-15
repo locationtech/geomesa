@@ -26,7 +26,6 @@
             <useProjectArtifact>false</useProjectArtifact>
             <useTransitiveDependencies>false</useTransitiveDependencies>
             <includes>
-                <include>org.locationtech.geomesa:geomesa-bigtable-gs-plugin*</include>
                 <include>org.locationtech.geomesa:geomesa-process-wps*</include>
             </includes>
         </dependencySet>
@@ -63,7 +62,19 @@
                 <include>README.md</include>
             </includes>
         </fileSet>
-        <!-- HBase Tools filesets -->
+
+        <!-- gs-plugin - have to specify as a file since it's not attached -->
+        <fileSet>
+            <directory>../geomesa-bigtable-gs-plugin/target</directory>
+            <outputDirectory>dist/gs-plugins</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>*-install.tar.gz</include>
+            </includes>
+        </fileSet>
+
+        <!-- bigtable Tools filesets -->
         <fileSet>
             <directory>../geomesa-bigtable-tools/bin</directory>
             <outputDirectory>bin</outputDirectory>
@@ -100,6 +111,16 @@
             <fileMode>0644</fileMode>
             <filtered>true</filtered>
             <directoryMode>755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../../geomesa-tools/common-env</directory>
+            <outputDirectory>conf</outputDirectory>
+            <directoryMode>755</directoryMode>
+            <fileMode>0644</fileMode>
+            <filtered>true</filtered>
+            <includes>
+                <include>hadoop-env.sh</include>
+            </includes>
         </fileSet>
         <fileSet>
             <directory>../../geomesa-tools/examples</directory>

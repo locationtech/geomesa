@@ -4,7 +4,8 @@ Filter Functions
 ================
 
 GeoMesa provides several custom CQL filter functions, which can be used for filtering or transforming query results.
-Filter functions can be created through ``ECQL.toFilter``, or directly through ``FilterFactory2.function``.
+Filter functions can be created through GeoTool's standard methods, i.e. ``ECQL.toFilter`` or directly through
+``FilterFactory2.function``.
 
 currentDate
 -----------

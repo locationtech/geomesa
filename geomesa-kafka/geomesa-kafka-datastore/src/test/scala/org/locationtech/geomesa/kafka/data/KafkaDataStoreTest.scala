@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -9,8 +9,8 @@
 package org.locationtech.geomesa.kafka.data
 
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{ScheduledExecutorService, TimeUnit}
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+import java.util.concurrent.{CopyOnWriteArrayList, ScheduledExecutorService, SynchronousQueue, TimeUnit}
 import java.util.{Collections, Date}
 
 import com.typesafe.scalalogging.LazyLogging
@@ -18,17 +18,21 @@ import kafka.admin.AdminUtils
 import org.apache.curator.framework.CuratorFrameworkFactory
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.geotools.data._
+import org.geotools.data.simple.SimpleFeatureSource
 import org.geotools.filter.identity.FeatureIdImpl
 import org.geotools.filter.text.ecql.ECQL
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.geotools.util.factory.Hints
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.metadata.TableBasedMetadata
 import org.locationtech.geomesa.kafka.EmbeddedKafka
 import org.locationtech.geomesa.kafka.ExpirationMocking.{MockTicker, ScheduledExpiry, WrappedRunnable}
-import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams
+import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult
+import org.locationtech.geomesa.kafka.consumer.BatchConsumer.BatchResult.BatchResult
 import org.locationtech.geomesa.kafka.utils.KafkaFeatureEvent.KafkaFeatureChanged
+import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageProcessor}
 import org.locationtech.geomesa.security.{AuthorizationsProvider, SecurityUtils}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
@@ -36,7 +40,7 @@ import org.locationtech.geomesa.utils.index.SizeSeparatedBucketIndex
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Point
 import org.mockito.ArgumentMatchers
-import org.opengis.feature.simple.SimpleFeatureType
+import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.Filter
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -46,6 +50,7 @@ import org.specs2.runner.JUnitRunner
 class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
 
   import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
   import scala.concurrent.duration._
 
   sequential // this doesn't really need to be sequential, but we're trying to reduce zk load
@@ -86,7 +91,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
   "KafkaDataStore" should {
 
     "return correctly from canProcess" >> {
-      import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams._
+      import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams._
       val factory = new KafkaDataStoreFactory
       factory.canProcess(Map.empty[String, Serializable]) must beFalse
       factory.canProcess(Map(Brokers.key -> "test", Zookeepers.key -> "test")) must beTrue
@@ -100,7 +105,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         "kafka.consumer.from-beginning" -> "false"
       )
       foreach(deprecated) { case (k, v) =>
-        KafkaDataStoreFactoryParams.ConsumerReadBack.lookupOpt(Collections.singletonMap(k, v)) must not(throwAn[Exception])
+        KafkaDataStoreParams.ConsumerReadBack.lookupOpt(Collections.singletonMap(k, v)) must not(throwAn[Exception])
       }
     }
 
@@ -116,7 +121,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
     }
 
     "use namespaces" >> {
-      import org.locationtech.geomesa.kafka.data.KafkaDataStoreFactory.KafkaDataStoreFactoryParams._
+      import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams._
       val path = s"geomesa/namespace/test/${paths.getAndIncrement()}"
       val ds = getStore(path, 0, Map(NamespaceParam.key -> "ns0"))
       try {
@@ -270,13 +275,18 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
             Seq(f0, f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
           }
 
+          val q = new Query(sft.getTypeName)
+          q.getHints.put(QueryHints.EXACT_COUNT, java.lang.Boolean.TRUE)
+
           // admin user
           auths = Set("USER", "ADMIN")
           eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must containTheSameElementsAs(Seq(f0, f1)))
+          store.getCount(q) mustEqual 2
 
           // regular user
           auths = Set("USER")
           SelfClosingIterator(store.getFeatures.features).toSeq mustEqual Seq(f0)
+          store.getCount(q) mustEqual 1
 
           // unauthorized
           auths = Set.empty
@@ -327,6 +337,113 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
           // check the spatial index
           eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
               containTheSameElementsAs(Seq(f0, f1)))
+
+          // expire the cache
+          expirations.foreach(_.runnable.run())
+
+          // verify feature has expired - hit the cache directly
+          SelfClosingIterator(store.getFeatures.features) must beEmpty
+          // verify feature has expired - hit the spatial index
+          SelfClosingIterator(store.getFeatures(bbox).features) must beEmpty
+        } finally {
+          consumer.dispose()
+          producer.dispose()
+        }
+      }
+    }
+
+    "expire entries based on cql filters" >> {
+      foreach(Seq(true, false)) { cqEngine =>
+        val executor = mock[ScheduledExecutorService]
+        val ticker = new MockTicker()
+        val params = {
+          val expiry =
+            """{
+               |"name = 'smith'": "100ms",
+               |"name = 'jones'": "200ms"
+               |}""".stripMargin
+          val base = Map(
+            "kafka.cache.expiry.dynamic" -> expiry,
+            "kafka.cache.expiry"         -> "300ms",
+            "kafka.cache.executor"       -> (executor, ticker)
+          )
+          if (cqEngine) { base + ("kafka.index.cqengine" -> "geom:default,name:unique") } else { base }
+        }
+        val (producer, consumer, sft) = createStorePair("dynamic-expire", params)
+        try {
+          producer.createSchema(sft)
+          val store = consumer.getFeatureSource(sft.getTypeName) // start the consumer polling
+
+          val f0 = ScalaSimpleFeature.create(sft, "sm", "smith", 30, "2017-01-01T00:00:00.000Z", "POINT (0 0)")
+          val f1 = ScalaSimpleFeature.create(sft, "jo", "jones", 20, "2017-01-02T00:00:00.000Z", "POINT (-10 -10)")
+          val f2 = ScalaSimpleFeature.create(sft, "wi", "wilson", 10, "2017-01-03T00:00:00.000Z", "POINT (10 10)")
+
+          val bbox = ECQL.toFilter("bbox(geom,-10,-10,10,10)")
+
+          val expirations = Collections.synchronizedList(new java.util.ArrayList[WrappedRunnable](2))
+
+          // test the first filter expiry
+          executor.schedule(ArgumentMatchers.any[Runnable](), ArgumentMatchers.eq(100L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS)) responds { args =>
+            val expire = new WrappedRunnable(0L)
+            expire.runnable = args.asInstanceOf[Array[AnyRef]](0).asInstanceOf[Runnable]
+            expirations.add(expire)
+            new ScheduledExpiry(expire)
+          }
+
+          // initial write
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            Seq(f0).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+          // check the cache directly
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+              containTheSameElementsAs(Seq(f0)))
+          // check the spatial index
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
+              containTheSameElementsAs(Seq(f0)))
+
+          there was one(executor).schedule(ArgumentMatchers.eq(expirations.get(0).runnable), ArgumentMatchers.eq(100L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
+
+          // test the second filter expiry
+          executor.schedule(ArgumentMatchers.any[Runnable](), ArgumentMatchers.eq(200L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS)) responds { args =>
+            val expire = new WrappedRunnable(0L)
+            expire.runnable = args.asInstanceOf[Array[AnyRef]](0).asInstanceOf[Runnable]
+            expirations.add(expire)
+            new ScheduledExpiry(expire)
+          }
+
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            Seq(f1).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+
+          // check the cache directly
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+              containTheSameElementsAs(Seq(f0, f1)))
+          // check the spatial index
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
+              containTheSameElementsAs(Seq(f0, f1)))
+
+          there was one(executor).schedule(ArgumentMatchers.eq(expirations.get(1).runnable), ArgumentMatchers.eq(200L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
+
+          // test the fallback expiry
+          executor.schedule(ArgumentMatchers.any[Runnable](), ArgumentMatchers.eq(300L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS)) responds { args =>
+            val expire = new WrappedRunnable(0L)
+            expire.runnable = args.asInstanceOf[Array[AnyRef]](0).asInstanceOf[Runnable]
+            expirations.add(expire)
+            new ScheduledExpiry(expire)
+          }
+
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            Seq(f2).foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+          }
+
+          // check the cache directly
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures.features).toSeq must
+              containTheSameElementsAs(Seq(f0, f1, f2)))
+          // check the spatial index
+          eventually(40, 100.millis)(SelfClosingIterator(store.getFeatures(bbox).features).toSeq must
+              containTheSameElementsAs(Seq(f0, f1, f2)))
+
+          there was one(executor).schedule(ArgumentMatchers.eq(expirations.get(2).runnable), ArgumentMatchers.eq(300L), ArgumentMatchers.eq(TimeUnit.MILLISECONDS))
 
           // expire the cache
           expirations.foreach(_.runnable.run())
@@ -418,8 +535,135 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       }
     }
 
+    "support at-least-once consumers" >> {
+      skipped("inconsistent")
+      val params = Map(
+        KafkaDataStoreParams.ConsumerConfig.key -> "auto.offset.reset=earliest",
+        KafkaDataStoreParams.ConsumerCount.key -> "2",
+        KafkaDataStoreParams.TopicPartitions.key -> "2"
+      )
+      val (producer, consumer, sft) = createStorePair("batch-consumers", params)
+      try {
+        val id = "fid-0"
+        val numUpdates = 3
+        val maxLon = 80.0
+
+        val seen = new AtomicBoolean(false)
+        var results = new CopyOnWriteArrayList[SimpleFeature]().asScala
+
+        val processor = new GeoMessageProcessor() {
+          override def consume(records: Seq[GeoMessage]): BatchResult = {
+            if (!seen.get) {
+              seen.set(true)
+              BatchResult.Continue // this should cause the messages to be replayed
+            } else {
+              results ++= records.collect { case GeoMessage.Change(f) => f }
+              BatchResult.Commit
+            }
+          }
+        }
+
+        producer.createSchema(sft)
+
+        def writeUpdates(): Unit = {
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            (numUpdates to 1 by -1).foreach { i =>
+              val ll = maxLon - maxLon / i
+              val sf = writer.next()
+              sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
+              sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(s"$id-$ll")
+              sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+              writer.write()
+            }
+          }
+        }
+
+        WithClose(consumer.createConsumer(sft.getTypeName, "mygroup", processor)) { _ =>
+          writeUpdates()
+          eventually(seen.get must beTrue)
+          eventually(results must haveLength(numUpdates))
+        }
+
+        // verify that we can read a second batch
+        writeUpdates()
+        WithClose(consumer.createConsumer(sft.getTypeName, "mygroup", processor)) { _ =>
+          eventually(results must haveLength(numUpdates * 2))
+        }
+      } finally {
+        consumer.dispose()
+        producer.dispose()
+      }
+    }
+
+    "support pausing at-least-once consumers" >> {
+      skipped("inconsistent")
+      val params = Map(
+        KafkaDataStoreParams.ConsumerConfig.key -> "auto.offset.reset=earliest",
+        KafkaDataStoreParams.ConsumerCount.key -> "2",
+        KafkaDataStoreParams.TopicPartitions.key -> "2"
+      )
+      val (producer, consumer, sft) = createStorePair("batch-consumers-pause", params)
+      try {
+        val id = "fid-0"
+        val numUpdates = 3
+        val maxLon = 80.0
+
+        val in = new SynchronousQueue[Seq[SimpleFeature]]()
+        val out = new SynchronousQueue[BatchResult]()
+
+        val processor = new GeoMessageProcessor() {
+          override def consume(records: Seq[GeoMessage]): BatchResult = {
+            in.offer(records.collect { case GeoMessage.Change(f) => f }, 10, TimeUnit.SECONDS)
+            Option(out.poll(10, TimeUnit.SECONDS)).getOrElse(BatchResult.Continue)
+          }
+        }
+
+        producer.createSchema(sft)
+
+        def writeUpdates(): Unit = {
+          WithClose(producer.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+            (numUpdates to 1 by -1).foreach { i =>
+              val ll = maxLon - maxLon / i
+              val sf = writer.next()
+              sf.setAttributes(Array[AnyRef]("smith", Int.box(30), new Date(), s"POINT ($ll $ll)"))
+              sf.getIdentifier.asInstanceOf[FeatureIdImpl].setID(s"$id-$ll")
+              sf.getUserData.put(Hints.USE_PROVIDED_FID, java.lang.Boolean.TRUE)
+              writer.write()
+            }
+          }
+        }
+
+        WithClose(consumer.createConsumer(sft.getTypeName, "mygroup", processor)) { _ =>
+          writeUpdates()
+          in.poll(10, TimeUnit.SECONDS) must haveLength(numUpdates)
+          out.put(BatchResult.Pause)
+          writeUpdates()
+          in.poll(10, TimeUnit.SECONDS) must haveLength(numUpdates)
+          foreach(0 until 10) { _ =>
+            out.put(BatchResult.Pause)
+            in.poll(10, TimeUnit.SECONDS) must haveLength(numUpdates)
+          }
+          out.put(BatchResult.Continue)
+          eventually {
+            val res = in.poll(10, TimeUnit.SECONDS)
+            out.put(BatchResult.Continue)
+            res must haveLength(numUpdates * 2)
+          }
+          in.poll(10, TimeUnit.SECONDS) must haveLength(numUpdates * 2)
+          out.put(BatchResult.Commit)
+          writeUpdates()
+          in.poll(10, TimeUnit.SECONDS) must haveLength(numUpdates)
+          out.put(BatchResult.Commit)
+        }
+        ok
+      } finally {
+        consumer.dispose()
+        producer.dispose()
+      }
+    }
+
     "migrate old kafka data store schemas" >> {
-      val spec = "test:String,dtg:Date,*geom:Point:srid=4326"
+      val spec = "test:String,dtg:Date,*location:Point:srid=4326"
 
       val path = s"geomesa/migrate/test/${paths.getAndIncrement()}"
       val client = CuratorFrameworkFactory.builder()
@@ -454,7 +698,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
   "KafkaDataStoreFactory" should {
     "clean zkPath" >> {
       def getNamespace(path: String): String =
-        KafkaDataStoreFactory.createZkNamespace(Map(KafkaDataStoreFactoryParams.ZkPath.getName -> path))
+        KafkaDataStoreFactory.createZkNamespace(Map(KafkaDataStoreParams.ZkPath.getName -> path))
 
       // a well formed path starts does not start or end with a /
       getNamespace("foo/bar/baz") mustEqual "foo/bar/baz"
@@ -464,7 +708,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       forall(Seq("/", "//", "", null))(n => getNamespace(n) mustEqual KafkaDataStoreFactory.DefaultZkPath) // empty
     }
     "Parse SSI tiers" >> {
-      val key = KafkaDataStoreFactoryParams.IndexTiers.getName
+      val key = KafkaDataStoreParams.IndexTiers.getName
       KafkaDataStoreFactory.parseSsiTiers(Collections.emptyMap()) mustEqual SizeSeparatedBucketIndex.DefaultTiers
       KafkaDataStoreFactory.parseSsiTiers(Collections.singletonMap(key, "foo")) mustEqual SizeSeparatedBucketIndex.DefaultTiers
       KafkaDataStoreFactory.parseSsiTiers(Collections.singletonMap(key, "1:2")) mustEqual Seq((1d, 2d))
@@ -479,9 +723,8 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
       p.createSchema(sft)
       val fs = c.getFeatureSource(sft.getTypeName)
       val q = new Query(null, Filter.INCLUDE)
-      def check = fs.getFeatures(q).features().close()
       // induce issue
-      check must not throwA[NullPointerException]()
+        fs.getFeatures(q).features().close() must not throwA[NullPointerException]()
     }
   }
 

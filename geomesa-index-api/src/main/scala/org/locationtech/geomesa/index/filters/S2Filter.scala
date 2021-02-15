@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -40,7 +40,7 @@ object S2Filter extends RowFilterFactory[S2Filter] {
   val XYKey = "sxy"
 
   def apply(values: S2IndexValues): S2Filter = {
-    val xy = values.bounds.map { case (xmin, ymin, xmax, ymax) => Array(xmin, ymin, xmax, ymax) }
+    val xy = values.spatialBounds.map { case (xmin, ymin, xmax, ymax) => Array(xmin, ymin, xmax, ymax) }
     new S2Filter(xy.toArray)
   }
 

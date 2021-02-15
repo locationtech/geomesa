@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -19,12 +19,11 @@ import org.apache.kudu.{ColumnSchema, Type}
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.features.kryo.impl.{KryoFeatureDeserialization, KryoFeatureSerialization}
 import org.locationtech.geomesa.features.kryo.serialization.KryoGeometrySerialization
-import org.locationtech.geomesa.features.serialization.ObjectType
-import org.locationtech.geomesa.features.serialization.ObjectType.ObjectType
 import org.locationtech.geomesa.filter.{Bounds, FilterHelper}
 import org.locationtech.geomesa.kudu.schema.KuduSimpleFeatureSchema.KuduFilter
 import org.locationtech.geomesa.kudu.utils.ColumnConfiguration
-import org.locationtech.geomesa.utils.geotools.GeometryUtils
+import org.locationtech.geomesa.utils.geotools.{GeometryUtils, ObjectType}
+import org.locationtech.geomesa.utils.geotools.ObjectType.ObjectType
 import org.locationtech.jts.geom.{Coordinate, Geometry, Point}
 import org.opengis.feature.`type`.AttributeDescriptor
 import org.opengis.feature.simple.SimpleFeatureType

@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -7,7 +7,7 @@
  ***********************************************************************/
 
 /***********************************************************************
-  * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+  * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
   * All rights reserved. This program and the accompanying materials
   * are made available under the terms of the Apache License, Version 2.0
   * which accompanies this distribution and is available at
@@ -72,6 +72,10 @@ object FsCreateSchemaCommand {
 
     if (errors.nonEmpty) {
       throw new ParameterException(s"The following options are required: ${errors.mkString(" ")}")
+    }
+
+    if (params.targetFileSize != null) {
+      sft.setTargetFileSize(params.targetFileSize)
     }
 
     // Can use this to set things like compression and summary levels for parquet in the sft user data

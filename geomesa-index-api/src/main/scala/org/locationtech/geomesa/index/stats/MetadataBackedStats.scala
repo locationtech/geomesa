@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.DataStore
 import org.geotools.filter.text.ecql.ECQL
+import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.curve.BinnedTime
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.filter.visitor.QueryPlanFilterVisitor
@@ -41,16 +42,16 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
 
   override val writer: GeoMesaStatWriter = new MetadataStatWriter()
 
-  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean): Option[Long] = {
+  override def getCount(sft: SimpleFeatureType, filter: Filter, exact: Boolean, queryHints: Hints): Option[Long] = {
     if (exact) {
-      query[CountStat](sft, filter, Stat.Count()).map(_.count)
+      query[CountStat](sft, filter, Stat.Count(), queryHints).map(_.count)
     } else if (filter == Filter.INCLUDE) {
       // note: compared to the 'read' method, we want to return empty counts (indicating no features)
       try { metadata.read(sft.getTypeName, countKey()).collect { case s: CountStat => s.count } } catch {
         case NonFatal(e) => logger.error("Error reading existing stats:", e); None
       }
     } else {
-      estimateCount(sft, filter.accept(new QueryPlanFilterVisitor(sft), null).asInstanceOf[Filter])
+      estimateCount(sft, QueryPlanFilterVisitor(sft, filter))
     }
   }
 

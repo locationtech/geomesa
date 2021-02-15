@@ -1,17 +1,17 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.index.index.z3
+package org.locationtech.geomesa.index.index
+package z3
 
 import org.locationtech.geomesa.index.api.ShardStrategy.ZShardStrategy
 import org.locationtech.geomesa.index.api.{GeoMesaFeatureIndex, IndexKeySpace}
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.index.index.ConfiguredIndex
 import org.locationtech.geomesa.index.strategies.SpatioTemporalFilterStrategy
 import org.locationtech.geomesa.utils.index.IndexMode.IndexMode
 import org.opengis.feature.simple.SimpleFeatureType
@@ -24,7 +24,8 @@ class Z3Index protected (
     dtg: String,
     mode: IndexMode
   ) extends GeoMesaFeatureIndex[Z3IndexValues, Z3IndexKey](ds, sft, Z3Index.name, version, Seq(geom, dtg), mode)
-      with SpatioTemporalFilterStrategy[Z3IndexValues, Z3IndexKey] {
+      with SpatioTemporalFilterStrategy[Z3IndexValues, Z3IndexKey]
+      with SpatioTemporalIndex[Z3IndexValues, Z3IndexKey] {
 
   def this(ds: GeoMesaDataStore[_], sft: SimpleFeatureType, geomField: String, dtgField: String, mode: IndexMode) =
     this(ds, sft, Z3Index.version, geomField, dtgField, mode)
@@ -39,7 +40,7 @@ object Z3Index extends ConfiguredIndex {
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   override val name = "z3"
-  override val version = 6
+  override val version = 7
 
   override def supports(sft: SimpleFeatureType, attributes: Seq[String]): Boolean =
     Z3IndexKeySpace.supports(sft, attributes)

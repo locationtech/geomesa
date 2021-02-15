@@ -1,5 +1,5 @@
 /***********************************************************************
- * Copyright (c) 2013-2020 Commonwealth Computer Research, Inc.
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Apache License, Version 2.0
  * which accompanies this distribution and is available at
@@ -10,7 +10,7 @@ package org.locationtech.geomesa.kudu.utils
 
 import org.apache.kudu.ColumnSchema.{CompressionAlgorithm, Encoding}
 import org.junit.runner.RunWith
-import org.locationtech.geomesa.features.serialization.ObjectType
+import org.locationtech.geomesa.utils.geotools.ObjectType
 import org.locationtech.geomesa.kudu.KuduSystemProperties
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
 import org.specs2.mock.Mockito
