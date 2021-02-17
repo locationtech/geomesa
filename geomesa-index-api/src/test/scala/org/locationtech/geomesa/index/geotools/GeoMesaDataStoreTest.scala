@@ -222,6 +222,25 @@ class GeoMesaDataStoreTest extends Specification {
       val ds = new TestGeoMesaDataStore(true)
       ds.createSchema(sft) must throwAn[IllegalArgumentException]
     }
+    "handle literal geometries in dwithin filters" in{
+      val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("test",spec)
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(sft)
+      val feature = ScalaSimpleFeature.create(sft, "0", "name", "2020-01-20T00:00:00.000Z", "POINT (45 55)")
+      WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+        FeatureUtils.write(writer, feature, useProvidedFid = true)
+      }
+      val filters =
+        Seq(
+          "dwithin(geom,POINT(45.01 55.01),10000,meters)",
+          "dwithin(geom,'POINT(45.01 55.01)',10000,meters)"
+        )
+      foreach(filters.map(ECQL.toFilter)) { filter =>
+        val query = new Query(sft.getTypeName, filter)
+        SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList mustEqual Seq(feature)
+      }
+    }
   }
 }
 
