@@ -218,6 +218,9 @@ object QueryPlan {
       * @return
       */
     def apply(features: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature]
+
+    override def toString: String =
+      s"class:${getClass.getSimpleName}, state:{${state.map { case (k, v) => s"$k=$v" }.mkString(", ")}}"
   }
 
   object FeatureReducer {
