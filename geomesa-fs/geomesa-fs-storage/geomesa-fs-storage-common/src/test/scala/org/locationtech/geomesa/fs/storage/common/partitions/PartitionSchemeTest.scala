@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.fs.storage.common.partitions
 
 import java.time.Instant
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Date
 
@@ -35,7 +34,7 @@ class PartitionSchemeTest extends Specification with AllExpectations {
   sequential
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-  val sf = ScalaSimpleFeature.create(sft, "1", "test", 10, "2017-01-03T10:15:30Z", "POINT (10 10)")
+  val sf = ScalaSimpleFeature.create(sft, "1", "test", 10, "2017-02-03T10:15:30Z", "POINT (10 10)")
 
   "PartitionScheme" should {
 
@@ -52,26 +51,26 @@ class PartitionSchemeTest extends Specification with AllExpectations {
 
     "partition based on date" >> {
       val ps = DateTimeScheme("yyyy-MM-dd", ChronoUnit.DAYS, 1, "dtg", 2)
-      ps.getPartitionName(sf) mustEqual "2017-01-03"
+      ps.getPartitionName(sf) mustEqual "2017-02-03"
     }
 
     "partition based on date with slash delimiter" >> {
       val ps = DateTimeScheme("yyyy/DDD/HH", ChronoUnit.DAYS, 1, "dtg", 2)
-      ps.getPartitionName(sf) mustEqual "2017/003/10"
+      ps.getPartitionName(sf) mustEqual "2017/034/10"
     }
 
     "partition based on date with slash delimiter" >> {
       val ps = DateTimeScheme("yyyy/DDD/HH", ChronoUnit.DAYS, 1, "dtg", 2)
-      ps.getPartitionName(sf) mustEqual "2017/003/10"
+      ps.getPartitionName(sf) mustEqual "2017/034/10"
     }
 
     "weekly partitions" >> {
       val ps = PartitionSchemeFactory.load(sft, NamedOptions("weekly"))
       ps must beAnInstanceOf[DateTimeScheme]
-      ps.getPartitionName(sf) mustEqual "2017/01"
+      ps.getPartitionName(sf) mustEqual "2017/W05"
       val tenWeeksOut = ScalaSimpleFeature.create(sft, "1", "test", 10,
         Date.from(Instant.parse("2017-01-01T00:00:00Z").plus(9*7 + 1, ChronoUnit.DAYS)), "POINT (10 10)")
-      ps.getPartitionName(tenWeeksOut) mustEqual "2017/10"
+      ps.getPartitionName(tenWeeksOut) mustEqual "2017/W10"
     }
 
     "10 bit datetime z2 partition" >> {
@@ -248,14 +247,27 @@ class PartitionSchemeTest extends Specification with AllExpectations {
     }
 
     "calculate covering filters for monthly datetime" >> {
-      import DateTimeScheme.Formats.{Daily, Hourly, JulianDaily, JulianHourly, JulianMinute, Minute, Monthly, Weekly}
+      import DateTimeScheme.Formats._
       forall(Seq(Minute, Hourly, Daily, Weekly, Monthly, JulianMinute, JulianHourly, JulianDaily)) { format =>
-        val ps = DateTimeScheme(format.format, format.unit, 1, "dtg", 2)
+        val ps = DateTimeScheme(format.formatter, format.unit, 1, "dtg", 2)
         val partition = ps.getPartitionName(sf)
-        val start = DateParsing.parse(partition, DateTimeFormatter.ofPattern(format.format))
+        val start = DateParsing.parse(partition, format.formatter)
         val end = start.plus(1, format.unit)
         val expected = ECQL.toFilter(s"dtg >= '${DateParsing.format(start)}' AND dtg < '${DateParsing.format(end)}'")
         decomposeAnd(ps.getCoveringFilter(partition)) must containTheSameElementsAs(decomposeAnd(expected))
+      }
+    }
+
+    "calculate covering filters for cql" >> {
+      import DateTimeScheme.Formats._
+      foreach(Seq(Minute, Hourly, Daily, Weekly, Monthly, JulianMinute, JulianHourly, JulianDaily)) { format =>
+        val ps = DateTimeScheme(format.formatter, format.unit, 1, "dtg", 2)
+        val partition = ps.getPartitionName(sf)
+        val start = DateParsing.parse(partition, format.formatter)
+        val end = start.plus(1, format.unit)
+        val filter = ECQL.toFilter(s"dtg >= '${DateParsing.format(start)}' AND dtg < '${DateParsing.format(end)}'")
+        val partitions = ps.getIntersectingPartitions(filter)
+        partitions must beSome(Seq(partition))
       }
     }
 
