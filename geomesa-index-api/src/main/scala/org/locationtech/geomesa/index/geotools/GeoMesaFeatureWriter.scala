@@ -235,7 +235,8 @@ trait GeoMesaModifyFeatureWriter[DS <: GeoMesaDataStore[DS, F, W], F <: WrappedF
   /* original should be null only when reader runs out */
   override def write(): Unit =
     // comparison of feature ID and attributes - doesn't consider concrete class used
-    if (!ScalaSimpleFeature.equalIdAndAttributes(live, original)) {
+    if (!ScalaSimpleFeature.equalIdAndAttributes(live, original) ||
+        live.getUserData.get("geomesa.feature.visibility") != original.getUserData.get("geomesa.feature.visibility")) {
       remove()
       writeFeature(live)
     }

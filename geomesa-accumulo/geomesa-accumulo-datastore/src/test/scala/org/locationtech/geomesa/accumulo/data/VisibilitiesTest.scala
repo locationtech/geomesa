@@ -17,12 +17,14 @@ import org.geotools.data.simple.SimpleFeatureStore
 import org.geotools.factory.{CommonFactoryFinder, Hints}
 import org.geotools.feature.simple.SimpleFeatureBuilder
 import org.geotools.filter.identity.FeatureIdImpl
+import org.geotools.filter.text.ecql.ECQL
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.features.avro.AvroSimpleFeatureFactory
 import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.text.WKTUtils
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.specs2.mutable.Specification
@@ -53,7 +55,7 @@ class VisibilitiesTest extends Specification {
       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
     val sftName = "perfeatureauthtest"
-    val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+    val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=full,dtg:Date,*geom:Point:srid=4326")
     sft.setDtgField("dtg")
     ds.createSchema(sft)
 
@@ -152,7 +154,7 @@ class VisibilitiesTest extends Specification {
       "featureEncoding"   -> "avro")).asInstanceOf[AccumuloDataStore]
 
     val sftName = "perfeatureauthtest"
-    val sft = SimpleFeatureTypes.createType(sftName, s"name:String,dtg:Date,*geom:Point:srid=4326")
+    val sft = SimpleFeatureTypes.createType(sftName, s"name:String:index=full,dtg:Date,*geom:Point:srid=4326")
     sft.setDtgField("dtg")
     ds.createSchema(sft)
 
@@ -212,6 +214,27 @@ class VisibilitiesTest extends Specification {
         fs.getFeatures(ff.id(ff.featureId("2"))).features().hasNext must beTrue
       }
     }
+
+    "allow privileged to update secured features" in {
+      WithClose(ds.getFeatureWriter(sftName, ECQL.toFilter("IN('0')"), Transaction.AUTO_COMMIT)) { writer =>
+        writer.hasNext must beTrue
+        val f = writer.next
+        f.getUserData.put(SecurityUtils.FEATURE_VISIBILITY, "user")
+        writer.write()
+        writer.hasNext must beFalse
+      }
+      val filters = Seq(
+        ff.id(ff.featureId("0")),
+        ff.equals(prop("name"), lit("0")),
+        ff.and(bbox(prop("geom"), 44.0, 44.0, 46.0, 46.0, "EPSG:4326"), ECQL.toFilter("dtg during 2012-01-02T00:00:07.000Z/2012-01-02T01:00:07.000Z"))
+      )
+      foreach(filters) { filter =>
+        val reader = ds.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
+        SelfClosingIterator(reader).toList mustEqual privFeatures.take(1)
+        val unprivReader = unprivDS.getFeatureReader(new Query(sftName, filter), Transaction.AUTO_COMMIT)
+        SelfClosingIterator(unprivReader).toList mustEqual privFeatures.take(1)
+      }
+    }
   }
 
 
@@ -221,7 +244,7 @@ class VisibilitiesTest extends Specification {
   def getFeatures(sft: SimpleFeatureType): Seq[SimpleFeature] = (0 until 6).map { i =>
     val builder = new SimpleFeatureBuilder(sft, featureFactory)
     builder.set("geom", WKTUtils.read("POINT(45.0 45.0)"))
-    builder.set("dtg", "2012-01-02T05:06:07.000Z")
+    builder.set("dtg", s"2012-01-02T0$i:06:07.000Z")
     builder.set("name",i.toString)
     val sf = builder.buildFeature(i.toString)
     sf.getUserData()(Hints.USE_PROVIDED_FID) = java.lang.Boolean.TRUE
