@@ -2357,6 +2357,19 @@
                     <artifactId>maven-jar-plugin</artifactId>
                     <!-- 3.1.0 was released 2018-04-06. -->
                     <version>3.1.0</version>
+                    <executions>
+                        <execution>
+                            <!-- binds to the default test-jar goal to exclude logging configs -->
+                            <id>default</id>
+                            <configuration>
+                                <excludes>
+                                    <exclude>log4j.properties</exclude>
+                                    <exclude>log4j.xml</exclude>
+                                    <exclude>logging.properties</exclude>
+                                </excludes>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
