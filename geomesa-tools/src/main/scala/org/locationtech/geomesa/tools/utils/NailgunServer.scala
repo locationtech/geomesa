@@ -121,6 +121,6 @@ object NailgunServer {
       names = Array("--idle"),
       description = "Time before the server is shut down due to inactivity",
       converter = classOf[DurationConverter])
-    var idle: Duration = Duration(30, TimeUnit.MINUTES)
+    var idle: Duration = Duration(1, TimeUnit.HOURS)
   }
 }

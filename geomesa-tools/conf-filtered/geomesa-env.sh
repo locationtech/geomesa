@@ -61,7 +61,7 @@ export GEOMESA_NG_PORT="${GEOMESA_NG_PORT:-$NAILGUN_PORT}"
 # timeout for ng client heartbeats
 export GEOMESA_NG_TIMEOUT="${GEOMESA_NG_TIMEOUT:-}"
 # time before the nailgun server is shut down due to inactivity
-export GEOMESA_NG_IDLE="${GEOMESA_NG_IDLE:-30 minutes}"
+export GEOMESA_NG_IDLE="${GEOMESA_NG_IDLE:-1 hour}"
 # size of the thread pool used for handling requests
 export GEOMESA_NG_POOL_SIZE="${GEOMESA_NG_POOL_SIZE:-}"
 

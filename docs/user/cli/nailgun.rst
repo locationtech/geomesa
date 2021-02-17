@@ -13,7 +13,7 @@ make commands much faster to start. The server must be enabled by setting the en
   it will bind to all host addresses, allowing unauthenticated connections from any client on the same network.
 
 When enabled, the Nailgun server will start automatically as needed, and will terminate after a period of inactivity
-(by default 30 minutes). While it is running, the server will not pick up any classpath or environment changes.
+(by default one hour). While it is running, the server will not pick up any classpath or environment changes.
 The :ref:`ng_command` subset of commands can be used to start, stop, and query the server status.
 
 The following environment variables control the behavior of the server, and can be configured in
