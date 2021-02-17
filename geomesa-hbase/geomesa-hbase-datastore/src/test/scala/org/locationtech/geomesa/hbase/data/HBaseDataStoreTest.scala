@@ -12,7 +12,7 @@ import java.io.File
 import java.util.Collections
 
 import com.typesafe.scalalogging.LazyLogging
-import org.apache.hadoop.hbase.TableName
+import org.apache.hadoop.hbase.{NamespaceDescriptor, TableName}
 import org.geotools.data._
 import org.geotools.data.collection.ListFeatureCollection
 import org.geotools.data.simple.SimpleFeatureStore
@@ -322,6 +322,40 @@ class HBaseDataStoreTest extends Specification with LazyLogging {
             haveLength(80) // 0-9 + [8]0-9 * 4 shards
         splits(Z3Index.name) must haveLength(16) // 2 bits * 4 shards
         splits(IdIndex.name) must haveLength(4) // default 4 splits
+      } finally {
+        ds.dispose()
+      }
+    }
+
+    "support table namespaces" in {
+      val typeName = "testnamespace"
+
+      val params = Map(
+        ConnectionParam.getName -> MiniCluster.connection,
+        HBaseCatalogParam.getName -> s"ns:${getClass.getSimpleName}"
+      )
+      val ds = DataStoreFinder.getDataStore(params).asInstanceOf[HBaseDataStore]
+      ds must not(beNull)
+
+      try {
+        ds.getSchema(typeName) must beNull
+
+        val sft = SimpleFeatureTypes.createType(typeName,
+          "name:String,age:Int,dtg:Date,*geom:Point:srid=4326;geomesa.indices.enabled=z3")
+        ds.createSchema(sft)
+
+        val features = Seq(
+          ScalaSimpleFeature.create(sft, "fid1", "will", 56, "2014-01-02", "POINT(45.0 49.0)"),
+          ScalaSimpleFeature.create(sft, "fid2", "george", 33, "2014-01-02", "POINT(45.0 49.0)"),
+          ScalaSimpleFeature.create(sft, "fid3", "sue", 99, "2014-01-02", "POINT(45.0 49.0)"),
+          ScalaSimpleFeature.create(sft, "fid4", "karen", 50, "2014-01-02", "POINT(45.0 49.0)"),
+          ScalaSimpleFeature.create(sft, "fid5", "bob", 56, "2014-01-02", "POINT(45.0 49.0)")
+        )
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+        val query = SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList
+        query.sortBy(_.getID) mustEqual features
       } finally {
         ds.dispose()
       }

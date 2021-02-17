@@ -70,7 +70,7 @@ object AccumuloDataStoreParams extends GeoMesaDataStoreParams with SecurityParam
   val CatalogParam =
     new GeoMesaParam[String](
       "accumulo.catalog",
-      "Accumulo catalog table name",
+      "Accumulo catalog table name, including Accumulo namespace (if any) separated with a period",
       optional = false,
       deprecatedKeys = Seq("tableName", "accumulo.tableName"),
       supportsNiFiExpressions = true
