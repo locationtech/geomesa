@@ -10,19 +10,17 @@ package org.locationtech.geomesa.tools
 
 import java.io.File
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
 
 import com.beust.jcommander.{JCommander, ParameterException}
-import com.codahale.metrics.{MetricRegistry, Timer}
-import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
+import com.facebook.nailgun.NGContext
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.commons.io.FileUtils
 import org.locationtech.geomesa.tools.Command.CommandException
-import org.locationtech.geomesa.tools.Runner.AutocompleteInfo
+import org.locationtech.geomesa.tools.Runner.{AutocompleteInfo, CommandResult, Executor}
 import org.locationtech.geomesa.tools.`export`.{ConvertCommand, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.help.{ClasspathCommand, HelpCommand, NailgunCommand, ScalaConsoleCommand}
 import org.locationtech.geomesa.tools.status.{ConfigureCommand, EnvironmentCommand, VersionCommand}
-import org.locationtech.geomesa.tools.utils.{GeoMesaIStringConverterFactory, TerminalCallback}
+import org.locationtech.geomesa.tools.utils.{GeoMesaIStringConverterFactory, NailgunServer, TerminalCallback}
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 
 import scala.collection.JavaConversions._
@@ -33,21 +31,28 @@ trait Runner extends MethodProfiling with LazyLogging {
   def name: String
   def environmentErrorInfo(): Option[String] = None
 
-  def main(args: Array[String]): Unit = {
-    try {
-      Runner.execute(parseCommand(args))
-    } catch {
+  def main(args: Array[String]): Unit = execute(new MainExecutor(args))
+
+  def nailMain(context: NGContext): Unit = execute(new NailgunExecutor(context))
+
+  private def execute(executor: Executor): Unit = {
+    val result = try { executor.execute(); CommandResult(0) } catch {
       case e @ (_: ClassNotFoundException | _: NoClassDefFoundError) =>
+        // log the underling exception to the log file, but don't show to the user
         val msg = s"Warning: Missing dependency for command execution: ${e.getMessage}"
         logger.error(msg, e)
-        Command.user.error(msg)
-        environmentErrorInfo().foreach(Command.user.error)
-        sys.exit(1)
-      case e: ParameterException => Command.user.error(e.getMessage); sys.exit(1)
-      case e: CommandException => Command.user.error(e.getMessage); sys.exit(1)
-      case NonFatal(e) => Command.user.error(e.getMessage, e); sys.exit(1)
+        CommandResult(1, Seq(Left(msg)) ++ environmentErrorInfo().map(Left.apply))
+      case e: ParameterException => CommandResult(1, Seq(Left(e.getMessage)))
+      case e: CommandException   => CommandResult(1, Seq(Left(e.getMessage)))
+      case NonFatal(e)           => CommandResult(1, Seq(Right(e)))
     }
-    sys.exit(0)
+
+    result.errors.foreach {
+      case Left(msg) => Command.user.error(msg)
+      case Right(e)  => Command.user.error(e.getMessage, e)
+    }
+
+    sys.exit(result.code)
   }
 
   def parseCommand(args: Array[String]): Command = {
@@ -189,29 +194,29 @@ trait Runner extends MethodProfiling with LazyLogging {
     override val name: String = ""
     override val params: Any = null
   }
+
+  class MainExecutor(args: Array[String]) extends Executor {
+    override def execute(): Unit = parseCommand(args).execute()
+  }
+
+  class NailgunExecutor(context: NGContext) extends Executor {
+    override def execute(): Unit = {
+      val command = parseCommand(context.getArgs)
+      context.getNGServer match {
+        case ng: NailgunServer => ng.execute(command)
+        case ng => throw new IllegalStateException(s"Expected a NailgunServer but got: $ng")
+      }
+    }
+  }
 }
 
 object Runner {
 
-  private val registry = new MetricRegistry()
-
-  val FirstRequest: Long = System.currentTimeMillis()
-  val LastRequest = new AtomicLong(System.currentTimeMillis())
-
-  val Timers: LoadingCache[String, (AtomicInteger, Timer)] = Caffeine.newBuilder().build(
-    new CacheLoader[String, (AtomicInteger, Timer)]() {
-      override def load(k: String): (AtomicInteger, Timer) = (new AtomicInteger(0), registry.timer(k))
-    }
-  )
-
-  def execute(command: Command): Unit = {
-    LastRequest.set(System.currentTimeMillis())
-    val (active, timer) = Timers.get(command.name)
-    active.incrementAndGet()
-    try { timer.time(command) } finally {
-      active.decrementAndGet()
-    }
+  trait Executor {
+    def execute(): Unit
   }
+
+  case class CommandResult(code: Int, errors: Seq[Either[String, Throwable]] = Seq.empty)
 
   case class AutocompleteInfo(path: String, commandName: String)
 }

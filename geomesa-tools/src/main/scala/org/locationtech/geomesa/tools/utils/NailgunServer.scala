@@ -9,16 +9,125 @@
 package org.locationtech.geomesa.tools.utils
 
 import java.net.InetAddress
-import java.util.concurrent.{ScheduledExecutorService, ScheduledThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
+import java.util.concurrent.{Phaser, TimeUnit}
 
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{JCommander, Parameter}
+import com.codahale.metrics.{MetricRegistry, Timer}
 import com.facebook.nailgun.{NGConstants, NGServer}
-import org.locationtech.geomesa.tools.Runner
+import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
+import org.locationtech.geomesa.tools.Command
+import org.locationtech.geomesa.tools.utils.NailgunServer.{CommandStat, NailgunAware}
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
-import org.locationtech.geomesa.utils.concurrent.ExitingExecutor
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
 import scala.concurrent.duration.Duration
+
+class NailgunServer(addr: InetAddress, port: Int, sessionPoolSize: Int, timeoutMillis: Int, idleTimeoutMillis: Long)
+    extends NGServer(addr, port, sessionPoolSize, timeoutMillis) {
+
+  import scala.collection.JavaConverters._
+
+  private val registry = new MetricRegistry()
+  private val requests = new Phaser(1) // 1 for the idle timer
+
+  private val start = System.currentTimeMillis()
+  private val lastRequest = new AtomicLong(System.currentTimeMillis())
+
+  private val timers: LoadingCache[String, (AtomicInteger, Timer)] = Caffeine.newBuilder().build(
+    new CacheLoader[String, (AtomicInteger, Timer)]() {
+      override def load(k: String): (AtomicInteger, Timer) = (new AtomicInteger(0), registry.timer(k))
+    }
+  )
+
+  def execute(command: Command): Unit = {
+    requests.register()
+    lastRequest.set(System.currentTimeMillis())
+    try {
+      command match {
+        case c: NailgunAware => c.nailgun = Some(this)
+        case _ => // no-op
+      }
+      val (active, timer) = timers.get(command.name)
+      active.incrementAndGet()
+      try {
+        timer.time(command)
+      } finally {
+        active.decrementAndGet()
+      }
+    } finally {
+      requests.arriveAndDeregister()
+    }
+  }
+
+  override def run(): Unit = {
+    CachedThreadPool.execute(new IdleCheck())
+    super.run()
+  }
+
+  /**
+   * Sys time this server was started
+   *
+   * @return time
+   */
+  def started: Long = start
+
+  /**
+   * Gets stats on the commands executed
+   *
+   * @return
+   */
+  def stats: Seq[CommandStat] = {
+    timers.asMap().asScala.toSeq.map {  case (name, (active, timer)) =>
+      val snap = timer.getSnapshot
+      CommandStat(
+        name,
+        active.get,
+        timer.getCount,
+        snap.getMean,
+        snap.getMedian,
+        snap.get95thPercentile,
+        timer.getMeanRate
+      )
+    }
+  }
+
+  /**
+   * Shuts down the nailgun server if it's idle
+   */
+  class IdleCheck extends Runnable {
+    override def run(): Unit = {
+      var loop = true
+      try {
+        Thread.sleep(idleTimeoutMillis) // wait the initial timeout period before starting to check idle
+      } catch {
+        case _: InterruptedException => loop = false
+      }
+      while (loop) {
+        try {
+          val phase = requests.arrive()
+          if (requests.getPhase == phase) {
+            // there are currently executing requests - wait for them to finish
+            requests.awaitAdvanceInterruptibly(phase)
+            // pause 30 seconds before checking for idle timeout, to allow the client to make another request
+            Thread.sleep(30000)
+          }
+
+          val remaining = idleTimeoutMillis - (System.currentTimeMillis() - lastRequest.get)
+          if (remaining <= 0) {
+            loop = false
+            NailgunServer.this.shutdown()
+          } else {
+            Thread.sleep(remaining)
+          }
+        } catch {
+          case _: InterruptedException => loop = false
+        }
+      }
+    }
+  }
+}
 
 object NailgunServer {
 
@@ -29,45 +138,33 @@ object NailgunServer {
         .build()
         .parse(args: _*)
 
-    val es = ExitingExecutor(new ScheduledThreadPoolExecutor(1))
-    es.setExecuteExistingDelayedTasksAfterShutdownPolicy(false)
-    es.setContinueExistingPeriodicTasksAfterShutdownPolicy(false)
-
     val host = Option(params.host).map(InetAddress.getByName).orNull
-    val ng = new NGServer(host, params.port, params.poolSize, params.timeout.toMillis.toInt) {
-      override def shutdown(): Unit = {
-        es.shutdown()
-        super.shutdown()
-      }
-    }
+    val ng = new NailgunServer(host, params.port, params.poolSize, params.timeout.toMillis.toInt, params.idle.toMillis)
 
     val thread = new Thread(ng)
     thread.setName(s"Nailgun(${params.port})")
     thread.start()
 
-    val idle = params.idle.toMillis
-    es.schedule(new Timer(ng, es, idle), idle + 1000, TimeUnit.MILLISECONDS)
-
     sys.addShutdownHook(new Shutdown(ng).run())
   }
 
   /**
-   * Shuts down the nailgun server if it's idle
-   *
-   * @param ng nailgun server
-   * @param es executor for scheduling itself
-   * @param timeout timeout in millis
+   * Hook for commands to access the nailgun server. If the command is run in a nailgun environment, the server
+   * will be injected after creating the command, but before execute is called.
    */
-  class Timer(ng: NGServer, es: ScheduledExecutorService, timeout: Long) extends Runnable {
-    override def run(): Unit = {
-      val remaining = timeout - (System.currentTimeMillis() - Runner.LastRequest.get)
-      if (remaining <= 0) {
-        ng.shutdown()
-      } else {
-        es.schedule(this, remaining + 1000, TimeUnit.MILLISECONDS)
-      }
-    }
+  trait NailgunAware extends Command {
+    var nailgun: Option[NailgunServer] = None
   }
+
+  case class CommandStat(
+      name: String,
+      active: Int,
+      complete: Long,
+      mean: Double,
+      median: Double,
+      n95: Double,
+      rate: Double
+    )
 
   /**
    * Shutdown hook

@@ -12,7 +12,8 @@ import java.util.concurrent.TimeUnit
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.tools.help.NailgunCommand._
-import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, Runner}
+import org.locationtech.geomesa.tools.utils.NailgunServer.NailgunAware
+import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands}
 import org.locationtech.geomesa.utils.text.TextTools
 
 /**
@@ -34,50 +35,51 @@ object NailgunCommand {
   @Parameters(commandDescription = "Display stats from the Nailgun server used for executing commands")
   class NailgunStatsParams {}
 
-  class NailgunStatsCommand extends Command {
+  class NailgunStatsCommand extends Command with NailgunAware {
 
     import NailgunStatsCommand.{Header, toSeconds}
-
-    import scala.collection.JavaConverters.mapAsScalaConcurrentMapConverter
 
     override val name: String = "stats"
     override val params: NailgunStatsParams = new NailgunStatsParams()
 
     override def execute(): Unit = {
-      val widths = Header.map(_.length).toArray
-      val stats = Runner.Timers.asMap().asScala.toSeq.map { case (name, (active, timer)) =>
-        val snap = timer.getSnapshot
-        val stat =
-          Seq(
-            name,
-            s"${active.get}",
-            s"${timer.getCount}",
-            f"${toSeconds(snap.getMean)}%2.2f",
-            f"${toSeconds(snap.getMedian)}%2.2f",
-            f"${toSeconds(snap.get95thPercentile)}%2.2f",
-            f"${timer.getMeanRate * 60}%2.2f"
-          )
-        var i = 0
-        while (i < widths.length) {
-          widths(i) = math.max(widths(i), stat(i).length)
-          i += 1
-        }
-        stat
-      }
+      nailgun match {
+        case None => Command.output.info("Nailgun server not enabled")
+        case Some(ng) =>
+          val widths = Header.map(_.length).toArray
+          val stats = ng.stats.map { stat =>
+              val strings =
+                Seq(
+                  stat.name,
+                  s"${stat.active}",
+                  s"${stat.complete}",
+                  f"${toSeconds(stat.mean)}%2.2f",
+                  f"${toSeconds(stat.median)}%2.2f",
+                  f"${toSeconds(stat.n95)}%2.2f",
+                  f"${stat.rate * 60}%2.2f"
+                )
+            var i = 0
+            while (i < widths.length) {
+              widths(i) = math.max(widths(i), strings(i).length)
+              i += 1
+            }
+            strings
+          }
 
-      def pad(seq: Seq[String]): String = {
-        var i = 0
-        val padded = seq.map { s =>
-          val p = s.padTo(widths(i), ' ')
-          i += 1
-          p
-        }
-        padded.mkString(" ")
-      }
+          def pad(seq: Seq[String]): String = {
+            var i = 0
+            val padded = seq.map { s =>
+              val p = s.padTo(widths(i), ' ')
+              i += 1
+              p
+            }
+            padded.mkString(" ")
+          }
 
-      Command.output.info(s"Uptime ${TextTools.getTime(Runner.FirstRequest)}\n")
-      Command.output.info(pad(Header))
-      stats.sortBy(_.head).foreach(s => Command.output.info(pad(s)))
+          Command.output.info(s"Uptime ${TextTools.getTime(ng.started)}\n")
+          Command.output.info(pad(Header))
+          stats.sortBy(_.head).foreach(s => Command.output.info(pad(s)))
+      }
     }
   }
 
