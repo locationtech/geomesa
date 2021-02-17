@@ -62,6 +62,7 @@ sealed trait HBaseQueryPlan extends QueryPlan[HBaseDataStore] {
     explainer(s"Column families: ${scans.headOption.flatMap(_.scans.headOption).flatMap(r => Option(r.getFamilies)).getOrElse(Array.empty).map(Bytes.toString).mkString(",")}")
     explainer(s"Remote filters: ${scans.headOption.flatMap(_.scans.headOption).flatMap(r => Option(r.getFilter)).map(filterToString).getOrElse("none")}")
     explain(explainer)
+    explainer(s"Reduce: ${reducer.getOrElse("none")}")
     explainer.popLevel()
   }
 
