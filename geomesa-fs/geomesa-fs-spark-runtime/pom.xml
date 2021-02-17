@@ -135,6 +135,11 @@
                                     <pattern>shapeless</pattern>
                                     <shadedPattern>org.locationtech.geomesa.shaded.shapeless</shadedPattern>
                                 </relocation>
+                                <!-- avoid conflicts with zeppelin -->
+                                <relocation>
+                                    <pattern>pureconfig</pattern>
+                                    <shadedPattern>org.locationtech.geomesa.shaded.pureconfig</shadedPattern>
+                                </relocation>
                                 <!-- we need parquet 1.9.0 in order to do dictionary filtering = 30% speed increase -->
                                 <!-- TODO remove this when spark supports parquet 1.9.0 out of the box -->
                                 <relocation>
