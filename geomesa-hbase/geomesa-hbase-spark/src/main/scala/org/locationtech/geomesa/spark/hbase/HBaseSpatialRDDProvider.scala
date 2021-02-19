@@ -9,7 +9,10 @@
 package org.locationtech.geomesa.spark.hbase
 
 import org.apache.hadoop.conf.Configuration
+import org.apache.hadoop.hbase.security.User
+import org.apache.hadoop.hbase.security.token.TokenUtil
 import org.apache.hadoop.io.Text
+import org.apache.hadoop.security.UserGroupInformation
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.geotools.data.{Query, Transaction}
@@ -36,6 +39,14 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
       origQuery: Query): SpatialRDD = {
 
     val ds = DataStoreConnector[HBaseDataStore](dsParams)
+
+    if (User.isSecurityEnabled) {
+      // configure auth token so that the HBase TokenUtil can pick it up for
+      // authentication in the remote worker processes - the keytab won't be accessible there
+      // needs to be in UserGroupInformation.getCurrentUser().getCredentials()
+      val token = TokenUtil.obtainToken(ds.connection, User.getCurrent)
+      UserGroupInformation.getCurrentUser.getCredentials.addToken(token.getService, token)
+    }
 
     // get the query plan to set up the iterators, ranges, etc
     lazy val sft = ds.getSchema(origQuery.getTypeName)
