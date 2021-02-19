@@ -143,7 +143,7 @@ function check_classpath() {
     group="${gav%%:*}"
     artifact="${gav#$group:}"
     artifact="${artifact%%:*}"
-    if [[ $classpath != *"$artifact"* ]]; then
+    if [[ ! $classpath =~ (^|:|/)${artifact}(-[^:]*)*\.jar ]]; then
       missing+=("$gav")
     fi
   done
