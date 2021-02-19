@@ -12,11 +12,8 @@ package org.locationtech.geomesa.spark.accumulo
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.Text
-import org.apache.hadoop.mapred.JobConf
-import org.apache.hadoop.mapreduce.Job
 import org.apache.spark.SparkContext
-import org.apache.spark.deploy.SparkHadoopUtil
-import org.apache.spark.rdd.{NewHadoopRDD, RDD}
+import org.apache.spark.rdd.RDD
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, EmptyPlan}
 import org.locationtech.geomesa.accumulo.data.{AccumuloDataStore, AccumuloDataStoreFactory, AccumuloQueryPlan}
@@ -48,38 +45,9 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
       if (ds == null || sft == null || qp.isInstanceOf[EmptyPlan]) {
         sc.emptyRDD[SimpleFeature]
       } else {
-        val job = new Job(conf)
-        GeoMesaAccumuloInputFormat.configure(job, paramsAsJava, qp)
-        // We soon want to call this
-        // sc.newAPIHadoopRDD(conf, classOf[GeoMesaAccumuloInputFormat], classOf[Text], classOf[SimpleFeature]).map(U => U._2)
-        // But we need access to the JobConf that this creates internally and doesn't expose, so we repeat (most of) the code here
-
-        // From sc.newAPIHadoopRDD, but can't implement this here
-        // assertNotStopped()
-
-        // From sc.newAPIHadoopRDD
-        // Add necessary security credentials to the JobConf. Required to access secure HDFS.
-        val jconf = job.getConfiguration.asInstanceOf[JobConf]
-        SparkHadoopUtil.get.addCredentials(jconf)
-
-        // Iterate over tokens in credentials and add the Accumulo one to the configuration directly
-        // This is because the credentials seem to disappear between here and the YARN executor
-        // See https://stackoverflow.com/questions/44525351/delegation-tokens-with-accumulo-spark
-        val tokens = jconf.getCredentials.getAllTokens.iterator()
-        var hasNext = tokens.hasNext
-        while (hasNext) {
-          val token = tokens.next()
-          if (token.getKind.toString == "ACCUMULO_AUTH_TOKEN") {
-            logger.info("Adding ACCUMULO_AUTH_TOKEN to configuration")
-            jconf.set("org.locationtech.geomesa.token", token.encodeToUrlString())
-            hasNext = false
-          } else {
-            hasNext = tokens.hasNext
-          }
-        }
-
-        // From sc.newAPIHadoopRDD
-        new NewHadoopRDD(sc, classOf[GeoMesaAccumuloInputFormat], classOf[Text], classOf[SimpleFeature], jconf).map(_._2)
+        val config = new Configuration(conf)
+        GeoMesaAccumuloInputFormat.configure(config, paramsAsJava, qp)
+        sc.newAPIHadoopRDD(config, classOf[GeoMesaAccumuloInputFormat], classOf[Text], classOf[SimpleFeature]).map(_._2)
       }
     }
 
