@@ -14,6 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Options.CreateOpts
 import org.apache.hadoop.fs.{CreateFlag, FileContext, Path}
 import org.locationtech.geomesa.fs.storage.api._
+import org.locationtech.geomesa.fs.storage.common.metadata.FileBasedMetadata.{RenderCompact, RenderOption}
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
@@ -36,7 +37,7 @@ class FileBasedMetadataFactory extends StorageMetadataFactory {
   override def load(context: FileSystemContext): Option[FileBasedMetadata] = {
     val json = MetadataJson.readMetadata(context)
     // note: do this after loading the json to allow for old metadata transition
-    val cached = FileBasedMetadataFactory.cached(context)
+    val cached = FileBasedMetadataFactory.cached(context, json.getOrElse(FileBasedMetadata.DefaultOptions).options)
     json match {
       case Some(m) if m.name.equalsIgnoreCase(name) =>
         cached.orElse(throw new IllegalArgumentException(s"Could not load metadata at root '${context.root.toUri}'"))
@@ -54,11 +55,12 @@ class FileBasedMetadataFactory extends StorageMetadataFactory {
   override def create(context: FileSystemContext, config: Map[String, String], meta: Metadata): FileBasedMetadata = {
     val sft = namespaced(meta.sft, context.namespace)
     // load the partition scheme first in case it fails
-    val scheme = PartitionSchemeFactory.load(sft, meta.scheme)
+    PartitionSchemeFactory.load(sft, meta.scheme)
+    val renderer = RenderOption(config)
     MetadataJson.writeMetadata(context, NamedOptions(name, config))
     FileBasedMetadataFactory.write(context.fc, context.root, meta)
     val directory = new Path(context.root, FileBasedMetadataFactory.MetadataDirectory)
-    val metadata = new FileBasedMetadata(context.fc, directory, sft, meta)
+    val metadata = new FileBasedMetadata(context.fc, directory, sft, meta, renderer.options)
     FileBasedMetadataFactory.cache.put(FileBasedMetadataFactory.key(context), metadata)
     metadata
   }
@@ -74,7 +76,7 @@ object FileBasedMetadataFactory extends MethodProfiling with LazyLogging {
   private def key(context: FileSystemContext): String =
     context.namespace.map(ns => s"$ns:${context.root.toUri}").getOrElse(context.root.toUri.toString)
 
-  private def cached(context: FileSystemContext): Option[FileBasedMetadata] = {
+  private def cached(context: FileSystemContext, config: Map[String, String]): Option[FileBasedMetadata] = {
     val loader = new java.util.function.Function[String, FileBasedMetadata]() {
       override def apply(ignored: String): FileBasedMetadata = {
         val file = new Path(context.root, StoragePath)
@@ -82,7 +84,8 @@ object FileBasedMetadataFactory extends MethodProfiling with LazyLogging {
           val directory = new Path(context.root, MetadataDirectory)
           val meta = WithClose(context.fc.open(file))(MetadataSerialization.deserialize)
           val sft = namespaced(meta.sft, context.namespace)
-          new FileBasedMetadata(context.fc, directory, sft, meta)
+          val renderer = RenderOption(config)
+          new FileBasedMetadata(context.fc, directory, sft, meta, renderer.options)
         }
       }
     }

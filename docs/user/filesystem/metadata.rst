@@ -5,7 +5,7 @@ FileSystem Metadata
 
 The FileSystem data store (FSDS) stores metadata about partitions and data files, to avoid having to repeatedly
 interrogate the filesystem. When a new data file is added or removed, an associated metadata entry will be created
-to track the operation.
+to track the operation. See :ref:`fsds_metadata_config` for information on how to configure the metadata.
 
 File System Persistence
 -----------------------
@@ -17,12 +17,21 @@ time required to read the metadata may be a limitation when dealing with a large
 If the number of metadata files grows too large, they may be reduced by using the :ref:`fsds_compact_command` or
 :ref:`fsds_manage_metadata_command` command-line functions, and/or manually moved into sub-folders.
 
+The file-based metadata may be specified by using the name ``file``, and supports the following configuration
+options:
+
+============================= ===================================================================================
+Key                           Description
+============================= ===================================================================================
+``render``                    The format for rendering the metadata files, either ``pretty`` or ``compact``
+============================= ===================================================================================
+
 Relational Database Persistence
 -------------------------------
 
-Alternatively, metadata may be stored in a relational database through JDBC. See :ref:`fsds_metadata_config` for
-information on how to configure the metadata. A relational database may be specified by using the name ``jdbc``,
-and supports the following configuration options (required options are marked with ``*``):
+Alternatively, metadata may be stored in a relational database through JDBC. A relational database may be
+specified by using the name ``jdbc``, and supports the following configuration options (required options are
+marked with ``*``):
 
 ============================= ===================================================================================
 Key                           Description

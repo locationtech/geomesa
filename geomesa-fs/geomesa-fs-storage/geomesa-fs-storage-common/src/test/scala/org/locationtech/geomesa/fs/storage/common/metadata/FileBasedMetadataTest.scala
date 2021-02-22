@@ -9,17 +9,19 @@
 package org.locationtech.geomesa.fs.storage.common.metadata
 
 import java.io.File
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 
-import org.apache.commons.io.FileUtils
+import org.apache.commons.io.{FileUtils, IOUtils}
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.permission.FsPermission
 import org.apache.hadoop.fs.{FileContext, Path}
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile, StorageFileAction}
-import org.locationtech.geomesa.fs.storage.api.{FileSystemContext, Metadata, NamedOptions, PartitionSchemeFactory, StorageMetadataFactory}
+import org.locationtech.geomesa.fs.storage.api._
 import org.locationtech.geomesa.fs.storage.common.utils.PathCache
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Envelope
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -153,6 +155,19 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
           metadata.getPartition("1").map(_.files) must beSome(containTheSameElementsAs(Seq(f1, f2, f3, f2mod)))
           metadata.getPartition("2").map(_.files) must beSome(containTheSameElementsAs(Seq(f5, f6, f5mod)))
         }
+      }
+    }
+    "render compactly" in {
+      withPath { context =>
+        val metadata = factory.create(context, FileBasedMetadata.DefaultOptions.options, meta)
+        metadata.addPartition(PartitionMetadata("1", Seq(f1), new Envelope(-10, 10, -5, 5), 10L))
+        val updates = list(metadata.directory).filter(_.startsWith("update"))
+        updates must haveLength(1)
+        val rendered = WithClose(fc.open(new Path(metadata.directory, updates.head))) { in =>
+          IOUtils.toString(in, StandardCharsets.UTF_8)
+        }
+        rendered must not(beEmpty)
+        rendered must not(contain(' '))
       }
     }
     "read old metadata without partition names" in {

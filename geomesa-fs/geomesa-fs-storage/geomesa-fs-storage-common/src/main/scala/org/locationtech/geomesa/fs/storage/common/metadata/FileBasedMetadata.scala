@@ -59,7 +59,8 @@ class FileBasedMetadata(
     private val fc: FileContext,
     val directory: Path,
     val sft: SimpleFeatureType,
-    private val meta: Metadata
+    private val meta: Metadata,
+    private val options: ConfigRenderOptions
   ) extends StorageMetadata with MethodProfiling with LazyLogging {
 
   import FileBasedMetadata._
@@ -401,14 +402,46 @@ class FileBasedMetadata(
 object FileBasedMetadata {
 
   val MetadataType = "file"
-  val DefaultOptions: NamedOptions = NamedOptions(MetadataType)
+  val DefaultOptions: NamedOptions = NamedOptions(MetadataType, Map(Config.RenderKey -> RenderCompact.name))
+
+  object Config {
+    val RenderKey = "render"
+  }
+
+  sealed trait RenderOption {
+    def name: String
+    def options: ConfigRenderOptions
+  }
+
+  object RenderOption {
+
+    private val options = Seq(RenderCompact, RenderPretty)
+
+    def apply(name: String): RenderOption = {
+      options.find(_.name.equalsIgnoreCase(name)).getOrElse {
+        throw new IllegalArgumentException(
+          s"Render type '$name' does not exist. Available types: ${options.map(_.name).mkString(", ")}")
+      }
+    }
+
+    def apply(config: Map[String, String]): RenderOption =
+      config.get(Config.RenderKey).map(RenderOption.apply).getOrElse(RenderCompact)
+  }
+
+  object RenderPretty extends RenderOption {
+    override val name: String = "pretty"
+    override val options: ConfigRenderOptions = ConfigRenderOptions.concise().setFormatted(true)
+  }
+
+  object RenderCompact extends RenderOption {
+    override val name: String = "compact"
+    override val options: ConfigRenderOptions = ConfigRenderOptions.concise()
+  }
 
   private val CompactedPath         = "compacted.json"
   private val UpdateFilePrefix      = "update-"
   private val UpdatePartitionPrefix = UpdateFilePrefix + "$"
   private val JsonPathSuffix        = ".json"
-
-  private val options = ConfigRenderOptions.concise().setFormatted(true)
 
   // function to add/merge an existing partition in an atomic call
   private val addMetadata = new BiFunction[PartitionMetadata, PartitionMetadata, PartitionMetadata]() {
@@ -438,7 +471,8 @@ object FileBasedMetadata {
    * @param m metadata
    * @return
    */
-  def copy(m: FileBasedMetadata): FileBasedMetadata = new FileBasedMetadata(m.fc, m.directory, m.sft, m.meta)
+  def copy(m: FileBasedMetadata): FileBasedMetadata =
+    new FileBasedMetadata(m.fc, m.directory, m.sft, m.meta, m.options)
 
   /**
    * Holder for metadata files for a partition
