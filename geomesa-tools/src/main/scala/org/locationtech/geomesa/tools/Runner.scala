@@ -60,7 +60,6 @@ trait Runner extends MethodProfiling with LazyLogging {
       JCommander.newBuilder()
           .programName(name)
           .addConverterFactory(new GeoMesaIStringConverterFactory)
-          .columnSize(math.max(79, TerminalCallback.terminalWidth().toInt))
           .build()
 
     val commands = this.commands :+ new HelpCommand(this, jc)

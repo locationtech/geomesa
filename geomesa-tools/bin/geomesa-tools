@@ -14,17 +14,13 @@ export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$(cd "`dirname "$0"
 export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%tools.dist.name%%_HOME/conf}"
 
 RUNNER="%%tools.runner%%"
+NG_RUNNER="org.locationtech.geomesa.tools.utils.NailgunServer"
 
 if [[ -f "${GEOMESA_CONF_DIR}/geomesa-env.sh" ]]; then
   . "${GEOMESA_CONF_DIR}/geomesa-env.sh"
 else
   echo >&2 "ERROR: could not read '${GEOMESA_CONF_DIR}/geomesa-env.sh', aborting script"
   exit 1
-fi
-
-if  [[ $1 = configure ]]; then
-  geomesa_configure
-  exit
 fi
 
 function load_classpath() {
@@ -64,11 +60,13 @@ function get_classpath() {
 function start_nailgun() {
   load_classpath
   get_nailgun_options # need to use global state to pass the array for correctly handling quotes
-  # start the nailgun server in a separate thread
-  coproc ngfd { java $GEOMESA_OPTS -cp $CLASSPATH org.locationtech.geomesa.tools.utils.NailgunServer "${NG_OPTS[@]}"; }
-   # read the output from the nailgun start up, this should cause use to wait until it has started
-  read -r ng_output <&"${ngfd[0]}"
-  echo $ng_output
+  echo -n "Starting Nailgun server... " >&2
+   # create a named pipe to read our nailgun startup output
+  fd="$(mktemp --tmpdir ngfdXXXX)" && rm "$fd" && mkfifo "$fd"
+  (nohup java $GEOMESA_OPTS -cp $CLASSPATH $NG_RUNNER "${NG_OPTS[@]}" >"$fd" 2>&1 ; rm "$fd") &
+  # read the output from the nailgun start up, timeout after 60 seconds
+  read -t 60 -r ng_output <$fd
+  echo $ng_output >&2
   if [[ -z $(echo $ng_output | grep started) ]]; then
     echo "Error starting Nailgun server" >&2
     exit 1
@@ -76,6 +74,7 @@ function start_nailgun() {
 }
 
 # set java process options - do this after set classpath b/c that can modify JAVA_LIBRARY_PATH
+# TODO JAVA_LIBRARY_PATH not being set, and this is being called before setting the classpath
 if [[ $1 = debug ]]; then
   GEOMESA_OPTS="$(get_options "debug")"
   shift 1
@@ -85,6 +84,8 @@ fi
 
 if [[ $1 = classpath ]]; then
   echo "$(get_classpath)" | tr ':' '\n' | sort
+elif [[ $1 = configure ]]; then
+  geomesa_configure
 elif [[ $1 = scala-console ]]; then
   shift 1
   # scala console requires options to be passed in through java_opts
