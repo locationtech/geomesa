@@ -19,6 +19,7 @@ import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionMetadat
 import org.locationtech.geomesa.fs.storage.api.{Metadata, PartitionScheme, PartitionSchemeFactory, StorageMetadata}
 import org.locationtech.geomesa.fs.storage.common.metadata.JdbcMetadata.MetadataTable
 import org.locationtech.geomesa.utils.io.WithClose
+import org.locationtech.geomesa.utils.text.StringSerialization
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
@@ -361,10 +362,9 @@ object JdbcMetadata extends LazyLogging {
           case "a" => PartitionAction.Add
           case "d" => PartitionAction.Remove
         }
-        val bounds =
-          EnvelopeConfig(results.getDouble(5), results.getDouble(6), results.getDouble(7), results.getDouble(8))
+        val bounds = Seq(results.getDouble(5), results.getDouble(6), results.getDouble(7), results.getDouble(8))
         partitions +=
-            PartitionConfig(results.getString(1), action, Set.empty, results.getLong(4), bounds, results.getInt(2))
+            PartitionConfig(results.getString(1), action, Seq.empty, results.getLong(4), bounds, results.getInt(2))
       }
       partitions.result
     }
@@ -377,9 +377,11 @@ object JdbcMetadata extends LazyLogging {
 
     val TableName = "storage_partition_files"
 
-    private val FileCol = "file"
-    private val TypeCol = "typ"
-    private val TimeCol = "ts"
+    private val FileCol   = "file"
+    private val TypeCol   = "typ"
+    private val TimeCol   = "ts"
+    private val SortCol   = "sort"
+    private val BoundsCol = "bounds"
 
     private val CreateStatement: String =
       s"create table if not exists $TableName (" +
@@ -389,16 +391,19 @@ object JdbcMetadata extends LazyLogging {
           s"$FileCol varchar(256) not null, " +
           s"$TypeCol char(1) not null, " +
           s"$TimeCol bigint, " +
+          s"$SortCol varchar(256), " +
+          s"$BoundsCol varchar(256), " +
           s"primary key ($RootCol, $NameCol, $IdCol, $FileCol))"
 
     private val InsertStatement: String =
-      s"insert into $TableName ($RootCol, $NameCol, $IdCol, $FileCol, $TypeCol, $TimeCol) values (?, ?, ?, ?, ?, ?)"
+      s"insert into $TableName ($RootCol, $NameCol, $IdCol, $FileCol, $TypeCol, $TimeCol, $SortCol, $BoundsCol) " +
+          s"values (?, ?, ?, ?, ?, ?, ?, ?)"
 
     private val DeleteStatement: String =
       s"delete from $TableName where $RootCol = ? and and $IdCol = ?"
 
     private val SelectStatement: String =
-      s"select $FileCol, $TypeCol, $TimeCol from $TableName where $RootCol = ? and $IdCol = ?"
+      s"select $FileCol, $TypeCol, $TimeCol, $SortCol, $BoundsCol from $TableName where $RootCol = ? and $IdCol = ?"
 
     private val ClearStatement: String = s"delete from $TableName where $RootCol = ?"
 
@@ -412,7 +417,7 @@ object JdbcMetadata extends LazyLogging {
         statement.setString(1, root)
         statement.setString(2, name)
         statement.setInt(3, id)
-        files.foreach { case StorageFile(file, timestamp, action) =>
+        files.foreach { case StorageFile(file, timestamp, action, sort, bounds) =>
           statement.setString(4, file)
           val char = action match {
             case StorageFileAction.Append => "a"
@@ -422,6 +427,9 @@ object JdbcMetadata extends LazyLogging {
           }
           statement.setString(5, char)
           statement.setLong(6, timestamp)
+          statement.setString(7, sort.mkString(","))
+          statement.setString(8,
+            StringSerialization.encodeSeq(bounds.flatMap { case (i, lo, hi) => Seq(i.toString, lo, hi) }))
           statement.executeUpdate()
         }
       }
@@ -435,20 +443,28 @@ object JdbcMetadata extends LazyLogging {
       }
     }
 
-    def select(connection: Connection, root: String, id: Int): Set[StorageFile] = {
-      val files = Set.newBuilder[StorageFile]
+    def select(connection: Connection, root: String, id: Int): Seq[StorageFile] = {
+      val files = Seq.newBuilder[StorageFile]
       WithClose(connection.prepareStatement(SelectStatement)) { select =>
         select.setString(1, root)
         select.setInt(2, id)
         WithClose(select.executeQuery()) { results =>
           while (results.next()) {
+            val name = results.getString(1)
             val action = results.getString(2) match {
               case "a" => StorageFileAction.Append
               case "m" => StorageFileAction.Modify
               case "d" => StorageFileAction.Delete
               case a => throw new IllegalStateException(s"Expected an action of 'a', 'm', or 'd' but got: $a")
             }
-            files += StorageFile(results.getString(1), results.getLong(3), action)
+            val ts = results.getLong(3)
+            val sort = Option(results.getString(4)).collect {
+              case s if s.nonEmpty => s.split(",").map(_.toInt).toSeq
+            }
+            val bounds = Option(results.getString(5)).map { s =>
+              StringSerialization.decodeSeq(s).grouped(3).toSeq.map { case Seq(i, lo, hi) => (i.toInt, lo, hi) }
+            }
+            files += StorageFile(name, ts, action, sort.getOrElse(Seq.empty), bounds.getOrElse(Seq.empty))
           }
         }
       }
@@ -475,14 +491,24 @@ object JdbcMetadata extends LazyLogging {
         val cols = WithClose(statement.executeQuery(s"select * from $TableName limit 1")) { results =>
           results.getMetaData.getColumnCount
         }
-        if (cols == 4) {
+        def addTypeAndTime(): Unit = {
           statement.executeUpdate(s"alter table $TableName add column $TypeCol char(1)")
           statement.executeUpdate(s"alter table $TableName add column $TimeCol bigint")
           statement.executeUpdate(s"update $TableName set $TypeCol = 'a', $TimeCol = 0")
           statement.executeUpdate(s"alter table $TableName alter column $TypeCol char(1) not null")
-        } else if (cols != 6) {
+        }
+        def addSortAndBounds(): Unit = {
+          statement.executeUpdate(s"alter table $TableName add column $SortCol varchar(256)")
+          statement.executeUpdate(s"alter table $TableName add column $BoundsCol varchar(256)")
+        }
+        if (cols == 4) {
+          addTypeAndTime()
+          addSortAndBounds()
+        } else if (cols == 6) {
+          addSortAndBounds()
+        } else if (cols != 8) {
           throw new IllegalStateException(s"Unexpected schema detected for table $TableName: " +
-              s"expected 6 columns, but found $cols")
+              s"expected 8 columns, but found $cols")
         }
       }
     }

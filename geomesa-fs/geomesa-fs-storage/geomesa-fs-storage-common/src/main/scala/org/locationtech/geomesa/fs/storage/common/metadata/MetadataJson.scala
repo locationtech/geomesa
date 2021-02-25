@@ -122,7 +122,7 @@ object MetadataJson extends MethodProfiling {
       val meta = Metadata(sft, encoding, scheme, leafStorage)
       val partitionConfig = config.getConfig("partitions")
 
-      val defaults = FileBasedMetadata.DefaultOptions
+      val defaults = FileBasedMetadata.LegacyOptions
       WithClose(new FileBasedMetadataFactory().create(context, defaults.options, meta)) { metadata =>
         partitionConfig.root().entrySet().asScala.foreach { e =>
           val name = e.getKey

@@ -144,7 +144,7 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
 
         val compacted = list(created.directory)
         compacted must haveLength(2)
-        compacted must containTheSameElementsAs(Seq("storage.json", "compacted.json"))
+        compacted must containTheSameElementsAs(Seq("storage.json", "compacted.conf"))
 
         foreach(Seq(created, FileBasedMetadata.copy(created))) { metadata =>
           metadata.encoding mustEqual encoding
@@ -163,11 +163,20 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
         metadata.addPartition(PartitionMetadata("1", Seq(f1), new Envelope(-10, 10, -5, 5), 10L))
         val updates = list(metadata.directory).filter(_.startsWith("update"))
         updates must haveLength(1)
-        val rendered = WithClose(fc.open(new Path(metadata.directory, updates.head))) { in =>
+        val update = WithClose(fc.open(new Path(metadata.directory, updates.head))) { in =>
           IOUtils.toString(in, StandardCharsets.UTF_8)
         }
-        rendered must not(beEmpty)
-        rendered must not(contain(' '))
+        update must not(beEmpty)
+        update must not(contain(' '))
+
+        metadata.compact(None, 1)
+        val compactions = list(metadata.directory).filter(_.startsWith("compact"))
+        compactions must haveLength(1)
+        val compaction = WithClose(fc.open(new Path(metadata.directory, compactions.head))) { in =>
+          IOUtils.toString(in, StandardCharsets.UTF_8)
+        }
+        compaction must not(beEmpty)
+        compaction must not(contain(' '))
       }
     }
     "read old metadata without partition names" in {
