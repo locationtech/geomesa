@@ -119,9 +119,9 @@ rst_epilog = """
 
 .. |kudu_version| replace:: 1.7.x
 
-.. |spark_required_version| replace:: 2.2.x, 2.3.x or 2.4.x
+.. |spark_required_version| replace:: 2.3.x, 2.4.x or 3.0.x
 
-.. |spark_supported_versions| replace:: versions 2.2.x, 2.3.x and 2.4.x
+.. |spark_supported_versions| replace:: versions 2.3.x, 2.4.x and 3.0.x
 
 .. |release_last| replace:: %(release_last)s
 
