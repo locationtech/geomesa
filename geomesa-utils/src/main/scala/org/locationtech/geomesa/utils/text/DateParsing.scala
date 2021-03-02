@@ -52,6 +52,12 @@ object DateParsing {
     val LocalDateQuery: TemporalQuery[LocalDate] = new TemporalQuery[LocalDate] {
       override def queryFrom(temporal: TemporalAccessor): LocalDate = LocalDate.from(temporal)
     }
+    val YearMonthQuery: TemporalQuery[YearMonth] = new TemporalQuery[YearMonth] {
+      override def queryFrom(temporal: TemporalAccessor): YearMonth = YearMonth.from(temporal)
+    }
+    val YearQuery: TemporalQuery[Year] = new TemporalQuery[Year] {
+      override def queryFrom(temporal: TemporalAccessor): Year = Year.from(temporal)
+    }
   }
 
   /**
@@ -62,11 +68,13 @@ object DateParsing {
     * @return
     */
   def parse(value: String, format: DateTimeFormatter = format): ZonedDateTime = {
-    import TemporalQueries.{LocalDateQuery, LocalQuery, ZonedQuery}
-    format.parseBest(value, ZonedQuery, LocalQuery, LocalDateQuery) match {
+    import TemporalQueries.{LocalDateQuery, LocalQuery, ZonedQuery, YearMonthQuery, YearQuery}
+    format.parseBest(value, ZonedQuery, LocalQuery, LocalDateQuery, YearMonthQuery, YearQuery) match {
       case d: ZonedDateTime => d
       case d: LocalDateTime => d.atZone(ZoneOffset.UTC)
       case d: LocalDate     => d.atTime(LocalTime.MIN).atZone(ZoneOffset.UTC)
+      case d: YearMonth     => d.atDay(1).atTime(LocalTime.MIN).atZone(ZoneOffset.UTC)
+      case d: Year          => d.atMonth(1).atDay(1).atTime(LocalTime.MIN).atZone(ZoneOffset.UTC)
     }
   }
 
