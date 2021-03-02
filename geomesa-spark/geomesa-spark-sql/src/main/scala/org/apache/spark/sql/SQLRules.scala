@@ -176,7 +176,7 @@ object SQLRules extends LazyLogging {
                 case None => join
                 case Some(joinRelation) =>
                   val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
-                  Join(newLogicalRelLeft, right, join.joinType, join.condition)
+                  SparkVersions.copy(join)(left = newLogicalRelLeft)
               }
 
             case _ => join
@@ -191,7 +191,7 @@ object SQLRules extends LazyLogging {
                 case Some(joinRelation) =>
                   val newLogicalRelLeft = SparkVersions.copy(left)(output = left.output ++ right.output, relation = joinRelation)
                   val newProjectLeft = leftProject.copy(projectList = leftProjectList ++ rightProjectList, child = newLogicalRelLeft)
-                  Join(newProjectLeft, rightProject, join.joinType, join.condition)
+                  SparkVersions.copy(join)(left = newProjectLeft)
               }
 
             case _ => join
