@@ -216,7 +216,8 @@ object Histogram {
    * @tparam T type binding
    * @return
    */
-  def equivalent[T: ClassTag](o1: T, o2: T, bins: Int): Boolean = Try(Binning(bins, (o1, o2))).isFailure
+  def equivalent[T: ClassTag](o1: T, o2: T, bins: Int): Boolean =
+     Try(Binning(bins, (o1, o2))).isFailure // this will fail if the two values map to the same bin
 
   /**
     * Creates a new binned array that encompasses the new value.
