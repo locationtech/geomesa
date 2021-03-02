@@ -15,9 +15,9 @@ import java.util.concurrent.{ExecutorService, Executors, LinkedBlockingQueue, Ti
 import java.util.function.Function
 
 import com.typesafe.config.Config
-import org.apache.camel.CamelContext
+import org.apache.camel.builder.RouteBuilder
 import org.apache.camel.impl._
-import org.apache.camel.scala.dsl.builder.RouteBuilder
+import org.apache.camel.{CamelContext, Exchange, Processor}
 import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.stream.{SimpleFeatureStreamSource, SimpleFeatureStreamSourceFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
@@ -82,7 +82,11 @@ class GenericSimpleFeatureStreamSource(val ctx: CamelContext,
   }
 
   def getProcessingRoute(inQ: LinkedBlockingQueue[String]): RouteBuilder = new RouteBuilder {
-    from(sourceRoute).process { e => inQ.put(e.getIn.getBody.asInstanceOf[String]) }
+    override def configure(): Unit = {
+      from(sourceRoute).process(new Processor{
+        override def process(exchange: Exchange): Unit = inQ.put(exchange.getIn.getBody.asInstanceOf[String])
+      })
+    }
   }
 
   override def next: SimpleFeature = outQ.poll(500, TimeUnit.MILLISECONDS)

@@ -214,13 +214,13 @@ class StreamSummary[T] private (val capacity: Int,
         sb.append("},")
       }
       if (b.counterList.size() > 0) {
-        sb.deleteCharAt(sb.length() - 1)
+        sb.deleteCharAt(sb.length - 1)
       }
       sb.append("]},")
       bNode = bNode.getPrev
     }
     if (bucketList.size() > 0) {
-      sb.deleteCharAt(sb.length() - 1)
+      sb.deleteCharAt(sb.length - 1)
     }
     sb.append(']')
     sb.toString()
