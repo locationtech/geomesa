@@ -39,8 +39,7 @@
                                         <excludes>
                                             <!-- provided by Spark -->
                                             <exclude>org.scala-lang:*</exclude>
-                                            <exclude>org.scala-lang.modules:scala-parser-combinators_2.11</exclude>
-                                            <exclude>org.scala-lang.modules:scala-xml_2.11</exclude>
+                                            <exclude>org.scala-lang.modules:*</exclude>
                                         </excludes>
                                     </artifactSet>
                                     <filters>

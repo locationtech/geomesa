@@ -20,7 +20,7 @@ object HBaseDataStoreParams extends GeoMesaDataStoreParams with SecurityParams {
   val HBaseCatalogParam =
     new GeoMesaParam[String](
       "hbase.catalog",
-      "Catalog table name",
+      "HBase catalog table name, including HBase namespace (if any) separated with a colon",
       optional = false,
       deprecatedKeys = Seq("bigtable.table.name"),
       supportsNiFiExpressions = true

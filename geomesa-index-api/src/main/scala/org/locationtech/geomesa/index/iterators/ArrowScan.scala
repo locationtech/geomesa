@@ -11,6 +11,7 @@ package org.locationtech.geomesa.index.iterators
 import java.io.ByteArrayOutputStream
 import java.util.Objects
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.vector.ipc.message.IpcOption
 import org.geotools.util.factory.Hints
 import org.locationtech.geomesa.arrow.io._
@@ -22,7 +23,6 @@ import org.locationtech.geomesa.arrow.{ArrowEncodedSft, ArrowProperties}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.api.QueryPlan.{FeatureReducer, ResultsToFeatures}
-import org.locationtech.geomesa.index.iterators.ArrowScan._
 import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
@@ -35,7 +35,9 @@ import org.opengis.filter.Filter
 
 import scala.reflect.ClassTag
 
-trait ArrowScan extends AggregatingScan[ArrowAggregate] {
+trait ArrowScan extends AggregatingScan[ArrowScan.ArrowAggregate] {
+
+  import org.locationtech.geomesa.index.iterators.ArrowScan._
 
   override def createResult(
       sft: SimpleFeatureType,
@@ -78,7 +80,7 @@ trait ArrowScan extends AggregatingScan[ArrowAggregate] {
   override protected def defaultBatchSize: Int = throw new IllegalArgumentException("Batch scan is specified per scan")
 }
 
-object ArrowScan {
+object ArrowScan extends LazyLogging {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
@@ -91,13 +93,16 @@ object ArrowScan {
     val ProxyFidsKey   = "proxy"
     val DictionaryKey  = "dict"
     val IpcVersionKey  = "ipc"
-    val TypeKey        = "type"
     val SortKey        = "sort"
     val SortReverseKey = "sort-rev"
+
+    @deprecated("Deprecated with no replacement")
+    val TypeKey = "type"
 
     @deprecated("AggregatingScan.Configuration.BatchSizeOpt")
     val BatchSizeKey: String = AggregatingScan.Configuration.BatchSizeOpt
 
+    @deprecated("Deprecated with no replacement")
     object Types {
       val BatchType = "batch"
       val DeltaType = "delta"
@@ -105,6 +110,7 @@ object ArrowScan {
     }
   }
 
+  @deprecated("Deprecated with no replacement")
   val DictionaryTopK: SystemProperty = SystemProperty("geomesa.arrow.dictionary.top", "1000")
 
   /**
@@ -156,6 +162,7 @@ object ArrowScan {
 
     if (hints.isArrowDoublePass ||
           dictionaryFields.forall(f => providedDictionaries.contains(f) || cachedDictionaries.contains(f))) {
+      logger.warn("Running deprecated Arrow double pass scan - switch to delta scans instead")
       // we have all the dictionary values, or we will run a query to determine them up front
       val dictionaries = createDictionaries(stats, sft, filter, dictionaryFields, providedDictionaries, cachedDictionaries)
       val config = baseConfig ++ Map(
@@ -165,6 +172,7 @@ object ArrowScan {
       val reducer = new BatchReducer(arrowSft, dictionaries, encoding, ipcOpts, batchSize, sort, sorted = false)
       ArrowScanConfig(config, reducer)
     } else if (hints.isArrowMultiFile) {
+      logger.warn("Running deprecated Arrow multi file scan - switch to delta scans instead")
       val config = baseConfig ++ Map(
         TypeKey       -> Configuration.Types.FileType,
         DictionaryKey -> dictionaryFields.mkString(",")
@@ -316,6 +324,7 @@ object ArrowScan {
     * @param dictionaryFields dictionaries fields
     * @param encoding encoding
     */
+  @deprecated("Deprecated with no replacement")
   class MultiFileAggregate(
       sft: SimpleFeatureType,
       dictionaryFields: Seq[String],
@@ -358,6 +367,7 @@ object ArrowScan {
    * @param reverse sort reverse or not
    * @param batchSize batch size
    */
+  @deprecated("Deprecated with no replacement")
   class MultiFileSortingAggregate(
       sft: SimpleFeatureType,
       dictionaryFields: Seq[String],
@@ -423,6 +433,7 @@ object ArrowScan {
     * @param sort sort
     * @return
     */
+  @deprecated("Deprecated with no replacement")
   class FileReducer(
       private var sft: SimpleFeatureType,
       private var dictionaryFields: Seq[String],
@@ -478,6 +489,7 @@ object ArrowScan {
     * @param dictionaries dictionaries
     * @param encoding encoding
     */
+  @deprecated("Deprecated with no replacement")
   class BatchAggregate(
       sft: SimpleFeatureType,
       dictionaries: Map[String, ArrowDictionary],
@@ -527,6 +539,7 @@ object ArrowScan {
    * @param reverse sort reverse
    * @param batchSize batch size
    */
+  @deprecated("Deprecated with no replacement")
   class SortingBatchAggregate(
       sft: SimpleFeatureType,
       dictionaries: Map[String, ArrowDictionary],
@@ -594,6 +607,7 @@ object ArrowScan {
     * @param sort sort
     * @return
     */
+  @deprecated("Deprecated with no replacement")
   class BatchReducer(
       private var sft: SimpleFeatureType,
       private var dictionaries: Map[String, ArrowDictionary],

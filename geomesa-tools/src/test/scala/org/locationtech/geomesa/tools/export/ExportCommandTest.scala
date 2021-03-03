@@ -165,6 +165,18 @@ class ExportCommandTest extends Specification {
         readFeatures(format, file) mustEqual features.take(1)
       }
     }
+    "support arrow with dictionaries and without feature ids" in {
+      val format = ExportFormat.Arrow
+      val file = s"$out/${format.name}/fid/out.${format.extensions.head}"
+      withCommand { command =>
+        command.params.file = file
+        command.params.hints = Map("ARROW_INCLUDE_FID" -> "false", "ARROW_DICTIONARY_FIELDS" -> "name").asJava
+        command.execute()
+      }
+      val result = readFeatures(format, file)
+      result.map(_.getAttributes) mustEqual features.map(_.getAttributes)
+      foreach(features.map(_.getID))(id => result.map(_.getID) must not(contain(id)))
+    }
   }
 
   step {

@@ -155,7 +155,7 @@ class CassandraDataStoreTest extends Specification {
         val filterLine = "Client-side filter: "
         val clientSideFilter = out.toString.split("\n").map(_.trim).find(_.startsWith(filterLine)).map(_.substring(filterLine.length))
         if (loose) {
-          clientSideFilter must beSome("None")
+          clientSideFilter must beSome("none")
         } else {
           clientSideFilter must beSome(org.locationtech.geomesa.filter.filterToString(filter))
         }

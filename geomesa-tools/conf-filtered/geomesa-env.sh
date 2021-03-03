@@ -202,7 +202,7 @@ function check_classpath() {
     group="${gav%%:*}"
     artifact="${gav#$group:}"
     artifact="${artifact%%:*}"
-    if [[ $classpath != *"$artifact"* ]]; then
+    if [[ ! $classpath =~ (^|:|/)${artifact}(-[^:]*)*\.jar ]]; then
       missing+=("$gav")
     fi
   done
@@ -241,8 +241,9 @@ function check_classpath() {
 
 function disable_classpath_checks() {
   if [[ -n "$(grep '^export GEOMESA_CHECK_DEPENDENCIES' "${GEOMESA_CONF_DIR}/geomesa-env.sh")" ]]; then
+    local tmpfile="$(mktemp)"
     sed 's/^export GEOMESA_CHECK_DEPENDENCIES.*/export GEOMESA_CHECK_DEPENDENCIES="false"/' \
-      "${GEOMESA_CONF_DIR}/geomesa-env.sh" > tmp && mv tmp "${GEOMESA_CONF_DIR}/geomesa-env.sh" \
+      "${GEOMESA_CONF_DIR}/geomesa-env.sh" >> $tmpfile && mv $tmpfile "${GEOMESA_CONF_DIR}/geomesa-env.sh" \
       && echo >&2 "You may re-enable classpath checks by setting GEOMESA_CHECK_DEPENDENCIES=true in ${GEOMESA_CONF_DIR}/geomesa-env.sh$newline"
   else
     echo >&2 "You may disable classpath checks by setting GEOMESA_CHECK_DEPENDENCIES=false in ${GEOMESA_CONF_DIR}/geomesa-env.sh$newline"

@@ -122,7 +122,8 @@ object MetadataJson extends MethodProfiling {
       val meta = Metadata(sft, encoding, scheme, leafStorage)
       val partitionConfig = config.getConfig("partitions")
 
-      WithClose(new FileBasedMetadataFactory().create(context, Map.empty, meta)) { metadata =>
+      val defaults = FileBasedMetadata.LegacyOptions
+      WithClose(new FileBasedMetadataFactory().create(context, defaults.options, meta)) { metadata =>
         partitionConfig.root().entrySet().asScala.foreach { e =>
           val name = e.getKey
           val files = partitionConfig.getStringList(name).asScala.map(StorageFile(_, 0L))
@@ -130,7 +131,7 @@ object MetadataJson extends MethodProfiling {
         }
       }
 
-      Some(FileBasedMetadata.DefaultOptions)
+      Some(defaults)
     } catch {
       case NonFatal(e) => logger.warn("Error transitioning old metadata format: ", e); None
     }

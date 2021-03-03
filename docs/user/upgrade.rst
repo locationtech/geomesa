@@ -105,6 +105,12 @@ Lambda Data Store Binary Distribution Change
 The Lambda data store binary distribution no longer contains the ``geomesa-accumulo-distributed-runtime`` JAR.
 This JAR is available in the Accumulo data store binary distribution.
 
+Deprecated Arrow Output Options
+-------------------------------
+
+The Arrow output options for providing cached dictionaries, returning multiple logical files, and running
+queries in two passes have been deprecated and will be removed in the next major version.
+
 Version 3.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 

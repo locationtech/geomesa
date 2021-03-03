@@ -15,7 +15,7 @@ import org.apache.hadoop.io.Text
 import org.apache.hadoop.mapred.JobConf
 import org.apache.hadoop.mapreduce.Job
 import org.apache.spark.SparkContext
-import org.apache.spark.deploy.SparkHadoopUtil
+import org.apache.spark.deploy.SparkHadoopUtilShim
 import org.apache.spark.rdd.{NewHadoopRDD, RDD}
 import org.geotools.data.{DataStoreFinder, Query, Transaction}
 import org.locationtech.geomesa.accumulo.data.AccumuloQueryPlan.{BatchScanPlan, EmptyPlan}
@@ -60,7 +60,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
         // From sc.newAPIHadoopRDD
         // Add necessary security credentials to the JobConf. Required to access secure HDFS.
         val jconf = job.getConfiguration.asInstanceOf[JobConf]
-        SparkHadoopUtil.get.addCredentials(jconf)
+        SparkHadoopUtilShim.addCredentials(jconf)
 
         // Iterate over tokens in credentials and add the Accumulo one to the configuration directly
         // This is because the credentials seem to disappear between here and the YARN executor

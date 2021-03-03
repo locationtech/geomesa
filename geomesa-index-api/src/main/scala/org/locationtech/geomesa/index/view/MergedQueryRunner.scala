@@ -17,6 +17,7 @@ import org.locationtech.geomesa.filter.factory.FastFilterFactory
 import org.locationtech.geomesa.index.conf.QueryHints
 import org.locationtech.geomesa.index.conf.QueryHints.ARROW_DICTIONARY_CACHED
 import org.locationtech.geomesa.index.geoserver.ViewParams
+import org.locationtech.geomesa.index.iterators.ArrowScan.logger
 import org.locationtech.geomesa.index.iterators.{ArrowScan, DensityScan, StatsScan}
 import org.locationtech.geomesa.index.planning.QueryInterceptor.QueryInterceptorFactory
 import org.locationtech.geomesa.index.planning.{LocalQueryRunner, QueryPlanner, QueryRunner}
@@ -138,6 +139,9 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
     // do the reduce here, as we can't merge finalized arrow results
     val reduce = if (hints.isArrowDoublePass ||
         dictionaryFields.forall(f => providedDictionaries.contains(f) || cachedDictionaries.contains(f))) {
+      if (dictionaryFields.nonEmpty) {
+        logger.warn("Running deprecated Arrow double pass scan - switch to delta scans instead")
+      }
       // we have all the dictionary values, or we will run a query to determine them up front
       val filter = Option(query.getFilter).filter(_ != Filter.INCLUDE).map(FastFilterFactory.optimize(sft, _))
       val dictionaries = ArrowScan.createDictionaries(ds.stats, sft, filter, dictionaryFields,
@@ -146,6 +150,7 @@ class MergedQueryRunner(ds: HasGeoMesaStats, stores: Seq[(Queryable, Option[Filt
       hints.setArrowDictionaryEncodedValues(dictionaries.map { case (k, v) => (k, v.iterator.toSeq) })
       new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, ipcOpts, batchSize, sort, sorted = false)
     } else if (hints.isArrowMultiFile) {
+      logger.warn("Running deprecated Arrow multi file scan - switch to delta scans instead")
       new ArrowScan.FileReducer(arrowSft, dictionaryFields, encoding, ipcOpts, sort)
     } else {
       new ArrowScan.DeltaReducer(arrowSft, dictionaryFields, encoding, ipcOpts, batchSize, sort, sorted = false)

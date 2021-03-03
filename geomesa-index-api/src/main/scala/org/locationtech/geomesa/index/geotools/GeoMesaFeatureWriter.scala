@@ -248,6 +248,8 @@ object GeoMesaFeatureWriter extends LazyLogging {
     */
   trait GeoMesaModifyFeatureWriter[DS <: GeoMesaDataStore[DS]] extends GeoMesaFeatureWriter[DS] {
 
+    import org.locationtech.geomesa.security.SecureSimpleFeature
+
     def filter: Filter
 
     private val reader = ds.getFeatureReader(new Query(sft.getTypeName, filter), Transaction.AUTO_COMMIT)
@@ -277,7 +279,7 @@ object GeoMesaFeatureWriter extends LazyLogging {
       live = GeoMesaFeatureWriter.featureWithFid(live)
       // only write if feature has actually changed...
       // comparison of feature ID and attributes - doesn't consider concrete class used
-      if (!ScalaSimpleFeature.equalIdAndAttributes(live, original)) {
+      if (!ScalaSimpleFeature.equalIdAndAttributes(live, original) || live.visibility != original.visibility) {
         removeFeature(original)
         writeFeature(live, update = true)
       }
