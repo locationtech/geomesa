@@ -12,7 +12,6 @@ import org.locationtech.geomesa.arrow.tools.export.ArrowExportCommand
 import org.locationtech.geomesa.arrow.tools.ingest.ArrowIngestCommand
 import org.locationtech.geomesa.arrow.tools.stats._
 import org.locationtech.geomesa.arrow.tools.status._
-import org.locationtech.geomesa.tools.export.GenerateAvroSchemaCommand
 import org.locationtech.geomesa.tools.{Command, Runner}
 
 object ArrowRunner extends Runner {
@@ -26,7 +25,6 @@ object ArrowRunner extends Runner {
       new ArrowIngestCommand,
       new ArrowGetTypeNamesCommand,
       new ArrowGetSftConfigCommand,
-      new GenerateAvroSchemaCommand,
       new ArrowStatsBoundsCommand,
       new ArrowStatsCountCommand,
       new ArrowStatsTopKCommand,
