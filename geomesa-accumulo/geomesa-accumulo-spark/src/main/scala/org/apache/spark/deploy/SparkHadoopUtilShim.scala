@@ -6,13 +6,11 @@
  * http://www.opensource.org/licenses/apache2.0.php.
  ***********************************************************************/
 
-package org.locationtech.geomesa.index
+package org.apache.spark.deploy
 
-package object conf {
+import org.apache.hadoop.mapred.JobConf
 
-  object FilterCompatibility extends Enumeration {
-    type FilterCompatibility = Value
-    val `1.3`: Value = Value("1.3")
-    val `2.3`: Value = Value("2.3")
-  }
+object SparkHadoopUtilShim {
+
+  def addCredentials(conf: JobConf): Unit = SparkHadoopUtil.get.addCredentials(conf)
 }

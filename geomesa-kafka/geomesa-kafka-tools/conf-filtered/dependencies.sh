@@ -31,7 +31,7 @@ function dependencies() {
   fi
 
   declare -a gavs=(
-    "org.apache.kafka:kafka_2.11:${kafka_version}:jar"
+    "org.apache.kafka:kafka_%%scala.binary.version%%:${kafka_version}:jar"
     "org.apache.kafka:kafka-clients:${kafka_version}:jar"
     "org.apache.zookeeper:zookeeper:${zk_version}:jar"
     "com.101tec:zkclient:${zkclient_version}:jar"

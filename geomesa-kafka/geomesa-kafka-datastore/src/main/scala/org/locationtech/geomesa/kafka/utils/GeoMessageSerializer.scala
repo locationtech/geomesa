@@ -111,7 +111,7 @@ object GeoMessageSerializer {
       try {
         // use the feature id if available, otherwise (for clear) use random shard
         if (keyBytes.length > 0) {
-          Math.abs(MurmurHash3.bytesHash(keyBytes)) % count
+          Math.abs(MurmurHash3.bytesHash(keyBytes, MurmurHash3.arraySeed)) % count
         } else {
           Random.nextInt(count)
         }

@@ -263,14 +263,6 @@ following query hints:
 +-------------------------------------+--------------------+------------------------------------+
 | QueryHints.ARROW_DICTIONARY_FIELDS  | String (optional)  | dictionaryFields                   |
 +-------------------------------------+--------------------+------------------------------------+
-| QueryHints.ARROW_DICTIONARY_VALUES  | String (optional)  | N/A                                |
-+-------------------------------------+--------------------+------------------------------------+
-| QueryHints.ARROW_DICTIONARY_CACHED  | Boolean (optional) | useCachedDictionaries              |
-+-------------------------------------+--------------------+------------------------------------+
-| QueryHints.ARROW_MULTI_FILE         | Boolean (optional) | N/A                                |
-+-------------------------------------+--------------------+------------------------------------+
-| QueryHints.ARROW_DOUBLE_PASS        | Boolean (optional) | doublePass                         |
-+-------------------------------------+--------------------+------------------------------------+
 | QueryHints.ARROW_BATCH_SIZE         | Integer (optional) | batchSize                          |
 +-------------------------------------+--------------------+------------------------------------+
 | QueryHints.ARROW_FORMAT_VERSION     | String (optional)  | formatVersion                      |
@@ -311,63 +303,6 @@ ARROW_DICTIONARY_FIELDS
 
 This hint indicates which simple feature attributes should be dictionary encoded. It should be a comma-separated
 list of attribute names.
-
-ARROW_DICTIONARY_VALUES
-^^^^^^^^^^^^^^^^^^^^^^^
-
-This hint indicates known dictionary values to use for encoding each field. This allows for specifying a known
-dictionary up front, which means the dictionary doesn't have to be computed. Values which are not indicated
-in the dictionary will be grouped under 'other'.
-
-The hint should be an encoded map of attribute names to attribute values. The hint should be encoded in
-comma-separated values format, where each line indicates a different attribute. The first item in each line is
-the attribute name, and the subsequent items are dictionary values. Standard CSV escaping can be used. The function
-``org.locationtech.geomesa.utils.text.StringSerialization.encodeSeqMap`` can be used to encode a map of values.
-
-.. tabs::
-
-    .. code-tab:: scala
-
-        import org.locationtech.geomesa.index.conf.QueryHints
-        import org.locationtech.geomesa.utils.text.StringSerialization.encodeSeqMap
-
-        val dictionaries1 =
-            """
-              |name,Harry,Hermione,Severus
-              |age,20,25,30
-            """.stripMargin.trim
-
-        // equivalent to dictionaries1
-        val dictionaries2 = {
-          val map = Map(
-            "name" -> Array("Harry", "Hermione", "Severus"),
-            "age"  -> Array(20, 25, 30)
-          )
-          encodeSeqMap(map)
-        }
-
-        query.getHints.put(QueryHints.ARROW_DICTIONARY_VALUES, dictionaries1)
-
-ARROW_DICTIONARY_CACHED
-^^^^^^^^^^^^^^^^^^^^^^^
-
-This hint indicates that cached statistics (top-k) will be used for dictionaries, if available. Otherwise,
-dictionaries will be computed based on the data returned, which may be slower.
-
-ARROW_MULTI_FILE
-^^^^^^^^^^^^^^^^
-
-This hint will cause multiple logical Arrow files to be returned, instead of a single file. This will generally
-be faster, as no client-side merging needs to be done. However, any sorting will only be applied per file, not
-globally. Also, the end result tends to be larger (in bytes), as metadata and dictionary values may be repeated
-in different logical files.
-
-ARROW_DOUBLE_PASS
-^^^^^^^^^^^^^^^^^
-
-This hint will cause any dictionaries to be computed first, through a separate scan. A second scan will
-construct the Arrow files. This is the behavior of the initial GeoMesa Arrow implementation, and is only
-included for back compatibility.
 
 ARROW_BATCH_SIZE
 ^^^^^^^^^^^^^^^^

@@ -93,6 +93,13 @@
             <artifactId>kafka-schema-registry</artifactId>
             <version>${confluent.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <!-- exclude 2.11 jar so that we can bring in 2.12 or 2.11 as appropriate-->
+                    <groupId>org.apache.kafka</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.confluent</groupId>
@@ -100,6 +107,13 @@
             <version>${confluent.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <!-- exclude 2.11 jar so that we can bring in 2.12 or 2.11 as appropriate-->
+                    <groupId>org.apache.kafka</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.curator</groupId>
