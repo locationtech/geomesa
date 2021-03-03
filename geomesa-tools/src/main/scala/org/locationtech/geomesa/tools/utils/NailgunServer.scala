@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.utils
 
 import java.net.InetAddress
 import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
-import java.util.concurrent.{Executors, Future, Phaser, TimeUnit}
+import java.util.concurrent.{Future, Phaser, TimeUnit}
 
 import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{JCommander, Parameter}
@@ -20,7 +20,7 @@ import com.github.benmanes.caffeine.cache.{CacheLoader, Caffeine, LoadingCache}
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.utils.NailgunServer.{CommandStat, NailgunAware}
 import org.locationtech.geomesa.tools.utils.ParameterConverters.DurationConverter
-import org.locationtech.geomesa.utils.concurrent.ExitingExecutor.DaemonThreadFactory
+import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 
 import scala.concurrent.duration.Duration
 
@@ -41,9 +41,7 @@ class NailgunServer(addr: InetAddress, port: Int, sessionPoolSize: Int, timeoutM
     }
   )
 
-  private val idle: Future[_] =
-    Executors.newSingleThreadExecutor(new DaemonThreadFactory(Executors.defaultThreadFactory()))
-        .submit(new IdleCheck())
+  private val idle: Future[_] = CachedThreadPool.submit(new IdleCheck())
 
   def execute(command: Command): Unit = {
     requests.register()
