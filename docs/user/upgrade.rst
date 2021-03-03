@@ -99,6 +99,12 @@ FileSystem Data Store Metadata Format Change
 The metadata format for the FileSystem data store has been changed to support storing arbitrary key-value pairs.
 Any data written with version 3.2.0 or later will not be readable by earlier GeoMesa versions.
 
+Deprecated Arrow Output Options
+-------------------------------
+
+The Arrow output options for providing cached dictionaries, returning multiple logical files, and running
+queries in two passes have been deprecated and will be removed in the next major version.
+
 Version 3.1.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
