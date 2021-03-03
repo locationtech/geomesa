@@ -23,6 +23,7 @@ import org.apache.accumulo.core.client.security.tokens.{KerberosToken, PasswordT
 import org.apache.accumulo.core.data.{Key, Value}
 import org.apache.accumulo.core.security.Authorizations
 import org.apache.accumulo.core.util.{Pair => AccPair}
+import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.io.{Text, Writable}
 import org.apache.hadoop.mapreduce._
 import org.apache.hadoop.security.UserGroupInformation
@@ -109,50 +110,32 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 
   val SYS_PROP_SPARK_LOAD_CP = "org.locationtech.geomesa.spark.load-classpath"
 
-  def configure(
-      job: Job,
-      dsParams: Map[String, String],
-      featureTypeName: String,
-      filter: Option[String] = None,
-      transform: Option[Array[String]] = None): Unit = {
-    val ecql = filter.map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
-    configure(job, dsParams, new Query(featureTypeName, ecql, transform.getOrElse(Query.ALL_NAMES)))
-  }
-
   /**
-    * Configure the input format based on a query
-    *
-    * @param job job to configure
-    * @param params data store parameters
-    * @param query query
-    */
-  def configure(job: Job, params: Map[String, String], query: Query): Unit =
-    configure(job, params.asJava, query)
-
-  /**
-    * Configure the input format based on a query
-    *
-    * @param job job to configure
-    * @param params data store parameters
-    * @param query query
-    */
-  def configure(job: Job, params: java.util.Map[String, _], query: Query): Unit = {
+   * Configure the input format based on a query
+   *
+   * @param conf configuration to update
+   * @param params data store parameters
+   * @param query query
+   */
+  def configure(conf: Configuration, params: java.util.Map[String, _], query: Query): Unit = {
     // get the query plan to set up the iterators, ranges, etc
     val plan = WithStore[AccumuloDataStore](params) { ds =>
       require(ds != null, "Invalid data store parameters")
       AccumuloJobUtils.getSingleQueryPlan(ds, query)
     }
-    configure(job, params, plan)
+    configure(conf, params, plan)
   }
 
   /**
-    * Configure the input format based on a query plan
-    *
-    * @param job job to configure
-    * @param params data store parameters
-    * @param plan query plan
-    */
-  def configure(job: Job, params: java.util.Map[String, _], plan: AccumuloQueryPlan): Unit = {
+   * Configure the input format based on a query plan
+   *
+   * @param conf configuration to update
+   * @param params data store parameters
+   * @param plan query plan
+   */
+  def configure(conf: Configuration, params: java.util.Map[String, _], plan: AccumuloQueryPlan): Unit = {
+    // assertion: all accumulo input config requires a job, but really just updates the job conf
+    val job = new Job(conf)
     job.setInputFormatClass(classOf[GeoMesaAccumuloInputFormat])
 
     // set zookeeper instance
@@ -196,12 +179,38 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
 
     InputFormatBase.setBatchScan(job, true)
 
-    val conf = job.getConfiguration
+    // add the configurations back into the original conf
+    conf.addResource(job.getConfiguration)
+
     GeoMesaConfigurator.setResultsToFeatures(conf, plan.resultsToFeatures)
     plan.reducer.foreach(GeoMesaConfigurator.setReducer(conf, _))
     plan.sort.foreach(GeoMesaConfigurator.setSorting(conf, _))
     plan.projection.foreach(GeoMesaConfigurator.setProjection(conf, _))
   }
+
+  @deprecated("Use configure(conf, ...)")
+  def configure(
+      job: Job,
+      dsParams: Map[String, String],
+      featureTypeName: String,
+      filter: Option[String] = None,
+      transform: Option[Array[String]] = None): Unit = {
+    val ecql = filter.map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
+    val query = new Query(featureTypeName, ecql, transform.getOrElse(Query.ALL_NAMES))
+    configure(job.getConfiguration, dsParams.asJava, query)
+  }
+
+  @deprecated("Use configure(conf, ...)")
+  def configure(job: Job, params: Map[String, String], query: Query): Unit =
+    configure(job.getConfiguration, params.asJava, query)
+
+  @deprecated("Use configure(conf, ...)")
+  def configure(job: Job, params: java.util.Map[String, _], query: Query): Unit =
+    configure(job.getConfiguration, params, query)
+
+  @deprecated("Use configure(conf, ...)")
+  def configure(job: Job, params: java.util.Map[String, _], plan: AccumuloQueryPlan): Unit =
+    configure(job.getConfiguration, params, plan)
 
   /**
    * This takes any jars that have been loaded by spark in the context classloader and makes them
