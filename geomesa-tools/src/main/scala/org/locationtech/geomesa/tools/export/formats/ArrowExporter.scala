@@ -17,20 +17,17 @@ import org.locationtech.geomesa.arrow.ArrowProperties
 import org.locationtech.geomesa.arrow.io.{DictionaryBuildingWriter, FormatVersion, SimpleFeatureArrowFileWriter}
 import org.locationtech.geomesa.arrow.vector.ArrowDictionary
 import org.locationtech.geomesa.arrow.vector.SimpleFeatureVector.SimpleFeatureEncoding
+import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
 import org.locationtech.geomesa.tools.export.formats.ArrowExporter.{BatchDelegate, DictionaryDelegate, EncodedDelegate}
-import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
+import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
 import org.locationtech.geomesa.utils.io.CloseWithLogging
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.reflect.ClassTag
 
-class ArrowExporter(
-    os: OutputStream,
-    counter: ByteCounter,
-    hints: Hints,
-    queryDictionaries: => Map[String, Array[AnyRef]]
-  ) extends ByteCounterExporter(counter) {
+class ArrowExporter(stream: ExportStream, hints: Hints, queryDictionaries: => Map[String, Array[AnyRef]])
+    extends ByteCounterExporter(stream) {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
@@ -44,7 +41,7 @@ class ArrowExporter(
 
   override def start(sft: SimpleFeatureType): Unit = {
     delegate = if (sft == org.locationtech.geomesa.arrow.ArrowEncodedSft) {
-      new EncodedDelegate(os)
+      new EncodedDelegate(stream.os)
     } else {
       val providedDictionaries = hints.getArrowDictionaryEncodedValues(sft)
       if (dictionaryFields.forall(providedDictionaries.contains)) {
@@ -54,12 +51,12 @@ class ArrowExporter(
           k -> ArrowDictionary.create(sft.getTypeName, id, v)(ClassTag[AnyRef](sft.getDescriptor(k).getType.getBinding))
         }
         // note: features should be sorted already, even if arrow encoding wasn't performed
-        new BatchDelegate(os, encoding, FormatVersion.options(ipc), sort, batchSize, dictionaries)
+        new BatchDelegate(stream.os, encoding, FormatVersion.options(ipc), sort, batchSize, dictionaries)
       } else {
         if (sort.isDefined) {
           throw new NotImplementedError("Sorting and calculating dictionaries at the same time is not supported")
         }
-        new DictionaryDelegate(os, dictionaryFields, encoding, FormatVersion.options(ipc), batchSize)
+        new DictionaryDelegate(stream.os, dictionaryFields, encoding, FormatVersion.options(ipc), batchSize)
       }
     }
     delegate.start(sft)
@@ -69,7 +66,7 @@ class ArrowExporter(
 
   override def close(): Unit = {
     CloseWithLogging(Option(delegate))
-    os.close()
+    stream.close()
   }
 }
 

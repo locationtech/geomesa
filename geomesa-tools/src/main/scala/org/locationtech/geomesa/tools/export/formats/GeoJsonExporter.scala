@@ -8,19 +8,21 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io.{OutputStream, OutputStreamWriter}
+import java.io.OutputStreamWriter
 
+import com.google.gson.stream.JsonWriter
 import org.locationtech.geomesa.features.serialization.GeoJsonSerializer
-import org.locationtech.geomesa.tools.export.formats.FeatureExporter.{ByteCounter, ByteCounterExporter}
+import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ExportStream
+import org.locationtech.geomesa.tools.export.formats.FeatureExporter.ByteCounterExporter
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-class GeoJsonExporter(os: OutputStream, counter: ByteCounter) extends ByteCounterExporter(counter) {
+class GeoJsonExporter(stream: ExportStream) extends ByteCounterExporter(stream) {
 
-  private val writer = GeoJsonSerializer.writer(new OutputStreamWriter(os))
-
+  private var writer: JsonWriter = _
   private var serializer: GeoJsonSerializer = _
 
   override def start(sft: SimpleFeatureType): Unit = {
+    writer = GeoJsonSerializer.writer(new OutputStreamWriter(stream.os))
     serializer = new GeoJsonSerializer(sft)
     serializer.startFeatureCollection(writer)
   }
@@ -40,10 +42,12 @@ class GeoJsonExporter(os: OutputStream, counter: ByteCounter) extends ByteCounte
       if (serializer != null) {
         serializer.endFeatureCollection(writer)
         writer.flush()
-        os.write('\n')
+        stream.os.write('\n')
       }
     } finally {
-      writer.close() // also closes underlying writer and output stream
+      if (writer != null) {
+        writer.close() // also closes underlying writer and output stream
+      }
     }
   }
 }
