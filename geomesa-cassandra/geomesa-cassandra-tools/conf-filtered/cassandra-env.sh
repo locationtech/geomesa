@@ -33,3 +33,6 @@ function get_cassandra_classpath() {
     echo "$classpath"
   fi
 }
+
+get_cassandra_classpath
+

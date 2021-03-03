@@ -10,8 +10,8 @@
 type=$1
 
 # configure HOME
-export %%gmtools.dist.name%%_HOME="${%%gmtools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
-data_dir="${%%gmtools.dist.name%%_HOME}/data"
+export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
+data_dir="${%%tools.dist.name%%_HOME}/data"
 
 NL=$'\n'
 case "$type" in

@@ -35,6 +35,14 @@ Argument                  Description
 
 Lists available commands. The arguments for specific commands can be shown using ``help <command>``.
 
+.. _ng_command:
+
+``ng``
+------
+
+The ``ng`` command can be used to ``start``, ``stop``, get ``stats``, or view the ``classpath`` from the
+command Nailgun server. See :ref:`nailgun_server` for details.
+
 ``version``
 -----------
 

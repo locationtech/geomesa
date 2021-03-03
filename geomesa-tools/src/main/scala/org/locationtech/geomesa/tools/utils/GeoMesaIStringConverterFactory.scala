@@ -16,8 +16,8 @@ class GeoMesaIStringConverterFactory extends IStringConverterFactory {
 
   import GeoMesaIStringConverterFactory.ConverterMap
 
-  override def getConverter[T](forType: Class[T]): Class[_ <: IStringConverter[T]] =
-    ConverterMap.getOrElse(forType, null).asInstanceOf[Class[IStringConverter[T]]]
+  override def getConverter(forType: Class[_]): Class[_ <: IStringConverter[_]] =
+    ConverterMap.getOrElse(forType, null)
 }
 
 object GeoMesaIStringConverterFactory {

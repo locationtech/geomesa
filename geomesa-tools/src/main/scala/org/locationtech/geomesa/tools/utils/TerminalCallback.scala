@@ -13,20 +13,10 @@ import java.io.PrintStream
 import org.locationtech.geomesa.jobs.StatusCallback
 import org.locationtech.geomesa.utils.text.TextTools
 
-import scala.util.Try
-
 object TerminalCallback {
 
-  lazy private val terminalWidth: () => Float = {
-    val jline = for {
-      terminalClass <- Try(Class.forName("jline.Terminal"))
-      terminal      <- Try(terminalClass.getMethod("getTerminal").invoke(null))
-      method        <- Try(terminalClass.getMethod("getTerminalWidth"))
-    } yield {
-      () => method.invoke(terminal).asInstanceOf[Int].toFloat
-    }
-    jline.getOrElse(() => 1.0f)
-  }
+  @deprecated("JLine breaks tty settings when invoked")
+  lazy val terminalWidth: () => Float = () => 1.0f
 
   def apply(mock: Boolean = false): StatusCallback = {
     if (mock) {
@@ -55,17 +45,9 @@ object TerminalCallback {
       }
       val info = s" $percent% complete$counterString in ${TextTools.getTime(start)}"
 
-      // Figure out if and how much the progress bar should be scaled to accommodate smaller terminals
-      val scaleFactor: Float = {
-        val tWidth = terminalWidth()
-        // Sanity check as jline may not be correct. We also don't scale up, ~112 := scaleFactor = 1.0f
-        if (tWidth > info.length + 3 && tWidth < emptyBar.length + info.length + 2 + prefix.length) {
-          // Screen Width 80 yields scaleFactor of .46
-          (tWidth - info.length - 2 - prefix.length) / emptyBar.length // -2 is for brackets around bar
-        } else {
-          1.0f
-        }
-      }
+      // scale factor for the progress bar to accommodate smaller terminals
+      // no longer used due to bugs in jline, but logic left in case we want to resurrect it
+      val scaleFactor: Float = 1.0f
 
       val scaledLen = (emptyBar.length * scaleFactor).toInt
       val numDone = (scaledLen * progress).toInt

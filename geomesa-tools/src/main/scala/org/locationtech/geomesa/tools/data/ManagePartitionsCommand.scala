@@ -10,7 +10,7 @@ package org.locationtech.geomesa.tools.data
 
 import java.time.{ZoneOffset, ZonedDateTime}
 
-import com.beust.jcommander.{JCommander, Parameter, ParameterException, Parameters}
+import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.conf.partition.{TablePartition, TimePartition}
@@ -19,18 +19,15 @@ import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.data.ManagePartitionsCommand._
 import org.locationtech.geomesa.tools.utils.ParameterConverters.IntervalConverter
 import org.locationtech.geomesa.tools.utils.Prompt
+import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.text.StringSerialization
-import org.locationtech.geomesa.utils.date.DateUtils.toInstant
 import org.opengis.feature.simple.SimpleFeatureType
 
 /**
   * List, add, delete partitioned tables
-  *
-  * @param runner runner
-  * @param jc jcommander instance
   */
-abstract class ManagePartitionsCommand(val runner: Runner, val jc: JCommander) extends CommandWithSubCommands {
+trait ManagePartitionsCommand extends CommandWithSubCommands {
 
   override val name = "manage-partitions"
   override val params = new ManagePartitionsParams()
@@ -113,7 +110,7 @@ object ManagePartitionsCommand {
       }
       val tableToIndexName = indexNames
         .toList
-        .sortWith(_._3.size > _._3.size) // Sorted so we get best match first
+        .sortWith(_._3.length > _._3.length) // Sorted so we get best match first
         .foldLeft(Map[String,(GeoMesaFeatureIndex[_,_],String,String,String)]()){
           (mappedTables,indexName) =>
           val fullMatches = tables.filter(table =>

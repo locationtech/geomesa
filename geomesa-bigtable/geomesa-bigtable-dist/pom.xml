@@ -2,7 +2,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.locationtech.geomesa</groupId>
-        <artifactId>geomesa-bigtable_2.11</artifactId>
+        <artifactId>geomesa-archetypes-binary-dist_2.11</artifactId>
+        <relativePath>../../geomesa-archetypes/geomesa-archetypes-binary-dist/pom.xml</relativePath>
         <version>3.2.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -12,8 +13,10 @@
     <name>GeoMesa BigTable Distribution</name>
 
     <properties>
+        <tools.module>bigtable</tools.module>
+        <tools.dist.name>GEOMESA_BIGTABLE</tools.dist.name>
+        <tools.runner>org.locationtech.geomesa.bigtable.tools.BigtableRunner</tools.runner>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <gmtools.dist.name>GEOMESA_BIGTABLE</gmtools.dist.name> <!-- used in tools filtering -->
     </properties>
 
     <dependencies>
@@ -30,20 +33,11 @@
             <artifactId>geomesa-bigtable-gs-plugin_${scala.binary.version}</artifactId>
             <type>pom</type>
         </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-process-wps_2.11</artifactId>
-        </dependency>
 
         <!-- tools -->
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-bigtable-tools_2.11</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.locationtech.geomesa</groupId>
-            <artifactId>geomesa-tools_${scala.binary.version}</artifactId>
-            <classifier>data</classifier>
         </dependency>
 
         <!-- spark support -->
@@ -52,7 +46,6 @@
             <artifactId>geomesa-bigtable-spark_2.11</artifactId>
             <version>${project.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.locationtech.geomesa</groupId>
             <artifactId>geomesa-bigtable-spark-runtime_2.11</artifactId>
@@ -75,29 +68,6 @@
             <artifactId>hbase-client</artifactId>
             <scope>compile</scope>
         </dependency>
-
-        <dependency>
-            <groupId>com.google.cloud.bigtable</groupId>
-            <artifactId>bigtable-hbase-1.x-hadoop</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.google.cloud.bigtable</groupId>
-            <artifactId>bigtable-hbase-1.x-mapreduce</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <scope>compile</scope>
-        </dependency>
-
     </dependencies>
 
     <build>
@@ -105,26 +75,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>binary-assembly</id>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                        <phase>package</phase>
-                        <configuration>
-                            <finalName>geomesa-bigtable_${scala.binary.version}-${project.version}</finalName>
-                            <tarLongFileMode>posix</tarLongFileMode>
-                            <descriptors>
-                                <descriptor>src/main/assemblies/binary-release.xml</descriptor>
-                            </descriptors>
-                            <delimiters>
-                                <delimiter>%%</delimiter>
-                            </delimiters>
-                            <attach>false</attach>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>

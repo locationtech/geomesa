@@ -13,7 +13,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <gmtools.dist.name>GEOMESA_CASSANDRA</gmtools.dist.name>
     </properties>
 
     <dependencies>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>lib</outputDirectory>
+      <directoryMode>0755</directoryMode>
+      <fileMode>0644</fileMode>
+      <useProjectArtifact>false</useProjectArtifact>
+      <useTransitiveDependencies>false</useTransitiveDependencies>
+      <useTransitiveFiltering>false</useTransitiveFiltering>
+      <includes>
+        <include>com.google.guava:guava</include>
+      </includes>
+    </dependencySet>
+  </dependencySets>
+  <fileSets>
+    <fileSet>
+      <directory>../../geomesa-tools/common-env</directory>
+      <outputDirectory>conf</outputDirectory>
+      <directoryMode>755</directoryMode>
+      <fileMode>0644</fileMode>
+      <filtered>true</filtered>
+      <includes>
+        <include>hadoop-env.sh</include>
+        <include>log4j.properties</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+</component>

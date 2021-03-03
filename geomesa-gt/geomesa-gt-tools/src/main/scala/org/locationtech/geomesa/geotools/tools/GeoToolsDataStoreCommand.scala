@@ -64,7 +64,7 @@ object GeoToolsDataStoreCommand {
       description = "Parameter for DataStoreFinder to load the data store, in the form key=value",
       variableArity = true,
       converter = classOf[KeyValueConverter])
-    val params: java.util.List[(String, String)] = new java.util.ArrayList()
+    var params: java.util.List[(String, String)] = new java.util.ArrayList()
 
     @Parameter(
       names = Array("--params"),

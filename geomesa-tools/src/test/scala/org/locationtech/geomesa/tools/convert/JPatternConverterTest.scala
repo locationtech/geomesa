@@ -11,11 +11,10 @@ package org.locationtech.geomesa.tools.convert
 import com.beust.jcommander.JCommander
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.tools.OptionalPatternParam
+import org.locationtech.geomesa.tools.convert.JPatternConverterTest.PatternParam
 import org.locationtech.geomesa.tools.utils.GeoMesaIStringConverterFactory
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
-
-class PatternParam extends OptionalPatternParam {}
 
 @RunWith(classOf[JUnitRunner])
 class JPatternConverterTest extends Specification {
@@ -23,21 +22,27 @@ class JPatternConverterTest extends Specification {
   "JPatternConverter" should {
     "convert strings into patterns" in {
       val params = new PatternParam()
-      val jc = new JCommander()
-      jc.addConverterFactory(new GeoMesaIStringConverterFactory)
-      jc.addObject(params)
-      jc.parse(Array("--pattern", "foobar\\d+").toArray: _*)
+      JCommander.newBuilder()
+          .addConverterFactory(new GeoMesaIStringConverterFactory)
+          .addObject(params)
+          .build()
+          .parse(Array("--pattern", "foobar\\d+"): _*)
       params.pattern.pattern() mustEqual "foobar\\d+"
       params.pattern.matcher("foobar3").matches mustEqual true
     }
 
     "allow nulls" in {
       val params = new PatternParam()
-      val jc = new JCommander()
-      jc.addConverterFactory(new GeoMesaIStringConverterFactory)
-      jc.addObject(params)
-      jc.parse(Array("").toArray: _*)
+      JCommander.newBuilder()
+          .addConverterFactory(new GeoMesaIStringConverterFactory)
+          .addObject(params)
+          .build()
+          .parse()
       params.pattern must beNull
     }
   }
+}
+
+object JPatternConverterTest {
+  class PatternParam extends OptionalPatternParam {}
 }

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/component/1.1.2 http://maven.apache.org/xsd/component-1.1.2.xsd">
+
+  <fileSets>
+    <!-- accumulo helper files -->
+    <fileSet>
+      <directory>../../geomesa-accumulo/geomesa-accumulo-tools/bin</directory>
+      <outputDirectory>bin</outputDirectory>
+      <directoryMode>755</directoryMode>
+      <fileMode>0755</fileMode>
+      <filtered>true</filtered>
+      <includes>
+        <include>setup-namespace.sh</include>
+      </includes>
+    </fileSet>
+
+    <!-- dependency files -->
+    <fileSet>
+      <directory>../../geomesa-accumulo/geomesa-accumulo-tools/conf-filtered</directory>
+      <outputDirectory>conf</outputDirectory>
+      <directoryMode>755</directoryMode>
+      <fileMode>0755</fileMode>
+      <filtered>true</filtered>
+      <includes>
+        <include>accumulo-env.sh</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <directory>../../geomesa-kafka/geomesa-kafka-tools/conf-filtered</directory>
+      <outputDirectory>conf</outputDirectory>
+      <directoryMode>755</directoryMode>
+      <fileMode>0755</fileMode>
+      <filtered>true</filtered>
+      <includes>
+        <include>kafka-env.sh</include>
+      </includes>
+    </fileSet>
+
+    <!-- common tools filesets -->
+    <fileSet>
+      <directory>../../geomesa-tools/common-env</directory>
+      <outputDirectory>conf</outputDirectory>
+      <directoryMode>755</directoryMode>
+      <fileMode>0644</fileMode>
+      <filtered>true</filtered>
+      <includes>
+        <include>hadoop-env.sh</include>
+        <include>log4j.properties</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+</component>
