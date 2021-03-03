@@ -258,24 +258,24 @@ abstract class MetadataBackedStats(ds: DataStore, metadata: GeoMesaMetadata[Stat
 
     // calculate histograms for all indexed attributes and geom/date
     val histograms = (stAttributes ++ indexedAttributes).distinct.map { attribute =>
-        val binding = sft.getDescriptor(attribute).getType.getBinding
-      // calculate the endpoints for the histogram
-      // the histogram will expand as needed, but this is a starting point
-      val (lower, upper, cardinality) = {
-        val mm = bounds(attribute)
-        val (min, max) = mm match {
-          case None => defaultBounds(binding)
-          // max has to be greater than min for the histogram bounds
-          case Some(b) if b.min == b.max => Histogram.buffer(b.min)
-          case Some(b) => b.bounds
-        }
-        (min, max, mm.map(_.cardinality).getOrElse(0L))
-      }
+      val minMax = bounds(attribute)
+      val cardinality = minMax.map(_.cardinality).getOrElse(0L)
       // estimate 10k entries per bin, but cap at 10k bins (~29k on disk)
       val size = if (attribute == sft.getGeomField) { MaxHistogramSize } else {
         math.min(MaxHistogramSize, math.max(DefaultHistogramSize, cardinality / 10000).toInt)
       }
-      Stat.Histogram[Any](attribute, size, lower, upper)(ClassTag[Any](binding))
+      val binding = sft.getDescriptor(attribute).getType.getBinding
+      implicit val ct = ClassTag[Any](binding)
+      // calculate the endpoints for the histogram
+      // the histogram will expand as needed, but this is a starting point
+      val (lower, upper) = minMax match {
+        case None => defaultBounds(binding)
+        // max has to be greater than min for the histogram bounds
+        case Some(b) if Histogram.equivalent(b.min, b.max, size) => Histogram.buffer(b.min)
+        case Some(b) => b.bounds
+      }
+
+      Stat.Histogram[Any](attribute, size, lower, upper)
     }
 
     val z3Histogram = for {
