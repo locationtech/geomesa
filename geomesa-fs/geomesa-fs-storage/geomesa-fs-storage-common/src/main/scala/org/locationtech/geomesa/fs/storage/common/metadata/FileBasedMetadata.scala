@@ -26,7 +26,6 @@ import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 import org.locationtech.geomesa.utils.text.StringSerialization
-import org.locationtech.jts.geom.Envelope
 import org.opengis.feature.simple.SimpleFeatureType
 
 import scala.collection.mutable.ArrayBuffer
@@ -36,30 +35,32 @@ import scala.runtime.BoxedUnit
 import scala.util.control.NonFatal
 
 /**
-  * StorageMetadata implementation. Saves changes as a series of timestamped changelogs to allow
-  * concurrent modifications. The current state is obtained by replaying all the logs.
-  *
-  * Note that state is not read off disk until 'reload' is called.
-  *
-  * When accessed through the standard factory methods, the state will periodically reload from disk
-  * in order to pick up external changes (every 10 minutes by default).
-  *
-  * Note that modifications made to the metadata may not be immediately available, if they occur
-  * simultaneously with a reload. For example, calling `getPartition` immediately after `addPartition` may
-  * not return anything. However, the change is always persisted to disk, and will be available after the next
-  * reload. In general this does not cause problems, as reads and writes happen in different JVMs (ingest
-  * vs query).
-  *
-  * @param fc file context
-  * @param directory metadata root path
-  * @param sft simple feature type
-  * @param meta basic metadata config
-  */
+ * StorageMetadata implementation. Saves changes as a series of timestamped changelogs to allow
+ * concurrent modifications. The current state is obtained by replaying all the logs.
+ *
+ * Note that state is not read off disk until 'reload' is called.
+ *
+ * When accessed through the standard factory methods, the state will periodically reload from disk
+ * in order to pick up external changes (every 10 minutes by default).
+ *
+ * Note that modifications made to the metadata may not be immediately available, if they occur
+ * simultaneously with a reload. For example, calling `getPartition` immediately after `addPartition` may
+ * not return anything. However, the change is always persisted to disk, and will be available after the next
+ * reload. In general this does not cause problems, as reads and writes happen in different JVMs (ingest
+ * vs query).
+ *
+ * @param fc file context
+ * @param directory metadata root path
+ * @param sft simple feature type
+ * @param meta basic metadata config
+ * @param converter file converter
+ */
 class FileBasedMetadata(
     private val fc: FileContext,
     val directory: Path,
     val sft: SimpleFeatureType,
-    private val meta: Metadata
+    private val meta: Metadata,
+    private val converter: MetadataConverter
   ) extends StorageMetadata with MethodProfiling with LazyLogging {
 
   import FileBasedMetadata._
@@ -110,9 +111,8 @@ class FileBasedMetadata(
   override def addPartition(partition: PartitionMetadata): Unit = {
     val config = {
       val action = PartitionAction.Add
-      val files = partition.files.toSet
-      val envelope = EnvelopeConfig(partition.bounds.map(_.envelope).getOrElse(new Envelope()))
-      PartitionConfig(partition.name, action, files, partition.count, envelope, System.currentTimeMillis())
+      val envelope = partition.bounds.map(b => EnvelopeConfig(b.envelope)).getOrElse(Seq.empty)
+      PartitionConfig(partition.name, action, partition.files, partition.count, envelope, System.currentTimeMillis())
     }
     val path = writePartition(config)
     // if we have already loaded the partition, merge in the new value
@@ -127,9 +127,8 @@ class FileBasedMetadata(
   override def removePartition(partition: PartitionMetadata): Unit = {
     val config = {
       val action = PartitionAction.Remove
-      val files = partition.files.toSet
-      val envelope = EnvelopeConfig(partition.bounds.map(_.envelope).getOrElse(new Envelope()))
-      PartitionConfig(partition.name, action, files, partition.count, envelope, System.currentTimeMillis())
+      val envelope = partition.bounds.map(b => EnvelopeConfig(b.envelope)).getOrElse(Seq.empty)
+      PartitionConfig(partition.name, action, partition.files, partition.count, envelope, System.currentTimeMillis())
     }
     val path = writePartition(config)
     // if we have already loaded the partition, merge in the new value
@@ -193,11 +192,11 @@ class FileBasedMetadata(
    */
   private def writePartition(config: PartitionConfig): Path = {
     val data = profile("Serialized partition configuration") {
-      PartitionConfigConvert.to(config).render(options)
+      converter.renderPartition(config)
     }
     profile("Persisted partition configuration") {
       val encoded = StringSerialization.alphaNumericSafeString(config.name)
-      val name = s"$UpdatePartitionPrefix$encoded-${UUID.randomUUID()}$JsonPathSuffix"
+      val name = s"$UpdatePartitionPrefix$encoded-${UUID.randomUUID()}${converter.suffix}"
       val file = new Path(directory, name)
       WithClose(fc.create(file, java.util.EnumSet.of(CreateFlag.CREATE), CreateOpts.createParent)) { out =>
         out.write(data.getBytes(StandardCharsets.UTF_8))
@@ -216,10 +215,10 @@ class FileBasedMetadata(
    */
   private def writeCompactedConfig(config: Seq[PartitionConfig]): Unit = {
     val data = profile("Serialized compacted partition configuration") {
-      CompactedConfigConvert.to(CompactedConfig(config)).render(options)
+      converter.renderCompaction(config)
     }
     profile("Persisted compacted partition configuration") {
-      val file = new Path(directory, CompactedPath)
+      val file = new Path(directory, CompactedPrefix + converter.suffix)
       val flags = java.util.EnumSet.of(CreateFlag.CREATE, CreateFlag.OVERWRITE)
       WithClose(fc.create(file, flags, CreateOpts.createParent)) { out =>
         out.write(data.getBytes(StandardCharsets.UTF_8))
@@ -227,6 +226,13 @@ class FileBasedMetadata(
         out.hsync()
       }
       PathCache.register(fc, file)
+      // generally we overwrite the existing file but if we change rendering the name will change
+      val toRemove =
+        new Path(directory, if (converter.suffix == HoconPathSuffix) { CompactedJson } else { CompactedHocon })
+      if (PathCache.exists(fc, toRemove, reload = true)) {
+        fc.delete(toRemove, false)
+        PathCache.invalidate(fc, toRemove)
+      }
     }
   }
 
@@ -290,11 +296,11 @@ class FileBasedMetadata(
     try {
       val config = profile("Loaded partition configuration") {
         WithClose(new InputStreamReader(fc.open(file), StandardCharsets.UTF_8)) { in =>
-          ConfigFactory.parseReader(in, ConfigParseOptions.defaults().setSyntax(ConfigSyntax.JSON))
+          ConfigFactory.parseReader(in, ConfigParseOptions.defaults().setSyntax(getSyntax(file.getName)))
         }
       }
       profile("Parsed partition configuration") {
-        Some(pureconfig.loadConfigOrThrow[PartitionConfig](config))
+        Some(converter.parsePartition(config))
       }
     } catch {
       case NonFatal(e) => logger.error(s"Error reading config at path $file:", e); None
@@ -311,11 +317,11 @@ class FileBasedMetadata(
     try {
       val config = profile("Loaded compacted partition configuration") {
         WithClose(new InputStreamReader(fc.open(file), StandardCharsets.UTF_8)) { in =>
-          ConfigFactory.parseReader(in, ConfigParseOptions.defaults().setSyntax(ConfigSyntax.JSON))
+          ConfigFactory.parseReader(in, ConfigParseOptions.defaults().setSyntax(getSyntax(file.getName)))
         }
       }
       profile("Parsed compacted partition configuration") {
-        pureconfig.loadConfigOrThrow[CompactedConfig](config).partitions
+        converter.parseCompaction(config)
       }
     } catch {
       case NonFatal(e) => logger.error(s"Error reading config at path $file:", e); Seq.empty
@@ -339,12 +345,12 @@ class FileBasedMetadata(
           if (status.isDirectory) {
             phaser.register() // register the new worker thread
             es.submit(new DirectoryWorker(es, phaser, path, result))
-          } else if (name.startsWith(UpdatePartitionPrefix) && name.endsWith(JsonPathSuffix)) {
+          } else if (name.startsWith(UpdatePartitionPrefix)) {
             // pull out the partition name but don't parse the file yet
             val encoded = name.substring(8, name.length - 42) // strip out prefix and suffix
             val partition = StringSerialization.decodeAlphaNumericSafeString(encoded)
             result.merge(partition, PartitionFiles(unparsed = Seq(path)), addFiles)
-          } else if (name == CompactedPath) {
+          } else if (name == CompactedHocon || name == CompactedJson) {
             phaser.register() // register the new worker thread
             es.submit(new CompactedParser(phaser, path, result))
           } else if (name.startsWith(UpdateFilePrefix) && name.endsWith(JsonPathSuffix)) {
@@ -401,14 +407,23 @@ class FileBasedMetadata(
 object FileBasedMetadata {
 
   val MetadataType = "file"
-  val DefaultOptions: NamedOptions = NamedOptions(MetadataType)
+  val DefaultOptions: NamedOptions = NamedOptions(MetadataType, Map(Config.RenderKey -> Config.RenderCompact))
+  val LegacyOptions : NamedOptions = NamedOptions(MetadataType, Map(Config.RenderKey -> Config.RenderPretty))
 
-  private val CompactedPath         = "compacted.json"
+  object Config {
+    val RenderKey = "render"
+
+    val RenderPretty  = "pretty"
+    val RenderCompact = "compact"
+  }
+
+  private val CompactedPrefix       = "compacted"
   private val UpdateFilePrefix      = "update-"
   private val UpdatePartitionPrefix = UpdateFilePrefix + "$"
-  private val JsonPathSuffix        = ".json"
-
-  private val options = ConfigRenderOptions.concise().setFormatted(true)
+  private val JsonPathSuffix        = RenderPretty.suffix
+  private val HoconPathSuffix       = RenderCompact.suffix
+  private val CompactedJson         = CompactedPrefix + JsonPathSuffix
+  private val CompactedHocon        = CompactedPrefix + HoconPathSuffix
 
   // function to add/merge an existing partition in an atomic call
   private val addMetadata = new BiFunction[PartitionMetadata, PartitionMetadata, PartitionMetadata]() {
@@ -438,7 +453,18 @@ object FileBasedMetadata {
    * @param m metadata
    * @return
    */
-  def copy(m: FileBasedMetadata): FileBasedMetadata = new FileBasedMetadata(m.fc, m.directory, m.sft, m.meta)
+  def copy(m: FileBasedMetadata): FileBasedMetadata =
+    new FileBasedMetadata(m.fc, m.directory, m.sft, m.meta, m.converter)
+
+  private def getSyntax(file: String): ConfigSyntax = {
+    if (file.endsWith(HoconPathSuffix)) {
+      ConfigSyntax.CONF
+    } else if (file.endsWith(JsonPathSuffix)) {
+      ConfigSyntax.JSON
+    } else {
+      ConfigSyntax.JSON
+    }
+  }
 
   /**
    * Holder for metadata files for a partition

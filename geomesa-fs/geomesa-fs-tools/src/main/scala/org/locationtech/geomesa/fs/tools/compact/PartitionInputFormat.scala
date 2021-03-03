@@ -101,7 +101,7 @@ object PartitionInputFormat {
       out.writeUTF(name)
       out.writeLong(length)
       out.writeInt(files.length)
-      files.foreach { case StorageFile(file, ts, action) =>
+      files.foreach { case StorageFile(file, ts, action, _ , _) =>
         out.writeUTF(file)
         out.writeLong(ts)
         out.writeUTF(action.toString)

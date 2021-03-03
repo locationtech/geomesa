@@ -145,16 +145,20 @@ object StorageMetadata {
   }
 
   /**
-    * Holds a storage file
-    *
-    * @param name file name (relative to the root path)
-    * @param timestamp timestamp for the file
-    * @param action type of file (append, modify, delete)
-    */
+   * Holds a storage file
+   *
+   * @param name file name (relative to the root path)
+   * @param timestamp timestamp for the file
+   * @param action type of file (append, modify, delete)
+   * @param sort sort fields, if any, as feature type attribute number
+   * @param bounds known bounds, if any, keyed by feature type attribute number
+   */
   case class StorageFile(
       name: String,
       timestamp: Long,
-      action: StorageFileAction.StorageFileAction = StorageFileAction.Append
+      action: StorageFileAction.StorageFileAction = StorageFileAction.Append,
+      sort: Seq[Int] = Seq.empty,
+      bounds: Seq[(Int, String, String)] = Seq.empty
     )
 
   /**
