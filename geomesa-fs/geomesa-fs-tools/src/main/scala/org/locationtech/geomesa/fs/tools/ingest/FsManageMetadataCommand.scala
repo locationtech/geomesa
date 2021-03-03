@@ -15,19 +15,19 @@ import com.beust.jcommander.{Parameter, ParameterException, Parameters}
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile}
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
-import org.locationtech.geomesa.fs.tools.ingest.ManageMetadataCommand.{CompactCommand, ManageMetadataParams, RegisterCommand, UnregisterCommand}
+import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.{CompactCommand, ManageMetadataParams, RegisterCommand, UnregisterCommand}
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam}
 import org.locationtech.jts.geom.Envelope
 
 import scala.util.control.NonFatal
 
-class ManageMetadataCommand extends CommandWithSubCommands {
+class FsManageMetadataCommand extends CommandWithSubCommands {
   override val name: String = "manage-metadata"
   override val params = new ManageMetadataParams
   override val subCommands: Seq[Command] = Seq(new CompactCommand, new RegisterCommand, new UnregisterCommand)
 }
 
-object ManageMetadataCommand {
+object FsManageMetadataCommand {
 
   import scala.collection.JavaConverters._
 
@@ -38,7 +38,7 @@ object ManageMetadataCommand {
 
     override def execute(): Unit = withDataStore { ds =>
       val metadata = ds.storage(params.featureName).metadata
-      metadata.compact(None, params.threads)
+      metadata.compact(None, None, params.threads)
       val partitions = metadata.getPartitions()
       Command.user.info(s"Compacted metadata into ${partitions.length} partitions consisting of " +
           s"${partitions.map(_.files.size).sum} files")

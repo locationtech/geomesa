@@ -11,7 +11,7 @@ package org.locationtech.geomesa.fs.tools
 import org.locationtech.geomesa.fs.tools.compact.FsCompactCommand
 import org.locationtech.geomesa.fs.tools.data.FsCreateSchemaCommand
 import org.locationtech.geomesa.fs.tools.export.{FsExportCommand, FsPlaybackCommand}
-import org.locationtech.geomesa.fs.tools.ingest.{FsGeneratePartitionFiltersCommand, FsIngestCommand, ManageMetadataCommand}
+import org.locationtech.geomesa.fs.tools.ingest.{FsGeneratePartitionFiltersCommand, FsIngestCommand, FsManageMetadataCommand}
 import org.locationtech.geomesa.fs.tools.stats._
 import org.locationtech.geomesa.fs.tools.status._
 import org.locationtech.geomesa.tools.{Command, Runner}
@@ -29,7 +29,7 @@ object FsRunner extends Runner {
       new FsIngestCommand,
       new FsGetTypeNamesCommand,
       new FsGetSftConfigCommand,
-      new ManageMetadataCommand,
+      new FsManageMetadataCommand,
       new FsCompactCommand,
       new FsGetPartitionsCommand,
       new FsGetFilesCommand,
