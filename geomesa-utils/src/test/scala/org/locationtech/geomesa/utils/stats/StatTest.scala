@@ -10,6 +10,7 @@ package org.locationtech.geomesa.utils.stats
 
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.stats.BinnedArray.StringBinning
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -33,7 +34,7 @@ class StatTest extends Specification with StatTestHelper {
       stat must beAnInstanceOf[Histogram[String]]
       val histogram = stat.asInstanceOf[Histogram[String]]
       histogram.property mustEqual "foreign_key"
-      histogram.bins.bounds mustEqual BinnedStringArray.normalizeBounds(min, max)
+      histogram.bins.bounds mustEqual StringBinning.normalizeBounds(min, max)
     }
   }
 }

@@ -8,9 +8,10 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import org.locationtech.jts.geom.Point
 import org.junit.runner.RunWith
+import org.locationtech.geomesa.utils.stats.BinnedArray._
 import org.locationtech.geomesa.utils.text.WKTUtils
+import org.locationtech.jts.geom.Point
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -19,7 +20,7 @@ class BinnedArrayTest extends Specification with StatTestHelper {
 
   "BinnedArray" should {
     "bin integers" >> {
-      val array = new BinnedIntegerArray(10, (0, 99))
+      val array = new IntBinning(10, (0, 99))
       forall(0 to 9)(array.indexOf(_) mustEqual 0)
       forall(10 to 19)(array.indexOf(_) mustEqual 1)
       forall(20 to 29)(array.indexOf(_) mustEqual 2)
@@ -53,7 +54,7 @@ class BinnedArrayTest extends Specification with StatTestHelper {
     }
 
     "bin longs" >> {
-      val array = new BinnedLongArray(10, (0L, 99L))
+      val array = new LongBinning(10, (0L, 99L))
       forall(0 to 9)(i => array.indexOf(i.toLong) mustEqual 0)
       forall(10 to 19)(i => array.indexOf(i.toLong) mustEqual 1)
       forall(20 to 29)(i => array.indexOf(i.toLong) mustEqual 2)
@@ -87,7 +88,7 @@ class BinnedArrayTest extends Specification with StatTestHelper {
     }
 
     "bin floats" >> {
-      val array = new BinnedFloatArray(10, (0f, 1f))
+      val array = new FloatBinning(10, (0f, 1f))
       forall(0 to 9)(i => array.indexOf(0.0f + 0.01f * i) mustEqual 0)
       forall(0 to 9)(i => array.indexOf(0.1f + 0.01f * i) mustEqual 1)
       forall(0 to 9)(i => array.indexOf(0.2f + 0.01f * i) mustEqual 2)
@@ -122,7 +123,7 @@ class BinnedArrayTest extends Specification with StatTestHelper {
     }
 
     "bin doubles" >> {
-      val array = new BinnedDoubleArray(10, (0.0, 1.0))
+      val array = new DoubleBinning(10, (0.0, 1.0))
       forall(1 to 9)(i => array.indexOf(0.0 + 0.01 * i) mustEqual 0)
       forall(1 to 9)(i => array.indexOf(0.1 + 0.01 * i) mustEqual 1)
       forall(1 to 9)(i => array.indexOf(0.2 + 0.01 * i) mustEqual 2)
@@ -160,7 +161,7 @@ class BinnedArrayTest extends Specification with StatTestHelper {
       import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
       def toDate(hh: Int, mm: Int) = java.util.Date.from(java.time.LocalDateTime.parse(f"2016-01-01T$hh%02d:$mm%02d:00.000Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
 
-      val array = new BinnedDateArray(10, (toDate(0, 0), toDate(10, 0)))
+      val array = new DateBinning(10, (toDate(0, 0), toDate(10, 0)))
       forall(0 to 59)(i => array.indexOf(toDate(0, i)) mustEqual 0)
       forall(0 to 59)(i => array.indexOf(toDate(1, i)) mustEqual 1)
       forall(0 to 59)(i => array.indexOf(toDate(2, i)) mustEqual 2)
@@ -197,7 +198,7 @@ class BinnedArrayTest extends Specification with StatTestHelper {
       import org.locationtech.geomesa.utils.geotools.GeoToolsDateFormat
       def toDate(millis: Int) = java.util.Date.from(java.time.LocalDateTime.parse(f"2016-01-01T00:00:00.00${millis}Z", GeoToolsDateFormat).toInstant(java.time.ZoneOffset.UTC))
 
-      val array = new BinnedDateArray(10, (toDate(0), toDate(5)))
+      val array = new DateBinning(10, (toDate(0), toDate(5)))
       forall(0 until 10) { i =>
         val (min, max) = array.bounds(i)
         val lo = array.indexOf(min)
@@ -208,7 +209,7 @@ class BinnedArrayTest extends Specification with StatTestHelper {
     }
 
     "bin strings" >> {
-      val array = new BinnedStringArray(36, ("aa0", "aaz"))
+      val array = new StringBinning(36, ("aa0", "aaz"))
       forall(0 until 10)(i => array.indexOf("aa" + ('0' + i).toChar + ('0' + 12).toChar) mustEqual i)
       forall(0 until 25)(i => array.indexOf("aa" + ('a' + i).toChar + ('0' + 12).toChar) mustEqual i + 10)
       array.indexOf("aaz") mustEqual 35
@@ -217,15 +218,15 @@ class BinnedArrayTest extends Specification with StatTestHelper {
     }
 
     "bin strings with different length endpoints" >> {
-      val array = new BinnedStringArray(100, ("Addams", "Clemens"))
-      array.indexOf("Addams") mustEqual(0)
-      array.indexOf("Clemens") mustEqual(99)
+      val array = new StringBinning(100, ("Addams", "Clemens"))
+      array.indexOf("Addams") mustEqual 0
+      array.indexOf("Clemens") mustEqual 99
     }
 
     "not provide string bounds that are out of order" >> {
       val bounds = Seq(("0", "z"), ("0name0", "9nrcyk5rcykg"), ("abc000", "abc099"))
       forall(bounds) { b =>
-        val array = new BinnedStringArray(1000, b)
+        val array = new StringBinning(1000, b)
         forall(0 until 1000) { i =>
           val (min, max) = array.bounds(i)
           val lo = array.indexOf(min)
@@ -236,8 +237,8 @@ class BinnedArrayTest extends Specification with StatTestHelper {
     }
 
     "copy ranges correctly" >> {
-      val from = new BinnedStringArray(36, ("abc000", "abc099"))
-      val to = new BinnedStringArray(36, ("abc000", "abc199"))
+      val from = BinnedArray(36, ("abc000", "abc099"))
+      val to = BinnedArray(36, ("abc000", "abc199"))
       Histogram.copyInto(to, from) must not(throwAn[IllegalArgumentException])
     }
 
@@ -245,7 +246,7 @@ class BinnedArrayTest extends Specification with StatTestHelper {
       def toPoint(x: Double, y: Double) = WKTUtils.read(s"POINT ($x $y)")
       val xys = (1 to 18).flatMap(i => (1 to 9).map((i, _)))
 
-      val array = new BinnedGeometryArray(4, (toPoint(-180, -90), toPoint(180, 90)))
+      val array = new GeometryBinning(4, (toPoint(-180, -90), toPoint(180, 90)))
       forall(xys) { case (x, y) => array.indexOf(toPoint(-10 * x, -10 * y)) must beBetween(0, 3) }
       forall(xys) { case (x, y) => array.indexOf(toPoint(-10 * x,  10 * y)) must beBetween(0, 3) }
       forall(xys) { case (x, y) => array.indexOf(toPoint( 10 * x, -10 * y)) must beBetween(0, 3) }
@@ -264,7 +265,7 @@ class BinnedArrayTest extends Specification with StatTestHelper {
     "not provide geometry bounds that are out of order" >> {
       val lowerBound = WKTUtils.read("POINT (-87.04006865017121 15.836863706743756)")
       val upperBound = WKTUtils.read("POINT (-64.42119213027004 52.51324361307232)")
-      val array = new BinnedGeometryArray(10, (lowerBound, upperBound))
+      val array = new GeometryBinning(10, (lowerBound, upperBound))
       forall(0 until 10) { i =>
         val (min, max) = array.bounds(i)
         val lo = array.indexOf(min)
