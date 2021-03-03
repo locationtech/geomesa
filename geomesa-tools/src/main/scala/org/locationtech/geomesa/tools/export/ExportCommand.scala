@@ -191,15 +191,15 @@ trait ExportCommand[DS <: DataStore] extends DataStoreCommand[DS]
    * @param ds data store
    * @param query query
    * @param exporter exporter
-   * @param empty export empty files or no
+   * @param writeEmptyFiles export empty files or no
    * @return
    */
-  protected def export(ds: DS, query: Query, exporter: FeatureExporter, empty: Boolean): Option[Long] = {
+  protected def export(ds: DS, query: Query, exporter: FeatureExporter, writeEmptyFiles: Boolean): Option[Long] = {
     try {
       Command.user.info("Running export - please wait...")
       val features = ds.getFeatureSource(query.getTypeName).getFeatures(query)
       WithClose(CloseableIterator(features.features())) { iter =>
-        if (empty || iter.hasNext) {
+        if (writeEmptyFiles || iter.hasNext) {
           exporter.start(features.getSchema)
           exporter.export(iter)
         } else {

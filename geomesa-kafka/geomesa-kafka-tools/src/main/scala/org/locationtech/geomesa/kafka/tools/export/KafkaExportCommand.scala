@@ -40,7 +40,7 @@ class KafkaExportCommand extends ExportCommand[KafkaDataStore] with KafkaDistrib
       ds: KafkaDataStore,
       query: Query,
       exporter: FeatureExporter,
-      empty: Boolean): Option[Long] = {
+      writeEmptyFiles: Boolean): Option[Long] = {
     val sft = ds.getSchema(params.featureName)
     if (sft == null) {
       throw new ParameterException(s"Type ${params.featureName} does not exist at path ${params.zkPath}")
@@ -77,8 +77,8 @@ class KafkaExportCommand extends ExportCommand[KafkaDataStore] with KafkaDistrib
 
     try {
       query.getHints.getMaxFeatures match {
-        case None    => exportContinuously(query.getHints.getReturnSft, exporter, features, empty)
-        case Some(m) => exportWithMax(query.getHints.getReturnSft, exporter, features, empty, m)
+        case None    => exportContinuously(query.getHints.getReturnSft, exporter, features, writeEmptyFiles)
+        case Some(m) => exportWithMax(query.getHints.getReturnSft, exporter, features, writeEmptyFiles, m)
       }
     } catch {
       case NonFatal(e) =>
@@ -92,11 +92,11 @@ class KafkaExportCommand extends ExportCommand[KafkaDataStore] with KafkaDistrib
       sft: SimpleFeatureType,
       exporter: FeatureExporter,
       features: Iterator[SimpleFeature],
-      empty: Boolean): Option[Long] = {
+      writeEmptyFiles: Boolean): Option[Long] = {
     // try to close the exporter when user cancels to finish off whatever the export was
     sys.addShutdownHook(exporter.close())
     var count = 0L
-    var started = if (empty) { exporter.start(sft); true } else { false }
+    var started = if (writeEmptyFiles) { exporter.start(sft); true } else { false }
     while (true) {
       // hasNext may return false one time, and then true the next if more data is read from kafka
       if (features.hasNext) {
@@ -116,10 +116,10 @@ class KafkaExportCommand extends ExportCommand[KafkaDataStore] with KafkaDistrib
       sft: SimpleFeatureType,
       exporter: FeatureExporter,
       features: Iterator[SimpleFeature],
-      empty: Boolean,
+      writeEmptyFiles: Boolean,
       max: Int): Option[Long] = {
     var count = 0L
-    var started = if (empty) { exporter.start(sft); true } else { false }
+    var started = if (writeEmptyFiles) { exporter.start(sft); true } else { false }
     while (count < max) {
       // hasNext may return false one time, and then true the next if more data is read from kafka
       if (features.hasNext) {

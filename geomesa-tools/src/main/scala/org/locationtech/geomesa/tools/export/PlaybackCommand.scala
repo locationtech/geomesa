@@ -41,7 +41,11 @@ trait PlaybackCommand[DS <: DataStore] extends ExportCommand[DS] {
   override val name = "playback"
   override def params: PlaybackParams
 
-  override protected def export(ds: DS, query: Query, exporter: FeatureExporter, empty: Boolean): Option[Long] = {
+  override protected def export(
+      ds: DS,
+      query: Query,
+      exporter: FeatureExporter,
+      writeEmptyFiles: Boolean): Option[Long] = {
     val features: SimpleFeatureCollection = new DataFeatureCollection(GeoMesaFeatureCollection.nextId) {
 
       private val fs = ds.getFeatureSource(query.getTypeName)
@@ -96,7 +100,7 @@ trait PlaybackCommand[DS <: DataStore] extends ExportCommand[DS] {
 
     try {
       WithClose(CloseableIterator(features.features())) { iter =>
-        if (empty || iter.hasNext) {
+        if (writeEmptyFiles || iter.hasNext) {
           exporter.start(features.getSchema)
           exporter.export(iter)
         } else {
