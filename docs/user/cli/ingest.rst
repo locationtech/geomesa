@@ -121,12 +121,15 @@ compression type. GeoMesa supports ingesting files from local disks or HDFS. In 
 and Microsoft's Azure file systems are supported with a few configuration changes. See
 :doc:`/user/cli/filesystems` for details. Note: The behavior of this argument is changed by the ``--src-list`` argument.
 
-Instead of specifying files, input data may be piped directly to the ingest command using `stdin` shell redirection.
-Note that this will only work in local mode, and will only use a single thread for ingestion. Schema inference is
-disabled in this case, and progress indicators may not be entirely accurate, as the total size isn't known up front.
+By using a single ``-`` for the input files, input data may be piped directly to the ingest command using standard
+shell redirection. Note that this will only work in local mode, and will only use a single thread for ingestion.
+Schema inference is disabled in this case, and progress indicators may not be entirely accurate, as the total size
+isn't known up front.
+
 For example::
 
-    cat foo.csv | geomesa-accumulo ingest ...
+    $ cat foo.csv | geomesa-accumulo ingest ... -
+    $ geomesa-accumulo ingest ... - <foo.csv
 
 For local ingests, feature writers will be pooled and only flushed periodically. The frequency of flushes can be
 controlled via the system property ``geomesa.ingest.local.batch.size``, and defaults to every 20,000 features.

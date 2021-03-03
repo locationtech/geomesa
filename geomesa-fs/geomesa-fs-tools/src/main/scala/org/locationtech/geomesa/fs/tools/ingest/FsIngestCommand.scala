@@ -26,7 +26,7 @@ import org.locationtech.geomesa.parquet.ParquetFileSystemStorage
 import org.locationtech.geomesa.tools.Command
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
-import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestParams
+import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestParams, Inputs}
 import org.locationtech.geomesa.tools.ingest._
 import org.opengis.feature.simple.SimpleFeatureType
 
@@ -42,7 +42,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
       ds: FileSystemDataStore,
       sft: SimpleFeatureType,
       converter: Config,
-      inputs: Seq[String]): Awaitable = {
+      inputs: Inputs): Awaitable = {
     mode match {
       case RunModes.Local =>
         super.startIngest(mode, ds, sft, converter, inputs)
@@ -66,7 +66,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
         storage.metadata.encoding match {
           case OrcFileSystemStorage.Encoding =>
             new OrcConverterJob(
-              connection, sft, converter, inputs, libjarsFiles, libjarsPaths, reducers,
+              connection, sft, converter, inputs.paths, libjarsFiles, libjarsPaths, reducers,
               storage.context.root, tmpPath, targetFileSize) {
               override def configureJob(job: Job): Unit = {
                 super.configureJob(job)
@@ -79,7 +79,7 @@ class FsIngestCommand extends IngestCommand[FileSystemDataStore] with FsDistribu
 
           case ParquetFileSystemStorage.Encoding =>
             new ParquetConverterJob(
-              connection, sft, converter, inputs, libjarsFiles, libjarsPaths, reducers,
+              connection, sft, converter, inputs.paths, libjarsFiles, libjarsPaths, reducers,
               storage.context.root, tmpPath, targetFileSize) {
               override def configureJob(job: Job): Unit = {
                 super.configureJob(job)

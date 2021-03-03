@@ -8,14 +8,16 @@
 
 package org.locationtech.geomesa.accumulo.tools.ingest
 
-import java.io.File
+import java.io.{ByteArrayInputStream, File}
 import java.util.concurrent.atomic.AtomicInteger
 
 import com.typesafe.config.{ConfigFactory, ConfigRenderOptions}
+import org.apache.commons.io.IOUtils
 import org.junit.runner.RunWith
 import org.locationtech.geomesa.accumulo.MiniCluster
 import org.locationtech.geomesa.accumulo.tools.{AccumuloDataStoreCommand, AccumuloRunner}
 import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.io.WithClose
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
 
@@ -66,6 +68,38 @@ class IngestCommandTest extends Specification {
 
       val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
       command.execute()
+
+      command.withDataStore { ds =>
+        try {
+          val features = SelfClosingIterator(ds.getFeatureSource("renegades").getFeatures.features).toList
+          features.size mustEqual 3
+          features.map(_.getAttribute("name")) must containTheSameElementsAs(Seq("Hermione", "Harry", "Severus"))
+        } finally {
+          ds.delete()
+        }
+      }
+    }
+
+    "ingest from stdin" in {
+      val confFile = new File(getClass.getClassLoader.getResource("examples/example1-csv.conf").getFile)
+      val dataFile = WithClose(getClass.getClassLoader.getResourceAsStream("examples/example1.csv")) { in =>
+        IOUtils.toByteArray(in)
+      }
+      val input = new ByteArrayInputStream(dataFile)
+
+      val args = baseArgs ++ Array("--converter", confFile.getPath, "-s", confFile.getPath, "-")
+
+      val command = AccumuloRunner.parseCommand(args).asInstanceOf[AccumuloDataStoreCommand]
+
+      val in = System.in
+      in.synchronized {
+        try {
+          System.setIn(input)
+          command.execute()
+        } finally {
+          System.setIn(in)
+        }
+      }
 
       command.withDataStore { ds =>
         try {
