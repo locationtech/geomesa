@@ -68,8 +68,14 @@ class ConvertCommand extends Command with MethodProfiling with LazyLogging {
           case Some(c) => new ChunkedExporter(ExportOptions(params), query.getHints, Map.empty, c)
         }
         try {
-          exporter.start(query.getHints.getReturnSft)
-          val count = WithClose(ConvertCommand.convertFeatures(files, converter, ec, query))(exporter.export)
+          val count = WithClose(ConvertCommand.convertFeatures(files, converter, ec, query)) { iter =>
+            if (!params.suppressEmpty || iter.hasNext) {
+              exporter.start(query.getHints.getReturnSft)
+              exporter.export(iter)
+            } else {
+              Some(0L)
+            }
+          }
           val records = ec.line - (if (params.noHeader) { 0 } else { params.files.size })
           Command.user.info(s"Converted ${getPlural(records, "line")} "
               + s"with ${getPlural(ec.success.getCount, "success", "successes")} "
