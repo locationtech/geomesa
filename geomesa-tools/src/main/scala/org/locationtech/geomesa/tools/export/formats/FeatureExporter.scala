@@ -8,9 +8,13 @@
 
 package org.locationtech.geomesa.tools.export.formats
 
-import java.io.{Closeable, OutputStream}
+import java.io.{BufferedOutputStream, ByteArrayOutputStream, Closeable, OutputStream}
+import java.util.zip.GZIPOutputStream
 
 import org.apache.commons.compress.utils.CountingOutputStream
+import org.locationtech.geomesa.tools.`export`.formats.FeatureExporter.ByteCounter
+import org.locationtech.geomesa.utils.io.PathUtils
+import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.CreateMode
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 /**
@@ -20,7 +24,7 @@ import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
   *   export() - 0 to n times
   *   close()
   */
-trait FeatureExporter extends Closeable {
+trait FeatureExporter extends ByteCounter with Closeable {
 
   /**
     * Start the export
@@ -36,15 +40,6 @@ trait FeatureExporter extends Closeable {
     * @return count of features exported, if available
     */
   def export(features: Iterator[SimpleFeature]): Option[Long]
-
-  /**
-    * Number of bytes written so far (including buffered output).
-    *
-    * Note that this may be expensive to calculate.
-    *
-    * @return
-    */
-  def bytes: Long
 }
 
 object FeatureExporter {
@@ -53,25 +48,74 @@ object FeatureExporter {
     * Counts bytes written so far
     */
   trait ByteCounter {
-    def bytes: Long
-  }
 
-  /**
-    * Counts bytes written to an output stream
-    *
-    * @param os stream
-    */
-  class OutputStreamCounter(os: OutputStream) extends ByteCounter {
-    val stream = new CountingOutputStream(os)
-    override def bytes: Long = stream.getBytesWritten
+    /**
+     * Number of bytes written so far (including buffered output).
+     *
+     * Note that this may be expensive to calculate.
+     *
+     * @return
+     */
+    def bytes: Long
   }
 
   /**
     * Feature exporter with a delegate byte counter
     *
-    * @param counter counter
+    * @param stream output stream
     */
-  abstract class ByteCounterExporter(counter: ByteCounter) extends FeatureExporter {
-    override def bytes: Long = counter.bytes
+  abstract class ByteCounterExporter(stream: ExportStream) extends FeatureExporter {
+    override def bytes: Long = stream.bytes
+  }
+
+  /**
+   * Abstraction around export streams
+   */
+  trait ExportStream extends ByteCounter with Closeable {
+    def os: OutputStream
+  }
+
+  /**
+   * Export output stream, lazily instantiated
+   *
+   * @param name file name
+   * @param gzip gzip
+   */
+  class LazyExportStream(name: Option[String], gzip: Option[Int]) extends ExportStream {
+
+    // lowest level - keep track of the bytes we write
+    // do this before any compression, buffering, etc so we get an accurate count
+    private var counter: CountingOutputStream = _
+    private var stream: OutputStream = _
+
+    override def os: OutputStream = {
+      if (stream == null) {
+        val base = name match {
+          case None    => System.out
+          case Some(n) => PathUtils.getHandle(n).write(CreateMode.Create, createParents = true)
+        }
+        counter = new CountingOutputStream(base)
+        val compressed = gzip match {
+          case None => counter
+          case Some(c) => new GZIPOutputStream(counter) { `def`.setLevel(c) } // hack to access the protected deflate level
+        }
+        stream = new BufferedOutputStream(compressed)
+      }
+      stream
+    }
+
+    override def bytes: Long = if (counter == null) { 0L } else { counter.getBytesWritten }
+
+    override def close(): Unit = if (stream != null) { stream.close() }
+  }
+
+  /**
+   * Byte output stream, mainly for testing
+   */
+  class ByteExportStream extends ExportStream {
+    override val os: ByteArrayOutputStream = new ByteArrayOutputStream()
+    override def bytes: Long = os.size()
+    override def close(): Unit = {}
+    def toByteArray: Array[Byte] = os.toByteArray
   }
 }
