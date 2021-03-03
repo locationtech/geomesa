@@ -14,7 +14,6 @@ import org.locationtech.geomesa.fs.tools.export.{FsExportCommand, FsPlaybackComm
 import org.locationtech.geomesa.fs.tools.ingest.{FsGeneratePartitionFiltersCommand, FsIngestCommand, ManageMetadataCommand}
 import org.locationtech.geomesa.fs.tools.stats._
 import org.locationtech.geomesa.fs.tools.status._
-import org.locationtech.geomesa.tools.help.ScalaConsoleCommand
 import org.locationtech.geomesa.tools.{Command, Runner}
 
 object FsRunner extends Runner {
@@ -31,7 +30,6 @@ object FsRunner extends Runner {
       new FsGetTypeNamesCommand,
       new FsGetSftConfigCommand,
       new ManageMetadataCommand,
-      new ScalaConsoleCommand,
       new FsCompactCommand,
       new FsGetPartitionsCommand,
       new FsGetFilesCommand,
