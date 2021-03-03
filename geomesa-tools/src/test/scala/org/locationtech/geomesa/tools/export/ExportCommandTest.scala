@@ -165,7 +165,7 @@ class ExportCommandTest extends Specification {
         readFeatures(format, file) mustEqual features.take(1)
       }
     }
-    "suppress empty output files" in {
+    "suppress or allow empty output files" in {
       foreach(formats) { format =>
         val file = s"$out/${format.name}/empty/out.${format.extensions.head}"
         withCommand { command =>
