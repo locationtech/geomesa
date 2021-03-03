@@ -17,6 +17,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.apache.hadoop.hbase.security.User
+import org.apache.hadoop.hbase.security.token.AuthenticationTokenIdentifier
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants}
 import org.apache.hadoop.security.authentication.util.KerberosUtil
 import org.apache.hadoop.security.{SecurityUtil, UserGroupInformation}
@@ -146,47 +147,57 @@ object HBaseConnectionPool extends LazyLogging {
    * @param conf conf
    */
   def configureSecurity(conf: Configuration): Unit = synchronized {
+    import AuthenticationTokenIdentifier.AUTH_TOKEN_TYPE
+
     if (User.isHBaseSecurityEnabled(conf)) {
-      val principal = conf.get(HBaseGeoMesaPrincipal)
-      val keytab = conf.get(HBaseGeoMesaKeyTab)
-
-      logger.debug(
-        s"Using Kerberos with principal '$principal', keytab '$keytab', " +
-            s"and Hadoop authentication method '${SecurityUtil.getAuthenticationMethod(conf)}'")
-
       val currentUser = UserGroupInformation.getCurrentUser
-
-      if (currentUser.hasKerberosCredentials && sameName(currentUser, principal)) {
-        logger.debug(s"User '$principal' is already authenticated")
+      if (currentUser.getCredentials.getAllTokens.asScala.exists(_.getKind == AUTH_TOKEN_TYPE)) {
+        logger.debug("Using existing HBase authentication token")
       } else {
-        if (currentUser.hasKerberosCredentials) {
-          logger.warn(
-            s"Changing global authenticated Hadoop user from '${currentUser.getUserName}' to '$principal' -" +
-                "this will affect any connections still using the old user")
-        }
-        UserGroupInformation.setConfiguration(conf)
-        UserGroupInformation.loginUserFromKeytab(principal, keytab)
+        val keytab = conf.get(HBaseGeoMesaKeyTab)
+        val rawPrincipal = conf.get(HBaseGeoMesaPrincipal)
 
-        logger.debug(s"Logged into Hadoop with user '${UserGroupInformation.getCurrentUser.getUserName}'")
+        if (keytab == null || rawPrincipal == null) {
+          lazy val missing =
+            Seq(HBaseGeoMesaKeyTab -> keytab, HBaseGeoMesaPrincipal -> rawPrincipal).collect { case (k, null) => k }
+          logger.warn(s"Security is enabled but missing credentials under '${missing.mkString("' and '")}'")
+        } else {
+          val principal = fullPrincipal(rawPrincipal)
+
+          lazy val principalMsg =
+            s"'$principal'${if (principal == rawPrincipal) { "" } else { s" (original '$rawPrincipal')"}}"
+          logger.debug(
+            s"Using Kerberos with principal $principalMsg, keytab '$keytab', " +
+                s"and Hadoop authentication method '${SecurityUtil.getAuthenticationMethod(conf)}'")
+
+          if (currentUser.hasKerberosCredentials && currentUser.getUserName == principal) {
+            logger.debug(s"User '$principal' is already authenticated")
+          } else {
+            if (currentUser.hasKerberosCredentials) {
+              logger.warn(
+                s"Changing global authenticated Hadoop user from '${currentUser.getUserName}' to '$principal' -" +
+                    "this will affect any connections still using the old user")
+            }
+            UserGroupInformation.setConfiguration(conf)
+            UserGroupInformation.loginUserFromKeytab(principal, keytab)
+
+            logger.debug(s"Logged into Hadoop with user '${UserGroupInformation.getCurrentUser.getUserName}'")
+          }
+        }
       }
     }
   }
 
   /**
-   * Compare two kerberos principals.
+   * Replace _HOST with the current host and add the default realm if nothing is specified.
    *
-   * The existing principal is expected to have a realm and hostname filled out already.
+   * `SecurityUtil.getServerPrincipal` will replace the _HOST but only if there is already a realm.
    *
-   * To compare, we: add the default realm, if there is no realm specified; replace _HOST with the current host.
-   *
-   * `SecurityUtil.getServerPrincipal` will replace the _HOST but only if there is already a realm
-   *
-   * @param current existing user
-   * @param principal new user name
+   * @param principal kerberos principal
    * @return
    */
-  private def sameName(current: UserGroupInformation, principal: String): Boolean = {
-    val fullName = if (principal.indexOf('@') != -1) {
+  private def fullPrincipal(principal: String): String = {
+    if (principal.indexOf('@') != -1) {
       // we have a realm so this should be work to replace _HOST if present
       SecurityUtil.getServerPrincipal(principal, null: String)
     } else {
@@ -201,8 +212,6 @@ object HBaseConnectionPool extends LazyLogging {
           }
       }
     }
-
-    current.getUserName == fullName
   }
 
   /**
