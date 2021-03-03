@@ -56,9 +56,13 @@ class GeoMesaHBaseInputFormat extends InputFormat[Text, SimpleFeature] with Conf
 
   override def setConf(conf: Configuration): Unit = {
     delegate.setConf(conf)
-    // see TableMapReduceUtil.java
-    HBaseConfiguration.merge(conf, HBaseConfiguration.create(conf))
-    HBaseConnectionPool.configureSecurity(conf)
+    // configurations aren't thread safe - if multiple input formats are configured at once,
+    // updating it could cause ConcurrentModificationExceptions
+    conf.synchronized {
+      // see TableMapReduceUtil.java
+      HBaseConfiguration.merge(conf, HBaseConfiguration.create(conf))
+      HBaseConnectionPool.configureSecurity(conf)
+    }
   }
 
   override def getConf: Configuration = delegate.getConf
