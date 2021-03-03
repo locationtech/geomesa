@@ -30,11 +30,12 @@ import org.locationtech.geomesa.tools.DistributedRunParam.RunModes
 import org.locationtech.geomesa.tools.DistributedRunParam.RunModes.RunMode
 import org.locationtech.geomesa.tools._
 import org.locationtech.geomesa.tools.data.CreateSchemaCommand.SchemaOptionsCommand
-import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestCounters, IngestParams}
+import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestCounters, IngestParams, Inputs}
 import org.locationtech.geomesa.tools.utils.{CLArgResolver, Prompt, TerminalCallback}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.geotools.{ConfigSftParsing, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
 import org.locationtech.geomesa.utils.io.{CloseWithLogging, PathUtils, WithClose}
 import org.locationtech.geomesa.utils.text.TextTools
@@ -56,29 +57,21 @@ trait IngestCommand[DS <: DataStore]
 
   override def execute(): Unit = {
     if (params.files.isEmpty && !StdInHandle.isAvailable) {
-      throw new ParameterException("Missing option: <files>... is required")
+      throw new ParameterException("Missing option: <files>... is required, or use `-` to ingest from standard in")
     }
 
-    val inputs = if (params.srcList) {
-      val lists = if (params.files.isEmpty) { StdInHandle.available().toList } else {
-        params.files.asScala.flatMap(PathUtils.interpretPath).toList
-      }
-      lists.flatMap { file =>
-        WithClose(file.open) { iter =>
-          iter.flatMap { case (_, is) => IOUtils.lineIterator(is, StandardCharsets.UTF_8).asScala }.toList
-        }
-      }
-    } else {
-      params.files.asScala
+    val inputs: Inputs = {
+      val files = Inputs(params.files.asScala)
+      if (params.srcList) { files.asSourceList } else { files }
     }
 
-    val format = IngestCommand.getDataFormat(params, inputs)
-    val remote = inputs.exists(PathUtils.isRemote)
+    val format = IngestCommand.getDataFormat(params, inputs.paths)
+    val remote = inputs.paths.exists(PathUtils.isRemote)
 
     if (remote) {
       // If we have a remote file, make sure they are all the same FS
-      val prefix = inputs.head.split("/")(0).toLowerCase
-      if (!inputs.drop(1).forall(_.toLowerCase.startsWith(prefix))) {
+      val prefix = inputs.paths.head.split("/")(0).toLowerCase
+      if (!inputs.paths.drop(1).forall(_.toLowerCase.startsWith(prefix))) {
         throw new ParameterException(s"Files must all be on the same file system: ($prefix) or all be local")
       }
     }
@@ -110,7 +103,7 @@ trait IngestCommand[DS <: DataStore]
     }
 
     // use .get to re-throw the exception if we fail
-    IngestCommand.getSftAndConverter(params, inputs, format, Some(this)).get.foreach { case (sft, converter) =>
+    IngestCommand.getSftAndConverter(params, inputs.paths, format, Some(this)).get.foreach { case (sft, converter) =>
       val start = System.currentTimeMillis()
       // create schema for the feature prior to ingest
       val ds = DataStoreFinder.getDataStore(connection.asJava).asInstanceOf[DS]
@@ -169,7 +162,7 @@ trait IngestCommand[DS <: DataStore]
       ds: DS,
       sft: SimpleFeatureType,
       converter: Config,
-      inputs: Seq[String]): Awaitable = {
+      inputs: Inputs): Awaitable = {
     mode match {
       case RunModes.Local =>
         Command.user.info("Running ingestion in local mode")
@@ -177,7 +170,7 @@ trait IngestCommand[DS <: DataStore]
 
       case RunModes.Distributed =>
         Command.user.info(s"Running ingestion in distributed ${if (params.combineInputs) "combine " else "" }mode")
-        new ConverterIngestJob(connection, sft, converter, inputs, libjarsFiles, libjarsPaths) {
+        new ConverterIngestJob(connection, sft, converter, inputs.paths, libjarsFiles, libjarsPaths) {
           override def configureJob(job: Job): Unit = {
             super.configureJob(job)
             if (params.combineInputs) {
@@ -350,6 +343,47 @@ object IngestCommand extends LazyLogging {
     val Ingested  = "ingested"
     val Failed    = "failed"
     val Persisted = "persisted"
+  }
+
+  /**
+   * Command inputs
+   *
+   * @param paths paths to files for ingest
+   */
+  case class Inputs(paths: Seq[String]) {
+
+    import Inputs.StdInInputs
+
+    import scala.collection.JavaConverters.asScalaIteratorConverter
+
+    val stdin: Boolean = paths.isEmpty || paths == StdInInputs
+
+    /**
+     * Interprets the input paths into actual files, handling wildcards, etc
+     */
+    lazy val handles: List[FileHandle] = paths match {
+      case Nil         => StdInHandle.available().toList
+      case StdInInputs => List(new StdInHandle())
+      case _           => paths.flatMap(PathUtils.interpretPath).toList
+    }
+
+    /**
+     * Interprets the paths as lists of source file names (instead of the files to ingest)
+     *
+     * @return the actual inputs to ingest
+     */
+    def asSourceList: Inputs = {
+      val paths = handles.flatMap { file =>
+        WithClose(file.open) { iter =>
+          iter.flatMap { case (_, is) => IOUtils.lineIterator(is, StandardCharsets.UTF_8).asScala }.toList
+        }
+      }
+      Inputs(paths)
+    }
+  }
+
+  object Inputs {
+    val StdInInputs = Seq("-")
   }
 
   /**

@@ -8,6 +8,10 @@
 
 package org.locationtech.geomesa.tools.ingest
 
+import java.io.Flushable
+import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
+import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Executors}
+
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.LazyLogging
 import org.geotools.data.{DataStore, DataUtilities, FeatureWriter, Transaction}
@@ -17,19 +21,17 @@ import org.locationtech.geomesa.convert2.SimpleFeatureConverter
 import org.locationtech.geomesa.jobs.JobResult.{JobFailure, JobSuccess}
 import org.locationtech.geomesa.jobs._
 import org.locationtech.geomesa.tools.Command
-import org.locationtech.geomesa.tools.ingest.IngestCommand.IngestCounters
+import org.locationtech.geomesa.tools.ingest.IngestCommand.{IngestCounters, Inputs}
 import org.locationtech.geomesa.utils.collection.CloseableIterator
 import org.locationtech.geomesa.utils.concurrent.CachedThreadPool
 import org.locationtech.geomesa.utils.geotools.FeatureUtils
 import org.locationtech.geomesa.utils.io.fs.FileSystemDelegate.FileHandle
 import org.locationtech.geomesa.utils.io.fs.LocalDelegate.StdInHandle
-import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, PathUtils, WithClose}
+import org.locationtech.geomesa.utils.io.{CloseWithLogging, CloseablePool, WithClose}
+import org.locationtech.geomesa.utils.stats.CountingInputStream
 import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import java.io.Flushable
-import java.util.concurrent.atomic.{AtomicInteger, AtomicLong}
-import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, Executors}
 import scala.util.control.NonFatal
 
 /**
@@ -45,13 +47,11 @@ class LocalConverterIngest(
     ds: DataStore,
     sft: SimpleFeatureType,
     converterConfig: Config,
-    inputs: Seq[String],
+    inputs: Inputs,
     numThreads: Int
   ) extends Awaitable with LazyLogging {
 
-  // if inputs is empty, we've already validated that stdin has data to read
-  private val stdin = inputs.isEmpty
-  private val files = if (stdin) { StdInHandle.available().toSeq } else { inputs.flatMap(PathUtils.interpretPath) }
+  private val files = inputs.handles
   private val latch = new CountDownLatch(files.length)
 
   private val threads = if (numThreads <= files.length) { numThreads } else {
@@ -63,6 +63,13 @@ class LocalConverterIngest(
     throw new IllegalArgumentException(
       s"Invalid batch size for property ${IngestCommand.LocalBatchSize.property}: " +
           IngestCommand.LocalBatchSize.get)
+  }
+
+  if (inputs.stdin && !StdInHandle.isAvailable) {
+    Command.user.info("Waiting for input...")
+    while (!StdInHandle.isAvailable) {
+      Thread.sleep(10)
+    }
   }
 
   private val es = Executors.newFixedThreadPool(threads)
@@ -85,14 +92,15 @@ class LocalConverterIngest(
     override def getCount: Long = failed.get()
   }
 
-  private val totalLength: () => Float = if (stdin) {
-    () => (bytesRead.get + files.map(_.length).sum).toFloat // re-evaluate each time as bytes are read from stdin
-  } else {
-    val length = files.map(_.length).sum.toFloat // only evaluate once
-    () => length
-  }
+  private val progress: () => Float =
+    if (inputs.stdin) {
+      () => .99f // we don't know how many bytes are actually available
+    } else {
+      val length = files.map(_.length).sum.toFloat // only evaluate once
+      () => bytesRead.get / length
+    }
 
-  Command.user.info(s"Ingesting ${if (stdin) { "from stdin" } else { TextTools.getPlural(files.length, "file") }} " +
+  Command.user.info(s"Ingesting ${if (inputs.stdin) { "from stdin" } else { TextTools.getPlural(files.length, "file") }} " +
       s"with ${TextTools.getPlural(threads, "thread")}")
 
   private val converters = CloseablePool(SimpleFeatureConverter(sft, converterConfig), threads)
@@ -106,8 +114,7 @@ class LocalConverterIngest(
     }
   }
 
-  private val futures =
-    files.map(f => es.submit(new LocalIngestWorker(f))).toList :+ CachedThreadPool.submit(closer)
+  private val futures = files.map(f => es.submit(new LocalIngestWorker(f))) :+ CachedThreadPool.submit(closer)
 
   es.shutdown()
 
@@ -126,7 +133,7 @@ class LocalConverterIngest(
       JobFailure("Some files caused errors, check logs for details")
     } else {
       val message =
-        if (stdin) { "from stdin" } else if (files.lengthCompare(1) == 0) { s"for file ${files.head.path}" } else { "" }
+        if (inputs.stdin) { "from stdin" } else if (files.lengthCompare(1) == 0) { s"for file ${files.head.path}" } else { "" }
       JobSuccess(message, counters.toMap)
     }
   }
@@ -139,7 +146,6 @@ class LocalConverterIngest(
    */
   protected def features(iter: CloseableIterator[SimpleFeature]): CloseableIterator[SimpleFeature] = iter
 
-  private def progress(): Float = bytesRead.get() / totalLength()
   private def counters: Seq[(String, Long)] =
     Seq((IngestCounters.Ingested, written.get()), (IngestCounters.Failed, failed.get()))
 
