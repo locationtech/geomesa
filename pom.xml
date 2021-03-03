@@ -2540,6 +2540,7 @@
                             <validHeader>build/copyright/ibm.txt</validHeader>
                             <validHeader>build/copyright/ibm-ccri.txt</validHeader>
                             <validHeader>build/copyright/mitre.txt</validHeader>
+                            <validHeader>build/copyright/ccri-2021.txt</validHeader>
                         </validHeaders>
                         <properties>
                             <year>${copyright.year}</year>
