@@ -477,6 +477,7 @@ object ArrowAttributeWriter {
   object ArrowNoopWriter extends ArrowAttributeWriter {
     override def vector: FieldVector = null
     override def apply(i: Int, value: AnyRef): Unit = {}
+    override def setValueCount(count: Int): Unit = {}
   }
 
   class ArrowFeatureIdMinimalUuidWriter(name: String, factory: VectorFactory)
