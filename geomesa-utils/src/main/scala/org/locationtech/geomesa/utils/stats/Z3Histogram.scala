@@ -14,6 +14,7 @@ import com.typesafe.scalalogging.LazyLogging
 import org.geotools.geometry.jts.JTSFactoryFinder
 import org.locationtech.geomesa.curve.TimePeriod.TimePeriod
 import org.locationtech.geomesa.curve.{BinnedTime, TimePeriod, Z3SFC}
+import org.locationtech.geomesa.utils.stats.BinnedArray.LongBinning
 import org.locationtech.geomesa.utils.stats.MinMax.MinMaxGeometry
 import org.locationtech.jts.geom.{Coordinate, Geometry, Point}
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
@@ -58,8 +59,8 @@ class Z3Histogram(
     case TimePeriod.Year  => s"$period-%02d"
   }
 
-  private [stats] val binMap = scala.collection.mutable.Map.empty[Short, BinnedLongArray]
-  private [stats] def newBins = new BinnedLongArray(length, (minZ, maxZ))
+  private [stats] val binMap = scala.collection.mutable.Map.empty[Short, BinnedArray[java.lang.Long]]
+  private [stats] def newBins = new BinnedArray(new LongBinning(length, (minZ, maxZ)))
 
   def timeBins: Seq[Short] = binMap.keys.toSeq.sorted
   def count(timeBin: Short, i: Int): Long = binMap.get(timeBin).map(_.counts(i)).getOrElse(0L)
