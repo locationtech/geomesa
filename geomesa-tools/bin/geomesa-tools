@@ -1,0 +1,113 @@
+#! /usr/bin/env bash
+#
+# Copyright (c) 2013-%%copyright.year%% Commonwealth Computer Research, Inc.
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0 which
+# accompanies this distribution and is available at
+# http://www.opensource.org/licenses/apache2.0.php.
+#
+
+# set environment variables in conf/geomesa-env.sh, dependencies in .dependencies
+
+# configure HOME and CONF_DIR, then load geomesa-env.sh
+export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
+export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%tools.dist.name%%_HOME/conf}"
+
+RUNNER="%%tools.runner%%"
+NG_RUNNER="org.locationtech.geomesa.tools.utils.NailgunServer"
+
+if [[ -f "${GEOMESA_CONF_DIR}/geomesa-env.sh" ]]; then
+  . "${GEOMESA_CONF_DIR}/geomesa-env.sh"
+else
+  echo >&2 "ERROR: could not read '${GEOMESA_CONF_DIR}/geomesa-env.sh', aborting script"
+  exit 1
+fi
+
+function load_classpath() {
+  CLASSPATH="$(get_classpath)"
+  # load and check required dependencies - skip if classpath is explicitly set
+  if [[ -z "$GEOMESA_CLASSPATH" && "$GEOMESA_CHECK_DEPENDENCIES" = "true" && -f "${GEOMESA_CONF_DIR}/dependencies.sh" ]]; then
+    . "${GEOMESA_CONF_DIR}/dependencies.sh"
+    includes="$(dependencies $CLASSPATH)"
+    # TODO check for --no-prompt and pass it along
+    check_classpath "$GEOMESA_LIB" "$CLASSPATH" "$includes"
+    RET=$?
+    if [[ $RET -eq 1 ]]; then
+      # downloaded new jars - re-load the classpath to pick them up
+      CLASSPATH="$(get_classpath)"
+    elif [[ $RET -ne 0 ]]; then
+       # error or cancelled
+      exit $RET
+    fi
+  fi
+}
+
+# setup the classpath
+function get_classpath() {
+  if [[ -n "$GEOMESA_CLASSPATH" ]]; then
+    echo "$GEOMESA_CLASSPATH"
+  else
+    local classpath="$(get_base_classpath)"
+    for file in $(ls ${GEOMESA_CONF_DIR}/*-env.sh | grep -v geomesa-env.sh); do
+      local env_cp="$(. "$file")"
+      classpath="$classpath:$(remove_slf4j_from_classpath $env_cp)"
+    done
+    classpath="$(fix_classpath_format $classpath)"
+    echo "$classpath"
+  fi
+}
+
+function start_nailgun() {
+  load_classpath
+  get_nailgun_options # need to use global state to pass the array for correctly handling quotes
+  echo -n "Starting Nailgun server... " >&2
+   # create a named pipe to read our nailgun startup output
+  fd="$(mktemp --tmpdir ngfdXXXX)" && rm "$fd" && mkfifo "$fd"
+  (nohup java $GEOMESA_OPTS -cp $CLASSPATH $NG_RUNNER "${NG_OPTS[@]}" >"$fd" 2>&1 ; rm "$fd") &
+  # read the output from the nailgun start up, timeout after 60 seconds
+  read -t 60 -r ng_output <$fd
+  echo $ng_output >&2
+  if [[ -z $(echo $ng_output | grep started) ]]; then
+    echo "Error starting Nailgun server" >&2
+    exit 1
+  fi
+}
+
+# set java process options - do this after set classpath b/c that can modify JAVA_LIBRARY_PATH
+# TODO JAVA_LIBRARY_PATH not being set, and this is being called before setting the classpath
+if [[ $1 = debug ]]; then
+  GEOMESA_OPTS="$(get_options "debug")"
+  shift 1
+else
+  GEOMESA_OPTS="$(get_options)"
+fi
+
+if [[ $1 = classpath ]]; then
+  echo "$(get_classpath)" | tr ':' '\n' | sort
+elif [[ $1 = configure ]]; then
+  geomesa_configure
+elif [[ $1 = scala-console ]]; then
+  shift 1
+  # scala console requires options to be passed in through java_opts
+  export JAVA_OPTS="${GEOMESA_OPTS}"
+  geomesa_scala_console "$(get_classpath)" "$@"
+elif [[ $1 = ng && $2 = start ]]; then
+  start_nailgun
+elif [[ $1 = ng && $2 = stop ]]; then
+  ${%%tools.dist.name%%_HOME}/bin/ng ng-stop
+elif [[ $1 = ng && $2 = classpath ]]; then
+  ${%%tools.dist.name%%_HOME}/bin/ng ng-cp
+elif [[ "$GEOMESA_NG_ENABLED" = "true" ]]; then
+  # check to see if the nailgun server is up
+  ${%%tools.dist.name%%_HOME}/bin/ng ng-version >/dev/null 2>&1
+  RET=$?
+  if [[ $RET -ne 0 ]]; then
+    # it's not running, start the nailgun server
+    start_nailgun
+  fi
+  # invoke the nailgun client
+  ${%%tools.dist.name%%_HOME}/bin/ng $RUNNER "$@"
+else
+  load_classpath
+  java $GEOMESA_OPTS -cp $CLASSPATH $RUNNER "$@"
+fi

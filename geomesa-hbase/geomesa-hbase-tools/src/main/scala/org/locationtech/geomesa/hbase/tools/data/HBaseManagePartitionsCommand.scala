@@ -8,18 +8,16 @@
 
 package org.locationtech.geomesa.hbase.tools.data
 
-import com.beust.jcommander.{JCommander, Parameters}
+import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.hbase.data.HBaseDataStore
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand
 import org.locationtech.geomesa.hbase.tools.HBaseDataStoreCommand.{HBaseParams, RemoteFilterNotUsedParam}
 import org.locationtech.geomesa.hbase.tools.data.HBaseManagePartitionsCommand._
 import org.locationtech.geomesa.tools.data.ManagePartitionsCommand
 import org.locationtech.geomesa.tools.data.ManagePartitionsCommand._
-import org.locationtech.geomesa.tools.{OptionalForceParam, RequiredTypeNameParam, Runner}
+import org.locationtech.geomesa.tools.{OptionalForceParam, RequiredTypeNameParam}
 
-class HBaseManagePartitionsCommand(runner: Runner, jc: JCommander)
-    extends ManagePartitionsCommand(runner, jc) {
-
+class HBaseManagePartitionsCommand extends ManagePartitionsCommand {
   override protected def list: HBaseListPartitionsCommand = new HBaseListPartitionsCommand
   override protected def add: HBaseAddPartitionsCommand = new HBaseAddPartitionsCommand
   override protected def adopt: HBaseAdoptPartitionCommand = new HBaseAdoptPartitionCommand

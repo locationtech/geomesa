@@ -42,3 +42,6 @@ function get_kafka_classpath() {
     echo "$kafka_cp"
   fi
 }
+
+get_kafka_classpath
+

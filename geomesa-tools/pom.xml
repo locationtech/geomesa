@@ -85,6 +85,11 @@
             <artifactId>scala-xml_${scala.binary.version}</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.facebook</groupId>
+            <artifactId>nailgun-server</artifactId>
+            <version>1.0.1</version>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <scope>compile</scope>

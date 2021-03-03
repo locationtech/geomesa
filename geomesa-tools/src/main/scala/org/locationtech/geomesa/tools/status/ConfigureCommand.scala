@@ -10,17 +10,19 @@ package org.locationtech.geomesa.tools.status
 
 import com.beust.jcommander.Parameters
 import org.locationtech.geomesa.tools.Command
+import org.locationtech.geomesa.tools.status.ConfigureCommand.ConfigureParameters
 
 /**
   * Note: this class is a placeholder for the 'configure' function implemented in the 'geomesa-*' script, to get it
   * to show up in the JCommander help
   */
 class ConfigureCommand extends Command {
-
   override val name = "configure"
   override val params = new ConfigureParameters
   override def execute(): Unit = {}
 }
 
-@Parameters(commandDescription = "Configure the local environment for GeoMesa")
-class ConfigureParameters {}
+object ConfigureCommand {
+  @Parameters(commandDescription = "Configure the local environment for GeoMesa")
+  class ConfigureParameters {}
+}

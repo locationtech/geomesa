@@ -13,8 +13,8 @@ imageio_version="1.1"
 jline_version="2.12.1"
 
 # configure HOME and CONF_DIR, then load geomesa-env.sh
-export %%gmtools.dist.name%%_HOME="${%%gmtools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
-export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%gmtools.dist.name%%_HOME/conf}"
+export %%tools.dist.name%%_HOME="${%%tools.dist.name%%_HOME:-$(cd "`dirname "$0"`"/..; pwd)}"
+export GEOMESA_CONF_DIR="${GEOMESA_CONF_DIR:-$%%tools.dist.name%%_HOME/conf}"
 
 if [[ -f "${GEOMESA_CONF_DIR}/geomesa-env.sh" ]]; then
   . "${GEOMESA_CONF_DIR}/geomesa-env.sh"
@@ -23,7 +23,7 @@ else
   exit 1
 fi
 
-install_dir="${%%gmtools.dist.name%%_HOME}/lib"
+install_dir="${%%tools.dist.name%%_HOME}/lib"
 
 if [[ -n "$1" && "$1" != "--no-prompt" ]]; then
   install_dir="$1"

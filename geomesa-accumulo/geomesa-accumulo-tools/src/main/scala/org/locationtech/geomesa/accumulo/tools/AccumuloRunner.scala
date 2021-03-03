@@ -9,11 +9,9 @@
 
 package org.locationtech.geomesa.accumulo.tools
 
-import com.beust.jcommander.{JCommander, ParameterException}
+import com.beust.jcommander.ParameterException
 import org.locationtech.geomesa.accumulo.data.AccumuloClientConfig
 import org.locationtech.geomesa.tools._
-import org.locationtech.geomesa.tools.export.{ConvertCommand, GenerateAvroSchemaCommand}
-import org.locationtech.geomesa.tools.status._
 import org.locationtech.geomesa.tools.utils.Prompt
 
 object AccumuloRunner extends RunnerWithAccumuloEnvironment {
@@ -22,42 +20,35 @@ object AccumuloRunner extends RunnerWithAccumuloEnvironment {
 
   override val name: String = "geomesa-accumulo"
 
-  override def createCommands(jc: JCommander): Seq[Command] = Seq(
-    new tools.data.AccumuloAgeOffCommand,
-    new tools.data.AccumuloCompactCommand,
-    new tools.data.AccumuloManagePartitionsCommand(this, jc),
-    new tools.data.AddAttributeIndexCommand,
-    new tools.data.AddIndexCommand,
-    new tools.data.TableConfCommand(this, jc),
-    new tools.export.AccumuloExplainCommand,
-    new tools.export.AccumuloExportCommand,
-    new tools.export.AccumuloPlaybackCommand,
-    new tools.ingest.AccumuloDeleteFeaturesCommand,
-    new tools.ingest.AccumuloIngestCommand,
-    new tools.schema.AccumuloCreateSchemaCommand,
-    new tools.schema.AccumuloDeleteCatalogCommand,
-    new tools.schema.AccumuloRemoveSchemaCommand,
-    new tools.schema.AccumuloUpdateSchemaCommand,
-    new tools.status.AccumuloDescribeSchemaCommand,
-    new tools.status.AccumuloGetSftConfigCommand,
-    new tools.status.AccumuloGetTypeNamesCommand,
-    new tools.status.AccumuloVersionRemoteCommand,
-    new tools.stats.AccumuloStatsAnalyzeCommand,
-    new tools.stats.AccumuloStatsBoundsCommand,
-    new tools.stats.AccumuloStatsConfigureCommand,
-    new tools.stats.AccumuloStatsCountCommand,
-    new tools.stats.AccumuloStatsTopKCommand,
-    new tools.stats.AccumuloStatsHistogramCommand,
-    // common commands, placeholders for script functions
-    new ConvertCommand,
-    new ConfigureCommand,
-    new ClasspathCommand,
-    new EnvironmentCommand,
-    new GenerateAvroSchemaCommand,
-    new HelpCommand(this, jc),
-    new ScalaConsoleCommand,
-    new VersionCommand
-  )
+  override protected def commands: Seq[Command] = {
+    super.commands ++ Seq(
+      new tools.data.AccumuloAgeOffCommand,
+      new tools.data.AccumuloCompactCommand,
+      new tools.data.AccumuloManagePartitionsCommand,
+      new tools.data.AddAttributeIndexCommand,
+      new tools.data.AddIndexCommand,
+      new tools.data.TableConfCommand,
+      new tools.export.AccumuloExplainCommand,
+      new tools.export.AccumuloExportCommand,
+      new tools.export.AccumuloPlaybackCommand,
+      new tools.ingest.AccumuloDeleteFeaturesCommand,
+      new tools.ingest.AccumuloIngestCommand,
+      new tools.schema.AccumuloCreateSchemaCommand,
+      new tools.schema.AccumuloDeleteCatalogCommand,
+      new tools.schema.AccumuloRemoveSchemaCommand,
+      new tools.schema.AccumuloUpdateSchemaCommand,
+      new tools.status.AccumuloDescribeSchemaCommand,
+      new tools.status.AccumuloGetSftConfigCommand,
+      new tools.status.AccumuloGetTypeNamesCommand,
+      new tools.status.AccumuloVersionRemoteCommand,
+      new tools.stats.AccumuloStatsAnalyzeCommand,
+      new tools.stats.AccumuloStatsBoundsCommand,
+      new tools.stats.AccumuloStatsConfigureCommand,
+      new tools.stats.AccumuloStatsCountCommand,
+      new tools.stats.AccumuloStatsTopKCommand,
+      new tools.stats.AccumuloStatsHistogramCommand
+    )
+  }
 }
 
 trait RunnerWithAccumuloEnvironment extends Runner {
@@ -96,7 +87,7 @@ trait RunnerWithAccumuloEnvironment extends Runner {
   }
 
   override def environmentErrorInfo(): Option[String] = {
-    if (sys.env.get("ACCUMULO_HOME").isEmpty || sys.env.get("HADOOP_HOME").isEmpty) {
+    if (!sys.env.contains("ACCUMULO_HOME") || !sys.env.contains("HADOOP_HOME")) {
       Option("\nWarning: ACCUMULO_HOME and/or HADOOP_HOME are not set as environment variables." +
         "\nGeoMesa tools will not run without the appropriate Accumulo and Hadoop jars in the tools classpath." +
         "\nPlease ensure that those jars are present in the classpath by running 'geomesa classpath'." +

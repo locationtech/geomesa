@@ -59,3 +59,6 @@ function get_hbase_classpath() {
     echo "$hbase_cp" | sed 's/[^:]*geomesa-hbase-distributed-runtime[^:]*jar//'
   fi
 }
+
+get_hbase_classpath
+

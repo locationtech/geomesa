@@ -24,9 +24,9 @@ trait GetSftConfigCommand[DS <: DataStore] extends DataStoreCommand[DS] {
 
   override def params: GetSftConfigParams
 
-  override def execute(): Unit = withDataStore(getSftConfig)
+  override def execute(): Unit = withDataStore(showSftConfig)
 
-  protected def getSftConfig(ds: DS): Unit = {
+  protected def showSftConfig(ds: DS): Unit = {
     import scala.collection.JavaConversions._
     for {
       p <- Option(params).collect { case p: ProvidedTypeNameParam => p }
@@ -48,7 +48,6 @@ trait GetSftConfigCommand[DS <: DataStore] extends DataStoreCommand[DS] {
   }
 
   def getSchema(ds: DS): SimpleFeatureType = ds.getSchema(params.featureName)
-
 }
 
 object GetSftConfigCommand {
@@ -61,7 +60,11 @@ trait GetSftConfigParams extends TypeNameParam {
   @Parameter(names = Array("--concise"), description = "Render in concise format", required = false)
   var concise: Boolean = false
 
-  @Parameter(names = Array("--format"), description = "Output formats (allowed values are spec or config)", required = false, validateValueWith = classOf[FormatValidator])
+  @Parameter(
+    names = Array("--format"),
+    description = "Output formats (allowed values are spec or config)",
+    required = false,
+    validateValueWith = Array(classOf[FormatValidator]))
   var format: java.util.List[String] = Collections.singletonList(Spec)
 
   @Parameter(names = Array("--exclude-user-data"), description = "Exclude user data", required = false)

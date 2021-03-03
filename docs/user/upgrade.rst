@@ -99,6 +99,12 @@ FileSystem Data Store Metadata Format Change
 The metadata format for the FileSystem data store has been changed to support storing arbitrary key-value pairs.
 Any data written with version 3.2.0 or later will not be readable by earlier GeoMesa versions.
 
+Lambda Data Store Binary Distribution Change
+--------------------------------------------
+
+The Lambda data store binary distribution no longer contains the ``geomesa-accumulo-distributed-runtime`` JAR.
+This JAR is available in the Accumulo data store binary distribution.
+
 Deprecated Arrow Output Options
 -------------------------------
 
