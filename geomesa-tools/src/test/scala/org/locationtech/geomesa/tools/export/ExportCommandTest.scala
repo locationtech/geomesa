@@ -165,6 +165,37 @@ class ExportCommandTest extends Specification {
         readFeatures(format, file) mustEqual features.take(1)
       }
     }
+    "suppress or allow empty output files" in {
+      foreach(formats) { format =>
+        val file = s"$out/${format.name}/empty/out.${format.extensions.head}"
+        withCommand { command =>
+          command.params.file = file
+          command.params.suppressEmpty = true
+          command.params.cqlFilter = org.opengis.filter.Filter.EXCLUDE
+          command.execute()
+        }
+        new File(file).exists() must beFalse
+        withCommand { command =>
+          command.params.file = file
+          command.params.suppressEmpty = false
+          command.params.cqlFilter = org.opengis.filter.Filter.EXCLUDE
+          command.execute()
+        }
+        readFeatures(format, file) must beEmpty
+      }
+    }
+    "support arrow with dictionaries and without feature ids" in {
+      val format = ExportFormat.Arrow
+      val file = s"$out/${format.name}/fid/out.${format.extensions.head}"
+      withCommand { command =>
+        command.params.file = file
+        command.params.hints = Map("ARROW_INCLUDE_FID" -> "false", "ARROW_DICTIONARY_FIELDS" -> "name").asJava
+        command.execute()
+      }
+      val result = readFeatures(format, file)
+      result.map(_.getAttributes) mustEqual features.map(_.getAttributes)
+      foreach(features.map(_.getID))(id => result.map(_.getID) must not(contain(id)))
+    }
   }
 
   step {
@@ -216,20 +247,21 @@ class ExportCommandTest extends Specification {
     DelimitedTextConverter.magicParsing(sft.getTypeName, new FileInputStream(file)).toList
 
   def readJson(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {
-    val converter = SimpleFeatureConverter.infer(() => new FileInputStream(file), None, Some(file)) match {
-      case None => ko(s"could not create converter from $file"); null: SimpleFeatureConverter
-      case Some((s, c)) => SimpleFeatureConverter(s, c)
+    SimpleFeatureConverter.infer(() => new FileInputStream(file), None, Some(file)) match {
+      case None => Seq.empty // empty json file
+      case Some((s, c)) =>
+        val converter = SimpleFeatureConverter(s, c)
+        val result = Seq.newBuilder[SimpleFeature]
+        val names = sft.getAttributeDescriptors.asScala.map(_.getLocalName)
+        WithClose(converter.process(new FileInputStream(file))) { features =>
+          features.foreach { f =>
+            val copy = new ScalaSimpleFeature(sft, f.getID)
+            names.foreach(a => copy.setAttribute(a, f.getAttribute(a)))
+            result += copy
+          }
+        }
+        result.result()
     }
-    val result = Seq.newBuilder[SimpleFeature]
-    val names = sft.getAttributeDescriptors.asScala.map(_.getLocalName)
-    WithClose(converter.process(new FileInputStream(file))) { features =>
-      features.foreach { f =>
-        val copy = new ScalaSimpleFeature(sft, f.getID)
-        names.foreach(a => copy.setAttribute(a, f.getAttribute(a)))
-        result += copy
-      }
-    }
-    result.result()
   }
 
   def readLeaflet(file: String, sft: SimpleFeatureType): Seq[SimpleFeature] = {

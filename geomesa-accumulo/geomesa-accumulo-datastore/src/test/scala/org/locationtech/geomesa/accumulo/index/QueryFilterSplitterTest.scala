@@ -35,6 +35,8 @@ class QueryFilterSplitterTest extends Specification {
   import org.locationtech.geomesa.filter.ff
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
+  import scala.collection.JavaConverters._
+
   val sft = SchemaBuilder.builder()
     .addString("attr1")
     .addString("attr2").withIndex()
@@ -463,12 +465,21 @@ class QueryFilterSplitterTest extends Specification {
         val filter = or(f(geom), or(dtg, indexedAttr))
         val options = splitter.getQueryOptions(filter)
         options must haveLength(1)
-        options.head.strategies must haveLength(3)
-        options.head.strategies.map(_.index.name) must
+        val strategies = options.head.strategies
+        strategies must haveLength(3)
+        strategies.map(_.index.name) must
             containTheSameElementsAs(Seq(Z3Index.name, Z2Index.name, AttributeIndex.name))
-        options.head.strategies.map(_.primary) must contain(beSome(f(geom)), beSome(f(dtg)), beSome(f(indexedAttr)))
-        options.head.strategies.map(_.secondary) must contain(beSome(not(geom)), beSome(not(geom, indexedAttr)))
-        options.head.strategies.map(_.secondary) must contain(beNone)
+        strategies.map(_.primary) must contain(beSome(f(geom)), beSome(f(dtg)), beSome(f(indexedAttr)))
+        strategies.flatMap(_.secondary) must haveLength(2)
+        val first = strategies.find(_.secondary.isEmpty).get
+        strategies.filter(_ != first).map(_.secondary) must
+            contain(beSome(beAnInstanceOf[Not]), beSome(beAnInstanceOf[And]))
+        val second = strategies.find(_.secondary.exists(_.isInstanceOf[Not])).get
+        second.secondary.get.asInstanceOf[Not].getFilter mustEqual first.primary.get
+        val third = strategies.find(s => s != first && s != second).get
+        forall(third.secondary.get.asInstanceOf[And].getChildren.asScala)(_ must beAnInstanceOf[Not])
+        third.secondary.get.asInstanceOf[And].getChildren.asScala.map(_.asInstanceOf[Not].getFilter) must
+            containTheSameElementsAs(Seq(first.primary.get, second.primary.get))
       }
     }
 

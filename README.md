@@ -178,3 +178,9 @@ If the Zinc build fails with an error finding "javac", try setting the JAVA_HOME
 environment variable to point to the root of your JDK.  Example from a Mac:
 
     JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk1.8.0_51.jdk/Contents/Home" build/mvn clean install
+
+### Scala Cross Build
+
+To build for a different Scala version (e.g. 2.12), run the following script, then build as normal:
+
+    ./build/change-scala-version.sh 2.12

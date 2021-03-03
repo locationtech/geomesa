@@ -24,6 +24,7 @@ Argument                   Description
 ``--hints``                Query hints used to modify the query
 ``--gzip``                 Level of gzip compression to use for output, from 1-9
 ``--no-header``            Don't export the type header, for CSV and TSV formats
+``--suppress-empty``       If no features are converted, don't write any headers or other output
 ``--force``                Force execution without prompt
 ========================== ===================================================================================
 
@@ -76,6 +77,7 @@ Argument                 Description
 ``--hints``              Query hints used to modify the query
 ``--index``              Specific index used to run the query
 ``--no-header``          For CSV and TSV formats, suppress the normal column headers
+``--suppress-empty``     If no features are exported, don't write any headers or other output
 ``--gzip``               Level of gzip compression to use for output, from 1-9
 ``--chunk-size``         Split the output into multiple files of the given size
 ``--run-mode``           Run locally or as a distributed map/reduce job
@@ -189,6 +191,7 @@ Argument                 Description
 ``-o, --output``         Output to a file instead of standard out
 ``--hints``              Query hints used to modify the query
 ``--no-header``          Don't export the type header, for CSV and TSV formats
+``--suppress-empty``     If no features are exported, don't write any headers or other output
 ``--gzip``               Level of gzip compression to use for output, from 1-9
 ======================== =========================================================
 

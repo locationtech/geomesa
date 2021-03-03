@@ -20,6 +20,7 @@ import org.locationtech.geomesa.filter.visitor.BoundsFilterVisitor
 import org.locationtech.geomesa.fs.storage.api.PartitionScheme.SimplifiedFilter
 import org.locationtech.geomesa.fs.storage.api.{NamedOptions, PartitionSchemeFactory}
 import org.locationtech.geomesa.utils.geotools.SimpleFeatureTypes
+import org.locationtech.geomesa.utils.text.DateParsing
 import org.opengis.filter.{Filter, PropertyIsLessThan}
 import org.specs2.mutable.Specification
 import org.specs2.runner.JUnitRunner
@@ -33,7 +34,7 @@ class PartitionSchemeTest extends Specification with AllExpectations {
   sequential
 
   val sft = SimpleFeatureTypes.createType("test", "name:String,age:Int,dtg:Date,*geom:Point:srid=4326")
-  val sf = ScalaSimpleFeature.create(sft, "1", "test", 10, "2017-01-03T10:15:30Z", "POINT (10 10)")
+  val sf = ScalaSimpleFeature.create(sft, "1", "test", 10, "2017-02-03T10:15:30Z", "POINT (10 10)")
 
   "PartitionScheme" should {
 
@@ -50,26 +51,26 @@ class PartitionSchemeTest extends Specification with AllExpectations {
 
     "partition based on date" >> {
       val ps = DateTimeScheme("yyyy-MM-dd", ChronoUnit.DAYS, 1, "dtg", 2)
-      ps.getPartitionName(sf) mustEqual "2017-01-03"
+      ps.getPartitionName(sf) mustEqual "2017-02-03"
     }
 
     "partition based on date with slash delimiter" >> {
       val ps = DateTimeScheme("yyyy/DDD/HH", ChronoUnit.DAYS, 1, "dtg", 2)
-      ps.getPartitionName(sf) mustEqual "2017/003/10"
+      ps.getPartitionName(sf) mustEqual "2017/034/10"
     }
 
     "partition based on date with slash delimiter" >> {
       val ps = DateTimeScheme("yyyy/DDD/HH", ChronoUnit.DAYS, 1, "dtg", 2)
-      ps.getPartitionName(sf) mustEqual "2017/003/10"
+      ps.getPartitionName(sf) mustEqual "2017/034/10"
     }
 
     "weekly partitions" >> {
       val ps = PartitionSchemeFactory.load(sft, NamedOptions("weekly"))
       ps must beAnInstanceOf[DateTimeScheme]
-      ps.getPartitionName(sf) mustEqual "2017/01"
+      ps.getPartitionName(sf) mustEqual "2017/W05"
       val tenWeeksOut = ScalaSimpleFeature.create(sft, "1", "test", 10,
         Date.from(Instant.parse("2017-01-01T00:00:00Z").plus(9*7 + 1, ChronoUnit.DAYS)), "POINT (10 10)")
-      ps.getPartitionName(tenWeeksOut) mustEqual "2017/10"
+      ps.getPartitionName(tenWeeksOut) mustEqual "2017/W10"
     }
 
     "10 bit datetime z2 partition" >> {
@@ -243,6 +244,31 @@ class PartitionSchemeTest extends Specification with AllExpectations {
       // compare toString to get around crs comparison failures in bbox
       decomposeAnd(ps.getCoveringFilter("2018/01/01/3")).map(_.toString) must
           containTheSameElementsAs(decomposeAnd(expected).map(_.toString))
+    }
+
+    "calculate covering filters for monthly datetime" >> {
+      import DateTimeScheme.Formats._
+      forall(Seq(Minute, Hourly, Daily, Weekly, Monthly, JulianMinute, JulianHourly, JulianDaily)) { format =>
+        val ps = DateTimeScheme(format.formatter, format.unit, 1, "dtg", 2)
+        val partition = ps.getPartitionName(sf)
+        val start = DateParsing.parse(partition, format.formatter)
+        val end = start.plus(1, format.unit)
+        val expected = ECQL.toFilter(s"dtg >= '${DateParsing.format(start)}' AND dtg < '${DateParsing.format(end)}'")
+        decomposeAnd(ps.getCoveringFilter(partition)) must containTheSameElementsAs(decomposeAnd(expected))
+      }
+    }
+
+    "calculate covering filters for cql" >> {
+      import DateTimeScheme.Formats._
+      foreach(Seq(Minute, Hourly, Daily, Weekly, Monthly, JulianMinute, JulianHourly, JulianDaily)) { format =>
+        val ps = DateTimeScheme(format.formatter, format.unit, 1, "dtg", 2)
+        val partition = ps.getPartitionName(sf)
+        val start = DateParsing.parse(partition, format.formatter)
+        val end = start.plus(1, format.unit)
+        val filter = ECQL.toFilter(s"dtg >= '${DateParsing.format(start)}' AND dtg < '${DateParsing.format(end)}'")
+        val partitions = ps.getIntersectingPartitions(filter)
+        partitions must beSome(Seq(partition))
+      }
     }
 
     "4 bit with filter" >> {

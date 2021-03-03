@@ -115,7 +115,7 @@ abstract class LocalQueryRunner(stats: GeoMesaStats, authProvider: Option[Author
   }
 }
 
-object LocalQueryRunner {
+object LocalQueryRunner extends LazyLogging {
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
@@ -307,6 +307,7 @@ object LocalQueryRunner {
       // note: only invoke createDictionaries if needed, so we only get the arrow hook if needed
       val dictionaries: Map[String, ArrowDictionary] =
         if (dictionaryFields.isEmpty) { Map.empty } else {
+          logger.warn("Running deprecated Arrow double pass scan - switch to delta scans instead")
           ArrowScan.createDictionaries(stats, sft, filter, dictionaryFields, providedDictionaries, cachedDictionaries)
         }
 
@@ -334,6 +335,7 @@ object LocalQueryRunner {
         new ArrowScan.BatchReducer(arrowSft, dictionaries, encoding, ipcOpts, batchSize, sort.map(_.head), sorted = true)(arrows)
       }
     } else if (hints.isArrowMultiFile) {
+      logger.warn("Running deprecated Arrow multi file scan - switch to delta scans instead")
       val writer = new DictionaryBuildingWriter(arrowSft, dictionaryFields, encoding, ipcOpts)
       val os = new ByteArrayOutputStream()
 
