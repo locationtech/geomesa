@@ -100,6 +100,11 @@ trait StorageMetadata extends Compactable with Closeable {
     */
   def removePartition(partition: PartitionMetadata): Unit
 
+  /**
+   * Invalidate any cached state
+   */
+  def invalidate(): Unit = throw new NotImplementedError() // TODO remove default impl in next major release
+
   @deprecated("deprecated with no replacement")
   def reload(): Unit = {}
 }

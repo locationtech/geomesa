@@ -127,6 +127,8 @@ class JdbcMetadata(
     }
   }
 
+  override def invalidate(): Unit = {}
+
   override def close(): Unit = pool.close()
 }
 

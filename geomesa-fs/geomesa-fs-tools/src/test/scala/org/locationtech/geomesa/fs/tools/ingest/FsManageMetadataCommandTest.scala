@@ -1,0 +1,108 @@
+/***********************************************************************
+ * Copyright (c) 2013-2021 Commonwealth Computer Research, Inc.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Apache License, Version 2.0
+ * which accompanies this distribution and is available at
+ * http://www.opensource.org/licenses/apache2.0.php.
+ ***********************************************************************/
+
+package org.locationtech.geomesa.fs.tools.ingest
+
+import java.nio.file.Files
+import java.util.Collections
+import java.util.concurrent.atomic.AtomicInteger
+
+import org.apache.commons.io.FileUtils
+import org.apache.hadoop.fs.Path
+import org.apache.hadoop.hdfs.{HdfsConfiguration, MiniDFSCluster}
+import org.geotools.data.{DataStoreFinder, Query, Transaction}
+import org.junit.runner.RunWith
+import org.locationtech.geomesa.features.ScalaSimpleFeature
+import org.locationtech.geomesa.fs.data.FileSystemDataStore
+import org.locationtech.geomesa.utils.collection.SelfClosingIterator
+import org.locationtech.geomesa.utils.geotools.{FeatureUtils, SimpleFeatureTypes}
+import org.locationtech.geomesa.utils.io.WithClose
+import org.specs2.mutable.Specification
+import org.specs2.runner.JUnitRunner
+
+import scala.collection.JavaConversions._
+
+@RunWith(classOf[JUnitRunner])
+class FsManageMetadataCommandTest extends Specification {
+
+  import org.locationtech.geomesa.fs.storage.common.RichSimpleFeatureType
+
+  val dir = Files.createTempDirectory("gm-FsManageMetadataCommandTest").toFile
+
+  val sft = SimpleFeatureTypes.createType("test", "name:String,dtg:Date,*geom:Point:srid=4326")
+  sft.setEncoding("parquet")
+  sft.setScheme("daily")
+
+  val gzipXml =
+    "<configuration><property><name>parquet.compression</name><value>GZIP</value></property></configuration>"
+
+  val counter = new AtomicInteger(0)
+
+  var cluster: MiniDFSCluster = _
+
+  def nextPath(): String = s"${cluster.getDataDirectory}_fs${counter.incrementAndGet()}"
+
+  step {
+    val conf = new HdfsConfiguration()
+    conf.set(MiniDFSCluster.HDFS_MINIDFS_BASEDIR, dir.getAbsolutePath)
+    cluster = new MiniDFSCluster.Builder(conf).build()
+  }
+
+  "ManageMetadata command" should {
+    "find file inconsistencies" in {
+      val dir = nextPath()
+      val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> gzipXml)
+
+      val features =
+        Seq(
+          ScalaSimpleFeature.create(sft, "0", "name0", "2020-01-01T00:00:00.000Z", "POINT (0 0)"),
+          ScalaSimpleFeature.create(sft, "1", "name2", "2021-01-01T00:00:00.000Z", "POINT (0 0)"),
+          ScalaSimpleFeature.create(sft, "2", "name1", "2022-01-01T00:00:00.000Z", "POINT (0 0)")
+        )
+
+      WithClose(DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]) { ds =>
+        ds.createSchema(sft)
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+        val storage = ds.storage(sft.getTypeName)
+        storage.metadata.getPartitions().map(p => p.name -> p.files.length) must
+            containTheSameElementsAs(Seq("2020/01/01" -> 1, "2021/01/01" -> 1, "2022/01/01" -> 1))
+        val files = storage.metadata.getPartitions().flatMap(_.files.map(_.name)).toList
+        // move a file - it's not in the right partition so it won't be matched correctly by filters,
+        // but it's good enough for a test
+        storage.context.fc.rename(new Path(storage.context.root, "2022"), new Path(storage.context.root, "2019"))
+        // verify we can't retrieve the moved file
+        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
+            containTheSameElementsAs(features.take(2))
+
+        // run the consistency check and repair any problems
+        val command = new FsManageMetadataCommand.CheckConsistencyCommand()
+        command.params.path = dir
+        command.params.featureName = sft.getTypeName
+        command.params.configuration = Collections.singletonList(s"fs.config.xml=$gzipXml")
+        command.params.repair = true
+        command.execute()
+
+        // verify the new file was registered and the old one removed
+        storage.metadata.invalidate()
+        storage.metadata.getPartitions().map(p => p.name -> p.files.length) must
+            containTheSameElementsAs(Seq("2020/01/01" -> 1, "2021/01/01" -> 1, "2019/01/01" -> 1))
+        storage.metadata.getPartitions().flatMap(_.files.map(_.name)) must containTheSameElementsAs(files)
+        // verify we can retrieve the moved file again
+        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
+            containTheSameElementsAs(features)
+      }
+    }
+  }
+
+  step {
+    cluster.shutdown()
+    FileUtils.deleteDirectory(dir)
+  }
+}

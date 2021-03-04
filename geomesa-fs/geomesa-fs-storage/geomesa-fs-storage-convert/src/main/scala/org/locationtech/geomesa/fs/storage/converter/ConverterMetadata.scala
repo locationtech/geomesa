@@ -67,6 +67,8 @@ class ConverterMetadata(
   override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit =
     throw new UnsupportedOperationException("Converter storage does not support updating metadata")
 
+  override def invalidate(): Unit = dirty.set(true)
+
   override def close(): Unit = es.shutdown()
 
   private def buildPartitionList(prefix: Option[String], invalidate: Boolean): List[String] = {

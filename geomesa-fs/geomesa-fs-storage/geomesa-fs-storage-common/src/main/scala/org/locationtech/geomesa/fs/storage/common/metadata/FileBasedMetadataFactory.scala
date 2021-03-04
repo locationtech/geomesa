@@ -68,8 +68,8 @@ class FileBasedMetadataFactory extends StorageMetadataFactory {
 
 object FileBasedMetadataFactory extends MethodProfiling with LazyLogging {
 
-  private val MetadataDirectory = "metadata"
-  private val StoragePath = s"$MetadataDirectory/storage.json"
+  val MetadataDirectory = "metadata"
+  val StoragePath = s"$MetadataDirectory/storage.json"
 
   private val cache = new ConcurrentHashMap[String, FileBasedMetadata]()
 

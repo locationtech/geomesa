@@ -144,6 +144,7 @@ sub-commands:
 * ``compact`` - compact multiple metadata files down to a single file
 * ``register`` - create a new metadata entry for an existing data file
 * ``unregister`` - remove a metadata entry for an existing data file
+* ``check-consistency`` - check consistency between the metadata and data files
 
 To invoke the command, use the command name followed by the sub-command, then any arguments. For example::
 
@@ -157,13 +158,13 @@ Argument                 Description
 ======================== =============================================================
 
 ``compact``
-^^^^^^^^^^^
+~~~~~~~~~~~
 
 The ``compact`` sub-command will rewrite multiple metadata files as a single file. Note that this does
 not change the data files; that is accomplished by the top-level ``compact`` command, as described above.
 
 ``register/unregister``
-^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~
 
 The ``register`` and ``unregister`` sub-commands will add or delete metadata associated with a particular file.
 The files must already exist under the appropriate partition path. If new data files are created through some
@@ -181,4 +182,18 @@ Argument                 Description
 ``--bounds``             Geographic bounds of the data files being registered, in the
                          form ``xmin,ymin,xmax,ymax``. This is not required, but can
                          be used later for estimating query bounds
+======================== =============================================================
+
+``check-consistency``
+~~~~~~~~~~~~~~~~~~~~~
+
+The ``check-consistency`` sub-command will check the metadata against the data files. It will
+find data files that are not referenced in the metadata, and metadata entries that do not
+correspond to data files.
+
+======================== =============================================================
+Argument                 Description
+======================== =============================================================
+``--partitions``         The name of partitions to check, or none for all partitions
+``--repair``             Update the metadata to fix any inconsistencies found
 ======================== =============================================================

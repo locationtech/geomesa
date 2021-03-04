@@ -8,23 +8,35 @@
 
 package org.locationtech.geomesa.fs.tools.ingest
 
+import java.io.{Closeable, FileNotFoundException}
 import java.util
+import java.util.concurrent.{ConcurrentHashMap, Phaser}
 
 import com.beust.jcommander.converters.BaseConverter
+import com.beust.jcommander.validators.PositiveInteger
 import com.beust.jcommander.{Parameter, ParameterException, Parameters}
+import com.typesafe.scalalogging.LazyLogging
+import org.apache.hadoop.fs.{FileStatus, RemoteIterator}
+import org.locationtech.geomesa.fs.storage.api.FileSystemStorage
 import org.locationtech.geomesa.fs.storage.api.StorageMetadata.{PartitionBounds, PartitionMetadata, StorageFile}
+import org.locationtech.geomesa.fs.storage.common.metadata.{FileBasedMetadataFactory, MetadataJson}
+import org.locationtech.geomesa.fs.storage.common.utils.StorageUtils
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
-import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.FsParams
-import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.{CompactCommand, ManageMetadataParams, RegisterCommand, UnregisterCommand}
+import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
+import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.CheckConsistencyCommand.ConsistencyChecker
+import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand._
 import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam}
+import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, PhaserUtils}
 import org.locationtech.jts.geom.Envelope
 
+import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
 
 class FsManageMetadataCommand extends CommandWithSubCommands {
   override val name: String = "manage-metadata"
   override val params = new ManageMetadataParams
-  override val subCommands: Seq[Command] = Seq(new CompactCommand, new RegisterCommand, new UnregisterCommand)
+  override val subCommands: Seq[Command] =
+    Seq(new CompactCommand(), new RegisterCommand(), new UnregisterCommand(), new CheckConsistencyCommand())
 }
 
 object FsManageMetadataCommand {
@@ -37,6 +49,7 @@ object FsManageMetadataCommand {
     override val params = new CompactParams
 
     override def execute(): Unit = withDataStore { ds =>
+      Command.user.info("Compacting metadata, please wait...")
       val metadata = ds.storage(params.featureName).metadata
       metadata.compact(None, None, params.threads)
       val partitions = metadata.getPartitions()
@@ -82,6 +95,191 @@ object FsManageMetadataCommand {
     }
   }
 
+  class CheckConsistencyCommand extends FsDataStoreCommand with LazyLogging {
+
+    override val name = "check-consistency"
+    override val params = new CheckConsistencyParams()
+
+    override def execute(): Unit = withDataStore { ds =>
+      Command.user.info("Checking consistency, please wait...")
+      val partitions = Option(params.partitions).collect { case p if !p.isEmpty => p.asScala }
+      new ConsistencyChecker(ds.storage(params.featureName), partitions, params.repair, params.threads).run()
+    }
+  }
+
+  object CheckConsistencyCommand {
+
+    class ConsistencyChecker(storage: FileSystemStorage, partitions: Option[Seq[String]], repair: Boolean, threads: Int)
+        extends Runnable with Closeable with LazyLogging {
+
+      private val pool = new CachedThreadPool(threads)
+      private val onDisk = new ConcurrentHashMap[String, ConcurrentHashMap[String, Boolean]]()
+
+      private val computeFunction = new java.util.function.Function[String, ConcurrentHashMap[String, Boolean]] {
+        override def apply(t: String): ConcurrentHashMap[String, Boolean] = new ConcurrentHashMap[String, Boolean]()
+      }
+
+      override def run(): Unit = {
+        storage.metadata.invalidate() // invalidate any cached state
+
+        // list out the files currently in the root directory, results go into onDisk
+        listRoot()
+
+        val inconsistencies = scala.collection.mutable.Map.empty[String, ArrayBuffer[Inconsistency]]
+        var inconsistentCount = 0
+
+        // compare the files known to the metadata to the ones on disk
+        storage.metadata.getPartitions().foreach { partition =>
+          if (partitions.forall(_.contains(partition.name))) {
+            val checked = scala.collection.mutable.Set.empty[String]
+            val partitionOnDisk = onDisk.getOrDefault(partition.name, new ConcurrentHashMap[String, Boolean]())
+            partition.files.foreach { file =>
+              if (partitionOnDisk.remove(file.name)) {
+                // metadata and file are consistent
+                checked.add(file.name)
+                // TODO if (params.analyze) {} // update metadata
+              } else {
+                val buf = inconsistencies.getOrElseUpdate(partition.name, ArrayBuffer.empty)
+                // file is missing from metadata vs file in in metadata more than once
+                val duplicate = !checked.add(file.name)
+                buf += Inconsistency(file, duplicate)
+                inconsistentCount += 1
+              }
+            }
+            if (partitionOnDisk.isEmpty) {
+              onDisk.remove(partition.name)
+            }
+          }
+        }
+
+        if (onDisk.isEmpty && inconsistencies.isEmpty) {
+          Command.user.info("No inconsistencies detected")
+        } else if (repair) {
+          if (inconsistencies.nonEmpty) {
+            Command.user.info(s"Removing $inconsistentCount inconsistent metadata references...")
+            inconsistencies.foreach { case (partition, files) =>
+              storage.metadata.removePartition(PartitionMetadata(partition, files.map(_.file), None, 0L))
+            }
+            Command.user.info("Done")
+          }
+          if (!onDisk.isEmpty) {
+            var count = 0
+            val partitions = Seq.newBuilder[PartitionMetadata]
+            onDisk.asScala.foreach { case (partition, files) =>
+              val update = Seq.newBuilder[StorageFile]
+              files.asScala.foreach { case (name, _) =>
+                update += StorageFile(name, System.currentTimeMillis())
+                count += 1
+              }
+              partitions += PartitionMetadata(partition, update.result, None, 0L)
+            }
+            Command.user.info(s"Registering $count missing metadata references...")
+            partitions.result.foreach(storage.metadata.addPartition)
+            Command.user.info("Done")
+          }
+          // TODO if (params.analyze) {} // update metadata
+        } else {
+          if (!onDisk.isEmpty) {
+            lazy val strings = onDisk.asScala.toSeq.flatMap { case (partition, files) =>
+              files.asScala.map { case (f, _) => s"$partition,$f" }
+            }
+            Command.user.warn(s"Found ${strings.length} data files that do not have metadata entries:")
+            Command.output.info(strings.sorted.mkString("  ", "\n  ", ""))
+          }
+          if (inconsistencies.nonEmpty) {
+            lazy val strings = inconsistencies.toSeq.flatMap { case (p, buf) =>
+              buf.map { case Inconsistency(f, d) => s"$p,${if (d) { "duplicate" } else { "missing" }},${f.name}" }
+            }
+            Command.user.warn(s"Found $inconsistentCount metadata entries that do not correspond to a data file:")
+            Command.output.info(strings.sorted.mkString("  ", "\n  ", ""))
+          }
+        }
+      }
+
+      override def close(): Unit = pool.shutdown()
+
+      /**
+       * List the files in the root directory. Excludes known file-based metadata files. Results are
+       * added to onDisk
+       */
+      private def listRoot(): Unit = {
+        val iter = storage.context.fc.listStatus(storage.context.root)
+        // use a phaser to track worker thread completion
+        val phaser = new Phaser(2) // 1 for this thread + 1 for the worker
+        pool.submit(new TopLevelListWorker(phaser, iter))
+        // wait for the worker threads to complete
+        phaser.awaitAdvanceInterruptibly(phaser.arrive())
+      }
+
+      private class TopLevelListWorker(phaser: Phaser, list: RemoteIterator[FileStatus]) extends Runnable {
+        override def run(): Unit = {
+          try {
+            var i = phaser.getRegisteredParties + 1
+            while (list.hasNext && i < PhaserUtils.MaxParties) {
+              val status = list.next
+              val path = status.getPath
+              val name = path.getName
+              if (status.isDirectory) {
+                if (name != FileBasedMetadataFactory.MetadataDirectory &&
+                    partitions.forall(_.exists(p => p == name || p.startsWith(s"$name/")))) {
+                  i += 1
+                  // use a tiered phaser on each directory avoid the limit of 65535 registered parties
+                  pool.submit(new ListWorker(new Phaser(phaser, 1), name, storage.context.fc.listStatus(path)))
+                }
+              } else if (name != MetadataJson.MetadataPath) {
+                onDisk.computeIfAbsent("", computeFunction).put(name, java.lang.Boolean.TRUE)
+              }
+            }
+            if (list.hasNext) {
+              pool.submit(new TopLevelListWorker(new Phaser(phaser, 1), list))
+            }
+          } finally {
+            phaser.arriveAndDeregister()
+          }
+        }
+      }
+
+      private class ListWorker(phaser: Phaser, partition: String, listDirectory: => RemoteIterator[FileStatus])
+          extends Runnable {
+        override def run(): Unit = {
+          try {
+            var i = phaser.getRegisteredParties + 1
+            val iter = listDirectory
+            while (iter.hasNext && i < PhaserUtils.MaxParties) {
+              val status = iter.next
+              val path = status.getPath
+              val name = path.getName
+              if (status.isDirectory) {
+                val nextPartition = s"$partition/$name"
+                if (partitions.forall(_.exists(p => p == nextPartition || p.startsWith(s"$nextPartition/")))) {
+                  i += 1
+                  // use a tiered phaser on each directory avoid the limit of 65535 registered parties
+                  pool.submit(new ListWorker(new Phaser(phaser, 1), nextPartition, storage.context.fc.listStatus(path)))
+                }
+              } else {
+                val leafPartition =
+                  if (storage.metadata.leafStorage) { s"$partition/${StorageUtils.leaf(name)}" } else { partition }
+                if (partitions.forall(_.contains(leafPartition))) {
+                  onDisk.computeIfAbsent(leafPartition, computeFunction).put(name, java.lang.Boolean.TRUE)
+                }
+              }
+            }
+            if (iter.hasNext) {
+              pool.submit(new ListWorker(new Phaser(phaser, 1), partition, iter))
+            }
+          } catch {
+            case _: FileNotFoundException => // the partition dir was deleted... just return
+            case NonFatal(e) => logger.error("Error scanning metadata directory:", e)
+          } finally {
+            phaser.arriveAndDeregister() // notify that this thread is done
+          }
+        }
+      }
+    }
+
+    private case class Inconsistency(file: StorageFile, duplicate: Boolean)
+  }
+
   @Parameters(commandDescription = "Manage the metadata for a storage instance")
   class ManageMetadataParams
 
@@ -116,6 +314,22 @@ object FsManageMetadataCommand {
 
     @Parameter(names = Array("--count"), description = "Number of features in the data files being unregistered", required = false)
     var count: java.lang.Long = _
+  }
+
+  @Parameters(commandDescription = "Check consistency between metadata and data files")
+  class CheckConsistencyParams extends FsParams with RequiredTypeNameParam with PartitionParam {
+    @Parameter(names = Array("--repair"), description = "Update metadata based on consistency check")
+    var repair: java.lang.Boolean = false
+
+    // TODO GEOMESA-2963
+    // @Parameter(names = Array("--analyze"), description = "Rebuild file data statistics (may be slow)")
+    // var analyze: java.lang.Boolean = false
+
+    @Parameter(
+      names = Array("-t", "--threads"),
+      description = "Number of concurrent threads to use",
+      validateWith = Array(classOf[PositiveInteger]))
+    var threads: Integer = 4
   }
 
   class BoundsConverter(name: String) extends BaseConverter[(Double, Double, Double, Double)](name) {
