@@ -120,7 +120,6 @@ The following modules have been deprecated, and will be removed in a future vers
 * GeoMesa Streaming (Camel integration)
 * GeoMesa Web
 * GeoMesa GeoJSON
-* GeoMesa Jupyter
 
 Deprecated Arrow Output Options
 -------------------------------
