@@ -12,7 +12,6 @@ import org.ejml.data.DMatrixRMaj
 import org.ejml.dense.row.CommonOps_DDRM
 import org.ejml.simple.SimpleMatrix
 
-
 object SimpleMatrixUtils {
 
   implicit def toDMatrixRMaj(sm: SimpleMatrix): DMatrixRMaj = sm.getMatrix.asInstanceOf[DMatrixRMaj]
