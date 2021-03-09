@@ -1,6 +1,10 @@
 Deploying GeoMesa Spark with Jupyter Notebook
 =============================================
 
+.. warning::
+
+   The GeoMesa Jupyter Notebook integration is deprecated and will be removed in a future version.
+
 `Jupyter Notebook`_ is a web-based application for creating interactive documents containing runnable code,
 visualizations, and text. Via the `Apache Toree`_ kernel, Jupyter can be used for preparing spatio-temporal
 analyses in Scala and submitting them in `Spark`_. The guide below describes how to configure Jupyter with

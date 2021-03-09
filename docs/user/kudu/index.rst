@@ -1,6 +1,10 @@
 Kudu Data Store
 ===============
 
+.. warning::
+
+   The GeoMesa Kudu Data Store is deprecated and will be removed in a future version.
+
 .. note::
 
     GeoMesa currently supports Kudu version |kudu_version|.

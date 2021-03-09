@@ -1,6 +1,10 @@
 GeoMesa GeoJSON
 ===============
 
+.. warning::
+
+   The GeoMesa GeoJSON API is deprecated and will be removed in a future version.
+
 GeoMesa provides built-in integration with GeoJSON. GeoMesa provides a GeoJSON API that allows for the
 indexing and querying of GeoJSON data. The GeoJSON API does not use GeoTools - all data and operations
 are pure JSON. The API also includes a REST endpoint for web integration.

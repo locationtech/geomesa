@@ -1,6 +1,11 @@
 GeoMesa Stream Processing
 =========================
 
+.. warning::
+
+   The GeoMesa Stream library is deprecated and will be removed in a future version.
+
+
 The GeoMesa Stream library (``geomesa-stream`` in the source distribution)
 provides tools to process streams of
 ``SimpleFeatures``. The library can be used to instantiate a
