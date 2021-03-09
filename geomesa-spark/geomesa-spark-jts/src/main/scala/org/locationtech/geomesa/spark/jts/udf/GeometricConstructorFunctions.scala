@@ -20,8 +20,11 @@ object GeometricConstructorFunctions {
   @transient
   private val geomFactory: GeometryFactory = new GeometryFactory()
 
+  @transient
+  private lazy val geoJsonReader: GeoJsonReader = new GeoJsonReader(geomFactory)
+
   val ST_GeomFromGeoHash: (String, Int) => Geometry = nullableUDF((hash, prec) => decode(hash, prec))
-  val ST_GeomFromGeoJSON: String => Geometry = nullableUDF(text => {new GeoJsonReader().read(text)})
+  val ST_GeomFromGeoJSON: String => Geometry = nullableUDF(text => geoJsonReader.read(text))
   val ST_GeomFromWKT: String => Geometry = nullableUDF(text => WKTUtils.read(text))
   val ST_GeomFromWKB: Array[Byte] => Geometry = nullableUDF(array => WKBUtils.read(array))
   val ST_LineFromText: String => LineString = nullableUDF(text => WKTUtils.read(text).asInstanceOf[LineString])
