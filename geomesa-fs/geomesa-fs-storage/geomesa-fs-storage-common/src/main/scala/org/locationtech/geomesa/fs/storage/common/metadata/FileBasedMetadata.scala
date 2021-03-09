@@ -140,6 +140,25 @@ class FileBasedMetadata(
     }
   }
 
+  override def setPartitions(partitions: Seq[PartitionMetadata]): Unit = {
+    val map = new ConcurrentHashMap[String, PartitionFiles]
+    this.partitions.put(BoxedUnit.UNIT, map)
+    this.metadata.invalidateAll()
+
+    val configs = partitions.map { partition =>
+      val action = PartitionAction.Add
+      val envelope = partition.bounds.map(b => EnvelopeConfig(b.envelope)).getOrElse(Seq.empty)
+      val config = PartitionConfig(partition.name, action, partition.files, partition.count, envelope, System.currentTimeMillis())
+      // note: side effects in map
+      this.metadata.put(partition.name, partition)
+      map.put(partition.name, PartitionFiles(config = Seq(config)))
+      config
+    }
+
+    writeCompactedConfig(configs)
+    delete(readPartitionFiles(8).asScala.flatMap { case (_, f) => f.unparsed ++ f.parsed }, 8)
+  }
+
   // noinspection ScalaDeprecation
   override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
 
@@ -165,19 +184,7 @@ class FileBasedMetadata(
     }
 
     writeCompactedConfig(configs)
-
-    if (threads < 2) {
-      paths.foreach(fc.delete(_, false))
-    } else {
-      val ec = ExecutionContext.fromExecutorService(new CachedThreadPool(threads))
-      try {
-        val parPaths = paths.par
-        parPaths.tasksupport = new ExecutionContextTaskSupport(ec)
-        parPaths.foreach(fc.delete(_, false))
-      } finally {
-        ec.shutdown()
-      }
-    }
+    delete(paths, threads)
 
     partitions.invalidate(BoxedUnit.UNIT)
   }
@@ -330,6 +337,27 @@ class FileBasedMetadata(
       }
     } catch {
       case NonFatal(e) => logger.error(s"Error reading config at path $file:", e); Seq.empty
+    }
+  }
+
+  /**
+   * Delete a seq of paths
+   *
+   * @param paths paths to delete
+   * @param threads number of threads to use
+   */
+  private def delete(paths: Iterable[Path], threads: Int): Unit = {
+    if (threads < 2) {
+      paths.foreach(fc.delete(_, false))
+    } else {
+      val ec = ExecutionContext.fromExecutorService(new CachedThreadPool(threads))
+      try {
+        val parPaths = paths.par
+        parPaths.tasksupport = new ExecutionContextTaskSupport(ec)
+        parPaths.foreach(fc.delete(_, false))
+      } finally {
+        ec.shutdown()
+      }
     }
   }
 

@@ -25,8 +25,10 @@ import org.locationtech.geomesa.fs.tools.FsDataStoreCommand
 import org.locationtech.geomesa.fs.tools.FsDataStoreCommand.{FsParams, PartitionParam}
 import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand.CheckConsistencyCommand.ConsistencyChecker
 import org.locationtech.geomesa.fs.tools.ingest.FsManageMetadataCommand._
-import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, RequiredTypeNameParam}
+import org.locationtech.geomesa.tools.utils.Prompt
+import org.locationtech.geomesa.tools.{Command, CommandWithSubCommands, OptionalForceParam, RequiredTypeNameParam}
 import org.locationtech.geomesa.utils.concurrent.{CachedThreadPool, PhaserUtils}
+import org.locationtech.geomesa.utils.io.WithClose
 import org.locationtech.jts.geom.Envelope
 
 import scala.collection.mutable.ArrayBuffer
@@ -100,17 +102,43 @@ object FsManageMetadataCommand {
     override val name = "check-consistency"
     override val params = new CheckConsistencyParams()
 
-    override def execute(): Unit = withDataStore { ds =>
-      Command.user.info("Checking consistency, please wait...")
-      val partitions = Option(params.partitions).collect { case p if !p.isEmpty => p.asScala }
-      new ConsistencyChecker(ds.storage(params.featureName), partitions, params.repair, params.threads).run()
+    override def validate(): Option[ParameterException] = {
+      if (params.repair && params.rebuild) {
+        Some(new ParameterException("Please specify at most one of --repair and --rebuild"))
+      } else {
+        None
+      }
+    }
+
+    override def execute(): Unit = {
+      if (params.rebuild && !params.partitions.isEmpty) {
+        Command.user.warn(
+          s"Rebuilding all metadata using only ${params.partitions.size} partitions - " +
+              "metadata will not exist for any other partitions")
+        if (!params.force && !Prompt.confirm("Continue (y/n)? ")) {
+          Command.user.info("Cancelling operation")
+          return
+        }
+      }
+
+      withDataStore { ds =>
+        Command.user.info("Checking consistency, please wait...")
+        val storage = ds.storage(params.featureName)
+        val partitions = Option(params.partitions).collect { case p if !p.isEmpty => p.asScala }
+        WithClose(new ConsistencyChecker(storage, partitions, params.rebuild, params.repair, params.threads))(_.run())
+      }
     }
   }
 
   object CheckConsistencyCommand {
 
-    class ConsistencyChecker(storage: FileSystemStorage, partitions: Option[Seq[String]], repair: Boolean, threads: Int)
-        extends Runnable with Closeable with LazyLogging {
+    class ConsistencyChecker(
+        storage: FileSystemStorage,
+        partitions: Option[Seq[String]],
+        rebuild: Boolean,
+        repair: Boolean,
+        threads: Int
+      ) extends Runnable with Closeable with LazyLogging {
 
       private val pool = new CachedThreadPool(threads)
       private val onDisk = new ConcurrentHashMap[String, ConcurrentHashMap[String, Boolean]]()
@@ -125,73 +153,71 @@ object FsManageMetadataCommand {
         // list out the files currently in the root directory, results go into onDisk
         listRoot()
 
-        val inconsistencies = scala.collection.mutable.Map.empty[String, ArrayBuffer[Inconsistency]]
-        var inconsistentCount = 0
-
-        // compare the files known to the metadata to the ones on disk
-        storage.metadata.getPartitions().foreach { partition =>
-          if (partitions.forall(_.contains(partition.name))) {
-            val checked = scala.collection.mutable.Set.empty[String]
-            val partitionOnDisk = onDisk.getOrDefault(partition.name, new ConcurrentHashMap[String, Boolean]())
-            partition.files.foreach { file =>
-              if (partitionOnDisk.remove(file.name)) {
-                // metadata and file are consistent
-                checked.add(file.name)
-                // TODO if (params.analyze) {} // update metadata
-              } else {
-                val buf = inconsistencies.getOrElseUpdate(partition.name, ArrayBuffer.empty)
-                // file is missing from metadata vs file in in metadata more than once
-                val duplicate = !checked.add(file.name)
-                buf += Inconsistency(file, duplicate)
-                inconsistentCount += 1
-              }
-            }
-            if (partitionOnDisk.isEmpty) {
-              onDisk.remove(partition.name)
-            }
-          }
-        }
-
-        if (onDisk.isEmpty && inconsistencies.isEmpty) {
-          Command.user.info("No inconsistencies detected")
-        } else if (repair) {
-          if (inconsistencies.nonEmpty) {
-            Command.user.info(s"Removing $inconsistentCount inconsistent metadata references...")
-            inconsistencies.foreach { case (partition, files) =>
-              storage.metadata.removePartition(PartitionMetadata(partition, files.map(_.file), None, 0L))
-            }
-            Command.user.info("Done")
-          }
-          if (!onDisk.isEmpty) {
-            var count = 0
-            val partitions = Seq.newBuilder[PartitionMetadata]
-            onDisk.asScala.foreach { case (partition, files) =>
-              val update = Seq.newBuilder[StorageFile]
-              files.asScala.foreach { case (name, _) =>
-                update += StorageFile(name, System.currentTimeMillis())
-                count += 1
-              }
-              partitions += PartitionMetadata(partition, update.result, None, 0L)
-            }
-            Command.user.info(s"Registering $count missing metadata references...")
-            partitions.result.foreach(storage.metadata.addPartition)
-            Command.user.info("Done")
-          }
-          // TODO if (params.analyze) {} // update metadata
+        if (rebuild) {
+          val (count, partitions) = buildPartitionConfigs()
+          Command.user.info(s"Setting metadata to ${partitions.length} partitions containing $count data files...")
+          storage.metadata.setPartitions(partitions)
+          Command.user.info("Done")
         } else {
-          if (!onDisk.isEmpty) {
-            lazy val strings = onDisk.asScala.toSeq.flatMap { case (partition, files) =>
-              files.asScala.map { case (f, _) => s"$partition,$f" }
+          val inconsistencies = scala.collection.mutable.Map.empty[String, ArrayBuffer[Inconsistency]]
+          var inconsistentCount = 0
+
+          // compare the files known to the metadata to the ones on disk
+          storage.metadata.getPartitions().foreach { partition =>
+            if (partitions.forall(_.contains(partition.name))) {
+              val checked = scala.collection.mutable.Set.empty[String]
+              val partitionOnDisk = onDisk.getOrDefault(partition.name, new ConcurrentHashMap[String, Boolean]())
+              partition.files.foreach { file =>
+                if (partitionOnDisk.remove(file.name)) {
+                  // metadata and file are consistent
+                  checked.add(file.name)
+                  // TODO if (params.analyze) {} // update metadata
+                } else {
+                  val buf = inconsistencies.getOrElseUpdate(partition.name, ArrayBuffer.empty)
+                  // file is missing from metadata vs file in in metadata more than once
+                  val duplicate = !checked.add(file.name)
+                  buf += Inconsistency(file, duplicate)
+                  inconsistentCount += 1
+                }
+              }
+              if (partitionOnDisk.isEmpty) {
+                onDisk.remove(partition.name)
+              }
             }
-            Command.user.warn(s"Found ${strings.length} data files that do not have metadata entries:")
-            Command.output.info(strings.sorted.mkString("  ", "\n  ", ""))
           }
-          if (inconsistencies.nonEmpty) {
-            lazy val strings = inconsistencies.toSeq.flatMap { case (p, buf) =>
-              buf.map { case Inconsistency(f, d) => s"$p,${if (d) { "duplicate" } else { "missing" }},${f.name}" }
+
+          if (onDisk.isEmpty && inconsistencies.isEmpty) {
+            Command.user.info("No inconsistencies detected")
+          } else if (repair) {
+            if (inconsistencies.nonEmpty) {
+              Command.user.info(s"Removing $inconsistentCount inconsistent metadata references...")
+              inconsistencies.foreach { case (partition, files) =>
+                storage.metadata.removePartition(PartitionMetadata(partition, files.map(_.file), None, 0L))
+              }
+              Command.user.info("Done")
             }
-            Command.user.warn(s"Found $inconsistentCount metadata entries that do not correspond to a data file:")
-            Command.output.info(strings.sorted.mkString("  ", "\n  ", ""))
+            if (!onDisk.isEmpty) {
+              val (count, partitions) = buildPartitionConfigs()
+              Command.user.info(s"Registering $count missing metadata references...")
+              partitions.foreach(storage.metadata.addPartition)
+              Command.user.info("Done")
+            }
+            // TODO if (params.analyze) {} // update metadata
+          } else {
+            if (!onDisk.isEmpty) {
+              lazy val strings = onDisk.asScala.toSeq.flatMap { case (partition, files) =>
+                files.asScala.map { case (f, _) => s"$partition,$f" }
+              }
+              Command.user.warn(s"Found ${strings.length} data files that do not have metadata entries:")
+              Command.output.info(strings.sorted.mkString("  ", "\n  ", ""))
+            }
+            if (inconsistencies.nonEmpty) {
+              lazy val strings = inconsistencies.toSeq.flatMap { case (p, buf) =>
+                buf.map { case Inconsistency(f, d) => s"$p,${if (d) { "duplicate" } else { "missing" }},${f.name}" }
+              }
+              Command.user.warn(s"Found $inconsistentCount metadata entries that do not correspond to a data file:")
+              Command.output.info(strings.sorted.mkString("  ", "\n  ", ""))
+            }
           }
         }
       }
@@ -209,6 +235,20 @@ object FsManageMetadataCommand {
         pool.submit(new TopLevelListWorker(phaser, iter))
         // wait for the worker threads to complete
         phaser.awaitAdvanceInterruptibly(phaser.arrive())
+      }
+
+      private def buildPartitionConfigs(): (Int, Seq[PartitionMetadata]) = {
+        var count = 0
+        val partitions = Seq.newBuilder[PartitionMetadata]
+        onDisk.asScala.foreach { case (partition, files) =>
+          val update = Seq.newBuilder[StorageFile]
+          files.asScala.foreach { case (name, _) =>
+            update += StorageFile(name, System.currentTimeMillis())
+            count += 1
+          }
+          partitions += PartitionMetadata(partition, update.result, None, 0L)
+        }
+        (count, partitions.result)
       }
 
       private class TopLevelListWorker(phaser: Phaser, list: RemoteIterator[FileStatus]) extends Runnable {
@@ -317,9 +357,14 @@ object FsManageMetadataCommand {
   }
 
   @Parameters(commandDescription = "Check consistency between metadata and data files")
-  class CheckConsistencyParams extends FsParams with RequiredTypeNameParam with PartitionParam {
+  class CheckConsistencyParams
+      extends FsParams with RequiredTypeNameParam with PartitionParam with OptionalForceParam {
+
     @Parameter(names = Array("--repair"), description = "Update metadata based on consistency check")
     var repair: java.lang.Boolean = false
+
+    @Parameter(names = Array("--rebuild"), description = "Replace all current metadata from the data files")
+    var rebuild: java.lang.Boolean = false
 
     // TODO GEOMESA-2963
     // @Parameter(names = Array("--analyze"), description = "Rebuild file data statistics (may be slow)")

@@ -61,6 +61,9 @@ class ConverterMetadata(
   override def removePartition(partition: PartitionMetadata): Unit =
     throw new UnsupportedOperationException("Converter storage does not support updating metadata")
 
+  override def setPartitions(partitions: Seq[PartitionMetadata]): Unit =
+    throw new UnsupportedOperationException("Converter storage does not support updating metadata")
+
   // noinspection ScalaDeprecation
   override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
 

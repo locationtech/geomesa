@@ -38,6 +38,13 @@ class FsManageMetadataCommandTest extends Specification {
   sft.setEncoding("parquet")
   sft.setScheme("daily")
 
+  val features =
+    Seq(
+      ScalaSimpleFeature.create(sft, "0", "name0", "2020-01-01T00:00:00.000Z", "POINT (0 0)"),
+      ScalaSimpleFeature.create(sft, "1", "name2", "2021-01-01T00:00:00.000Z", "POINT (0 0)"),
+      ScalaSimpleFeature.create(sft, "2", "name1", "2022-01-01T00:00:00.000Z", "POINT (0 0)")
+    )
+
   val gzipXml =
     "<configuration><property><name>parquet.compression</name><value>GZIP</value></property></configuration>"
 
@@ -57,16 +64,8 @@ class FsManageMetadataCommandTest extends Specification {
     "find file inconsistencies" in {
       val dir = nextPath()
       val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> gzipXml)
-
-      val features =
-        Seq(
-          ScalaSimpleFeature.create(sft, "0", "name0", "2020-01-01T00:00:00.000Z", "POINT (0 0)"),
-          ScalaSimpleFeature.create(sft, "1", "name2", "2021-01-01T00:00:00.000Z", "POINT (0 0)"),
-          ScalaSimpleFeature.create(sft, "2", "name1", "2022-01-01T00:00:00.000Z", "POINT (0 0)")
-        )
-
       WithClose(DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]) { ds =>
-        ds.createSchema(sft)
+        ds.createSchema(SimpleFeatureTypes.copy(sft))
         WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
           features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
         }
@@ -97,6 +96,46 @@ class FsManageMetadataCommandTest extends Specification {
         // verify we can retrieve the moved file again
         SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
             containTheSameElementsAs(features)
+      }
+    }
+    "rebuild metadata from scratch" in {
+      val dir = nextPath()
+      val dsParams = Map("fs.path" -> dir, "fs.config.xml" -> gzipXml)
+      WithClose(DataStoreFinder.getDataStore(dsParams).asInstanceOf[FileSystemDataStore]) { ds =>
+        ds.createSchema(SimpleFeatureTypes.copy(sft))
+        WithClose(ds.getFeatureWriterAppend(sft.getTypeName, Transaction.AUTO_COMMIT)) { writer =>
+          features.foreach(FeatureUtils.write(writer, _, useProvidedFid = true))
+        }
+        val storage = ds.storage(sft.getTypeName)
+        // delete a file
+        storage.context.fc.delete(new Path(storage.context.root, "2022"), true)
+        // delete a partition from the metadata
+        storage.metadata.getPartition("2021/01/01") match {
+          case None => ko("Expected Some for partition but got none")
+          case Some(p) => storage.metadata.removePartition(p)
+        }
+        // note that one reference is invalid
+        storage.metadata.getPartitions().map(p => p.name -> p.files.length) must
+            containTheSameElementsAs(Seq("2022/01/01" -> 1, "2020/01/01" -> 1))
+        // verify we can only retrieve one feature
+        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
+            features.take(1)
+
+        // run the consistency check and rebuild the metadata
+        val command = new FsManageMetadataCommand.CheckConsistencyCommand()
+        command.params.path = dir
+        command.params.featureName = sft.getTypeName
+        command.params.configuration = Collections.singletonList(s"fs.config.xml=$gzipXml")
+        command.params.rebuild = true
+        command.execute()
+
+        // verify the new file was registered and the old one removed
+        storage.metadata.invalidate()
+        storage.metadata.getPartitions().map(p => p.name -> p.files.length) must
+            containTheSameElementsAs(Seq("2020/01/01" -> 1, "2021/01/01" -> 1))
+        // verify we can retrieve the moved file again
+        SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList must
+            containTheSameElementsAs(features.take(2))
       }
     }
   }

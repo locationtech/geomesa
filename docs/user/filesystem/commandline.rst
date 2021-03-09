@@ -191,9 +191,16 @@ The ``check-consistency`` sub-command will check the metadata against the data f
 find data files that are not referenced in the metadata, and metadata entries that do not
 correspond to data files.
 
-======================== =============================================================
+======================== ==================================================================
 Argument                 Description
-======================== =============================================================
+======================== ==================================================================
 ``--partitions``         The name of partitions to check, or none for all partitions
-``--repair``             Update the metadata to fix any inconsistencies found
-======================== =============================================================
+``--repair``             Incrementally update the metadata to fix any inconsistencies found
+``--rebuild``            Rebuild the entire metadata based on the data files found
+``--force``              Force execution without prompting
+======================== ==================================================================
+
+.. warning::
+
+  Using both ``--partitions`` and ``--rebuild`` will cause any data files not in the specified
+  partitions to be removed from the metadata.
