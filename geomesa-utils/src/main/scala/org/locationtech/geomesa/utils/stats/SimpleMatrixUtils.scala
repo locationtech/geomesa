@@ -8,45 +8,46 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import org.ejml.data.DenseMatrix64F
-import org.ejml.ops.CommonOps
+import org.ejml.data.DMatrixRMaj
+import org.ejml.dense.row.CommonOps_DDRM
 import org.ejml.simple.SimpleMatrix
+
 
 object SimpleMatrixUtils {
 
-  implicit def toDenseMatrix64F(sm: SimpleMatrix): DenseMatrix64F = sm.getMatrix
+  implicit def toDMatrixRMaj(sm: SimpleMatrix): DMatrixRMaj = sm.getMatrix.asInstanceOf[DMatrixRMaj]
 
   implicit class SimpleMatrixOps(a: SimpleMatrix) {
 
     def +(b: Double): SimpleMatrix = a.plus(b)
     def +(b: SimpleMatrix): SimpleMatrix = a.plus(b)
 
-    def +=(b: Double): Unit = CommonOps.add(a, b, a)
-    def +=(b: SimpleMatrix): Unit = CommonOps.add(a, b, a)
+    def +=(b: Double): Unit = CommonOps_DDRM.add(a, b, a)
+    def +=(b: SimpleMatrix): Unit = CommonOps_DDRM.add(a, b, a)
 
     def -(b: Double): SimpleMatrix = a.minus(b)
     def -(b: SimpleMatrix): SimpleMatrix = a.minus(b)
 
-    def -=(b: Double): Unit = CommonOps.subtract(a, b, a)
-    def -=(b: SimpleMatrix): Unit = CommonOps.subtract(a, b, a)
+    def -=(b: Double): Unit = CommonOps_DDRM.subtract(a, b, a)
+    def -=(b: SimpleMatrix): Unit = CommonOps_DDRM.subtract(a, b, a)
 
     def *(b: Double): SimpleMatrix = a.scale(b)
     def *(b: SimpleMatrix): SimpleMatrix = a.elementMult(b)
 
-    def *=(b: Double): Unit = CommonOps.scale(b, a, a)
-    def *=(b: SimpleMatrix): Unit = CommonOps.elementMult(a, b, a)
+    def *=(b: Double): Unit = CommonOps_DDRM.scale(b, a, a)
+    def *=(b: SimpleMatrix): Unit = CommonOps_DDRM.elementMult(a, b, a)
 
     def /(b: Double): SimpleMatrix = a.divide(b)
     def /(b: SimpleMatrix): SimpleMatrix = a.elementDiv(b)
 
-    def /=(b: Double): Unit = CommonOps.divide(a, b, a)
-    def /=(b: SimpleMatrix): Unit = CommonOps.elementDiv(a, b, a)
+    def /=(b: Double): Unit = CommonOps_DDRM.divide(a, b, a)
+    def /=(b: SimpleMatrix): Unit = CommonOps_DDRM.elementDiv(a, b, a)
 
     def **(b: Double): SimpleMatrix = a.elementPower(b)
     def **(b: SimpleMatrix): SimpleMatrix = a.elementPower(b)
 
-    def **=(b: Double): Unit = CommonOps.elementPower(a, b, a)
-    def **=(b: SimpleMatrix): Unit = CommonOps.elementPower(a, b, a)
+    def **=(b: Double): Unit = CommonOps_DDRM.elementPower(a, b, a)
+    def **=(b: SimpleMatrix): Unit = CommonOps_DDRM.elementPower(a, b, a)
 
     def diag(v: Double): SimpleMatrix = {
       val m = new SimpleMatrix(a)
@@ -106,18 +107,18 @@ object SimpleMatrixUtils {
     def +(b: SimpleMatrix): SimpleMatrix = b.plus(a)
     def -(b: SimpleMatrix): SimpleMatrix = {
       val c = new SimpleMatrix(b.getNumRows, b.getNumCols)
-      CommonOps.subtract(a, b, c)
+      CommonOps_DDRM.subtract(a, b, c)
       c
     }
     def *(b: SimpleMatrix): SimpleMatrix = b.scale(a)
     def /(b: SimpleMatrix): SimpleMatrix = {
       val c = new SimpleMatrix(b.getNumRows, b.getNumCols)
-      CommonOps.divide(a, b, c)
+      CommonOps_DDRM.divide(a, b, c)
       c
     }
     def **(b: SimpleMatrix): SimpleMatrix = {
       val c = new SimpleMatrix(b.getNumRows, b.getNumCols)
-      CommonOps.elementPower(a, b, c)
+      CommonOps_DDRM.elementPower(a, b, c)
       c
     }
   }

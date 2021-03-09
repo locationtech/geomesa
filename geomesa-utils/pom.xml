@@ -77,8 +77,8 @@
             <artifactId>gt-shapefile</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.googlecode.efficient-java-matrix-library</groupId>
-            <artifactId>core</artifactId>
+            <groupId>org.ejml</groupId>
+            <artifactId>ejml-all</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.spatial4j</groupId>
