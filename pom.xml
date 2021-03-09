@@ -958,12 +958,30 @@
                 <groupId>org.ejml</groupId>
                 <artifactId>ejml-core</artifactId>
                 <version>${ejml.version}</version>
-	    </dependency>
+            </dependency>
             <dependency>
                 <groupId>org.ejml</groupId>
                 <artifactId>ejml-simple</artifactId>
                 <version>${ejml.version}</version>
-	    </dependency>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.ejml</groupId>
+                        <artifactId>ejml-cdense</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.ejml</groupId>
+                        <artifactId>ejml-dsparse</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.ejml</groupId>
+                        <artifactId>ejml-fdense</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.ejml</groupId>
+                        <artifactId>ejml-zdense</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-referencing</artifactId>
