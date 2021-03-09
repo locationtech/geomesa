@@ -78,7 +78,11 @@
         </dependency>
         <dependency>
             <groupId>org.ejml</groupId>
-            <artifactId>ejml-all</artifactId>
+            <artifactId>ejml-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.ejml</groupId>
+            <artifactId>ejml-simple</artifactId>
         </dependency>
         <dependency>
             <groupId>org.locationtech.spatial4j</groupId>

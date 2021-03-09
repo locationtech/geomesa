@@ -956,9 +956,14 @@
             </dependency>
             <dependency>
                 <groupId>org.ejml</groupId>
-                <artifactId>ejml-all</artifactId>
+                <artifactId>ejml-core</artifactId>
                 <version>${ejml.version}</version>
-            </dependency>
+	    </dependency>
+            <dependency>
+                <groupId>org.ejml</groupId>
+                <artifactId>ejml-simple</artifactId>
+                <version>${ejml.version}</version>
+	    </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-referencing</artifactId>
