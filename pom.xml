@@ -2516,6 +2516,7 @@
                     <version>2.5.3</version>
                     <configuration>
                         <autoVersionSubmodules>true</autoVersionSubmodules>
+                        <tagNameFormat>geomesa-@{project.version}</tagNameFormat>
                     </configuration>
                 </plugin>
                 <plugin>
