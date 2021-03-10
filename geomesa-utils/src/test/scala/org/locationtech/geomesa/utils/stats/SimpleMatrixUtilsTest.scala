@@ -8,7 +8,8 @@
 
 package org.locationtech.geomesa.utils.stats
 
-import org.ejml.data.DenseMatrix64F
+import org.ejml.data.DMatrixRMaj
+import org.ejml.dense.row.CommonOps_DDRM
 import org.ejml.simple.SimpleMatrix
 import org.junit.runner.RunWith
 import org.specs2.mutable.Specification
@@ -19,8 +20,8 @@ import org.specs2.runner.JUnitRunner
 class SimpleMatrixUtilsTest extends Specification with StatTestHelper {
 
   implicit class extract(sm: SimpleMatrix) {
-    def array: Array[Double] = sm.getMatrix.data
-    def matrix: DenseMatrix64F = sm.getMatrix
+    def array: Array[Double] = sm.getMatrix.asInstanceOf[DMatrixRMaj].data
+    def matrix: DMatrixRMaj = sm.getMatrix.asInstanceOf[DMatrixRMaj]
   }
 
   "SimpleMatrixUtils" should {
@@ -40,10 +41,10 @@ class SimpleMatrixUtilsTest extends Specification with StatTestHelper {
         result.array mustEqual Array(1d, 1d, 1d, 1d)
       }
       "matrix + matrix" >> {
-        val initial0 = new SimpleMatrix(2, 2);
-        initial0.set(1)
-        val initial1 = new SimpleMatrix(2, 2);
-        initial1.set(1)
+        val initial0 = new SimpleMatrix(2, 2)
+        CommonOps_DDRM.fill(initial0, 1)
+        val initial1 = new SimpleMatrix(2, 2)
+        CommonOps_DDRM.fill(initial1, 1)
         initial0.array mustEqual Array(1d, 1d, 1d, 1d)
         initial1.array mustEqual Array(1d, 1d, 1d, 1d)
         val result = initial0 + initial1
@@ -61,9 +62,9 @@ class SimpleMatrixUtilsTest extends Specification with StatTestHelper {
       }
       "matrix += matrix" >> {
         val initial0 = new SimpleMatrix(2, 2)
-        initial0.set(1d)
+        CommonOps_DDRM.fill(initial0, 1d)
         val initial1 = new SimpleMatrix(2, 2)
-        initial1.set(1d)
+        CommonOps_DDRM.fill(initial1, 1d)
         initial0.array mustEqual Array(1d, 1d, 1d, 1d)
         initial1.array mustEqual Array(1d, 1d, 1d, 1d)
         initial0 += initial1
@@ -81,7 +82,7 @@ class SimpleMatrixUtilsTest extends Specification with StatTestHelper {
       }
       "scalar - matrix" >> {
         val initial = new SimpleMatrix(2, 2)
-        initial.set(1d)
+        CommonOps_DDRM.fill(initial, 1d)
         initial.array mustEqual Array(1d, 1d, 1d, 1d)
         val result = 1d - initial
         initial.array mustEqual Array(1d, 1d, 1d, 1d)
@@ -89,9 +90,9 @@ class SimpleMatrixUtilsTest extends Specification with StatTestHelper {
       }
       "matrix + matrix" >> {
         val initial0 = new SimpleMatrix(2, 2)
-        initial0.set(-2)
+        CommonOps_DDRM.fill(initial0, -2)
         val initial1 = new SimpleMatrix(2, 2)
-        initial1.set(1)
+        CommonOps_DDRM.fill(initial1, 1)
         initial0.array mustEqual Array(-2d, -2d, -2d, -2d)
         initial1.array mustEqual Array(1d, 1d, 1d, 1d)
         val result = initial0 - initial1
@@ -109,9 +110,9 @@ class SimpleMatrixUtilsTest extends Specification with StatTestHelper {
       }
       "matrix += matrix" >> {
         val initial0 = new SimpleMatrix(2, 2)
-        initial0.set(1d)
+        CommonOps_DDRM.fill(initial0, 1d)
         val initial1 = new SimpleMatrix(2, 2)
-        initial1.set(3d)
+        CommonOps_DDRM.fill(initial1, 3d)
         initial0.array mustEqual Array(1d, 1d, 1d, 1d)
         initial1.array mustEqual Array(3d, 3d, 3d, 3d)
         initial0 -= initial1
