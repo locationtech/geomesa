@@ -31,7 +31,7 @@ class PlaybackIteratorTest extends Specification with LazyLogging {
     builder.addAll(Array[AnyRef](s"name$i", s"2018-01-01T00:00:0${9 - i}.000Z", s"POINT (4$i 55)"))
     builder.buildFeature(s"$i")
   }
-  val ds = new MemoryDataStore(features.toArray)
+  val ds = new MemoryDataStore(features.toArray: _*)
 
   val dtg = Some("dtg")
   val interval: (Date, Date) = {

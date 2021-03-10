@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.kudu.data
 
 import java.awt.RenderingHints
-import java.io.Serializable
 import java.nio.charset.StandardCharsets
 
 import com.typesafe.scalalogging.LazyLogging
@@ -29,9 +28,9 @@ class KuduDataStoreFactory extends DataStoreFactorySpi {
   import KuduDataStoreFactory.Params._
 
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore = createDataStore(params)
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
+  override def createDataStore(params: java.util.Map[String, _]): DataStore = {
 
     val client = KuduDataStoreFactory.buildClient(params)
 
@@ -67,9 +66,9 @@ class KuduDataStoreFactory extends DataStoreFactorySpi {
 
   override def getDescription: String = KuduDataStoreFactory.Description
 
-  override def getParametersInfo: Array[Param] = KuduDataStoreFactory.ParameterInfo :+ NamespaceParam
+  override def getParametersInfo: Array[Param] = (KuduDataStoreFactory.ParameterInfo :+ NamespaceParam).asInstanceOf[Array[Param]]
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     KuduDataStoreFactory.canProcess(params)
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
@@ -97,7 +96,7 @@ object KuduDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       Params.CachingParam
     )
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     Params.KuduMasterParam.exists(params)
 
   // noinspection TypeAnnotation
@@ -151,7 +150,7 @@ object KuduDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     val AuthsParam = org.locationtech.geomesa.security.AuthsParam
   }
 
-  def buildClient(params: java.util.Map[String, java.io.Serializable]): KuduClient = {
+  def buildClient(params: java.util.Map[String, _]): KuduClient = {
     import Params._
 
     val master = KuduMasterParam.lookup(params)

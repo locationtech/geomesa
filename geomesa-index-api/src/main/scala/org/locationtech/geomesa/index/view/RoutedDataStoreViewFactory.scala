@@ -9,6 +9,7 @@
 package org.locationtech.geomesa.index.view
 
 import java.awt.RenderingHints
+import java.{io, util}
 
 import com.typesafe.config._
 import org.geotools.data.DataAccessFactory.Param
@@ -30,13 +31,13 @@ class RoutedDataStoreViewFactory extends DataStoreFactorySpi {
 
   import scala.collection.JavaConverters._
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     RoutedDataStoreViewFactory.canProcess(params)
 
-  override def createDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore =
+  override def createDataStore(params: java.util.Map[String, _]): DataStore =
     createNewDataStore(params)
 
-  override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore = {
     val config = ConfigFactory.parseString(ConfigParam.lookup(params))
     val configs = if (config.hasPath("stores")) { config.getConfigList("stores").asScala } else { Seq.empty }
     if (configs.isEmpty) {
@@ -120,6 +121,6 @@ object RoutedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] = Array(ConfigParam, RouterParam)
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     params.containsKey(ConfigParam.key)
 }

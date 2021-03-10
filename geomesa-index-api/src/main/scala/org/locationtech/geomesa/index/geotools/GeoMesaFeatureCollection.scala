@@ -91,9 +91,9 @@ class GeoMesaFeatureCollection(source: GeoMesaFeatureSource, original: Query)
     val merged = new Query(original)
     merged.setHints(new Hints(original.getHints))
     if (merged.getSortBy == null) {
-      merged.setSortBy(Array(order))
+      merged.setSortBy(order)
     } else {
-      merged.setSortBy(merged.getSortBy :+ order)
+      merged.setSortBy(merged.getSortBy :+ order: _*)
     }
     new GeoMesaFeatureCollection(source, merged)
   }

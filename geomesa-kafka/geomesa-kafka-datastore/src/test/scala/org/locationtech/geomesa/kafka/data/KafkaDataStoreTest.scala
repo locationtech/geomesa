@@ -253,7 +253,7 @@ class KafkaDataStoreTest extends Specification with Mockito with LazyLogging {
         val provider = new AuthorizationsProvider() {
           import scala.collection.JavaConversions._
           override def getAuthorizations: java.util.List[String] = auths.toList
-          override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {}
+          override def configure(params: java.util.Map[String, _]): Unit = {}
         }
         val params = if (cqEngine) {
           Map("kafka.index.cqengine" -> "geom:default,name:unique")

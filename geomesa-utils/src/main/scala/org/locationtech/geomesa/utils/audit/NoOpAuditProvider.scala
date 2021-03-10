@@ -17,5 +17,5 @@ object NoOpAuditProvider extends AuditProvider {
 
   override val getCurrentUserDetails: java.util.Map[AnyRef, AnyRef] = Collections.emptyMap()
 
-  override def configure(params: java.util.Map[String, _ <: Serializable]): Unit = {}
+  override def configure(params: java.util.Map[String, _]): Unit = {}
 }

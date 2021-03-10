@@ -190,7 +190,7 @@ class StreamDataStoreFactory extends DataStoreFactorySpi {
   import StreamDataStoreParams._
   private val log = LoggerFactory.getLogger(classOf[StreamDataStoreFactory])
 
-  override def createDataStore(params: ju.Map[String, java.io.Serializable]): DataStore = {
+  override def createDataStore(params: ju.Map[String, _]): DataStore = {
     // TODO: note, if user is requesting a SDS via a inline config, it'll get a default name and namespace of ":"
     val ns = NamespaceParam.lookupOpt(params).getOrElse("")
     val name = SftConfig.lookupOpt(params).getOrElse("")
@@ -200,12 +200,12 @@ class StreamDataStoreFactory extends DataStoreFactorySpi {
     })
   }
 
-  def lazyBuild(params: ju.Map[String, java.io.Serializable], ctxnamespace: String): StreamDataStore = {
+  def lazyBuild(params: ju.Map[String, _], ctxnamespace: String): StreamDataStore = {
     log.info(s"Building new data store for $ctxnamespace")
     StreamDatastoreConfig.lookupOpt(params).map { confStr => buildFromConfig(confStr, params) }.getOrElse(buildFromParams(params))
   }
 
-  def buildFromConfig(confStr: String, params: ju.Map[String, java.io.Serializable]): StreamDataStore = {
+  def buildFromConfig(confStr: String, params: ju.Map[String, _]): StreamDataStore = {
     val timeout = CacheTimeout.lookupOpt(params).map(_.intValue).getOrElse(10)
     val ns = NamespaceParam.lookupOpt(params)
     val conf = ConfigFactory.parseString(confStr)
@@ -213,7 +213,7 @@ class StreamDataStoreFactory extends DataStoreFactorySpi {
     new StreamDataStore(source, timeout, ns)
   }
 
-  def buildFromParams(params: ju.Map[String, java.io.Serializable]): StreamDataStore = {
+  def buildFromParams(params: ju.Map[String, _]): StreamDataStore = {
     val timeout = CacheTimeout.lookupOpt(params).map(_.intValue).getOrElse(10)
     val ns = NamespaceParam.lookupOpt(params)
     val route = CamelRouteConfig.lookup(params)
@@ -227,15 +227,15 @@ class StreamDataStoreFactory extends DataStoreFactorySpi {
     new StreamDataStore(source, timeout, ns)
   }
 
-  override def createNewDataStore(params: ju.Map[String, java.io.Serializable]): DataStore = createDataStore(params)
+  override def createNewDataStore(params: ju.Map[String, _]): DataStore = createDataStore(params)
   override def getDescription: String = "SimpleFeature Stream Source"
   override def getParametersInfo: Array[Param] =
     Array(StreamDatastoreConfig, CamelRouteConfig, SftConfig, ConverterConfig, ThreadsConfig, CacheTimeout, NamespaceParam)
   override def getDisplayName: String = "SimpleFeature Stream Source"
-  override def canProcess(params: ju.Map[String, java.io.Serializable]): Boolean =
+  override def canProcess(params: ju.Map[String, _]): Boolean =
     StreamDatastoreConfig.exists(params) || directParamsExist(params)
 
-  private def directParamsExist(params: ju.Map[String, java.io.Serializable]): Boolean =
+  private def directParamsExist(params: ju.Map[String, _]): Boolean =
     CamelRouteConfig.exists(params) && SftConfig.exists(params) && ConverterConfig.exists(params)
 
   override def isAvailable: Boolean = true

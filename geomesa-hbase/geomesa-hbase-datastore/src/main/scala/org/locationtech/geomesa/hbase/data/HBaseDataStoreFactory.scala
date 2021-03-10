@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.hbase.data
 
 import java.awt.RenderingHints
-import java.io.Serializable
 
 import com.typesafe.scalalogging.LazyLogging
 import org.apache.hadoop.fs.Path
@@ -21,7 +20,6 @@ import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 import org.locationtech.geomesa.hbase.data.HBaseConnectionPool.ConnectionWrapper
 import org.locationtech.geomesa.hbase.data.HBaseDataStoreFactory.{CoprocessorConfig, EnabledCoprocessors, HBaseDataStoreConfig, HBaseQueryConfig}
-import org.locationtech.geomesa.hbase.data.HBaseDataStoreParams.CacheConnectionsParam
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStoreFactory.{DataStoreQueryConfig, GeoMesaDataStoreConfig, GeoMesaDataStoreInfo}
 import org.locationtech.geomesa.security
@@ -35,10 +33,10 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
   import HBaseDataStoreParams._
 
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore = createDataStore(params)
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
-    // TODO HBase Connections don't seem to be Serializable...deal with it
+  override def createDataStore(params: java.util.Map[String, _]): DataStore = {
+    // TODO HBase Connections don't seem to be _...deal with it
     val connection = HBaseConnectionPool.getConnection(params, validateConnection)
 
     val remoteFilters = RemoteFilteringParam.lookup(params).booleanValue
@@ -95,7 +93,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
   }
 
   // overridden by BigtableFactory
-  protected def getCatalog(params: java.util.Map[String, Serializable]): String = HBaseCatalogParam.lookup(params)
+  protected def getCatalog(params: java.util.Map[String, _]): String = HBaseCatalogParam.lookup(params)
 
   // overridden by BigtableFactory
   protected def buildDataStore(connection: ConnectionWrapper, config: HBaseDataStoreConfig): HBaseDataStore =
@@ -112,7 +110,7 @@ class HBaseDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   override def getParametersInfo: Array[Param] = HBaseDataStoreFactory.ParameterInfo :+ NamespaceParam
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String,_]): Boolean =
     HBaseDataStoreFactory.canProcess(params)
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
@@ -169,7 +167,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   private [geomesa] val BigTableParamCheck = "google.bigtable.instance.id"
 
   // check that the hbase-site.xml does not have bigtable keys
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean = {
+  override def canProcess(params: java.util.Map[String, _ <: _]): Boolean = {
     HBaseCatalogParam.exists(params) &&
         Option(HBaseConfiguration.create().get(BigTableParamCheck)).forall(_.trim.isEmpty)
   }
@@ -203,7 +201,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
 
   case class EnabledCoprocessors(arrow: Boolean, bin: Boolean, density: Boolean, stats: Boolean)
 
-  def buildAuthsProvider(connection: Connection, params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
+  def buildAuthsProvider(connection: Connection, params: java.util.Map[String, _]): AuthorizationsProvider = {
     val forceEmptyOpt: Option[java.lang.Boolean] = ForceEmptyAuthsParam.lookupOpt(params)
     val forceEmptyAuths = forceEmptyOpt.getOrElse(java.lang.Boolean.FALSE).asInstanceOf[Boolean]
 

@@ -43,7 +43,7 @@ public interface AuditProvider {
      *
      * @param params
      */
-    public void configure(Map<String, ? extends Serializable> params);
+    public void configure(Map<String, ?> params);
 
     /**
      * Loader
@@ -54,7 +54,7 @@ public interface AuditProvider {
 
         private Loader() {}
 
-        public static AuditProvider load(Map<String, ? extends Serializable> params) {
+        public static AuditProvider load(Map<String, ?> params) {
 
             Iterator<AuditProvider> providers = ServiceLoader.load(AuditProvider.class).iterator();
 

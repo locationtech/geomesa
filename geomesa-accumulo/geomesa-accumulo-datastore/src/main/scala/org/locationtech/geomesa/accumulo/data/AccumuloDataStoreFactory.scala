@@ -10,7 +10,7 @@
 package org.locationtech.geomesa.accumulo.data
 
 import java.awt.RenderingHints
-import java.io.{IOException, Serializable}
+import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 
@@ -31,10 +31,10 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 class AccumuloDataStoreFactory extends DataStoreFactorySpi {
 
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: java.util.Map[String, Serializable]): AccumuloDataStore =
+  override def createNewDataStore(params: java.util.Map[String, _]): AccumuloDataStore =
     createDataStore(params)
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): AccumuloDataStore = {
+  override def createDataStore(params: java.util.Map[String, _]): AccumuloDataStore = {
     val connector = AccumuloDataStoreFactory.buildAccumuloConnector(params)
     val config = AccumuloDataStoreFactory.buildConfig(connector, params)
     val ds = new AccumuloDataStore(connector, config)
@@ -52,7 +52,7 @@ class AccumuloDataStoreFactory extends DataStoreFactorySpi {
     AccumuloDataStoreFactory.ParameterInfo ++
         Array(AccumuloDataStoreParams.NamespaceParam, AccumuloDataStoreFactory.DeprecatedGeoServerPasswordParam)
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     AccumuloDataStoreFactory.canProcess(params)
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
@@ -113,10 +113,10 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
       null,
       Map(Parameter.DEPRECATED -> true, Parameter.IS_PASSWORD -> true).asJava)
 
-  override def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     CatalogParam.exists(params)
 
-  def buildAccumuloConnector(params: java.util.Map[String, _ <: Serializable]): Connector = {
+  def buildAccumuloConnector(params: java.util.Map[String, _]): Connector = {
     if (MockParam.lookup(params)) {
       throw new IllegalArgumentException("Mock Accumulo connections are not supported")
     }
@@ -172,7 +172,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     new ZooKeeperInstance(conf).getConnector(user, auth)
   }
 
-  def buildConfig(connector: Connector, params: java.util.Map[String, _ <: Serializable]): AccumuloDataStoreConfig = {
+  def buildConfig(connector: Connector, params: java.util.Map[String, _]): AccumuloDataStoreConfig = {
     val catalog = CatalogParam.lookup(params)
 
     val authProvider = buildAuthsProvider(connector, params)
@@ -208,7 +208,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
     )
   }
 
-  def buildAuditProvider(params: java.util.Map[String, _ <: Serializable]): AuditProvider = {
+  def buildAuditProvider(params: java.util.Map[String, _]): AuditProvider = {
     Option(AuditProvider.Loader.load(params)).getOrElse {
       val provider = new ParamsAuditProvider
       provider.configure(params)
@@ -218,7 +218,7 @@ object AccumuloDataStoreFactory extends GeoMesaDataStoreInfo {
 
   def buildAuthsProvider(
       connector: Connector,
-      params: java.util.Map[String, _ <: Serializable]): AuthorizationsProvider = {
+      params: java.util.Map[String, _]): AuthorizationsProvider = {
     // convert the connector authorizations into a string array - this is the maximum auths this connector can support
     val securityOps = connector.securityOperations
     val masterAuths = securityOps.getUserAuthorizations(connector.whoami).asScala.toArray.map(b => new String(b))

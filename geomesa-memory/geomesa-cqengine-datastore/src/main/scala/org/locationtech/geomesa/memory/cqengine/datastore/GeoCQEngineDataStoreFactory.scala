@@ -9,26 +9,25 @@
 package org.locationtech.geomesa.memory.cqengine.datastore
 
 import java.awt.RenderingHints.Key
-import java.io.Serializable
 import java.util
 
 import org.geotools.data.DataAccessFactory.Param
 import org.geotools.data.{DataStore, DataStoreFactorySpi}
 
 class GeoCQEngineDataStoreFactory extends DataStoreFactorySpi {
-  override def createDataStore(params: util.Map[String, Serializable]): DataStore =
+  override def createDataStore(params: util.Map[String, _]): DataStore =
     if (GeoCQEngineDataStoreFactory.getUseGeoIndex(params))
       GeoCQEngineDataStore.engine
     else
       GeoCQEngineDataStore.engineNoGeoIndex
 
-  override def createNewDataStore(params: util.Map[String, Serializable]): DataStore = createDataStore(params)
+  override def createNewDataStore(params: util.Map[String, _]): DataStore = createDataStore(params)
 
   override def getDisplayName: String = "GeoCQEngine DataStore"
 
   override def getDescription: String = "GeoCQEngine DataStore"
 
-  override def canProcess(params: util.Map[String, Serializable]): Boolean = {
+  override def canProcess(params: util.Map[String, _]): Boolean = {
     params.containsKey("cqengine")
   }
 
@@ -54,7 +53,7 @@ object GeoCQEngineDataStoreFactory {
     UseGeoIndexParam
   )
 
-  def getUseGeoIndex(params: util.Map[String, Serializable]): Boolean = {
+  def getUseGeoIndex(params: util.Map[String, _]): Boolean = {
     if (params.containsKey(UseGeoIndexKey))
       UseGeoIndexParam.lookUp(params).asInstanceOf[Boolean]
     else

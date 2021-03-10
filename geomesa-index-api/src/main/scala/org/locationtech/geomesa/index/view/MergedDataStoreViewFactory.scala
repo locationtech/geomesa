@@ -32,13 +32,13 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 
   import scala.collection.JavaConverters._
 
-  override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     MergedDataStoreViewFactory.canProcess(params)
 
-  override def createDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore =
+  override def createDataStore(params: java.util.Map[String, _]): DataStore =
     createNewDataStore(params)
 
-  override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore = {
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore = {
     val configs: Seq[Config] = {
       val explicit = Option(ConfigParam.lookup(params)).map(ConfigFactory.parseString)
       val loaded = ConfigLoaderParam.flatMap(_.lookupOpt(params)).flatMap { name =>
@@ -88,7 +88,7 @@ class MergedDataStoreViewFactory extends DataStoreFactorySpi {
 
   override def getDescription: String = Description
 
-  override def getParametersInfo: Array[Param] = ParameterInfo :+ NamespaceParam
+  override def getParametersInfo: Array[Param] = (ParameterInfo :+ NamespaceParam).asInstanceOf[Array[Param]]
 
   override def isAvailable: Boolean = true
 
@@ -126,6 +126,6 @@ object MergedDataStoreViewFactory extends GeoMesaDataStoreInfo with NamespacePar
 
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] = ConfigLoaderParam.toArray :+ ConfigParam
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     params.containsKey(ConfigParam.key) || ConfigLoaderParam.exists(p => params.containsKey(p.key))
 }

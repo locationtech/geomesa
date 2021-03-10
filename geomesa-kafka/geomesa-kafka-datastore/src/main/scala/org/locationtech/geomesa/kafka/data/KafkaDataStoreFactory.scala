@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.kafka.data
 
 import java.awt.RenderingHints
-import java.io.{IOException, Serializable}
+import java.io.IOException
 
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.LazyLogging
@@ -36,10 +36,10 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   import org.locationtech.geomesa.kafka.data.KafkaDataStoreParams._
 
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore =
+  override def createNewDataStore(params: java.util.Map[String, _]): KafkaDataStore =
     createDataStore(params)
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore = {
+  override def createDataStore(params: java.util.Map[String, _]): KafkaDataStore = {
     val config = KafkaDataStoreFactory.buildConfig(params)
     val meta = new ZookeeperMetadata(s"${config.catalog}/$MetadataPath", config.zookeepers, MetadataStringSerializer)
     val ds = new KafkaDataStore(config, meta, new GeoMessageSerializerFactory())
@@ -57,7 +57,7 @@ class KafkaDataStoreFactory extends DataStoreFactorySpi {
   override def getParametersInfo: Array[Param] =
     KafkaDataStoreFactory.ParameterInfo :+ NamespaceParam.asInstanceOf[Param]
 
-  override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     KafkaDataStoreFactory.canProcess(params)
 
   override def isAvailable: Boolean = true
@@ -99,13 +99,13 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       KafkaDataStoreParams.Authorizations
     )
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean = {
+  override def canProcess(params: java.util.Map[String, _]): Boolean = {
     KafkaDataStoreParams.Brokers.exists(params) &&
         KafkaDataStoreParams.Zookeepers.exists(params) &&
         !params.containsKey("kafka.schema.registry.url") // defer to confluent data store
   }
 
-  def buildConfig(params: java.util.Map[String, Serializable]): KafkaDataStoreConfig = {
+  def buildConfig(params: java.util.Map[String, _]): KafkaDataStoreConfig = {
     import KafkaDataStoreParams._
 
     val catalog = createZkNamespace(params)
@@ -204,14 +204,14 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       indices, looseBBox, authProvider, audit, ns)
   }
 
-  private def buildAuthProvider(params: java.util.Map[String, Serializable]): AuthorizationsProvider = {
+  private def buildAuthProvider(params: java.util.Map[String, _]): AuthorizationsProvider = {
     import KafkaDataStoreParams.Authorizations
     // get the auth params passed in as a comma-delimited string
     val auths = Authorizations.lookupOpt(params).map(_.split(",").filterNot(_.isEmpty)).getOrElse(Array.empty)
     security.getAuthorizationsProvider(params, auths)
   }
 
-  private def buildAuditProvider(params: java.util.Map[String, Serializable]): AuditProvider =
+  private def buildAuditProvider(params: java.util.Map[String, _]): AuditProvider =
     Option(AuditProvider.Loader.load(params)).getOrElse(NoOpAuditProvider)
 
   /**
@@ -220,7 +220,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     * @param params params
     * @return
     */
-  private [data] def parseSsiTiers(params: java.util.Map[String, Serializable]): Seq[(Double, Double)] = {
+  private [data] def parseSsiTiers(params: java.util.Map[String, _]): Seq[(Double, Double)] = {
     def parse(tiers: String): Option[Seq[(Double, Double)]] = {
       try {
         val parsed = tiers.split(",").map { xy =>
@@ -242,7 +242,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
    * @param params data store params
    * @return
    */
-  private [data] def parseDynamicExpiry(params: java.util.Map[String, Serializable]): Seq[(String, Duration)] = {
+  private [data] def parseDynamicExpiry(params: java.util.Map[String, _]): Seq[(String, Duration)] = {
     lazy val key = s"Invalid property for parameter '${KafkaDataStoreParams.DynamicCacheExpiry.key}'"
     val expiry = KafkaDataStoreParams.DynamicCacheExpiry.lookupOpt(params).toSeq.flatMap { value =>
       ConfigFactory.parseString(value).resolve().root().unwrapped().asScala.toSeq.map {
@@ -272,7 +272,7 @@ object KafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     * @param params data store params
     * @return
     */
-  private [data] def createZkNamespace(params: java.util.Map[String, Serializable]): String = {
+  private [data] def createZkNamespace(params: java.util.Map[String, _]): String = {
     KafkaDataStoreParams.ZkPath.lookupOpt(params)
         .map(_.trim)
         .filterNot(_.isEmpty)

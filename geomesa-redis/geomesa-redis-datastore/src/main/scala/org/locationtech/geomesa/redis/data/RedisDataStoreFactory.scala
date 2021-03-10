@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.redis.data
 
 import java.awt.RenderingHints
-import java.io.Serializable
 import java.net.URI
 
 import com.typesafe.scalalogging.LazyLogging
@@ -32,9 +31,9 @@ class RedisDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   import org.locationtech.geomesa.redis.data.RedisDataStoreParams._
 
-  override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore = createDataStore(params)
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
+  override def createDataStore(params: java.util.Map[String, _]): DataStore = {
     val connection = RedisDataStoreFactory.buildConnection(params)
     val config = RedisDataStoreFactory.buildConfig(params)
     val ds = new RedisDataStore(connection, config)
@@ -51,7 +50,7 @@ class RedisDataStoreFactory extends DataStoreFactorySpi with LazyLogging {
 
   override def getParametersInfo: Array[Param] = RedisDataStoreFactory.ParameterInfo :+ NamespaceParam
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String,_]): Boolean =
     RedisDataStoreFactory.canProcess(params)
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
@@ -81,7 +80,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
       ForceEmptyAuthsParam
     )
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _ <: java.io._]): Boolean =
     RedisCatalogParam.exists(params)
 
   /**
@@ -90,7 +89,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     * @param params params
     * @return
     */
-  def buildConnection(params: java.util.Map[String, Serializable]): JedisPool = {
+  def buildConnection(params: java.util.Map[String, _]): JedisPool = {
     ConnectionPoolParam.lookupOpt(params).getOrElse {
       val url = RedisUrlParam.lookup(params)
       val config = new GenericObjectPoolConfig()
@@ -115,7 +114,7 @@ object RedisDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
     * @param params params
     * @return
     */
-  def buildConfig(params: java.util.Map[String, Serializable]): RedisDataStoreConfig = {
+  def buildConfig(params: java.util.Map[String, _]): RedisDataStoreConfig = {
     val catalog = RedisCatalogParam.lookup(params)
     val generateStats = GenerateStatsParam.lookup(params)
     val pipeline = PipelineParam.lookup(params)

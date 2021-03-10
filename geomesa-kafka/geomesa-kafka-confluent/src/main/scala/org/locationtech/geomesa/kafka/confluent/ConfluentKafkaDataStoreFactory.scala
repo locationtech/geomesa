@@ -9,7 +9,6 @@
 package org.locationtech.geomesa.kafka.confluent
 
 import java.awt.RenderingHints
-import java.io.Serializable
 import java.net.URL
 
 import com.typesafe.scalalogging.LazyLogging
@@ -23,10 +22,10 @@ import org.locationtech.geomesa.utils.geotools.GeoMesaParam
 class ConfluentKafkaDataStoreFactory extends DataStoreFactorySpi {
 
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore =
+  override def createNewDataStore(params: java.util.Map[String, _]): KafkaDataStore =
     createDataStore(params)
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): KafkaDataStore = {
+  override def createDataStore(params: java.util.Map[String, _]): KafkaDataStore = {
     val config = KafkaDataStoreFactory.buildConfig(params)
     val url = ConfluentKafkaDataStoreFactory.SchemaRegistryUrl.lookup(params)
     // keep confluent classes off the classpath for the data store factory so that it can be loaded via SPI
@@ -41,7 +40,7 @@ class ConfluentKafkaDataStoreFactory extends DataStoreFactorySpi {
   override def getParametersInfo: Array[Param] =
     ConfluentKafkaDataStoreFactory.ParameterInfo :+ KafkaDataStoreFactoryParams.NamespaceParam
 
-  override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     ConfluentKafkaDataStoreFactory.canProcess(params)
 
   override def isAvailable: Boolean = true
@@ -59,7 +58,7 @@ object ConfluentKafkaDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogg
   override val ParameterInfo: Array[GeoMesaParam[_ <: AnyRef]] =
     KafkaDataStoreFactory.ParameterInfo.+:(SchemaRegistryUrl)
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean = {
+  override def canProcess(params: java.util.Map[String, _ <: java.io._]): Boolean = {
     KafkaDataStoreFactoryParams.Brokers.exists(params) &&
         KafkaDataStoreFactoryParams.Zookeepers.exists(params) &&
         SchemaRegistryUrl.exists(params)

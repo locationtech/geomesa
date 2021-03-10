@@ -55,13 +55,13 @@ object DataStoreRegistration {
 
   private val factory = new DataStoreFactorySpi() {
 
-    override def createDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore =
+    override def createDataStore(params: java.util.Map[String, _]): DataStore =
       dataStores.get(params.get(param.key).asInstanceOf[String])
 
-    override def createNewDataStore(params: java.util.Map[String, java.io.Serializable]): DataStore =
+    override def createNewDataStore(params: java.util.Map[String, _]): DataStore =
       createDataStore(params)
 
-    override def canProcess(params: java.util.Map[String, java.io.Serializable]): Boolean =
+    override def canProcess(params: java.util.Map[String, _]): Boolean =
       params.containsKey(param.key)
 
     override def getParametersInfo: Array[Param] = Array(param)

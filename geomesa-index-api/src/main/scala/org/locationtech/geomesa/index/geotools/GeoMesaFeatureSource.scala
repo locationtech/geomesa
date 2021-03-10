@@ -131,7 +131,7 @@ object GeoMesaFeatureSource {
     override def isOffsetSupported = false
     override def isReliableFIDSupported = true
     override def isUseProvidedFIDSupported = true
-    override def supportsSorting(sortAttributes: Array[SortBy]) = true
+    override def supportsSorting(sortAttributes: SortBy*) = true
   }
 
   trait CachingFeatureSource extends GeoMesaFeatureSource {
@@ -153,7 +153,7 @@ object GeoMesaFeatureSource {
         featureCache.get(query)
       } else {
         // Uses mergesort
-        new SortedSimpleFeatureCollection(featureCache.get(query), query.getSortBy)
+        new SortedSimpleFeatureCollection(featureCache.get(query), query.getSortBy: _*)
       }
     }
 

@@ -10,7 +10,6 @@
 package org.locationtech.geomesa.cassandra.data
 
 import java.awt.RenderingHints
-import java.io.Serializable
 import java.util
 
 import com.datastax.driver.core._
@@ -29,9 +28,9 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
   import CassandraDataStoreFactory.Params._
 
   // this is a pass-through required of the ancestor interface
-  override def createNewDataStore(params: util.Map[String, Serializable]): DataStore = createDataStore(params)
+  override def createNewDataStore(params: util.Map[String, _]): DataStore = createDataStore(params)
 
-  override def createDataStore(params: util.Map[String, Serializable]): DataStore = {
+  override def createDataStore(params: util.Map[String, _]): DataStore = {
     import org.locationtech.geomesa.cassandra.CassandraSystemProperties.{ConnectionTimeoutMillis, ReadTimeoutMillis}
 
     val (cp, portString) = ContactPointParam.lookup(params).split(":") match {
@@ -107,7 +106,7 @@ class CassandraDataStoreFactory extends DataStoreFactorySpi {
     CassandraDataStoreFactory.ParameterInfo ++
         Array(NamespaceParam, CassandraDataStoreFactory.DeprecatedGeoServerPasswordParam)
 
-  override def canProcess(params: java.util.Map[String,Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String,_]): Boolean =
     CassandraDataStoreFactory.canProcess(params)
 
   override def getImplementationHints: java.util.Map[RenderingHints.Key, _] = null
@@ -145,7 +144,7 @@ object CassandraDataStoreFactory extends GeoMesaDataStoreInfo {
       Params.QueryTimeoutParam
     )
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _ <: java.io._]): Boolean =
     Params.KeySpaceParam.exists(params)
 
   object Params extends GeoMesaDataStoreParams {

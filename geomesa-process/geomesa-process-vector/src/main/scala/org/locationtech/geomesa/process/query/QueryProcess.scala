@@ -67,7 +67,7 @@ class QueryVisitor(features: SimpleFeatureCollection, filter: Filter, properties
 
   private val (sft, transformFeature) = if (properties == null) { (features.getSchema, null) } else {
     val original = features.getSchema
-    val query = new Query(original.getTypeName, Filter.INCLUDE, properties)
+    val query = new Query(original.getTypeName, Filter.INCLUDE, properties: _*)
     QueryPlanner.extractQueryTransforms(original, query) match {
       case None => (original, null)
       case Some((tsft, tdefs, _)) => (tsft, TransformSimpleFeature(tsft, tdefs))
@@ -107,7 +107,7 @@ class QueryVisitor(features: SimpleFeatureCollection, filter: Filter, properties
         logger.warn(s"Overriding inner query's properties (${query.getProperties}) " +
             s"with properties/transforms ${properties.mkString(",")}.")
       }
-      query.setPropertyNames(properties)
+      query.setPropertyNames(properties: _*)
     }
     resultCalc = FeatureResult(source.getFeatures(query))
   }

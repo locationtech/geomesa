@@ -101,6 +101,6 @@ object MinMaxProcess {
 
   private def createResult(stat: String): FeatureResult = {
     val sf = new ScalaSimpleFeature(StatsScan.StatsSft, "", Array(stat, GeometryUtils.zeroPoint))
-    FeatureResult(new ListFeatureCollection(StatsScan.StatsSft, Array[SimpleFeature](sf)))
+    FeatureResult(new ListFeatureCollection(StatsScan.StatsSft, sf))
   }
 }

@@ -26,7 +26,7 @@ class FilteringAuthorizationsProvider (val wrappedProvider: AuthorizationsProvid
       case Some(f) => wrappedProvider.getAuthorizations.intersect(f)
     }
 
-  override def configure(params: java.util.Map[String, _ <: java.io.Serializable]): Unit = {
+  override def configure(params: java.util.Map[String, _]): Unit = {
     filter = AuthsParam.lookupOpt(params).filterNot(_.isEmpty).map(_.split(","))
     wrappedProvider.configure(params)
   }

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.lambda.data
 
 import java.awt.RenderingHints.Key
-import java.io.{Serializable, StringReader}
+import java.io.StringReader
 import java.time.Clock
 import java.util.Properties
 
@@ -31,7 +31,7 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
   import LambdaDataStoreFactory.Params._
   import LambdaDataStoreFactory.parsePropertiesParam
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
+  override def createDataStore(params: java.util.Map[String, _]): DataStore = {
     val brokers = Kafka.BrokersParam.lookup(params)
     val expiry = ExpiryParam.lookup(params)
 
@@ -61,7 +61,7 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
     new LambdaDataStore(persistence, producer, consumerConfig, offsetManager, config)(clock)
   }
 
-  override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore = createDataStore(params)
 
   override def isAvailable: Boolean = true
 
@@ -71,7 +71,7 @@ class LambdaDataStoreFactory extends DataStoreFactorySpi {
 
   override def getParametersInfo: Array[Param] = LambdaDataStoreFactory.ParameterInfo :+ NamespaceParam
 
-  override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     LambdaDataStoreFactory.canProcess(params)
 
   override def getImplementationHints: java.util.Map[Key, _] = java.util.Collections.emptyMap()
@@ -110,7 +110,7 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
       Params.AuditQueriesParam
     )
 
-  override def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _ <: _]): Boolean =
     AccumuloDataStoreFactory.canProcess(LambdaDataStoreFactory.filter(params)) &&
         Seq(Params.ExpiryParam, Params.Kafka.BrokersParam, Params.Kafka.ZookeepersParam).forall(_.exists(params))
 
@@ -151,12 +151,12 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
       deprecatedParams = p.deprecatedParams, systemProperty = p.systemProperty)
   }
 
-  private def filter(params: java.util.Map[String, _ <: Serializable]): java.util.Map[String, Serializable] = {
-    // note: includes a bit of redirection to allow us to pass non-serializable values in to tests
+  private def filter(params: java.util.Map[String, _ <: _]): java.util.Map[String, _] = {
+    // note: includes a bit of redirection to allow us to pass non-_ values in to tests
     import scala.collection.JavaConverters._
     Map[String, Any](params.asScala.toSeq: _ *)
         .map { case (k, v) => (if (k.startsWith("lambda.")) { k.substring(7) } else { k }, v) }
-        .asJava.asInstanceOf[java.util.Map[String, Serializable]]
+        .asJava.asInstanceOf[java.util.Map[String, _]]
   }
 
   def parsePropertiesParam(value: String): Map[String, String] = {
