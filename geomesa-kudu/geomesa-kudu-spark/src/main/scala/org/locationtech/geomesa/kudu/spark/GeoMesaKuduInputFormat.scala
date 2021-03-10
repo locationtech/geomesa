@@ -71,7 +71,7 @@ class GeoMesaKuduInputFormat extends InputFormat[NullWritable, SimpleFeature] wi
       val sft = ds.getSchema(typeName)
       val query = new Query(typeName)
       filter.map(FastFilterFactory.toFilter(sft, _)).foreach(query.setFilter)
-      query.setPropertyNames(properties)
+      query.setPropertyNames(properties: _*)
 
       val plans = ds.getQueryPlan(query).filter(_.ranges.nonEmpty)
 
