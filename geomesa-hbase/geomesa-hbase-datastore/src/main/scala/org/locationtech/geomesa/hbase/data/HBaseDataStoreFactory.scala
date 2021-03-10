@@ -167,7 +167,7 @@ object HBaseDataStoreFactory extends GeoMesaDataStoreInfo with LazyLogging {
   private [geomesa] val BigTableParamCheck = "google.bigtable.instance.id"
 
   // check that the hbase-site.xml does not have bigtable keys
-  override def canProcess(params: java.util.Map[String, _ <: _]): Boolean = {
+  override def canProcess(params: java.util.Map[String, _]): Boolean = {
     HBaseCatalogParam.exists(params) &&
         Option(HBaseConfiguration.create().get(BigTableParamCheck)).forall(_.trim.isEmpty)
   }

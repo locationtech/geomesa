@@ -110,7 +110,7 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
       Params.AuditQueriesParam
     )
 
-  override def canProcess(params: java.util.Map[String, _ <: _]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     AccumuloDataStoreFactory.canProcess(LambdaDataStoreFactory.filter(params)) &&
         Seq(Params.ExpiryParam, Params.Kafka.BrokersParam, Params.Kafka.ZookeepersParam).forall(_.exists(params))
 
@@ -151,7 +151,7 @@ object LambdaDataStoreFactory extends GeoMesaDataStoreInfo {
       deprecatedParams = p.deprecatedParams, systemProperty = p.systemProperty)
   }
 
-  private def filter(params: java.util.Map[String, _ <: _]): java.util.Map[String, _] = {
+  private def filter(params: java.util.Map[String, _]): java.util.Map[String, _] = {
     // note: includes a bit of redirection to allow us to pass non-_ values in to tests
     import scala.collection.JavaConverters._
     Map[String, Any](params.asScala.toSeq: _ *)
