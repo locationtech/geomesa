@@ -21,7 +21,7 @@ import org.locationtech.geomesa.spark.{GeoMesaSpark, Schema, SpatialRDD, Spatial
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 object JavaGeoMesaSpark {
-  def apply(params: java.util.Map[String, _ <: java.io.Serializable]) =
+  def apply(params: java.util.Map[String, _]) =
     JavaSpatialRDDProvider(GeoMesaSpark.apply(params))
 }
 

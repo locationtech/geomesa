@@ -300,7 +300,7 @@ object ExportCommand extends LazyLogging {
         null // all props
       }
     }
-    query.setPropertyNames(attributes)
+    query.setPropertyNames(attributes: _*)
 
     if (!params.sortFields.isEmpty) {
       val fields = params.sortFields.asScala
@@ -310,11 +310,11 @@ object ExportCommand extends LazyLogging {
             errors.mkString(", "))
       }
       val order = if (params.sortDescending) { SortOrder.DESCENDING } else { SortOrder.ASCENDING }
-      query.setSortBy(fields.map(f => org.locationtech.geomesa.filter.ff.sort(f, order)).toArray)
+      query.setSortBy(fields.map(f => org.locationtech.geomesa.filter.ff.sort(f, order)).toArray: _*)
     } else if (hints.isArrowQuery) {
       hints.getArrowSort.foreach { case (f, r) =>
         val order = if (r) { SortOrder.DESCENDING } else { SortOrder.ASCENDING }
-        query.setSortBy(Array(org.locationtech.geomesa.filter.ff.sort(f, order)))
+        query.setSortBy(Array(org.locationtech.geomesa.filter.ff.sort(f, order)): _*)
       }
     }
 

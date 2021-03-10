@@ -18,7 +18,7 @@ import org.opengis.feature.simple.SimpleFeature
 import scala.collection.JavaConversions._
 
 object PythonGeoMesaSpark {
-  def apply(params: java.util.Map[String, _ <: java.io.Serializable]) =
+  def apply(params: java.util.Map[String, _]) =
     PythonSpatialRDDProvider(GeoMesaSpark.apply(params.asInstanceOf[java.util.Map[String, java.io.Serializable]]))
 }
 

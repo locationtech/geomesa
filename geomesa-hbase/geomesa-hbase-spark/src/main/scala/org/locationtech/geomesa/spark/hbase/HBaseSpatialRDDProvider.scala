@@ -29,7 +29,7 @@ class HBaseSpatialRDDProvider extends SpatialRDDProvider {
 
   import org.locationtech.geomesa.index.conf.QueryHints._
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     HBaseDataStoreFactory.canProcess(params)
 
   def rdd(

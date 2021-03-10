@@ -45,7 +45,7 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
   import ConverterSpatialRDDProvider._
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     ((params.containsKey(ConverterKey) && params.containsKey(SftKey))
       || params.containsKey(IngestTypeKey)) && params.containsKey(InputFilesKey)
 
@@ -67,7 +67,7 @@ class ConverterSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
     val sftProperties = sft.getAttributeDescriptors.map{_.getLocalName}
     if (queryProperties != null && queryProperties.nonEmpty && sftProperties != queryProperties.toSeq) {
       logger.debug("Query transform retyping results")
-      val modifiedSft = SimpleFeatureTypeBuilder.retype(sft, query.getPropertyNames)
+      val modifiedSft = SimpleFeatureTypeBuilder.retype(sft, query.getPropertyNames: _*)
       ConverterInputFormat.setRetypeSft(conf, modifiedSft)
     }
 

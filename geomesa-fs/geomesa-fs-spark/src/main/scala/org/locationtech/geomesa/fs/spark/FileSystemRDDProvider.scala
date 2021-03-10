@@ -36,7 +36,7 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 class FileSystemRDDProvider extends SpatialRDDProvider with LazyLogging {
 
-  override def canProcess(params: java.util.Map[String, _ <: Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     FileSystemDataStoreFactory.canProcess(params)
 
   override def rdd(

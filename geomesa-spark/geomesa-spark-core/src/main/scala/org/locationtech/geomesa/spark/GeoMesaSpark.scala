@@ -16,7 +16,7 @@ object GeoMesaSpark {
 
   lazy val providers: ServiceLoader[SpatialRDDProvider] = ServiceLoader.load(classOf[SpatialRDDProvider])
 
-  def apply(params: java.util.Map[String, _ <: java.io.Serializable]): SpatialRDDProvider =
+  def apply(params: java.util.Map[String, _]): SpatialRDDProvider =
     providers.find(_.canProcess(params)).getOrElse(throw new RuntimeException("Could not find a SpatialRDDProvider"))
 }
 

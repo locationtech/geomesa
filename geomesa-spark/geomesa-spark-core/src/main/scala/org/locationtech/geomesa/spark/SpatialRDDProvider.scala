@@ -26,7 +26,7 @@ trait SpatialRDDProvider {
     * @param params data store parameters
     * @return
     */
-  def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean
+  def canProcess(params: java.util.Map[String, _]): Boolean
 
   /**
     * Load an RDD for the given query.

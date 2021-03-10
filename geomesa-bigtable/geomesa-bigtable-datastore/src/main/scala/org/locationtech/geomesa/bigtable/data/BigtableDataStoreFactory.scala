@@ -69,7 +69,7 @@ object BigtableDataStoreFactory extends GeoMesaDataStoreInfo with NamespaceParam
     )
 
   // verify that the hbase-site.xml exists and contains the appropriate bigtable keys
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean = {
+  override def canProcess(params: java.util.Map[String, _]): Boolean = {
     BigtableCatalogParam.exists(params) &&
         Option(HBaseConfiguration.create().get(HBaseDataStoreFactory.BigTableParamCheck)).exists(_.trim.nonEmpty)
   }

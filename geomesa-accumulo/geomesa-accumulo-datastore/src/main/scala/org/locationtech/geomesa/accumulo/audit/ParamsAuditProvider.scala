@@ -22,7 +22,7 @@ class ParamsAuditProvider extends AuditProvider {
 
   override val getCurrentUserDetails: java.util.Map[AnyRef, AnyRef] = Collections.emptyMap()
 
-  override def configure(params: java.util.Map[String, _ <: Serializable]): Unit = {
+  override def configure(params: java.util.Map[String, _]): Unit = {
     id = AccumuloDataStoreParams.UserParam.lookupOpt(params).map(u => s"accumulo[$u]").getOrElse("unknown")
   }
 }

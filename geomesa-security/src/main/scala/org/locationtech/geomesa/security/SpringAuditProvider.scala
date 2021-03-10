@@ -49,7 +49,7 @@ class SpringAuditProvider extends AuditProvider {
     }
   }
 
-  override def configure(params: java.util.Map[String, _ <: Serializable]): Unit = {}
+  override def configure(params: java.util.Map[String, _]): Unit = {}
 
   private def getAuth: Option[Authentication] =
     Option(SecurityContextHolder.getContext).flatMap(c => Option(c.getAuthentication))

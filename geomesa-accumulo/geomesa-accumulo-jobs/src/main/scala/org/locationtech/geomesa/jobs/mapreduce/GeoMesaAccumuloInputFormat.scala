@@ -196,7 +196,7 @@ object GeoMesaAccumuloInputFormat extends LazyLogging {
       filter: Option[String] = None,
       transform: Option[Array[String]] = None): Unit = {
     val ecql = filter.map(ECQL.toFilter).getOrElse(Filter.INCLUDE)
-    val query = new Query(featureTypeName, ecql, transform.getOrElse(Query.ALL_NAMES))
+    val query = new Query(featureTypeName, ecql, transform.getOrElse(Query.ALL_NAMES): _*)
     configure(job.getConfiguration, dsParams.asJava, query)
   }
 

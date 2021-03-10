@@ -55,7 +55,7 @@ class AccumuloDataStoreAuthTest extends TestWithFeatureType {
 
   val authProvider = new AuthorizationsProvider {
     override def getAuthorizations: java.util.List[String] = threadedAuths.get.getAuthorizations.map(new String(_))
-    override def configure(params: util.Map[String, _ <: Serializable]): Unit = {}
+    override def configure(params: util.Map[String, _]): Unit = {}
   }
 
   "AccumuloDataStore" should {

@@ -9,7 +9,7 @@
 package org.locationtech.geomesa.arrow.data
 
 import java.awt.RenderingHints.Key
-import java.io.Serializable
+import java.io._
 import java.net.URL
 
 import org.geotools.data.DataAccessFactory.Param
@@ -39,7 +39,7 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
 
   // DataStoreFactory methods
 
-  override def createDataStore(params: java.util.Map[String, Serializable]): DataStore = {
+  override def createDataStore(params: java.util.Map[String, _]): DataStore = {
     val caching = CachingParam.lookup(params) // default false
     val ds = UrlParam.lookupOpt(params).map(new ArrowDataStore(_, caching)).getOrElse {
       throw new IllegalArgumentException(s"Could not create data store using $params")
@@ -48,9 +48,9 @@ class ArrowDataStoreFactory extends FileDataStoreFactorySpi {
     ds
   }
 
-  override def createNewDataStore(params: java.util.Map[String, Serializable]): DataStore = createDataStore(params)
+  override def createNewDataStore(params: java.util.Map[String, _]): DataStore = createDataStore(params)
 
-  override def canProcess(params: java.util.Map[String, Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     Try(UrlParam.lookupOpt(params).exists(canProcess)).getOrElse(false)
 
   override def getParametersInfo: Array[Param] = Array(UrlParam, CachingParam, NamespaceParam)

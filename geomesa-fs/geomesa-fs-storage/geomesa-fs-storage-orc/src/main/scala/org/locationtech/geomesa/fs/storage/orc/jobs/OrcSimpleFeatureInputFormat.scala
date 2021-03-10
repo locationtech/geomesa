@@ -74,7 +74,7 @@ object OrcSimpleFeatureInputFormat {
     import org.locationtech.geomesa.index.conf.QueryHints.RichHints
 
     StorageConfiguration.setSft(conf, sft)
-    val q = QueryRunner.configureDefaultQuery(sft, new Query(sft.getTypeName, filter, transforms))
+    val q = QueryRunner.configureDefaultQuery(sft, new Query(sft.getTypeName, filter, transforms: _*))
     Option(q.getFilter).filter(_ != Filter.INCLUDE).foreach(StorageConfiguration.setFilter(conf, _))
     q.getHints.getTransform.foreach(StorageConfiguration.setTransforms(conf, _))
     // replicates orc input format strategy of always recursively listing directories

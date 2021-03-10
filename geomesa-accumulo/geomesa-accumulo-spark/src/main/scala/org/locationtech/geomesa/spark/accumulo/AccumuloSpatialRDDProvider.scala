@@ -29,7 +29,7 @@ class AccumuloSpatialRDDProvider extends SpatialRDDProvider with LazyLogging {
 
   import scala.collection.JavaConverters._
 
-  override def canProcess(params: java.util.Map[String, _ <: java.io.Serializable]): Boolean =
+  override def canProcess(params: java.util.Map[String, _]): Boolean =
     AccumuloDataStoreFactory.canProcess(params)
 
   override def rdd(conf: Configuration,
