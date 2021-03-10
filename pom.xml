@@ -68,6 +68,8 @@
         <geoserver.version>2.17.3</geoserver.version>
         <jts.version>1.17.0</jts.version> <!-- needs to track with gt/gs version -->
         <spatial4j.version>0.8</spatial4j.version> <!-- needs to track with jts version -->
+        <!-- match dependency version used by gt-referencing for convenience -->
+        <ejml.version>0.34</ejml.version>
         <avro.version>1.8.2</avro.version> <!-- see also confluent.avro.version -->
         <parquet.version>1.9.0</parquet.version>
         <orc.version>1.5.4</orc.version>
@@ -953,6 +955,34 @@
                 </exclusions>
             </dependency>
             <dependency>
+                <groupId>org.ejml</groupId>
+                <artifactId>ejml-core</artifactId>
+                <version>${ejml.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.ejml</groupId>
+                <artifactId>ejml-simple</artifactId>
+                <version>${ejml.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.ejml</groupId>
+                        <artifactId>ejml-cdense</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.ejml</groupId>
+                        <artifactId>ejml-dsparse</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.ejml</groupId>
+                        <artifactId>ejml-fdense</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.ejml</groupId>
+                        <artifactId>ejml-zdense</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
                 <groupId>org.geotools</groupId>
                 <artifactId>gt-referencing</artifactId>
                 <version>${gt.version}</version>
@@ -973,12 +1003,6 @@
                         <artifactId>jgridshift-core</artifactId>
                     </exclusion>
                 </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>com.googlecode.efficient-java-matrix-library</groupId>
-                <artifactId>core</artifactId>
-                <!-- match dependency version used by gt-referencing for convenience -->
-                <version>0.26</version>
             </dependency>
             <dependency>
                 <groupId>org.geotools</groupId>
