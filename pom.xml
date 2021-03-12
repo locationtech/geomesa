@@ -122,7 +122,7 @@
         <!-- *** documentation *** -->
 
         <!-- bump version right before performing releases for the README and the documentation -->
-        <geomesa.release.version>3.1.0</geomesa.release.version>
+        <geomesa.release.version>3.1.1</geomesa.release.version>
         <geomesa.devel.version>3.2.0-SNAPSHOT</geomesa.devel.version>
         <copyright.year>2020</copyright.year>
 
