@@ -32,6 +32,17 @@ st_geomFromGeoHash
 Returns the ``Geometry`` of the bounding box corresponding to the Geohash string *geohash* (base-32 encoded) with
 a precision of *prec* bits. See :ref:`geohash` for more information on GeoHashes.
 
+.. _st_geomFromGeoJSON:
+
+st_geomFromGeoJSON
+^^^^^^^^^^^^^^^^^^
+
+::
+
+    Geometry st_geomFromGeoJSON(String geojsonGeometry)
+
+Creates a Geometry from the given GeoJSON Geometry (`GeoJson`_).
+
 .. _st_geomFromText:
 
 st_geomFromText
