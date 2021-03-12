@@ -13,13 +13,18 @@ import org.locationtech.geomesa.spark.jts.util.GeoHashUtils._
 import org.locationtech.geomesa.spark.jts.util.SQLFunctionHelper._
 import org.locationtech.geomesa.spark.jts.util.{GeometryUtils, WKBUtils, WKTUtils}
 import org.locationtech.jts.geom._
+import org.locationtech.jts.io.geojson.GeoJsonReader
 
 object GeometricConstructorFunctions {
 
   @transient
   private val geomFactory: GeometryFactory = new GeometryFactory()
 
+  @transient
+  private lazy val geoJsonReader: GeoJsonReader = new GeoJsonReader(geomFactory)
+
   val ST_GeomFromGeoHash: (String, Int) => Geometry = nullableUDF((hash, prec) => decode(hash, prec))
+  val ST_GeomFromGeoJSON: String => Geometry = nullableUDF(text => geoJsonReader.read(text))
   val ST_GeomFromWKT: String => Geometry = nullableUDF(text => WKTUtils.read(text))
   val ST_GeomFromWKB: Array[Byte] => Geometry = nullableUDF(array => WKBUtils.read(array))
   val ST_LineFromText: String => LineString = nullableUDF(text => WKTUtils.read(text).asInstanceOf[LineString])
@@ -47,6 +52,7 @@ object GeometricConstructorFunctions {
 
   private[geomesa] val constructorNames = Map(
     ST_GeomFromGeoHash -> "st_geomFromGeoHash",
+    ST_GeomFromGeoJSON -> "st_geomFromGeoJSON",
     ST_GeomFromWKT -> "st_geomFromWKT",
     ST_GeomFromWKB -> "st_geomFromWKB",
     ST_LineFromText -> "st_lineFromText",
@@ -70,6 +76,7 @@ object GeometricConstructorFunctions {
   private[jts] def registerFunctions(sqlContext: SQLContext): Unit = {
     sqlContext.udf.register("st_box2DFromGeoHash", ST_GeomFromGeoHash)
     sqlContext.udf.register(constructorNames(ST_GeomFromGeoHash), ST_GeomFromGeoHash)
+    sqlContext.udf.register(constructorNames(ST_GeomFromGeoJSON), ST_GeomFromGeoJSON)
     sqlContext.udf.register("st_geomFromText", ST_GeomFromWKT)
     sqlContext.udf.register("st_geometryFromText", ST_GeomFromWKT)
     sqlContext.udf.register(constructorNames(ST_GeomFromWKT), ST_GeomFromWKT)

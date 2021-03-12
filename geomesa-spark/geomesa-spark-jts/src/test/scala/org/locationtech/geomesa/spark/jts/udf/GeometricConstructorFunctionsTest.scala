@@ -82,6 +82,25 @@ class GeometricConstructorFunctionsTest extends Specification with TestEnvironme
       ur.y must beCloseTo(maxLat, delta)
     }
 
+    "st_geomFromGeoJSON" >> {
+      sc.sql("select st_geomFromGeoJSON(null)").collect.head(0) must beNull
+      dfBlank.select(st_geomFromWKT(lit(null))).first must beNull
+
+      val point = "POINT(-37.23456 18.12345)"
+      val pointInGeoJson = """{"type":"Point","coordinates":[-37.23456, 18.12345]}"""
+      val r = sc.sql(
+        s"""
+           |select st_geomFromGeoJSON('$pointInGeoJson')
+        """.stripMargin
+      )
+
+      val expected = WKTUtils.read(point)
+
+      r.collect().head.getAs[Geometry](0) mustEqual expected
+
+      dfBlank.select(st_geomFromGeoJSON(pointInGeoJson)).first mustEqual expected
+    }
+
     "st_pointFromGeoHash" >> {
       sc.sql("select st_pointFromGeoHash(null, null)").collect.head(0) must beNull
       dfBlank.select(st_pointFromGeoHash(lit(null), lit(null))).first must beNull
