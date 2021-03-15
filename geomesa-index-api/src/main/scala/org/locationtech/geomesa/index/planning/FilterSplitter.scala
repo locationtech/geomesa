@@ -64,7 +64,17 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
       case a: And =>
         // look for ORs across attributes, e.g. bbox OR dtg
         val (complex, simple) = a.getChildren.partition(f => f.isInstanceOf[Or] && attributeAndIdCount(f, sft) > 1)
-        if (complex.isEmpty) {
+
+        // Find the first complex filter (Which is an OR) where each of its children filter is covered by an index
+        val firstIndexedComplexFilter = complex.find( f => {
+          val or: Or = f.asInstanceOf[Or]
+          val children = or.getChildren
+          children.forall(child => indices.exists(_.getFilterStrategy(child, transform, stats).isDefined))
+        })
+        // Strategy: Calculate a FilterPlan based on the first complex filter available.
+        val complexIndexedPlan: Seq[FilterPlan] = Seq() ///firstIndexedComplexFilter.map{}
+
+        if (complex.isEmpty) { // In this case, there is not `complexIndexedPlan`, so nothing needs to be added.
           // no cross-attribute ORs
           getSimpleQueryOptions(a, transform).map(fs => FilterPlan(Seq(fs)))
         } else if (simple.nonEmpty) {
@@ -73,7 +83,12 @@ class FilterSplitter(sft: SimpleFeatureType, indices: Seq[GeoMesaFeatureIndex[_,
           def addComplexPredicates(qf: FilterStrategy): FilterStrategy =
             qf.copy(andOption(qf.secondary.toSeq ++ complex))
           getSimpleQueryOptions(andFilters(simple), transform).map(addComplexPredicates).map(fs => FilterPlan(Seq(fs)))
-        } else {
+          // ++complexIndexedPlan
+          // Return the simple and complex option.  The cost calculations will determine which is used.
+          // Complex ORs with index attributes ought to be evaluated as cheaper than Z3 indices?
+        } else if (complexIndexedPlan.nonEmpty) { // If there's a complexIndexedPlan prefer it over the fallback?
+          complexIndexedPlan
+        } else {  // Fallback case would not have a complexIndexPlan
           logger.warn(s"Falling back to expand/reduce query splitting for filter ${filterToString(filter)}")
           val dnf = rewriteFilterInDNF(filter).asInstanceOf[Or]
           expandReduceOrOptions(dnf, transform).map(makeDisjoint)

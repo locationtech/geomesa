@@ -543,10 +543,17 @@ class QueryFilterSplitterTest extends Specification {
       val filter = f(s"$bboxOr AND ($attribute1 OR $attribute2)")
       val options = splitter.getQueryOptions(filter)
       options must haveLength(1)
+      options must haveLength(1)
       options.head.strategies must haveLength(1)
       options.head.strategies.head.index.name mustEqual Z2Index.name
       compareOr(options.head.strategies.head.primary, bbox1, bbox2)
       options.head.strategies.head.secondary must beSome // note: filter is too complex to compare explicitly...
+    }
+
+    "handle new case" >> {
+      val options = splitter.getQueryOptions(and(or(indexedAttr, highCardinaltiyAttr), f(dtg)))
+      options.foreach(println)
+      ok
     }
   }
 }
