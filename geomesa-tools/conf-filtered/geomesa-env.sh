@@ -302,7 +302,7 @@ function geomesa_scala_console() {
   # Check if we already downloaded scala
   if [[ -d "${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/" ]]; then
     scalaCMD="${%%gmtools.dist.name%%_HOME}/dist/scala-%%scala.version%%/bin/scala"
-  elif [[ $(which scala > /dev/null) -eq 0 && -n "$(scala -version 2>&1 | grep %%scala.binary.version%%)" ]]; then
+  elif [[ -n $(which scala 2>/dev/null) && -n "$(scala -version 2>&1 | grep %%scala.binary.version%%)" ]]; then
     scalaCMD="scala"
   else
     read -r -p "Download scala %%scala.binary.version%% (y/n)? " confirm
