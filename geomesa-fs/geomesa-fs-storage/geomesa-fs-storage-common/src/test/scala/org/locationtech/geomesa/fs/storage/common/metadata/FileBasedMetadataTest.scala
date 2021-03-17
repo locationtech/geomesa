@@ -126,6 +126,19 @@ class FileBasedMetadataTest extends Specification with AllExpectations {
         }
       }
     }
+    "unregister duplicate entries" in {
+      withPath { context =>
+        val mod = StorageFile("file", 2L, StorageFileAction.Append)
+        val created = factory.create(context, Map.empty, meta)
+        created.addPartition(PartitionMetadata("1", Seq(mod), None, 0L))
+        created.addPartition(PartitionMetadata("1", Seq(mod.copy(timestamp = 3L)), None, 0L))
+        created.removePartition(PartitionMetadata("1", Seq(mod.copy(timestamp = 4L)), None, 0L))
+        foreach(Seq(created, FileBasedMetadata.copy(created))) { metadata =>
+          metadata.getPartitions().map(_.name) mustEqual Seq("1")
+          metadata.getPartition("1").map(_.files) must beSome(beEqualTo(Seq(mod)))
+        }
+      }
+    }
     "compact files" in {
       withPath { context =>
         val f5mod = StorageFile("file5", 3L, StorageFileAction.Delete)

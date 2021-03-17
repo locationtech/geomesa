@@ -14,6 +14,8 @@ import org.apache.hadoop.fs.Path
 
 object StorageUtils {
 
+  val LeafSeparator = '_'
+
   /**
     * Gets the base directory for a partition
     *
@@ -43,9 +45,19 @@ object StorageUtils {
       fileType: FileType.FileType,
       name: String = UUID.randomUUID().toString.replaceAllLiterally("-", "")): Path = {
     val filename = s"$fileType$name.$extension"
-    val filenameWithLeaf = if (leaf) { s"${partition.split('/').last}_$filename" } else { filename }
+    val filenameWithLeaf = if (leaf) { s"${partition.split('/').last}$LeafSeparator$filename" } else { filename }
     new Path(baseDirectory(root, partition, leaf), filenameWithLeaf)
   }
+
+  /**
+   * Extract the 'leaf' part of a partition name from a file name.
+   *
+   * If file is not from a leafed partition scheme, result is indeterminate and may error.
+   *
+   * @param name file name
+   * @return
+   */
+  def leaf(name: String): String = name.substring(0, name.indexOf(LeafSeparator))
 
   /**
     * Returns the file type of the data file, if known

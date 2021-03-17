@@ -85,16 +85,19 @@ abstract class AbstractFileSystemStorage(
       transform: Option[(String, SimpleFeatureType)]): FileSystemPathReader
 
   override def getFilePaths(partition: String): Seq[StorageFilePath] = {
-    val baseDir = StorageUtils.baseDirectory(context.root, partition, metadata.leafStorage)
-    val files = metadata.getPartition(partition).map(_.files).getOrElse(Seq.empty)
-    files.flatMap { file =>
-      val path = new Path(baseDir, file.name)
-      if (PathCache.exists(context.fc, path)) {
-        Seq(StorageFilePath(file, path))
-      } else {
-        logger.warn(s"Inconsistent metadata for ${metadata.sft.getTypeName}: $path")
-        Seq.empty
-      }
+    metadata.getPartition(partition) match {
+      case None => Seq.empty
+      case Some(p) =>
+        val baseDir = StorageUtils.baseDirectory(context.root, partition, metadata.leafStorage)
+        p.files.flatMap { file =>
+          val path = new Path(baseDir, file.name)
+          if (PathCache.exists(context.fc, path)) {
+            Seq(StorageFilePath(file, path))
+          } else {
+            logger.warn(s"Inconsistent metadata for ${metadata.sft.getTypeName}: $path")
+            Seq.empty
+          }
+        }
     }
   }
 

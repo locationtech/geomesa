@@ -24,10 +24,19 @@ package object tools {
    * Abstract superclass for all top-level GeoMesa JCommander commands
    */
   trait Command extends Runnable {
+
     val name: String
     def params: Any
     def execute(): Unit
     def subCommands: Seq[Command] = Seq.empty
+
+    /**
+     * Opportunity for the command to perform complex validation across param values
+     * (e.g. check exclusive args, etc)
+     *
+     * @return parameter exception if validation fails
+     */
+    def validate(): Option[ParameterException] = None
 
     override def run(): Unit = execute()
   }
