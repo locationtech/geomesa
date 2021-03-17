@@ -8,12 +8,14 @@
 
 package org.locationtech.geomesa.utils.stats
 
+import org.ejml.data.DMatrixRMaj
+import org.ejml.dense.row.CommonOps_DDRM
 import org.ejml.simple.SimpleMatrix
 import org.locationtech.geomesa.utils.stats.SimpleMatrixUtils._
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
-import scala.collection.immutable.ListMap
 import scala.Array._
+import scala.collection.immutable.ListMap
 
 class DescriptiveStats(val sft: SimpleFeatureType, val properties: Seq[String]) extends Stat with Serializable {
 
@@ -38,14 +40,14 @@ class DescriptiveStats(val sft: SimpleFeatureType, val properties: Seq[String]) 
 
   override def clear(): Unit = {
     _count = 0L
-    _min.set(java.lang.Double.MAX_VALUE)
-    _max.set(0d - java.lang.Double.MAX_VALUE)
-    _sum.set(0d)
-    _mean.set(1d)
-    _m2n.set(0d)
-    _m3n.set(0d)
-    _m4n.set(0d)
-    _c2.set(0d)
+    CommonOps_DDRM.fill(_min, java.lang.Double.MAX_VALUE)
+    CommonOps_DDRM.fill(_max, 0d - java.lang.Double.MAX_VALUE)
+    CommonOps_DDRM.fill(_sum, 0d)
+    CommonOps_DDRM.fill(_mean, 1d)
+    CommonOps_DDRM.fill(_m2n, 0d)
+    CommonOps_DDRM.fill(_m3n, 0d)
+    CommonOps_DDRM.fill(_m4n, 0d)
+    CommonOps_DDRM.fill(_c2, 0d)
   }
 
   def copyFrom(that: DescriptiveStats): Unit = {
@@ -62,13 +64,13 @@ class DescriptiveStats(val sft: SimpleFeatureType, val properties: Seq[String]) 
 
   def count: Long = _count
 
-  def minimum: Array[Double] = (if (isEmpty) _max else _min).getMatrix.data.clone()
+  def minimum: Array[Double] = (if (isEmpty) _max else _min).getMatrix.asInstanceOf[DMatrixRMaj].data.clone()
 
-  def maximum: Array[Double] = (if (isEmpty) _min else _max).getMatrix.data.clone()
+  def maximum: Array[Double] = (if (isEmpty) _min else _max).getMatrix.asInstanceOf[DMatrixRMaj].data.clone()
 
   def bounds: Array[(Double, Double)] = minimum.zip(maximum)
 
-  def sum: Array[Double] = _sum.getMatrix.data.clone()
+  def sum: Array[Double] = _sum.getMatrix.asInstanceOf[DMatrixRMaj].data.clone()
 
   def mean: Array[Double] = requireCount(1) { _mean }
 
@@ -115,8 +117,9 @@ class DescriptiveStats(val sft: SimpleFeatureType, val properties: Seq[String]) 
   /* population and sample calculations are equal w/ df term cancellation */
   def sampleCorrelation: Array[Double] = populationCorrelation
 
+  // The cast feels sketchy...
   private def requireCount(count: Int, length: Int = size)(op: => SimpleMatrix): Array[Double] =
-    if (_count < count) Array.fill(length)(Double.NaN) else op.getMatrix.data.clone()
+    if (_count < count) Array.fill(length)(Double.NaN) else op.getMatrix.asInstanceOf[DMatrixRMaj].data.clone()
 
   override def observe(sf: SimpleFeature): Unit = {
     val values = Array.newBuilder[Double]
@@ -139,7 +142,7 @@ class DescriptiveStats(val sft: SimpleFeatureType, val properties: Seq[String]) 
       i += 1
     }
 
-    val values_v = new SimpleMatrix(size, 1, true, values.result(): _*)
+    val values_v = new SimpleMatrix(size, 1, true, values.result())
 
     if (_count < 1) {
       _count = 1
