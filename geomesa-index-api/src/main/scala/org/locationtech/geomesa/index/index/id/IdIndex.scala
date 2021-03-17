@@ -25,6 +25,8 @@ class IdIndex protected (ds: GeoMesaDataStore[_], sft: SimpleFeatureType, versio
   override val keySpace: IdIndexKeySpace = new IdIndexKeySpace(sft)
 
   override val tieredKeySpace: Option[IndexKeySpace[_, _]] = None
+
+  override def toString: String = getClass.getSimpleName
 }
 
 object IdIndex extends ConfiguredIndex {

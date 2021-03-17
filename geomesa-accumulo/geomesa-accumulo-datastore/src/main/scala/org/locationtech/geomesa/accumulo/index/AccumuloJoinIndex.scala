@@ -31,9 +31,8 @@ import org.locationtech.geomesa.index.index.attribute.{AttributeIndex, Attribute
 import org.locationtech.geomesa.index.index.id.IdIndex
 import org.locationtech.geomesa.index.iterators.StatsScan
 import org.locationtech.geomesa.index.planning.LocalQueryRunner.{ArrowDictionaryHook, LocalTransformReducer}
-import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.index.{ByteArrays, IndexMode, VisibilityLevel}
-import org.locationtech.geomesa.utils.stats.{Cardinality, Stat}
+import org.locationtech.geomesa.utils.stats.Stat
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter.Filter
 
@@ -47,7 +46,6 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
   this: AttributeIndex =>
 
   import org.locationtech.geomesa.index.conf.QueryHints.RichHints
-  import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
   import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
   import scala.collection.JavaConverters._
@@ -63,28 +61,19 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
 
   abstract override def getFilterStrategy(
       filter: Filter,
-      transform: Option[SimpleFeatureType],
-      stats: Option[GeoMesaStats]): Option[FilterStrategy] = {
-    super.getFilterStrategy(filter, transform, stats).flatMap { strategy =>
-      val join = requiresJoin(strategy.secondary, transform)
+      transform: Option[SimpleFeatureType]): Option[FilterStrategy] = {
+    super.getFilterStrategy(filter, transform).flatMap { strategy =>
       // verify that it's ok to return join plans, and filter them out if not
-      if (join && !JoinIndex.AllowJoinPlans.get) { None } else {
-        lazy val cost = strategy.primary match {
-          case None => Long.MaxValue
-          case Some(f) =>
-            val statCost = for { stats <- stats; count <- stats.getCount(sft, f, exact = false) } yield {
-              val hi = descriptor.getCardinality == Cardinality.HIGH
-              if (join && !hi) {
-                count * 10 // de-prioritize join queries, they are much more expensive
-              } else if (hi && !join) {
-                count / 10 // prioritize attributes marked high-cardinality
-              } else {
-                count
-              }
-            }
-            statCost.getOrElse(indexBasedCost(f, join))
-        }
-        Some(FilterStrategy(strategy.index, strategy.primary, strategy.secondary, strategy.temporal, cost))
+      if (!requiresJoin(strategy.secondary, transform)) {
+        Some(strategy)
+      } else if (!JoinIndex.AllowJoinPlans.get) {
+        None
+      } else {
+        val primary = strategy.primary.getOrElse(Filter.INCLUDE)
+        val bounds = FilterHelper.extractAttributeBounds(primary, attribute, binding)
+        val joinMultiplier = 9f + bounds.values.length // 10 plus 1 per additional range being scanned
+        val multiplier = strategy.costMultiplier * joinMultiplier
+        Some(FilterStrategy(strategy.index, strategy.primary, strategy.secondary, strategy.temporal, multiplier))
       }
     }
   }
@@ -365,56 +354,6 @@ trait AccumuloJoinIndex extends GeoMesaFeatureIndex[AttributeIndexValues[Any], A
   private def visibilityIter(schema: SimpleFeatureType): Seq[IteratorSetting] = sft.getVisibilityLevel match {
     case VisibilityLevel.Feature   => Seq.empty
     case VisibilityLevel.Attribute => Seq(KryoVisibilityRowEncoder.configure(schema))
-  }
-
-  /**
-    * full index equals query:
-    *   high cardinality - 10
-    *   unknown cardinality - 101
-    * full index range query:
-    *   high cardinality - 100
-    *   unknown cardinality - 1010
-    * full index not null query:
-    *   high cardinality - 500
-    *   unknown cardinality - 5050
-    * join index equals query:
-    *   high cardinality - 100
-    *   unknown cardinality - 1010
-    * join index range query:
-    *   high cardinality - 1000
-    *   unknown cardinality - 10100
-    * join index not null query:
-    *   high cardinality - 5000
-    *   unknown cardinality - 50500
-    *
-    * Compare with id lookups at 1, z2/z3 at 200-401
-    */
-  private def indexBasedCost(primary: Filter, join: Boolean): Long = {
-    import FilterHelper.extractAttributeBounds
-
-    val cost = Option(extractAttributeBounds(primary, attribute, binding)).filter(_.nonEmpty).map { bounds =>
-      if (bounds.disjoint) { 0L } else {
-        // high cardinality attributes and equality queries are prioritized
-        // joins and not-null queries are de-prioritized
-
-        val baseCost = descriptor.getCardinality() match {
-          case Cardinality.HIGH    => 10
-          case Cardinality.UNKNOWN => 101
-          case Cardinality.LOW     => 1000
-        }
-        val secondaryIndexMultiplier = if (!bounds.forall(_.isBounded)) {
-          50 // not null
-        } else if (bounds.precise && !bounds.exists(_.isRange)) {
-          1 // equals
-        } else {
-          10 // range
-        }
-        val joinMultiplier = if (join) { 10 + (bounds.values.length - 1) } else { 1 }
-
-        baseCost * secondaryIndexMultiplier * joinMultiplier
-      }
-    }
-    cost.getOrElse(Long.MaxValue)
   }
 
   /**

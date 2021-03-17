@@ -10,6 +10,7 @@ package org.locationtech.geomesa.accumulo.iterators
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 
+import com.typesafe.scalalogging.LazyLogging
 import org.apache.arrow.memory.BufferAllocator
 import org.apache.arrow.vector.DirtyRootAllocator
 import org.geotools.data.{Query, Transaction}
@@ -26,7 +27,7 @@ import org.specs2.mock.Mockito
 import org.specs2.runner.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito {
+class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito with LazyLogging {
 
   import scala.collection.JavaConverters._
 
@@ -60,7 +61,7 @@ class ArrowDeltaIteratorTest extends TestWithFeatureType with Mockito {
       val result = WithClose(SimpleFeatureArrowFileReader.streaming(in)) { reader =>
         WithClose(reader.features())(_.map(ScalaSimpleFeature.copy).toList)
       }
-      println(result.map(_.getAttributes.asScala))
+      logger.debug(result.map(_.getAttributes.asScala).toString)
       result.map(_.getID) mustEqual features.map(_.getID)
       result.map(_.getAttributes.asScala) mustEqual features.map { f =>
         val geom = f.getAttribute("geom").asInstanceOf[Point]

@@ -19,7 +19,6 @@ import org.locationtech.geomesa.index.index.z2.Z2Index
 import org.locationtech.geomesa.index.index.z3.Z3Index
 import org.locationtech.geomesa.index.planning.FilterSplitter
 import org.locationtech.geomesa.utils.geotools.{SchemaBuilder, SimpleFeatureTypes}
-import org.locationtech.geomesa.utils.index.IndexMode
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.filter._
 import org.opengis.filter.temporal.During
@@ -50,7 +49,7 @@ class QueryFilterSplitterTest extends Specification {
 
   sft.setIndices(GeoMesaFeatureIndexFactory.indices(sft))
 
-  val splitter = new FilterSplitter(sft, GeoMesaFeatureIndexFactory.create(null, sft, sft.getIndices), None)
+  val splitter = new FilterSplitter(sft, GeoMesaFeatureIndexFactory.create(null, sft, sft.getIndices))
 
   val geom                = "BBOX(geom,40,40,50,50)"
   val geom2               = "BBOX(geom,60,60,70,70)"
@@ -486,17 +485,15 @@ class QueryFilterSplitterTest extends Specification {
     "support indexed date attributes" >> {
       val sft = SimpleFeatureTypes.createType("dtgIndex", "dtg:Date:index=full,*geom:Point:srid=4326")
       sft.setIndices(GeoMesaFeatureIndexFactory.indices(sft))
-      val splitter = new FilterSplitter(sft, GeoMesaFeatureIndexFactory.create(null, sft, sft.getIndices), None)
+      val splitter = new FilterSplitter(sft, GeoMesaFeatureIndexFactory.create(null, sft, sft.getIndices))
       val filter = f("dtg TEQUALS 2014-01-01T12:30:00.000Z")
       val options = splitter.getQueryOptions(filter)
-      options must haveLength(2)
-      foreach(options)(_.strategies must haveLength(1))
-      val strategies = options.map(_.strategies.head)
-      strategies.map(_.index.name) must containTheSameElementsAs(Seq(AttributeIndex.name, Z3Index.name))
-      foreach(strategies) { strategy =>
-        strategy.primary must beSome(filter)
-        strategy.secondary must beNone
-      }
+      options must haveLength(1)
+      options.head.strategies must haveLength(1)
+      val strategy = options.head.strategies.head
+      strategy.index.name mustEqual AttributeIndex.name
+      strategy.primary must beSome(filter)
+      strategy.secondary must beNone
     }
 
     "provide only one option on OR queries of high cardinality indexed attributes" >> {
@@ -547,6 +544,20 @@ class QueryFilterSplitterTest extends Specification {
       options.head.strategies.head.index.name mustEqual Z2Index.name
       compareOr(options.head.strategies.head.primary, bbox1, bbox2)
       options.head.strategies.head.secondary must beSome // note: filter is too complex to compare explicitly...
+    }
+
+    "handle ORs between indexed attribute fields" >> {
+      val spec =
+        "attr1:Long:cardinality=high:index=true,attr2:Long:cardinality=high:index=true," +
+            "name:String:cardinality=high:index=true,dtg:Date,*geom:Point:srid=4326"
+      val sft = SimpleFeatureTypes.createType("multiAttr", spec)
+      sft.setIndices(GeoMesaFeatureIndexFactory.indices(sft))
+      val splitter = new FilterSplitter(sft, GeoMesaFeatureIndexFactory.create(null, sft, sft.getIndices))
+      val filter = f("(attr1=1 OR attr2=2 OR name='3') and dtg during 2020-01-01T00:00:00.000Z/2020-01-02T00:00:00.000Z")
+      val options = splitter.getQueryOptions(filter)
+      options must haveLength(2)
+      options.map(_.strategies.map(_.index.name)) must
+          containTheSameElementsAs(Seq(Seq(Z3Index.name), Seq.fill(3)(AttributeIndex.name)))
     }
   }
 }

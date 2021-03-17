@@ -14,6 +14,7 @@ import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
 import org.locationtech.geomesa.index.index.attribute.AttributeIndex
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation
 import org.locationtech.geomesa.index.planning.QueryPlanner.CostEvaluation.CostEvaluation
+import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.index.utils.{ExplainNull, Explainer}
 import org.locationtech.geomesa.utils.conf.GeoMesaSystemProperties.SystemProperty
 import org.locationtech.geomesa.utils.index.IndexMode
@@ -26,17 +27,28 @@ import org.opengis.filter.Filter
   */
 trait StrategyDecider {
 
-  /**
-    * Select from available filter plans
-    *
-    * @param sft simple feature type being queried
-    * @param options filter plans that can satisfy the query
-    * @param explain explain logging
-    * @return filter plan to execute
-    */
+  @deprecated("replaced with selectFilterPlan(SimpleFeatureType,Seq[FilterPlan],Option[GeoMesaStats],Explainer)")
   def selectFilterPlan(sft: SimpleFeatureType, options: Seq[FilterPlan], explain: Explainer): FilterPlan
-}
 
+  /**
+   * Select from available filter plans
+   *
+   * @param sft simple feature type being queried
+   * @param options filter plans that can satisfy the query
+   * @param stats stats (if available)
+   * @param explain explain logging
+   * @return filter plan to execute
+   */
+  def selectFilterPlan(
+      sft: SimpleFeatureType,
+      options: Seq[FilterPlan],
+      stats: Option[GeoMesaStats],
+      explain: Explainer): FilterPlan = {
+    // TODO remove default impl in next major release
+    // noinspection ScalaDeprecation
+    selectFilterPlan(sft, options, explain)
+  }
+}
 
 object StrategyDecider extends MethodProfiling with LazyLogging {
 
@@ -74,17 +86,11 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
 
     def complete(op: String, time: Long, count: Int): Unit = explain(s"$op took ${time}ms for $count options")
 
-    // choose the best option based on cost
-    val stats = evaluation match {
-      case CostEvaluation.Stats => Some(ds.stats)
-      case CostEvaluation.Index => None
-    }
-
     val indices = ds.manager.indices(sft, mode = IndexMode.Read)
 
     // get the various options that we could potentially use
     val options = profile((o: Seq[FilterPlan], t: Long) => complete("Query processing", t, o.length)) {
-      new FilterSplitter(sft, indices, stats).getQueryOptions(filter, transform)
+      new FilterSplitter(sft, indices).getQueryOptions(filter, transform)
     }
 
     val selected = profile(t => complete("Strategy selection", t, options.length)) {
@@ -101,10 +107,12 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
         explain(s"Filter plan: ${options.head}")
         options.head
       } else {
-        val plan = decider.selectFilterPlan(sft, options, explain)
-        explain(s"Filter plan selected: $plan")
-        explain(s"Filter plans not selected: ${options.filterNot(_.eq(plan)).mkString(", ")}")
-        plan
+        // choose the best option based on cost
+        val stats = evaluation match {
+          case CostEvaluation.Stats => Some(ds.stats)
+          case CostEvaluation.Index => None
+        }
+        decider.selectFilterPlan(sft, options, stats, explain)
       }
     }
 
@@ -131,7 +139,7 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
                 indices.map(i => s"${i.name}, ${i.identifier}").mkString(", "))
           }
       val secondary = if (filter == Filter.INCLUDE) { None } else { Some(filter) }
-      FilterPlan(Seq(FilterStrategy(index, None, secondary, temporal = false, 0L)))
+      FilterPlan(Seq(FilterStrategy(index, None, secondary, temporal = false, Float.PositiveInfinity)))
     }
 
     byId.orElse(byName).orElse(byJoin).getOrElse(fallback)
@@ -141,24 +149,39 @@ object StrategyDecider extends MethodProfiling with LazyLogging {
 
     import org.locationtech.geomesa.utils.geotools.RichSimpleFeatureType.RichSimpleFeatureType
 
+    // noinspection ScalaDeprecation
     override def selectFilterPlan(
         sft: SimpleFeatureType,
         options: Seq[FilterPlan],
+        explain: Explainer): FilterPlan = selectFilterPlan(sft, options, None, explain)
+
+    override def selectFilterPlan(
+        sft: SimpleFeatureType,
+        options: Seq[FilterPlan],
+        stats: Option[GeoMesaStats],
         explain: Explainer): FilterPlan = {
 
+      def cost(option: FilterPlan): FilterPlanCost = {
+        profile((fpc: FilterPlanCost, time: Long) => fpc.copy(time = time)) {
+          var cost = BigInt(0)
+          option.strategies.foreach { strategy =>
+            val filter = strategy.primary.getOrElse(Filter.INCLUDE)
+            val count = stats.flatMap(_.getCount(sft, filter, exact = false)).getOrElse(100L)
+            cost = cost + BigInt((count * strategy.costMultiplier).toLong)
+          }
+          FilterPlanCost(option, if (cost.isValidLong) { cost.longValue() } else { Long.MaxValue }, 0L)
+        }
+      }
+
       val costs = options.map(cost).sorted
-      explain(s"Costs: ${costs.mkString("; ")}")
 
       val temporal = if (!sft.isTemporalPriority) { None } else {
         costs.find(c => c.plan.strategies.nonEmpty && c.plan.strategies.forall(_.temporal))
       }
-      temporal.getOrElse(costs.head).plan
-    }
-
-    private def cost(option: FilterPlan): FilterPlanCost = {
-      profile((fpc: FilterPlanCost, time: Long) => fpc.copy(time = time)) {
-        FilterPlanCost(option, option.strategies.map(_.cost).sum, 0L)
-      }
+      val selected = temporal.getOrElse(costs.head)
+      explain(s"Filter plan selected: $selected")
+      explain(s"Filter plans not selected: ${costs.filterNot(_.eq(selected)).mkString(", ")}")
+      selected.plan
     }
 
     private case class FilterPlanCost(plan: FilterPlan, cost: Long, time: Long) extends Comparable[FilterPlanCost] {
