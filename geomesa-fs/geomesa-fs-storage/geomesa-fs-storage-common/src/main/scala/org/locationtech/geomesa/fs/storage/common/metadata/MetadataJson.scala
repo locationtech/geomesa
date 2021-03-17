@@ -31,7 +31,7 @@ import scala.util.control.NonFatal
   */
 object MetadataJson extends MethodProfiling {
 
-  private val MetadataPath = "metadata.json"
+  val MetadataPath = "metadata.json"
 
   private val cache = new ConcurrentHashMap[String, NamedOptions]()
 

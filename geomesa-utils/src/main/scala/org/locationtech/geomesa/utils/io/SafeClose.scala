@@ -8,8 +8,10 @@
 
 package org.locationtech.geomesa.utils.io
 
+import java.util.concurrent.ExecutorService
+
 import org.geotools.data.DataStore
-import org.locationtech.geomesa.utils.io.IsCloseableImplicits.{ArrayIsCloseable, DataStoreIsCloseable, IterableIsCloseable, OptionIsCloseable}
+import org.locationtech.geomesa.utils.io.IsCloseableImplicits.{ArrayIsCloseable, DataStoreIsCloseable, ExecutorServiceIsCloseable, IterableIsCloseable, OptionIsCloseable}
 
 import scala.util.{Failure, Success, Try}
 
@@ -53,6 +55,7 @@ trait IsCloseableImplicits[C] {
   implicit val arrayIsCloseable: ArrayIsCloseable[C] = new ArrayIsCloseable()
 
   implicit val dataStoreIsCloseable: DataStoreIsCloseable = new DataStoreIsCloseable()
+  implicit val executorServiceIsCloseable: ExecutorServiceIsCloseable = new ExecutorServiceIsCloseable()
 }
 
 object IsCloseableImplicits {
@@ -99,5 +102,9 @@ object IsCloseableImplicits {
 
   class DataStoreIsCloseable extends IsCloseable[DataStore] {
     override def close(obj: DataStore): Try[Unit] = Try(obj.dispose())
+  }
+
+  class ExecutorServiceIsCloseable extends IsCloseable[ExecutorService] {
+    override def close(obj: ExecutorService): Try[Unit] = Try(obj.shutdown())
   }
 }
