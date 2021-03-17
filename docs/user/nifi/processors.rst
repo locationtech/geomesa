@@ -81,10 +81,12 @@ All types of input processors have some common configuration parameters for cont
 |                               | If not specified, will use the feature ID                                               |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``Schema Compatibility``      | Controls how differences between the configured schema and the existing schema in the   |
-|                               | data store (if any) will be handled. ``Existing`` will use the existing schema and drop |
-|                               | any additional fields in the configured schema. ``Update`` will update the existing     |
-|                               | schema to match the configured schema. ``Exact`` requires the configured schema to      |
-|                               | match the existing schema.                                                              |
+|                               | data store (if any) will be handled.                                                    |
+|                               |                                                                                         |
+|                               | * ``Existing`` will use the existing schema and drop any additional fields in the       |
+|                               |   configured schema.                                                                    |
+|                               | * ``Update`` will update the existing schema to match the configured schema.            |
+|                               | * ``Exact`` requires the configured schema to  match the existing schema.               |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``BatchSize``                 | The number of flow files that will be processed in a single batch                       |
 +-------------------------------+-----------------------------------------------------------------------------------------+
