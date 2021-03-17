@@ -20,7 +20,7 @@ import org.locationtech.geomesa.tools.Runner.{AutocompleteInfo, CommandResult, E
 import org.locationtech.geomesa.tools.`export`.{ConvertCommand, GenerateAvroSchemaCommand}
 import org.locationtech.geomesa.tools.help.{ClasspathCommand, HelpCommand, NailgunCommand, ScalaConsoleCommand}
 import org.locationtech.geomesa.tools.status.{ConfigureCommand, EnvironmentCommand, VersionCommand}
-import org.locationtech.geomesa.tools.utils.{GeoMesaIStringConverterFactory, NailgunServer, TerminalCallback}
+import org.locationtech.geomesa.tools.utils.{GeoMesaIStringConverterFactory, NailgunServer}
 import org.locationtech.geomesa.utils.stats.MethodProfiling
 
 import scala.collection.JavaConversions._
@@ -67,17 +67,20 @@ trait Runner extends MethodProfiling with LazyLogging {
       jc.addCommand(command.name, command.params)
       command.subCommands.foreach(sub => jc.getCommands.get(command.name).addCommand(sub.name, sub.params))
     }
-    try {
-      jc.parse(args: _*)
-    } catch {
-      case e: ParameterException =>
-        Command.user.error(s"Error parsing arguments: ${e.getMessage}")
-        Command.user.info(usage(jc, jc.getParsedCommand))
-        throw e
+
+    def logAndThrowError(e: ParameterException): Unit = {
+      Command.user.error(s"Error parsing arguments: ${e.getMessage}")
+      Command.user.info(usage(jc, jc.getParsedCommand))
+      throw e
     }
+
+    try { jc.parse(args: _*) } catch {
+      case e: ParameterException => logAndThrowError(e)
+    }
+
     val parsed = commands.find(_.name == jc.getParsedCommand).getOrElse(new DefaultCommand(jc))
     resolveEnvironment(parsed)
-    if (parsed.subCommands.isEmpty) { parsed } else {
+    val command = if (parsed.subCommands.isEmpty) { parsed } else {
       lazy val available =
         s"Use '${parsed.name} <sub-command>', where sub-command is one of: " +
             parsed.subCommands.map(_.name).mkString(", ")
@@ -88,6 +91,8 @@ trait Runner extends MethodProfiling with LazyLogging {
         throw new ParameterException(s"Sub-command '$sub' not found. $available")
       }
     }
+    command.validate().foreach(logAndThrowError)
+    command
   }
 
   def usage(jc: JCommander): String = {

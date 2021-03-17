@@ -27,10 +27,10 @@ object PathCache {
   // cache for checking existence of files
   private val pathCache =
     Caffeine.newBuilder().expireAfterWrite(duration, TimeUnit.MILLISECONDS).build(
-          new CacheLoader[(FileContext, Path), java.lang.Boolean]() {
-            override def load(key: (FileContext, Path)): java.lang.Boolean = key._1.util.exists(key._2)
-          }
-        )
+      new CacheLoader[(FileContext, Path), java.lang.Boolean]() {
+        override def load(key: (FileContext, Path)): java.lang.Boolean = key._1.util.exists(key._2)
+      }
+    )
 
   // cache for individual file status
   private val statusCache =
@@ -43,11 +43,11 @@ object PathCache {
   // cache for checking directory contents
   private val listCache =
     Caffeine.newBuilder().expireAfterWrite(duration, TimeUnit.MILLISECONDS).build(
-          new CacheLoader[(FileContext, Path), Stream[FileStatus]]() {
-            override def load(key: (FileContext, Path)): Stream[FileStatus] =
-              RemoteIterator(key._1.listStatus(key._2)).toStream
-          }
-        )
+      new CacheLoader[(FileContext, Path), Stream[FileStatus]]() {
+        override def load(key: (FileContext, Path)): Stream[FileStatus] =
+          RemoteIterator(key._1.listStatus(key._2)).toStream
+      }
+    )
 
   /**
     * * Register a path as existing
@@ -89,7 +89,12 @@ object PathCache {
     * @param path path
     * @return
     */
-  def status(fc: FileContext, path: Path): FileStatus = statusCache.get((fc, path))
+  def status(fc: FileContext, path: Path, reload: Boolean = false): FileStatus = {
+    if (reload) {
+      invalidate(fc, path)
+    }
+    statusCache.get((fc, path))
+  }
 
   /**
     * List the children of a path
@@ -98,7 +103,12 @@ object PathCache {
     * @param dir directory path
     * @return
     */
-  def list(fc: FileContext, dir: Path): Iterator[FileStatus] = listCache.get((fc, dir)).iterator
+  def list(fc: FileContext, dir: Path, reload: Boolean = false): Iterator[FileStatus] = {
+    if (reload) {
+      invalidate(fc, dir)
+    }
+    listCache.get((fc, dir)).iterator
+  }
 
   /**
     * Invalidate any cached values for the path - they will be re-loaded on next access

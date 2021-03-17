@@ -20,6 +20,7 @@ import pureconfig.ConfigReader.Result
 import pureconfig._
 import pureconfig.error.{CannotConvert, ConfigReaderFailures}
 
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 import scala.reflect.ClassTag
 
 package object metadata {
@@ -77,8 +78,15 @@ package object metadata {
     def -(other: PartitionConfig): PartitionConfig = {
       require(action == PartitionAction.Add, "Can't aggregate into non-add actions")
       val ts = math.max(timestamp, other.timestamp)
-      val names = other.files.map(_.name)
-      val fs = files.filterNot(f => names.contains(f.name))
+      val names = scala.collection.mutable.Map.empty[String, Int].withDefault(_ => 0)
+      other.files.foreach(f => names(f.name) += 1)
+      // keep oldest files if there are duplicates
+      val fs = files.sortBy(_.timestamp)(Ordering.Long.reverse).filter { f =>
+        names(f.name) match {
+          case 0 => true
+          case i => names.put(f.name, i - 1); false
+        }
+      }
       PartitionConfig(name, action, fs, math.max(0, count - other.count), envelope, ts)
     }
 

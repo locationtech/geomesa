@@ -108,10 +108,19 @@ class JdbcMetadata(
   override def removePartition(partition: PartitionMetadata): Unit =
     WithClose(pool.getConnection())(connection => PartitionsTable.delete(connection, root, partition))
 
+  override def setPartitions(partitions: Seq[PartitionMetadata]): Unit = {
+    // TODO execute as a transaction
+    WithClose(pool.getConnection()) { connection =>
+      PartitionsTable.clear(connection, root)
+      partitions.foreach(PartitionsTable.insert(connection, root, _))
+    }
+  }
+
   // noinspection ScalaDeprecation
   override def compact(partition: Option[String], threads: Int): Unit = compact(partition, None, threads)
 
   override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit = {
+    // TODO execute as a transaction
     WithClose(pool.getConnection()) { connection =>
       partition match {
         case None =>
@@ -126,6 +135,8 @@ class JdbcMetadata(
       }
     }
   }
+
+  override def invalidate(): Unit = {}
 
   override def close(): Unit = pool.close()
 }

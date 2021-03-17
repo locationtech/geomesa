@@ -171,6 +171,7 @@ object PartitionInputFormat {
       if (prefix.forall(partition.name.startsWith)) { Seq(partition) } else { Seq.empty }
     override def addPartition(partition: PartitionMetadata): Unit = throw new NotImplementedError()
     override def removePartition(partition: PartitionMetadata): Unit = throw new NotImplementedError()
+    override def setPartitions(partitions: Seq[PartitionMetadata]): Unit = throw new NotImplementedError()
     // noinspection ScalaDeprecation
     override def compact(partition: Option[String], threads: Int): Unit = throw new NotImplementedError()
     override def compact(partition: Option[String], fileSize: Option[Long], threads: Int): Unit =
