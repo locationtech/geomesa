@@ -3,13 +3,12 @@ name: build-and-test-2.11
 on:
   push:
   pull_request:
-    branches:
-      # only run on pull requests from forked repos, since push handles this repo
-      - '**:**'
 
 jobs:
   build-scala:
     runs-on: ubuntu-latest
+    # avoid duplicate jobs on PRs from the main repo
+    if: github.event_name != 'pull_request'
 
     steps:
     
