@@ -1,7 +1,9 @@
+.. _nifi_converter_processors:
+
 Converter Processors
 --------------------
 
-Converter processors (``PutGeoMesa``) accept the following configuration parameters for specifying the input source. Each
+Converter processors (``PutGeoMesa*``) accept the following configuration parameters for specifying the input source. Each
 datastore-specific processor also has additional parameters for connecting to the datastore, detailed in the
 following sections.
 
@@ -10,13 +12,13 @@ following sections.
 +===============================+=========================================================================================+
 | ``SftName``                   | Name of the SFT on the classpath to use. This property overrides SftSpec.               |
 +-------------------------------+-----------------------------------------------------------------------------------------+
+| ``SftSpec``                   | SFT specification String. Overridden by SftName if both are set.                        |
++-------------------------------+-----------------------------------------------------------------------------------------+
+| ``FeatureNameOverride``       | Override the feature type name on ingest from SftName or SftSpec.                       |
++-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConverterName``             | Name of converter on the classpath to use. This property overrides ConverterSpec.       |
 +-------------------------------+-----------------------------------------------------------------------------------------+
-| ``FeatureNameOverride``       | Override the feature name on ingest.                                                    |
-+-------------------------------+-----------------------------------------------------------------------------------------+
-| ``SftSpec``                   | SFT specification String. Overwridden by SftName if SftName is valid.                   |
-+-------------------------------+-----------------------------------------------------------------------------------------+
-| ``ConverterSpec``             | Converter specification string. Overwridden by ConverterName if ConverterName is valid. |
+| ``ConverterSpec``             | Converter specification string. Overridden by ConverterName if both are set.            |
 +-------------------------------+-----------------------------------------------------------------------------------------+
 | ``ConverterErrorMode``        | Override the converter error mode (``skip-bad-records`` or ``raise-errors``)            |
 +-------------------------------+-----------------------------------------------------------------------------------------+
