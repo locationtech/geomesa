@@ -1,7 +1,7 @@
 Record Update Processors
 ------------------------
 
-GeoMesa provides processors for record-based updates to existing features (``UpdateGeoMesaRecord``). Compared to
+GeoMesa provides processors for record-based updates to existing features (``UpdateGeoMesa*Record``). Compared to
 the ingest processors in modify mode, only the fields in the record will be updated, while other fields in the
 existing feature will be preserved. Record update processors accept the following configuration parameters for
 specifying the input source. Each datastore-specific processor also has additional parameters for connecting to
