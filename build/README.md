@@ -152,7 +152,7 @@ libraryDependencies ++= Seq(
 
   &nbsp;&nbsp;&nbsp;&nbsp;
   [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.11.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.11.yml?query=branch%3Amain)
-  [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2-12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2-12.yml?query=branch%3Amain)
+  [![Build Status](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml/badge.svg?branch=main)](https://github.com/locationtech/geomesa/actions/workflows/build-and-test-2.12.yml?query=branch%3Amain)
 
 Requirements:
 
