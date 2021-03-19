@@ -121,8 +121,18 @@ class AvroConverterFactory extends AbstractConverterFactory[AvroConverter, AvroC
         }
 
         // validate the existing schema, if any
-        if (sft.exists(_.getAttributeDescriptors.asScala != schema.getAttributeDescriptors.asScala)) {
-          throw new IllegalArgumentException("Inferred schema does not match existing schema")
+        sft.foreach { existing =>
+          val inferred = schema.getAttributeDescriptors.asScala
+          val matched = existing.getAttributeDescriptors.asScala.count { d =>
+            inferred.exists { i =>
+              i.getLocalName == d.getLocalName && d.getType.getBinding.isAssignableFrom(i.getType.getBinding)
+            }
+          }
+          if (matched == 0) {
+            throw new IllegalArgumentException("Inferred schema does not match existing schema")
+          } else if (matched < existing.getAttributeCount) {
+            logger.warn(s"Inferred schema only matched $matched out of ${existing.getAttributeCount} attributes")
+          }
         }
 
         val converterConfig = AvroConfig(typeToProcess, SchemaEmbedded, Some(id), Map.empty, userData)
