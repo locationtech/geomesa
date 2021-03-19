@@ -18,9 +18,10 @@ import org.opengis.feature.simple.SimpleFeatureType
 object VisibilityIterator {
 
   val Name = "ReqVisFilter"
+  val Priority = 15 // run before the accumulo versioning iterator at 20, and before any of our custom iterators
 
   def set(tableOps: TableOperations, table: String): Unit =
-    tableOps.attachIterator(table, new IteratorSetting(30, Name, classOf[ReqVisFilter]))
+    tableOps.attachIterator(table, new IteratorSetting(Priority, Name, classOf[ReqVisFilter]))
 
   def set(ds: AccumuloDataStore, sft: SimpleFeatureType): Unit = {
     val tableOps = ds.connector.tableOperations()
