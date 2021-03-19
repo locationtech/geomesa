@@ -15,8 +15,7 @@ import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.conf.ColumnGroups
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
-import org.locationtech.geomesa.security.SecurityUtils
-import org.locationtech.geomesa.utils.text.TextTools
+import org.locationtech.geomesa.security.VisibilityChecker
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 import scala.util.control.NonFatal
@@ -193,20 +192,14 @@ object IndexAdapter {
   /**
    * Mixin trait to require visibilities on write
    */
-  trait RequiredVisibilityWriter extends IndexWriter {
-
+  trait RequiredVisibilityWriter extends IndexWriter with VisibilityChecker {
     abstract override def write(feature: SimpleFeature, update: Boolean): Unit = {
-      feature.getUserData.get(SecurityUtils.FEATURE_VISIBILITY) match {
-        case vis: String if !TextTools.isWhitespace(vis) => super.write(feature, update)
-        case _ => throw new IllegalArgumentException("Visibility is required for writes")
-      }
+      requireVisibilities(feature)
+      super.write(feature, update)
     }
-
     abstract override def delete(feature: SimpleFeature): Unit = {
-      feature.getUserData.get(SecurityUtils.FEATURE_VISIBILITY) match {
-        case vis: String if !TextTools.isWhitespace(vis) => super.delete(feature)
-        case _ => throw new IllegalArgumentException("Visibility is required for deletes")
-      }
+      requireVisibilities(feature)
+      super.delete(feature)
     }
   }
 }

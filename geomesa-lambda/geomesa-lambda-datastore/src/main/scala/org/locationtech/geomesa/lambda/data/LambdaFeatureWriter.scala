@@ -13,9 +13,8 @@ import java.util.concurrent.atomic.AtomicLong
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.lambda.stream.TransientStore
-import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.security.VisibilityChecker
 import org.locationtech.geomesa.utils.collection.CloseableIterator
-import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 object LambdaFeatureWriter {
@@ -63,12 +62,10 @@ object LambdaFeatureWriter {
     override def close(): Unit = features.close()
   }
 
-  trait RequiredVisibilityWriter extends AppendLambdaFeatureWriter {
+  trait RequiredVisibilityWriter extends AppendLambdaFeatureWriter with VisibilityChecker {
     abstract override def write(): Unit = {
-      feature.getUserData.get(SecurityUtils.FEATURE_VISIBILITY) match {
-        case vis: String if !TextTools.isWhitespace(vis) => super.write()
-        case _ => throw new IllegalArgumentException("Visibility is required for writes")
-      }
+      requireVisibilities(feature)
+      super.write()
     }
   }
 }
