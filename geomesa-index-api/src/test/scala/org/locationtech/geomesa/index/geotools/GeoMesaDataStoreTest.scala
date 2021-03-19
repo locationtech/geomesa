@@ -216,13 +216,13 @@ class GeoMesaDataStoreTest extends Specification {
       SelfClosingIterator(ds.getFeatureReader(new Query(sft.getTypeName), Transaction.AUTO_COMMIT)).toList mustEqual
           Seq(newId)
     }
-    "checkout duplicate attribute names" in{
+    "checkout duplicate attribute names" in {
       val spec = "foo:String,bar:Int,foo:Double,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("test",spec)
       val ds = new TestGeoMesaDataStore(true)
       ds.createSchema(sft) must throwAn[IllegalArgumentException]
     }
-    "handle literal geometries in dwithin filters" in{
+    "handle literal geometries in dwithin filters" in {
       val spec = "name:String,dtg:Date,*geom:Point:srid=4326"
       val sft = SimpleFeatureTypes.createType("test",spec)
       val ds = new TestGeoMesaDataStore(true)
@@ -240,6 +240,18 @@ class GeoMesaDataStoreTest extends Specification {
         val query = new Query(sft.getTypeName, filter)
         SelfClosingIterator(ds.getFeatureReader(query, Transaction.AUTO_COMMIT)).toList mustEqual Seq(feature)
       }
+    }
+    "handle ORs between indexed attribute fields" >> {
+      val spec =
+        "attr1:Long:cardinality=high:index=true,attr2:Long:cardinality=high:index=true," +
+            "name:String:cardinality=high:index=true,dtg:Date,*geom:Point:srid=4326"
+      val ds = new TestGeoMesaDataStore(true)
+      ds.createSchema(SimpleFeatureTypes.createType("test", spec))
+      val filter =
+        ECQL.toFilter("(attr1=1 OR attr2=2 OR name='3') and dtg during 2020-01-01T00:00:00.000Z/2020-01-02T00:00:00.000Z")
+      val plans = ds.getQueryPlan(new Query("test", filter))
+      plans must haveLength(3)
+      foreach(plans)(_.filter.index.name mustEqual AttributeIndex.name)
     }
   }
 }

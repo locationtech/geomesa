@@ -13,7 +13,6 @@ import java.util.Date
 import org.locationtech.geomesa.filter._
 import org.locationtech.geomesa.filter.visitor.FilterExtractingVisitor
 import org.locationtech.geomesa.index.api.{FilterStrategy, GeoMesaFeatureIndex}
-import org.locationtech.geomesa.index.stats.GeoMesaStats
 import org.locationtech.geomesa.utils.stats.Cardinality
 import org.opengis.feature.simple.SimpleFeatureType
 import org.opengis.filter._
@@ -22,66 +21,43 @@ import org.opengis.filter.temporal.{After, Before, During, TEquals}
 
 trait AttributeFilterStrategy[T, U] extends GeoMesaFeatureIndex[T, U] {
 
+  import AttributeFilterStrategy.isTemporal
   import org.locationtech.geomesa.utils.geotools.RichAttributeDescriptors.RichAttributeDescriptor
-
-  import scala.collection.JavaConverters._
 
   private val Seq(attribute, tiered @ _*) = attributes
   private val descriptor = sft.getDescriptor(attribute)
   private val binding = if (descriptor.isList) { descriptor.getListType() } else { descriptor.getType.getBinding }
 
-  /**
-    * Static cost - equals 100, range 250, not null 5000
-    *
-    * high cardinality: / 10
-    * low cardinality: * 10
-    *
-    * Compare with id at 1, z3 at 200, z2 at 400
-    */
-  override def getFilterStrategy(
-      filter: Filter,
-      transform: Option[SimpleFeatureType],
-      stats: Option[GeoMesaStats]): Option[FilterStrategy] = {
+  override def getFilterStrategy(filter: Filter, transform: Option[SimpleFeatureType]): Option[FilterStrategy] = {
 
     val (primary, secondary) =
       FilterExtractingVisitor(filter, attribute, sft,  AttributeFilterStrategy.attributeCheck(sft))
 
     primary.map { extracted =>
-      lazy val bounds = FilterHelper.extractAttributeBounds(extracted, attribute, binding)
-      lazy val isEquals = bounds.precise && bounds.nonEmpty && bounds.forall(_.isEquals)
-      lazy val secondaryFilterAttributes = secondary.toSeq.flatMap(FilterHelper.propertyNames)
-      val temporal = sft.getAttributeDescriptors.asScala.exists { ad =>
-        val dtg = ad.getLocalName
-        classOf[Date].isAssignableFrom(ad.getType.getBinding) &&
-            (attribute == dtg || (tiered.contains(dtg) && secondaryFilterAttributes.contains(dtg) && isEquals))
-      }
-      lazy val cost = {
-        val base = stats.flatMap(_.getCount(sft, extracted, exact = false)).getOrElse {
-          if (isEquals) {
-            AttributeFilterStrategy.StaticEqualsCost // TODO account for secondary index
-          } else if (bounds.isEmpty || !bounds.forall(_.isBounded)) {
-            AttributeFilterStrategy.StaticNotNullCost
-          } else  {
-            AttributeFilterStrategy.StaticRangeCost
-          }
+      val bounds = FilterHelper.extractAttributeBounds(extracted, attribute, binding)
+      val isEquals = bounds.precise && bounds.nonEmpty && bounds.forall(_.isEquals)
+      lazy val secondaryFilterAttributes = tiered.union(secondary.toSeq.flatMap(FilterHelper.propertyNames))
+      val temporal = isTemporal(sft, attribute) || (isEquals && secondaryFilterAttributes.exists(isTemporal(sft, _)))
+      val basePriority =
+        if (isEquals) {
+          1f // TODO account for secondary index
+        } else if (bounds.isEmpty || !bounds.forall(_.isBounded)) {
+          1000f // not null
+        } else {
+          2.5f // range query
         }
-        // prioritize attributes based on cardinality hint
-        descriptor.getCardinality() match {
-          case Cardinality.HIGH    => base / 10
-          case Cardinality.UNKNOWN => base
-          case Cardinality.LOW     => base * 10
-        }
+      // prioritize attributes based on cardinality hint
+      val priority = descriptor.getCardinality() match {
+        case Cardinality.HIGH    => basePriority / 10f
+        case Cardinality.UNKNOWN => basePriority
+        case Cardinality.LOW     => basePriority * 10f
       }
-      FilterStrategy(this, primary, secondary, temporal, cost)
+      FilterStrategy(this, primary, secondary, temporal, priority)
     }
   }
 }
 
 object AttributeFilterStrategy {
-
-  val StaticEqualsCost  = 100L
-  val StaticRangeCost   = 250L
-  val StaticNotNullCost = 5000L
 
   /**
     * Checks for attribute filters that we can satisfy using the attribute index strategy
@@ -108,4 +84,7 @@ object AttributeFilterStrategy {
     case p: PropertyName => Option(sft.getDescriptor(p.getPropertyName)).exists(_.getType.getBinding == classOf[String])
     case _ => false
   }
+
+  private def isTemporal(sft: SimpleFeatureType, attribute: String): Boolean =
+    classOf[Date].isAssignableFrom(sft.getDescriptor(attribute).getType.getBinding)
 }

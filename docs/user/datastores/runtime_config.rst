@@ -213,6 +213,17 @@ don't intersect the geometry. This behavior can be controlled through two proper
 decomposed into. If set below 2, no decomposition will be performed and instead the geometry envelope will be used.
 Also see ``geomesa.query.decomposition.bits``, above.
 
+geomesa.query.processing.or.threshold
++++++++++++++++++++++++++++++++++++++
+
+GeoMesa attempts to process input filters in order to determine the best query plan for a given predicate. However,
+since queries can be arbitrarily complex, this processing can potentially take a significant amount of time.
+``geomesa.query.processing.or.threshold`` sets a threshold for the complexity of an OR filter that
+will be considered, based on the permutations of the filter. For example, the filter ``A OR B OR C`` has three
+permutations, while ``(A OR B) AND (C OR D)`` has four permutations.
+
+By default complex OR predicates will not be considered, which is suitable for most queries.
+
 geomesa.query.timeout
 +++++++++++++++++++++
 

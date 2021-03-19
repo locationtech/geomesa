@@ -76,7 +76,7 @@ object AccumuloJobUtils extends LazyLogging {
       val queryPlans = ds.getQueryPlan(query)
 
       if (queryPlans.isEmpty) {
-        EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), temporal = false, 0L))
+        EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), temporal = false, Float.PositiveInfinity))
       } else if (queryPlans.lengthCompare(1) > 0) {
         // this query requires multiple scans, which we can't execute from some input formats
         // instead, fall back to a full table scan
@@ -122,7 +122,7 @@ object AccumuloJobUtils extends LazyLogging {
 
       val queryPlans = ds.getQueryPlan(query)
       if (queryPlans.isEmpty) {
-        Seq(EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), temporal = false, 0L)))
+        Seq(EmptyPlan(FilterStrategy(fallbackIndex, None, Some(Filter.EXCLUDE), temporal = false, Float.PositiveInfinity)))
       } else {
         queryPlans
       }
