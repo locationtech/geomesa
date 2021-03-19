@@ -13,7 +13,9 @@ import java.util.concurrent.atomic.AtomicLong
 import org.geotools.data.simple.SimpleFeatureWriter
 import org.locationtech.geomesa.features.ScalaSimpleFeature
 import org.locationtech.geomesa.lambda.stream.TransientStore
+import org.locationtech.geomesa.security.SecurityUtils
 import org.locationtech.geomesa.utils.collection.CloseableIterator
+import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 
 object LambdaFeatureWriter {
@@ -22,7 +24,7 @@ object LambdaFeatureWriter {
 
   class AppendLambdaFeatureWriter(transient: TransientStore) extends SimpleFeatureWriter {
 
-    private var feature: SimpleFeature = _
+    protected var feature: SimpleFeature = _
 
     override def getFeatureType: SimpleFeatureType = transient.sft
 
@@ -44,11 +46,7 @@ object LambdaFeatureWriter {
   }
 
   class ModifyLambdaFeatureWriter(transient: TransientStore, features: CloseableIterator[SimpleFeature])
-      extends SimpleFeatureWriter {
-
-    private var feature: SimpleFeature = _
-
-    override def getFeatureType: SimpleFeatureType = transient.sft
+      extends AppendLambdaFeatureWriter(transient) {
 
     override def hasNext: Boolean = features.hasNext
 
@@ -57,16 +55,20 @@ object LambdaFeatureWriter {
       feature
     }
 
-    override def write(): Unit = {
-      transient.write(feature)
-      feature = null
-    }
-
     override def remove(): Unit = {
       transient.delete(feature)
       feature = null
     }
 
     override def close(): Unit = features.close()
+  }
+
+  trait RequiredVisibilityWriter extends AppendLambdaFeatureWriter {
+    abstract override def write(): Unit = {
+      feature.getUserData.get(SecurityUtils.FEATURE_VISIBILITY) match {
+        case vis: String if !TextTools.isWhitespace(vis) => super.write()
+        case _ => throw new IllegalArgumentException("Visibility is required for writes")
+      }
+    }
   }
 }
