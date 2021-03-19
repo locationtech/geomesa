@@ -20,6 +20,8 @@ import org.locationtech.geomesa.features.SerializationType.SerializationType
 import org.locationtech.geomesa.index.geotools.GeoMesaFeatureWriter
 import org.locationtech.geomesa.kafka.RecordVersions
 import org.locationtech.geomesa.kafka.utils.{GeoMessage, GeoMessageSerializer}
+import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
 import org.opengis.filter.{Filter, Id}
 
@@ -120,6 +122,15 @@ object KafkaFeatureWriter {
       val record = new ProducerRecord(topic, key, value)
       headers.foreach { case (k, v) => RecordVersions.setHeader(record, k, v) }
       producer.send(record)
+    }
+  }
+
+  trait RequiredVisibilityWriter extends AppendKafkaFeatureWriter {
+    abstract override def write(): Unit = {
+      feature.getUserData.get(SecurityUtils.FEATURE_VISIBILITY) match {
+        case vis: String if !TextTools.isWhitespace(vis) => super.write()
+        case _ => throw new IllegalArgumentException("Visibility is required for writes")
+      }
     }
   }
 }

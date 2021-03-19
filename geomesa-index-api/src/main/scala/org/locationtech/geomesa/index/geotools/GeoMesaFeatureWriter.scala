@@ -31,8 +31,6 @@ import scala.util.control.NonFatal
 
 trait GeoMesaFeatureWriter[DS <: GeoMesaDataStore[DS]] extends SimpleFeatureWriter with Flushable with LazyLogging {
 
-  import scala.collection.JavaConverters._
-
   def ds: DS
   def sft: SimpleFeatureType
   def indices: Seq[GeoMesaFeatureIndex[_, _]]
