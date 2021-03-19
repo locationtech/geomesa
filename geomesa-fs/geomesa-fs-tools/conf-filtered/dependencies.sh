@@ -53,8 +53,9 @@ function dependencies() {
     "com.amazonaws:aws-java-sdk-s3:${aws_sdk_version}:jar"
     # joda-time required for aws sdk
     "joda-time:joda-time:2.8.1:jar"
-    "org.apache.httpcomponents:httpclient:4.3.4:jar"
-    "org.apache.httpcomponents:httpcore:4.3.3:jar"
+    # these are the versions used by hadoop 2.8 and 3.1
+    "org.apache.httpcomponents:httpclient:4.5.2:jar"
+    "org.apache.httpcomponents:httpcore:4.4.4:jar"
     "commons-httpclient:commons-httpclient:3.1:jar"
     "com.google.guava:guava:${guava_install_version}:jar"
   )
