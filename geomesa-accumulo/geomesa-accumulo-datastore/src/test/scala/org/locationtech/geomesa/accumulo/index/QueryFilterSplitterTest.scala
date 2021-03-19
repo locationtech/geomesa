@@ -565,6 +565,38 @@ class QueryFilterSplitterTest extends Specification {
           FilterSplitter.ExpandReduceThreshold.threadLocalValue.remove()
         }
       }
+
+      "use expand reduce processing when configured via system prop" >> {
+        val spec =
+          "attr1:Long:cardinality=high:index=true,attr2:Long:cardinality=high:index=true," +
+              "name:String:cardinality=high:index=true,dtg:Date,*geom:Point:srid=4326"
+        val sft = SimpleFeatureTypes.createType("multiAttr", spec)
+        sft.setIndices(GeoMesaFeatureIndexFactory.indices(sft))
+        val splitter = new FilterSplitter(sft, GeoMesaFeatureIndexFactory.create(null, sft, sft.getIndices))
+        val dtg1 = "dtg during 2020-01-01T00:00:00.000Z/2020-01-02T00:00:00.000Z"
+        val dtg2 = "dtg during 2020-01-03T00:00:00.000Z/2020-01-04T00:00:00.000Z"
+        val filter = f(s"((attr1=1 OR attr2=2) and $dtg1) OR ((attr1=3 OR attr2=4) and $dtg2)")
+
+        // initial option ignores the complex filter and gives us a z3 dtg-only filter
+        val options = splitter.getQueryOptions(filter)
+        options must haveLength(1)
+        options.head.strategies must haveLength(1)
+        options.head.strategies.head.index.name mustEqual Z3Index.name
+        options.head.strategies.head.primary must beSome(beEqualTo(or(dtg1, dtg2)))
+
+        // with the threshold set, we get 4 high-cardinality attribute filters instead
+        FilterSplitter.ExpandReduceThreshold.threadLocalValue.set("99")
+        try {
+          val options = splitter.getQueryOptions(filter)
+          options must haveLength(1)
+          options.head.strategies must haveLength(4)
+          foreach(options.head.strategies)(_.index.name mustEqual AttributeIndex.name)
+          options.head.strategies.map(_.primary.orNull) must
+              containTheSameElementsAs(Seq(f("attr1=1"), f("attr1=3"), f("attr2=2"), f("attr2=4")))
+        } finally {
+          FilterSplitter.ExpandReduceThreshold.threadLocalValue.remove()
+        }
+      }
     }
   }
 }
