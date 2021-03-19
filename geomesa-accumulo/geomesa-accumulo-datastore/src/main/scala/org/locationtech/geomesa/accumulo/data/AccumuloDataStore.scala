@@ -23,7 +23,7 @@ import org.locationtech.geomesa.accumulo.data.AccumuloBackedMetadata.SingleRowAc
 import org.locationtech.geomesa.accumulo.data.AccumuloDataStoreFactory.AccumuloDataStoreConfig
 import org.locationtech.geomesa.accumulo.data.stats._
 import org.locationtech.geomesa.accumulo.index._
-import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator, ProjectVersionIterator}
+import org.locationtech.geomesa.accumulo.iterators.{AgeOffIterator, DtgAgeOffIterator, ProjectVersionIterator, VisibilityIterator}
 import org.locationtech.geomesa.accumulo.util.TableUtils
 import org.locationtech.geomesa.index.api.GeoMesaFeatureIndex
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
@@ -250,6 +250,13 @@ class AccumuloDataStore(val connector: Connector, override val config: AccumuloD
     }
     if (sft.statsEnabled) {
       stats.configureStatCombiner(connector, sft)
+    }
+
+    if (previous.isVisibilityRequired != sft.isVisibilityRequired) {
+      VisibilityIterator.clear(this, previous)
+      if (sft.isVisibilityRequired) {
+        VisibilityIterator.set(this, sft)
+      }
     }
 
     AgeOffIterator.clear(this, previous)

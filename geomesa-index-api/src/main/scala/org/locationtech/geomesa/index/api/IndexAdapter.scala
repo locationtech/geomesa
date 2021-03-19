@@ -15,7 +15,11 @@ import org.locationtech.geomesa.index.api.IndexAdapter.IndexWriter
 import org.locationtech.geomesa.index.api.WritableFeature.FeatureWrapper
 import org.locationtech.geomesa.index.conf.ColumnGroups
 import org.locationtech.geomesa.index.geotools.GeoMesaDataStore
+import org.locationtech.geomesa.security.SecurityUtils
+import org.locationtech.geomesa.utils.text.TextTools
 import org.opengis.feature.simple.{SimpleFeature, SimpleFeatureType}
+
+import scala.util.control.NonFatal
 
 /**
   * Interface between generic methods and back-end specific code
@@ -121,29 +125,31 @@ object IndexAdapter {
   }
 
   /**
-    * Writes features to a particular back-end data store implementation
-    *
-    * @param indices indices being written to
-    * @param wrapper creates writable feature
-    */
+   * Writes features to a particular back-end data store implementation
+   *
+   * @param indices indices being written to
+   * @param wrapper creates writable feature
+   */
   abstract class BaseIndexWriter[T <: WritableFeature](
-      val indices: Seq[GeoMesaFeatureIndex[_, _]],
+      indices: Seq[GeoMesaFeatureIndex[_, _]],
       wrapper: FeatureWrapper[T]
     ) extends IndexWriter {
 
     private val converters = indices.map(_.createConverter()).toArray
     private val values = Array.ofDim[RowKeyValue[_]](indices.length)
 
-    private var i = 0
-
     override def write(feature: SimpleFeature, update: Boolean): Unit = {
       val writable = wrapper.wrap(feature)
 
-      i = 0
-      // calculate all the mutations up front to ensure that there aren't any validation errors
-      while (i < converters.length) {
-        values(i) = converters(i).convert(writable)
-        i +=1
+      try {
+        var i = 0
+        // calculate all the mutations up front to ensure that there aren't any validation errors
+        while (i < converters.length) {
+          values(i) = converters(i).convert(writable)
+          i +=1
+        }
+      } catch {
+        case NonFatal(e) => throw new IllegalArgumentException("Error creating keys for insert:", e)
       }
 
       write(writable, values, update)
@@ -152,11 +158,15 @@ object IndexAdapter {
     override def delete(feature: SimpleFeature): Unit = {
       val writable = wrapper.wrap(feature, delete = true)
 
-      i = 0
-      // we assume that all converters will pass as this feature was already written once
-      while (i < converters.length) {
-        values(i) = converters(i).convert(writable, lenient = true)
-        i += 1
+      try {
+        var i = 0
+        // we assume that all converters will pass as this feature was already written once
+        while (i < converters.length) {
+          values(i) = converters(i).convert(writable, lenient = true)
+          i += 1
+        }
+      } catch {
+        case NonFatal(e) => throw new IllegalArgumentException("Error creating keys for delete:", e)
       }
 
       delete(writable, values)
@@ -178,5 +188,25 @@ object IndexAdapter {
       * @param values derived values, one per index
       */
     protected def delete(feature: T, values: Array[RowKeyValue[_]]): Unit
+  }
+
+  /**
+   * Mixin trait to require visibilities on write
+   */
+  trait RequiredVisibilityWriter extends IndexWriter {
+
+    abstract override def write(feature: SimpleFeature, update: Boolean): Unit = {
+      feature.getUserData.get(SecurityUtils.FEATURE_VISIBILITY) match {
+        case vis: String if !TextTools.isWhitespace(vis) => super.write(feature, update)
+        case _ => throw new IllegalArgumentException("Visibility is required for writes")
+      }
+    }
+
+    abstract override def delete(feature: SimpleFeature): Unit = {
+      feature.getUserData.get(SecurityUtils.FEATURE_VISIBILITY) match {
+        case vis: String if !TextTools.isWhitespace(vis) => super.delete(feature)
+        case _ => throw new IllegalArgumentException("Visibility is required for deletes")
+      }
+    }
   }
 }
