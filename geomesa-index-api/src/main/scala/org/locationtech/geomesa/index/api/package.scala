@@ -235,48 +235,41 @@ package object api {
    * @param primary primary filter used for range generation
    * @param secondary secondary filter not captured in the ranges
    * @param temporal does the filter strategy have a temporal component
-   * @param toCost estimated cost of executing the query against this index
+   * @param costMultiplier a multiplier to take into account when evaluating the cost of this
+   *                 query plan. Values < 1f will prioritize this plan, while values > 1f
+   *                 will de-prioritize this plan
    */
-  class FilterStrategy(
-      val index: GeoMesaFeatureIndex[_, _],
-      val primary: Option[Filter],
-      val secondary: Option[Filter],
-      val temporal: Boolean,
-      toCost: => Long) {
+  case class FilterStrategy(
+      index: GeoMesaFeatureIndex[_, _],
+      primary: Option[Filter],
+      secondary: Option[Filter],
+      temporal: Boolean,
+      costMultiplier: Float) {
 
-    lazy val cost: Long = toCost
     lazy val filter: Option[Filter] = andOption(primary.toSeq ++ secondary)
+
+    def isFullTableScan: Boolean = primary.isEmpty
+
+    def isPreferredScan: Boolean = costMultiplier < FilterStrategy.PreferredMultiplierThreshold
 
     def getQueryStrategy(hints: Hints, explain: Explainer = ExplainNull): QueryStrategy =
       index.getQueryStrategy(this, hints, explain)
 
-    /**
-     * Copy without evaluating the cost
-     *
-     * @param secondary new secondary filter
-     * @param temporal new temporal flag
-     * @return
-     */
-    def copy(secondary: Option[Filter], temporal: Boolean = this.temporal): FilterStrategy =
-      new FilterStrategy(index, primary, secondary, temporal, toCost)
-
     override lazy val toString: String =
-      s"$index[${primary.map(filterToString).getOrElse("INCLUDE")}][${secondary.map(filterToString).getOrElse("None")}]"
+      s"$index[${primary.map(filterToString).getOrElse("INCLUDE")}]" +
+          s"[${secondary.map(filterToString).getOrElse("None")}]($costMultiplier)"
+
+    @deprecated("replaced with costMultiplier")
+    lazy val cost: Long = (costMultiplier * 100).toLong
+
+    // note: keeping this around seems to prevent calling the regular case class copy method :(
+    @deprecated("replaced with case class standard copy")
+    def copy(secondary: Option[Filter]): FilterStrategy =
+      FilterStrategy(index, primary, secondary, temporal, costMultiplier)
   }
 
   object FilterStrategy {
-
-    def apply(
-        index: GeoMesaFeatureIndex[_, _],
-        primary: Option[Filter],
-        secondary: Option[Filter],
-        temporal: Boolean,
-        toCost: => Long): FilterStrategy = {
-      new FilterStrategy(index, primary, secondary, temporal, toCost)
-    }
-
-    def unapply(f: FilterStrategy): Option[(GeoMesaFeatureIndex[_, _], Option[Filter], Option[Filter], Boolean, Long)] =
-      Some((f.index, f.primary, f.secondary, f.temporal, f.cost))
+    val PreferredMultiplierThreshold = 2f
   }
 
   /**

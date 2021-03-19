@@ -104,7 +104,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithFeatureType {
       getAttributeJoinStrategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
           "ageJoinIndex = 35", Some(Array("geom", "dtg", "ageJoinIndex")))
       getAttributeJoinStrategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
-          "nameHighCardinality > 'name990'")
+          "nameHighCardinality > 'name990'", Some(Array("nameHighCardinality", "geom", "dtg")))
       getAttributeJoinStrategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
           "nameHighCardinality IN ('name990', 'name991', 'name992', 'name993', 'name994')")
       getRecordStrategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
@@ -114,23 +114,23 @@ class QueryStrategyDeciderTest extends Specification with TestWithFeatureType {
     "select strategies that should result in zero rows scanned" >> {
       getZ2Strategy("bbox(geom,-75,0,-74.99,0.01) AND nameHighCardinality IN ('name990', 'name991', 'name992', 'name993', 'name994')")
       getAttributeJoinStrategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
-          "nameHighCardinality > 'zzz'")
+          "nameHighCardinality > 'zzz'", Some(Array("nameHighCardinality", "geom", "dtg")))
       getAttributeJoinStrategy("bbox(geom,-75,45,-65,55) AND dtg DURING 2016-03-01T00:00:00.000Z/2016-03-07T00:00:00.000Z AND " +
-          "nameHighCardinality > 'zzz' AND IN('name001', 'name002', 'name003')")
+          "nameHighCardinality > 'zzz' AND IN('name001', 'name002', 'name003')", Some(Array("nameHighCardinality", "geom", "dtg")))
     }
   }
 
   "Index-based strategy decisions" should {
 
-    def getStrategies(filter: Filter, explain: Explainer = ExplainNull): Seq[FilterStrategy] = {
+    def getStrategies(filter: Filter, transforms: Array[String] = null, explain: Explainer = ExplainNull): Seq[FilterStrategy] = {
       // default behavior for this test is to use the index-based query costs
-      val query = new Query(sftName, filter)
+      val query = new Query(sftName, filter, transforms)
       query.getHints.put(QueryHints.COST_EVALUATION, CostEvaluation.Index)
       ds.getQueryPlan(query, explainer = explain).map(_.filter)
     }
 
     def getStrategy(filter: String, expected: NamedIndex, explain: Explainer = ExplainNull) = {
-      val strategies = getStrategies(ECQL.toFilter(filter), explain)
+      val strategies = getStrategies(ECQL.toFilter(filter), null, explain)
       forall(strategies)(_.index.name mustEqual expected.name)
     }
 
@@ -406,7 +406,7 @@ class QueryStrategyDeciderTest extends Specification with TestWithFeatureType {
         val inQuery = "(nameHighCardinality IN ('a','b','c','d','e'))"
 
         forall(Seq(orQuery, inQuery)) { filter =>
-          val strats = getStrategies(ECQL.toFilter(s"$filter $st"))
+          val strats = getStrategies(ECQL.toFilter(s"$filter $st"), Array("nameHighCardinality", "geom", "dtg"))
           strats must haveLength(1)
           strats.head.index.name mustEqual JoinIndex.name
           strats.head.primary must beSome

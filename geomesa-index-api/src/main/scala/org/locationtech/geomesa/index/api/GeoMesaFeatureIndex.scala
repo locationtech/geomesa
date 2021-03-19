@@ -222,20 +222,27 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
   /**
     * Gets options for a 'simple' filter, where each OR is on a single attribute, e.g.
     *   (bbox1 OR bbox2) AND dtg
-    *   bbox AND dtg AND (attr1 = foo OR attr = bar)
+    *   bbox AND dtg AND (attr = foo OR attr = bar)
     * not:
     *   bbox OR dtg
     *
-    * Because the inputs are simple, each one can be satisfied with a single query filter.
-    * The returned values will each satisfy the query.
+    * Because the input is simple, it can be satisfied with a single query filter.
     *
     * @param filter input filter
     * @param transform attribute transforms
     * @return a filter strategy which can satisfy the query, if available
     */
-  def getFilterStrategy(filter: Filter,
-                        transform: Option[SimpleFeatureType],
-                        stats: Option[GeoMesaStats]): Option[FilterStrategy]
+  def getFilterStrategy(filter: Filter, transform: Option[SimpleFeatureType]): Option[FilterStrategy] = {
+    // TODO remove default impl in next major release
+    // noinspection ScalaDeprecation
+    getFilterStrategy(filter, transform, None)
+  }
+
+  @deprecated("replaced with getFilterStrategy(Filter,Option[SimpleFeatureType])")
+  def getFilterStrategy(
+      filter: Filter,
+      transform: Option[SimpleFeatureType],
+      stats: Option[GeoMesaStats]): Option[FilterStrategy] = throw new NotImplementedError()
 
   /**
     * Plans the query
@@ -372,7 +379,8 @@ abstract class GeoMesaFeatureIndex[T, U](val ds: GeoMesaDataStore[_],
     case _ => false
   }
 
-  override def hashCode(): Int = Seq(identifier, ds, sft, mode).map(_.hashCode()).foldLeft(0)((a, b) => 31 * a + b)
+  override def hashCode(): Int =
+    Seq(identifier, ds, sft, mode).collect { case o if o != null => o.hashCode() }.foldLeft(0)((a, b) => 31 * a + b)
 }
 
 object GeoMesaFeatureIndex {
