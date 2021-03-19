@@ -554,10 +554,17 @@ class QueryFilterSplitterTest extends Specification {
       sft.setIndices(GeoMesaFeatureIndexFactory.indices(sft))
       val splitter = new FilterSplitter(sft, GeoMesaFeatureIndexFactory.create(null, sft, sft.getIndices))
       val filter = f("(attr1=1 OR attr2=2 OR name='3') and dtg during 2020-01-01T00:00:00.000Z/2020-01-02T00:00:00.000Z")
-      val options = splitter.getQueryOptions(filter)
-      options must haveLength(2)
-      options.map(_.strategies.map(_.index.name)) must
-          containTheSameElementsAs(Seq(Seq(Z3Index.name), Seq.fill(3)(AttributeIndex.name)))
+      foreach(Seq("0", "10")) { threshold =>
+        FilterSplitter.ExpandReduceThreshold.threadLocalValue.set(threshold)
+        try {
+          val options = splitter.getQueryOptions(filter)
+          options must haveLength(2)
+          options.map(_.strategies.map(_.index.name)) must
+              containTheSameElementsAs(Seq(Seq(Z3Index.name), Seq.fill(3)(AttributeIndex.name)))
+        } finally {
+          FilterSplitter.ExpandReduceThreshold.threadLocalValue.remove()
+        }
+      }
     }
   }
 }
