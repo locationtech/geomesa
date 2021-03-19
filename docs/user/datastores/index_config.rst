@@ -638,6 +638,9 @@ Note that this configuration will prevent missing visibility labels in normal wr
 it is still possible to write unlabelled data through older clients, bulk loading, or direct access
 to the underlying database.
 
+In Accumulo data stores, setting this configuration will also set the Accumulo ``ReqVisFilter`` on all data
+tables, which will prevent any unlabelled data from being returned in queries.
+
 Mixed Geometry Types
 --------------------
 
