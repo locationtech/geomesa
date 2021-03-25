@@ -222,8 +222,10 @@ trait KafkaDataStoreParams extends NamespaceParams {
   val LazyLoad =
     new GeoMesaParam[java.lang.Boolean](
       "kafka.consumer.start-on-demand",
-      "Start consuming a topic only when that feature type is first requested. " +
-          "This can reduce load if some layers are never queried",
+      "The default behavior is to start consuming a topic only when that feature type is first requested. " +
+          "This can reduce load if some layers are never queried. Note that care should be taken when " +
+          "setting this to false, as the store will immediately start consuming from Kafka for all known " +
+          "feature types, which may require significant memory overhead.",
       default = Boolean.box(true),
       readWrite = ReadWriteFlag.ReadOnly
     )
