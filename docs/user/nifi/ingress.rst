@@ -54,3 +54,22 @@ and output them as NiFi records for further processing.
 Note that any processors with the same Kafka Group ID will split messages between the processors, as per standard
 Kafka consumer group behavior. Generally this is not desirable, and a unique group ID should be used for each
 processor.
+
+Attributes
+^^^^^^^^^^
+
+The ``GetGeoMesaKafkaRecord`` will set the following NiFi expression attributes, for use in the configured record writer:
+
++-------------------------------+---------------------------------------------------------------------------------------+
+| Attribute                     | Description                                                                           |
++===============================+=======================================================================================+
+| ``geomesa.id.col``            | The name of the Feature ID column in the output record                                |
++-------------------------------+---------------------------------------------------------------------------------------+
+| ``geomesa.geometry.cols``     | The name and types of any geometry columns in the output record, comma-separated      |
++-------------------------------+---------------------------------------------------------------------------------------+
+| ``geomesa.default.dtg.col``   | The name of the default date column in the output record                              |
++-------------------------------+---------------------------------------------------------------------------------------+
+| ``geomesa.json.cols``         | The name of any JSON-type string columns in the output record, comma-separated        |
++-------------------------------+---------------------------------------------------------------------------------------+
+| ``geomesa.visibilities.col``  | The name of the visibilities column in the output record                              |
++-------------------------------+---------------------------------------------------------------------------------------+

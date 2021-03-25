@@ -29,6 +29,5 @@ The ``ConvertToGeoFile`` processor also supports the converter properties detail
 GeoAvro Record Writer
 ~~~~~~~~~~~~~~~~~~~~~
 
-GeoMesa also provides a record writer which will write out data in the GeoAvro format.
-This component is configured as a service and then configured on a Processor which requires a record writer.
-The configuration mirrors that for the :ref:`nifi_record_input_configuration`.
+GeoMesa also provides a record writer which will write out data in the GeoAvro format. See
+:ref:`geoavro_record_writer` for more information.
