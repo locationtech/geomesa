@@ -93,8 +93,8 @@ Compatibility Matrix
 Version 3.2.0 Upgrade Guide
 +++++++++++++++++++++++++++
 
-Scala Support
--------------
+Scala Versions
+--------------
 
 GeoMesa now supports Scala 2.12. Scala 2.11 support has been deprecated and will be removed in a future version.
 
