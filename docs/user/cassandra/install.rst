@@ -133,10 +133,9 @@ are not bundled to allow for different versions. The distribution includes a scr
 the JARs: ``bin/install-dependencies.sh``. Call it with the path to the GeoServer ``WEB-INF/lib`` directory.
 By default, it will install the following JARs:
 
- * cassandra-all-3.11.4.jar
- * cassandra-driver-core-3.7.2.jar
- * cassandra-driver-mapping-3.7.2.jar
- * netty-all-4.1.17.Final.jar
+ * cassandra-all-3.11.8.jar
+ * cassandra-driver-core-3.10.2.jar
+ * netty-all-4.1.48.Final.jar
  * metrics-core-3.2.6.jar
  * logback-core-1.1.3.jar
  * logback-classic-1.1.3.jar
